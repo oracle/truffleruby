@@ -4071,7 +4071,7 @@ public abstract class StringNodes {
                 } catch (NumberFormatException e) {
                     // Try falling back to this implementation if the first fails, neither 100% complete
                     final Object result = ConvertBytes
-                            .byteListToInum19(
+                            .bytesToInum(
                                     getContext(),
                                     this,
                                     fixnumOrBignumNode,
@@ -5115,7 +5115,7 @@ public abstract class StringNodes {
                 @Cached BranchProfile exceptionProfile,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             try {
-                return ConvertBytes.byteListToInum19(
+                return ConvertBytes.bytesToInum(
                         getContext(),
                         this,
                         fixnumOrBignumNode,

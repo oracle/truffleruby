@@ -70,11 +70,10 @@ public class ConvertBytes {
     }
 
     /** rb_cstr_to_inum */
-
-    public static Object byteListToInum19(RubyContext context, Node node, FixnumOrBignumNode fixnumOrBignumNode,
+    public static Object bytesToInum(RubyContext context, Node node, FixnumOrBignumNode fixnumOrBignumNode,
             RopeNodes.BytesNode bytesNode, Object str, Rope strRope, int base, boolean badcheck) {
         return new ConvertBytes(context, node, fixnumOrBignumNode, bytesNode, str, strRope, base, badcheck)
-                .byteListToInum();
+                .bytesToInum();
     }
 
     /** conv_digit */
@@ -307,7 +306,7 @@ public class ConvertBytes {
     }
 
     @TruffleBoundary
-    public Object byteListToInum() {
+    public Object bytesToInum() {
         if (_str == null) {
             if (badcheck) {
                 invalidString();
@@ -550,16 +549,16 @@ public class ConvertBytes {
     }
 
     public static final byte[] intToBinaryBytes(int i) {
-        return intToUnsignedByteList(i, 1, LOWER_DIGITS).getBytes();
+        return intToUnsignedBytes(i, 1, LOWER_DIGITS).getBytes();
     }
 
     public static final byte[] intToOctalBytes(int i) {
-        return intToUnsignedByteList(i, 3, LOWER_DIGITS).getBytes();
+        return intToUnsignedBytes(i, 3, LOWER_DIGITS).getBytes();
     }
 
     public static final byte[] intToHexBytes(int i, boolean upper) {
-        RopeBuilder byteList = intToUnsignedByteList(i, 4, upper ? UPPER_DIGITS : LOWER_DIGITS);
-        return byteList.getBytes();
+        RopeBuilder ropeBuilder = intToUnsignedBytes(i, 4, upper ? UPPER_DIGITS : LOWER_DIGITS);
+        return ropeBuilder.getBytes();
     }
 
     public static final byte[] intToByteArray(int i, int radix, boolean upper) {
@@ -567,32 +566,32 @@ public class ConvertBytes {
     }
 
     public static final byte[] intToCharBytes(int i) {
-        return longToByteList(i, 10, LOWER_DIGITS).getBytes();
+        return longToBytes(i, 10, LOWER_DIGITS).getBytes();
     }
 
     public static final byte[] longToBinaryBytes(long i) {
-        return longToUnsignedByteList(i, 1, LOWER_DIGITS).getBytes();
+        return longToUnsignedBytes(i, 1, LOWER_DIGITS).getBytes();
     }
 
     public static final byte[] longToOctalBytes(long i) {
-        return longToUnsignedByteList(i, 3, LOWER_DIGITS).getBytes();
+        return longToUnsignedBytes(i, 3, LOWER_DIGITS).getBytes();
     }
 
     public static final byte[] longToHexBytes(long i, boolean upper) {
-        RopeBuilder byteList = longToUnsignedByteList(i, 4, upper ? UPPER_DIGITS : LOWER_DIGITS);
-        return byteList.getBytes();
+        RopeBuilder ropeBuilder = longToUnsignedBytes(i, 4, upper ? UPPER_DIGITS : LOWER_DIGITS);
+        return ropeBuilder.getBytes();
     }
 
     public static final byte[] longToByteArray(long i, int radix, boolean upper) {
-        RopeBuilder byteList = longToByteList(i, radix, upper ? UPPER_DIGITS : LOWER_DIGITS);
-        return byteList.getBytes();
+        RopeBuilder ropeBuilder = longToBytes(i, radix, upper ? UPPER_DIGITS : LOWER_DIGITS);
+        return ropeBuilder.getBytes();
     }
 
     public static final byte[] longToCharBytes(long i) {
-        return longToByteList(i, 10, LOWER_DIGITS).getBytes();
+        return longToBytes(i, 10, LOWER_DIGITS).getBytes();
     }
 
-    public static final RopeBuilder longToByteList(long i, int radix, byte[] digitmap) {
+    public static final RopeBuilder longToBytes(long i, int radix, byte[] digitmap) {
         if (i == 0) {
             return RopeBuilder.createRopeBuilder(ZERO_BYTES);
         }
@@ -622,7 +621,7 @@ public class ConvertBytes {
         return RopeBuilder.createRopeBuilder(buf, pos, len - pos);
     }
 
-    private static final RopeBuilder intToUnsignedByteList(int i, int shift, byte[] digitmap) {
+    private static final RopeBuilder intToUnsignedBytes(int i, int shift, byte[] digitmap) {
         byte[] buf = new byte[32];
         int charPos = 32;
         int radix = 1 << shift;
@@ -634,7 +633,7 @@ public class ConvertBytes {
         return RopeBuilder.createRopeBuilder(buf, charPos, (32 - charPos));
     }
 
-    private static final RopeBuilder longToUnsignedByteList(long i, int shift, byte[] digitmap) {
+    private static final RopeBuilder longToUnsignedBytes(long i, int shift, byte[] digitmap) {
         byte[] buf = new byte[64];
         int charPos = 64;
         int radix = 1 << shift;
