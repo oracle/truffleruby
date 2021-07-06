@@ -4420,22 +4420,14 @@ public abstract class StringNodes {
         @Specialization(
                 guards = {
                         "offset >= 0",
-                        "singleByteOptimizableNode.execute(stringRope)",
-                        "!patternFits(stringRope, patternRope, offset)" })
-        protected Object patternTooLarge(Rope stringRope, Rope patternRope, int offset) {
-            return nil;
-        }
-
-        @Specialization(
-                guards = {
-                        "offset >= 0",
-                        "singleByteOptimizableNode.execute(stringRope)",
-                        "patternFits(stringRope, patternRope, offset)" })
+                        "singleByteOptimizableNode.execute(stringRope)" })
         protected Object singleByteOptimizable(Rope stringRope, Rope patternRope, int offset,
                 @Cached RopeNodes.BytesNode stringBytesNode,
                 @Cached RopeNodes.BytesNode patternBytesNode,
                 @Cached LoopConditionProfile loopProfile,
                 @Cached("createCountingProfile()") ConditionProfile matchProfile) {
+
+            assert offset + patternRope.byteLength() <= stringRope.byteLength(); // otherwise returns in ruby fastpath
 
             int p = offset;
             final int e = stringRope.byteLength();
@@ -4467,6 +4459,8 @@ public abstract class StringNodes {
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached RopeNodes.BytesNode stringBytesNode,
                 @Cached RopeNodes.BytesNode patternBytesNode) {
+
+            assert offset + patternRope.byteLength() <= stringRope.byteLength(); // otherwise returns in ruby fastpath
 
             int p = 0;
             final int e = stringRope.byteLength();
@@ -4502,10 +4496,6 @@ public abstract class StringNodes {
             }
 
             return nil;
-        }
-
-        protected boolean patternFits(Rope stringRope, Rope patternRope, int offset) {
-            return offset + patternRope.byteLength() <= stringRope.byteLength();
         }
     }
 

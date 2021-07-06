@@ -1312,7 +1312,7 @@ class String
 
     Primitive.encoding_ensure_compatible self, str
 
-    return if str.size > size
+    return if str.size + start > size
 
     Primitive.string_character_index(self, str, start)
   end
