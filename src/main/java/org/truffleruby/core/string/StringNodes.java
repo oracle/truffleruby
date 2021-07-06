@@ -4403,7 +4403,7 @@ public abstract class StringNodes {
     @NodeChild(value = "string", type = RubyNode.class)
     @NodeChild(value = "pattern", type = RubyNode.class)
     @NodeChild(value = "offset", type = RubyNode.class)
-    public abstract static class StringCharacterIndexPrimitiveNode extends PrimitiveNode {
+    public abstract static class StringCharacterIndexNode extends PrimitiveNode {
 
         @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
 
@@ -4422,7 +4422,7 @@ public abstract class StringNodes {
                         "offset >= 0",
                         "singleByteOptimizableNode.execute(stringRope)",
                         "!patternFits(stringRope, patternRope, offset)" })
-        protected Object stringCharacterIndexPatternTooLarge(Rope stringRope, Rope patternRope, int offset) {
+        protected Object patternTooLarge(Rope stringRope, Rope patternRope, int offset) {
             return nil;
         }
 
@@ -4431,7 +4431,7 @@ public abstract class StringNodes {
                         "offset >= 0",
                         "singleByteOptimizableNode.execute(stringRope)",
                         "patternFits(stringRope, patternRope, offset)" })
-        protected Object stringCharacterIndexSingleByteOptimizable(Rope stringRope, Rope patternRope, int offset,
+        protected Object singleByteOptimizable(Rope stringRope, Rope patternRope, int offset,
                 @Cached RopeNodes.BytesNode stringBytesNode,
                 @Cached RopeNodes.BytesNode patternBytesNode,
                 @Cached LoopConditionProfile loopProfile,
@@ -4463,7 +4463,7 @@ public abstract class StringNodes {
                 guards = {
                         "offset >= 0",
                         "!singleByteOptimizableNode.execute(stringRope)" })
-        protected Object stringCharacterIndex(Rope stringRope, Rope patternRope, int offset,
+        protected Object multiByte(Rope stringRope, Rope patternRope, int offset,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached RopeNodes.BytesNode stringBytesNode,
                 @Cached RopeNodes.BytesNode patternBytesNode) {
@@ -4514,7 +4514,7 @@ public abstract class StringNodes {
     @NodeChild(value = "string", type = RubyNode.class)
     @NodeChild(value = "pattern", type = RubyNode.class)
     @NodeChild(value = "offset", type = RubyNode.class)
-    public abstract static class StringByteIndexPrimitiveNode extends PrimitiveNode {
+    public abstract static class StringByteIndexNode extends PrimitiveNode {
 
         @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
 
@@ -4529,7 +4529,7 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "offset >= 0", "!patternFits(stringRope, patternRope, offset)" })
-        protected Object stringByteIndexPatternTooLarge(Rope stringRope, Rope patternRope, int offset) {
+        protected Object patternTooLarge(Rope stringRope, Rope patternRope, int offset) {
             return nil;
         }
 
@@ -4538,7 +4538,7 @@ public abstract class StringNodes {
                         "offset >= 0",
                         "singleByteOptimizableNode.execute(stringRope)",
                         "patternFits(stringRope, patternRope, offset)" })
-        protected Object stringByteIndexSingleByteOptimizable(Rope stringRope, Rope patternRope, int offset,
+        protected Object singleByteOptimizable(Rope stringRope, Rope patternRope, int offset,
                 @Cached RopeNodes.BytesNode stringBytesNode,
                 @Cached RopeNodes.BytesNode patternBytesNode,
                 @Cached LoopConditionProfile loopProfile,
@@ -4571,7 +4571,7 @@ public abstract class StringNodes {
                         "offset >= 0",
                         "!singleByteOptimizableNode.execute(stringRope)",
                         "patternFits(stringRope, patternRope, offset)" })
-        protected Object stringByteIndex(Rope stringRope, Rope patternRope, int offset,
+        protected Object multiByte(Rope stringRope, Rope patternRope, int offset,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached RopeNodes.BytesNode stringBytesNode,
                 @Cached RopeNodes.BytesNode patternBytesNode) {

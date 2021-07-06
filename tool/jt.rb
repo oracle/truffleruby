@@ -2314,7 +2314,7 @@ module Commands
     format_specializations_check
   end
 
-  private def check_filename_length
+  def check_filename_length
     # For eCryptfs, see https://bugs.launchpad.net/ecryptfs/+bug/344878
     max_length = 143
 
