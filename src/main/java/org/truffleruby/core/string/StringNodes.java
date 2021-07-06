@@ -4504,7 +4504,7 @@ public abstract class StringNodes {
         }
 
         protected boolean patternFits(Rope stringRope, Rope patternRope, int offset) {
-            return patternRope.byteLength() + offset <= stringRope.byteLength();
+            return offset + patternRope.byteLength() <= stringRope.byteLength();
         }
     }
 
@@ -4526,16 +4526,11 @@ public abstract class StringNodes {
             return ToRopeNodeGen.create(pattern);
         }
 
-        @Specialization(guards = "offset < 0")
-        protected Object stringByteIndexNegativeOffset(Rope stringRope, Rope patternRope, int offset) {
-            return nil;
-        }
-
         @Specialization(
                 guards = {
                         "offset >= 0",
                         "singleByteOptimizableNode.execute(stringRope)",
-                        "patternRope.byteLength() > stringRope.byteLength()" })
+                        "!patternFits(stringRope, patternRope, offset)" })
         protected Object stringByteIndexPatternTooLarge(Rope stringRope, Rope patternRope, int offset) {
             return nil;
         }
@@ -4544,7 +4539,7 @@ public abstract class StringNodes {
                 guards = {
                         "offset >= 0",
                         "singleByteOptimizableNode.execute(stringRope)",
-                        "patternRope.byteLength() <= stringRope.byteLength()" })
+                        "patternFits(stringRope, patternRope, offset)" })
         protected Object stringByteIndexSingleByteOptimizable(Rope stringRope, Rope patternRope, int offset,
                 @Cached RopeNodes.BytesNode stringBytesNode,
                 @Cached RopeNodes.BytesNode patternBytesNode,
@@ -4577,7 +4572,7 @@ public abstract class StringNodes {
                 guards = {
                         "offset >= 0",
                         "!singleByteOptimizableNode.execute(stringRope)",
-                        "patternRope.byteLength() <= stringRope.byteLength()" })
+                        "patternFits(stringRope, patternRope, offset)" })
         protected Object stringByteIndex(Rope stringRope, Rope patternRope, int offset,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached RopeNodes.BytesNode stringBytesNode,
@@ -4606,6 +4601,10 @@ public abstract class StringNodes {
             }
 
             return nil;
+        }
+
+        protected boolean patternFits(Rope stringRope, Rope patternRope, int offset) {
+            return offset + patternRope.byteLength() <= stringRope.byteLength();
         }
     }
 
