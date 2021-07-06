@@ -74,7 +74,7 @@ public class EncodingManager {
 
         while (hei.hasNext()) {
             final CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = hei.next();
-            final RubyEncoding rubyEncoding = defineBuiltInEncoding(e.value, e.bytes, e.p, e.end);
+            final RubyEncoding rubyEncoding = defineBuiltInEncoding(e.value);
             for (String constName : EncodingUtils.encodingNames(e.bytes, e.p, e.end)) {
                 encodingClass.fields.setConstant(context, null, constName, rubyEncoding);
             }
@@ -232,18 +232,11 @@ public class EncodingManager {
     }
 
     @TruffleBoundary
-    public synchronized RubyEncoding defineBuiltInEncoding(EncodingDB.Entry encodingEntry, byte[] name, int p,
-            int end) {
+    public synchronized RubyEncoding defineBuiltInEncoding(EncodingDB.Entry encodingEntry) {
         final int encodingIndex = encodingEntry.getEncoding().getIndex();
         final RubyEncoding rubyEncoding = Encodings.getBuiltInEncoding(encodingIndex);
 
-        assert encodingIndex >= ENCODING_LIST_BY_ENCODING_INDEX.length ||
-                ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] == null;
-
-        if (encodingIndex >= ENCODING_LIST_BY_ENCODING_INDEX.length) {
-            ENCODING_LIST_BY_ENCODING_INDEX = Arrays
-                    .copyOf(ENCODING_LIST_BY_ENCODING_INDEX, encodingIndex + 1);
-        }
+        assert ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] == null;
         ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] = rubyEncoding;
 
         LOOKUP.put(rubyEncoding.encoding.toString().toLowerCase(Locale.ENGLISH), rubyEncoding);
@@ -252,26 +245,20 @@ public class EncodingManager {
     }
 
     @TruffleBoundary
-    public synchronized RubyEncoding defineEncoding(EncodingDB.Entry encodingEntry, byte[] name, int p, int end,
+    public synchronized RubyEncoding defineDynamicEncoding(Encoding encoding, byte[] name, int p, int end,
             boolean dummy) {
         final int encodingIndex = ENCODING_LIST_BY_ENCODING_INDEX.length;
 
         final RubyEncoding rubyEncoding = Encodings.newRubyEncoding(
                 language,
-                encodingEntry.getEncoding(),
+                encoding,
                 encodingIndex,
                 name,
                 p,
                 end,
                 dummy);
 
-        assert encodingIndex >= ENCODING_LIST_BY_ENCODING_INDEX.length ||
-                ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] == null;
-
-        if (encodingIndex >= ENCODING_LIST_BY_ENCODING_INDEX.length) {
-            ENCODING_LIST_BY_ENCODING_INDEX = Arrays
-                    .copyOf(ENCODING_LIST_BY_ENCODING_INDEX, encodingIndex + 1);
-        }
+        ENCODING_LIST_BY_ENCODING_INDEX = Arrays.copyOf(ENCODING_LIST_BY_ENCODING_INDEX, encodingIndex + 1);
         ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] = rubyEncoding;
 
         LOOKUP.put(RopeOperations.decodeRope(rubyEncoding.name.rope).toLowerCase(Locale.ENGLISH), rubyEncoding);
@@ -292,21 +279,18 @@ public class EncodingManager {
             return null;
         }
 
-        final EncodingDB.Entry entry = EncodingDB.getEncodings().get("US-ASCII".getBytes());
-
         final byte[] nameBytes = RopeOperations.encodeAsciiBytes(name);
-        return defineEncoding(entry, nameBytes, 0, nameBytes.length, true);
+        return defineDynamicEncoding(Encodings.BINARY.encoding, nameBytes, 0, nameBytes.length, true);
     }
 
     @TruffleBoundary
-    public synchronized RubyEncoding replicateEncoding(Encoding encoding, String name) {
+    public synchronized RubyEncoding replicateEncoding(RubyEncoding encoding, String name) {
         if (getRubyEncoding(name) != null) {
             return null;
         }
 
-        final EncodingDB.Entry entry = EncodingDB.getEncodings().get(encoding.getName());
         final byte[] nameBytes = RopeOperations.encodeAsciiBytes(name);
-        return defineEncoding(entry, nameBytes, 0, nameBytes.length, entry.getEncoding().isDummy());
+        return defineDynamicEncoding(encoding.encoding, nameBytes, 0, nameBytes.length, encoding.dummy);
     }
 
     @TruffleBoundary

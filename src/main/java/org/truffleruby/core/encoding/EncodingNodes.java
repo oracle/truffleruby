@@ -80,6 +80,12 @@ public abstract class EncodingNodes {
             return GetRubyEncodingNodeGen.create();
         }
 
+        /**
+         * This returns only the built-in RubyEncoding for the given Encoding. It will not return
+         * dummy/replicate encodings that might be associated to an Encoding so this should rarely be used.
+         * @param encoding
+         * @return a built-in RubyEncoding
+         */
         public abstract RubyEncoding executeGetRubyEncoding(Encoding encoding);
 
         @Specialization(guards = "isSameEncoding(encoding, cachedRubyEncoding)", limit = "getCacheLimit()")
@@ -98,8 +104,7 @@ public abstract class EncodingNodes {
         }
 
         protected int getCacheLimit() {
-            return 8;
-            //            return getLanguage().options.ENCODING_LOADED_CLASSES_CACHE;
+            return getLanguage().options.ENCODING_LOADED_CLASSES_CACHE;
         }
 
     }
@@ -713,14 +718,13 @@ public abstract class EncodingNodes {
         protected RubyArray encodingReplicate(RubyEncoding object, Object nameObject,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             final String name = strings.getJavaString(nameObject);
-            final Encoding encoding = object.encoding;
 
-            final RubyEncoding newEncoding = replicate(name, encoding);
+            final RubyEncoding newEncoding = replicate(name, object);
             return setIndexOrRaiseError(name, newEncoding);
         }
 
         @TruffleBoundary
-        private RubyEncoding replicate(String name, Encoding encoding) {
+        private RubyEncoding replicate(String name, RubyEncoding encoding) {
             return getContext().getEncodingManager().replicateEncoding(encoding, name);
         }
 

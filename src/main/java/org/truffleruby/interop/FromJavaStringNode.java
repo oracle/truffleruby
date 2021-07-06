@@ -41,10 +41,8 @@ public abstract class FromJavaStringNode extends RubyBaseNode {
     protected RubyString doCached(String value,
             @Cached("value") String cachedValue,
             @Cached("getRope(value)") Rope cachedRope,
-            @Cached StringNodes.MakeStringNode makeStringNode,
-            @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode) {
-        final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(cachedRope.encoding);
-        return makeStringNode.fromRope(cachedRope, rubyEncoding);
+            @Cached StringNodes.MakeStringNode makeStringNode) {
+        return makeStringNode.fromRope(cachedRope, Encodings.UTF_8);
     }
 
     @Specialization(replaces = "doCached")
