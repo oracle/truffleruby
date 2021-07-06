@@ -201,7 +201,34 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             return 0;
         }
 
-        try (Context context = createContext(contextBuilder, config)) {
+        if (config.isGemOrBundle() && getImplementationNameFromEngine().contains("Graal")) {
+            // Apply options to run gem/bundle more efficiently
+            contextBuilder.option("engine.Mode", "latency");
+            if (Boolean.getBoolean("truffleruby.launcher.log")) {
+                System.err.println("[ruby] CONFIG: detected gem or bundle command, using --engine.Mode=latency");
+            }
+        }
+
+        contextBuilder.options(config.getOptions());
+
+        contextBuilder.arguments(TruffleRuby.LANGUAGE_ID, config.getArguments());
+
+        int result = runContext(contextBuilder, config);
+
+        final boolean runTwice = config.getUnknownArguments().contains("--run-twice") ||
+                config.getUnknownArguments().contains("--run-twice=true");
+        if (runTwice) {
+            final int secondResult = runContext(contextBuilder, config);
+            if (secondResult != 0 && result == 0) {
+                result = secondResult;
+            }
+        }
+
+        return result;
+    }
+
+    private int runContext(Context.Builder builder, CommandLineOptions config) {
+        try (Context context = builder.build()) {
             Metrics.printTime("before-run");
 
             if (config.executionAction == ExecutionAction.PATH) {
@@ -242,22 +269,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             e.printStackTrace();
             return 1;
         }
-    }
-
-    private Context createContext(Context.Builder builder, CommandLineOptions config) {
-        if (config.isGemOrBundle() && getImplementationNameFromEngine().contains("Graal")) {
-            // Apply options to run gem/bundle more efficiently
-            builder.option("engine.Mode", "latency");
-            if (Boolean.getBoolean("truffleruby.launcher.log")) {
-                System.err.println("[ruby] CONFIG: detected gem or bundle command, using --engine.Mode=latency");
-            }
-        }
-
-        builder.options(config.getOptions());
-
-        builder.arguments(TruffleRuby.LANGUAGE_ID, config.getArguments());
-
-        return builder.build();
     }
 
     private static List<String> getArgsFromEnvVariable(String name) {

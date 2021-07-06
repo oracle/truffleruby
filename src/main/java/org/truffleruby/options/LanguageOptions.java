@@ -122,7 +122,9 @@ public class LanguageOptions {
     public final boolean SHARED_OBJECTS_DEBUG;
     /** --shared-objects-force=false */
     public final boolean SHARED_OBJECTS_FORCE;
-    /** --experimental-engine-caching=false */
+    /** --run-twice=false */
+    public final boolean RUN_TWICE;
+    /** --experimental-engine-caching=RUN_TWICE */
     public final boolean EXPERIMENTAL_ENGINE_CACHING;
 
     public LanguageOptions(Env env, OptionValues options, boolean singleContext) {
@@ -176,7 +178,8 @@ public class LanguageOptions {
         SHARED_OBJECTS_ENABLED = options.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY);
         SHARED_OBJECTS_DEBUG = options.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY);
         SHARED_OBJECTS_FORCE = options.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY);
-        EXPERIMENTAL_ENGINE_CACHING = options.get(OptionsCatalog.EXPERIMENTAL_ENGINE_CACHING_KEY);
+        RUN_TWICE = options.get(OptionsCatalog.RUN_TWICE_KEY);
+        EXPERIMENTAL_ENGINE_CACHING = options.hasBeenSet(OptionsCatalog.EXPERIMENTAL_ENGINE_CACHING_KEY) ? options.get(OptionsCatalog.EXPERIMENTAL_ENGINE_CACHING_KEY) : RUN_TWICE;
     }
 
     public Object fromDescriptor(OptionDescriptor descriptor) {
@@ -281,6 +284,8 @@ public class LanguageOptions {
                 return SHARED_OBJECTS_DEBUG;
             case "ruby.shared-objects-force":
                 return SHARED_OBJECTS_FORCE;
+            case "ruby.run-twice":
+                return RUN_TWICE;
             case "ruby.experimental-engine-caching":
                 return EXPERIMENTAL_ENGINE_CACHING;
             default:
@@ -339,6 +344,7 @@ public class LanguageOptions {
                one.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY).equals(two.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY)) &&
                one.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY).equals(two.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY)) &&
                one.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY).equals(two.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY)) &&
+               one.get(OptionsCatalog.RUN_TWICE_KEY).equals(two.get(OptionsCatalog.RUN_TWICE_KEY)) &&
                one.get(OptionsCatalog.EXPERIMENTAL_ENGINE_CACHING_KEY).equals(two.get(OptionsCatalog.EXPERIMENTAL_ENGINE_CACHING_KEY));
     }
 
@@ -693,6 +699,13 @@ public class LanguageOptions {
         newValue = newOptions.SHARED_OBJECTS_FORCE;
         if (!newValue.equals(oldValue)) {
             logger.fine("not reusing pre-initialized context: --shared-objects-force differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.RUN_TWICE;
+        newValue = newOptions.RUN_TWICE;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --run-twice differs, was: " + oldValue + " and is now: " + newValue);
             return false;
         }
 
