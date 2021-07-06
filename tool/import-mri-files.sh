@@ -40,10 +40,6 @@ rm lib/mri/debug.rb
 find lib/mri -name '*.gemspec' -delete
 find lib/mri -name '.document' -delete
 
-# We keep our own implementation of monitors in lib/truffle, but we'll
-# copy across from MRI so that we notice changes.
-rm lib/truffle/monitor.rb
-
 # *.c
 cp ../ruby/st.c src/main/c/cext/st.c
 
@@ -55,7 +51,7 @@ cp -r ../ruby/ext/digest/sha2/lib/* lib/mri/digest
 cp -r ../ruby/ext/fiddle/lib/fiddle lib/mri
 cp -r ../ruby/ext/fiddle/lib/fiddle.rb lib/mri
 cp ../ruby/ext/nkf/lib/*.rb lib/mri
-cp ../ruby/ext/monitor/lib/*.rb lib/truffle
+cp ../ruby/ext/monitor/lib/*.rb lib/mri
 cp -r ../ruby/ext/openssl/lib/* lib/mri
 cp ../ruby/ext/pty/lib/*.rb lib/mri
 cp ../ruby/ext/psych/lib/psych.rb lib/mri
