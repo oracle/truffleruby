@@ -4418,15 +4418,14 @@ public abstract class StringNodes {
         }
 
         @Specialization(
-                guards = {
-                        "offset >= 0",
-                        "singleByteOptimizableNode.execute(stringRope)" })
+                guards = { "singleByteOptimizableNode.execute(stringRope)" })
         protected Object singleByteOptimizable(Rope stringRope, Rope patternRope, int offset,
                 @Cached RopeNodes.BytesNode stringBytesNode,
                 @Cached RopeNodes.BytesNode patternBytesNode,
                 @Cached LoopConditionProfile loopProfile,
                 @Cached("createCountingProfile()") ConditionProfile matchProfile) {
 
+            assert offset >= 0;
             assert offset + patternRope.byteLength() <= stringRope.byteLength(); // otherwise returns in ruby fastpath
 
             int p = offset;
@@ -4452,14 +4451,13 @@ public abstract class StringNodes {
 
         @TruffleBoundary
         @Specialization(
-                guards = {
-                        "offset >= 0",
-                        "!singleByteOptimizableNode.execute(stringRope)" })
+                guards = { "!singleByteOptimizableNode.execute(stringRope)" })
         protected Object multiByte(Rope stringRope, Rope patternRope, int offset,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached RopeNodes.BytesNode stringBytesNode,
                 @Cached RopeNodes.BytesNode patternBytesNode) {
 
+            assert offset >= 0;
             assert offset + patternRope.byteLength() <= stringRope.byteLength(); // otherwise returns in ruby fastpath
 
             int p = 0;
