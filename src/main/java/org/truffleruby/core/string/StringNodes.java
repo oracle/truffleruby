@@ -4064,6 +4064,7 @@ public abstract class StringNodes {
             if (rope.isEmpty()) {
                 return nil;
             }
+
             final String javaString = strings.getJavaString(string);
             if (javaString.startsWith("0x")) {
                 try {
@@ -4076,8 +4077,7 @@ public abstract class StringNodes {
                                     this,
                                     fixnumOrBignumNode,
                                     bytesNode,
-                                    string,
-                                    strings.getRope(string),
+                                    rope,
                                     16,
                                     true);
                     if (result instanceof Integer) {
@@ -5114,14 +5114,15 @@ public abstract class StringNodes {
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached BranchProfile exceptionProfile,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
+            final Rope rope = libString.getRope(string);
+
             try {
                 return ConvertBytes.bytesToInum(
                         getContext(),
                         this,
                         fixnumOrBignumNode,
                         bytesNode,
-                        string,
-                        libString.getRope(string),
+                        rope,
                         fixBase,
                         strict);
             } catch (RaiseException e) {
