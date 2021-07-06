@@ -47,6 +47,8 @@ public class ConvertBytes {
             Rope rope,
             int base,
             boolean badcheck) {
+        assert rope != null;
+
         this.context = context;
         this.caller = caller;
         this.fixnumOrBignumNode = fixnumOrBignumNode;
@@ -304,13 +306,6 @@ public class ConvertBytes {
 
     @TruffleBoundary
     public Object bytesToInum() {
-        if (rope == null) {
-            if (badcheck) {
-                invalidString();
-            }
-            return 0;
-        }
-
         ignoreLeadingWhitespace();
 
         boolean sign = getSign();
