@@ -107,13 +107,7 @@ module MonitorMixin
     # even if no other thread doesn't signal.
     #
     def wait(timeout = nil)
-      if timeout
-        raise ArgumentError, 'Timeout must be positive' if timeout < 0
-        timeout = timeout * 1_000_000_000
-        timeout = Primitive.rb_num2long(timeout)
-      end
-
-      Primitive.condition_variable_wait(self, nil, timeout)
+      super(@mon_mutex, timeout)
     end
 
     #
@@ -132,6 +126,12 @@ module MonitorMixin
       until yield
         wait
       end
+    end
+
+    private
+
+    def initialize(mutex)
+      @mon_mutex = mutex
     end
   end
 
@@ -192,7 +192,7 @@ module MonitorMixin
   # receiver.
   #
   def new_cond
-    Primitive.mutex_linked_condition_variable(ConditionVariable, @mon_mutex)
+    ConditionVariable.new(@mon_mutex)
   end
 
   # Use <tt>extend MonitorMixin</tt> or <tt>include MonitorMixin</tt> instead

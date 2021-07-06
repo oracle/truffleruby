@@ -82,26 +82,6 @@ public abstract class ConditionVariableNodes {
             return condVar;
         }
 
-        @Specialization
-        protected RubyConditionVariable noMutexNoTimeout(RubyConditionVariable condVar, Nil mutex, Nil timeout,
-                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
-                @Cached BranchProfile errorProfile) {
-            final RubyThread thread = getCurrentRubyThreadNode.execute();
-
-            waitInternal(condVar, null, thread, -1);
-            return condVar;
-        }
-
-        @Specialization
-        protected RubyConditionVariable noMutexWithTimeout(RubyConditionVariable condVar, Nil mutex, long timeout,
-                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
-                @Cached BranchProfile errorProfile) {
-            final RubyThread thread = getCurrentRubyThreadNode.execute();
-
-            waitInternal(condVar, null, thread, timeout);
-            return condVar;
-        }
-
         @TruffleBoundary
         private void waitInternal(RubyConditionVariable conditionVariable, ReentrantLock mutexLock,
                 RubyThread thread, long durationInNanos) {
@@ -123,9 +103,11 @@ public abstract class ConditionVariableNodes {
             // If there is an interrupt, it should be consumed by condition.await() and the Ruby Thread sleep status
             // must imply being ready to be interrupted by Thread#{run,wakeup}.
             condLock.lock();
+            int holdCount = 0;
             try {
-                if (mutexLock != null) {
+                while (mutexLock.isHeldByCurrentThread()) {
                     mutexLock.unlock();
+                    holdCount++;
                 }
 
                 conditionVariable.waiters++;
@@ -143,8 +125,12 @@ public abstract class ConditionVariableNodes {
                 }
             } finally {
                 condLock.unlock();
-                if (mutexLock != null) {
-                    MutexOperations.internalLockEvenWithException(getContext(), mutexLock, this);
+                MutexOperations.internalLockEvenWithException(getContext(), mutexLock, this);
+                if (holdCount > 1) {
+                    // We know we already hold the lock, so we can skip the rest of the logic at this point.
+                    for (int i = 1; i < holdCount; i++) {
+                        mutexLock.tryLock();
+                    }
                 }
             }
         }

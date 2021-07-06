@@ -9,44 +9,23 @@
  */
 package org.truffleruby.core.monitor;
 
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
-
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
-import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.mutex.MutexOperations;
-import org.truffleruby.core.mutex.RubyConditionVariable;
 import org.truffleruby.core.mutex.RubyMutex;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.yield.CallBlockNode;
 
 @CoreModule("Truffle::MonitorOperations")
 public abstract class TruffleMonitorNodes {
-
-    @Primitive(name = "mutex_linked_condition_variable")
-    public abstract static class LinkedConditionVariableNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected RubyConditionVariable linkedConditionVariable(RubyClass rubyClass, RubyMutex mutex) {
-            final ReentrantLock condLock = mutex.lock;
-            final Condition condition = MutexOperations.newCondition(condLock);
-            final Shape shape = getLanguage().conditionVariableShape;
-            final RubyConditionVariable instance = new RubyConditionVariable(rubyClass, shape, condLock, condition);
-            AllocationTracing.trace(instance, this);
-            return instance;
-        }
-    }
 
     @Primitive(name = "monitor_synchronize")
     public abstract static class SynchronizeNode extends CoreMethodArrayArgumentsNode {
