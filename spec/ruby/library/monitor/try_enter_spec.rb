@@ -7,11 +7,8 @@ describe "Monitor#try_enter" do
     10.times do
 
       thread = Thread.new do
-        begin
-          val = monitor.try_enter
-        ensure
-          monitor.exit if val
-        end
+        val = monitor.try_enter
+        monitor.exit if val
         val
       end
 
@@ -23,35 +20,19 @@ describe "Monitor#try_enter" do
   it "will not acquire a monitor already held by another thread" do
     monitor = Monitor.new
     10.times do
-      locked = false
-
-      thread1 = Thread.new do
-        begin
-          monitor.enter
-          locked = true
-          sleep # wait for wakeup.
-        ensure
-          monitor.exit
-        end
-      end
-
-      Thread.pass until locked
-      monitor.mon_locked?.should == true
-
-      thread2 = Thread.new do
-        begin
+      monitor.enter
+      begin
+        thread = Thread.new do
           val = monitor.try_enter
-        ensure
           monitor.exit if val
+          val
         end
-        val
+
+        thread.join
+        thread.value.should == false
+      ensure
+        monitor.exit
       end
-
-      thread2.join
-      thread2.value.should == false
-
-      thread1.wakeup
-      thread1.join
       monitor.mon_locked?.should == false
     end
   end
