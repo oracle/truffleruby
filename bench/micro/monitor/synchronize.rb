@@ -8,8 +8,8 @@
 
 require 'monitor'
 
+m = Monitor.new
 benchmark 'monitor-synchronize' do
-  m = Monitor.new
   m.synchronize do
   end
 end
