@@ -4398,6 +4398,7 @@ public abstract class StringNodes {
         }
     }
 
+    /** Search pattern in string starting after offset characters, and return a character index or nil */
     @Primitive(name = "string_character_index", lowerFixnum = 2)
     @NodeChild(value = "string", type = RubyNode.class)
     @NodeChild(value = "pattern", type = RubyNode.class)
@@ -4508,6 +4509,7 @@ public abstract class StringNodes {
         }
     }
 
+    /** Search pattern in string starting after offset bytes, and return a byte index or nil */
     @Primitive(name = "string_byte_index", lowerFixnum = 2)
     @NodeChild(value = "string", type = RubyNode.class)
     @NodeChild(value = "pattern", type = RubyNode.class)
