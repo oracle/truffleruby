@@ -4528,11 +4528,7 @@ public abstract class StringNodes {
             return ToRopeNodeGen.create(pattern);
         }
 
-        @Specialization(
-                guards = {
-                        "offset >= 0",
-                        "singleByteOptimizableNode.execute(stringRope)",
-                        "!patternFits(stringRope, patternRope, offset)" })
+        @Specialization(guards = { "offset >= 0", "!patternFits(stringRope, patternRope, offset)" })
         protected Object stringByteIndexPatternTooLarge(Rope stringRope, Rope patternRope, int offset) {
             return nil;
         }
@@ -4590,7 +4586,7 @@ public abstract class StringNodes {
 
             final Encoding enc = stringRope.getEncoding();
             final CodeRange cr = stringRope.getCodeRange();
-            int c = 0;
+            int c;
 
             for (; p < l; p += c) {
                 c = calculateCharacterLengthNode.characterLength(enc, cr, Bytes.fromRange(stringBytes, p, e));
