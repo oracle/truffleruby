@@ -11,9 +11,7 @@ package org.truffleruby.interop;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.encoding.Encodings;
-import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;

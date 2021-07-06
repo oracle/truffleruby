@@ -80,12 +80,11 @@ public abstract class EncodingNodes {
             return GetRubyEncodingNodeGen.create();
         }
 
-        /**
-         * This returns only the built-in RubyEncoding for the given Encoding. It will not return
-         * dummy/replicate encodings that might be associated to an Encoding so this should rarely be used.
+        /** This returns only the built-in RubyEncoding for the given Encoding. It will not return dummy/replicate
+         * encodings that might be associated to an Encoding so this should rarely be used.
+         * 
          * @param encoding
-         * @return a built-in RubyEncoding
-         */
+         * @return a built-in RubyEncoding */
         public abstract RubyEncoding executeGetRubyEncoding(Encoding encoding);
 
         @Specialization(guards = "isSameEncoding(encoding, cachedRubyEncoding)", limit = "getCacheLimit()")
