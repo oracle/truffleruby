@@ -11,6 +11,7 @@ package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
+import org.jcodings.Encoding;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.Rope;
@@ -55,6 +56,11 @@ public class RubyString extends RubyDynamicObject {
     @Override
     public String toString() {
         return rope.toString();
+    }
+
+    public Encoding getJCoding() {
+        assert encoding.encoding == rope.encoding;
+        return encoding.encoding;
     }
 
     // region RubyStringLibrary messages

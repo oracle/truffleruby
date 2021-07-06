@@ -31,8 +31,7 @@ public abstract class ToEncodingNode extends RubyContextNode {
 
     @Specialization
     protected Encoding stringToEncoding(RubyString value) {
-        assert value.encoding.encoding == value.rope.encoding;
-        return value.encoding.encoding;
+        return value.getJCoding();
     }
 
     @Specialization

@@ -20,7 +20,6 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
 import org.jcodings.Encoding;
 import org.jcodings.Ptr;
-import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.transcode.EConv;
 import org.jcodings.transcode.EConvFlags;
 import org.jcodings.transcode.EConvResult;
@@ -353,25 +352,27 @@ public abstract class EncodingConverterNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        protected RubyString encodingConverterPutback(RubyEncodingConverter encodingConverter, int maxBytes) {
+        protected RubyString encodingConverterPutback(RubyEncodingConverter encodingConverter, int maxBytes,
+                @Cached DispatchNode sourceEncodingNode) {
             // Taken from org.jruby.RubyConverter#putback.
 
             final EConv ec = encodingConverter.econv;
             final int putbackable = ec.putbackable();
 
-            return putback(encodingConverter, putbackable < maxBytes ? putbackable : maxBytes);
+            return putback(encodingConverter, putbackable < maxBytes ? putbackable : maxBytes, sourceEncodingNode);
         }
 
         @Specialization
-        protected RubyString encodingConverterPutback(RubyEncodingConverter encodingConverter, NotProvided maxBytes) {
+        protected RubyString encodingConverterPutback(RubyEncodingConverter encodingConverter, NotProvided maxBytes,
+                @Cached DispatchNode sourceEncodingNode) {
             // Taken from org.jruby.RubyConverter#putback.
 
             final EConv ec = encodingConverter.econv;
 
-            return putback(encodingConverter, ec.putbackable());
+            return putback(encodingConverter, ec.putbackable(), sourceEncodingNode);
         }
 
-        private RubyString putback(RubyEncodingConverter encodingConverter, int n) {
+        private RubyString putback(RubyEncodingConverter encodingConverter, int n, DispatchNode sourceEncodingNode) {
 
             // Taken from org.jruby.RubyConverter#putback.
 
@@ -380,8 +381,8 @@ public abstract class EncodingConverterNodes {
             final byte[] bytes = new byte[n];
             ec.putback(bytes, 0, n);
 
-            final Encoding encoding = ec.sourceEncoding != null ? ec.sourceEncoding : ASCIIEncoding.INSTANCE;
-            final RubyEncoding rubyEncoding = getContext().getEncodingManager().getRubyEncoding(encoding);
+            final Object sourceEncoding = (RubyEncoding) sourceEncodingNode.call(encodingConverter, "source_encoding");
+            final RubyEncoding rubyEncoding = sourceEncoding == nil ? Encodings.BINARY : (RubyEncoding) sourceEncoding;
             return makeStringNode.executeMake(bytes, rubyEncoding, CodeRange.CR_UNKNOWN);
         }
     }
