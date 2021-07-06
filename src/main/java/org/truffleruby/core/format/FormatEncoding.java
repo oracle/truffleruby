@@ -18,28 +18,30 @@ import org.jcodings.specific.UTF8Encoding;
 import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.language.control.RaiseException;
 
 public enum FormatEncoding {
 
-    DEFAULT(ASCIIEncoding.INSTANCE),
-    ASCII_8BIT(ASCIIEncoding.INSTANCE),
-    US_ASCII(USASCIIEncoding.INSTANCE),
-    UTF_8(UTF8Encoding.INSTANCE);
+    DEFAULT(Encodings.BINARY),
+    ASCII_8BIT(Encodings.BINARY),
+    US_ASCII(Encodings.US_ASCII),
+    UTF_8(Encodings.UTF_8);
 
-    private final Encoding encoding;
+    private final RubyEncoding encoding;
 
-    FormatEncoding(Encoding encoding) {
+    FormatEncoding(RubyEncoding encoding) {
         this.encoding = encoding;
     }
 
-    public Encoding getEncoding() {
+    public RubyEncoding getEncoding() {
         return encoding;
     }
 
-    public Encoding getEncodingForLength(int length) {
+    public RubyEncoding getEncodingForLength(int length) {
         if (length == 0) {
-            return USASCIIEncoding.INSTANCE;
+            return Encodings.US_ASCII;
         } else {
             return encoding;
         }

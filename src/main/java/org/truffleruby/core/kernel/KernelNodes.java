@@ -1862,8 +1862,7 @@ public abstract class KernelNodes {
 
             return makeStringNode.executeMake(
                     bytes,
-                    getContext().getEncodingManager().getRubyEncoding(
-                            result.getEncoding().getEncodingForLength(formatLength)),
+                    result.getEncoding().getEncodingForLength(formatLength),
                     result.getStringCodeRange());
         }
 

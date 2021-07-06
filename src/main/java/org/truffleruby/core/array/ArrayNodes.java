@@ -19,7 +19,6 @@ import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.graalvm.collections.EconomicSet;
 import org.graalvm.collections.Equivalence;
-import org.jcodings.Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -1574,12 +1573,11 @@ public abstract class ArrayNodes {
                 getRubyEncodingNode = insert(EncodingNodes.GetRubyEncodingNode.create());
             }
 
-            final Encoding encoding = result.getEncoding().getEncodingForLength(formatLength);
-            final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(encoding);
+            final RubyEncoding rubyEncoding = result.getEncoding().getEncodingForLength(formatLength);
             final RubyString string = makeStringNode.fromRope(
                     makeLeafRopeNode.executeMake(
                             bytes,
-                            encoding,
+                            rubyEncoding.encoding,
                             result.getStringCodeRange(),
                             result.getStringLength()),
                     rubyEncoding);
