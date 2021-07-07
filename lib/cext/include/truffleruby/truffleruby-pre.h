@@ -80,6 +80,11 @@ extern ID (*rb_tr_sym2id)(VALUE sym);
 #define offsetof(p_type,field) ((size_t)&(((p_type *)0)->field))
 #endif
 
+// Defines
+
+// To support racc releases before https://github.com/ruby/racc/pull/165
+#define HAVE_RB_BLOCK_CALL
+
 RUBY_SYMBOL_EXPORT_END
 
 #if defined(__cplusplus)
