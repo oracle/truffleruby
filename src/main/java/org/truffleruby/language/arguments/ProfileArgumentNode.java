@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.arguments;
 
+import com.oracle.truffle.api.dsl.ImportStatic;
 import org.truffleruby.language.NoImplicitCastsToLong;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -22,6 +23,7 @@ import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 @TypeSystemReference(NoImplicitCastsToLong.class)
+@ImportStatic(CompilerDirectives.class)
 @NodeInfo(cost = NodeCost.NONE)
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class ProfileArgumentNode extends RubyContextSourceNode {
@@ -53,7 +55,7 @@ public abstract class ProfileArgumentNode extends RubyContextSourceNode {
     }
 
     @Specialization(
-            guards = { "object != null", "object.getClass() == cachedClass", "!isPrimitiveClass(cachedClass)" },
+            guards = { "isExact(object, cachedClass)", "!isPrimitiveClass(cachedClass)" },
             limit = "1")
     protected Object cacheClass(Object object,
             @Cached("object.getClass()") Class<?> cachedClass) {
@@ -61,7 +63,7 @@ public abstract class ProfileArgumentNode extends RubyContextSourceNode {
         if (CompilerDirectives.inInterpreter()) {
             return object;
         } else {
-            return cachedClass.cast(object);
+            return CompilerDirectives.castExact(object, cachedClass);
         }
     }
 

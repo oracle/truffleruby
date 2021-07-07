@@ -170,7 +170,7 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization
         protected Object remove(RubyHandle handle) {
-            EventBinding.class.cast(handle.object).dispose();
+            ((EventBinding<?>) handle.object).dispose();
             return nil;
         }
 
