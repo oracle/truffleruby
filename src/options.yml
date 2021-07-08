@@ -2,7 +2,6 @@ LANGUAGE_OPTIONS:
 - FROZEN_STRING_LITERALS
 - BACKTRACES_OMIT_UNUSED
 - LAZY_TRANSLATION_USER
-- HASH_PACKED_ARRAY_MAX
 - LAZY_TRANSLATION_CORE
 - LAZY_TRANSLATION_LOG
 - LOG_DYNAMIC_CONSTANT_LOOKUP
@@ -215,7 +214,6 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     # Other caching and optimization limits
     ARRAY_UNINITIALIZED_SIZE: [array-uninitialized-size, integer, 16, How large an Array to allocate when we have no other information to go on]
     ARRAY_SMALL: [array-small, integer, 3, Maximum size of an Array to consider small for optimisations]
-    HASH_PACKED_ARRAY_MAX: [hash-packed-array-max, integer, 3, Maximum size of a Hash to consider using the packed array storage strategy for]
     PACK_UNROLL_LIMIT: [pack-unroll, integer, 4, 'If a pack or unpack expression has a loop less than this many iterations, unroll it']
     PACK_RECOVER_LOOP_MIN: [pack-recover, integer, 32, 'If a pack or unpack expression is longer than this, attempt to recover loops']
     CEXTS_MARKING_CACHE: [cexts-marking-cache, integer, 100, 'Number of objects converted to native handles before the marking service is run']

@@ -133,7 +133,6 @@ public class OptionsCatalog {
     public static final OptionKey<Integer> ARRAY_STRATEGY_CACHE_KEY = new OptionKey<>(4);
     public static final OptionKey<Integer> ARRAY_UNINITIALIZED_SIZE_KEY = new OptionKey<>(16);
     public static final OptionKey<Integer> ARRAY_SMALL_KEY = new OptionKey<>(3);
-    public static final OptionKey<Integer> HASH_PACKED_ARRAY_MAX_KEY = new OptionKey<>(3);
     public static final OptionKey<Integer> PACK_UNROLL_LIMIT_KEY = new OptionKey<>(4);
     public static final OptionKey<Integer> PACK_RECOVER_LOOP_MIN_KEY = new OptionKey<>(32);
     public static final OptionKey<Integer> CEXTS_MARKING_CACHE_KEY = new OptionKey<>(100);
@@ -952,13 +951,6 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
-    public static final OptionDescriptor HASH_PACKED_ARRAY_MAX = OptionDescriptor
-            .newBuilder(HASH_PACKED_ARRAY_MAX_KEY, "ruby.hash-packed-array-max")
-            .help("Maximum size of a Hash to consider using the packed array storage strategy for")
-            .category(OptionCategory.INTERNAL)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
     public static final OptionDescriptor PACK_UNROLL_LIMIT = OptionDescriptor
             .newBuilder(PACK_UNROLL_LIMIT_KEY, "ruby.pack-unroll")
             .help("If a pack or unpack expression has a loop less than this many iterations, unroll it")
@@ -1369,8 +1361,6 @@ public class OptionsCatalog {
                 return ARRAY_UNINITIALIZED_SIZE;
             case "ruby.array-small":
                 return ARRAY_SMALL;
-            case "ruby.hash-packed-array-max":
-                return HASH_PACKED_ARRAY_MAX;
             case "ruby.pack-unroll":
                 return PACK_UNROLL_LIMIT;
             case "ruby.pack-recover":
@@ -1543,7 +1533,6 @@ public class OptionsCatalog {
             ARRAY_STRATEGY_CACHE,
             ARRAY_UNINITIALIZED_SIZE,
             ARRAY_SMALL,
-            HASH_PACKED_ARRAY_MAX,
             PACK_UNROLL_LIMIT,
             PACK_RECOVER_LOOP_MIN,
             CEXTS_MARKING_CACHE,

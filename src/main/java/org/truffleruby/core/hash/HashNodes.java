@@ -79,10 +79,10 @@ public abstract class HashNodes {
             final Object[] store = (Object[]) array.store;
 
             final int size = array.size;
-            final Object[] newStore = PackedHashStoreLibrary.createStore(getLanguage());
+            final Object[] newStore = PackedHashStoreLibrary.createStore();
 
             // written very carefully to allow PE
-            for (int n = 0; n < getLanguage().options.HASH_PACKED_ARRAY_MAX; n++) {
+            for (int n = 0; n < PackedHashStoreLibrary.MAX_ENTRIES; n++) {
                 if (n < size) {
                     final Object pair = store[n];
 
@@ -137,7 +137,7 @@ public abstract class HashNodes {
 
             final Object[] objectStore = (Object[]) store;
 
-            return objectStore.length <= language.options.HASH_PACKED_ARRAY_MAX;
+            return objectStore.length <= PackedHashStoreLibrary.MAX_ENTRIES;
         }
     }
 

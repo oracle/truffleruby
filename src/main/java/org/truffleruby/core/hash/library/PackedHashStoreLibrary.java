@@ -56,17 +56,20 @@ import org.truffleruby.language.objects.shared.SharedObjects;
 @GenerateUncached
 public class PackedHashStoreLibrary {
 
+    /** Maximum numbers of entries to be represented as a packed Hash */
+    public static final int MAX_ENTRIES = 3;
     public static final int ELEMENTS_PER_ENTRY = 3;
+    public static final int TOTAL_ELEMENTS = MAX_ENTRIES * ELEMENTS_PER_ENTRY;
 
     // region Utilities
 
-    public static Object[] createStore(RubyLanguage language) {
-        return new Object[language.options.HASH_PACKED_ARRAY_MAX * ELEMENTS_PER_ENTRY];
+    public static Object[] createStore() {
+        return new Object[TOTAL_ELEMENTS];
     }
 
-    private static Object[] copyStore(RubyLanguage language, Object[] store) {
-        final Object[] copied = createStore(language);
-        System.arraycopy(store, 0, copied, 0, language.options.HASH_PACKED_ARRAY_MAX * ELEMENTS_PER_ENTRY);
+    private static Object[] copyStore(Object[] store) {
+        final Object[] copied = createStore();
+        System.arraycopy(store, 0, copied, 0, TOTAL_ELEMENTS);
         return copied;
     }
 
@@ -100,8 +103,8 @@ public class PackedHashStoreLibrary {
         setValue(store, n, value);
     }
 
-    private static void removeEntry(RubyLanguage language, Object[] store, int n) {
-        assert verifyIntegerHashes(language, store);
+    private static void removeEntry(Object[] store, int n) {
+        assert verifyIntegerHashes(store);
 
         final int index = n * ELEMENTS_PER_ENTRY;
         System.arraycopy(
@@ -109,14 +112,13 @@ public class PackedHashStoreLibrary {
                 index + ELEMENTS_PER_ENTRY,
                 store,
                 index,
-                language.options.HASH_PACKED_ARRAY_MAX * ELEMENTS_PER_ENTRY - ELEMENTS_PER_ENTRY - index);
+                TOTAL_ELEMENTS - ELEMENTS_PER_ENTRY - index);
 
-        assert verifyIntegerHashes(language, store);
+        assert verifyIntegerHashes(store);
     }
 
-    private static boolean verifyIntegerHashes(RubyLanguage language, Object[] store) {
-        for (int i = 0; i < language.options.HASH_PACKED_ARRAY_MAX *
-                ELEMENTS_PER_ENTRY; i += ELEMENTS_PER_ENTRY) {
+    private static boolean verifyIntegerHashes(Object[] store) {
+        for (int i = 0; i < TOTAL_ELEMENTS; i += ELEMENTS_PER_ENTRY) {
             assert store[i] == null || store[i] instanceof Integer;
         }
         return true;
@@ -204,8 +206,7 @@ public class PackedHashStoreLibrary {
                 @Cached @Shared("propagateValue") PropagateSharingNode propagateSharingValue,
                 @Cached @Shared("compareHashKeys") CompareHashKeysNode compareHashKeys,
                 @CachedLibrary(limit = "2") HashStoreLibrary hashes,
-                @Cached ConditionProfile withinCapacity,
-                @CachedLanguage RubyLanguage language) {
+                @Cached ConditionProfile withinCapacity) {
 
             assert verify(store, hash);
             final int size = hash.size;
@@ -215,7 +216,7 @@ public class PackedHashStoreLibrary {
             propagateSharingValue.executePropagate(hash, value);
 
             // written very carefully to allow PE
-            for (int n = 0; n < language.options.HASH_PACKED_ARRAY_MAX; n++) {
+            for (int n = 0; n < MAX_ENTRIES; n++) {
                 if (n < size) {
                     final int otherHashed = getHashed(store, n);
                     final Object otherKey = getKey(store, n);
@@ -226,7 +227,7 @@ public class PackedHashStoreLibrary {
                 }
             }
 
-            if (withinCapacity.profile(size < language.options.HASH_PACKED_ARRAY_MAX)) {
+            if (withinCapacity.profile(size < MAX_ENTRIES)) {
                 setHashedKeyValue(store, size, hashed, key2, value);
                 hash.size += 1;
                 return true;
@@ -241,21 +242,20 @@ public class PackedHashStoreLibrary {
     @ExportMessage
     protected static Object delete(Object[] store, RubyHash hash, Object key,
             @Cached @Shared("toHash") HashingNodes.ToHash hashNode,
-            @Cached @Shared("compareHashKeys") CompareHashKeysNode compareHashKeys,
-            @CachedLanguage RubyLanguage language) {
+            @Cached @Shared("compareHashKeys") CompareHashKeysNode compareHashKeys) {
 
         assert verify(store, hash);
         final int hashed = hashNode.execute(key, hash.compareByIdentity);
         final int size = hash.size;
         // written very carefully to allow PE
-        for (int n = 0; n < language.options.HASH_PACKED_ARRAY_MAX; n++) {
+        for (int n = 0; n < MAX_ENTRIES; n++) {
             if (n < size) {
                 final int otherHashed = getHashed(store, n);
                 final Object otherKey = getKey(store, n);
 
                 if (compareHashKeys.execute(hash.compareByIdentity, key, hashed, otherKey, otherHashed)) {
                     final Object value = getValue(store, n);
-                    removeEntry(language, store, n);
+                    removeEntry(store, n);
                     hash.size -= 1;
                     return value;
                 }
@@ -266,8 +266,7 @@ public class PackedHashStoreLibrary {
     }
 
     @ExportMessage
-    protected static Object deleteLast(Object[] store, RubyHash hash, Object key,
-            @CachedLanguage RubyLanguage language) {
+    protected static Object deleteLast(Object[] store, RubyHash hash, Object key) {
 
         assert verify(store, hash);
         final int n = hash.size - 1;
@@ -278,7 +277,7 @@ public class PackedHashStoreLibrary {
                     .shouldNotReachHere("The last key was not " + key + " as expected but was " + lastKey);
         }
         final Object value = getValue(store, n);
-        removeEntry(language, store, n);
+        removeEntry(store, n);
         hash.size -= 1;
         assert verify(store, hash);
         return value;
@@ -311,23 +310,21 @@ public class PackedHashStoreLibrary {
 
     @ExportMessage
     protected static Object eachEntrySafe(Object[] store, RubyHash hash, EachEntryCallback callback, Object state,
-            @CachedLibrary("store") HashStoreLibrary self,
-            @CachedLanguage RubyLanguage language) {
+            @CachedLibrary("store") HashStoreLibrary self) {
 
-        return self.eachEntry(copyStore(language, store), hash, callback, state);
+        return self.eachEntry(copyStore(store), hash, callback, state);
     }
 
     @ExportMessage
     protected static void replace(Object[] store, RubyHash hash, RubyHash dest,
-            @Cached @Exclusive PropagateSharingNode propagateSharing,
-            @CachedLanguage RubyLanguage language) {
+            @Cached @Exclusive PropagateSharingNode propagateSharing) {
         if (hash == dest) {
             return;
         }
 
         propagateSharing.executePropagate(dest, hash);
 
-        Object storeCopy = copyStore(language, store);
+        Object storeCopy = copyStore(store);
         int size = hash.size;
         dest.store = storeCopy;
         dest.size = size;
@@ -348,7 +345,7 @@ public class PackedHashStoreLibrary {
         assert verify(store, hash);
         final Object key = getKey(store, 0);
         final Object value = getValue(store, 0);
-        removeEntry(language, store, 0);
+        removeEntry(store, 0);
         hash.size -= 1;
         assert verify(store, hash);
         return ArrayHelpers.createArray(context, language, new Object[]{ key, value });
@@ -357,8 +354,7 @@ public class PackedHashStoreLibrary {
     @ExportMessage
     protected static void rehash(Object[] store, RubyHash hash,
             @Cached @Shared("compareHashKeys") CompareHashKeysNode compareHashKeys,
-            @Cached @Shared("toHash") HashingNodes.ToHash hashNode,
-            @CachedLanguage RubyLanguage language) {
+            @Cached @Shared("toHash") HashingNodes.ToHash hashNode) {
 
         assert verify(store, hash);
         int size = hash.size;
@@ -374,7 +370,7 @@ public class PackedHashStoreLibrary {
                         newHash,
                         getKey(store, m),
                         getHashed(store, m))) {
-                    removeEntry(language, store, n);
+                    removeEntry(store, n);
                     size--;
                     n--;
                     break;
@@ -390,8 +386,7 @@ public class PackedHashStoreLibrary {
     protected static boolean verify(Object[] store, RubyHash hash) {
         assert hash.store == store;
         final int size = hash.size;
-        assert store.length == RubyLanguage.getCurrentLanguage().options.HASH_PACKED_ARRAY_MAX *
-                ELEMENTS_PER_ENTRY : store.length;
+        assert store.length == TOTAL_ELEMENTS : store.length;
 
         final Entry firstInSequence = hash.firstInSequence;
         final Entry lastInSequence = hash.lastInSequence;
@@ -474,13 +469,12 @@ public class PackedHashStoreLibrary {
                 Frame frame, RubyHash hash, Object key, int hashed, PEBiFunction defaultValueNode,
                 @Cached CompareHashKeysNode compareHashKeys,
                 @Cached BranchProfile notInHashProfile,
-                @Cached ConditionProfile byIdentityProfile,
-                @CachedLanguage RubyLanguage language) {
+                @Cached ConditionProfile byIdentityProfile) {
 
             final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
             final Object[] store = (Object[]) hash.store;
             final int size = hash.size;
-            for (int n = 0; n < language.options.HASH_PACKED_ARRAY_MAX; n++) {
+            for (int n = 0; n < MAX_ENTRIES; n++) {
                 if (n < size) {
                     final int otherHashed = getHashed(store, n);
                     final Object otherKey = getKey(store, n);
@@ -508,14 +502,14 @@ public class PackedHashStoreLibrary {
         @Child private FreezeHashKeyIfNeededNode freezeHashKeyIfNeededNode = FreezeHashKeyIfNeededNodeGen.create();
         private final BranchProfile duplicateKeyProfile = BranchProfile.create();
 
-        public SmallHashLiteralNode(RubyLanguage language, RubyNode[] keyValues) {
-            super(language, keyValues);
+        public SmallHashLiteralNode(RubyNode[] keyValues) {
+            super(keyValues);
         }
 
         @ExplodeLoop
         @Override
         public Object execute(VirtualFrame frame) {
-            final Object[] store = createStore(language);
+            final Object[] store = createStore();
             int size = 0;
 
             for (int n = 0; n < keyValues.length / 2; n++) {
@@ -547,7 +541,7 @@ public class PackedHashStoreLibrary {
 
             return new RubyHash(
                     coreLibrary().hashClass,
-                    language.hashShape,
+                    getLanguage().hashShape,
                     getContext(),
                     store,
                     size,

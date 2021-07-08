@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.hash;
 
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.hash.library.BucketsHashStore;
 import org.truffleruby.core.hash.library.EmptyHashStore;
 import org.truffleruby.core.hash.library.PackedHashStoreLibrary;
@@ -22,21 +21,19 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 public abstract class HashLiteralNode extends RubyContextSourceNode {
 
     @Children protected final RubyNode[] keyValues;
-    protected final RubyLanguage language;
 
-    protected HashLiteralNode(RubyLanguage language, RubyNode[] keyValues) {
+    protected HashLiteralNode(RubyNode[] keyValues) {
         assert keyValues.length % 2 == 0;
-        this.language = language;
         this.keyValues = keyValues;
     }
 
-    public static HashLiteralNode create(RubyLanguage language, RubyNode[] keyValues) {
+    public static HashLiteralNode create(RubyNode[] keyValues) {
         if (keyValues.length == 0) {
-            return new EmptyHashStore.EmptyHashLiteralNode(language);
-        } else if (keyValues.length <= language.options.HASH_PACKED_ARRAY_MAX * 2) {
-            return new PackedHashStoreLibrary.SmallHashLiteralNode(language, keyValues);
+            return new EmptyHashStore.EmptyHashLiteralNode();
+        } else if (keyValues.length <= PackedHashStoreLibrary.MAX_ENTRIES * 2) {
+            return new PackedHashStoreLibrary.SmallHashLiteralNode(keyValues);
         } else {
-            return new BucketsHashStore.GenericHashLiteralNode(language, keyValues);
+            return new BucketsHashStore.GenericHashLiteralNode(keyValues);
         }
     }
 

@@ -46,7 +46,7 @@ public class EmptyHashStore {
     protected boolean set(RubyHash hash, Object key, Object value, boolean byIdentity,
             @CachedLanguage RubyLanguage language,
             @CachedLibrary(limit = "1") HashStoreLibrary packedHashStoreLibrary) {
-        final Object[] packedStore = PackedHashStoreLibrary.createStore(language);
+        final Object[] packedStore = PackedHashStoreLibrary.createStore();
         hash.store = packedStore;
         return packedHashStoreLibrary.set(packedStore, hash, key, value, byIdentity);
     }
@@ -115,8 +115,8 @@ public class EmptyHashStore {
 
     public static class EmptyHashLiteralNode extends HashLiteralNode {
 
-        public EmptyHashLiteralNode(RubyLanguage language) {
-            super(language, RubyNode.EMPTY_ARRAY);
+        public EmptyHashLiteralNode() {
+            super(RubyNode.EMPTY_ARRAY);
         }
 
         @Override

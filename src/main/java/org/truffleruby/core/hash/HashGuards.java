@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.hash;
 
-import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.hash.library.PackedHashStoreLibrary;
 
 public abstract class HashGuards {
 
@@ -21,7 +21,7 @@ public abstract class HashGuards {
 
     public static int packedHashLimit() {
         // + 1 for packed Hash with size = 0
-        return RubyLanguage.getCurrentLanguage().options.HASH_PACKED_ARRAY_MAX + 1;
+        return PackedHashStoreLibrary.MAX_ENTRIES + 1;
     }
 
     // Higher level properties

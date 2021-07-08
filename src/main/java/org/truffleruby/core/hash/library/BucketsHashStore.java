@@ -576,8 +576,8 @@ public class BucketsHashStore {
         @Child HashStoreLibrary hashes;
         private final int bucketsCount;
 
-        public GenericHashLiteralNode(RubyLanguage language, RubyNode[] keyValues) {
-            super(language, keyValues);
+        public GenericHashLiteralNode(RubyNode[] keyValues) {
+            super(keyValues);
             bucketsCount = capacityGreaterThan(keyValues.length / 2) * OVERALLOCATE_FACTOR;
         }
 
@@ -591,7 +591,7 @@ public class BucketsHashStore {
 
             final RubyHash hash = new RubyHash(
                     coreLibrary().hashClass,
-                    language.hashShape,
+                    getLanguage().hashShape,
                     getContext(),
                     new BucketsHashStore(new Entry[bucketsCount]),
                     0,

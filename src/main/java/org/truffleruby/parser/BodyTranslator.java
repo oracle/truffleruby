@@ -1838,7 +1838,7 @@ public class BodyTranslator extends Translator {
         final SourceIndexLength sourceSection = node.getPosition();
 
         if (node.isEmpty()) { // an empty Hash literal like h = {}
-            final RubyNode ret = HashLiteralNode.create(language, RubyNode.EMPTY_ARRAY);
+            final RubyNode ret = HashLiteralNode.create(RubyNode.EMPTY_ARRAY);
             ret.unsafeSetSourceSection(sourceSection);
             return addNewlineIfNeeded(node, ret);
         }
@@ -1851,7 +1851,7 @@ public class BodyTranslator extends Translator {
                 // This null case is for splats {a: 1, **{b: 2}, c: 3}
                 if (!keyValues.isEmpty()) {
                     final RubyNode hashLiteralSoFar = HashLiteralNode
-                            .create(language, keyValues.toArray(RubyNode.EMPTY_ARRAY));
+                            .create(keyValues.toArray(RubyNode.EMPTY_ARRAY));
                     hashConcats.add(hashLiteralSoFar);
                 }
                 hashConcats.add(HashCastNodeGen.create(pair.getValue().accept(this)));
@@ -1868,7 +1868,7 @@ public class BodyTranslator extends Translator {
         }
 
         if (!keyValues.isEmpty()) {
-            final RubyNode hashLiteralSoFar = HashLiteralNode.create(language, keyValues.toArray(RubyNode.EMPTY_ARRAY));
+            final RubyNode hashLiteralSoFar = HashLiteralNode.create(keyValues.toArray(RubyNode.EMPTY_ARRAY));
             hashConcats.add(hashLiteralSoFar);
         }
 
