@@ -409,12 +409,15 @@ public class TruffleRegexpNodes {
         @Child DispatchNode stringDupNode;
         @Child TranslateInteropExceptionNode translateInteropExceptionNode;
 
+        @Child RopeNodes.SubstringNode substringNode;
+
         @Specialization(guards = "libString.isRubyString(string)")
         protected Object matchInRegionTRegex(
                 RubyRegexp regexp, Object string, int fromPos, int toPos, boolean atStart, int startPos,
                 @Cached ConditionProfile matchFoundProfile,
                 @Cached ConditionProfile tRegexCouldNotCompileProfile,
                 @Cached ConditionProfile tRegexIncompatibleProfile,
+                @Cached ConditionProfile startPosNotZeroProfile,
                 @Cached LoopConditionProfile loopProfile,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary regexInterop,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary resultInterop,
@@ -423,11 +426,11 @@ public class TruffleRegexpNodes {
                 @Cached TRegexCompileNode tRegexCompileNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString,
                 @Cached("createIdentityProfile()") IntValueProfile groupCountProfile) {
-            final Rope rope = libString.getRope(string);
+            Rope rope = libString.getRope(string);
             final Object tRegex;
 
             if (tRegexIncompatibleProfile
-                    .profile(toPos < fromPos || toPos != rope.byteLength() || startPos != 0 || fromPos < 0) ||
+                    .profile(toPos < fromPos || toPos != rope.byteLength() || fromPos < 0) ||
                     tRegexCouldNotCompileProfile.profile((tRegex = tRegexCompileNode.executeTRegexCompile(
                             regexp,
                             atStart,
@@ -435,9 +438,17 @@ public class TruffleRegexpNodes {
                 return fallbackToJoni(regexp, string, fromPos, toPos, atStart, startPos);
             }
 
+            int fromIndex = fromPos;
+            if (startPosNotZeroProfile.profile(startPos > 0)) {
+                rope = substring(rope, startPos, toPos - startPos);
+                // If startPos != 0, then fromPos == startPos.
+                assert fromPos == startPos;
+                fromIndex = 0;
+            }
+
             final byte[] bytes = bytesNode.execute(rope);
             final Object interopByteArray = getContext().getEnv().asGuestValue(bytes);
-            final Object result = invoke(regexInterop, tRegex, "execBytes", interopByteArray, fromPos);
+            final Object result = invoke(regexInterop, tRegex, "execBytes", interopByteArray, fromIndex);
 
             final boolean isMatch = (boolean) readMember(resultInterop, result, "isMatch");
 
@@ -531,6 +542,15 @@ public class TruffleRegexpNodes {
             }
 
             return stringDupNode.call(string, "dup");
+        }
+
+        private Rope substring(Rope rope, int byteOffset, int byteLength) {
+            if (substringNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                substringNode = insert(RopeNodes.SubstringNode.create());
+            }
+
+            return substringNode.executeSubstring(rope, byteOffset, byteLength);
         }
     }
 
