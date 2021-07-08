@@ -93,11 +93,9 @@ public abstract class MatchDataNodes {
     }
 
     private static void forceLazyMatchData(RubyMatchData matchData, InteropLibrary interop) {
-        if (matchData.tRegexResult != null) {
-            for (int i = 0; i < matchData.region.numRegs; i++) {
-                getStart(matchData, i, ConditionProfile.getUncached(), interop);
-                getEnd(matchData, i, ConditionProfile.getUncached(), interop);
-            }
+        for (int i = 0; i < matchData.region.numRegs; i++) {
+            getStart(matchData, i, ConditionProfile.getUncached(), interop);
+            getEnd(matchData, i, ConditionProfile.getUncached(), interop);
         }
     }
 
@@ -198,21 +196,15 @@ public abstract class MatchDataNodes {
     @Primitive(name = "matchdata_fixup_positions", lowerFixnum = { 1 })
     public abstract static class FixupMatchData extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "matchData.tRegexResult != null", limit = "getInteropCacheLimit()")
-        protected RubyMatchData fixupTRegexMatchData(RubyMatchData matchData, int startPos,
+        @Specialization
+        protected RubyMatchData fixupMatchData(RubyMatchData matchData, int startPos,
                 @Cached ConditionProfile nonZeroPos,
-                @CachedLibrary(value = "matchData.tRegexResult") InteropLibrary interop) {
+                @Cached ConditionProfile lazyProfile,
+                @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop) {
             if (nonZeroPos.profile(startPos != 0)) {
-                forceLazyMatchData(matchData, interop);
-                fixupMatchDataForStart(matchData, startPos);
-            }
-            return matchData;
-        }
-
-        @Specialization(guards = "matchData.tRegexResult == null")
-        protected RubyMatchData fixupJoniMatchData(RubyMatchData matchData, int startPos,
-                @Cached ConditionProfile nonZeroPos) {
-            if (nonZeroPos.profile(startPos != 0)) {
+                if (lazyProfile.profile(matchData.tRegexResult != null)) {
+                    forceLazyMatchData(matchData, interop);
+                }
                 fixupMatchDataForStart(matchData, startPos);
             }
             return matchData;
