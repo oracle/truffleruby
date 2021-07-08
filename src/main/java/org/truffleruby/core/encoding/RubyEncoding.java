@@ -33,22 +33,22 @@ import java.util.Set;
 @ExportLibrary(InteropLibrary.class)
 public class RubyEncoding extends ImmutableRubyObject implements ObjectGraphNode {
 
-    public final Encoding encoding;
+    public final Encoding jcoding;
     public final ImmutableRubyString name;
     public final int index;
     public final boolean dummy;
 
-    public RubyEncoding(Encoding encoding, ImmutableRubyString name, int index, boolean dummy) {
-        this.encoding = encoding;
+    public RubyEncoding(Encoding jcoding, ImmutableRubyString name, int index, boolean dummy) {
+        this.jcoding = jcoding;
         this.name = name;
         this.index = index;
         this.dummy = dummy;
     }
 
     // Special constructor to define US-ASCII encoding which is used for RubyEncoding names
-    public RubyEncoding(Encoding encoding, String name, int index) {
-        assert encoding == USASCIIEncoding.INSTANCE;
-        this.encoding = encoding;
+    public RubyEncoding(Encoding jcoding, String name, int index) {
+        assert jcoding == USASCIIEncoding.INSTANCE;
+        this.jcoding = jcoding;
         this.name = new ImmutableRubyString(RopeConstants.ROPE_CONSTANTS.get(name), this);
         this.index = index;
         this.dummy = false;

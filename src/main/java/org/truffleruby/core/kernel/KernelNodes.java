@@ -47,7 +47,6 @@ import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNode;
 import org.truffleruby.core.cast.ToSymbolNode;
-import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.GetBacktraceException;
@@ -650,10 +649,8 @@ public abstract class KernelNodes {
         protected RubyDynamicObject cloneImmutableRubyString(ImmutableRubyString self, boolean freeze,
                 @Cached ConditionProfile freezeProfile,
                 @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibraryFreeze,
-                @Cached MakeStringNode makeStringNode,
-                @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode) {
-            final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(self.rope.encoding);
-            final RubyDynamicObject newObject = makeStringNode.fromRope(self.rope, rubyEncoding);
+                @Cached MakeStringNode makeStringNode) {
+            final RubyDynamicObject newObject = makeStringNode.fromRope(self.rope, self.encoding);
             if (freezeProfile.profile(freeze)) {
                 rubyLibraryFreeze.freeze(newObject);
             }

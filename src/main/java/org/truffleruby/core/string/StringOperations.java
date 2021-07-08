@@ -33,6 +33,8 @@ import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayOperations;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.Rope;
@@ -44,25 +46,36 @@ import org.truffleruby.language.objects.AllocationTracing;
 
 public abstract class StringOperations {
 
-    public static RubyString createString(RubyContextSourceNode node, Rope rope) {
+    public static RubyString createString(RubyContextSourceNode node, Rope rope, RubyEncoding encoding) {
         final RubyString instance = new RubyString(
                 node.getContext().getCoreLibrary().stringClass,
                 node.getLanguage().stringShape,
                 false,
                 rope,
-                node.getContext().getEncodingManager().getRubyEncoding(rope.encoding));
+                encoding);
         AllocationTracing.trace(instance, node);
         return instance;
     }
 
-    // TODO BJF Aug-3-2020 Trace more allocations of RubyString
-    public static RubyString createString(RubyContext context, RubyLanguage language, Rope rope) {
+    public static RubyString createUTF8String(RubyContext context, RubyLanguage language, Rope rope) {
         final RubyString instance = new RubyString(
                 context.getCoreLibrary().stringClass,
                 language.stringShape,
                 false,
                 rope,
-                context.getEncodingManager().getRubyEncoding(rope.encoding));
+                Encodings.UTF_8);
+        return instance;
+    }
+
+    // TODO BJF Aug-3-2020 Trace more allocations of RubyString
+    public static RubyString createString(RubyContext context, RubyLanguage language, Rope rope,
+            RubyEncoding encoding) {
+        final RubyString instance = new RubyString(
+                context.getCoreLibrary().stringClass,
+                language.stringShape,
+                false,
+                rope,
+                encoding);
         return instance;
     }
 

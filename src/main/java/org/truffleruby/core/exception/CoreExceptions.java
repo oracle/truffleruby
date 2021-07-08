@@ -22,6 +22,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.binding.RubyBinding;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.ExceptionOperations.ExceptionFormatter;
 import org.truffleruby.core.klass.RubyClass;
@@ -98,7 +99,10 @@ public class CoreExceptions {
             final String output = "Exception `" + exceptionClass + "'" + from + " - " + message + "\n";
             if (context.getCoreLibrary().isLoaded()) {
                 RubyString outputString = StringOperations
-                        .createString(context, language, StringOperations.encodeRope(output, UTF8Encoding.INSTANCE));
+                        .createUTF8String(
+                                context,
+                                language,
+                                StringOperations.encodeRope(output, UTF8Encoding.INSTANCE));
                 Object stderr = context.getCoreLibrary().getStderr();
                 RubyContext.send(stderr, "write", outputString);
             } else {
@@ -118,11 +122,11 @@ public class CoreExceptions {
     // ArgumentError
 
     public RubyException argumentErrorOneHashRequired(Node currentNode) {
-        return argumentError(coreStrings().ONE_HASH_REQUIRED.getRope(), currentNode, null);
+        return argumentError(coreStrings().ONE_HASH_REQUIRED.getRope(), Encodings.BINARY, currentNode, null);
     }
 
-    public RubyException argumentError(Rope message, Node currentNode) {
-        return argumentError(message, currentNode, null);
+    public RubyException argumentError(Rope message, RubyEncoding encoding, Node currentNode) {
+        return argumentError(message, encoding, currentNode, null);
     }
 
     public RubyException argumentError(String message, Node currentNode) {
@@ -130,31 +134,31 @@ public class CoreExceptions {
     }
 
     public RubyException argumentErrorProcWithoutBlock(Node currentNode) {
-        return argumentError(coreStrings().PROC_WITHOUT_BLOCK.getRope(), currentNode, null);
+        return argumentError(coreStrings().PROC_WITHOUT_BLOCK.getRope(), Encodings.BINARY, currentNode, null);
     }
 
     public RubyException argumentErrorTooFewArguments(Node currentNode) {
-        return argumentError(coreStrings().TOO_FEW_ARGUMENTS.getRope(), currentNode, null);
+        return argumentError(coreStrings().TOO_FEW_ARGUMENTS.getRope(), Encodings.BINARY, currentNode, null);
     }
 
     public RubyException argumentErrorTimeIntervalPositive(Node currentNode) {
-        return argumentError(coreStrings().TIME_INTERVAL_MUST_BE_POS.getRope(), currentNode, null);
+        return argumentError(coreStrings().TIME_INTERVAL_MUST_BE_POS.getRope(), Encodings.BINARY, currentNode, null);
     }
 
     public RubyException argumentErrorXOutsideOfString(Node currentNode) {
-        return argumentError(coreStrings().X_OUTSIDE_OF_STRING.getRope(), currentNode, null);
+        return argumentError(coreStrings().X_OUTSIDE_OF_STRING.getRope(), Encodings.BINARY, currentNode, null);
     }
 
     public RubyException argumentErrorCantCompressNegativeNumbers(Node currentNode) {
-        return argumentError(coreStrings().CANT_COMPRESS_NEGATIVE.getRope(), currentNode, null);
+        return argumentError(coreStrings().CANT_COMPRESS_NEGATIVE.getRope(), Encodings.BINARY, currentNode, null);
     }
 
     public RubyException argumentErrorOutOfRange(Node currentNode) {
-        return argumentError(coreStrings().ARGUMENT_OUT_OF_RANGE.getRope(), currentNode, null);
+        return argumentError(coreStrings().ARGUMENT_OUT_OF_RANGE.getRope(), Encodings.BINARY, currentNode, null);
     }
 
     public RubyException argumentErrorNegativeArraySize(Node currentNode) {
-        return argumentError(coreStrings().NEGATIVE_ARRAY_SIZE.getRope(), currentNode, null);
+        return argumentError(coreStrings().NEGATIVE_ARRAY_SIZE.getRope(), Encodings.BINARY, currentNode, null);
     }
 
     public RubyException argumentErrorTooLargeString(Node currentNode) {
@@ -221,7 +225,7 @@ public class CoreExceptions {
     }
 
     public RubyException argumentErrorEmptyVarargs(Node currentNode) {
-        return argumentError(coreStrings().WRONG_ARGS_ZERO_PLUS_ONE.getRope(), currentNode, null);
+        return argumentError(coreStrings().WRONG_ARGS_ZERO_PLUS_ONE.getRope(), Encodings.BINARY, currentNode, null);
     }
 
     @TruffleBoundary
@@ -254,15 +258,19 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException argumentError(String message, Node currentNode, Throwable javaThrowable) {
-        return argumentError(StringOperations.encodeRope(message, UTF8Encoding.INSTANCE), currentNode, javaThrowable);
+        return argumentError(
+                StringOperations.encodeRope(message, UTF8Encoding.INSTANCE),
+                Encodings.UTF_8,
+                currentNode,
+                javaThrowable);
     }
 
-    public RubyException argumentError(Rope message, Node currentNode, Throwable javaThrowable) {
+    public RubyException argumentError(Rope message, RubyEncoding encoding, Node currentNode, Throwable javaThrowable) {
         RubyClass exceptionClass = context.getCoreLibrary().argumentErrorClass;
         return ExceptionOperations.createRubyException(
                 context,
                 exceptionClass,
-                StringOperations.createString(context, language, message),
+                StringOperations.createString(context, language, message, encoding),
                 currentNode,
                 javaThrowable);
     }
@@ -285,7 +293,7 @@ public class CoreExceptions {
     public RubyException frozenError(String message, Node currentNode, Object receiver) {
         RubyClass exceptionClass = context.getCoreLibrary().frozenErrorClass;
         RubyString errorMessage = StringOperations
-                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         showExceptionIfDebug(exceptionClass, errorMessage, backtrace);
@@ -308,7 +316,7 @@ public class CoreExceptions {
     public RubyException runtimeError(String message, Node currentNode) {
         RubyClass exceptionClass = context.getCoreLibrary().runtimeErrorClass;
         RubyString errorMessage = StringOperations
-                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
@@ -316,7 +324,7 @@ public class CoreExceptions {
     public RubyException runtimeError(String message, Node currentNode, Throwable javaThrowable) {
         RubyClass exceptionClass = context.getCoreLibrary().runtimeErrorClass;
         RubyString errorMessage = StringOperations
-                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations
                 .createRubyException(context, exceptionClass, errorMessage, currentNode, javaThrowable);
     }
@@ -325,7 +333,7 @@ public class CoreExceptions {
     public RubyException runtimeError(String message, Backtrace backtrace) {
         RubyClass exceptionClass = context.getCoreLibrary().runtimeErrorClass;
         RubyString errorMessage = StringOperations
-                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, backtrace);
     }
 
@@ -341,7 +349,7 @@ public class CoreExceptions {
         final String message = coreStrings().STACK_LEVEL_TOO_DEEP + "\n\tfrom " + topOfTheStack;
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 0, javaThrowable);
         final RubyString messageString = StringOperations
-                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createSystemStackError(context, messageString, backtrace, showExceptionIfDebug);
     }
 
@@ -406,7 +414,7 @@ public class CoreExceptions {
         Rope rope = StringOperations.encodeRope(
                 StringUtils.format("Numerical argument is out of domain - \"%s\"", method),
                 UTF8Encoding.INSTANCE);
-        RubyString errorMessage = StringOperations.createString(context, language, rope);
+        RubyString errorMessage = StringOperations.createUTF8String(context, language, rope);
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
         return ExceptionOperations
                 .createSystemCallError(
@@ -423,7 +431,7 @@ public class CoreExceptions {
     public RubyException indexError(String message, Node currentNode) {
         RubyClass exceptionClass = context.getCoreLibrary().indexErrorClass;
         RubyString errorMessage = StringOperations
-                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
@@ -468,7 +476,7 @@ public class CoreExceptions {
     public RubyException keyError(String message, Node currentNode) {
         RubyClass exceptionClass = context.getCoreLibrary().keyErrorClass;
         RubyString errorMessage = StringOperations
-                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
@@ -483,7 +491,7 @@ public class CoreExceptions {
     public RubyException stopIteration(String message, Node currentNode) {
         RubyClass exceptionClass = context.getCoreLibrary().stopIterationClass;
         RubyString errorMessage = StringOperations
-                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
@@ -493,7 +501,7 @@ public class CoreExceptions {
     public RubyException localJumpError(String message, Node currentNode) {
         RubyClass exceptionClass = context.getCoreLibrary().localJumpErrorClass;
         RubyString errorMessage = StringOperations
-                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
@@ -657,7 +665,7 @@ public class CoreExceptions {
     public RubyException typeError(String message, Node currentNode, Throwable javaThrowable) {
         RubyClass exceptionClass = context.getCoreLibrary().typeErrorClass;
         RubyString errorMessage = StringOperations
-                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations
                 .createRubyException(context, exceptionClass, errorMessage, currentNode, javaThrowable);
     }
@@ -819,7 +827,7 @@ public class CoreExceptions {
     @TruffleBoundary
     public RubyNameError nameError(String message, Object receiver, String name, Node currentNode) {
         final RubyString messageString = StringOperations
-                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         final RubyClass exceptionClass = context.getCoreLibrary().nameErrorClass;
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
         final Object cause = ThreadGetExceptionNode.getLastException(context);
@@ -888,7 +896,7 @@ public class CoreExceptions {
     public RubyNoMethodError noMethodError(String message, Object receiver, String name, Object[] args,
             Node currentNode) {
         final RubyString messageString = StringOperations
-                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         final RubyArray argsArray = createArray(context, language, args);
         final RubyClass exceptionClass = context.getCoreLibrary().noMethodErrorClass;
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
@@ -907,7 +915,7 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyNoMethodError noSuperMethodOutsideMethodError(Node currentNode) {
-        final RubyString messageString = StringOperations.createString(
+        final RubyString messageString = StringOperations.createUTF8String(
                 context,
                 language,
                 StringOperations.encodeRope("super called outside of method", UTF8Encoding.INSTANCE));
@@ -938,7 +946,7 @@ public class CoreExceptions {
     @TruffleBoundary
     public RubyException loadError(String message, String path, Node currentNode) {
         RubyString messageString = StringOperations
-                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         RubyClass exceptionClass = context.getCoreLibrary().loadErrorClass;
         RubyException loadError = ExceptionOperations
                 .createRubyException(context, exceptionClass, messageString, currentNode, null);
@@ -950,7 +958,7 @@ public class CoreExceptions {
                 loadError,
                 "@path",
                 StringOperations
-                        .createString(context, language, StringOperations.encodeRope(path, UTF8Encoding.INSTANCE)));
+                        .createUTF8String(context, language, StringOperations.encodeRope(path, UTF8Encoding.INSTANCE)));
         return loadError;
     }
 
@@ -974,7 +982,10 @@ public class CoreExceptions {
     public RubyException zeroDivisionError(Node currentNode, ArithmeticException exception) {
         RubyClass exceptionClass = context.getCoreLibrary().zeroDivisionErrorClass;
         RubyString errorMessage = StringOperations
-                .createString(context, language, StringOperations.encodeRope("divided by 0", UTF8Encoding.INSTANCE));
+                .createUTF8String(
+                        context,
+                        language,
+                        StringOperations.encodeRope("divided by 0", UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, exception);
     }
 
@@ -989,7 +1000,7 @@ public class CoreExceptions {
     public RubySyntaxError syntaxError(String message, Node currentNode, SourceSection sourceLocation) {
         RubyClass exceptionClass = context.getCoreLibrary().syntaxErrorClass;
         final RubyString messageString = StringOperations
-                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
@@ -1008,7 +1019,7 @@ public class CoreExceptions {
     public RubyException floatDomainError(String value, Node currentNode) {
         RubyClass exceptionClass = context.getCoreLibrary().floatDomainErrorClass;
         RubyString errorMessage = StringOperations
-                .createString(context, language, StringOperations.encodeRope(value, UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope(value, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
@@ -1034,7 +1045,7 @@ public class CoreExceptions {
     public RubyException ioError(String message, Node currentNode) {
         RubyClass exceptionClass = context.getCoreLibrary().ioErrorClass;
         RubyString errorMessage = StringOperations
-                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
@@ -1048,7 +1059,7 @@ public class CoreExceptions {
     @TruffleBoundary
     public RubyException rangeError(long code, RubyEncoding encoding, Node currentNode) {
         return rangeError(
-                StringUtils.format("invalid codepoint %x in %s", code, encoding.encoding),
+                StringUtils.format("invalid codepoint %x in %s", code, encoding.jcoding),
                 currentNode);
     }
 
@@ -1080,7 +1091,7 @@ public class CoreExceptions {
     public RubyException rangeError(String message, Node currentNode) {
         RubyClass exceptionClass = context.getCoreLibrary().rangeErrorClass;
         RubyString errorMessage = StringOperations
-                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
@@ -1098,7 +1109,7 @@ public class CoreExceptions {
     private RubyException graalError(String message, Node currentNode) {
         RubyClass exceptionClass = context.getCoreLibrary().graalErrorClass;
         RubyString errorMessage = StringOperations
-                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
@@ -1108,7 +1119,7 @@ public class CoreExceptions {
     public RubyException regexpError(String message, Node currentNode) {
         RubyClass exceptionClass = context.getCoreLibrary().regexpErrorClass;
         RubyString errorMessage = StringOperations
-                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
@@ -1118,7 +1129,7 @@ public class CoreExceptions {
     public RubyException encodingError(String message, Node currentNode) {
         RubyClass exceptionClass = context.getCoreLibrary().encodingErrorClass;
         RubyString errorMessage = StringOperations
-                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
@@ -1140,7 +1151,7 @@ public class CoreExceptions {
     public RubyException encodingCompatibilityError(String message, Node currentNode) {
         RubyClass exceptionClass = context.getCoreLibrary().encodingCompatibilityErrorClass;
         RubyString errorMessage = StringOperations
-                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
@@ -1161,7 +1172,7 @@ public class CoreExceptions {
     public RubyException fiberError(String message, Node currentNode) {
         RubyClass exceptionClass = context.getCoreLibrary().fiberErrorClass;
         RubyString errorMessage = StringOperations
-                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
@@ -1179,7 +1190,7 @@ public class CoreExceptions {
     public RubyException threadError(String message, Node currentNode) {
         RubyClass exceptionClass = context.getCoreLibrary().threadErrorClass;
         RubyString errorMessage = StringOperations
-                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
@@ -1209,7 +1220,7 @@ public class CoreExceptions {
     public RubyException securityError(String message, Node currentNode) {
         RubyClass exceptionClass = context.getCoreLibrary().securityErrorClass;
         RubyString errorMessage = StringOperations
-                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
@@ -1223,7 +1234,7 @@ public class CoreExceptions {
             errorMessage = Nil.INSTANCE;
         } else {
             errorMessage = StringOperations
-                    .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+                    .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         }
         return ExceptionOperations
                 .createSystemCallError(context, exceptionClass, errorMessage, errno, backtrace);
@@ -1235,7 +1246,7 @@ public class CoreExceptions {
     public RubyException ffiNullPointerError(String message, Node currentNode) {
         RubyClass exceptionClass = context.getCoreLibrary().truffleFFINullPointerErrorClass;
         RubyString errorMessage = StringOperations
-                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
@@ -1244,7 +1255,7 @@ public class CoreExceptions {
     @TruffleBoundary
     public RubySystemExit systemExit(int exitStatus, Node currentNode) {
         final RubyString message = StringOperations
-                .createString(context, language, StringOperations.encodeRope("exit", UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope("exit", UTF8Encoding.INSTANCE));
         final RubyClass exceptionClass = context.getCoreLibrary().systemExitClass;
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
         final Object cause = ThreadGetExceptionNode.getLastException(context);
@@ -1264,7 +1275,7 @@ public class CoreExceptions {
     public RubyException closedQueueError(String message, Node currentNode) {
         RubyClass exceptionClass = context.getCoreLibrary().closedQueueErrorClass;
         RubyString errorMessage = StringOperations
-                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
@@ -1278,7 +1289,7 @@ public class CoreExceptions {
     public RubyException unsupportedMessageError(String message, Node currentNode) {
         RubyClass exceptionClass = context.getCoreLibrary().unsupportedMessageErrorClass;
         RubyString errorMessage = StringOperations
-                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 

@@ -551,7 +551,7 @@ public abstract class RubyDateFormatter {
             } catch (IndexOutOfBoundsException ioobe) {
                 final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
                 final Rope messageRope = StringOperations.encodeRope("strftime", UTF8Encoding.INSTANCE);
-                final RubyString message = StringOperations.createString(context, language, messageRope);
+                final RubyString message = StringOperations.createUTF8String(context, language, messageRope);
                 throw new RaiseException(
                         context,
                         errnoErrorNode.execute(context.getCoreLibrary().getErrnoValue("ERANGE"), message, backtrace));

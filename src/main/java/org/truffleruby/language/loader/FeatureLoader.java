@@ -203,7 +203,7 @@ public class FeatureLoader {
                 RubyContext.send(context.getCoreLibrary().errnoModule, "handle");
             }
             final byte[] bytes = buffer.readZeroTerminatedByteArray(context, 0);
-            final Encoding localeEncoding = context.getEncodingManager().getLocaleEncoding();
+            final Encoding localeEncoding = context.getEncodingManager().getLocaleEncoding().jcoding;
             return new String(bytes, EncodingManager.charsetForEncoding(localeEncoding));
         } finally {
             rubyThread.ioBuffer.free(rubyThread, buffer, ConditionProfile.getUncached());
@@ -427,7 +427,7 @@ public class FeatureLoader {
             Metrics.printTime("before-load-cext-support");
             try {
                 final RubyString cextRb = StringOperations
-                        .createString(
+                        .createUTF8String(
                                 context,
                                 language,
                                 StringOperations.encodeRope("truffle/cext", UTF8Encoding.INSTANCE));
@@ -513,7 +513,7 @@ public class FeatureLoader {
                 ArrayUtils.EMPTY_ARRAY,
                 abiFunctionInteropLibrary,
                 TranslateInteropExceptionNode.getUncached());
-        return StringOperations.createString(
+        return StringOperations.createUTF8String(
                 context,
                 language,
                 StringOperations.encodeRope(abiVersion, UTF8Encoding.INSTANCE));

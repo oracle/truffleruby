@@ -525,7 +525,7 @@ public class CExtNodes {
 
         @Specialization
         protected int codeToMbcLen(int code, RubyEncoding encoding) {
-            return StringSupport.codeLength(encoding.encoding, code);
+            return StringSupport.codeLength(encoding.jcoding, code);
         }
 
     }
@@ -544,7 +544,7 @@ public class CExtNodes {
             final Rope rope = strings.getRope(string);
             final byte[] bytes = bytesNode.execute(rope);
             final CodeRange ropeCodeRange = codeRangeNode.execute(rope);
-            final Encoding enc = encoding.encoding;
+            final Encoding enc = encoding.jcoding;
 
             final CodeRange cr;
             if (sameEncodingProfile.profile(enc == rope.getEncoding())) {
@@ -575,7 +575,7 @@ public class CExtNodes {
         @TruffleBoundary
         @Specialization
         protected boolean rbEncIsAlNum(int code, RubyEncoding value) {
-            return value.encoding.isAlnum(code);
+            return value.jcoding.isAlnum(code);
         }
 
     }
@@ -586,7 +586,7 @@ public class CExtNodes {
         @TruffleBoundary
         @Specialization
         protected boolean rbEncIsSpace(int code, RubyEncoding value) {
-            return value.encoding.isSpace(code);
+            return value.jcoding.isSpace(code);
         }
 
     }
@@ -1290,7 +1290,7 @@ public class CExtNodes {
             final byte[] to = new byte[bytes.length];
             final IntHolder intHolder = new IntHolder();
             intHolder.value = 0;
-            final int resultLength = enc.encoding
+            final int resultLength = enc.jcoding
                     .mbcCaseFold(flags, bytes, intHolder, bytes.length, to);
             InteropNodes.execute(write_p, new Object[]{ p, intHolder.value }, receivers, translateInteropExceptionNode);
             final byte[] result = new byte[resultLength];
@@ -1299,7 +1299,8 @@ public class CExtNodes {
             }
             return StringOperations.createString(
                     this,
-                    RopeOperations.create(result, USASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN));
+                    RopeOperations.create(result, USASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN),
+                    Encodings.US_ASCII);
         }
 
         protected int getCacheLimit() {
@@ -1313,7 +1314,7 @@ public class CExtNodes {
 
         @Specialization
         protected Object rbTrEncMbcPut(RubyEncoding enc, int code) {
-            final Encoding encoding = enc.encoding;
+            final Encoding encoding = enc.jcoding;
             final byte buf[] = new byte[org.jcodings.Config.ENC_CODE_TO_MBC_MAXLEN];
             final int resultLength = encoding.codeToMbc(code, buf, 0);
             final byte result[] = new byte[resultLength];
@@ -1322,7 +1323,8 @@ public class CExtNodes {
             }
             return StringOperations.createString(
                     this,
-                    RopeOperations.create(result, USASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN));
+                    RopeOperations.create(result, USASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN),
+                    Encodings.US_ASCII);
         }
 
     }
@@ -1332,7 +1334,7 @@ public class CExtNodes {
 
         @Specialization
         protected Object rbEncMaxLen(RubyEncoding value) {
-            return value.encoding.maxLength();
+            return value.jcoding.maxLength();
         }
 
     }
@@ -1342,7 +1344,7 @@ public class CExtNodes {
 
         @Specialization
         protected Object rbEncMinLen(RubyEncoding value) {
-            return value.encoding.minLength();
+            return value.jcoding.minLength();
         }
 
     }
@@ -1356,7 +1358,7 @@ public class CExtNodes {
                 @Cached RopeNodes.BytesNode getBytes,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached ConditionProfile sameEncodingProfile) {
-            final Encoding encoding = enc.encoding;
+            final Encoding encoding = enc.jcoding;
             final Rope rope = strings.getRope(string);
             final Encoding ropeEncoding = rope.getEncoding();
 
@@ -1380,7 +1382,7 @@ public class CExtNodes {
         @Specialization(guards = "strings.isRubyString(string)")
         protected Object rbEncLeftCharHead(RubyEncoding enc, Object string, int start, int p, int end,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings) {
-            return enc.encoding.leftAdjustCharHead(
+            return enc.jcoding.leftAdjustCharHead(
                     strings.getRope(string).getBytes(),
                     start,
                     p,
@@ -1395,7 +1397,7 @@ public class CExtNodes {
         protected int rbEncMbcToCodepoint(RubyEncoding enc, Object string, int end,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             final Rope rope = strings.getRope(string);
-            return StringSupport.mbcToCode(enc.encoding, rope, 0, end);
+            return StringSupport.mbcToCode(enc.jcoding, rope, 0, end);
         }
     }
 
@@ -1410,7 +1412,7 @@ public class CExtNodes {
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached RopeNodes.GetBytesObjectNode getBytesObject,
                 @Cached ConditionProfile sameEncodingProfile) {
-            final Encoding encoding = enc.encoding;
+            final Encoding encoding = enc.jcoding;
             final Rope rope = strings.getRope(string);
             final CodeRange cr;
             if (sameEncodingProfile.profile(encoding == rope.getEncoding())) {

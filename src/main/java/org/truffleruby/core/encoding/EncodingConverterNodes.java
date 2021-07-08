@@ -88,8 +88,8 @@ public abstract class EncodingConverterNodes {
             // by Rubinius.  Rubinius will do the heavy lifting of parsing the options hash and setting the `@options`
             // ivar to the resulting int for EConv flags.
 
-            Encoding sourceEncoding = source.encoding;
-            Encoding destinationEncoding = destination.encoding;
+            Encoding sourceEncoding = source.jcoding;
+            Encoding destinationEncoding = destination.jcoding;
 
             final EConv econv = TranscoderDB
                     .open(sourceEncoding.getName(), destinationEncoding.getName(), toJCodingFlags(options));
@@ -413,13 +413,13 @@ public abstract class EncodingConverterNodes {
             store[3] = makeStringNode.fromBuilderUnsafe(RopeBuilder.createRopeBuilder(
                     lastError.getErrorBytes(),
                     lastError.getErrorBytesP(),
-                    lastError.getErrorBytesP() + lastError.getErrorBytesLength()), CR_UNKNOWN, Encodings.BINARY);
+                    lastError.getErrorBytesP() + lastError.getErrorBytesLength()), Encodings.BINARY, CR_UNKNOWN);
 
             if (readAgain) {
                 store[4] = makeStringNode.fromBuilderUnsafe(RopeBuilder.createRopeBuilder(
                         lastError.getErrorBytes(),
                         lastError.getErrorBytesLength() + lastError.getErrorBytesP(),
-                        lastError.getReadAgainLength()), CR_UNKNOWN, Encodings.BINARY);
+                        lastError.getReadAgainLength()), Encodings.BINARY, CR_UNKNOWN);
             }
 
             return createArray(store);
@@ -474,15 +474,15 @@ public abstract class EncodingConverterNodes {
                                         ec.lastError.getErrorBytes(),
                                         ec.lastError.getErrorBytesP(),
                                         ec.lastError.getErrorBytesLength()),
-                                CR_UNKNOWN,
-                                Encodings.BINARY);
+                                Encodings.BINARY,
+                                CR_UNKNOWN);
                 ret[4] = makeStringNode.fromBuilderUnsafe(
                         RopeBuilder.createRopeBuilder(
                                 ec.lastError.getErrorBytes(),
                                 ec.lastError.getErrorBytesP() + ec.lastError.getErrorBytesLength(),
                                 ec.lastError.getReadAgainLength()),
-                        CR_UNKNOWN,
-                        Encodings.BINARY);
+                        Encodings.BINARY,
+                        CR_UNKNOWN);
             }
 
             return createArray(ret);

@@ -22,21 +22,21 @@ public abstract class EncodingLeftCharHeadNode extends RubyBaseNode {
 
     public abstract int execute(RubyEncoding enc, byte[] bytes, int p, int s, int end);
 
-    @Specialization(guards = "enc.encoding.isSingleByte()")
+    @Specialization(guards = "enc.jcoding.isSingleByte()")
     protected int leftAdjustCharHeadSingleByte(RubyEncoding enc, byte[] bytes, int p, int s, int end) {
         // return offset directly (org.jcodings.SingleByteEncoding#leftAdjustCharHead)
         return s;
     }
 
-    @Specialization(guards = { "!enc.encoding.isSingleByte()", "enc.encoding.isUTF8()" })
+    @Specialization(guards = { "!enc.jcoding.isSingleByte()", "enc.jcoding.isUTF8()" })
     protected int leftAdjustCharHeadUtf8(RubyEncoding enc, byte[] bytes, int p, int s, int end) {
         return UTF8Encoding.INSTANCE.leftAdjustCharHead(bytes, p, s, end);
     }
 
     @TruffleBoundary
-    @Specialization(guards = { "!enc.encoding.isSingleByte()", "!enc.encoding.isUTF8()" })
+    @Specialization(guards = { "!enc.jcoding.isSingleByte()", "!enc.jcoding.isUTF8()" })
     protected int leftAdjustCharHead(RubyEncoding enc, byte[] bytes, int p, int s, int end) {
-        return enc.encoding.leftAdjustCharHead(bytes, p, s, end);
+        return enc.jcoding.leftAdjustCharHead(bytes, p, s, end);
     }
 
 }

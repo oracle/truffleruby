@@ -12,6 +12,7 @@ package org.truffleruby.core.string;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 
@@ -49,7 +50,7 @@ public class CoreString {
     }
 
     public RubyString createInstance(RubyContext context) {
-        return StringOperations.createString(context, language, getRope());
+        return StringOperations.createString(context, language, getRope(), Encodings.BINARY);
     }
 
     private static boolean is7Bit(String literal) {

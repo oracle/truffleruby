@@ -70,7 +70,7 @@ public abstract class EncodingNodes {
     public abstract static class AsciiCompatibleNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected boolean isAsciiCompatible(RubyEncoding encoding) {
-            return encoding.encoding.isAsciiCompatible();
+            return encoding.jcoding.isAsciiCompatible();
         }
     }
 
@@ -99,7 +99,7 @@ public abstract class EncodingNodes {
         }
 
         protected boolean isSameEncoding(Encoding encoding, RubyEncoding rubyEncoding) {
-            return encoding == rubyEncoding.encoding;
+            return encoding == rubyEncoding.jcoding;
         }
 
         protected int getCacheLimit() {
@@ -120,7 +120,7 @@ public abstract class EncodingNodes {
         @Specialization(guards = "firstEncoding == secondEncoding")
         protected RubyEncoding negotiateSameEncodingUncached(
                 Rope first, RubyEncoding firstEncoding, Rope second, RubyEncoding secondEncoding) {
-            assert first.encoding == firstEncoding.encoding && second.encoding == secondEncoding.encoding;
+            assert first.encoding == firstEncoding.jcoding && second.encoding == secondEncoding.jcoding;
             return firstEncoding;
         }
 
@@ -144,14 +144,14 @@ public abstract class EncodingNodes {
                 @Cached("secondEncoding") RubyEncoding cachedSecondEncoding,
                 @Cached("negotiateRopeRopeUncached(first, firstEncoding, second, secondEncoding)") RubyEncoding negotiatedEncoding,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode) {
-            assert first.encoding == firstEncoding.encoding && second.encoding == secondEncoding.encoding;
+            assert first.encoding == firstEncoding.jcoding && second.encoding == secondEncoding.jcoding;
             return negotiatedEncoding;
         }
 
         @Specialization(guards = "firstEncoding != secondEncoding", replaces = "negotiateRopeRopeCached")
         protected RubyEncoding negotiateRopeRopeUncached(
                 Rope first, RubyEncoding firstEncoding, Rope second, RubyEncoding secondEncoding) {
-            assert first.encoding == firstEncoding.encoding && second.encoding == secondEncoding.encoding;
+            assert first.encoding == firstEncoding.jcoding && second.encoding == secondEncoding.jcoding;
             return compatibleEncodingForRopes(first, firstEncoding, second, secondEncoding);
         }
 
@@ -277,11 +277,11 @@ public abstract class EncodingNodes {
                 return null;
             }
 
-            if (!firstEncoding.encoding.isAsciiCompatible() || !secondEncoding.encoding.isAsciiCompatible()) {
+            if (!firstEncoding.jcoding.isAsciiCompatible() || !secondEncoding.jcoding.isAsciiCompatible()) {
                 return null;
             }
 
-            if (secondEncoding.encoding == USASCIIEncoding.INSTANCE) {
+            if (secondEncoding.jcoding == USASCIIEncoding.INSTANCE) {
                 return firstEncoding;
             }
 
@@ -341,14 +341,14 @@ public abstract class EncodingNodes {
                 return null;
             }
 
-            if (!enc1.encoding.isAsciiCompatible() || !enc2.encoding.isAsciiCompatible()) {
+            if (!enc1.jcoding.isAsciiCompatible() || !enc2.jcoding.isAsciiCompatible()) {
                 return null;
             }
 
-            if (enc2.encoding instanceof USASCIIEncoding) {
+            if (enc2.jcoding instanceof USASCIIEncoding) {
                 return enc1;
             }
-            if (enc1.encoding instanceof USASCIIEncoding) {
+            if (enc1.jcoding instanceof USASCIIEncoding) {
                 return enc2;
             }
 
@@ -426,10 +426,8 @@ public abstract class EncodingNodes {
     public abstract static class LocaleCharacterMapNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected ImmutableRubyString localeCharacterMap(
-                @Cached GetRubyEncodingNode getRubyEncodingNode) {
-            final RubyEncoding rubyEncoding = getRubyEncodingNode
-                    .executeGetRubyEncoding(getContext().getEncodingManager().getLocaleEncoding());
+        protected ImmutableRubyString localeCharacterMap() {
+            final RubyEncoding rubyEncoding = getContext().getEncodingManager().getLocaleEncoding();
             return rubyEncoding.name;
         }
     }
@@ -489,7 +487,7 @@ public abstract class EncodingNodes {
     public abstract static class IsUnicodeNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         protected boolean isUnicode(RubyEncoding encoding) {
-            return encoding.encoding.isUnicode();
+            return encoding.jcoding.isUnicode();
         }
     }
 
@@ -577,16 +575,16 @@ public abstract class EncodingNodes {
         @Specialization
         protected Object getDefaultEncoding(Object name,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringLibrary) {
-            final Encoding encoding = getEncoding(stringLibrary.getJavaString(name));
+            final RubyEncoding encoding = getEncoding(stringLibrary.getJavaString(name));
             if (encoding == null) {
                 return nil;
             } else {
-                return getContext().getEncodingManager().getRubyEncoding(encoding);
+                return encoding;
             }
         }
 
         @TruffleBoundary
-        private Encoding getEncoding(String name) {
+        private RubyEncoding getEncoding(String name) {
             switch (name) {
                 case "internal":
                     return getContext().getEncodingManager().getDefaultInternalEncoding();
@@ -606,7 +604,7 @@ public abstract class EncodingNodes {
 
         @Specialization
         protected RubyEncoding setDefaultExternal(RubyEncoding encoding) {
-            getContext().getEncodingManager().setDefaultExternalEncoding(encoding.encoding);
+            getContext().getEncodingManager().setDefaultExternalEncoding(encoding);
             return encoding;
         }
 
@@ -624,7 +622,7 @@ public abstract class EncodingNodes {
 
         @Specialization
         protected RubyEncoding setDefaultInternal(RubyEncoding encoding) {
-            getContext().getEncodingManager().setDefaultInternalEncoding(encoding.encoding);
+            getContext().getEncodingManager().setDefaultInternalEncoding(encoding);
             return encoding;
         }
 
@@ -780,10 +778,8 @@ public abstract class EncodingNodes {
 
         @Child private NegotiateCompatibleRopeEncodingNode negotiateCompatibleEncodingNode = NegotiateCompatibleRopeEncodingNode
                 .create();
-        @Child private GetRubyEncodingNode firstGetRubyEncodingNode = EncodingNodesFactory.GetRubyEncodingNodeGen
-                .create();
-        @Child private GetRubyEncodingNode secondGetRubyEncodingNode = EncodingNodesFactory.GetRubyEncodingNodeGen
-                .create();
+        @Child private GetRubyEncodingNode firstGetRubyEncodingNode = GetRubyEncodingNode.create();
+        @Child private GetRubyEncodingNode secondGetRubyEncodingNode = GetRubyEncodingNode.create();
 
         public static CheckRopeEncodingNode create() {
             return CheckRopeEncodingNodeGen.create();

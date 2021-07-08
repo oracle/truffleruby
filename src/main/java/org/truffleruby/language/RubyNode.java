@@ -20,10 +20,10 @@ import com.oracle.truffle.api.interop.NodeLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import org.jcodings.Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.CoreExceptions;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.method.RubyMethod;
@@ -249,7 +249,7 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
 
         // Helpers methods for terseness, keep in sync
 
-        default Encoding getLocaleEncoding() {
+        default RubyEncoding getLocaleEncoding() {
             return getContext().getEncodingManager().getLocaleEncoding();
         }
 

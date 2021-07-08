@@ -30,7 +30,7 @@ public class Encodings {
 
     public static final int INITIAL_NUMBER_OF_ENCODINGS = EncodingDB.getEncodings().size();
     public static final RubyEncoding US_ASCII = initializeUsAscii();
-    public static final RubyEncoding[] BUILT_IN_ENCODINGS = initializeRubyEncodings();
+    private static final RubyEncoding[] BUILT_IN_ENCODINGS = initializeRubyEncodings();
     public static final RubyEncoding BINARY = BUILT_IN_ENCODINGS[ASCIIEncoding.INSTANCE.getIndex()];
     public static final RubyEncoding UTF_8 = BUILT_IN_ENCODINGS[UTF8Encoding.INSTANCE.getIndex()];
 
@@ -40,7 +40,7 @@ public class Encodings {
 
     private static RubyEncoding initializeUsAscii() {
         final Encoding encoding = USASCIIEncoding.INSTANCE;
-        return new RubyEncoding(encoding, new String(encoding.getName()), encoding.getIndex());
+        return new RubyEncoding(encoding, encoding.toString(), encoding.getIndex());
     }
 
     private static RubyEncoding[] initializeRubyEncodings() {
@@ -55,15 +55,12 @@ public class Encodings {
                 encodings[encodingEntry.getEncoding().getIndex()] = US_ASCII;
                 continue;
             }
-            assert e.p == 0 : "Ropes can't be created with non-zero offset: " + e.p;
-            assert e.end == e.bytes.length : "Ropes must have the same exact length as the name array (len = " + e.end +
-                    "; name.length = " + e.bytes.length + ")";
             final ImmutableRubyString name = new ImmutableRubyString(
-                    RopeConstants.ROPE_CONSTANTS.get(new String(e.bytes)),
+                    RopeConstants.ROPE_CONSTANTS.get(encodingEntry.getEncoding().toString()),
                     US_ASCII);
-            final RubyEncoding rubyEncoding = newRubyEncoding(
-                    name,
+            final RubyEncoding rubyEncoding = new RubyEncoding(
                     encodingEntry.getEncoding(),
+                    name,
                     encodingEntry.getEncoding().getIndex(),
                     encodingEntry.getEncoding().isDummy());
             encodings[encodingEntry.getEncoding().getIndex()] = rubyEncoding;
@@ -81,12 +78,7 @@ public class Encodings {
         final Rope rope = RopeOperations.create(name, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
         final ImmutableRubyString string = language.getFrozenStringLiteral(rope);
 
-        return newRubyEncoding(string, encoding, index, dummy);
-    }
-
-    @TruffleBoundary
-    private static RubyEncoding newRubyEncoding(ImmutableRubyString name, Encoding encoding, int index, boolean dummy) {
-        return new RubyEncoding(encoding, name, index, dummy);
+        return new RubyEncoding(encoding, string, index, dummy);
     }
 
     public static RubyEncoding getBuiltInEncoding(int index) {

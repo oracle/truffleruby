@@ -42,7 +42,7 @@ public abstract class ErrnoErrorNode extends RubyContextNode {
             errnoDescription = nil;
         } else {
             errnoClass = getContext().getCoreLibrary().getErrnoClass(errnoName);
-            errnoDescription = StringOperations.createString(
+            errnoDescription = StringOperations.createUTF8String(
                     getContext(),
                     getLanguage(),
                     StringOperations.encodeRope(ErrnoDescriptions.getDescription(errnoName), UTF8Encoding.INSTANCE));

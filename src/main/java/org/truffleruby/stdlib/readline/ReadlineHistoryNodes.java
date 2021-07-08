@@ -107,7 +107,7 @@ public abstract class ReadlineHistoryNodes {
             final String lastLine = consoleHolder.getHistory().removeLast().line();
             return makeStringNode.executeMake(
                     lastLine,
-                    getContext().getEncodingManager().getRubyEncoding(getLocaleEncoding()),
+                    getLocaleEncoding(),
                     CodeRange.CR_UNKNOWN);
         }
 
@@ -130,7 +130,7 @@ public abstract class ReadlineHistoryNodes {
             final String lastLine = consoleHolder.getHistory().removeFirst().line();
             return makeStringNode.executeMake(
                     lastLine,
-                    getContext().getEncodingManager().getRubyEncoding(getLocaleEncoding()),
+                    getLocaleEncoding(),
                     CodeRange.CR_UNKNOWN);
         }
 
@@ -176,7 +176,7 @@ public abstract class ReadlineHistoryNodes {
                 final RubyString line = makeStringNode
                         .executeMake(
                                 historyEntryToString(e),
-                                getContext().getEncodingManager().getRubyEncoding(getLocaleEncoding()),
+                                getLocaleEncoding(),
                                 CodeRange.CR_UNKNOWN);
                 callBlock(block, line);
             }
@@ -207,7 +207,7 @@ public abstract class ReadlineHistoryNodes {
                 final String line = consoleHolder.getHistory().get(normalizedIndex);
                 return makeStringNode.executeMake(
                         line,
-                        getContext().getEncodingManager().getRubyEncoding(getLocaleEncoding()),
+                        getLocaleEncoding(),
                         CodeRange.CR_UNKNOWN);
             } catch (IndexOutOfBoundsException e) {
                 throw new RaiseException(getContext(), coreExceptions().indexErrorInvalidIndex(this));
@@ -262,7 +262,7 @@ public abstract class ReadlineHistoryNodes {
                 final String line = consoleHolder.getHistory().remove(normalizedIndex).line();
                 return makeStringNode.executeMake(
                         line,
-                        getContext().getEncodingManager().getRubyEncoding(getLocaleEncoding()),
+                        getLocaleEncoding(),
                         CodeRange.CR_UNKNOWN);
             } catch (IndexOutOfBoundsException e) {
                 throw new RaiseException(getContext(), coreExceptions().indexErrorInvalidIndex(this));

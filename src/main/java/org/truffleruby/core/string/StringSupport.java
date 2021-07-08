@@ -1776,7 +1776,7 @@ public final class StringSupport {
                                         "dumped string has unknown encoding name",
                                         currentNode));
                     }
-                    undumped.setEncoding(enc2.encoding);
+                    undumped.setEncoding(enc2.jcoding);
                 }
                 break;
             }

@@ -1577,7 +1577,7 @@ public abstract class ArrayNodes {
             final RubyString string = makeStringNode.fromRope(
                     makeLeafRopeNode.executeMake(
                             bytes,
-                            rubyEncoding.encoding,
+                            rubyEncoding.jcoding,
                             result.getStringCodeRange(),
                             result.getStringLength()),
                     rubyEncoding);

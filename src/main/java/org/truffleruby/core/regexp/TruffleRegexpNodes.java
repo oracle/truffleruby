@@ -212,7 +212,7 @@ public class TruffleRegexpNodes {
             if (rubyStringLibrary.isRubyString(obj)) {
                 final Rope rope = rubyStringLibrary.getRope(obj);
                 final Rope quotedRope = ClassicRegexp.quote19(rope);
-                final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(quotedRope.encoding);
+                final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(quotedRope.encoding); // REVIEW Can't use obj encoding
                 return makeStringNode.fromRope(quotedRope, rubyEncoding);
             } else {
                 return toSNode.execute((RubyRegexp) obj);
@@ -322,7 +322,8 @@ public class TruffleRegexpNodes {
             int n = 0;
             for (Entry<T, AtomicInteger> e : map.entrySet()) {
                 Rope key = StringOperations.encodeRope(e.getKey().toString(), UTF8Encoding.INSTANCE);
-                arrayBuilderNode.appendValue(state, n++, StringOperations.createString(context, getLanguage(), key));
+                arrayBuilderNode
+                        .appendValue(state, n++, StringOperations.createUTF8String(context, getLanguage(), key));
                 arrayBuilderNode.appendValue(state, n++, e.getValue().get());
             }
             return createArray(arrayBuilderNode.finish(state, n), n);

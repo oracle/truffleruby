@@ -227,8 +227,7 @@ public abstract class TruffleBootNodes {
             for (int n = 0; n < array.length; n++) {
                 array[n] = makeStringNode.executeMake(
                         argv[n],
-                        getContext().getEncodingManager().getRubyEncoding(
-                                getContext().getEncodingManager().getDefaultExternalEncoding()),
+                        getContext().getEncodingManager().getDefaultExternalEncoding(),
                         CodeRange.CR_UNKNOWN);
             }
 

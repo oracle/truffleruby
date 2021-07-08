@@ -278,7 +278,7 @@ public abstract class MatchDataNodes {
                             getLanguage().stringShape,
                             false,
                             rope,
-                            getContext().getEncodingManager().getRubyEncoding(rope.encoding));
+                            strings.getEncoding(source));
                     AllocationTracing.trace(string, this);
                     return string;
                 } else {
@@ -515,7 +515,7 @@ public abstract class MatchDataNodes {
                                 getLanguage().stringShape,
                                 false,
                                 rope,
-                                getContext().getEncodingManager().getRubyEncoding(rope.encoding));
+                                strings.getEncoding(source));
                         AllocationTracing.trace(string, this);
                         values[n] = string;
                     } else {
@@ -646,7 +646,7 @@ public abstract class MatchDataNodes {
                     getLanguage().stringShape,
                     false,
                     rope,
-                    getContext().getEncodingManager().getRubyEncoding(rope.encoding));
+                    strings.getEncoding(source));
             AllocationTracing.trace(string, this);
             return string;
         }
@@ -676,7 +676,7 @@ public abstract class MatchDataNodes {
                     getLanguage().stringShape,
                     false,
                     rope,
-                    getContext().getEncodingManager().getRubyEncoding(rope.encoding));
+                    strings.getEncoding(source));
             AllocationTracing.trace(string, this);
             return string;
         }

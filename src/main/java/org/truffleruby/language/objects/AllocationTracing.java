@@ -152,7 +152,7 @@ public abstract class AllocationTracing {
         // No point to use MakeStringNode (which uses AllocateObjectNode) here, as we should not
         // trace the allocation of Strings used for tracing allocations.
         return StringOperations
-                .createString(context, language, StringOperations.encodeRope(value, UTF8Encoding.INSTANCE));
+                .createUTF8String(context, language, StringOperations.encodeRope(value, UTF8Encoding.INSTANCE));
     }
 
 }

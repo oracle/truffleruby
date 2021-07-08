@@ -52,8 +52,7 @@ public class ThreadBacktraceLocationNodes {
         @TruffleBoundary
         @Specialization
         protected Object absolutePath(RubyBacktraceLocation threadBacktraceLocation,
-                @Cached StringNodes.MakeStringNode makeStringNode,
-                @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode) {
+                @Cached StringNodes.MakeStringNode makeStringNode) {
             final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
             if (sourceSection == null) {
@@ -67,13 +66,10 @@ public class ThreadBacktraceLocationNodes {
                     final String canonicalPath = getContext().getFeatureLoader().canonicalize(path);
                     final Rope cachedRope = getLanguage().ropeCache
                             .getRope(StringOperations.encodeRope(canonicalPath, UTF8Encoding.INSTANCE));
-                    final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(cachedRope.encoding);
-                    return makeStringNode.fromRope(cachedRope, rubyEncoding);
+                    return makeStringNode.fromRope(cachedRope, Encodings.UTF_8);
                 } else { // eval()
                     final Rope cachedPath = getLanguage().getPathToRopeCache().getCachedPath(source);
-                    final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(cachedPath.encoding);
-                    return makeStringNode
-                            .fromRope(cachedPath, rubyEncoding);
+                    return makeStringNode.fromRope(cachedPath, Encodings.UTF_8);
                 }
             }
         }

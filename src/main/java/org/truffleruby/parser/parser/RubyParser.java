@@ -3429,7 +3429,7 @@ states[540] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[541] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    Encoding encoding = support.getConfiguration().getContext() == null ? UTF8Encoding.INSTANCE : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding();
+    Encoding encoding = support.getConfiguration().getContext() == null ? UTF8Encoding.INSTANCE : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding().jcoding;
     yyVal = new FileParseNode(lexer.tokline, StringOperations.encodeRope(lexer.getFile(), encoding, CR_UNKNOWN));
     return yyVal;
 };

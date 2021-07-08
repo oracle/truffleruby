@@ -104,7 +104,7 @@ public abstract class RegexpNodes {
                 @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode) {
             final Rope rope = libRaw.getRope(raw);
             final Rope ropeQuoted = ClassicRegexp.quote19(rope);
-            final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(ropeQuoted.encoding);
+            final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(ropeQuoted.encoding); // Review libRaw.getEncoding causes issues
             return getMakeStringNode().fromRope(ropeQuoted, rubyEncoding);
         }
 

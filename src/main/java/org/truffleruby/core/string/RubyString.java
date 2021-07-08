@@ -42,12 +42,12 @@ public class RubyString extends RubyDynamicObject {
     }
 
     public void setRope(Rope rope) {
-        assert rope.encoding == encoding.encoding;
+        assert rope.encoding == encoding.jcoding;
         this.rope = rope;
     }
 
     public void setRope(Rope rope, RubyEncoding encoding) {
-        assert rope.encoding == encoding.encoding;
+        assert rope.encoding == encoding.jcoding;
         this.rope = rope;
         this.encoding = encoding;
     }
@@ -59,8 +59,8 @@ public class RubyString extends RubyDynamicObject {
     }
 
     public Encoding getJCoding() {
-        assert encoding.encoding == rope.encoding;
-        return encoding.encoding;
+        assert encoding.jcoding == rope.encoding;
+        return encoding.jcoding;
     }
 
     // region RubyStringLibrary messages

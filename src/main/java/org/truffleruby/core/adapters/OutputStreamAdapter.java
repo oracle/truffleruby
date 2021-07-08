@@ -11,9 +11,9 @@ package org.truffleruby.core.adapters;
 
 import java.io.OutputStream;
 
-import org.jcodings.Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
@@ -24,9 +24,9 @@ public class OutputStreamAdapter extends OutputStream {
     private final RubyContext context;
     private final RubyLanguage language;
     private final RubyIO object;
-    private final Encoding encoding;
+    private final RubyEncoding encoding;
 
-    public OutputStreamAdapter(RubyContext context, RubyLanguage language, RubyIO object, Encoding encoding) {
+    public OutputStreamAdapter(RubyContext context, RubyLanguage language, RubyIO object, RubyEncoding encoding) {
         this.context = context;
         this.language = language;
         this.object = object;
@@ -42,7 +42,8 @@ public class OutputStreamAdapter extends OutputStream {
                         .createString(
                                 context,
                                 language,
-                                RopeOperations.create((byte) bite, encoding, CodeRange.CR_UNKNOWN)));
+                                RopeOperations.create((byte) bite, encoding.jcoding, CodeRange.CR_UNKNOWN),
+                                encoding));
     }
 
 }

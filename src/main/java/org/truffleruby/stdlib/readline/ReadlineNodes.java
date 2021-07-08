@@ -170,8 +170,7 @@ public abstract class ReadlineNodes {
 
                 return makeStringNode.executeMake(
                         value,
-                        getContext().getEncodingManager().getRubyEncoding(
-                                getContext().getEncodingManager().getDefaultExternalEncoding()),
+                        getContext().getEncodingManager().getDefaultExternalEncoding(),
                         CodeRange.CR_UNKNOWN);
             }
         }
@@ -233,7 +232,7 @@ public abstract class ReadlineNodes {
             return makeStringNode
                     .executeMake(
                             buffer.toString(),
-                            getContext().getEncodingManager().getRubyEncoding(getLocaleEncoding()),
+                            getLocaleEncoding(),
                             CodeRange.CR_UNKNOWN);
         }
 
@@ -295,7 +294,7 @@ public abstract class ReadlineNodes {
             boolean complete = lineReader.getBuffer().cursor() == lineReader.getBuffer().length();
 
             RubyString string = StringOperations
-                    .createString(context, language, StringOperations.encodeRope(buffer, UTF8Encoding.INSTANCE));
+                    .createUTF8String(context, language, StringOperations.encodeRope(buffer, UTF8Encoding.INSTANCE));
             RubyArray completions = (RubyArray) RubyContext.send(proc, "call", string);
             for (Object element : ArrayOperations.toIterable(completions)) {
                 final String completion = RubyStringLibrary.getUncached().getJavaString(element);

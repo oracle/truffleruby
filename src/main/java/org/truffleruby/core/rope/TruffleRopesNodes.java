@@ -104,7 +104,7 @@ public abstract class TruffleRopesNodes {
             byte[] bytes = StringOperations.encodeBytes(result, UTF8Encoding.INSTANCE);
             return makeStringNode.executeMake(
                     bytes,
-                    getContext().getEncodingManager().getRubyEncoding(rope.getEncoding()),
+                    strings.getEncoding(string),
                     CodeRange.CR_7BIT);
         }
 
@@ -167,7 +167,7 @@ public abstract class TruffleRopesNodes {
                 @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             final LeafRope flattened = flattenNode.executeFlatten(libString.getRope(string));
-            final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(flattened.encoding);
+            final RubyEncoding rubyEncoding = libString.getEncoding(string);
             return makeStringNode.fromRope(flattened, rubyEncoding);
         }
 

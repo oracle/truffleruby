@@ -122,7 +122,10 @@ public abstract class InteropNodes {
             Object[] store = new Object[METHODS.length];
             for (int i = 0; i < METHODS.length; i++) {
                 store[i] = StringOperations
-                        .createString(this, StringOperations.encodeRope(METHODS[i], UTF8Encoding.INSTANCE));
+                        .createString(
+                                this,
+                                StringOperations.encodeRope(METHODS[i], UTF8Encoding.INSTANCE),
+                                Encodings.UTF_8);
             }
             return createArray(store);
         }
@@ -1669,7 +1672,7 @@ public abstract class InteropNodes {
             final String[] languagesArray = languages.keySet().toArray(StringUtils.EMPTY_STRING_ARRAY);
             final Object[] rubyStringArray = new Object[languagesArray.length];
             for (int i = 0; i < languagesArray.length; i++) {
-                rubyStringArray[i] = StringOperations.createString(
+                rubyStringArray[i] = StringOperations.createUTF8String(
                         getContext(),
                         getLanguage(),
                         StringOperations.encodeRope(languagesArray[i], UTF8Encoding.INSTANCE));

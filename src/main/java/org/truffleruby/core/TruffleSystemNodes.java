@@ -45,7 +45,6 @@ import java.util.logging.Level;
 
 import com.oracle.truffle.api.library.CachedLibrary;
 import org.graalvm.nativeimage.ProcessProperties;
-import org.jcodings.Encoding;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -88,8 +87,7 @@ public abstract class TruffleSystemNodes {
         protected RubyArray envVars() {
             final Set<String> variables = System.getenv().keySet();
             final int size = variables.size();
-            final Encoding localeEncoding = getContext().getEncodingManager().getLocaleEncoding();
-            final RubyEncoding localeRubyEncoding = getContext().getEncodingManager().getRubyEncoding(localeEncoding);
+            final RubyEncoding localeRubyEncoding = getContext().getEncodingManager().getLocaleEncoding();
             final Object[] store = new Object[size];
             int i = 0;
             for (String variable : variables) {
@@ -156,10 +154,7 @@ public abstract class TruffleSystemNodes {
         protected RubyString getTruffleWorkingDir(
                 @Cached MakeStringNode makeStringNode) {
             final String cwd = getContext().getFeatureLoader().getWorkingDirectory();
-            final Encoding externalEncoding = getContext().getEncodingManager().getDefaultExternalEncoding();
-            final RubyEncoding externalRubyEncoding = getContext()
-                    .getEncodingManager()
-                    .getRubyEncoding(externalEncoding);
+            final RubyEncoding externalRubyEncoding = getContext().getEncodingManager().getDefaultExternalEncoding();
             return makeStringNode.executeMake(cwd, externalRubyEncoding, CodeRange.CR_UNKNOWN);
         }
     }

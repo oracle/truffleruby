@@ -285,7 +285,7 @@ public abstract class PointerNodes {
                     getLanguage().stringShape,
                     false,
                     rope,
-                    getContext().getEncodingManager().getRubyEncoding(rope.encoding));
+                    Encodings.BINARY);
             AllocationTracing.trace(instance, this);
             return instance;
         }
@@ -304,7 +304,7 @@ public abstract class PointerNodes {
                     getLanguage().stringShape,
                     false,
                     rope,
-                    getContext().getEncodingManager().getRubyEncoding(rope.encoding));
+                    Encodings.BINARY);
             AllocationTracing.trace(instance, this);
             return instance;
         }
@@ -340,7 +340,7 @@ public abstract class PointerNodes {
                         getLanguage().stringShape,
                         false,
                         rope,
-                        getContext().getEncodingManager().getRubyEncoding(rope.encoding));
+                        Encodings.BINARY);
                 AllocationTracing.trace(instance, this);
                 return instance;
             }

@@ -49,7 +49,7 @@ public class FrozenStringLiterals {
         if (string != null) {
             return string;
         } else {
-            final RubyEncoding rubyEncoding = Encodings.BUILT_IN_ENCODINGS[encoding.getIndex()];
+            final RubyEncoding rubyEncoding = Encodings.getBuiltInEncoding(encoding.getIndex());
             return values.addInCacheIfAbsent(cachedRope, new ImmutableRubyString(cachedRope, rubyEncoding));
         }
     }

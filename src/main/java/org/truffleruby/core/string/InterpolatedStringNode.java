@@ -11,6 +11,7 @@ package org.truffleruby.core.string;
 
 import org.jcodings.Encoding;
 import org.truffleruby.core.cast.ToSNode;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -42,7 +43,8 @@ public final class InterpolatedStringNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
 
         // Start with an empty string to ensure the result has class String and the proper encoding.
-        RubyString builder = StringOperations.createString(getContext(), getLanguage(), emptyRope);
+        final RubyEncoding rubyEncoding = getContext().getEncodingManager().getRubyEncoding(emptyRope.encoding); // REVIEW
+        RubyString builder = StringOperations.createString(getContext(), getLanguage(), emptyRope, rubyEncoding);
 
         // TODO (nirvdrum 11-Jan-16) Rewrite to avoid massively unbalanced trees.
         for (ToSNode child : children) {
