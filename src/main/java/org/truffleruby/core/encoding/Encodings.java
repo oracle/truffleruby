@@ -26,10 +26,14 @@ import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.ImmutableRubyString;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Encodings {
 
     public static final int INITIAL_NUMBER_OF_ENCODINGS = EncodingDB.getEncodings().size();
     public static final RubyEncoding US_ASCII = initializeUsAscii();
+    public static final List<ImmutableRubyString> ENCODING_NAMES = new ArrayList<>();
     private static final RubyEncoding[] BUILT_IN_ENCODINGS = initializeRubyEncodings();
     public static final RubyEncoding BINARY = BUILT_IN_ENCODINGS[ASCIIEncoding.INSTANCE.getIndex()];
     public static final RubyEncoding UTF_8 = BUILT_IN_ENCODINGS[UTF8Encoding.INSTANCE.getIndex()];
@@ -58,6 +62,7 @@ public class Encodings {
             final ImmutableRubyString name = new ImmutableRubyString(
                     RopeConstants.ROPE_CONSTANTS.get(encodingEntry.getEncoding().toString()),
                     US_ASCII);
+            ENCODING_NAMES.add(name);
             // Checkstyle: stop
             final RubyEncoding rubyEncoding = new RubyEncoding(
                     encodingEntry.getEncoding(),

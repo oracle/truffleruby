@@ -21,7 +21,7 @@ import org.truffleruby.core.rope.RopeCache;
 
 import java.util.Collection;
 
-import static org.truffleruby.core.rope.RopeConstants.ENCODING_NAMES;
+import static org.truffleruby.core.encoding.Encodings.ENCODING_NAMES;
 
 public class FrozenStringLiterals {
 
@@ -30,8 +30,8 @@ public class FrozenStringLiterals {
 
     public FrozenStringLiterals(RopeCache ropeCache) {
         this.ropeCache = ropeCache;
-        for (Rope name : ENCODING_NAMES) {
-            getFrozenStringLiteral(name);
+        for (ImmutableRubyString name : ENCODING_NAMES) {
+            addFrozenStringLiteral(name);
         }
     }
 
@@ -52,6 +52,11 @@ public class FrozenStringLiterals {
             final RubyEncoding rubyEncoding = Encodings.getBuiltInEncoding(encoding.getIndex());
             return values.addInCacheIfAbsent(cachedRope, new ImmutableRubyString(cachedRope, rubyEncoding));
         }
+    }
+
+    private void addFrozenStringLiteral(ImmutableRubyString string) {
+        final LeafRope cachedRope = ropeCache.getRope(string.rope);
+        values.addInCacheIfAbsent(cachedRope, string);
     }
 
     @TruffleBoundary
