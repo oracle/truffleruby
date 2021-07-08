@@ -25,6 +25,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -45,7 +46,6 @@ import org.truffleruby.core.hash.HashLiteralNode;
 import org.truffleruby.core.hash.HashingNodes;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.HashStoreLibrary.EachEntryCallback;
-import org.truffleruby.core.hash.library.HashStoreLibrary.YieldPairNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -291,11 +291,9 @@ public class PackedHashStoreLibrary {
         @Specialization(guards = "hash.size == cachedSize", limit = "packedHashLimit()")
         @ExplodeLoop
         protected static Object eachEntry(Object[] store, RubyHash hash, EachEntryCallback callback, Object state,
-                // We only use this to get hold of the root node.
-                @Cached YieldPairNode witness,
+                @CachedLibrary("store") HashStoreLibrary hashStoreLibrary,
                 @Cached(value = "hash.size", allowUncached = true) int cachedSize,
-                @Cached LoopConditionProfile loopProfile,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
+                @Cached LoopConditionProfile loopProfile) {
 
             // Don't verify hash here, as `store != hash.store` when calling from `eachEntrySafe`.
             loopProfile.profileCounted(cachedSize);
@@ -305,9 +303,7 @@ public class PackedHashStoreLibrary {
                     callback.accept(i, getKey(store, i), getValue(store, i), state);
                 }
             } finally {
-                // The node is used to get the root node, so fine to use a cached node here.
-                assert CompilerDirectives.isCompilationConstant(witness);
-                LoopNode.reportLoopCount(witness, i);
+                LoopNode.reportLoopCount(hashStoreLibrary.getNode(), i);
             }
             return state;
         }
@@ -472,7 +468,7 @@ public class PackedHashStoreLibrary {
                     .referenceEqualKeys(refEqual, compareByIdentity, key, hashed, otherKey, otherHashed);
         }
 
-        @ExplodeLoop(kind = ExplodeLoop.LoopExplosionKind.FULL_UNROLL_UNTIL_RETURN)
+        @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL_UNTIL_RETURN)
         @Specialization(replaces = "getConstantIndexPackedArray")
         protected Object getPackedArray(
                 Frame frame, RubyHash hash, Object key, int hashed, PEBiFunction defaultValueNode,
@@ -493,14 +489,13 @@ public class PackedHashStoreLibrary {
                     }
                 }
             }
+
             notInHashProfile.enter();
-            // frame should be virtual or null
             return defaultValueNode.accept(frame, hash, key);
         }
 
         protected boolean equalKeys(CompareHashKeysNode compareHashKeys, boolean compareByIdentity, Object key,
-                int hashed,
-                Object otherKey, int otherHashed) {
+                int hashed, Object otherKey, int otherHashed) {
             return compareHashKeys.execute(compareByIdentity, key, hashed, otherKey, otherHashed);
         }
     }
@@ -521,7 +516,6 @@ public class PackedHashStoreLibrary {
         @Override
         public Object execute(VirtualFrame frame) {
             final Object[] store = createStore(language);
-
             int size = 0;
 
             for (int n = 0; n < keyValues.length / 2; n++) {
