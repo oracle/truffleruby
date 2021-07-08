@@ -158,6 +158,13 @@ public abstract class ConditionVariableNodes {
                             return BlockingAction.SUCCESS;
                         }
 
+                        /** Condition#await() can only exit (return or throw) after the associated ReentrantLock is
+                         * re-acquired. Even if it's interrupted, the InterruptedException is "stuck inside" until that
+                         * ReentrantLock is re-acquired. So the ReentrantLock we use here must be a ReentrantLock used
+                         * only for that Condition/RubyConditionVariable and nothing else. Specifically it must not be a
+                         * ReentrantLock exposed to Ruby, e.g., via a Ruby Mutex, as that could be held forever by
+                         * another Ruby thread (which did {code mutex.lock} after the #wait), and we would never be able
+                         * to interrupt both threads at the same time for a synchronous ThreadLocalAction). */
                         condition.await(endNanoTime - currentTime, TimeUnit.NANOSECONDS);
                     } else {
                         condition.await();
