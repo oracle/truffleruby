@@ -107,7 +107,7 @@ module Kernel
     raise_exception = !exception.equal?(false)
 
     if String === obj
-      Primitive.string_to_inum(obj, base, true, !exception.equal?(false))
+      Primitive.string_to_inum(obj, base, true, raise_exception)
     else
       bad_base_check = Proc.new do
         if base != 0
