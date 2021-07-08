@@ -9,6 +9,8 @@
  */
 package org.truffleruby.language.literal;
 
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -19,9 +21,11 @@ import org.truffleruby.language.objects.AllocationTracing;
 public class StringLiteralNode extends RubyContextSourceNode {
 
     private final Rope rope;
+    private final RubyEncoding encoding;
 
     public StringLiteralNode(Rope rope) {
         this.rope = rope;
+        this.encoding = Encodings.getBuiltInEncoding(rope.encoding.getIndex());
     }
 
     @Override
@@ -31,7 +35,7 @@ public class StringLiteralNode extends RubyContextSourceNode {
                 getLanguage().stringShape,
                 false,
                 rope,
-                getContext().getEncodingManager().getRubyEncoding(rope.encoding));
+                encoding);
         AllocationTracing.trace(string, this);
         return string;
     }
