@@ -10,6 +10,7 @@
 package org.truffleruby.language.globals;
 
 import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.AssignableNode;
@@ -53,7 +54,7 @@ public abstract class WriteGlobalVariableNode extends RubyContextSourceNode impl
     protected Object writeHooks(VirtualFrame frame, Object value,
             @Bind("getStorage(frame)") GlobalVariableStorage storage,
             @Bind("setterArity(storage)") int arity,
-            @Cached CallBlockNode yieldNode) {
+            @Cached @Exclusive CallBlockNode yieldNode) {
         yieldNode.yield(storage.getSetter(), value);
         return value;
     }
@@ -62,7 +63,7 @@ public abstract class WriteGlobalVariableNode extends RubyContextSourceNode impl
     protected Object writeHooksWithStorage(VirtualFrame frame, Object value,
             @Bind("getStorage(frame)") GlobalVariableStorage storage,
             @Bind("setterArity(storage)") int arity,
-            @Cached CallBlockNode yieldNode,
+            @Cached @Exclusive CallBlockNode yieldNode,
             @Cached GetSpecialVariableStorage storageNode) {
         yieldNode.yield(
                 storage.getSetter(),

@@ -11,6 +11,7 @@ package org.truffleruby.language.objects.classvariables;
 
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
@@ -32,7 +33,7 @@ public abstract class SetClassVariableNode extends RubyContextNode {
     protected Object setClassVariableLocal(RubyModule module, String name, Object value,
             @Bind("module.fields.getClassVariables()") ClassVariableStorage classVariableStorage,
             @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary,
-            @Cached BranchProfile slowPath) {
+            @Cached @Shared("slowPath") BranchProfile slowPath) {
         if (!objectLibrary.putIfPresent(classVariableStorage, name, value)) {
             slowPath.enter();
             ModuleOperations.setClassVariable(getLanguage(), getContext(), module, name, value, this);
@@ -45,7 +46,7 @@ public abstract class SetClassVariableNode extends RubyContextNode {
             @Bind("module.fields.getClassVariables()") ClassVariableStorage classVariableStorage,
             @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary,
             @Cached WriteBarrierNode writeBarrierNode,
-            @Cached BranchProfile slowPath) {
+            @Cached @Shared("slowPath") BranchProfile slowPath) {
         // See WriteObjectFieldNode
         writeBarrierNode.executeWriteBarrier(value);
 

@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects.shared;
 
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import org.truffleruby.Layouts;
 import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.core.array.ArrayGuards;
@@ -46,7 +47,7 @@ public abstract class ShareInternalFieldsNode extends RubyContextNode {
 
     @Specialization(guards = "isObjectArray(array)")
     protected void shareCachedObjectArray(RubyArray array,
-            @Cached("createWriteBarrierNode()") WriteBarrierNode writeBarrierNode) {
+            @Cached("createWriteBarrierNode()") @Exclusive WriteBarrierNode writeBarrierNode) {
         final int size = array.size;
         final Object[] store = (Object[]) array.store;
         for (int i = 0; i < size; i++) {
@@ -56,7 +57,7 @@ public abstract class ShareInternalFieldsNode extends RubyContextNode {
 
     @Specialization(guards = "isDelegatedObjectArray(array)")
     protected void shareCachedDelegatedArray(RubyArray array,
-            @Cached("createWriteBarrierNode()") WriteBarrierNode writeBarrierNode) {
+            @Cached("createWriteBarrierNode()") @Exclusive WriteBarrierNode writeBarrierNode) {
         final DelegatedArrayStorage delegated = (DelegatedArrayStorage) array.store;
         final Object[] store = (Object[]) delegated.storage;
         for (int i = delegated.offset; i < delegated.offset + delegated.length; i++) {
@@ -73,7 +74,7 @@ public abstract class ShareInternalFieldsNode extends RubyContextNode {
     @Specialization
     protected void shareCachedQueue(RubyQueue object,
             @Cached ConditionProfile profileEmpty,
-            @Cached("createWriteBarrierNode()") WriteBarrierNode writeBarrierNode) {
+            @Cached("createWriteBarrierNode()") @Exclusive WriteBarrierNode writeBarrierNode) {
         final UnsizedQueue queue = object.queue;
         if (!profileEmpty.profile(queue.isEmpty())) {
             for (Object e : BoundaryIterable.wrap(queue.getContents())) {

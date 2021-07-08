@@ -76,6 +76,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
 import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
@@ -108,9 +109,9 @@ import org.truffleruby.core.cast.ToRopeNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.encoding.EncodingLeftCharHeadNode;
-import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.encoding.EncodingNodes.CheckEncodingNode;
 import org.truffleruby.core.encoding.EncodingNodes.CheckRopeEncodingNode;
+import org.truffleruby.core.encoding.EncodingNodes.GetActualEncodingNode;
 import org.truffleruby.core.encoding.EncodingNodes.NegotiateCompatibleEncodingNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
@@ -187,6 +188,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerVariablesNode;
@@ -415,7 +417,7 @@ public abstract class StringNodes {
         @Specialization(guards = "times == 0")
         protected RubyString multiplyZero(Object string, int times,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString,
-                @Cached LogicalClassNode logicalClassNode) {
+                @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode) {
 
             final RubyClass logicalClass = logicalClassNode.execute(string);
             final RubyString instance = new RubyString(
@@ -435,9 +437,9 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "times > 0", "!isEmpty(libString.getRope(string))" })
         protected RubyString multiply(Object string, int times,
-                @Cached RepeatNode repeatNode,
+                @Cached @Shared("repeatNode") RepeatNode repeatNode,
+                @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode,
                 @Cached BranchProfile tooBigProfile,
-                @Cached LogicalClassNode logicalClassNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             final Rope stringRope = libString.getRope(string);
             long length = (long) times * stringRope.byteLength();
@@ -460,8 +462,8 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "times > 0", "isEmpty(libString.getRope(string))" })
         protected RubyString multiplyEmpty(Object string, long times,
-                @Cached RopeNodes.RepeatNode repeatNode,
-                @Cached LogicalClassNode logicalClassNode,
+                @Cached @Shared("repeatNode") RepeatNode repeatNode,
+                @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             final Rope repeated = repeatNode.executeRepeat(libString.getRope(string), 0);
 
@@ -779,28 +781,12 @@ public abstract class StringNodes {
         // region Regexp Slice Specializations
 
         @Specialization
-        protected Object sliceCapture0(VirtualFrame frame, Object string, RubyRegexp regexp, NotProvided capture,
-                @Cached DispatchNode callNode,
-                @Cached ReadCallerVariablesNode readCallerNode,
-                @Cached ConditionProfile unsetProfile,
-                @Cached ConditionProfile sameThreadProfile) {
-            return sliceCapture(
-                    frame,
-                    string,
-                    regexp,
-                    0,
-                    callNode,
-                    readCallerNode,
-                    unsetProfile,
-                    sameThreadProfile);
-        }
-
-        @Specialization(guards = "wasProvided(capture)")
-        protected Object sliceCapture(VirtualFrame frame, Object string, RubyRegexp regexp, Object capture,
-                @Cached DispatchNode callNode,
+        protected Object sliceCapture(VirtualFrame frame, Object string, RubyRegexp regexp, Object maybeCapture,
+                @Cached @Exclusive DispatchNode callNode,
                 @Cached ReadCallerVariablesNode readCallerStorageNode,
                 @Cached ConditionProfile unsetProfile,
                 @Cached ConditionProfile sameThreadProfile) {
+            final Object capture = RubyGuards.wasProvided(maybeCapture) ? maybeCapture : 0;
             final Object matchStrPair = callNode.call(string, "subpattern", regexp, capture);
 
             final SpecialVariableStorage variables = readCallerStorageNode.execute(frame);
@@ -820,9 +806,9 @@ public abstract class StringNodes {
         @Specialization(guards = "stringsMatchStr.isRubyString(matchStr)")
         protected Object slice2(Object string, Object matchStr, NotProvided length,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsMatchStr,
-                @Cached DispatchNode includeNode,
+                @Cached @Exclusive DispatchNode includeNode,
                 @Cached BooleanCastNode booleanCastNode,
-                @Cached DispatchNode dupNode) {
+                @Cached @Exclusive DispatchNode dupNode) {
 
             final Object included = includeNode.call(string, "include?", matchStr);
 
@@ -1358,12 +1344,12 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
         protected Object downcaseMultiByteAsciiSimple(RubyString string, int caseMappingOptions,
-                @Cached BytesNode bytesNode,
+                @Cached @Shared("bytesNode") BytesNode bytesNode,
                 @Cached CharacterLengthNode characterLengthNode,
-                @Cached CodeRangeNode codeRangeNode,
-                @Cached MakeLeafRopeNode makeLeafRopeNode,
-                @Cached ConditionProfile dummyEncodingProfile,
-                @Cached ConditionProfile modifiedProfile) {
+                @Cached @Shared("codeRangeNode") CodeRangeNode codeRangeNode,
+                @Cached @Shared("makeLeafRopeNode") MakeLeafRopeNode makeLeafRopeNode,
+                @Cached @Shared("dummyEncodingProfile") ConditionProfile dummyEncodingProfile,
+                @Cached @Shared("modifiedProfile") ConditionProfile modifiedProfile) {
             final Rope rope = string.rope;
             final Encoding encoding = rope.getEncoding();
 
@@ -1388,11 +1374,11 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
         protected Object downcaseMultiByteComplex(RubyString string, int caseMappingOptions,
-                @Cached BytesNode bytesNode,
-                @Cached CodeRangeNode codeRangeNode,
-                @Cached MakeLeafRopeNode makeLeafRopeNode,
-                @Cached ConditionProfile dummyEncodingProfile,
-                @Cached ConditionProfile modifiedProfile) {
+                @Cached @Shared("bytesNode") BytesNode bytesNode,
+                @Cached @Shared("codeRangeNode") CodeRangeNode codeRangeNode,
+                @Cached @Shared("makeLeafRopeNode") MakeLeafRopeNode makeLeafRopeNode,
+                @Cached @Shared("dummyEncodingProfile") ConditionProfile dummyEncodingProfile,
+                @Cached @Shared("modifiedProfile") ConditionProfile modifiedProfile) {
             final Rope rope = string.rope;
             final Encoding encoding = rope.getEncoding();
 
@@ -1715,7 +1701,7 @@ public abstract class StringNodes {
                         "!isNativeRope(stringsFrom.getRope(from))" })
         protected Object initializeCopy(RubyString self, Object from,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsFrom,
-                @Cached StringGetAssociatedNode stringGetAssociatedNode) {
+                @Cached @Shared("stringGetAssociatedNode") StringGetAssociatedNode stringGetAssociatedNode) {
             self.setRope(stringsFrom.getRope(from), stringsFrom.getEncoding(from));
             final Object associated = stringGetAssociatedNode.execute(from);
             copyAssociated(self, associated);
@@ -1729,7 +1715,7 @@ public abstract class StringNodes {
                         "isNativeRope(stringsFrom.getRope(from))" })
         protected Object initializeCopyFromNative(RubyString self, Object from,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsFrom,
-                @Cached StringGetAssociatedNode stringGetAssociatedNode) {
+                @Cached @Shared("stringGetAssociatedNode") StringGetAssociatedNode stringGetAssociatedNode) {
             self.setRope(
                     ((NativeRope) stringsFrom.getRope(from)).makeCopy(getContext()),
                     stringsFrom.getEncoding(from));
@@ -1806,7 +1792,7 @@ public abstract class StringNodes {
                 guards = { "!isEmpty(string.rope)", "!isSingleByteOptimizable(string, singleByteOptimizableNode)" })
         protected Object lstripBang(RubyString string,
                 @Cached SingleByteOptimizableNode singleByteOptimizableNode,
-                @Cached EncodingNodes.GetActualEncodingNode getActualEncodingNode,
+                @Cached GetActualEncodingNode getActualEncodingNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             // Taken from org.jruby.RubyString#lstrip_bang19 and org.jruby.RubyString#multiByteLStrip.
 
@@ -1901,7 +1887,7 @@ public abstract class StringNodes {
                 guards = { "!isEmpty(string.rope)", "isSingleByteOptimizable(string, singleByteOptimizableNode)" })
         protected Object rstripBangSingleByte(RubyString string,
                 @Cached BytesNode bytesNode,
-                @Cached ConditionProfile noopProfile) {
+                @Cached @Exclusive ConditionProfile noopProfile) {
             // Taken from org.jruby.RubyString#rstrip_bang19 and org.jruby.RubyString#singleByteRStrip19.
 
             final Rope rope = string.rope;
@@ -1933,8 +1919,8 @@ public abstract class StringNodes {
         @Specialization(
                 guards = { "!isEmpty(string.rope)", "!isSingleByteOptimizable(string, singleByteOptimizableNode)" })
         protected Object rstripBang(RubyString string,
-                @Cached EncodingNodes.GetActualEncodingNode getActualEncodingNode,
-                @Cached ConditionProfile dummyEncodingProfile,
+                @Cached GetActualEncodingNode getActualEncodingNode,
+                @Cached @Exclusive ConditionProfile dummyEncodingProfile,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             // Taken from org.jruby.RubyString#rstrip_bang19 and org.jruby.RubyString#multiByteRStrip19.
 
@@ -2150,12 +2136,12 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
         protected Object swapcaseMultiByteAsciiSimple(RubyString string, int caseMappingOptions,
-                @Cached BytesNode bytesNode,
+                @Cached @Shared("bytesNode") BytesNode bytesNode,
                 @Cached CharacterLengthNode characterLengthNode,
-                @Cached CodeRangeNode codeRangeNode,
-                @Cached MakeLeafRopeNode makeLeafRopeNode,
-                @Cached ConditionProfile dummyEncodingProfile,
-                @Cached ConditionProfile modifiedProfile) {
+                @Cached @Shared("codeRangeNode") CodeRangeNode codeRangeNode,
+                @Cached @Shared("makeLeafRopeNode") MakeLeafRopeNode makeLeafRopeNode,
+                @Cached @Shared("dummyEncodingProfile") ConditionProfile dummyEncodingProfile,
+                @Cached @Shared("modifiedProfile") ConditionProfile modifiedProfile) {
             // Taken from org.jruby.RubyString#swapcase_bang19.
 
             final Rope rope = string.rope;
@@ -2182,11 +2168,11 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
         protected Object swapcaseMultiByteComplex(RubyString string, int caseMappingOptions,
-                @Cached BytesNode bytesNode,
-                @Cached CodeRangeNode codeRangeNode,
-                @Cached MakeLeafRopeNode makeLeafRopeNode,
-                @Cached ConditionProfile dummyEncodingProfile,
-                @Cached ConditionProfile modifiedProfile) {
+                @Cached @Shared("bytesNode") BytesNode bytesNode,
+                @Cached @Shared("codeRangeNode") CodeRangeNode codeRangeNode,
+                @Cached @Shared("makeLeafRopeNode") MakeLeafRopeNode makeLeafRopeNode,
+                @Cached @Shared("dummyEncodingProfile") ConditionProfile dummyEncodingProfile,
+                @Cached @Shared("modifiedProfile") ConditionProfile modifiedProfile) {
             // Taken from org.jruby.RubyString#swapcase_bang19.
 
             final Rope rope = string.rope;
@@ -2223,7 +2209,7 @@ public abstract class StringNodes {
         @TruffleBoundary
         @Specialization(guards = "isAsciiCompatible(libString.getRope(string))")
         protected RubyString dumpAsciiCompatible(Object string,
-                @Cached LogicalClassNode logicalClassNode,
+                @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             // Taken from org.jruby.RubyString#dump
 
@@ -2247,7 +2233,7 @@ public abstract class StringNodes {
         @TruffleBoundary
         @Specialization(guards = "!isAsciiCompatible(libString.getRope(string))")
         protected RubyString dump(Object string,
-                @Cached LogicalClassNode logicalClassNode,
+                @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             // Taken from org.jruby.RubyString#dump
 
@@ -3265,12 +3251,12 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
         protected Object upcaseMultiByteAsciiSimple(RubyString string, int caseMappingOptions,
-                @Cached BytesNode bytesNode,
+                @Cached @Shared("bytesNode") BytesNode bytesNode,
                 @Cached CharacterLengthNode characterLengthNode,
-                @Cached CodeRangeNode codeRangeNode,
-                @Cached MakeLeafRopeNode makeLeafRopeNode,
-                @Cached ConditionProfile dummyEncodingProfile,
-                @Cached ConditionProfile modifiedProfile) {
+                @Cached @Shared("codeRangeNode") CodeRangeNode codeRangeNode,
+                @Cached @Shared("makeLeafRopeNode") MakeLeafRopeNode makeLeafRopeNode,
+                @Cached @Shared("dummyEncodingProfile") ConditionProfile dummyEncodingProfile,
+                @Cached @Shared("modifiedProfile") ConditionProfile modifiedProfile) {
             final Rope rope = string.rope;
             final Encoding encoding = rope.getEncoding();
 
@@ -3295,11 +3281,11 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
         protected Object upcaseMultiByteComplex(RubyString string, int caseMappingOptions,
-                @Cached BytesNode bytesNode,
-                @Cached CodeRangeNode codeRangeNode,
-                @Cached MakeLeafRopeNode makeLeafRopeNode,
-                @Cached ConditionProfile dummyEncodingProfile,
-                @Cached ConditionProfile modifiedProfile) {
+                @Cached @Shared("bytesNode") BytesNode bytesNode,
+                @Cached @Shared("codeRangeNode") CodeRangeNode codeRangeNode,
+                @Cached @Shared("makeLeafRopeNode") MakeLeafRopeNode makeLeafRopeNode,
+                @Cached @Shared("dummyEncodingProfile") ConditionProfile dummyEncodingProfile,
+                @Cached @Shared("modifiedProfile") ConditionProfile modifiedProfile) {
             final Rope rope = string.rope;
             final Encoding encoding = rope.getEncoding();
 
@@ -3353,10 +3339,10 @@ public abstract class StringNodes {
         @Specialization(guards = "isSingleByteCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
         protected Object capitalizeSingleByte(RubyString string, int caseMappingOptions,
                 @Cached("createUpperToLower()") InvertAsciiCaseBytesNode invertAsciiCaseNode,
-                @Cached ConditionProfile emptyStringProfile,
-                @Cached ConditionProfile firstCharIsLowerProfile,
-                @Cached ConditionProfile otherCharsAlreadyLowerProfile,
-                @Cached ConditionProfile mustCapitalizeFirstCharProfile) {
+                @Cached @Shared("emptyStringProfile") ConditionProfile emptyStringProfile,
+                @Cached @Exclusive ConditionProfile firstCharIsLowerProfile,
+                @Cached @Exclusive ConditionProfile otherCharsAlreadyLowerProfile,
+                @Cached @Exclusive ConditionProfile mustCapitalizeFirstCharProfile) {
             final Rope rope = string.rope;
 
             if (emptyStringProfile.profile(rope.isEmpty())) {
@@ -3400,9 +3386,9 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
         protected Object capitalizeMultiByteAsciiSimple(RubyString string, int caseMappingOptions,
-                @Cached BranchProfile dummyEncodingProfile,
-                @Cached ConditionProfile emptyStringProfile,
-                @Cached ConditionProfile modifiedProfile) {
+                @Cached @Shared("dummyEncodingProfile") BranchProfile dummyEncodingProfile,
+                @Cached @Shared("emptyStringProfile") ConditionProfile emptyStringProfile,
+                @Cached @Shared("modifiedProfile") ConditionProfile modifiedProfile) {
             // Taken from org.jruby.RubyString#capitalize_bang19.
 
             final Rope rope = string.rope;
@@ -3438,9 +3424,9 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
         protected Object capitalizeMultiByteComplex(RubyString string, int caseMappingOptions,
-                @Cached BranchProfile dummyEncodingProfile,
-                @Cached ConditionProfile emptyStringProfile,
-                @Cached ConditionProfile modifiedProfile) {
+                @Cached @Shared("dummyEncodingProfile") BranchProfile dummyEncodingProfile,
+                @Cached @Shared("emptyStringProfile") ConditionProfile emptyStringProfile,
+                @Cached @Shared("modifiedProfile") ConditionProfile modifiedProfile) {
             final Rope rope = string.rope;
             final Encoding enc = rope.getEncoding();
 
@@ -3814,7 +3800,7 @@ public abstract class StringNodes {
                         "!isSingleByteOptimizable(strings.getRope(string), singleByteOptimizableNode)" })
         protected Object stringChrAt(Object string, int byteIndex,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
-                @Cached EncodingNodes.GetActualEncodingNode getActualEncodingNode,
+                @Cached GetActualEncodingNode getActualEncodingNode,
                 @Cached BytesNode bytesNode,
                 @Cached CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached CodeRangeNode codeRangeNode,
@@ -5077,7 +5063,7 @@ public abstract class StringNodes {
     public abstract static class StringPatternPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Child private MakeLeafRopeNode makeLeafRopeNode = MakeLeafRopeNode.create();
-        @Child private RopeNodes.RepeatNode repeatNode = RopeNodes.RepeatNode.create();
+        @Child private RepeatNode repeatNode = RepeatNode.create();
 
         @Specialization(guards = "pattern >= 0")
         protected RubyString stringPatternZero(RubyClass stringClass, int size, int pattern) {
@@ -5324,8 +5310,8 @@ public abstract class StringNodes {
                 "!indexTriviallyOutOfBounds(libString.getRope(string), characterLengthNode, index, length)",
                 "noCharacterSearch(libString.getRope(string), singleByteOptimizableNode)" })
         protected Object stringSubstringSingleByte(Object string, int index, int length,
-                @Cached ConditionProfile negativeIndexProfile,
-                @Cached ConditionProfile tooLargeTotalProfile,
+                @Cached @Shared("negativeIndexProfile") ConditionProfile negativeIndexProfile,
+                @Cached @Shared("tooLargeTotalProfile") ConditionProfile tooLargeTotalProfile,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             final Rope rope = libString.getRope(string);
             final RubyEncoding encoding = libString.getEncoding(string);
@@ -5348,9 +5334,9 @@ public abstract class StringNodes {
                 "!indexTriviallyOutOfBounds(libString.getRope(string), characterLengthNode, index, length)",
                 "!noCharacterSearch(libString.getRope(string), singleByteOptimizableNode)" })
         protected Object stringSubstringGeneric(Object string, int index, int length,
-                @Cached ConditionProfile negativeIndexProfile,
-                @Cached ConditionProfile tooLargeTotalProfile,
-                @Cached ConditionProfile foundSingleByteOptimizableDescendentProfile,
+                @Cached @Shared("negativeIndexProfile") ConditionProfile negativeIndexProfile,
+                @Cached @Shared("tooLargeTotalProfile") ConditionProfile tooLargeTotalProfile,
+                @Cached @Exclusive ConditionProfile foundSingleByteOptimizableDescendentProfile,
                 @Cached BranchProfile singleByteOptimizableBaseProfile,
                 @Cached BranchProfile leafBaseProfile,
                 @Cached BranchProfile slowSearchProfile,
