@@ -58,7 +58,7 @@ public class PackedHashStoreLibrary {
 
     /** Maximum numbers of entries to be represented as a packed Hash */
     public static final int MAX_ENTRIES = 3;
-    public static final int ELEMENTS_PER_ENTRY = 3;
+    private static final int ELEMENTS_PER_ENTRY = 3;
     public static final int TOTAL_ELEMENTS = MAX_ENTRIES * ELEMENTS_PER_ENTRY;
 
     // region Utilities

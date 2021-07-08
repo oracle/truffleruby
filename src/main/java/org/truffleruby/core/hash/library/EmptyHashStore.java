@@ -10,6 +10,7 @@
 package org.truffleruby.core.hash.library;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -103,6 +104,7 @@ public class EmptyHashStore {
         // nothing to do, the hash is empty
     }
 
+    @TruffleBoundary
     @ExportMessage
     public boolean verify(RubyHash hash) {
         assert hash.store == this;

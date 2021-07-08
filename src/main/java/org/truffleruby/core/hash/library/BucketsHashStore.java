@@ -54,7 +54,7 @@ import java.util.Set;
 @GenerateUncached
 public class BucketsHashStore {
 
-    public Entry[] entries;
+    private Entry[] entries;
 
     public BucketsHashStore(Entry[] entries) {
         this.entries = entries;
@@ -66,7 +66,7 @@ public class BucketsHashStore {
     private static final double LOAD_FACTOR = 0.75;
 
     // Create this many more buckets than there are entries when resizing or creating from scratch
-    public static final int OVERALLOCATE_FACTOR = 4;
+    private static final int OVERALLOCATE_FACTOR = 4;
 
     private static final int SIGN_BIT_MASK = ~(1 << 31);
 
@@ -106,7 +106,7 @@ public class BucketsHashStore {
     // region Utilities
 
     @TruffleBoundary
-    public static int capacityGreaterThan(int size) {
+    static int capacityGreaterThan(int size) {
         for (int capacity : CAPACITIES) {
             if (capacity > size) {
                 return capacity;
@@ -116,7 +116,7 @@ public class BucketsHashStore {
         return CAPACITIES[CAPACITIES.length - 1];
     }
 
-    public static int getBucketIndex(int hashed, int bucketsCount) {
+    static int getBucketIndex(int hashed, int bucketsCount) {
         return (hashed & SIGN_BIT_MASK) % bucketsCount;
     }
 
@@ -434,12 +434,9 @@ public class BucketsHashStore {
     @ExportMessage
     protected void rehash(RubyHash hash,
             @Cached CompareHashKeysNode compareHashKeys,
-            @Cached HashingNodes.ToHash hashNode,
-            @CachedLanguage RubyLanguage language,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            @Cached HashingNodes.ToHash hashNode) {
 
         assert verify(hash);
-
         Arrays.fill(entries, null);
 
         Entry entry = hash.firstInSequence;
