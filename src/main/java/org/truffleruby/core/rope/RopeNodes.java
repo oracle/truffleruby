@@ -894,6 +894,7 @@ public abstract class RopeNodes {
 
     }
 
+    @ImportStatic(CompilerDirectives.class)
     @GenerateUncached
     public abstract static class WithEncodingNode extends RubyBaseNode {
 
@@ -904,7 +905,7 @@ public abstract class RopeNodes {
         public abstract Rope executeWithEncoding(Rope rope, Encoding encoding);
 
         @Specialization(guards = "rope.getEncoding() == encoding")
-        protected Rope withEncodingSameEncoding(Rope rope, Encoding encoding) {
+        protected Rope sameEncoding(Rope rope, Encoding encoding) {
             return rope;
         }
 
@@ -914,26 +915,27 @@ public abstract class RopeNodes {
         }
 
         @Specialization(
-                guards = { "rope.getEncoding() != encoding", "rope.getClass() == cachedRopeClass", },
+                guards = { "managedRope.getEncoding() != encoding", "isExact(managedRope, cachedRopeClass)", },
                 limit = "getCacheLimit()")
-        protected Rope withEncodingAsciiCompatible(ManagedRope rope, Encoding encoding,
-                @Cached("rope.getClass()") Class<? extends Rope> cachedRopeClass,
+        protected Rope asciiCompatible(ManagedRope managedRope, Encoding encoding,
+                @Cached("managedRope.getClass()") Class<? extends ManagedRope> cachedRopeClass,
                 @Cached ConditionProfile asciiCompatibleProfile,
                 @Cached ConditionProfile asciiOnlyProfile,
                 @Cached ConditionProfile binaryEncodingProfile,
                 @Cached ConditionProfile bytesNotNull,
                 @Cached BytesNode bytesNode,
                 @Cached MakeLeafRopeNode makeLeafRopeNode) {
+            final ManagedRope rope = CompilerDirectives.castExact(managedRope, cachedRopeClass);
 
             if (asciiCompatibleProfile.profile(encoding.isAsciiCompatible())) {
                 if (asciiOnlyProfile.profile(rope.isAsciiOnly())) {
                     // ASCII-only strings can trivially convert to other ASCII-compatible encodings.
-                    return cachedRopeClass.cast(rope).withEncoding7bit(encoding, bytesNotNull);
+                    return rope.withEncoding7bit(encoding, bytesNotNull);
                 } else if (binaryEncodingProfile.profile(encoding == ASCIIEncoding.INSTANCE &&
                         rope.getCodeRange() == CR_VALID &&
                         rope.getEncoding().isAsciiCompatible())) {
                     // ASCII-compatible CR_VALID strings are also CR_VALID in binary, but they might change character length.
-                    final Rope binary = cachedRopeClass.cast(rope).withBinaryEncoding(bytesNotNull);
+                    final Rope binary = rope.withBinaryEncoding(bytesNotNull);
                     assert binary.getCodeRange() == CR_VALID;
                     return binary;
                 } else {
@@ -950,7 +952,7 @@ public abstract class RopeNodes {
             }
         }
 
-        private Rope rescanBytesForEncoding(Rope rope, Encoding encoding, BytesNode bytesNode,
+        private Rope rescanBytesForEncoding(ManagedRope rope, Encoding encoding, BytesNode bytesNode,
                 MakeLeafRopeNode makeLeafRopeNode) {
             return makeLeafRopeNode.executeMake(bytesNode.execute(rope), encoding, CR_UNKNOWN, NotProvided.INSTANCE);
         }
