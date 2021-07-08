@@ -594,7 +594,7 @@ public abstract class StringNodes {
 
         @Specialization
         protected Object getIndex(Object string, long index, NotProvided length) {
-            assert (int) index != index; // verified via lowerFixnum
+            assert (int) index != index : "verified via lowerFixnum";
             return outOfBoundsNil();
         }
 
@@ -4418,24 +4418,16 @@ public abstract class StringNodes {
         }
 
         @Specialization(
-                guards = {
-                        "offset >= 0",
-                        "singleByteOptimizableNode.execute(stringRope)",
-                        "!patternFits(stringRope, patternRope, offset)" })
-        protected Object patternTooLarge(Rope stringRope, Rope patternRope, int offset) {
-            return nil;
-        }
-
-        @Specialization(
-                guards = {
-                        "offset >= 0",
-                        "singleByteOptimizableNode.execute(stringRope)",
-                        "patternFits(stringRope, patternRope, offset)" })
+                guards = "singleByteOptimizableNode.execute(stringRope)")
         protected Object singleByteOptimizable(Rope stringRope, Rope patternRope, int offset,
                 @Cached RopeNodes.BytesNode stringBytesNode,
                 @Cached RopeNodes.BytesNode patternBytesNode,
                 @Cached LoopConditionProfile loopProfile,
                 @Cached("createCountingProfile()") ConditionProfile matchProfile) {
+
+            assert offset >= 0;
+            assert offset + patternRope.byteLength() <= stringRope
+                    .byteLength() : "already checked in the caller, String#index";
 
             int p = offset;
             final int e = stringRope.byteLength();
@@ -4460,13 +4452,15 @@ public abstract class StringNodes {
 
         @TruffleBoundary
         @Specialization(
-                guards = {
-                        "offset >= 0",
-                        "!singleByteOptimizableNode.execute(stringRope)" })
+                guards = "!singleByteOptimizableNode.execute(stringRope)")
         protected Object multiByte(Rope stringRope, Rope patternRope, int offset,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached RopeNodes.BytesNode stringBytesNode,
                 @Cached RopeNodes.BytesNode patternBytesNode) {
+
+            assert offset >= 0;
+            assert offset + patternRope.byteLength() <= stringRope
+                    .byteLength() : "already checked in the caller, String#index";
 
             int p = 0;
             final int e = stringRope.byteLength();
@@ -4503,10 +4497,6 @@ public abstract class StringNodes {
 
             return nil;
         }
-
-        protected boolean patternFits(Rope stringRope, Rope patternRope, int offset) {
-            return offset + patternRope.byteLength() <= stringRope.byteLength();
-        }
     }
 
     /** Search pattern in string starting after offset bytes, and return a byte index or nil */
@@ -4528,14 +4518,14 @@ public abstract class StringNodes {
             return ToRopeNodeGen.create(pattern);
         }
 
-        @Specialization(guards = { "offset >= 0", "!patternFits(stringRope, patternRope, offset)" })
+        @Specialization(guards = "!patternFits(stringRope, patternRope, offset)")
         protected Object patternTooLarge(Rope stringRope, Rope patternRope, int offset) {
+            assert offset >= 0;
             return nil;
         }
 
         @Specialization(
                 guards = {
-                        "offset >= 0",
                         "singleByteOptimizableNode.execute(stringRope)",
                         "patternFits(stringRope, patternRope, offset)" })
         protected Object singleByteOptimizable(Rope stringRope, Rope patternRope, int offset,
@@ -4544,6 +4534,7 @@ public abstract class StringNodes {
                 @Cached LoopConditionProfile loopProfile,
                 @Cached("createCountingProfile()") ConditionProfile matchProfile) {
 
+            assert offset >= 0;
             int p = offset;
             final int e = stringRope.byteLength();
             final int pe = patternRope.byteLength();
@@ -4568,7 +4559,6 @@ public abstract class StringNodes {
         @TruffleBoundary
         @Specialization(
                 guards = {
-                        "offset >= 0",
                         "!singleByteOptimizableNode.execute(stringRope)",
                         "patternFits(stringRope, patternRope, offset)" })
         protected Object multiByte(Rope stringRope, Rope patternRope, int offset,
@@ -4576,6 +4566,7 @@ public abstract class StringNodes {
                 @Cached RopeNodes.BytesNode stringBytesNode,
                 @Cached RopeNodes.BytesNode patternBytesNode) {
 
+            assert offset >= 0;
             int p = offset;
             final int e = stringRope.byteLength();
             final int pe = patternRope.byteLength();
