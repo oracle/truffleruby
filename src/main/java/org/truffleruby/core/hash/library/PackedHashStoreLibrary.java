@@ -34,7 +34,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.PEBiFunction;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.basicobject.BasicObjectNodes;
+import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.hash.CompareHashKeysNode;
 import org.truffleruby.core.hash.Entry;
@@ -123,7 +123,7 @@ public class PackedHashStoreLibrary {
     }
 
     @TruffleBoundary
-    private static void promoteToBuckets(RubyContext context, RubyHash hash, Object[] store, int size) {
+    private static void promoteToBuckets(RubyHash hash, Object[] store, int size) {
         final Entry[] buckets = new Entry[BucketsHashStore.capacityGreaterThan(size)];
 
         Entry firstInSequence = null;
@@ -185,16 +185,14 @@ public class PackedHashStoreLibrary {
                 @Cached @Shared("freeze") FreezeHashKeyIfNeededNode freezeHashKeyIfNeeded,
                 @Cached @Shared("toHash") HashingNodes.ToHash hashNode,
                 @Cached @Shared("propagateKey") PropagateSharingNode propagateSharingKey,
-                @Cached @Shared("propagateValue") PropagateSharingNode propagateSharingValue,
-                @Cached @Shared("compareHashKeys") CompareHashKeysNode compareHashKeys,
-                @CachedLibrary("store") HashStoreLibrary hashes) {
+                @Cached @Shared("propagateValue") PropagateSharingNode propagateSharingValue) {
 
             final Object key2 = freezeHashKeyIfNeeded.executeFreezeIfNeeded(key, byIdentity);
             propagateSharingKey.executePropagate(hash, key2);
             propagateSharingValue.executePropagate(hash, value);
             setHashedKeyValue(store, 0, hashNode.execute(key2, byIdentity), key2, value);
             hash.size = 1;
-            assert hashes.verify(store, hash);
+            assert verify(store, hash);
             return true;
         }
 
@@ -207,10 +205,9 @@ public class PackedHashStoreLibrary {
                 @Cached @Shared("compareHashKeys") CompareHashKeysNode compareHashKeys,
                 @CachedLibrary(limit = "2") HashStoreLibrary hashes,
                 @Cached ConditionProfile withinCapacity,
-                @CachedLanguage RubyLanguage language,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
+                @CachedLanguage RubyLanguage language) {
 
-            assert hashes.verify(store, hash);
+            assert verify(store, hash);
             final int size = hash.size;
             final Object key2 = freezeHashKeyIfNeeded.executeFreezeIfNeeded(key, byIdentity);
             final int hashed = hashNode.execute(key2, byIdentity);
@@ -235,7 +232,7 @@ public class PackedHashStoreLibrary {
                 return true;
             }
 
-            promoteToBuckets(context, hash, store, size);
+            promoteToBuckets(hash, store, size);
             hashes.set(hash.store, hash, key2, value, byIdentity);
             return true;
         }
@@ -245,11 +242,9 @@ public class PackedHashStoreLibrary {
     protected static Object delete(Object[] store, RubyHash hash, Object key,
             @Cached @Shared("toHash") HashingNodes.ToHash hashNode,
             @Cached @Shared("compareHashKeys") CompareHashKeysNode compareHashKeys,
-            @CachedLibrary(limit = "1") HashStoreLibrary hashes,
-            @CachedLanguage RubyLanguage language,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            @CachedLanguage RubyLanguage language) {
 
-        assert hashes.verify(store, hash);
+        assert verify(store, hash);
         final int hashed = hashNode.execute(key, hash.compareByIdentity);
         final int size = hash.size;
         // written very carefully to allow PE
@@ -266,16 +261,15 @@ public class PackedHashStoreLibrary {
                 }
             }
         }
-        assert hashes.verify(store, hash);
+        assert verify(store, hash);
         return null;
     }
 
     @ExportMessage
     protected static Object deleteLast(Object[] store, RubyHash hash, Object key,
-            @CachedLanguage RubyLanguage language,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            @CachedLanguage RubyLanguage language) {
 
-        assert verify(store, hash, language, context);
+        assert verify(store, hash);
         final int n = hash.size - 1;
         final Object lastKey = getKey(store, n);
         if (key != lastKey) {
@@ -286,7 +280,7 @@ public class PackedHashStoreLibrary {
         final Object value = getValue(store, n);
         removeEntry(language, store, n);
         hash.size -= 1;
-        assert verify(store, hash, language, context);
+        assert verify(store, hash);
         return value;
     }
 
@@ -330,8 +324,7 @@ public class PackedHashStoreLibrary {
     @ExportMessage
     protected static void replace(Object[] store, RubyHash hash, RubyHash dest,
             @Cached @Exclusive PropagateSharingNode propagateSharing,
-            @CachedLanguage RubyLanguage language,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            @CachedLanguage RubyLanguage language) {
         if (hash == dest) {
             return;
         }
@@ -348,7 +341,7 @@ public class PackedHashStoreLibrary {
         dest.defaultValue = hash.defaultValue;
         dest.compareByIdentity = hash.compareByIdentity;
 
-        assert verify(store, hash, language, context);
+        assert verify(store, hash);
     }
 
     @ExportMessage
@@ -356,12 +349,12 @@ public class PackedHashStoreLibrary {
             @CachedLanguage RubyLanguage language,
             @CachedContext(RubyLanguage.class) RubyContext context) {
 
-        assert verify(store, hash, language, context);
+        assert verify(store, hash);
         final Object key = getKey(store, 0);
         final Object value = getValue(store, 0);
         removeEntry(language, store, 0);
         hash.size -= 1;
-        assert verify(store, hash, language, context);
+        assert verify(store, hash);
         return ArrayHelpers.createArray(context, language, new Object[]{ key, value });
     }
 
@@ -369,10 +362,9 @@ public class PackedHashStoreLibrary {
     protected static void rehash(Object[] store, RubyHash hash,
             @Cached @Shared("compareHashKeys") CompareHashKeysNode compareHashKeys,
             @Cached @Shared("toHash") HashingNodes.ToHash hashNode,
-            @CachedLanguage RubyLanguage language,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            @CachedLanguage RubyLanguage language) {
 
-        assert verify(store, hash, language, context);
+        assert verify(store, hash);
         int size = hash.size;
         for (int n = 0; n < size; n++) {
             final Object key = getKey(store, n);
@@ -394,18 +386,16 @@ public class PackedHashStoreLibrary {
             }
         }
         hash.size = size;
-        assert verify(store, hash, language, context);
+        assert verify(store, hash);
     }
 
     @TruffleBoundary
     @ExportMessage
-    protected static boolean verify(Object[] store, RubyHash hash,
-            @CachedLanguage RubyLanguage language,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-
+    protected static boolean verify(Object[] store, RubyHash hash) {
         assert hash.store == store;
         final int size = hash.size;
-        assert store.length == language.options.HASH_PACKED_ARRAY_MAX * ELEMENTS_PER_ENTRY : store.length;
+        assert store.length == RubyLanguage.getCurrentLanguage().options.HASH_PACKED_ARRAY_MAX *
+                ELEMENTS_PER_ENTRY : store.length;
 
         final Entry firstInSequence = hash.firstInSequence;
         final Entry lastInSequence = hash.lastInSequence;
@@ -444,7 +434,7 @@ public class PackedHashStoreLibrary {
                 limit = "1")
         protected Object getConstantIndexPackedArray(
                 RubyHash hash, Object key, int hashed, PEBiFunction defaultValueNode,
-                @Cached BasicObjectNodes.ReferenceEqualNode refEqual,
+                @Cached ReferenceEqualNode refEqual,
                 @Cached("isCompareByIdentity(hash)") boolean cachedByIdentity,
                 @Cached("index(refEqual, hash, key, hashed, cachedByIdentity)") int cachedIndex) {
 
@@ -452,7 +442,7 @@ public class PackedHashStoreLibrary {
             return getValue(store, cachedIndex);
         }
 
-        protected int index(BasicObjectNodes.ReferenceEqualNode refEqual, RubyHash hash, Object key, int hashed,
+        protected int index(ReferenceEqualNode refEqual, RubyHash hash, Object key, int hashed,
                 boolean compareByIdentity) {
 
             final Object[] store = (Object[]) hash.store;
@@ -467,8 +457,7 @@ public class PackedHashStoreLibrary {
             return -1;
         }
 
-        protected boolean sameKeysAtIndex(BasicObjectNodes.ReferenceEqualNode refEqual, RubyHash hash, Object key,
-                int hashed,
+        protected boolean sameKeysAtIndex(ReferenceEqualNode refEqual, RubyHash hash, Object key, int hashed,
                 int cachedIndex, boolean cachedByIdentity) {
 
             final Object[] store = (Object[]) hash.store;
@@ -477,8 +466,7 @@ public class PackedHashStoreLibrary {
             return sameKeys(refEqual, cachedByIdentity, key, hashed, otherKey, otherHashed);
         }
 
-        private boolean sameKeys(BasicObjectNodes.ReferenceEqualNode refEqual, boolean compareByIdentity, Object key,
-                int hashed,
+        private boolean sameKeys(ReferenceEqualNode refEqual, boolean compareByIdentity, Object key, int hashed,
                 Object otherKey, int otherHashed) {
             return CompareHashKeysNode
                     .referenceEqualKeys(refEqual, compareByIdentity, key, hashed, otherKey, otherHashed);

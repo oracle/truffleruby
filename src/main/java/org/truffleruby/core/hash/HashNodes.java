@@ -318,16 +318,13 @@ public abstract class HashNodes {
         }
     }
 
-    @SuppressWarnings("AssertWithSideEffects")
     @CoreMethod(names = "initialize", needsBlock = true, optional = 1, raiseIfFrozenSelf = true)
     @ImportStatic(HashGuards.class)
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
-        @Child HashStoreLibrary hashes;
-
         @Specialization
         protected RubyHash initialize(RubyHash hash, NotProvided defaultValue, Nil block) {
-            assert verify(hash);
+            assert HashStoreLibrary.verify(hash);
             hash.defaultValue = nil;
             hash.defaultBlock = nil;
             return hash;
@@ -336,7 +333,7 @@ public abstract class HashNodes {
         @Specialization
         protected RubyHash initialize(RubyHash hash, NotProvided defaultValue, RubyProc block,
                 @Cached PropagateSharingNode propagateSharingNode) {
-            assert verify(hash);
+            assert HashStoreLibrary.verify(hash);
             hash.defaultValue = nil;
             propagateSharingNode.executePropagate(hash, block);
             hash.defaultBlock = block;
@@ -346,7 +343,7 @@ public abstract class HashNodes {
         @Specialization(guards = "wasProvided(defaultValue)")
         protected RubyHash initialize(RubyHash hash, Object defaultValue, Nil block,
                 @Cached PropagateSharingNode propagateSharingNode) {
-            assert verify(hash);
+            assert HashStoreLibrary.verify(hash);
             propagateSharingNode.executePropagate(hash, defaultValue);
             hash.defaultValue = defaultValue;
             hash.defaultBlock = nil;
@@ -360,13 +357,6 @@ public abstract class HashNodes {
                     coreExceptions().argumentError("wrong number of arguments (1 for 0)", this));
         }
 
-        private boolean verify(RubyHash hash) {
-            if (hashes == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                hashes = insert(HashStoreLibrary.createDispatched());
-            }
-            return hashes.verify(hash.store, hash);
-        }
     }
 
     @CoreMethod(names = { "initialize_copy", "replace" }, required = 1, raiseIfFrozenSelf = true)

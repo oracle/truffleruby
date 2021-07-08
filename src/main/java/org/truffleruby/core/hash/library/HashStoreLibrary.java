@@ -52,6 +52,11 @@ public abstract class HashStoreLibrary extends Library {
         return FACTORY.createDispatched(HashGuards.hashStrategyLimit());
     }
 
+    public static boolean verify(RubyHash hash) {
+        final Object store = hash.store;
+        return FACTORY.getUncached(store).verify(store, hash);
+    }
+
     /** Looks up the key in the hash and returns the associated value, or the result of calling {@code defaultNode} if
      * no entry for the given key exists. */
     @Abstract
@@ -76,7 +81,7 @@ public abstract class HashStoreLibrary extends Library {
     @Abstract
     public abstract Object delete(Object store, RubyHash hash, Object key);
 
-    /** A helper for detect_recursion. A variant of {@link #delete(Object, RubyHash, Object) }optimized for removing the
+    /** A helper for detect_recursion. A variant of {@link #delete(Object, RubyHash, Object)} optimized for removing the
      * most recently added key, because we are using the hash like a stack and guarantee that the last entry we added is
      * the one we'll want to delete. Checks that the deleted key is the one expected by the user. */
     @Abstract

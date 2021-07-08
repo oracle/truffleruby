@@ -11,7 +11,6 @@ package org.truffleruby.core.hash.library;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.frame.Frame;
@@ -19,7 +18,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.PEBiFunction;
 import org.truffleruby.core.array.RubyArray;
@@ -65,7 +63,7 @@ public class EmptyHashStore {
 
     @ExportMessage
     protected Object deleteLast(RubyHash hash, Object key) {
-        throw CompilerDirectives.shouldNotReachHere("Cannot delete the last node of an empty hash");
+        throw CompilerDirectives.shouldNotReachHere("Cannot delete the last entry of an empty hash");
     }
 
     @ExportMessage
@@ -80,9 +78,7 @@ public class EmptyHashStore {
 
     @ExportMessage
     protected void replace(RubyHash hash, RubyHash dest,
-            @Cached PropagateSharingNode propagateSharing,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-
+            @Cached PropagateSharingNode propagateSharing) {
         if (hash == dest) {
             return;
         }
@@ -109,6 +105,7 @@ public class EmptyHashStore {
 
     @ExportMessage
     public boolean verify(RubyHash hash) {
+        assert hash.store == this;
         assert hash.store == NULL_HASH_STORE;
         assert hash.size == 0;
         assert hash.firstInSequence == null;
