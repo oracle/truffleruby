@@ -187,7 +187,7 @@ public abstract class MatchDataNodes {
         Region regs = matchData.region;
         for (int i = 0; i < regs.beg.length; i++) {
             assert regs.beg[i] != RubyMatchData.LAZY &&
-                    regs.end[i] != RubyMatchData.LAZY : "startPos != 0 not yet supported for TRegex";
+                    regs.end[i] != RubyMatchData.LAZY : "Group bounds must be computed before fixupMatchDataForStart()";
             if (regs.beg[i] >= 0) {
                 regs.beg[i] += startPos;
                 regs.end[i] += startPos;
