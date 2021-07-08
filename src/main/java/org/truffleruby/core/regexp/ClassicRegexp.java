@@ -43,6 +43,7 @@ import static org.truffleruby.core.string.StringUtils.EMPTY_STRING_ARRAY;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
+import org.graalvm.collections.Pair;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
@@ -54,6 +55,8 @@ import org.joni.Syntax;
 import org.joni.exception.JOniException;
 import org.truffleruby.RubyContext;
 import org.truffleruby.SuppressFBWarnings;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
@@ -651,7 +654,7 @@ public class ClassicRegexp implements ReOptions {
 
     /** rb_reg_quote */
     @TruffleBoundary
-    public static Rope quote19(Rope bs) {
+    public static Pair<Rope, RubyEncoding> quote19(Rope bs, RubyEncoding encoding) {
         final boolean asciiOnly = bs.isAsciiOnly();
         int p = 0;
         int end = bs.byteLength();
@@ -704,13 +707,14 @@ public class ClassicRegexp implements ReOptions {
                 p += cl;
             }
             if (asciiOnly) {
-                return RopeOperations.withEncoding(bs, USASCIIEncoding.INSTANCE);
+                return Pair.create(RopeOperations.withEncoding(bs, USASCIIEncoding.INSTANCE), Encodings.US_ASCII);
             }
-            return bs;
+            return Pair.create(bs, encoding);
         } while (false);
 
         RopeBuilder result = RopeBuilder.createRopeBuilder(end * 2);
         result.setEncoding(asciiOnly ? USASCIIEncoding.INSTANCE : bs.getEncoding());
+        RubyEncoding resultEncoding = asciiOnly ? Encodings.US_ASCII : encoding;
         byte[] obytes = result.getUnsafeBytes();
         int op = p;
         System.arraycopy(bytes, 0, obytes, 0, op);
@@ -782,7 +786,7 @@ public class ClassicRegexp implements ReOptions {
         }
 
         result.setLength(op);
-        return RopeOperations.ropeFromRopeBuilder(result);
+        return Pair.create(RopeOperations.ropeFromRopeBuilder(result), resultEncoding);
     }
 
     /** WARNING: This mutates options, so the caller should make sure it's a copy */

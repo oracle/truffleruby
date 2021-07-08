@@ -14,6 +14,7 @@ import java.util.Iterator;
 
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.graalvm.collections.Pair;
 import org.jcodings.specific.UTF8Encoding;
 import org.joni.NameEntry;
 import org.joni.Regex;
@@ -100,12 +101,10 @@ public abstract class RegexpNodes {
 
         @Specialization(guards = "libRaw.isRubyString(raw)")
         protected RubyString quoteString(Object raw,
-                @CachedLibrary(limit = "2") RubyStringLibrary libRaw,
-                @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode) {
+                @CachedLibrary(limit = "2") RubyStringLibrary libRaw) {
             final Rope rope = libRaw.getRope(raw);
-            final Rope ropeQuoted = ClassicRegexp.quote19(rope);
-            final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(ropeQuoted.encoding); // Review libRaw.getEncoding causes issues
-            return getMakeStringNode().fromRope(ropeQuoted, rubyEncoding);
+            final Pair<Rope, RubyEncoding> ropeQuotedResult = ClassicRegexp.quote19(rope, libRaw.getEncoding(raw));
+            return getMakeStringNode().fromRope(ropeQuotedResult.getLeft(), ropeQuotedResult.getRight());
         }
 
         @Specialization
