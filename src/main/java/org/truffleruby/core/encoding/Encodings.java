@@ -58,11 +58,13 @@ public class Encodings {
             final ImmutableRubyString name = new ImmutableRubyString(
                     RopeConstants.ROPE_CONSTANTS.get(encodingEntry.getEncoding().toString()),
                     US_ASCII);
+            // Checkstyle: stop
             final RubyEncoding rubyEncoding = new RubyEncoding(
                     encodingEntry.getEncoding(),
                     name,
                     encodingEntry.getEncoding().getIndex(),
                     encodingEntry.getEncoding().isDummy());
+            // Checkstyle: resume
             encodings[encodingEntry.getEncoding().getIndex()] = rubyEncoding;
         }
         return encodings;

@@ -498,7 +498,7 @@ public final class StringSupport {
     private static final Object DUMMY_VALUE = "";
 
     @TruffleBoundary
-    public static TrTables trSetupTable(Rope str, boolean[] stable, TrTables tables, boolean first, Encoding enc) {
+    public static TrTables trSetupTable(Rope str, boolean[] stable, TrTables tables, boolean first, RubyEncoding enc) {
         int i, l[] = { 0 };
         final boolean cflag;
 
@@ -603,13 +603,13 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static int trNext(TR tr, Encoding enc, CodeRange codeRange) {
+    public static int trNext(TR tr, RubyEncoding enc, CodeRange codeRange) {
         for (;;) {
             if (!tr.gen) {
                 return trNext_nextpart(tr, enc, codeRange);
             }
 
-            while (enc.codeToMbcLength(++tr.now) <= 0) {
+            while (enc.jcoding.codeToMbcLength(++tr.now) <= 0) {
                 if (tr.now == tr.max) {
                     tr.gen = false;
                     return trNext_nextpart(tr, enc, codeRange);
@@ -624,7 +624,7 @@ public final class StringSupport {
         }
     }
 
-    private static int trNext_nextpart(TR tr, Encoding enc, CodeRange codeRange) {
+    private static int trNext_nextpart(TR tr, RubyEncoding enc, CodeRange codeRange) {
         final int[] n = { 0 };
 
         if (tr.p == tr.pend) {
@@ -633,12 +633,12 @@ public final class StringSupport {
         if (EncodingUtils.encAscget(tr.buf, tr.p, tr.pend, n, enc, codeRange) == '\\' && tr.p + n[0] < tr.pend) {
             tr.p += n[0];
         }
-        tr.now = EncodingUtils.encCodepointLength(tr.buf, tr.p, tr.pend, n, enc, codeRange);
+        tr.now = EncodingUtils.encCodepointLength(tr.buf, tr.p, tr.pend, n, enc.jcoding, codeRange);
         tr.p += n[0];
         if (EncodingUtils.encAscget(tr.buf, tr.p, tr.pend, n, enc, codeRange) == '-' && tr.p + n[0] < tr.pend) {
             tr.p += n[0];
             if (tr.p < tr.pend) {
-                int c = EncodingUtils.encCodepointLength(tr.buf, tr.p, tr.pend, n, enc, codeRange);
+                int c = EncodingUtils.encCodepointLength(tr.buf, tr.p, tr.pend, n, enc.jcoding, codeRange);
                 tr.p += n[0];
                 if (tr.now > c) {
                     if (tr.now < 0x80 && c < 0x80) {
@@ -975,7 +975,8 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static Rope trTransHelper(Rope self, Rope srcStr, Rope replStr, Encoding e1, Encoding enc, boolean sflag) {
+    public static Rope trTransHelper(Rope self, Rope srcStr, Rope replStr, Encoding e1, RubyEncoding enc,
+            boolean sflag) {
         // This method does not handle the cases where either srcStr or replStr are empty.  It is the responsibility
         // of the caller to take the appropriate action in those cases.
 
@@ -1035,7 +1036,7 @@ public final class StringSupport {
                 }
                 if (c < StringSupport.TRANS_SIZE) {
                     trans[c] = r;
-                    if (codeLength(enc, r) != 1) {
+                    if (codeLength(enc.jcoding, r) != 1) {
                         singlebyte = false;
                     }
                 } else {
@@ -1047,7 +1048,7 @@ public final class StringSupport {
             }
         }
 
-        if (cr == CR_VALID && enc.isAsciiCompatible()) {
+        if (cr == CR_VALID && enc.jcoding.isAsciiCompatible()) {
             cr = CR_7BIT;
         }
 
@@ -1066,7 +1067,7 @@ public final class StringSupport {
                 boolean mayModify = false;
                 c0 = c = codePoint(e1, CR_UNKNOWN, sbytes, s, send);
                 clen = codeLength(e1, c);
-                tlen = enc == e1 ? clen : codeLength(enc, c);
+                tlen = enc.jcoding == e1 ? clen : codeLength(enc.jcoding, c);
                 s += clen;
 
                 if (c < TRANS_SIZE) {
@@ -1094,12 +1095,12 @@ public final class StringSupport {
                         continue;
                     }
                     save = c;
-                    tlen = codeLength(enc, c);
+                    tlen = codeLength(enc.jcoding, c);
                     modified = true;
                 } else {
                     save = -1;
                     c = c0;
-                    if (enc != e1) {
+                    if (enc.jcoding != e1) {
                         mayModify = true;
                     }
                 }
@@ -1108,7 +1109,7 @@ public final class StringSupport {
                     max *= 2;
                     buf = Arrays.copyOf(buf, max);
                 }
-                enc.codeToMbc(c, buf, t);
+                enc.jcoding.codeToMbc(c, buf, t);
                 // MRI does not check s < send again because their null terminator can still be compared
                 if (mayModify && (s >= send || ArrayUtils.memcmp(sbytes, s, buf, t, tlen) != 0)) {
                     modified = true;
@@ -1117,8 +1118,8 @@ public final class StringSupport {
                 t += tlen;
             }
 
-            ret = RopeOperations.create(ArrayUtils.extractRange(buf, 0, t), enc, cr);
-        } else if (enc.isSingleByte() || (singlebyte && hash == null)) {
+            ret = RopeOperations.create(ArrayUtils.extractRange(buf, 0, t), enc.jcoding, cr);
+        } else if (enc.jcoding.isSingleByte() || (singlebyte && hash == null)) {
             byte sbytes[] = self.getBytesCopy();
             while (s < send) {
                 c = sbytes[s] & 0xff;
@@ -1135,7 +1136,7 @@ public final class StringSupport {
                 s++;
             }
 
-            ret = RopeOperations.create(sbytes, enc, cr);
+            ret = RopeOperations.create(sbytes, enc.jcoding, cr);
         } else {
             byte sbytes[] = self.getBytes();
             int clen, tlen, max = (int) (self.byteLength() * 1.2);
@@ -1146,7 +1147,7 @@ public final class StringSupport {
                 boolean mayModify = false;
                 c0 = c = codePoint(e1, CR_UNKNOWN, sbytes, s, send);
                 clen = codeLength(e1, c);
-                tlen = enc == e1 ? clen : codeLength(enc, c);
+                tlen = enc.jcoding == e1 ? clen : codeLength(enc.jcoding, c);
 
                 if (c < TRANS_SIZE) {
                     c = trans[c];
@@ -1167,11 +1168,11 @@ public final class StringSupport {
                     c = cflag ? last : -1;
                 }
                 if (c != -1) {
-                    tlen = codeLength(enc, c);
+                    tlen = codeLength(enc.jcoding, c);
                     modified = true;
                 } else {
                     c = c0;
-                    if (enc != e1) {
+                    if (enc.jcoding != e1) {
                         mayModify = true;
                     }
                 }
@@ -1181,7 +1182,7 @@ public final class StringSupport {
                 }
                 // headius: I don't see how s and t could ever be the same, since they refer to different buffers
                 //                if (s != t) {
-                enc.codeToMbc(c, buf, t);
+                enc.jcoding.codeToMbc(c, buf, t);
                 if (mayModify && ArrayUtils.memcmp(sbytes, s, buf, t, tlen) != 0) {
                     modified = true;
                 }
@@ -1192,7 +1193,7 @@ public final class StringSupport {
                 t += tlen;
             }
 
-            ret = RopeOperations.create(ArrayUtils.extractRange(buf, 0, t), enc, cr);
+            ret = RopeOperations.create(ArrayUtils.extractRange(buf, 0, t), enc.jcoding, cr);
         }
 
         if (modified) {

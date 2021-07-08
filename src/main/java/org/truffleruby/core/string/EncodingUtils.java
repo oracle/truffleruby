@@ -32,14 +32,15 @@ import java.util.List;
 import org.jcodings.Encoding;
 import org.jcodings.ascii.AsciiTables;
 import org.jcodings.specific.ASCIIEncoding;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.RopeOperations;
 
 public class EncodingUtils {
 
     // rb_enc_asciicompat
-    public static boolean encAsciicompat(Encoding enc) {
-        return encMbminlen(enc) == 1 && !encDummy(enc);
+    public static boolean encAsciicompat(RubyEncoding enc) {
+        return encMbminlen(enc.jcoding) == 1 && !encDummy(enc);
     }
 
     // rb_enc_mbminlen
@@ -48,8 +49,8 @@ public class EncodingUtils {
     }
 
     // rb_enc_dummy_p
-    public static boolean encDummy(Encoding enc) {
-        return enc.isDummy();
+    public static boolean encDummy(RubyEncoding enc) {
+        return enc.dummy;
     }
 
     public static boolean DECORATOR_P(byte[] sname, byte[] dname) {
@@ -131,7 +132,7 @@ public class EncodingUtils {
 
 
     // rb_enc_ascget
-    public static int encAscget(byte[] pBytes, int p, int e, int[] len, Encoding enc, CodeRange codeRange) {
+    public static int encAscget(byte[] pBytes, int p, int e, int[] len, RubyEncoding enc, CodeRange codeRange) {
         int c;
         int l;
 
@@ -149,11 +150,11 @@ public class EncodingUtils {
             }
             return c;
         }
-        l = StringSupport.characterLength(enc, codeRange, pBytes, p, e);
+        l = StringSupport.characterLength(enc.jcoding, codeRange, pBytes, p, e);
         if (!StringSupport.MBCLEN_CHARFOUND_P(l)) {
             return -1;
         }
-        c = enc.mbcToCode(pBytes, p, e);
+        c = enc.jcoding.mbcToCode(pBytes, p, e);
         if (!Encoding.isAscii(c)) {
             return -1;
         }
