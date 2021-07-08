@@ -76,6 +76,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
 import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.graalvm.collections.Pair;
@@ -4526,8 +4527,8 @@ public abstract class StringNodes {
         @Specialization(
                 guards = "singleByteOptimizableNode.execute(stringRope)")
         protected Object singleByteOptimizable(Rope stringRope, Rope patternRope, int offset,
-                @Cached RopeNodes.BytesNode stringBytesNode,
-                @Cached RopeNodes.BytesNode patternBytesNode,
+                @Cached @Shared("stringBytesNode") RopeNodes.BytesNode stringBytesNode,
+                @Cached @Shared("patternBytesNode") RopeNodes.BytesNode patternBytesNode,
                 @Cached LoopConditionProfile loopProfile,
                 @Cached("createCountingProfile()") ConditionProfile matchProfile) {
 
@@ -4561,8 +4562,8 @@ public abstract class StringNodes {
                 guards = "!singleByteOptimizableNode.execute(stringRope)")
         protected Object multiByte(Rope stringRope, Rope patternRope, int offset,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
-                @Cached RopeNodes.BytesNode stringBytesNode,
-                @Cached RopeNodes.BytesNode patternBytesNode) {
+                @Cached @Shared("stringBytesNode") RopeNodes.BytesNode stringBytesNode,
+                @Cached @Shared("patternBytesNode") RopeNodes.BytesNode patternBytesNode) {
 
             assert offset >= 0;
             assert offset + patternRope.byteLength() <= stringRope
@@ -4635,8 +4636,8 @@ public abstract class StringNodes {
                         "singleByteOptimizableNode.execute(stringRope)",
                         "patternFits(stringRope, patternRope, offset)" })
         protected Object singleByteOptimizable(Rope stringRope, Rope patternRope, int offset,
-                @Cached RopeNodes.BytesNode stringBytesNode,
-                @Cached RopeNodes.BytesNode patternBytesNode,
+                @Cached @Shared("stringBytesNode") RopeNodes.BytesNode stringBytesNode,
+                @Cached @Shared("patternBytesNode") RopeNodes.BytesNode patternBytesNode,
                 @Cached LoopConditionProfile loopProfile,
                 @Cached("createCountingProfile()") ConditionProfile matchProfile) {
 
@@ -4669,8 +4670,8 @@ public abstract class StringNodes {
                         "patternFits(stringRope, patternRope, offset)" })
         protected Object multiByte(Rope stringRope, Rope patternRope, int offset,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
-                @Cached RopeNodes.BytesNode stringBytesNode,
-                @Cached RopeNodes.BytesNode patternBytesNode) {
+                @Cached @Shared("stringBytesNode") RopeNodes.BytesNode stringBytesNode,
+                @Cached @Shared("patternBytesNode") RopeNodes.BytesNode patternBytesNode) {
 
             assert offset >= 0;
             int p = offset;
