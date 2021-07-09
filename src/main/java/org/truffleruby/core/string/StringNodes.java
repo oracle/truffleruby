@@ -78,6 +78,7 @@ import java.nio.charset.StandardCharsets;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
+import org.graalvm.collections.Pair;
 import org.jcodings.Config;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
@@ -366,15 +367,15 @@ public abstract class StringNodes {
         protected RubyString add(Object string, Object other,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringLibrary,
                 @Cached StringAppendNode stringAppendNode) {
-            final Rope concatRope = stringAppendNode.executeStringAppend(string, other);
+            final Pair<Rope, RubyEncoding> concatRopeResult = stringAppendNode.executeStringAppend(string, other);
             final RubyClass rubyClass = coreLibrary().stringClass;
             final Shape shape = getLanguage().stringShape;
             final RubyString ret = new RubyString(
                     rubyClass,
                     shape,
                     false,
-                    concatRope,
-                    getContext().getEncodingManager().getRubyEncoding(concatRope.encoding)); // REVIEW can't use  stringLibrary.getEncoding(string)
+                    concatRopeResult.getLeft(),
+                    concatRopeResult.getRight());
             AllocationTracing.trace(ret, this);
             return ret;
         }
@@ -3507,8 +3508,8 @@ public abstract class StringNodes {
         @Specialization
         protected RubyString stringAppend(RubyString string, Object other,
                 @CachedLibrary(limit = "2") RubyStringLibrary otherStringLibrary) {
-            final Rope result = stringAppendNode.executeStringAppend(string, other);
-            string.setRope(result, getContext().getEncodingManager().getRubyEncoding(result.getEncoding()));
+            final Pair<Rope, RubyEncoding> result = stringAppendNode.executeStringAppend(string, other);
+            string.setRope(result.getLeft(), result.getRight());
             return string;
         }
 
@@ -5524,10 +5525,10 @@ public abstract class StringNodes {
             return StringAppendNodeGen.create();
         }
 
-        public abstract Rope executeStringAppend(Object string, Object other);
+        public abstract Pair<Rope, RubyEncoding> executeStringAppend(Object string, Object other);
 
         @Specialization(guards = "libOther.isRubyString(other)")
-        protected Rope stringAppend(Object string, Object other,
+        protected Pair<Rope, RubyEncoding> stringAppend(Object string, Object other,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString,
                 @CachedLibrary(limit = "2") RubyStringLibrary libOther) {
             final Rope left = libString.getRope(string);
@@ -5535,7 +5536,8 @@ public abstract class StringNodes {
 
             final RubyEncoding compatibleEncoding = executeCheckEncoding(string, other);
 
-            return executeConcat(left, right, compatibleEncoding);
+            final Rope result = executeConcat(left, right, compatibleEncoding);
+            return Pair.create(result, compatibleEncoding);
         }
 
         private Rope executeConcat(Rope left, Rope right, RubyEncoding compatibleEncoding) {
@@ -5543,7 +5545,7 @@ public abstract class StringNodes {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 concatNode = insert(RopeNodes.ConcatNode.create());
             }
-            return concatNode.executeConcat(left, right, compatibleEncoding.jcoding); // REVIEW
+            return concatNode.executeConcat(left, right, compatibleEncoding.jcoding);
         }
 
         private RubyEncoding executeCheckEncoding(Object string, Object other) {
