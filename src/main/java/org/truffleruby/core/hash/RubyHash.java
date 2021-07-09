@@ -15,7 +15,8 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
-import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnknownKeyException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
@@ -27,6 +28,8 @@ import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.PEBiFunction;
+import org.truffleruby.core.hash.library.BucketsHashStore;
+import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.language.RubyDynamicObject;
@@ -36,6 +39,7 @@ import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
 @ExportLibrary(InteropLibrary.class)
+@ImportStatic(HashGuards.class)
 public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
 
     public Object defaultBlock;
@@ -74,8 +78,8 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
 
     @TruffleBoundary
     public void getAdjacentObjects(Set<Object> reachable) {
-        if (store instanceof Entry[]) {
-            BucketsStrategy.getAdjacentObjects(reachable, firstInSequence);
+        if (store instanceof BucketsHashStore) {
+            BucketsHashStore.getAdjacentObjects(reachable, firstInSequence);
         } else {
             ObjectGraph.addProperty(reachable, store);
         }
@@ -99,65 +103,62 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
     }
 
     private static final class DefaultProvider implements PEBiFunction {
-        final Object defaultValue;
+        private final Object defaultValue;
 
         private DefaultProvider(Object defaultValue) {
             this.defaultValue = defaultValue;
         }
 
         @Override
-        public Object accept(VirtualFrame frame, Object hash, Object key) {
+        public Object accept(Frame frame, Object hash, Object key) {
             return defaultValue;
         }
     }
 
     private static final DefaultProvider NULL_PROVIDER = new DefaultProvider(null);
 
-    @ExportMessage(name = "isHashEntryExisting")
-    @ExportMessage(name = "isHashEntryReadable")
+    @ExportMessage(name = "isHashEntryExisting", limit = "hashStrategyLimit()")
+    @ExportMessage(name = "isHashEntryReadable", limit = "hashStrategyLimit()")
     public final boolean isHashEntryExisting(Object key,
-            @Cached @Shared("lookup") HashNodes.HashLookupOrExecuteDefaultNode lookup,
-            @Cached @Shared("toRuby") ForeignToRubyNode toRuby) {
-        return lookup.executeGet(null, this, toRuby.executeConvert(key), NULL_PROVIDER) != null;
+            @CachedLibrary("this.store") HashStoreLibrary hashStores,
+            @Cached @Exclusive ForeignToRubyNode toRuby) {
+        return hashStores.lookupOrDefault(store, null, this, toRuby.executeConvert(key), NULL_PROVIDER) != null;
     }
 
     @ExportMessage(name = "isHashEntryModifiable")
     @ExportMessage(name = "isHashEntryRemovable")
     public boolean isHashEntryModifiableAndRemovable(Object key,
-            @Cached @Shared("lookup") HashNodes.HashLookupOrExecuteDefaultNode lookup,
-            @CachedLibrary("this") RubyLibrary rubyLibrary,
-            @Cached @Shared("toRuby") ForeignToRubyNode toRuby) {
-        return !rubyLibrary.isFrozen(this) &&
-                lookup.executeGet(null, this, toRuby.executeConvert(key), NULL_PROVIDER) != null;
+            @CachedLibrary("this") InteropLibrary interop,
+            @CachedLibrary("this") RubyLibrary rubyLibrary) {
+        return !rubyLibrary.isFrozen(this) && interop.isHashEntryExisting(this, key);
     }
 
     @ExportMessage
     public boolean isHashEntryInsertable(Object key,
-            @Cached @Shared("lookup") HashNodes.HashLookupOrExecuteDefaultNode lookup,
-            @CachedLibrary("this") RubyLibrary rubyLibrary,
-            @Cached @Shared("toRuby") ForeignToRubyNode toRuby) {
-        return !rubyLibrary.isFrozen(this) &&
-                lookup.executeGet(null, this, toRuby.executeConvert(key), NULL_PROVIDER) == null;
+            @CachedLibrary("this") InteropLibrary interop,
+            @CachedLibrary("this") RubyLibrary rubyLibrary) {
+        return !rubyLibrary.isFrozen(this) && !interop.isHashEntryExisting(this, key);
     }
 
-    @ExportMessage
+    @ExportMessage(limit = "hashStrategyLimit()")
     public Object readHashValue(Object key,
-            @Cached @Shared("lookup") HashNodes.HashLookupOrExecuteDefaultNode lookup,
-            @Cached @Shared("toRuby") ForeignToRubyNode toRuby,
+            @CachedLibrary("this.store") HashStoreLibrary hashStores,
+            @Cached @Exclusive ForeignToRubyNode toRuby,
             @Cached ConditionProfile unknownKey)
             throws UnknownKeyException {
-        final Object value = lookup.executeGet(null, this, toRuby.executeConvert(key), NULL_PROVIDER);
+        final Object value = hashStores.lookupOrDefault(store, null, this, toRuby.executeConvert(key), NULL_PROVIDER);
         if (unknownKey.profile(value == null)) {
             throw UnknownKeyException.create(key);
         }
         return value;
     }
 
-    @ExportMessage
+    @ExportMessage(limit = "hashStrategyLimit()")
     public Object readHashValueOrDefault(Object key, Object defaultValue,
-            @Cached @Shared("lookup") HashNodes.HashLookupOrExecuteDefaultNode lookup,
-            @Cached @Shared("toRuby") ForeignToRubyNode toRuby) {
-        return lookup.executeGet(null, this, toRuby.executeConvert(key), new DefaultProvider(defaultValue));
+            @CachedLibrary("this.store") HashStoreLibrary hashStores,
+            @Cached @Exclusive ForeignToRubyNode toRuby) {
+        return hashStores
+                .lookupOrDefault(store, null, this, toRuby.executeConvert(key), new DefaultProvider(defaultValue));
     }
 
     @ExportMessage

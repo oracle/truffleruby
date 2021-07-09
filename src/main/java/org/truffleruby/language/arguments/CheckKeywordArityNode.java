@@ -14,9 +14,9 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.collections.PEBiConsumer;
 import org.truffleruby.core.hash.RubyHash;
-import org.truffleruby.core.hash.HashNodes.EachKeyValueNode;
+import org.truffleruby.core.hash.library.HashStoreLibrary;
+import org.truffleruby.core.hash.library.HashStoreLibrary.EachEntryCallback;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextNode;
@@ -33,7 +33,7 @@ public class CheckKeywordArityNode extends RubyBaseNode {
 
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
     @Child private CheckKeywordArgumentsNode checkKeywordArgumentsNode;
-    @Child private EachKeyValueNode eachKeyNode;
+    @Child private HashStoreLibrary hashes;
 
     private final BranchProfile receivedKeywordsProfile = BranchProfile.create();
 
@@ -49,7 +49,8 @@ public class CheckKeywordArityNode extends RubyBaseNode {
 
         final RubyHash keywordArguments = readUserKeywordsHashNode.execute(frame);
 
-        int given = RubyArguments.getArgumentsCount(frame);
+        final int argumentsCount = RubyArguments.getArgumentsCount(frame);
+        int given = argumentsCount;
 
         if (keywordArguments != null) {
             receivedKeywordsProfile.enter();
@@ -64,23 +65,23 @@ public class CheckKeywordArityNode extends RubyBaseNode {
         }
 
         if (!arity.hasKeywordsRest() && keywordArguments != null) {
-            checkKeywordArguments(frame, keywordArguments, arity, language);
+            checkKeywordArguments(argumentsCount, keywordArguments, arity, language);
         }
     }
 
-    void checkKeywordArguments(VirtualFrame frame, RubyHash keywordArguments, Arity arity, RubyLanguage language) {
-        if (eachKeyNode == null) {
+    void checkKeywordArguments(int argumentsCount, RubyHash keywordArguments, Arity arity, RubyLanguage language) {
+        if (hashes == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            eachKeyNode = insert(EachKeyValueNode.create());
+            hashes = insert(HashStoreLibrary.createDispatched());
         }
         if (checkKeywordArgumentsNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             checkKeywordArgumentsNode = insert(new CheckKeywordArgumentsNode(language, arity));
         }
-        eachKeyNode.executeEachKeyValue(frame, keywordArguments, checkKeywordArgumentsNode, null);
+        hashes.eachEntry(keywordArguments.store, keywordArguments, checkKeywordArgumentsNode, argumentsCount);
     }
 
-    private static class CheckKeywordArgumentsNode extends RubyContextNode implements PEBiConsumer {
+    private static class CheckKeywordArgumentsNode extends RubyContextNode implements EachEntryCallback {
 
         private final boolean doesNotAcceptExtraArguments;
         private final int required;
@@ -98,7 +99,7 @@ public class CheckKeywordArityNode extends RubyBaseNode {
         }
 
         @Override
-        public void accept(VirtualFrame frame, Object key, Object value, Object state) {
+        public void accept(int index, Object key, Object value, Object argumentsCount) {
             if (isSymbolProfile.profile(key instanceof RubySymbol)) {
                 if (!keywordAllowed(key)) {
                     unknownKeywordProfile.enter();
@@ -109,7 +110,7 @@ public class CheckKeywordArityNode extends RubyBaseNode {
             } else {
                 // the Hash would be split and a reject Hash be created to hold non-Symbols when there is no **kwrest parameter,
                 // so we need to check if an extra argument is allowed
-                final int given = RubyArguments.getArgumentsCount(frame); // -1 for keyword hash, +1 for reject Hash with non-Symbol keys
+                final int given = (int) argumentsCount; // -1 for keyword hash, +1 for reject Hash with non-Symbol keys
                 if (doesNotAcceptExtraArguments && given > required) {
                     tooManyKeywordsProfile.enter();
                     throw new RaiseException(getContext(), coreExceptions().argumentError(given, required, this));
@@ -128,7 +129,6 @@ public class CheckKeywordArityNode extends RubyBaseNode {
 
             return false;
         }
-
     }
 
     static RubySymbol[] keywordsAsSymbols(RubyLanguage language, Arity arity) {
@@ -139,5 +139,4 @@ public class CheckKeywordArityNode extends RubyBaseNode {
         }
         return symbols;
     }
-
 }

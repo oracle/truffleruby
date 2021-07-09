@@ -273,10 +273,6 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
             return getContext().getLanguageSlow().options.DEFAULT_CACHE;
         }
 
-        default int getRubyLibraryCacheLimit() {
-            return getContext().getLanguageSlow().options.RUBY_LIBRARY_CACHE;
-        }
-
         default int getDynamicObjectCacheLimit() {
             return getContext().getLanguageSlow().options.INSTANCE_VARIABLE_CACHE;
         }
@@ -284,6 +280,9 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
         default int getInteropCacheLimit() {
             return getContext().getLanguageSlow().options.METHOD_LOOKUP_CACHE;
         }
+
+        /** Implement in sub-classes to override {@link RubyBaseNode#getRubyLibraryCacheLimit()}. */
+        int getRubyLibraryCacheLimit();
     }
 
     /** Return whether nodes following this one can ever be executed. In most cases this will be true, but some nodes

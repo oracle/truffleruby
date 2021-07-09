@@ -440,10 +440,6 @@ public abstract class ModuleNodes {
                 @CachedContext(RubyLanguage.class) RubyContext context) {
             throw new RaiseException(context, context.getCoreExceptions().frozenError(self, this));
         }
-
-        protected int getRubyLibraryCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.RUBY_LIBRARY_CACHE;
-        }
     }
 
     public abstract static class GenerateAccessorNode extends AlwaysInlinedMethodNode {

@@ -219,14 +219,9 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
                     builder.append("]");
                 } else if (RubyGuards.isRubyHash(value)) {
                     final Object store = ((RubyHash) value).store;
-
-                    if (store == null) {
-                        builder.append("[null]");
-                    } else {
-                        builder.append("[");
-                        builder.append(store.getClass().getName());
-                        builder.append("]");
-                    }
+                    builder.append("[");
+                    builder.append(store.getClass().getName());
+                    builder.append("]");
                 }
             } else {
                 builder.append(value.getClass().getName());

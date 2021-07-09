@@ -10,16 +10,18 @@
 package org.truffleruby.core.hash;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.ImmutableRubyString;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyLibrary;
 
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 
-public abstract class FreezeHashKeyIfNeededNode extends RubyContextNode {
+@GenerateUncached
+public abstract class FreezeHashKeyIfNeededNode extends RubyBaseNode {
 
     public abstract Object executeFreezeIfNeeded(Object key, boolean compareByIdentity);
 
@@ -60,5 +62,4 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyContextNode {
     protected Object passThrough(Object value, boolean compareByIdentity) {
         return value;
     }
-
 }

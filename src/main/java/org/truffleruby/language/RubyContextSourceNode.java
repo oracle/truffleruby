@@ -83,6 +83,11 @@ public abstract class RubyContextSourceNode extends RubyNode implements RubyNode
         return getContextReference().get();
     }
 
+    @Override
+    public int getRubyLibraryCacheLimit() {
+        return getLanguage().options.RUBY_LIBRARY_CACHE;
+    }
+
     public RubyLanguage getLanguage() {
         if (language == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();

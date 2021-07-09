@@ -112,7 +112,7 @@ public class ReloadArgumentsTranslator extends Translator {
                 keyValues[2 * i] = key;
                 keyValues[2 * i + 1] = value;
             }
-            kwArgsNode = HashLiteralNode.create(language, keyValues);
+            kwArgsNode = HashLiteralNode.create(keyValues);
         }
 
         if (node.hasKeyRest()) {

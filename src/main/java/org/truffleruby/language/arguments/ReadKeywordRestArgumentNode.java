@@ -10,11 +10,10 @@
 package org.truffleruby.language.arguments;
 
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.collections.PEBiConsumer;
-import org.truffleruby.core.hash.HashNodes.EachKeyValueNode;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.RubyHash;
-import org.truffleruby.core.hash.SetNode;
+import org.truffleruby.core.hash.library.HashStoreLibrary;
+import org.truffleruby.core.hash.library.HashStoreLibrary.EachEntryCallback;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.methods.Arity;
@@ -24,13 +23,12 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implements PEBiConsumer {
+public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implements EachEntryCallback {
 
     @CompilationFinal(dimensions = 1) private final RubySymbol[] excludedKeywords;
 
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
-    @Child private EachKeyValueNode eachKeyNode = EachKeyValueNode.create();
-    @Child private SetNode setNode = SetNode.create();
+    @Child private HashStoreLibrary hashes = HashStoreLibrary.createDispatched();
 
     private final ConditionProfile noHash = ConditionProfile.create();
 
@@ -51,14 +49,15 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
             return HashOperations.newEmptyHash(getContext(), getLanguage());
         } else {
             final RubyHash kwRest = HashOperations.newEmptyHash(getContext(), getLanguage());
-            return eachKeyNode.executeEachKeyValue(frame, hash, this, kwRest);
+            return hashes.eachEntry(hash.store, hash, this, kwRest);
         }
     }
 
     @Override
-    public void accept(VirtualFrame frame, Object key, Object value, Object kwRest) {
+    public void accept(int index, Object key, Object value, Object kwRest) {
         if (!keywordExcluded(key)) {
-            setNode.executeSet((RubyHash) kwRest, key, value, false);
+            final RubyHash hash = (RubyHash) kwRest;
+            hashes.set(hash.store, hash, key, value, false);
         }
     }
 
@@ -72,5 +71,4 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
 
         return false;
     }
-
 }

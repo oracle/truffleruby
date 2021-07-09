@@ -9,22 +9,19 @@
  */
 package org.truffleruby.core.hash;
 
+import org.truffleruby.core.hash.library.PackedHashStoreLibrary;
+
 public abstract class HashGuards {
 
     // Storage strategies
 
-    public static boolean isNullHash(RubyHash hash) {
-        return hash.store == null;
+    public static int hashStrategyLimit() {
+        return 3;
     }
 
-    public static boolean isPackedHash(RubyHash hash) {
-        // Can't do instanceof Object[] due to covariance
-        final Object store = hash.store;
-        return store != null && store.getClass() == Object[].class;
-    }
-
-    public static boolean isBucketHash(RubyHash hash) {
-        return hash.store instanceof Entry[];
+    public static int packedHashLimit() {
+        // + 1 for packed Hash with size = 0
+        return PackedHashStoreLibrary.MAX_ENTRIES + 1;
     }
 
     // Higher level properties
@@ -36,5 +33,4 @@ public abstract class HashGuards {
     public static boolean isCompareByIdentity(RubyHash hash) {
         return hash.compareByIdentity;
     }
-
 }
