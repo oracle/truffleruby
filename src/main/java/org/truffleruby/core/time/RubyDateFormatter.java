@@ -660,7 +660,7 @@ public abstract class RubyDateFormatter {
 
                 case FORMAT_NANOSEC: { // always %6N, checked by formatCanBeFast()
                     final int nano = dt.getNano();
-                    final LazyIntRope microSecondRope = new LazyIntRope(nano / 1000);
+                    final LazyIntRope microSecondRope = new LazyIntRope(nano / 1000, UTF8Encoding.INSTANCE);
 
                     // This fast-path only handles the '%6N' format, so output will always be 6 characters long.
                     final int length = 6;

@@ -382,11 +382,11 @@ public abstract class TimeNodes {
                 @Cached("formatCanBeFast(pattern)") boolean canUseFast,
                 @Cached ConditionProfile yearIsFastProfile,
                 @Cached RopeNodes.ConcatNode concatNode) {
-            final RubyEncoding rubyEncoding = libFormat.getEncoding(format);
             if (canUseFast && yearIsFastProfile.profile(yearIsFast(time))) {
                 final Rope rope = RubyDateFormatter.formatToRopeFast(pattern, time.dateTime, concatNode);
-                return makeStringNode.fromRope(rope, rubyEncoding);
+                return makeStringNode.fromRope(rope, Encodings.UTF_8);
             } else {
+                final RubyEncoding rubyEncoding = libFormat.getEncoding(format);
                 final RopeBuilder ropeBuilder = formatTime(time, pattern);
                 return makeStringNode.fromBuilderUnsafe(ropeBuilder, rubyEncoding, CodeRange.CR_UNKNOWN);
             }
@@ -398,11 +398,11 @@ public abstract class TimeNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary libFormat,
                 @Cached RopeNodes.ConcatNode concatNode) {
             final Token[] pattern = compilePattern(libFormat.getRope(format));
-            final RubyEncoding rubyEncoding = libFormat.getEncoding(format);
             if (formatCanBeFast(pattern) && yearIsFast(time)) {
                 final Rope rope = RubyDateFormatter.formatToRopeFast(pattern, time.dateTime, concatNode);
-                return makeStringNode.fromRope(rope, rubyEncoding);
+                return makeStringNode.fromRope(rope, Encodings.UTF_8);
             } else {
+                final RubyEncoding rubyEncoding = libFormat.getEncoding(format);
                 final RopeBuilder ropeBuilder = formatTime(time, pattern);
                 return makeStringNode.fromBuilderUnsafe(ropeBuilder, rubyEncoding, CodeRange.CR_UNKNOWN);
             }

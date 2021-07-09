@@ -25,6 +25,10 @@ public class LazyIntRope extends ManagedRope {
         this(value, USASCIIEncoding.INSTANCE, length(value));
     }
 
+    public LazyIntRope(int value, Encoding encoding) {
+        this(value, encoding, length(value));
+    }
+
     public LazyIntRope(int value, Encoding encoding, int length) {
         super(encoding, CodeRange.CR_7BIT, length, length, null);
         this.value = value;
