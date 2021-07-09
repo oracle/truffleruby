@@ -302,7 +302,8 @@ class Dir
     end
 
     def mkdir(path, mode = 0777)
-      ret = Truffle::POSIX.mkdir(Truffle::Type.coerce_to_path(path), mode)
+      path = Truffle::Type.coerce_to_path(path)
+      ret = Truffle::POSIX.mkdir(path, mode)
       Errno.handle path if ret != 0
       ret
     end
