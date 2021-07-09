@@ -92,6 +92,13 @@ public abstract class MatchDataNodes {
         }
     }
 
+    private static void forceLazyMatchData(RubyMatchData matchData, InteropLibrary interop) {
+        for (int i = 0; i < matchData.region.numRegs; i++) {
+            getStart(matchData, i, ConditionProfile.getUncached(), interop);
+            getEnd(matchData, i, ConditionProfile.getUncached(), interop);
+        }
+    }
+
     @TruffleBoundary
     private static Region getCharOffsetsManyRegs(RubyMatchData matchData, Rope source, Encoding encoding) {
         // Taken from org.jruby.RubyMatchData
@@ -102,11 +109,7 @@ public abstract class MatchDataNodes {
         int numRegs = regs.numRegs;
 
         if (matchData.tRegexResult != null) {
-            InteropLibrary interop = InteropLibrary.getUncached(matchData.tRegexResult);
-            for (int i = 0; i < numRegs; i++) {
-                getStart(matchData, i, ConditionProfile.getUncached(), interop);
-                getEnd(matchData, i, ConditionProfile.getUncached(), interop);
-            }
+            forceLazyMatchData(matchData, InteropLibrary.getUncached(matchData.tRegexResult));
         }
 
         final Region charOffsets = new Region(numRegs);
@@ -182,7 +185,7 @@ public abstract class MatchDataNodes {
         Region regs = matchData.region;
         for (int i = 0; i < regs.beg.length; i++) {
             assert regs.beg[i] != RubyMatchData.LAZY &&
-                    regs.end[i] != RubyMatchData.LAZY : "startPos != 0 not yet supported for TRegex";
+                    regs.end[i] != RubyMatchData.LAZY : "Group bounds must be computed before fixupMatchDataForStart()";
             if (regs.beg[i] >= 0) {
                 regs.beg[i] += startPos;
                 regs.end[i] += startPos;
@@ -195,8 +198,13 @@ public abstract class MatchDataNodes {
 
         @Specialization
         protected RubyMatchData fixupMatchData(RubyMatchData matchData, int startPos,
-                @Cached ConditionProfile nonZeroPos) {
+                @Cached ConditionProfile nonZeroPos,
+                @Cached ConditionProfile lazyProfile,
+                @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop) {
             if (nonZeroPos.profile(startPos != 0)) {
+                if (lazyProfile.profile(matchData.tRegexResult != null)) {
+                    forceLazyMatchData(matchData, interop);
+                }
                 fixupMatchDataForStart(matchData, startPos);
             }
             return matchData;
