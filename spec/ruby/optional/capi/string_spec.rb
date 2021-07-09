@@ -598,6 +598,12 @@ describe "C-API String function" do
       str = "        "
       @s.RSTRING_PTR_short_memcpy(str).should == "Infinity"
     end
+
+    it "allows read to update string contents" do
+      filename = fixture(__FILE__, "read.txt")
+      str = ""
+      @s.RSTRING_PTR_read(str, filename).should == "fixture file contents"
+    end
   end
 
   describe "RSTRING_LEN" do
@@ -690,6 +696,11 @@ describe "C-API String function" do
       str.bytesize.should == 3
       @s.RSTRING_LEN(str).should == 3
       @s.rb_str_capacity(str).should == 1027
+
+      @s.rb_str_modify_expand(str, 1)
+      str.bytesize.should == 3
+      @s.RSTRING_LEN(str).should == 3
+      @s.rb_str_capacity(str).should == 4
     end
 
     it "raises an error if the string is frozen" do
@@ -708,6 +719,11 @@ describe "C-API String function" do
 
     it "updates the string's attributes visible in C code" do
       @s.rb_str_resize_RSTRING_LEN("test", 2).should == 2
+    end
+
+    it "copies the existing bytes" do
+      str = "t"
+      @s.rb_str_resize_copy(str).should == "test"
     end
 
     it "increases the size of the string" do

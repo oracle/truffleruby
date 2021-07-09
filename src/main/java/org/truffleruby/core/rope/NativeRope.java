@@ -88,10 +88,29 @@ public class NativeRope extends Rope {
         assert byteLength() != newByteLength;
 
         final Pointer pointer = Pointer.malloc(newByteLength + 1);
-        pointer.writeBytes(0, this.pointer, 0, Math.min(byteLength(), newByteLength));
+        pointer.writeBytes(0, this.pointer, 0, Math.min(getNativePointer().getSize(), newByteLength));
         pointer.writeByte(newByteLength, (byte) 0); // Like MRI
         pointer.enableAutorelease(context);
         return new NativeRope(pointer, newByteLength, getEncoding(), UNKNOWN_CHARACTER_LENGTH, CodeRange.CR_UNKNOWN);
+    }
+
+    /** Creates a new native rope which preserves existing bytes and byte length up to newCapacity
+     * 
+     * @param context the Ruby context
+     * @param newCapacity the size in bytes minus one of the new pointer length
+     * @return the new NativeRope */
+    public NativeRope expandCapacity(RubyContext context, int newCapacity) {
+        assert getCapacity() != newCapacity;
+        final Pointer pointer = Pointer.malloc(newCapacity + 1);
+        pointer.writeBytes(0, this.pointer, 0, Math.min(getNativePointer().getSize(), newCapacity));
+        pointer.writeByte(newCapacity, (byte) 0); // Like MRI
+        pointer.enableAutorelease(context);
+        return new NativeRope(
+                pointer,
+                byteLength(),
+                getEncoding(),
+                UNKNOWN_CHARACTER_LENGTH,
+                CodeRange.CR_UNKNOWN);
     }
 
     @Override
