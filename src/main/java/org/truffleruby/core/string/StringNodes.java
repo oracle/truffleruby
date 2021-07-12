@@ -1944,9 +1944,9 @@ public abstract class StringNodes {
                             }
                         }
                     }
-                    RubyString repl = (RubyString) yieldNode
+                    Object repl = yieldNode
                             .yield(block, makeStringNode.fromRope(substringNode.executeSubstring(rope, p, clen)));
-                    buf = concatNode.executeConcat(buf, repl.rope, enc);
+                    buf = concatNode.executeConcat(buf, strings.getRope(repl), enc);
                     p += clen;
                     p1 = p;
                     p = StringSupport.searchNonAscii(pBytes, p, e);
@@ -1960,9 +1960,9 @@ public abstract class StringNodes {
                 buf = concatNode.executeConcat(buf, substringNode.executeSubstring(rope, p1, p - p1), enc);
             }
             if (p < e) {
-                RubyString repl = (RubyString) yieldNode
+                Object repl = yieldNode
                         .yield(block, makeStringNode.fromRope(substringNode.executeSubstring(rope, p, e - p)));
-                buf = concatNode.executeConcat(buf, repl.rope, enc);
+                buf = concatNode.executeConcat(buf, strings.getRope(repl), enc);
             }
 
             return makeStringNode.fromRope(buf);
