@@ -14,6 +14,7 @@ Bug fixes:
 * `rb_funcall()` now releases the C-extension lock (similar to MRI).
 * Fix `rb_str_modify_expand` to preserve existing bytes (#2392).
 * Fix `Marshal.load` of multiple `Symbols` with an explicit encoding (#1624).
+* Fix `String#scrub` when replacement is frozen (#2398, @LillianZ).
 
 Compatibility:
 
