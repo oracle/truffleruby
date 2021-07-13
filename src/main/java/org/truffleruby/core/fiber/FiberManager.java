@@ -161,16 +161,15 @@ public class FiberManager implements ObjectGraphNode {
 
         start(fiber, thread);
 
+        // fully initialized
+        fiber.initializedLatch.countDown();
+
+        final FiberMessage message = waitMessage(fiber, currentNode);
         final TruffleContext truffleContext = context.getEnv().getContext();
         Object prev = null;
         if (!entered) {
-            prev = truffleContext.enter(currentNode);  // enter and leave now to workaround GR-29773
+            prev = truffleContext.enter(currentNode);
         }
-        final FiberMessage message = context.getThreadManager().leaveAndEnter(truffleContext, currentNode, () -> {
-            // fully initialized
-            fiber.initializedLatch.countDown();
-            return waitMessage(fiber, currentNode);
-        });
 
         try {
             final Object result;
