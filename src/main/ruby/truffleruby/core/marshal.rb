@@ -553,7 +553,18 @@ module Marshal
     end
 
     def add_symlink(obj)
-      sz = @symlinks.size
+      sz = @symbols.size
+      @symbols[sz] = obj
+      @symlinks[obj.__id__] = sz
+    end
+
+    def reserve_symlink
+      sz = @symbols.size
+      @symbols[sz] = nil
+      sz
+    end
+
+    def assign_reserved_symlink(sz, obj)
       @symbols[sz] = obj
       @symlinks[obj.__id__] = sz
     end
@@ -848,7 +859,6 @@ module Marshal
 
     def construct_struct
       name = get_symbol
-      store_unique_object name
 
       klass = const_lookup name, Class
       members = klass.members
@@ -859,8 +869,7 @@ module Marshal
       construct_integer.times do |i|
         slot = get_symbol
         unless members[i].intern == slot
-          raise TypeError, 'struct %s is not compatible (%p for %p)' %
-            [klass, slot, members[i]]
+          raise TypeError, "struct #{klass} is not compatible (#{slot.inspect} for #{members[i].inspect})"
         end
 
         Primitive.object_hidden_var_set obj, slot, construct
@@ -872,6 +881,12 @@ module Marshal
     def construct_symbol(ivar_index)
       data = get_byte_sequence
 
+      # We must use the next @symbols index for the Symbol being constructed.
+      # However, constructing a Symbol might require to construct the :E or :encoding symbols,
+      # and those must have a larger index (if they are serialized for the first time),
+      # to be binary-compatible with CRuby and pass specs. So we reserve the index and assign it later.
+      idx = reserve_symlink
+
       # A Symbol has no instance variables (it's frozen),
       # but we need to know the encoding before building the Symbol
       if ivar_index and @has_ivar[ivar_index]
@@ -881,7 +896,7 @@ module Marshal
       end
 
       obj = data.to_sym
-      store_unique_object obj
+      assign_reserved_symlink idx, obj
 
       obj
     end
@@ -910,7 +925,6 @@ module Marshal
 
     def construct_user_marshal
       name = get_symbol
-      store_unique_object name
 
       klass = const_lookup name, Class
       obj = klass.allocate
@@ -976,7 +990,7 @@ module Marshal
       raise ArgumentError, 'exceed depth limit' if @depth == 0
 
       # How much depth we have left.
-      @depth -= 1;
+      @depth -= 1
 
       if link = find_link(obj)
         str = Truffle::Type.binary_string("@#{serialize_integer(link)}")
@@ -1249,7 +1263,10 @@ module Marshal
       if @stream
         @byte_array = stream.bytes
       end
+    end
 
+    def inspect
+      "#<Marshal::StringState #{@stream[@consumed..-1].inspect}>"
     end
 
     def consume(bytes)

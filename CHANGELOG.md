@@ -12,6 +12,9 @@ Bug fixes:
 * Fix `File.{atime, mtime, ctime}` to include nanoseconds (#2337).
 * Fix `Array#[a, b] = "frozen string literal".freeze` (#2355).
 * `rb_funcall()` now releases the C-extension lock (similar to MRI).
+* Fix `rb_str_modify_expand` to preserve existing bytes (#2392).
+* Fix `Marshal.load` of multiple `Symbols` with an explicit encoding (#1624).
+* Fix `String#scrub` when replacement is frozen (#2398, @LillianZ).
 
 Compatibility:
 
@@ -37,6 +40,7 @@ Compatibility:
 * Implement `rb_backref_set`.
 * Fix `Float#<=>` when comparing `Infinity` to other `#infinite?` values.
 * Implement `date` library as a C extension to improve compatibility (#2344).
+* Update `rb_str_modify` and `rb_str_modify_expand` to raise a `FrozenError` when given a frozen string (#2392).
 
 Performance:
 
