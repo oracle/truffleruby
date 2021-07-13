@@ -74,6 +74,9 @@ public class EncodingManager {
 
         while (hei.hasNext()) {
             final CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = hei.next();
+            if (e.value.getEncoding() == Encodings.DUMMY_ENCODING_BASE) {
+                continue;
+            }
             final RubyEncoding rubyEncoding = defineBuiltInEncoding(e.value);
             for (String constName : EncodingUtils.encodingNames(e.bytes, e.p, e.end)) {
                 encodingClass.fields.setConstant(context, null, constName, rubyEncoding);
@@ -245,8 +248,7 @@ public class EncodingManager {
     }
 
     @TruffleBoundary
-    public synchronized RubyEncoding defineDynamicEncoding(Encoding encoding, byte[] name, int p, int end,
-            boolean dummy) {
+    public synchronized RubyEncoding defineDynamicEncoding(Encoding encoding, byte[] name, int p, int end) {
         final int encodingIndex = ENCODING_LIST_BY_ENCODING_INDEX.length;
 
         final RubyEncoding rubyEncoding = Encodings.newRubyEncoding(
@@ -255,8 +257,7 @@ public class EncodingManager {
                 encodingIndex,
                 name,
                 p,
-                end,
-                dummy);
+                end);
 
         ENCODING_LIST_BY_ENCODING_INDEX = Arrays.copyOf(ENCODING_LIST_BY_ENCODING_INDEX, encodingIndex + 1);
         ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] = rubyEncoding;
@@ -280,7 +281,7 @@ public class EncodingManager {
         }
 
         final byte[] nameBytes = RopeOperations.encodeAsciiBytes(name);
-        return defineDynamicEncoding(Encodings.BINARY.jcoding, nameBytes, 0, nameBytes.length, true);
+        return defineDynamicEncoding(Encodings.DUMMY_ENCODING_BASE, nameBytes, 0, nameBytes.length);
     }
 
     @TruffleBoundary
@@ -290,7 +291,7 @@ public class EncodingManager {
         }
 
         final byte[] nameBytes = RopeOperations.encodeAsciiBytes(name);
-        return defineDynamicEncoding(encoding.jcoding, nameBytes, 0, nameBytes.length, encoding.dummy);
+        return defineDynamicEncoding(encoding.jcoding, nameBytes, 0, nameBytes.length);
     }
 
     @TruffleBoundary

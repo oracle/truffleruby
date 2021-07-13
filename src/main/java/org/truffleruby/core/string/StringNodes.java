@@ -1155,10 +1155,10 @@ public abstract class StringNodes {
             // stage found a compatible encoding to build that TrTable with. Although we now calculate a single
             // encoding with which to build the tables it must be compatible with all ropes, so will not
             // affect the consumption of characters from those ropes.
-            StringSupport.TrTables tables = StringSupport.trSetupTable(ropes[0], squeeze, null, true, enc);
+            StringSupport.TrTables tables = StringSupport.trSetupTable(ropes[0], squeeze, null, true, enc.jcoding);
 
             for (int i = 1; i < ropes.length; i++) {
-                tables = StringSupport.trSetupTable(ropes[i], squeeze, tables, false, enc);
+                tables = StringSupport.trSetupTable(ropes[i], squeeze, tables, false, enc.jcoding);
             }
             return tables;
         }
@@ -1322,7 +1322,7 @@ public abstract class StringNodes {
             final Rope rope = string.rope;
             final Encoding encoding = rope.getEncoding();
 
-            if (dummyEncodingProfile.profile(string.encoding.dummy)) {
+            if (dummyEncodingProfile.profile(encoding.isDummy())) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
@@ -1351,7 +1351,7 @@ public abstract class StringNodes {
             final Rope rope = string.rope;
             final Encoding encoding = rope.getEncoding();
 
-            if (dummyEncodingProfile.profile(string.encoding.dummy)) {
+            if (dummyEncodingProfile.profile(encoding.isDummy())) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
@@ -1896,7 +1896,7 @@ public abstract class StringNodes {
             final Rope rope = string.rope;
             final RubyEncoding enc = getActualEncodingNode.execute(rope, strings.getEncoding(string));
 
-            if (dummyEncodingProfile.profile(string.encoding.dummy)) {
+            if (dummyEncodingProfile.profile(enc.jcoding.isDummy())) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc.jcoding, this));
@@ -2126,7 +2126,7 @@ public abstract class StringNodes {
             final Rope rope = string.rope;
             final Encoding enc = rope.getEncoding();
 
-            if (dummyEncodingProfile.profile(string.encoding.dummy)) {
+            if (dummyEncodingProfile.profile(enc.isDummy())) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
@@ -2157,7 +2157,7 @@ public abstract class StringNodes {
             final Rope rope = string.rope;
             final Encoding enc = rope.getEncoding();
 
-            if (dummyEncodingProfile.profile(string.encoding.dummy)) {
+            if (dummyEncodingProfile.profile(enc.isDummy())) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
@@ -2616,14 +2616,14 @@ public abstract class StringNodes {
                 }
             }
 
-            StringSupport.TrTables tables = StringSupport.trSetupTable(otherRope, squeeze, null, true, enc);
+            StringSupport.TrTables tables = StringSupport.trSetupTable(otherRope, squeeze, null, true, enc.jcoding);
 
             for (int i = 1; i < otherStrings.length; i++) {
                 otherStr = otherStrings[i];
                 otherRope = RubyStringLibrary.getUncached().getRope(otherStr);
                 enc = checkEncodingNode.executeCheckEncoding(string, otherStr);
                 singlebyte = singlebyte && otherRope.isSingleByteOptimizable();
-                tables = StringSupport.trSetupTable(otherRope, squeeze, tables, false, enc);
+                tables = StringSupport.trSetupTable(otherRope, squeeze, tables, false, enc.jcoding);
             }
 
             if (singleByteOptimizableProfile.profile(singlebyte)) {
@@ -3239,7 +3239,7 @@ public abstract class StringNodes {
             final Rope rope = string.rope;
             final Encoding encoding = rope.getEncoding();
 
-            if (dummyEncodingProfile.profile(string.encoding.dummy)) {
+            if (dummyEncodingProfile.profile(encoding.isDummy())) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
@@ -3268,7 +3268,7 @@ public abstract class StringNodes {
             final Rope rope = string.rope;
             final Encoding encoding = rope.getEncoding();
 
-            if (dummyEncodingProfile.profile(string.encoding.dummy)) {
+            if (dummyEncodingProfile.profile(encoding.isDummy())) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
@@ -3373,7 +3373,7 @@ public abstract class StringNodes {
             final Rope rope = string.rope;
             final Encoding enc = rope.getEncoding();
 
-            if (string.encoding.dummy) {
+            if (enc.isDummy()) {
                 dummyEncodingProfile.enter();
                 throw new RaiseException(
                         getContext(),
@@ -3409,7 +3409,7 @@ public abstract class StringNodes {
             final Rope rope = string.rope;
             final Encoding enc = rope.getEncoding();
 
-            if (string.encoding.dummy) {
+            if (enc.isDummy()) {
                 dummyEncodingProfile.enter();
                 throw new RaiseException(
                         getContext(),
@@ -3458,7 +3458,7 @@ public abstract class StringNodes {
             final RubyEncoding enc = e1 == e2 ? e1 : checkEncodingNode.executeCheckEncoding(fromStr, toStr);
 
             final Rope ret = StringSupport
-                    .trTransHelper(selfRope, fromStrRope, toStrRope, e1.jcoding, enc, sFlag);
+                    .trTransHelper(selfRope, fromStrRope, toStrRope, e1.jcoding, enc.jcoding, sFlag);
             if (ret == null) {
                 return Nil.INSTANCE;
             }

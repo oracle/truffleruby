@@ -55,9 +55,9 @@ public class Encodings {
             .get(RopeOperations.encodeAsciiBytes("UTF-32"))
             .getEncoding()
             .getIndex()];
+    public static final Encoding DUMMY_ENCODING_BASE = createDummyEncoding();
 
     public Encodings() {
-        initializeRubyEncodings();
     }
 
     private static RubyEncoding initializeUsAscii() {
@@ -81,21 +81,24 @@ public class Encodings {
                     RopeConstants.ROPE_CONSTANTS.get(encodingEntry.getEncoding().toString()),
                     US_ASCII);
             ENCODING_NAMES.add(name);
-            // Checkstyle: stop
             final RubyEncoding rubyEncoding = new RubyEncoding(
                     encodingEntry.getEncoding(),
                     name,
-                    encodingEntry.getEncoding().getIndex(),
-                    encodingEntry.getEncoding().isDummy());
-            // Checkstyle: resume
+                    encodingEntry.getEncoding().getIndex());
             encodings[encodingEntry.getEncoding().getIndex()] = rubyEncoding;
         }
         return encodings;
     }
 
+    private static Encoding createDummyEncoding() {
+        EncodingDB.dummy("TRUFFLERUBY_DUMMY_ENCODING");
+        final EncodingDB.Entry entry = EncodingDB.getEncodings().get("TRUFFLERUBY_DUMMY_ENCODING".getBytes());
+        return entry.getEncoding();
+    }
+
     @TruffleBoundary
     public static RubyEncoding newRubyEncoding(RubyLanguage language, Encoding encoding, int index, byte[] name, int p,
-            int end, boolean dummy) {
+            int end) {
         assert p == 0 : "Ropes can't be created with non-zero offset: " + p;
         assert end == name.length : "Ropes must have the same exact length as the name array (len = " + end +
                 "; name.length = " + name.length + ")";
@@ -103,7 +106,7 @@ public class Encodings {
         final Rope rope = RopeOperations.create(name, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
         final ImmutableRubyString string = language.getFrozenStringLiteral(rope);
 
-        return new RubyEncoding(encoding, string, index, dummy);
+        return new RubyEncoding(encoding, string, index);
     }
 
     public static RubyEncoding getBuiltInEncoding(int index) {

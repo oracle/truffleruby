@@ -36,13 +36,11 @@ public class RubyEncoding extends ImmutableRubyObject implements ObjectGraphNode
     public final Encoding jcoding;
     public final ImmutableRubyString name;
     public final int index;
-    public final boolean dummy;
 
-    public RubyEncoding(Encoding jcoding, ImmutableRubyString name, int index, boolean dummy) {
+    public RubyEncoding(Encoding jcoding, ImmutableRubyString name, int index) {
         this.jcoding = jcoding;
         this.name = name;
         this.index = index;
-        this.dummy = dummy;
     }
 
     // Special constructor to define US-ASCII encoding which is used for RubyEncoding names
@@ -51,7 +49,6 @@ public class RubyEncoding extends ImmutableRubyObject implements ObjectGraphNode
         this.jcoding = jcoding;
         this.name = new ImmutableRubyString(RopeConstants.ROPE_CONSTANTS.get(name), this);
         this.index = index;
-        this.dummy = false;
     }
 
     @Override

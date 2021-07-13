@@ -138,11 +138,9 @@ public class ClassicRegexp implements ReOptions {
         this.options = (RegexpOptions) originalOptions.clone();
 
         Encoding enc = str.getEncoding();
-        // Checkstyle: stop
         if (enc.isDummy()) {
             throw new UnsupportedOperationException("can't make regexp with dummy encoding");
         }
-        // Checkstyle: resume
 
         Encoding[] fixedEnc = new Encoding[]{ null };
         RopeBuilder unescaped = preprocess(str, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);

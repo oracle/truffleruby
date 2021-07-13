@@ -431,7 +431,7 @@ public abstract class EncodingNodes {
     public abstract static class DummyNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected boolean isDummy(RubyEncoding encoding) {
-            return encoding.dummy;
+            return encoding.jcoding.isDummy();
         }
     }
 
@@ -508,13 +508,13 @@ public abstract class EncodingNodes {
 
         public abstract RubyEncoding execute(Rope rope, RubyEncoding encoding);
 
-        @Specialization(guards = "!encoding.dummy")
+        @Specialization(guards = "!encoding.jcoding.isDummy()")
         protected RubyEncoding getActualEncoding(Rope rope, RubyEncoding encoding) {
             return encoding;
         }
 
         @TruffleBoundary
-        @Specialization(guards = "encoding.dummy")
+        @Specialization(guards = "encoding.jcoding.isDummy()")
         protected RubyEncoding getActualEncodingDummy(Rope rope, RubyEncoding encoding) {
             if (encoding.jcoding instanceof UnicodeEncoding) {
                 // handle dummy UTF-16 and UTF-32 by scanning for BOM, as in MRI
