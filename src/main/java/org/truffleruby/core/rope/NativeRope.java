@@ -12,6 +12,7 @@ package org.truffleruby.core.rope;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.FinalizationService;
 import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringSupport;
@@ -104,7 +105,7 @@ public class NativeRope extends Rope {
         final Pointer pointer = Pointer.malloc(newCapacity + 1);
         pointer.writeBytes(0, this.pointer, 0, Math.min(getNativePointer().getSize(), newCapacity));
         pointer.writeByte(newCapacity, (byte) 0); // Like MRI
-        pointer.enableAutorelease(context);
+        pointer.enableAutorelease(context.getFinalizationService());
         return new NativeRope(
                 pointer,
                 byteLength(),
