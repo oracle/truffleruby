@@ -638,8 +638,7 @@ public abstract class EncodingNodes {
 
         @Specialization
         protected RubyEncoding encodingGetObjectEncodingImmutableString(ImmutableRubyString object) {
-            //            return object.encoding;
-            return getRubyEncodingNode.executeGetRubyEncoding(object.rope.getEncoding());
+            return object.encoding;
         }
 
         @Specialization
@@ -660,7 +659,7 @@ public abstract class EncodingNodes {
             if (hasRegexpSource.profile(regexpSource != null)) {
                 return getRubyEncodingNode.executeGetRubyEncoding(regexpSource.getEncoding());
             } else {
-                return getRubyEncodingNode.executeGetRubyEncoding(ASCIIEncoding.INSTANCE);
+                return Encodings.BINARY;
             }
         }
 
