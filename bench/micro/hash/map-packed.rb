@@ -10,7 +10,9 @@
 
 # Benchmarks Hash#map for packed hashes.
 
-hash = { a: 1, b: 2, c: 3 }
-benchmark 'core-hash-map-packed' do
-  Primitive.blackhole(hash.map { |k, v| v })
+if RUBY_ENGINE == 'truffleruby'
+  hash = { a: 1, b: 2, c: 3 }
+  benchmark 'core-hash-map-packed' do
+    Primitive.blackhole(hash.map { |k, v| v })
+  end
 end
