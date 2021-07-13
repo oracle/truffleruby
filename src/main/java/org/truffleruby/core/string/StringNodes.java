@@ -1976,8 +1976,7 @@ public abstract class StringNodes {
                         "isAsciiCompatible(rope)" })
         protected RubyString scrubAsciiCompat(Object string, RubyProc block,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
-                @Bind("strings.getRope(string)") Rope rope,
-                @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode) {
+                @Bind("strings.getRope(string)") Rope rope) {
             final Encoding enc = rope.getEncoding();
             final CodeRange cr = codeRangeNode.execute(rope);
             Rope buf = RopeConstants.EMPTY_ASCII_8BIT_ROPE;
@@ -2021,10 +2020,8 @@ public abstract class StringNodes {
                         }
                     }
                     final Rope subStringRope = substringNode.executeSubstring(rope, p, clen);
-                    final RubyEncoding rubyEncoding = getRubyEncodingNode
-                            .executeGetRubyEncoding(subStringRope.encoding);
                     Object repl = yieldNode
-                            .yield(block, makeStringNode.fromRope(subStringRope, rubyEncoding));
+                            .yield(block, makeStringNode.fromRope(subStringRope, strings.getEncoding(string)));
                     buf = concatNode.executeConcat(buf, strings.getRope(repl), enc);
                     p += clen;
                     p1 = p;
@@ -2040,13 +2037,11 @@ public abstract class StringNodes {
             }
             if (p < e) {
                 final Rope subStringRope = substringNode.executeSubstring(rope, p, e - p);
-                final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(subStringRope.encoding);
                 Object repl = yieldNode
-                        .yield(block, makeStringNode.fromRope(subStringRope, rubyEncoding));
+                        .yield(block, makeStringNode.fromRope(subStringRope, strings.getEncoding(string)));
                 buf = concatNode.executeConcat(buf, strings.getRope(repl), enc);
             }
-            final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(buf.encoding);
-            return makeStringNode.fromRope(buf, rubyEncoding);
+            return makeStringNode.fromRope(buf, strings.getEncoding(string));
         }
 
         @Specialization(
@@ -2056,8 +2051,7 @@ public abstract class StringNodes {
         protected RubyString scrubAsciiIncompatible(Object string, RubyProc block,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @Bind("strings.getRope(string)") Rope rope,
-                @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
-                @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode) {
+                @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode) {
             final Encoding enc = rope.getEncoding();
             final CodeRange cr = codeRangeNode.execute(rope);
             Rope buf = RopeConstants.EMPTY_ASCII_8BIT_ROPE;
@@ -2099,11 +2093,9 @@ public abstract class StringNodes {
                     }
 
                     final Rope subStringRope = substringNode.executeSubstring(rope, p, clen);
-                    final RubyEncoding rubyEncoding = getRubyEncodingNode
-                            .executeGetRubyEncoding(subStringRope.encoding);
                     RubyString repl = (RubyString) yieldNode.yield(
                             block,
-                            makeStringNode.fromRope(subStringRope, rubyEncoding));
+                            makeStringNode.fromRope(subStringRope, strings.getEncoding(string)));
                     buf = concatNode.executeConcat(buf, repl.rope, enc);
                     p += clen;
                     p1 = p;
@@ -2114,15 +2106,13 @@ public abstract class StringNodes {
             }
             if (p < e) {
                 final Rope subStringRope = substringNode.executeSubstring(rope, p, e - p);
-                final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(subStringRope.encoding);
                 RubyString repl = (RubyString) yieldNode.yield(
                         block,
-                        makeStringNode.fromRope(subStringRope, rubyEncoding));
+                        makeStringNode.fromRope(subStringRope, strings.getEncoding(string)));
                 buf = concatNode.executeConcat(buf, repl.rope, enc);
             }
 
-            final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(buf.encoding);
-            return makeStringNode.fromRope(buf, rubyEncoding);
+            return makeStringNode.fromRope(buf, strings.getEncoding(string));
         }
 
     }
