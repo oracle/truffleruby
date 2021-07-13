@@ -14,9 +14,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
-import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.encoding.Encodings;
-import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
@@ -82,16 +80,14 @@ public class ThreadBacktraceLocationNodes {
         @TruffleBoundary
         @Specialization
         protected RubyString path(RubyBacktraceLocation threadBacktraceLocation,
-                @Cached StringNodes.MakeStringNode makeStringNode,
-                @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode) {
+                @Cached StringNodes.MakeStringNode makeStringNode) {
             final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
             if (sourceSection == null) {
                 return coreStrings().UNKNOWN.createInstance(getContext());
             } else {
                 final Rope path = getLanguage().getPathToRopeCache().getCachedPath(sourceSection.getSource());
-                final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(path.encoding);
-                return makeStringNode.fromRope(path, rubyEncoding);
+                return makeStringNode.fromRope(path, Encodings.UTF_8);
             }
         }
 

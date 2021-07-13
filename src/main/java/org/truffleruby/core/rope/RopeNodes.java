@@ -29,6 +29,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.encoding.EncodingNodes;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.ConcatRope.ConcatState;
 import org.truffleruby.core.rope.RopeNodesFactory.AreComparableRopesNodeGen;
 import org.truffleruby.core.rope.RopeNodesFactory.CompareRopesNodeGen;
@@ -1142,11 +1143,11 @@ public abstract class RopeNodes {
                 @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode) {
             final Bytes bytes = getBytesObject.getRange(rope, index, rope.byteLength());
             final Encoding encoding = rope.getEncoding();
-            final Encoding actualEncoding = getActualEncodingNode
+            final RubyEncoding actualEncoding = getActualEncodingNode
                     .execute(rope, getRubyEncodingNode.executeGetRubyEncoding(encoding));
             final CodeRange codeRange = codeRangeNode.execute(rope);
 
-            final int characterLength = characterLength(actualEncoding, codeRange, bytes);
+            final int characterLength = characterLength(actualEncoding.jcoding, codeRange, bytes);
             if (characterLength <= 0) {
                 errorProfile.enter();
                 throw new RaiseException(
@@ -1156,7 +1157,7 @@ public abstract class RopeNodes {
                                 null));
             }
 
-            return mbcToCode(actualEncoding, bytes);
+            return mbcToCode(actualEncoding.jcoding, bytes);
         }
 
         @TruffleBoundary

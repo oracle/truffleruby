@@ -45,7 +45,6 @@ import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.StandardEncodings;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
@@ -172,8 +171,6 @@ public class TruffleRegexpNodes {
         @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
         @Child private RubyStringLibrary rubyStringLibrary = RubyStringLibrary.getFactory().createDispatched(2);
-        @Child private EncodingNodes.GetRubyEncodingNode getRubyEncodingNode = EncodingNodes.GetRubyEncodingNode
-                .create();
 
         @Specialization(
                 guards = "argsMatch(frame, cachedArgs, args)",

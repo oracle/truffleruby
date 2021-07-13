@@ -17,6 +17,10 @@ import org.jcodings.Encoding;
 import org.jcodings.EncodingDB;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
+import org.jcodings.specific.UTF16BEEncoding;
+import org.jcodings.specific.UTF16LEEncoding;
+import org.jcodings.specific.UTF32BEEncoding;
+import org.jcodings.specific.UTF32LEEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.jcodings.util.CaseInsensitiveBytesHash;
 import org.truffleruby.RubyLanguage;
@@ -37,6 +41,20 @@ public class Encodings {
     private static final RubyEncoding[] BUILT_IN_ENCODINGS = initializeRubyEncodings();
     public static final RubyEncoding BINARY = BUILT_IN_ENCODINGS[ASCIIEncoding.INSTANCE.getIndex()];
     public static final RubyEncoding UTF_8 = BUILT_IN_ENCODINGS[UTF8Encoding.INSTANCE.getIndex()];
+    public static final RubyEncoding UTF16LE = BUILT_IN_ENCODINGS[UTF16LEEncoding.INSTANCE.getIndex()];
+    public static final RubyEncoding UTF16BE = BUILT_IN_ENCODINGS[UTF16BEEncoding.INSTANCE.getIndex()];
+    public static final RubyEncoding UTF32LE = BUILT_IN_ENCODINGS[UTF32LEEncoding.INSTANCE.getIndex()];
+    public static final RubyEncoding UTF32BE = BUILT_IN_ENCODINGS[UTF32BEEncoding.INSTANCE.getIndex()];
+    public static final RubyEncoding UTF16_DUMMY = BUILT_IN_ENCODINGS[EncodingDB
+            .getEncodings()
+            .get(RopeOperations.encodeAsciiBytes("UTF-16"))
+            .getEncoding()
+            .getIndex()];
+    public static final RubyEncoding UTF32_DUMMY = BUILT_IN_ENCODINGS[EncodingDB
+            .getEncodings()
+            .get(RopeOperations.encodeAsciiBytes("UTF-32"))
+            .getEncoding()
+            .getIndex()];
 
     public Encodings() {
         initializeRubyEncodings();

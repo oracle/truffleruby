@@ -175,7 +175,6 @@ import org.truffleruby.language.arguments.ReadCallerVariablesNode;
 import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.LogicalClassNode;
@@ -1768,7 +1767,7 @@ public abstract class StringNodes {
             // Taken from org.jruby.RubyString#lstrip_bang19 and org.jruby.RubyString#multiByteLStrip.
 
             final Rope rope = string.rope;
-            final Encoding enc = getActualEncodingNode.execute(rope, strings.getEncoding(string));
+            final RubyEncoding enc = getActualEncodingNode.execute(rope, strings.getEncoding(string));
             final int s = 0;
             final int end = s + rope.byteLength();
 
@@ -1778,7 +1777,7 @@ public abstract class StringNodes {
                 if (!ASCIIEncoding.INSTANCE.isSpace(c)) {
                     break;
                 }
-                p += StringSupport.codeLength(enc, c);
+                p += StringSupport.codeLength(enc.jcoding, c);
             }
 
             if (p > s) {
@@ -1895,12 +1894,12 @@ public abstract class StringNodes {
             // Taken from org.jruby.RubyString#rstrip_bang19 and org.jruby.RubyString#multiByteRStrip19.
 
             final Rope rope = string.rope;
-            final Encoding enc = getActualEncodingNode.execute(rope, strings.getEncoding(string));
+            final RubyEncoding enc = getActualEncodingNode.execute(rope, strings.getEncoding(string));
 
             if (dummyEncodingProfile.profile(string.encoding.dummy)) {
                 throw new RaiseException(
                         getContext(),
-                        coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
+                        coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc.jcoding, this));
             }
 
             final byte[] bytes = rope.getBytes();
@@ -1909,7 +1908,7 @@ public abstract class StringNodes {
 
             int endp = end;
             int prev;
-            while ((prev = prevCharHead(enc, bytes, start, endp, end)) != -1) {
+            while ((prev = prevCharHead(enc.jcoding, bytes, start, endp, end)) != -1) {
                 int point = getCodePointNode.executeGetCodePoint(rope, prev);
                 if (point != 0 && !ASCIIEncoding.INSTANCE.isSpace(point)) {
                     break;
@@ -3783,14 +3782,13 @@ public abstract class StringNodes {
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode,
-                @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode,
                 @Cached MakeStringNode makeStringNode) {
             final Rope rope = strings.getRope(string);
-            final Encoding encoding = getActualEncodingNode.execute(rope, strings.getEncoding(string));
+            final RubyEncoding encoding = getActualEncodingNode.execute(rope, strings.getEncoding(string));
             final int end = rope.byteLength();
             final byte[] bytes = bytesNode.execute(rope);
             final int c = calculateCharacterLengthNode.characterLength(
-                    encoding,
+                    encoding.jcoding,
                     codeRangeNode.execute(rope),
                     Bytes.fromRange(bytes, byteIndex, end));
 
@@ -3804,7 +3802,7 @@ public abstract class StringNodes {
 
             return makeStringNode.executeMake(
                     ArrayUtils.extractRange(bytes, byteIndex, byteIndex + c),
-                    getRubyEncodingNode.executeGetRubyEncoding(encoding),
+                    encoding,
                     CR_UNKNOWN);
         }
 
@@ -3874,12 +3872,9 @@ public abstract class StringNodes {
         @Specialization
         protected RubyString string_escape(Object string,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
-                @CachedLibrary(limit = "2") RubyLibrary rubyLibrary,
-                @Cached StringNodes.MakeStringNode makeStringNode,
-                @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode) {
+                @Cached StringNodes.MakeStringNode makeStringNode) {
             final Rope rope = rbStrEscape(strings.getRope(string));
-            final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(rope.encoding);
-            return makeStringNode.fromRope(rope, rubyEncoding);
+            return makeStringNode.fromRope(rope, Encodings.US_ASCII);
         }
 
         // MRI: rb_str_escape
@@ -4080,8 +4075,7 @@ public abstract class StringNodes {
         protected RubyString stringFromCodepointSimple(long code, RubyEncoding rubyEncoding,
                 @Cached ConditionProfile isUTF8Profile,
                 @Cached ConditionProfile isUSAsciiProfile,
-                @Cached ConditionProfile isAscii8BitProfile,
-                @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode) {
+                @Cached ConditionProfile isAscii8BitProfile) {
             final int intCode = (int) code; // isSimple() guarantees this is OK
             final Encoding encoding = rubyEncoding.jcoding;
             final Rope rope;
@@ -4096,8 +4090,7 @@ public abstract class StringNodes {
                 rope = RopeOperations.create(new byte[]{ (byte) intCode }, encoding, CodeRange.CR_UNKNOWN);
             }
 
-            final RubyEncoding ropeRubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(rope.encoding);
-            return makeStringNode.fromRope(rope, ropeRubyEncoding);
+            return makeStringNode.fromRope(rope, rubyEncoding);
         }
 
         @Specialization(guards = { "!isSimple(code, rubyEncoding)", "isCodepoint(code)" })

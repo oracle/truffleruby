@@ -47,7 +47,6 @@ import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
-import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.format.BytesResult;
 import org.truffleruby.core.format.FormatExceptionTranslator;
@@ -1497,7 +1496,6 @@ public abstract class ArrayNodes {
 
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode;
         @Child private StringNodes.MakeStringNode makeStringNode;
-        @Child private EncodingNodes.GetRubyEncodingNode getRubyEncodingNode;
         @Child private WriteObjectFieldNode writeAssociatedNode;
 
         private final BranchProfile exceptionProfile = BranchProfile.create();
@@ -1566,11 +1564,6 @@ public abstract class ArrayNodes {
             if (makeStringNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 makeStringNode = insert(StringNodes.MakeStringNode.create());
-            }
-
-            if (getRubyEncodingNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                getRubyEncodingNode = insert(EncodingNodes.GetRubyEncodingNode.create());
             }
 
             final RubyEncoding rubyEncoding = result.getEncoding().getEncodingForLength(formatLength);

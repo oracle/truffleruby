@@ -16,10 +16,6 @@ import org.jcodings.Encoding;
 import org.jcodings.EncodingDB;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
-import org.jcodings.specific.UTF16BEEncoding;
-import org.jcodings.specific.UTF16LEEncoding;
-import org.jcodings.specific.UTF32BEEncoding;
-import org.jcodings.specific.UTF32LEEncoding;
 import org.jcodings.unicode.UnicodeEncoding;
 import org.jcodings.util.CaseInsensitiveBytesHash;
 import org.jcodings.util.Hash;
@@ -43,7 +39,6 @@ import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -497,12 +492,9 @@ public abstract class EncodingNodes {
         @Specialization(guards = "libString.isRubyString(string)")
         protected RubyEncoding getActualEncoding(Object string,
                 @Cached GetActualEncodingNode getActualEncodingNode,
-                @Cached GetRubyEncodingNode getRubyEncodingNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             final Rope rope = libString.getRope(string);
-            final Encoding actualEncoding = getActualEncodingNode.execute(rope, libString.getEncoding(string));
-
-            return getRubyEncodingNode.executeGetRubyEncoding(actualEncoding);
+            return getActualEncodingNode.execute(rope, libString.getEncoding(string));
         }
 
     }
@@ -510,62 +502,49 @@ public abstract class EncodingNodes {
     // Port of MRI's `get_actual_encoding`.
     public abstract static class GetActualEncodingNode extends RubyContextNode {
 
-        protected static final Encoding UTF16Dummy = EncodingDB
-                .getEncodings()
-                .get(RopeOperations.encodeAsciiBytes("UTF-16"))
-                .getEncoding();
-        protected static final Encoding UTF32Dummy = EncodingDB
-                .getEncodings()
-                .get(RopeOperations.encodeAsciiBytes("UTF-32"))
-                .getEncoding();
-
         public static GetActualEncodingNode create() {
             return EncodingNodesFactory.GetActualEncodingNodeGen.create();
         }
 
-        public abstract Encoding execute(Rope rope, RubyEncoding rubyEncoding);
+        public abstract RubyEncoding execute(Rope rope, RubyEncoding encoding);
 
-        @Specialization(guards = "!rubyEncoding.dummy")
-        protected Encoding getActualEncoding(Rope rope, RubyEncoding rubyEncoding) {
-            return rope.getEncoding();
+        @Specialization(guards = "!encoding.dummy")
+        protected RubyEncoding getActualEncoding(Rope rope, RubyEncoding encoding) {
+            return encoding;
         }
 
         @TruffleBoundary
-        @Specialization(guards = "rubyEncoding.dummy")
-        protected Encoding getActualEncodingDummy(Rope rope, RubyEncoding rubyEncoding) {
-            final Encoding encoding = rope.getEncoding();
-
-            if (encoding instanceof UnicodeEncoding) {
+        @Specialization(guards = "encoding.dummy")
+        protected RubyEncoding getActualEncodingDummy(Rope rope, RubyEncoding encoding) {
+            if (encoding.jcoding instanceof UnicodeEncoding) {
                 // handle dummy UTF-16 and UTF-32 by scanning for BOM, as in MRI
-                if (encoding == UTF16Dummy && rope.byteLength() >= 2) {
+                if (encoding == Encodings.UTF16_DUMMY && rope.byteLength() >= 2) {
                     int c0 = rope.get(0) & 0xff;
                     int c1 = rope.get(1) & 0xff;
 
                     if (c0 == 0xFE && c1 == 0xFF) {
-                        return UTF16BEEncoding.INSTANCE;
+                        return Encodings.UTF16BE;
                     } else if (c0 == 0xFF && c1 == 0xFE) {
-                        return UTF16LEEncoding.INSTANCE;
+                        return Encodings.UTF16LE;
                     }
-                    return ASCIIEncoding.INSTANCE;
-                } else if (encoding == UTF32Dummy && rope.byteLength() >= 4) {
+                    return Encodings.BINARY;
+                } else if (encoding == Encodings.UTF32_DUMMY && rope.byteLength() >= 4) {
                     int c0 = rope.get(0) & 0xff;
                     int c1 = rope.get(1) & 0xff;
                     int c2 = rope.get(2) & 0xff;
                     int c3 = rope.get(3) & 0xff;
 
                     if (c0 == 0 && c1 == 0 && c2 == 0xFE && c3 == 0xFF) {
-                        return UTF32BEEncoding.INSTANCE;
+                        return Encodings.UTF32BE;
                     } else if (c3 == 0 && c2 == 0 && c1 == 0xFE && c0 == 0xFF) {
-                        return UTF32LEEncoding.INSTANCE;
+                        return Encodings.UTF32LE;
                     }
-                    return ASCIIEncoding.INSTANCE;
+                    return Encodings.BINARY;
                 }
             }
 
             return encoding;
         }
-
-
     }
 
     @Primitive(name = "encoding_get_default_encoding")

@@ -15,7 +15,6 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.cext.CExtNodes;
-import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.ConcatRope.ConcatState;
@@ -164,7 +163,6 @@ public abstract class TruffleRopesNodes {
         protected RubyString flattenRope(Object string,
                 @Cached RopeNodes.FlattenNode flattenNode,
                 @Cached StringNodes.MakeStringNode makeStringNode,
-                @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             final LeafRope flattened = flattenNode.executeFlatten(libString.getRope(string));
             final RubyEncoding rubyEncoding = libString.getEncoding(string);
