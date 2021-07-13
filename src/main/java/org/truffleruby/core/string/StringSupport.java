@@ -34,6 +34,7 @@ import static org.truffleruby.core.rope.CodeRange.CR_VALID;
 import java.util.Arrays;
 
 import com.oracle.truffle.api.nodes.Node;
+import org.graalvm.collections.Pair;
 import org.jcodings.Config;
 import org.jcodings.Encoding;
 import org.jcodings.IntHolder;
@@ -45,6 +46,7 @@ import org.jcodings.util.IntHash;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.IntHashMap;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.Bytes;
 import org.truffleruby.core.rope.CodeRange;
@@ -1678,11 +1680,13 @@ public final class StringSupport {
     private static final String INVALID_FORMAT_MESSAGE = "invalid dumped string; not wrapped with '\"' nor '\"...\".force_encoding(\"...\")' form";
 
     @TruffleBoundary
-    public static RopeBuilder undump(Rope rope, RubyContext context, Node currentNode) {
+    public static Pair<RopeBuilder, RubyEncoding> undump(Rope rope, RubyEncoding encoding, RubyContext context,
+            Node currentNode) {
         byte[] bytes = rope.getBytes();
         int start = 0;
         int length = bytes.length;
-        Encoding[] enc = { rope.getEncoding() };
+        RubyEncoding resultEncoding = encoding;
+        Encoding[] enc = { encoding.jcoding };
         boolean[] utf8 = { false };
         boolean[] binary = { false };
         RopeBuilder undumped = new RopeBuilder();
@@ -1778,6 +1782,7 @@ public final class StringSupport {
                                         currentNode));
                     }
                     undumped.setEncoding(enc2.jcoding);
+                    resultEncoding = enc2;
                 }
                 break;
             }
@@ -1789,21 +1794,35 @@ public final class StringSupport {
                             context,
                             context.getCoreExceptions().runtimeError("invalid escape", currentNode));
                 }
-                start = undumpAfterBackslash(undumped, bytes, start, length, enc, utf8, binary, context, currentNode);
+                final Pair<Integer, RubyEncoding> undumpAfterBackslashResult = undumpAfterBackslash(
+                        undumped,
+                        resultEncoding,
+                        bytes,
+                        start,
+                        length,
+                        enc,
+                        utf8,
+                        binary,
+                        context,
+                        currentNode);
+                start = undumpAfterBackslashResult.getLeft();
+                resultEncoding = undumpAfterBackslashResult.getRight();
             } else {
                 undumped.append(bytes, start++, 1);
             }
         }
 
-        return undumped;
+        return Pair.create(undumped, resultEncoding);
     }
 
-    private static int undumpAfterBackslash(RopeBuilder out, byte[] bytes, int start, int length, Encoding[] enc,
+    private static Pair<Integer, RubyEncoding> undumpAfterBackslash(RopeBuilder out, RubyEncoding encoding,
+            byte[] bytes, int start, int length, Encoding[] enc,
             boolean[] utf8, boolean[] binary, RubyContext context, Node currentNode) {
         long c;
         int codelen;
         int[] hexlen = { 0 };
         byte[] buf = new byte[6];
+        RubyEncoding resultEncoding = encoding;
 
         switch (bytes[start]) {
             case '\\':
@@ -1841,6 +1860,7 @@ public final class StringSupport {
                 if (enc[0] != UTF8Encoding.INSTANCE) {
                     enc[0] = UTF8Encoding.INSTANCE;
                     out.setEncoding(UTF8Encoding.INSTANCE);
+                    resultEncoding = Encodings.UTF_8;
                 }
                 if (bytes[start] == '{') { /* handle u{...} form */
                     start++;
@@ -1927,7 +1947,7 @@ public final class StringSupport {
                 start++;
         }
 
-        return start;
+        return Pair.create(start, resultEncoding);
     }
 
     private static long scanHex(byte[] bytes, int start, int len, int[] retlen) {
