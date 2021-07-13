@@ -14,7 +14,6 @@ package org.truffleruby.core.encoding;
 import com.oracle.truffle.api.library.CachedLibrary;
 import org.jcodings.Encoding;
 import org.jcodings.EncodingDB;
-import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.unicode.UnicodeEncoding;
 import org.jcodings.util.CaseInsensitiveBytesHash;
@@ -39,6 +38,7 @@ import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.core.rope.RopeWithEncoding;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -756,32 +756,27 @@ public abstract class EncodingNodes {
 
         @Child private NegotiateCompatibleRopeEncodingNode negotiateCompatibleEncodingNode = NegotiateCompatibleRopeEncodingNode
                 .create();
-        @Child private GetRubyEncodingNode firstGetRubyEncodingNode = GetRubyEncodingNode.create();
-        @Child private GetRubyEncodingNode secondGetRubyEncodingNode = GetRubyEncodingNode.create();
 
         public static CheckRopeEncodingNode create() {
             return CheckRopeEncodingNodeGen.create();
         }
 
-        public abstract RubyEncoding executeCheckEncoding(Rope first, Rope second);
+        public abstract RubyEncoding executeCheckEncoding(RopeWithEncoding first, RopeWithEncoding second);
 
         @Specialization
-        protected RubyEncoding checkEncoding(Rope first, Rope second,
+        protected RubyEncoding checkEncoding(RopeWithEncoding first, RopeWithEncoding second,
                 @Cached BranchProfile errorProfile) {
-            final RubyEncoding firstEncoding = firstGetRubyEncodingNode.executeGetRubyEncoding(first.encoding);
-            final RubyEncoding secondEncoding = secondGetRubyEncodingNode.executeGetRubyEncoding(second.encoding);
-
             final RubyEncoding negotiatedEncoding = negotiateCompatibleEncodingNode.executeNegotiate(
-                    first,
-                    firstEncoding,
-                    second,
-                    secondEncoding);
+                    first.getRope(),
+                    first.getEncoding(),
+                    second.getRope(),
+                    second.getEncoding());
 
             if (negotiatedEncoding == null) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatible(
-                        first.getEncoding(),
-                        second.getEncoding(),
+                        first.getEncoding().jcoding,
+                        second.getEncoding().jcoding,
                         this));
             }
 

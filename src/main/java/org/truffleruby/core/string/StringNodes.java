@@ -142,6 +142,7 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeNodes.RepeatNode;
 import org.truffleruby.core.rope.RopeNodes.SingleByteOptimizableNode;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.rope.RopeWithEncoding;
 import org.truffleruby.core.rope.SubstringRope;
 import org.truffleruby.core.string.StringNodesFactory.ByteIndexFromCharIndexNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.ByteSizeNodeFactory;
@@ -1047,29 +1048,35 @@ public abstract class StringNodes {
                 limit = "getDefaultCacheLimit()")
         protected int count(VirtualFrame frame, Object string, Object[] args,
                 @Cached("args.length") int size) {
-            final Rope[] ropes = argRopes(frame, args, size);
-            return countRopesNode.executeCount(string, ropes);
+            final RopeWithEncoding[] ropesWithEncs = argRopesWithEncs(frame, args, size);
+            return countRopesNode.executeCount(string, ropesWithEncs);
         }
 
         @Specialization(replaces = "count")
         protected int countSlow(VirtualFrame frame, Object string, Object[] args) {
-            final Rope[] ropes = argRopesSlow(frame, args);
-            return countRopesNode.executeCount(string, ropes);
+            final RopeWithEncoding[] ropesWithEncs = argRopesSlow(frame, args);
+            return countRopesNode.executeCount(string, ropesWithEncs);
         }
 
         @ExplodeLoop
-        protected Rope[] argRopes(VirtualFrame frame, Object[] args, int size) {
-            final Rope[] strs = new Rope[args.length];
+        protected RopeWithEncoding[] argRopesWithEncs(VirtualFrame frame, Object[] args, int size) {
+            final RopeWithEncoding[] strs = new RopeWithEncoding[args.length];
             for (int i = 0; i < size; i++) {
-                strs[i] = rubyStringLibrary.getRope(toStr.execute(args[i]));
+                final Object string = toStr.execute(args[i]);
+                strs[i] = new RopeWithEncoding(
+                        rubyStringLibrary.getRope(string),
+                        rubyStringLibrary.getEncoding(string));
             }
             return strs;
         }
 
-        protected Rope[] argRopesSlow(VirtualFrame frame, Object[] args) {
-            final Rope[] strs = new Rope[args.length];
+        protected RopeWithEncoding[] argRopesSlow(VirtualFrame frame, Object[] args) {
+            final RopeWithEncoding[] strs = new RopeWithEncoding[args.length];
             for (int i = 0; i < args.length; i++) {
-                strs[i] = rubyStringLibrary.getRope(toStr.execute(args[i]));
+                final Object string = toStr.execute(args[i]);
+                strs[i] = new RopeWithEncoding(
+                        rubyStringLibrary.getRope(string),
+                        rubyStringLibrary.getEncoding(string));
             }
             return strs;
         }
@@ -1082,7 +1089,7 @@ public abstract class StringNodes {
             return CountRopesNodeFactory.create(null);
         }
 
-        public abstract int executeCount(Object string, Rope[] ropes);
+        public abstract int executeCount(Object string, RopeWithEncoding[] ropesWithEncs);
 
         @Specialization(guards = "isEmpty(strings.getRope(string))")
         protected int count(Object string, Object[] args,
@@ -1097,12 +1104,12 @@ public abstract class StringNodes {
                         "cachedArgs.length == args.length",
                         "argsMatch(cachedArgs, args)",
                         "encodingsMatch(libString.getRope(string), cachedEncoding)" })
-        protected int countFast(Object string, Rope[] args,
-                @Cached(value = "args", dimensions = 1) Rope[] cachedArgs,
+        protected int countFast(Object string, RopeWithEncoding[] args,
+                @Cached(value = "args", dimensions = 1) RopeWithEncoding[] cachedArgs,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString,
                 @Cached("libString.getRope(string).encoding") Encoding cachedEncoding,
                 @Cached(value = "squeeze()", dimensions = 1) boolean[] squeeze,
-                @Cached("findEncoding(libString.getRope(string), cachedArgs)") RubyEncoding compatEncoding,
+                @Cached("findEncoding(stringToRopeWithEncoding(libString, string), cachedArgs)") RubyEncoding compatEncoding,
                 @Cached("makeTables(cachedArgs, squeeze, compatEncoding)") TrTables tables) {
             return processStr(libString.getRope(string), squeeze, compatEncoding, tables);
         }
@@ -1113,22 +1120,24 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "!isEmpty(libString.getRope(string))")
-        protected int count(Object string, Rope[] ropes,
+        protected int count(Object string, RopeWithEncoding[] ropesWithEncs,
                 @Cached BranchProfile errorProfile,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
-            if (ropes.length == 0) {
+            if (ropesWithEncs.length == 0) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorEmptyVarargs(this));
             }
 
-            RubyEncoding enc = findEncoding(libString.getRope(string), ropes);
-            return countSlow(libString.getRope(string), ropes, enc);
+            RubyEncoding enc = findEncoding(
+                    new RopeWithEncoding(libString.getRope(string), libString.getEncoding(string)),
+                    ropesWithEncs);
+            return countSlow(libString.getRope(string), ropesWithEncs, enc);
         }
 
         @TruffleBoundary
-        private int countSlow(Rope stringRope, Rope[] ropes, RubyEncoding enc) {
+        private int countSlow(Rope stringRope, RopeWithEncoding[] ropesWithEncs, RubyEncoding enc) {
             final boolean[] table = squeeze();
-            final StringSupport.TrTables tables = makeTables(ropes, table, enc);
+            final StringSupport.TrTables tables = makeTables(ropesWithEncs, table, enc);
             return processStr(stringRope, table, enc, tables);
         }
     }
@@ -1141,24 +1150,33 @@ public abstract class StringNodes {
             return new boolean[StringSupport.TRANS_SIZE + 1];
         }
 
-        protected RubyEncoding findEncoding(Rope rope, Rope[] ropes) {
-            RubyEncoding enc = checkEncodingNode.executeCheckEncoding(rope, ropes[0]);
+        protected RopeWithEncoding stringToRopeWithEncoding(RubyStringLibrary strings, Object string) {
+            return new RopeWithEncoding(strings.getRope(string), strings.getEncoding(string));
+        }
+
+        protected RubyEncoding findEncoding(RopeWithEncoding ropeWithEnc, RopeWithEncoding[] ropes) {
+            RubyEncoding enc = checkEncodingNode.executeCheckEncoding(ropeWithEnc, ropes[0]);
             for (int i = 1; i < ropes.length; i++) {
-                enc = checkEncodingNode.executeCheckEncoding(rope, ropes[i]);
+                enc = checkEncodingNode.executeCheckEncoding(ropeWithEnc, ropes[i]);
             }
             return enc;
         }
 
-        protected TrTables makeTables(Rope[] ropes, boolean[] squeeze, RubyEncoding enc) {
+        protected TrTables makeTables(RopeWithEncoding[] ropesWithEncs, boolean[] squeeze, RubyEncoding enc) {
             // The trSetupTable method will consume the bytes from the rope one encoded character at a time and
             // build a TrTable from this. Previously we started with the encoding of rope zero, and at each
             // stage found a compatible encoding to build that TrTable with. Although we now calculate a single
             // encoding with which to build the tables it must be compatible with all ropes, so will not
             // affect the consumption of characters from those ropes.
-            StringSupport.TrTables tables = StringSupport.trSetupTable(ropes[0], squeeze, null, true, enc.jcoding);
+            StringSupport.TrTables tables = StringSupport.trSetupTable(
+                    ropesWithEncs[0].getRope(),
+                    squeeze,
+                    null,
+                    true,
+                    enc.jcoding);
 
-            for (int i = 1; i < ropes.length; i++) {
-                tables = StringSupport.trSetupTable(ropes[i], squeeze, tables, false, enc.jcoding);
+            for (int i = 1; i < ropesWithEncs.length; i++) {
+                tables = StringSupport.trSetupTable(ropesWithEncs[i].getRope(), squeeze, tables, false, enc.jcoding);
             }
             return tables;
         }
@@ -1168,9 +1186,12 @@ public abstract class StringNodes {
         }
 
         @ExplodeLoop
-        protected boolean argsMatch(Rope[] cachedRopes, Rope[] ropes) {
+        protected boolean argsMatch(RopeWithEncoding[] cachedRopes, RopeWithEncoding[] ropes) {
             for (int i = 0; i < cachedRopes.length; i++) {
-                if (!ropeEqualNode.execute(cachedRopes[i], ropes[i])) {
+                if (!ropeEqualNode.execute(cachedRopes[i].getRope(), ropes[i].getRope())) {
+                    return false;
+                }
+                if (cachedRopes[i].getEncoding() != ropes[i].getEncoding()) {
                     return false;
                 }
             }
@@ -1195,29 +1216,35 @@ public abstract class StringNodes {
         @Specialization(guards = "args.length == size", limit = "getDefaultCacheLimit()")
         protected Object deleteBang(RubyString string, Object[] args,
                 @Cached("args.length") int size) {
-            final Rope[] ropes = argRopes(args, size);
-            return deleteBangRopesNode.executeDeleteBang(string, ropes);
+            final RopeWithEncoding[] ropesWithEncs = argRopesWithEncs(args, size);
+            return deleteBangRopesNode.executeDeleteBang(string, ropesWithEncs);
         }
 
         @Specialization(replaces = "deleteBang")
         protected Object deleteBangSlow(RubyString string, Object[] args) {
-            final Rope[] ropes = argRopesSlow(args);
+            final RopeWithEncoding[] ropes = argRopesWithEncsSlow(args);
             return deleteBangRopesNode.executeDeleteBang(string, ropes);
         }
 
         @ExplodeLoop
-        protected Rope[] argRopes(Object[] args, int size) {
-            final Rope[] strs = new Rope[size];
+        protected RopeWithEncoding[] argRopesWithEncs(Object[] args, int size) {
+            final RopeWithEncoding[] strs = new RopeWithEncoding[size];
             for (int i = 0; i < size; i++) {
-                strs[i] = rubyStringLibrary.getRope(toStr.execute(args[i]));
+                final Object string = toStr.execute(args[i]);
+                strs[i] = new RopeWithEncoding(
+                        rubyStringLibrary.getRope(string),
+                        rubyStringLibrary.getEncoding(string));
             }
             return strs;
         }
 
-        protected Rope[] argRopesSlow(Object[] args) {
-            final Rope[] strs = new Rope[args.length];
+        protected RopeWithEncoding[] argRopesWithEncsSlow(Object[] args) {
+            final RopeWithEncoding[] strs = new RopeWithEncoding[args.length];
             for (int i = 0; i < args.length; i++) {
-                strs[i] = rubyStringLibrary.getRope(toStr.execute(args[i]));
+                final Object string = toStr.execute(args[i]);
+                strs[i] = new RopeWithEncoding(
+                        rubyStringLibrary.getRope(string),
+                        rubyStringLibrary.getEncoding(string));
             }
             return strs;
         }
@@ -1230,7 +1257,7 @@ public abstract class StringNodes {
             return DeleteBangRopesNodeFactory.create(null);
         }
 
-        public abstract Object executeDeleteBang(RubyString string, Rope[] ropes);
+        public abstract Object executeDeleteBang(RubyString string, RopeWithEncoding[] ropesWithEncs);
 
         @Specialization(guards = "isEmpty(string.rope)")
         protected Object deleteBangEmpty(RubyString string, Object[] args) {
@@ -1244,12 +1271,12 @@ public abstract class StringNodes {
                         "cachedArgs.length == args.length",
                         "argsMatch(cachedArgs, args)",
                         "encodingsMatch(libString.getRope(string), cachedEncoding)" })
-        protected Object deleteBangFast(RubyString string, Rope[] args,
-                @Cached(value = "args", dimensions = 1) Rope[] cachedArgs,
+        protected Object deleteBangFast(RubyString string, RopeWithEncoding[] args,
+                @Cached(value = "args", dimensions = 1) RopeWithEncoding[] cachedArgs,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString,
                 @Cached("libString.getRope(string).encoding") Encoding cachedEncoding,
                 @Cached(value = "squeeze()", dimensions = 1) boolean[] squeeze,
-                @Cached("findEncoding(libString.getRope(string), cachedArgs)") RubyEncoding compatEncoding,
+                @Cached("findEncoding(stringToRopeWithEncoding(libString, string), cachedArgs)") RubyEncoding compatEncoding,
                 @Cached("makeTables(cachedArgs, squeeze, compatEncoding)") TrTables tables,
                 @Cached BranchProfile nullProfile) {
             final Rope processedRope = processStr(string, squeeze, compatEncoding, tables);
@@ -1263,23 +1290,23 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "!isEmpty(string.rope)")
-        protected Object deleteBang(RubyString string, Rope[] args,
+        protected Object deleteBang(RubyString string, RopeWithEncoding[] args,
                 @Cached BranchProfile errorProfile) {
             if (args.length == 0) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorEmptyVarargs(this));
             }
 
-            RubyEncoding enc = findEncoding(string.rope, args);
+            RubyEncoding enc = findEncoding(new RopeWithEncoding(string.rope, string.encoding), args);
 
             return deleteBangSlow(string, args, enc);
         }
 
         @TruffleBoundary
-        private Object deleteBangSlow(RubyString string, Rope[] ropes, RubyEncoding enc) {
+        private Object deleteBangSlow(RubyString string, RopeWithEncoding[] ropesWithEncs, RubyEncoding enc) {
             final boolean[] squeeze = new boolean[StringSupport.TRANS_SIZE + 1];
 
-            final StringSupport.TrTables tables = makeTables(ropes, squeeze, enc);
+            final StringSupport.TrTables tables = makeTables(ropesWithEncs, squeeze, enc);
 
             final Rope processedRope = processStr(string, squeeze, enc, tables);
             if (processedRope == null) {
