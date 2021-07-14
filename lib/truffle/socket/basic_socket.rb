@@ -195,15 +195,14 @@ class BasicSocket < IO
 
     loop do
       msg_buffer = Truffle::Socket::Foreign.char_pointer(msg_len)
-      address    = Truffle::Socket.sockaddr_class_for_socket(self).new
-      io_vec     = Truffle::Socket::Foreign::Iovec.with_buffer(msg_buffer)
-      header     = Truffle::Socket::Foreign::Msghdr.with_buffers(address, io_vec)
+      address = Truffle::Socket.sockaddr_class_for_socket(self).new
+      io_vec = Truffle::Socket::Foreign::Iovec.with_buffer(msg_buffer)
+      header = Truffle::Socket::Foreign::Msghdr.with_buffers(address, io_vec)
 
       begin
         need_more = false
 
-        msg_size = Truffle::Socket::Foreign
-          .recvmsg(Primitive.io_fd(self), header.pointer, flags)
+        msg_size = Truffle::Socket::Foreign.recvmsg(Primitive.io_fd(self), header.pointer, flags)
 
         if msg_size < 0
           if exception
@@ -251,10 +250,9 @@ class BasicSocket < IO
 
   private def internal_sendmsg(message, flags, dest_sockaddr, exception)
     msg_buffer = Truffle::Socket::Foreign.char_pointer(message.bytesize)
-    io_vec     = Truffle::Socket::Foreign::Iovec.with_buffer(msg_buffer)
-    header     = Truffle::Socket::Foreign::Msghdr.new
-    address    = nil
-
+    io_vec = Truffle::Socket::Foreign::Iovec.with_buffer(msg_buffer)
+    header = Truffle::Socket::Foreign::Msghdr.new
+    address = nil
     begin
       msg_buffer.write_bytes(message)
 
@@ -265,14 +263,12 @@ class BasicSocket < IO
       end
 
       if dest_sockaddr.is_a?(String)
-        address = Truffle::Socket::Foreign::SockaddrIn
-          .with_sockaddr(dest_sockaddr)
+        address = Truffle::Socket::Foreign::SockaddrIn.with_sockaddr(dest_sockaddr)
 
         header.address = address
       end
 
-      num_bytes = Truffle::Socket::Foreign
-        .sendmsg(Primitive.io_fd(self), header.pointer, flags)
+      num_bytes = Truffle::Socket::Foreign.sendmsg(Primitive.io_fd(self), header.pointer, flags)
 
       if num_bytes < 0
         if exception
