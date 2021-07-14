@@ -20,11 +20,13 @@ import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeCache;
 
+import java.util.ArrayList;
 import java.util.Collection;
-
-import static org.truffleruby.core.encoding.Encodings.ENCODING_NAMES;
+import java.util.List;
 
 public class FrozenStringLiterals {
+
+    private static final List<ImmutableRubyString> ENCODING_NAMES = new ArrayList<>();
 
     private final RopeCache ropeCache;
     private final WeakValueCache<LeafRope, ImmutableRubyString> values = new WeakValueCache<>();
@@ -32,7 +34,7 @@ public class FrozenStringLiterals {
     public FrozenStringLiterals(RopeCache ropeCache) {
         this.ropeCache = ropeCache;
         for (ImmutableRubyString name : ENCODING_NAMES) {
-            addFrozenStringLiteral(name);
+            registerEncodingName(name);
         }
     }
 
@@ -55,9 +57,17 @@ public class FrozenStringLiterals {
         }
     }
 
-    private void addFrozenStringLiteral(ImmutableRubyString string) {
+    public static ImmutableRubyString encodingName(LeafRope name, RubyEncoding encoding) {
+        final ImmutableRubyString string = new ImmutableRubyString(name, encoding);
+        assert !ENCODING_NAMES.contains(string);
+        ENCODING_NAMES.add(string);
+        return string;
+    }
+
+    private void registerEncodingName(ImmutableRubyString string) {
         final LeafRope cachedRope = ropeCache.getRope(string.rope);
-        final ImmutableRubyString existing = values.addInCacheIfAbsent(cachedRope, string);
+        assert cachedRope == string.rope;
+        final ImmutableRubyString existing = values.addInCacheIfAbsent(string.rope, string);
         if (existing != string) {
             throw CompilerDirectives
                     .shouldNotReachHere("Duplicate ImmutableRubyString in FrozenStringLiterals: " + existing);

@@ -28,16 +28,13 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.FrozenStringLiterals;
 import org.truffleruby.core.string.ImmutableRubyString;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class Encodings {
 
     public static final int INITIAL_NUMBER_OF_ENCODINGS = EncodingDB.getEncodings().size();
     public static final RubyEncoding US_ASCII = initializeUsAscii();
-    public static final List<ImmutableRubyString> ENCODING_NAMES = new ArrayList<>();
     private static final RubyEncoding[] BUILT_IN_ENCODINGS = initializeRubyEncodings();
 
     public static final RubyEncoding BINARY = BUILT_IN_ENCODINGS[ASCIIEncoding.INSTANCE.getIndex()];
@@ -64,7 +61,7 @@ public class Encodings {
 
     private static RubyEncoding initializeUsAscii() {
         final Encoding encoding = USASCIIEncoding.INSTANCE;
-        return new RubyEncoding(encoding, encoding.toString(), encoding.getIndex());
+        return new RubyEncoding(encoding.getIndex());
     }
 
     private static RubyEncoding[] initializeRubyEncodings() {
@@ -81,14 +78,12 @@ public class Encodings {
             if (encoding == USASCIIEncoding.INSTANCE) {
                 rubyEncoding = US_ASCII;
             } else {
-                final ImmutableRubyString name = new ImmutableRubyString(
+                final ImmutableRubyString name = FrozenStringLiterals.encodingName(
                         RopeConstants.ROPE_CONSTANTS.get(encoding.toString()),
                         US_ASCII);
                 rubyEncoding = new RubyEncoding(encoding, name, encoding.getIndex());
             }
             encodings[encoding.getIndex()] = rubyEncoding;
-            ENCODING_NAMES.add(rubyEncoding.name);
-
         }
         return encodings;
     }

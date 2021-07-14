@@ -20,7 +20,9 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.RopeConstants;
+import org.truffleruby.core.string.FrozenStringLiterals;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.ImmutableRubyObject;
 
@@ -44,10 +46,9 @@ public class RubyEncoding extends ImmutableRubyObject implements ObjectGraphNode
     }
 
     // Special constructor to define US-ASCII encoding which is used for RubyEncoding names
-    public RubyEncoding(Encoding jcoding, String name, int index) {
-        assert jcoding == USASCIIEncoding.INSTANCE;
-        this.jcoding = jcoding;
-        this.name = new ImmutableRubyString(RopeConstants.ROPE_CONSTANTS.get(name), this);
+    public RubyEncoding(int index) {
+        this.jcoding = USASCIIEncoding.INSTANCE;
+        this.name = FrozenStringLiterals.encodingName((LeafRope) RopeConstants.US_ASCII, this);
         this.index = index;
     }
 
