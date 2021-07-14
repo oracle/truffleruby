@@ -220,12 +220,14 @@ public abstract class StringNodes {
         }
 
         public RubyString fromBuilder(RopeBuilder builder, RubyEncoding encoding, CodeRange codeRange) {
+            assert builder.getEncoding() == encoding.jcoding;
             return executeMake(builder.getBytes(), encoding, codeRange);
         }
 
         /** All callers of this factory method must guarantee that the builder's byte array cannot change after this
          * call, otherwise the rope built from the builder will end up in an inconsistent state. */
         public RubyString fromBuilderUnsafe(RopeBuilder builder, RubyEncoding encoding, CodeRange codeRange) {
+            assert builder.getEncoding() == encoding.jcoding;
             final byte[] unsafeBytes = builder.getUnsafeBytes();
             final byte[] ropeBytes;
 
@@ -274,7 +276,6 @@ public abstract class StringNodes {
                 @CachedLanguage RubyLanguage language) {
             final LeafRope rope = makeLeafRopeNode
                     .executeMake(bytes, encoding.jcoding, codeRange, NotProvided.INSTANCE);
-            assert rope.encoding == encoding.jcoding;
             final RubyClass stringClass = context.getCoreLibrary().stringClass;
             final RubyString string = new RubyString(
                     stringClass,
