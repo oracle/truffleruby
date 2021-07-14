@@ -242,7 +242,7 @@ public class EncodingManager {
         assert ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] == null;
         ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] = rubyEncoding;
 
-        LOOKUP.put(rubyEncoding.jcoding.toString().toLowerCase(Locale.ENGLISH), rubyEncoding);
+        addToLookup(rubyEncoding.jcoding.toString(), rubyEncoding);
         return rubyEncoding;
 
     }
@@ -256,7 +256,7 @@ public class EncodingManager {
         ENCODING_LIST_BY_ENCODING_INDEX = Arrays.copyOf(ENCODING_LIST_BY_ENCODING_INDEX, encodingIndex + 1);
         ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] = rubyEncoding;
 
-        LOOKUP.put(RopeOperations.decodeRope(rubyEncoding.name.rope).toLowerCase(Locale.ENGLISH), rubyEncoding);
+        addToLookup(RopeOperations.decodeRope(rubyEncoding.name.rope), rubyEncoding);
         return rubyEncoding;
 
     }
@@ -264,8 +264,13 @@ public class EncodingManager {
     @TruffleBoundary
     public RubyEncoding defineAlias(Encoding encoding, String name) {
         final RubyEncoding rubyEncoding = getRubyEncoding(encoding);
-        LOOKUP.put(name.toLowerCase(Locale.ENGLISH), rubyEncoding);
+        addToLookup(name, rubyEncoding);
         return rubyEncoding;
+    }
+
+    @TruffleBoundary
+    private void addToLookup(String name, RubyEncoding rubyEncoding) {
+        LOOKUP.put(name.toLowerCase(Locale.ENGLISH), rubyEncoding);
     }
 
     @TruffleBoundary
