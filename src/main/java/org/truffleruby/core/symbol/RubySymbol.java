@@ -14,6 +14,7 @@ import com.oracle.truffle.api.RootCallTarget;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.Hashing;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.language.ImmutableRubyObject;
@@ -34,6 +35,7 @@ public final class RubySymbol extends ImmutableRubyObject implements TruffleObje
 
     private static final int CLASS_SALT = 92021474; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
 
+    public final RubyEncoding encoding;
     private final String string;
     private final LeafRope rope;
     private final int javaStringHashCode;
@@ -41,15 +43,17 @@ public final class RubySymbol extends ImmutableRubyObject implements TruffleObje
 
     private volatile RootCallTarget callTargetNoRefinements = null;
 
-    public RubySymbol(String string, LeafRope rope, long id) {
+    public RubySymbol(String string, LeafRope rope, RubyEncoding encoding, long id) {
+        assert rope.encoding == encoding.jcoding;
+        this.encoding = encoding;
         this.string = string;
         this.rope = rope;
         this.javaStringHashCode = string.hashCode();
         this.id = id;
     }
 
-    public RubySymbol(String string, LeafRope rope) {
-        this(string, rope, UNASSIGNED_ID);
+    public RubySymbol(String string, LeafRope rope, RubyEncoding encoding) {
+        this(string, rope, encoding, UNASSIGNED_ID);
     }
 
     public long getId() {

@@ -643,7 +643,7 @@ public abstract class EncodingNodes {
 
         @Specialization
         protected RubyEncoding encodingGetObjectEncodingSymbol(RubySymbol object) {
-            return getRubyEncodingNode.executeGetRubyEncoding(object.getRope().getEncoding());
+            return object.encoding;
         }
 
         @Specialization

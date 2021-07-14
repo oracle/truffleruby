@@ -40,7 +40,7 @@ public abstract class ToRubyEncodingNode extends RubyContextNode {
 
     @Specialization
     protected RubyEncoding symbolToEncoding(RubySymbol value) {
-        return getContext().getEncodingManager().getRubyEncoding(value.getRope().getEncoding());
+        return value.encoding;
     }
 
     @Specialization

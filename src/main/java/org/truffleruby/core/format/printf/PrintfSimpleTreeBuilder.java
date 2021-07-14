@@ -15,6 +15,7 @@ import java.util.List;
 import com.oracle.truffle.api.CompilerDirectives;
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.LiteralFormatNode;
 import org.truffleruby.core.format.SharedTreeBuilder;
@@ -65,7 +66,7 @@ public class PrintfSimpleTreeBuilder {
                     final RubySymbol key = language.getSymbol(RopeOperations.create(
                             config.getNamesBytes(),
                             USASCIIEncoding.INSTANCE,
-                            CodeRange.CR_7BIT));
+                            CodeRange.CR_7BIT), Encodings.US_ASCII);
                     valueNode = ReadHashValueNodeGen.create(key, new SourceNode());
                 } else if (config.getAbsoluteArgumentIndex() != null) {
                     valueNode = ReadArgumentIndexValueNodeGen

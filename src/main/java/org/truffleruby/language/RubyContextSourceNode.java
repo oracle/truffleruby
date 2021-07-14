@@ -18,6 +18,7 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.symbol.CoreSymbols;
@@ -101,8 +102,8 @@ public abstract class RubyContextSourceNode extends RubyNode implements RubyNode
         return getLanguage().getSymbol(name);
     }
 
-    public RubySymbol getSymbol(Rope name) {
-        return getLanguage().getSymbol(name);
+    public RubySymbol getSymbol(Rope name, RubyEncoding encoding) {
+        return getLanguage().getSymbol(name, encoding);
     }
 
     public CoreStrings coreStrings() {

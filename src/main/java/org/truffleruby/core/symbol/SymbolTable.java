@@ -15,11 +15,14 @@ import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.WeakValueCache;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeCache;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.rope.RopeWithEncoding;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.Identifiers;
@@ -37,7 +40,7 @@ public class SymbolTable {
 
     // Weak map of RopeKey to Symbol to keep Symbols unique.
     // As long as the Symbol is referenced, the entry will stay in the symbolMap.
-    private final WeakValueCache<Rope, RubySymbol> symbolMap = new WeakValueCache<>();
+    private final WeakValueCache<RopeWithEncoding, RubySymbol> symbolMap = new WeakValueCache<>();
 
     public SymbolTable(RopeCache ropeCache, CoreSymbols coreSymbols) {
         this.ropeCache = ropeCache;
@@ -47,15 +50,17 @@ public class SymbolTable {
     private void addCoreSymbols(CoreSymbols coreSymbols) {
         for (RubySymbol symbol : coreSymbols.CORE_SYMBOLS) {
             final Rope rope = symbol.getRope();
-            assert rope == normalizeRopeForLookup(rope);
+            assert rope == normalizeRopeForLookup(rope, symbol.encoding).getRope();
             assert rope == ropeCache.getRope(rope);
 
-            final RubySymbol existing = symbolMap.put(rope, symbol);
+            final RopeWithEncoding ropeWithEncoding = new RopeWithEncoding(rope, symbol.encoding);
+            final RubySymbol existing = symbolMap.put(ropeWithEncoding, symbol);
             if (existing != null) {
                 throw new AssertionError("Duplicate Symbol in SymbolTable: " + existing);
             }
 
-            stringToSymbolCache.put(symbol.getString(), symbol);
+            final RubySymbol old = stringToSymbolCache.put(symbol.getString(), symbol);
+            assert old == null || new RopeWithEncoding(old.getRope(), old.encoding).equals(ropeWithEncoding);
         }
     }
 
@@ -67,12 +72,15 @@ public class SymbolTable {
         }
 
         final LeafRope rope;
+        final RubyEncoding encoding;
         if (StringOperations.isAsciiOnly(string)) {
             rope = RopeOperations.encodeAscii(string, USASCIIEncoding.INSTANCE);
+            encoding = Encodings.US_ASCII;
         } else {
             rope = StringOperations.encodeRope(string, UTF8Encoding.INSTANCE);
+            encoding = Encodings.UTF_8;
         }
-        symbol = getSymbol(rope);
+        symbol = getSymbol(rope, encoding);
 
         // Add it to the direct j.l.String to Symbol cache
 
@@ -82,41 +90,42 @@ public class SymbolTable {
     }
 
     @TruffleBoundary
-    public RubySymbol getSymbol(Rope rope) {
-        final Rope normalizedRope = normalizeRopeForLookup(rope);
+    public RubySymbol getSymbol(Rope rope, RubyEncoding encoding) {
+        final RopeWithEncoding normalizedRope = normalizeRopeForLookup(rope, encoding);
         final RubySymbol symbol = symbolMap.get(normalizedRope);
         if (symbol != null) {
             return symbol;
         }
 
-        final LeafRope cachedRope = ropeCache.getRope(normalizedRope);
-        final RubySymbol newSymbol = createSymbol(cachedRope);
+        final LeafRope cachedRope = ropeCache.getRope(normalizedRope.getRope());
+        final RubySymbol newSymbol = createSymbol(cachedRope, normalizedRope.getEncoding());
         // Use a RopeKey with the cached Rope in symbolMap, since the Symbol refers to it and so we
         // do not keep rope alive unnecessarily.
-        return symbolMap.addInCacheIfAbsent(cachedRope, newSymbol);
+        return symbolMap.addInCacheIfAbsent(new RopeWithEncoding(cachedRope, normalizedRope.getEncoding()), newSymbol);
     }
 
     @TruffleBoundary
-    public RubySymbol getSymbolIfExists(Rope rope) {
-        final Rope ropeKey = normalizeRopeForLookup(rope);
+    public RubySymbol getSymbolIfExists(Rope rope, RubyEncoding encoding) {
+        final RopeWithEncoding ropeKey = normalizeRopeForLookup(rope, encoding);
         return symbolMap.get(ropeKey);
     }
 
-    private Rope normalizeRopeForLookup(Rope rope) {
+    private RopeWithEncoding normalizeRopeForLookup(Rope rope, RubyEncoding encoding) {
         if (rope instanceof NativeRope) {
             rope = ((NativeRope) rope).toLeafRope();
         }
 
         if (rope.isAsciiOnly() && rope.getEncoding() != USASCIIEncoding.INSTANCE) {
             rope = RopeOperations.withEncoding(rope, USASCIIEncoding.INSTANCE);
+            encoding = Encodings.US_ASCII;
         }
 
-        return rope;
+        return new RopeWithEncoding(rope, encoding);
     }
 
-    private RubySymbol createSymbol(LeafRope cachedRope) {
+    private RubySymbol createSymbol(LeafRope cachedRope, RubyEncoding encoding) {
         final String string = RopeOperations.decodeOrEscapeBinaryRope(cachedRope);
-        return new RubySymbol(string, cachedRope);
+        return new RubySymbol(string, cachedRope, encoding);
     }
 
     // TODO (eregon, 10/10/2015): this check could be done when a Symbol is created to be much cheaper
