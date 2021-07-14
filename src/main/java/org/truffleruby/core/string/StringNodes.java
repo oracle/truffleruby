@@ -5119,7 +5119,7 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "isLazyIntRopeOptimizable(rope, fixBase)")
-        protected Object stringToInumIntRope(Rope rope, int fixBase, boolean strict, boolean raiseOnError) {
+        protected int stringToInumIntRope(Rope rope, int fixBase, boolean strict, boolean raiseOnError) {
             return ((LazyIntRope) rope).getValue();
         }
 
