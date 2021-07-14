@@ -129,7 +129,7 @@ public class Options {
     public final boolean WARN_DEPRECATED;
     /** --warn-experimental=true */
     public final boolean WARN_EXPERIMENTAL;
-    /** --use-truffle-regex=false */
+    /** --use-truffle-regex=true */
     public final boolean USE_TRUFFLE_REGEX;
     /** --warn-truffle-regex-compile-fallback=false */
     public final boolean WARN_TRUFFLE_REGEX_COMPILE_FALLBACK;

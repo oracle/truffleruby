@@ -83,7 +83,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> CEXTS_LOG_WARNINGS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> WARN_DEPRECATED_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> WARN_EXPERIMENTAL_KEY = new OptionKey<>(true);
-    public static final OptionKey<Boolean> USE_TRUFFLE_REGEX_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> USE_TRUFFLE_REGEX_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> WARN_TRUFFLE_REGEX_COMPILE_FALLBACK_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> WARN_TRUFFLE_REGEX_MATCH_FALLBACK_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> ARGV_GLOBALS_KEY = new OptionKey<>(false);
@@ -604,7 +604,7 @@ public class OptionsCatalog {
 
     public static final OptionDescriptor USE_TRUFFLE_REGEX = OptionDescriptor
             .newBuilder(USE_TRUFFLE_REGEX_KEY, "ruby.use-truffle-regex")
-            .help("Use the Truffle regular expression engine for Regexp objects")
+            .help("Use the Truffle regular expression engine when possible and fallback to Joni otherwise")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .build();

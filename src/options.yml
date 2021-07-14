@@ -146,7 +146,7 @@ EXPERT:
     WARN_EXPERIMENTAL: [[warn-experimental, -W], boolean, true, 'Sets experimental Warning category']
 
     # Controlling the regular expression engines
-    USE_TRUFFLE_REGEX: [use-truffle-regex, boolean, false, 'Use the Truffle regular expression engine for Regexp objects']
+    USE_TRUFFLE_REGEX: [use-truffle-regex, boolean, true, 'Use the Truffle regular expression engine when possible and fallback to Joni otherwise']
     WARN_TRUFFLE_REGEX_COMPILE_FALLBACK: [warn-truffle-regex-compile-fallback, boolean, false, 'Warn when a Ruby Regexp could not be compiled to a Truffle Regex and Joni is used instead']
     WARN_TRUFFLE_REGEX_MATCH_FALLBACK: [warn-truffle-regex-match-fallback, boolean, false, 'Warn every time Truffle Regex cannot be used for a Regexp match (and instead Joni is used)']
 
