@@ -36,13 +36,14 @@ public class RubyString extends RubyDynamicObject {
 
     public RubyString(RubyClass rubyClass, Shape shape, boolean frozen, Rope rope, RubyEncoding rubyEncoding) {
         super(rubyClass, shape);
+        assert rope.encoding == rubyEncoding.jcoding;
         this.frozen = frozen;
         this.rope = rope;
         this.encoding = rubyEncoding;
     }
 
     public void setRope(Rope rope) {
-        assert rope.encoding == encoding.jcoding : rope.encoding.toString() + "does not equal " +
+        assert rope.encoding == encoding.jcoding : rope.encoding.toString() + " does not equal " +
                 encoding.jcoding.toString();
         this.rope = rope;
     }

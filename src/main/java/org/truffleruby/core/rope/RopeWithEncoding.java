@@ -17,6 +17,7 @@ public class RopeWithEncoding {
     private final RubyEncoding encoding;
 
     public RopeWithEncoding(Rope rope, RubyEncoding encoding) {
+        assert rope.encoding == encoding.jcoding;
         this.rope = rope;
         this.encoding = encoding;
     }

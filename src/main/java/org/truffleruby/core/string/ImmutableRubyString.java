@@ -38,8 +38,8 @@ public class ImmutableRubyString extends ImmutableRubyObject implements TruffleO
     public final RubyEncoding encoding;
 
     public ImmutableRubyString(LeafRope rope, RubyEncoding encoding) {
+        assert rope.encoding == encoding.jcoding;
         this.rope = rope;
-        assert encoding.jcoding == rope.getEncoding();
         this.encoding = encoding;
     }
 
