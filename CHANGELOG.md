@@ -9,6 +9,7 @@ Bug fixes:
 * Fix `rb_str_modify_expand` to preserve existing bytes (#2392).
 * Fix `String#scrub` when replacement is frozen (#2398, @LillianZ).
 * Fix `Dir.mkdir` error handling for `Pathname` paths (#2397).
+* `BasicSocket#*_nonblock(exception: false)` now only return `:wait_readable/:wait_writable` for `EAGAIN`/`EWOULDBLOCK` like MRI (#2400).
 
 Compatibility:
 

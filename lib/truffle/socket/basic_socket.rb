@@ -158,10 +158,10 @@ class BasicSocket < IO
       n_bytes = Truffle::Socket::Foreign.recv(Primitive.io_fd(self), buf, bytes_to_read, flags)
 
       if n_bytes == -1
-        if exception
-          Truffle::Socket::Error.read_error('recv(2)', self)
-        else
+        if !exception and Errno.errno == Truffle::POSIX::EAGAIN_ERRNO
           return :wait_readable
+        else
+          Truffle::Socket::Error.read_error('recv(2)', self)
         end
       end
 
@@ -205,10 +205,10 @@ class BasicSocket < IO
         msg_size = Truffle::Socket::Foreign.recvmsg(Primitive.io_fd(self), header.pointer, flags)
 
         if msg_size < 0
-          if exception
-            Truffle::Socket::Error.read_error('recvmsg(2)', self)
-          else
+          if !exception and Errno.errno == Truffle::POSIX::EAGAIN_ERRNO
             return :wait_readable
+          else
+            Truffle::Socket::Error.read_error('recvmsg(2)', self)
           end
         end
 
@@ -271,10 +271,10 @@ class BasicSocket < IO
       num_bytes = Truffle::Socket::Foreign.sendmsg(Primitive.io_fd(self), header.pointer, flags)
 
       if num_bytes < 0
-        if exception
-          Truffle::Socket::Error.read_error('sendmsg(2)', self)
-        else
+        if !exception and Errno.errno == Truffle::POSIX::EAGAIN_ERRNO
           return :wait_writable
+        else
+          Truffle::Socket::Error.read_error('sendmsg(2)', self)
         end
       end
 
