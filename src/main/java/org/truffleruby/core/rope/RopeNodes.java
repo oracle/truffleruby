@@ -28,7 +28,6 @@ import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.ConcatRope.ConcatState;
 import org.truffleruby.core.rope.RopeNodesFactory.AreComparableRopesNodeGen;
@@ -1102,52 +1101,38 @@ public abstract class RopeNodes {
             return RopeNodesFactory.GetCodePointNodeGen.create();
         }
 
-        public abstract int executeGetCodePoint(Rope rope, int index);
+        public abstract int executeGetCodePoint(RubyEncoding encoding, Rope rope, int index);
 
         @Specialization(guards = "singleByteOptimizableNode.execute(rope)")
-        protected int getCodePointSingleByte(Rope rope, int index,
+        protected int getCodePointSingleByte(RubyEncoding encoding, Rope rope, int index,
                 @Cached GetByteNode getByteNode) {
             return getByteNode.executeGetByte(rope, index);
         }
 
         @Specialization(guards = { "!singleByteOptimizableNode.execute(rope)", "rope.getEncoding().isUTF8()" })
-        protected int getCodePointUTF8(Rope rope, int index,
+        protected int getCodePointUTF8(RubyEncoding encoding, Rope rope, int index,
                 @Cached GetByteNode getByteNode,
-                @Cached GetBytesObjectNode getBytes,
-                @Cached CodeRangeNode codeRangeNode,
-                @Cached EncodingNodes.GetActualEncodingNode getActualEncodingNode,
-                @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode,
                 @Cached ConditionProfile singleByteCharProfile,
+                @Cached GetBytesObjectNode getBytesObject,
+                @Cached CodeRangeNode codeRangeNode,
                 @Cached BranchProfile errorProfile) {
             final int firstByte = getByteNode.executeGetByte(rope, index);
             if (singleByteCharProfile.profile(firstByte < 128)) {
                 return firstByte;
             }
 
-            return getCodePointMultiByte(
-                    rope,
-                    index,
-                    errorProfile,
-                    getBytes,
-                    codeRangeNode,
-                    getActualEncodingNode,
-                    getRubyEncodingNode);
+            return getCodePointMultiByte(encoding, rope, index, getBytesObject, codeRangeNode, errorProfile);
         }
 
         @Specialization(guards = { "!singleByteOptimizableNode.execute(rope)", "!rope.getEncoding().isUTF8()" })
-        protected int getCodePointMultiByte(Rope rope, int index,
-                @Cached BranchProfile errorProfile,
+        protected int getCodePointMultiByte(RubyEncoding encoding, Rope rope, int index,
                 @Cached GetBytesObjectNode getBytesObject,
                 @Cached CodeRangeNode codeRangeNode,
-                @Cached EncodingNodes.GetActualEncodingNode getActualEncodingNode,
-                @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode) {
+                @Cached BranchProfile errorProfile) {
             final Bytes bytes = getBytesObject.getRange(rope, index, rope.byteLength());
-            final Encoding encoding = rope.getEncoding();
-            final RubyEncoding actualEncoding = getActualEncodingNode
-                    .execute(rope, getRubyEncodingNode.executeGetRubyEncoding(encoding));
             final CodeRange codeRange = codeRangeNode.execute(rope);
 
-            final int characterLength = characterLength(actualEncoding.jcoding, codeRange, bytes);
+            final int characterLength = characterLength(encoding.jcoding, codeRange, bytes);
             if (characterLength <= 0) {
                 errorProfile.enter();
                 throw new RaiseException(
@@ -1157,7 +1142,7 @@ public abstract class RopeNodes {
                                 null));
             }
 
-            return mbcToCode(actualEncoding.jcoding, bytes);
+            return mbcToCode(encoding.jcoding, bytes);
         }
 
         @TruffleBoundary

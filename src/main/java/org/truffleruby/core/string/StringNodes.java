@@ -1762,7 +1762,7 @@ public abstract class StringNodes {
             // Taken from org.jruby.RubyString#lstrip_bang19 and org.jruby.RubyString#singleByteLStrip.
 
             final Rope rope = string.rope;
-            final int firstCodePoint = getCodePointNode.executeGetCodePoint(rope, 0);
+            final int firstCodePoint = getCodePointNode.executeGetCodePoint(string.encoding, rope, 0);
 
             // Check the first code point to see if it's a space. In the case of strings without leading spaces,
             // this check can avoid having to materialize the entire byte[] (a potentially expensive operation
@@ -1800,7 +1800,7 @@ public abstract class StringNodes {
 
             int p = s;
             while (p < end) {
-                int c = getCodePointNode.executeGetCodePoint(rope, p);
+                int c = getCodePointNode.executeGetCodePoint(enc, rope, p);
                 if (!ASCIIEncoding.INSTANCE.isSpace(c)) {
                     break;
                 }
@@ -1831,7 +1831,7 @@ public abstract class StringNodes {
         protected int ord(Object string,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @Cached RopeNodes.GetCodePointNode getCodePointNode) {
-            return getCodePointNode.executeGetCodePoint(strings.getRope(string), 0);
+            return getCodePointNode.executeGetCodePoint(strings.getEncoding(string), strings.getRope(string), 0);
         }
 
     }
@@ -1888,7 +1888,8 @@ public abstract class StringNodes {
             // Taken from org.jruby.RubyString#rstrip_bang19 and org.jruby.RubyString#singleByteRStrip19.
 
             final Rope rope = string.rope;
-            final int lastCodePoint = getCodePointNode.executeGetCodePoint(rope, rope.byteLength() - 1);
+            final int lastCodePoint = getCodePointNode
+                    .executeGetCodePoint(string.encoding, rope, rope.byteLength() - 1);
 
             // Check the last code point to see if it's a space or NULL. In the case of strings without leading spaces,
             // this check can avoid having to materialize the entire byte[] (a potentially expensive operation
@@ -1936,7 +1937,7 @@ public abstract class StringNodes {
             int endp = end;
             int prev;
             while ((prev = prevCharHead(enc.jcoding, bytes, start, endp, end)) != -1) {
-                int point = getCodePointNode.executeGetCodePoint(rope, prev);
+                int point = getCodePointNode.executeGetCodePoint(enc, rope, prev);
                 if (point != 0 && !ASCIIEncoding.INSTANCE.isSpace(point)) {
                     break;
                 }
@@ -3495,7 +3496,8 @@ public abstract class StringNodes {
                 @Cached RopeNodes.AsciiOnlyNode asciiOnlyNode,
                 @Cached RopeNodes.GetCodePointNode getCodePointNode) {
             final Rope rope = strings.getRope(character);
-            final int codePoint = getCodePointNode.executeGetCodePoint(rope, 0);
+            final RubyEncoding encoding = strings.getEncoding(character);
+            final int codePoint = getCodePointNode.executeGetCodePoint(encoding, rope, 0);
 
             if (is7BitProfile.profile(asciiOnlyNode.execute(rope))) {
                 return StringSupport.isAsciiPrintable(codePoint);
@@ -3616,6 +3618,7 @@ public abstract class StringNodes {
             int storeIndex = 0;
 
             final Rope rope = strings.getRope(string);
+            final RubyEncoding rubyEncoding = strings.getEncoding(string);
             final boolean limitPositive = limit > 0;
             int i = limit > 0 ? 1 : 0;
 
@@ -3630,7 +3633,7 @@ public abstract class StringNodes {
 
             int e = 0, b = 0;
             while (p < end) {
-                final int c = getCodePointNode.executeGetCodePoint(rope, p);
+                final int c = getCodePointNode.executeGetCodePoint(rubyEncoding, rope, p);
                 p += StringSupport.characterLength(enc, cr, bytes, p, end, true);
 
                 if (skip) {
