@@ -1886,4 +1886,25 @@ module Truffle::CExt
     storage = Primitive.ruby_caller_special_variables
     Primitive.io_last_line_get(storage)
   end
+
+  def rb_cFiber
+    Fiber
+  end
+
+  def rb_fiber_current
+    Fiber.current
+  end
+
+  def rb_fiber_new(function, value)
+    Fiber.new do |*args|
+      Primitive.cext_unwrap(
+        Primitive.call_with_c_mutex(function, [
+          Primitive.cext_wrap(args.first), # yieldarg
+          nil, # procarg,
+          0, # argc
+          nil, # argv
+          nil, # blockarg
+        ]))
+    end
+  end
 end

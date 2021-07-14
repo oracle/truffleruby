@@ -14,6 +14,7 @@ Compatibility:
 
 * Implement `Process::Status.wait` (#2378).
 * Update `rb_str_modify` and `rb_str_modify_expand` to raise a `FrozenError` when given a frozen string (#2392).
+* Implement `rb_fiber_*` functions (#2402).
 
 Performance:
 
