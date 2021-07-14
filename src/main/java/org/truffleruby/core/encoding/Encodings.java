@@ -39,6 +39,7 @@ public class Encodings {
     public static final RubyEncoding US_ASCII = initializeUsAscii();
     public static final List<ImmutableRubyString> ENCODING_NAMES = new ArrayList<>();
     private static final RubyEncoding[] BUILT_IN_ENCODINGS = initializeRubyEncodings();
+
     public static final RubyEncoding BINARY = BUILT_IN_ENCODINGS[ASCIIEncoding.INSTANCE.getIndex()];
     public static final RubyEncoding UTF_8 = BUILT_IN_ENCODINGS[UTF8Encoding.INSTANCE.getIndex()];
     public static final RubyEncoding UTF16LE = BUILT_IN_ENCODINGS[UTF16LEEncoding.INSTANCE.getIndex()];
@@ -55,7 +56,8 @@ public class Encodings {
             .get(RopeOperations.encodeAsciiBytes("UTF-32"))
             .getEncoding()
             .getIndex()];
-    public static final Encoding DUMMY_ENCODING_BASE = createDummyEncoding();
+
+    static final Encoding DUMMY_ENCODING_BASE = createDummyEncoding();
 
     public Encodings() {
     }
@@ -73,36 +75,31 @@ public class Encodings {
         while (hei.hasNext()) {
             final CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = hei.next();
             final EncodingDB.Entry encodingEntry = e.value;
-            if (encodingEntry.getEncoding() == USASCIIEncoding.INSTANCE) {
-                encodings[encodingEntry.getEncoding().getIndex()] = US_ASCII;
-                continue;
+            final Encoding encoding = encodingEntry.getEncoding();
+
+            final RubyEncoding rubyEncoding;
+            if (encoding == USASCIIEncoding.INSTANCE) {
+                rubyEncoding = US_ASCII;
+            } else {
+                final ImmutableRubyString name = new ImmutableRubyString(
+                        RopeConstants.ROPE_CONSTANTS.get(encoding.toString()),
+                        US_ASCII);
+                rubyEncoding = new RubyEncoding(encoding, name, encoding.getIndex());
             }
-            final ImmutableRubyString name = new ImmutableRubyString(
-                    RopeConstants.ROPE_CONSTANTS.get(encodingEntry.getEncoding().toString()),
-                    US_ASCII);
-            ENCODING_NAMES.add(name);
-            final RubyEncoding rubyEncoding = new RubyEncoding(
-                    encodingEntry.getEncoding(),
-                    name,
-                    encodingEntry.getEncoding().getIndex());
-            encodings[encodingEntry.getEncoding().getIndex()] = rubyEncoding;
+            encodings[encoding.getIndex()] = rubyEncoding;
+            ENCODING_NAMES.add(rubyEncoding.name);
+
         }
         return encodings;
     }
 
     private static Encoding createDummyEncoding() {
-        EncodingDB.dummy("TRUFFLERUBY_DUMMY_ENCODING");
-        final EncodingDB.Entry entry = EncodingDB.getEncodings().get("TRUFFLERUBY_DUMMY_ENCODING".getBytes());
+        final EncodingDB.Entry entry = EncodingDB.dummy("TRUFFLERUBY_DUMMY_ENCODING".getBytes());
         return entry.getEncoding();
     }
 
     @TruffleBoundary
-    public static RubyEncoding newRubyEncoding(RubyLanguage language, Encoding encoding, int index, byte[] name, int p,
-            int end) {
-        assert p == 0 : "Ropes can't be created with non-zero offset: " + p;
-        assert end == name.length : "Ropes must have the same exact length as the name array (len = " + end +
-                "; name.length = " + name.length + ")";
-
+    public static RubyEncoding newRubyEncoding(RubyLanguage language, Encoding encoding, int index, byte[] name) {
         final Rope rope = RopeOperations.create(name, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
         final ImmutableRubyString string = language.getFrozenStringLiteral(rope);
 

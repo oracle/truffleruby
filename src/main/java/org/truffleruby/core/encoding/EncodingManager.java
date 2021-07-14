@@ -248,16 +248,10 @@ public class EncodingManager {
     }
 
     @TruffleBoundary
-    public synchronized RubyEncoding defineDynamicEncoding(Encoding encoding, byte[] name, int p, int end) {
+    public synchronized RubyEncoding defineDynamicEncoding(Encoding encoding, byte[] name) {
         final int encodingIndex = ENCODING_LIST_BY_ENCODING_INDEX.length;
 
-        final RubyEncoding rubyEncoding = Encodings.newRubyEncoding(
-                language,
-                encoding,
-                encodingIndex,
-                name,
-                p,
-                end);
+        final RubyEncoding rubyEncoding = Encodings.newRubyEncoding(language, encoding, encodingIndex, name);
 
         ENCODING_LIST_BY_ENCODING_INDEX = Arrays.copyOf(ENCODING_LIST_BY_ENCODING_INDEX, encodingIndex + 1);
         ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] = rubyEncoding;
@@ -281,7 +275,7 @@ public class EncodingManager {
         }
 
         final byte[] nameBytes = RopeOperations.encodeAsciiBytes(name);
-        return defineDynamicEncoding(Encodings.DUMMY_ENCODING_BASE, nameBytes, 0, nameBytes.length);
+        return defineDynamicEncoding(Encodings.DUMMY_ENCODING_BASE, nameBytes);
     }
 
     @TruffleBoundary
@@ -291,7 +285,7 @@ public class EncodingManager {
         }
 
         final byte[] nameBytes = RopeOperations.encodeAsciiBytes(name);
-        return defineDynamicEncoding(encoding.jcoding, nameBytes, 0, nameBytes.length);
+        return defineDynamicEncoding(encoding.jcoding, nameBytes);
     }
 
     @TruffleBoundary
