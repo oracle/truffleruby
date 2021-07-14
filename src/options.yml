@@ -3,6 +3,7 @@ LANGUAGE_OPTIONS:
 - BACKTRACES_OMIT_UNUSED
 - LAZY_TRANSLATION_USER
 - LAZY_TRANSLATION_CORE
+- CHAOS_DATA
 - LAZY_TRANSLATION_LOG
 - LOG_DYNAMIC_CONSTANT_LOOKUP
 - PROFILE_ARGUMENTS
@@ -175,10 +176,11 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     # Options to debug the implementation
     LAZY_BUILTINS: [lazy-builtins, boolean, LAZY_CALLTARGETS, Load builtin classes (core methods & primitives) lazily on first use]
     LAZY_TRANSLATION_CORE: [lazy-translation-core, boolean, LAZY_CALLTARGETS, Lazily translation of core source files]
+    CHAOS_DATA: [chaos-data, boolean, false, Randomize data representations to stress specialization code paths]
 
     # Options to help debugging the implementation performance
     BASICOPS_INLINE: [basic-ops-inline, boolean, true, Inline basic operations (like Fixnum operators) in the AST without a call]
-    PROFILE_ARGUMENTS: [profile-arguments, boolean, true, profile the value and class of the receiver and arguments]
+    PROFILE_ARGUMENTS: [profile-arguments, boolean, true, Profile the value and class of the receiver and arguments]
 
     # Inline cache sizes
     DEFAULT_CACHE: [default-cache, integer, 8, Default size for caches]

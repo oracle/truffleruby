@@ -65,16 +65,18 @@ describe "TruffleRuby::ConcurrentMap" do
     @h[:foobar].should.equal? new_value
   end
 
-  it "#replace_pair replaces the entry if the old value is a primitive" do
-    one_as_long = (1 << 48) / (1 << 48)
-    Truffle::Debug.java_class_of(one_as_long).should == 'Long'
-    one_as_int = 1
-    Truffle::Debug.java_class_of(one_as_int).should == 'Integer'
+  guard -> { !Truffle::Boot.get_option('chaos-data') } do
+    it "#replace_pair replaces the entry if the old value is a primitive" do
+      one_as_long = (1 << 48) / (1 << 48)
+      Truffle::Debug.java_class_of(one_as_long).should == 'Long'
+      one_as_int = 1
+      Truffle::Debug.java_class_of(one_as_int).should == 'Integer'
 
-    @h[:foobar] = one_as_long
+      @h[:foobar] = one_as_long
 
-    @h.replace_pair(:foobar, one_as_int, 2).should == true
-    @h[:foobar].should == 2
+      @h.replace_pair(:foobar, one_as_int, 2).should == true
+      @h[:foobar].should == 2
+    end
   end
 
   it "#replace_pair doesn't replace old value if current value doesn't match old value" do
@@ -124,16 +126,18 @@ describe "TruffleRuby::ConcurrentMap" do
     @h[:foobar].should == nil
   end
 
-  it "#delete_pair deletes pair if the old value is a primitive" do
-    one_as_long = (1 << 48) / (1 << 48)
-    Truffle::Debug.java_class_of(one_as_long).should == 'Long'
-    one_as_int = 1
-    Truffle::Debug.java_class_of(one_as_int).should == 'Integer'
+  guard -> { !Truffle::Boot.get_option('chaos-data') } do
+    it "#delete_pair deletes pair if the old value is a primitive" do
+      one_as_long = (1 << 48) / (1 << 48)
+      Truffle::Debug.java_class_of(one_as_long).should == 'Long'
+      one_as_int = 1
+      Truffle::Debug.java_class_of(one_as_int).should == 'Integer'
 
-    @h[:foobar] = one_as_long
+      @h[:foobar] = one_as_long
 
-    @h.delete_pair(:foobar, one_as_int).should == true
-    @h[:foobar].should == nil
+      @h.delete_pair(:foobar, one_as_int).should == true
+      @h[:foobar].should == nil
+    end
   end
 
   it "#delete_pair doesn't delete pair if value equals provided value" do

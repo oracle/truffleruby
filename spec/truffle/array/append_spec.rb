@@ -23,102 +23,104 @@ describe "Array#<<" do
     storage(ary).should == "empty"
   end
 
-  it "supports transitions from null storage" do
-    ary = [] << 1
-    ary.should == [1]
-    storage(ary).should == "int[]"
+  guard -> { !Truffle::Boot.get_option('chaos-data') } do
+    it "supports transitions from null storage" do
+      ary = [] << 1
+      ary.should == [1]
+      storage(ary).should == "int[]"
 
-    ary = [] << @long
-    ary.should == [@long]
-    storage(ary).should == "long[]"
+      ary = [] << @long
+      ary.should == [@long]
+      storage(ary).should == "long[]"
 
-    ary = [] << 1.33
-    ary.should == [1.33]
-    storage(ary).should == "double[]"
+      ary = [] << 1.33
+      ary.should == [1.33]
+      storage(ary).should == "double[]"
 
-    o = Object.new
-    ary = [] << o
-    ary.should == [o]
-    storage(ary).should == "Object[]"
-  end
+      o = Object.new
+      ary = [] << o
+      ary.should == [o]
+      storage(ary).should == "Object[]"
+    end
 
-  it "supports adding the same type" do
-    ary = [1] << 2
-    ary.should == [1, 2]
-    storage(ary).should == "int[]"
+    it "supports adding the same type" do
+      ary = [1] << 2
+      ary.should == [1, 2]
+      storage(ary).should == "int[]"
 
-    ary = [@long] << @long+1
-    ary.should == [@long, @long+1]
-    storage(ary).should == "long[]"
+      ary = [@long] << @long+1
+      ary.should == [@long, @long+1]
+      storage(ary).should == "long[]"
 
-    ary = [3.14] << 3.15
-    ary.should == [3.14, 3.15]
-    storage(ary).should == "double[]"
+      ary = [3.14] << 3.15
+      ary.should == [3.14, 3.15]
+      storage(ary).should == "double[]"
 
-    a, b = Object.new, Object.new
-    ary = [a] << b
-    ary.should == [a, b]
-    storage(ary).should == "Object[]"
-  end
+      a, b = Object.new, Object.new
+      ary = [a] << b
+      ary.should == [a, b]
+      storage(ary).should == "Object[]"
+    end
 
-  it "supports long[] << int" do
-    long_ary = [@long, @long+1, @long+2]
-    storage(long_ary).should == "long[]"
+    it "supports long[] << int" do
+      long_ary = [@long, @long+1, @long+2]
+      storage(long_ary).should == "long[]"
 
-    long_ary << 1
-    long_ary.should == [@long, @long+1, @long+2, 1]
-    storage(long_ary).should == "long[]"
-  end
+      long_ary << 1
+      long_ary.should == [@long, @long+1, @long+2, 1]
+      storage(long_ary).should == "long[]"
+    end
 
-  it "supports int[] << long and goes to long[]" do
-    # Make sure long[] is chosen even if there was a int[] << Object before
-    2.times do |i|
-      setup = (i == 0)
+    it "supports int[] << long and goes to long[]" do
+      # Make sure long[] is chosen even if there was a int[] << Object before
+      2.times do |i|
+        setup = (i == 0)
 
+        ary = [0, 1, 2]
+        storage(ary).should == "int[]"
+
+        obj = (i == 0) ? Object.new : @long
+        ary << obj
+        ary.should == [0, 1, 2, obj]
+        storage(ary).should == (setup ? "Object[]" : "long[]")
+      end
+    end
+
+    it "supports int[] << double" do
       ary = [0, 1, 2]
       storage(ary).should == "int[]"
 
-      obj = (i == 0) ? Object.new : @long
-      ary << obj
-      ary.should == [0, 1, 2, obj]
-      storage(ary).should == (setup ? "Object[]" : "long[]")
+      ary << 1.34
+      ary.should == [0, 1, 2, 1.34]
+      storage(ary).should == "Object[]"
     end
-  end
 
-  it "supports int[] << double" do
-    ary = [0, 1, 2]
-    storage(ary).should == "int[]"
+    it "supports long[] << double" do
+      long_ary = [@long, @long+1, @long+2]
+      storage(long_ary).should == "long[]"
 
-    ary << 1.34
-    ary.should == [0, 1, 2, 1.34]
-    storage(ary).should == "Object[]"
-  end
+      long_ary << 1.34
+      long_ary.should == [@long, @long+1, @long+2, 1.34]
+      storage(long_ary).should == "Object[]"
+    end
 
-  it "supports long[] << double" do
-    long_ary = [@long, @long+1, @long+2]
-    storage(long_ary).should == "long[]"
+    it "supports double[] << int" do
+      ary = [3.14, 3.15]
+      storage(ary).should == "double[]"
 
-    long_ary << 1.34
-    long_ary.should == [@long, @long+1, @long+2, 1.34]
-    storage(long_ary).should == "Object[]"
-  end
+      ary << 4
+      ary.should == [3.14, 3.15, 4]
+      storage(ary).should == "Object[]"
+    end
 
-  it "supports double[] << int" do
-    ary = [3.14, 3.15]
-    storage(ary).should == "double[]"
+    it "supports Object[] << int" do
+      o = Object.new
+      ary = [o]
+      storage(ary).should == "Object[]"
 
-    ary << 4
-    ary.should == [3.14, 3.15, 4]
-    storage(ary).should == "Object[]"
-  end
-
-  it "supports Object[] << int" do
-    o = Object.new
-    ary = [o]
-    storage(ary).should == "Object[]"
-
-    ary << 4
-    ary.should == [o, 4]
-    storage(ary).should == "Object[]"
+      ary << 4
+      ary.should == [o, 4]
+      storage(ary).should == "Object[]"
+    end
   end
 end

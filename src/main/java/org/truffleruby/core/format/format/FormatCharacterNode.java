@@ -9,10 +9,10 @@
  */
 package org.truffleruby.core.format.format;
 
+import org.truffleruby.core.cast.ToIntNode;
+import org.truffleruby.core.cast.ToIntNodeGen;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.LiteralFormatNode;
-import org.truffleruby.core.format.convert.ToIntegerNode;
-import org.truffleruby.core.format.convert.ToIntegerNodeGen;
 import org.truffleruby.core.format.convert.ToStringNode;
 import org.truffleruby.core.format.convert.ToStringNodeGen;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
@@ -35,7 +35,7 @@ public abstract class FormatCharacterNode extends FormatNode {
 
     private final boolean hasMinusFlag;
 
-    @Child private ToIntegerNode toIntegerNode;
+    @Child private ToIntNode toIntegerNode;
     @Child private ToStringNode toStringNode;
 
     public FormatCharacterNode(boolean hasMinusFlag) {
@@ -77,9 +77,9 @@ public abstract class FormatCharacterNode extends FormatNode {
         if (toStrResult == null || RubyGuards.isNil(toStrResult)) {
             if (toIntegerNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toIntegerNode = insert(ToIntegerNodeGen.create(null));
+                toIntegerNode = insert(ToIntNodeGen.create(null));
             }
-            final int charValue = (int) toIntegerNode.executeToInteger(frame, value);
+            final int charValue = toIntegerNode.execute(value);
             // TODO BJF check char length is > 0
             charString = Character.toString((char) charValue);
         } else {
