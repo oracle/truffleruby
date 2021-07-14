@@ -1,0 +1,3 @@
+fails:ObjectSpace.trace_object_allocations records info for allocation_class_path
+fails:ObjectSpace.trace_object_allocations records info for allocation_method_id
+fails:ObjectSpace.trace_object_allocations can be used without a block using trace_object_allocations_start and _stop
