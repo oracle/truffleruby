@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.rope;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.jcodings.Encoding;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.symbol.CoreSymbols;
@@ -54,7 +55,7 @@ public class RopeCache {
         final BytesKey key = new BytesKey(rope.getBytes(), rope.getEncoding());
         final Rope existing = bytesToRope.put(key, rope);
         if (existing != null && existing != rope) {
-            throw new AssertionError("Duplicate Rope in RopeCache: " + existing);
+            throw CompilerDirectives.shouldNotReachHere("Duplicate Rope in RopeCache: " + existing);
         }
     }
 

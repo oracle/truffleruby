@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.string;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.jcodings.Encoding;
 import org.truffleruby.collections.WeakValueCache;
@@ -56,7 +57,11 @@ public class FrozenStringLiterals {
 
     private void addFrozenStringLiteral(ImmutableRubyString string) {
         final LeafRope cachedRope = ropeCache.getRope(string.rope);
-        values.addInCacheIfAbsent(cachedRope, string);
+        final ImmutableRubyString existing = values.addInCacheIfAbsent(cachedRope, string);
+        if (existing != string) {
+            throw CompilerDirectives
+                    .shouldNotReachHere("Duplicate ImmutableRubyString in FrozenStringLiterals: " + existing);
+        }
     }
 
     @TruffleBoundary
