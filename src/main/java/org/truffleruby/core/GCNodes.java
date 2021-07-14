@@ -18,7 +18,6 @@ import java.util.Arrays;
 
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Cached;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -30,6 +29,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.control.RaiseException;
@@ -226,7 +226,7 @@ public abstract class GCNodes {
             Object[] memoryPoolNamesCast = new Object[memoryPoolNames.length];
             for (int i = 0; i < memoryPoolNames.length; i++) {
                 memoryPoolNamesCast[i] = makeStringNode
-                        .executeMake(memoryPoolNames[i], UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                        .executeMake(memoryPoolNames[i], Encodings.UTF_8, CodeRange.CR_UNKNOWN);
             }
 
 

@@ -15,6 +15,8 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.cext.CExtNodes;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.ConcatRope.ConcatState;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
@@ -47,7 +49,7 @@ public abstract class TruffleRopesNodes {
                 builder.append(StringUtils.format("\\x%02x", rope.get(i)));
             }
 
-            return makeStringNode.executeMake(builder.toString(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(builder.toString(), Encodings.UTF_8, CodeRange.CR_UNKNOWN);
         }
 
     }
@@ -99,7 +101,10 @@ public abstract class TruffleRopesNodes {
             Rope rope = strings.getRope(string);
             String result = getStructure(rope);
             byte[] bytes = StringOperations.encodeBytes(result, UTF8Encoding.INSTANCE);
-            return makeStringNode.executeMake(bytes, rope.getEncoding(), CodeRange.CR_7BIT);
+            return makeStringNode.executeMake(
+                    bytes,
+                    strings.getEncoding(string),
+                    CodeRange.CR_7BIT);
         }
 
         protected static String getStructure(Rope rope) {
@@ -160,7 +165,8 @@ public abstract class TruffleRopesNodes {
                 @Cached StringNodes.MakeStringNode makeStringNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             final LeafRope flattened = flattenNode.executeFlatten(libString.getRope(string));
-            return makeStringNode.fromRope(flattened);
+            final RubyEncoding rubyEncoding = libString.getEncoding(string);
+            return makeStringNode.fromRope(flattened, rubyEncoding);
         }
 
     }
@@ -188,7 +194,9 @@ public abstract class TruffleRopesNodes {
         protected RubyString createSimpleString(
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             return makeStringNode
-                    .fromRope(new AsciiOnlyLeafRope(new byte[]{ 't', 'e', 's', 't' }, UTF8Encoding.INSTANCE));
+                    .fromRope(
+                            new AsciiOnlyLeafRope(new byte[]{ 't', 'e', 's', 't' }, UTF8Encoding.INSTANCE),
+                            Encodings.UTF_8);
         }
 
     }

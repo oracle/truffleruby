@@ -12,11 +12,11 @@ package org.truffleruby.stdlib;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.control.RaiseException;
@@ -84,7 +84,7 @@ public abstract class CoverageNodes {
                 results.put(path, createArray(new Object[]{
                         makeStringNode.executeMake(
                                 path,
-                                UTF8Encoding.INSTANCE,
+                                Encodings.UTF_8,
                                 CodeRange.CR_UNKNOWN),
                         createArray(countsStore)
                 }));

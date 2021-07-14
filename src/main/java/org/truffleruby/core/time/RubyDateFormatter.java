@@ -551,7 +551,7 @@ public abstract class RubyDateFormatter {
             } catch (IndexOutOfBoundsException ioobe) {
                 final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
                 final Rope messageRope = StringOperations.encodeRope("strftime", UTF8Encoding.INSTANCE);
-                final RubyString message = StringOperations.createString(context, language, messageRope);
+                final RubyString message = StringOperations.createUTF8String(context, language, messageRope);
                 throw new RaiseException(
                         context,
                         errnoErrorNode.execute(context.getCoreLibrary().getErrnoValue("ERANGE"), message, backtrace));
@@ -660,7 +660,7 @@ public abstract class RubyDateFormatter {
 
                 case FORMAT_NANOSEC: { // always %6N, checked by formatCanBeFast()
                     final int nano = dt.getNano();
-                    final LazyIntRope microSecondRope = new LazyIntRope(nano / 1000);
+                    final LazyIntRope microSecondRope = new LazyIntRope(nano / 1000, UTF8Encoding.INSTANCE);
 
                     // This fast-path only handles the '%6N' format, so output will always be 6 characters long.
                     final int length = 6;

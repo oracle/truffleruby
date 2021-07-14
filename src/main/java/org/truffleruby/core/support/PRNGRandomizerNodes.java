@@ -35,7 +35,6 @@ package org.truffleruby.core.support;
 
 import java.math.BigInteger;
 
-import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.algorithms.Randomizer;
@@ -45,6 +44,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.RubyBignum;
@@ -225,7 +225,7 @@ public abstract class PRNGRandomizerNodes {
                 }
             }
 
-            return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(bytes, Encodings.BINARY, CodeRange.CR_UNKNOWN);
         }
     }
 

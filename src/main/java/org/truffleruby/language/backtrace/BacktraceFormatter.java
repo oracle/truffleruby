@@ -195,7 +195,7 @@ public class BacktraceFormatter {
         final Object[] array = new Object[lines.length];
 
         for (int n = 0; n < lines.length; n++) {
-            array[n] = StringOperations.createString(
+            array[n] = StringOperations.createUTF8String(
                     context,
                     language,
                     StringOperations.encodeRope(lines[n], UTF8Encoding.INSTANCE));

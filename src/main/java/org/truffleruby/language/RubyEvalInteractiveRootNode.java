@@ -14,6 +14,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.binding.RubyBinding;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.backtrace.InternalRootNode;
@@ -48,7 +49,10 @@ public class RubyEvalInteractiveRootNode extends RubyBaseRootNode implements Int
         // It's the semantics we want and takes care of caching correctly based on the Binding's FrameDescriptor.
         final RubyBinding interactiveBinding = context.getCoreLibrary().interactiveBinding;
         return RubyContext
-                .send(interactiveBinding, "eval", StringOperations.createString(context, language, sourceRope));
+                .send(
+                        interactiveBinding,
+                        "eval",
+                        StringOperations.createString(context, language, sourceRope, Encodings.UTF_8));
     }
 
     @Override

@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.format.read.bytes;
 
-import org.jcodings.specific.USASCIIEncoding;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.format.FormatFrameDescriptor;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.MissingValue;
@@ -54,7 +54,7 @@ public abstract class ReadStringPointerNode extends FormatNode {
                 pointer);
 
         final byte[] bytes = pointer.readZeroTerminatedByteArray(getContext(), 0, limit);
-        return makeStringNode.executeMake(bytes, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+        return makeStringNode.executeMake(bytes, Encodings.US_ASCII, CodeRange.CR_7BIT);
     }
 
     private void checkAssociated(Pointer[] associated, Pointer reading) {

@@ -17,6 +17,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.Nil;
@@ -83,6 +84,7 @@ public abstract class WrapNode extends RubyBaseNode {
                 context,
                 context.getCoreExceptions().argumentError(
                         RopeOperations.encodeAscii("Wrapping wrapped object", UTF8Encoding.INSTANCE),
+                        Encodings.UTF_8,
                         this));
     }
 

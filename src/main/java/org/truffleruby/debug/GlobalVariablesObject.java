@@ -61,7 +61,7 @@ public class GlobalVariablesObject implements TruffleObject {
             throw UnknownIdentifierException.create(member);
         } else {
             final RubyString string = StringOperations
-                    .createString(context, language, StringOperations.encodeRope(member, UTF8Encoding.INSTANCE));
+                    .createUTF8String(context, language, StringOperations.encodeRope(member, UTF8Encoding.INSTANCE));
             return evalNode.call(context.getCoreLibrary().topLevelBinding, "eval", string);
         }
     }
@@ -78,7 +78,7 @@ public class GlobalVariablesObject implements TruffleObject {
         } else {
             final String code = "-> value { " + member + " = value }";
             final RubyString string = StringOperations
-                    .createString(context, language, StringOperations.encodeRope(code, UTF8Encoding.INSTANCE));
+                    .createUTF8String(context, language, StringOperations.encodeRope(code, UTF8Encoding.INSTANCE));
             final Object lambda = evalNode.call(context.getCoreLibrary().topLevelBinding, "eval", string);
             callNode.call(lambda, "call", value);
         }

@@ -14,6 +14,7 @@ import java.util.Iterator;
 
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.graalvm.collections.Pair;
 import org.jcodings.specific.UTF8Encoding;
 import org.joni.NameEntry;
 import org.joni.Regex;
@@ -25,6 +26,9 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.ToStrNode;
+import org.truffleruby.core.encoding.EncodingNodes;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.regexp.RegexpNodesFactory.ToSNodeFactory;
 import org.truffleruby.core.rope.CodeRange;
@@ -99,14 +103,15 @@ public abstract class RegexpNodes {
         protected RubyString quoteString(Object raw,
                 @CachedLibrary(limit = "2") RubyStringLibrary libRaw) {
             final Rope rope = libRaw.getRope(raw);
-            return getMakeStringNode().fromRope(ClassicRegexp.quote19(rope));
+            final Pair<Rope, RubyEncoding> ropeQuotedResult = ClassicRegexp.quote19(rope, libRaw.getEncoding(raw));
+            return getMakeStringNode().fromRope(ropeQuotedResult.getLeft(), ropeQuotedResult.getRight());
         }
 
         @Specialization
         protected RubyString quoteSymbol(RubySymbol raw) {
             return doQuoteString(
                     getMakeStringNode()
-                            .executeMake(raw.getString(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
+                            .executeMake(raw.getString(), Encodings.UTF_8, CodeRange.CR_UNKNOWN));
         }
 
         @Fallback
@@ -142,8 +147,10 @@ public abstract class RegexpNodes {
 
         @Specialization
         protected RubyString source(RubyRegexp regexp,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
-            return makeStringNode.fromRope(regexp.source);
+                @Cached StringNodes.MakeStringNode makeStringNode,
+                @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode) {
+            final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(regexp.source.encoding);
+            return makeStringNode.fromRope(regexp.source, rubyEncoding);
         }
 
     }
@@ -163,14 +170,18 @@ public abstract class RegexpNodes {
         @Specialization(guards = "isSameRegexp(regexp, cachedRegexp)")
         protected RubyString toSCached(RubyRegexp regexp,
                 @Cached("regexp") RubyRegexp cachedRegexp,
-                @Cached("createRope(cachedRegexp)") Rope rope) {
-            return makeStringNode.fromRope(rope);
+                @Cached("createRope(cachedRegexp)") Rope rope,
+                @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode) {
+            final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(rope.encoding);
+            return makeStringNode.fromRope(rope, rubyEncoding);
         }
 
         @Specialization
-        protected RubyString toS(RubyRegexp regexp) {
+        protected RubyString toS(RubyRegexp regexp,
+                @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode) {
             final Rope rope = createRope(regexp);
-            return makeStringNode.fromRope(rope);
+            final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(rope.encoding);
+            return makeStringNode.fromRope(rope, rubyEncoding);
         }
 
         @TruffleBoundary

@@ -37,6 +37,7 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.binding.RubyBinding;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleNodes;
@@ -818,7 +819,8 @@ public class CoreLibrary {
         RubyString dollarZeroValue = StringOperations.createString(
                 context,
                 language,
-                StringOperations.encodeRope("-", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
+                StringOperations.encodeRope("-", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT),
+                Encodings.US_ASCII);
         int index = language.getGlobalVariableIndex("$0");
         context.getGlobalVariableStorage(index).setValueInternal(dollarZeroValue);
 

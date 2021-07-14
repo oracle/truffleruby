@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.fiber;
 
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -20,6 +19,7 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.SingleValueCastNode;
 import org.truffleruby.core.cast.SingleValueCastNodeGen;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.fiber.FiberNodesFactory.FiberTransferNodeFactory;
 import org.truffleruby.core.klass.RubyClass;
@@ -279,7 +279,7 @@ public abstract class FiberNodes {
         @Specialization
         protected RubyString sourceLocation(RubyFiber fiber,
                 @Cached MakeStringNode makeStringNode) {
-            return makeStringNode.executeMake(fiber.sourceLocation, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(fiber.sourceLocation, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
         }
     }
 
@@ -288,7 +288,7 @@ public abstract class FiberNodes {
         @Specialization
         protected RubyString status(RubyFiber fiber,
                 @Cached MakeStringNode makeStringNode) {
-            return makeStringNode.executeMake(fiber.getStatus(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(fiber.getStatus(), Encodings.UTF_8, CodeRange.CR_UNKNOWN);
         }
     }
 

@@ -11,6 +11,8 @@ package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
+import org.jcodings.Encoding;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
@@ -30,15 +32,26 @@ public class RubyString extends RubyDynamicObject {
 
     public boolean frozen;
     public Rope rope;
+    public RubyEncoding encoding;
 
-    public RubyString(RubyClass rubyClass, Shape shape, boolean frozen, Rope rope) {
+    public RubyString(RubyClass rubyClass, Shape shape, boolean frozen, Rope rope, RubyEncoding rubyEncoding) {
         super(rubyClass, shape);
+        assert rope.encoding == rubyEncoding.jcoding;
         this.frozen = frozen;
         this.rope = rope;
+        this.encoding = rubyEncoding;
     }
 
     public void setRope(Rope rope) {
+        assert rope.encoding == encoding.jcoding : rope.encoding.toString() + " does not equal " +
+                encoding.jcoding.toString();
         this.rope = rope;
+    }
+
+    public void setRope(Rope rope, RubyEncoding encoding) {
+        assert rope.encoding == encoding.jcoding;
+        this.rope = rope;
+        this.encoding = encoding;
     }
 
     /** should only be used for debugging */
@@ -47,7 +60,17 @@ public class RubyString extends RubyDynamicObject {
         return rope.toString();
     }
 
+    public Encoding getJCoding() {
+        assert encoding.jcoding == rope.encoding;
+        return encoding.jcoding;
+    }
+
     // region RubyStringLibrary messages
+    @ExportMessage
+    public RubyEncoding getEncoding() {
+        return encoding;
+    }
+
     @ExportMessage
     protected boolean isRubyString() {
         return true;

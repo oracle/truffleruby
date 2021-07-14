@@ -52,9 +52,9 @@ public class EncodingManager {
     private final RubyContext context;
     private final RubyLanguage language;
 
-    @CompilationFinal private Encoding localeEncoding;
-    private Encoding defaultExternalEncoding;
-    private Encoding defaultInternalEncoding;
+    @CompilationFinal private RubyEncoding localeEncoding;
+    private RubyEncoding defaultExternalEncoding;
+    private RubyEncoding defaultInternalEncoding;
 
     public EncodingManager(RubyContext context, RubyLanguage language) {
         this.context = context;
@@ -74,7 +74,10 @@ public class EncodingManager {
 
         while (hei.hasNext()) {
             final CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = hei.next();
-            final RubyEncoding rubyEncoding = defineEncoding(e.value, e.bytes, e.p, e.end);
+            if (e.value.getEncoding() == Encodings.DUMMY_ENCODING_BASE) {
+                continue;
+            }
+            final RubyEncoding rubyEncoding = defineBuiltInEncoding(e.value);
             for (String constName : EncodingUtils.encodingNames(e.bytes, e.p, e.end)) {
                 encodingClass.fields.setConstant(context, null, constName, rubyEncoding);
             }
@@ -114,7 +117,7 @@ public class EncodingManager {
                 // to show the user a full trace.
                 throw new RuntimeException("unknown encoding name - " + externalEncodingName);
             } else {
-                setDefaultExternalEncoding(loadedEncoding.encoding);
+                setDefaultExternalEncoding(loadedEncoding);
             }
         } else {
             setDefaultExternalEncoding(getLocaleEncoding());
@@ -130,7 +133,7 @@ public class EncodingManager {
                 // to show the user a full trace.
                 throw new RuntimeException("unknown encoding name - " + internalEncodingName);
             } else {
-                setDefaultInternalEncoding(rubyEncoding.encoding);
+                setDefaultInternalEncoding(rubyEncoding);
             }
         }
     }
@@ -159,10 +162,10 @@ public class EncodingManager {
 
         RubyEncoding rubyEncoding = getRubyEncoding(localeEncodingName);
         if (rubyEncoding == null) {
-            rubyEncoding = getRubyEncoding(USASCIIEncoding.INSTANCE);
+            rubyEncoding = Encodings.US_ASCII;
         }
 
-        if (context.getOptions().WARN_LOCALE && rubyEncoding.encoding == USASCIIEncoding.INSTANCE) {
+        if (context.getOptions().WARN_LOCALE && rubyEncoding.jcoding == USASCIIEncoding.INSTANCE) {
             if ("C".equals(System.getenv("LANG")) && "C".equals(System.getenv("LC_ALL"))) {
                 // The parent process seems to explicitly want a C locale (e.g. EnvUtil#invoke_ruby in the MRI test harness), so only warn at config level in this case.
                 RubyLanguage.LOGGER.config(
@@ -175,7 +178,7 @@ public class EncodingManager {
             }
         }
 
-        localeEncoding = rubyEncoding.encoding;
+        localeEncoding = rubyEncoding;
     }
 
 
@@ -205,19 +208,19 @@ public class EncodingManager {
     @TruffleBoundary
     public RubyEncoding getRubyEncoding(String name) {
         final String normalizedName = name.toLowerCase(Locale.ENGLISH);
-        final Encoding encoding;
+        final RubyEncoding encoding;
 
         switch (normalizedName) {
             case "internal":
                 encoding = getDefaultInternalEncoding();
-                return getRubyEncoding(encoding == null ? ASCIIEncoding.INSTANCE : encoding);
+                return encoding == null ? Encodings.BINARY : encoding;
             case "external":
             case "filesystem":
                 encoding = getDefaultExternalEncoding();
-                return getRubyEncoding(encoding == null ? ASCIIEncoding.INSTANCE : encoding);
+                return encoding == null ? Encodings.BINARY : encoding;
             case "locale":
                 encoding = getLocaleEncoding();
-                return getRubyEncoding(encoding == null ? ASCIIEncoding.INSTANCE : encoding);
+                return encoding == null ? Encodings.BINARY : encoding;
             default:
                 return LOOKUP.get(normalizedName);
         }
@@ -232,23 +235,28 @@ public class EncodingManager {
     }
 
     @TruffleBoundary
-    public synchronized RubyEncoding defineEncoding(EncodingDB.Entry encodingEntry, byte[] name, int p, int end) {
-        final Encoding encoding = encodingEntry.getEncoding();
-        final int encodingIndex = encoding.getIndex();
-        final RubyEncoding rubyEncoding = encodingIndex < language.encodings.BUILT_IN_ENCODINGS.length
-                ? language.encodings.getBuiltInEncoding(encodingIndex)
-                : language.encodings.newRubyEncoding(encoding, name, p, end);
+    public synchronized RubyEncoding defineBuiltInEncoding(EncodingDB.Entry encodingEntry) {
+        final int encodingIndex = encodingEntry.getEncoding().getIndex();
+        final RubyEncoding rubyEncoding = Encodings.getBuiltInEncoding(encodingIndex);
 
-        assert encodingIndex >= ENCODING_LIST_BY_ENCODING_INDEX.length ||
-                ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] == null;
-
-        if (encodingIndex >= ENCODING_LIST_BY_ENCODING_INDEX.length) {
-            ENCODING_LIST_BY_ENCODING_INDEX = Arrays
-                    .copyOf(ENCODING_LIST_BY_ENCODING_INDEX, encodingIndex + 1);
-        }
+        assert ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] == null;
         ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] = rubyEncoding;
 
-        LOOKUP.put(rubyEncoding.encoding.toString().toLowerCase(Locale.ENGLISH), rubyEncoding);
+        addToLookup(rubyEncoding.jcoding.toString(), rubyEncoding);
+        return rubyEncoding;
+
+    }
+
+    @TruffleBoundary
+    public synchronized RubyEncoding defineDynamicEncoding(Encoding encoding, byte[] name) {
+        final int encodingIndex = ENCODING_LIST_BY_ENCODING_INDEX.length;
+
+        final RubyEncoding rubyEncoding = Encodings.newRubyEncoding(language, encoding, encodingIndex, name);
+
+        ENCODING_LIST_BY_ENCODING_INDEX = Arrays.copyOf(ENCODING_LIST_BY_ENCODING_INDEX, encodingIndex + 1);
+        ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] = rubyEncoding;
+
+        addToLookup(RopeOperations.decodeRope(rubyEncoding.name.rope), rubyEncoding);
         return rubyEncoding;
 
     }
@@ -256,8 +264,13 @@ public class EncodingManager {
     @TruffleBoundary
     public RubyEncoding defineAlias(Encoding encoding, String name) {
         final RubyEncoding rubyEncoding = getRubyEncoding(encoding);
-        LOOKUP.put(name.toLowerCase(Locale.ENGLISH), rubyEncoding);
+        addToLookup(name, rubyEncoding);
         return rubyEncoding;
+    }
+
+    @TruffleBoundary
+    private void addToLookup(String name, RubyEncoding rubyEncoding) {
+        LOOKUP.put(name.toLowerCase(Locale.ENGLISH), rubyEncoding);
     }
 
     @TruffleBoundary
@@ -266,22 +279,18 @@ public class EncodingManager {
             return null;
         }
 
-        byte[] nameBytes = RopeOperations.encodeAsciiBytes(name);
-        EncodingDB.dummy(nameBytes);
-        final EncodingDB.Entry entry = EncodingDB.getEncodings().get(nameBytes);
-        return defineEncoding(entry, nameBytes, 0, nameBytes.length);
+        final byte[] nameBytes = RopeOperations.encodeAsciiBytes(name);
+        return defineDynamicEncoding(Encodings.DUMMY_ENCODING_BASE, nameBytes);
     }
 
     @TruffleBoundary
-    public synchronized RubyEncoding replicateEncoding(Encoding encoding, String name) {
+    public synchronized RubyEncoding replicateEncoding(RubyEncoding encoding, String name) {
         if (getRubyEncoding(name) != null) {
             return null;
         }
 
-        EncodingDB.replicate(name, encoding.toString());
-        byte[] nameBytes = RopeOperations.encodeAsciiBytes(name);
-        final EncodingDB.Entry entry = EncodingDB.getEncodings().get(nameBytes);
-        return defineEncoding(entry, nameBytes, 0, nameBytes.length);
+        final byte[] nameBytes = RopeOperations.encodeAsciiBytes(name);
+        return defineDynamicEncoding(encoding.jcoding, nameBytes);
     }
 
     @TruffleBoundary
@@ -292,23 +301,23 @@ public class EncodingManager {
         return encoding.getCharset();
     }
 
-    public Encoding getLocaleEncoding() {
+    public RubyEncoding getLocaleEncoding() {
         return localeEncoding;
     }
 
-    public void setDefaultExternalEncoding(Encoding defaultExternalEncoding) {
+    public void setDefaultExternalEncoding(RubyEncoding defaultExternalEncoding) {
         this.defaultExternalEncoding = defaultExternalEncoding;
     }
 
-    public Encoding getDefaultExternalEncoding() {
+    public RubyEncoding getDefaultExternalEncoding() {
         return defaultExternalEncoding;
     }
 
-    public void setDefaultInternalEncoding(Encoding defaultInternalEncoding) {
+    public void setDefaultInternalEncoding(RubyEncoding defaultInternalEncoding) {
         this.defaultInternalEncoding = defaultInternalEncoding;
     }
 
-    public Encoding getDefaultInternalEncoding() {
+    public RubyEncoding getDefaultInternalEncoding() {
         return defaultInternalEncoding;
     }
 

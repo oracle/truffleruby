@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -28,6 +27,7 @@ import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.cast.ToRubyIntegerNode;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodes.ToSNode;
 import org.truffleruby.core.kernel.KernelNodesFactory;
@@ -331,7 +331,7 @@ public abstract class TypeNodes {
         @Specialization
         protected RubyString moduleName(RubyModule module) {
             final String name = module.fields.getName();
-            return makeStringNode.executeMake(name, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(name, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
         }
 
     }

@@ -18,8 +18,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jcodings.specific.USASCIIEncoding;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -28,6 +26,7 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.numeric.FloatNodesFactory.ModNodeFactory;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
@@ -836,7 +835,7 @@ public abstract class FloatNodes {
              * under-tested. */
 
             if (Double.isInfinite(value) || Double.isNaN(value)) {
-                return makeStringNode.executeMake(Double.toString(value), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+                return makeStringNode.executeMake(Double.toString(value), Encodings.US_ASCII, CodeRange.CR_7BIT);
             }
 
             String str = StringUtils.format(Locale.ENGLISH, "%.17g", value);
@@ -878,7 +877,7 @@ public abstract class FloatNodes {
                 formatted = StringUtils.format(Locale.ENGLISH, "%.1e", value);
             }
 
-            return makeStringNode.executeMake(formatted, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+            return makeStringNode.executeMake(formatted, Encodings.US_ASCII, CodeRange.CR_7BIT);
         }
 
     }
@@ -927,7 +926,7 @@ public abstract class FloatNodes {
             final int sign = value < 0 ? 1 : 0;
 
             return createArray(new Object[]{
-                    makeStringNode.executeMake(string, UTF8Encoding.INSTANCE, CodeRange.CR_7BIT),
+                    makeStringNode.executeMake(string, Encodings.UTF_8, CodeRange.CR_7BIT),
                     decimal,
                     sign,
                     string.length()

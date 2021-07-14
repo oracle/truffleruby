@@ -31,12 +31,12 @@ public abstract class ToEncodingNode extends RubyContextNode {
 
     @Specialization
     protected Encoding stringToEncoding(RubyString value) {
-        return value.rope.getEncoding();
+        return value.getJCoding();
     }
 
     @Specialization
     protected Encoding immutableStringToEncoding(ImmutableRubyString value) {
-        return value.rope.getEncoding();
+        return value.getEncoding().jcoding;
     }
 
     @Specialization
@@ -51,7 +51,7 @@ public abstract class ToEncodingNode extends RubyContextNode {
 
     @Specialization
     protected Encoding rubyEncodingToEncoding(RubyEncoding value) {
-        return value.encoding;
+        return value.jcoding;
     }
 
     @Fallback

@@ -35,6 +35,7 @@ import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
@@ -66,7 +67,7 @@ public abstract class ReadlineNodes {
         @Specialization
         protected RubyString basicWordBreakCharacters() {
             final String delimiters = getContext().getConsoleHolder().getParser().getDelimiters();
-            return makeStringNode.executeMake(delimiters, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(delimiters, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
         }
 
     }
@@ -229,7 +230,10 @@ public abstract class ReadlineNodes {
             final Buffer buffer = getContext().getConsoleHolder().getReadline().getBuffer();
 
             return makeStringNode
-                    .executeMake(buffer.toString(), getLocaleEncoding(), CodeRange.CR_UNKNOWN);
+                    .executeMake(
+                            buffer.toString(),
+                            getLocaleEncoding(),
+                            CodeRange.CR_UNKNOWN);
         }
 
     }
@@ -290,7 +294,7 @@ public abstract class ReadlineNodes {
             boolean complete = lineReader.getBuffer().cursor() == lineReader.getBuffer().length();
 
             RubyString string = StringOperations
-                    .createString(context, language, StringOperations.encodeRope(buffer, UTF8Encoding.INSTANCE));
+                    .createUTF8String(context, language, StringOperations.encodeRope(buffer, UTF8Encoding.INSTANCE));
             RubyArray completions = (RubyArray) RubyContext.send(proc, "call", string);
             for (Object element : ArrayOperations.toIterable(completions)) {
                 final String completion = RubyStringLibrary.getUncached().getJavaString(element);

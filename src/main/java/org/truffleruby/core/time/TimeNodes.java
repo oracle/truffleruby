@@ -17,13 +17,14 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.ErrnoErrorNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.CodeRange;
@@ -54,7 +55,7 @@ public abstract class TimeNodes {
     public static RubyString getShortZoneName(StringNodes.MakeStringNode makeStringNode, ZonedDateTime dt,
             TimeZoneAndName zoneAndName) {
         final String shortZoneName = zoneAndName.getName(dt);
-        return makeStringNode.executeMake(shortZoneName, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        return makeStringNode.executeMake(shortZoneName, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
     }
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
@@ -382,9 +383,12 @@ public abstract class TimeNodes {
                 @Cached ConditionProfile yearIsFastProfile,
                 @Cached RopeNodes.ConcatNode concatNode) {
             if (canUseFast && yearIsFastProfile.profile(yearIsFast(time))) {
-                return makeStringNode.fromRope(RubyDateFormatter.formatToRopeFast(pattern, time.dateTime, concatNode));
+                final Rope rope = RubyDateFormatter.formatToRopeFast(pattern, time.dateTime, concatNode);
+                return makeStringNode.fromRope(rope, Encodings.UTF_8);
             } else {
-                return makeStringNode.fromBuilderUnsafe(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
+                final RubyEncoding rubyEncoding = libFormat.getEncoding(format);
+                final RopeBuilder ropeBuilder = formatTime(time, pattern);
+                return makeStringNode.fromBuilderUnsafe(ropeBuilder, rubyEncoding, CodeRange.CR_UNKNOWN);
             }
         }
 
@@ -395,9 +399,12 @@ public abstract class TimeNodes {
                 @Cached RopeNodes.ConcatNode concatNode) {
             final Token[] pattern = compilePattern(libFormat.getRope(format));
             if (formatCanBeFast(pattern) && yearIsFast(time)) {
-                return makeStringNode.fromRope(RubyDateFormatter.formatToRopeFast(pattern, time.dateTime, concatNode));
+                final Rope rope = RubyDateFormatter.formatToRopeFast(pattern, time.dateTime, concatNode);
+                return makeStringNode.fromRope(rope, Encodings.UTF_8);
             } else {
-                return makeStringNode.fromBuilderUnsafe(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
+                final RubyEncoding rubyEncoding = libFormat.getEncoding(format);
+                final RopeBuilder ropeBuilder = formatTime(time, pattern);
+                return makeStringNode.fromBuilderUnsafe(ropeBuilder, rubyEncoding, CodeRange.CR_UNKNOWN);
             }
         }
 

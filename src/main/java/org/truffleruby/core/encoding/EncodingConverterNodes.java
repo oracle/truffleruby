@@ -20,7 +20,6 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
 import org.jcodings.Encoding;
 import org.jcodings.Ptr;
-import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.transcode.EConv;
 import org.jcodings.transcode.EConvFlags;
 import org.jcodings.transcode.EConvResult;
@@ -56,6 +55,7 @@ import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -88,8 +88,8 @@ public abstract class EncodingConverterNodes {
             // by Rubinius.  Rubinius will do the heavy lifting of parsing the options hash and setting the `@options`
             // ivar to the resulting int for EConv flags.
 
-            Encoding sourceEncoding = source.encoding;
-            Encoding destinationEncoding = destination.encoding;
+            Encoding sourceEncoding = source.jcoding;
+            Encoding destinationEncoding = destination.jcoding;
 
             final EConv econv = TranscoderDB
                     .open(sourceEncoding.getName(), destinationEncoding.getName(), toJCodingFlags(options));
@@ -209,7 +209,8 @@ public abstract class EncodingConverterNodes {
                 RubyString target,
                 int offset,
                 int size,
-                int options) {
+                int options,
+                @Cached DispatchNode destinationEncodingNode) {
             return primitiveConvertHelper(
                     encodingConverter,
                     source,
@@ -217,7 +218,8 @@ public abstract class EncodingConverterNodes {
                     target,
                     offset,
                     size,
-                    options);
+                    options,
+                    destinationEncodingNode);
         }
 
         @Specialization(guards = "stringsSource.isRubyString(source)")
@@ -228,7 +230,8 @@ public abstract class EncodingConverterNodes {
                 int offset,
                 int size,
                 int options,
-                @CachedLibrary(limit = "2") RubyStringLibrary stringsSource) {
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsSource,
+                @Cached DispatchNode destinationEncodingNode) {
 
             // Taken from org.jruby.RubyConverter#primitive_convert.
 
@@ -239,12 +242,13 @@ public abstract class EncodingConverterNodes {
                     target,
                     offset,
                     size,
-                    options);
+                    options,
+                    destinationEncodingNode);
         }
 
         @TruffleBoundary
         private Object primitiveConvertHelper(RubyEncodingConverter encodingConverter, Object source, Rope sourceRope,
-                RubyString target, int offset, int size, int options) {
+                RubyString target, int offset, int size, int options, DispatchNode destinationEncodingNode) {
             // Taken from org.jruby.RubyConverter#primitive_convert.
 
             Rope targetRope = target.rope;
@@ -326,7 +330,9 @@ public abstract class EncodingConverterNodes {
                     outBytes.setEncoding(ec.destinationEncoding);
                 }
 
-                target.setRope(RopeOperations.ropeFromRopeBuilder(outBytes));
+                target.setRope(
+                        RopeOperations.ropeFromRopeBuilder(outBytes),
+                        (RubyEncoding) destinationEncodingNode.call(encodingConverter, "destination_encoding"));
 
                 return getSymbol(res.symbolicName());
             }
@@ -346,25 +352,27 @@ public abstract class EncodingConverterNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        protected RubyString encodingConverterPutback(RubyEncodingConverter encodingConverter, int maxBytes) {
+        protected RubyString encodingConverterPutback(RubyEncodingConverter encodingConverter, int maxBytes,
+                @Cached DispatchNode sourceEncodingNode) {
             // Taken from org.jruby.RubyConverter#putback.
 
             final EConv ec = encodingConverter.econv;
             final int putbackable = ec.putbackable();
 
-            return putback(encodingConverter, putbackable < maxBytes ? putbackable : maxBytes);
+            return putback(encodingConverter, putbackable < maxBytes ? putbackable : maxBytes, sourceEncodingNode);
         }
 
         @Specialization
-        protected RubyString encodingConverterPutback(RubyEncodingConverter encodingConverter, NotProvided maxBytes) {
+        protected RubyString encodingConverterPutback(RubyEncodingConverter encodingConverter, NotProvided maxBytes,
+                @Cached DispatchNode sourceEncodingNode) {
             // Taken from org.jruby.RubyConverter#putback.
 
             final EConv ec = encodingConverter.econv;
 
-            return putback(encodingConverter, ec.putbackable());
+            return putback(encodingConverter, ec.putbackable(), sourceEncodingNode);
         }
 
-        private RubyString putback(RubyEncodingConverter encodingConverter, int n) {
+        private RubyString putback(RubyEncodingConverter encodingConverter, int n, DispatchNode sourceEncodingNode) {
 
             // Taken from org.jruby.RubyConverter#putback.
 
@@ -373,9 +381,9 @@ public abstract class EncodingConverterNodes {
             final byte[] bytes = new byte[n];
             ec.putback(bytes, 0, n);
 
-            final Encoding encoding = ec.sourceEncoding != null ? ec.sourceEncoding : ASCIIEncoding.INSTANCE;
-
-            return makeStringNode.executeMake(bytes, encoding, CodeRange.CR_UNKNOWN);
+            final Object sourceEncoding = (RubyEncoding) sourceEncodingNode.call(encodingConverter, "source_encoding");
+            final RubyEncoding rubyEncoding = sourceEncoding == nil ? Encodings.BINARY : (RubyEncoding) sourceEncoding;
+            return makeStringNode.executeMake(bytes, rubyEncoding, CodeRange.CR_UNKNOWN);
         }
     }
 
@@ -400,18 +408,18 @@ public abstract class EncodingConverterNodes {
             final Object[] store = new Object[size];
 
             store[0] = eConvResultToSymbol(lastError.getResult());
-            store[1] = makeStringNode.executeMake(lastError.getSource(), ASCIIEncoding.INSTANCE, CR_UNKNOWN);
-            store[2] = makeStringNode.executeMake(lastError.getDestination(), ASCIIEncoding.INSTANCE, CR_UNKNOWN);
+            store[1] = makeStringNode.executeMake(lastError.getSource(), Encodings.BINARY, CR_UNKNOWN);
+            store[2] = makeStringNode.executeMake(lastError.getDestination(), Encodings.BINARY, CR_UNKNOWN);
             store[3] = makeStringNode.fromBuilderUnsafe(RopeBuilder.createRopeBuilder(
                     lastError.getErrorBytes(),
                     lastError.getErrorBytesP(),
-                    lastError.getErrorBytesP() + lastError.getErrorBytesLength()), CR_UNKNOWN);
+                    lastError.getErrorBytesP() + lastError.getErrorBytesLength()), Encodings.BINARY, CR_UNKNOWN);
 
             if (readAgain) {
                 store[4] = makeStringNode.fromBuilderUnsafe(RopeBuilder.createRopeBuilder(
                         lastError.getErrorBytes(),
                         lastError.getErrorBytesLength() + lastError.getErrorBytesP(),
-                        lastError.getReadAgainLength()), CR_UNKNOWN);
+                        lastError.getReadAgainLength()), Encodings.BINARY, CR_UNKNOWN);
             }
 
             return createArray(store);
@@ -452,11 +460,11 @@ public abstract class EncodingConverterNodes {
             final Object[] ret = { getSymbol(ec.lastError.getResult().symbolicName()), nil, nil, nil, nil };
 
             if (ec.lastError.getSource() != null) {
-                ret[1] = makeStringNode.executeMake(ec.lastError.getSource(), ASCIIEncoding.INSTANCE, CR_UNKNOWN);
+                ret[1] = makeStringNode.executeMake(ec.lastError.getSource(), Encodings.BINARY, CR_UNKNOWN);
             }
 
             if (ec.lastError.getDestination() != null) {
-                ret[2] = makeStringNode.executeMake(ec.lastError.getDestination(), ASCIIEncoding.INSTANCE, CR_UNKNOWN);
+                ret[2] = makeStringNode.executeMake(ec.lastError.getDestination(), Encodings.BINARY, CR_UNKNOWN);
             }
 
             if (ec.lastError.getErrorBytes() != null) {
@@ -466,12 +474,14 @@ public abstract class EncodingConverterNodes {
                                         ec.lastError.getErrorBytes(),
                                         ec.lastError.getErrorBytesP(),
                                         ec.lastError.getErrorBytesLength()),
+                                Encodings.BINARY,
                                 CR_UNKNOWN);
                 ret[4] = makeStringNode.fromBuilderUnsafe(
                         RopeBuilder.createRopeBuilder(
                                 ec.lastError.getErrorBytes(),
                                 ec.lastError.getErrorBytesP() + ec.lastError.getErrorBytesLength(),
                                 ec.lastError.getReadAgainLength()),
+                        Encodings.BINARY,
                         CR_UNKNOWN);
             }
 
@@ -501,7 +511,7 @@ public abstract class EncodingConverterNodes {
             final String encodingName = new String(ec.replacementEncoding, StandardCharsets.US_ASCII);
             final RubyEncoding encoding = getContext().getEncodingManager().getRubyEncoding(encodingName);
 
-            return makeStringNode.executeMake(bytes, encoding.encoding, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(bytes, encoding, CodeRange.CR_UNKNOWN);
         }
 
     }

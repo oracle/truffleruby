@@ -9,13 +9,13 @@
  */
 package org.truffleruby.core.method;
 
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
@@ -185,7 +185,7 @@ public abstract class UnboundMethodNodes {
             } else {
                 RubyString file = makeStringNode.executeMake(
                         getLanguage().getSourcePath(sourceSection.getSource()),
-                        UTF8Encoding.INSTANCE,
+                        Encodings.UTF_8,
                         CodeRange.CR_UNKNOWN);
                 Object[] objects = new Object[]{ file, sourceSection.getStartLine() };
                 return createArray(objects);

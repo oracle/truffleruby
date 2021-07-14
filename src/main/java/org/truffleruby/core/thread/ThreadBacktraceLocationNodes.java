@@ -14,6 +14,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
@@ -63,10 +64,10 @@ public class ThreadBacktraceLocationNodes {
                     final String canonicalPath = getContext().getFeatureLoader().canonicalize(path);
                     final Rope cachedRope = getLanguage().ropeCache
                             .getRope(StringOperations.encodeRope(canonicalPath, UTF8Encoding.INSTANCE));
-                    return makeStringNode.fromRope(cachedRope);
+                    return makeStringNode.fromRope(cachedRope, Encodings.UTF_8);
                 } else { // eval()
-                    return makeStringNode
-                            .fromRope(getLanguage().getPathToRopeCache().getCachedPath(source));
+                    final Rope cachedPath = getLanguage().getPathToRopeCache().getCachedPath(source);
+                    return makeStringNode.fromRope(cachedPath, Encodings.UTF_8);
                 }
             }
         }
@@ -86,7 +87,7 @@ public class ThreadBacktraceLocationNodes {
                 return coreStrings().UNKNOWN.createInstance(getContext());
             } else {
                 final Rope path = getLanguage().getPathToRopeCache().getCachedPath(sourceSection.getSource());
-                return makeStringNode.fromRope(path);
+                return makeStringNode.fromRope(path, Encodings.UTF_8);
             }
         }
 
@@ -103,7 +104,7 @@ public class ThreadBacktraceLocationNodes {
             final TruffleStackTraceElement element = backtrace.getStackTrace()[index];
 
             final String label = Backtrace.labelFor(element);
-            return makeStringNode.executeMake(label, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(label, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
         }
     }
 
@@ -117,7 +118,7 @@ public class ThreadBacktraceLocationNodes {
             final TruffleStackTraceElement element = backtrace.getStackTrace()[index];
 
             final String baseLabel = Backtrace.baseLabelFor(element);
-            return makeStringNode.executeMake(baseLabel, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(baseLabel, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
         }
     }
 
@@ -147,7 +148,7 @@ public class ThreadBacktraceLocationNodes {
             final String description = getContext()
                     .getUserBacktraceFormatter()
                     .formatLine(backtrace.getStackTrace(), index, null);
-            return makeStringNode.executeMake(description, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(description, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
         }
 
     }

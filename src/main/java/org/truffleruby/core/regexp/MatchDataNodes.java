@@ -273,7 +273,12 @@ public abstract class MatchDataNodes {
                     final Rope sourceRope = strings.getRope(source);
                     final Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
                     final RubyClass logicalClass = logicalClassNode.execute(source);
-                    final RubyString string = new RubyString(logicalClass, getLanguage().stringShape, false, rope);
+                    final RubyString string = new RubyString(
+                            logicalClass,
+                            getLanguage().stringShape,
+                            false,
+                            rope,
+                            strings.getEncoding(source));
                     AllocationTracing.trace(string, this);
                     return string;
                 } else {
@@ -505,7 +510,12 @@ public abstract class MatchDataNodes {
                     if (hasValueProfile.profile(start >= 0 && end >= 0)) {
                         final Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
                         final RubyClass logicalClass = logicalClassNode.execute(source);
-                        final RubyString string = new RubyString(logicalClass, getLanguage().stringShape, false, rope);
+                        final RubyString string = new RubyString(
+                                logicalClass,
+                                getLanguage().stringShape,
+                                false,
+                                rope,
+                                strings.getEncoding(source));
                         AllocationTracing.trace(string, this);
                         values[n] = string;
                     } else {
@@ -631,7 +641,12 @@ public abstract class MatchDataNodes {
             final int length = getStart(matchData, 0, lazyProfile, interop);
             final Rope rope = substringNode.executeSubstring(sourceRope, 0, length);
             final RubyClass logicalClass = logicalClassNode.execute(source);
-            final RubyString string = new RubyString(logicalClass, getLanguage().stringShape, false, rope);
+            final RubyString string = new RubyString(
+                    logicalClass,
+                    getLanguage().stringShape,
+                    false,
+                    rope,
+                    strings.getEncoding(source));
             AllocationTracing.trace(string, this);
             return string;
         }
@@ -656,7 +671,12 @@ public abstract class MatchDataNodes {
             int length = sourceRope.byteLength() - start;
             Rope rope = substringNode.executeSubstring(sourceRope, start, length);
             final RubyClass logicalClass = logicalClassNode.execute(source);
-            final RubyString string = new RubyString(logicalClass, getLanguage().stringShape, false, rope);
+            final RubyString string = new RubyString(
+                    logicalClass,
+                    getLanguage().stringShape,
+                    false,
+                    rope,
+                    strings.getEncoding(source));
             AllocationTracing.trace(string, this);
             return string;
         }

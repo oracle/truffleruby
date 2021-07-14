@@ -22,6 +22,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.rope.CodeRange;
@@ -264,7 +265,8 @@ public abstract class PointerNodes {
                     coreLibrary().stringClass,
                     getLanguage().stringShape,
                     false,
-                    RopeConstants.EMPTY_ASCII_8BIT_ROPE);
+                    RopeConstants.EMPTY_ASCII_8BIT_ROPE,
+                    Encodings.BINARY);
             AllocationTracing.trace(instance, this);
             return instance;
         }
@@ -282,7 +284,8 @@ public abstract class PointerNodes {
                     coreLibrary().stringClass,
                     getLanguage().stringShape,
                     false,
-                    rope);
+                    rope,
+                    Encodings.BINARY);
             AllocationTracing.trace(instance, this);
             return instance;
         }
@@ -300,7 +303,8 @@ public abstract class PointerNodes {
                     coreLibrary().stringClass,
                     getLanguage().stringShape,
                     false,
-                    rope);
+                    rope,
+                    Encodings.BINARY);
             AllocationTracing.trace(instance, this);
             return instance;
         }
@@ -321,7 +325,8 @@ public abstract class PointerNodes {
                         coreLibrary().stringClass,
                         getLanguage().stringShape,
                         false,
-                        RopeConstants.EMPTY_ASCII_8BIT_ROPE);
+                        RopeConstants.EMPTY_ASCII_8BIT_ROPE,
+                        Encodings.BINARY);
                 AllocationTracing.trace(instance, this);
                 return instance;
             } else {
@@ -334,7 +339,8 @@ public abstract class PointerNodes {
                         coreLibrary().stringClass,
                         getLanguage().stringShape,
                         false,
-                        rope);
+                        rope,
+                        Encodings.BINARY);
                 AllocationTracing.trace(instance, this);
                 return instance;
             }

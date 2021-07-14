@@ -19,7 +19,6 @@ import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -30,6 +29,7 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.NameToJavaStringNode;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
@@ -475,7 +475,7 @@ public abstract class BindingNodes {
             } else {
                 final RubyString file = makeStringNode.executeMake(
                         getLanguage().getSourcePath(sourceSection.getSource()),
-                        UTF8Encoding.INSTANCE,
+                        Encodings.UTF_8,
                         CodeRange.CR_UNKNOWN);
                 return createArray(new Object[]{ file, sourceSection.getStartLine() });
             }

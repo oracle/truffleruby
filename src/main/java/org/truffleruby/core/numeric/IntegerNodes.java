@@ -12,7 +12,6 @@ package org.truffleruby.core.numeric;
 import java.math.BigInteger;
 
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
-import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -26,6 +25,7 @@ import org.truffleruby.core.cast.BigIntegerCastNode;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToRubyIntegerNode;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.numeric.IntegerNodesFactory.AbsNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodesFactory.DivNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodesFactory.LeftShiftNodeFactory;
@@ -35,6 +35,7 @@ import org.truffleruby.core.numeric.IntegerNodesFactory.RightShiftNodeFactory;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.LazyIntRope;
+import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.NoImplicitCastsToLong;
@@ -1417,7 +1418,8 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected RubyString toS(int n, NotProvided base) {
-            return makeStringNode.fromRope(new LazyIntRope(n));
+            final Rope rope = new LazyIntRope(n);
+            return makeStringNode.fromRope(rope, Encodings.US_ASCII);
         }
 
         @TruffleBoundary
@@ -1427,7 +1429,7 @@ public abstract class IntegerNodes {
                 return toS((int) n, base);
             }
 
-            return makeStringNode.executeMake(Long.toString(n), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+            return makeStringNode.executeMake(Long.toString(n), Encodings.US_ASCII, CodeRange.CR_7BIT);
         }
 
         @TruffleBoundary
@@ -1435,7 +1437,7 @@ public abstract class IntegerNodes {
         protected RubyString toS(RubyBignum value, NotProvided base) {
             return makeStringNode.executeMake(
                     BigIntegerOps.toString(value.value),
-                    USASCIIEncoding.INSTANCE,
+                    Encodings.US_ASCII,
                     CodeRange.CR_7BIT);
         }
 
@@ -1450,7 +1452,7 @@ public abstract class IntegerNodes {
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorInvalidRadix(base, this));
             }
 
-            return makeStringNode.executeMake(Long.toString(n, base), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+            return makeStringNode.executeMake(Long.toString(n, base), Encodings.US_ASCII, CodeRange.CR_7BIT);
         }
 
         @TruffleBoundary
@@ -1462,7 +1464,7 @@ public abstract class IntegerNodes {
 
             return makeStringNode.executeMake(
                     BigIntegerOps.toString(value.value, base),
-                    USASCIIEncoding.INSTANCE,
+                    Encodings.US_ASCII,
                     CodeRange.CR_7BIT);
         }
 

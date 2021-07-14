@@ -11,7 +11,7 @@ package org.truffleruby.core.format.read.bytes;
 
 import java.util.Arrays;
 
-import org.jcodings.specific.ASCIIEncoding;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.rope.CodeRange;
@@ -112,7 +112,7 @@ public abstract class ReadBinaryStringNode extends FormatNode {
 
         return makeStringNode.executeMake(
                 Arrays.copyOfRange(source, start, start + usedLength),
-                ASCIIEncoding.INSTANCE,
+                Encodings.BINARY,
                 CodeRange.CR_UNKNOWN);
     }
 

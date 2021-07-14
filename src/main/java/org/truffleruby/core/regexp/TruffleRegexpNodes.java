@@ -24,6 +24,7 @@ import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.IntValueProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
+import org.graalvm.collections.Pair;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
@@ -44,6 +45,7 @@ import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.StandardEncodings;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
@@ -207,7 +209,9 @@ public class TruffleRegexpNodes {
         public Object string(Object obj) {
             if (rubyStringLibrary.isRubyString(obj)) {
                 final Rope rope = rubyStringLibrary.getRope(obj);
-                return makeStringNode.fromRope(ClassicRegexp.quote19(rope));
+                final Pair<Rope, RubyEncoding> quotedRopeResult = ClassicRegexp
+                        .quote19(rope, rubyStringLibrary.getEncoding(obj));
+                return makeStringNode.fromRope(quotedRopeResult.getLeft(), quotedRopeResult.getRight());
             } else {
                 return toSNode.execute((RubyRegexp) obj);
             }
@@ -316,7 +320,8 @@ public class TruffleRegexpNodes {
             int n = 0;
             for (Entry<T, AtomicInteger> e : map.entrySet()) {
                 Rope key = StringOperations.encodeRope(e.getKey().toString(), UTF8Encoding.INSTANCE);
-                arrayBuilderNode.appendValue(state, n++, StringOperations.createString(context, getLanguage(), key));
+                arrayBuilderNode
+                        .appendValue(state, n++, StringOperations.createUTF8String(context, getLanguage(), key));
                 arrayBuilderNode.appendValue(state, n++, e.getValue().get());
             }
             return createArray(arrayBuilderNode.finish(state, n), n);

@@ -15,10 +15,14 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import org.jcodings.Encoding;
+import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.rope.LeafRope;
+import org.truffleruby.core.rope.RopeConstants;
+import org.truffleruby.core.string.FrozenStringLiterals;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.ImmutableRubyObject;
 
@@ -31,12 +35,21 @@ import java.util.Set;
 @ExportLibrary(InteropLibrary.class)
 public class RubyEncoding extends ImmutableRubyObject implements ObjectGraphNode {
 
-    public final Encoding encoding;
+    public final Encoding jcoding;
     public final ImmutableRubyString name;
+    public final int index;
 
-    public RubyEncoding(Encoding encoding, ImmutableRubyString name) {
-        this.encoding = encoding;
+    public RubyEncoding(Encoding jcoding, ImmutableRubyString name, int index) {
+        this.jcoding = jcoding;
         this.name = name;
+        this.index = index;
+    }
+
+    // Special constructor to define US-ASCII encoding which is used for RubyEncoding names
+    public RubyEncoding(int index) {
+        this.jcoding = USASCIIEncoding.INSTANCE;
+        this.name = FrozenStringLiterals.encodingName((LeafRope) RopeConstants.US_ASCII, this);
+        this.index = index;
     }
 
     @Override

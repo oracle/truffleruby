@@ -2324,7 +2324,7 @@ var_ref         : /*mri:user_variable*/ tIDENTIFIER {
                     $$ = new FalseParseNode((SourceIndexLength) $$);
                 }
                 | keyword__FILE__ {
-                    Encoding encoding = support.getConfiguration().getContext() == null ? UTF8Encoding.INSTANCE : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding();
+                    Encoding encoding = support.getConfiguration().getContext() == null ? UTF8Encoding.INSTANCE : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding().jcoding;
                     $$ = new FileParseNode(lexer.tokline, StringOperations.encodeRope(lexer.getFile(), encoding, CR_UNKNOWN));
                 }
                 | keyword__LINE__ {

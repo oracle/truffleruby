@@ -17,6 +17,7 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.LeafRope;
@@ -34,9 +35,12 @@ import org.truffleruby.language.library.RubyStringLibrary;
 public class ImmutableRubyString extends ImmutableRubyObject implements TruffleObject {
 
     public final LeafRope rope;
+    public final RubyEncoding encoding;
 
-    ImmutableRubyString(LeafRope rope) {
+    ImmutableRubyString(LeafRope rope, RubyEncoding encoding) {
+        assert rope.encoding == encoding.jcoding;
         this.rope = rope;
+        this.encoding = encoding;
     }
 
     /** should only be used for debugging */
@@ -46,6 +50,11 @@ public class ImmutableRubyString extends ImmutableRubyObject implements TruffleO
     }
 
     // region RubyStringLibrary messages
+    @ExportMessage
+    public RubyEncoding getEncoding() {
+        return encoding;
+    }
+
     @ExportMessage
     protected boolean isRubyString() {
         return true;

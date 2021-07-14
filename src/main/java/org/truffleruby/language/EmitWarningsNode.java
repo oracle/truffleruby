@@ -69,7 +69,7 @@ public class EmitWarningsNode extends RubyContextSourceNode {
             final Object warning = context.getCoreLibrary().warningModule;
             final Rope messageRope = StringOperations.encodeRope(message, UTF8Encoding.INSTANCE);
             final RubyString messageString = StringOperations
-                    .createString(context, context.getLanguageSlow(), messageRope);
+                    .createUTF8String(context, context.getLanguageSlow(), messageRope);
             RubyContext.send(warning, "warn", messageString);
         } else {
             try {

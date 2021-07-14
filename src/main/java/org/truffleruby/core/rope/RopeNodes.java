@@ -28,7 +28,7 @@ import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.encoding.EncodingNodes;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.ConcatRope.ConcatState;
 import org.truffleruby.core.rope.RopeNodesFactory.AreComparableRopesNodeGen;
 import org.truffleruby.core.rope.RopeNodesFactory.CompareRopesNodeGen;
@@ -390,9 +390,10 @@ public abstract class RopeNodes {
         @Specialization
         protected Rope concatNativeRopeLeft(NativeRope left, Rope right, Encoding encoding,
                 @Cached NativeToManagedNode nativeToManagedNode,
-                @Cached ConditionProfile emptyNativeRopeProfile) {
+                @Cached ConditionProfile emptyNativeRopeProfile,
+                @Cached WithEncodingNode withEncodingNode) {
             if (emptyNativeRopeProfile.profile(left.isEmpty())) {
-                return right;
+                return withEncodingNode.executeWithEncoding(right, encoding);
             } else {
                 return executeConcat(nativeToManagedNode.execute(left), right, encoding);
             }
@@ -401,9 +402,10 @@ public abstract class RopeNodes {
         @Specialization
         protected Rope concatNativeRopeRight(Rope left, NativeRope right, Encoding encoding,
                 @Cached NativeToManagedNode nativeToManagedNode,
-                @Cached ConditionProfile emptyNativeRopeProfile) {
+                @Cached ConditionProfile emptyNativeRopeProfile,
+                @Cached WithEncodingNode withEncodingNode) {
             if (emptyNativeRopeProfile.profile(right.isEmpty())) {
-                return left;
+                return withEncodingNode.executeWithEncoding(left, encoding);
             } else {
                 return executeConcat(left, nativeToManagedNode.execute(right), encoding);
             }
@@ -1099,42 +1101,38 @@ public abstract class RopeNodes {
             return RopeNodesFactory.GetCodePointNodeGen.create();
         }
 
-        public abstract int executeGetCodePoint(Rope rope, int index);
+        public abstract int executeGetCodePoint(RubyEncoding encoding, Rope rope, int index);
 
         @Specialization(guards = "singleByteOptimizableNode.execute(rope)")
-        protected int getCodePointSingleByte(Rope rope, int index,
+        protected int getCodePointSingleByte(RubyEncoding encoding, Rope rope, int index,
                 @Cached GetByteNode getByteNode) {
             return getByteNode.executeGetByte(rope, index);
         }
 
         @Specialization(guards = { "!singleByteOptimizableNode.execute(rope)", "rope.getEncoding().isUTF8()" })
-        protected int getCodePointUTF8(Rope rope, int index,
+        protected int getCodePointUTF8(RubyEncoding encoding, Rope rope, int index,
                 @Cached GetByteNode getByteNode,
-                @Cached GetBytesObjectNode getBytes,
-                @Cached CodeRangeNode codeRangeNode,
-                @Cached EncodingNodes.GetActualEncodingNode getActualEncodingNode,
                 @Cached ConditionProfile singleByteCharProfile,
+                @Cached GetBytesObjectNode getBytesObject,
+                @Cached CodeRangeNode codeRangeNode,
                 @Cached BranchProfile errorProfile) {
             final int firstByte = getByteNode.executeGetByte(rope, index);
             if (singleByteCharProfile.profile(firstByte < 128)) {
                 return firstByte;
             }
 
-            return getCodePointMultiByte(rope, index, errorProfile, getBytes, codeRangeNode, getActualEncodingNode);
+            return getCodePointMultiByte(encoding, rope, index, getBytesObject, codeRangeNode, errorProfile);
         }
 
         @Specialization(guards = { "!singleByteOptimizableNode.execute(rope)", "!rope.getEncoding().isUTF8()" })
-        protected int getCodePointMultiByte(Rope rope, int index,
-                @Cached BranchProfile errorProfile,
+        protected int getCodePointMultiByte(RubyEncoding encoding, Rope rope, int index,
                 @Cached GetBytesObjectNode getBytesObject,
                 @Cached CodeRangeNode codeRangeNode,
-                @Cached EncodingNodes.GetActualEncodingNode getActualEncodingNode) {
+                @Cached BranchProfile errorProfile) {
             final Bytes bytes = getBytesObject.getRange(rope, index, rope.byteLength());
-            final Encoding encoding = rope.getEncoding();
-            final Encoding actualEncoding = getActualEncodingNode.execute(rope);
             final CodeRange codeRange = codeRangeNode.execute(rope);
 
-            final int characterLength = characterLength(actualEncoding, codeRange, bytes);
+            final int characterLength = characterLength(encoding.jcoding, codeRange, bytes);
             if (characterLength <= 0) {
                 errorProfile.enter();
                 throw new RaiseException(
@@ -1144,7 +1142,7 @@ public abstract class RopeNodes {
                                 null));
             }
 
-            return mbcToCode(actualEncoding, bytes);
+            return mbcToCode(encoding.jcoding, bytes);
         }
 
         @TruffleBoundary
