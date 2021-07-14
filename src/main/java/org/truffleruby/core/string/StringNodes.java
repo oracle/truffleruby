@@ -131,6 +131,7 @@ import org.truffleruby.core.rope.Bytes;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.ConcatRope;
 import org.truffleruby.core.rope.ConcatRope.ConcatState;
+import org.truffleruby.core.rope.LazyIntRope;
 import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.RepeatingRope;
@@ -4169,6 +4170,7 @@ public abstract class StringNodes {
             if (rope.isEmpty()) {
                 return nil;
             }
+
             final String javaString = strings.getJavaString(string);
             if (javaString.startsWith("0x")) {
                 try {
@@ -4176,13 +4178,12 @@ public abstract class StringNodes {
                 } catch (NumberFormatException e) {
                     // Try falling back to this implementation if the first fails, neither 100% complete
                     final Object result = ConvertBytes
-                            .byteListToInum19(
+                            .bytesToInum(
                                     getContext(),
                                     this,
                                     fixnumOrBignumNode,
                                     bytesNode,
-                                    string,
-                                    strings.getRope(string),
+                                    rope,
                                     16,
                                     true);
                     if (result instanceof Integer) {
@@ -5228,22 +5229,34 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_to_inum", lowerFixnum = 1)
-    public abstract static class StringToInumPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @NodeChild(value = "string", type = RubyNode.class)
+    @NodeChild(value = "fixBase", type = RubyNode.class)
+    @NodeChild(value = "strict", type = RubyNode.class)
+    @NodeChild(value = "raiseOnError", type = RubyNode.class)
+    public abstract static class StringToInumPrimitiveNode extends PrimitiveNode {
 
-        @Specialization
-        protected Object stringToInum(Object string, int fixBase, boolean strict, boolean raiseOnError,
+        @CreateCast("string")
+        protected RubyNode coerceStringToRope(RubyNode string) {
+            return ToRopeNodeGen.create(string);
+        }
+
+        @Specialization(guards = "isLazyIntRopeOptimizable(rope, fixBase)")
+        protected int stringToInumIntRope(Rope rope, int fixBase, boolean strict, boolean raiseOnError) {
+            return ((LazyIntRope) rope).getValue();
+        }
+
+        @Specialization(guards = "!isLazyIntRopeOptimizable(rope, fixBase)")
+        protected Object stringToInum(Rope rope, int fixBase, boolean strict, boolean raiseOnError,
                 @Cached("new()") FixnumOrBignumNode fixnumOrBignumNode,
                 @Cached RopeNodes.BytesNode bytesNode,
-                @Cached BranchProfile exceptionProfile,
-                @CachedLibrary(limit = "2") RubyStringLibrary libString) {
+                @Cached BranchProfile exceptionProfile) {
             try {
-                return ConvertBytes.byteListToInum19(
+                return ConvertBytes.bytesToInum(
                         getContext(),
                         this,
                         fixnumOrBignumNode,
                         bytesNode,
-                        string,
-                        libString.getRope(string),
+                        rope,
                         fixBase,
                         strict);
             } catch (RaiseException e) {
@@ -5255,6 +5268,9 @@ public abstract class StringNodes {
             }
         }
 
+        protected boolean isLazyIntRopeOptimizable(Rope rope, int base) {
+            return (base == 0 || base == 10) && rope instanceof LazyIntRope;
+        }
     }
 
     @Primitive(name = "string_byte_append")

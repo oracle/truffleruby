@@ -31,13 +31,13 @@ import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
-import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
@@ -237,12 +237,8 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public RubyException argumentErrorInvalidStringToInteger(Object object, Node currentNode) {
-        assert object instanceof RubyString || object instanceof ImmutableRubyString;
-        // TODO (nirvdrum 19-Apr-18): Guard against String#inspect being redefined to return something other than a String.
-        final String formattedObject = RubyStringLibrary
-                .getUncached()
-                .getJavaString(RubyContext.send(object, "inspect"));
+    public RubyException argumentErrorInvalidStringToInteger(Rope rope, Node currentNode) {
+        final String formattedObject = RopeOperations.decodeRope(rope);
         return argumentError(StringUtils.format("invalid value for Integer(): %s", formattedObject), currentNode);
     }
 

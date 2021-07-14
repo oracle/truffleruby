@@ -30,10 +30,10 @@ import com.oracle.truffle.api.nodes.Node;
 
 public class ConvertBytes {
     private final RubyContext context;
-    private final Node node;
+    private final Node caller;
     private final FixnumOrBignumNode fixnumOrBignumNode;
-    private final Object _str;
-    private int str;
+    private final Rope rope;
+    private int p;
     private int end;
     private byte[] data;
     private int base;
@@ -41,22 +41,21 @@ public class ConvertBytes {
 
     public ConvertBytes(
             RubyContext context,
-            Node node,
+            Node caller,
             FixnumOrBignumNode fixnumOrBignumNode,
             RopeNodes.BytesNode bytesNode,
-            Object _str,
-            Rope _strRope,
+            Rope rope,
             int base,
             boolean badcheck) {
-        final Rope rope = _strRope;
+        assert rope != null;
 
         this.context = context;
-        this.node = node;
+        this.caller = caller;
         this.fixnumOrBignumNode = fixnumOrBignumNode;
-        this._str = _str;
-        this.str = 0;
+        this.rope = rope;
+        this.p = 0;
         this.data = bytesNode.execute(rope);
-        this.end = str + rope.byteLength();
+        this.end = data.length;
         this.badcheck = badcheck;
         this.base = base;
     }
@@ -70,11 +69,10 @@ public class ConvertBytes {
     }
 
     /** rb_cstr_to_inum */
-
-    public static Object byteListToInum19(RubyContext context, Node node, FixnumOrBignumNode fixnumOrBignumNode,
-            RopeNodes.BytesNode bytesNode, Object str, Rope strRope, int base, boolean badcheck) {
-        return new ConvertBytes(context, node, fixnumOrBignumNode, bytesNode, str, strRope, base, badcheck)
-                .byteListToInum();
+    public static Object bytesToInum(RubyContext context, Node caller, FixnumOrBignumNode fixnumOrBignumNode,
+            RopeNodes.BytesNode bytesNode,
+            Rope rope, int base, boolean badcheck) {
+        return new ConvertBytes(context, caller, fixnumOrBignumNode, bytesNode, rope, base, badcheck).bytesToInum();
     }
 
     /** conv_digit */
@@ -96,11 +94,11 @@ public class ConvertBytes {
 
     private boolean getSign() {
         boolean sign = true;
-        if (str < end) {
-            if (data[str] == '+') {
-                str++;
-            } else if (data[str] == '-') {
-                str++;
+        if (p < end) {
+            if (data[p] == '+') {
+                p++;
+            } else if (data[p] == '-') {
+                p++;
                 sign = false;
             }
         }
@@ -109,16 +107,16 @@ public class ConvertBytes {
     }
 
     private void ignoreLeadingWhitespace() {
-        while (isSpace(str)) {
-            str++;
+        while (isSpace(p)) {
+            p++;
         }
     }
 
     private void figureOutBase() {
         if (base <= 0) {
-            if (str < end && data[str] == '0') {
-                if (str + 1 < end) {
-                    switch (data[str + 1]) {
+            if (p < end && data[p] == '0') {
+                if (p + 1 < end) {
+                    switch (data[p + 1]) {
                         case 'x':
                         case 'X':
                             base = 16;
@@ -151,13 +149,13 @@ public class ConvertBytes {
 
     private int calculateLength() {
         int len;
-        byte second = ((str + 1 < end) && data[str] == '0') ? data[str + 1] : (byte) 0;
+        byte second = ((p + 1 < end) && data[p] == '0') ? data[p + 1] : (byte) 0;
 
         switch (base) {
             case 2:
                 len = 1;
                 if (second == 'b' || second == 'B') {
-                    str += 2;
+                    p += 2;
                 }
                 break;
             case 3:
@@ -165,7 +163,7 @@ public class ConvertBytes {
                 break;
             case 8:
                 if (second == 'o' || second == 'O') {
-                    str += 2;
+                    p += 2;
                 }
                 len = 3;
                 break;
@@ -177,7 +175,7 @@ public class ConvertBytes {
                 break;
             case 10:
                 if (second == 'd' || second == 'D') {
-                    str += 2;
+                    p += 2;
                 }
                 len = 4;
                 break;
@@ -192,14 +190,14 @@ public class ConvertBytes {
             case 16:
                 len = 4;
                 if (second == 'x' || second == 'X') {
-                    str += 2;
+                    p += 2;
                 }
                 break;
             default:
                 if (base < 2 || 36 < base) {
                     throw new RaiseException(
                             context,
-                            context.getCoreExceptions().argumentErrorInvalidRadix(base, node));
+                            context.getCoreExceptions().argumentErrorInvalidRadix(base, caller));
                 }
                 if (base <= 32) {
                     len = 5;
@@ -214,10 +212,10 @@ public class ConvertBytes {
 
     private void squeezeZeroes() {
         byte c;
-        if (str < end && data[str] == '0') {
-            str++;
+        if (p < end && data[p] == '0') {
+            p++;
             int us = 0;
-            while ((str < end) && ((c = data[str]) == '0' || c == '_')) {
+            while ((p < end) && ((c = data[p]) == '0' || c == '_')) {
                 if (c == '_') {
                     if (++us >= 2) {
                         break;
@@ -225,10 +223,10 @@ public class ConvertBytes {
                 } else {
                     us += 0;
                 }
-                str++;
+                p++;
             }
-            if (str == end || isSpace(str)) {
-                str--;
+            if (p == end || isSpace(p)) {
+                p--;
             }
         }
     }
@@ -307,20 +305,13 @@ public class ConvertBytes {
     }
 
     @TruffleBoundary
-    public Object byteListToInum() {
-        if (_str == null) {
-            if (badcheck) {
-                invalidString();
-            }
-            return 0;
-        }
-
+    public Object bytesToInum() {
         ignoreLeadingWhitespace();
 
         boolean sign = getSign();
 
-        if (str < end) {
-            if (data[str] == '+' || data[str] == '-') {
+        if (p < end) {
+            if (data[p] == '+' || data[p] == '-') {
                 if (badcheck) {
                     invalidString();
                 }
@@ -335,8 +326,8 @@ public class ConvertBytes {
         squeezeZeroes();
 
         byte c = 0;
-        if (str < end) {
-            c = data[str];
+        if (p < end) {
+            c = data[p];
         }
         c = convertDigit(c);
         if (c < 0 || c >= base) {
@@ -349,18 +340,18 @@ public class ConvertBytes {
         if (base <= 10) {
             len *= (trailingLength());
         } else {
-            len *= (end - str);
+            len *= (end - p);
         }
 
         if (len < Long.SIZE - 1) {
-            int[] endPlace = new int[]{ str };
-            long val = stringToLong(str, endPlace, base);
+            int[] endPlace = new int[]{ p };
+            long val = stringToLong(p, endPlace, base);
 
             if (endPlace[0] < end && data[endPlace[0]] == '_') {
                 return bigParse(len, sign);
             }
             if (badcheck) {
-                if (endPlace[0] == str) {
+                if (endPlace[0] == p) {
                     invalidString(); // no number
                 }
 
@@ -392,7 +383,7 @@ public class ConvertBytes {
 
     private int trailingLength() {
         int newLen = 0;
-        for (int i = str; i < end; i++) {
+        for (int i = p; i < end; i++) {
             if (Character.isDigit(data[i])) {
                 newLen++;
             } else {
@@ -403,19 +394,19 @@ public class ConvertBytes {
     }
 
     private Object bigParse(int len, boolean sign) {
-        if (badcheck && str < end && data[str] == '_') {
+        if (badcheck && p < end && data[p] == '_') {
             invalidString();
         }
 
-        char[] result = new char[end - str];
+        char[] result = new char[end - p];
         int resultIndex = 0;
 
         byte nondigit = -1;
 
         // str2big_scan_digits
         {
-            while (str < end) {
-                byte c = data[str++];
+            while (p < end) {
+                byte c = data[p++];
                 byte cx = c;
                 if (c == '_') {
                     if (nondigit != -1) {
@@ -440,7 +431,7 @@ public class ConvertBytes {
                 return 0;
             }
 
-            int tmpStr = str;
+            int tmpStr = p;
             if (badcheck) {
                 // no str-- here because we don't null-terminate strings
                 if (1 < tmpStr && data[tmpStr - 1] == '_') {
@@ -463,13 +454,13 @@ public class ConvertBytes {
         }
 
         if (badcheck) {
-            if (1 < str && data[str - 1] == '_') {
+            if (1 < p && data[p - 1] == '_') {
                 invalidString();
             }
-            while (str < end && isSpace(str)) {
-                str++;
+            while (p < end && isSpace(p)) {
+                p++;
             }
-            if (str < end) {
+            if (p < end) {
                 invalidString();
             }
         }
@@ -546,20 +537,22 @@ public class ConvertBytes {
 
     /** rb_invalid_str */
     private void invalidString() {
-        throw new RaiseException(context, context.getCoreExceptions().argumentErrorInvalidStringToInteger(_str, node));
+        throw new RaiseException(
+                context,
+                context.getCoreExceptions().argumentErrorInvalidStringToInteger(rope, caller));
     }
 
     public static final byte[] intToBinaryBytes(int i) {
-        return intToUnsignedByteList(i, 1, LOWER_DIGITS).getBytes();
+        return intToUnsignedBytes(i, 1, LOWER_DIGITS).getBytes();
     }
 
     public static final byte[] intToOctalBytes(int i) {
-        return intToUnsignedByteList(i, 3, LOWER_DIGITS).getBytes();
+        return intToUnsignedBytes(i, 3, LOWER_DIGITS).getBytes();
     }
 
     public static final byte[] intToHexBytes(int i, boolean upper) {
-        RopeBuilder byteList = intToUnsignedByteList(i, 4, upper ? UPPER_DIGITS : LOWER_DIGITS);
-        return byteList.getBytes();
+        RopeBuilder ropeBuilder = intToUnsignedBytes(i, 4, upper ? UPPER_DIGITS : LOWER_DIGITS);
+        return ropeBuilder.getBytes();
     }
 
     public static final byte[] intToByteArray(int i, int radix, boolean upper) {
@@ -567,32 +560,32 @@ public class ConvertBytes {
     }
 
     public static final byte[] intToCharBytes(int i) {
-        return longToByteList(i, 10, LOWER_DIGITS).getBytes();
+        return longToBytes(i, 10, LOWER_DIGITS).getBytes();
     }
 
     public static final byte[] longToBinaryBytes(long i) {
-        return longToUnsignedByteList(i, 1, LOWER_DIGITS).getBytes();
+        return longToUnsignedBytes(i, 1, LOWER_DIGITS).getBytes();
     }
 
     public static final byte[] longToOctalBytes(long i) {
-        return longToUnsignedByteList(i, 3, LOWER_DIGITS).getBytes();
+        return longToUnsignedBytes(i, 3, LOWER_DIGITS).getBytes();
     }
 
     public static final byte[] longToHexBytes(long i, boolean upper) {
-        RopeBuilder byteList = longToUnsignedByteList(i, 4, upper ? UPPER_DIGITS : LOWER_DIGITS);
-        return byteList.getBytes();
+        RopeBuilder ropeBuilder = longToUnsignedBytes(i, 4, upper ? UPPER_DIGITS : LOWER_DIGITS);
+        return ropeBuilder.getBytes();
     }
 
     public static final byte[] longToByteArray(long i, int radix, boolean upper) {
-        RopeBuilder byteList = longToByteList(i, radix, upper ? UPPER_DIGITS : LOWER_DIGITS);
-        return byteList.getBytes();
+        RopeBuilder ropeBuilder = longToBytes(i, radix, upper ? UPPER_DIGITS : LOWER_DIGITS);
+        return ropeBuilder.getBytes();
     }
 
     public static final byte[] longToCharBytes(long i) {
-        return longToByteList(i, 10, LOWER_DIGITS).getBytes();
+        return longToBytes(i, 10, LOWER_DIGITS).getBytes();
     }
 
-    public static final RopeBuilder longToByteList(long i, int radix, byte[] digitmap) {
+    public static final RopeBuilder longToBytes(long i, int radix, byte[] digitmap) {
         if (i == 0) {
             return RopeBuilder.createRopeBuilder(ZERO_BYTES);
         }
@@ -622,7 +615,7 @@ public class ConvertBytes {
         return RopeBuilder.createRopeBuilder(buf, pos, len - pos);
     }
 
-    private static final RopeBuilder intToUnsignedByteList(int i, int shift, byte[] digitmap) {
+    private static final RopeBuilder intToUnsignedBytes(int i, int shift, byte[] digitmap) {
         byte[] buf = new byte[32];
         int charPos = 32;
         int radix = 1 << shift;
@@ -634,7 +627,7 @@ public class ConvertBytes {
         return RopeBuilder.createRopeBuilder(buf, charPos, (32 - charPos));
     }
 
-    private static final RopeBuilder longToUnsignedByteList(long i, int shift, byte[] digitmap) {
+    private static final RopeBuilder longToUnsignedBytes(long i, int shift, byte[] digitmap) {
         byte[] buf = new byte[64];
         int charPos = 64;
         int radix = 1 << shift;
