@@ -88,6 +88,7 @@ import org.truffleruby.extra.RubyAtomicReference;
 import org.truffleruby.extra.RubyConcurrentMap;
 import org.truffleruby.extra.ffi.RubyPointer;
 import org.truffleruby.core.string.ImmutableRubyString;
+import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyEvalInteractiveRootNode;
@@ -465,11 +466,12 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
             final ParserContext parserContext = MIME_TYPE_MAIN_SCRIPT.equals(source.getMimeType())
                     ? ParserContext.TOP_LEVEL_FIRST
                     : ParserContext.TOP_LEVEL;
+            final LexicalScope lexicalScope = contextIfSingleContext.map(RubyContext::getRootLexicalScope).orElse(null);
             return RubyLanguage.getCurrentContext().getCodeLoader().parse(
                     rubySource,
                     parserContext,
                     null,
-                    null,
+                    lexicalScope,
                     true,
                     parsingParameters.getCurrentNode());
         }

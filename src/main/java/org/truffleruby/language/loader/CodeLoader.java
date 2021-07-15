@@ -61,11 +61,12 @@ public class CodeLoader {
     public RootCallTarget parse(RubySource source,
             ParserContext parserContext,
             MaterializedFrame parentFrame,
-            RubyModule wrap,
+            LexicalScope lexicalScope,
             boolean ownScopeForAssignments,
             Node currentNode) {
         final TranslatorDriver translator = new TranslatorDriver(context, source);
-        return translator.parse(source, parserContext, null, parentFrame, wrap, ownScopeForAssignments, currentNode);
+        return translator
+                .parse(source, parserContext, null, parentFrame, lexicalScope, ownScopeForAssignments, currentNode);
     }
 
     @TruffleBoundary
@@ -73,23 +74,18 @@ public class CodeLoader {
             ParserContext parserContext,
             DeclarationContext declarationContext,
             MaterializedFrame parentFrame,
-            Object self) {
+            Object self,
+            LexicalScope lexicalScope) {
         final RubyRootNode rootNode = RubyRootNode.of(callTarget);
+        final InternalMethod parentMethod = parentFrame == null ? null : RubyArguments.getMethod(parentFrame);
 
         final RubyModule declaringModule;
         if (parserContext == ParserContext.EVAL && parentFrame != null) {
-            declaringModule = RubyArguments.getMethod(parentFrame).getDeclaringModule();
+            declaringModule = parentMethod.getDeclaringModule();
         } else if (parserContext == ParserContext.MODULE) {
             declaringModule = (RubyModule) self;
         } else {
             declaringModule = context.getCoreLibrary().objectClass;
-        }
-
-        final LexicalScope lexicalScope;
-        if (parentFrame != null) {
-            lexicalScope = RubyArguments.getMethod(parentFrame).getLexicalScope();
-        } else {
-            lexicalScope = context.getRootLexicalScope();
         }
 
         final InternalMethod method = new InternalMethod(

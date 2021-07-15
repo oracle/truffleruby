@@ -771,7 +771,8 @@ public class CoreLibrary {
                         ParserContext.TOP_LEVEL,
                         DeclarationContext.topLevel(context),
                         null,
-                        context.getCoreLibrary().mainObject);
+                        context.getCoreLibrary().mainObject,
+                        context.getRootLexicalScope());
 
                 TranslatorDriver.printParseTranslateExecuteMetric("before-execute", context, source);
                 deferredCall.callWithoutCallNode();

@@ -40,6 +40,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.ImmutableRubyObject;
+import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
@@ -392,12 +393,13 @@ public abstract class BasicObjectNodes {
 
             final RubySource source = EvalLoader
                     .createEvalSource(getContext(), stringRope, "instance_eval", fileNameString, line, this);
+            final LexicalScope lexicalScope = RubyArguments.getMethod(callerFrame).getLexicalScope();
 
             final RootCallTarget callTarget = getContext().getCodeLoader().parse(
                     source,
                     ParserContext.EVAL,
                     callerFrame,
-                    null,
+                    lexicalScope,
                     true,
                     this);
 
@@ -411,7 +413,8 @@ public abstract class BasicObjectNodes {
                     ParserContext.EVAL,
                     declarationContext,
                     callerFrame,
-                    receiver);
+                    receiver,
+                    lexicalScope);
 
             return deferredCall.call(callNode);
         }

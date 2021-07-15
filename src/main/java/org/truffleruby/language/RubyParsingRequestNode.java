@@ -49,7 +49,7 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
                 ParserContext.TOP_LEVEL,
                 argumentNames,
                 null,
-                null,
+                context.getRootLexicalScope(), // This is a top-level parse, so the lexical scope is always the root one
                 true,
                 null);
 

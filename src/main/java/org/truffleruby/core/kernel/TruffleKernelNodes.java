@@ -32,6 +32,7 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.FrameOrVariablesReadingNode;
+import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.ReadOwnFrameAndVariablesNode;
 import org.truffleruby.language.RubyContextNode;
@@ -115,7 +116,9 @@ public abstract class TruffleKernelNodes {
             final RootCallTarget callTarget;
             final DeclarationContext declarationContext;
             final Object self;
+            final LexicalScope lexicalScope;
             if (!wrap) {
+                lexicalScope = getContext().getRootLexicalScope();
                 callTarget = getContext().getCodeLoader().parseTopLevelWithCache(sourceRopePair, this);
 
                 declarationContext = DeclarationContext.topLevel(getContext());
@@ -123,13 +126,14 @@ public abstract class TruffleKernelNodes {
             } else {
                 final RubyModule wrapModule = ModuleNodes
                         .createModule(getContext(), null, coreLibrary().moduleClass, null, null, this);
+                lexicalScope = new LexicalScope(getContext().getRootLexicalScope(), wrapModule);
                 final RubySource rubySource = new RubySource(
                         sourceRopePair.getLeft(),
                         feature,
                         sourceRopePair.getRight());
                 callTarget = getContext()
                         .getCodeLoader()
-                        .parse(rubySource, ParserContext.TOP_LEVEL, null, wrapModule, true, this);
+                        .parse(rubySource, ParserContext.TOP_LEVEL, null, lexicalScope, true, this);
 
                 declarationContext = DeclarationContext.topLevel(wrapModule);
                 self = DispatchNode.getUncached().call(mainObject, "clone");
@@ -141,7 +145,8 @@ public abstract class TruffleKernelNodes {
                     ParserContext.TOP_LEVEL,
                     declarationContext,
                     null,
-                    self);
+                    self,
+                    lexicalScope);
 
             deferredCall.call(callNode);
 
