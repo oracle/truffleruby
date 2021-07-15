@@ -53,7 +53,6 @@ import org.truffleruby.core.kernel.AutoSplitNode;
 import org.truffleruby.core.kernel.ChompLoopNode;
 import org.truffleruby.core.kernel.KernelGetsNode;
 import org.truffleruby.core.kernel.KernelPrintLastLineNode;
-import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.DataNode;
 import org.truffleruby.language.EmitWarningsNode;
 import org.truffleruby.language.LexicalScope;
@@ -73,7 +72,6 @@ import org.truffleruby.language.methods.CatchNextNode;
 import org.truffleruby.language.methods.CatchRetryAsErrorNode;
 import org.truffleruby.language.methods.CatchReturnAsErrorNode;
 import org.truffleruby.language.methods.ExceptionTranslatingNode;
-import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.threadlocal.MakeSpecialVariableStorageNode;
@@ -86,7 +84,6 @@ import org.truffleruby.parser.parser.RubyParserResult;
 import org.truffleruby.parser.scope.StaticScope;
 import org.truffleruby.shared.Metrics;
 
-import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.nodes.Node;
@@ -107,7 +104,8 @@ public class TranslatorDriver {
     }
 
     public RootCallTarget parse(RubySource rubySource, ParserContext parserContext, String[] argumentNames,
-            MaterializedFrame parentFrame, RubyModule wrap, boolean ownScopeForAssignments, Node currentNode) {
+            MaterializedFrame parentFrame, LexicalScope staticLexicalScope, boolean ownScopeForAssignments,
+            Node currentNode) {
         if (rubySource.getSource() != parseEnvironment.source) {
             throw CompilerDirectives.shouldNotReachHere("TranslatorDriver used with a different Source");
         }
@@ -196,29 +194,13 @@ public class TranslatorDriver {
         final SourceSection sourceSection = source.createSection(0, source.getCharacters().length());
         final SourceIndexLength sourceIndexLength = new SourceIndexLength(sourceSection);
 
-        final InternalMethod parentMethod = parentFrame == null ? null : RubyArguments.getMethod(parentFrame);
-        LexicalScope lexicalScope;
-        if (parentMethod != null) {
-            lexicalScope = parentMethod.getLexicalScope();
-        } else {
-            if (wrap == null) {
-                lexicalScope = context.getRootLexicalScope();
-            } else {
-                lexicalScope = new LexicalScope(context.getRootLexicalScope(), wrap);
-            }
-        }
-        if (parserContext == ParserContext.MODULE) {
-            Object module = RubyArguments.getSelf(context.getCallStack().getCurrentFrame(FrameAccess.READ_ONLY));
-            lexicalScope = new LexicalScope(lexicalScope, (RubyModule) module);
-        }
-
-        final String modulePath = lexicalScope == context.getRootLexicalScope()
+        final String modulePath = staticLexicalScope == null || staticLexicalScope == context.getRootLexicalScope()
                 ? null
-                : lexicalScope.getLiveModule().getName();
+                : staticLexicalScope.getLiveModule().getName();
         final String methodName = getMethodName(parserContext, parentFrame);
         final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                 sourceSection,
-                language.singleContext ? lexicalScope : null,
+                language.singleContext ? staticLexicalScope : null,
                 Arity.NO_ARGUMENTS,
                 methodName,
                 0,

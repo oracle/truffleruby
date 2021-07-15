@@ -225,7 +225,8 @@ public abstract class RequireNode extends RubyContextNode {
                     ParserContext.TOP_LEVEL,
                     DeclarationContext.topLevel(getContext()),
                     null,
-                    coreLibrary().mainObject);
+                    coreLibrary().mainObject,
+                    getContext().getRootLexicalScope());
 
             requireMetric("before-execute-" + feature);
             try {

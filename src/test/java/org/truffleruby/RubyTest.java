@@ -58,7 +58,7 @@ public abstract class RubyTest {
                     new RubySource(source, source.getName()),
                     ParserContext.TOP_LEVEL,
                     null,
-                    null,
+                    RubyLanguage.getCurrentContext().getRootLexicalScope(),
                     true,
                     null);
             test.accept(RubyRootNode.of(callTarget));

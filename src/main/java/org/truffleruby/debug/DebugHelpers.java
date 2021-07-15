@@ -12,6 +12,7 @@ package org.truffleruby.debug;
 import com.oracle.truffle.api.RootCallTarget;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -43,6 +44,7 @@ public abstract class DebugHelpers {
 
         final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(currentFrame);
 
+        final LexicalScope lexicalScope = RubyArguments.getMethod(currentFrame).getLexicalScope();
         final Object[] packedArguments = RubyArguments.pack(
                 null,
                 null,
@@ -74,14 +76,15 @@ public abstract class DebugHelpers {
 
         final RootCallTarget callTarget = context
                 .getCodeLoader()
-                .parse(new RubySource(source, "debug-eval"), ParserContext.INLINE, evalFrame, null, true, null);
+                .parse(new RubySource(source, "debug-eval"), ParserContext.INLINE, evalFrame, lexicalScope, true, null);
 
         final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
                 callTarget,
                 ParserContext.INLINE,
                 declarationContext,
                 evalFrame,
-                RubyArguments.getSelf(evalFrame));
+                RubyArguments.getSelf(evalFrame),
+                lexicalScope);
 
         return deferredCall.callWithoutCallNode();
     }

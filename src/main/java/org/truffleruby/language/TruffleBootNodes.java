@@ -147,7 +147,8 @@ public abstract class TruffleBootNodes {
                             ParserContext.TOP_LEVEL_FIRST,
                             DeclarationContext.topLevel(getContext()),
                             null,
-                            coreLibrary().mainObject);
+                            coreLibrary().mainObject,
+                            getContext().getRootLexicalScope());
 
                     deferredCall.call(callNode);
                 }
@@ -294,7 +295,7 @@ public abstract class TruffleBootNodes {
             RubyContext context = getContext();
             RootCallTarget callTarget = context
                     .getCodeLoader()
-                    .parse(source, ParserContext.TOP_LEVEL, null, null, true, null);
+                    .parse(source, ParserContext.TOP_LEVEL, null, context.getRootLexicalScope(), true, null);
             RubyRootNode rubyRootNode = RubyRootNode.of(callTarget);
             EmitWarningsNode emitWarningsNode = NodeUtil.findFirstNodeInstance(rubyRootNode, EmitWarningsNode.class);
             if (emitWarningsNode != null) {

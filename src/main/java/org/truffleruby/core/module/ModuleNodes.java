@@ -675,16 +675,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = { "class_eval", "module_eval" }, optional = 3, lowerFixnum = 3, needsBlock = true)
     public abstract static class ClassEvalNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ToStrNode toStrNode;
         @Child private ReadCallerFrameNode readCallerFrameNode = ReadCallerFrameNode.create();
-
-        protected Object toStr(VirtualFrame frame, Object object) {
-            if (toStrNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                toStrNode = insert(ToStrNode.create());
-            }
-            return toStrNode.execute(object);
-        }
 
         @Specialization(guards = { "libCode.isRubyString(code)" })
         protected Object classEval(
@@ -720,8 +711,9 @@ public abstract class ModuleNodes {
         @Specialization(guards = "wasProvided(code)")
         protected Object classEval(
                 VirtualFrame frame, RubyModule module, Object code, NotProvided file, NotProvided line, Nil block,
-                @Cached IndirectCallNode callNode) {
-            return classEvalSource(frame, module, toStr(frame, code), "(eval)", callNode);
+                @Cached IndirectCallNode callNode,
+                @Cached ToStrNode toStrNode) {
+            return classEvalSource(frame, module, toStrNode.execute(code), "(eval)", callNode);
         }
 
         @Specialization(guards = { "libCode.isRubyString(code)", "wasProvided(file)" })
@@ -729,8 +721,9 @@ public abstract class ModuleNodes {
                 VirtualFrame frame, RubyModule module, Object code, Object file, NotProvided line, Nil block,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringLibrary,
                 @Cached IndirectCallNode callNode,
-                @CachedLibrary(limit = "2") RubyStringLibrary libCode) {
-            final String javaString = stringLibrary.getJavaString(toStr(frame, file));
+                @CachedLibrary(limit = "2") RubyStringLibrary libCode,
+                @Cached ToStrNode toStrNode) {
+            final String javaString = stringLibrary.getJavaString(toStrNode.execute(file));
             return classEvalSource(frame, module, code, javaString, callNode);
         }
 
@@ -758,12 +751,15 @@ public abstract class ModuleNodes {
                     file,
                     line,
                     this);
+            final LexicalScope lexicalScope = new LexicalScope(
+                    RubyArguments.getMethod(callerFrame).getLexicalScope(),
+                    module);
 
             final RootCallTarget callTarget = getContext().getCodeLoader().parse(
                     source,
                     ParserContext.MODULE,
                     callerFrame,
-                    null,
+                    lexicalScope,
                     true,
                     this);
 
@@ -775,7 +771,8 @@ public abstract class ModuleNodes {
                             new FixedDefaultDefinee(module),
                             DeclarationContext.NO_REFINEMENTS),
                     callerFrame,
-                    module);
+                    module,
+                    lexicalScope);
         }
 
         @Specialization

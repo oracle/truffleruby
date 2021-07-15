@@ -51,7 +51,7 @@ public class RubyInlineParsingRequestNode extends ExecutableNode {
                 ParserContext.INLINE,
                 null,
                 currentFrame,
-                null,
+                RubyArguments.getMethod(currentFrame).getLexicalScope(),
                 false,
                 null);
 

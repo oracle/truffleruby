@@ -95,6 +95,7 @@ import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.ImmutableRubyObject;
+import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
@@ -882,12 +883,14 @@ public abstract class KernelNodes {
             if (assignsNewUserVariables(descriptor)) {
                 binding.setFrame(frame);
             }
+            final LexicalScope lexicalScope = RubyArguments.getMethod(frame).getLexicalScope();
             return context.getCodeLoader().prepareExecute(
                     callTarget,
                     ParserContext.EVAL,
                     declarationContext,
                     frame,
-                    self);
+                    self,
+                    lexicalScope);
         }
 
         protected RootCallTarget parse(RubyContext context, Rope sourceText, MaterializedFrame parentFrame, Rope file,
@@ -897,9 +900,10 @@ public abstract class KernelNodes {
             final String sourceFile = RopeOperations.decodeRope(file).intern();
             final RubySource source = EvalLoader
                     .createEvalSource(context, sourceText, "eval", sourceFile, line, this);
+            final LexicalScope lexicalScope = RubyArguments.getMethod(parentFrame).getLexicalScope();
             return context
                     .getCodeLoader()
-                    .parse(source, ParserContext.EVAL, parentFrame, null, ownScopeForAssignments, this);
+                    .parse(source, ParserContext.EVAL, parentFrame, lexicalScope, ownScopeForAssignments, this);
         }
 
         protected RootCallTarget compileSource(RubyContext context, Rope sourceText, MaterializedFrame parentFrame,
