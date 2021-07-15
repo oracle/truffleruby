@@ -3,6 +3,7 @@ require 'objspace'
 
 describe "ObjectSpace.trace_object_allocations" do
   it "runs a block" do
+    ScratchPad.clear
     ObjectSpace.trace_object_allocations do
       ScratchPad.record :a
     end
@@ -21,9 +22,9 @@ describe "ObjectSpace.trace_object_allocations" do
   it "records info for allocation_generation" do
     ObjectSpace.trace_object_allocations do
       o = Object.new
-      ObjectSpace.allocation_generation(o).kind_of?(Integer).should == true
+      ObjectSpace.allocation_generation(o).should.kind_of?(Integer)
       a = [1, 2, 3]
-      ObjectSpace.allocation_generation(a).kind_of?(Integer).should == true
+      ObjectSpace.allocation_generation(a).should.kind_of?(Integer)
     end
   end
 
@@ -37,13 +38,11 @@ describe "ObjectSpace.trace_object_allocations" do
   end
 
   it "records info for allocation_sourcefile" do
-
     ObjectSpace.trace_object_allocations do
-      filename = File.basename(__FILE__)
       o = Object.new
-      ObjectSpace.allocation_sourcefile(o).end_with?(filename).should == true
+      ObjectSpace.allocation_sourcefile(o).should == __FILE__
       a = [1, 2, 3]
-      ObjectSpace.allocation_sourcefile(a).end_with?(filename).should == true
+      ObjectSpace.allocation_sourcefile(a).should == __FILE__
     end
   end
 
@@ -75,17 +74,23 @@ describe "ObjectSpace.trace_object_allocations" do
 
   it "can be used without a block using trace_object_allocations_start and _stop" do
     ObjectSpace.trace_object_allocations_start
-    o = Object.new
-    ObjectSpace.allocation_class_path(o).should == "Class"
-    a = [1, 2, 3]
-    ObjectSpace.allocation_class_path(a).should == nil
-    ObjectSpace.trace_object_allocations_stop
+    begin
+      o = Object.new
+      ObjectSpace.allocation_class_path(o).should == "Class"
+      a = [1, 2, 3]
+      ObjectSpace.allocation_class_path(a).should == nil
+    ensure
+      ObjectSpace.trace_object_allocations_stop
+    end
   end
 
   it "does not clears allocation data after trace_object_allocations_stop" do
     ObjectSpace.trace_object_allocations_start
-    o = Object.new
-    ObjectSpace.trace_object_allocations_stop
+    begin
+      o = Object.new
+    ensure
+      ObjectSpace.trace_object_allocations_stop
+    end
     ObjectSpace.allocation_class_path(o).should == "Class"
   end
 
@@ -100,18 +105,29 @@ describe "ObjectSpace.trace_object_allocations" do
 
   it "can be nested without a block using trace_object_allocations_start and _stop" do
     ObjectSpace.trace_object_allocations_start
-    ObjectSpace.trace_object_allocations_start
-    o = Object.new
-    ObjectSpace.allocation_class_path(o).should == "Class"
-    ObjectSpace.trace_object_allocations_stop
-    ObjectSpace.trace_object_allocations_stop
+    begin
+      ObjectSpace.trace_object_allocations_start
+      begin
+        o = Object.new
+        ObjectSpace.allocation_class_path(o).should == "Class"
+      ensure
+        ObjectSpace.trace_object_allocations_stop
+      end
+    ensure
+      ObjectSpace.trace_object_allocations_stop
+    end
   end
 
-  it "can be nested with more _stop than _start" do
-    ObjectSpace.trace_object_allocations_start
-    o = Object.new
-    ObjectSpace.allocation_class_path(o).should == "Class"
-    ObjectSpace.trace_object_allocations_stop
-    ObjectSpace.trace_object_allocations_stop
+  ruby_version_is "2.6" do
+    it "can be nested with more _stop than _start" do
+      ObjectSpace.trace_object_allocations_start
+      begin
+        o = Object.new
+        ObjectSpace.allocation_class_path(o).should == "Class"
+        ObjectSpace.trace_object_allocations_stop
+      ensure
+        ObjectSpace.trace_object_allocations_stop
+      end
+    end
   end
 end
