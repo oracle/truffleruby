@@ -16,9 +16,11 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.inlined.InlinedDispatchNode;
 import org.truffleruby.core.inlined.InlinedMethodNode;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyDynamicObject;
@@ -31,6 +33,7 @@ import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.language.methods.InternalMethod;
 
 public abstract class AllocationTracing {
 
@@ -116,11 +119,19 @@ public abstract class AllocationTracing {
 
         final Frame allocatingFrame = context.getCallStack().getCurrentRubyFrame(FrameAccess.READ_ONLY);
 
-        final Object allocatingSelf = RubyArguments.getSelf(allocatingFrame);
-        final String allocatingMethod = RubyArguments.getMethod(allocatingFrame).getName();
-        final String className = LogicalClassNode.getUncached().execute(allocatingSelf).fields.getName();
+        final InternalMethod method = RubyArguments.getMethod(allocatingFrame);
+        final LexicalScope lexicalScope = method.getLexicalScope();
+        final RubyModule module = lexicalScope.getLiveModule();
+        final String className;
+        if (lexicalScope == context.getRootLexicalScope()) {
+            className = "";
+        } else if (module == null) {
+            className = "";
+        } else {
+            className = module.fields.getName();
+        }
 
-        storeAllocationTrace(context, object, allocatingSourceSection, className, allocatingMethod);
+        storeAllocationTrace(context, object, allocatingSourceSection, className, method.getName());
     }
 
     @TruffleBoundary

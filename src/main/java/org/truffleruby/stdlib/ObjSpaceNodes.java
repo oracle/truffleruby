@@ -150,7 +150,12 @@ public abstract class ObjSpaceNodes {
             if (trace == null) {
                 return nil;
             } else {
-                return makeStringNode.executeMake(trace.className, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                final String className = trace.className;
+                if (className.isEmpty()) {
+                    return nil;
+                } else {
+                    return makeStringNode.executeMake(className, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                }
             }
         }
     }
