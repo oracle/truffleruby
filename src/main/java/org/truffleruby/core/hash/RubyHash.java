@@ -32,6 +32,7 @@ import org.truffleruby.core.hash.library.BucketsHashStore;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.interop.ForeignToRubyNode;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyLibrary;
@@ -42,12 +43,10 @@ import org.truffleruby.language.objects.ObjectGraphNode;
 @ImportStatic(HashGuards.class)
 public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
 
-    public Object defaultBlock;
-    public Object defaultValue;
     public Object store;
     public int size;
-    public Entry firstInSequence;
-    public Entry lastInSequence;
+    public Object defaultBlock;
+    public Object defaultValue;
     public boolean compareByIdentity;
     public boolean ruby2_keywords = false;
 
@@ -56,20 +55,13 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
             Shape shape,
             RubyContext context,
             Object store,
-            int size,
-            Entry firstInSequence,
-            Entry lastInSequence,
-            Object defaultBlock,
-            Object defaultValue,
-            boolean compareByIdentity) {
+            int size) {
         super(rubyClass, shape);
-        this.defaultBlock = defaultBlock;
-        this.defaultValue = defaultValue;
         this.store = store;
         this.size = size;
-        this.firstInSequence = firstInSequence;
-        this.lastInSequence = lastInSequence;
-        this.compareByIdentity = compareByIdentity;
+        this.defaultBlock = Nil.INSTANCE;
+        this.defaultValue = Nil.INSTANCE;
+        this.compareByIdentity = false;
 
         if (context.isPreInitializing()) {
             context.getPreInitializationManager().addPreInitHash(this);
@@ -79,7 +71,7 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
     @TruffleBoundary
     public void getAdjacentObjects(Set<Object> reachable) {
         if (store instanceof BucketsHashStore) {
-            BucketsHashStore.getAdjacentObjects(reachable, firstInSequence);
+            ((BucketsHashStore) store).getAdjacentObjects(reachable);
         } else {
             ObjectGraph.addProperty(reachable, store);
         }

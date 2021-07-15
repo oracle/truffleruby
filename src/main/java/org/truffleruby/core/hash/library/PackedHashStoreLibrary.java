@@ -147,24 +147,11 @@ public class PackedHashStoreLibrary {
             lastInSequence = entry;
 
             final int bucketIndex = BucketsHashStore.getBucketIndex(hashed, buckets.length);
-
-            Entry previousInLookup = buckets[bucketIndex];
-
-            if (previousInLookup == null) {
-                buckets[bucketIndex] = entry;
-            } else {
-                while (previousInLookup.getNextInLookup() != null) {
-                    previousInLookup = previousInLookup.getNextInLookup();
-                }
-
-                previousInLookup.setNextInLookup(entry);
-            }
+            BucketsHashStore.appendToLookupChain(buckets, entry, bucketIndex);
         }
 
-        hash.store = new BucketsHashStore(buckets);
+        hash.store = new BucketsHashStore(buckets, firstInSequence, lastInSequence);
         hash.size = size;
-        hash.firstInSequence = firstInSequence;
-        hash.lastInSequence = lastInSequence;
     }
 
     // endregion
@@ -328,8 +315,6 @@ public class PackedHashStoreLibrary {
         int size = hash.size;
         dest.store = storeCopy;
         dest.size = size;
-        dest.firstInSequence = null;
-        dest.lastInSequence = null;
         dest.defaultBlock = hash.defaultBlock;
         dest.defaultValue = hash.defaultValue;
         dest.compareByIdentity = hash.compareByIdentity;
@@ -387,11 +372,6 @@ public class PackedHashStoreLibrary {
         assert hash.store == store;
         final int size = hash.size;
         assert store.length == TOTAL_ELEMENTS : store.length;
-
-        final Entry firstInSequence = hash.firstInSequence;
-        final Entry lastInSequence = hash.lastInSequence;
-        assert firstInSequence == null;
-        assert lastInSequence == null;
 
         for (int i = 0; i < size * ELEMENTS_PER_ENTRY; i++) {
             assert store[i] != null;
@@ -544,12 +524,7 @@ public class PackedHashStoreLibrary {
                     getLanguage().hashShape,
                     getContext(),
                     store,
-                    size,
-                    null,
-                    null,
-                    nil,
-                    nil,
-                    false);
+                    size);
         }
 
         private int hash(Object key) {
