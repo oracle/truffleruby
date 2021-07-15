@@ -22,6 +22,8 @@ import static org.truffleruby.core.rope.CodeRange.CR_VALID;
 import java.util.Arrays;
 
 import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
@@ -1105,17 +1107,17 @@ public abstract class RopeNodes {
 
         @Specialization(guards = "singleByteOptimizableNode.execute(rope)")
         protected int getCodePointSingleByte(RubyEncoding encoding, Rope rope, int index,
-                @Cached GetByteNode getByteNode) {
+                @Cached @Exclusive GetByteNode getByteNode) {
             return getByteNode.executeGetByte(rope, index);
         }
 
         @Specialization(guards = { "!singleByteOptimizableNode.execute(rope)", "rope.getEncoding().isUTF8()" })
         protected int getCodePointUTF8(RubyEncoding encoding, Rope rope, int index,
-                @Cached GetByteNode getByteNode,
+                @Cached @Exclusive GetByteNode getByteNode,
                 @Cached ConditionProfile singleByteCharProfile,
-                @Cached GetBytesObjectNode getBytesObject,
-                @Cached CodeRangeNode codeRangeNode,
-                @Cached BranchProfile errorProfile) {
+                @Cached @Shared("getBytesObject") GetBytesObjectNode getBytesObject,
+                @Cached @Shared("codeRangeNode") CodeRangeNode codeRangeNode,
+                @Cached @Shared("errorProfile") BranchProfile errorProfile) {
             final int firstByte = getByteNode.executeGetByte(rope, index);
             if (singleByteCharProfile.profile(firstByte < 128)) {
                 return firstByte;
@@ -1126,9 +1128,9 @@ public abstract class RopeNodes {
 
         @Specialization(guards = { "!singleByteOptimizableNode.execute(rope)", "!rope.getEncoding().isUTF8()" })
         protected int getCodePointMultiByte(RubyEncoding encoding, Rope rope, int index,
-                @Cached GetBytesObjectNode getBytesObject,
-                @Cached CodeRangeNode codeRangeNode,
-                @Cached BranchProfile errorProfile) {
+                @Cached @Shared("getBytesObject") GetBytesObjectNode getBytesObject,
+                @Cached @Shared("codeRangeNode") CodeRangeNode codeRangeNode,
+                @Cached @Shared("errorProfile") BranchProfile errorProfile) {
             final Bytes bytes = getBytesObject.getRange(rope, index, rope.byteLength());
             final CodeRange codeRange = codeRangeNode.execute(rope);
 
@@ -1537,10 +1539,10 @@ public abstract class RopeNodes {
 
         @Specialization(guards = { "codeRange == CR_VALID", "encoding.isUTF8()" })
         protected int validUtf8(Encoding encoding, CodeRange codeRange, Bytes bytes, boolean recoverIfBroken,
-                @Cached BranchProfile oneByteProfile,
-                @Cached BranchProfile twoBytesProfile,
-                @Cached BranchProfile threeBytesProfile,
-                @Cached BranchProfile fourBytesProfile) {
+                @Cached @Exclusive BranchProfile oneByteProfile,
+                @Cached @Exclusive BranchProfile twoBytesProfile,
+                @Cached @Exclusive BranchProfile threeBytesProfile,
+                @Cached @Exclusive BranchProfile fourBytesProfile) {
             final byte b = bytes.get(0);
             final int ret;
 
@@ -1569,7 +1571,7 @@ public abstract class RopeNodes {
 
         @Specialization(guards = { "codeRange == CR_VALID", "encoding.isAsciiCompatible()" })
         protected int validAsciiCompatible(Encoding encoding, CodeRange codeRange, Bytes bytes, boolean recoverIfBroken,
-                @Cached ConditionProfile asciiCharProfile) {
+                @Cached @Exclusive ConditionProfile asciiCharProfile) {
             if (asciiCharProfile.profile(bytes.get(0) >= 0)) {
                 return 1;
             } else {
@@ -1597,8 +1599,8 @@ public abstract class RopeNodes {
         @Specialization(guards = { "codeRange == CR_BROKEN || codeRange == CR_UNKNOWN", "recoverIfBroken" })
         protected int brokenOrUnknownWithRecovery(
                 Encoding encoding, CodeRange codeRange, Bytes bytes, boolean recoverIfBroken,
-                @Cached ConditionProfile validCharWidthProfile,
-                @Cached ConditionProfile minEncodingWidthUsedProfile) {
+                @Cached @Shared("validCharWidthProfile") ConditionProfile validCharWidthProfile,
+                @Cached @Exclusive ConditionProfile minEncodingWidthUsedProfile) {
             final int width = encodingLength(encoding, bytes);
 
             if (validCharWidthProfile.profile(width > 0 && width <= bytes.length)) {
@@ -1617,7 +1619,7 @@ public abstract class RopeNodes {
         @Specialization(guards = { "codeRange == CR_BROKEN || codeRange == CR_UNKNOWN", "!recoverIfBroken" })
         protected int brokenOrUnknownWithoutRecovery(
                 Encoding encoding, CodeRange codeRange, Bytes bytes, boolean recoverIfBroken,
-                @Cached ConditionProfile validCharWidthProfile) {
+                @Cached @Shared("validCharWidthProfile") ConditionProfile validCharWidthProfile) {
 
             final int width = encodingLength(encoding, bytes);
 
@@ -1808,13 +1810,13 @@ public abstract class RopeNodes {
 
         @Specialization(guards = "rope.getRawBytes() == null")
         protected Bytes getBytesObject(SubstringRope rope, int offset, int length,
-                @Cached BytesNode bytes) {
+                @Cached @Shared("bytes") BytesNode bytes) {
             return new Bytes(bytes.execute(rope.getChild()), rope.getByteOffset() + offset, length);
         }
 
         @Specialization(guards = { "rope.getRawBytes() == null", "!isSubstringRope(rope)" })
         protected Bytes getBytesObject(ManagedRope rope, int offset, int length,
-                @Cached BytesNode bytes) {
+                @Cached @Shared("bytes") BytesNode bytes) {
             return new Bytes(bytes.execute(rope), offset, length);
         }
 

@@ -11,6 +11,7 @@ package org.truffleruby.core.numeric;
 
 import java.math.BigInteger;
 
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -335,7 +336,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected Object divIntFallback(int a, int b,
-                @Cached ConditionProfile zeroProfile) {
+                @Cached @Shared("zeroProfile") ConditionProfile zeroProfile) {
             if (zeroProfile.profile(b == 0)) {
                 throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             } else {
@@ -376,7 +377,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected Object divLongFallback(long a, long b,
-                @Cached ConditionProfile zeroProfile) {
+                @Cached @Shared("zeroProfile") ConditionProfile zeroProfile) {
             if (zeroProfile.profile(b == 0)) {
                 throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             } else {

@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects;
 
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.klass.RubyClass;
@@ -67,7 +68,7 @@ public abstract class IsANode extends RubyBaseNode {
 
     @Specialization(replaces = "isAClassCached")
     protected boolean isAClassUncached(Object self, RubyClass klass,
-            @Cached MetaClassNode metaClassNode,
+            @Cached @Shared("metaClassNode") MetaClassNode metaClassNode,
             @Cached ConditionProfile isMetaClass) {
         final RubyClass metaclass = metaClassNode.execute(self);
 
@@ -87,7 +88,7 @@ public abstract class IsANode extends RubyBaseNode {
 
     @Specialization(guards = "!isRubyClass(module)", replaces = "isAMetaClassCached")
     protected boolean isAUncached(Object self, RubyModule module,
-            @Cached MetaClassNode metaClassNode) {
+            @Cached @Shared("metaClassNode") MetaClassNode metaClassNode) {
         return isA(metaClassNode.execute(self), module);
     }
 
