@@ -178,11 +178,14 @@ public abstract class ObjSpaceNodes {
             if (trace == null) {
                 return nil;
             } else {
-                String allocatingMethod = trace.allocatingMethod;
-                if (allocatingMethod.equals("__allocate__")) { // The allocator function is hidden in MRI
-                    allocatingMethod = "new";
+                final String allocatingMethod = trace.allocatingMethod;
+                if (allocatingMethod.startsWith("<")) { // <top (required)> or <main> are hidden in MRI
+                    return nil;
+                } else if (allocatingMethod.equals("__allocate__")) { // The allocator function is hidden in MRI
+                    return getLanguage().coreSymbols.NEW;
+                } else {
+                    return getLanguage().getSymbol(allocatingMethod);
                 }
-                return getLanguage().getSymbol(allocatingMethod);
             }
         }
     }
