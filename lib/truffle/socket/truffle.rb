@@ -102,15 +102,14 @@ module Truffle
         fd = Truffle::Socket::Foreign.memory_pointer(:int) do |size_p|
           size_p.write_int(sockaddr.size)
 
-          Truffle::Socket::Foreign
-            .accept(source.fileno, sockaddr.pointer, size_p)
+          Truffle::Socket::Foreign.accept(source.fileno, sockaddr.pointer, size_p)
         end
 
         if fd < 0
-          if exception
-            Error.read_error('accept(2)', source)
-          else
+          if !exception and Errno.errno == Truffle::POSIX::EAGAIN_ERRNO
             return :wait_readable
+          else
+            Error.read_error('accept(2)', source)
           end
         end
 
