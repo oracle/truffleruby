@@ -524,10 +524,7 @@ public class PackedHashStoreLibrary {
                     getLanguage().hashShape,
                     getContext(),
                     store,
-                    size,
-                    nil,
-                    nil,
-                    false);
+                    size);
         }
 
         private int hash(Object key) {

@@ -14,22 +14,17 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.hash.library.EmptyHashStore;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 
 public abstract class HashOperations {
 
     public static RubyHash newEmptyHash(RubyContext context, RubyLanguage language) {
-        final Object nil = Nil.INSTANCE;
         return new RubyHash(
                 context.getCoreLibrary().hashClass,
                 language.hashShape,
                 context,
                 EmptyHashStore.NULL_HASH_STORE,
-                0,
-                nil,
-                nil,
-                false);
+                0);
     }
 
     // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes

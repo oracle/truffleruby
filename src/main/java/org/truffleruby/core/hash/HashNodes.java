@@ -58,7 +58,7 @@ public abstract class HashNodes {
         protected RubyHash allocate(RubyClass rubyClass) {
             final Shape shape = getLanguage().hashShape;
             final EmptyHashStore store = EmptyHashStore.NULL_HASH_STORE;
-            final RubyHash hash = new RubyHash(rubyClass, shape, getContext(), store, 0, nil, nil, false);
+            final RubyHash hash = new RubyHash(rubyClass, shape, getContext(), store, 0);
             AllocationTracing.trace(hash, this);
             return hash;
         }
@@ -109,7 +109,7 @@ public abstract class HashNodes {
             }
 
             final Shape shape = getLanguage().hashShape;
-            return new RubyHash(hashClass, shape, getContext(), newStore, size, nil, nil, false);
+            return new RubyHash(hashClass, shape, getContext(), newStore, size);
         }
 
         @Specialization(guards = "!isSmallArrayOfPairs(args, getLanguage())")
