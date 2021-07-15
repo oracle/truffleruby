@@ -180,12 +180,6 @@ module ObjectSpace
     end
   end
 
-  def trace_object_allocations_clear
-    TruffleRuby.synchronized(ALLOCATIONS) do
-      ALLOCATIONS.clear
-    end
-  end
-
   def trace_object_allocations_debug_start
     trace_object_allocations_start
   end
@@ -198,58 +192,27 @@ module ObjectSpace
     Truffle::ObjSpace.trace_allocations_stop
   end
 
+  def trace_object_allocations_clear
+    Truffle::ObjSpace.trace_allocations_clear
+  end
+
   def allocation_class_path(object)
-    allocation = TruffleRuby.synchronized(ALLOCATIONS) do
-      ALLOCATIONS[object]
-    end
-    return nil if allocation.nil?
-    allocation.class_path
+    Primitive.allocation_class_path(object)
   end
 
   def allocation_generation(object)
-    allocation = TruffleRuby.synchronized(ALLOCATIONS) do
-      ALLOCATIONS[object]
-    end
-    return nil if allocation.nil?
-    allocation.generation
+    Primitive.allocation_generation(object)
   end
 
   def allocation_method_id(object)
-    allocation = TruffleRuby.synchronized(ALLOCATIONS) do
-      ALLOCATIONS[object]
-    end
-    return nil if allocation.nil?
-
-    method_id = allocation.method_id
-    # The allocator function is hidden in MRI
-    method_id = :new if method_id == :__allocate__
-    method_id
+    Primitive.allocation_method_id(object)
   end
 
   def allocation_sourcefile(object)
-    allocation = TruffleRuby.synchronized(ALLOCATIONS) do
-      ALLOCATIONS[object]
-    end
-    return nil if allocation.nil?
-    allocation.sourcefile
+    Primitive.allocation_sourcefile(object)
   end
 
   def allocation_sourceline(object)
-    allocation = TruffleRuby.synchronized(ALLOCATIONS) do
-      ALLOCATIONS[object]
-    end
-    return nil if allocation.nil?
-    allocation.sourceline
-  end
-
-  Allocation = Struct.new(:class_path, :method_id, :sourcefile, :sourceline, :generation)
-
-  ALLOCATIONS = {}.compare_by_identity
-
-  def trace_allocation(object, class_path, method_id, sourcefile, sourceline, generation)
-    allocation = Allocation.new(class_path, method_id, sourcefile, sourceline, generation)
-    TruffleRuby.synchronized(ALLOCATIONS) do
-      ALLOCATIONS[object] = allocation
-    end
+    Primitive.allocation_sourceline(object)
   end
 end
