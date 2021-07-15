@@ -154,6 +154,8 @@ if MSpecScript.child_process?
 end
 
 if i = ARGV.index('slow') and ARGV[i-1] == '--excl-tag' and MSpecScript.child_process?
+  SKIP_SLOW_SPECS = true
+
   require 'mspec'
   require 'timeout'
 

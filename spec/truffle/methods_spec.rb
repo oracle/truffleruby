@@ -39,7 +39,7 @@ modules = %w[
 requires = %w[digest socket]
 requires_code = requires.map { |lib| "require #{lib.inspect}" }.join("\n")
 
-guard -> { !defined?(SlowSpecsTagger) } do
+guard -> { !defined?(SKIP_SLOW_SPECS) } do
   if RUBY_ENGINE == "ruby"
     modules.each do |mod|
       file = File.expand_path("../methods/#{mod}.txt", __FILE__)
