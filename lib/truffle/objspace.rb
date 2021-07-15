@@ -8,10 +8,6 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-require 'json'
-require 'tempfile'
-require 'weakref'
-
 module ObjectSpace
 
   def count_nodes(nodes = {})
@@ -87,6 +83,7 @@ module ObjectSpace
   def dump(object, output: :string)
     case output
     when :string
+      require 'json'
       json = {
         address: '0x' + object.object_id.to_s(16),
         class: '0x' + object.class.object_id.to_s(16),
@@ -119,6 +116,7 @@ module ObjectSpace
       end
       JSON.generate(json)
     when :file
+      require 'tempfile'
       f = Tempfile.new(['rubyobj', '.json'])
       f.write dump(object, output: :string)
       f.close
@@ -139,6 +137,7 @@ module ObjectSpace
       end
       objects.join("\n")
     when :file
+      require 'tempfile'
       f = Tempfile.new(['ruby', '.json'])
       f.write dump_all(output: :string)
       f.close
