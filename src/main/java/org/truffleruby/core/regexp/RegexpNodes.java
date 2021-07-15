@@ -49,7 +49,6 @@ import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.Node;
-import org.truffleruby.language.objects.AllocationTracing;
 
 @CoreModule(value = "Regexp", isClass = true)
 public abstract class RegexpNodes {
@@ -234,14 +233,12 @@ public abstract class RegexpNodes {
 
         @Specialization
         protected RubyRegexp allocate(RubyClass rubyClass) {
-            final RubyRegexp regexp = new RubyRegexp(
+            return new RubyRegexp(
                     null,
                     null,
                     RegexpOptions.NULL_OPTIONS,
                     null,
                     null);
-            AllocationTracing.trace(regexp, this);
-            return regexp;
         }
 
     }
