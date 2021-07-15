@@ -13,10 +13,9 @@ import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.convert.ToDoubleNode;
-import org.truffleruby.core.format.convert.ToDoubleNodeGen;
 import org.truffleruby.core.format.read.SourceNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -27,16 +26,10 @@ import com.oracle.truffle.api.library.CachedLibrary;
 @ImportStatic(ArrayGuards.class)
 public abstract class ReadDoubleNode extends FormatNode {
 
-    @Child private ToDoubleNode toDoubleNode;
-
     @Specialization(limit = "storageStrategyLimit()")
     protected Object read(VirtualFrame frame, Object source,
-            @CachedLibrary("source") ArrayStoreLibrary sources) {
-        if (toDoubleNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            toDoubleNode = insert(ToDoubleNodeGen.create(null));
-        }
-
+            @CachedLibrary("source") ArrayStoreLibrary sources,
+            @Cached ToDoubleNode toDoubleNode) {
         return toDoubleNode.executeToDouble(frame, sources.read(source, advanceSourcePosition(frame)));
     }
 

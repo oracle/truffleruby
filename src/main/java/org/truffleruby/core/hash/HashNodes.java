@@ -68,7 +68,7 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class ConstructNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private DispatchNode fallbackNode = DispatchNode.create();
+        @Child private DispatchNode fallbackNode;
 
         @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL)
         @Specialization(guards = "isSmallArrayOfPairs(args, getLanguage())")
@@ -87,14 +87,14 @@ public abstract class HashNodes {
                     final Object pair = store[n];
 
                     if (!RubyGuards.isRubyArray(pair)) {
-                        return fallbackNode.call(hashClass, "_constructor_fallback", args);
+                        return fallback(hashClass, args);
                     }
 
                     final RubyArray pairArray = (RubyArray) pair;
                     final Object pairStore = pairArray.store;
 
                     if (pairStore.getClass() != Object[].class || pairArray.size != 2) {
-                        return fallbackNode.call(hashClass, "_constructor_fallback", args);
+                        return fallback(hashClass, args);
                     }
 
                     final Object[] pairObjectStore = (Object[]) pairStore;
@@ -114,6 +114,14 @@ public abstract class HashNodes {
 
         @Specialization(guards = "!isSmallArrayOfPairs(args, getLanguage())")
         protected Object constructFallback(RubyClass hashClass, Object[] args) {
+            return fallback(hashClass, args);
+        }
+
+        private Object fallback(RubyClass hashClass, Object[] args) {
+            if (fallbackNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                fallbackNode = insert(DispatchNode.create());
+            }
             return fallbackNode.call(hashClass, "_constructor_fallback", args);
         }
 
