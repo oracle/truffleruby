@@ -1,3 +1,13 @@
 fails:ObjectSpace.trace_object_allocations records info for allocation_class_path
 fails:ObjectSpace.trace_object_allocations records info for allocation_method_id
 fails:ObjectSpace.trace_object_allocations can be used without a block using trace_object_allocations_start and _stop
+slow:ObjectSpace.trace_object_allocations runs a block
+slow:ObjectSpace.trace_object_allocations records info for allocation_generation
+slow:ObjectSpace.trace_object_allocations records info for allocation_sourcefile
+slow:ObjectSpace.trace_object_allocations records info for allocation_sourceline
+slow:ObjectSpace.trace_object_allocations can be cleared using trace_object_allocations_clear
+slow:ObjectSpace.trace_object_allocations does not clears allocation data after returning
+slow:ObjectSpace.trace_object_allocations can be nested
+slow:ObjectSpace.trace_object_allocations does not clears allocation data after trace_object_allocations_stop
+slow:ObjectSpace.trace_object_allocations can be nested without a block using trace_object_allocations_start and _stop
+slow:ObjectSpace.trace_object_allocations can be nested with more _stop than _start

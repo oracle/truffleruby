@@ -156,10 +156,11 @@ end
 if i = ARGV.index('slow') and ARGV[i-1] == '--excl-tag' and MSpecScript.child_process?
   require 'mspec'
   require 'timeout'
+  require 'objspace'
 
   slow_methods = [
     [Object, [:ruby_exe, :ruby_cmd]],
-    [ObjectSpace.singleton_class, [:each_object]],
+    [ObjectSpace.singleton_class, [:each_object, :trace_object_allocations_start]],
     [GC.singleton_class, [:start]],
     [Kernel, [:system, :`]],
     [Kernel.singleton_class, [:system, :`]],
