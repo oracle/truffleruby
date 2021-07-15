@@ -46,8 +46,6 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
     public Object defaultValue;
     public Object store;
     public int size;
-    public Entry firstInSequence;
-    public Entry lastInSequence;
     public boolean compareByIdentity;
     public boolean ruby2_keywords = false;
 
@@ -57,8 +55,6 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
             RubyContext context,
             Object store,
             int size,
-            Entry firstInSequence,
-            Entry lastInSequence,
             Object defaultBlock,
             Object defaultValue,
             boolean compareByIdentity) {
@@ -67,8 +63,6 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
         this.defaultValue = defaultValue;
         this.store = store;
         this.size = size;
-        this.firstInSequence = firstInSequence;
-        this.lastInSequence = lastInSequence;
         this.compareByIdentity = compareByIdentity;
 
         if (context.isPreInitializing()) {
@@ -79,7 +73,7 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
     @TruffleBoundary
     public void getAdjacentObjects(Set<Object> reachable) {
         if (store instanceof BucketsHashStore) {
-            BucketsHashStore.getAdjacentObjects(reachable, firstInSequence);
+            ((BucketsHashStore) store).getAdjacentObjects(reachable);
         } else {
             ObjectGraph.addProperty(reachable, store);
         }

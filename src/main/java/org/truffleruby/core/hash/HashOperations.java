@@ -27,8 +27,6 @@ public abstract class HashOperations {
                 context,
                 EmptyHashStore.NULL_HASH_STORE,
                 0,
-                null,
-                null,
                 nil,
                 nil,
                 false);

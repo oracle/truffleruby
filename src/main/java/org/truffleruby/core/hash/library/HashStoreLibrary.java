@@ -72,8 +72,6 @@ public abstract class HashStoreLibrary extends Library {
     public void clear(Object store, RubyHash hash) {
         hash.store = EmptyHashStore.NULL_HASH_STORE;
         hash.size = 0;
-        hash.firstInSequence = null;
-        hash.lastInSequence = null;
     }
 
     /** Removes the entry for the key from the hash, and returns the associated value. If the hash does not have an

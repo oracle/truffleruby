@@ -55,9 +55,13 @@ import java.util.Set;
 public class BucketsHashStore {
 
     private final Entry[] entries;
+    private Entry firstInSequence;
+    private Entry lastInSequence;
 
-    public BucketsHashStore(Entry[] entries) {
+    public BucketsHashStore(Entry[] entries, Entry firstInSequence, Entry lastInSequence) {
         this.entries = entries;
+        this.firstInSequence = firstInSequence;
+        this.lastInSequence = lastInSequence;
     }
 
     // region Constants
@@ -121,25 +125,28 @@ public class BucketsHashStore {
     }
 
     @TruffleBoundary
-    private static void resize(RubyHash hash) {
-        final int bucketsCount = capacityGreaterThan(hash.size) * OVERALLOCATE_FACTOR;
+    private void resize(RubyHash hash, int size) {
+        final int bucketsCount = capacityGreaterThan(size) * OVERALLOCATE_FACTOR;
         final Entry[] newEntries = new Entry[bucketsCount];
 
-        Entry entry = hash.firstInSequence;
+        final Entry firstInSequence = this.firstInSequence;
+        Entry lastInSequence = null;
+        Entry entry = firstInSequence;
 
         while (entry != null) {
             final int bucketIndex = getBucketIndex(entry.getHashed(), bucketsCount);
             appendToLookupChain(newEntries, entry, bucketIndex);
 
             entry.setNextInLookup(null);
+            lastInSequence = entry;
             entry = entry.getNextInSequence();
         }
 
-        hash.store = new BucketsHashStore(newEntries);
+        hash.store = new BucketsHashStore(newEntries, firstInSequence, lastInSequence);
     }
 
-    public static void getAdjacentObjects(Set<Object> reachable, Entry firstInSequence) {
-        Entry entry = firstInSequence;
+    public void getAdjacentObjects(Set<Object> reachable) {
+        Entry entry = this.firstInSequence;
         while (entry != null) {
             ObjectGraph.addProperty(reachable, entry.getKey());
             ObjectGraph.addProperty(reachable, entry.getValue());
@@ -147,23 +154,23 @@ public class BucketsHashStore {
         }
     }
 
-    private static void removeFromSequenceChain(RubyHash hash, Entry entry) {
+    private void removeFromSequenceChain(Entry entry) {
         final Entry previousInSequence = entry.getPreviousInSequence();
         final Entry nextInSequence = entry.getNextInSequence();
 
         if (previousInSequence == null) {
-            assert hash.firstInSequence == entry;
-            hash.firstInSequence = nextInSequence;
+            assert this.firstInSequence == entry;
+            this.firstInSequence = nextInSequence;
         } else {
-            assert hash.firstInSequence != entry;
+            assert this.firstInSequence != entry;
             previousInSequence.setNextInSequence(nextInSequence);
         }
 
         if (nextInSequence == null) {
-            assert hash.lastInSequence == entry;
-            hash.lastInSequence = previousInSequence;
+            assert this.lastInSequence == entry;
+            this.lastInSequence = previousInSequence;
         } else {
-            assert hash.lastInSequence != entry;
+            assert this.lastInSequence != entry;
             nextInSequence.setPreviousInSequence(previousInSequence);
         }
     }
@@ -243,20 +250,20 @@ public class BucketsHashStore {
                 result.getPreviousEntry().setNextInLookup(newEntry);
             }
 
-            final Entry lastInSequence = hash.lastInSequence;
+            final Entry lastInSequence = this.lastInSequence;
             if (appending.profile(lastInSequence == null)) {
-                hash.firstInSequence = newEntry;
+                this.firstInSequence = newEntry;
             } else {
                 lastInSequence.setNextInSequence(newEntry);
                 newEntry.setPreviousInSequence(lastInSequence);
             }
-            hash.lastInSequence = newEntry;
+            this.lastInSequence = newEntry;
 
             final int newSize = (hash.size += 1);
             assert verify(hash);
 
             if (resize.profile(newSize / (double) entries.length > LOAD_FACTOR)) {
-                resize(hash);
+                resize(hash, newSize);
                 assert ((BucketsHashStore) hash.store).verify(hash); // store changed!
             }
             return true;
@@ -281,7 +288,7 @@ public class BucketsHashStore {
             return null;
         }
 
-        removeFromSequenceChain(hash, entry);
+        removeFromSequenceChain(entry);
         removeFromLookupChain(entries, lookupResult.getIndex(), entry, lookupResult.getPreviousEntry());
         hash.size -= 1;
         assert verify(hash);
@@ -294,7 +301,7 @@ public class BucketsHashStore {
         assert verify(hash);
 
         final Entry[] entries = this.entries;
-        final Entry lastEntry = hash.lastInSequence;
+        final Entry lastEntry = this.lastInSequence;
         if (key != lastEntry.getKey()) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             throw CompilerDirectives
@@ -311,15 +318,15 @@ public class BucketsHashStore {
         }
         assert entry.getNextInSequence() == null;
 
-        if (singleEntry.profile(hash.firstInSequence == entry)) {
+        if (singleEntry.profile(this.firstInSequence == entry)) {
             assert entry.getPreviousInSequence() == null;
-            hash.firstInSequence = null;
-            hash.lastInSequence = null;
+            this.firstInSequence = null;
+            this.lastInSequence = null;
         } else {
             assert entry.getPreviousInSequence() != null;
             final Entry previousInSequence = entry.getPreviousInSequence();
             previousInSequence.setNextInSequence(null);
-            hash.lastInSequence = previousInSequence;
+            this.lastInSequence = previousInSequence;
         }
 
         removeFromLookupChain(entries, index, entry, previousEntry);
@@ -336,7 +343,7 @@ public class BucketsHashStore {
         assert verify(hash);
         loopProfile.profileCounted(hash.size);
         int i = 0;
-        Entry entry = hash.firstInSequence;
+        Entry entry = this.firstInSequence;
         try {
             while (loopProfile.inject(entry != null)) {
                 callback.accept(i++, entry.getKey(), entry.getValue(), state);
@@ -370,7 +377,7 @@ public class BucketsHashStore {
 
         Entry firstInSequence = null;
         Entry lastInSequence = null;
-        Entry entry = hash.firstInSequence;
+        Entry entry = this.firstInSequence;
 
         while (entry != null) {
             final Entry newEntry = new Entry(entry.getHashed(), entry.getKey(), entry.getValue());
@@ -388,10 +395,8 @@ public class BucketsHashStore {
             entry = entry.getNextInSequence();
         }
 
-        dest.store = new BucketsHashStore(newEntries);
+        dest.store = new BucketsHashStore(newEntries, firstInSequence, lastInSequence);
         dest.size = hash.size;
-        dest.firstInSequence = firstInSequence;
-        dest.lastInSequence = lastInSequence;
         dest.defaultBlock = hash.defaultBlock;
         dest.defaultValue = hash.defaultValue;
         dest.compareByIdentity = hash.compareByIdentity;
@@ -406,21 +411,18 @@ public class BucketsHashStore {
         assert verify(hash);
 
         final Entry[] entries = this.entries;
-        final Entry first = hash.firstInSequence;
+        final Entry first = this.firstInSequence;
         assert first.getPreviousInSequence() == null;
 
         final Object key = first.getKey();
         final Object value = first.getValue();
 
-        hash.firstInSequence = first.getNextInSequence();
-
-        if (first.getNextInSequence() != null) {
-            first.getNextInSequence().setPreviousInSequence(null);
-            hash.firstInSequence = first.getNextInSequence();
-        }
-
-        if (hash.lastInSequence == first) {
-            hash.lastInSequence = null;
+        final Entry second = first.getNextInSequence();
+        this.firstInSequence = second;
+        if (second == null) {
+            this.lastInSequence = null;
+        } else {
+            second.setPreviousInSequence(null);
         }
 
         final int index = getBucketIndex(first.getHashed(), entries.length);
@@ -452,7 +454,7 @@ public class BucketsHashStore {
         final Entry[] entries = this.entries;
         Arrays.fill(entries, null);
 
-        Entry entry = hash.firstInSequence;
+        Entry entry = this.firstInSequence;
         while (entry != null) {
             final int newHash = hashNode.execute(entry.getKey(), hash.compareByIdentity);
             entry.setHashed(newHash);
@@ -474,7 +476,7 @@ public class BucketsHashStore {
                             newHash,
                             bucketEntry.getKey(),
                             bucketEntry.getHashed())) {
-                        removeFromSequenceChain(hash, entry);
+                        removeFromSequenceChain(entry);
                         size--;
                         break;
                     }
@@ -498,8 +500,8 @@ public class BucketsHashStore {
 
         final Entry[] entries = this.entries;
         final int size = hash.size;
-        final Entry firstInSequence = hash.firstInSequence;
-        final Entry lastInSequence = hash.lastInSequence;
+        final Entry firstInSequence = this.firstInSequence;
+        final Entry lastInSequence = this.lastInSequence;
         assert lastInSequence == null || lastInSequence.getNextInSequence() == null;
 
         Entry foundFirst = null;
@@ -603,10 +605,8 @@ public class BucketsHashStore {
                     coreLibrary().hashClass,
                     getLanguage().hashShape,
                     getContext(),
-                    new BucketsHashStore(new Entry[bucketsCount]),
+                    new BucketsHashStore(new Entry[bucketsCount], null, null),
                     0,
-                    null,
-                    null,
                     nil,
                     nil,
                     false);

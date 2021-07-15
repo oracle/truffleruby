@@ -86,8 +86,6 @@ public class EmptyHashStore {
         propagateSharing.executePropagate(dest, hash);
         dest.store = EmptyHashStore.NULL_HASH_STORE;
         dest.size = 0;
-        dest.firstInSequence = null;
-        dest.lastInSequence = null;
         dest.defaultBlock = hash.defaultBlock;
         dest.defaultValue = hash.defaultValue;
         dest.compareByIdentity = hash.compareByIdentity;
@@ -110,8 +108,6 @@ public class EmptyHashStore {
         assert hash.store == this;
         assert hash.store == NULL_HASH_STORE;
         assert hash.size == 0;
-        assert hash.firstInSequence == null;
-        assert hash.lastInSequence == null;
         return true;
     }
 
