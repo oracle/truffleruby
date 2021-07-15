@@ -129,17 +129,7 @@ public class BucketsHashStore {
 
         while (entry != null) {
             final int bucketIndex = getBucketIndex(entry.getHashed(), bucketsCount);
-            Entry previousInLookup = newEntries[bucketIndex];
-
-            if (previousInLookup == null) {
-                newEntries[bucketIndex] = entry;
-            } else {
-                while (previousInLookup.getNextInLookup() != null) {
-                    previousInLookup = previousInLookup.getNextInLookup();
-                }
-
-                previousInLookup.setNextInLookup(entry);
-            }
+            appendToLookupChain(newEntries, entry, bucketIndex);
 
             entry.setNextInLookup(null);
             entry = entry.getNextInSequence();
@@ -183,6 +173,25 @@ public class BucketsHashStore {
             entries[index] = entry.getNextInLookup();
         } else {
             previousEntry.setNextInLookup(entry.getNextInLookup());
+        }
+    }
+
+    static void appendToLookupChain(Entry[] entries, Entry entry, int bucketIndex) {
+        Entry previousInLookup = entries[bucketIndex];
+
+        if (previousInLookup == null) {
+            entries[bucketIndex] = entry;
+        } else {
+            while (true) {
+                final Entry nextInLookup = previousInLookup.getNextInLookup();
+                if (nextInLookup == null) {
+                    break;
+                } else {
+                    previousInLookup = nextInLookup;
+                }
+            }
+
+            previousInLookup.setNextInLookup(entry);
         }
     }
 
@@ -420,11 +429,7 @@ public class BucketsHashStore {
         Entry entry = entries[index];
         while (entry != null) {
             if (entry == first) {
-                if (previous == null) {
-                    entries[index] = first.getNextInLookup();
-                } else {
-                    previous.setNextInLookup(first.getNextInLookup());
-                }
+                removeFromLookupChain(entries, index, first, previous);
                 break;
             }
 

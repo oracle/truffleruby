@@ -147,18 +147,7 @@ public class PackedHashStoreLibrary {
             lastInSequence = entry;
 
             final int bucketIndex = BucketsHashStore.getBucketIndex(hashed, buckets.length);
-
-            Entry previousInLookup = buckets[bucketIndex];
-
-            if (previousInLookup == null) {
-                buckets[bucketIndex] = entry;
-            } else {
-                while (previousInLookup.getNextInLookup() != null) {
-                    previousInLookup = previousInLookup.getNextInLookup();
-                }
-
-                previousInLookup.setNextInLookup(entry);
-            }
+            BucketsHashStore.appendToLookupChain(buckets, entry, bucketIndex);
         }
 
         hash.store = new BucketsHashStore(buckets);
