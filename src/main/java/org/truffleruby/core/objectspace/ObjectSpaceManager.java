@@ -61,6 +61,7 @@ public class ObjectSpaceManager {
     @CompilationFinal private boolean isTracing = false;
 
     private final AtomicInteger tracingAssumptionActivations = new AtomicInteger(0);
+    private final AtomicInteger tracingGeneration = new AtomicInteger(0);
     private final ThreadLocal<Boolean> tracingPaused = ThreadLocal.withInitial(() -> false);
 
     public static final long INITIAL_LANGUAGE_OBJECT_ID = 16;
@@ -83,6 +84,10 @@ public class ObjectSpaceManager {
         }
     }
 
+    public void traceAllocationsClear() {
+        tracingGeneration.incrementAndGet();
+    }
+
     public boolean isTracing(RubyLanguage language) {
         CompilerAsserts.partialEvaluationConstant(language);
 
@@ -99,6 +104,10 @@ public class ObjectSpaceManager {
 
     public void setTracingPaused(boolean tracingPaused) {
         this.tracingPaused.set(tracingPaused);
+    }
+
+    public int getTracingGeneration() {
+        return tracingGeneration.get();
     }
 
     public static long readObjectID(RubyDynamicObject object, DynamicObjectLibrary objectLibrary) {

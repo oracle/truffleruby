@@ -55,6 +55,11 @@ public class CallStackManager {
     }
 
     @TruffleBoundary
+    public Frame getCurrentRubyFrame(FrameAccess frameAccess) {
+        return iterateFrames(0, f -> isRubyFrame(f.getFrame(FrameAccess.READ_ONLY)), f -> f.getFrame(frameAccess));
+    }
+
+    @TruffleBoundary
     public Frame getCallerFrame(FrameAccess frameAccess) {
         // System.err.printf("Getting a caller frame...\n");
         // new Error().printStackTrace();

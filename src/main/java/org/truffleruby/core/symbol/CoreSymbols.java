@@ -32,6 +32,7 @@ public class CoreSymbols {
     public final RubySymbol[] STATIC_SYMBOLS = new RubySymbol[STATIC_SYMBOLS_SIZE];
 
     public final RubySymbol CLASS = createRubySymbol("class");
+    public final RubySymbol NEW = createRubySymbol("new");
     public final RubySymbol IMMEDIATE = createRubySymbol("immediate");
     public final RubySymbol LINE = createRubySymbol("line");
     public final RubySymbol NEVER = createRubySymbol("never");
