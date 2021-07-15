@@ -8,54 +8,50 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
+module Truffle::ObjSpace
+  def self.count_nodes_method(method, nodes)
+    node_stack = [Truffle.ast(method)]
+
+    until node_stack.empty?
+      node = node_stack.pop
+      next if node.nil?
+
+      name = node.first
+      children = node.drop(1)
+      nodes[name] ||= 0
+      nodes[name] += 1
+      node_stack.push(*children)
+    end
+  end
+end
+
 module ObjectSpace
+  module_function
 
   def count_nodes(nodes = {})
     ObjectSpace.each_object(Module) do |mod|
       mod.methods(false).each do |name|
-        count_nodes_method mod.method(name), nodes
+        Truffle::ObjSpace.count_nodes_method mod.method(name), nodes
       end
 
       mod.private_methods(false).each do |name|
-        count_nodes_method mod.method(name), nodes
+        Truffle::ObjSpace.count_nodes_method mod.method(name), nodes
       end
     end
 
     ObjectSpace.each_object(Proc) do |proc|
-      count_nodes_method proc, nodes
+      Truffle::ObjSpace.count_nodes_method proc, nodes
     end
 
     ObjectSpace.each_object(Method) do |method|
-      count_nodes_method method, nodes
+      Truffle::ObjSpace.count_nodes_method method, nodes
     end
 
     ObjectSpace.each_object(UnboundMethod) do |umethod|
-      count_nodes_method umethod, nodes
+      Truffle::ObjSpace.count_nodes_method umethod, nodes
     end
 
     nodes
-  end
-
-  module_function :count_nodes
-
-  class << self
-
-    def count_nodes_method(method, nodes)
-      node_stack = [Truffle.ast(method)]
-
-      until node_stack.empty?
-        node = node_stack.pop
-        next if node.nil?
-
-        name = node.first
-        children = node.drop(1)
-        nodes[name] ||= 0
-        nodes[name] += 1
-        node_stack.push(*children)
-      end
-    end
-    private :count_nodes_method
-
   end
 
   def count_objects_size(hash = {})
@@ -68,7 +64,6 @@ module ObjectSpace
     hash[:TOTAL] = total
     hash
   end
-  module_function :count_objects_size
 
   def count_tdata_objects(hash = {})
     ObjectSpace.each_object do |object|
@@ -78,7 +73,6 @@ module ObjectSpace
     end
     hash
   end
-  module_function :count_tdata_objects
 
   def dump(object, output: :string)
     case output
@@ -126,7 +120,6 @@ module ObjectSpace
       nil
     end
   end
-  module_function :dump
 
   def dump_all(output: :file)
     case output
@@ -150,7 +143,6 @@ module ObjectSpace
       nil
     end
   end
-  module_function :dump_all
 
   def memsize_of(object)
     size = Truffle::ObjSpace.memsize_of(object)
@@ -162,7 +154,6 @@ module ObjectSpace
       size
     end
   end
-  module_function :memsize_of
 
   def memsize_of_all(klass = BasicObject)
     total = 0
@@ -171,17 +162,14 @@ module ObjectSpace
     end
     total
   end
-  module_function :memsize_of_all
 
   def reachable_objects_from(object)
     Truffle::ObjSpace.adjacent_objects(object)
   end
-  module_function :reachable_objects_from
 
   def reachable_objects_from_root
-    {'roots' => Truffle::ObjSpace.root_objects}
+    { 'roots' => Truffle::ObjSpace.root_objects }
   end
-  module_function :reachable_objects_from_root
 
   def trace_object_allocations
     trace_object_allocations_start
@@ -191,29 +179,24 @@ module ObjectSpace
       trace_object_allocations_stop
     end
   end
-  module_function :trace_object_allocations
 
   def trace_object_allocations_clear
     TruffleRuby.synchronized(ALLOCATIONS) do
       ALLOCATIONS.clear
     end
   end
-  module_function :trace_object_allocations_clear
 
   def trace_object_allocations_debug_start
     trace_object_allocations_start
   end
-  module_function :trace_object_allocations_debug_start
 
   def trace_object_allocations_start
     Truffle::ObjSpace.trace_allocations_start
   end
-  module_function :trace_object_allocations_start
 
   def trace_object_allocations_stop
     Truffle::ObjSpace.trace_allocations_stop
   end
-  module_function :trace_object_allocations_stop
 
   def allocation_class_path(object)
     allocation = TruffleRuby.synchronized(ALLOCATIONS) do
@@ -222,7 +205,6 @@ module ObjectSpace
     return nil if allocation.nil?
     allocation.class_path
   end
-  module_function :allocation_class_path
 
   def allocation_generation(object)
     allocation = TruffleRuby.synchronized(ALLOCATIONS) do
@@ -231,7 +213,6 @@ module ObjectSpace
     return nil if allocation.nil?
     allocation.generation
   end
-  module_function :allocation_generation
 
   def allocation_method_id(object)
     allocation = TruffleRuby.synchronized(ALLOCATIONS) do
@@ -244,7 +225,6 @@ module ObjectSpace
     method_id = :new if method_id == :__allocate__
     method_id
   end
-  module_function :allocation_method_id
 
   def allocation_sourcefile(object)
     allocation = TruffleRuby.synchronized(ALLOCATIONS) do
@@ -253,7 +233,6 @@ module ObjectSpace
     return nil if allocation.nil?
     allocation.sourcefile
   end
-  module_function :allocation_sourcefile
 
   def allocation_sourceline(object)
     allocation = TruffleRuby.synchronized(ALLOCATIONS) do
@@ -262,7 +241,6 @@ module ObjectSpace
     return nil if allocation.nil?
     allocation.sourceline
   end
-  module_function :allocation_sourceline
 
   Allocation = Struct.new(:class_path, :method_id, :sourcefile, :sourceline, :generation)
 
@@ -274,6 +252,4 @@ module ObjectSpace
       ALLOCATIONS[object] = allocation
     end
   end
-  module_function :trace_allocation
-
 end
