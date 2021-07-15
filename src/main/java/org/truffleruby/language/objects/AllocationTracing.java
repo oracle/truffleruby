@@ -117,7 +117,7 @@ public abstract class AllocationTracing {
                 .getCallStack()
                 .getTopMostUserSourceSection(currentNode.getEncapsulatingSourceSection());
 
-        final Frame allocatingFrame = context.getCallStack().getCurrentFrame(FrameAccess.READ_ONLY);
+        final Frame allocatingFrame = context.getCallStack().getCurrentRubyFrame(FrameAccess.READ_ONLY);
 
         final Object allocatingSelf = RubyArguments.getSelf(allocatingFrame);
         final String allocatingMethod = RubyArguments.getMethod(allocatingFrame).getName();
