@@ -54,7 +54,7 @@ import java.util.Set;
 @GenerateUncached
 public class BucketsHashStore {
 
-    private Entry[] entries;
+    private final Entry[] entries;
 
     public BucketsHashStore(Entry[] entries) {
         this.entries = entries;
@@ -178,9 +178,9 @@ public class BucketsHashStore {
         }
     }
 
-    private static void removeFromLookupChain(RubyHash hash, int index, Entry entry, Entry previousEntry) {
+    private static void removeFromLookupChain(Entry[] entries, int index, Entry entry, Entry previousEntry) {
         if (previousEntry == null) {
-            ((BucketsHashStore) hash.store).entries[index] = entry.getNextInLookup();
+            entries[index] = entry.getNextInLookup();
         } else {
             previousEntry.setNextInLookup(entry.getNextInLookup());
         }
@@ -194,7 +194,8 @@ public class BucketsHashStore {
             @Cached @Shared("lookup") LookupEntryNode lookup,
             @Cached @Exclusive ConditionProfile found) {
 
-        final HashLookupResult hashLookupResult = lookup.execute(hash, key);
+        final Entry[] entries = this.entries;
+        final HashLookupResult hashLookupResult = lookup.execute(hash, entries, key);
 
         if (found.profile(hashLookupResult.getEntry() != null)) {
             return hashLookupResult.getEntry().getValue();
@@ -213,14 +214,15 @@ public class BucketsHashStore {
             @Cached @Exclusive ConditionProfile bucketCollision,
             @Cached @Exclusive ConditionProfile appending,
             @Cached @Exclusive ConditionProfile resize) {
-
         assert verify(hash);
+
         final Object key2 = freezeHashKeyIfNeeded.executeFreezeIfNeeded(key, byIdentity);
 
         propagateSharingKey.executePropagate(hash, key2);
         propagateSharingValue.executePropagate(hash, value);
 
-        final HashLookupResult result = lookup.execute(hash, key2);
+        final Entry[] entries = this.entries;
+        final HashLookupResult result = lookup.execute(hash, entries, key2);
         final Entry entry = result.getEntry();
 
         if (missing.profile(entry == null)) {
@@ -260,9 +262,10 @@ public class BucketsHashStore {
     protected Object delete(RubyHash hash, Object key,
             @Cached @Shared("lookup") LookupEntryNode lookup,
             @Cached @Exclusive ConditionProfile missing) {
-
         assert verify(hash);
-        final HashLookupResult lookupResult = lookup.execute(hash, key);
+
+        final Entry[] entries = this.entries;
+        final HashLookupResult lookupResult = lookup.execute(hash, entries, key);
         final Entry entry = lookupResult.getEntry();
 
         if (missing.profile(entry == null)) {
@@ -270,7 +273,7 @@ public class BucketsHashStore {
         }
 
         removeFromSequenceChain(hash, entry);
-        removeFromLookupChain(hash, lookupResult.getIndex(), entry, lookupResult.getPreviousEntry());
+        removeFromLookupChain(entries, lookupResult.getIndex(), entry, lookupResult.getPreviousEntry());
         hash.size -= 1;
         assert verify(hash);
         return entry.getValue();
@@ -280,6 +283,8 @@ public class BucketsHashStore {
     protected Object deleteLast(RubyHash hash, Object key,
             @Cached @Exclusive ConditionProfile singleEntry) {
         assert verify(hash);
+
+        final Entry[] entries = this.entries;
         final Entry lastEntry = hash.lastInSequence;
         if (key != lastEntry.getKey()) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -308,7 +313,7 @@ public class BucketsHashStore {
             hash.lastInSequence = previousInSequence;
         }
 
-        removeFromLookupChain(hash, index, entry, previousEntry);
+        removeFromLookupChain(entries, index, entry, previousEntry);
         hash.size -= 1;
         assert verify(hash);
         return entry.getValue();
@@ -351,7 +356,8 @@ public class BucketsHashStore {
         propagateSharing.executePropagate(dest, hash);
         assert verify(hash);
 
-        final Entry[] newEntries = new Entry[((BucketsHashStore) hash.store).entries.length];
+        final Entry[] entries = ((BucketsHashStore) hash.store).entries;
+        final Entry[] newEntries = new Entry[entries.length];
 
         Entry firstInSequence = null;
         Entry lastInSequence = null;
@@ -390,6 +396,7 @@ public class BucketsHashStore {
 
         assert verify(hash);
 
+        final Entry[] entries = this.entries;
         final Entry first = hash.firstInSequence;
         assert first.getPreviousInSequence() == null;
 
@@ -407,7 +414,7 @@ public class BucketsHashStore {
             hash.lastInSequence = null;
         }
 
-        final int index = getBucketIndex(first.getHashed(), this.entries.length);
+        final int index = getBucketIndex(first.getHashed(), entries.length);
 
         Entry previous = null;
         Entry entry = entries[index];
@@ -437,6 +444,7 @@ public class BucketsHashStore {
             @Cached HashingNodes.ToHash hashNode) {
 
         assert verify(hash);
+        final Entry[] entries = this.entries;
         Arrays.fill(entries, null);
 
         Entry entry = hash.firstInSequence;
@@ -483,6 +491,7 @@ public class BucketsHashStore {
     public boolean verify(RubyHash hash) {
         assert hash.store == this;
 
+        final Entry[] entries = this.entries;
         final int size = hash.size;
         final Entry firstInSequence = hash.firstInSequence;
         final Entry lastInSequence = hash.lastInSequence;
@@ -538,17 +547,16 @@ public class BucketsHashStore {
     @GenerateUncached
     abstract static class LookupEntryNode extends RubyBaseNode {
 
-        public abstract HashLookupResult execute(RubyHash hash, Object key);
+        public abstract HashLookupResult execute(RubyHash hash, Entry[] entries, Object key);
 
         @Specialization
-        protected HashLookupResult lookup(RubyHash hash, Object key,
+        protected HashLookupResult lookup(RubyHash hash, Entry[] entries, Object key,
                 @Cached HashingNodes.ToHash hashNode,
                 @Cached CompareHashKeysNode compareHashKeysNode,
                 @Cached ConditionProfile byIdentityProfile) {
             final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
             int hashed = hashNode.execute(key, compareByIdentity);
 
-            final Entry[] entries = ((BucketsHashStore) hash.store).entries;
             final int index = getBucketIndex(hashed, entries.length);
             Entry entry = entries[index];
 
