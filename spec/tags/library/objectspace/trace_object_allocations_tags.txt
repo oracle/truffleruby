@@ -8,3 +8,6 @@ slow:ObjectSpace.trace_object_allocations can be nested
 slow:ObjectSpace.trace_object_allocations does not clears allocation data after trace_object_allocations_stop
 slow:ObjectSpace.trace_object_allocations can be nested without a block using trace_object_allocations_start and _stop
 slow:ObjectSpace.trace_object_allocations can be nested with more _stop than _start
+slow:ObjectSpace.trace_object_allocations records info for allocation_class_path
+slow:ObjectSpace.trace_object_allocations records info for allocation_method_id
+slow:ObjectSpace.trace_object_allocations can be used without a block using trace_object_allocations_start and _stop
