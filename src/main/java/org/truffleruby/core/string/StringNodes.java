@@ -2806,12 +2806,14 @@ public abstract class StringNodes {
         @Specialization(
                 guards = {
                         "!isBrokenCodeRange(strings.getRope(string), codeRangeNode)",
-                        "equalNode.execute(strings.getRope(string),cachedRope)" },
+                        "equalNode.execute(strings.getRope(string),cachedRope)",
+                        "strings.getEncoding(string) == cachedEncoding" },
                 limit = "getDefaultCacheLimit()")
         protected RubySymbol toSymCached(Object string,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @Cached("strings.getRope(string)") Rope cachedRope,
-                @Cached("getSymbol(cachedRope)") RubySymbol cachedSymbol,
+                @Cached("strings.getEncoding(string)") RubyEncoding cachedEncoding,
+                @Cached("getSymbol(cachedRope, cachedEncoding)") RubySymbol cachedSymbol,
                 @Cached RopeNodes.EqualNode equalNode) {
             return cachedSymbol;
         }
@@ -2819,7 +2821,7 @@ public abstract class StringNodes {
         @Specialization(guards = "!isBrokenCodeRange(strings.getRope(string), codeRangeNode)", replaces = "toSymCached")
         protected RubySymbol toSym(Object string,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings) {
-            return getSymbol(strings.getRope(string));
+            return getSymbol(strings.getRope(string), strings.getEncoding(string));
         }
 
         @Specialization(guards = "isBrokenCodeRange(strings.getRope(string), codeRangeNode)")

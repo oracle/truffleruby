@@ -11,7 +11,9 @@ package org.truffleruby.core.rope;
 
 import org.truffleruby.core.encoding.RubyEncoding;
 
-public class RopeWithEncoding {
+import java.util.Objects;
+
+public final class RopeWithEncoding {
 
     private final Rope rope;
     private final RubyEncoding encoding;
@@ -29,4 +31,22 @@ public class RopeWithEncoding {
     public RubyEncoding getEncoding() {
         return encoding;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof RopeWithEncoding)) {
+            return false;
+        }
+        RopeWithEncoding that = (RopeWithEncoding) o;
+        return rope.equals(that.rope) && encoding == that.encoding;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(rope, encoding);
+    }
+
 }

@@ -22,8 +22,6 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.encoding.EncodingNodes;
-import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.ProcCallTargets;
@@ -276,10 +274,8 @@ public abstract class SymbolNodes {
 
         @Specialization
         protected RubyString toS(RubySymbol symbol,
-                @Cached StringNodes.MakeStringNode makeStringNode,
-                @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode) {
-            final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(symbol.getRope().encoding);
-            return makeStringNode.fromRope(symbol.getRope(), rubyEncoding);
+                @Cached StringNodes.MakeStringNode makeStringNode) {
+            return makeStringNode.fromRope(symbol.getRope(), symbol.encoding);
         }
 
     }

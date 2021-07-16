@@ -1635,7 +1635,9 @@ public class CExtNodes {
         @Specialization(guards = "strings.isRubyString(string)")
         protected Object checkSymbolCStr(Object string,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings) {
-            final RubySymbol sym = getLanguage().symbolTable.getSymbolIfExists(strings.getRope(string));
+            final RubySymbol sym = getLanguage().symbolTable.getSymbolIfExists(
+                    strings.getRope(string),
+                    strings.getEncoding(string));
             return sym == null ? nil : sym;
         }
     }

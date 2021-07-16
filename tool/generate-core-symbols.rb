@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.jcodings.specific.USASCIIEncoding;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
@@ -166,7 +167,7 @@ footer = <<JAVA
             rope = RopeOperations.encodeAscii(string, USASCIIEncoding.INSTANCE);
         }
 
-        final RubySymbol symbol = new RubySymbol(string, rope, id);
+        final RubySymbol symbol = new RubySymbol(string, rope, Encodings.US_ASCII, id);
         CORE_SYMBOLS.add(symbol);
 
         if (id != RubySymbol.UNASSIGNED_ID) {

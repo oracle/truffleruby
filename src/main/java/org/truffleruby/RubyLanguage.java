@@ -36,6 +36,7 @@ import org.truffleruby.core.RubyHandle;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.binding.RubyBinding;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.RubyEncodingConverter;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.exception.RubyFrozenError;
@@ -314,8 +315,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
 
     @TruffleBoundary
-    public RubySymbol getSymbol(Rope rope) {
-        return symbolTable.getSymbol(rope);
+    public RubySymbol getSymbol(Rope rope, RubyEncoding encoding) {
+        return symbolTable.getSymbol(rope, encoding);
     }
 
     public Assumption getTracingAssumption() {
