@@ -2,6 +2,7 @@
 
 New features:
 
+* [TRegex](https://github.com/oracle/graal/tree/master/regex) is now used by default, which provides large speedups for matching regular expressions.
 
 Bug fixes:
 
