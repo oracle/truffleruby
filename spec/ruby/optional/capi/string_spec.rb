@@ -1142,4 +1142,14 @@ end
       str.encoding.should == Encoding::UTF_8
     end
   end
+
+  describe "rb_str_vcatf" do
+    it "appends the message to the string" do
+      @s.rb_str_vcatf("").should == "fmt 42 7 number"
+
+      str = "test "
+      @s.rb_str_vcatf(str)
+      str.should == "test fmt 42 7 number"
+    end
+  end
 end

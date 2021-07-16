@@ -139,3 +139,10 @@ void rb_tr_init_printf(void) {
   register_printf_specifier('P', rb_tr_fprintf_value, rb_tr_fprintf_value_arginfo);
   #endif
 }
+
+VALUE rb_str_vcatf(VALUE str, const char *fmt, va_list args) {
+  StringValue(str);
+  VALUE result = rb_vsprintf(fmt, args);
+  rb_str_concat(str, result);
+  return str;
+}
