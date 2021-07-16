@@ -13,7 +13,7 @@ import org.truffleruby.core.encoding.RubyEncoding;
 
 import java.util.Objects;
 
-public class RopeWithEncoding {
+public final class RopeWithEncoding {
 
     private final Rope rope;
     private final RubyEncoding encoding;
@@ -37,11 +37,11 @@ public class RopeWithEncoding {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof RopeWithEncoding)) {
             return false;
         }
         RopeWithEncoding that = (RopeWithEncoding) o;
-        return rope.equals(that.rope) && encoding.equals(that.encoding);
+        return rope.equals(that.rope) && encoding == that.encoding;
     }
 
     @Override

@@ -38,7 +38,7 @@ public class SymbolTable {
     // However, this doesn't matter as the cache entries will be re-created when used.
     private final WeakValueCache<String, RubySymbol> stringToSymbolCache = new WeakValueCache<>();
 
-    // Weak map of RopeKey to Symbol to keep Symbols unique.
+    // Weak map of RopeWithEncoding to Symbol to keep Symbols unique.
     // As long as the Symbol is referenced, the entry will stay in the symbolMap.
     private final WeakValueCache<RopeWithEncoding, RubySymbol> symbolMap = new WeakValueCache<>();
 
@@ -50,17 +50,19 @@ public class SymbolTable {
     private void addCoreSymbols(CoreSymbols coreSymbols) {
         for (RubySymbol symbol : coreSymbols.CORE_SYMBOLS) {
             final Rope rope = symbol.getRope();
-            assert rope == normalizeRopeForLookup(rope, symbol.encoding).getRope();
+            final RopeWithEncoding ropeWithEncoding = normalizeRopeForLookup(rope, symbol.encoding);
+            assert rope == ropeWithEncoding.getRope();
             assert rope == ropeCache.getRope(rope);
 
-            final RopeWithEncoding ropeWithEncoding = new RopeWithEncoding(rope, symbol.encoding);
             final RubySymbol existing = symbolMap.put(ropeWithEncoding, symbol);
             if (existing != null) {
                 throw new AssertionError("Duplicate Symbol in SymbolTable: " + existing);
             }
 
             final RubySymbol old = stringToSymbolCache.put(symbol.getString(), symbol);
-            assert old == null || new RopeWithEncoding(old.getRope(), old.encoding).equals(ropeWithEncoding);
+            if (old != null) {
+                throw new AssertionError("Duplicate Symbol in SymbolTable: " + old);
+            }
         }
     }
 
@@ -82,8 +84,7 @@ public class SymbolTable {
         }
         symbol = getSymbol(rope, encoding);
 
-        // Add it to the direct j.l.String to Symbol cache
-
+        // Add it to the direct java.lang.String to Symbol cache
         stringToSymbolCache.addInCacheIfAbsent(string, symbol);
 
         return symbol;
@@ -91,17 +92,18 @@ public class SymbolTable {
 
     @TruffleBoundary
     public RubySymbol getSymbol(Rope rope, RubyEncoding encoding) {
-        final RopeWithEncoding normalizedRope = normalizeRopeForLookup(rope, encoding);
-        final RubySymbol symbol = symbolMap.get(normalizedRope);
+        final RopeWithEncoding ropeEncodingForLookup = normalizeRopeForLookup(rope, encoding);
+        final RubySymbol symbol = symbolMap.get(ropeEncodingForLookup);
         if (symbol != null) {
             return symbol;
         }
 
-        final LeafRope cachedRope = ropeCache.getRope(normalizedRope.getRope());
-        final RubySymbol newSymbol = createSymbol(cachedRope, normalizedRope.getEncoding());
-        // Use a RopeKey with the cached Rope in symbolMap, since the Symbol refers to it and so we
+        final LeafRope cachedRope = ropeCache.getRope(ropeEncodingForLookup.getRope());
+        final RubyEncoding symbolEncoding = ropeEncodingForLookup.getEncoding();
+        final RubySymbol newSymbol = createSymbol(cachedRope, symbolEncoding);
+        // Use a RopeWithEncoding with the cached Rope in symbolMap, since the Symbol refers to it and so we
         // do not keep rope alive unnecessarily.
-        return symbolMap.addInCacheIfAbsent(new RopeWithEncoding(cachedRope, normalizedRope.getEncoding()), newSymbol);
+        return symbolMap.addInCacheIfAbsent(new RopeWithEncoding(cachedRope, symbolEncoding), newSymbol);
     }
 
     @TruffleBoundary
