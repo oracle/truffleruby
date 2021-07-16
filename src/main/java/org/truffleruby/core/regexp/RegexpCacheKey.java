@@ -9,8 +9,8 @@
  */
 package org.truffleruby.core.regexp;
 
-import org.jcodings.Encoding;
 import org.truffleruby.core.Hashing;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.parser.ReOptions;
@@ -18,11 +18,11 @@ import org.truffleruby.parser.ReOptions;
 public final class RegexpCacheKey {
 
     private final Rope rope;
-    private final Encoding encoding;
+    private final RubyEncoding encoding;
     private final int options;
     private final Hashing hashing;
 
-    public RegexpCacheKey(Rope rope, Encoding encoding, int options, Hashing hashing) {
+    public RegexpCacheKey(Rope rope, RubyEncoding encoding, int options, Hashing hashing) {
         assert !(rope instanceof NativeRope);
         this.rope = rope;
         this.encoding = encoding;

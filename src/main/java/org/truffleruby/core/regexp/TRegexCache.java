@@ -21,6 +21,8 @@ import org.jcodings.specific.ISO8859_1Encoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.regexp.TruffleRegexpNodes.TRegexCompileNode;
 import org.truffleruby.core.rope.CannotConvertBinaryRubyStringToJavaString;
 import org.truffleruby.core.rope.Rope;
@@ -60,7 +62,7 @@ public final class TRegexCache {
     }
 
     @TruffleBoundary
-    public Object compile(RubyContext context, RubyRegexp regexp, boolean atStart, Encoding encoding,
+    public Object compile(RubyContext context, RubyRegexp regexp, boolean atStart, RubyEncoding encoding,
             TRegexCompileNode node) {
         Object tregex = compileTRegex(context, regexp, atStart, encoding);
         if (tregex == null) {
@@ -71,29 +73,29 @@ public final class TRegexCache {
                         "warn_fallback_regex",
                         regexp,
                         atStart,
-                        context.getEncodingManager().getRubyEncoding(encoding));
+                        encoding);
             }
         }
 
-        if (encoding == USASCIIEncoding.INSTANCE) {
+        if (encoding == Encodings.US_ASCII) {
             if (atStart) {
                 usAsciiRegex = tregex;
             } else {
                 usAsciiRegexAtStart = tregex;
             }
-        } else if (encoding == ISO8859_1Encoding.INSTANCE) {
+        } else if (encoding == Encodings.ISO_8859_1) {
             if (atStart) {
                 latin1Regex = tregex;
             } else {
                 latin1RegexAtStart = tregex;
             }
-        } else if (encoding == UTF8Encoding.INSTANCE) {
+        } else if (encoding == Encodings.UTF_8) {
             if (atStart) {
                 utf8Regex = tregex;
             } else {
                 utf8RegexAtStart = tregex;
             }
-        } else if (encoding == ASCIIEncoding.INSTANCE) {
+        } else if (encoding == Encodings.BINARY) {
             if (atStart) {
                 binaryRegex = tregex;
             } else {
@@ -119,9 +121,9 @@ public final class TRegexCache {
     }
 
     @TruffleBoundary
-    private static Object compileTRegex(RubyContext context, RubyRegexp regexp, boolean atStart, Encoding enc) {
+    private static Object compileTRegex(RubyContext context, RubyRegexp regexp, boolean atStart, RubyEncoding enc) {
         String processedRegexpSource;
-        Encoding[] fixedEnc = new Encoding[]{ null };
+        RubyEncoding[] fixedEnc = new RubyEncoding[]{ null };
         final RopeBuilder ropeBuilder;
         try {
             ropeBuilder = ClassicRegexp
@@ -146,7 +148,7 @@ public final class TRegexCache {
 
         String flags = optionsToFlags(regexp.options, atStart);
 
-        String tRegexEncoding = TRegexCache.toTRegexEncoding(enc);
+        String tRegexEncoding = TRegexCache.toTRegexEncoding(enc.jcoding);
         if (tRegexEncoding == null) {
             return null;
         }
