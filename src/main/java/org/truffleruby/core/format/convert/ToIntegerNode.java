@@ -13,15 +13,13 @@ import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.dispatch.DispatchNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 @NodeChild("value")
 public abstract class ToIntegerNode extends FormatNode {
-
-    @Child private DispatchNode integerNode;
 
     public abstract Object executeToInteger(VirtualFrame frame, Object object);
 
@@ -46,12 +44,8 @@ public abstract class ToIntegerNode extends FormatNode {
     }
 
     @Specialization(guards = "!isRubyNumber(value)")
-    protected Object toInteger(VirtualFrame frame, Object value) {
-        if (integerNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            integerNode = insert(DispatchNode.create());
-        }
-
+    protected Object toInteger(VirtualFrame frame, Object value,
+            @Cached DispatchNode integerNode) {
         return integerNode.call(getContext().getCoreLibrary().kernelModule, "Integer", value);
     }
 

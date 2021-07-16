@@ -400,9 +400,6 @@ public abstract class MathNodes {
     @CoreMethod(names = "lgamma", isModuleFunction = true, required = 1)
     public abstract static class LGammaNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private IsANode isANode = IsANode.create();
-        @Child private ToFNode toFNode = ToFNode.create();
-
         private final BranchProfile exceptionProfile = BranchProfile.create();
 
         @Specialization
@@ -433,7 +430,9 @@ public abstract class MathNodes {
         }
 
         @Fallback
-        protected RubyArray lgamma(Object a) {
+        protected RubyArray lgamma(Object a,
+                @Cached IsANode isANode,
+                @Cached ToFNode toFNode) {
             if (!isANode.executeIsA(a, coreLibrary().numericClass)) {
                 exceptionProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertInto(a, "Float", this));
@@ -469,6 +468,7 @@ public abstract class MathNodes {
 
         @Specialization(guards = { "!isRubyBignum(a)", "!isImplicitLongOrDouble(a)" })
         protected double function(Object a, NotProvided b,
+                @Cached IsANode isANode,
                 @Cached ToFNode toFNode) {
             if (!isANode.executeIsA(a, coreLibrary().numericClass)) {
                 exceptionProfile.enter();
@@ -599,9 +599,6 @@ public abstract class MathNodes {
 
     protected abstract static class SimpleMonadicMathNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private IsANode isANode = IsANode.create();
-        @Child private ToFNode toFNode = ToFNode.create();
-
         protected final BranchProfile exceptionProfile = BranchProfile.create();
 
         // Must be implemented because we can't prevent Truffle from generating the useless SimpleMonadicClassGen.
@@ -630,7 +627,9 @@ public abstract class MathNodes {
         }
 
         @Fallback
-        protected double function(Object a) {
+        protected double function(Object a,
+                @Cached IsANode isANode,
+                @Cached ToFNode toFNode) {
             if (!isANode.executeIsA(a, coreLibrary().numericClass)) {
                 exceptionProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertInto(a, "Float", this));
@@ -642,10 +641,6 @@ public abstract class MathNodes {
     }
 
     protected abstract static class SimpleDyadicMathNode extends CoreMethodArrayArgumentsNode {
-
-        @Child protected IsANode isANode = IsANode.create();
-        @Child protected ToFNode floatANode = ToFNode.create();
-        @Child protected ToFNode floatBNode = ToFNode.create();
 
         protected final BranchProfile exceptionProfile = BranchProfile.create();
 
@@ -735,7 +730,10 @@ public abstract class MathNodes {
         }
 
         @Fallback
-        protected double function(Object a, Object b) {
+        protected double function(Object a, Object b,
+                @Cached IsANode isANode,
+                @Cached ToFNode floatANode,
+                @Cached ToFNode floatBNode) {
             if (!(isANode.executeIsA(a, coreLibrary().numericClass) &&
                     isANode.executeIsA(b, coreLibrary().numericClass))) {
                 exceptionProfile.enter();

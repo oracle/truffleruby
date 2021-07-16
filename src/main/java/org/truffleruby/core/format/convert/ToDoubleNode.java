@@ -20,6 +20,10 @@ public abstract class ToDoubleNode extends FormatNode {
 
     public abstract double executeToDouble(VirtualFrame frame, Object object);
 
+    public static ToDoubleNode create() {
+        return ToDoubleNodeGen.create(null);
+    }
+
     @Specialization
     protected double toDouble(int value) {
         return value;
