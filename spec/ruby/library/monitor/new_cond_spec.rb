@@ -2,7 +2,7 @@ require_relative '../../spec_helper'
 require 'monitor'
 
 describe "Monitor#new_cond" do
-  it "creates a MonitorMixin::ConditoinVariable" do
+  it "creates a MonitorMixin::ConditionVariable" do
     m = Monitor.new
     c = m.new_cond
     c.class.should == MonitorMixin::ConditionVariable
