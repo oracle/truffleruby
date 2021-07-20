@@ -98,7 +98,7 @@ module MonitorMixin
   # above calls while_wait and signal, this class should be documented.
   #
 
-  class ConditionVariable < ::ConditionVariable
+  class ConditionVariable
 
     #
     # Releases the lock held in the associated monitor and waits; reacquires the lock on wakeup.
@@ -107,7 +107,7 @@ module MonitorMixin
     # even if no other thread doesn't signal.
     #
     def wait(timeout = nil)
-      super(@mon_mutex, timeout)
+      @cond.wait(@mon_mutex, timeout)
     end
 
     #
@@ -128,9 +128,30 @@ module MonitorMixin
       end
     end
 
+    #
+    # Wakes up the first thread in line waiting for this lock.
+    #
+    def signal
+      check_owner
+      @cond.signal
+    end
+
+    #
+    # Wakes up all threads waiting for this lock.
+    #
+    def broadcast
+      check_owner
+      @cond.broadcast
+    end
+
     private
 
+    def check_owner
+      raise ThreadError, "current thread not owner" unless @mon_mutex.owned?
+    end
+
     def initialize(mutex)
+      @cond = ::ConditionVariable.new
       @mon_mutex = mutex
     end
   end
