@@ -12,7 +12,7 @@ Compatibility:
 
 Performance:
 
-* Implemented `MonitorMixin` primitives in Java (#2375).
+* Moved most of `MonitorMixin` to primitives to deal with interrupts more efficiently (#2375).
 
 Changes:
 
