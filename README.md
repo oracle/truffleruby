@@ -20,8 +20,8 @@ There are four ways to install TruffleRuby releases and nightly builds:
   download. It is meant for users who only want a Ruby implementation and are already
   using a Ruby manager.
 
-* Via Docker: [Oracle Linux-based images](https://github.com/graalvm/container/pkgs/container/truffleruby)
-  and [Debian-based images](https://hub.docker.com/r/flavorjones/truffleruby).
+* Via Docker: [Oracle Linux-based images](https://github.com/graalvm/container/blob/master/truffleruby/README.md)
+  and [Debian-based images](https://github.com/flavorjones/truffleruby/pkgs/container/truffleruby).
 
 * Via the [standalone distribution](doc/user/standalone-distribution.md)
   as a simple binary tarball.
