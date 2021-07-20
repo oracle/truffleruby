@@ -125,11 +125,12 @@ public abstract class ConditionVariableNodes {
                 }
             } finally {
                 condLock.unlock();
+
                 MutexOperations.internalLockEvenWithException(getContext(), mutexLock, this);
                 if (holdCount > 1) {
                     // We know we already hold the lock, so we can skip the rest of the logic at this point.
                     for (int i = 1; i < holdCount; i++) {
-                        mutexLock.tryLock();
+                        mutexLock.lock();
                     }
                 }
             }
