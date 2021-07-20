@@ -103,7 +103,7 @@ public abstract class ConditionVariableNodes {
             // If there is an interrupt, it should be consumed by condition.await() and the Ruby Thread sleep status
             // must imply being ready to be interrupted by Thread#{run,wakeup}.
             condLock.lock();
-            int holdCount = 0;
+            int holdCount = 0; // can be > 1 for MonitorMixin
             try {
                 while (mutexLock.isHeldByCurrentThread()) {
                     mutexLock.unlock();
