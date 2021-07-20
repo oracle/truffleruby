@@ -29,7 +29,6 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.ToEncodingNode;
 import org.truffleruby.core.cast.ToRubyEncodingNode;
 import org.truffleruby.core.encoding.EncodingNodesFactory.CheckRopeEncodingNodeGen;
-import org.truffleruby.core.encoding.EncodingNodesFactory.GetRubyEncodingNodeGen;
 import org.truffleruby.core.encoding.EncodingNodesFactory.NegotiateCompatibleEncodingNodeGen;
 import org.truffleruby.core.encoding.EncodingNodesFactory.NegotiateCompatibleRopeEncodingNodeGen;
 import org.truffleruby.core.klass.RubyClass;
@@ -67,40 +66,6 @@ public abstract class EncodingNodes {
         protected boolean isAsciiCompatible(RubyEncoding encoding) {
             return encoding.jcoding.isAsciiCompatible();
         }
-    }
-
-    public abstract static class GetRubyEncodingNode extends RubyContextNode {
-
-        public static GetRubyEncodingNode create() {
-            return GetRubyEncodingNodeGen.create();
-        }
-
-        /** This returns only the built-in RubyEncoding for the given Encoding. It will not return dummy/replicate
-         * encodings that might be associated to an Encoding so this should rarely be used.
-         * 
-         * @param encoding
-         * @return a built-in RubyEncoding */
-        public abstract RubyEncoding executeGetRubyEncoding(Encoding encoding);
-
-        @Specialization(guards = "isSameEncoding(encoding, cachedRubyEncoding)", limit = "getCacheLimit()")
-        protected RubyEncoding getRubyEncodingCached(Encoding encoding,
-                @Cached("getRubyEncodingUncached(encoding)") RubyEncoding cachedRubyEncoding) {
-            return cachedRubyEncoding;
-        }
-
-        @Specialization(replaces = "getRubyEncodingCached")
-        protected RubyEncoding getRubyEncodingUncached(Encoding encoding) {
-            return Encodings.getBuiltInEncoding(encoding.getIndex());
-        }
-
-        protected boolean isSameEncoding(Encoding encoding, RubyEncoding rubyEncoding) {
-            return encoding == rubyEncoding.jcoding;
-        }
-
-        protected int getCacheLimit() {
-            return getLanguage().options.ENCODING_LOADED_CLASSES_CACHE;
-        }
-
     }
 
     public abstract static class NegotiateCompatibleRopeEncodingNode extends RubyContextNode {
@@ -472,7 +437,7 @@ public abstract class EncodingNodes {
                 yieldNode.yield(
                         block,
                         aliasName,
-                        getContext().getEncodingManager().getRubyEncoding(entry.value.getEncoding()));
+                        Encodings.getBuiltInEncoding(entry.value.getEncoding().getIndex()));
             }
             return nil;
         }
@@ -629,8 +594,6 @@ public abstract class EncodingNodes {
     @Primitive(name = "encoding_get_object_encoding")
     public abstract static class EncodingGetObjectEncodingNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private GetRubyEncodingNode getRubyEncodingNode = EncodingNodesFactory.GetRubyEncodingNodeGen.create();
-
         @Specialization
         protected RubyEncoding encodingGetObjectEncodingString(RubyString object) {
             return object.encoding;
@@ -657,7 +620,7 @@ public abstract class EncodingNodes {
             final Rope regexpSource = object.source;
 
             if (hasRegexpSource.profile(regexpSource != null)) {
-                return getRubyEncodingNode.executeGetRubyEncoding(regexpSource.getEncoding());
+                return object.encoding;
             } else {
                 return Encodings.BINARY;
             }

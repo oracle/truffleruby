@@ -43,7 +43,7 @@ public class RubyRegexp extends ImmutableRubyObject implements TruffleObject {
             RegexpOptions options,
             EncodingCache encodingCache,
             TRegexCache tregexCache) {
-        assert source.encoding == encoding.jcoding;
+        assert (source == null && encoding == null) || source.encoding == encoding.jcoding;
         this.regex = regex;
         this.source = source;
         this.encoding = encoding;

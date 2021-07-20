@@ -230,10 +230,6 @@ public class EncodingManager {
         return ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex];
     }
 
-    public RubyEncoding getRubyEncoding(Encoding encoding) {
-        return ENCODING_LIST_BY_ENCODING_INDEX[encoding.getIndex()];
-    }
-
     @TruffleBoundary
     public synchronized RubyEncoding defineBuiltInEncoding(EncodingDB.Entry encodingEntry) {
         final int encodingIndex = encodingEntry.getEncoding().getIndex();
@@ -263,7 +259,7 @@ public class EncodingManager {
 
     @TruffleBoundary
     public RubyEncoding defineAlias(Encoding encoding, String name) {
-        final RubyEncoding rubyEncoding = getRubyEncoding(encoding);
+        final RubyEncoding rubyEncoding = Encodings.getBuiltInEncoding(encoding.getIndex());
         addToLookup(name, rubyEncoding);
         return rubyEncoding;
     }

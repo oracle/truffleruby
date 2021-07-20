@@ -26,7 +26,6 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.ToStrNode;
-import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
@@ -156,10 +155,8 @@ public abstract class RegexpNodes {
 
         @Specialization
         protected RubyString source(RubyRegexp regexp,
-                @Cached StringNodes.MakeStringNode makeStringNode,
-                @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode) {
-            final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(regexp.source.encoding);
-            return makeStringNode.fromRope(regexp.source, rubyEncoding);
+                @Cached StringNodes.MakeStringNode makeStringNode) {
+            return makeStringNode.fromRope(regexp.source, regexp.encoding);
         }
 
     }
@@ -179,18 +176,14 @@ public abstract class RegexpNodes {
         @Specialization(guards = "isSameRegexp(regexp, cachedRegexp)")
         protected RubyString toSCached(RubyRegexp regexp,
                 @Cached("regexp") RubyRegexp cachedRegexp,
-                @Cached("createRope(cachedRegexp)") Rope rope,
-                @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode) {
-            final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(rope.encoding);
-            return makeStringNode.fromRope(rope, rubyEncoding);
+                @Cached("createRope(cachedRegexp)") Rope rope) {
+            return makeStringNode.fromRope(rope, Encodings.getBuiltInEncoding(rope.getEncoding().getIndex()));
         }
 
         @Specialization
-        protected RubyString toS(RubyRegexp regexp,
-                @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode) {
+        protected RubyString toS(RubyRegexp regexp) {
             final Rope rope = createRope(regexp);
-            final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(rope.encoding);
-            return makeStringNode.fromRope(rope, rubyEncoding);
+            return makeStringNode.fromRope(rope, Encodings.getBuiltInEncoding(rope.getEncoding().getIndex()));
         }
 
         @TruffleBoundary
