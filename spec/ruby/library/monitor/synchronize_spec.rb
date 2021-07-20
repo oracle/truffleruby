@@ -29,7 +29,7 @@ describe "Monitor#synchronize" do
   end
 
   it "raises a LocalJumpError if not passed a block" do
-    -> {Monitor.new.synchronize }.should raise_error(LocalJumpError)
+    -> { Monitor.new.synchronize }.should raise_error(LocalJumpError)
   end
 
   it "raises a thread error if the monitor is not owned on exiting the block" do
