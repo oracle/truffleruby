@@ -14,7 +14,6 @@ import java.util.Iterator;
 
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.jcodings.Encoding;
 import org.joni.NameEntry;
@@ -500,10 +499,9 @@ public abstract class MatchDataNodes {
             final Region region = matchData.region;
             final Object[] values = new Object[region.numRegs];
 
+            int n = 0;
             try {
-                loopProfile.profileCounted(region.numRegs);
-
-                for (int n = 0; loopProfile.inject(n < region.numRegs); n++) {
+                for (; loopProfile.inject(n < region.numRegs); n++) {
                     final int start = getStart(matchData, n, lazyProfile, interop);
                     final int end = getEnd(matchData, n, lazyProfile, interop);
 
@@ -523,7 +521,7 @@ public abstract class MatchDataNodes {
                     }
                 }
             } finally {
-                LoopNode.reportLoopCount(this, region.numRegs);
+                profileAndReportLoopCount(loopProfile, n);
             }
 
             return values;

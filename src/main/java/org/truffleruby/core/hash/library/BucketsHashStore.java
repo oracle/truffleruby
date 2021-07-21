@@ -24,7 +24,6 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.RubyContext;
@@ -339,9 +338,8 @@ public class BucketsHashStore {
     protected Object eachEntry(RubyHash hash, EachEntryCallback callback, Object state,
             @CachedLibrary("this") HashStoreLibrary hashStoreLibrary,
             @Cached LoopConditionProfile loopProfile) {
-
         assert verify(hash);
-        loopProfile.profileCounted(hash.size);
+
         int i = 0;
         Entry entry = this.firstInSequence;
         try {
@@ -350,7 +348,7 @@ public class BucketsHashStore {
                 entry = entry.getNextInSequence();
             }
         } finally {
-            LoopNode.reportLoopCount(hashStoreLibrary.getNode(), i);
+            RubyBaseNode.profileAndReportLoopCount(hashStoreLibrary.getNode(), loopProfile, i);
         }
         return state;
     }

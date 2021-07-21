@@ -54,6 +54,11 @@ public abstract class RubyBaseNode extends Node {
         LoopNode.reportLoopCount(this, count);
     }
 
+    public void profileAndReportLoopCount(LoopConditionProfile loopProfile, long count) {
+        loopProfile.profileCounted(count);
+        reportLongLoopCount(count);
+    }
+
     protected void reportLongLoopCount(long count) {
         assert count >= 0L;
         LoopNode.reportLoopCount(this, count > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) count);

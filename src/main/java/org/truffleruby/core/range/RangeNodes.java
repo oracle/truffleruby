@@ -43,7 +43,6 @@ import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -73,12 +72,11 @@ public abstract class RangeNodes {
 
             int n = 0;
             try {
-                loopProfile.profileCounted(length);
                 for (; loopProfile.inject(n < length); n++) {
                     arrayBuilder.appendValue(state, n, yieldNode.yield(block, begin + n));
                 }
             } finally {
-                LoopNode.reportLoopCount(this, n);
+                profileAndReportLoopCount(loopProfile, n);
             }
 
             return createArray(arrayBuilder.finish(state, length), length);
@@ -108,12 +106,11 @@ public abstract class RangeNodes {
 
             int n = range.begin;
             try {
-                loopProfile.profileCounted(exclusiveEnd - range.begin);
                 for (; loopProfile.inject(n < exclusiveEnd); n++) {
                     callBlock(block, n);
                 }
             } finally {
-                LoopNode.reportLoopCount(this, n - range.begin);
+                profileAndReportLoopCount(loopProfile, n - range.begin);
             }
 
             return range;
@@ -132,12 +129,11 @@ public abstract class RangeNodes {
 
             long n = range.begin;
             try {
-                loopProfile.profileCounted(exclusiveEnd - range.begin);
                 for (; loopProfile.inject(n < exclusiveEnd); n++) {
                     callBlock(block, n);
                 }
             } finally {
-                reportLongLoopCount(n - range.begin);
+                profileAndReportLoopCount(loopProfile, n - range.begin);
             }
 
             return range;
@@ -268,12 +264,11 @@ public abstract class RangeNodes {
 
             int n = range.begin;
             try {
-                loopProfile.profileCounted((result - range.begin - 1) / step + 1);
                 for (; loopProfile.inject(n < result); n += step) {
                     callBlock(block, n);
                 }
             } finally {
-                LoopNode.reportLoopCount(this, n - range.begin);
+                profileAndReportLoopCount(loopProfile, n - range.begin);
             }
 
             return range;

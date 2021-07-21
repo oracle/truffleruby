@@ -56,7 +56,6 @@ import com.oracle.truffle.api.dsl.TypeSystemReference;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
-import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -1866,12 +1865,11 @@ public abstract class IntegerNodes {
         protected Object downto(int from, int to, RubyProc block) {
             int i = from;
             try {
-                loopProfile.profileCounted(from - to + 1);
                 for (; loopProfile.inject(i >= to); i--) {
                     callBlock(block, i);
                 }
             } finally {
-                LoopNode.reportLoopCount(this, from - i + 1);
+                profileAndReportLoopCount(loopProfile, from - i + 1);
             }
 
             return nil;
@@ -1886,12 +1884,11 @@ public abstract class IntegerNodes {
         protected Object downto(long from, long to, RubyProc block) {
             long i = from;
             try {
-                loopProfile.profileCounted(from - to + 1);
                 for (; i >= to; i--) {
                     callBlock(block, i);
                 }
             } finally {
-                reportLongLoopCount(from - i + 1);
+                profileAndReportLoopCount(loopProfile, from - i + 1);
             }
 
             return nil;
@@ -1944,12 +1941,11 @@ public abstract class IntegerNodes {
         protected Object upto(int from, int to, RubyProc block) {
             int i = from;
             try {
-                loopProfile.profileCounted(to - from + 1);
                 for (; loopProfile.inject(i <= to); i++) {
                     callBlock(block, i);
                 }
             } finally {
-                LoopNode.reportLoopCount(this, i - from + 1);
+                profileAndReportLoopCount(loopProfile, i - from + 1);
             }
 
             return nil;
@@ -1964,12 +1960,11 @@ public abstract class IntegerNodes {
         protected Object upto(long from, long to, RubyProc block) {
             long i = from;
             try {
-                loopProfile.profileCounted(to - from + 1);
                 for (; i <= to; i++) {
                     callBlock(block, i);
                 }
             } finally {
-                reportLongLoopCount(i - from + 1);
+                profileAndReportLoopCount(loopProfile, i - from + 1);
             }
 
             return nil;
