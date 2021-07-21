@@ -13,7 +13,6 @@ import org.truffleruby.core.format.FormatNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.nodes.LoopNode;
 
 public class SequenceNode extends FormatNode {
 
@@ -26,12 +25,8 @@ public class SequenceNode extends FormatNode {
     @ExplodeLoop
     @Override
     public Object execute(VirtualFrame frame) {
-        try {
-            for (FormatNode child : children) {
-                child.execute(frame);
-            }
-        } finally {
-            LoopNode.reportLoopCount(this, children.length);
+        for (FormatNode child : children) {
+            child.execute(frame);
         }
 
         return null;

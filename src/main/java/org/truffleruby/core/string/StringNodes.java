@@ -78,7 +78,6 @@ import java.nio.charset.StandardCharsets;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
-import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.graalvm.collections.Pair;
 import org.jcodings.Config;
@@ -4549,8 +4548,7 @@ public abstract class StringNodes {
         protected Object singleByteOptimizable(Rope stringRope, Rope patternRope, int offset,
                 @Cached @Shared("stringBytesNode") BytesNode stringBytesNode,
                 @Cached @Shared("patternBytesNode") BytesNode patternBytesNode,
-                @Cached LoopConditionProfile loopProfile,
-                @Cached("createCountingProfile()") ConditionProfile matchProfile) {
+                @Cached LoopConditionProfile loopProfile) {
 
             assert offset >= 0;
             assert offset + patternRope.byteLength() <= stringRope
@@ -4565,13 +4563,13 @@ public abstract class StringNodes {
             final byte[] patternBytes = patternBytesNode.execute(patternRope);
 
             try {
-                for (; loopProfile.profile(p < l); p++) {
-                    if (matchProfile.profile(ArrayUtils.regionEquals(stringBytes, p, patternBytes, 0, pe))) {
+                for (; loopProfile.inject(p < l); p++) {
+                    if (ArrayUtils.regionEquals(stringBytes, p, patternBytes, 0, pe)) {
                         return p;
                     }
                 }
             } finally {
-                LoopNode.reportLoopCount(this, p - offset);
+                profileAndReportLoopCount(loopProfile, p - offset);
             }
 
             return nil;
@@ -4658,8 +4656,7 @@ public abstract class StringNodes {
         protected Object singleByteOptimizable(Rope stringRope, Rope patternRope, int offset,
                 @Cached @Shared("stringBytesNode") BytesNode stringBytesNode,
                 @Cached @Shared("patternBytesNode") BytesNode patternBytesNode,
-                @Cached LoopConditionProfile loopProfile,
-                @Cached("createCountingProfile()") ConditionProfile matchProfile) {
+                @Cached LoopConditionProfile loopProfile) {
 
             assert offset >= 0;
             int p = offset;
@@ -4671,13 +4668,13 @@ public abstract class StringNodes {
             final byte[] patternBytes = patternBytesNode.execute(patternRope);
 
             try {
-                for (; loopProfile.profile(p < l); p++) {
-                    if (matchProfile.profile(ArrayUtils.regionEquals(stringBytes, p, patternBytes, 0, pe))) {
+                for (; loopProfile.inject(p < l); p++) {
+                    if (ArrayUtils.regionEquals(stringBytes, p, patternBytes, 0, pe)) {
                         return p;
                     }
                 }
             } finally {
-                LoopNode.reportLoopCount(this, p - offset);
+                profileAndReportLoopCount(loopProfile, p - offset);
             }
 
             return nil;

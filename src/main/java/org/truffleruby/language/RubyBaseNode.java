@@ -45,23 +45,31 @@ public abstract class RubyBaseNode extends Node {
     /** Variants for {@link com.oracle.truffle.api.library.Library}. The node argument should typically be
      * {@code node.getNode()} with {@code @CachedLibrary("this") ArrayStoreLibrary node} */
     public static void profileAndReportLoopCount(Node node, LoopConditionProfile loopProfile, int count) {
+        // Checkstyle: stop
         loopProfile.profileCounted(count);
         LoopNode.reportLoopCount(node, count);
+        // Checkstyle: resume
     }
 
     public void profileAndReportLoopCount(LoopConditionProfile loopProfile, int count) {
+        // Checkstyle: stop
         loopProfile.profileCounted(count);
         LoopNode.reportLoopCount(this, count);
+        // Checkstyle: resume
     }
 
     public void profileAndReportLoopCount(LoopConditionProfile loopProfile, long count) {
+        // Checkstyle: stop
         loopProfile.profileCounted(count);
         reportLongLoopCount(count);
+        // Checkstyle: resume
     }
 
     protected void reportLongLoopCount(long count) {
         assert count >= 0L;
+        // Checkstyle: stop
         LoopNode.reportLoopCount(this, count > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) count);
+        // Checkstyle: resume
     }
 
     protected Node getNode() {

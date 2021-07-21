@@ -12,7 +12,6 @@ package org.truffleruby.core.encoding;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.language.RubyBaseNode;
 
@@ -40,11 +39,11 @@ public abstract class EncodingLeftCharHeadNode extends RubyBaseNode {
         }
         int i = s;
         try {
-            while (loopProfile.profile(!utf8IsLead(bytes[i] & 0xff) && i > p)) {
+            while (loopProfile.inject(!utf8IsLead(bytes[i] & 0xff) && i > p)) {
                 i--;
             }
         } finally {
-            LoopNode.reportLoopCount(this, s - i);
+            profileAndReportLoopCount(loopProfile, s - i);
         }
         return i;
 
