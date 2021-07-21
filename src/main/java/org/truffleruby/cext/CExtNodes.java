@@ -1684,7 +1684,42 @@ public class CExtNodes {
         }
     }
 
-    @CoreMethod(names = "rb_tr_sprintf", onSingleton = true, required = 4)
+    @CoreMethod(names = "rb_tr_sprintf_types", onSingleton = true, required = 1)
+    @ImportStatic({ StringCachingGuards.class, StringOperations.class })
+    @ReportPolymorphism
+    public abstract static class RBSprintfFormatNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(
+                guards = {
+                        "libFormat.isRubyString(format)",
+                        "equalNode.execute(libFormat.getRope(format), cachedFormatRope)" },
+                limit = "2")
+        protected Object typesCached(VirtualFrame frame, Object format,
+                @CachedLibrary(limit = "2") RubyStringLibrary libFormat,
+                @Cached("libFormat.getRope(format)") Rope cachedFormatRope,
+                @Cached("compileArgTypes(format, libFormat)") Object cachedTypes,
+                @Cached RopeNodes.EqualNode equalNode) {
+            return cachedTypes;
+        }
+
+        @Specialization(guards = "libFormat.isRubyString(format)")
+        protected Object typesUncachd(VirtualFrame frame, Object format,
+                @CachedLibrary(limit = "2") RubyStringLibrary libFormat) {
+            return compileArgTypes(format, libFormat);
+        }
+
+        @TruffleBoundary
+        protected Object compileArgTypes(Object format, RubyStringLibrary libFormat) {
+            try {
+                return new RBSprintfCompiler(getLanguage(), this)
+                        .typeList(libFormat.getRope(format), getContext(), getLanguage());
+            } catch (InvalidFormatException e) {
+                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
+            }
+        }
+    }
+
+    @CoreMethod(names = "rb_tr_sprintf", onSingleton = true, required = 3)
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     @ReportPolymorphism
     public abstract static class RBSprintfNode extends CoreMethodArrayArgumentsNode {
@@ -1701,9 +1736,7 @@ public class CExtNodes {
                         "libFormat.isRubyString(format)",
                         "equalNode.execute(libFormat.getRope(format), cachedFormatRope)" },
                 limit = "2")
-        protected RubyString formatCached(
-                VirtualFrame frame, Object format, Object fetcher, Object stringReader, Object args,
-                @CachedLibrary("fetcher") InteropLibrary fetchers,
+        protected RubyString formatCached(VirtualFrame frame, Object format, Object stringReader, RubyArray argArray,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached WrapNode wrapNode,
@@ -1712,15 +1745,9 @@ public class CExtNodes {
                 @Cached("libFormat.getRope(format)") Rope cachedFormatRope,
                 @Cached("cachedFormatRope.byteLength()") int cachedFormatLength,
                 @Cached("create(compileFormat(format, libFormat, stringReader))") DirectCallNode formatNode,
-                @Cached("compileArgTypes(format, libFormat)") Object typeList,
                 @Cached RopeNodes.EqualNode equalNode) {
             final BytesResult result;
-            final Object argArray = unwrapNode.execute(InteropNodes.execute(
-                    fetcher,
-                    new Object[]{ args, wrapNode.execute(typeList) },
-                    fetchers,
-                    translateInteropExceptionNode));
-            final Object[] arguments = arrayToObjectArrayNode.executeToObjectArray((RubyArray) argArray);
+            final Object[] arguments = arrayToObjectArrayNode.executeToObjectArray(argArray);
             try {
                 result = (BytesResult) formatNode
                         .call(
@@ -1736,9 +1763,7 @@ public class CExtNodes {
         @Specialization(
                 guards = "libFormat.isRubyString(format)",
                 replaces = "formatCached")
-        protected RubyString formatUncached(
-                VirtualFrame frame, Object format, Object fetcher, Object stringReader, Object args,
-                @CachedLibrary(limit = "1") InteropLibrary fetchers,
+        protected RubyString formatUncached(VirtualFrame frame, Object format, Object stringReader, RubyArray argArray,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
                 @Cached WrapNode wrapNode,
                 @Cached UnwrapNode unwrapNode,
@@ -1746,13 +1771,7 @@ public class CExtNodes {
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libFormat) {
             final BytesResult result;
-            final Object typeList = compileArgTypes(format, libFormat);
-            final Object argArray = unwrapNode.execute(InteropNodes.execute(
-                    fetcher,
-                    new Object[]{ args, wrapNode.execute(typeList) },
-                    fetchers,
-                    translateInteropExceptionNode));
-            final Object[] arguments = arrayToObjectArrayNode.executeToObjectArray((RubyArray) argArray);
+            final Object[] arguments = arrayToObjectArrayNode.executeToObjectArray(argArray);
             try {
                 result = (BytesResult) formatNode
                         .call(
@@ -1783,16 +1802,6 @@ public class CExtNodes {
                             bytes,
                             result.getEncoding().getEncodingForLength(formatLength),
                             result.getStringCodeRange());
-        }
-
-        @TruffleBoundary
-        protected Object compileArgTypes(Object format, RubyStringLibrary libFormat) {
-            try {
-                return new RBSprintfCompiler(getLanguage(), this)
-                        .typeList(libFormat.getRope(format), getContext(), getLanguage());
-            } catch (InvalidFormatException e) {
-                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
-            }
         }
 
         @TruffleBoundary

@@ -47,14 +47,17 @@ static VALUE rb_tr_vsprintf_new_cstr(char *cstr) {
 }
 
 VALUE rb_enc_vsprintf(rb_encoding *enc, const char *format, va_list args) {
+  VALUE rubyFormat = rb_str_new_cstr(format);
+  VALUE types = RUBY_CEXT_INVOKE("rb_tr_sprintf_types", rubyFormat);
+  VALUE rubyArgs = rb_tr_get_sprintf_args(args, types);
+
   return rb_str_conv_enc(rb_tr_wrap(
                     polyglot_invoke(
                                     RUBY_CEXT,
                                     "rb_tr_sprintf",
-                                    rb_tr_unwrap(rb_str_new_cstr(format)),
-                                    rb_tr_get_sprintf_args,
+                                    rb_tr_unwrap(rubyFormat),
                                     rb_tr_vsprintf_new_cstr,
-                                    args)), NULL, enc);
+                                    rb_tr_unwrap(rubyArgs))), NULL, enc);
 }
 
 VALUE rb_enc_sprintf(rb_encoding *enc, const char *format, ...) {
