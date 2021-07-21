@@ -1000,7 +1000,8 @@ public abstract class StringNodes {
                 @Cached BytesNode suffixBytesNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsSuffix,
-                @Cached ConditionProfile leftAdjustProfile) {
+                @Cached ConditionProfile leftAdjustProfile,
+                @Cached LoopConditionProfile loopProfile) {
 
             final Rope stringRope = strings.getRope(string);
             final Rope suffixRope = stringsSuffix.getRope(suffix);
@@ -1022,10 +1023,15 @@ public abstract class StringNodes {
                 return false;
             }
 
-            for (int i = 0; i < suffixByteLength; i++) {
-                if (stringBytes[offset + i] != suffixBytes[i]) {
-                    return false;
+            int i = 0;
+            try {
+                for (; loopProfile.inject(i < suffixByteLength); i++) {
+                    if (stringBytes[offset + i] != suffixBytes[i]) {
+                        return false;
+                    }
                 }
+            } finally {
+                profileAndReportLoopCount(loopProfile, i);
             }
             return true;
         }
@@ -3154,33 +3160,39 @@ public abstract class StringNodes {
         @Specialization
         protected byte[] invert(byte[] bytes, int start,
                 @Cached BranchProfile foundLowerCaseCharProfile,
-                @Cached BranchProfile foundUpperCaseCharProfile) {
+                @Cached BranchProfile foundUpperCaseCharProfile,
+                @Cached LoopConditionProfile loopProfile) {
             byte[] modified = null;
 
-            for (int i = start; i < bytes.length; i++) {
-                final byte b = bytes[i];
+            int i = start;
+            try {
+                for (; loopProfile.inject(i < bytes.length); i++) {
+                    final byte b = bytes[i];
 
-                if (lowerToUpper && StringSupport.isAsciiLowercase(b)) {
-                    foundLowerCaseCharProfile.enter();
+                    if (lowerToUpper && StringSupport.isAsciiLowercase(b)) {
+                        foundLowerCaseCharProfile.enter();
 
-                    if (modified == null) {
-                        modified = bytes.clone();
+                        if (modified == null) {
+                            modified = bytes.clone();
+                        }
+
+                        // Convert lower-case ASCII char to upper-case.
+                        modified[i] ^= 0x20;
                     }
 
-                    // Convert lower-case ASCII char to upper-case.
-                    modified[i] ^= 0x20;
-                }
+                    if (upperToLower && StringSupport.isAsciiUppercase(b)) {
+                        foundUpperCaseCharProfile.enter();
 
-                if (upperToLower && StringSupport.isAsciiUppercase(b)) {
-                    foundUpperCaseCharProfile.enter();
+                        if (modified == null) {
+                            modified = bytes.clone();
+                        }
 
-                    if (modified == null) {
-                        modified = bytes.clone();
+                        // Convert upper-case ASCII char to lower-case.
+                        modified[i] ^= 0x20;
                     }
-
-                    // Convert upper-case ASCII char to lower-case.
-                    modified[i] ^= 0x20;
                 }
+            } finally {
+                profileAndReportLoopCount(loopProfile, i - start);
             }
 
             return modified;
@@ -4264,6 +4276,7 @@ public abstract class StringNodes {
                 @Cached BytesNode bytesNode,
                 @Cached BranchProfile matchFoundProfile,
                 @Cached BranchProfile noMatchProfile,
+                @Cached LoopConditionProfile loopProfile,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString,
                 @CachedLibrary(limit = "2") RubyStringLibrary libPattern) {
             assert byteOffset >= 0;
@@ -4277,13 +4290,18 @@ public abstract class StringNodes {
 
             int end = sourceRope.byteLength() - searchRope.byteLength();
 
-            for (int i = byteOffset; i <= end; i++) {
-                if (sourceBytes[i] == searchBytes[0]) {
-                    if (ArrayUtils.memcmp(sourceBytes, i, searchBytes, 0, searchRope.byteLength()) == 0) {
-                        matchFoundProfile.enter();
-                        return i;
+            int i = byteOffset;
+            try {
+                for (; loopProfile.inject(i <= end); i++) {
+                    if (sourceBytes[i] == searchBytes[0]) {
+                        if (ArrayUtils.regionEquals(sourceBytes, i, searchBytes, 0, searchRope.byteLength())) {
+                            matchFoundProfile.enter();
+                            return i;
+                        }
                     }
                 }
+            } finally {
+                profileAndReportLoopCount(loopProfile, i - byteOffset);
             }
 
             noMatchProfile.enter();
@@ -4548,7 +4566,7 @@ public abstract class StringNodes {
 
             try {
                 for (; loopProfile.profile(p < l); p++) {
-                    if (matchProfile.profile(ArrayUtils.memcmp(stringBytes, p, patternBytes, 0, pe) == 0)) {
+                    if (matchProfile.profile(ArrayUtils.regionEquals(stringBytes, p, patternBytes, 0, pe))) {
                         return p;
                     }
                 }
@@ -4599,7 +4617,7 @@ public abstract class StringNodes {
                 if (!StringSupport.MBCLEN_CHARFOUND_P(c)) {
                     return nil;
                 }
-                if (ArrayUtils.memcmp(stringBytes, p, patternBytes, 0, pe) == 0) {
+                if (ArrayUtils.regionEquals(stringBytes, p, patternBytes, 0, pe)) {
                     return index;
                 }
             }
@@ -4654,7 +4672,7 @@ public abstract class StringNodes {
 
             try {
                 for (; loopProfile.profile(p < l); p++) {
-                    if (matchProfile.profile(ArrayUtils.memcmp(stringBytes, p, patternBytes, 0, pe) == 0)) {
+                    if (matchProfile.profile(ArrayUtils.regionEquals(stringBytes, p, patternBytes, 0, pe))) {
                         return p;
                     }
                 }
@@ -4693,7 +4711,7 @@ public abstract class StringNodes {
                 if (!StringSupport.MBCLEN_CHARFOUND_P(c)) {
                     return nil;
                 }
-                if (ArrayUtils.memcmp(stringBytes, p, patternBytes, 0, pe) == 0) {
+                if (ArrayUtils.regionEquals(stringBytes, p, patternBytes, 0, pe)) {
                     return p;
                 }
             }
@@ -4897,6 +4915,7 @@ public abstract class StringNodes {
                 @Cached BranchProfile startTooLargeProfile,
                 @Cached BranchProfile matchFoundProfile,
                 @Cached BranchProfile noMatchProfile,
+                @Cached LoopConditionProfile loopProfile,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             assert byteOffset >= 0;
 
@@ -4913,11 +4932,16 @@ public abstract class StringNodes {
                 normalizedStart = end - 1;
             }
 
-            for (int i = normalizedStart; i >= 0; i--) {
-                if (sourceBytes[i] == searchByte) {
-                    matchFoundProfile.enter();
-                    return i;
+            int i = normalizedStart;
+            try {
+                for (; loopProfile.inject(i >= 0); i--) {
+                    if (sourceBytes[i] == searchByte) {
+                        matchFoundProfile.enter();
+                        return i;
+                    }
                 }
+            } finally {
+                profileAndReportLoopCount(loopProfile, normalizedStart - i);
             }
 
             noMatchProfile.enter();
@@ -4937,6 +4961,7 @@ public abstract class StringNodes {
                 @Cached BranchProfile startTooCloseToEndProfile,
                 @Cached BranchProfile matchFoundProfile,
                 @Cached BranchProfile noMatchProfile,
+                @Cached LoopConditionProfile loopProfile,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             assert byteOffset >= 0;
 
@@ -4945,9 +4970,8 @@ public abstract class StringNodes {
             final Rope sourceRope = libString.getRope(string);
             final int end = sourceRope.byteLength();
             final byte[] sourceBytes = bytesNode.execute(sourceRope);
-            final Rope searchRope = patternRope;
-            final int matchSize = searchRope.byteLength();
-            final byte[] searchBytes = bytesNode.execute(searchRope);
+            final int matchSize = patternRope.byteLength();
+            final byte[] searchBytes = bytesNode.execute(patternRope);
             int normalizedStart = byteOffset;
 
             if (normalizedStart >= end) {
@@ -4960,13 +4984,18 @@ public abstract class StringNodes {
                 normalizedStart = end - matchSize;
             }
 
-            for (int i = normalizedStart; i >= 0; i--) {
-                if (sourceBytes[i] == searchBytes[0]) {
-                    if (ArrayUtils.memcmp(sourceBytes, i, searchBytes, 0, matchSize) == 0) {
-                        matchFoundProfile.enter();
-                        return i;
+            int i = normalizedStart;
+            try {
+                for (; loopProfile.inject(i >= 0); i--) {
+                    if (sourceBytes[i] == searchBytes[0]) {
+                        if (ArrayUtils.regionEquals(sourceBytes, i, searchBytes, 0, matchSize)) {
+                            matchFoundProfile.enter();
+                            return i;
+                        }
                     }
                 }
+            } finally {
+                profileAndReportLoopCount(loopProfile, normalizedStart - i);
             }
 
             noMatchProfile.enter();
@@ -4990,6 +5019,7 @@ public abstract class StringNodes {
                 @Cached BytesNode patternBytes,
                 @Cached GetByteNode patternGetByteNode,
                 @Cached GetByteNode stringGetByteNode,
+                @Cached LoopConditionProfile loopProfile,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             // Taken from Rubinius's String::rindex.
             assert byteOffset >= 0;
@@ -5030,18 +5060,21 @@ public abstract class StringNodes {
 
                     int cur = pos;
 
-                    while (cur >= 0) {
-                        // TODO (nirvdrum 21-Jan-16): Investigate a more rope efficient memcmp.
-                        if (ArrayUtils.memcmp(
-                                stringBytes.execute(stringRope),
-                                cur,
-                                patternBytes.execute(patternRope),
-                                0,
-                                matchSize) == 0) {
-                            return cur;
-                        }
+                    try {
+                        while (loopProfile.inject(cur >= 0)) {
+                            if (ArrayUtils.regionEquals(
+                                    stringBytes.execute(stringRope),
+                                    cur,
+                                    patternBytes.execute(patternRope),
+                                    0,
+                                    matchSize)) {
+                                return cur;
+                            }
 
-                        cur--;
+                            cur--;
+                        }
+                    } finally {
+                        profileAndReportLoopCount(loopProfile, pos - cur);
                     }
                 }
             }

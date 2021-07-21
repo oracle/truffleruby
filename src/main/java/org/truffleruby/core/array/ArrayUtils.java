@@ -14,7 +14,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.RubyBaseNode;
 
 public abstract class ArrayUtils {
 
@@ -230,29 +233,47 @@ public abstract class ArrayUtils {
         return newArray;
     }
 
-    public static int memcmp(final byte[] first, final int firstStart, final byte[] second, final int secondStart,
-            int size) {
+    /** Like {@link java.util.Arrays#fill(Object[], int, int, Object)} but includes profiling. */
+    public static void fill(Object[] array, int from, int to, Object value, Node node,
+            LoopConditionProfile loopProfile) {
+        assert from <= to;
+        int i = from;
+        try {
+            for (; loopProfile.inject(i < to); i++) {
+                array[i] = value;
+            }
+        } finally {
+            RubyBaseNode.profileAndReportLoopCount(node, loopProfile, i - from);
+        }
+    }
+
+    public static boolean regionEquals(byte[] first, int firstStart, byte[] second, int secondStart, int size) {
+        return com.oracle.truffle.api.ArrayUtils
+                .regionEqualsWithOrMask(first, firstStart, second, secondStart, size, null);
+    }
+
+    public static int memcmp(byte[] first, int firstStart, byte[] second, int secondStart, int size, Node node,
+            LoopConditionProfile loopProfile) {
         assert firstStart + size <= first.length;
         assert secondStart + size <= second.length;
 
-        int cmp;
-
-        for (int i = 0; i < size; i++) {
-            if ((cmp = (first[firstStart + i] & 0xff) - (second[secondStart + i] & 0xff)) != 0) {
-                return cmp;
+        int i = 0;
+        try {
+            for (; loopProfile.inject(i < size); i++) {
+                final int cmp = (first[firstStart + i] & 0xff) - (second[secondStart + i] & 0xff);
+                if (cmp != 0) {
+                    return cmp;
+                }
             }
+        } finally {
+            RubyBaseNode.profileAndReportLoopCount(node, loopProfile, i);
         }
 
         return 0;
     }
 
-    public static int memchr(byte[] array, int start, byte find, int size) {
-        for (int i = start; i < start + size; i++) {
-            if (array[i] == find) {
-                return i;
-            }
-        }
-        return -1;
+    public static int memchr(byte[] array, int start, int size, byte find) {
+        return com.oracle.truffle.api.ArrayUtils.indexOf(array, start, start + size, find);
     }
 
     @TruffleBoundary

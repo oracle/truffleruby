@@ -1112,7 +1112,7 @@ public final class StringSupport {
                 }
                 enc.codeToMbc(c, buf, t);
                 // MRI does not check s < send again because their null terminator can still be compared
-                if (mayModify && (s >= send || ArrayUtils.memcmp(sbytes, s, buf, t, tlen) != 0)) {
+                if (mayModify && (s >= send || !ArrayUtils.regionEquals(sbytes, s, buf, t, tlen))) {
                     modified = true;
                 }
                 cr = CHECK_IF_ASCII(c, cr);
@@ -1184,7 +1184,7 @@ public final class StringSupport {
                 // headius: I don't see how s and t could ever be the same, since they refer to different buffers
                 //                if (s != t) {
                 enc.codeToMbc(c, buf, t);
-                if (mayModify && ArrayUtils.memcmp(sbytes, s, buf, t, tlen) != 0) {
+                if (mayModify && !ArrayUtils.regionEquals(sbytes, s, buf, t, tlen)) {
                     modified = true;
                 }
                 //                }
@@ -1698,7 +1698,7 @@ public final class StringSupport {
                     context.getCoreExceptions().runtimeError("non-ASCII character detected", currentNode));
         }
 
-        if (ArrayUtils.memchr(bytes, start, (byte) '\0', bytes.length) != -1) {
+        if (ArrayUtils.memchr(bytes, start, bytes.length, (byte) '\0') != -1) {
             throw new RaiseException(
                     context,
                     context.getCoreExceptions().runtimeError("string contains null byte", currentNode));
@@ -1746,7 +1746,7 @@ public final class StringSupport {
                                 context,
                                 context.getCoreExceptions().runtimeError(INVALID_FORMAT_MESSAGE, currentNode));
                     }
-                    if (ArrayUtils.memcmp(bytes, start, FORCE_ENCODING_BYTES, 0, size) != 0) {
+                    if (!ArrayUtils.regionEquals(bytes, start, FORCE_ENCODING_BYTES, 0, size)) {
                         throw new RaiseException(
                                 context,
                                 context.getCoreExceptions().runtimeError(INVALID_FORMAT_MESSAGE, currentNode));
@@ -1754,7 +1754,7 @@ public final class StringSupport {
                     start += size;
 
                     int encname = start;
-                    start = ArrayUtils.memchr(bytes, start, (byte) '"', length - start);
+                    start = ArrayUtils.memchr(bytes, start, length - start, (byte) '"');
                     size = start - encname;
                     if (start == -1) {
                         throw new RaiseException(
@@ -1955,7 +1955,7 @@ public final class StringSupport {
         int tmp;
 
         while ((len--) > 0 && s < bytes.length &&
-                (tmp = ArrayUtils.memchr(HEXDIGIT, 0, bytes[s], HEXDIGIT.length)) != -1) {
+                (tmp = ArrayUtils.memchr(HEXDIGIT, 0, HEXDIGIT.length, bytes[s])) != -1) {
             retval <<= 4;
             retval |= tmp & 15;
             s++;

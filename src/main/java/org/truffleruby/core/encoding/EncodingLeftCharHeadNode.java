@@ -10,8 +10,10 @@
 package org.truffleruby.core.encoding;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import org.jcodings.specific.UTF8Encoding;
+import com.oracle.truffle.api.nodes.LoopNode;
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.language.RubyBaseNode;
 
 public abstract class EncodingLeftCharHeadNode extends RubyBaseNode {
@@ -29,8 +31,28 @@ public abstract class EncodingLeftCharHeadNode extends RubyBaseNode {
     }
 
     @Specialization(guards = { "!enc.jcoding.isSingleByte()", "enc.jcoding.isUTF8()" })
-    protected int leftAdjustCharHeadUtf8(RubyEncoding enc, byte[] bytes, int p, int s, int end) {
-        return UTF8Encoding.INSTANCE.leftAdjustCharHead(bytes, p, s, end);
+    protected int leftAdjustCharHeadUtf8(RubyEncoding enc, byte[] bytes, int p, int s, int end,
+            @Cached LoopConditionProfile loopProfile) {
+        // Adapted from org.jcodings.specific.BaseUTF8Encoding to add profiling.
+        // was: return UTF8Encoding.INSTANCE.leftAdjustCharHead(bytes, p, s, end);
+        if (s <= p) {
+            return s;
+        }
+        int i = s;
+        try {
+            while (loopProfile.profile(!utf8IsLead(bytes[i] & 0xff) && i > p)) {
+                i--;
+            }
+        } finally {
+            LoopNode.reportLoopCount(this, s - i);
+        }
+        return i;
+
+    }
+
+    /** Copied from org.jcodings.specific.BaseUTF8Encoding */
+    private static boolean utf8IsLead(int c) {
+        return ((c & 0xc0) & 0xff) != 0x80;
     }
 
     @TruffleBoundary
