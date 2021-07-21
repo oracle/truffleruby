@@ -541,7 +541,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
   bench_builds:
     {
-      local shared = $.platform.linux + $.jdk.v8 + $.use.common +
+      local shared = $.platform.linux + $.jdk.v11 + $.use.common +
                      $.benchmark.runner + $.benchmark.compiler_metrics + { timelimit: "01:15:00" },
 
       "ruby-metrics-compiler-graal-core": shared + graal_configurations["graal-core"] + $.use.no_multi_tier,
@@ -551,7 +551,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     {
-      local shared = $.platform.linux + $.jdk.v8 + $.use.common +
+      local shared = $.platform.linux + $.jdk.v11 + $.use.common +
                      $.benchmark.runner + $.benchmark.svm_build_stats + { timelimit: "00:20:00" },
       # TODO this 2 jobs have GUEST_VM_CONFIG: 'default' instead of 'truffle', why?
       local guest_vm_override = { environment+: { GUEST_VM_CONFIG: "default" } },
@@ -561,7 +561,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     {
-      local shared = $.platform.linux + $.jdk.v8 + $.use.common +
+      local shared = $.platform.linux + $.jdk.v11 + $.use.common +
                      $.benchmark.run_svm_metrics + { timelimit: "00:45:00" },
 
       "ruby-metrics-svm-graal-core": shared + svm_configurations["svm-graal-core"] + $.use.no_multi_tier,
@@ -571,7 +571,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     {
-      local shared = $.platform.linux + $.jdk.v8 + $.use.common +
+      local shared = $.platform.linux + $.jdk.v11 + $.use.common +
                      $.benchmark.runner + $.benchmark.classic,
 
       "ruby-benchmarks-classic-mri": shared + other_rubies.mri + { timelimit: "00:55:00" },
@@ -587,7 +587,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     {
-      local shared = $.platform.linux + $.jdk.v8 + $.use.common,
+      local shared = $.platform.linux + $.jdk.v11 + $.use.common,
 
       local chunky = $.benchmark.runner + $.benchmark.chunky + { timelimit: "01:30:00" },
       "ruby-benchmarks-chunky-mri": shared + chunky + other_rubies.mri,
@@ -669,7 +669,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     {
-      local shared = $.platform.linux + $.jdk.v8 + $.use.common + $.use.gem_test_pack +
+      local shared = $.platform.linux + $.jdk.v11 + $.use.common + $.use.gem_test_pack +
                      $.benchmark.runner + $.benchmark.server +
                      { timelimit: "00:30:00" },
 
@@ -683,7 +683,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
     {
       "ruby-metrics-truffle":
-        $.platform.linux + $.jdk.v8 + $.use.common + $.env.jvm + $.use.build +
+        $.platform.linux + $.jdk.v11 + $.use.common + $.env.jvm + $.use.build +
         $.use.truffleruby +
         $.cap.bench + $.cap.daily +
         $.benchmark.runner + $.benchmark.interpreter_metrics +
@@ -692,7 +692,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
     {
       "ruby-benchmarks-cext":
-        $.platform.linux + $.jdk.v8 + $.use.common +
+        $.platform.linux + $.jdk.v11 + $.use.common +
         $.use.truffleruby + $.use.truffleruby_cexts +
         $.env.jvm_ce + $.use.build + $.use.gem_test_pack +
         $.cap.bench + $.cap.daily +
