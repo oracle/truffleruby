@@ -25,7 +25,6 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.IntValueProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.graalvm.collections.Pair;
-import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -45,8 +44,8 @@ import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.encoding.StandardEncodings;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
 import org.truffleruby.core.regexp.TruffleRegexpNodesFactory.MatchNodeGen;
@@ -55,6 +54,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.rope.RopeWithEncoding;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
@@ -89,47 +89,50 @@ public class TruffleRegexpNodes {
             return TruffleRegexpNodesFactory.CheckEncodingNodeGen.create();
         }
 
-        public final Encoding executeCheckEncoding(RubyRegexp regexp, Object string) {
-            return executeInternal(regexp, stringLibrary.getRope(string));
+        public final RubyEncoding executeCheckEncoding(RubyRegexp regexp, Object string) {
+            return executeInternal(
+                    regexp,
+                    stringLibrary.getRope(string),
+                    stringLibrary.getEncoding(string));
         }
 
-        public abstract Encoding executeInternal(RubyRegexp regexp, Rope rope);
+        public abstract RubyEncoding executeInternal(RubyRegexp regexp, Rope rope, RubyEncoding encoding);
 
         @Specialization(guards = {
-                "!isSameEncoding(regexp, rope)",
+                "!isSameEncoding(regexp, encoding)",
                 "isUSASCII(regexp, rope)"
         })
-        protected Encoding checkEncodingAsciiOnly(RubyRegexp regexp, Rope rope) {
-            return USASCIIEncoding.INSTANCE;
+        protected RubyEncoding checkEncodingAsciiOnly(RubyRegexp regexp, Rope rope, RubyEncoding encoding) {
+            return Encodings.US_ASCII;
         }
 
         @Specialization(guards = {
-                "isSameEncoding(regexp, rope)"
+                "isSameEncoding(regexp, encoding)"
         })
-        protected Encoding checkEncodingSameEncoding(RubyRegexp regexp, Rope rope) {
-            return regexp.regex.getEncoding();
+        protected RubyEncoding checkEncodingSameEncoding(RubyRegexp regexp, Rope rope, RubyEncoding encoding) {
+            return regexp.encoding;
         }
 
         @Specialization(guards = {
-                "!isSameEncoding(regexp, rope)",
+                "!isSameEncoding(regexp, encoding)",
                 "!isUSASCII(regexp, rope)",
-                "isFixedEncoding(regexp, rope)",
+                "isFixedEncoding(regexp, encoding)",
         })
-        protected Encoding checkEncodingFixedEncoding(RubyRegexp regexp, Rope rope) {
-            return regexp.regex.getEncoding();
+        protected RubyEncoding checkEncodingFixedEncoding(RubyRegexp regexp, Rope rope, RubyEncoding encoding) {
+            return regexp.encoding;
         }
 
         @Specialization(guards = {
-                "!isSameEncoding(regexp, rope)",
+                "!isSameEncoding(regexp, encoding)",
                 "!isUSASCII(regexp, rope)",
-                "!isFixedEncoding(regexp, rope)"
+                "!isFixedEncoding(regexp, encoding)"
         })
-        protected Encoding fallback(RubyRegexp regexp, Rope rope) {
-            return rope.encoding;
+        protected RubyEncoding fallback(RubyRegexp regexp, Rope rope, RubyEncoding encoding) {
+            return encoding;
         }
 
-        protected boolean isSameEncoding(RubyRegexp regexp, Rope rope) {
-            return regexp.regex.getEncoding() == rope.encoding;
+        protected boolean isSameEncoding(RubyRegexp regexp, RubyEncoding encoding) {
+            return regexp.encoding == encoding;
         }
 
         protected boolean isUSASCII(RubyRegexp regexp, Rope rope) {
@@ -137,8 +140,8 @@ public class TruffleRegexpNodes {
                     codeRangeNode.execute(rope) == CodeRange.CR_7BIT;
         }
 
-        protected boolean isFixedEncoding(RubyRegexp regexp, Rope rope) {
-            return regexp.options.isFixed() && rope.encoding.isAsciiCompatible();
+        protected boolean isFixedEncoding(RubyRegexp regexp, RubyEncoding encoding) {
+            return regexp.options.isFixed() && encoding.jcoding.isAsciiCompatible();
         }
 
     }
@@ -149,14 +152,26 @@ public class TruffleRegexpNodes {
     }
 
     @TruffleBoundary
-    private static Regex makeRegexpForEncoding(RubyContext context, RubyRegexp regexp, Encoding enc, Node currentNode) {
-        final Encoding[] fixedEnc = new Encoding[]{ null };
+    private static Regex makeRegexpForEncoding(RubyContext context, RubyRegexp regexp, RubyEncoding enc,
+            Node currentNode) {
+        final RubyEncoding[] fixedEnc = new RubyEncoding[]{ null };
         final Rope sourceRope = regexp.source;
         try {
             final RopeBuilder preprocessed = ClassicRegexp
-                    .preprocess(sourceRope, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
+                    .preprocess(
+                            RopeOperations.withEncoding(sourceRope, enc.jcoding),
+                            enc,
+                            fixedEnc,
+                            RegexpSupport.ErrorMode.RAISE);
             final RegexpOptions options = regexp.options;
-            return ClassicRegexp.makeRegexp(context, null, preprocessed, options, enc, sourceRope, currentNode);
+            return ClassicRegexp.makeRegexp(
+                    context,
+                    null,
+                    preprocessed,
+                    options,
+                    enc,
+                    sourceRope,
+                    currentNode);
         } catch (DeferredRaiseException dre) {
             throw dre.getException(context);
         }
@@ -199,7 +214,7 @@ public class TruffleRegexpNodes {
                 }
             }
             try {
-                return createRegexp(regexpString.rope);
+                return createRegexp(regexpString.rope, regexpString.encoding);
             } catch (DeferredRaiseException dre) {
                 errorProfile.enter();
                 throw dre.getException(getContext());
@@ -232,28 +247,35 @@ public class TruffleRegexpNodes {
         }
 
         @TruffleBoundary
-        public RubyRegexp createRegexp(Rope pattern) throws DeferredRaiseException {
+        public RubyRegexp createRegexp(Rope pattern, RubyEncoding encoding) throws DeferredRaiseException {
             final RegexpOptions regexpOptions = RegexpOptions.fromEmbeddedOptions(0);
-            final Regex regex = compile(getLanguage(), null, pattern, regexpOptions, this);
+            final Regex regex = compile(
+                    getLanguage(),
+                    null,
+                    new RopeWithEncoding(pattern, encoding),
+                    regexpOptions,
+                    this);
 
+            final RopeWithEncoding ropeWithEncoding = (RopeWithEncoding) regex.getUserObject();
             return new RubyRegexp(
                     regex,
-                    (Rope) regex.getUserObject(),
+                    ropeWithEncoding.getRope(),
+                    ropeWithEncoding.getEncoding(),
                     regexpOptions,
                     new EncodingCache(),
                     new TRegexCache());
         }
     }
 
-    @ImportStatic(StandardEncodings.class)
+    @ImportStatic(Encodings.class)
     public abstract static class TRegexCompileNode extends RubyContextNode {
 
-        public abstract Object executeTRegexCompile(RubyRegexp regexp, boolean atStart, Encoding encoding);
+        public abstract Object executeTRegexCompile(RubyRegexp regexp, boolean atStart, RubyEncoding encoding);
 
         @Child DispatchNode warnOnFallbackNode;
 
         @Specialization(guards = "encoding == US_ASCII")
-        protected Object usASCII(RubyRegexp regexp, boolean atStart, Encoding encoding) {
+        protected Object usASCII(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
             final Object tregex = regexp.tregexCache.getUSASCIIRegex(atStart);
             if (tregex != null) {
                 return tregex;
@@ -263,7 +285,7 @@ public class TruffleRegexpNodes {
         }
 
         @Specialization(guards = "encoding == ISO_8859_1")
-        protected Object latin1(RubyRegexp regexp, boolean atStart, Encoding encoding) {
+        protected Object latin1(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
             final Object tregex = regexp.tregexCache.getLatin1Regex(atStart);
             if (tregex != null) {
                 return tregex;
@@ -273,7 +295,7 @@ public class TruffleRegexpNodes {
         }
 
         @Specialization(guards = "encoding == UTF_8")
-        protected Object utf8(RubyRegexp regexp, boolean atStart, Encoding encoding) {
+        protected Object utf8(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
             final Object tregex = regexp.tregexCache.getUTF8Regex(atStart);
             if (tregex != null) {
                 return tregex;
@@ -283,7 +305,7 @@ public class TruffleRegexpNodes {
         }
 
         @Specialization(guards = "encoding == BINARY")
-        protected Object binary(RubyRegexp regexp, boolean atStart, Encoding encoding) {
+        protected Object binary(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
             final Object tregex = regexp.tregexCache.getBinaryRegex(atStart);
             if (tregex != null) {
                 return tregex;
@@ -298,7 +320,7 @@ public class TruffleRegexpNodes {
                         "encoding != ISO_8859_1",
                         "encoding != UTF_8",
                         "encoding != BINARY" })
-        protected Object other(RubyRegexp regexp, boolean atStart, Encoding encoding) {
+        protected Object other(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
             return nil;
         }
 
@@ -392,10 +414,10 @@ public class TruffleRegexpNodes {
                 @Cached CheckEncodingNode checkEncodingNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             final Rope rope = libString.getRope(string);
-            final Encoding enc = checkEncodingNode.executeCheckEncoding(regexp, string);
+            final RubyEncoding enc = checkEncodingNode.executeCheckEncoding(regexp, string);
             Regex regex = regexp.regex;
 
-            if (encodingMismatchProfile.profile(regex.getEncoding() != enc)) {
+            if (encodingMismatchProfile.profile(regexp.encoding != enc)) {
                 final EncodingCache encodingCache = regexp.cachedEncodings;
                 regex = encodingCache.getOrCreate(enc, e -> makeRegexpForEncoding(getContext(), regexp, e, this));
             }
@@ -631,7 +653,7 @@ public class TruffleRegexpNodes {
         @TruffleBoundary
         protected void instrument(RubyRegexp regexp, Object string, boolean fromStart) {
             Rope source = regexp.source;
-            Encoding enc = RubyStringLibrary.getUncached().getRope(string).getEncoding();
+            RubyEncoding enc = RubyStringLibrary.getUncached().getEncoding(string);
             RegexpOptions options = regexp.options;
             MatchInfo matchInfo = new MatchInfo(
                     new RegexpCacheKey(source, enc, options.toJoniOptions(), Hashing.NO_SEED),
@@ -689,23 +711,29 @@ public class TruffleRegexpNodes {
 
     /** WARNING: computeRegexpEncoding() mutates options, so the caller should make sure it's a copy */
     @TruffleBoundary
-    public static Regex compile(RubyLanguage language, RubyDeferredWarnings rubyDeferredWarnings, Rope bytes,
-            RegexpOptions options, Node currentNode) throws DeferredRaiseException {
+    public static Regex compile(RubyLanguage language, RubyDeferredWarnings rubyDeferredWarnings,
+            RopeWithEncoding bytes, RegexpOptions options, Node currentNode) throws DeferredRaiseException {
         if (options.isEncodingNone()) {
-            bytes = RopeOperations.withEncoding(bytes, ASCIIEncoding.INSTANCE);
+            bytes = new RopeWithEncoding(
+                    RopeOperations.withEncoding(bytes.getRope(), ASCIIEncoding.INSTANCE),
+                    Encodings.BINARY);
         }
-        Encoding enc = bytes.getEncoding();
-        Encoding[] fixedEnc = new Encoding[]{ null };
+        RubyEncoding enc = bytes.getEncoding();
+        RubyEncoding[] fixedEnc = new RubyEncoding[]{ null };
         RopeBuilder unescaped = ClassicRegexp
-                .preprocess(bytes, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
+                .preprocess(bytes.getRope(), enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
         enc = ClassicRegexp.computeRegexpEncoding(options, enc, fixedEnc);
 
         Regex regexp = ClassicRegexp
-                .makeRegexp(null, rubyDeferredWarnings, unescaped, options, enc, bytes, currentNode);
-        regexp.setUserObject(RopeOperations.withEncoding(bytes, enc));
+                .makeRegexp(null, rubyDeferredWarnings, unescaped, options, enc, bytes.getRope(), currentNode);
+        regexp.setUserObject(new RopeWithEncoding(RopeOperations.withEncoding(bytes.getRope(), enc.jcoding), enc));
 
         if (language.options.REGEXP_INSTRUMENT_CREATION) {
-            final RegexpCacheKey key = new RegexpCacheKey(bytes, enc, options.toJoniOptions(), Hashing.NO_SEED);
+            final RegexpCacheKey key = new RegexpCacheKey(
+                    bytes.getRope(),
+                    enc,
+                    options.toJoniOptions(),
+                    Hashing.NO_SEED);
             ConcurrentOperations.getOrCompute(COMPILED_REGEXPS, key, x -> new AtomicInteger()).incrementAndGet();
         }
 

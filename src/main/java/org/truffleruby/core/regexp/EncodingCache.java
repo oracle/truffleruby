@@ -14,19 +14,19 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import org.jcodings.Encoding;
 import org.joni.Regex;
 import org.truffleruby.collections.ConcurrentOperations;
+import org.truffleruby.core.encoding.RubyEncoding;
 
 public class EncodingCache {
-    private final Map<Encoding, Regex> encodings;
+    private final Map<RubyEncoding, Regex> encodings;
 
     @TruffleBoundary
     public EncodingCache() {
         this.encodings = new ConcurrentHashMap<>();
     }
 
-    public Regex getOrCreate(Encoding encoding, Function<Encoding, Regex> function) {
+    public Regex getOrCreate(RubyEncoding encoding, Function<RubyEncoding, Regex> function) {
         return ConcurrentOperations.getOrCompute(encodings, encoding, function);
     }
 }

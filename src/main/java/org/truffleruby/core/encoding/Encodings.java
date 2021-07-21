@@ -16,6 +16,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.jcodings.Encoding;
 import org.jcodings.EncodingDB;
 import org.jcodings.specific.ASCIIEncoding;
+import org.jcodings.specific.ISO8859_1Encoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF16BEEncoding;
 import org.jcodings.specific.UTF16LEEncoding;
@@ -43,6 +44,7 @@ public class Encodings {
     public static final RubyEncoding UTF16BE = BUILT_IN_ENCODINGS[UTF16BEEncoding.INSTANCE.getIndex()];
     public static final RubyEncoding UTF32LE = BUILT_IN_ENCODINGS[UTF32LEEncoding.INSTANCE.getIndex()];
     public static final RubyEncoding UTF32BE = BUILT_IN_ENCODINGS[UTF32BEEncoding.INSTANCE.getIndex()];
+    public static final RubyEncoding ISO_8859_1 = BUILT_IN_ENCODINGS[ISO8859_1Encoding.INSTANCE.getIndex()];
     public static final RubyEncoding UTF16_DUMMY = BUILT_IN_ENCODINGS[EncodingDB
             .getEncodings()
             .get(RopeOperations.encodeAsciiBytes("UTF-16"))

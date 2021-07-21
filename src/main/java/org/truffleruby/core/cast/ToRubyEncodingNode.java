@@ -45,7 +45,7 @@ public abstract class ToRubyEncodingNode extends RubyContextNode {
 
     @Specialization
     protected RubyEncoding regexpToEncoding(RubyRegexp value) {
-        return getContext().getEncodingManager().getRubyEncoding(value.regex.getEncoding());
+        return value.encoding;
     }
 
     @Specialization

@@ -19,6 +19,7 @@ import com.oracle.truffle.api.library.ExportMessage;
 import org.joni.Regex;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.Rope;
@@ -30,6 +31,7 @@ public class RubyRegexp extends ImmutableRubyObject implements TruffleObject {
 
     public Regex regex;
     public Rope source;
+    public RubyEncoding encoding;
     public RegexpOptions options;
     public EncodingCache cachedEncodings;
     public TRegexCache tregexCache;
@@ -37,11 +39,14 @@ public class RubyRegexp extends ImmutableRubyObject implements TruffleObject {
     public RubyRegexp(
             Regex regex,
             Rope source,
+            RubyEncoding encoding,
             RegexpOptions options,
             EncodingCache encodingCache,
             TRegexCache tregexCache) {
+        assert (source == null && encoding == null) || source.encoding == encoding.jcoding;
         this.regex = regex;
         this.source = source;
+        this.encoding = encoding;
         this.options = options;
         this.cachedEncodings = encodingCache;
         this.tregexCache = tregexCache;
