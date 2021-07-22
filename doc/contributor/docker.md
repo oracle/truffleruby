@@ -22,14 +22,14 @@ jt docker test --graalvm graalvm-ee.tar.gz llvm-toolchain-installable.jar:ruby-i
 jt docker test --standalone truffleruby-linux-amd64.tar.gz --test release_branch
 ```
 
+To run tests on a specific distribution:
+```bash
+DOCKER=podman jt docker build --ubuntu1804 --standalone ~/Downloads/truffleruby-21.2.0-linux-amd64.tar.gz --test release/graal-vm/21.2
+```
+
 ## Distributions
 
-Pick one of:
-
-* Oracle Linux 7, `--ol7` (default)
-* Ubuntu 18.04 `--ubuntu1804`
-* Ubuntu 16.04 `--ubuntu1604`
-* Fedora 28, `--fedora28`
+Pick one of the distributions in [docker-configs.yaml](../../tool/docker-configs.yaml).
 
 ## Methods of installing
 

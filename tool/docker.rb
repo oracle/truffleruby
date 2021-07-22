@@ -1,3 +1,5 @@
+require 'yaml'
+
 class JT
   class Docker
     include Utilities
@@ -18,6 +20,14 @@ class JT
       end
     end
 
+    private def docker_config
+      @config ||= YAML.load_file(File.join(TRUFFLERUBY_DIR, 'tool', 'docker-configs.yaml'))
+    end
+
+    private def docker_distros
+      docker_config.each_pair.select { |_name, details| details.key?('base') }.map(&:first).map { |distro| "--#{distro}" }
+    end
+
     private def docker_build(*args)
       if args.first.nil? || args.first.start_with?('--')
         image_name = 'truffleruby-test'
@@ -30,7 +40,7 @@ class JT
     end
 
     private def docker_test(*args)
-      distros = ['--ol7', '--ubuntu1804', '--ubuntu1604', '--fedora28']
+      distros = docker_distros
 
       distros.each do |distro|
         puts '**********************************'
@@ -50,8 +60,7 @@ class JT
     end
 
     private def dockerfile(*args)
-      require 'yaml'
-      config = @config ||= YAML.load_file(File.join(TRUFFLERUBY_DIR, 'tool', 'docker-configs.yaml'))
+      config = docker_config
 
       distro = 'ol7'
       install_method = nil
@@ -65,7 +74,7 @@ class JT
       until args.empty?
         arg = args.shift
         case arg
-        when '--ol7', '--ubuntu1804', '--ubuntu1604', '--fedora28'
+        when *docker_distros
           distro = arg[2..-1]
         when '--graalvm'
           install_method = :graalvm
