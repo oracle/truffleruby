@@ -144,9 +144,11 @@ VALUE rb_tr_get_sprintf_args(va_list args, VALUE types) {
     case TYPE_DOUBLE:
       val = DBL2NUM(va_arg(args, double));
       break;
+#if !defined(__aarch64__)
     case TYPE_LONGDOUBLE:
       val = DBL2NUM(va_arg(args, long double));
       break;
+#endif
     case TYPE_SIZE_T:
       val = ULONG2NUM(va_arg(args, size_t));
       break;
@@ -182,7 +184,7 @@ VALUE rb_tr_get_sprintf_args(va_list args, VALUE types) {
     default:
       {
         char *err_str;
-        if (asprintf(&err_str, "unknown rb_sprintf arg type %d", type) > 0 ) {
+        if (asprintf(&err_str, "unhandled rb_sprintf arg type %d", type) > 0 ) {
           rb_tr_error(err_str);
           free(err_str);
         }
