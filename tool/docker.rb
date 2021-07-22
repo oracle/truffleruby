@@ -128,6 +128,9 @@ class JT
         *distro.fetch('set-locale'),
       ]
 
+      # Check the locale is properly generated
+      lines << 'RUN locale -a | grep en_US.utf8'
+
       lines << 'WORKDIR /test'
 
       lines << 'RUN useradd -ms /bin/bash test'
