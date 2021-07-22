@@ -14,18 +14,18 @@ describe "Monitor#new_cond" do
 
     10.times do
 
-      locked = false
+      wait_q = Queue.new
       thread = Thread.new do
         m.synchronize do
-          locked = true
+          wait_q << true
           c.wait
         end
         :done
       end
 
-      Thread.pass until locked
-      Thread.pass until thread.stop?
+      wait_q.pop
 
+      # Synchronize can't happen until the other thread is waiting.
       m.synchronize { c.signal }
 
       thread.join
@@ -39,20 +39,20 @@ describe "Monitor#new_cond" do
 
     10.times do
 
-      locked = false
+      wait_q = Queue.new
       thread = Thread.new do
         m.synchronize do
           m.synchronize do
-            locked = true
+            wait_q << true
             c.wait
           end
         end
         :done
       end
 
-      Thread.pass until locked
-      Thread.pass until thread.stop?
+      wait_q.pop
 
+      #No need to wait here as we cannot synchronize until the other thread is waiting.
       m.synchronize { c.signal }
 
       thread.join
@@ -66,18 +66,18 @@ describe "Monitor#new_cond" do
 
     10.times do
 
-      locked = false
+      wait_q = Queue.new
       thread = Thread.new do
         m.synchronize do
-          locked = true
+          wait_q << true
           c.wait
         end
         :done
       end
 
-      Thread.pass until locked
-      Thread.pass until thread.stop?
+      wait_q.pop
 
+      # Synchronize can't happen until the other thread is waiting.
       m.synchronize { m.synchronize { c.signal } }
 
       thread.join
