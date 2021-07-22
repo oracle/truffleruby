@@ -15,6 +15,7 @@ Bug fixes:
 * Fix `rb_str_modify_expand` to preserve existing bytes (#2392).
 * Fix `Marshal.load` of multiple `Symbols` with an explicit encoding (#1624).
 * Fix `String#scrub` when replacement is frozen (#2398, @LillianZ).
+* Fix issue with `strspn` used in the `date` C extension compiled as a macro on older glibc and then missing the `__strspn_c1` symbol on newer glibc (#2406).
 
 Compatibility:
 
