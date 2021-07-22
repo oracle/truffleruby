@@ -53,6 +53,26 @@ int rb_tr_writable(int mode);
 
 typedef void* (gvl_call)(void *);
 
+// Sprintf
+
+typedef struct OnigEncodingTypeST OnigEncodingType;
+typedef const OnigEncodingType rb_encoding;;
+
+rb_encoding *rb_ascii8bit_encoding(void);
+
+PRINTF_ARGS(ALWAYS_INLINE(static VALUE rb_tr_sprintf(const char *format, ...)), 1, 2);
+ALWAYS_INLINE(static VALUE rb_tr_vsprintf(const char *format, va_list args));
+PRINTF_ARGS(ALWAYS_INLINE(static VALUE rb_tr_enc_sprintf(rb_encoding *enc, const char *format, ...)), 2, 3);
+ALWAYS_INLINE(static VALUE rb_tr_enc_vsprintf(rb_encoding *enc, const char *format, va_list args));
+VALUE rb_tr_get_sprintf_args(va_list args, VALUE types);
+VALUE rb_tr_vsprintf_new_cstr(char *cstr);
+VALUE rb_str_conv_enc(VALUE str, rb_encoding *from, rb_encoding *to);
+
+#define rb_enc_sprintf(encoding, format, ...) rb_tr_enc_sprintf(encoding, format, ##__VA_ARGS__)
+#define rb_enc_vsprintf(encoding, format, args) rb_tr_enc_vsprintf(encoding, format, args)
+#define rb_sprintf(format, ...) rb_tr_sprintf(format, ##__VA_ARGS__)
+#define rb_vsprintf(format, args) rb_tr_vsprintf(format, args)
+
 // Utilities
 
 #define rb_warn(FORMAT, ...) __extension__ ({                   \
@@ -433,6 +453,46 @@ static inline int rb_tr_scan_args_kw(int kw_flag, int argc, VALUE *argv, const c
   }
 
   return argc;
+}
+
+static inline VALUE rb_tr_enc_vsprintf(rb_encoding *enc, const char *format, va_list args) {
+  VALUE rubyFormat = rb_str_new_cstr(format);
+  VALUE types = RUBY_CEXT_INVOKE("rb_tr_sprintf_types", rubyFormat);
+  VALUE rubyArgs = rb_tr_get_sprintf_args(args, types);
+
+  return rb_str_conv_enc(rb_tr_wrap(
+                    polyglot_invoke(
+                                    RUBY_CEXT,
+                                    "rb_tr_sprintf",
+                                    rb_tr_unwrap(rubyFormat),
+                                    rb_tr_vsprintf_new_cstr,
+                                    rb_tr_unwrap(rubyArgs))), NULL, enc);
+}
+
+static inline VALUE rb_tr_enc_sprintf(rb_encoding *enc, const char *format, ...) {
+  VALUE result;
+  va_list ap;
+
+  va_start(ap, format);
+  result = rb_tr_enc_vsprintf(enc, format, ap);
+  va_end(ap);
+
+  return result;
+}
+
+static inline VALUE rb_tr_sprintf(const char *format, ...) {
+  VALUE result;
+  va_list ap;
+
+  va_start(ap, format);
+  result = rb_tr_vsprintf(format, ap);
+  va_end(ap);
+
+  return result;
+}
+
+static inline VALUE rb_tr_vsprintf(const char *format, va_list args) {
+  return rb_tr_enc_vsprintf(rb_ascii8bit_encoding(), format, args);
 }
 
 #define rb_iv_get(obj, name) \

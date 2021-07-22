@@ -38,13 +38,18 @@ char* rb_value_to_str(const VALUE *arg, int showsign) {
 
 VALUE rb_tr_get_sprintf_args(va_list args, VALUE types);
 
-static VALUE rb_tr_vsprintf_new_cstr(char *cstr) {
+VALUE rb_tr_vsprintf_new_cstr(char *cstr) {
   if (cstr == NULL) {
     return rb_str_new_cstr("");
   } else {
     return rb_str_new_cstr(cstr);
   }
 }
+
+#undef rb_enc_sprintf
+#undef rb_enc_vsprintf
+#undef rb_sprintf
+#undef rb_vsprintf
 
 VALUE rb_enc_vsprintf(rb_encoding *enc, const char *format, va_list args) {
   VALUE rubyFormat = rb_str_new_cstr(format);
