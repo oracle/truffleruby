@@ -11,6 +11,7 @@ Bug fixes:
 * Fix `String#scrub` when replacement is frozen (#2398, @LillianZ).
 * Fix `Dir.mkdir` error handling for `Pathname` paths (#2397).
 * `BasicSocket#*_nonblock(exception: false)` now only return `:wait_readable/:wait_writable` for `EAGAIN`/`EWOULDBLOCK` like MRI (#2400).
+* Fix issue with `strspn` used in the `date` C extension compiled as a macro on older glibc and then missing the `__strspn_c1` symbol on newer glibc (#2406).
 
 Compatibility:
 
