@@ -87,7 +87,7 @@ public class RBSprintfCompiler {
                     typeInt = config.getFormatArgumentType().ordinal();
             }
             if (config.getAbsoluteArgumentIndex() != null) {
-                typePos = config.getAbsoluteArgumentIndex();
+                typePos = config.getAbsoluteArgumentIndex() - 1; //Parameters are 1 indexed, but our array is 0 indexed.
             } else {
                 typePos = pos++;
             }
