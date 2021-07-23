@@ -10,9 +10,17 @@
 package org.truffleruby.core.rope;
 
 import com.oracle.truffle.api.CompilerDirectives.ValueType;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.InvalidArrayIndexException;
+import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 @ValueType
-public final class Bytes {
+@ExportLibrary(InteropLibrary.class)
+public final class Bytes implements TruffleObject {
     public final byte[] array;
     public final int offset;
     public final int length;
@@ -70,4 +78,32 @@ public final class Bytes {
     public byte get(int i) {
         return array[offset + i];
     }
+
+    // region Array messages for TRegex
+    @ExportMessage
+    public boolean hasArrayElements() {
+        return true;
+    }
+
+    @ExportMessage
+    public long getArraySize() {
+        return length;
+    }
+
+    @ExportMessage
+    public Object readArrayElement(long index,
+            @Cached BranchProfile errorProfile) throws InvalidArrayIndexException {
+        if (isArrayElementReadable(index)) {
+            return get((int) index);
+        } else {
+            errorProfile.enter();
+            throw InvalidArrayIndexException.create(index);
+        }
+    }
+
+    @ExportMessage
+    public boolean isArrayElementReadable(long index) {
+        return index >= 0 && index < length;
+    }
+    // endregion
 }

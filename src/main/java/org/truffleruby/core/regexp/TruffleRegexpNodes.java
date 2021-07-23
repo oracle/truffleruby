@@ -436,7 +436,7 @@ public class TruffleRegexpNodes {
         @Child DispatchNode stringDupNode;
         @Child TranslateInteropExceptionNode translateInteropExceptionNode;
 
-        @Child RopeNodes.SubstringNode substringNode;
+        @Child RopeNodes.GetBytesObjectNode getBytesObjectNode;
 
         @Specialization(guards = "libString.isRubyString(string)")
         protected Object matchInRegionTRegex(
@@ -466,16 +466,27 @@ public class TruffleRegexpNodes {
             }
 
             int fromIndex = fromPos;
+            final Object interopByteArray;
+            final String execMethod;
             if (startPosNotZeroProfile.profile(startPos > 0)) {
-                rope = substring(rope, startPos, toPos - startPos);
+                // GR-32765: When adopting TruffleString, use a TruffleString substring here instead
                 // If startPos != 0, then fromPos == startPos.
                 assert fromPos == startPos;
                 fromIndex = 0;
+
+                if (getBytesObjectNode == null) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    getBytesObjectNode = insert(RopeNodes.GetBytesObjectNode.create());
+                }
+                interopByteArray = getBytesObjectNode.getRange(rope, startPos, toPos);
+                execMethod = "exec";
+            } else {
+                final byte[] bytes = bytesNode.execute(rope);
+                interopByteArray = getContext().getEnv().asGuestValue(bytes);
+                execMethod = "execBytes";
             }
 
-            final byte[] bytes = bytesNode.execute(rope);
-            final Object interopByteArray = getContext().getEnv().asGuestValue(bytes);
-            final Object result = invoke(regexInterop, tRegex, "execBytes", interopByteArray, fromIndex);
+            final Object result = invoke(regexInterop, tRegex, execMethod, interopByteArray, fromIndex);
 
             final boolean isMatch = (boolean) readMember(resultInterop, result, "isMatch");
 
@@ -569,15 +580,6 @@ public class TruffleRegexpNodes {
             }
 
             return stringDupNode.call(string, "dup");
-        }
-
-        private Rope substring(Rope rope, int byteOffset, int byteLength) {
-            if (substringNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                substringNode = insert(RopeNodes.SubstringNode.create());
-            }
-
-            return substringNode.executeSubstring(rope, byteOffset, byteLength);
         }
     }
 
