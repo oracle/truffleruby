@@ -308,15 +308,23 @@ class StringScanner
     peek len
   end
 
-  def scan_internal(pattern, advance_pos, getstr, headonly)
+  def scan_check_args(pattern, headonly)
     unless pattern.kind_of? Regexp
       raise TypeError, "bad pattern argument: #{pattern.inspect}"
     end
     raise ArgumentError, 'uninitialized StringScanner object' unless @string
+  end
+
+  def scan_internal(pattern, advance_pos, getstr, headonly)
+    scan_check_args(pattern, headonly)
 
     md = Truffle::RegexpOperations.match_in_region pattern, @string, pos, @string.bytesize, headonly, pos
     Primitive.matchdata_fixup_positions(md, pos) if md
     @match = md
+    scan_internal2(advance_pos, getstr)
+  end
+
+  def scan_internal2(advance_pos, getstr)
     return nil unless @match
 
     fin = Primitive.match_data_byte_end(@match, 0)
@@ -329,6 +337,6 @@ class StringScanner
 
     @string.byteslice(@prev_pos, width)
   end
-  private :scan_internal
+  private :scan_internal, :scan_internal2, :scan_check_args
 
 end
