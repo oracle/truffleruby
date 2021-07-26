@@ -190,7 +190,8 @@ class JT
 
         unless print_only
           chdir(docker_dir) do
-            raw_sh 'git', 'clone', '--branch', test_branch, TRUFFLERUBY_DIR, 'truffleruby-tests'
+            branch_args = test_branch == 'current' ? [] : ['--branch', test_branch]
+            raw_sh 'git', 'clone', *branch_args, TRUFFLERUBY_DIR, 'truffleruby-tests'
             test_files.each do |file|
               FileUtils.cp_r "truffleruby-tests/#{file}", '.'
             end
