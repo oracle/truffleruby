@@ -1,45 +1,66 @@
-rpm_packages: &rpm_packages
-  locale:
+rpm: &rpm
   tar: tar gzip
   specs: which findutils
   zlib: zlib-devel
   openssl: openssl-devel
   cext: gcc make
+  set-locale:
+    - ENV LANG=en_US.UTF-8
 
-deb_packages: &deb_packages
+deb: &deb
   locale: locales
   tar:
   specs: netbase
   zlib: libz-dev
   openssl: libssl-dev
   cext: gcc make
+  set-locale:
+    # Uncomment the en_US.UTF-8 line in /etc/locale.gen
+    - RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen
+    # locale-gen generates locales for all uncommented locales in /etc/locale.gen
+    - RUN locale-gen
+    - ENV LANG=en_US.UTF-8
 
 ol7:
   base: oraclelinux:7-slim
-  set-locale:
-    - ENV LANG=en_US.UTF-8
   install: RUN yum install -y
-  <<: *rpm_packages
+  locale:
+  <<: *rpm
+
+ol8:
+  base: oraclelinux:8-slim
+  install: RUN microdnf install -y
+  locale: glibc-langpack-en
+  <<: *rpm
 
 fedora28:
   base: fedora:28
-  set-locale:
-    - ENV LANG=en_US.UTF-8
   install: RUN dnf install -y
-  <<: *rpm_packages
+  locale:
+  <<: *rpm
+
+fedora34:
+  base: fedora:34
+  install: RUN dnf install -y
+  locale: glibc-langpack-en
+  <<: *rpm
+
+ubuntu2004:
+  base: ubuntu:20.04
+  install: RUN apt-get update && apt-get install -y
+  <<: *deb
 
 ubuntu1804:
   base: ubuntu:18.04
-  set-locale:
-    - RUN locale-gen en_US.UTF-8
-    - ENV LANG=en_US.UTF-8
   install: RUN apt-get update && apt-get install -y
-  <<: *deb_packages
+  <<: *deb
 
 ubuntu1604:
   base: ubuntu:16.04
-  set-locale:
-    - RUN locale-gen en_US.UTF-8
-    - ENV LANG=en_US.UTF-8
   install: RUN apt-get update && apt-get install -y
-  <<: *deb_packages
+  <<: *deb
+
+debian10:
+  base: debian:buster
+  install: RUN apt-get update && apt-get install -y
+  <<: *deb

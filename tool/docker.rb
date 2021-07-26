@@ -1,3 +1,5 @@
+require 'yaml'
+
 class JT
   class Docker
     include Utilities
@@ -18,6 +20,14 @@ class JT
       end
     end
 
+    private def docker_config
+      @config ||= YAML.load_file(File.join(TRUFFLERUBY_DIR, 'tool', 'docker-configs.yaml'))
+    end
+
+    private def docker_distros
+      docker_config.each_pair.select { |_name, details| details.key?('base') }.map(&:first).map { |distro| "--#{distro}" }
+    end
+
     private def docker_build(*args)
       if args.first.nil? || args.first.start_with?('--')
         image_name = 'truffleruby-test'
@@ -30,7 +40,7 @@ class JT
     end
 
     private def docker_test(*args)
-      distros = ['--ol7', '--ubuntu1804', '--ubuntu1604', '--fedora28']
+      distros = docker_distros
 
       distros.each do |distro|
         puts '**********************************'
@@ -50,10 +60,9 @@ class JT
     end
 
     private def dockerfile(*args)
-      require 'yaml'
-      config = @config ||= YAML.load_file(File.join(TRUFFLERUBY_DIR, 'tool', 'docker-configs.yaml'))
+      config = docker_config
 
-      distro = 'ol7'
+      distro_name = 'ol7'
       install_method = nil
       rebuild_images = false
       rebuild_openssl = true
@@ -65,8 +74,8 @@ class JT
       until args.empty?
         arg = args.shift
         case arg
-        when '--ol7', '--ubuntu1804', '--ubuntu1604', '--fedora28'
-          distro = arg[2..-1]
+        when *docker_distros
+          distro_name = arg[2..-1]
         when '--graalvm'
           install_method = :graalvm
           graalvm_tarball = args.shift
@@ -93,7 +102,7 @@ class JT
         end
       end
 
-      distro = config.fetch(distro)
+      distro = config.fetch(distro_name)
       run_post_install_hook = rebuild_openssl
 
       packages = []
@@ -107,9 +116,12 @@ class JT
       packages << distro.fetch('cext')
 
       proxy_vars = []
-      %w[http_proxy https_proxy no_proxy].each do |var|
-        value = ENV[var]
-        proxy_vars << "ENV #{var}=#{value}" if value
+      # There is an issue with dnf + proxy in Fedora 34, install packages outside proxy to workaround
+      unless distro_name == 'fedora34'
+        %w[http_proxy https_proxy no_proxy].each do |var|
+          value = ENV[var]
+          proxy_vars << "ENV #{var}=#{value}" if value
+        end
       end
 
       lines = [
@@ -118,6 +130,9 @@ class JT
         [distro.fetch('install'), *packages.compact].join(' '),
         *distro.fetch('set-locale'),
       ]
+
+      # Check the locale is properly generated
+      lines << 'RUN locale -a | grep en_US.utf8'
 
       lines << 'WORKDIR /test'
 
@@ -181,7 +196,8 @@ class JT
 
         unless print_only
           chdir(docker_dir) do
-            raw_sh 'git', 'clone', '--branch', test_branch, TRUFFLERUBY_DIR, 'truffleruby-tests'
+            branch_args = test_branch == 'current' ? [] : ['--branch', test_branch]
+            raw_sh 'git', 'clone', *branch_args, TRUFFLERUBY_DIR, 'truffleruby-tests'
             test_files.each do |file|
               FileUtils.cp_r "truffleruby-tests/#{file}", '.'
             end
@@ -241,6 +257,7 @@ class JT
 
           %w[:command_line :security :language :core :library :capi :library_cext :truffle :truffle_capi].each do |set|
             t_config = c.empty? ? '' : '-T' + c
+            t_config << ' -T--experimental-options -T--pattern-matching'
             t_excludes = excludes.map { |e| '--excl-tag ' + e }.join(' ')
             lines << "RUN ruby spec/mspec/bin/mspec -t #{ruby_bin}/ruby #{t_config} #{t_excludes} #{set}"
           end
