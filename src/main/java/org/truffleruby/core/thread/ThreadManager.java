@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 import com.oracle.truffle.api.CompilerAsserts;
@@ -421,8 +421,10 @@ public class ThreadManager {
         thread.thread = null;
 
         if (Thread.currentThread() == javaThread) {
-            for (Lock lock : thread.ownedLocks) {
-                lock.unlock();
+            for (ReentrantLock lock : thread.ownedLocks) {
+                while (lock.isHeldByCurrentThread()) {
+                    lock.unlock();
+                }
             }
         } else {
             if (!thread.ownedLocks.isEmpty()) {

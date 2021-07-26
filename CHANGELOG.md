@@ -22,6 +22,7 @@ Compatibility:
 
 Performance:
 
+* Moved most of `MonitorMixin` to primitives to deal with interrupts more efficiently (#2375).
 
 Changes:
 

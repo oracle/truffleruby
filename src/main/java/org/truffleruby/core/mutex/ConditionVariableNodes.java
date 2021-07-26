@@ -103,8 +103,12 @@ public abstract class ConditionVariableNodes {
             // If there is an interrupt, it should be consumed by condition.await() and the Ruby Thread sleep status
             // must imply being ready to be interrupted by Thread#{run,wakeup}.
             condLock.lock();
+            int holdCount = 0; // can be > 1 for MonitorMixin
             try {
-                mutexLock.unlock();
+                while (mutexLock.isHeldByCurrentThread()) {
+                    mutexLock.unlock();
+                    holdCount++;
+                }
 
                 conditionVariable.waiters++;
                 try {
@@ -121,7 +125,14 @@ public abstract class ConditionVariableNodes {
                 }
             } finally {
                 condLock.unlock();
+
                 MutexOperations.internalLockEvenWithException(getContext(), mutexLock, this);
+                if (holdCount > 1) {
+                    // We know we already hold the lock, so we can skip the rest of the logic at this point.
+                    for (int i = 1; i < holdCount; i++) {
+                        mutexLock.lock();
+                    }
+                }
             }
         }
 
@@ -148,6 +159,13 @@ public abstract class ConditionVariableNodes {
                             return BlockingAction.SUCCESS;
                         }
 
+                        /** Condition#await() can only exit (return or throw) after the associated ReentrantLock is
+                         * re-acquired. Even if it's interrupted, the InterruptedException is "stuck inside" until that
+                         * ReentrantLock is re-acquired. So the ReentrantLock we use here must be a ReentrantLock used
+                         * only for that Condition/RubyConditionVariable and nothing else. Specifically it must not be a
+                         * ReentrantLock exposed to Ruby, e.g., via a Ruby Mutex, as that could be held forever by
+                         * another Ruby thread (which did {code mutex.lock} after the #wait), and we would never be able
+                         * to interrupt both threads at the same time for a synchronous ThreadLocalAction). */
                         condition.await(endNanoTime - currentTime, TimeUnit.NANOSECONDS);
                     } else {
                         condition.await();

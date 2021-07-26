@@ -504,6 +504,7 @@ public class CoreLibrary {
         truffleFeatureLoaderModule = defineModule(truffleModule, "FeatureLoader");
         truffleKernelOperationsModule = defineModule(truffleModule, "KernelOperations");
         truffleInteropOperationsModule = defineModule(truffleModule, "InteropOperations");
+        defineModule(truffleModule, "MonitorOperations");
         defineModule(truffleModule, "Binding");
         defineModule(truffleModule, "POSIX");
         defineModule(truffleModule, "Readline");

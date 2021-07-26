@@ -26,9 +26,19 @@ import java.util.concurrent.locks.ReentrantLock;
 public abstract class MutexOperations {
 
     @TruffleBoundary
-    protected static void lock(RubyContext context, ReentrantLock lock, RubyThread thread, RubyNode currentNode) {
+    public static void lock(RubyContext context, ReentrantLock lock, RubyThread thread, RubyNode currentNode) {
         lockInternal(context, lock, currentNode);
         thread.ownedLocks.add(lock);
+    }
+
+    @TruffleBoundary
+    public static boolean tryLock(ReentrantLock lock, RubyThread thread) {
+        if (lock.tryLock()) {
+            thread.ownedLocks.add(lock);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @TruffleBoundary
@@ -91,7 +101,7 @@ public abstract class MutexOperations {
     }
 
     @TruffleBoundary
-    protected static void unlock(ReentrantLock lock, RubyThread thread) {
+    public static void unlock(ReentrantLock lock, RubyThread thread) {
         unlockInternal(lock);
         thread.ownedLocks.remove(lock);
     }
