@@ -2317,6 +2317,9 @@ module Commands
 
   def idea(*args)
     ENV['ECLIPSE_EXE'] ||= install_eclipse
+    if args.empty?
+      args = %w[--dy /substratevm,/tools,/vm]
+    end
     mx(*args, 'intellijinit')
   end
 
