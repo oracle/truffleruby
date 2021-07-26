@@ -53,7 +53,8 @@ import com.oracle.truffle.api.nodes.Node;
 @CoreModule(value = "Regexp", isClass = true)
 public abstract class RegexpNodes {
 
-    public static void initialize(RubyLanguage language, RubyRegexp regexp, Rope setSource,
+    public static RubyRegexp create(RubyLanguage language,
+            Rope setSource,
             RubyEncoding setSourceEncoding,
             int options,
             Node currentNode) throws DeferredRaiseException {
@@ -69,17 +70,11 @@ public abstract class RegexpNodes {
         // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when
         // constructing the final regexp.
         final RopeWithEncoding sourceWithEncoding = (RopeWithEncoding) regex.getUserObject();
-        regexp.source = sourceWithEncoding.getRope();
-        regexp.encoding = sourceWithEncoding.getEncoding();
-        regexp.options = regexpOptions;
-        regexp.regex = regex;
-        regexp.cachedEncodings = new EncodingCache();
-        regexp.tregexCache = new TRegexCache();
-    }
-
-    public static RubyRegexp createRubyRegexp(Regex regex, Rope source, RubyEncoding encoding,
-            RegexpOptions options, EncodingCache cache, TRegexCache tregexCache) {
-        return new RubyRegexp(regex, source, encoding, options, cache, tregexCache);
+        return new RubyRegexp(
+                regex,
+                sourceWithEncoding.getRope(),
+                sourceWithEncoding.getEncoding(),
+                regexpOptions);
     }
 
     @CoreMethod(names = "hash")
@@ -237,13 +232,7 @@ public abstract class RegexpNodes {
 
         @Specialization
         protected RubyRegexp allocate(RubyClass rubyClass) {
-            return new RubyRegexp(
-                    null,
-                    null,
-                    null,
-                    RegexpOptions.NULL_OPTIONS,
-                    null,
-                    null);
+            throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
 
     }
@@ -258,30 +247,17 @@ public abstract class RegexpNodes {
 
     }
 
-    @CoreMethod(names = "compile", required = 2, lowerFixnum = 2, visibility = Visibility.PRIVATE)
+    @Primitive(name = "regexp_compile", lowerFixnum = 1)
     @ImportStatic(RegexpGuards.class)
-    public abstract static class RegexpCompileNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class RegexpCompileNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "isRegexpLiteral(regexp)")
-        protected RubyRegexp initializeRegexpLiteral(RubyRegexp regexp, Object pattern, int options) {
-            throw new RaiseException(getContext(), coreExceptions().securityError("can't modify literal regexp", this));
-        }
-
-        @Specialization(
-                guards = { "!isRegexpLiteral(regexp)", "isInitialized(regexp)" })
-        protected RubyRegexp initializeAlreadyInitialized(RubyRegexp regexp, Object pattern, int options) {
-            throw new RaiseException(getContext(), coreExceptions().typeError("already initialized regexp", this));
-        }
-
-        @Specialization(
-                guards = { "libPattern.isRubyString(pattern)", "!isRegexpLiteral(regexp)", "!isInitialized(regexp)" })
-        protected RubyRegexp initialize(RubyRegexp regexp, Object pattern, int options,
+        @Specialization(guards = "libPattern.isRubyString(pattern)")
+        protected RubyRegexp initialize(Object pattern, int options,
                 @Cached BranchProfile errorProfile,
                 @CachedLibrary(limit = "2") RubyStringLibrary libPattern) {
             try {
-                RegexpNodes.initialize(
+                return RegexpNodes.create(
                         getLanguage(),
-                        regexp,
                         libPattern.getRope(pattern),
                         libPattern.getEncoding(pattern),
                         options,
@@ -290,32 +266,6 @@ public abstract class RegexpNodes {
                 errorProfile.enter();
                 throw dre.getException(getContext());
             }
-            return regexp;
-        }
-    }
-
-    @CoreMethod(names = "initialize_copy", required = 1, needsSelf = true)
-    @ImportStatic(RegexpGuards.class)
-    public abstract static class RegexpInitializeCopyNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization(guards = "isRegexpLiteral(regexp)")
-        protected RubyRegexp initializeRegexpLiteral(RubyRegexp regexp, RubyRegexp other) {
-            throw new RaiseException(getContext(), coreExceptions().securityError("can't modify literal regexp", this));
-        }
-
-        @Specialization(guards = { "!isRegexpLiteral(regexp)", "isInitialized(regexp)" })
-        protected RubyRegexp initializeAlreadyInitialized(RubyRegexp regexp, RubyRegexp other) {
-            throw new RaiseException(getContext(), coreExceptions().typeError("already initialized regexp", this));
-        }
-
-        @Specialization(guards = { "!isRegexpLiteral(regexp)", "!isInitialized(regexp)" })
-        protected RubyRegexp initialize(RubyRegexp regexp, RubyRegexp other) {
-            regexp.regex = other.regex;
-            regexp.source = other.source;
-            regexp.options = other.options;
-            regexp.cachedEncodings = other.cachedEncodings;
-            regexp.tregexCache = other.tregexCache;
-            return regexp;
         }
     }
 

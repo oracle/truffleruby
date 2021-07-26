@@ -261,9 +261,7 @@ public class TruffleRegexpNodes {
                     regex,
                     ropeWithEncoding.getRope(),
                     ropeWithEncoding.getEncoding(),
-                    regexpOptions,
-                    new EncodingCache(),
-                    new TRegexCache());
+                    regexpOptions);
         }
     }
 

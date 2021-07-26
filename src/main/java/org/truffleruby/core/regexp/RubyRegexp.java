@@ -29,27 +29,25 @@ import org.truffleruby.language.dispatch.DispatchNode;
 @ExportLibrary(InteropLibrary.class)
 public class RubyRegexp extends ImmutableRubyObject implements TruffleObject {
 
-    public Regex regex;
-    public Rope source;
-    public RubyEncoding encoding;
-    public RegexpOptions options;
-    public EncodingCache cachedEncodings;
-    public TRegexCache tregexCache;
+    public final Regex regex;
+    public final Rope source;
+    public final RubyEncoding encoding;
+    public final RegexpOptions options;
+    public final EncodingCache cachedEncodings;
+    public final TRegexCache tregexCache;
 
     public RubyRegexp(
             Regex regex,
             Rope source,
             RubyEncoding encoding,
-            RegexpOptions options,
-            EncodingCache encodingCache,
-            TRegexCache tregexCache) {
+            RegexpOptions options) {
         assert (source == null && encoding == null) || source.encoding == encoding.jcoding;
         this.regex = regex;
         this.source = source;
         this.encoding = encoding;
         this.options = options;
-        this.cachedEncodings = encodingCache;
-        this.tregexCache = tregexCache;
+        this.cachedEncodings = new EncodingCache();
+        this.tregexCache = new TRegexCache();
     }
 
     // region InteropLibrary messages

@@ -73,7 +73,6 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.ProcNodes.ProcNewNode;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -496,12 +495,6 @@ public abstract class KernelNodes {
         protected RubyDynamicObject copyImmutableString(ImmutableRubyString string,
                 @CachedContext(RubyLanguage.class) RubyContext context) {
             return (RubyDynamicObject) allocateNode().call(context.getCoreLibrary().stringClass, "__allocate__");
-        }
-
-        @Specialization
-        protected RubyRegexp copyRubyRegexp(RubyRegexp regexp,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
-            return (RubyRegexp) allocateNode().call(context.getCoreLibrary().regexpClass, "__allocate__");
         }
 
         @Specialization
