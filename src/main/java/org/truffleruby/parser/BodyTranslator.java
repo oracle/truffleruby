@@ -48,6 +48,7 @@ import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.module.ModuleNodesFactory;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.range.RangeNodesFactory;
+import org.truffleruby.core.regexp.ClassicRegexp;
 import org.truffleruby.core.regexp.EncodingCache;
 import org.truffleruby.core.regexp.InterpolatedRegexpNode;
 import org.truffleruby.core.regexp.MatchDataNodes.GetIndexNode;
@@ -2114,14 +2115,22 @@ public class BodyTranslator extends Translator {
         if (node.getReceiverNode() instanceof RegexpParseNode) {
             final RegexpParseNode regexpNode = (RegexpParseNode) node.getReceiverNode();
             final byte[] bytes = regexpNode.getValue().getBytes();
-            final Regex regex = new Regex(
-                    bytes,
-                    0,
-                    bytes.length,
-                    regexpNode.getOptions().toOptions(),
-                    regexpNode.getEncoding(),
-                    Syntax.RUBY,
-                    new RegexWarnDeferredCallback(rubyWarnings));
+            final Regex regex;
+            try {
+                regex = new Regex(
+                        bytes,
+                        0,
+                        bytes.length,
+                        regexpNode.getOptions().toOptions(),
+                        regexpNode.getEncoding(),
+                        Syntax.RUBY,
+                        new RegexWarnDeferredCallback(rubyWarnings));
+            } catch (Exception e) {
+                String errorMessage = ClassicRegexp
+                        .getRegexErrorMessage(regexpNode.getValue(), e, regexpNode.getOptions());
+                final RubyContext context = RubyLanguage.getCurrentContext();
+                throw new RaiseException(context, context.getCoreExceptions().regexpError(errorMessage, currentNode));
+            }
             final int numberOfNames = regex.numberOfNames();
 
             if (numberOfNames > 0) {

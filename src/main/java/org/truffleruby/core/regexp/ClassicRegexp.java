@@ -101,10 +101,14 @@ public class ClassicRegexp implements ReOptions {
                             ? new RegexWarnCallback(context)
                             : new RegexWarnDeferredCallback(rubyDeferredWarnings));
         } catch (Exception e) {
-            String errorMessage = BacktraceFormatter.formatJavaThrowableMessage(e) + ": /" +
-                    RopeOperations.decodeRope(source) + "/";
+            String errorMessage = getRegexErrorMessage(source, e, options);
             throw new DeferredRaiseException(c -> c.getCoreExceptions().regexpError(errorMessage, currentNode));
         }
+    }
+
+    public static String getRegexErrorMessage(Rope source, Exception e, RegexpOptions options) {
+        return BacktraceFormatter.formatJavaThrowableMessage(e) + ": /" +
+                RopeOperations.decodeRope(source) + "/" + options.toOptionsString();
     }
 
     private static Regex getRegexpFromCache(RubyContext context, RopeBuilder bytes, RubyEncoding encoding,

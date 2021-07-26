@@ -202,6 +202,20 @@ public class RegexpOptions implements Cloneable {
         return options;
     }
 
+    public String toOptionsString() {
+        StringBuilder flags = new StringBuilder(3);
+        if (isMultiline()) {
+            flags.append('m');
+        }
+        if (isIgnorecase()) {
+            flags.append('i');
+        }
+        if (isExtended()) {
+            flags.append('x');
+        }
+        return flags.toString();
+    }
+
     @Override
     public int hashCode() {
         int hash = 7;
