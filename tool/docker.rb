@@ -62,7 +62,7 @@ class JT
     private def dockerfile(*args)
       config = docker_config
 
-      distro = 'ol7'
+      distro_name = 'ol7'
       install_method = nil
       rebuild_images = false
       rebuild_openssl = true
@@ -75,7 +75,7 @@ class JT
         arg = args.shift
         case arg
         when *docker_distros
-          distro = arg[2..-1]
+          distro_name = arg[2..-1]
         when '--graalvm'
           install_method = :graalvm
           graalvm_tarball = args.shift
@@ -102,7 +102,7 @@ class JT
         end
       end
 
-      distro = config.fetch(distro)
+      distro = config.fetch(distro_name)
       run_post_install_hook = rebuild_openssl
 
       packages = []
@@ -116,9 +116,12 @@ class JT
       packages << distro.fetch('cext')
 
       proxy_vars = []
-      %w[http_proxy https_proxy no_proxy].each do |var|
-        value = ENV[var]
-        proxy_vars << "ENV #{var}=#{value}" if value
+      # There is an issue with dnf + proxy in Fedora 34, install packages outside proxy to workaround
+      unless distro_name == 'fedora34'
+        %w[http_proxy https_proxy no_proxy].each do |var|
+          value = ENV[var]
+          proxy_vars << "ENV #{var}=#{value}" if value
+        end
       end
 
       lines = [
