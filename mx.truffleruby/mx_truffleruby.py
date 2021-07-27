@@ -118,7 +118,7 @@ class TruffleRubyBootstrapLauncherBuildTask(mx.BuildTask):
 
 def jt(*args):
     mx.log("\n$ " + ' '.join(['jt'] + list(args)) + "\n")
-    mx.run(['ruby', join(root, 'tool/jt.rb')] + list(args))
+    mx.run([join(root, 'bin/jt')] + list(args))
 
 def build_truffleruby(args):
     mx.command_function('sversions')([])
@@ -159,9 +159,9 @@ def ruby_check_heap_dump(input_args, out=None):
         raise Exception("heap dump check failed")
 
 def ruby_run_ruby(args):
-    """run TruffleRuby (through tool/jt.rb)"""
+    """run TruffleRuby (through bin/jt)"""
 
-    jt = join(root, 'tool/jt.rb')
+    jt = join(root, 'bin/jt')
     os.execlp(jt, jt, "ruby", *args)
 
 def ruby_run_specs(ruby, args):

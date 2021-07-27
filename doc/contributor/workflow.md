@@ -33,14 +33,15 @@ cd truffleruby
 We then use a Ruby script to run most commands.
 
 ```bash
-ruby tool/jt.rb --help
+bin/jt --help
 ```
 
 Most of us add an alias to our shell profile file so that it can be run with
-just `jt`. To allow this to run from any path, add this to your `.bash_profile`:
+just `jt`. To allow this to run from any path, add this to your `~/.bash_profile`:
 
 ```bash
-echo 'alias jt=/path/to/mri/bin/ruby /path/to/truffleruby/tool/jt.rb' >> ~/.bash_profile
+export SYSTEM_RUBY=/path/to/mri/bin/ruby
+alias jt=/path/to/truffleruby/bin/jt
 ```
 
 ```bash

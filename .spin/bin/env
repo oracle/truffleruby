@@ -6,6 +6,9 @@ export JT_ENV=jvm-ce
 
 unset JAVA_HOME
 
+# Use CRuby to run jt
+export SYSTEM_RUBY=$(which ruby)
+
 function jt {
-  ruby "$TRUFFLERUBY_DIR"/tool/jt.rb "$@"
+  "$TRUFFLERUBY_DIR"/bin/jt "$@"
 }

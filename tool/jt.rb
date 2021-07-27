@@ -19,8 +19,9 @@ autoload :JSON, 'json'
 
 if RUBY_ENGINE != 'ruby' && !RUBY_DESCRIPTION.include?('Native')
   STDERR.puts 'WARNING: jt is not running on MRI or TruffleRuby Native, startup is slow'
-  STDERR.puts '  Consider using following bash alias to run on MRI.'
-  STDERR.puts '  `alias jt=/path/to/mri/bin/ruby /path/to/truffleruby/tool/jt.rb`'
+  STDERR.puts '  Consider adding this to your `~/.bash_profile` to run jt on MRI.'
+  STDERR.puts '    export SYSTEM_RUBY=/path/to/mri/bin/ruby'
+  STDERR.puts '    alias jt=/path/to/truffleruby/bin/jt'
 end
 
 abort "ERROR: jt requires Ruby 2.3 and above, was #{RUBY_VERSION}" if (RUBY_VERSION.split('.').map(&:to_i) <=> [2, 3, 0]) < 0

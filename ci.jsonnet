@@ -28,7 +28,7 @@ local common = (import "common.json");
 # All used objects used to compose a build are listed
 # where build is defined, there are no other objects in the middle.
 local part_definitions = {
-  local jt = function(args) [["ruby", "tool/jt.rb"] + args],
+  local jt = function(args) [["bin/jt"] + args],
   local mri_path = function(version) "/cm/shared/apps/ruby/" + version + "/bin/ruby",
   local mri_version = "2.7.2",
 
