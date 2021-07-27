@@ -657,64 +657,29 @@ class String
 
   def sub(pattern, replacement=undefined, &block)
     s = dup
-    s.sub!(pattern, replacement, &block)
-    Primitive.regexp_last_match_set(Primitive.caller_special_variables, $~)
+    if Primitive.undefined?(replacement) && !block_given?
+      raise ArgumentError, "method '#{__method__}': given 1, expected 2"
+    end
+    Truffle::StringOperations.gsub_internal_core_check_encoding(self)
+    matches = Truffle::StringOperations.gsub_internal_matches(false, self, pattern)
+    res = Truffle::StringOperations.gsub_match_and_replace(s, matches, replacement, &block)
+    Primitive.regexp_last_match_set(Primitive.caller_special_variables, matches.last)
+    s.replace(res) if res
     s
   end
 
   def sub!(pattern, replacement=undefined, &block)
-    # Because of the behavior of $~, this is duplicated from sub! because
-    # if we call sub! from sub, the last_match can't be updated properly.
-
-    unless valid_encoding?
-      raise ArgumentError, "invalid byte sequence in #{encoding}"
+    if Primitive.undefined?(replacement) && !block_given?
+      raise ArgumentError, "method '#{__method__}': given 1, expected 2"
     end
+    Primitive.check_frozen self
 
-    if Primitive.undefined? replacement
-      unless block_given?
-        raise ArgumentError, "method '#{__method__}': given 1, expected 2"
-      end
-      Primitive.check_frozen self
-      use_yield = true
-    else
-      Primitive.check_frozen self
-
-      unless Primitive.object_kind_of?(replacement, String)
-        hash = Truffle::Type.rb_check_convert_type(replacement, Hash, :to_hash)
-        replacement = StringValue(replacement) unless hash
-      end
-      use_yield = false
-    end
-
-    pattern = Truffle::Type.coerce_to_regexp(pattern, true) unless Primitive.object_kind_of?(pattern, Regexp)
-    match = Truffle::RegexpOperations.match_from(pattern, self, 0)
-
-    Primitive.regexp_last_match_set(Primitive.proc_special_variables(block), match) if block
-    Primitive.regexp_last_match_set(Primitive.caller_special_variables, match)
-
-    if match
-      ret = match.pre_match
-
-      if use_yield || hash
-        duped = dup
-        if use_yield
-          val = yield match.to_s
-        else
-          val = hash[match.to_s]
-        end
-        if duped != self
-          raise RuntimeError, 'string modified'
-        end
-        val = Truffle::Type.rb_obj_as_string(val)
-
-        Primitive.string_append(ret, val)
-      else
-        Truffle::StringOperations.to_sub_replacement(replacement, ret, match)
-      end
-
-      Primitive.string_append(ret, match.post_match)
-
-      replace(ret)
+    Truffle::StringOperations.gsub_internal_core_check_encoding(self)
+    matches = Truffle::StringOperations.gsub_internal_matches(false, self, pattern)
+    res = Truffle::StringOperations.gsub_match_and_replace(self, matches, replacement, &block)
+    Primitive.regexp_last_match_set(Primitive.caller_special_variables, matches.last)
+    if res
+      replace(res)
       self
     else
       nil
@@ -940,13 +905,11 @@ class String
     if Primitive.undefined?(replacement) && !block_given?
       return s.to_enum(:gsub, pattern, replacement)
     end
-    if Primitive.undefined?(replacement)
-      ret, match_data = Truffle::StringOperations.gsub_block_set_last_match(s, pattern, &block)
-    else
-      ret, match_data = Truffle::StringOperations.gsub_internal(s, pattern, replacement)
-    end
-    Primitive.regexp_last_match_set(Primitive.caller_special_variables, match_data)
-    s.replace(ret) if ret
+    Truffle::StringOperations.gsub_internal_core_check_encoding(self)
+    matches = Truffle::StringOperations.gsub_internal_matches(true, self, pattern)
+    res = Truffle::StringOperations.gsub_match_and_replace(s, matches, replacement, &block)
+    Primitive.regexp_last_match_set(Primitive.caller_special_variables, matches.last)
+    s.replace(res) if res
     s
   end
 
@@ -955,14 +918,13 @@ class String
       return to_enum(:gsub!, pattern, replacement)
     end
     Primitive.check_frozen self
-    if Primitive.undefined?(replacement)
-      ret, match_data = Truffle::StringOperations.gsub_block_set_last_match(self, pattern, &block)
-    else
-      ret, match_data = Truffle::StringOperations.gsub_internal(self, pattern, replacement)
-    end
-    Primitive.regexp_last_match_set(Primitive.caller_special_variables, match_data)
-    if ret
-      replace(ret)
+
+    Truffle::StringOperations.gsub_internal_core_check_encoding(self)
+    matches = Truffle::StringOperations.gsub_internal_matches(true, self, pattern)
+    res = Truffle::StringOperations.gsub_match_and_replace(self, matches, replacement, &block)
+    Primitive.regexp_last_match_set(Primitive.caller_special_variables, matches.last)
+    if res
+      replace(res)
       self
     else
       nil

@@ -1,0 +1,4 @@
+slow:String has a `sub` method of under 100 AST nodes
+slow:String has a `sub!` method of under 100 AST nodes
+slow:String has a `gsub` method of under 100 AST nodes
+slow:String has a `gsub!` method of under 100 AST nodes
