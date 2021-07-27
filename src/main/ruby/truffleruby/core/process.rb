@@ -169,9 +169,13 @@ module Process
   end
 
   def self.nanoseconds_to_unit(nanoseconds, unit)
-    case unit
+    case unit # ordered by expected frequency
     when :float_second, nil
       nanoseconds / 1e9
+    when :nanosecond
+      nanoseconds
+    when :microsecond
+      nanoseconds / 1_000
     when :float_microsecond
       nanoseconds / 1e3
     when :float_millisecond
@@ -180,10 +184,6 @@ module Process
       nanoseconds / 1_000_000_000
     when :millisecond
       nanoseconds / 1_000_000
-    when :microsecond
-      nanoseconds / 1_000
-    when :nanosecond
-      nanoseconds
     else
       raise ArgumentError, "unexpected unit: #{unit}"
     end
