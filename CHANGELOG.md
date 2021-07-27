@@ -19,10 +19,17 @@ Compatibility:
 * Update `rb_str_modify` and `rb_str_modify_expand` to raise a `FrozenError` when given a frozen string (#2392).
 * Implement `rb_fiber_*` functions (#2402).
 * Implement `rb_str_vcatf`.
+* Add support for tracing allocations from C functions (#2403, @chrisseaton).
 
 Performance:
 
 * Moved most of `MonitorMixin` to primitives to deal with interrupts more efficiently (#2375).
+* Improved the performance of `rb_enc_from_index` by adding cached lookups (#2379, @nirvdrum).
+* Improved the performance of many `MatchData` operations (#2384, @nirvdrum).
+* Significantly improved performance of TRegex calls by allowing Truffle splitting (#2389, @nirvdrum).
+* Improved `String#gsub` performance by adding a fast path for the `string_byte_index` primitive (#2380, @nirvdrum).
+* Improved `String#index` performance by adding a fast path for the `string_character_index` primitive (#2383, @LillianZ).
+* Optimized conversion of strings to integers if the string contained a numeric value (#2401, @nirvdrum).
 
 Changes:
 
@@ -79,6 +86,7 @@ Performance:
 * Significantly improved performance of `Time#strftime` for common formats (#2361, @wildmaples, @chrisseaton).
 * Faster solution for lazy integer length (#2365, @lemire, @chrisseaton).
 * Speedup `rb_funcallv*()` by directly unwrapping the C arguments array instead of going through a Ruby `Array` (#2089).
+* Improved the performance of several `Truffle::RegexOperations` methods (#2374, @wildmapes, @nirvdrum).
 
 Changes:
 
