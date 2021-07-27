@@ -156,7 +156,7 @@ module Process
     end
 
     case id
-    when CLOCK_MONOTONIC
+    when CLOCK_MONOTONIC # most common clock id
       time = Primitive.process_time_nanotime
     when CLOCK_REALTIME
       time = Primitive.process_time_instant
