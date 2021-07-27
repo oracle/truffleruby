@@ -156,10 +156,10 @@ module Process
     end
 
     case id
+    when CLOCK_MONOTONIC # most common clock id
+      time = Primitive.process_time_nanotime
     when CLOCK_REALTIME
       time = Primitive.process_time_instant
-    when CLOCK_MONOTONIC
-      time = Primitive.process_time_nanotime
     else
       time = Truffle::POSIX.truffleposix_clock_gettime(id)
       Errno.handle if time == 0
@@ -169,21 +169,21 @@ module Process
   end
 
   def self.nanoseconds_to_unit(nanoseconds, unit)
-    case unit
+    case unit # ordered by expected frequency
+    when :float_second, nil
+      nanoseconds / 1e9
     when :nanosecond
       nanoseconds
     when :microsecond
       nanoseconds / 1_000
-    when :millisecond
-      nanoseconds / 1_000_000
-    when :second
-      nanoseconds / 1_000_000_000
     when :float_microsecond
       nanoseconds / 1e3
     when :float_millisecond
       nanoseconds / 1e6
-    when :float_second, nil
-      nanoseconds / 1e9
+    when :second
+      nanoseconds / 1_000_000_000
+    when :millisecond
+      nanoseconds / 1_000_000
     else
       raise ArgumentError, "unexpected unit: #{unit}"
     end
