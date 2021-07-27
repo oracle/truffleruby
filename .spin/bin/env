@@ -6,6 +6,8 @@ export JT_ENV=jvm-ce
 
 unset JAVA_HOME
 
+JT_RUBY=$(which ruby)
+
 function jt {
-  ruby "$TRUFFLERUBY_DIR"/tool/jt.rb "$@"
+  $JT_RUBY "$TRUFFLERUBY_DIR"/tool/jt.rb "$@"
 }
