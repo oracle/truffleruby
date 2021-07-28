@@ -101,6 +101,10 @@ module Truffle
       warn "Regexp #{re.inspect} at_start=#{at_start} encoding=#{encoding} cannot be compiled to a Truffle regexp and fell back to Joni", uplevel: 1
     end
 
+    def self.warn_backtracking(re, at_start, encoding)
+      warn "Regexp #{re.inspect} at_start=#{at_start} encoding=#{encoding} requires backtracking and will not match in linear time", uplevel: 1
+    end
+
     def self.match_args_to_string(re, str, from, to, at_start, start, suffix)
       "match_in_region(#{re.inspect}, #{str.inspect}@#{str.encoding}, #{from}, #{to}, #{at_start}, #{start}) #{suffix}"
     end
