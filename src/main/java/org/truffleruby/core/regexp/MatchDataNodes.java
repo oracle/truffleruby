@@ -301,19 +301,19 @@ public abstract class MatchDataNodes {
 
         @Specialization(
                 guards = {
-                        "name != null",
-                        "getRegexp(matchData) == regexp",
-                        "cachedIndex == index" })
-        protected Object getIndexSymbolSingleMatch(RubyMatchData matchData, RubySymbol index, NotProvided length,
-                @Cached("index") RubySymbol cachedIndex,
-                @Cached("getRegexp(matchData)") RubyRegexp regexp,
-                @Cached("findNameEntry(regexp, index)") NameEntry name,
-                @Cached("numBackRefs(name)") int backRefs,
-                @Cached("backRefIndex(name)") int backRefIndex) {
+                        "nameEntry != null",
+                        "getRegexp(matchData) == cachedRegexp",
+                        "symbol == cachedSymbol" })
+        protected Object getIndexSymbolKnownRegexp(RubyMatchData matchData, RubySymbol symbol, NotProvided length,
+                @Cached("symbol") RubySymbol cachedSymbol,
+                @Cached("getRegexp(matchData)") RubyRegexp cachedRegexp,
+                @Cached("findNameEntry(cachedRegexp, cachedSymbol)") NameEntry nameEntry,
+                @Cached("numBackRefs(nameEntry)") int backRefs,
+                @Cached("backRefIndex(nameEntry)") int backRefIndex) {
             if (backRefs == 1) {
                 return executeGetIndex(matchData, backRefIndex, NotProvided.INSTANCE);
             } else {
-                final int i = getBackRef(matchData, regexp, name);
+                final int i = getBackRef(matchData, cachedRegexp, nameEntry);
                 return executeGetIndex(matchData, i, NotProvided.INSTANCE);
             }
         }
@@ -417,13 +417,13 @@ public abstract class MatchDataNodes {
         }
 
         @TruffleBoundary
-        protected static int numBackRefs(NameEntry name) {
-            return name == null ? 0 : name.getBackRefs().length;
+        protected static int numBackRefs(NameEntry nameEntry) {
+            return nameEntry == null ? 0 : nameEntry.getBackRefs().length;
         }
 
         @TruffleBoundary
-        protected static int backRefIndex(NameEntry name) {
-            return name == null ? 0 : name.getBackRefs()[0];
+        protected static int backRefIndex(NameEntry nameEntry) {
+            return nameEntry == null ? 0 : nameEntry.getBackRefs()[0];
         }
 
         @TruffleBoundary
