@@ -34,10 +34,15 @@ import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 public class CodeLoader {
 
     private final RubyLanguage language;
     private final RubyContext context;
+
+    private final Set<String> alreadyLoadedInContext = ConcurrentHashMap.newKeySet();
 
     public CodeLoader(RubyLanguage language, RubyContext context) {
         this.language = language;
@@ -48,6 +53,16 @@ public class CodeLoader {
     public RootCallTarget parseTopLevelWithCache(Pair<Source, Rope> sourceRopePair, Node currentNode) {
         final Source source = sourceRopePair.getLeft();
         final Rope rope = sourceRopePair.getRight();
+
+        final String path = RubyLanguage.getPath(source);
+        if (language.singleContext && !alreadyLoadedInContext.add(language.getPathRelativeToHome(path))) {
+            /* Duplicate load of the same file in the same context, we cannot use the cache because it would re-assign
+             * the live modules of static LexicalScopes and we cannot/do not want to invalidate static LexicalScopes, so
+             * there the static lexical scope and its module are constants and need no checks in single context (e.g.,
+             * in LookupConstantWithLexicalScopeNode). */
+            final RubySource rubySource = new RubySource(source, path, rope);
+            return parse(rubySource, ParserContext.TOP_LEVEL, null, context.getRootLexicalScope(), true, currentNode);
+        }
 
         language.parsingRequestParams.set(new ParsingParameters(currentNode, rope, source));
         try {
