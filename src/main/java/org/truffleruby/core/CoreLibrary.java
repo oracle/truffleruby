@@ -565,7 +565,7 @@ public class CoreLibrary {
         defineModule(truffleModule, "Patching");
         final ConcurrentMap<String, Boolean> patchFiles = new ConcurrentHashMap<>();
 
-        final String rubyHome = context.getRubyHome();
+        final String rubyHome = language.getRubyHome();
         if (context.getOptions().PATCHING && rubyHome != null) {
             try {
                 final Path patchesDirectory = Paths.get(rubyHome, "lib", "patches");

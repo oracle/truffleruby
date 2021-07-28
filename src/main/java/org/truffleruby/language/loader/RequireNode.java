@@ -173,7 +173,7 @@ public abstract class RequireNode extends RubyContextNode {
 
             try {
                 if (isPatched && !patchLoaded) {
-                    String expandedPatchPath = getContext().getRubyHome() + "/lib/patches/" + relativeFeature + ".rb";
+                    String expandedPatchPath = getLanguage().getRubyHome() + "/lib/patches/" + relativeFeature + ".rb";
                     RubyLanguage.LOGGER.config("patch file used: " + expandedPatchPath);
                     final boolean loaded = parseAndCall(expandedPatchPath, expandedPatchPath);
                     assert loaded;
@@ -317,7 +317,7 @@ public abstract class RequireNode extends RubyContextNode {
         if (linkerException != null) {
             final String linkError = linkerException.getMessage();
             final String message;
-            final String home = getContext().getRubyHome();
+            final String home = getLanguage().getRubyHome();
             final String postInstallHook = (home != null ? home + "/" : "") + "lib/truffle/post_install_hook.sh";
 
             // Mismatches between the libssl compiled against and the libssl used at runtime (typically on a different machine)
