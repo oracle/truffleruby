@@ -20,7 +20,6 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.IntValueProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
@@ -494,14 +493,13 @@ public class TruffleRegexpNodes {
                 final int groupCount = groupCountProfile.profile((int) readMember(regexInterop, tRegex, "groupCount"));
                 final Region region = new Region(groupCount);
 
-                loopProfile.profileCounted(groupCount);
                 try {
                     for (int group = 0; loopProfile.inject(group < groupCount); group++) {
                         region.beg[group] = RubyMatchData.LAZY;
                         region.end[group] = RubyMatchData.LAZY;
                     }
                 } finally {
-                    LoopNode.reportLoopCount(this, groupCount);
+                    profileAndReportLoopCount(loopProfile, groupCount);
                 }
 
                 return createMatchData(regexp, dupString(string), region, result);

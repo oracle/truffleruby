@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.array;
 
-import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyBaseNode;
@@ -67,12 +66,11 @@ public abstract class ArrayCopyCompatibleRangeNode extends RubyBaseNode {
                 !isSrcShared.executeIsShared(src))) {
             int i = 0;
             try {
-                loopProfile.profileCounted(length);
                 for (; loopProfile.inject(i < length); ++i) {
                     writeBarrierNode.executeWriteBarrier(stores.read(srcStore, i));
                 }
             } finally {
-                LoopNode.reportLoopCount(this, i);
+                profileAndReportLoopCount(loopProfile, i);
             }
         }
     }

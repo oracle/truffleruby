@@ -19,7 +19,6 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.nodes.NodeInterface;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
@@ -66,7 +65,6 @@ public abstract class ArrayEachIteratorNode extends RubyContextNode {
             @Cached LoopConditionProfile loopProfile,
             @Cached ConditionProfile strategyMatchProfile) {
         int i = startAt;
-        loopProfile.profileCounted(array.size - startAt);
         try {
             for (; loopProfile.inject(i < array.size); i++) {
                 if (strategyMatchProfile.profile(arrays.accepts(array.store))) {
@@ -77,7 +75,7 @@ public abstract class ArrayEachIteratorNode extends RubyContextNode {
                 }
             }
         } finally {
-            LoopNode.reportLoopCount(this, i - startAt);
+            profileAndReportLoopCount(loopProfile, i - startAt);
         }
 
         return array;

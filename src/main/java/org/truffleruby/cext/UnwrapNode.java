@@ -17,7 +17,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -227,12 +226,15 @@ public abstract class UnwrapNode extends RubyBaseNode {
                 @Cached UnwrapNode unwrapNode,
                 @Cached LoopConditionProfile loopProfile) {
             final Object[] store = new Object[size];
-            loopProfile.profileCounted(size);
-            for (int i = 0; loopProfile.inject(i < size); i++) {
-                final Object cValue = readArrayElement(cArray, interop, i);
-                store[i] = unwrapNode.execute(cValue);
+            int i = 0;
+            try {
+                for (; loopProfile.inject(i < size); i++) {
+                    final Object cValue = readArrayElement(cArray, interop, i);
+                    store[i] = unwrapNode.execute(cValue);
+                }
+            } finally {
+                profileAndReportLoopCount(loopProfile, i);
             }
-            LoopNode.reportLoopCount(this, size);
             return store;
         }
 

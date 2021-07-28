@@ -26,7 +26,6 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
-import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
@@ -282,14 +281,13 @@ public class PackedHashStoreLibrary {
                 @Cached LoopConditionProfile loopProfile) {
 
             // Don't verify hash here, as `store != hash.store` when calling from `eachEntrySafe`.
-            loopProfile.profileCounted(cachedSize);
             int i = 0;
             try {
                 for (; loopProfile.inject(i < cachedSize); i++) {
                     callback.accept(i, getKey(store, i), getValue(store, i), state);
                 }
             } finally {
-                LoopNode.reportLoopCount(hashStoreLibrary.getNode(), i);
+                RubyBaseNode.profileAndReportLoopCount(hashStoreLibrary.getNode(), loopProfile, i);
             }
             return state;
         }

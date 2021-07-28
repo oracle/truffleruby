@@ -12,7 +12,6 @@ package org.truffleruby.core.array;
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
 
-import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextNode;
@@ -92,12 +91,11 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
         arrays.copyContents(store, 0, objectStore, 0, oldSize);
         int n = oldSize;
         try {
-            loopProfile.profileCounted(index - oldSize);
             for (; loopProfile.inject(n < index); n++) {
                 newArrays.write(objectStore, n, nil);
             }
         } finally {
-            LoopNode.reportLoopCount(this, n - oldSize);
+            profileAndReportLoopCount(loopProfile, n - oldSize);
         }
         propagateSharingNode.executePropagate(array, value);
         newArrays.write(objectStore, index, value);
@@ -120,12 +118,11 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
         final Object store = array.store;
         int n = array.size;
         try {
-            loopProfile.profileCounted(index - array.size);
             for (; loopProfile.inject(n < index); n++) {
                 newArrays.write(store, n, nil);
             }
         } finally {
-            LoopNode.reportLoopCount(this, n - array.size);
+            profileAndReportLoopCount(loopProfile, n - array.size);
         }
         propagateSharingNode.executePropagate(array, value);
         newArrays.write(store, index, value);
