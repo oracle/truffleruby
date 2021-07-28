@@ -9,7 +9,6 @@
  */
 package org.truffleruby;
 
-import java.io.File;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
@@ -89,7 +88,6 @@ import org.truffleruby.stdlib.readline.ConsoleHolder;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.TruffleLanguage.Env;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
@@ -107,8 +105,6 @@ public class RubyContext {
 
     @CompilationFinal public TruffleLogger logger;
     @CompilationFinal private Options options;
-    @CompilationFinal private String rubyHome;
-    @CompilationFinal private TruffleFile rubyHomeTruffleFile;
     @CompilationFinal private boolean hadHome;
 
     private final SafepointManager safepointManager;
@@ -125,7 +121,7 @@ public class RubyContext {
     private final CallStackManager callStack;
     private final CoreExceptions coreExceptions;
     private final EncodingManager encodingManager;
-    private final MetricsProfiler metricsProfiler = new MetricsProfiler(this);
+    private final MetricsProfiler metricsProfiler;
     private final WeakValueCache<RegexpCacheKey, Regex> regexpCache = new WeakValueCache<>();
     private final PreInitializationManager preInitializationManager;
     private final NativeConfiguration nativeConfiguration;
@@ -180,6 +176,7 @@ public class RubyContext {
         coreExceptions = new CoreExceptions(this, language);
         encodingManager = new EncodingManager(this, language);
 
+        metricsProfiler = new MetricsProfiler(language, this);
         codeLoader = new CodeLoader(language, this);
         featureLoader = new FeatureLoader(this, language);
         referenceProcessor = new ReferenceProcessor(this);
@@ -193,9 +190,6 @@ public class RubyContext {
 
         defaultBacktraceFormatter = BacktraceFormatter.createDefaultFormatter(this, language);
         userBacktraceFormatter = new BacktraceFormatter(this, language, BacktraceFormatter.USER_BACKTRACE_FLAGS);
-
-        rubyHome = findRubyHome();
-        rubyHomeTruffleFile = rubyHome == null ? null : env.getInternalTruffleFile(rubyHome);
 
         // Load the core library classes
 
@@ -263,9 +257,7 @@ public class RubyContext {
             // Cannot save the file descriptor in this SecureRandom in the image
             random = null;
             // Do not save image generator paths in the image heap
-            hadHome = rubyHome != null;
-            rubyHome = null;
-            rubyHomeTruffleFile = null;
+            hadHome = language.getRubyHome() != null;
             featureLoader.setWorkingDirectory(null);
         } else {
             initialized = true;
@@ -283,7 +275,7 @@ public class RubyContext {
 
         final Options oldOptions = this.options;
         final Options newOptions = createOptions(newEnv, language.options);
-        final String newHome = findRubyHome();
+        final String newHome = language.getRubyHome();
         if (!compatibleOptions(oldOptions, newOptions, this.hadHome, newHome != null)) {
             return false;
         }
@@ -294,8 +286,6 @@ public class RubyContext {
         if (newOptions.WARN_EXPERIMENTAL != oldOptions.WARN_EXPERIMENTAL) {
             warningCategoryExperimental.set(newOptions.WARN_EXPERIMENTAL);
         }
-        this.rubyHome = newHome;
-        this.rubyHomeTruffleFile = newHome == null ? null : newEnv.getInternalTruffleFile(newHome);
 
         // Re-read the value of $TZ as it can be different in the new process
         GetTimeZoneNode.invalidateTZ();
@@ -675,14 +665,6 @@ public class RubyContext {
         return logger;
     }
 
-    public String getRubyHome() {
-        return rubyHome;
-    }
-
-    public TruffleFile getRubyHomeTruffleFile() {
-        return rubyHomeTruffleFile;
-    }
-
     public ConsoleHolder getConsoleHolder() {
         if (consoleHolder == null) {
             synchronized (this) {
@@ -709,50 +691,6 @@ public class RubyContext {
 
     public boolean isFinalizing() {
         return finalizing;
-    }
-
-    private String findRubyHome() {
-        final String home = searchRubyHome();
-        if (RubyLanguage.LOGGER.isLoggable(Level.CONFIG)) {
-            RubyLanguage.LOGGER.config("home: " + home);
-        }
-        return home;
-    }
-
-    // Returns a canonical path to the home
-    private String searchRubyHome() {
-        if (language.options.NO_HOME_PROVIDED) {
-            RubyLanguage.LOGGER.config("--ruby.no-home-provided set");
-            return null;
-        }
-
-        final String truffleReported = language.getTruffleLanguageHome();
-        if (truffleReported != null) {
-            final File home = new File(truffleReported);
-            if (isRubyHome(home)) {
-                RubyLanguage.LOGGER.config(
-                        () -> String.format("Using Truffle-reported home %s as the Ruby home", truffleReported));
-                return truffleReported;
-            } else {
-                RubyLanguage.LOGGER.warning(
-                        String.format(
-                                "Truffle-reported home %s does not look like TruffleRuby's home",
-                                truffleReported));
-            }
-        } else {
-            RubyLanguage.LOGGER.config("Truffle-reported home not set, cannot determine home from it");
-        }
-
-        RubyLanguage.LOGGER.warning(
-                "could not determine TruffleRuby's home - the standard library will not be available - use --log.level=CONFIG to see details");
-        return null;
-    }
-
-    private boolean isRubyHome(File path) {
-        final File lib = new File(path, "lib");
-        return new File(lib, "truffle").isDirectory() &&
-                new File(lib, "gems").isDirectory() &&
-                new File(lib, "patches").isDirectory();
     }
 
     public TruffleNFIPlatform getTruffleNFI() {
@@ -794,14 +732,6 @@ public class RubyContext {
 
     public WeakValueCache<RegexpCacheKey, Regex> getRegexpCache() {
         return regexpCache;
-    }
-
-    public String getPathRelativeToHome(String path) {
-        if (path.startsWith(rubyHome) && path.length() > rubyHome.length()) {
-            return path.substring(rubyHome.length() + 1);
-        } else {
-            return path;
-        }
     }
 
     public Object getTopScopeObject() {

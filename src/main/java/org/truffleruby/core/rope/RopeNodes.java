@@ -1316,7 +1316,7 @@ public abstract class RopeNodes {
 
         protected boolean canBeCached(Rope a, Rope b) {
             if (getContext().isPreInitializing()) {
-                final String home = getContext().getRubyHome();
+                final String home = getLanguage().getRubyHome();
                 return !RopeOperations.anyChildContains(a, home) && !RopeOperations.anyChildContains(b, home);
             } else {
                 return true;

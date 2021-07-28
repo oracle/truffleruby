@@ -436,7 +436,7 @@ public class FeatureLoader {
                 final RubyModule truffleModule = context.getCoreLibrary().truffleModule;
                 final Object truffleCExt = truffleModule.fields.getConstant("CExt").getValue();
 
-                final String rubyLibPath = context.getRubyHome() + "/lib/cext/libtruffleruby" + Platform.LIB_SUFFIX;
+                final String rubyLibPath = language.getRubyHome() + "/lib/cext/libtruffleruby" + Platform.LIB_SUFFIX;
                 final Object library = loadCExtLibRuby(rubyLibPath, feature, requireNode);
 
                 final Object initFunction = findFunctionInLibrary(library, "rb_tr_init", rubyLibPath);
@@ -480,7 +480,7 @@ public class FeatureLoader {
     public Object loadCExtLibrary(String feature, String path, Node currentNode) {
         Metrics.printTime("before-load-cext-" + feature);
         try {
-            final TruffleFile truffleFile = FileLoader.getSafeTruffleFile(context, path);
+            final TruffleFile truffleFile = FileLoader.getSafeTruffleFile(language, context, path);
             FileLoader.ensureReadable(context, truffleFile, currentNode);
 
             final Source source;

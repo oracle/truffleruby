@@ -97,9 +97,9 @@ public class ThreadManager {
     }
 
     public void initialize() {
-        nativeInterrupt = context.getOptions().NATIVE_INTERRUPT && context.getRubyHome() != null;
+        nativeInterrupt = context.getOptions().NATIVE_INTERRUPT && language.getRubyHome() != null;
         if (nativeInterrupt) {
-            LibRubySignal.loadLibrary(context.getRubyHome());
+            LibRubySignal.loadLibrary(language.getRubyHome());
             LibRubySignal.setupSIGVTALRMEmptySignalHandler();
 
             nativeInterruptTimer = new Timer("Ruby-NativeCallInterrupt-Timer", true);
