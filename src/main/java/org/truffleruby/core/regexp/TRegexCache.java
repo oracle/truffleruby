@@ -28,6 +28,8 @@ import org.truffleruby.core.rope.CannotConvertBinaryRubyStringToJavaString;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.interop.InteropNodes;
+import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.control.DeferredRaiseException;
 
@@ -75,6 +77,15 @@ public final class TRegexCache {
                         atStart,
                         encoding);
             }
+        } else if (isBacktracking(tregex)) {
+            if (context.getOptions().WARN_TRUFFLE_REGEX_COMPILE_FALLBACK) {
+                node.getWarnOnFallbackNode().call(
+                        context.getCoreLibrary().truffleRegexpOperationsModule,
+                        "warn_backtracking",
+                        regexp,
+                        atStart,
+                        encoding);
+            }
         }
 
         if (encoding == Encodings.US_ASCII) {
@@ -106,6 +117,14 @@ public final class TRegexCache {
         }
 
         return tregex;
+    }
+
+    private static boolean isBacktracking(Object tregex) {
+        return (boolean) InteropNodes.readMember(
+                InteropLibrary.getUncached(),
+                tregex,
+                "isBacktracking",
+                TranslateInteropExceptionNode.getUncached());
     }
 
     public static String toTRegexEncoding(Encoding encoding) {
