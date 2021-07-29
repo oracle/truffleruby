@@ -36,6 +36,7 @@ import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.regexp.MatchDataNodesFactory.ValuesNodeFactory;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
@@ -314,18 +315,18 @@ public abstract class MatchDataNodes {
             if (backRefs == 1) {
                 return executeGetIndex(matchData, backRefIndex, NotProvided.INSTANCE);
             } else {
-                final int i = getBackRef(matchData, cachedRegexp, nameEntry, lazyProfile, libInterop);
+                final int i = getBackRef(matchData, cachedRegexp, cachedSymbol.getRope(), lazyProfile, libInterop);
                 return executeGetIndex(matchData, i, NotProvided.INSTANCE);
             }
         }
 
         @Specialization
-        protected Object getIndexSymbol(RubyMatchData matchData, RubySymbol index, NotProvided length,
+        protected Object getIndexSymbol(RubyMatchData matchData, RubySymbol symbol, NotProvided length,
                 @Cached ConditionProfile lazyProfile,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary libInterop) {
             return executeGetIndex(
                     matchData,
-                    getBackRefFromSymbol(matchData, index, lazyProfile, libInterop),
+                    getBackRef(matchData, getRegexp(matchData), symbol.getRope(), lazyProfile, libInterop),
                     NotProvided.INSTANCE);
         }
 
@@ -336,7 +337,7 @@ public abstract class MatchDataNodes {
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary libInterop) {
             return executeGetIndex(
                     matchData,
-                    getBackRefFromRope(matchData, libIndex.getRope(index), lazyProfile, libInterop),
+                    getBackRef(matchData, getRegexp(matchData), libIndex.getRope(index), lazyProfile, libInterop),
                     NotProvided.INSTANCE);
         }
 
@@ -396,46 +397,29 @@ public abstract class MatchDataNodes {
             return regexpNode.executeGetRegexp(matchData);
         }
 
-        private int getBackRefFromSymbol(RubyMatchData matchData, RubySymbol index, ConditionProfile lazyProfile,
-                InteropLibrary libInterop) {
-            return getBackRefFromRope(matchData, index.getRope(), lazyProfile, libInterop);
-        }
-
-        private int getBackRefFromRope(RubyMatchData matchData, Rope value, ConditionProfile lazyProfile,
-                InteropLibrary libInterop) {
+        private int getBackRef(RubyMatchData matchData, RubyRegexp regexp, Rope name,
+                ConditionProfile lazyProfile, InteropLibrary libInterop) {
             if (lazyProfile.profile(matchData.tRegexResult != null)) {
-                // force the calculation of lazy capture group results before invoking
-                // nameToBackrefNumber
+                // force the calculation of lazy capture group results before invoking nameToBackrefNumber()
                 forceLazyMatchData(matchData, libInterop);
             }
-            return nameToBackrefNumber(matchData, getRegexp(matchData), value.getBytes(), 0, value.byteLength());
-        }
-
-        private int getBackRef(RubyMatchData matchData, RubyRegexp regexp, NameEntry name, ConditionProfile lazyProfile,
-                InteropLibrary libInterop) {
-            if (lazyProfile.profile(matchData.tRegexResult != null)) {
-                // force the calculation of lazy capture group results before invoking
-                // nameToBackrefNumber
-                forceLazyMatchData(matchData, libInterop);
-            }
-            return nameToBackrefNumber(matchData, regexp, name.name, name.nameP, name.nameEnd);
+            return nameToBackrefNumber(matchData, regexp, name);
         }
 
         @TruffleBoundary
-        private int nameToBackrefNumber(RubyMatchData matchData, RubyRegexp regexp, byte[] name, int nameP,
-                int nameEnd) {
+        private int nameToBackrefNumber(RubyMatchData matchData, RubyRegexp regexp, Rope name) {
             try {
                 return regexp.regex.nameToBackrefNumber(
-                        name,
-                        nameP,
-                        nameEnd,
+                        name.getBytes(),
+                        0,
+                        name.byteLength(),
                         matchData.region);
             } catch (ValueException e) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().indexError(
                                 StringUtils
-                                        .format("undefined group name reference: %s", new String(name, nameP, nameEnd)),
+                                        .format("undefined group name reference: %s", RopeOperations.decodeRope(name)),
                                 this));
             }
         }
