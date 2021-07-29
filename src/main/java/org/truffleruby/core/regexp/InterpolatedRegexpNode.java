@@ -127,25 +127,21 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
             // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when
             // constructing the final regexp.
             final RopeWithEncoding ropeWithEncoding = (RopeWithEncoding) regexp1.getUserObject();
-            final RubyRegexp regexp = new RubyRegexp(
-                    regexp1,
-                    ropeWithEncoding.getRope(),
-                    ropeWithEncoding.getEncoding(),
-                    options,
-                    new EncodingCache(),
-                    new TRegexCache());
 
+            Rope source = ropeWithEncoding.getRope();
             if (options.isEncodingNone()) {
-                final Rope source = regexp.source;
-
                 if (!all7Bit(preprocessed.getRope().getBytes())) {
-                    regexp.source = RopeOperations.withEncoding(source, ASCIIEncoding.INSTANCE);
+                    source = RopeOperations.withEncoding(source, ASCIIEncoding.INSTANCE);
                 } else {
-                    regexp.source = RopeOperations.withEncoding(source, USASCIIEncoding.INSTANCE);
+                    source = RopeOperations.withEncoding(source, USASCIIEncoding.INSTANCE);
                 }
             }
 
-            return regexp;
+            return new RubyRegexp(
+                    regexp1,
+                    source,
+                    ropeWithEncoding.getEncoding(),
+                    options);
         }
 
         private static boolean all7Bit(byte[] bytes) {

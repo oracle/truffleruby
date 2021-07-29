@@ -49,14 +49,11 @@ import org.truffleruby.core.module.ModuleNodesFactory;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.range.RangeNodesFactory;
 import org.truffleruby.core.regexp.ClassicRegexp;
-import org.truffleruby.core.regexp.EncodingCache;
 import org.truffleruby.core.regexp.InterpolatedRegexpNode;
 import org.truffleruby.core.regexp.MatchDataNodes.GetIndexNode;
 import org.truffleruby.core.regexp.RegexWarnDeferredCallback;
-import org.truffleruby.core.regexp.RegexpNodes;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.regexp.RubyRegexp;
-import org.truffleruby.core.regexp.TRegexCache;
 import org.truffleruby.core.regexp.TruffleRegexpNodes;
 import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.Rope;
@@ -2679,13 +2676,7 @@ public class BodyTranslator extends Translator {
         // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when
         // constructing the final regexp.
         final RopeWithEncoding updatedRope = (RopeWithEncoding) regex.getUserObject();
-        final RubyRegexp regexp = RegexpNodes.createRubyRegexp(
-                regex,
-                updatedRope.getRope(),
-                updatedRope.getEncoding(),
-                options,
-                new EncodingCache(),
-                new TRegexCache());
+        final RubyRegexp regexp = new RubyRegexp(regex, updatedRope.getRope(), updatedRope.getEncoding(), options);
 
         final ObjectLiteralNode literalNode = new ObjectLiteralNode(regexp);
         literalNode.unsafeSetSourceSection(node.getPosition());

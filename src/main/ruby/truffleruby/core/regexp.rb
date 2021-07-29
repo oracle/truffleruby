@@ -51,10 +51,6 @@ class Regexp
 
   OPTION_MASK = IGNORECASE | EXTENDED | MULTILINE | FIXEDENCODING | NOENCODING | DONT_CAPTURE_GROUP | CAPTURE_GROUP
 
-  class << self
-    alias_method :compile, :new
-  end
-
   def self.try_convert(obj)
     Truffle::Type.try_convert obj, Regexp, :to_regexp
   end
@@ -134,7 +130,7 @@ class Regexp
   end
   Truffle::Graal.always_split(method(:union))
 
-  def initialize(pattern, opts=nil, lang=nil)
+  def self.new(pattern, opts=nil, lang=nil)
     if Primitive.object_kind_of?(pattern, Regexp)
       opts = pattern.options
       pattern = pattern.source
@@ -151,7 +147,11 @@ class Regexp
     code = lang[0] if lang
     opts |= NOENCODING if code == ?n or code == ?N
 
-    compile pattern, opts # may be overridden by subclasses
+    Primitive.regexp_compile pattern, opts # may be overridden by subclasses
+  end
+
+  class << self
+    alias_method :compile, :new
   end
 
   def =~(str)
