@@ -5,7 +5,7 @@ describe "The --enable and --disable flags" do
     # Since some specs disable reading RUBYOPT, we instead pass its contents as :options for those specs
     rubyopt = [ENV["RUBYOPT"]]
     rubyopt << ENV["#{RUBY_ENGINE.upcase}OPT"] unless RUBY_ENGINE == 'ruby'
-    @rubyopt = rubyopt.compact.join(" ")
+    @rubyopt = RUBY_ENGINE == "ruby" ? "" : rubyopt.compact.join(" ")
   end
 
   it "can be used with gems" do
