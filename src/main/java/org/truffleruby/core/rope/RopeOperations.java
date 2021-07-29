@@ -205,24 +205,24 @@ public class RopeOperations {
         if (rope.isAsciiOnly() || rope.getEncoding() != ASCIIEncoding.INSTANCE) {
             return decodeRopeSegment(rope, bytes, 0, bytes.length);
         } else {
-            // A Rope with BINARY encoding cannot be converted faithfully to a Java String.
-            // (ISO_8859_1 would just show random characters for bytes above 128)
-            // Therefore we convert non-US-ASCII characters to "\xNN".
-            // MRI Symbol#inspect for binary symbols is similar: "\xff".b.to_sym => :"\xFF"
-
-            final StringBuilder builder = new StringBuilder(rope.byteLength());
-
-            for (int i = 0; i < bytes.length; i++) {
-                final byte c = bytes[i];
-                if (c >= 0) { // US-ASCII character
-                    builder.append((char) (c & 0xFF));
-                } else {
-                    builder.append("\\x").append(String.format("%02X", c & 0xFF));
-                }
-            }
-
-            return builder.toString();
+            return escapeBinaryRope(bytes);
         }
+    }
+
+    private static String escapeBinaryRope(byte[] bytes) {
+        // A Rope with BINARY encoding cannot be converted faithfully to a Java String.
+        // (ISO_8859_1 would just show random characters for bytes above 128)
+        // Therefore we convert non-US-ASCII characters to "\xNN".
+        // MRI Symbol#inspect for binary symbols is similar: "\xff".b.to_sym => :"\xFF"
+        final StringBuilder builder = new StringBuilder(bytes.length);
+        for (final byte c : bytes) {
+            if (c >= 0) { // US-ASCII character
+                builder.append((char) (c & 0xFF));
+            } else {
+                builder.append("\\x").append(String.format("%02X", c & 0xFF));
+            }
+        }
+        return builder.toString();
     }
 
     public static String decodeRope(Rope value) {
@@ -242,9 +242,15 @@ public class RopeOperations {
         }
     }
 
+    /** This method has no side effects, because it does not even have access to the Rope - for debugging only. */
     @TruffleBoundary
     public static String decode(Encoding encoding, byte[] bytes) {
-        return decode(EncodingManager.charsetForEncoding(encoding), bytes, 0, bytes.length);
+        if (encoding == ASCIIEncoding.INSTANCE) {
+            return escapeBinaryRope(bytes);
+        } else {
+            final Charset charset = EncodingManager.charsetForEncoding(encoding);
+            return decode(charset, bytes, 0, bytes.length);
+        }
     }
 
     private static String decode(Charset charset, byte[] bytes, int byteOffset, int byteLength) {
