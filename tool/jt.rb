@@ -38,7 +38,7 @@ TRUFFLERUBY_GEM_TEST_PACK_VERSION = '58d3048b49629102945a60918f31bf74547f51f9'
 
 JDEBUG = '--vm.agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y'
 METRICS_REPS = Integer(ENV['TRUFFLERUBY_METRICS_REPS'] || 10)
-DEFAULT_PROFILE_OPTIONS = %w[--cpusampler --cpusampler.Mode=roots --cpusampler.Output=json]
+DEFAULT_PROFILE_OPTIONS = %w[--cpusampler --cpusampler.Output=json]
 
 RUBOCOP_INCLUDE_LIST = %w[
   lib/cext

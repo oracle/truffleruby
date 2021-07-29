@@ -68,7 +68,7 @@ describe "Tools" do
       t.kill
       t.join
       RUBY
-      out = ruby_exe(code, options: "--cpusampler --cpusampler.Mode=roots")
+      out = ruby_exe(code, options: "--cpusampler")
       out.should.include?(":kill")
       out.should.include?("block in Object#foo")
       out.should_not.include?('KillException')
