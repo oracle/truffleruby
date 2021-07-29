@@ -65,16 +65,7 @@ public abstract class RegexpNodes {
                 new RopeWithEncoding(setSource, setSourceEncoding),
                 regexpOptions,
                 currentNode);
-
-        // The RegexpNodes.compile operation may modify the encoding of the source rope. This modified copy is stored
-        // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when
-        // constructing the final regexp.
-        final RopeWithEncoding sourceWithEncoding = (RopeWithEncoding) regex.getUserObject();
-        return new RubyRegexp(
-                regex,
-                sourceWithEncoding.getRope(),
-                sourceWithEncoding.getEncoding(),
-                regexpOptions);
+        return new RubyRegexp(regex, regexpOptions);
     }
 
     @CoreMethod(names = "hash")

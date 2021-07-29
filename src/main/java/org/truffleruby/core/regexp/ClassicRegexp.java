@@ -41,6 +41,7 @@ import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import static org.truffleruby.core.string.StringUtils.EMPTY_STRING_ARRAY;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Iterator;
 
 import org.graalvm.collections.Pair;
@@ -603,48 +604,55 @@ public class ClassicRegexp implements ReOptions {
         return to;
     }
 
-    private static void preprocessLight(RubyContext context, RopeWithEncoding str, RubyEncoding enc,
-            RubyEncoding[] fixedEnc,
-            RegexpSupport.ErrorMode mode) throws DeferredRaiseException {
+    private static void preprocessLight(RopeWithEncoding str, RubyEncoding enc, RubyEncoding[] fixedEnc)
+            throws DeferredRaiseException {
         if (enc.jcoding.isAsciiCompatible()) {
             fixedEnc[0] = null;
         } else {
             fixedEnc[0] = enc;
         }
 
-        boolean hasProperty = unescapeNonAscii(null, str.getRope(), enc, fixedEnc, mode);
+        boolean hasProperty = unescapeNonAscii(null, str.getRope(), enc, fixedEnc, RegexpSupport.ErrorMode.PREPROCESS);
         if (hasProperty && fixedEnc[0] == null) {
             fixedEnc[0] = enc;
         }
     }
 
     public static RopeWithEncoding preprocessDRegexp(RubyContext context, RopeWithEncoding[] strings,
-            RegexpOptions options)
-            throws DeferredRaiseException {
+            RegexpOptions options) throws DeferredRaiseException {
         assert strings.length > 0;
 
-        RopeBuilder string = RopeOperations.toRopeBuilderCopy(strings[0].getRope());
+        RopeBuilder builder = RopeOperations.toRopeBuilderCopy(strings[0].getRope());
 
         RubyEncoding regexpEnc = processDRegexpElement(context, options, null, strings[0]);
 
         for (int i = 1; i < strings.length; i++) {
             RopeWithEncoding str = strings[i];
             regexpEnc = processDRegexpElement(context, options, regexpEnc, str);
-            string.append(str.getRope());
+            builder.append(str.getRope());
+        }
+
+        if (options.isEncodingNone()) {
+            if (!all7Bit(builder.getBytes())) {
+                regexpEnc = Encodings.BINARY;
+            } else {
+                regexpEnc = Encodings.US_ASCII;
+            }
         }
 
         if (regexpEnc != null) {
-            string.setEncoding(regexpEnc.jcoding);
+            builder.setEncoding(regexpEnc.jcoding);
         } else {
             regexpEnc = strings[0].getEncoding();
         }
-        return new RopeWithEncoding(RopeOperations.ropeFromRopeBuilder(string), regexpEnc);
+
+        Rope rope = RopeOperations.ropeFromRopeBuilder(builder);
+        return new RopeWithEncoding(rope, regexpEnc);
     }
 
     @TruffleBoundary
     private static RubyEncoding processDRegexpElement(RubyContext context, RegexpOptions options,
-            RubyEncoding regexpEnc,
-            RopeWithEncoding str) throws DeferredRaiseException {
+            RubyEncoding regexpEnc, RopeWithEncoding str) throws DeferredRaiseException {
         RubyEncoding strEnc = str.getEncoding();
 
         if (options.isEncodingNone() && strEnc != Encodings.BINARY) {
@@ -662,7 +670,7 @@ public class ClassicRegexp implements ReOptions {
         // used. Since the preprocessing error-checking can be done without
         // creating a new rope builder, I added a "light" path.
         final RubyEncoding[] fixedEnc = new RubyEncoding[]{ null };
-        ClassicRegexp.preprocessLight(context, str, strEnc, fixedEnc, RegexpSupport.ErrorMode.PREPROCESS);
+        ClassicRegexp.preprocessLight(str, strEnc, fixedEnc);
 
         if (fixedEnc[0] != null) {
             if (regexpEnc != null && regexpEnc != fixedEnc[0]) {
@@ -677,6 +685,39 @@ public class ClassicRegexp implements ReOptions {
             regexpEnc = fixedEnc[0];
         }
         return regexpEnc;
+    }
+
+    private static boolean all7Bit(byte[] bytes) {
+        for (int n = 0; n < bytes.length; n++) {
+            if (bytes[n] < 0) {
+                return false;
+            }
+
+            if (bytes[n] == '\\' && n + 1 < bytes.length && bytes[n + 1] == 'x') {
+                final String num;
+                final boolean isSecondHex = n + 3 < bytes.length && Character.digit(bytes[n + 3], 16) != -1;
+                if (isSecondHex) {
+                    num = new String(Arrays.copyOfRange(bytes, n + 2, n + 4), StandardCharsets.UTF_8);
+                } else {
+                    num = new String(Arrays.copyOfRange(bytes, n + 2, n + 3), StandardCharsets.UTF_8);
+                }
+
+                int b = Integer.parseInt(num, 16);
+
+                if (b > 0x7F) {
+                    return false;
+                }
+
+                if (isSecondHex) {
+                    n += 3;
+                } else {
+                    n += 2;
+                }
+
+            }
+        }
+
+        return true;
     }
 
     private static final int QUOTED_V = 11;
