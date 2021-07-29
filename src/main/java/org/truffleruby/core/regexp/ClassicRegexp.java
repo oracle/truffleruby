@@ -127,11 +127,10 @@ public class ClassicRegexp implements ReOptions {
         }
 
         final Rope rope = RopeOperations.ropeFromRopeBuilder(bytes);
-        final int joniOptions = options.toJoniOptions();
         final RegexpCacheKey cacheKey = new RegexpCacheKey(
                 rope,
                 encoding,
-                joniOptions,
+                options,
                 context.getHashing(context.getRegexpCache()));
 
         final Regex regex = context.getRegexpCache().get(cacheKey);
