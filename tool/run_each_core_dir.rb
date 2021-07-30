@@ -8,7 +8,7 @@ files =  Dir.glob("spec/ruby/core/*/")
 files.map! {|x| x[0..-2] }
 
 files.each do |file| 
-  command = "ruby tool/jt.rb untag #{file}"
+  command = "bin/jt untag #{file}"
   puts "starting process #{command}"
   pid = Process.spawn(command)
   begin

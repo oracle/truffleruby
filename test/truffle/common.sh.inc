@@ -63,4 +63,4 @@ function test_server {
 
 shopt -s expand_aliases
 # shellcheck disable=SC2139
-alias jt="$repo/tool/jt.rb"
+alias jt="$repo/bin/jt"

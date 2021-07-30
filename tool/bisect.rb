@@ -18,7 +18,7 @@ $ git bisect run ruby tool/bisect.rb BENCH THRESHOLD
 
 def jt(cmd)
   puts "jt #{cmd}"
-  cmd = "ruby tool/jt.rb #{cmd}"
+  cmd = "bin/jt #{cmd}"
   output = `#{cmd}`
   raise "#{cmd} failed: #{$?}" unless $?.success?
   output

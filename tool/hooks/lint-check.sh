@@ -11,7 +11,7 @@
 filename=$(basename "${BASH_SOURCE[0]}")
 
 case "$filename" in
-  pre-commit)   exec tool/jt.rb lint fast HEAD ;;
-  post-commit)  exec tool/jt.rb lint fast HEAD^ ;;
-  pre-push)     exec tool/jt.rb lint fast origin/master ;;
+  pre-commit)   exec bin/jt lint fast HEAD ;;
+  post-commit)  exec bin/jt lint fast HEAD^ ;;
+  pre-push)     exec bin/jt lint fast origin/master ;;
 esac

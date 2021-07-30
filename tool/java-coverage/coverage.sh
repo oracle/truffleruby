@@ -12,5 +12,5 @@ JACOCO_AGENT=$(pwd)/jacoco-agent.jar
 JACOCO_LOG=$(pwd)/jacoco.exec
 
 rm -f jacoco.exec
-tool/jt.rb test "--vm.javaagent:$JACOCO_AGENT=destfile=$JACOCO_LOG"
+bin/jt test "--vm.javaagent:$JACOCO_AGENT=destfile=$JACOCO_LOG"
 ant -f tool/java-coverage/build.xml
