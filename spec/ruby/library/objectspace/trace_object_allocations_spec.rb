@@ -118,16 +118,14 @@ describe "ObjectSpace.trace_object_allocations" do
     end
   end
 
-  ruby_version_is "2.6" do
-    it "can be nested with more _stop than _start" do
-      ObjectSpace.trace_object_allocations_start
-      begin
-        o = Object.new
-        ObjectSpace.allocation_class_path(o).should == "Class"
-        ObjectSpace.trace_object_allocations_stop
-      ensure
-        ObjectSpace.trace_object_allocations_stop
-      end
+  it "can be nested with more _stop than _start" do
+    ObjectSpace.trace_object_allocations_start
+    begin
+      o = Object.new
+      ObjectSpace.allocation_class_path(o).should == "Class"
+      ObjectSpace.trace_object_allocations_stop
+    ensure
+      ObjectSpace.trace_object_allocations_stop
     end
   end
 end

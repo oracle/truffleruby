@@ -100,4 +100,3 @@ ruby_version_is "3.0" do
     end
   end
 end
-
