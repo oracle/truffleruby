@@ -654,7 +654,7 @@ public class TruffleRegexpNodes {
             RubyEncoding enc = RubyStringLibrary.getUncached().getEncoding(string);
             RegexpOptions options = regexp.options;
             MatchInfo matchInfo = new MatchInfo(
-                    new RegexpCacheKey(source, enc, options.toJoniOptions(), Hashing.NO_SEED),
+                    new RegexpCacheKey(source, enc, options, Hashing.NO_SEED),
                     fromStart);
             ConcurrentOperations.getOrCompute(MATCHED_REGEXPS, matchInfo, x -> new AtomicInteger()).incrementAndGet();
         }
@@ -730,7 +730,7 @@ public class TruffleRegexpNodes {
             final RegexpCacheKey key = new RegexpCacheKey(
                     bytes.getRope(),
                     enc,
-                    options.toJoniOptions(),
+                    options,
                     Hashing.NO_SEED);
             ConcurrentOperations.getOrCompute(COMPILED_REGEXPS, key, x -> new AtomicInteger()).incrementAndGet();
         }
