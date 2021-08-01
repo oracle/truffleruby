@@ -10,6 +10,8 @@ sudo apt-get install -y cmake libssl-dev libz-dev python
 
 source "$TRUFFLERUBY_DIR"/.spin/bin/env
 
+mkdir -p ~/.rubies
+
 pushd "$TRUFFLERUBY_DIR"
 jt install jvmci
 jt install eclipse
