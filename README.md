@@ -15,9 +15,9 @@ There are four ways to install TruffleRuby releases and nightly builds:
   to use TruffleRuby inside GraalVM.
 
 * Via your [Ruby manager/installer](doc/user/ruby-managers.md) (RVM, rbenv,
-  chruby, ruby-build, ruby-install). This contains only TruffleRuby, in the
+  chruby, ruby-build, ruby-install). This contains TruffleRuby only in the
   [Native configuration](#truffleruby-runtime-configurations), making it a smaller
-  download. It is meant for users who only want a Ruby implementation and are already
+  download. It is meant for users who want only the native Ruby implementation and are already
   using a Ruby manager.
 
 * Via Docker: [Oracle Linux-based images](https://github.com/graalvm/container/blob/master/truffleruby/README.md)
