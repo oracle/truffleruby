@@ -2672,12 +2672,7 @@ public class BodyTranslator extends Translator {
             throw dre.getException(RubyLanguage.getCurrentContext());
         }
 
-        // The RegexpNodes.compile operation may modify the encoding of the source rope. This modified copy is stored
-        // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when
-        // constructing the final regexp.
-        final RopeWithEncoding updatedRope = (RopeWithEncoding) regex.getUserObject();
-        final RubyRegexp regexp = new RubyRegexp(regex, updatedRope.getRope(), updatedRope.getEncoding(), options);
-
+        final RubyRegexp regexp = new RubyRegexp(regex, options);
         final ObjectLiteralNode literalNode = new ObjectLiteralNode(regexp);
         literalNode.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, literalNode);

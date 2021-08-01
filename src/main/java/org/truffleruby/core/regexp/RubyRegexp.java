@@ -23,6 +23,7 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeWithEncoding;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.dispatch.DispatchNode;
 
@@ -36,15 +37,15 @@ public class RubyRegexp extends ImmutableRubyObject implements TruffleObject {
     public final EncodingCache cachedEncodings;
     public final TRegexCache tregexCache;
 
-    public RubyRegexp(
-            Regex regex,
-            Rope source,
-            RubyEncoding encoding,
-            RegexpOptions options) {
-        assert (source == null && encoding == null) || source.encoding == encoding.jcoding;
+    public RubyRegexp(Regex regex, RegexpOptions options) {
+        // The RegexpNodes.compile operation may modify the encoding of the source rope. This modified copy is stored
+        // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when
+        // constructing the final regexp.
         this.regex = regex;
-        this.source = source;
-        this.encoding = encoding;
+        final RopeWithEncoding ropeWithEncoding = (RopeWithEncoding) regex.getUserObject();
+        this.source = ropeWithEncoding.getRope();
+        this.encoding = ropeWithEncoding.getEncoding();
+        assert source.encoding == encoding.jcoding;
         this.options = options;
         this.cachedEncodings = new EncodingCache();
         this.tregexCache = new TRegexCache();

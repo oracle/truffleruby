@@ -9,17 +9,10 @@
  */
 package org.truffleruby.core.regexp;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-
-import org.jcodings.specific.ASCIIEncoding;
-import org.jcodings.specific.USASCIIEncoding;
 import org.joni.Regex;
 import org.truffleruby.core.cast.ToSNode;
 import org.truffleruby.core.regexp.InterpolatedRegexpNodeFactory.RegexpBuilderNodeGen;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.RopeWithEncoding;
 import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.RubyContextNode;
@@ -109,72 +102,20 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
         protected RubyRegexp createRegexp(RopeWithEncoding[] strings) {
             final RegexpOptions options = (RegexpOptions) this.options.clone();
             final RopeWithEncoding preprocessed;
-            final Regex regexp1;
+            final Regex regex;
             try {
                 preprocessed = ClassicRegexp.preprocessDRegexp(getContext(), strings, options);
-                regexp1 = TruffleRegexpNodes
-                        .compile(
-                                getLanguage(),
-                                null,
-                                preprocessed,
-                                options,
-                                this);
+                regex = TruffleRegexpNodes.compile(
+                        getLanguage(),
+                        null,
+                        preprocessed,
+                        options,
+                        this);
             } catch (DeferredRaiseException dre) {
                 throw dre.getException(getContext());
             }
 
-            // The RegexpNodes.compile operation may modify the encoding of the source rope. This modified copy is stored
-            // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when
-            // constructing the final regexp.
-            final RopeWithEncoding ropeWithEncoding = (RopeWithEncoding) regexp1.getUserObject();
-
-            Rope source = ropeWithEncoding.getRope();
-            if (options.isEncodingNone()) {
-                if (!all7Bit(preprocessed.getRope().getBytes())) {
-                    source = RopeOperations.withEncoding(source, ASCIIEncoding.INSTANCE);
-                } else {
-                    source = RopeOperations.withEncoding(source, USASCIIEncoding.INSTANCE);
-                }
-            }
-
-            return new RubyRegexp(
-                    regexp1,
-                    source,
-                    ropeWithEncoding.getEncoding(),
-                    options);
-        }
-
-        private static boolean all7Bit(byte[] bytes) {
-            for (int n = 0; n < bytes.length; n++) {
-                if (bytes[n] < 0) {
-                    return false;
-                }
-
-                if (bytes[n] == '\\' && n + 1 < bytes.length && bytes[n + 1] == 'x') {
-                    final String num;
-                    final boolean isSecondHex = n + 3 < bytes.length && Character.digit(bytes[n + 3], 16) != -1;
-                    if (isSecondHex) {
-                        num = new String(Arrays.copyOfRange(bytes, n + 2, n + 4), StandardCharsets.UTF_8);
-                    } else {
-                        num = new String(Arrays.copyOfRange(bytes, n + 2, n + 3), StandardCharsets.UTF_8);
-                    }
-
-                    int b = Integer.parseInt(num, 16);
-
-                    if (b > 0x7F) {
-                        return false;
-                    }
-
-                    if (isSecondHex) {
-                        n += 3;
-                    } else {
-                        n += 2;
-                    }
-
-                }
-            }
-
-            return true;
+            return new RubyRegexp(regex, options);
         }
     }
 }

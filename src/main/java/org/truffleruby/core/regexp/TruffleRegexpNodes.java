@@ -254,13 +254,7 @@ public class TruffleRegexpNodes {
                     new RopeWithEncoding(pattern, encoding),
                     regexpOptions,
                     this);
-
-            final RopeWithEncoding ropeWithEncoding = (RopeWithEncoding) regex.getUserObject();
-            return new RubyRegexp(
-                    regex,
-                    ropeWithEncoding.getRope(),
-                    ropeWithEncoding.getEncoding(),
-                    regexpOptions);
+            return new RubyRegexp(regex, regexpOptions);
         }
     }
 
