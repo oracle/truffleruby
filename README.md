@@ -1,4 +1,4 @@
-![TruffleRuby logo](logo/png/truffleruby_logo_horizontal_medium.png)
+![TruffleRuby logo](logo/png/truffleruby_logo_horizontal_medium_outlined.png)
 
 TruffleRuby is the [GraalVM](http://graalvm.org/) high-performance implementation
 of the [Ruby programming language](https://www.ruby-lang.org/en/).
