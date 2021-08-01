@@ -39,7 +39,7 @@ TRUFFLERUBY_GEM_TEST_PACK_VERSION = '58d3048b49629102945a60918f31bf74547f51f9'
 
 JDEBUG = '--vm.agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y'
 METRICS_REPS = Integer(ENV['TRUFFLERUBY_METRICS_REPS'] || 10)
-DEFAULT_PROFILE_OPTIONS = %w[--cpusampler --cpusampler.Mode=roots --cpusampler.Output=json]
+DEFAULT_PROFILE_OPTIONS = %w[--cpusampler --cpusampler.Output=json]
 
 RUBOCOP_INCLUDE_LIST = %w[
   lib/cext
@@ -2304,15 +2304,18 @@ module Commands
       args += RUBOCOP_INCLUDE_LIST
     end
 
+    ruby = RbConfig.ruby
+
     if gem_test_pack?
       gem_home = "#{gem_test_pack}/rubocop-gems"
       env = { 'GEM_HOME' => gem_home, 'GEM_PATH' => gem_home }
-      sh env, 'ruby', "#{gem_home}/bin/rubocop", *args
+      sh env, ruby, "#{gem_home}/bin/rubocop", *args
     else
-      unless sh('rubocop', "_#{RUBOCOP_VERSION}_", *args, continue_on_failure: true)
-        sh 'gem', 'install', 'rubocop', '-v', RUBOCOP_VERSION
-        sh 'rubocop', "_#{RUBOCOP_VERSION}_", *args
+      env = { 'PATH' => "#{File.dirname(ruby)}:#{ENV['PATH']}" }
+      if Gem::Specification.find_all_by_name('rubocop', "#{RUBOCOP_VERSION}").empty?
+        sh env, 'gem', 'install', 'rubocop', '-v', RUBOCOP_VERSION
       end
+      sh env, 'rubocop', "_#{RUBOCOP_VERSION}_", *args
     end
   end
 
