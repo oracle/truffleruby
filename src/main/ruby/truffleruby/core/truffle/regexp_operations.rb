@@ -158,20 +158,33 @@ module Truffle
       Hash[*compilation_stats_array]
     end
 
-    def self.match_stats
-      Hash[*match_stats_array]
+    def self.match_stats_joni
+      Hash[*joni_match_stats_array]
+    end
+
+    def self.match_stats_tregex
+      Hash[*tregex_match_stats_array]
     end
 
     def self.print_stats
       puts '--------------------'
       puts 'Regular expression statistics'
       puts '--------------------'
-      puts '  Compilation'
-      print_stats_table compilation_stats
-      puts '  --------------------'
-      puts '  Matches'
-      print_stats_table match_stats
-      puts '--------------------'
+
+      if Truffle::Boot.get_option('regexp-instrument-creation')
+        puts '  Compilation'
+        print_stats_table compilation_stats
+        puts '  --------------------'
+      end
+
+      if Truffle::Boot.get_option('regexp-instrument-match')
+        puts '  Matches (Joni)'
+        print_stats_table match_stats_joni
+        puts '  --------------------'
+        puts '  Matches (TRegex)'
+        print_stats_table match_stats_tregex
+        puts '--------------------'
+      end
     end
 
     def self.print_stats_table(table)

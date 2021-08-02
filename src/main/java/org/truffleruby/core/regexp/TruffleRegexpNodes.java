@@ -79,6 +79,18 @@ import org.truffleruby.parser.RubyDeferredWarnings;
 @CoreModule("Truffle::RegexpOperations")
 public class TruffleRegexpNodes {
 
+    @TruffleBoundary
+    private static void instrumentMatch(ConcurrentHashMap<MatchInfo, AtomicInteger> metricsMap, RubyRegexp regexp,
+            Object string, boolean fromStart) {
+        Rope source = regexp.source;
+        RubyEncoding enc = RubyStringLibrary.getUncached().getEncoding(string);
+        RegexpOptions options = regexp.options;
+        TruffleRegexpNodes.MatchInfo matchInfo = new TruffleRegexpNodes.MatchInfo(
+                new RegexpCacheKey(source, enc, options, Hashing.NO_SEED),
+                fromStart);
+        ConcurrentOperations.getOrCompute(metricsMap, matchInfo, x -> new AtomicInteger()).incrementAndGet();
+    }
+
     // rb_reg_prepare_enc ... mostly. Some of the error checks are performed by callers of this method.
     public abstract static class CheckEncodingNode extends RubyBaseNode {
 
@@ -352,13 +364,24 @@ public class TruffleRegexpNodes {
         }
     }
 
-    @CoreMethod(names = "match_stats_array", onSingleton = true, required = 0)
-    public abstract static class MatchStatsArrayNode extends RegexpStatsNode {
+
+    @CoreMethod(names = "joni_match_stats_array", onSingleton = true, required = 0)
+    public abstract static class JoniMatchStatsArrayNode extends RegexpStatsNode {
 
         @Specialization
         protected Object buildStatsArray(
                 @Cached ArrayBuilderNode arrayBuilderNode) {
-            return fillinInstrumentData(MATCHED_REGEXPS, arrayBuilderNode, getContext());
+            return fillinInstrumentData(MATCHED_REGEXPS_JONI, arrayBuilderNode, getContext());
+        }
+    }
+
+    @CoreMethod(names = "tregex_match_stats_array", onSingleton = true, required = 0)
+    public abstract static class TRegexMatchStatsArrayNode extends RegexpStatsNode {
+
+        @Specialization
+        protected Object buildStatsArray(
+                @Cached ArrayBuilderNode arrayBuilderNode) {
+            return fillinInstrumentData(MATCHED_REGEXPS_TREGEX, arrayBuilderNode, getContext());
         }
     }
 
@@ -455,6 +478,10 @@ public class TruffleRegexpNodes {
                             atStart,
                             checkEncodingNode.executeCheckEncoding(regexp, string))) == nil)) {
                 return fallbackToJoni(regexp, string, fromPos, toPos, atStart, startPos);
+            }
+
+            if (getContext().getOptions().REGEXP_INSTRUMENT_MATCH) {
+                TruffleRegexpNodes.instrumentMatch(MATCHED_REGEXPS_TREGEX, regexp, string, atStart);
             }
 
             int fromIndex = fromPos;
@@ -602,7 +629,7 @@ public class TruffleRegexpNodes {
                 RubyRegexp regexp, Object string, Matcher matcher, int startPos, int range, boolean onlyMatchAtStart,
                 @Cached ConditionProfile matchesProfile) {
             if (getContext().getOptions().REGEXP_INSTRUMENT_MATCH) {
-                instrument(regexp, string, onlyMatchAtStart);
+                TruffleRegexpNodes.instrumentMatch(MATCHED_REGEXPS_JONI, regexp, string, onlyMatchAtStart);
             }
 
             int match = runMatch(matcher, startPos, range, onlyMatchAtStart);
@@ -644,17 +671,6 @@ public class TruffleRegexpNodes {
             return result[0];
         }
 
-        @TruffleBoundary
-        protected void instrument(RubyRegexp regexp, Object string, boolean fromStart) {
-            Rope source = regexp.source;
-            RubyEncoding enc = RubyStringLibrary.getUncached().getEncoding(string);
-            RegexpOptions options = regexp.options;
-            MatchInfo matchInfo = new MatchInfo(
-                    new RegexpCacheKey(source, enc, options, Hashing.NO_SEED),
-                    fromStart);
-            ConcurrentOperations.getOrCompute(MATCHED_REGEXPS, matchInfo, x -> new AtomicInteger()).incrementAndGet();
-        }
-
         private boolean assertValidRegion(Region region) {
             for (int i = 0; i < region.numRegs; i++) {
                 assert region.beg[i] >= 0 || region.beg[i] == RubyMatchData.MISSING;
@@ -664,7 +680,7 @@ public class TruffleRegexpNodes {
         }
     }
 
-    private static final class MatchInfo {
+    static final class MatchInfo {
 
         private final RegexpCacheKey regexpInfo;
         private final boolean matchStart;
@@ -701,7 +717,8 @@ public class TruffleRegexpNodes {
     }
 
     private static ConcurrentHashMap<RegexpCacheKey, AtomicInteger> COMPILED_REGEXPS = new ConcurrentHashMap<>();
-    private static ConcurrentHashMap<MatchInfo, AtomicInteger> MATCHED_REGEXPS = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<MatchInfo, AtomicInteger> MATCHED_REGEXPS_JONI = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<MatchInfo, AtomicInteger> MATCHED_REGEXPS_TREGEX = new ConcurrentHashMap<>();
 
     /** WARNING: computeRegexpEncoding() mutates options, so the caller should make sure it's a copy */
     @TruffleBoundary
