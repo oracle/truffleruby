@@ -154,8 +154,12 @@ module Truffle
       end
     end
 
-    def self.compilation_stats
-      Hash[*compilation_stats_array]
+    def self.compilation_stats_literal_regexp
+      Hash[*literal_regexp_compilation_stats_array]
+    end
+
+    def self.compilation_stats_dynamic_regexp
+      Hash[*dynamic_regexp_compilation_stats_array]
     end
 
     def self.match_stats_joni
@@ -172,8 +176,11 @@ module Truffle
       puts '--------------------'
 
       if Truffle::Boot.get_option('regexp-instrument-creation')
-        puts '  Compilation'
-        print_stats_table compilation_stats
+        puts '  Compilation (Literal)'
+        print_stats_table compilation_stats_literal_regexp
+        puts '  --------------------'
+        puts '  Compilation (Dynamic)'
+        print_stats_table compilation_stats_dynamic_regexp
         puts '  --------------------'
       end
 

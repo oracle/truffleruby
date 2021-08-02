@@ -266,6 +266,7 @@ public class TruffleRegexpNodes {
                     null,
                     new RopeWithEncoding(pattern, encoding),
                     regexpOptions,
+                    false,
                     this);
             return new RubyRegexp(regex, regexpOptions);
         }
@@ -342,7 +343,8 @@ public class TruffleRegexpNodes {
         @TruffleBoundary
         protected <T> RubyArray fillinInstrumentData(Map<T, AtomicInteger> map, ArrayBuilderNode arrayBuilderNode,
                 RubyContext context) {
-            BuilderState state = arrayBuilderNode.start(COMPILED_REGEXPS.size() * 2);
+            final int arraySize = (COMPILED_REGEXPS_LITERAL.size() + COMPILED_REGEXPS_DYNAMIC.size()) * 2;
+            BuilderState state = arrayBuilderNode.start(arraySize);
             int n = 0;
             for (Entry<T, AtomicInteger> e : map.entrySet()) {
                 Rope key = StringOperations.encodeRope(e.getKey().toString(), UTF8Encoding.INSTANCE);
@@ -354,16 +356,25 @@ public class TruffleRegexpNodes {
         }
     }
 
-    @CoreMethod(names = "compilation_stats_array", onSingleton = true, required = 0)
-    public abstract static class CompilationStatsArrayNode extends RegexpStatsNode {
+    @CoreMethod(names = "literal_regexp_compilation_stats_array", onSingleton = true, required = 0)
+    public abstract static class LiteralRegexpCompilationStatsArrayNode extends RegexpStatsNode {
 
         @Specialization
         protected Object buildStatsArray(
                 @Cached ArrayBuilderNode arrayBuilderNode) {
-            return fillinInstrumentData(COMPILED_REGEXPS, arrayBuilderNode, getContext());
+            return fillinInstrumentData(COMPILED_REGEXPS_LITERAL, arrayBuilderNode, getContext());
         }
     }
 
+    @CoreMethod(names = "dynamic_regexp_compilation_stats_array", onSingleton = true, required = 0)
+    public abstract static class DynamicRegexpCompilationStatsArrayNode extends RegexpStatsNode {
+
+        @Specialization
+        protected Object buildStatsArray(
+                @Cached ArrayBuilderNode arrayBuilderNode) {
+            return fillinInstrumentData(COMPILED_REGEXPS_DYNAMIC, arrayBuilderNode, getContext());
+        }
+    }
 
     @CoreMethod(names = "joni_match_stats_array", onSingleton = true, required = 0)
     public abstract static class JoniMatchStatsArrayNode extends RegexpStatsNode {
@@ -716,14 +727,16 @@ public class TruffleRegexpNodes {
         }
     }
 
-    private static ConcurrentHashMap<RegexpCacheKey, AtomicInteger> COMPILED_REGEXPS = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<RegexpCacheKey, AtomicInteger> COMPILED_REGEXPS_DYNAMIC = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<RegexpCacheKey, AtomicInteger> COMPILED_REGEXPS_LITERAL = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<MatchInfo, AtomicInteger> MATCHED_REGEXPS_JONI = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<MatchInfo, AtomicInteger> MATCHED_REGEXPS_TREGEX = new ConcurrentHashMap<>();
 
     /** WARNING: computeRegexpEncoding() mutates options, so the caller should make sure it's a copy */
     @TruffleBoundary
     public static Regex compile(RubyLanguage language, RubyDeferredWarnings rubyDeferredWarnings,
-            RopeWithEncoding bytes, RegexpOptions options, Node currentNode) throws DeferredRaiseException {
+            RopeWithEncoding bytes, RegexpOptions options, boolean isRegexpLiteral, Node currentNode)
+            throws DeferredRaiseException {
         if (options.isEncodingNone()) {
             bytes = new RopeWithEncoding(
                     RopeOperations.withEncoding(bytes.getRope(), ASCIIEncoding.INSTANCE),
@@ -745,7 +758,12 @@ public class TruffleRegexpNodes {
                     enc,
                     options,
                     Hashing.NO_SEED);
-            ConcurrentOperations.getOrCompute(COMPILED_REGEXPS, key, x -> new AtomicInteger()).incrementAndGet();
+            ConcurrentOperations
+                    .getOrCompute(
+                            isRegexpLiteral ? COMPILED_REGEXPS_LITERAL : COMPILED_REGEXPS_DYNAMIC,
+                            key,
+                            x -> new AtomicInteger())
+                    .incrementAndGet();
         }
 
         return regexp;

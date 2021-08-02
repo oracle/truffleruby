@@ -110,6 +110,7 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
                         null,
                         preprocessed,
                         options,
+                        false,
                         this);
             } catch (DeferredRaiseException dre) {
                 throw dre.getException(getContext());
