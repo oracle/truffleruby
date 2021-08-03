@@ -325,16 +325,16 @@ class StringScanner
     if md
       Primitive.matchdata_fixup_positions(md, pos)
       @match = md
-      scan_internal_set_pos_and_str(advance_pos, getstr)
+      scan_internal_set_pos_and_str(advance_pos, getstr, md)
     else
       @match = nil
     end
   end
 
-  private def scan_internal_set_pos_and_str(advance_pos, getstr)
-    return nil unless @match
+  private def scan_internal_set_pos_and_str(advance_pos, getstr, md)
+    return nil unless md
 
-    fin = Primitive.match_data_byte_end(@match, 0)
+    fin = Primitive.match_data_byte_end(md, 0)
 
     @prev_pos = @pos
     @pos = fin if advance_pos
