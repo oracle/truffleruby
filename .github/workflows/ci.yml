@@ -192,7 +192,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: [2.6, 2.7, 3.0]
+        ruby: [2.6, 2.7, '3.0']
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -202,4 +202,7 @@ jobs:
           bundler: none
       - name: Setup jt
         run: echo "$PWD/bin" >> $GITHUB_PATH
+      - name: Install webrick for Ruby 3+
+        run: gem install webrick
+        if: startsWith(matrix.ruby, '3.')
       - run: CHECK_LEAKS=true jt -u ruby mspec -fdot --timeout 30 spec/ruby
