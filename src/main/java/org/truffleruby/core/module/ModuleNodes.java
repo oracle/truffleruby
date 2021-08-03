@@ -83,7 +83,6 @@ import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyLambdaRootNode;
-import org.truffleruby.language.RubyMethodRootNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
@@ -138,7 +137,6 @@ import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -1323,23 +1321,13 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         private RubySymbol defineMethod(RubyModule module, String name, RubyProc proc,
                 MaterializedFrame callerFrame) {
-            final RubyRootNode rootNode = RubyRootNode.of(proc.callTargets.getCallTargetForLambda());
+            final RootCallTarget callTargetForLambda = proc.callTargets.getCallTargetForLambda();
+            final RubyLambdaRootNode rootNode = RubyLambdaRootNode.of(callTargetForLambda);
             final SharedMethodInfo info = proc.sharedMethodInfo.forDefineMethod(module, name);
-            final Arity arityForCheck = rootNode instanceof RubyLambdaRootNode
-                    ? ((RubyLambdaRootNode) rootNode).arityForCheck
-                    : info.getArity();
+            final RubyNode body = rootNode.copyBody();
+            final RubyNode newBody = new CallMethodWithLambdaBody(proc.declarationFrame, body);
 
-            final RubyNode body = NodeUtil.cloneNode(rootNode.getBody());
-            final RubyNode newBody = new CallMethodWithProcBody(proc.declarationFrame, body);
-            final RubyMethodRootNode newRootNode = new RubyMethodRootNode(
-                    getLanguage(),
-                    info.getSourceSection(),
-                    rootNode.getFrameDescriptor(),
-                    info,
-                    newBody,
-                    Split.HEURISTIC,
-                    rootNode.returnID,
-                    arityForCheck);
+            final RubyLambdaRootNode newRootNode = rootNode.copyRootNode(info, newBody);
             final RootCallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
 
             final InternalMethod method = InternalMethod.fromProc(
@@ -1354,20 +1342,20 @@ public abstract class ModuleNodes {
             return addMethod(module, name, method, callerFrame);
         }
 
-        private static class CallMethodWithProcBody extends RubyContextSourceNode {
+        private static class CallMethodWithLambdaBody extends RubyContextSourceNode {
 
             private final MaterializedFrame declarationFrame;
-            @Child private RubyNode procBody;
+            @Child private RubyNode lambdaBody;
 
-            public CallMethodWithProcBody(MaterializedFrame declarationFrame, RubyNode procBody) {
+            public CallMethodWithLambdaBody(MaterializedFrame declarationFrame, RubyNode lambdaBody) {
                 this.declarationFrame = declarationFrame;
-                this.procBody = procBody;
+                this.lambdaBody = lambdaBody;
             }
 
             @Override
             public Object execute(VirtualFrame frame) {
                 RubyArguments.setDeclarationFrame(frame, declarationFrame);
-                return procBody.execute(frame);
+                return lambdaBody.execute(frame);
             }
 
         }

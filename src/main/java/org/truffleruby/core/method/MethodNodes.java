@@ -310,7 +310,7 @@ public abstract class MethodNodes {
                     getLanguage().procShape,
                     ProcType.LAMBDA,
                     method.getSharedMethodInfo(),
-                    new ProcCallTargets(callTarget, callTarget),
+                    new ProcCallTargets(callTarget),
                     declarationFrame,
                     variables,
                     method,
