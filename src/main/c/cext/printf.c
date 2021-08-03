@@ -146,3 +146,11 @@ VALUE rb_str_vcatf(VALUE str, const char *fmt, va_list args) {
   rb_str_concat(str, result);
   return str;
 }
+
+VALUE rb_str_catf(VALUE str, const char *format, ...) {
+  va_list ap;
+  va_start(ap, format);
+  str = rb_str_vcatf(str, format, ap);
+  va_end(ap);
+  return str;
+}

@@ -21,6 +21,7 @@ Compatibility:
 * Implement `rb_fiber_*` functions (#2402).
 * Implement `rb_str_vcatf`.
 * Add support for tracing allocations from C functions (#2403, @chrisseaton).
+* Implement `rb_str_catf`.
 
 Performance:
 
