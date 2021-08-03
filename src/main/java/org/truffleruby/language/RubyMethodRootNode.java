@@ -10,7 +10,6 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -30,10 +29,6 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.language.methods.TranslateExceptionNode;
 
 public class RubyMethodRootNode extends RubyCheckArityRootNode {
-
-    public static RubyMethodRootNode of(RootCallTarget callTarget) {
-        return (RubyMethodRootNode) callTarget.getRootNode();
-    }
 
     @Child private TranslateExceptionNode translateExceptionNode;
 

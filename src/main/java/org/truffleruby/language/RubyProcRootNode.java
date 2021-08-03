@@ -21,17 +21,12 @@ import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.methods.TranslateExceptionNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
 public class RubyProcRootNode extends RubyRootNode {
-
-    public static RubyProcRootNode of(RootCallTarget callTarget) {
-        return (RubyProcRootNode) callTarget.getRootNode();
-    }
 
     @Child private TranslateExceptionNode translateExceptionNode;
 

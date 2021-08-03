@@ -13,8 +13,11 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.TruffleLanguage.ContextReference;
+import com.oracle.truffle.api.dsl.NodeFactory;
+import com.oracle.truffle.api.nodes.NodeUtil;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.builtins.ReRaiseInlinedExceptionNode;
 import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.methods.SharedMethodInfo;
 
@@ -101,8 +104,12 @@ public class RubyRootNode extends RubyBaseRootNode {
         return sharedMethodInfo;
     }
 
-    public final RubyNode getBody() {
-        return body;
+    public NodeFactory<? extends RubyBaseNode> getAlwaysInlinedNodeFactory() {
+        return ((ReRaiseInlinedExceptionNode) body).nodeFactory;
+    }
+
+    public RubyNode copyBody() {
+        return NodeUtil.cloneNode(body);
     }
 
     public final ContextReference<RubyContext> getContextReference() {

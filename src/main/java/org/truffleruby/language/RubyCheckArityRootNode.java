@@ -22,17 +22,12 @@ import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.Split;
 
-import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class RubyCheckArityRootNode extends RubyRootNode {
-
-    public static RubyCheckArityRootNode of(RootCallTarget callTarget) {
-        return (RubyCheckArityRootNode) callTarget.getRootNode();
-    }
 
     @Child private CheckKeywordArityNode checkKeywordArityNode;
 

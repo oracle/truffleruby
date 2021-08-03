@@ -32,10 +32,12 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyLambdaRootNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.methods.Arity;
@@ -215,7 +217,7 @@ public abstract class SymbolNodes {
                     language.procShape,
                     ProcType.PROC,
                     RubyRootNode.of(callTarget).getSharedMethodInfo(),
-                    new ProcCallTargets(callTarget, callTarget),
+                    new ProcCallTargets(callTarget),
                     declarationFrame,
                     variables,
                     method,
@@ -239,14 +241,18 @@ public abstract class SymbolNodes {
                     "Symbol#to_proc",
                     ArgumentDescriptor.ANON_REST);
 
-            final RubyRootNode rootNode = new RubyRootNode(
+            // ModuleNodes.DefineMethodNode relies on the lambda CallTarget to always use a RubyLambdaRootNode,
+            // and we want to use a single CallTarget for both proc and lambda.
+            final RubyLambdaRootNode rootNode = new RubyLambdaRootNode(
                     language,
                     sourceSection,
                     new FrameDescriptor(nil),
                     sharedMethodInfo,
                     new SymbolProcNode(symbol.getString()),
                     Split.HEURISTIC,
-                    ReturnID.INVALID);
+                    ReturnID.INVALID,
+                    BreakID.INVALID,
+                    ARITY);
 
             return Truffle.getRuntime().createCallTarget(rootNode);
         }
