@@ -74,7 +74,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         // TruffleRuby is never distributed without the GraalVM compiler, so this warning is not necessary
         polyglotOptions.put("engine.WarnInterpreterOnly", "false");
 
-        config = new CommandLineOptions();
+        config = new CommandLineOptions(args);
 
         try {
             config.executionAction = ExecutionAction.UNSET;
@@ -247,6 +247,15 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                             .println("truffleruby: No such file or directory -- " + config.toExecute + " (LoadError)");
                     return 1;
                 }
+            }
+
+            if (config.logProcessArguments) {
+                Value logInfo = context.eval(
+                        "ruby",
+                        // language=ruby
+                        "-> message { Truffle::Debug.log_info(message) }");
+                String message = "new process: truffleruby " + String.join(" ", config.initialArguments);
+                logInfo.executeVoid(message);
             }
 
             final Source source = Source.newBuilder(

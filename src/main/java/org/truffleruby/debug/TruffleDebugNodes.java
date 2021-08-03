@@ -360,12 +360,12 @@ public abstract class TruffleDebugNodes {
         @Specialization
         protected Object logInfo(Object value,
                 @Cached ToJavaStringNode toJavaStringNode) {
-            config(toJavaStringNode.executeToJavaString(value));
+            info(toJavaStringNode.executeToJavaString(value));
             return nil;
         }
 
         @TruffleBoundary
-        static void config(String message) {
+        static void info(String message) {
             RubyLanguage.LOGGER.info(message);
         }
 
