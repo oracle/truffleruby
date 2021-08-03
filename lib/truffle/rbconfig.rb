@@ -55,6 +55,7 @@ module RbConfig
 
   arch = "#{host_cpu}-#{host_os}"
   libs = ''
+  rmdir = Truffle::Platform.linux? ? 'rmdir --ignore-fail-on-non-empty' : 'rmdir'
 
   prefix = ruby_home
   graalvm_home = TruffleRuby.graalvm_home
@@ -134,6 +135,7 @@ module RbConfig
     'configure_args'    => ' ',
     'CC'                => cc,
     'CCDLFLAGS'         => '-fPIC',
+    'CP'                => 'cp',
     'CXX'               => cxx,
     'COUTFLAG'          => '-o ',
     'cppflags'          => cppflags,
@@ -154,6 +156,7 @@ module RbConfig
     'host'              => host,
     'host_os'           => host_os_full,
     'includedir'        => "#{prefix}/lib/cext", # the parent dir of rubyhdrdir
+    'INSTALL'           => '/usr/bin/install -c',
     'LDFLAGS'           => ldflags,
     'libdirname'        => 'libdir',
     'LIBEXT'            => 'a',
@@ -167,6 +170,8 @@ module RbConfig
     'LIBRUBY_SO'        => "cext/libtruffleruby.#{Truffle::Platform::SOEXT}",
     'LIBS'              => libs,
     'libtruffleruby'    => libtruffleruby,
+    'MAKEDIRS'          => 'mkdir -p',
+    'MKDIR_P'           => 'mkdir -p',
     'NULLCMD'           => ':',
     'OBJEXT'            => 'o',
     'optflags'          => optflags,
@@ -175,6 +180,9 @@ module RbConfig
     'prefix'            => prefix,
     'RANLIB'            => ranlib,
     'RM'                => 'rm -f',
+    'RMALL'             => 'rm -fr',
+    'RMDIR'             => rmdir,
+    'RMDIRS'            => "#{rmdir} -p",
     'RPATHFLAG'         => ' -Wl,-rpath,%1$-s',
     'RUBY_BASE_NAME'    => ruby_base_name,
     'ruby_install_name' => ruby_install_name,
