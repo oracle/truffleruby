@@ -332,8 +332,6 @@ class StringScanner
   end
 
   private def scan_internal_set_pos_and_str(advance_pos, getstr, md)
-    return nil unless md
-
     fin = Primitive.match_data_byte_end(md, 0)
 
     @prev_pos = @pos
