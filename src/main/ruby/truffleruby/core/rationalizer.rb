@@ -54,7 +54,7 @@ class String
         ifp, exp = nu.split(/[eE]/)
         ip, fp = ifp.split(/\./)
 
-        value = Rational.new(ip.to_i, 1)
+        value = Rational.new_already_canonical(ip.to_i, 1)
 
         if fp
           ctype = Truffle::CType
