@@ -197,7 +197,7 @@ class Complex < Numeric
         z
       else
         if defined? Rational
-          (Rational.new_already_canonical(1, 1) / self) ** -other
+          (Rational.__send__(:new_already_canonical, 1, 1) / self) ** -other
         else
           self ** Float(other)
         end

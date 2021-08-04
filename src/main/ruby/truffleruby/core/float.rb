@@ -134,7 +134,7 @@ class Float < Numeric
       f = Math.ldexp(f, Float::MANT_DIG).to_i
       n -= Float::MANT_DIG
 
-      Rational.new_already_canonical(2 * f, 1 << (1 - n)).rationalize(Rational.new_already_canonical(1, 1 << (1 - n)))
+      Rational.__send__(:new_already_canonical, 2 * f, 1 << (1 - n)).rationalize(Rational.__send__(:new_already_canonical, 1, 1 << (1 - n)))
     else
       to_r.rationalize(eps)
     end
