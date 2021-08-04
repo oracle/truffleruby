@@ -48,6 +48,7 @@ public final class RegexpCacheKey {
     @Override
     public String toString() {
         return '/' + RopeOperations.decodeOrEscapeBinaryRope(rope) + '/' +
-                RegexpOptions.fromJoniOptions(joniOptions).toOptionsString();
+                RegexpOptions.fromJoniOptions(joniOptions).toOptionsString() +
+                " -- " + RopeOperations.decodeOrEscapeBinaryRope(encoding.name.rope);
     }
 }
