@@ -28,6 +28,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.IntValueProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.graalvm.collections.Pair;
+import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -86,11 +87,11 @@ public class TruffleRegexpNodes {
     private static void instrumentMatch(ConcurrentHashMap<MatchInfo, AtomicInteger> metricsMap, RubyRegexp regexp,
             Object string, boolean fromStart) {
         Rope source = regexp.source;
-        RubyEncoding enc = RubyStringLibrary.getUncached().getEncoding(string);
         RegexpOptions options = regexp.options;
         TruffleRegexpNodes.MatchInfo matchInfo = new TruffleRegexpNodes.MatchInfo(
-                new RegexpCacheKey(source, enc, options, Hashing.NO_SEED),
-                fromStart);
+                new RegexpCacheKey(source, regexp.encoding, options, Hashing.NO_SEED),
+                fromStart,
+                RubyStringLibrary.getUncached().getEncoding(string));
         ConcurrentOperations.getOrCompute(metricsMap, matchInfo, x -> new AtomicInteger()).incrementAndGet();
     }
 
@@ -737,11 +738,13 @@ public class TruffleRegexpNodes {
 
         private final RegexpCacheKey regexpInfo;
         private final boolean matchStart;
+        private final RubyEncoding matchEncoding;
 
-        MatchInfo(RegexpCacheKey regexpInfo, boolean matchStart) {
+        MatchInfo(RegexpCacheKey regexpInfo, boolean matchStart, RubyEncoding matchEncoding) {
             assert regexpInfo != null;
             this.regexpInfo = regexpInfo;
             this.matchStart = matchStart;
+            this.matchEncoding = matchEncoding;
         }
 
         @Override
@@ -760,12 +763,17 @@ public class TruffleRegexpNodes {
             }
 
             MatchInfo other = (MatchInfo) obj;
-            return matchStart == other.matchStart && regexpInfo.equals(other.regexpInfo);
+            return matchStart == other.matchStart && matchEncoding == other.matchEncoding &&
+                    regexpInfo.equals(other.regexpInfo);
         }
 
         @Override
         public String toString() {
-            return String.format("Match (%s, fromStart = %s)", regexpInfo, matchStart);
+            return String.format(
+                    "Match (%s, fromStart = %s, encoding = %s)",
+                    regexpInfo,
+                    matchStart,
+                    RopeOperations.decodeOrEscapeBinaryRope(matchEncoding.name.rope));
         }
     }
 
