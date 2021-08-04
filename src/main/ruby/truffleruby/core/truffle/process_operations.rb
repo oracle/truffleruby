@@ -191,11 +191,10 @@ module Truffle
 
         parse_options(options)
 
-        if env and !env.empty?
-          array = (@options[:env] ||= [])
-
+        @add_to_env = {}
+        if env
           env.each_pair do |key, value|
-            array << [convert_env_key(key), convert_env_value(value)]
+            @add_to_env[convert_env_key(key)] = convert_env_value(value)
           end
         end
       end
@@ -373,14 +372,12 @@ module Truffle
 
       def spawn_setup(alter_process)
         env = @options.delete(:unsetenv_others) ? {} : ENV.to_hash
-        @add_to_env = add_to_env = @options.delete(:env)
-        if add_to_env
-          add_to_env.each do |key, value|
-            if value
-              env[key] = value
-            else
-              env.delete(key)
-            end
+
+        @add_to_env.each_pair do |key, value|
+          if value
+            env[key] = value
+          else
+            env.delete(key)
           end
         end
 
@@ -502,10 +499,12 @@ module Truffle
           end
         end
 
-        if chdir
+        use_helper = chdir || @add_to_env['PATH']
+        if use_helper
           # Go through spawn-helper to change the working dir and then execve()
           spawn_helper = "#{Truffle::Boot.ruby_home}/lib/truffle/spawn-helper"
-          args = [spawn_helper, chdir, command, *args]
+          cwd = chdir || Dir.pwd
+          args = [spawn_helper, cwd, command, *args]
           command = spawn_helper
         end
 
@@ -548,7 +547,7 @@ module Truffle
 
       def log_command(type)
         if LOG_SUBPROCESS
-          env = (@add_to_env || {}).map { |k,v| "#{k}=#{v}" }.join(' ')
+          env = @add_to_env.map { |k,v| "#{k}=#{v}" }.join(' ')
           Truffle::Debug.log_info "#{type}: #{env}#{' ' unless env.empty?}#{@argv.join(' ')}"
         end
       end
@@ -570,7 +569,8 @@ module Truffle
           end
         end
 
-        ENV['PATH'].split(File::PATH_SEPARATOR).each do |dir|
+        path = @add_to_env['PATH'] || ENV['PATH']
+        path.split(File::PATH_SEPARATOR).each do |dir|
           file = File.join(dir, command)
           if File.file?(file) && File.executable?(file)
             return file

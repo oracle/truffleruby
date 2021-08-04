@@ -23,6 +23,7 @@ Compatibility:
 * Implement `rb_str_vcatf`.
 * Add support for tracing allocations from C functions (#2403, @chrisseaton).
 * Implement `rb_str_catf`.
+* Search the executable in the passed env `PATH` for subprocesses (#2419).
 
 Performance:
 
