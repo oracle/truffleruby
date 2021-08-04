@@ -9,11 +9,14 @@
  */
 package org.truffleruby.core.regexp;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleSafepoint;
@@ -393,6 +396,45 @@ public class TruffleRegexpNodes {
         protected Object buildStatsArray(
                 @Cached ArrayBuilderNode arrayBuilderNode) {
             return fillinInstrumentData(MATCHED_REGEXPS_TREGEX, arrayBuilderNode, getContext());
+        }
+    }
+
+    @CoreMethod(names = "unused_regexps_array", onSingleton = true, required = 0)
+    public abstract static class UnusedRegexpsArray extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object buildUnusedRegexpsArray(
+                @Cached ArrayBuilderNode arrayBuilderNode) {
+            final Set<RegexpCacheKey> compiledRegexps = new HashSet<>();
+            compiledRegexps.addAll(COMPILED_REGEXPS_DYNAMIC.keySet());
+            compiledRegexps.addAll(COMPILED_REGEXPS_LITERAL.keySet());
+
+            final Set<RegexpCacheKey> matchedRegexps = new HashSet<>();
+            matchedRegexps.addAll(
+                    MATCHED_REGEXPS_JONI
+                            .keySet()
+                            .stream()
+                            .map(matchInfo -> matchInfo.regexpInfo)
+                            .collect(Collectors.toSet()));
+            matchedRegexps.addAll(
+                    MATCHED_REGEXPS_TREGEX
+                            .keySet()
+                            .stream()
+                            .map(matchInfo -> matchInfo.regexpInfo)
+                            .collect(Collectors.toSet()));
+
+            final Set<RegexpCacheKey> unusedRegexps = new HashSet<>(compiledRegexps);
+            unusedRegexps.removeAll(matchedRegexps);
+
+            final BuilderState state = arrayBuilderNode.start(unusedRegexps.size());
+            int n = 0;
+            for (RegexpCacheKey entry : unusedRegexps) {
+                final Rope key = StringOperations.encodeRope(entry.toString(), UTF8Encoding.INSTANCE);
+                arrayBuilderNode
+                        .appendValue(state, n++, StringOperations.createUTF8String(getContext(), getLanguage(), key));
+            }
+
+            return createArray(arrayBuilderNode.finish(state, n), n);
         }
     }
 

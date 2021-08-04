@@ -190,6 +190,13 @@ module Truffle
         puts '  --------------------'
         puts '  Matches (TRegex)'
         print_stats_table match_stats_tregex
+
+        if Truffle::Boot.get_option('regexp-instrument-creation')
+          puts '  --------------------'
+          puts '  Unused Regexps'
+          puts unused_regexps_array.map { |regexp| "  #{regexp}" }
+        end
+
         puts '--------------------'
       end
     end
