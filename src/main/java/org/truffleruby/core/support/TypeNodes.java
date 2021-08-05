@@ -67,14 +67,11 @@ public abstract class TypeNodes {
 
     @Primitive(name = "object_kind_of?")
     public abstract static class ObjectKindOfNode extends PrimitiveArrayArgumentsNode {
-
-        @Child private IsANode isANode = IsANode.create();
-
         @Specialization
-        protected boolean objectKindOf(Object object, RubyModule module) {
+        protected boolean objectKindOf(Object object, RubyModule module,
+                @Cached IsANode isANode) {
             return isANode.executeIsA(object, module);
         }
-
     }
 
     @Primitive(name = "object_respond_to?")
@@ -93,36 +90,41 @@ public abstract class TypeNodes {
 
     @CoreMethod(names = "object_class", onSingleton = true, required = 1)
     public abstract static class ObjectClassNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private LogicalClassNode classNode = LogicalClassNode.create();
-
         @Specialization
-        protected RubyClass objectClass(Object object) {
-            return classNode.execute(object);
+        protected RubyClass objectClass(Object object,
+                @Cached LogicalClassNode logicalClassNode) {
+            return logicalClassNode.execute(object);
         }
-
     }
 
     @Primitive(name = "class_of")
     public abstract static class ClassOfNode extends PrimitiveArrayArgumentsNode {
-
         @Specialization
         protected RubyClass classOf(Object object,
                 @Cached MetaClassNode metaClassNode) {
             return metaClassNode.execute(object);
         }
-
     }
 
     @Primitive(name = "object_equal")
     public abstract static class ObjectEqualNode extends PrimitiveArrayArgumentsNode {
-
         @Specialization
         protected boolean objectEqual(Object a, Object b,
                 @Cached ReferenceEqualNode referenceEqualNode) {
             return referenceEqualNode.executeReferenceEqual(a, b);
         }
+    }
 
+    @Primitive(name = "object_freeze")
+    public abstract static class ObjectFreezeNode extends PrimitiveArrayArgumentsNode {
+        @Specialization(limit = "getRubyLibraryCacheLimit()")
+        protected Object freeze(Object self,
+                @CachedLibrary("self") RubyLibrary rubyLibrary) {
+            assert !(self instanceof RubyDynamicObject && ((RubyDynamicObject) self)
+                    .getMetaClass().isSingleton) : "Primitive.object_freeze does not handle instances of singleton classes, see KernelFreezeNode";
+            rubyLibrary.freeze(self);
+            return self;
+        }
     }
 
     @Primitive(name = "immediate_value?")
@@ -167,7 +169,6 @@ public abstract class TypeNodes {
 
     @Primitive(name = "nil?")
     public abstract static class IsNilNode extends PrimitiveArrayArgumentsNode {
-
         @Specialization
         protected boolean isNil(Object value) {
             return value == nil;

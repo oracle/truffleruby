@@ -392,7 +392,7 @@ class Rational < Numeric
   def initialize(num, den)
     @numerator = num
     @denominator = den
-    freeze
+    Primitive.object_freeze(self)
   end
   private :initialize
 
