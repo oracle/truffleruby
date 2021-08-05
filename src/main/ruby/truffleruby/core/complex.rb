@@ -41,16 +41,16 @@ class Complex < Numeric
                :round, :step, :truncate, :i, :negative?, :positive?
 
   def self.convert(real, imag = undefined, exception: true)
+    if check_real?(real) && check_real?(imag)
+      return new(real, imag)
+    end
+
     raise_exception = !exception.equal?(false)
     if nil.equal?(real) || nil.equal?(imag)
       return nil unless raise_exception
       raise TypeError, "can't convert nil into Complex"
     end
     imag = nil if Primitive.undefined?(imag)
-
-    if check_real?(real) && check_real?(imag)
-      return new(real, imag)
-    end
 
     real = real.to_c if Primitive.object_kind_of?(real, String)
     imag = imag.to_c if Primitive.object_kind_of?(imag, String)
