@@ -425,6 +425,9 @@ public class CommandLineParser {
                         String feature = grabValue(getArgumentError("missing argument for " + argument), false);
                         config.getUnknownArguments().add(argument + "=" + feature);
                         break FOR;
+                    } else if (argument.equals("--log-process-args") || argument.equals("--log-process-args=true")) {
+                        config.logProcessArguments = true;
+                        break FOR;
                     } else if (argument.equals("--yydebug")) {
                         disallowedInRubyOpts(argument);
                         warnInternalDebugTool(argument);
