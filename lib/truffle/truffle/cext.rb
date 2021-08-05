@@ -1310,7 +1310,7 @@ module Truffle::CExt
   end
 
   def rb_rational_raw(num, den)
-    Rational.new(num, den)
+    Rational.__send__(:new_already_canonical, num, den)
   end
 
   def rb_rational_new(num, den)
