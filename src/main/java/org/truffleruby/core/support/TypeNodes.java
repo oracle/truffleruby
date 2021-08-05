@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -43,6 +44,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.LogicalClassNode;
@@ -401,6 +403,35 @@ public abstract class TypeNodes {
             }
 
             return value;
+        }
+    }
+
+    @Primitive(name = "check_real?")
+    @NodeChild(value = "value", type = RubyNode.class)
+    public abstract static class CheckRealNode extends PrimitiveNode {
+        @Specialization
+        protected boolean check(int value) {
+            return true;
+        }
+
+        @Specialization
+        protected boolean check(long value) {
+            return true;
+        }
+
+        @Specialization
+        protected boolean check(double value) {
+            return true;
+        }
+
+        @Fallback
+        protected boolean other(Object value,
+                @Cached IsANode isANode,
+                @Cached ConditionProfile numericProfile,
+                @Cached DispatchNode isRealNode,
+                @Cached BooleanCastNode booleanCastNode) {
+            return numericProfile.profile(isANode.executeIsA(value, coreLibrary().numericClass)) &&
+                    booleanCastNode.executeToBoolean(isRealNode.call(value, "real?"));
         }
     }
 
