@@ -161,6 +161,8 @@ public class Options {
     public final boolean ROPE_PRINT_INTERN_STATS;
     /** --cexts-to-native-stats=false */
     public final boolean CEXTS_TO_NATIVE_STATS;
+    /** --basic-ops-log-rewrite=false */
+    public final boolean BASICOPS_LOG_REWRITE;
     /** --array-small=3 */
     public final int ARRAY_SMALL;
     /** --cexts-marking-cache=100 */
@@ -270,6 +272,7 @@ public class Options {
         LOG_PENDING_INTERRUPTS = options.get(OptionsCatalog.LOG_PENDING_INTERRUPTS_KEY);
         ROPE_PRINT_INTERN_STATS = options.get(OptionsCatalog.ROPE_PRINT_INTERN_STATS_KEY);
         CEXTS_TO_NATIVE_STATS = options.get(OptionsCatalog.CEXTS_TO_NATIVE_STATS_KEY);
+        BASICOPS_LOG_REWRITE = options.get(OptionsCatalog.BASICOPS_LOG_REWRITE_KEY);
         ARRAY_SMALL = options.get(OptionsCatalog.ARRAY_SMALL_KEY);
         CEXTS_MARKING_CACHE = options.get(OptionsCatalog.CEXTS_MARKING_CACHE_KEY);
         GLOBAL_VARIABLE_MAX_INVALIDATIONS = options.get(OptionsCatalog.GLOBAL_VARIABLE_MAX_INVALIDATIONS_KEY);
@@ -431,6 +434,8 @@ public class Options {
                 return ROPE_PRINT_INTERN_STATS;
             case "ruby.cexts-to-native-stats":
                 return CEXTS_TO_NATIVE_STATS;
+            case "ruby.basic-ops-log-rewrite":
+                return BASICOPS_LOG_REWRITE;
             case "ruby.array-small":
                 return ARRAY_SMALL;
             case "ruby.cexts-marking-cache":
