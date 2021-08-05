@@ -73,10 +73,12 @@ public class CoreMethodAssumptions {
     final Assumption integerBitOrAssumption;
     final Assumption integerBitAndAssumption;
 
-    final Assumption integerEqualAssumption;
     final Assumption integerCaseEqualAssumption;
-    final Assumption integerLessThanAssumption, integerLessOrEqualAssumption;
-    final Assumption integerGreaterThanAssumption, integerGreaterOrEqualAssumption;
+    final Assumption integerEqualAssumption, floatEqualAssumption;
+    final Assumption integerLessThanAssumption, floatLessThanAssumption;
+    final Assumption integerLessOrEqualAssumption, floatLessOrEqualAssumption;
+    final Assumption integerGreaterThanAssumption, floatGreaterThanAssumption;
+    final Assumption integerGreaterOrEqualAssumption, floatGreaterOrEqualAssumption;
 
     final Assumption nilClassIsNilAssumption;
 
@@ -114,12 +116,18 @@ public class CoreMethodAssumptions {
         integerBitOrAssumption = registerAssumption((cl) -> cl.integerClass, "Integer", "|");
         integerBitAndAssumption = registerAssumption((cl) -> cl.integerClass, "Integer", "&");
 
-        integerEqualAssumption = registerAssumption((cl) -> cl.integerClass, "Integer", "==");
         integerCaseEqualAssumption = registerAssumption((cl) -> cl.integerClass, "Integer", "===");
+
+        integerEqualAssumption = registerAssumption((cl) -> cl.integerClass, "Integer", "==");
+        floatEqualAssumption = registerAssumption((cl) -> cl.floatClass, "Float", "==");
         integerLessThanAssumption = registerAssumption((cl) -> cl.integerClass, "Integer", "<");
+        floatLessThanAssumption = registerAssumption((cl) -> cl.floatClass, "Float", "<");
         integerLessOrEqualAssumption = registerAssumption((cl) -> cl.integerClass, "Integer", "<=");
+        floatLessOrEqualAssumption = registerAssumption((cl) -> cl.floatClass, "Float", "<=");
         integerGreaterThanAssumption = registerAssumption((cl) -> cl.integerClass, "Integer", ">");
+        floatGreaterThanAssumption = registerAssumption((cl) -> cl.floatClass, "Float", ">");
         integerGreaterOrEqualAssumption = registerAssumption((cl) -> cl.integerClass, "Integer", ">=");
+        floatGreaterOrEqualAssumption = registerAssumption((cl) -> cl.floatClass, "Float", ">=");
 
         nilClassIsNilAssumption = registerAssumption((cl) -> cl.nilClass, "Nil", "nil?");
 

@@ -26,10 +26,12 @@ public abstract class InlinedEqualNode extends BinaryInlinedOperationNode {
     protected static final String METHOD = "==";
 
     final Assumption integerEqualAssumption;
+    final Assumption floatEqualAssumption;
 
     public InlinedEqualNode(RubyLanguage language, RubyCallNodeParameters callNodeParameters) {
         super(language, callNodeParameters);
         this.integerEqualAssumption = language.coreMethodAssumptions.integerEqualAssumption;
+        this.floatEqualAssumption = language.coreMethodAssumptions.floatEqualAssumption;
     }
 
     @Specialization(assumptions = { "assumptions", "integerEqualAssumption" })
@@ -39,6 +41,21 @@ public abstract class InlinedEqualNode extends BinaryInlinedOperationNode {
 
     @Specialization(assumptions = { "assumptions", "integerEqualAssumption" })
     protected boolean longEqual(long a, long b) {
+        return a == b;
+    }
+
+    @Specialization(assumptions = { "assumptions", "floatEqualAssumption" })
+    protected boolean doDouble(double a, double b) {
+        return a == b;
+    }
+
+    @Specialization(assumptions = { "assumptions", "integerEqualAssumption" })
+    protected boolean longDouble(long a, double b) {
+        return a == b;
+    }
+
+    @Specialization(assumptions = { "assumptions", "floatEqualAssumption" })
+    protected boolean doubleLong(double a, long b) {
         return a == b;
     }
 
