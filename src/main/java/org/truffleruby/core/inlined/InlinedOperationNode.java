@@ -10,10 +10,13 @@
 package org.truffleruby.core.inlined;
 
 import com.oracle.truffle.api.Assumption;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
+import org.truffleruby.language.methods.TranslateExceptionNode;
 
 public abstract class InlinedOperationNode extends InlinedReplaceableNode {
 
@@ -30,6 +33,12 @@ public abstract class InlinedOperationNode extends InlinedReplaceableNode {
 
     protected Object rewriteAndCallWithBlock(VirtualFrame frame, Object receiver, Object block,
             Object... arguments) {
+        CompilerDirectives.transferToInterpreterAndInvalidate();
+        if (getContext().getOptions().BASICOPS_LOG_REWRITE) {
+            RubyLanguage.LOGGER.info(
+                    "Rewrite " + this + " with arguments" + TranslateExceptionNode
+                            .argumentsToString(new StringBuilder(), ArrayUtils.unshift(arguments, receiver)));
+        }
         return rewriteToCallNode().executeWithArgumentsEvaluated(frame, receiver, block, arguments);
     }
 

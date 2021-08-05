@@ -190,8 +190,15 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
         builder.append("TruffleRuby doesn't have a case for the ");
         builder.append(exception.getNode().getClass().getName());
         builder.append(" node with values of type");
+        argumentsToString(builder, exception.getSuppliedValues());
+        builder.append('\n');
+        appendJavaStackTrace(exception, builder);
+        String message = builder.toString().trim();
+        return context.getCoreExceptions().typeError(message, this, exception);
+    }
 
-        for (Object value : exception.getSuppliedValues()) {
+    public static StringBuilder argumentsToString(StringBuilder builder, Object[] arguments) {
+        for (Object value : arguments) {
             builder.append(" ");
 
             if (value == null) {
@@ -232,11 +239,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
                 builder.append(value.toString());
             }
         }
-
-        builder.append('\n');
-        appendJavaStackTrace(exception, builder);
-        String message = builder.toString().trim();
-        return context.getCoreExceptions().typeError(message, this, exception);
+        return builder;
     }
 
     @TruffleBoundary

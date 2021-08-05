@@ -105,6 +105,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> LAZY_TRANSLATION_CORE_KEY = new OptionKey<>(LAZY_CALLTARGETS_KEY.getDefaultValue());
     public static final OptionKey<Boolean> CHAOS_DATA_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> BASICOPS_INLINE_KEY = new OptionKey<>(true);
+    public static final OptionKey<Boolean> BASICOPS_LOG_REWRITE_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> PROFILE_ARGUMENTS_KEY = new OptionKey<>(true);
     public static final OptionKey<Integer> DEFAULT_CACHE_KEY = new OptionKey<>(8);
     public static final OptionKey<Integer> METHOD_LOOKUP_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
@@ -756,6 +757,13 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
+    public static final OptionDescriptor BASICOPS_LOG_REWRITE = OptionDescriptor
+            .newBuilder(BASICOPS_LOG_REWRITE_KEY, "ruby.basic-ops-log-rewrite")
+            .help("Log the receiver and arguments when basic operations like Fixnum operators cannot be handled inline")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
     public static final OptionDescriptor PROFILE_ARGUMENTS = OptionDescriptor
             .newBuilder(PROFILE_ARGUMENTS_KEY, "ruby.profile-arguments")
             .help("Profile the value and class of the receiver and arguments")
@@ -1313,6 +1321,8 @@ public class OptionsCatalog {
                 return CHAOS_DATA;
             case "ruby.basic-ops-inline":
                 return BASICOPS_INLINE;
+            case "ruby.basic-ops-log-rewrite":
+                return BASICOPS_LOG_REWRITE;
             case "ruby.profile-arguments":
                 return PROFILE_ARGUMENTS;
             case "ruby.default-cache":
@@ -1515,6 +1525,7 @@ public class OptionsCatalog {
             LAZY_TRANSLATION_CORE,
             CHAOS_DATA,
             BASICOPS_INLINE,
+            BASICOPS_LOG_REWRITE,
             PROFILE_ARGUMENTS,
             DEFAULT_CACHE,
             METHOD_LOOKUP_CACHE,

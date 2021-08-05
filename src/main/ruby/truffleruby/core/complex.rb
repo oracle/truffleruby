@@ -41,16 +41,16 @@ class Complex < Numeric
                :round, :step, :truncate, :i, :negative?, :positive?
 
   def self.convert(real, imag = undefined, exception: true)
+    if Primitive.check_real?(real) && Primitive.check_real?(imag)
+      return new(real, imag)
+    end
+
     raise_exception = !exception.equal?(false)
     if nil.equal?(real) || nil.equal?(imag)
       return nil unless raise_exception
       raise TypeError, "can't convert nil into Complex"
     end
     imag = nil if Primitive.undefined?(imag)
-
-    if check_real?(real) && check_real?(imag)
-      return new(real, imag)
-    end
 
     real = real.to_c if Primitive.object_kind_of?(real, String)
     imag = imag.to_c if Primitive.object_kind_of?(imag, String)
@@ -99,21 +99,16 @@ class Complex < Numeric
   end
 
   def Complex.rect(real, imag=0)
-    raise TypeError, 'not a real' unless check_real?(real) && check_real?(imag)
+    raise TypeError, 'not a real' unless Primitive.check_real?(real) && Primitive.check_real?(imag)
     new(real, imag)
   end
   class << self; alias_method :rectangular, :rect end
 
   def Complex.polar(r, theta=0)
-    raise TypeError, 'not a real' unless check_real?(r) && check_real?(theta)
+    raise TypeError, 'not a real' unless Primitive.check_real?(r) && Primitive.check_real?(theta)
 
     Complex(r*Math.cos(theta), r*Math.sin(theta))
   end
-
-  def Complex.check_real?(obj)
-    Primitive.object_kind_of?(obj, Numeric) && obj.real?
-  end
-  private_class_method :check_real?
 
   attr_reader :real, :imag
   alias_method :imaginary, :imag
@@ -121,7 +116,7 @@ class Complex < Numeric
   def initialize(a, b = 0)
     @real = a
     @imag = b
-    freeze
+    Primitive.object_freeze(self)
   end
 
   def -@

@@ -21,7 +21,8 @@ public abstract class InlinedLessThanNode extends BinaryInlinedOperationNode {
         super(
                 language,
                 callNodeParameters,
-                language.coreMethodAssumptions.integerLessThanAssumption);
+                language.coreMethodAssumptions.integerLessThanAssumption,
+                language.coreMethodAssumptions.floatLessThanAssumption);
     }
 
     @Specialization(assumptions = "assumptions")
@@ -31,6 +32,21 @@ public abstract class InlinedLessThanNode extends BinaryInlinedOperationNode {
 
     @Specialization(assumptions = "assumptions")
     protected boolean doLong(long a, long b) {
+        return a < b;
+    }
+
+    @Specialization(assumptions = "assumptions")
+    protected boolean doDouble(double a, double b) {
+        return a < b;
+    }
+
+    @Specialization(assumptions = "assumptions")
+    protected boolean longDouble(long a, double b) {
+        return a < b;
+    }
+
+    @Specialization(assumptions = "assumptions")
+    protected boolean doubleLong(double a, long b) {
         return a < b;
     }
 
