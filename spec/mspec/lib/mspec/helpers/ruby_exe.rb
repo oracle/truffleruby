@@ -145,7 +145,8 @@ def ruby_exe(code = :not_given, opts = {})
       exit_status = Process.last_status.exitstatus
       if exit_status != expected_status
         formatted_output = output.lines.map { |line| "  #{line}" }.join
-        raise "Expected exit status is #{expected_status.inspect} but actual is #{exit_status.inspect} for command ruby_exe(#{command.inspect})\nOutput:\n#{formatted_output}"
+        raise SpecExpectationNotMetError,
+          "Expected exit status is #{expected_status.inspect} but actual is #{exit_status.inspect} for command ruby_exe(#{command.inspect})\nOutput:\n#{formatted_output}"
       end
 
       output
