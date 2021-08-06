@@ -90,6 +90,22 @@ public class CallStackManager {
         }, frameAccess);
     }
 
+    @TruffleBoundary
+    public <R> R iterateFrameNotInModules(Object[] modules, Function<FrameInstance, R> action) {
+        final Memo<Boolean> skippedFirstFrameFound = new Memo<>(false);
+
+        return iterateFrames(1, frameInstance -> {
+            final InternalMethod method = tryGetMethod(frameInstance.getFrame(FrameAccess.READ_ONLY));
+            if (method != null && !ArrayUtils.contains(modules, method.getDeclaringModule())) {
+                if (skippedFirstFrameFound.get()) {
+                    return true;
+                }
+                skippedFirstFrameFound.set(true);
+            }
+            return false;
+        }, action);
+    }
+
     // Node
 
     @TruffleBoundary

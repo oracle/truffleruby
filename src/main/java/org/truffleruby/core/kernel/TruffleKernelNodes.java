@@ -38,6 +38,7 @@ import org.truffleruby.language.ReadOwnFrameAndVariablesNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.arguments.MaybeReadCallerVariablesNode;
 import org.truffleruby.language.arguments.ReadCallerVariablesNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -343,6 +344,23 @@ public abstract class TruffleKernelNodes {
         @Specialization
         protected Object storage(VirtualFrame frame) {
             return callerVariablesNode.execute(frame);
+        }
+    }
+
+    @Primitive(name = "caller_special_variables_if_fast")
+    public abstract static class GetCallerSpecialVariableStorageIfFast extends PrimitiveArrayArgumentsNode {
+
+        @Child MaybeReadCallerVariablesNode callerVariablesNode = new MaybeReadCallerVariablesNode();
+
+        @Specialization
+        protected Object storage(VirtualFrame frame,
+                @Cached ConditionProfile nullProfile) {
+            Object variables = callerVariablesNode.execute(frame);
+            if (nullProfile.profile(variables == null)) {
+                return nil;
+            } else {
+                return variables;
+            }
         }
     }
 

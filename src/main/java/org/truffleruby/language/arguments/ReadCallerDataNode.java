@@ -45,7 +45,7 @@ public abstract class ReadCallerDataNode extends RubyBaseNode {
     protected abstract Object getData(Frame frame);
 
     @TruffleBoundary
-    private Object getCallerData() {
+    protected Object getCallerData() {
         if (!notifyCallerToSendData()) {
             // If we fail to notify the call node (e.g., because it is a UncachedDispatchNode which is not handled yet),
             // we don't want to deoptimize this CallTarget on every call.

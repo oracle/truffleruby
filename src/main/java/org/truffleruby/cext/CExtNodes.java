@@ -124,10 +124,10 @@ public class CExtNodes {
         @Child protected CallWithCExtLockNode callCextNode = CallWithCExtLockNodeFactory.create(RubyNode.EMPTY_ARRAY);
 
         @Specialization
-        protected Object callWithCExtLockAndFrame(Object receiver, RubyArray argsArray, Object block,
+        protected Object callWithCExtLockAndFrame(Object receiver, RubyArray argsArray, Object variables, Object block,
                 @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
             final ExtensionCallStack extensionStack = getDataNode.execute().getExtensionCallStack();
-            extensionStack.push(block);
+            extensionStack.push(variables, block);
             try {
                 return callCextNode.execute(receiver, argsArray);
             } finally {
@@ -695,6 +695,16 @@ public class CExtNodes {
         protected Object block(
                 @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
             return getDataNode.execute().getExtensionCallStack().getBlock();
+        }
+    }
+
+    @Primitive(name = "cext_special_variables_from_stack")
+    public abstract static class VarsFromStackNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected Object variables(
+                @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
+            return getDataNode.execute().getExtensionCallStack().getVariables();
         }
     }
 
@@ -1557,9 +1567,9 @@ public class CExtNodes {
     public abstract static class PushPreservingFrame extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object pushFrame(RubyProc block,
+        protected Object pushFrame(Object variables, RubyProc block,
                 @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
-            getDataNode.execute().getExtensionCallStack().push(block);
+            getDataNode.execute().getExtensionCallStack().push(variables, block);
             return nil;
         }
     }

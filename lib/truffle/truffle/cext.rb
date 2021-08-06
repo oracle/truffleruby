@@ -1734,11 +1734,15 @@ module Truffle::CExt
   end
 
   def rb_backref_get
-    Primitive.regexp_last_match_get(Truffle::ThreadOperations.ruby_caller_special_variables([Truffle::CExt, Truffle::Interop.singleton_class]))
+    vars = Primitive.cext_special_variables_from_stack
+    vars = Truffle::ThreadOperations.ruby_caller_special_variables([Truffle::CExt, Truffle::Interop.singleton_class]) if vars.nil?
+    Primitive.regexp_last_match_get(vars)
   end
 
   def rb_backref_set(value)
-    Truffle::RegexpOperations::LAST_MATCH_SET.call(value, Truffle::ThreadOperations.ruby_caller_special_variables([Truffle::CExt, Truffle::Interop.singleton_class]))
+    vars = Primitive.cext_special_variables_from_stack
+    vars = Truffle::ThreadOperations.ruby_caller_special_variables([Truffle::CExt, Truffle::Interop.singleton_class]) if vars.nil?
+    Truffle::RegexpOperations::LAST_MATCH_SET.call(value, vars)
   end
 
   def rb_gv_set(name, value)
