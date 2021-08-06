@@ -3,6 +3,8 @@
 New features:
 
 * [TRegex](https://github.com/oracle/graal/tree/master/regex) is now used by default, which provides large speedups for matching regular expressions.
+* Add `Polyglot.languages` to expose the list of available languages.
+* Add `Polyglot::InnerContext` to eval code in any available language in an inner isolated context (#2169).
 
 Bug fixes:
 

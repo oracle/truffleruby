@@ -269,7 +269,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             Metrics.printTime("after-run");
             return exitCode;
         } catch (PolyglotException e) {
-            if (e.isHostException()) {
+            if (e.isHostException()) { // GR-22071
                 System.err.println("truffleruby: a host exception reached the top level:");
             } else {
                 System.err.println(

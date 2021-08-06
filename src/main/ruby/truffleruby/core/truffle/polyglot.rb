@@ -9,9 +9,47 @@
 # GNU Lesser General Public License version 2.1.
 
 module Polyglot
-
   # stub defined in CoreLibrary
   class UnsupportedMessageError < StandardError
+  end
+
+  class InnerContext
+    # Create a new isolated inner context to eval code in any available public language
+    # (those languages can be listed with +Polyglot.languages+).
+    # Automatically closes the context when given a block.
+    def self.new
+      inner_context = Primitive.inner_context_new(self)
+      if block_given?
+        begin
+          yield inner_context
+        ensure
+          inner_context.close
+        end
+      else
+        inner_context
+      end
+    end
+
+    # Eval a String of code in the given language in the inner context.
+    # The return value, unless it is a Java primitive or a java.lang.String, is wrapped in a generic interop wrapper,
+    # so the returned object behaves like a foreign object (even if language is 'ruby').
+    # That wrapper automatically enters and leaves the inner context for any access to that object.
+    def eval(language, code)
+      Primitive.inner_context_eval(self, language, code)
+    end
+
+    # Close the inner context and release the associated resources.
+    # If the context is not closed explicitly, then it is automatically closed together with the parent context.
+    def close
+      Primitive.inner_context_close(self)
+    end
+  end
+
+  # The list of all languages that are installed in GraalVM and publicly accessible.
+  # Note that you need --polyglot on the command-line to enable access to other languages.
+  # Typically --jvm is also passed as native launchers by default only contain one language.
+  def self.languages
+    Truffle::Interop.languages
   end
 
   def self.export(name, value)
@@ -33,7 +71,6 @@ module Polyglot
   def self.as_enumerable(object)
     Truffle::Interop.enumerable(object)
   end
-
 end
 
 module Java

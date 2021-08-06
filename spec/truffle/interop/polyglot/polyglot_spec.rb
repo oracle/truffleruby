@@ -6,12 +6,10 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-require_relative '../../ruby/spec_helper'
+require_relative '../../../ruby/spec_helper'
 
-describe Polyglot do
-
+describe "Polyglot" do
   describe ".eval(id, code)" do
-
     it "evals code in Ruby" do
       Polyglot.eval("ruby", "14 + 2").should == 16
     end
@@ -49,11 +47,9 @@ describe Polyglot do
         Polyglot.eval("ruby", "# encoding: big5\n__ENCODING__.name")
       }.should raise_error(ArgumentError, /big5 cannot be used as an encoding for a Polyglot API Source/)
     end
-
   end
 
   describe ".eval_file(id, path)" do
-
     it "evals code in Ruby" do
       Polyglot.eval_file("ruby", fixture(__FILE__, "eval_file_id.rb"))
       $eval_file_id.should be_true
@@ -96,11 +92,9 @@ describe Polyglot do
         Polyglot.eval_file("ruby", fixture(__FILE__, "big5_magic.rb"))
       }.should raise_error(ArgumentError, /big5 cannot be used as an encoding for a Polyglot API Source/)
     end
-
   end
 
   describe ".eval_file(path)" do
-
     it "evals code in Ruby" do
       Polyglot.eval_file(fixture(__FILE__, "eval_file.rb"))
       $eval_file.should be_true
@@ -112,17 +106,21 @@ describe Polyglot do
         Polyglot.eval_file(path)
       }.should raise_error(ArgumentError, "Could not find language of file #{path}")
     end
-
   end
 
   describe ".as_enumerable" do
-
     it "evals code in Ruby" do
       enumerable = -> { Polyglot.as_enumerable([1, 2, 3]) }
       enumerable.call.min.should == 1
       enumerable.call.max.should == 3
     end
-
   end
 
+  describe ".languages" do
+    it "lists public languages" do
+      Polyglot.languages.should.kind_of?(Array)
+      Polyglot.languages.should.include?('ruby')
+      Polyglot.languages.should_not.include?('nfi')
+    end
+  end
 end

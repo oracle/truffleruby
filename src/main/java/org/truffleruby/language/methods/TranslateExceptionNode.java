@@ -118,7 +118,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
         } catch (Throwable exception) {
             errorProfile.enter();
             if (context.getEnv().isHostException(exception)) {
-                // rethrow host exceptions to get the interleaved host and guest stacktrace of PolyglotException
+                // GR-22071: rethrow host exceptions to get the interleaved host and guest stacktrace of PolyglotException
                 logJavaException(context, this, exception);
                 throw ExceptionOperations.rethrow(exception);
             } else if (exception instanceof com.oracle.truffle.api.TruffleException) {

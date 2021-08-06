@@ -91,6 +91,7 @@ import org.truffleruby.extra.RubyAtomicReference;
 import org.truffleruby.extra.RubyConcurrentMap;
 import org.truffleruby.extra.ffi.RubyPointer;
 import org.truffleruby.core.string.ImmutableRubyString;
+import org.truffleruby.interop.RubyInnerContext;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
@@ -233,6 +234,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final Shape frozenErrorShape = createShape(RubyFrozenError.class);
     public final Shape handleShape = createShape(RubyHandle.class);
     public final Shape hashShape = createShape(RubyHash.class);
+    public final Shape innerContextShape = createShape(RubyInnerContext.class);
     public final Shape intRangeShape = createShape(RubyIntRange.class);
     public final Shape ioShape = createShape(RubyIO.class);
     public final Shape longRangeShape = createShape(RubyLongRange.class);
