@@ -11,7 +11,6 @@ package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.library.CachedLibrary;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -74,6 +73,6 @@ public abstract class ToSymbolNode extends RubyBaseNode {
     }
 
     protected int getCacheLimit() {
-        return RubyLanguage.getCurrentLanguage().options.DISPATCH_CACHE;
+        return getLanguage().options.DISPATCH_CACHE;
     }
 }

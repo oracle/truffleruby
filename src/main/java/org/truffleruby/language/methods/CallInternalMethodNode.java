@@ -18,7 +18,6 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.utilities.AlwaysValidAssumption;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethodNodeManager;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.language.RubyBaseNode;
@@ -166,7 +165,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
     }
 
     protected int getCacheLimit() {
-        return RubyLanguage.getCurrentLanguage().options.DISPATCH_CACHE;
+        return getLanguage().options.DISPATCH_CACHE;
     }
 
     protected DirectCallNode createCall(String methodName, RootCallTarget callTarget) {

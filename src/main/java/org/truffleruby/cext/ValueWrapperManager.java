@@ -347,7 +347,7 @@ public class ValueWrapperManager {
         }
 
         public int getCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.THREAD_CACHE;
+            return getLanguage().options.THREAD_CACHE;
         }
 
         public static GetHandleBlockHolderNode create() {

@@ -18,7 +18,6 @@ import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.UnwrapNodeGen.NativeToWrapperNodeGen;
 import org.truffleruby.cext.UnwrapNodeGen.ToWrapperNodeGen;
 import org.truffleruby.cext.UnwrapNodeGen.UnwrapNativeNodeGen;
@@ -287,6 +286,6 @@ public abstract class UnwrapNode extends RubyBaseNode {
     }
 
     protected int getCacheLimit() {
-        return RubyLanguage.getCurrentLanguage().options.DISPATCH_CACHE;
+        return getLanguage().options.DISPATCH_CACHE;
     }
 }

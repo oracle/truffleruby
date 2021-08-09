@@ -44,8 +44,8 @@ public abstract class RubyBaseNode extends Node {
 
     public static final int MAX_EXPLODE_SIZE = 16;
 
-    public static boolean isSingleContext() {
-        return RubyLanguage.getCurrentLanguage().singleContext;
+    public boolean isSingleContext() {
+        return getLanguage().singleContext;
     }
 
     public static Object nilToNull(Object value) {
@@ -159,7 +159,7 @@ public abstract class RubyBaseNode extends Node {
     }
 
     protected int getIdentityCacheContextLimit() {
-        return RubyLanguage.getCurrentLanguage().options.CONTEXT_SPECIFIC_IDENTITY_CACHE;
+        return getLanguage().options.CONTEXT_SPECIFIC_IDENTITY_CACHE;
     }
 
     protected final int getIdentityCacheLimit() {

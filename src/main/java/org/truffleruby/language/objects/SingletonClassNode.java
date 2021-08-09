@@ -11,7 +11,6 @@ package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.ImmutableRubyObject;
@@ -143,11 +142,11 @@ public abstract class SingletonClassNode extends RubySourceNode {
     }
 
     protected int getCacheLimit() {
-        return RubyLanguage.getCurrentLanguage().options.CLASS_CACHE;
+        return getLanguage().options.CLASS_CACHE;
     }
 
     protected int getIdentityCacheContextLimit() {
-        return RubyLanguage.getCurrentLanguage().options.CONTEXT_SPECIFIC_IDENTITY_CACHE;
+        return getLanguage().options.CONTEXT_SPECIFIC_IDENTITY_CACHE;
     }
 
 }

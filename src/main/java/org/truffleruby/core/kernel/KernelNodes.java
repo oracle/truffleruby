@@ -20,7 +20,6 @@ import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.utilities.AssumedValue;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -920,7 +919,7 @@ public abstract class KernelNodes {
         }
 
         protected int getCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.EVAL_CACHE;
+            return getLanguage().options.EVAL_CACHE;
         }
     }
 

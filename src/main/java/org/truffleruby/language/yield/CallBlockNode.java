@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.yield;
 
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyBaseNode;
@@ -100,7 +99,7 @@ public abstract class CallBlockNode extends RubyBaseNode {
     }
 
     protected int getCacheLimit() {
-        return RubyLanguage.getCurrentLanguage().options.YIELD_CACHE;
+        return getLanguage().options.YIELD_CACHE;
     }
 
 }

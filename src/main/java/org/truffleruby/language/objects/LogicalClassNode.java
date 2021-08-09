@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.objects;
 
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.RubyBignum;
@@ -103,7 +102,7 @@ public abstract class LogicalClassNode extends RubyBaseNode {
     }
 
     protected int getCacheLimit() {
-        return RubyLanguage.getCurrentLanguage().options.CLASS_CACHE;
+        return getLanguage().options.CLASS_CACHE;
     }
 
 }

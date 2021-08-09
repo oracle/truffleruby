@@ -11,7 +11,6 @@ package org.truffleruby.core;
 
 import java.util.ArrayList;
 
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.MarkingService.MarkerThreadLocalData;
 import org.truffleruby.language.RubyBaseNode;
 
@@ -70,7 +69,7 @@ public class MarkingServiceNodes {
         }
 
         public int getCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.THREAD_CACHE;
+            return getLanguage().options.THREAD_CACHE;
         }
 
         public static GetMarkerThreadLocalDataNode create() {

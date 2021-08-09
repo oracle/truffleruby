@@ -11,7 +11,6 @@ package org.truffleruby.interop;
 
 import java.util.Arrays;
 
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToSymbolNode;
@@ -486,7 +485,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             RubyBaseNode {
 
         protected int getCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
+            return getLanguage().options.METHOD_LOOKUP_CACHE;
         }
 
         protected abstract Object executeCall(Object receiver, String name, Object[] args);

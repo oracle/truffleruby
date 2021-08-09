@@ -10,7 +10,6 @@
 package org.truffleruby.language.methods;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleFields;
@@ -187,6 +186,6 @@ public abstract class LookupMethodNode extends RubyBaseNode {
     }
 
     protected int getCacheLimit() {
-        return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
+        return getLanguage().options.METHOD_LOOKUP_CACHE;
     }
 }

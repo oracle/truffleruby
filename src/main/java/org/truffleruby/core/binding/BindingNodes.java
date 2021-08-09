@@ -192,7 +192,7 @@ public abstract class BindingNodes {
         }
 
         protected int getCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.BINDING_LOCAL_VARIABLE_CACHE;
+            return getLanguage().options.BINDING_LOCAL_VARIABLE_CACHE;
         }
 
     }
@@ -240,7 +240,7 @@ public abstract class BindingNodes {
         }
 
         protected int getCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.BINDING_LOCAL_VARIABLE_CACHE;
+            return getLanguage().options.BINDING_LOCAL_VARIABLE_CACHE;
         }
 
     }
@@ -286,7 +286,7 @@ public abstract class BindingNodes {
         }
 
         protected int getCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.BINDING_LOCAL_VARIABLE_CACHE;
+            return getLanguage().options.BINDING_LOCAL_VARIABLE_CACHE;
         }
 
     }
@@ -381,7 +381,7 @@ public abstract class BindingNodes {
         }
 
         protected int getCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.BINDING_LOCAL_VARIABLE_CACHE;
+            return getLanguage().options.BINDING_LOCAL_VARIABLE_CACHE;
         }
     }
 

@@ -13,7 +13,6 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -273,7 +272,7 @@ public abstract class BasicObjectNodes {
         }
 
         protected int getCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.INSTANCE_VARIABLE_CACHE;
+            return getLanguage().options.INSTANCE_VARIABLE_CACHE;
         }
     }
 

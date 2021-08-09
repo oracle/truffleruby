@@ -10,7 +10,6 @@
 package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.memory.MemoryFence;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.shared.WriteBarrierNode;
@@ -68,6 +67,6 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
     }
 
     protected int getCacheLimit() {
-        return RubyLanguage.getCurrentLanguage().options.INSTANCE_VARIABLE_CACHE;
+        return getLanguage().options.INSTANCE_VARIABLE_CACHE;
     }
 }
