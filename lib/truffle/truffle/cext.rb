@@ -1666,10 +1666,10 @@ module Truffle::CExt
         0, # argc
         nil, # argv
         nil, # blockarg
-      ], block))
+      ], Primitive.cext_special_variables_from_stack, block))
     end
     Primitive.cext_unwrap(
-      Primitive.call_with_c_mutex_and_frame(iteration, [Primitive.cext_wrap(iterated_object)], wrapped_callback))
+      Primitive.call_with_c_mutex_and_frame(iteration, [Primitive.cext_wrap(iterated_object)], Primitive.cext_special_variables_from_stack, wrapped_callback))
   end
 
   def rb_thread_wait_fd(fd)
