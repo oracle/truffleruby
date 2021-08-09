@@ -463,13 +463,13 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     public static RubyContext getCurrentContext() {
-        CompilerAsserts.neverPartOfCompilation("Use getContext() or @CachedContext instead in PE code");
-        return getCurrentContext(RubyLanguage.class);
+        CompilerAsserts.neverPartOfCompilation("Use getContext() or RubyContext.get(Node) instead in PE code");
+        return RubyContext.get(null);
     }
 
     public static RubyLanguage getCurrentLanguage() {
-        CompilerAsserts.neverPartOfCompilation("Use getLanguage() or @CachedLanguage instead in PE code");
-        return getCurrentLanguage(RubyLanguage.class);
+        CompilerAsserts.neverPartOfCompilation("Use getLanguage() or RubyLanguage.get(Node) instead in PE code");
+        return RubyLanguage.get(null);
     }
 
     @Override
