@@ -487,7 +487,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
                     ? ParserContext.TOP_LEVEL_FIRST
                     : ParserContext.TOP_LEVEL;
             final LexicalScope lexicalScope = contextIfSingleContext.map(RubyContext::getRootLexicalScope).orElse(null);
-            return RubyLanguage.getCurrentContext().getCodeLoader().parse(
+            return getCurrentContext().getCodeLoader().parse(
                     rubySource,
                     parserContext,
                     null,

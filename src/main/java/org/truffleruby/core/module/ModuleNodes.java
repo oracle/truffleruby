@@ -26,7 +26,6 @@ import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -473,8 +472,6 @@ public abstract class ModuleNodes {
         private void createAccessor(RubyModule module, String name, Accessor accessor, Visibility visibility,
                 SourceSection sourceSection) {
             assert accessor != BOTH;
-            final RubyContext context = RubyLanguage.getCurrentContext();
-            final RubyLanguage language = context.getLanguageSlow();
             final Arity arity = accessor == READER ? Arity.NO_ARGUMENTS : Arity.ONE_REQUIRED;
             final String ivar = "@" + name;
             final String accessorName = accessor == READER ? name : name + "=";
@@ -494,7 +491,7 @@ public abstract class ModuleNodes {
                     : GeneratedWriterNodeFactory.getInstance();
 
             final RubyRootNode reRaiseRootNode = new RubyRootNode(
-                    language,
+                    getLanguage(),
                     sourceSection,
                     null,
                     sharedMethodInfo,
@@ -504,7 +501,7 @@ public abstract class ModuleNodes {
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(reRaiseRootNode);
 
             final InternalMethod method = new InternalMethod(
-                    context,
+                    getContext(),
                     sharedMethodInfo,
                     LexicalScope.IGNORE,
                     DeclarationContext.NONE,
@@ -518,7 +515,7 @@ public abstract class ModuleNodes {
                     null,
                     nil);
 
-            module.fields.addMethod(context, this, method);
+            module.fields.addMethod(getContext(), this, method);
         }
     }
 
@@ -545,10 +542,7 @@ public abstract class ModuleNodes {
         private void warnObsoletedBooleanArgument() {
             final UncachedWarningNode warningNode = UncachedWarningNode.INSTANCE;
             if (warningNode.shouldWarn()) {
-                final SourceSection sourceSection = RubyLanguage
-                        .getCurrentContext()
-                        .getCallStack()
-                        .getTopMostUserSourceSection();
+                final SourceSection sourceSection = getContext().getCallStack().getTopMostUserSourceSection();
                 warningNode.warningMessage(sourceSection, "optional boolean argument is obsoleted");
             }
         }

@@ -17,7 +17,6 @@ import org.jcodings.specific.UTF8Encoding;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.language.control.RaiseException;
@@ -61,7 +60,7 @@ public enum FormatEncoding {
         }
 
         // TODO (kjmenard 17-Oct-18): This entire enum needs to be rethought since a format string can take on any encoding, not just the 3 codified here.
-        RubyContext context = RubyLanguage.getCurrentContext();
+        RubyContext context = RubyContext.get(currentNode);
         throw new RaiseException(
                 context,
                 context.getCoreExceptions().runtimeError("Can't find format encoding for " + encoding, currentNode));

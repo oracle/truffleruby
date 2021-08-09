@@ -84,13 +84,13 @@ public class WarnNode extends RubyBaseNode {
         }
 
         public boolean shouldWarn() {
-            return RubyLanguage.getCurrentContext().getCoreLibrary().warningsEnabled();
+            return coreLibrary().warningsEnabled();
         }
 
         public void warningMessage(SourceSection sourceSection, String message) {
             assert shouldWarn();
             WarnNode.callWarn(
-                    RubyLanguage.getCurrentContext(),
+                    getContext(),
                     sourceSection,
                     message,
                     MakeStringNode.getUncached(),

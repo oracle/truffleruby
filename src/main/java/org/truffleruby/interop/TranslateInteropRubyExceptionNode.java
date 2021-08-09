@@ -11,8 +11,6 @@ package org.truffleruby.interop;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.UnknownKeyException;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.language.RubyBaseNode;
@@ -166,12 +164,11 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
 
     @TruffleBoundary
     protected AssertionError handleBadErrorType(InteropException e, RaiseException rubyException) {
-        RubyContext context = RubyLanguage.getCurrentContext();
-        final RubyException exception = context.getCoreExceptions().runtimeError(
+        final RubyException exception = coreExceptions().runtimeError(
                 Utils.concat("Wrong exception raised from a Ruby method implementing polyglot behavior: ", e),
                 this);
         exception.cause = rubyException;
-        throw new RaiseException(context, exception);
+        throw new RaiseException(getContext(), exception);
     }
 
 }
