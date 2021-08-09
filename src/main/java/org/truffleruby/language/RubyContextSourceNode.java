@@ -9,30 +9,17 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.core.array.ArrayHelpers;
-import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.string.CoreStrings;
-import org.truffleruby.core.symbol.CoreSymbols;
-import org.truffleruby.core.symbol.RubySymbol;
 
 /** Has both context and source methods. */
-public abstract class RubyContextSourceNode extends RubyNode implements RubyNode.WithContext {
+public abstract class RubyContextSourceNode extends RubyNode {
 
     private int sourceCharIndex = NO_SOURCE;
     private int sourceLength;
     private byte flags;
-
-    @CompilationFinal private ContextReference<RubyContext> contextReference;
-    @CompilationFinal private RubyLanguage language;
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
@@ -67,71 +54,6 @@ public abstract class RubyContextSourceNode extends RubyNode implements RubyNode
     @Override
     protected void setSourceLength(int sourceLength) {
         this.sourceLength = sourceLength;
-    }
-
-    @Override
-    public ContextReference<RubyContext> getContextReference() {
-        if (contextReference == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            contextReference = lookupContextReference(RubyLanguage.class);
-        }
-
-        return contextReference;
-    }
-
-    @Override
-    public RubyContext getContext() {
-        return getContextReference().get();
-    }
-
-    @Override
-    public int getRubyLibraryCacheLimit() {
-        return getLanguage().options.RUBY_LIBRARY_CACHE;
-    }
-
-    public RubyLanguage getLanguage() {
-        if (language == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            language = getRootNode().getLanguage(RubyLanguage.class);
-        }
-
-        return language;
-    }
-
-    public RubySymbol getSymbol(String name) {
-        return getLanguage().getSymbol(name);
-    }
-
-    public RubySymbol getSymbol(Rope name, RubyEncoding encoding) {
-        return getLanguage().getSymbol(name, encoding);
-    }
-
-    public CoreStrings coreStrings() {
-        return getLanguage().coreStrings;
-    }
-
-    public CoreSymbols coreSymbols() {
-        return getLanguage().coreSymbols;
-    }
-
-    public RubyArray createArray(Object store, int size) {
-        return ArrayHelpers.createArray(getContext(), getLanguage(), store, size);
-    }
-
-    public RubyArray createArray(int[] store) {
-        return ArrayHelpers.createArray(getContext(), getLanguage(), store);
-    }
-
-    public RubyArray createArray(long[] store) {
-        return ArrayHelpers.createArray(getContext(), getLanguage(), store);
-    }
-
-    public RubyArray createArray(Object[] store) {
-        return ArrayHelpers.createArray(getContext(), getLanguage(), store);
-    }
-
-    public RubyArray createEmptyArray() {
-        return ArrayHelpers.createEmptyArray(getContext(), getLanguage());
     }
 
     @Override

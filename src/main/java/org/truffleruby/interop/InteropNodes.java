@@ -540,10 +540,6 @@ public abstract class InteropNodes {
             final Object foreign = InteropNodes.execute(receiver, convertedArgs, receivers, translateInteropException);
             return foreignToRubyNode.executeConvert(foreign);
         }
-
-        protected static int getInteropCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
-        }
     }
 
     @CoreMethod(names = "execute_without_conversion", onSingleton = true, required = 1, rest = true)
@@ -596,10 +592,6 @@ public abstract class InteropNodes {
             }
 
             return foreignToRubyNode.executeConvert(foreign);
-        }
-
-        protected static int getInteropCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
     }
     // endregion
@@ -659,10 +651,6 @@ public abstract class InteropNodes {
 
             return foreignToRubyNode.executeConvert(foreign);
         }
-
-        protected static int getInteropCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
-        }
     }
 
     @GenerateUncached
@@ -686,10 +674,6 @@ public abstract class InteropNodes {
             } catch (InteropException e) {
                 throw translateInteropException.execute(e);
             }
-        }
-
-        protected static int getInteropCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
     }
 
@@ -718,10 +702,6 @@ public abstract class InteropNodes {
 
             return value;
         }
-
-        protected static int getInteropCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
-        }
     }
 
     @GenerateUncached
@@ -747,10 +727,6 @@ public abstract class InteropNodes {
             }
 
             return Nil.INSTANCE;
-        }
-
-        protected static int getInteropCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
     }
 
@@ -1245,11 +1221,6 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isNull(receiver);
         }
-
-        protected static int getInteropCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
-        }
-
     }
     // endregion
 
@@ -1349,11 +1320,6 @@ public abstract class InteropNodes {
             final Object foreign = InteropNodes.readMember(receivers, receiver, name, translateInteropException);
             return foreignToRubyNode.executeConvert(foreign);
         }
-
-        protected static int getInteropCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
-        }
-
     }
 
     @GenerateUncached
@@ -1376,11 +1342,6 @@ public abstract class InteropNodes {
             final String name = toJavaStringNode.executeToJavaString(identifier);
             return InteropNodes.readMember(receivers, receiver, name, translateInteropException);
         }
-
-        protected static int getInteropCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
-        }
-
     }
 
     @GenerateUncached
@@ -1411,10 +1372,6 @@ public abstract class InteropNodes {
             }
 
             return value;
-        }
-
-        protected static int getInteropCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
     }
 
@@ -1460,10 +1417,6 @@ public abstract class InteropNodes {
             final Object[] arguments = rubyToForeignArgumentsNode.executeConvert(args);
             final Object foreign = invoke(receivers, receiver, name, arguments, translateInteropException);
             return foreignToRubyNode.executeConvert(foreign);
-        }
-
-        protected static int getInteropCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
     }
 

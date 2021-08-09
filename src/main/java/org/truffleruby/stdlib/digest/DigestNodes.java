@@ -43,7 +43,7 @@ public abstract class DigestNodes {
 
     private static RubyDigest createDigest(RubyContextSourceNode node, DigestAlgorithm algorithm) {
         final RubyDigest instance = new RubyDigest(
-                node.coreLibrary().digestClass,
+                node.getContext().getCoreLibrary().digestClass,
                 node.getLanguage().digestShape,
                 algorithm,
                 getMessageDigestInstance(algorithm.getName()));

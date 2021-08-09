@@ -396,7 +396,7 @@ public abstract class ModuleNodes {
     @GenerateUncached
     public abstract static class GeneratedReaderNode extends AlwaysInlinedMethodNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getDynamicObjectCacheLimit()")
         protected Object reader(
                 Frame callerFrame, RubyDynamicObject self, Object[] args, Object block, RootCallTarget target,
                 @CachedLibrary("self") DynamicObjectLibrary objectLibrary) {
@@ -410,10 +410,6 @@ public abstract class ModuleNodes {
         @Specialization(guards = "!isRubyDynamicObject(self)")
         protected Object notObject(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target) {
             return nil;
-        }
-
-        protected int getCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.INSTANCE_VARIABLE_CACHE;
         }
     }
 

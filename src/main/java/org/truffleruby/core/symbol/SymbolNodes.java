@@ -111,10 +111,6 @@ public abstract class SymbolNodes {
         protected boolean isPreInitializing(RubyContext context) {
             return context.isPreInitializing();
         }
-
-        protected int getIdentityCacheLimit() {
-            return RubyLanguage.getCurrentContext().getLanguageSlow().options.IDENTITY_CACHE;
-        }
     }
 
     @CoreMethod(names = "hash")

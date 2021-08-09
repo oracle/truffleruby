@@ -27,6 +27,7 @@ import java.util.logging.Level;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import com.oracle.truffle.api.TruffleLogger;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.Node;
@@ -156,6 +157,12 @@ public class RubyContext {
 
     private final AssumedValue<Boolean> warningCategoryDeprecated;
     private final AssumedValue<Boolean> warningCategoryExperimental;
+
+    private static final ContextReference<RubyContext> REFERENCE = ContextReference.create(RubyLanguage.class);
+
+    public static RubyContext get(Node node) {
+        return REFERENCE.get(node);
+    }
 
     public RubyContext(RubyLanguage language, TruffleLanguage.Env env) {
         Metrics.printTime("before-context-constructor");

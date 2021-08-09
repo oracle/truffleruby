@@ -9,9 +9,6 @@
  */
 package org.truffleruby.language;
 
-import java.math.BigInteger;
-
-import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.CachedLanguage;
@@ -22,13 +19,8 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.CoreLibrary;
-import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.exception.CoreExceptions;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.method.RubyMethod;
-import org.truffleruby.core.numeric.BignumOperations;
-import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.debug.RubyScope;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.InternalMethod;
@@ -240,49 +232,6 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
     @Override
     public WrapperNode createWrapper(ProbeNode probe) {
         return new RubyNodeWrapper(this, probe);
-    }
-
-    public interface WithContext {
-        ContextReference<RubyContext> getContextReference();
-
-        RubyContext getContext();
-
-        // Helpers methods for terseness, keep in sync
-
-        default RubyEncoding getLocaleEncoding() {
-            return getContext().getEncodingManager().getLocaleEncoding();
-        }
-
-        default RubyBignum createBignum(BigInteger value) {
-            return BignumOperations.createBignum(value);
-        }
-
-        default CoreLibrary coreLibrary() {
-            return getContext().getCoreLibrary();
-        }
-
-        default CoreExceptions coreExceptions() {
-            return getContext().getCoreExceptions();
-        }
-
-        default int getIdentityCacheLimit() {
-            return getContext().getLanguageSlow().options.IDENTITY_CACHE;
-        }
-
-        default int getDefaultCacheLimit() {
-            return getContext().getLanguageSlow().options.DEFAULT_CACHE;
-        }
-
-        default int getDynamicObjectCacheLimit() {
-            return getContext().getLanguageSlow().options.INSTANCE_VARIABLE_CACHE;
-        }
-
-        default int getInteropCacheLimit() {
-            return getContext().getLanguageSlow().options.METHOD_LOOKUP_CACHE;
-        }
-
-        /** Implement in sub-classes to override {@link RubyBaseNode#getRubyLibraryCacheLimit()}. */
-        int getRubyLibraryCacheLimit();
     }
 
     /** Return whether nodes following this one can ever be executed. In most cases this will be true, but some nodes

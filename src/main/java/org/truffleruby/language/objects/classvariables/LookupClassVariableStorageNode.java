@@ -14,7 +14,6 @@ import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyBaseNode;
@@ -45,10 +44,6 @@ public abstract class LookupClassVariableStorageNode extends RubyBaseNode {
                 return null;
             }
         });
-    }
-
-    protected int getDynamicObjectCacheLimit() {
-        return RubyLanguage.getCurrentLanguage().options.INSTANCE_VARIABLE_CACHE;
     }
 
 }

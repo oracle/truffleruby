@@ -24,6 +24,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
@@ -268,6 +269,12 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
             .build();
 
     public final ThreadLocal<ParsingParameters> parsingRequestParams = new ThreadLocal<>();
+
+    private static final LanguageReference<RubyLanguage> REFERENCE = LanguageReference.create(RubyLanguage.class);
+
+    public static RubyLanguage get(Node node) {
+        return REFERENCE.get(node);
+    }
 
     public RubyLanguage() {
         coreMethodAssumptions = new CoreMethodAssumptions(this);

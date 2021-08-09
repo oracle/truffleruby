@@ -103,8 +103,4 @@ public abstract class ToJavaStringNode extends RubySourceNode {
         return RubyLanguage.getCurrentLanguage().options.INTEROP_CONVERT_CACHE;
     }
 
-    protected int getIdentityCacheLimit() {
-        return RubyLanguage.getCurrentLanguage().options.IDENTITY_CACHE;
-    }
-
 }

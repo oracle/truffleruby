@@ -141,8 +141,4 @@ public abstract class WrapNode extends RubyBaseNode {
                 context,
                 context.getCoreExceptions().argumentError("Attempt to wrap something that isn't an Ruby object", this));
     }
-
-    protected int getDynamicObjectCacheLimit() {
-        return RubyLanguage.getCurrentLanguage().options.INSTANCE_VARIABLE_CACHE;
-    }
 }
