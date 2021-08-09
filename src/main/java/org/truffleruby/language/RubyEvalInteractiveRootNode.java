@@ -44,7 +44,7 @@ public class RubyEvalInteractiveRootNode extends RubyBaseRootNode implements Int
                 .send(
                         interactiveBinding,
                         "eval",
-                        StringOperations.createString(context, language, sourceRope, Encodings.UTF_8));
+                        StringOperations.createString(this, sourceRope, Encodings.UTF_8));
     }
 
     @Override

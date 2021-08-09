@@ -22,7 +22,7 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.objects.AllocationTracing;
 
@@ -41,7 +41,7 @@ public abstract class DigestNodes {
         }
     }
 
-    private static RubyDigest createDigest(RubyContextSourceNode node, DigestAlgorithm algorithm) {
+    private static RubyDigest createDigest(RubyBaseNode node, DigestAlgorithm algorithm) {
         final RubyDigest instance = new RubyDigest(
                 node.getContext().getCoreLibrary().digestClass,
                 node.getLanguage().digestShape,

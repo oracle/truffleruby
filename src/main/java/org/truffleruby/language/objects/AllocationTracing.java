@@ -21,7 +21,6 @@ import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.LexicalScope;
-import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.arguments.RubyArguments;
 
@@ -88,7 +87,7 @@ public abstract class AllocationTracing {
 
     @TruffleBoundary
     private static void traceInlineBoundary(RubyContext context, RubyDynamicObject instance, String className,
-            String allocatingMethod, RubyContextSourceNode node) {
+            String allocatingMethod, Node node) {
         final ObjectSpaceManager objectSpaceManager = context.getObjectSpaceManager();
         if (!objectSpaceManager.isTracingPaused()) {
             objectSpaceManager.setTracingPaused(true);
@@ -125,7 +124,7 @@ public abstract class AllocationTracing {
 
     @TruffleBoundary
     private static void callTraceInlineAllocation(RubyContext context, RubyDynamicObject instance, String className,
-            String allocatingMethod, RubyContextSourceNode node) {
+            String allocatingMethod, Node node) {
         final SourceSection allocatingSourceSection = context
                 .getCallStack()
                 .getTopMostUserSourceSection(node.getEncapsulatingSourceSection());

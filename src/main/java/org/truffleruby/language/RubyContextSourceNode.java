@@ -14,7 +14,7 @@ import org.truffleruby.RubyLanguage;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-/** Has both context and source methods. */
+/** See {@link RubyNode} */
 public abstract class RubyContextSourceNode extends RubyNode {
 
     private int sourceCharIndex = NO_SOURCE;

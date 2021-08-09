@@ -28,6 +28,7 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 
+import com.oracle.truffle.api.nodes.Node;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyContext;
@@ -41,21 +42,9 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.objects.AllocationTracing;
 
 public abstract class StringOperations {
-
-    public static RubyString createString(RubyContextSourceNode node, Rope rope, RubyEncoding encoding) {
-        final RubyString instance = new RubyString(
-                node.getContext().getCoreLibrary().stringClass,
-                node.getLanguage().stringShape,
-                false,
-                rope,
-                encoding);
-        AllocationTracing.trace(instance, node);
-        return instance;
-    }
 
     public static RubyString createUTF8String(RubyContext context, RubyLanguage language, Rope rope) {
         final RubyString instance = new RubyString(
@@ -67,7 +56,18 @@ public abstract class StringOperations {
         return instance;
     }
 
-    // TODO BJF Aug-3-2020 Trace more allocations of RubyString
+    public static RubyString createString(Node node, Rope rope, RubyEncoding encoding) {
+        final RubyString instance = new RubyString(
+                RubyContext.get(node).getCoreLibrary().stringClass,
+                RubyLanguage.get(node).stringShape,
+                false,
+                rope,
+                encoding);
+        AllocationTracing.trace(instance, node);
+        return instance;
+    }
+
+    /** Only use when there is no Node to report the allocation */
     public static RubyString createString(RubyContext context, RubyLanguage language, Rope rope,
             RubyEncoding encoding) {
         final RubyString instance = new RubyString(

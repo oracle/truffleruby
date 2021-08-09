@@ -266,7 +266,7 @@ public class CoreExceptions {
         return ExceptionOperations.createRubyException(
                 context,
                 exceptionClass,
-                StringOperations.createString(context, language, message, encoding),
+                StringOperations.createString(currentNode, message, encoding),
                 currentNode,
                 javaThrowable);
     }

@@ -596,7 +596,7 @@ public abstract class StringNodes {
             Object result = argConcatNode.executeConcat(string, first, EMPTY_ARGUMENTS);
             for (int i = 0; i < cachedLength; ++i) {
                 final Object argOrCopy = selfArgProfile.profile(rest[i] == string)
-                        ? createString(getContext(), getLanguage(), rope, string.encoding)
+                        ? createString(this, rope, string.encoding)
                         : rest[i];
                 result = argConcatNode.executeConcat(string, argOrCopy, EMPTY_ARGUMENTS);
             }
@@ -612,7 +612,7 @@ public abstract class StringNodes {
             Object result = argConcatNode.executeConcat(string, first, EMPTY_ARGUMENTS);
             for (Object arg : rest) {
                 if (selfArgProfile.profile(arg == string)) {
-                    Object copy = createString(getContext(), getLanguage(), rope, string.encoding);
+                    Object copy = createString(this, rope, string.encoding);
                     result = argConcatNode.executeConcat(string, copy, EMPTY_ARGUMENTS);
                 } else {
                     result = argConcatNode.executeConcat(string, arg, EMPTY_ARGUMENTS);

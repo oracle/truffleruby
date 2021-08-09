@@ -15,7 +15,7 @@ import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.RubyLanguage;
 
-/** Can be used as a parent of Ruby nodes which need @GenerateUncached. */
+/** Can be used as a parent of Ruby nodes which need source and @GenerateUncached. */
 @NodeField(name = "sourceCharIndex", type = int.class)
 @NodeField(name = "sourceLength", type = int.class)
 @NodeField(name = "flags", type = byte.class)
