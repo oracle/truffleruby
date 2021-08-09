@@ -283,7 +283,7 @@ public abstract class StringNodes {
                     false,
                     rope,
                     encoding);
-            AllocationTracing.trace(language, context, string, this);
+            AllocationTracing.trace(string, this);
             return string;
         }
 
@@ -301,7 +301,7 @@ public abstract class StringNodes {
                     false,
                     rope,
                     encoding);
-            AllocationTracing.trace(language, context, string, this);
+            AllocationTracing.trace(string, this);
             return string;
         }
 

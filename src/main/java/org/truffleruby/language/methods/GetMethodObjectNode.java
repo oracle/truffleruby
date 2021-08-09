@@ -93,7 +93,7 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
                 language.methodShape,
                 self,
                 method);
-        AllocationTracing.trace(language, context, instance, this);
+        AllocationTracing.trace(instance, this);
         return instance;
     }
 
