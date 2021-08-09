@@ -16,7 +16,7 @@ import org.truffleruby.core.module.ModuleNodesFactory;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
@@ -24,7 +24,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-public abstract class InitializeClassNode extends RubyContextNode {
+public abstract class InitializeClassNode extends RubyBaseNode {
 
     private final boolean callInherited;
     private final BranchProfile errorProfile = BranchProfile.create();

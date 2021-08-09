@@ -13,7 +13,7 @@ import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.exception.RubySystemExit;
 import org.truffleruby.core.kernel.AtExitManager;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
@@ -21,7 +21,7 @@ import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 
-public class TopLevelRaiseHandler extends RubyContextNode {
+public class TopLevelRaiseHandler extends RubyBaseNode {
 
     @Child private GetCurrentRubyThreadNode getCurrentRubyThreadNode;
 

@@ -186,7 +186,6 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
-import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -325,7 +324,7 @@ public abstract class StringNodes {
 
     }
 
-    public abstract static class StringSubstringNode extends RubyContextNode {
+    public abstract static class StringSubstringNode extends RubyBaseNode {
 
         @Child private SubstringNode substringNode = SubstringNode.create();
 
@@ -1668,7 +1667,7 @@ public abstract class StringNodes {
         }
     }
 
-    public abstract static class StringGetAssociatedNode extends RubyContextNode {
+    public abstract static class StringGetAssociatedNode extends RubyBaseNode {
 
         public static StringNodes.StringGetAssociatedNode create() {
             return StringNodesFactory.StringGetAssociatedNodeGen.create();
@@ -2483,7 +2482,7 @@ public abstract class StringNodes {
 
     }
 
-    public abstract static class CheckIndexNode extends RubyContextNode {
+    public abstract static class CheckIndexNode extends RubyBaseNode {
 
         public abstract int executeCheck(int index, int length);
 
@@ -2513,7 +2512,7 @@ public abstract class StringNodes {
 
     }
 
-    public abstract static class NormalizeIndexNode extends RubyContextNode {
+    public abstract static class NormalizeIndexNode extends RubyBaseNode {
 
         public abstract int executeNormalize(int index, int length);
 
@@ -3132,7 +3131,7 @@ public abstract class StringNodes {
 
     }
 
-    public abstract static class InvertAsciiCaseBytesNode extends RubyContextNode {
+    public abstract static class InvertAsciiCaseBytesNode extends RubyBaseNode {
 
         private final boolean lowerToUpper;
         private final boolean upperToLower;
@@ -3199,7 +3198,7 @@ public abstract class StringNodes {
 
     }
 
-    public abstract static class InvertAsciiCaseNode extends RubyContextNode {
+    public abstract static class InvertAsciiCaseNode extends RubyBaseNode {
 
         @Child private InvertAsciiCaseBytesNode invertNode;
 
@@ -3849,7 +3848,7 @@ public abstract class StringNodes {
     }
 
     @ImportStatic(StringGuards.class)
-    public abstract static class StringAreComparableNode extends RubyContextNode {
+    public abstract static class StringAreComparableNode extends RubyBaseNode {
 
         @Child AreComparableRopesNode areComparableRopesNode = AreComparableRopesNode.create();
 
@@ -3864,7 +3863,7 @@ public abstract class StringNodes {
     }
 
     @ImportStatic({ StringGuards.class, StringOperations.class })
-    public abstract static class StringEqualNode extends RubyContextNode {
+    public abstract static class StringEqualNode extends RubyBaseNode {
 
         @Child private StringAreComparableNode areComparableNode;
 
@@ -4730,7 +4729,7 @@ public abstract class StringNodes {
      * @startByteOffset - Starting position in the rope for the calculation of the character's byte offset.
      * @characterIndex - The character index into the rope, starting from the provided byte offset. */
     @ImportStatic({ RopeGuards.class, StringGuards.class, StringOperations.class })
-    public abstract static class ByteIndexFromCharIndexNode extends RubyContextNode {
+    public abstract static class ByteIndexFromCharIndexNode extends RubyBaseNode {
 
         public static ByteIndexFromCharIndexNode create() {
             return ByteIndexFromCharIndexNodeGen.create();
@@ -5582,7 +5581,7 @@ public abstract class StringNodes {
 
     }
 
-    public abstract static class StringAppendNode extends RubyContextNode {
+    public abstract static class StringAppendNode extends RubyBaseNode {
 
         @Child private CheckEncodingNode checkEncodingNode;
         @Child private ConcatNode concatNode;

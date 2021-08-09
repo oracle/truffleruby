@@ -23,10 +23,10 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.CallStackManager;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
 import org.truffleruby.language.NotOptimizedWarningNode;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
-public abstract class ReadCallerDataNode extends RubyContextNode {
+public abstract class ReadCallerDataNode extends RubyBaseNode {
 
     private final ConditionProfile callerDataProfile = ConditionProfile.create();
     @Child private NotOptimizedWarningNode notOptimizedNode = null;
@@ -78,7 +78,7 @@ public abstract class ReadCallerDataNode extends RubyContextNode {
                     startSending((FrameAndVariablesSendingNode) parent);
                     return true;
                 }
-                if (parent instanceof RubyContextNode) {
+                if (parent instanceof RubyBaseNode) {
                     return false;
                 }
                 parent = parent.getParent();

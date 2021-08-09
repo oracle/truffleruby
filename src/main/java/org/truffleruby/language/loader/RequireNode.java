@@ -28,8 +28,8 @@ import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyConstant;
-import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.WarningNode;
 import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.control.RaiseException;
@@ -48,7 +48,7 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.SourceSection;
 
-public abstract class RequireNode extends RubyContextNode {
+public abstract class RequireNode extends RubyBaseNode {
 
     @Child private IndirectCallNode callNode = IndirectCallNode.create();
     @Child private DispatchNode isInLoadedFeatures = DispatchNode.create();

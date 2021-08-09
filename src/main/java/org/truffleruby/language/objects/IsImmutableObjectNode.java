@@ -13,11 +13,11 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.ImmutableRubyObject;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 
 /** Determines if an object is immutable for Kernel#clone, Kernel#dup, and rb_obj_clone. */
-public abstract class IsImmutableObjectNode extends RubyContextNode {
+public abstract class IsImmutableObjectNode extends RubyBaseNode {
 
     @Child private LogicalClassNode logicalClassNode;
 

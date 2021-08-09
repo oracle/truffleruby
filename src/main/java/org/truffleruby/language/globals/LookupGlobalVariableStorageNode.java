@@ -11,12 +11,12 @@ package org.truffleruby.language.globals;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 
-public abstract class LookupGlobalVariableStorageNode extends RubyContextNode {
+public abstract class LookupGlobalVariableStorageNode extends RubyBaseNode {
 
     protected final String name;
     @CompilationFinal protected int index = -1;

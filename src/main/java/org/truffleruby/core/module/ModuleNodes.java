@@ -78,7 +78,6 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyConstant;
-import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
@@ -1186,7 +1185,7 @@ public abstract class ModuleNodes {
     @NodeChild(value = "module", type = RubyNode.class)
     @NodeChild(value = "name", type = RubyNode.class)
     @NodeChild(value = "value", type = RubyNode.class)
-    public abstract static class ConstSetUncheckedNode extends RubyContextNode {
+    public abstract static class ConstSetUncheckedNode extends RubyBaseNode {
 
         @Child private WarnAlreadyInitializedNode warnAlreadyInitializedNode;
 

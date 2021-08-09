@@ -11,7 +11,7 @@ package org.truffleruby.language.objects;
 
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.symbol.SymbolTable;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.parser.Identifiers;
 
@@ -20,7 +20,7 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 
 @ImportStatic(Identifiers.class)
-public abstract class CheckIVarNameNode extends RubyContextNode {
+public abstract class CheckIVarNameNode extends RubyBaseNode {
 
     public static CheckIVarNameNode create() {
         return CheckIVarNameNodeGen.create();

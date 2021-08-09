@@ -11,7 +11,7 @@ package org.truffleruby.core.array;
 
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
@@ -25,7 +25,7 @@ import com.oracle.truffle.api.profiles.LoopConditionProfile;
 
 @ImportStatic(ArrayGuards.class)
 @ReportPolymorphism
-public abstract class ArrayEachIteratorNode extends RubyContextNode {
+public abstract class ArrayEachIteratorNode extends RubyBaseNode {
 
     public interface ArrayElementConsumerNode extends NodeInterface {
         void accept(RubyArray array, RubyProc block, Object element, int index);

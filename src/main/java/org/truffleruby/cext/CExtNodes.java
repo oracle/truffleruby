@@ -70,7 +70,7 @@ import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.LexicalScope;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -1016,7 +1016,7 @@ public class CExtNodes {
 
     }
 
-    public abstract static class StringToNativeNode extends RubyContextNode {
+    public abstract static class StringToNativeNode extends RubyBaseNode {
 
         public static StringToNativeNode create() {
             return StringToNativeNodeGen.create();

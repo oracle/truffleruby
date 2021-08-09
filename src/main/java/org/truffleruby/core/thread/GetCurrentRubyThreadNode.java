@@ -10,12 +10,12 @@
 package org.truffleruby.core.thread;
 
 import org.truffleruby.core.fiber.RubyFiber;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 
-public abstract class GetCurrentRubyThreadNode extends RubyContextNode {
+public abstract class GetCurrentRubyThreadNode extends RubyBaseNode {
 
     public static GetCurrentRubyThreadNode create() {
         return GetCurrentRubyThreadNodeGen.create();

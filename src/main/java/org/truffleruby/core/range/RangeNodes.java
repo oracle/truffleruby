@@ -26,7 +26,7 @@ import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -598,7 +598,7 @@ public abstract class RangeNodes {
     }
 
     /** @see NormalizedStartLengthPrimitiveNode */
-    public abstract static class NormalizedStartLengthNode extends RubyContextNode {
+    public abstract static class NormalizedStartLengthNode extends RubyBaseNode {
 
         public static NormalizedStartLengthNode create() {
             return RangeNodesFactory.NormalizedStartLengthNodeGen.create();

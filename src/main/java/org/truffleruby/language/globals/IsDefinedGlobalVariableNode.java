@@ -12,14 +12,14 @@ package org.truffleruby.language.globals;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.yield.CallBlockNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public abstract class IsDefinedGlobalVariableNode extends RubyContextNode {
+public abstract class IsDefinedGlobalVariableNode extends RubyBaseNode {
 
     public static IsDefinedGlobalVariableNode create(String name) {
         return IsDefinedGlobalVariableNodeGen.create(name);

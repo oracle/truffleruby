@@ -43,7 +43,7 @@ import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
@@ -68,7 +68,7 @@ public abstract class EncodingNodes {
         }
     }
 
-    public abstract static class NegotiateCompatibleRopeEncodingNode extends RubyContextNode {
+    public abstract static class NegotiateCompatibleRopeEncodingNode extends RubyBaseNode {
 
         public abstract RubyEncoding executeNegotiate(Rope first, RubyEncoding firstEncoding, Rope second,
                 RubyEncoding secondEncoding);
@@ -160,7 +160,7 @@ public abstract class EncodingNodes {
 
     }
 
-    public abstract static class NegotiateCompatibleEncodingNode extends RubyContextNode {
+    public abstract static class NegotiateCompatibleEncodingNode extends RubyBaseNode {
 
         @Child private RopeNodes.CodeRangeNode codeRangeNode;
         @Child private ToRubyEncodingNode getEncodingNode = ToRubyEncodingNode.create();
@@ -465,7 +465,7 @@ public abstract class EncodingNodes {
     }
 
     // Port of MRI's `get_actual_encoding`.
-    public abstract static class GetActualEncodingNode extends RubyContextNode {
+    public abstract static class GetActualEncodingNode extends RubyBaseNode {
 
         public static GetActualEncodingNode create() {
             return EncodingNodesFactory.GetActualEncodingNodeGen.create();
@@ -715,7 +715,7 @@ public abstract class EncodingNodes {
         }
     }
 
-    public abstract static class CheckRopeEncodingNode extends RubyContextNode {
+    public abstract static class CheckRopeEncodingNode extends RubyBaseNode {
 
         @Child private NegotiateCompatibleRopeEncodingNode negotiateCompatibleEncodingNode = NegotiateCompatibleRopeEncodingNode
                 .create();
@@ -748,7 +748,7 @@ public abstract class EncodingNodes {
 
     }
 
-    public abstract static class CheckEncodingNode extends RubyContextNode {
+    public abstract static class CheckEncodingNode extends RubyBaseNode {
 
         @Child private NegotiateCompatibleEncodingNode negotiateCompatibleEncodingNode;
         @Child private ToEncodingNode toEncodingNode;

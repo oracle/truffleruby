@@ -12,14 +12,14 @@ package org.truffleruby.core.array;
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 
 @ImportStatic(ArrayGuards.class)
-public abstract class ArrayPopOneNode extends RubyContextNode {
+public abstract class ArrayPopOneNode extends RubyBaseNode {
 
     public abstract Object executePopOne(RubyArray array);
 

@@ -25,7 +25,6 @@ import org.truffleruby.cext.UnwrapNodeGen.ToWrapperNodeGen;
 import org.truffleruby.cext.UnwrapNodeGen.UnwrapNativeNodeGen;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -158,7 +157,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
     }
 
     @ImportStatic(ValueWrapperManager.class)
-    public abstract static class ToWrapperNode extends RubyContextNode {
+    public abstract static class ToWrapperNode extends RubyBaseNode {
 
         public abstract ValueWrapper execute(Object value);
 
@@ -198,7 +197,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
     }
 
     @ImportStatic(ValueWrapperManager.class)
-    public abstract static class UnwrapCArrayNode extends RubyContextNode {
+    public abstract static class UnwrapCArrayNode extends RubyBaseNode {
 
         public abstract Object[] execute(Object cArray);
 

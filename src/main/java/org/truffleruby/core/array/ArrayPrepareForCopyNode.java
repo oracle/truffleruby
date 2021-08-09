@@ -15,7 +15,7 @@ import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 
 import java.util.Arrays;
 
@@ -31,7 +31,7 @@ import java.util.Arrays;
  * array may otherwise contain uninitialized elements (in particular, {@code null} values in {@code Object} arrays). */
 @ReportPolymorphism
 @ImportStatic(ArrayGuards.class)
-public abstract class ArrayPrepareForCopyNode extends RubyContextNode {
+public abstract class ArrayPrepareForCopyNode extends RubyBaseNode {
 
     public static ArrayPrepareForCopyNode create() {
         return ArrayPrepareForCopyNodeGen.create();

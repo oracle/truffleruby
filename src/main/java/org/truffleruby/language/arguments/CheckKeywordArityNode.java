@@ -17,7 +17,6 @@ import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.hash.library.HashStoreLibrary.EachEntryCallback;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.Arity;
 
@@ -75,7 +74,7 @@ public class CheckKeywordArityNode extends RubyBaseNode {
         hashes.eachEntry(keywordArguments.store, keywordArguments, checkKeywordArgumentsNode, argumentsCount);
     }
 
-    private static class CheckKeywordArgumentsNode extends RubyContextNode implements EachEntryCallback {
+    private static class CheckKeywordArgumentsNode extends RubyBaseNode implements EachEntryCallback {
 
         private final boolean doesNotAcceptExtraArguments;
         private final int required;

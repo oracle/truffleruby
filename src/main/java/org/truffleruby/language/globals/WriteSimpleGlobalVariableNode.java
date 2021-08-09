@@ -10,13 +10,13 @@
 package org.truffleruby.language.globals;
 
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 
-public abstract class WriteSimpleGlobalVariableNode extends RubyContextNode {
+public abstract class WriteSimpleGlobalVariableNode extends RubyBaseNode {
 
     protected final String name;
     @Child protected ReferenceEqualNode referenceEqualNode = ReferenceEqualNode.create();

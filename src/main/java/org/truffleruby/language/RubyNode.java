@@ -41,8 +41,7 @@ import static org.truffleruby.debug.RubyScope.RECEIVER_MEMBER;
 
 /** RubyNode has source, execute, and is instrument-able. However, it does not have any fields which would prevent
  * using @GenerateUncached. It should never be subclassed directly, either use {@link RubyContextSourceNode} or
- * {@link RubySourceNode}. SourceRubyNode is not defined since there was no use for it for now. Nodes having context are
- * described by {@link WithContext}. There is also {@link RubyContextNode} if context is needed but source is not. */
+ * {@link RubySourceNode}. SourceRubyNode is not defined since there was no use for it for now. */
 @GenerateWrapper
 @ExportLibrary(NodeLibrary.class)
 public abstract class RubyNode extends RubyBaseNodeWithExecute implements InstrumentableNode {

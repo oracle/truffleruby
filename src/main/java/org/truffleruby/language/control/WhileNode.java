@@ -12,7 +12,7 @@ package org.truffleruby.language.control;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
@@ -37,7 +37,7 @@ public final class WhileNode extends RubyContextSourceNode {
         return nil;
     }
 
-    private abstract static class WhileRepeatingBaseNode extends RubyContextNode implements RepeatingNode {
+    private abstract static class WhileRepeatingBaseNode extends RubyBaseNode implements RepeatingNode {
 
         @Child protected BooleanCastNode condition;
         @Child protected RubyNode body;

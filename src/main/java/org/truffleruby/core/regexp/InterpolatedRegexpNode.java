@@ -15,7 +15,7 @@ import org.truffleruby.core.regexp.InterpolatedRegexpNodeFactory.RegexpBuilderNo
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeWithEncoding;
 import org.truffleruby.language.NotOptimizedWarningNode;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -54,7 +54,7 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
         return values;
     }
 
-    public abstract static class RegexpBuilderNode extends RubyContextNode {
+    public abstract static class RegexpBuilderNode extends RubyBaseNode {
 
         @Child private RopeNodes.EqualNode ropesEqualNode = RopeNodes.EqualNode.create();
         @Child private DispatchNode copyNode = DispatchNode.create();

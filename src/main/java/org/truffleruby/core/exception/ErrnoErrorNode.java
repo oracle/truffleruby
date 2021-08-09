@@ -16,12 +16,12 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.ImmutableRubyString;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.platform.ErrnoDescriptions;
 
-public abstract class ErrnoErrorNode extends RubyContextNode {
+public abstract class ErrnoErrorNode extends RubyBaseNode {
 
     public static ErrnoErrorNode create() {
         return ErrnoErrorNodeGen.create();

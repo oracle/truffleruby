@@ -10,14 +10,14 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 
 @ImportStatic(ArrayGuards.class)
-public abstract class ArrayToObjectArrayNode extends RubyContextNode {
+public abstract class ArrayToObjectArrayNode extends RubyBaseNode {
 
     public static ArrayToObjectArrayNode create() {
         return ArrayToObjectArrayNodeGen.create();
