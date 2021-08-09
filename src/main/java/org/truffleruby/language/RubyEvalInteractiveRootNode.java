@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -19,8 +18,6 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.backtrace.InternalRootNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.Source;
 
@@ -28,7 +25,6 @@ public class RubyEvalInteractiveRootNode extends RubyBaseRootNode implements Int
 
     private final Rope sourceRope;
 
-    @CompilationFinal private ContextReference<RubyContext> contextReference;
     private final RubyLanguage language;
 
     public RubyEvalInteractiveRootNode(RubyLanguage language, Source source) {
@@ -39,11 +35,7 @@ public class RubyEvalInteractiveRootNode extends RubyBaseRootNode implements Int
 
     @Override
     public Object execute(VirtualFrame frame) {
-        if (contextReference == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            contextReference = lookupContextReference(RubyLanguage.class);
-        }
-        final RubyContext context = contextReference.get();
+        final RubyContext context = getContext();
 
         // Just do Truffle::Boot::INTERACTIVE_BINDING.eval(code) for interactive sources.
         // It's the semantics we want and takes care of caching correctly based on the Binding's FrameDescriptor.

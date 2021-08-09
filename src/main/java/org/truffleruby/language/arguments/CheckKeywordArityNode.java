@@ -11,8 +11,6 @@ package org.truffleruby.language.arguments;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.TruffleLanguage.ContextReference;
-import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
@@ -42,9 +40,7 @@ public class CheckKeywordArityNode extends RubyBaseNode {
     }
 
     public void checkArity(VirtualFrame frame, Arity arity,
-            BranchProfile basicArityCheckFailedProfile,
-            RubyLanguage language,
-            ContextReference<RubyContext> contextRef) {
+            BranchProfile basicArityCheckFailedProfile) {
         CompilerAsserts.partialEvaluationConstant(arity);
 
         final RubyHash keywordArguments = readUserKeywordsHashNode.execute(frame);
@@ -59,13 +55,11 @@ public class CheckKeywordArityNode extends RubyBaseNode {
 
         if (!arity.basicCheck(given)) {
             basicArityCheckFailedProfile.enter();
-            throw new RaiseException(
-                    contextRef.get(),
-                    contextRef.get().getCoreExceptions().argumentError(given, arity.getRequired(), this));
+            throw new RaiseException(getContext(), coreExceptions().argumentError(given, arity.getRequired(), this));
         }
 
         if (!arity.hasKeywordsRest() && keywordArguments != null) {
-            checkKeywordArguments(argumentsCount, keywordArguments, arity, language);
+            checkKeywordArguments(argumentsCount, keywordArguments, arity, getLanguage());
         }
     }
 

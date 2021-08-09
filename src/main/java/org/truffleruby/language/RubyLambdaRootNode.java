@@ -66,7 +66,7 @@ public class RubyLambdaRootNode extends RubyCheckArityRootNode {
 
     public RubyLambdaRootNode copyRootNode(SharedMethodInfo newSharedMethodInfo, RubyNode newBody) {
         return new RubyLambdaRootNode(
-                language,
+                getLanguage(),
                 getSourceSection(),
                 getFrameDescriptor(),
                 newSharedMethodInfo,

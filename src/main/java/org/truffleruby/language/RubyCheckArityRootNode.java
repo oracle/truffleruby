@@ -10,7 +10,6 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerAsserts;
-import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -56,28 +55,24 @@ public abstract class RubyCheckArityRootNode extends RubyRootNode {
                     arityForCheck,
                     RubyArguments.getArgumentsCount(frame),
                     checkArityProfile,
-                    getContextReference(),
                     this);
         } else {
-            checkKeywordArityNode.checkArity(frame, arityForCheck, checkArityProfile, language, getContextReference());
+            checkKeywordArityNode.checkArity(frame, arityForCheck, checkArityProfile);
         }
     }
 
     public static void checkArity(Arity arity, int given,
             BranchProfile checkFailedProfile,
-            ContextReference<RubyContext> contextRef,
             Node currentNode) {
         CompilerAsserts.partialEvaluationConstant(arity);
         if (!arity.check(given)) {
             checkFailedProfile.enter();
-            checkArityError(arity, given, contextRef, currentNode);
+            checkArityError(arity, given, currentNode);
         }
     }
 
-    private static void checkArityError(Arity arity, int given,
-            ContextReference<RubyContext> contextRef,
-            Node currentNode) {
-        final RubyContext context = contextRef.get();
+    private static void checkArityError(Arity arity, int given, Node currentNode) {
+        final RubyContext context = RubyContext.get(currentNode);
         if (arity.hasRest()) {
             throw new RaiseException(
                     context,

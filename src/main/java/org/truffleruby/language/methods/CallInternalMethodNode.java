@@ -90,7 +90,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
 
         try {
             RubyCheckArityRootNode
-                    .checkArity(cachedArity, args.length, checkArityProfile, contextRef, alwaysInlinedNode);
+                    .checkArity(cachedArity, args.length, checkArityProfile, alwaysInlinedNode);
 
             return alwaysInlinedNode.execute(frame, self, args, block, cachedCallTarget);
         } catch (RaiseException e) {
