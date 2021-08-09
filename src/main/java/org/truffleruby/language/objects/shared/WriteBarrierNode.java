@@ -9,8 +9,6 @@
  */
 package org.truffleruby.language.objects.shared;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ShapeCachingGuards;
@@ -57,9 +55,8 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
     }
 
     @Specialization(replaces = { "writeBarrierCached", "updateShapeAndWriteBarrier" })
-    protected void writeBarrierUncached(RubyDynamicObject value,
-            @CachedLanguage RubyLanguage language) {
-        SharedObjects.writeBarrier(language, value);
+    protected void writeBarrierUncached(RubyDynamicObject value) {
+        SharedObjects.writeBarrier(getLanguage(), value);
     }
 
     @Specialization(guards = "!isRubyDynamicObject(value)")

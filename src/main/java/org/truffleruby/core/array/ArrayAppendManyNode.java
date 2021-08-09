@@ -13,7 +13,7 @@ import static org.truffleruby.core.array.ArrayHelpers.setSize;
 import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
 
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -23,7 +23,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @ImportStatic(ArrayGuards.class)
-public abstract class ArrayAppendManyNode extends RubyContextNode {
+public abstract class ArrayAppendManyNode extends RubyBaseNode {
 
     @Child private PropagateSharingNode propagateSharingNode = PropagateSharingNode.create();
 

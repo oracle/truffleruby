@@ -295,7 +295,7 @@ public class Backtrace {
                     language.threadBacktraceLocationShape,
                     this,
                     i);
-            AllocationTracing.trace(language, context, instance, node);
+            AllocationTracing.trace(instance, node);
             locations[i] = instance;
         }
         return ArrayHelpers.createArray(context, language, locations);

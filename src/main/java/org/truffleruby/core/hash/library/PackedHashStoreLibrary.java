@@ -14,8 +14,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
-import com.oracle.truffle.api.dsl.CachedContext;
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -322,8 +320,7 @@ public class PackedHashStoreLibrary {
 
     @ExportMessage
     protected static RubyArray shift(Object[] store, RubyHash hash,
-            @CachedLanguage RubyLanguage language,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            @CachedLibrary("store") HashStoreLibrary node) {
 
         assert verify(store, hash);
         final Object key = getKey(store, 0);
@@ -331,6 +328,8 @@ public class PackedHashStoreLibrary {
         removeEntry(store, 0);
         hash.size -= 1;
         assert verify(store, hash);
+        final RubyLanguage language = RubyLanguage.get(node);
+        final RubyContext context = RubyContext.get(node);
         return ArrayHelpers.createArray(context, language, new Object[]{ key, value });
     }
 

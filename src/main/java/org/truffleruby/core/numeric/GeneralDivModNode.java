@@ -13,13 +13,13 @@ import java.math.BigInteger;
 
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-public class GeneralDivModNode extends RubyContextNode {
+public class GeneralDivModNode extends RubyBaseNode {
 
     @Child private FixnumOrBignumNode fixnumOrBignumQuotient = new FixnumOrBignumNode();
     @Child private FixnumOrBignumNode fixnumOrBignumRemainder = new FixnumOrBignumNode();

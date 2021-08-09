@@ -15,8 +15,6 @@ import static org.truffleruby.cext.ValueWrapperManager.UNSET_HANDLE;
 import com.oracle.truffle.api.memory.MemoryFence;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.ImmutableRubyObject;
@@ -28,7 +26,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -48,41 +45,38 @@ public abstract class WrapNode extends RubyBaseNode {
 
     @Specialization
     protected ValueWrapper wrapLong(long value,
-            @Cached BranchProfile smallFixnumProfile,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            @Cached BranchProfile smallFixnumProfile) {
         if (value >= ValueWrapperManager.MIN_FIXNUM_VALUE && value <= ValueWrapperManager.MAX_FIXNUM_VALUE) {
             smallFixnumProfile.enter();
             long val = (value << 1) | LONG_TAG;
             return new ValueWrapper(null, val, null);
         } else {
-            return context.getValueWrapperManager().longWrapper(value);
+            return getContext().getValueWrapperManager().longWrapper(value);
         }
     }
 
     @Specialization
-    protected ValueWrapper wrapDouble(double value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getValueWrapperManager().doubleWrapper(value);
+    protected ValueWrapper wrapDouble(double value) {
+        return getContext().getValueWrapperManager().doubleWrapper(value);
     }
 
     @Specialization
-    protected ValueWrapper wrapBoolean(boolean value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return value ? context.getValueWrapperManager().trueWrapper : context.getValueWrapperManager().falseWrapper;
+    protected ValueWrapper wrapBoolean(boolean value) {
+        return value
+                ? getContext().getValueWrapperManager().trueWrapper
+                : getContext().getValueWrapperManager().falseWrapper;
     }
 
     @Specialization
-    protected ValueWrapper wrapUndef(NotProvided value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getValueWrapperManager().undefWrapper;
+    protected ValueWrapper wrapUndef(NotProvided value) {
+        return getContext().getValueWrapperManager().undefWrapper;
     }
 
     @Specialization
-    protected ValueWrapper wrapWrappedValue(ValueWrapper value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+    protected ValueWrapper wrapWrappedValue(ValueWrapper value) {
         throw new RaiseException(
-                context,
-                context.getCoreExceptions().argumentError(
+                getContext(),
+                coreExceptions().argumentError(
                         RopeOperations.encodeAscii("Wrapping wrapped object", UTF8Encoding.INSTANCE),
                         Encodings.UTF_8,
                         this));
@@ -135,14 +129,9 @@ public abstract class WrapNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "isForeignObject(value)")
-    protected ValueWrapper wrapNonRubyObject(Object value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+    protected ValueWrapper wrapNonRubyObject(Object value) {
         throw new RaiseException(
-                context,
-                context.getCoreExceptions().argumentError("Attempt to wrap something that isn't an Ruby object", this));
-    }
-
-    protected int getDynamicObjectCacheLimit() {
-        return RubyLanguage.getCurrentLanguage().options.INSTANCE_VARIABLE_CACHE;
+                getContext(),
+                coreExceptions().argumentError("Attempt to wrap something that isn't an Ruby object", this));
     }
 }

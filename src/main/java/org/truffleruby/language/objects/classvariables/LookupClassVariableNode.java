@@ -14,7 +14,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyBaseNode;
 
@@ -38,10 +37,6 @@ public abstract class LookupClassVariableNode extends RubyBaseNode {
         } else {
             return classVariables.read(name, objectLibrary);
         }
-    }
-
-    protected int getDynamicObjectCacheLimit() {
-        return RubyLanguage.getCurrentLanguage().options.INSTANCE_VARIABLE_CACHE;
     }
 
 }

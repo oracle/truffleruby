@@ -13,7 +13,7 @@ import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
 import org.truffleruby.core.array.ArrayBuilderNodeFactory.AppendArrayNodeGen;
 import org.truffleruby.core.array.ArrayBuilderNodeFactory.AppendOneNodeGen;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -28,7 +28,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
  * <li>The element(s) added do not match the strategy.
  * <li>The being-built storage no longer matches the strategy, due to the node having been replaced by another thread or
  * by another usage (e.g. recursive) of this ArrayBuilderNode. */
-public abstract class ArrayBuilderNode extends RubyContextNode {
+public abstract class ArrayBuilderNode extends RubyBaseNode {
 
     public static class BuilderState {
         protected int capacity;
@@ -140,7 +140,7 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
 
     }
 
-    public abstract static class ArrayBuilderBaseNode extends RubyContextNode {
+    public abstract static class ArrayBuilderBaseNode extends RubyBaseNode {
 
         protected ArrayAllocator replaceNodes(ArrayStoreLibrary.ArrayAllocator strategy, int size) {
             final ArrayBuilderProxyNode parent = (ArrayBuilderProxyNode) getParent();

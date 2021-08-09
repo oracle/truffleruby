@@ -10,7 +10,6 @@
 package org.truffleruby.interop;
 
 import com.oracle.truffle.api.library.CachedLibrary;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
@@ -100,11 +99,7 @@ public abstract class ToJavaStringNode extends RubySourceNode {
     }
 
     protected int getLimit() {
-        return RubyLanguage.getCurrentLanguage().options.INTEROP_CONVERT_CACHE;
-    }
-
-    protected int getIdentityCacheLimit() {
-        return RubyLanguage.getCurrentLanguage().options.IDENTITY_CACHE;
+        return getLanguage().options.INTEROP_CONVERT_CACHE;
     }
 
 }

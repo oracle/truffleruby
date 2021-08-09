@@ -86,8 +86,6 @@ import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -186,7 +184,6 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
-import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -206,8 +203,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -272,36 +267,30 @@ public abstract class StringNodes {
         }
 
         @Specialization
-        protected RubyString makeStringFromRope(Rope rope, RubyEncoding encoding, NotProvided codeRange,
-                @CachedContext(RubyLanguage.class) RubyContext context,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyString makeStringFromRope(Rope rope, RubyEncoding encoding, NotProvided codeRange) {
             assert rope.encoding == encoding.jcoding;
-            final RubyClass stringClass = context.getCoreLibrary().stringClass;
             final RubyString string = new RubyString(
-                    stringClass,
-                    language.stringShape,
+                    coreLibrary().stringClass,
+                    getLanguage().stringShape,
                     false,
                     rope,
                     encoding);
-            AllocationTracing.trace(language, context, string, this);
+            AllocationTracing.trace(string, this);
             return string;
         }
 
         @Specialization
         protected RubyString makeStringFromBytes(byte[] bytes, RubyEncoding encoding, CodeRange codeRange,
-                @Cached MakeLeafRopeNode makeLeafRopeNode,
-                @CachedContext(RubyLanguage.class) RubyContext context,
-                @CachedLanguage RubyLanguage language) {
+                @Cached MakeLeafRopeNode makeLeafRopeNode) {
             final LeafRope rope = makeLeafRopeNode
                     .executeMake(bytes, encoding.jcoding, codeRange, NotProvided.INSTANCE);
-            final RubyClass stringClass = context.getCoreLibrary().stringClass;
             final RubyString string = new RubyString(
-                    stringClass,
-                    language.stringShape,
+                    coreLibrary().stringClass,
+                    getLanguage().stringShape,
                     false,
                     rope,
                     encoding);
-            AllocationTracing.trace(language, context, string, this);
+            AllocationTracing.trace(string, this);
             return string;
         }
 
@@ -325,7 +314,7 @@ public abstract class StringNodes {
 
     }
 
-    public abstract static class StringSubstringNode extends RubyContextNode {
+    public abstract static class StringSubstringNode extends RubyBaseNode {
 
         @Child private SubstringNode substringNode = SubstringNode.create();
 
@@ -597,7 +586,7 @@ public abstract class StringNodes {
             Object result = argConcatNode.executeConcat(string, first, EMPTY_ARGUMENTS);
             for (int i = 0; i < cachedLength; ++i) {
                 final Object argOrCopy = selfArgProfile.profile(rest[i] == string)
-                        ? createString(getContext(), getLanguage(), rope, string.encoding)
+                        ? createString(this, rope, string.encoding)
                         : rest[i];
                 result = argConcatNode.executeConcat(string, argOrCopy, EMPTY_ARGUMENTS);
             }
@@ -613,7 +602,7 @@ public abstract class StringNodes {
             Object result = argConcatNode.executeConcat(string, first, EMPTY_ARGUMENTS);
             for (Object arg : rest) {
                 if (selfArgProfile.profile(arg == string)) {
-                    Object copy = createString(getContext(), getLanguage(), rope, string.encoding);
+                    Object copy = createString(this, rope, string.encoding);
                     result = argConcatNode.executeConcat(string, copy, EMPTY_ARGUMENTS);
                 } else {
                     result = argConcatNode.executeConcat(string, arg, EMPTY_ARGUMENTS);
@@ -1586,9 +1575,8 @@ public abstract class StringNodes {
         @Specialization
         protected long hash(Object string,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
-                @Cached RopeNodes.HashNode hashNode,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
-            return context.getHashing(this).hash(CLASS_SALT, hashNode.execute(strings.getRope(string)));
+                @Cached RopeNodes.HashNode hashNode) {
+            return getContext().getHashing(this).hash(CLASS_SALT, hashNode.execute(strings.getRope(string)));
         }
     }
 
@@ -1668,7 +1656,7 @@ public abstract class StringNodes {
         }
     }
 
-    public abstract static class StringGetAssociatedNode extends RubyContextNode {
+    public abstract static class StringGetAssociatedNode extends RubyBaseNode {
 
         public static StringNodes.StringGetAssociatedNode create() {
             return StringNodesFactory.StringGetAssociatedNodeGen.create();
@@ -2420,7 +2408,6 @@ public abstract class StringNodes {
     public abstract static class UndumpNode extends CoreMethodArrayArgumentsNode {
         @Specialization(guards = "isAsciiCompatible(libString.getRope(string))")
         protected RubyString undumpAsciiCompatible(Object string,
-                @CachedLanguage RubyLanguage language,
                 @Cached MakeStringNode makeStringNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             // Taken from org.jruby.RubyString#undump
@@ -2483,7 +2470,7 @@ public abstract class StringNodes {
 
     }
 
-    public abstract static class CheckIndexNode extends RubyContextNode {
+    public abstract static class CheckIndexNode extends RubyBaseNode {
 
         public abstract int executeCheck(int index, int length);
 
@@ -2513,7 +2500,7 @@ public abstract class StringNodes {
 
     }
 
-    public abstract static class NormalizeIndexNode extends RubyContextNode {
+    public abstract static class NormalizeIndexNode extends RubyBaseNode {
 
         public abstract int executeNormalize(int index, int length);
 
@@ -3132,7 +3119,7 @@ public abstract class StringNodes {
 
     }
 
-    public abstract static class InvertAsciiCaseBytesNode extends RubyContextNode {
+    public abstract static class InvertAsciiCaseBytesNode extends RubyBaseNode {
 
         private final boolean lowerToUpper;
         private final boolean upperToLower;
@@ -3199,7 +3186,7 @@ public abstract class StringNodes {
 
     }
 
-    public abstract static class InvertAsciiCaseNode extends RubyContextNode {
+    public abstract static class InvertAsciiCaseNode extends RubyBaseNode {
 
         @Child private InvertAsciiCaseBytesNode invertNode;
 
@@ -3849,7 +3836,7 @@ public abstract class StringNodes {
     }
 
     @ImportStatic(StringGuards.class)
-    public abstract static class StringAreComparableNode extends RubyContextNode {
+    public abstract static class StringAreComparableNode extends RubyBaseNode {
 
         @Child AreComparableRopesNode areComparableRopesNode = AreComparableRopesNode.create();
 
@@ -3864,7 +3851,7 @@ public abstract class StringNodes {
     }
 
     @ImportStatic({ StringGuards.class, StringOperations.class })
-    public abstract static class StringEqualNode extends RubyContextNode {
+    public abstract static class StringEqualNode extends RubyBaseNode {
 
         @Child private StringAreComparableNode areComparableNode;
 
@@ -4730,7 +4717,7 @@ public abstract class StringNodes {
      * @startByteOffset - Starting position in the rope for the calculation of the character's byte offset.
      * @characterIndex - The character index into the rope, starting from the provided byte offset. */
     @ImportStatic({ RopeGuards.class, StringGuards.class, StringOperations.class })
-    public abstract static class ByteIndexFromCharIndexNode extends RubyContextNode {
+    public abstract static class ByteIndexFromCharIndexNode extends RubyBaseNode {
 
         public static ByteIndexFromCharIndexNode create() {
             return ByteIndexFromCharIndexNodeGen.create();
@@ -5582,7 +5569,7 @@ public abstract class StringNodes {
 
     }
 
-    public abstract static class StringAppendNode extends RubyContextNode {
+    public abstract static class StringAppendNode extends RubyBaseNode {
 
         @Child private CheckEncodingNode checkEncodingNode;
         @Child private ConcatNode concatNode;

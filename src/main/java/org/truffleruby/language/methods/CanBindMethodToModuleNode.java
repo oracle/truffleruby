@@ -11,13 +11,13 @@ package org.truffleruby.language.methods;
 
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 
 /** Caches {@link ModuleOperations#canBindMethodTo} for a method. */
-public abstract class CanBindMethodToModuleNode extends RubyContextNode {
+public abstract class CanBindMethodToModuleNode extends RubyBaseNode {
 
     public static CanBindMethodToModuleNode create() {
         return CanBindMethodToModuleNodeGen.create();

@@ -10,12 +10,9 @@
 package org.truffleruby.core.hash;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.cast.ToRubyIntegerNode;
 import org.truffleruby.core.numeric.BigIntegerOps;
@@ -69,33 +66,28 @@ public abstract class HashingNodes {
         public abstract int execute(Object key);
 
         @Specialization
-        protected int hashBoolean(boolean value,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
-            return (int) HashOperations.hashBoolean(value, context, this);
+        protected int hashBoolean(boolean value) {
+            return (int) HashOperations.hashBoolean(value, getContext(), this);
         }
 
         @Specialization
-        protected int hashInt(int value,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
-            return (int) HashOperations.hashLong(value, context, this);
+        protected int hashInt(int value) {
+            return (int) HashOperations.hashLong(value, getContext(), this);
         }
 
         @Specialization
-        protected int hashLong(long value,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
-            return (int) HashOperations.hashLong(value, context, this);
+        protected int hashLong(long value) {
+            return (int) HashOperations.hashLong(value, getContext(), this);
         }
 
         @Specialization
-        protected int hashDouble(double value,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
-            return (int) HashOperations.hashDouble(value, context, this);
+        protected int hashDouble(double value) {
+            return (int) HashOperations.hashDouble(value, getContext(), this);
         }
 
         @Specialization
-        protected int hashBignum(RubyBignum value,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
-            return (int) HashOperations.hashBignum(value, context, this);
+        protected int hashBignum(RubyBignum value) {
+            return (int) HashOperations.hashBignum(value, getContext(), this);
         }
 
         @Specialization

@@ -35,7 +35,7 @@ import org.truffleruby.language.FrameOrVariablesReadingNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.ReadOwnFrameAndVariablesNode;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.arguments.ReadCallerVariablesNode;
@@ -232,7 +232,7 @@ public abstract class TruffleKernelNodes {
     }
 
     @ImportStatic({ Layouts.class, TruffleKernelNodes.class })
-    public abstract static class GetSpecialVariableStorage extends RubyContextNode
+    public abstract static class GetSpecialVariableStorage extends RubyBaseNode
             implements FrameOrVariablesReadingNode {
 
         public abstract SpecialVariableStorage execute(Frame frame);

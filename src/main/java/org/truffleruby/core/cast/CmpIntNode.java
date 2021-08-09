@@ -23,7 +23,7 @@ package org.truffleruby.core.cast;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
@@ -33,7 +33,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.language.objects.LogicalClassNode;
 
 /** This is a port of MRI's rb_cmpint, as taken from RubyComparable and broken out into specialized nodes. */
-public abstract class CmpIntNode extends RubyContextNode {
+public abstract class CmpIntNode extends RubyBaseNode {
 
     public static CmpIntNode create() {
         return CmpIntNodeGen.create();

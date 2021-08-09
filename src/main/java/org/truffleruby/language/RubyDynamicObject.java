@@ -41,7 +41,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
@@ -437,33 +436,34 @@ public abstract class RubyDynamicObject extends DynamicObject {
     // region Iterable Messages
     @ExportMessage
     public boolean hasIterator(
-            @CachedContext(RubyLanguage.class) RubyContext context,
+            @CachedLibrary("this") InteropLibrary node,
             @Exclusive @Cached IsANode isANode) {
-        return isANode.executeIsA(this, context.getCoreLibrary().enumerableModule);
+        return isANode.executeIsA(this, RubyContext.get(node).getCoreLibrary().enumerableModule);
     }
 
     @ExportMessage
     public Object getIterator(
             @CachedLibrary("this") InteropLibrary interopLibrary,
-            @CachedContext(RubyLanguage.class) RubyContext context,
+            @CachedLibrary("this") InteropLibrary node,
             @Exclusive @Cached DispatchNode dispatchNode) throws UnsupportedMessageException {
         if (!interopLibrary.hasIterator(this)) {
             throw UnsupportedMessageException.create();
         }
+        final RubyContext context = RubyContext.get(node);
         return dispatchNode.call(context.getCoreLibrary().truffleInteropOperationsModule, "get_iterator", this);
     }
 
     @ExportMessage
     public boolean isIterator(
-            @CachedContext(RubyLanguage.class) RubyContext context,
+            @CachedLibrary("this") InteropLibrary node,
             @Exclusive @Cached IsANode isANode) {
-        return isANode.executeIsA(this, context.getCoreLibrary().enumeratorClass);
+        return isANode.executeIsA(this, RubyContext.get(node).getCoreLibrary().enumeratorClass);
     }
 
     @ExportMessage
     public boolean hasIteratorNextElement(
             @CachedLibrary("this") InteropLibrary interopLibrary,
-            @CachedContext(RubyLanguage.class) RubyContext context,
+            @CachedLibrary("this") InteropLibrary node,
             @Exclusive @Cached DispatchNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode) throws UnsupportedMessageException {
         if (!interopLibrary.isIterator(this)) {
@@ -471,7 +471,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
         }
         return booleanCastNode.executeToBoolean(
                 dispatchNode.call(
-                        context.getCoreLibrary().truffleInteropOperationsModule,
+                        RubyContext.get(node).getCoreLibrary().truffleInteropOperationsModule,
                         "enumerator_has_next?",
                         this));
     }
@@ -479,7 +479,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
     @ExportMessage
     public Object getIteratorNextElement(
             @CachedLibrary("this") InteropLibrary interopLibrary,
-            @CachedContext(RubyLanguage.class) RubyContext context,
+            @CachedLibrary("this") InteropLibrary node,
             @Exclusive @Cached DispatchNode dispatchNode,
             @Exclusive @Cached IsANode isANode,
             @Exclusive @Cached ConditionProfile stopIterationProfile)
@@ -490,6 +490,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
         try {
             return dispatchNode.call(this, "next");
         } catch (RaiseException e) {
+            final RubyContext context = RubyContext.get(node);
             if (stopIterationProfile
                     .profile(isANode.executeIsA(e.getException(), context.getCoreLibrary().stopIterationClass))) {
                 throw StopIterationException.create(e);
@@ -550,10 +551,10 @@ public abstract class RubyDynamicObject extends DynamicObject {
 
     @ExportMessage
     public Object getMembers(boolean internal,
-            @CachedContext(RubyLanguage.class) RubyContext context,
+            @CachedLibrary("this") InteropLibrary node,
             @Exclusive @Cached DispatchNode dispatchNode) {
         return dispatchNode.call(
-                context.getCoreLibrary().truffleInteropModule,
+                RubyContext.get(node).getCoreLibrary().truffleInteropModule,
                 // language=ruby prefix=Truffle::Interop.
                 "get_members_implementation",
                 this,

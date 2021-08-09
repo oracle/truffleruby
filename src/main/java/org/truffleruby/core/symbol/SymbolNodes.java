@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.symbol;
 
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import org.graalvm.collections.Pair;
@@ -93,27 +92,23 @@ public abstract class SymbolNodes {
         public abstract long execute(RubySymbol rubySymbol);
 
         // Cannot cache a Symbol's hash while pre-initializing, as it will change in SymbolTable#rehash()
-        @Specialization(guards = { "symbol == cachedSymbol", "!preInitializing" }, limit = "getIdentityCacheLimit()")
+        @Specialization(
+                guards = { "isSingleContext()", "symbol == cachedSymbol", "!preInitializing" },
+                limit = "getIdentityCacheContextLimit()")
         protected long hashCached(RubySymbol symbol,
-                @CachedContext(RubyLanguage.class) RubyContext context,
-                @Cached(value = "isPreInitializing(context)") boolean preInitializing,
+                @Cached(value = "isPreInitializing(getContext())") boolean preInitializing,
                 @Cached(value = "symbol") RubySymbol cachedSymbol,
-                @Cached(value = "hash(cachedSymbol, context)") long cachedHash) {
+                @Cached(value = "hash(cachedSymbol)") long cachedHash) {
             return cachedHash;
         }
 
         @Specialization(replaces = "hashCached")
-        protected long hash(RubySymbol symbol,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
-            return symbol.computeHashCode(context.getHashing());
+        protected long hash(RubySymbol symbol) {
+            return symbol.computeHashCode(getContext().getHashing());
         }
 
         protected boolean isPreInitializing(RubyContext context) {
             return context.isPreInitializing();
-        }
-
-        protected int getIdentityCacheLimit() {
-            return RubyLanguage.getCurrentContext().getLanguageSlow().options.IDENTITY_CACHE;
         }
     }
 

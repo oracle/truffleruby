@@ -10,7 +10,6 @@
 package org.truffleruby.language.methods;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleFields;
@@ -24,7 +23,6 @@ import org.truffleruby.language.objects.MetaClassNode;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -53,11 +51,10 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             limit = "getCacheLimit()")
     protected InternalMethod lookupMethodCached(
             Frame frame, RubyClass metaClass, String name, DispatchConfiguration config,
-            @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached("metaClass") RubyClass cachedMetaClass,
             @Cached("name") String cachedName,
             @Cached("config") DispatchConfiguration cachedConfig,
-            @Cached("lookupCached(context, frame, cachedMetaClass, cachedName, config)") MethodLookupResult methodLookupResult) {
+            @Cached("lookupCached(getContext(), frame, cachedMetaClass, cachedName, config)") MethodLookupResult methodLookupResult) {
 
         return methodLookupResult.getMethod();
     }
@@ -65,7 +62,6 @@ public abstract class LookupMethodNode extends RubyBaseNode {
     @Specialization(replaces = "lookupMethodCached")
     protected InternalMethod lookupMethodUncached(
             Frame frame, RubyClass metaClass, String name, DispatchConfiguration config,
-            @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached MetaClassNode metaClassNode,
             @Cached ConditionProfile noCallerMethodProfile,
             @Cached ConditionProfile foreignProfile,
@@ -80,7 +76,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
 
         // Actual lookup
 
-        if (foreignProfile.profile(metaClass == context.getCoreLibrary().truffleInteropForeignClass)) {
+        if (foreignProfile.profile(metaClass == coreLibrary().truffleInteropForeignClass)) {
             return null;
         }
 
@@ -123,7 +119,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             final InternalMethod callerMethod = RubyArguments.tryGetMethod(frame);
 
             if (noCallerMethodProfile.profile(callerMethod == null)) {
-                callerClass = context.getCoreLibrary().objectClass;
+                callerClass = coreLibrary().objectClass;
             } else {
                 callerClass = metaClassNode.execute(RubyArguments.getSelf(frame));
             }
@@ -190,6 +186,6 @@ public abstract class LookupMethodNode extends RubyBaseNode {
     }
 
     protected int getCacheLimit() {
-        return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
+        return getLanguage().options.METHOD_LOOKUP_CACHE;
     }
 }

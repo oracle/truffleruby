@@ -9,14 +9,11 @@
  */
 package org.truffleruby.core.cast;
 
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -44,10 +41,9 @@ public abstract class LongCastNode extends RubyBaseNode {
 
     @TruffleBoundary
     @Specialization(guards = "!isImplicitLong(value)")
-    protected long doBasicObject(Object value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+    protected long doBasicObject(Object value) {
         throw new RaiseException(
-                context,
-                context.getCoreExceptions().typeErrorIsNotA(value.toString(), "Integer (fitting in long)", this));
+                getContext(),
+                coreExceptions().typeErrorIsNotA(value.toString(), "Integer (fitting in long)", this));
     }
 }

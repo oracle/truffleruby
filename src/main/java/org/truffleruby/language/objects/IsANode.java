@@ -11,7 +11,6 @@ package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
@@ -98,7 +97,7 @@ public abstract class IsANode extends RubyBaseNode {
     }
 
     protected int getCacheLimit() {
-        return RubyLanguage.getCurrentLanguage().options.IS_A_CACHE;
+        return getLanguage().options.IS_A_CACHE;
     }
 
 }

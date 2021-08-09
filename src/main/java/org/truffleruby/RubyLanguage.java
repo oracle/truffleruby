@@ -24,6 +24,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
@@ -269,6 +270,12 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     public final ThreadLocal<ParsingParameters> parsingRequestParams = new ThreadLocal<>();
 
+    private static final LanguageReference<RubyLanguage> REFERENCE = LanguageReference.create(RubyLanguage.class);
+
+    public static RubyLanguage get(Node node) {
+        return REFERENCE.get(node);
+    }
+
     public RubyLanguage() {
         coreMethodAssumptions = new CoreMethodAssumptions(this);
         coreStrings = new CoreStrings(this);
@@ -456,13 +463,13 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     public static RubyContext getCurrentContext() {
-        CompilerAsserts.neverPartOfCompilation("Use getContext() or @CachedContext instead in PE code");
-        return getCurrentContext(RubyLanguage.class);
+        CompilerAsserts.neverPartOfCompilation("Use getContext() or RubyContext.get(Node) instead in PE code");
+        return RubyContext.get(null);
     }
 
     public static RubyLanguage getCurrentLanguage() {
-        CompilerAsserts.neverPartOfCompilation("Use getLanguage() or @CachedLanguage instead in PE code");
-        return getCurrentLanguage(RubyLanguage.class);
+        CompilerAsserts.neverPartOfCompilation("Use getLanguage() or RubyLanguage.get(Node) instead in PE code");
+        return RubyLanguage.get(null);
     }
 
     @Override
@@ -480,7 +487,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
                     ? ParserContext.TOP_LEVEL_FIRST
                     : ParserContext.TOP_LEVEL;
             final LexicalScope lexicalScope = contextIfSingleContext.map(RubyContext::getRootLexicalScope).orElse(null);
-            return RubyLanguage.getCurrentContext().getCodeLoader().parse(
+            return getCurrentContext().getCodeLoader().parse(
                     rubySource,
                     parserContext,
                     null,

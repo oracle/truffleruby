@@ -17,7 +17,7 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.format.exceptions.TooFewArgumentsException;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.RopeConstants;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -27,7 +27,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @ImportStatic(FormatGuards.class)
-public abstract class FormatNode extends RubyContextNode {
+public abstract class FormatNode extends RubyBaseNode {
 
     public static final FormatNode[] EMPTY_ARRAY = new FormatNode[0];
 

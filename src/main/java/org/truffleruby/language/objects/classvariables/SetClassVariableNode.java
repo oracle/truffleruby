@@ -18,10 +18,10 @@ import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
-public abstract class SetClassVariableNode extends RubyContextNode {
+public abstract class SetClassVariableNode extends RubyBaseNode {
 
     public static SetClassVariableNode create() {
         return SetClassVariableNodeGen.create();

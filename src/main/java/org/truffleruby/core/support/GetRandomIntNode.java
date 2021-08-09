@@ -10,19 +10,16 @@
 package org.truffleruby.core.support;
 
 import com.oracle.truffle.api.memory.ByteArraySupport;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.numeric.FixnumLowerNode;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.Specialization;
 
 import java.nio.ByteOrder;
 
-public abstract class GetRandomIntNode extends RubyContextNode {
+public abstract class GetRandomIntNode extends RubyBaseNode {
 
     public static GetRandomIntNode create() {
         return GetRandomIntNodeGen.create();
@@ -40,9 +37,8 @@ public abstract class GetRandomIntNode extends RubyContextNode {
     }
 
     @Specialization
-    protected int genRandInt(RubySecureRandomizer randomizer,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        final byte[] bytes = context.getRandomSeedBytes(4);
+    protected int genRandInt(RubySecureRandomizer randomizer) {
+        final byte[] bytes = getContext().getRandomSeedBytes(4);
         return byteArraySupport.getInt(bytes, 0);
     }
 

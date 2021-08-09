@@ -11,6 +11,7 @@ package org.truffleruby.core.symbol;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.Hashing;
@@ -20,7 +21,6 @@ import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.language.ImmutableRubyObject;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
@@ -106,8 +106,8 @@ public final class RubySymbol extends ImmutableRubyObject implements TruffleObje
 
     @ExportMessage
     public RubyClass getMetaObject(
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getCoreLibrary().symbolClass;
+            @CachedLibrary("this") InteropLibrary node) {
+        return RubyContext.get(node).getCoreLibrary().symbolClass;
     }
 
     // region String messages

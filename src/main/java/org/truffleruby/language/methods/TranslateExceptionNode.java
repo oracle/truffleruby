@@ -11,7 +11,6 @@ package org.truffleruby.language.methods;
 
 import java.util.EnumSet;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -33,7 +32,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
@@ -79,9 +77,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
             @Cached BranchProfile terminationProfile,
             @Cached BranchProfile arithmeticProfile,
             @Cached BranchProfile unsupportedProfile,
-            @Cached BranchProfile errorProfile,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @CachedLanguage RubyLanguage language) {
+            @Cached BranchProfile errorProfile) {
         try {
             // Only throwing to use the pattern matching of catch
             throw throwable;
@@ -96,40 +92,40 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
             return exception;
         } catch (ArithmeticException exception) {
             arithmeticProfile.enter();
-            return new RaiseException(context, translateArithmeticException(context, exception));
+            return new RaiseException(getContext(), translateArithmeticException(getContext(), exception));
         } catch (UnsupportedSpecializationException exception) {
             unsupportedProfile.enter();
             return new RaiseException(
-                    context,
-                    translateUnsupportedSpecialization(context, exception));
+                    getContext(),
+                    translateUnsupportedSpecialization(getContext(), exception));
         } catch (StackOverflowError error) {
             errorProfile.enter();
-            return new RaiseException(context, translateStackOverflow(context, error));
+            return new RaiseException(getContext(), translateStackOverflow(getContext(), error));
         } catch (OutOfMemoryError error) {
             errorProfile.enter();
-            return new RaiseException(context, translateOutOfMemory(context, error));
+            return new RaiseException(getContext(), translateOutOfMemory(getContext(), error));
         } catch (IllegalArgumentException e) {
             errorProfile.enter();
-            return new RaiseException(context, translateIllegalArgument(context, e));
+            return new RaiseException(getContext(), translateIllegalArgument(getContext(), e));
         } catch (ThreadDeath exception) {
             errorProfile.enter();
             // it cannot be returned and we want to propagate it always anyway
             throw exception;
         } catch (Throwable exception) {
             errorProfile.enter();
-            if (context.getEnv().isHostException(exception)) {
+            if (getContext().getEnv().isHostException(exception)) {
                 // GR-22071: rethrow host exceptions to get the interleaved host and guest stacktrace of PolyglotException
-                logJavaException(context, this, exception);
+                logJavaException(getContext(), this, exception);
                 throw ExceptionOperations.rethrow(exception);
             } else if (exception instanceof com.oracle.truffle.api.TruffleException) {
                 // A foreign exception
                 return new RaiseException(
-                        context,
-                        translateForeignException(context, language, exception));
+                        getContext(),
+                        translateForeignException(getContext(), getLanguage(), exception));
             } else {
                 // An internal exception
                 CompilerDirectives.transferToInterpreter(/* internal exceptions are fatal */);
-                logUncaughtJavaException(context, this, exception);
+                logUncaughtJavaException(getContext(), this, exception);
                 throw ExceptionOperations.rethrow(exception);
             }
         }

@@ -9,13 +9,10 @@
  */
 package org.truffleruby.core.cast;
 
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -43,18 +40,16 @@ public abstract class IntegerCastNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "!fitsInInteger(value)")
-    protected int doLongToBig(long value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+    protected int doLongToBig(long value) {
         throw new RaiseException(
-                context,
-                context.getCoreExceptions().rangeError("long too big to convert into `int'", this));
+                getContext(),
+                coreExceptions().rangeError("long too big to convert into `int'", this));
     }
 
     @Specialization(guards = "!isImplicitLong(value)")
-    protected int doBasicObject(Object value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+    protected int doBasicObject(Object value) {
         throw new RaiseException(
-                context,
-                context.getCoreExceptions().typeErrorIsNotA(Utils.toString(value), "Integer (fitting in int)", this));
+                getContext(),
+                coreExceptions().typeErrorIsNotA(Utils.toString(value), "Integer (fitting in int)", this));
     }
 }

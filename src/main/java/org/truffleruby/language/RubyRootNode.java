@@ -9,13 +9,9 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.nodes.NodeUtil;
-import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.ReRaiseInlinedExceptionNode;
 import org.truffleruby.language.control.ReturnID;
@@ -31,9 +27,6 @@ public class RubyRootNode extends RubyBaseRootNode {
     public static RubyRootNode of(RootCallTarget callTarget) {
         return (RubyRootNode) callTarget.getRootNode();
     }
-
-    protected final RubyLanguage language;
-    @CompilationFinal private ContextReference<RubyContext> contextReference;
 
     private final SharedMethodInfo sharedMethodInfo;
     private Split split;
@@ -53,7 +46,6 @@ public class RubyRootNode extends RubyBaseRootNode {
         assert sourceSection != null;
         assert body != null;
 
-        this.language = language;
         this.sharedMethodInfo = sharedMethodInfo;
         this.body = body;
         this.split = split;
@@ -110,19 +102,6 @@ public class RubyRootNode extends RubyBaseRootNode {
 
     public RubyNode copyBody() {
         return NodeUtil.cloneNode(body);
-    }
-
-    public final ContextReference<RubyContext> getContextReference() {
-        if (contextReference == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            contextReference = lookupContextReference(RubyLanguage.class);
-        }
-
-        return contextReference;
-    }
-
-    public final RubyContext getContext() {
-        return getContextReference().get();
     }
 
 }

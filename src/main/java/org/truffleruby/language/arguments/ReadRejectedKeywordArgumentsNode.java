@@ -14,11 +14,11 @@ import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.hash.library.HashStoreLibrary.EachEntryCallback;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class ReadRejectedKeywordArgumentsNode extends RubyContextNode implements EachEntryCallback {
+public class ReadRejectedKeywordArgumentsNode extends RubyBaseNode implements EachEntryCallback {
 
     @Child private HashStoreLibrary hashes = HashStoreLibrary.createDispatched();
 

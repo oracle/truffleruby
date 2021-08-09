@@ -12,12 +12,9 @@ package org.truffleruby.interop;
 import com.oracle.truffle.api.interop.InvalidBufferOffsetException;
 import com.oracle.truffle.api.interop.StopIterationException;
 import com.oracle.truffle.api.interop.UnknownKeyException;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.ArityException;
@@ -53,49 +50,44 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
 
     @Specialization
     protected RuntimeException handle(
-            UnsupportedMessageException exception, boolean inInvokeMember, Object receiver, Object[] args,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            UnsupportedMessageException exception, boolean inInvokeMember, Object receiver, Object[] args) {
         return new RaiseException(
-                context,
-                context.getCoreExceptions().unsupportedMessageError(exception.getMessage(), this),
+                getContext(),
+                coreExceptions().unsupportedMessageError(exception.getMessage(), this),
                 exception);
     }
 
     @Specialization
     protected RuntimeException handle(
-            InvalidArrayIndexException exception, boolean inInvokeMember, Object receiver, Object[] args,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            InvalidArrayIndexException exception, boolean inInvokeMember, Object receiver, Object[] args) {
         return new RaiseException(
-                context,
-                context.getCoreExceptions().indexErrorInvalidArrayIndexException(exception, this),
+                getContext(),
+                coreExceptions().indexErrorInvalidArrayIndexException(exception, this),
                 exception);
     }
 
     @Specialization
     protected RuntimeException handle(
-            InvalidBufferOffsetException exception, boolean inInvokeMember, Object receiver, Object[] args,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            InvalidBufferOffsetException exception, boolean inInvokeMember, Object receiver, Object[] args) {
         return new RaiseException(
-                context,
-                context.getCoreExceptions().indexErrorInvalidBufferOffsetException(exception, this),
+                getContext(),
+                coreExceptions().indexErrorInvalidBufferOffsetException(exception, this),
                 exception);
     }
 
     @Specialization
     protected RuntimeException handle(
-            UnknownKeyException exception, boolean inInvokeMember, Object receiver, Object[] args,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return new RaiseException(context, context.getCoreExceptions().keyError(exception, this), exception);
+            UnknownKeyException exception, boolean inInvokeMember, Object receiver, Object[] args) {
+        return new RaiseException(getContext(), coreExceptions().keyError(exception, this), exception);
     }
 
     @Specialization
     protected RuntimeException handle(
-            UnknownIdentifierException exception, boolean inInvokeMember, Object receiver, Object[] args,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            UnknownIdentifierException exception, boolean inInvokeMember, Object receiver, Object[] args) {
         if (inInvokeMember) {
             return new RaiseException(
-                    context,
-                    context.getCoreExceptions().noMethodErrorUnknownIdentifier(
+                    getContext(),
+                    coreExceptions().noMethodErrorUnknownIdentifier(
                             receiver,
                             exception.getUnknownIdentifier(),
                             args,
@@ -104,28 +96,27 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
                     exception);
         } else {
             return new RaiseException(
-                    context,
-                    context.getCoreExceptions().nameErrorUnknownIdentifierException(exception, receiver, this),
+                    getContext(),
+                    coreExceptions().nameErrorUnknownIdentifierException(exception, receiver, this),
                     exception);
         }
     }
 
     @Specialization
     protected RuntimeException handle(
-            UnsupportedTypeException exception, boolean inInvokeMember, Object receiver, Object[] args,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            UnsupportedTypeException exception, boolean inInvokeMember, Object receiver, Object[] args) {
         return new RaiseException(
-                context,
-                context.getCoreExceptions().typeErrorUnsupportedTypeException(exception, this),
+                getContext(),
+                coreExceptions().typeErrorUnsupportedTypeException(exception, this),
                 exception);
     }
 
     @Specialization
-    protected RuntimeException handle(ArityException exception, boolean inInvokeMember, Object receiver, Object[] args,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+    protected RuntimeException handle(
+            ArityException exception, boolean inInvokeMember, Object receiver, Object[] args) {
         return new RaiseException(
-                context,
-                context.getCoreExceptions().argumentErrorMinMaxArity(
+                getContext(),
+                coreExceptions().argumentErrorMinMaxArity(
                         exception.getActualArity(),
                         exception.getExpectedMinArity(),
                         exception.getExpectedMaxArity(),
@@ -135,11 +126,10 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
 
     @Specialization
     protected RuntimeException handle(
-            StopIterationException exception, boolean inInvokeMember, Object receiver, Object[] args,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            StopIterationException exception, boolean inInvokeMember, Object receiver, Object[] args) {
         return new RaiseException(
-                context,
-                context.getCoreExceptions().stopIteration(exception.getMessage(), this),
+                getContext(),
+                coreExceptions().stopIteration(exception.getMessage(), this),
                 exception);
     }
 

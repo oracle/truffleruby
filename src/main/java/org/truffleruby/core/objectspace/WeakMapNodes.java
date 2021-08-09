@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.objectspace;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -186,6 +187,7 @@ public abstract class WeakMapNodes {
         if (map.storage.size() == 0) {
             return map;
         }
-        throw new RaiseException(node.getContext(), node.coreExceptions().localJumpError("no block given", node));
+        final RubyContext context = node.getContext();
+        throw new RaiseException(context, context.getCoreExceptions().localJumpError("no block given", node));
     }
 }

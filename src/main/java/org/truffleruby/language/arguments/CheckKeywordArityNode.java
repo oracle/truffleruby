@@ -11,15 +11,12 @@ package org.truffleruby.language.arguments;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.TruffleLanguage.ContextReference;
-import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.hash.library.HashStoreLibrary.EachEntryCallback;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.Arity;
 
@@ -42,9 +39,7 @@ public class CheckKeywordArityNode extends RubyBaseNode {
     }
 
     public void checkArity(VirtualFrame frame, Arity arity,
-            BranchProfile basicArityCheckFailedProfile,
-            RubyLanguage language,
-            ContextReference<RubyContext> contextRef) {
+            BranchProfile basicArityCheckFailedProfile) {
         CompilerAsserts.partialEvaluationConstant(arity);
 
         final RubyHash keywordArguments = readUserKeywordsHashNode.execute(frame);
@@ -59,13 +54,11 @@ public class CheckKeywordArityNode extends RubyBaseNode {
 
         if (!arity.basicCheck(given)) {
             basicArityCheckFailedProfile.enter();
-            throw new RaiseException(
-                    contextRef.get(),
-                    contextRef.get().getCoreExceptions().argumentError(given, arity.getRequired(), this));
+            throw new RaiseException(getContext(), coreExceptions().argumentError(given, arity.getRequired(), this));
         }
 
         if (!arity.hasKeywordsRest() && keywordArguments != null) {
-            checkKeywordArguments(argumentsCount, keywordArguments, arity, language);
+            checkKeywordArguments(argumentsCount, keywordArguments, arity, getLanguage());
         }
     }
 
@@ -81,7 +74,7 @@ public class CheckKeywordArityNode extends RubyBaseNode {
         hashes.eachEntry(keywordArguments.store, keywordArguments, checkKeywordArgumentsNode, argumentsCount);
     }
 
-    private static class CheckKeywordArgumentsNode extends RubyContextNode implements EachEntryCallback {
+    private static class CheckKeywordArgumentsNode extends RubyBaseNode implements EachEntryCallback {
 
         private final boolean doesNotAcceptExtraArguments;
         private final int required;

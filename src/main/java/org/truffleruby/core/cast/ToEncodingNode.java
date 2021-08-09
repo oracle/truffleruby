@@ -15,13 +15,13 @@ import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.string.ImmutableRubyString;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 
 /** Take a Ruby object that has an encoding and extracts the Java-level encoding object. */
-public abstract class ToEncodingNode extends RubyContextNode {
+public abstract class ToEncodingNode extends RubyBaseNode {
 
     public static ToEncodingNode create() {
         return ToEncodingNodeGen.create();

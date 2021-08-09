@@ -10,12 +10,9 @@
 package org.truffleruby.core.basicobject;
 
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -71,7 +68,6 @@ import org.truffleruby.parser.RubySource;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -224,12 +220,11 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization(guards = "!isNil(object)")
-        protected long objectIDImmutable(ImmutableRubyObject object,
-                @CachedLanguage RubyLanguage language) {
+        protected long objectIDImmutable(ImmutableRubyObject object) {
             final long id = object.getObjectId();
 
             if (id == 0) {
-                final long newId = language.getNextObjectID();
+                final long newId = getLanguage().getNextObjectID();
                 object.setObjectId(newId);
                 return newId;
             }
@@ -239,8 +234,7 @@ public abstract class BasicObjectNodes {
 
         @Specialization(limit = "getCacheLimit()")
         protected long objectID(RubyDynamicObject object,
-                @CachedLibrary("object") DynamicObjectLibrary objectLibrary,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
+                @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
             // Using the context here has the desirable effect that it checks the context is entered on this thread,
             // which is necessary to safely mutate DynamicObjects.
             final long id = ObjectSpaceManager.readObjectID(object, objectLibrary);
@@ -252,13 +246,13 @@ public abstract class BasicObjectNodes {
                         if (existingID != 0L) {
                             return existingID;
                         } else {
-                            final long newId = context.getObjectSpaceManager().getNextObjectID();
+                            final long newId = getContext().getObjectSpaceManager().getNextObjectID();
                             objectLibrary.putLong(object, Layouts.OBJECT_ID_IDENTIFIER, newId);
                             return newId;
                         }
                     }
                 } else {
-                    final long newId = context.getObjectSpaceManager().getNextObjectID();
+                    final long newId = getContext().getObjectSpaceManager().getNextObjectID();
                     objectLibrary.putLong(object, Layouts.OBJECT_ID_IDENTIFIER, newId);
                     return newId;
                 }
@@ -278,7 +272,7 @@ public abstract class BasicObjectNodes {
         }
 
         protected int getCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.INSTANCE_VARIABLE_CACHE;
+            return getLanguage().options.INSTANCE_VARIABLE_CACHE;
         }
     }
 

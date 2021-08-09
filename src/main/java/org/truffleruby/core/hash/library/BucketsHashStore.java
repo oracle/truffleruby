@@ -14,8 +14,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
-import com.oracle.truffle.api.dsl.CachedContext;
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
@@ -403,8 +401,7 @@ public class BucketsHashStore {
 
     @ExportMessage
     protected RubyArray shift(RubyHash hash,
-            @CachedLanguage RubyLanguage language,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            @CachedLibrary("this") HashStoreLibrary node) {
 
         assert verify(hash);
 
@@ -440,6 +437,8 @@ public class BucketsHashStore {
         hash.size -= 1;
 
         assert verify(hash);
+        final RubyLanguage language = RubyLanguage.get(node);
+        final RubyContext context = RubyContext.get(node);
         return ArrayHelpers.createArray(context, language, new Object[]{ key, value });
     }
 

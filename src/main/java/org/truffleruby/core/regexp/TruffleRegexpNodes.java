@@ -60,7 +60,7 @@ import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.interop.TranslateInteropExceptionNodeGen;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
@@ -79,7 +79,7 @@ import org.truffleruby.parser.RubyDeferredWarnings;
 public class TruffleRegexpNodes {
 
     // rb_reg_prepare_enc ... mostly. Some of the error checks are performed by callers of this method.
-    public abstract static class CheckEncodingNode extends RubyContextNode {
+    public abstract static class CheckEncodingNode extends RubyBaseNode {
 
         @Child RopeNodes.CodeRangeNode codeRangeNode = RopeNodes.CodeRangeNode.create();
         @Child RubyStringLibrary stringLibrary = RubyStringLibrary.getFactory().createDispatched(2);
@@ -259,7 +259,7 @@ public class TruffleRegexpNodes {
     }
 
     @ImportStatic(Encodings.class)
-    public abstract static class TRegexCompileNode extends RubyContextNode {
+    public abstract static class TRegexCompileNode extends RubyBaseNode {
 
         public abstract Object executeTRegexCompile(RubyRegexp regexp, boolean atStart, RubyEncoding encoding);
 
@@ -573,7 +573,7 @@ public class TruffleRegexpNodes {
         }
     }
 
-    public abstract static class MatchNode extends RubyContextNode {
+    public abstract static class MatchNode extends RubyBaseNode {
 
         @Child private DispatchNode dupNode = DispatchNode.create();
 

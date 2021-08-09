@@ -74,7 +74,6 @@ import org.truffleruby.language.yield.CallBlockNode;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -592,8 +591,8 @@ public abstract class TruffleDebugNodes {
             @ExportMessage
             @TruffleBoundary
             protected Object getMembers(boolean includeInternal,
-                    @CachedContext(RubyLanguage.class) RubyContext context) {
-                return context.getEnv().asGuestValue(map.keySet().toArray());
+                    @CachedLibrary("this") InteropLibrary node) {
+                return RubyContext.get(node).getEnv().asGuestValue(map.keySet().toArray());
             }
 
             @TruffleBoundary

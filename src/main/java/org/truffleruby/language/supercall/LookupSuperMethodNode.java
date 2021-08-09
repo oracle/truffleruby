@@ -12,7 +12,7 @@ package org.truffleruby.language.supercall;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.MetaClassNode;
@@ -24,7 +24,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 /** Caches {@link ModuleOperations#lookupSuperMethod} on an actual instance. */
-public abstract class LookupSuperMethodNode extends RubyContextNode {
+public abstract class LookupSuperMethodNode extends RubyBaseNode {
 
     @Child private MetaClassNode metaClassNode;
 

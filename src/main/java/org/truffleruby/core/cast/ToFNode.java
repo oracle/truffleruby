@@ -12,7 +12,7 @@ package org.truffleruby.core.cast;
 
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
@@ -21,7 +21,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-public abstract class ToFNode extends RubyContextNode {
+public abstract class ToFNode extends RubyBaseNode {
 
     @Child private DispatchNode toFNode;
 

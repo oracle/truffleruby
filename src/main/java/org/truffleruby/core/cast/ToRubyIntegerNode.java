@@ -9,10 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -47,8 +44,7 @@ public abstract class ToRubyIntegerNode extends RubyBaseNode {
 
     @Specialization(guards = "!isRubyInteger(object)")
     protected Object coerceObject(Object object,
-            @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached DispatchNode toIntNode) {
-        return toIntNode.call(context.getCoreLibrary().truffleTypeModule, "rb_to_int_fallback", object);
+        return toIntNode.call(coreLibrary().truffleTypeModule, "rb_to_int_fallback", object);
     }
 }
