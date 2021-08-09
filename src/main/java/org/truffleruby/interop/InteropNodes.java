@@ -17,13 +17,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.ExceptionType;
 import com.oracle.truffle.api.interop.NodeLibrary;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -817,11 +814,10 @@ public abstract class InteropNodes {
     public abstract static class GetSourceLocationNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object getSourceLocation(Object receiver,
-                @CachedContext(RubyLanguage.class) RubyContext context,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             try {
-                return context.getEnv().asGuestValue(receivers.getSourceLocation(receiver));
+                return getContext().getEnv().asGuestValue(receivers.getSourceLocation(receiver));
             } catch (UnsupportedMessageException e) {
                 throw translateInteropException.execute(e);
             }
@@ -946,11 +942,10 @@ public abstract class InteropNodes {
     public abstract static class AsDateNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object asDate(Object receiver,
-                @CachedContext(RubyLanguage.class) RubyContext context,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             try {
-                return context.getEnv().asGuestValue(receivers.asDate(receiver));
+                return getContext().getEnv().asGuestValue(receivers.asDate(receiver));
             } catch (UnsupportedMessageException e) {
                 throw translateInteropException.execute(e);
             }
@@ -970,11 +965,10 @@ public abstract class InteropNodes {
     public abstract static class AsDurationNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object asDuration(Object receiver,
-                @CachedContext(RubyLanguage.class) RubyContext context,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             try {
-                return context.getEnv().asGuestValue(receivers.asDuration(receiver));
+                return getContext().getEnv().asGuestValue(receivers.asDuration(receiver));
             } catch (UnsupportedMessageException e) {
                 throw translateInteropException.execute(e);
             }
@@ -994,11 +988,10 @@ public abstract class InteropNodes {
     public abstract static class AsInstantNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object asInstant(Object receiver,
-                @CachedContext(RubyLanguage.class) RubyContext context,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             try {
-                return context.getEnv().asGuestValue(receivers.asInstant(receiver));
+                return getContext().getEnv().asGuestValue(receivers.asInstant(receiver));
             } catch (UnsupportedMessageException e) {
                 throw translateInteropException.execute(e);
             }
@@ -1018,11 +1011,10 @@ public abstract class InteropNodes {
     public abstract static class AsTimeNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object asTime(Object receiver,
-                @CachedContext(RubyLanguage.class) RubyContext context,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             try {
-                return context.getEnv().asGuestValue(receivers.asTime(receiver));
+                return getContext().getEnv().asGuestValue(receivers.asTime(receiver));
             } catch (UnsupportedMessageException e) {
                 throw translateInteropException.execute(e);
             }
@@ -1042,11 +1034,10 @@ public abstract class InteropNodes {
     public abstract static class AsTimeZoneNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object asTimeZone(Object receiver,
-                @CachedContext(RubyLanguage.class) RubyContext context,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             try {
-                return context.getEnv().asGuestValue(receivers.asTimeZone(receiver));
+                return getContext().getEnv().asGuestValue(receivers.asTimeZone(receiver));
             } catch (UnsupportedMessageException e) {
                 throw translateInteropException.execute(e);
             }
@@ -2214,9 +2205,8 @@ public abstract class InteropNodes {
     @Primitive(name = "top_scope")
     public abstract static class GetTopScopeNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected Object getTopScope(
-                @CachedContext(RubyLanguage.class) RubyContext context) {
-            return context.getTopScopeObject();
+        protected Object getTopScope() {
+            return getContext().getTopScopeObject();
         }
     }
     // endregion

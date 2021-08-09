@@ -11,8 +11,6 @@ package org.truffleruby.core.hash.library;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
@@ -24,10 +22,7 @@ import com.oracle.truffle.api.library.LibraryFactory;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.PEBiFunction;
-import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.hash.HashGuards;
 import org.truffleruby.core.hash.RubyHash;
@@ -131,8 +126,6 @@ public abstract class HashStoreLibrary extends Library {
 
         @Specialization
         protected Object yieldPair(RubyProc block, Object key, Object value,
-                @CachedLanguage RubyLanguage language,
-                @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached CallBlockNode yieldNode,
                 @Cached ConditionProfile arityMoreThanOne) {
             // MRI behavior, see rb_hash_each_pair()
@@ -140,7 +133,7 @@ public abstract class HashStoreLibrary extends Library {
             if (arityMoreThanOne.profile(block.sharedMethodInfo.getArity().getMethodArityNumber() > 1)) {
                 return yieldNode.yield(block, key, value);
             } else {
-                return yieldNode.yield(block, ArrayHelpers.createArray(context, language, new Object[]{ key, value }));
+                return yieldNode.yield(block, createArray(new Object[]{ key, value }));
             }
         }
     }

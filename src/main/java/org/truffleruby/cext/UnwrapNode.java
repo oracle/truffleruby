@@ -18,7 +18,6 @@ import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
-import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.UnwrapNodeGen.NativeToWrapperNodeGen;
 import org.truffleruby.cext.UnwrapNodeGen.ToWrapperNodeGen;
@@ -29,8 +28,6 @@ import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -77,10 +74,10 @@ public abstract class UnwrapNode extends RubyBaseNode {
 
         @Specialization(guards = "isTaggedObject(handle)")
         protected Object unwrapTaggedObject(long handle,
-                @CachedContext(RubyLanguage.class) RubyContext context,
-                @CachedLanguage RubyLanguage language,
                 @Cached BranchProfile noHandleProfile) {
-            final ValueWrapper wrapper = context.getValueWrapperManager().getWrapperFromHandleMap(handle, language);
+            final ValueWrapper wrapper = getContext()
+                    .getValueWrapperManager()
+                    .getWrapperFromHandleMap(handle, getLanguage());
             if (wrapper == null) {
                 noHandleProfile.enter();
                 raiseError(handle);
@@ -138,10 +135,8 @@ public abstract class UnwrapNode extends RubyBaseNode {
         }
 
         @Specialization(guards = "isTaggedObject(handle)")
-        protected ValueWrapper unwrapTaggedObject(long handle,
-                @CachedContext(RubyLanguage.class) RubyContext context,
-                @CachedLanguage RubyLanguage language) {
-            return context.getValueWrapperManager().getWrapperFromHandleMap(handle, language);
+        protected ValueWrapper unwrapTaggedObject(long handle) {
+            return getContext().getValueWrapperManager().getWrapperFromHandleMap(handle, getLanguage());
         }
 
         @Fallback
@@ -279,7 +274,6 @@ public abstract class UnwrapNode extends RubyBaseNode {
     @Specialization(guards = { "!isWrapper(value)", "values.isPointer(value)" }, limit = "getCacheLimit()")
     protected Object unwrapGeneric(Object value,
             @CachedLibrary("value") InteropLibrary values,
-            @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached UnwrapNativeNode unwrapNativeNode,
             @Cached BranchProfile unsupportedProfile) {
         long handle;
@@ -287,7 +281,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
             handle = values.asPointer(value);
         } catch (UnsupportedMessageException e) {
             unsupportedProfile.enter();
-            throw new RaiseException(context, context.getCoreExceptions().argumentError(e.getMessage(), this, e));
+            throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
         }
         return unwrapNativeNode.execute(handle);
     }

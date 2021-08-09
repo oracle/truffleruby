@@ -11,8 +11,6 @@ package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.TruffleLanguage.ContextReference;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.Node;
@@ -84,13 +82,11 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
             @Cached("createAlwaysInlinedMethodNode(cachedMethod)") AlwaysInlinedMethodNode alwaysInlinedNode,
             @Cached(value = "cachedMethod.getSharedMethodInfo().getArity()") Arity cachedArity,
             @Cached BranchProfile checkArityProfile,
-            @Cached BranchProfile exceptionProfile,
-            @CachedContext(RubyLanguage.class) ContextReference<RubyContext> contextRef) {
+            @Cached BranchProfile exceptionProfile) {
         assert RubyArguments.assertValues(callerData, method, method.getDeclarationContext(), self, block, args);
 
         try {
-            RubyCheckArityRootNode
-                    .checkArity(cachedArity, args.length, checkArityProfile, alwaysInlinedNode);
+            RubyCheckArityRootNode.checkArity(cachedArity, args.length, checkArityProfile, alwaysInlinedNode);
 
             return alwaysInlinedNode.execute(frame, self, args, block, cachedCallTarget);
         } catch (RaiseException e) {
@@ -107,8 +103,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
 
     @Specialization(guards = "method.alwaysInlined()", replaces = "alwaysInlined")
     protected Object alwaysInlinedUncached(
-            Frame frame, Object callerData, InternalMethod method, Object self, Object block, Object[] args,
-            @CachedContext(RubyLanguage.class) ContextReference<RubyContext> contextRef) {
+            Frame frame, Object callerData, InternalMethod method, Object self, Object block, Object[] args) {
         return alwaysInlinedBoundary(
                 frame == null ? null : frame.materialize(),
                 callerData,
@@ -116,14 +111,13 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
                 self,
                 block,
                 args,
-                contextRef,
                 isAdoptable());
     }
 
     @TruffleBoundary // getUncachedAlwaysInlinedMethodNode(method) and arity are not PE constants
     private Object alwaysInlinedBoundary(
             MaterializedFrame frame, Object callerData, InternalMethod method, Object self, Object block, Object[] args,
-            ContextReference<RubyContext> contextRef, boolean cachedToUncached) {
+            boolean cachedToUncached) {
         EncapsulatingNodeReference encapsulating = null;
         Node prev = null;
         if (cachedToUncached) {
@@ -143,8 +137,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
                     getUncachedAlwaysInlinedMethodNode(method),
                     method.getSharedMethodInfo().getArity(),
                     BranchProfile.getUncached(),
-                    BranchProfile.getUncached(),
-                    contextRef);
+                    BranchProfile.getUncached());
         } finally {
             if (cachedToUncached) {
                 encapsulating.set(prev);

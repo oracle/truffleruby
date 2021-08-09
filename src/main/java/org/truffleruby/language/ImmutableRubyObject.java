@@ -10,6 +10,7 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapper;
@@ -21,7 +22,6 @@ import org.truffleruby.language.library.RubyLibrary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
@@ -92,10 +92,10 @@ public abstract class ImmutableRubyObject implements TruffleObject {
 
     @ExportMessage
     public Object getMembers(boolean internal,
-            @CachedContext(RubyLanguage.class) RubyContext context,
+            @CachedLibrary("this") InteropLibrary node,
             @Exclusive @Cached DispatchNode dispatchNode) {
         return dispatchNode.call(
-                context.getCoreLibrary().truffleInteropModule,
+                RubyContext.get(node).getCoreLibrary().truffleInteropModule,
                 // language=ruby prefix=Truffle::Interop.
                 "get_members_implementation",
                 this,

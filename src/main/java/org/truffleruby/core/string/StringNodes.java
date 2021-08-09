@@ -86,8 +86,6 @@ import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -205,8 +203,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -271,14 +267,11 @@ public abstract class StringNodes {
         }
 
         @Specialization
-        protected RubyString makeStringFromRope(Rope rope, RubyEncoding encoding, NotProvided codeRange,
-                @CachedContext(RubyLanguage.class) RubyContext context,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyString makeStringFromRope(Rope rope, RubyEncoding encoding, NotProvided codeRange) {
             assert rope.encoding == encoding.jcoding;
-            final RubyClass stringClass = context.getCoreLibrary().stringClass;
             final RubyString string = new RubyString(
-                    stringClass,
-                    language.stringShape,
+                    coreLibrary().stringClass,
+                    getLanguage().stringShape,
                     false,
                     rope,
                     encoding);
@@ -288,15 +281,12 @@ public abstract class StringNodes {
 
         @Specialization
         protected RubyString makeStringFromBytes(byte[] bytes, RubyEncoding encoding, CodeRange codeRange,
-                @Cached MakeLeafRopeNode makeLeafRopeNode,
-                @CachedContext(RubyLanguage.class) RubyContext context,
-                @CachedLanguage RubyLanguage language) {
+                @Cached MakeLeafRopeNode makeLeafRopeNode) {
             final LeafRope rope = makeLeafRopeNode
                     .executeMake(bytes, encoding.jcoding, codeRange, NotProvided.INSTANCE);
-            final RubyClass stringClass = context.getCoreLibrary().stringClass;
             final RubyString string = new RubyString(
-                    stringClass,
-                    language.stringShape,
+                    coreLibrary().stringClass,
+                    getLanguage().stringShape,
                     false,
                     rope,
                     encoding);
@@ -1585,9 +1575,8 @@ public abstract class StringNodes {
         @Specialization
         protected long hash(Object string,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
-                @Cached RopeNodes.HashNode hashNode,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
-            return context.getHashing(this).hash(CLASS_SALT, hashNode.execute(strings.getRope(string)));
+                @Cached RopeNodes.HashNode hashNode) {
+            return getContext().getHashing(this).hash(CLASS_SALT, hashNode.execute(strings.getRope(string)));
         }
     }
 
@@ -2419,7 +2408,6 @@ public abstract class StringNodes {
     public abstract static class UndumpNode extends CoreMethodArrayArgumentsNode {
         @Specialization(guards = "isAsciiCompatible(libString.getRope(string))")
         protected RubyString undumpAsciiCompatible(Object string,
-                @CachedLanguage RubyLanguage language,
                 @Cached MakeStringNode makeStringNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             // Taken from org.jruby.RubyString#undump

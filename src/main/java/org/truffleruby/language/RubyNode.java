@@ -10,11 +10,10 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.interop.NodeLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import org.truffleruby.RubyContext;
@@ -276,10 +275,9 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
 
     @ExportMessage
     final Object getScope(Frame frame, boolean nodeEnter,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @CachedLanguage RubyLanguage language) throws UnsupportedMessageException {
+            @CachedLibrary("this") NodeLibrary node) throws UnsupportedMessageException {
         if (hasScope(frame)) {
-            return new RubyScope(context, language, frame.materialize(), this);
+            return new RubyScope(RubyContext.get(node), RubyLanguage.get(node), frame.materialize(), this);
         } else {
             throw UnsupportedMessageException.create();
         }
@@ -305,16 +303,15 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
 
     @ExportMessage
     Object getRootInstance(Frame frame,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @CachedLanguage RubyLanguage language) throws UnsupportedMessageException {
+            @CachedLibrary("this") NodeLibrary node) throws UnsupportedMessageException {
         if (frame == null) {
             throw UnsupportedMessageException.create();
         }
         final Object self = RubyArguments.getSelf(frame);
         final InternalMethod method = RubyArguments.getMethod(frame);
         return new RubyMethod(
-                context.getCoreLibrary().methodClass,
-                language.methodShape,
+                RubyContext.get(node).getCoreLibrary().methodClass,
+                RubyLanguage.get(node).methodShape,
                 self,
                 method);
     }

@@ -9,13 +9,9 @@
  */
 package org.truffleruby.core.cast;
 
-import com.oracle.truffle.api.TruffleLanguage.ContextReference;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.CachedLibrary;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.string.ImmutableRubyString;
@@ -63,18 +59,16 @@ public abstract class ToStringOrSymbolNode extends RubyBaseNodeWithExecute {
     protected Object coerceObject(Object object,
             @Cached DispatchNode toStr,
             @Cached BranchProfile errorProfile,
-            @CachedLibrary(limit = "2") RubyStringLibrary libString,
-            @CachedContext(RubyLanguage.class) ContextReference<RubyContext> contextRef) {
+            @CachedLibrary(limit = "2") RubyStringLibrary libString) {
         final Object coerced;
         try {
             coerced = toStr.call(object, "to_str");
         } catch (RaiseException e) {
             errorProfile.enter();
-            final RubyContext context = contextRef.get();
-            if (e.getException().getLogicalClass() == context.getCoreLibrary().noMethodErrorClass) {
+            if (e.getException().getLogicalClass() == coreLibrary().noMethodErrorClass) {
                 throw new RaiseException(
-                        context,
-                        context.getCoreExceptions().typeErrorNoImplicitConversion(object, "String", this));
+                        getContext(),
+                        coreExceptions().typeErrorNoImplicitConversion(object, "String", this));
             } else {
                 throw e;
             }
@@ -84,10 +78,9 @@ public abstract class ToStringOrSymbolNode extends RubyBaseNodeWithExecute {
             return coerced;
         } else {
             errorProfile.enter();
-            final RubyContext context = contextRef.get();
             throw new RaiseException(
-                    context,
-                    context.getCoreExceptions().typeErrorBadCoercion(object, "String", "to_str", coerced, this));
+                    getContext(),
+                    coreExceptions().typeErrorBadCoercion(object, "String", "to_str", coerced, this));
         }
     }
 

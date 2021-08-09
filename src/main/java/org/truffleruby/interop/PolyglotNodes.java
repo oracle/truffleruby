@@ -14,9 +14,7 @@ import java.io.IOException;
 import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -82,20 +80,15 @@ public abstract class PolyglotNodes {
 
         @TruffleBoundary
         protected CallTarget parse(Rope id, Rope code) {
-            return parse(getContext(), id, code, this);
-        }
-
-        @TruffleBoundary
-        public static CallTarget parse(RubyContext context, Rope id, Rope code, Node currentNode) {
             final String idString = RopeOperations.decodeRope(id);
             final String codeString = RopeOperations.decodeRope(code);
             final Source source = Source.newBuilder(idString, codeString, "(eval)").build();
             try {
-                return context.getEnv().parsePublic(source);
+                return getContext().getEnv().parsePublic(source);
             } catch (IllegalStateException e) {
                 throw new RaiseException(
-                        context,
-                        context.getCoreExceptions().argumentError(e.getMessage(), currentNode));
+                        getContext(),
+                        coreExceptions().argumentError(e.getMessage(), this));
             }
         }
 

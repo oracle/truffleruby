@@ -10,7 +10,6 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.RubyEncoding;
@@ -44,15 +43,13 @@ public abstract class ToSymbolNode extends RubyBaseNode {
     @Specialization(guards = "str == cachedStr", limit = "getCacheLimit()")
     protected RubySymbol toSymbolJavaString(String str,
             @Cached(value = "str") String cachedStr,
-            @CachedLanguage RubyLanguage language,
-            @Cached(value = "language.getSymbol(cachedStr)") RubySymbol rubySymbol) {
+            @Cached(value = "getSymbol(cachedStr)") RubySymbol rubySymbol) {
         return rubySymbol;
     }
 
     @Specialization(replaces = "toSymbolJavaString")
-    protected RubySymbol toSymbolJavaStringUncached(String str,
-            @CachedLanguage RubyLanguage language) {
-        return language.getSymbol(str);
+    protected RubySymbol toSymbolJavaStringUncached(String str) {
+        return getSymbol(str);
     }
 
     @Specialization(
@@ -65,17 +62,15 @@ public abstract class ToSymbolNode extends RubyBaseNode {
             @CachedLibrary(limit = "2") RubyStringLibrary strings,
             @Cached(value = "strings.getRope(str)") Rope cachedRope,
             @Cached(value = "strings.getEncoding(str)") RubyEncoding cachedEncoding,
-            @CachedLanguage RubyLanguage language,
             @Cached RopeNodes.EqualNode equals,
-            @Cached(value = "language.getSymbol(cachedRope, cachedEncoding)") RubySymbol rubySymbol) {
+            @Cached(value = "getSymbol(cachedRope, cachedEncoding)") RubySymbol rubySymbol) {
         return rubySymbol;
     }
 
     @Specialization(guards = "strings.isRubyString(str)", replaces = "toSymbolRubyString")
     protected RubySymbol toSymbolRubyStringUncached(Object str,
-            @CachedLanguage RubyLanguage language,
             @CachedLibrary(limit = "2") RubyStringLibrary strings) {
-        return language.getSymbol(strings.getRope(str), strings.getEncoding(str));
+        return getSymbol(strings.getRope(str), strings.getEncoding(str));
     }
 
     protected int getCacheLimit() {

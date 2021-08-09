@@ -10,14 +10,13 @@
 package org.truffleruby.core.encoding;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import org.jcodings.Encoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.LeafRope;
@@ -76,8 +75,8 @@ public class RubyEncoding extends ImmutableRubyObject implements ObjectGraphNode
 
     @ExportMessage
     protected RubyClass getMetaObject(
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getCoreLibrary().encodingClass;
+            @CachedLibrary("this") InteropLibrary node) {
+        return RubyContext.get(node).getCoreLibrary().encodingClass;
     }
     // endregion
 

@@ -12,14 +12,12 @@ package org.truffleruby.core.hash.library;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.PEBiFunction;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.hash.HashLiteralNode;
@@ -45,7 +43,6 @@ public class EmptyHashStore {
 
     @ExportMessage
     protected boolean set(RubyHash hash, Object key, Object value, boolean byIdentity,
-            @CachedLanguage RubyLanguage language,
             @CachedLibrary(limit = "1") HashStoreLibrary packedHashStoreLibrary) {
         final Object[] packedStore = PackedHashStoreLibrary.createStore();
         hash.store = packedStore;

@@ -14,7 +14,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
@@ -234,11 +233,10 @@ public abstract class BindingNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isHiddenVariable(name)")
-        protected Object localVariableDefinedLastLine(RubyBinding binding, String name,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
+        protected Object localVariableDefinedLastLine(RubyBinding binding, String name) {
             throw new RaiseException(
-                    context,
-                    context.getCoreExceptions().nameError("Bad local variable name", binding, name, this));
+                    getContext(),
+                    coreExceptions().nameError("Bad local variable name", binding, name, this));
         }
 
         protected int getCacheLimit() {
@@ -268,25 +266,23 @@ public abstract class BindingNodes {
 
         @Specialization(guards = "!isHiddenVariable(name)")
         protected Object localVariableGet(RubyBinding binding, String name,
-                @Cached FindAndReadDeclarationVariableNode readNode,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
+                @Cached FindAndReadDeclarationVariableNode readNode) {
             MaterializedFrame frame = binding.getFrame();
             Object result = readNode.execute(frame, name, null);
             if (result == null) {
                 throw new RaiseException(
-                        context,
-                        context.getCoreExceptions().nameErrorLocalVariableNotDefined(name, binding, this));
+                        getContext(),
+                        coreExceptions().nameErrorLocalVariableNotDefined(name, binding, this));
             }
             return result;
         }
 
         @TruffleBoundary
         @Specialization(guards = "isHiddenVariable(name)")
-        protected Object localVariableGetLastLine(RubyBinding binding, String name,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
+        protected Object localVariableGetLastLine(RubyBinding binding, String name) {
             throw new RaiseException(
-                    context,
-                    context.getCoreExceptions().nameError("Bad local variable name", binding, name, this));
+                    getContext(),
+                    coreExceptions().nameError("Bad local variable name", binding, name, this));
         }
 
         protected int getCacheLimit() {
@@ -374,11 +370,10 @@ public abstract class BindingNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isHiddenVariable(name)")
-        protected Object localVariableSetLastLine(RubyBinding binding, String name, Object value,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
+        protected Object localVariableSetLastLine(RubyBinding binding, String name, Object value) {
             throw new RaiseException(
-                    context,
-                    context.getCoreExceptions().nameError("Bad local variable name", binding, name, this));
+                    getContext(),
+                    coreExceptions().nameError("Bad local variable name", binding, name, this));
         }
 
         protected WriteFrameSlotNode createWriteNode(FrameSlotAndDepth frameSlot) {

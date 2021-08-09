@@ -11,7 +11,6 @@ package org.truffleruby.interop;
 
 import java.util.Arrays;
 
-import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.NameToJavaStringNode;
@@ -23,7 +22,6 @@ import org.truffleruby.language.dispatch.DispatchNode;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropException;
@@ -290,11 +288,10 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             limit = "1")
     protected Object deleteArrayElement(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-            @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached @Shared("dispatch") DispatchNode dispatchNode) {
 
         return dispatchNode
-                .call(context.getCoreLibrary().truffleInteropModule, "remove_array_element", receiver, args[0]);
+                .call(coreLibrary().truffleInteropModule, "remove_array_element", receiver, args[0]);
     }
 
     @Specialization(
@@ -306,10 +303,9 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             limit = "1")
     protected Object deleteMember(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-            @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached @Shared("dispatch") DispatchNode dispatchNode) {
 
-        return dispatchNode.call(context.getCoreLibrary().truffleInteropModule, "remove_member", receiver, args[0]);
+        return dispatchNode.call(coreLibrary().truffleInteropModule, "remove_member", receiver, args[0]);
     }
 
     @Specialization(guards = { "name == cachedName", "cachedName.equals(TO_F)", "args.length == 0" }, limit = "1")
@@ -317,7 +313,6 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
             @CachedLibrary("receiver") InteropLibrary interop,
             @Cached TranslateInteropExceptionNode translateInteropException,
-            @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached BranchProfile errorProfile) {
         try {
             if (interop.fitsInDouble(receiver)) {
@@ -327,8 +322,8 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             } else {
                 errorProfile.enter();
                 throw new RaiseException(
-                        context,
-                        context.getCoreExceptions().typeError("can't convert foreign object to Float", this));
+                        getContext(),
+                        coreExceptions().typeError("can't convert foreign object to Float", this));
             }
         } catch (UnsupportedMessageException e) {
             throw translateInteropException.execute(e);
@@ -340,7 +335,6 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
             @CachedLibrary("receiver") InteropLibrary interop,
             @Cached TranslateInteropExceptionNode translateInteropException,
-            @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached BranchProfile errorProfile) {
         try {
             if (interop.fitsInInt(receiver)) {
@@ -350,8 +344,8 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             } else {
                 errorProfile.enter();
                 throw new RaiseException(
-                        context,
-                        context.getCoreExceptions().typeError("can't convert foreign object to Integer", this));
+                        getContext(),
+                        coreExceptions().typeError("can't convert foreign object to Integer", this));
             }
         } catch (UnsupportedMessageException e) {
             throw translateInteropException.execute(e);
@@ -366,11 +360,10 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             limit = "1" /* the name is constant */)
     protected Object withBadArguments(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-            @Cached(value = "expectedArity(cachedName)", allowUncached = true) int cachedArity,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            @Cached(value = "expectedArity(cachedName)", allowUncached = true) int cachedArity) {
         throw new RaiseException(
-                context,
-                context.getCoreExceptions().argumentError(args.length, cachedArity, this));
+                getContext(),
+                coreExceptions().argumentError(args.length, cachedArity, this));
     }
 
     protected static boolean isRedirectToTruffleInterop(String cachedName) {
@@ -384,20 +377,19 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
             @Cached(value = "expectedArity(cachedName)", allowUncached = true) int cachedArity,
             @Cached(value = "specialToInteropMethod(cachedName)", allowUncached = true) String interopMethodName,
-            @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached @Shared("dispatch") DispatchNode dispatchNode,
             @Cached ConditionProfile errorProfile) {
 
         if (errorProfile.profile(args.length == cachedArity)) {
             final Object[] arguments = ArrayUtils.unshift(args, receiver);
             return dispatchNode.call(
-                    context.getCoreLibrary().truffleInteropModule,
+                    coreLibrary().truffleInteropModule,
                     interopMethodName,
                     arguments);
         } else {
             throw new RaiseException(
-                    context,
-                    context.getCoreExceptions().argumentError(args.length, cachedArity, this));
+                    getContext(),
+                    coreExceptions().argumentError(args.length, cachedArity, this));
         }
     }
 
@@ -415,11 +407,10 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             "args.length != 1"
     }, limit = "1")
     protected Object assignmentBadArgs(Object receiver, String name, Object[] args,
-            @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName) {
         throw new RaiseException(
-                context,
-                context.getCoreExceptions().argumentError(args.length, 1, this));
+                getContext(),
+                coreExceptions().argumentError(args.length, 1, this));
     }
 
     @Specialization(guards = {

@@ -14,8 +14,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.frame.Frame;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.CallStackManager;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
@@ -62,8 +60,7 @@ public abstract class AlwaysInlinedMethodNode extends RubyBaseNode {
 
     @TruffleBoundary
     private RaiseException buildException(String method) {
-        final RubyContext context = RubyLanguage.getCurrentContext();
-        return new RaiseException(context, context.getCoreExceptions().runtimeError(
+        return new RaiseException(getContext(), coreExceptions().runtimeError(
                 method + " needs the caller frame but it was not passed (cannot be called directly from a foreign language)",
                 getNode()));
     }

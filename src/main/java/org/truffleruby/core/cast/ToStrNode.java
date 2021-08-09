@@ -10,11 +10,8 @@
 
 package org.truffleruby.core.cast;
 
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.library.CachedLibrary;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
@@ -49,7 +46,6 @@ public abstract class ToStrNode extends RubyBaseNodeWithExecute {
 
     @Specialization(guards = "isNotRubyString(object)")
     protected Object coerceObject(Object object,
-            @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached BranchProfile errorProfile,
             @Cached DispatchNode toStrNode,
             @CachedLibrary(limit = "2") RubyStringLibrary libString) {
@@ -58,10 +54,10 @@ public abstract class ToStrNode extends RubyBaseNodeWithExecute {
             coerced = toStrNode.call(object, "to_str");
         } catch (RaiseException e) {
             errorProfile.enter();
-            if (e.getException().getLogicalClass() == context.getCoreLibrary().noMethodErrorClass) {
+            if (e.getException().getLogicalClass() == coreLibrary().noMethodErrorClass) {
                 throw new RaiseException(
-                        context,
-                        context.getCoreExceptions().typeErrorNoImplicitConversion(object, "String", this));
+                        getContext(),
+                        coreExceptions().typeErrorNoImplicitConversion(object, "String", this));
             } else {
                 throw e;
             }
@@ -72,8 +68,8 @@ public abstract class ToStrNode extends RubyBaseNodeWithExecute {
         } else {
             errorProfile.enter();
             throw new RaiseException(
-                    context,
-                    context.getCoreExceptions().typeErrorBadCoercion(object, "String", "to_str", coerced, this));
+                    getContext(),
+                    coreExceptions().typeErrorBadCoercion(object, "String", "to_str", coerced, this));
         }
     }
 

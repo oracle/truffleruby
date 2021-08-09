@@ -13,8 +13,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
-import com.oracle.truffle.api.dsl.CachedContext;
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -70,13 +68,13 @@ public class RubyScope implements TruffleObject {
 
     @ExportMessage
     Object getScopeParent(
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @CachedLanguage RubyLanguage language)
-            throws UnsupportedMessageException {
+            @CachedLibrary("this") InteropLibrary node) throws UnsupportedMessageException {
         final MaterializedFrame parentFrame = RubyArguments.getDeclarationFrame(frame);
         if (parentFrame != null) {
             // Do no set the node for parent scopes, as we don't know it and
             // to recognize them as Local/Closure and not Block scopes.
+            final RubyLanguage language = RubyLanguage.get(node);
+            final RubyContext context = RubyContext.get(node);
             return new RubyScope(context, language, parentFrame, null);
         }
         throw UnsupportedMessageException.create();
