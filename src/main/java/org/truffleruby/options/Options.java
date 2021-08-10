@@ -71,6 +71,8 @@ public class Options {
     public final boolean HASHING_DETERMINISTIC;
     /** --fiber-leave-context=true */
     public final boolean FIBER_LEAVE_CONTEXT;
+    /** --fiber-pool=true */
+    public final boolean FIBER_POOL;
     /** --log-subprocess=false */
     public final boolean LOG_SUBPROCESS;
     /** --warn-locale=true */
@@ -227,6 +229,7 @@ public class Options {
         PATCHING = options.get(OptionsCatalog.PATCHING_KEY);
         HASHING_DETERMINISTIC = options.get(OptionsCatalog.HASHING_DETERMINISTIC_KEY);
         FIBER_LEAVE_CONTEXT = options.get(OptionsCatalog.FIBER_LEAVE_CONTEXT_KEY);
+        FIBER_POOL = options.get(OptionsCatalog.FIBER_POOL_KEY);
         LOG_SUBPROCESS = options.get(OptionsCatalog.LOG_SUBPROCESS_KEY);
         WARN_LOCALE = options.get(OptionsCatalog.WARN_LOCALE_KEY);
         EXCEPTIONS_STORE_JAVA = options.get(OptionsCatalog.EXCEPTIONS_STORE_JAVA_KEY);
@@ -344,6 +347,8 @@ public class Options {
                 return HASHING_DETERMINISTIC;
             case "ruby.fiber-leave-context":
                 return FIBER_LEAVE_CONTEXT;
+            case "ruby.fiber-pool":
+                return FIBER_POOL;
             case "ruby.log-subprocess":
                 return LOG_SUBPROCESS;
             case "ruby.warn-locale":

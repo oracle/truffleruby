@@ -201,7 +201,7 @@ public class ThreadManager {
 
     @SuppressFBWarnings("RV")
     public void spawnFiber(RubyFiber fiber, Runnable task) {
-        fiberPool.submit(() -> {
+        final Runnable body = () -> {
             try {
                 task.run();
             } catch (Throwable t) {
@@ -209,7 +209,13 @@ public class ThreadManager {
                 // is handled here as the thread pool ignores exceptions.
                 uncaughtExceptionHandler(fiber).uncaughtException(Thread.currentThread(), t);
             }
-        });
+        };
+
+        if (context.getOptions().FIBER_POOL) {
+            fiberPool.submit(body);
+        } else {
+            createFiberJavaThread(body).start();
+        }
     }
 
     /** Whether the thread was created by TruffleRuby. */
