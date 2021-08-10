@@ -202,19 +202,19 @@ public class FiberManager implements ObjectGraphNode {
         } finally {
             final RubyFiber returnFiber = lastMessage == null ? null : getReturnFiber(fiber, currentNode, UNPROFILED);
 
+            // Perform all cleanup before resuming the parent Fiber
             // Make sure that other fibers notice we are dead before they gain control back
             fiber.alive = false;
             // Leave context before addToMessageQueue() -> parent Fiber starts executing
             if (!entered) {
                 truffleContext.leave(currentNode, prev);
             }
+            cleanup(fiber, thread);
+            thread.setName(oldName);
 
             if (lastMessage != null) {
                 addToMessageQueue(returnFiber, lastMessage);
             }
-
-            cleanup(fiber, thread);
-            thread.setName(oldName);
         }
     }
 
