@@ -11,6 +11,7 @@ package org.truffleruby.core.exception;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleFields;
@@ -112,30 +113,33 @@ public abstract class ExceptionOperations {
     @TruffleBoundary
     public static RubyException createRubyException(RubyContext context, RubyClass rubyClass, Object message,
             Backtrace backtrace) {
-        final Object cause = ThreadGetExceptionNode.getLastException(context);
+        final RubyLanguage language = context.getLanguageSlow();
+        final Object cause = ThreadGetExceptionNode.getLastException(language);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
-        final Shape shape = context.getLanguageSlow().exceptionShape;
+        final Shape shape = language.exceptionShape;
         return new RubyException(rubyClass, shape, message, backtrace, cause);
     }
 
     @TruffleBoundary
     public static RubyException createSystemStackError(RubyContext context, Object message, Backtrace backtrace,
             boolean showExceptionIfDebug) {
+        final RubyLanguage language = context.getLanguageSlow();
         final RubyClass rubyClass = context.getCoreLibrary().systemStackErrorClass;
-        final Object cause = ThreadGetExceptionNode.getLastException(context);
+        final Object cause = ThreadGetExceptionNode.getLastException(language);
         if (showExceptionIfDebug) {
             context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
         }
-        final Shape shape = context.getLanguageSlow().exceptionShape;
+        final Shape shape = language.exceptionShape;
         return new RubyException(rubyClass, shape, message, backtrace, cause);
     }
 
     @TruffleBoundary
     public static RubySystemCallError createSystemCallError(RubyContext context, RubyClass rubyClass,
             Object message, int errno, Backtrace backtrace) {
-        final Object cause = ThreadGetExceptionNode.getLastException(context);
+        final RubyLanguage language = context.getLanguageSlow();
+        final Object cause = ThreadGetExceptionNode.getLastException(language);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
-        final Shape shape = context.getLanguageSlow().systemCallErrorShape;
+        final Shape shape = language.systemCallErrorShape;
         return new RubySystemCallError(rubyClass, shape, message, backtrace, cause, errno);
     }
 

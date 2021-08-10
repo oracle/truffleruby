@@ -10,13 +10,11 @@
 package org.truffleruby.language.exceptions;
 
 import org.truffleruby.core.exception.ExceptionOperations;
-import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
@@ -24,8 +22,6 @@ public class EnsureNode extends RubyContextSourceNode {
 
     @Child private RubyNode tryPart;
     @Child private RubyNode ensurePart;
-
-    @Child private GetCurrentRubyThreadNode getCurrentRubyThreadNode;
 
     private final BranchProfile rubyExceptionPath = BranchProfile.create();
     private final BranchProfile javaExceptionPath = BranchProfile.create();
@@ -69,7 +65,7 @@ public class EnsureNode extends RubyContextSourceNode {
         ThreadLocalGlobals threadLocalGlobals = null;
         Object previousException = null;
         if (raiseException != null) {
-            threadLocalGlobals = getThreadLocalGlobals();
+            threadLocalGlobals = getLanguage().getCurrentThread().threadLocalGlobals;
             previousException = threadLocalGlobals.exception;
             threadLocalGlobals.exception = raiseException.getException();
         }
@@ -88,15 +84,6 @@ public class EnsureNode extends RubyContextSourceNode {
         } else {
             return value;
         }
-    }
-
-    private ThreadLocalGlobals getThreadLocalGlobals() {
-        if (getCurrentRubyThreadNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            getCurrentRubyThreadNode = insert(GetCurrentRubyThreadNode.create());
-        }
-
-        return getCurrentRubyThreadNode.execute().threadLocalGlobals;
     }
 
 }

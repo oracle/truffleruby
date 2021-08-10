@@ -255,9 +255,8 @@ public abstract class ThreadNodes {
     public abstract static class CurrentNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyThread current(
-                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
-            return getCurrentRubyThreadNode.execute();
+        protected RubyThread current() {
+            return getLanguage().getCurrentThread();
         }
 
     }
@@ -305,7 +304,7 @@ public abstract class ThreadNodes {
         @Specialization
         protected boolean pendingInterrupt(RubyThread self,
                 @Cached BranchProfile errorProfile) {
-            final RubyThread currentThread = getContext().getThreadManager().getCurrentThread();
+            final RubyThread currentThread = getLanguage().getCurrentThread();
             if (currentThread != self) {
                 errorProfile.enter();
                 throw new RaiseException(
@@ -719,9 +718,8 @@ public abstract class ThreadNodes {
     public abstract static class ThreadRandomizerPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected RubyPRNGRandomizer randomizer(
-                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
-            return getCurrentRubyThreadNode.execute().randomizer;
+        protected RubyPRNGRandomizer randomizer() {
+            return getLanguage().getCurrentThread().randomizer;
         }
 
     }
@@ -730,9 +728,8 @@ public abstract class ThreadNodes {
     public abstract static class ThreadRecursiveObjectsPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected RubyHash recursiveObjects(
-                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
-            return getCurrentRubyThreadNode.execute().recursiveObjects;
+        protected RubyHash recursiveObjects() {
+            return getLanguage().getCurrentThread().recursiveObjects;
         }
 
     }
@@ -753,9 +750,8 @@ public abstract class ThreadNodes {
 
         @Specialization
         protected boolean detectRecursionSingle(Object obj, RubyProc block,
-                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached ConditionProfile insertedProfile) {
-            RubyHash objects = getCurrentRubyThreadNode.execute().recursiveObjectsSingle;
+            RubyHash objects = getLanguage().getCurrentThread().recursiveObjectsSingle;
             if (insertedProfile.profile(add(objects, obj, true))) {
                 try {
                     yieldNode.yield(block);
@@ -917,17 +913,16 @@ public abstract class ThreadNodes {
     public abstract static class ThreadGetExceptionNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object getException(
-                @Cached GetCurrentRubyThreadNode getThreadNode) {
-            return getLastException(getThreadNode.execute());
+        protected Object getException() {
+            return getLastException(getLanguage().getCurrentThread());
         }
 
         private static Object getLastException(RubyThread currentThread) {
             return currentThread.threadLocalGlobals.exception;
         }
 
-        public static Object getLastException(RubyContext context) {
-            return getLastException(context.getThreadManager().getCurrentThread());
+        public static Object getLastException(RubyLanguage language) {
+            return getLastException(language.getCurrentThread());
         }
 
     }
@@ -936,9 +931,8 @@ public abstract class ThreadNodes {
     public abstract static class ThreadGetReturnCodeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object getExitCode(
-                @Cached GetCurrentRubyThreadNode getThreadNode) {
-            return getThreadNode.execute().threadLocalGlobals.processStatus;
+        protected Object getExitCode() {
+            return getLanguage().getCurrentThread().threadLocalGlobals.processStatus;
         }
     }
 
@@ -946,9 +940,8 @@ public abstract class ThreadNodes {
     public abstract static class SetThreadLocalExceptionNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object setException(Object exception,
-                @Cached GetCurrentRubyThreadNode getThreadNode) {
-            return getThreadNode.execute().threadLocalGlobals.exception = exception;
+        protected Object setException(Object exception) {
+            return getLanguage().getCurrentThread().threadLocalGlobals.exception = exception;
         }
     }
 
@@ -956,9 +949,8 @@ public abstract class ThreadNodes {
     public abstract static class SetThreadLocalReturnCodeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object getException(Object processStatus,
-                @Cached GetCurrentRubyThreadNode getThreadNode) {
-            return getThreadNode.execute().threadLocalGlobals.processStatus = processStatus;
+        protected Object getException(Object processStatus) {
+            return getLanguage().getCurrentThread().threadLocalGlobals.processStatus = processStatus;
         }
     }
 
@@ -980,13 +972,12 @@ public abstract class ThreadNodes {
 
         @Specialization
         protected Object runBlockingSystemCall(Object executable, RubyArray argsArray,
-                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @CachedLibrary(limit = "1") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
                 @Cached("new(receivers, translateInteropExceptionNode)") BlockingCallInterruptible blockingCallInterruptible) {
             final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
-            final RubyThread thread = getCurrentRubyThreadNode.execute();
+            final RubyThread thread = getLanguage().getCurrentThread();
 
             final ThreadManager threadManager = getContext().getThreadManager();
             final Interrupter nativeCallInterrupter = threadManager.getNativeCallInterrupter();

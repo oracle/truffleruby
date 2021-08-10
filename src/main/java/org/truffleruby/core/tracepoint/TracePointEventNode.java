@@ -14,7 +14,6 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.EventContext;
@@ -22,8 +21,6 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.thread.RubyThread;
 
 class TracePointEventNode extends TraceBaseEventNode {
-
-    @Child private GetCurrentRubyThreadNode getCurrentRubyThreadNode = GetCurrentRubyThreadNode.create();
 
     private final ConditionProfile inTracePointProfile = ConditionProfile.create();
 
@@ -47,7 +44,7 @@ class TracePointEventNode extends TraceBaseEventNode {
 
     @Override
     protected void onEnter(VirtualFrame frame) {
-        final RubyThread rubyThread = getCurrentRubyThreadNode.execute();
+        final RubyThread rubyThread = RubyLanguage.get(this).getCurrentThread();
         final TracePointState state = rubyThread.tracePointState;
 
         if (inTracePointProfile.profile(state.insideProc)) {

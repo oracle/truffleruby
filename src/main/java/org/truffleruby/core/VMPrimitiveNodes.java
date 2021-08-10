@@ -270,7 +270,7 @@ public abstract class VMPrimitiveNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary libSignalString) {
             final RubyContext context = getContext();
 
-            if (context.getThreadManager().getCurrentThread() != context.getThreadManager().getRootThread()) {
+            if (getLanguage().getCurrentThread() != context.getThreadManager().getRootThread()) {
                 // The proc will be executed on the main thread
                 SharedObjects.writeBarrier(getLanguage(), action);
             }

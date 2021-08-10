@@ -9,9 +9,11 @@
  */
 package org.truffleruby.core.thread;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -20,6 +22,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.ValueType;
 import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.TruffleSafepoint;
@@ -71,13 +74,17 @@ public class ThreadManager {
     @CompilationFinal private Thread rootJavaThread;
 
     private final Map<Thread, RubyThread> javaThreadToRubyThread = new ConcurrentHashMap<>();
-    private final ThreadLocal<RubyThread> currentThread = ThreadLocal
-            .withInitial(() -> javaThreadToRubyThread.get(Thread.currentThread()));
 
     private final Set<RubyThread> runningRubyThreads = ConcurrentHashMap.newKeySet();
 
-    /** The set of Java threads TruffleRuby created, and is responsible to exit in {@link #killAndWaitOtherThreads()} */
-    private final Set<Thread> rubyManagedThreads = ConcurrentHashMap.newKeySet();
+    /** The set of Java threads TruffleRuby created, and is responsible to exit in {@link #killAndWaitOtherThreads()}.
+     * Needs to be weak because {@link RubyLanguage#disposeThread} is called late for Fibers with --fiber-leave-context
+     * as that uses a "host thread" (disposeThread is only called on Context#close for those), and there might be
+     * multiple Fibers per such thread with the pool. If a Thread is unreachable we do not need to wait for it in
+     * {@link #killAndWaitOtherThreads()}, but otherwise we need to and we can never remove from this Set as otherwise
+     * we cannot guarantee we wait until the Thread truly finishes execution. */
+    private final Set<Thread> rubyManagedThreads = Collections
+            .newSetFromMap(Collections.synchronizedMap(new WeakHashMap<>()));
 
     public final Map<Thread, RubyFiber> javaThreadToRubyFiber = new ConcurrentHashMap<>();
     public final ThreadLocal<RubyFiber> rubyFiber = ThreadLocal
@@ -154,11 +161,11 @@ public class ThreadManager {
         } else {
             thread = context.getEnv().createThread(runnable);
         }
+        rubyManagedThreads.add(thread); // need to be set before initializeThread()
         thread.setUncaughtExceptionHandler((javaThread, throwable) -> {
             System.err.println("Throwable escaped Fiber pool thread:");
             throwable.printStackTrace();
         });
-        rubyManagedThreads.add(thread);
         return thread;
     }
 
@@ -174,8 +181,8 @@ public class ThreadManager {
         }
 
         final Thread thread = context.getEnv().createThread(runnable);
+        rubyManagedThreads.add(thread); // need to be set before initializeThread()
         thread.setUncaughtExceptionHandler(uncaughtExceptionHandler(fiber));
-        rubyManagedThreads.add(thread);
         return thread;
     }
 
@@ -201,7 +208,7 @@ public class ThreadManager {
 
     @SuppressFBWarnings("RV")
     public void spawnFiber(RubyFiber fiber, Runnable task) {
-        fiberPool.submit(() -> {
+        final Runnable body = () -> {
             try {
                 task.run();
             } catch (Throwable t) {
@@ -209,7 +216,13 @@ public class ThreadManager {
                 // is handled here as the thread pool ignores exceptions.
                 uncaughtExceptionHandler(fiber).uncaughtException(Thread.currentThread(), t);
             }
-        });
+        };
+
+        if (context.getOptions().FIBER_POOL) {
+            fiberPool.submit(body);
+        } else {
+            createFiberJavaThread(body).start();
+        }
     }
 
     /** Whether the thread was created by TruffleRuby. */
@@ -229,7 +242,7 @@ public class ThreadManager {
     }
 
     public RubyThread createThread(RubyClass rubyClass, Shape shape, RubyLanguage language) {
-        final Object currentGroup = getCurrentThread().threadGroup;
+        final Object currentGroup = language.getCurrentThread().threadGroup;
         assert currentGroup != null;
         return createThread(rubyClass, shape, language, currentGroup, "<uninitialized>");
     }
@@ -576,7 +589,7 @@ public class ThreadManager {
     public <T> T runUntilResult(Node currentNode, BlockingAction<T> action, Runnable beforeInterrupt,
             Runnable afterInterrupt) {
         final TruffleSafepoint safepoint = TruffleSafepoint.getCurrent();
-        final RubyThread runningThread = getCurrentThread();
+        final RubyThread runningThread = RubyLanguage.get(currentNode).getCurrentThread();
 
         // For Thread.handle_interrupt(Exception => :on_blocking),
         // we want to allow side-effecting actions to interrupt this blocking action and run here.
@@ -617,15 +630,11 @@ public class ThreadManager {
     }
 
     public void initializeValuesForJavaThread(RubyThread rubyThread, Thread thread) {
-        if (Thread.currentThread() == thread) {
-            currentThread.set(rubyThread);
-        }
         javaThreadToRubyThread.put(thread, rubyThread);
     }
 
     public void cleanupValuesForJavaThread(Thread thread) {
         if (Thread.currentThread() == thread) {
-            currentThread.remove();
             context.getMarkingService().cleanupThreadLocalData();
             context.getValueWrapperManager().cleanupBlockHolder();
         }
@@ -633,28 +642,23 @@ public class ThreadManager {
     }
 
     @TruffleBoundary
-    public RubyThread getCurrentThread() {
-        final RubyThread rubyThread = currentThread.get();
+    public RubyThread getRubyThreadForJavaThread(Thread thread) {
+        final RubyThread rubyThread = javaThreadToRubyThread.get(thread);
         if (rubyThread == null) {
-            throw new UnsupportedOperationException(
-                    "No Ruby Thread is associated with this Java Thread: " + Thread.currentThread());
+            throw CompilerDirectives.shouldNotReachHere(
+                    "No Ruby Thread is associated with Java Thread: " + thread);
         }
         return rubyThread;
     }
 
     @TruffleBoundary
     public RubyThread getCurrentThreadOrNull() {
-        return currentThread.get();
+        return javaThreadToRubyThread.get(Thread.currentThread());
     }
 
     @TruffleBoundary
     public RubyFiber getRubyFiberFromCurrentJavaThread() {
         return rubyFiber.get();
-    }
-
-    @TruffleBoundary
-    public RubyThread getRubyThread(Thread javaThread) {
-        return javaThreadToRubyThread.get(javaThread);
     }
 
     public void registerThread(RubyThread thread) {
@@ -686,7 +690,7 @@ public class ThreadManager {
 
         // The logic below avoids using the SafepointManager if there is
         // only the current thread and the reference processing thread.
-        final RubyThread currentThread = getCurrentThread();
+        final RubyThread currentThread = language.getCurrentThread();
         boolean otherThreads = false;
         RubyThread referenceProcessingThread = null;
         for (RubyThread thread : runningRubyThreads) {

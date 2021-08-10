@@ -167,6 +167,8 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
             }
         }
 
+        private static final String THREAD_NAME = "Ruby-reference-processor";
+
         protected void createProcessingThread(Class<?> owner) {
             final ThreadManager threadManager = context.getThreadManager();
             RubyThread newThread;
@@ -174,12 +176,12 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
                 if (processingThread != null) {
                     return;
                 }
-                newThread = threadManager.createBootThread(threadName());
+                newThread = threadManager.createBootThread(THREAD_NAME);
                 processingThread = newThread;
             }
-            final String sharingReason = "creating " + threadName() + " thread for " + owner.getSimpleName();
+            final String sharingReason = "creating " + THREAD_NAME + " thread for " + owner.getSimpleName();
 
-            threadManager.initialize(newThread, DummyNode.INSTANCE, threadName(), sharingReason, () -> {
+            threadManager.initialize(newThread, DummyNode.INSTANCE, THREAD_NAME, sharingReason, () -> {
                 while (true) {
                     final ProcessingReference<?> reference = threadManager
                             .runUntilResult(DummyNode.INSTANCE, () -> {
@@ -222,10 +224,6 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
 
         public RubyThread getProcessingThread() {
             return processingThread;
-        }
-
-        protected final String threadName() {
-            return "Ruby-reference-processor";
         }
 
         protected final void drainReferenceQueues() {

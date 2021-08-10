@@ -21,6 +21,7 @@ import java.util.logging.Level;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.ContextThreadLocal;
 import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
@@ -171,6 +172,15 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     public static final TruffleLogger LOGGER = TruffleLogger.getLogger(TruffleRuby.LANGUAGE_ID);
 
+    /** We need an extra indirection added to ContextThreadLocal due to multiple Fibers of different Ruby Threads
+     * sharing the same Java Thread when using the fiber pool. */
+    private static final class ThreadLocalState {
+        private RubyThread rubyThread;
+    }
+
+    private final ContextThreadLocal<ThreadLocalState> threadLocalState = createContextThreadLocal(
+            (context, thread) -> new ThreadLocalState());
+
     private final CyclicAssumption tracingCyclicAssumption = new CyclicAssumption("object-space-tracing");
     @CompilationFinal private volatile Assumption tracingAssumption = tracingCyclicAssumption.getAssumption();
 
@@ -276,16 +286,6 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         return REFERENCE.get(node);
     }
 
-    public RubyLanguage() {
-        coreMethodAssumptions = new CoreMethodAssumptions(this);
-        coreStrings = new CoreStrings(this);
-        coreSymbols = new CoreSymbols();
-        primitiveManager = new PrimitiveManager();
-        ropeCache = new RopeCache(coreSymbols);
-        symbolTable = new SymbolTable(ropeCache, coreSymbols);
-        frozenStringLiterals = new FrozenStringLiterals(ropeCache);
-    }
-
     public static String getMimeType(boolean coverageEnabled) {
         return coverageEnabled ? MIME_TYPE_COVERAGE : MIME_TYPE;
     }
@@ -321,11 +321,35 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
     }
 
+    public RubyLanguage() {
+        coreMethodAssumptions = new CoreMethodAssumptions(this);
+        coreStrings = new CoreStrings(this);
+        coreSymbols = new CoreSymbols();
+        primitiveManager = new PrimitiveManager();
+        ropeCache = new RopeCache(coreSymbols);
+        symbolTable = new SymbolTable(ropeCache, coreSymbols);
+        frozenStringLiterals = new FrozenStringLiterals(ropeCache);
+    }
+
+    public RubyThread getCurrentThread() {
+        final RubyThread rubyThread = threadLocalState.get().rubyThread;
+        if (rubyThread == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            throw CompilerDirectives.shouldNotReachHere(
+                    "No Ruby Thread is associated with current Java Thread: " + Thread.currentThread());
+        }
+        return rubyThread;
+    }
+
+    public void setupCurrentThread(Thread javaThread, RubyThread rubyThread) {
+        final ThreadLocalState threadLocalState = this.threadLocalState.get(javaThread);
+        threadLocalState.rubyThread = rubyThread;
+    }
+
     @TruffleBoundary
     public RubySymbol getSymbol(String string) {
         return symbolTable.getSymbol(string);
     }
-
 
     @TruffleBoundary
     public RubySymbol getSymbol(Rope rope, RubyEncoding encoding) {
@@ -555,6 +579,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
         if (thread == context.getThreadManager().getOrInitializeRootJavaThread()) {
             // Already initialized when creating the context
+            setupCurrentThread(thread, context.getThreadManager().getRootThread());
             return;
         }
 
@@ -566,6 +591,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
                             .shouldNotReachHere("Ruby threads should be initialized on their Java thread");
                 }
                 context.getThreadManager().start(rubyThread, thread);
+                setupCurrentThread(thread, rubyThread);
             } else {
                 // Fiber
             }
@@ -574,12 +600,13 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
         final RubyThread foreignThread = context.getThreadManager().createForeignThread();
         context.getThreadManager().startForeignThread(foreignThread, thread);
+        setupCurrentThread(thread, foreignThread);
     }
 
     @Override
     public void disposeThread(RubyContext context, Thread thread) {
         LOGGER.fine(
-                () -> "disposeThread(#" + thread.getId() + " " + thread + " " +
+                () -> "disposeThread(#" + thread.getId() + " " + thread + " on " +
                         context.getThreadManager().getCurrentThreadOrNull() + ")");
 
         if (thread == context.getThreadManager().getRootJavaThread()) {
@@ -612,7 +639,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
 
         // A foreign Thread, its Fibers are considered isRubyManagedThread()
-        final RubyThread rubyThread = context.getThreadManager().getRubyThread(thread);
+        final RubyThread rubyThread = context.getThreadManager().getRubyThreadForJavaThread(thread);
         context.getThreadManager().cleanup(rubyThread, thread);
     }
 

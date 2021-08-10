@@ -26,7 +26,6 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -166,11 +165,10 @@ public abstract class TracePointNodes {
 
     private abstract static class TracePointCoreNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private GetCurrentRubyThreadNode getCurrentRubyThreadNode = GetCurrentRubyThreadNode.create();
         private final BranchProfile errorProfile = BranchProfile.create();
 
         protected TracePointState getTracePointState() {
-            final TracePointState state = getCurrentRubyThreadNode.execute().tracePointState;
+            final TracePointState state = getLanguage().getCurrentThread().tracePointState;
             if (!state.insideProc) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().runtimeError("access from outside", this));

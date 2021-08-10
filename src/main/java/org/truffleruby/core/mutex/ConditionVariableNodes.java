@@ -22,7 +22,6 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.Nil;
@@ -60,9 +59,8 @@ public abstract class ConditionVariableNodes {
 
         @Specialization
         protected RubyConditionVariable noTimeout(RubyConditionVariable condVar, RubyMutex mutex, Nil timeout,
-                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
-            final RubyThread thread = getCurrentRubyThreadNode.execute();
+            final RubyThread thread = getLanguage().getCurrentThread();
             final ReentrantLock mutexLock = mutex.lock;
 
             MutexOperations.checkOwnedMutex(getContext(), mutexLock, this, errorProfile);
@@ -72,9 +70,8 @@ public abstract class ConditionVariableNodes {
 
         @Specialization
         protected RubyConditionVariable withTimeout(RubyConditionVariable condVar, RubyMutex mutex, long timeout,
-                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
-            final RubyThread thread = getCurrentRubyThreadNode.execute();
+            final RubyThread thread = getLanguage().getCurrentThread();
             final ReentrantLock mutexLock = mutex.lock;
 
             MutexOperations.checkOwnedMutex(getContext(), mutexLock, this, errorProfile);

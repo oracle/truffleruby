@@ -85,7 +85,6 @@ import org.truffleruby.core.support.TypeNodesFactory.ObjectInstanceVariablesNode
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.symbol.SymbolNodes;
 import org.truffleruby.core.symbol.SymbolTable;
-import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.interop.ToJavaStringNode;
@@ -1724,7 +1723,6 @@ public abstract class KernelNodes {
 
         @Specialization
         protected long sleep(long durationInMillis,
-                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
             if (durationInMillis < 0) {
                 errorProfile.enter();
@@ -1733,7 +1731,7 @@ public abstract class KernelNodes {
                         coreExceptions().argumentError("time interval must be positive", this));
             }
 
-            final RubyThread thread = getCurrentRubyThreadNode.execute();
+            final RubyThread thread = getLanguage().getCurrentThread();
 
             // Clear the wakeUp flag, following Ruby semantics:
             // it should only be considered if we are inside the sleep when Thread#{run,wakeup} is called.

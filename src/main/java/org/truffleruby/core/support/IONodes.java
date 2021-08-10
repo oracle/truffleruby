@@ -79,7 +79,6 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
-import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.extra.ffi.Pointer;
@@ -504,9 +503,8 @@ public abstract class IONodes {
 
         @Specialization
         protected RubyPointer getThreadBuffer(long size,
-                @Cached GetCurrentRubyThreadNode currentThreadNode,
                 @Cached ConditionProfile sizeProfile) {
-            RubyThread thread = currentThreadNode.execute();
+            RubyThread thread = getLanguage().getCurrentThread();
             final RubyPointer instance = new RubyPointer(
                     coreLibrary().truffleFFIPointerClass,
                     getLanguage().truffleFFIPointerShape,
@@ -525,9 +523,8 @@ public abstract class IONodes {
 
         @Specialization
         protected Object getThreadBuffer(RubyPointer pointer,
-                @Cached GetCurrentRubyThreadNode currentThreadNode,
                 @Cached ConditionProfile freeProfile) {
-            RubyThread thread = currentThreadNode.execute();
+            RubyThread thread = getLanguage().getCurrentThread();
             thread.ioBuffer.free(thread, pointer.pointer, freeProfile);
             return nil;
         }

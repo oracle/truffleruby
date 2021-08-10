@@ -75,8 +75,7 @@ public class FiberManager implements ObjectGraphNode {
     }
 
     public RubyFiber getCurrentFiber() {
-        assert context
-                .getThreadManager()
+        assert language
                 .getCurrentThread().fiberManager == this : "Trying to read the current Fiber of another Thread which is inherently racy";
         return currentFiber;
     }
@@ -153,6 +152,7 @@ public class FiberManager implements ObjectGraphNode {
         assert fiber != rootFiber : "Root Fibers execute threadMain() and not fiberMain()";
 
         final boolean entered = !context.getOptions().FIBER_LEAVE_CONTEXT;
+        assert entered == context.getEnv().getContext().isEntered();
 
         final Thread thread = Thread.currentThread();
         final SourceSection sourceSection = block.sharedMethodInfo.getSourceSection();
@@ -165,55 +165,58 @@ public class FiberManager implements ObjectGraphNode {
         fiber.initializedLatch.countDown();
 
         final FiberMessage message = waitMessage(fiber, currentNode);
-        final TruffleContext truffleContext = context.getEnv().getContext();
-        Object prev = null;
+        final TruffleContext truffleContext = entered ? null : context.getEnv().getContext();
+
+        final Object prev;
         if (!entered) {
             prev = truffleContext.enter(currentNode);
+        } else {
+            prev = null;
         }
+        language.setupCurrentThread(thread, fiber.rubyThread);
 
+        FiberMessage lastMessage = null;
         try {
-            final Object result;
-            try {
-                final Object[] args = handleMessage(fiber, message, currentNode);
-                fiber.resumed = true;
-                result = ProcOperations.rootCall(block, args);
-            } finally {
-                // Make sure that other fibers notice we are dead before they gain control back
-                fiber.alive = false;
-                if (!entered) {
-                    // Leave before resume/sendExceptionToParentFiber -> addToMessageQueue() -> parent Fiber starts executing
-                    truffleContext.leave(currentNode, prev);
-                }
-            }
-            resume(fiber, getReturnFiber(fiber, currentNode, UNPROFILED), FiberOperation.YIELD, result);
+            final Object[] args = handleMessage(fiber, message, currentNode);
+            fiber.resumed = true;
+            final Object result = ProcOperations.rootCall(block, args);
+
+            lastMessage = new FiberResumeMessage(FiberOperation.YIELD, fiber, new Object[]{ result });
 
             // Handlers in the same order as in ThreadManager
         } catch (KillException | ExitException | RaiseException e) {
             // Propagate the exception until it reaches the root Fiber
-            sendExceptionToParentFiber(fiber, e, currentNode);
+            lastMessage = new FiberExceptionMessage(e);
         } catch (FiberShutdownException e) {
             // Ends execution of the Fiber
+            lastMessage = null;
         } catch (BreakException e) {
-            sendExceptionToParentFiber(
-                    fiber,
-                    new RaiseException(context, context.getCoreExceptions().breakFromProcClosure(currentNode)),
-                    currentNode);
+            final RubyException exception = context.getCoreExceptions().breakFromProcClosure(currentNode);
+            lastMessage = new FiberExceptionMessage(new RaiseException(context, exception));
         } catch (DynamicReturnException e) {
-            sendExceptionToParentFiber(
-                    fiber,
-                    new RaiseException(context, context.getCoreExceptions().unexpectedReturn(currentNode)),
-                    currentNode);
+            final RubyException exception = context.getCoreExceptions().unexpectedReturn(currentNode);
+            lastMessage = new FiberExceptionMessage(new RaiseException(context, exception));
         } catch (Throwable e) {
             final RuntimeException exception = ThreadManager.printInternalError(e);
-            sendExceptionToParentFiber(fiber, exception, currentNode);
+            lastMessage = new FiberExceptionMessage(exception);
         } finally {
+            final RubyFiber returnFiber = lastMessage == null ? null : getReturnFiber(fiber, currentNode, UNPROFILED);
+
+            // Perform all cleanup before resuming the parent Fiber
+            // Make sure that other fibers notice we are dead before they gain control back
+            fiber.alive = false;
+            // Leave context before addToMessageQueue() -> parent Fiber starts executing
+            language.setupCurrentThread(thread, null);
+            if (!entered) {
+                truffleContext.leave(currentNode, prev);
+            }
             cleanup(fiber, thread);
             thread.setName(oldName);
-        }
-    }
 
-    private void sendExceptionToParentFiber(RubyFiber fiber, RuntimeException exception, Node currentNode) {
-        addToMessageQueue(getReturnFiber(fiber, currentNode, UNPROFILED), new FiberExceptionMessage(exception));
+            if (lastMessage != null) {
+                addToMessageQueue(returnFiber, lastMessage);
+            }
+        }
     }
 
     public RubyFiber getReturnFiber(RubyFiber currentFiber, Node currentNode, BranchProfile errorProfile) {
@@ -275,7 +278,7 @@ public class FiberManager implements ObjectGraphNode {
             throw ((FiberExceptionMessage) message).getException();
         } else if (message instanceof FiberResumeMessage) {
             final FiberResumeMessage resumeMessage = (FiberResumeMessage) message;
-            assert context.getThreadManager().getCurrentThread() == resumeMessage.getSendingFiber().rubyThread;
+            assert language.getCurrentThread() == resumeMessage.getSendingFiber().rubyThread;
             if (resumeMessage.getOperation() == FiberOperation.RESUME ||
                     resumeMessage.getOperation() == FiberOperation.RAISE) {
                 fiber.lastResumedByFiber = resumeMessage.getSendingFiber();
