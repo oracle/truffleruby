@@ -9,9 +9,11 @@
  */
 package org.truffleruby.core.thread;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -76,8 +78,14 @@ public class ThreadManager {
 
     private final Set<RubyThread> runningRubyThreads = ConcurrentHashMap.newKeySet();
 
-    /** The set of Java threads TruffleRuby created, and is responsible to exit in {@link #killAndWaitOtherThreads()} */
-    private final Set<Thread> rubyManagedThreads = ConcurrentHashMap.newKeySet();
+    /** The set of Java threads TruffleRuby created, and is responsible to exit in {@link #killAndWaitOtherThreads()}.
+     * Needs to be weak because {@link RubyLanguage#disposeThread} is called late for Fibers with --fiber-leave-context
+     * as that uses a "host thread" (disposeThread is only called on Context#close for those), and there might be
+     * multiple Fibers per such thread with the pool. If a Thread is unreachable we do not need to wait for it in
+     * {@link #killAndWaitOtherThreads()}, but otherwise we need to and we can never remove from this Set as otherwise
+     * we cannot guarantee we wait until the Thread truly finishes execution. */
+    private final Set<Thread> rubyManagedThreads = Collections
+            .newSetFromMap(Collections.synchronizedMap(new WeakHashMap<>()));
 
     public final Map<Thread, RubyFiber> javaThreadToRubyFiber = new ConcurrentHashMap<>();
     public final ThreadLocal<RubyFiber> rubyFiber = ThreadLocal
@@ -154,11 +162,11 @@ public class ThreadManager {
         } else {
             thread = context.getEnv().createThread(runnable);
         }
+        rubyManagedThreads.add(thread); // need to be set before initializeThread()
         thread.setUncaughtExceptionHandler((javaThread, throwable) -> {
             System.err.println("Throwable escaped Fiber pool thread:");
             throwable.printStackTrace();
         });
-        rubyManagedThreads.add(thread);
         return thread;
     }
 
@@ -174,8 +182,8 @@ public class ThreadManager {
         }
 
         final Thread thread = context.getEnv().createThread(runnable);
+        rubyManagedThreads.add(thread); // need to be set before initializeThread()
         thread.setUncaughtExceptionHandler(uncaughtExceptionHandler(fiber));
-        rubyManagedThreads.add(thread);
         return thread;
     }
 
