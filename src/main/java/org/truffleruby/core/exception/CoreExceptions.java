@@ -291,7 +291,7 @@ public class CoreExceptions {
         RubyString errorMessage = StringOperations
                 .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-        final Object cause = ThreadGetExceptionNode.getLastException(context);
+        final Object cause = ThreadGetExceptionNode.getLastException(language);
         showExceptionIfDebug(exceptionClass, errorMessage, backtrace);
         return new RubyFrozenError(
                 exceptionClass,
@@ -826,7 +826,7 @@ public class CoreExceptions {
                 .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         final RubyClass exceptionClass = context.getCoreLibrary().nameErrorClass;
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-        final Object cause = ThreadGetExceptionNode.getLastException(context);
+        final Object cause = ThreadGetExceptionNode.getLastException(language);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
         return new RubyNameError(
                 context.getCoreLibrary().nameErrorClass,
@@ -843,7 +843,7 @@ public class CoreExceptions {
             Node currentNode) {
         // omit = 1 to skip over the call to `method_missing'. MRI does not show this is the backtrace.
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 1);
-        final Object cause = ThreadGetExceptionNode.getLastException(context);
+        final Object cause = ThreadGetExceptionNode.getLastException(language);
 
         final RubyProc formatterProc = formatter.getProc(context);
         final String message = formatter.getMessage(formatterProc, name, receiver);
@@ -870,7 +870,7 @@ public class CoreExceptions {
 
         // omit = 1 to skip over the call to `method_missing'. MRI does not show this is the backtrace.
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 1);
-        final Object cause = ThreadGetExceptionNode.getLastException(context);
+        final Object cause = ThreadGetExceptionNode.getLastException(language);
 
         final RubyProc formatterProc = formatter.getProc(context);
         final String message = formatter.getMessage(formatterProc, name, receiver);
@@ -896,7 +896,7 @@ public class CoreExceptions {
         final RubyArray argsArray = createArray(context, language, args);
         final RubyClass exceptionClass = context.getCoreLibrary().noMethodErrorClass;
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-        final Object cause = ThreadGetExceptionNode.getLastException(context);
+        final Object cause = ThreadGetExceptionNode.getLastException(language);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
         return new RubyNoMethodError(
                 context.getCoreLibrary().noMethodErrorClass,
@@ -917,7 +917,7 @@ public class CoreExceptions {
                 StringOperations.encodeRope("super called outside of method", UTF8Encoding.INSTANCE));
         final RubyClass exceptionClass = context.getCoreLibrary().nameErrorClass;
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-        final Object cause = ThreadGetExceptionNode.getLastException(context);
+        final Object cause = ThreadGetExceptionNode.getLastException(language);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
         // TODO BJF Jul 21, 2016 Review to add receiver
         return new RubyNoMethodError(
@@ -998,7 +998,7 @@ public class CoreExceptions {
         final RubyString messageString = StringOperations
                 .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-        final Object cause = ThreadGetExceptionNode.getLastException(context);
+        final Object cause = ThreadGetExceptionNode.getLastException(language);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
         return new RubySyntaxError(
                 exceptionClass,
@@ -1254,7 +1254,7 @@ public class CoreExceptions {
                 .createUTF8String(context, language, StringOperations.encodeRope("exit", UTF8Encoding.INSTANCE));
         final RubyClass exceptionClass = context.getCoreLibrary().systemExitClass;
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-        final Object cause = ThreadGetExceptionNode.getLastException(context);
+        final Object cause = ThreadGetExceptionNode.getLastException(language);
         showExceptionIfDebug(exceptionClass, message, backtrace);
         return new RubySystemExit(
                 exceptionClass,

@@ -305,7 +305,7 @@ public abstract class ThreadNodes {
         @Specialization
         protected boolean pendingInterrupt(RubyThread self,
                 @Cached BranchProfile errorProfile) {
-            final RubyThread currentThread = getContext().getThreadManager().getCurrentThread();
+            final RubyThread currentThread = getLanguage().getCurrentThread();
             if (currentThread != self) {
                 errorProfile.enter();
                 throw new RaiseException(
@@ -926,8 +926,8 @@ public abstract class ThreadNodes {
             return currentThread.threadLocalGlobals.exception;
         }
 
-        public static Object getLastException(RubyContext context) {
-            return getLastException(context.getThreadManager().getCurrentThread());
+        public static Object getLastException(RubyLanguage language) {
+            return getLastException(language.getCurrentThread());
         }
 
     }

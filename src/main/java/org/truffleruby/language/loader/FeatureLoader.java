@@ -194,7 +194,7 @@ public class FeatureLoader {
             return context.getEnv().getCurrentWorkingDirectory().getPath();
         }
         final int bufferSize = PATH_MAX;
-        final RubyThread rubyThread = context.getThreadManager().getCurrentThread();
+        final RubyThread rubyThread = language.getCurrentThread();
         final Pointer buffer = IOThreadBufferAllocateNode
                 .getBuffer(rubyThread, bufferSize, ConditionProfile.getUncached());
         try {

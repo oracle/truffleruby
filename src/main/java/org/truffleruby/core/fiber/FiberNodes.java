@@ -95,7 +95,7 @@ public abstract class FiberNodes {
                 getContext().getDefaultBacktraceFormatter().printBacktraceOnEnvStderr("fiber: ", this);
             }
 
-            final RubyThread thread = getContext().getThreadManager().getCurrentThread();
+            final RubyThread thread = getLanguage().getCurrentThread();
             final RubyFiber fiber = thread.fiberManager
                     .createFiber(
                             getLanguage(),
@@ -115,7 +115,7 @@ public abstract class FiberNodes {
         @TruffleBoundary
         @Specialization
         protected Object initialize(RubyFiber fiber, RubyProc block) {
-            final RubyThread thread = getContext().getThreadManager().getCurrentThread();
+            final RubyThread thread = getLanguage().getCurrentThread();
             thread.fiberManager.initialize(fiber, block, this);
             return nil;
         }

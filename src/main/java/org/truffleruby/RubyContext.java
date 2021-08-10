@@ -250,7 +250,6 @@ public class RubyContext {
         coreMethods = new CoreMethods(language, this);
 
         // Load the part of the core library defined in Ruby
-
         Metrics.printTime("before-load-core");
         coreLibrary.loadRubyCoreLibraryAndPostBoot();
         Metrics.printTime("after-load-core");

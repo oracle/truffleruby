@@ -22,6 +22,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.ValueType;
 import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.TruffleSafepoint;
@@ -73,8 +74,6 @@ public class ThreadManager {
     @CompilationFinal private Thread rootJavaThread;
 
     private final Map<Thread, RubyThread> javaThreadToRubyThread = new ConcurrentHashMap<>();
-    private final ThreadLocal<RubyThread> currentThread = ThreadLocal
-            .withInitial(() -> javaThreadToRubyThread.get(Thread.currentThread()));
 
     private final Set<RubyThread> runningRubyThreads = ConcurrentHashMap.newKeySet();
 
@@ -243,7 +242,7 @@ public class ThreadManager {
     }
 
     public RubyThread createThread(RubyClass rubyClass, Shape shape, RubyLanguage language) {
-        final Object currentGroup = getCurrentThread().threadGroup;
+        final Object currentGroup = language.getCurrentThread().threadGroup;
         assert currentGroup != null;
         return createThread(rubyClass, shape, language, currentGroup, "<uninitialized>");
     }
@@ -590,7 +589,7 @@ public class ThreadManager {
     public <T> T runUntilResult(Node currentNode, BlockingAction<T> action, Runnable beforeInterrupt,
             Runnable afterInterrupt) {
         final TruffleSafepoint safepoint = TruffleSafepoint.getCurrent();
-        final RubyThread runningThread = getCurrentThread();
+        final RubyThread runningThread = RubyLanguage.get(currentNode).getCurrentThread();
 
         // For Thread.handle_interrupt(Exception => :on_blocking),
         // we want to allow side-effecting actions to interrupt this blocking action and run here.
@@ -631,15 +630,11 @@ public class ThreadManager {
     }
 
     public void initializeValuesForJavaThread(RubyThread rubyThread, Thread thread) {
-        if (Thread.currentThread() == thread) {
-            currentThread.set(rubyThread);
-        }
         javaThreadToRubyThread.put(thread, rubyThread);
     }
 
     public void cleanupValuesForJavaThread(Thread thread) {
         if (Thread.currentThread() == thread) {
-            currentThread.remove();
             context.getMarkingService().cleanupThreadLocalData();
             context.getValueWrapperManager().cleanupBlockHolder();
         }
@@ -647,28 +642,23 @@ public class ThreadManager {
     }
 
     @TruffleBoundary
-    public RubyThread getCurrentThread() {
-        final RubyThread rubyThread = currentThread.get();
+    public RubyThread getRubyThreadForJavaThread(Thread thread) {
+        final RubyThread rubyThread = javaThreadToRubyThread.get(thread);
         if (rubyThread == null) {
-            throw new UnsupportedOperationException(
-                    "No Ruby Thread is associated with this Java Thread: " + Thread.currentThread());
+            throw CompilerDirectives.shouldNotReachHere(
+                    "No Ruby Thread is associated with Java Thread: " + thread);
         }
         return rubyThread;
     }
 
     @TruffleBoundary
     public RubyThread getCurrentThreadOrNull() {
-        return currentThread.get();
+        return javaThreadToRubyThread.get(Thread.currentThread());
     }
 
     @TruffleBoundary
     public RubyFiber getRubyFiberFromCurrentJavaThread() {
         return rubyFiber.get();
-    }
-
-    @TruffleBoundary
-    public RubyThread getRubyThread(Thread javaThread) {
-        return javaThreadToRubyThread.get(javaThread);
     }
 
     public void registerThread(RubyThread thread) {
@@ -700,7 +690,7 @@ public class ThreadManager {
 
         // The logic below avoids using the SafepointManager if there is
         // only the current thread and the reference processing thread.
-        final RubyThread currentThread = getCurrentThread();
+        final RubyThread currentThread = language.getCurrentThread();
         boolean otherThreads = false;
         RubyThread referenceProcessingThread = null;
         for (RubyThread thread : runningRubyThreads) {

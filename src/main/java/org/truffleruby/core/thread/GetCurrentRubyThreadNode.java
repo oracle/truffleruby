@@ -57,7 +57,7 @@ public abstract class GetCurrentRubyThreadNode extends RubyBaseNode {
     }
 
     protected RubyThread getCurrentRubyThread(Object dynamicParameter) {
-        return getContext().getThreadManager().getCurrentThread();
+        return getLanguage().getCurrentThread();
     }
 
     protected RubyFiber getCurrentFiber(RubyThread currentRubyThread) {

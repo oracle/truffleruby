@@ -75,8 +75,7 @@ public class FiberManager implements ObjectGraphNode {
     }
 
     public RubyFiber getCurrentFiber() {
-        assert context
-                .getThreadManager()
+        assert language
                 .getCurrentThread().fiberManager == this : "Trying to read the current Fiber of another Thread which is inherently racy";
         return currentFiber;
     }
@@ -174,6 +173,7 @@ public class FiberManager implements ObjectGraphNode {
         } else {
             prev = null;
         }
+        language.setupCurrentThread(thread, fiber.rubyThread);
 
         FiberMessage lastMessage = null;
         try {
@@ -206,6 +206,7 @@ public class FiberManager implements ObjectGraphNode {
             // Make sure that other fibers notice we are dead before they gain control back
             fiber.alive = false;
             // Leave context before addToMessageQueue() -> parent Fiber starts executing
+            language.setupCurrentThread(thread, null);
             if (!entered) {
                 truffleContext.leave(currentNode, prev);
             }
@@ -277,7 +278,7 @@ public class FiberManager implements ObjectGraphNode {
             throw ((FiberExceptionMessage) message).getException();
         } else if (message instanceof FiberResumeMessage) {
             final FiberResumeMessage resumeMessage = (FiberResumeMessage) message;
-            assert context.getThreadManager().getCurrentThread() == resumeMessage.getSendingFiber().rubyThread;
+            assert language.getCurrentThread() == resumeMessage.getSendingFiber().rubyThread;
             if (resumeMessage.getOperation() == FiberOperation.RESUME ||
                     resumeMessage.getOperation() == FiberOperation.RAISE) {
                 fiber.lastResumedByFiber = resumeMessage.getSendingFiber();
