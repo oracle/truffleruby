@@ -18,7 +18,7 @@ import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
 import org.truffleruby.core.MarkingServiceNodes;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -80,7 +80,8 @@ public class TruffleThreadNodes {
                         ((FrameAndVariablesSendingNode) parent).startSendingOwnVariables();
                         return true;
                     }
-                    if (parent instanceof RubyContextNode) {
+                    if (parent instanceof RubyNode) {
+                        // A node with source info representing Ruby code, we could not find the FrameAndVariablesSendingNode
                         return false;
                     }
                     parent = parent.getParent();
