@@ -27,7 +27,6 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
-import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.Visibility;
@@ -134,12 +133,11 @@ public abstract class FiberNodes {
 
         @Specialization
         protected Object resume(RubyFiber fiber, Object[] args,
-                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached ConditionProfile sameFiberProfile) {
 
             fiber.transferred = true;
 
-            final RubyThread currentThread = getCurrentRubyThreadNode.execute();
+            final RubyThread currentThread = getLanguage().getCurrentThread();
             final FiberManager fiberManager = currentThread.fiberManager;
             final RubyFiber currentFiber = fiberManager.getCurrentFiber();
 
@@ -167,7 +165,6 @@ public abstract class FiberNodes {
 
         @Specialization
         protected Object resume(FiberOperation operation, RubyFiber fiber, Object[] args,
-                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached ConditionProfile doubleResumeProfile,
                 @Cached ConditionProfile transferredProfile) {
 
@@ -184,7 +181,7 @@ public abstract class FiberNodes {
                         coreExceptions().fiberError("cannot resume transferred Fiber", this));
             }
 
-            final RubyThread currentThread = getCurrentRubyThreadNode.execute();
+            final RubyThread currentThread = getLanguage().getCurrentThread();
             final FiberManager fiberManager = currentThread.fiberManager;
             final RubyFiber currentFiber = fiberManager.getCurrentFiber();
 
@@ -233,10 +230,9 @@ public abstract class FiberNodes {
 
         @Specialization
         protected Object fiberYield(Object[] args,
-                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
 
-            final RubyThread currentThread = getCurrentRubyThreadNode.execute();
+            final RubyThread currentThread = getLanguage().getCurrentThread();
             final FiberManager fiberManager = currentThread.fiberManager;
             final RubyFiber currentFiber = fiberManager.getCurrentFiber();
 
@@ -266,9 +262,8 @@ public abstract class FiberNodes {
     public abstract static class CurrentNode extends CoreMethodNode {
 
         @Specialization
-        protected RubyFiber current(
-                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
-            final RubyThread currentThread = getCurrentRubyThreadNode.execute();
+        protected RubyFiber current() {
+            final RubyThread currentThread = getLanguage().getCurrentThread();
             return currentThread.fiberManager.getCurrentFiber();
         }
 
@@ -304,9 +299,8 @@ public abstract class FiberNodes {
     public abstract static class FiberGetCatchTagsNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected RubyArray getCatchTags(
-                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
-            final RubyThread currentThread = getCurrentRubyThreadNode.execute();
+        protected RubyArray getCatchTags() {
+            final RubyThread currentThread = getLanguage().getCurrentThread();
             final RubyFiber currentFiber = currentThread.fiberManager.getCurrentFiber();
             return currentFiber.catchTags;
         }
