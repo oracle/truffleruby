@@ -105,7 +105,7 @@ import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.cast.ToRopeNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
-import org.truffleruby.core.encoding.EncodingLeftCharHeadNode;
+import org.truffleruby.core.encoding.IsCharacterHeadNode;
 import org.truffleruby.core.encoding.EncodingNodes.CheckEncodingNode;
 import org.truffleruby.core.encoding.EncodingNodes.CheckRopeEncodingNode;
 import org.truffleruby.core.encoding.EncodingNodes.GetActualEncodingNode;
@@ -980,7 +980,7 @@ public abstract class StringNodes {
     @Primitive(name = "string_end_with?")
     public abstract static class EndWithNode extends CoreMethodArrayArgumentsNode {
 
-        @Child EncodingLeftCharHeadNode encodingLeftCharHeadNode;
+        @Child IsCharacterHeadNode isCharacterHeadNode;
 
         @Specialization
         protected boolean endWithBytes(Object string, Object suffix, RubyEncoding enc,
@@ -1007,7 +1007,7 @@ public abstract class StringNodes {
 
             final int offset = stringByteLength - suffixByteLength;
 
-            if (leftAdjustProfile.profile(leftAdjustCharHead(enc, stringByteLength, stringBytes, offset))) {
+            if (leftAdjustProfile.profile(!isCharacterHead(enc, stringByteLength, stringBytes, offset))) {
                 return false;
             }
 
@@ -1024,12 +1024,12 @@ public abstract class StringNodes {
             return true;
         }
 
-        private boolean leftAdjustCharHead(RubyEncoding enc, int stringByteLength, byte[] stringBytes, int offset) {
-            if (encodingLeftCharHeadNode == null) {
+        private boolean isCharacterHead(RubyEncoding enc, int stringByteLength, byte[] stringBytes, int offset) {
+            if (isCharacterHeadNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                encodingLeftCharHeadNode = insert(EncodingLeftCharHeadNode.create());
+                isCharacterHeadNode = insert(IsCharacterHeadNode.create());
             }
-            return encodingLeftCharHeadNode.execute(enc, stringBytes, 0, offset, stringByteLength) != offset;
+            return isCharacterHeadNode.execute(enc, stringBytes, offset, stringByteLength);
         }
 
     }
