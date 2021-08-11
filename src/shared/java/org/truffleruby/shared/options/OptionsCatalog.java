@@ -52,7 +52,6 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> LAZY_TRANSLATION_USER_KEY = new OptionKey<>(LAZY_CALLTARGETS_KEY.getDefaultValue());
     public static final OptionKey<Boolean> PATCHING_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> HASHING_DETERMINISTIC_KEY = new OptionKey<>(false);
-    public static final OptionKey<Boolean> FIBER_LEAVE_CONTEXT_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> FIBER_POOL_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> LOG_SUBPROCESS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> WARN_LOCALE_KEY = new OptionKey<>(true);
@@ -383,13 +382,6 @@ public class OptionsCatalog {
     public static final OptionDescriptor HASHING_DETERMINISTIC = OptionDescriptor
             .newBuilder(HASHING_DETERMINISTIC_KEY, "ruby.hashing-deterministic")
             .help("Produce deterministic hash values")
-            .category(OptionCategory.EXPERT)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
-    public static final OptionDescriptor FIBER_LEAVE_CONTEXT = OptionDescriptor
-            .newBuilder(FIBER_LEAVE_CONTEXT_KEY, "ruby.fiber-leave-context")
-            .help("Leave the TruffleContext when suspending a Fiber (avoids triggering multithreading)")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1223,8 +1215,6 @@ public class OptionsCatalog {
                 return PATCHING;
             case "ruby.hashing-deterministic":
                 return HASHING_DETERMINISTIC;
-            case "ruby.fiber-leave-context":
-                return FIBER_LEAVE_CONTEXT;
             case "ruby.fiber-pool":
                 return FIBER_POOL;
             case "ruby.log-subprocess":
@@ -1482,7 +1472,6 @@ public class OptionsCatalog {
             LAZY_TRANSLATION_USER,
             PATCHING,
             HASHING_DETERMINISTIC,
-            FIBER_LEAVE_CONTEXT,
             FIBER_POOL,
             LOG_SUBPROCESS,
             WARN_LOCALE,

@@ -89,9 +89,7 @@ public class FiberManager {
 
     private void fiberMain(RubyContext context, RubyFiber fiber, RubyProc block, Node currentNode) {
         assert !fiber.isRootFiber() : "Root Fibers execute threadMain() and not fiberMain()";
-
-        final boolean entered = !context.getOptions().FIBER_LEAVE_CONTEXT;
-        assert entered == context.getEnv().getContext().isEntered();
+        assertNotEntered("Fibers should start unentered to avoid triggering multithreading");
 
         final Thread thread = Thread.currentThread();
         final SourceSection sourceSection = block.sharedMethodInfo.getSourceSection();
@@ -104,14 +102,9 @@ public class FiberManager {
         fiber.initializedLatch.countDown();
 
         final FiberMessage message = waitMessage(fiber, currentNode);
-        final TruffleContext truffleContext = entered ? null : context.getEnv().getContext();
+        final TruffleContext truffleContext = context.getEnv().getContext();
 
-        final Object prev;
-        if (!entered) {
-            prev = truffleContext.enter(currentNode);
-        } else {
-            prev = null;
-        }
+        final Object prev = truffleContext.enter(currentNode);
         language.setupCurrentThread(thread, fiber.rubyThread);
 
         FiberMessage lastMessage = null;
@@ -146,9 +139,7 @@ public class FiberManager {
             fiber.alive = false;
             // Leave context before addToMessageQueue() -> parent Fiber starts executing
             language.setupCurrentThread(thread, null);
-            if (!entered) {
-                truffleContext.leave(currentNode, prev);
-            }
+            truffleContext.leave(currentNode, prev);
             cleanup(fiber, thread);
             thread.setName(oldName);
 
@@ -205,7 +196,7 @@ public class FiberManager {
     }
 
     private void assertNotEntered(String reason) {
-        assert !context.getOptions().FIBER_LEAVE_CONTEXT || !context.getEnv().getContext().isEntered() : reason;
+        assert !context.getEnv().getContext().isEntered() : reason;
     }
 
     @TruffleBoundary

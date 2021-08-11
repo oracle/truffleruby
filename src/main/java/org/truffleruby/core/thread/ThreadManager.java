@@ -78,11 +78,11 @@ public class ThreadManager {
     private final Set<RubyThread> runningRubyThreads = ConcurrentHashMap.newKeySet();
 
     /** The set of Java threads TruffleRuby created, and is responsible to exit in {@link #killAndWaitOtherThreads()}.
-     * Needs to be weak because {@link RubyLanguage#disposeThread} is called late for Fibers with --fiber-leave-context
-     * as that uses a "host thread" (disposeThread is only called on Context#close for those), and there might be
-     * multiple Fibers per such thread with the pool. If a Thread is unreachable we do not need to wait for it in
-     * {@link #killAndWaitOtherThreads()}, but otherwise we need to and we can never remove from this Set as otherwise
-     * we cannot guarantee we wait until the Thread truly finishes execution. */
+     * Needs to be weak because {@link RubyLanguage#disposeThread} is called late as Fibers use a "host thread"
+     * (disposeThread is only called on Context#close for those), and there might be multiple Fibers per such thread
+     * with the pool. If a Thread is unreachable we do not need to wait for it in {@link #killAndWaitOtherThreads()},
+     * but otherwise we need to and we can never remove from this Set as otherwise we cannot guarantee we wait until the
+     * Thread truly finishes execution. */
     private final Set<Thread> rubyManagedThreads = Collections
             .newSetFromMap(Collections.synchronizedMap(new WeakHashMap<>()));
 
@@ -155,12 +155,7 @@ public class ThreadManager {
             throw new UnsupportedOperationException("fibers should not be created while pre-initializing the context");
         }
 
-        final Thread thread;
-        if (context.getOptions().FIBER_LEAVE_CONTEXT) {
-            thread = new Thread(runnable); // context.getEnv().createUnenteredThread(runnable);
-        } else {
-            thread = context.getEnv().createThread(runnable);
-        }
+        final Thread thread = new Thread(runnable); // context.getEnv().createUnenteredThread(runnable);
         rubyManagedThreads.add(thread); // need to be set before initializeThread()
         thread.setUncaughtExceptionHandler((javaThread, throwable) -> {
             System.err.println("Throwable escaped Fiber pool thread:");
@@ -472,25 +467,14 @@ public class ThreadManager {
         T block() throws InterruptedException;
     }
 
-    /** Only leaves the context if FIBER_LEAVE_CONTEXT is true */
     public <T> T leaveAndEnter(TruffleContext truffleContext, Node currentNode, Supplier<T> runWhileOutsideContext) {
         assert truffleContext.isEntered();
-
-        if (context.getOptions().FIBER_LEAVE_CONTEXT) {
-            return truffleContext.leaveAndEnter(currentNode, runWhileOutsideContext);
-        } else {
-            return runWhileOutsideContext.get();
-        }
+        return truffleContext.leaveAndEnter(currentNode, runWhileOutsideContext);
     }
 
     /** Only use when the context is not entered. */
     @TruffleBoundary
     public <T> void retryWhileInterrupted(Node currentNode, TruffleSafepoint.Interruptible<T> interruptible, T object) {
-        if (!context.getOptions().FIBER_LEAVE_CONTEXT) {
-            runUntilResultKeepStatus(currentNode, interruptible, object);
-            return;
-        }
-
         assert !context.getEnv().getContext().isEntered() : "Use runUntilResult*() when entered";
         boolean interrupted = false;
         try {

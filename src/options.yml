@@ -102,7 +102,6 @@ EXPERT:
     LAZY_TRANSLATION_USER: [lazy-translation-user, boolean, LAZY_CALLTARGETS, 'Lazily translation of stdlib, gem and user source files']
     PATCHING: [patching, boolean, true, Use patching]
     HASHING_DETERMINISTIC: [hashing-deterministic, boolean, false, Produce deterministic hash values]
-    FIBER_LEAVE_CONTEXT: [fiber-leave-context, boolean, true, 'Leave the TruffleContext when suspending a Fiber (avoids triggering multithreading)']
     FIBER_POOL: [fiber-pool, boolean, true, 'Use a thread pool to speed up creating Fibers']
     LOG_SUBPROCESS: [log-subprocess, boolean, false, 'Log whenever a subprocess is created']
     WARN_LOCALE: [warn-locale, boolean, true, 'Warn when the system locale is not set properly']
