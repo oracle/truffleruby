@@ -36,6 +36,7 @@ Performance:
 * Improved `String#gsub` performance by adding a fast path for the `string_byte_index` primitive (#2380, @nirvdrum).
 * Improved `String#index` performance by adding a fast path for the `string_character_index` primitive (#2383, @LillianZ).
 * Optimized conversion of strings to integers if the string contained a numeric value (#2401, @nirvdrum).
+* Provide a new fast path for get and setting backrefs from C extensions.
 
 Changes:
 
