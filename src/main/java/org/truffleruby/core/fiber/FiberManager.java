@@ -258,9 +258,8 @@ public class FiberManager {
 
         if (Thread.currentThread() == javaThread) {
             context.getThreadManager().rubyFiber.set(fiber);
-        } else {
-            context.getThreadManager().javaThreadToRubyFiber.put(javaThread, fiber);
         }
+        context.getThreadManager().javaThreadToRubyFiber.put(javaThread, fiber);
 
         fiber.thread = javaThread;
 
