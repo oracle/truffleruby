@@ -154,20 +154,12 @@ module Truffle
       end
     end
 
-    def self.compilation_stats_literal_regexp
-      Hash[*literal_regexp_compilation_stats_array]
+    def self.compilation_stats_regexp(literal_regexps:)
+      Hash[*regexp_compilation_stats_array(literal_regexps)]
     end
 
-    def self.compilation_stats_dynamic_regexp
-      Hash[*dynamic_regexp_compilation_stats_array]
-    end
-
-    def self.match_stats_joni
-      Hash[*joni_match_stats_array]
-    end
-
-    def self.match_stats_tregex
-      Hash[*tregex_match_stats_array]
+    def self.match_stats(joni_matches:)
+      Hash[*match_stats_array(joni_matches)]
     end
 
     def self.print_stats
@@ -180,19 +172,19 @@ module Truffle
 
         if Truffle::Boot.get_option('regexp-instrument-creation')
           puts '  Compilation (Literal)'
-          print_stats_table compilation_stats_literal_regexp
+          print_stats_table compilation_stats_regexp(literal_regexps: true)
           puts '  --------------------'
           puts '  Compilation (Dynamic)'
-          print_stats_table compilation_stats_dynamic_regexp
+          print_stats_table compilation_stats_regexp(literal_regexps: false)
           puts '  --------------------'
         end
 
         if Truffle::Boot.get_option('regexp-instrument-match')
           puts '  Matches (Joni)'
-          print_stats_table match_stats_joni
+          print_stats_table match_stats(joni_matches: true)
           puts '  --------------------'
           puts '  Matches (TRegex)'
-          print_stats_table match_stats_tregex
+          print_stats_table match_stats(joni_matches: false)
 
           if Truffle::Boot.get_option('regexp-instrument-creation')
             puts '  --------------------'

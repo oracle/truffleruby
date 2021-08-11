@@ -363,43 +363,29 @@ public class TruffleRegexpNodes {
         }
     }
 
-    @CoreMethod(names = "literal_regexp_compilation_stats_array", onSingleton = true, required = 0)
-    public abstract static class LiteralRegexpCompilationStatsArrayNode extends RegexpStatsNode {
+    @CoreMethod(names = "regexp_compilation_stats_array", onSingleton = true, required = 1)
+    public abstract static class RegexpCompilationStatsArrayNode extends RegexpStatsNode {
 
         @Specialization
-        protected Object buildStatsArray(
+        protected Object buildStatsArray(boolean literalRegexps,
                 @Cached ArrayBuilderNode arrayBuilderNode) {
-            return fillinInstrumentData(COMPILED_REGEXPS_LITERAL, arrayBuilderNode, getContext());
+            return fillinInstrumentData(
+                    literalRegexps ? COMPILED_REGEXPS_LITERAL : COMPILED_REGEXPS_DYNAMIC,
+                    arrayBuilderNode,
+                    getContext());
         }
     }
 
-    @CoreMethod(names = "dynamic_regexp_compilation_stats_array", onSingleton = true, required = 0)
-    public abstract static class DynamicRegexpCompilationStatsArrayNode extends RegexpStatsNode {
+    @CoreMethod(names = "match_stats_array", onSingleton = true, required = 1)
+    public abstract static class MatchStatsArrayNode extends RegexpStatsNode {
 
         @Specialization
-        protected Object buildStatsArray(
+        protected Object buildStatsArray(boolean joniMatches,
                 @Cached ArrayBuilderNode arrayBuilderNode) {
-            return fillinInstrumentData(COMPILED_REGEXPS_DYNAMIC, arrayBuilderNode, getContext());
-        }
-    }
-
-    @CoreMethod(names = "joni_match_stats_array", onSingleton = true, required = 0)
-    public abstract static class JoniMatchStatsArrayNode extends RegexpStatsNode {
-
-        @Specialization
-        protected Object buildStatsArray(
-                @Cached ArrayBuilderNode arrayBuilderNode) {
-            return fillinInstrumentData(MATCHED_REGEXPS_JONI, arrayBuilderNode, getContext());
-        }
-    }
-
-    @CoreMethod(names = "tregex_match_stats_array", onSingleton = true, required = 0)
-    public abstract static class TRegexMatchStatsArrayNode extends RegexpStatsNode {
-
-        @Specialization
-        protected Object buildStatsArray(
-                @Cached ArrayBuilderNode arrayBuilderNode) {
-            return fillinInstrumentData(MATCHED_REGEXPS_TREGEX, arrayBuilderNode, getContext());
+            return fillinInstrumentData(
+                    joniMatches ? MATCHED_REGEXPS_JONI : MATCHED_REGEXPS_TREGEX,
+                    arrayBuilderNode,
+                    getContext());
         }
     }
 
