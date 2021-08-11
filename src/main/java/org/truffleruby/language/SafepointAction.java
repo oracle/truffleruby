@@ -57,9 +57,9 @@ public abstract class SafepointAction extends ThreadLocalAction {
                             Thread.currentThread());
         }
 
-        final RubyLanguage language = RubyLanguage.getCurrentLanguage();
         final RubyContext context = RubyLanguage.getCurrentContext();
-        final RubyThread rubyThread = language.getCurrentThread();
+        // Not using language.getCurrentThread() here because it might not be set yet, see fiberMain()
+        final RubyThread rubyThread = context.getThreadManager().getRubyThreadForJavaThread(access.getThread());
         if (filter.test(context, rubyThread, this)) {
             run(rubyThread, access.getLocation());
         }

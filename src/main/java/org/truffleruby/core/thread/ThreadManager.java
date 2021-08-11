@@ -137,7 +137,7 @@ public class ThreadManager {
         rootThread.status = ThreadStatus.RUN;
         rootThread.finishedLatch = new CountDownLatch(1);
 
-        final RubyFiber rootFiber = rootThread.fiberManager.getRootFiber();
+        final RubyFiber rootFiber = rootThread.getRootFiber();
         rootFiber.alive = true;
         rootFiber.finishedLatch = new CountDownLatch(1);
 
@@ -169,7 +169,7 @@ public class ThreadManager {
         return thread;
     }
 
-    private Thread createJavaThread(Runnable runnable, RubyFiber fiber) {
+    private Thread createJavaThread(Runnable runnable, RubyThread rubyThread) {
         if (context.getOptions().SINGLE_THREADED) {
             throw new RaiseException(
                     context,
@@ -182,7 +182,8 @@ public class ThreadManager {
 
         final Thread thread = context.getEnv().createThread(runnable);
         rubyManagedThreads.add(thread); // need to be set before initializeThread()
-        thread.setUncaughtExceptionHandler(uncaughtExceptionHandler(fiber));
+        javaThreadToRubyThread.put(thread, rubyThread); // need to be set before initializeThread()
+        thread.setUncaughtExceptionHandler(uncaughtExceptionHandler(rubyThread.getRootFiber()));
         return thread;
     }
 
@@ -287,9 +288,9 @@ public class ThreadManager {
         startSharing(rubyThread, sharingReason);
 
         rubyThread.sourceLocation = info;
-        final RubyFiber rootFiber = rubyThread.fiberManager.getRootFiber();
+        final RubyFiber rootFiber = rubyThread.getRootFiber();
 
-        final Thread thread = createJavaThread(() -> threadMain(rubyThread, currentNode, task), rootFiber);
+        final Thread thread = createJavaThread(() -> threadMain(rubyThread, currentNode, task), rubyThread);
         thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + info);
         rubyThread.thread = thread;
         javaThreadToRubyThread.put(thread, rubyThread);
@@ -406,9 +407,8 @@ public class ThreadManager {
         thread.thread = javaThread;
         registerThread(thread);
 
-        final FiberManager fiberManager = thread.fiberManager;
-        final RubyFiber rootFiber = fiberManager.getRootFiber();
-        fiberManager.start(rootFiber, javaThread);
+        final RubyFiber rootFiber = thread.getRootFiber();
+        context.fiberManager.start(rootFiber, javaThread);
         // fully initialized
         rootFiber.initializedLatch.countDown();
     }
@@ -421,12 +421,11 @@ public class ThreadManager {
     /** We cannot call this from {@link RubyLanguage#disposeThread} because that's called under a context lock. */
     private void cleanupKillOtherFibers(RubyThread thread) {
         thread.status = ThreadStatus.DEAD;
-        thread.fiberManager.killOtherFibers();
+        context.fiberManager.killOtherFibers(thread);
     }
 
     public void cleanupThreadState(RubyThread thread, Thread javaThread) {
-        final FiberManager fiberManager = thread.fiberManager;
-        fiberManager.cleanup(fiberManager.getRootFiber(), javaThread);
+        context.fiberManager.cleanup(thread.getRootFiber(), javaThread);
 
         thread.ioBuffer.freeAll(thread);
 
@@ -713,7 +712,7 @@ public class ThreadManager {
         if (otherThreads) {
             doKillOtherThreads();
         }
-        currentThread.fiberManager.killOtherFibers();
+        context.fiberManager.killOtherFibers(currentThread);
 
         // Wait and join all Java threads we created
         for (Thread thread : rubyManagedThreads) {
@@ -728,7 +727,7 @@ public class ThreadManager {
     private void doKillOtherThreads() {
         final Thread initiatingJavaThread = Thread.currentThread();
         SafepointPredicate predicate = (context, thread, action) -> Thread.currentThread() != initiatingJavaThread &&
-                getRubyFiberFromCurrentJavaThread() == thread.fiberManager.getCurrentFiber();
+                getRubyFiberFromCurrentJavaThread() == thread.getCurrentFiber();
 
         context.getSafepointManager().pauseAllThreadsAndExecute(
                 DummyNode.INSTANCE,
@@ -770,8 +769,7 @@ public class ThreadManager {
 
             builder.append("\n");
 
-            final FiberManager fiberManager = thread.fiberManager;
-            builder.append(fiberManager.getFiberDebugInfo());
+            builder.append(context.fiberManager.getFiberDebugInfo(thread));
         }
 
         if (builder.length() == 0) {

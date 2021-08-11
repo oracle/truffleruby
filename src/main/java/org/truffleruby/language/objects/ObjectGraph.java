@@ -58,7 +58,7 @@ public abstract class ObjectGraph {
                             // Thread.current
                             reachable.add(rubyThread);
                             // Fiber.current
-                            reachable.add(rubyThread.fiberManager.getCurrentFiber());
+                            reachable.add(rubyThread.getCurrentFiber());
 
                             if (Thread.currentThread() == initiatingJavaThread) {
                                 visitContextRoots(context, reachable);

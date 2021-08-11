@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.fiber;
 
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 
 import com.oracle.truffle.api.TruffleContext;
@@ -18,13 +16,9 @@ import com.oracle.truffle.api.TruffleSafepoint;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.DummyNode;
-import org.truffleruby.core.array.ArrayHelpers;
-import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
-import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.exception.RubyException;
-import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.proc.RubyProc;
@@ -37,79 +31,24 @@ import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.TerminationException;
 
-import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
-import org.truffleruby.language.objects.ObjectGraphNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
-/** Manages Ruby {@code Fiber} objects for a given Ruby thread. */
-public class FiberManager implements ObjectGraphNode {
+/** Helps managing Ruby {@code Fiber} objects. Only one per {@link RubyContext}. */
+public class FiberManager {
 
     public static final String NAME_PREFIX = "Ruby Fiber";
 
     private final RubyLanguage language;
     private final RubyContext context;
-    private final RubyFiber rootFiber;
-    private RubyFiber currentFiber;
-    private final Set<RubyFiber> runningFibers = newFiberSet();
 
-    public FiberManager(RubyLanguage language, RubyContext context, RubyThread rubyThread) {
+    public FiberManager(RubyLanguage language, RubyContext context) {
         this.language = language;
         this.context = context;
-        this.rootFiber = createRootFiber(language, context, rubyThread);
-        this.currentFiber = rootFiber;
-    }
-
-    @TruffleBoundary
-    private static Set<RubyFiber> newFiberSet() {
-        return ConcurrentHashMap.newKeySet();
-    }
-
-    public RubyFiber getRootFiber() {
-        return rootFiber;
-    }
-
-    public RubyFiber getCurrentFiber() {
-        assert language
-                .getCurrentThread().fiberManager == this : "Trying to read the current Fiber of another Thread which is inherently racy";
-        return currentFiber;
-    }
-
-    // If the currentFiber is read from another Ruby Thread,
-    // there is no guarantee that fiber will remain the current one
-    // as it could switch to another Fiber before the actual operation on the returned fiber.
-    public RubyFiber getCurrentFiberRacy() {
-        return currentFiber;
-    }
-
-    private void setCurrentFiber(RubyFiber fiber) {
-        currentFiber = fiber;
-    }
-
-    private RubyFiber createRootFiber(RubyLanguage language, RubyContext context, RubyThread thread) {
-        return createFiber(
-                language,
-                context,
-                thread,
-                context.getCoreLibrary().fiberClass,
-                language.fiberShape,
-                "root");
-    }
-
-    public RubyFiber createFiber(RubyLanguage language, RubyContext context, RubyThread thread, RubyClass rubyClass,
-            Shape shape, String sourceLocation) {
-        CompilerAsserts.partialEvaluationConstant(language);
-        final RubyBasicObject fiberLocals = new RubyBasicObject(
-                context.getCoreLibrary().objectClass,
-                language.basicObjectShape);
-        final RubyArray catchTags = ArrayHelpers.createEmptyArray(context, language);
-
-        return new RubyFiber(rubyClass, shape, fiberLocals, catchTags, thread, sourceLocation);
     }
 
     public void initialize(RubyFiber fiber, RubyProc block, Node currentNode) {
@@ -149,7 +88,7 @@ public class FiberManager implements ObjectGraphNode {
     private static final BranchProfile UNPROFILED = BranchProfile.getUncached();
 
     private void fiberMain(RubyContext context, RubyFiber fiber, RubyProc block, Node currentNode) {
-        assert fiber != rootFiber : "Root Fibers execute threadMain() and not fiberMain()";
+        assert !fiber.isRootFiber() : "Root Fibers execute threadMain() and not fiberMain()";
 
         final boolean entered = !context.getOptions().FIBER_LEAVE_CONTEXT;
         assert entered == context.getEnv().getContext().isEntered();
@@ -220,8 +159,9 @@ public class FiberManager implements ObjectGraphNode {
     }
 
     public RubyFiber getReturnFiber(RubyFiber currentFiber, Node currentNode, BranchProfile errorProfile) {
-        assert currentFiber == this.currentFiber;
+        assert currentFiber == currentFiber.rubyThread.getCurrentFiber();
 
+        final RubyFiber rootFiber = currentFiber.rubyThread.getRootFiber();
         if (currentFiber == rootFiber) {
             errorProfile.enter();
             throw new RaiseException(context, context.getCoreExceptions().yieldFromRootFiberError(currentNode));
@@ -270,7 +210,7 @@ public class FiberManager implements ObjectGraphNode {
 
     @TruffleBoundary
     private Object[] handleMessage(RubyFiber fiber, FiberMessage message, Node currentNode) {
-        setCurrentFiber(fiber);
+        fiber.rubyThread.setCurrentFiber(fiber);
 
         if (message instanceof FiberShutdownMessage) {
             throw new FiberShutdownException(currentNode);
@@ -318,9 +258,8 @@ public class FiberManager implements ObjectGraphNode {
 
         if (Thread.currentThread() == javaThread) {
             context.getThreadManager().rubyFiber.set(fiber);
-        } else {
-            context.getThreadManager().javaThreadToRubyFiber.put(javaThread, fiber);
         }
+        context.getThreadManager().javaThreadToRubyFiber.put(javaThread, fiber);
 
         fiber.thread = javaThread;
 
@@ -329,7 +268,7 @@ public class FiberManager implements ObjectGraphNode {
 
         // share RubyFiber as its fiberLocals might be accessed by other threads with Thread#[]
         SharedObjects.propagate(language, rubyThread, fiber);
-        runningFibers.add(fiber);
+        rubyThread.runningFibers.add(fiber);
     }
 
     public void cleanup(RubyFiber fiber, Thread javaThread) {
@@ -339,7 +278,7 @@ public class FiberManager implements ObjectGraphNode {
 
         threadManager.cleanupValuesForJavaThread(javaThread);
 
-        runningFibers.remove(fiber);
+        fiber.rubyThread.runningFibers.remove(fiber);
 
         fiber.thread = null;
 
@@ -352,7 +291,7 @@ public class FiberManager implements ObjectGraphNode {
     }
 
     @TruffleBoundary
-    public void killOtherFibers() {
+    public void killOtherFibers(RubyThread thread) {
         // All Fibers except the current one are in waitForResume(),
         // so sending a FiberShutdownMessage is enough to finish them.
         // This also avoids the performance cost of a safepoint.
@@ -366,7 +305,7 @@ public class FiberManager implements ObjectGraphNode {
         try {
             final TruffleContext truffleContext = context.getEnv().getContext();
             context.getThreadManager().leaveAndEnter(truffleContext, DummyNode.INSTANCE, () -> {
-                doKillOtherFibers();
+                doKillOtherFibers(thread);
                 return BlockingAction.SUCCESS;
             });
         } finally {
@@ -374,9 +313,9 @@ public class FiberManager implements ObjectGraphNode {
         }
     }
 
-    private void doKillOtherFibers() {
-        for (RubyFiber fiber : runningFibers) {
-            if (fiber != rootFiber) {
+    private void doKillOtherFibers(RubyThread thread) {
+        for (RubyFiber fiber : thread.runningFibers) {
+            if (!fiber.isRootFiber()) {
                 addToMessageQueue(fiber, new FiberShutdownMessage());
 
                 // Wait for the Fiber to finish so we only run one Fiber at a time
@@ -394,16 +333,10 @@ public class FiberManager implements ObjectGraphNode {
         }
     }
 
-    @Override
-    public void getAdjacentObjects(Set<Object> reachable) {
-        // share fibers of a thread as its fiberLocals might be accessed by other threads with Thread#[]
-        reachable.addAll(runningFibers);
-    }
-
-    public String getFiberDebugInfo() {
+    public String getFiberDebugInfo(RubyThread rubyThread) {
         final StringBuilder builder = new StringBuilder();
 
-        for (RubyFiber fiber : runningFibers) {
+        for (RubyFiber fiber : rubyThread.runningFibers) {
             builder.append("  fiber @");
             builder.append(ObjectIDNode.getUncached().execute(fiber));
 
@@ -414,11 +347,11 @@ public class FiberManager implements ObjectGraphNode {
                 builder.append(" #").append(thread.getId()).append(' ').append(thread);
             }
 
-            if (fiber == rootFiber) {
+            if (fiber.isRootFiber()) {
                 builder.append(" (root)");
             }
 
-            if (fiber == currentFiber) {
+            if (fiber == fiber.rubyThread.getCurrentFiber()) {
                 builder.append(" (current)");
             }
 
