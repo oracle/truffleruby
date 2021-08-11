@@ -56,7 +56,7 @@ class << self
 end
 
 show_backtraces = -> {
-  $stderr.puts 'All Thread backtraces:'
+  $stderr.puts 'All Thread and Fiber backtraces:'
   Primitive.all_fibers_backtraces.each do |fiber, backtrace|
     $stderr.puts "#{fiber} of #{Primitive.fiber_thread(fiber)}", backtrace, nil
   end
@@ -68,7 +68,7 @@ Truffle::Boot.delay do
   if Truffle::Boot.get_option('platform-handle-interrupt')
     Primitive.vm_watch_signal 'INT', true, -> _signo do
       if Truffle::Boot.get_option('backtraces-on-interrupt')
-        puts 'Interrupting...'
+        $stderr.puts 'Interrupting...'
         show_backtraces.call
       end
 

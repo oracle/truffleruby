@@ -24,6 +24,7 @@ import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
+import org.truffleruby.language.SafepointAction;
 import org.truffleruby.language.control.BreakException;
 import org.truffleruby.language.control.DynamicReturnException;
 import org.truffleruby.language.control.ExitException;
@@ -42,6 +43,7 @@ import org.truffleruby.language.objects.shared.SharedObjects;
 public class FiberManager {
 
     public static final String NAME_PREFIX = "Ruby Fiber";
+    public static final Object[] SAFEPOINT_ARGS = new Object[]{ FiberSafepointMessage.class };
 
     private final RubyLanguage language;
     private final RubyContext context;
@@ -106,6 +108,7 @@ public class FiberManager {
 
         final Object prev = truffleContext.enter(currentNode);
         language.setupCurrentThread(thread, fiber.rubyThread);
+        fiber.rubyThread.setCurrentFiber(fiber);
 
         FiberMessage lastMessage = null;
         try {
@@ -201,7 +204,13 @@ public class FiberManager {
 
     @TruffleBoundary
     private Object[] handleMessage(RubyFiber fiber, FiberMessage message, Node currentNode) {
-        fiber.rubyThread.setCurrentFiber(fiber);
+        // Written as a loop to not grow the stack when processing guest safepoints
+        while (message instanceof FiberSafepointMessage) {
+            final FiberSafepointMessage safepointMessage = (FiberSafepointMessage) message;
+            safepointMessage.action.run(fiber.rubyThread, currentNode);
+            final RubyFiber sendingFiber = safepointMessage.sendingFiber;
+            message = resumeAndWait(fiber, sendingFiber, FiberOperation.TRANSFER, SAFEPOINT_ARGS, currentNode);
+        }
 
         if (message instanceof FiberShutdownMessage) {
             throw new FiberShutdownException(currentNode);
@@ -210,13 +219,16 @@ public class FiberManager {
         } else if (message instanceof FiberResumeMessage) {
             final FiberResumeMessage resumeMessage = (FiberResumeMessage) message;
             assert language.getCurrentThread() == resumeMessage.getSendingFiber().rubyThread;
-            if (resumeMessage.getOperation() == FiberOperation.RESUME ||
-                    resumeMessage.getOperation() == FiberOperation.RAISE) {
+            final FiberOperation operation = resumeMessage.getOperation();
+
+            if (operation == FiberOperation.RESUME || operation == FiberOperation.RAISE) {
                 fiber.lastResumedByFiber = resumeMessage.getSendingFiber();
             }
-            if (resumeMessage.getOperation() == FiberOperation.RAISE) {
+
+            if (operation == FiberOperation.RAISE) {
                 throw new RaiseException(context, (RubyException) resumeMessage.getArgs()[0]);
             }
+
             return resumeMessage.getArgs();
         } else {
             throw CompilerDirectives.shouldNotReachHere();
@@ -232,16 +244,38 @@ public class FiberManager {
     @TruffleBoundary
     public Object[] transferControlTo(RubyFiber fromFiber, RubyFiber fiber, FiberOperation operation, Object[] args,
             Node currentNode) {
-        final TruffleContext truffleContext = context.getEnv().getContext();
+        final FiberMessage message = resumeAndWait(fromFiber, fiber, operation, args, currentNode);
+        return handleMessage(fromFiber, message, currentNode);
+    }
 
+    @TruffleBoundary
+    private FiberMessage resumeAndWait(RubyFiber fromFiber, RubyFiber fiber, FiberOperation operation, Object[] args,
+            Node currentNode) {
+        final TruffleContext truffleContext = context.getEnv().getContext();
         final FiberMessage message = context
                 .getThreadManager()
                 .leaveAndEnter(truffleContext, currentNode, () -> {
                     resume(fromFiber, fiber, operation, args);
                     return waitMessage(fromFiber, currentNode);
                 });
+        fromFiber.rubyThread.setCurrentFiber(fromFiber);
+        return message;
+    }
 
-        return handleMessage(fromFiber, message, currentNode);
+    @TruffleBoundary
+    public void safepoint(RubyFiber fromFiber, RubyFiber fiber, SafepointAction action, Node currentNode) {
+        final TruffleContext truffleContext = context.getEnv().getContext();
+        final FiberResumeMessage returnMessage = (FiberResumeMessage) context
+                .getThreadManager()
+                .leaveAndEnter(truffleContext, currentNode, () -> {
+                    addToMessageQueue(fiber, new FiberSafepointMessage(fromFiber, action));
+                    return waitMessage(fromFiber, currentNode);
+                });
+        fromFiber.rubyThread.setCurrentFiber(fromFiber);
+
+        if (returnMessage.getArgs() != SAFEPOINT_ARGS) {
+            throw CompilerDirectives.shouldNotReachHere();
+        }
     }
 
     public void start(RubyFiber fiber, Thread javaThread) {
@@ -383,6 +417,16 @@ public class FiberManager {
             return args;
         }
 
+    }
+
+    private static class FiberSafepointMessage implements FiberMessage {
+        private final RubyFiber sendingFiber;
+        private final SafepointAction action;
+
+        private FiberSafepointMessage(RubyFiber sendingFiber, SafepointAction action) {
+            this.sendingFiber = sendingFiber;
+            this.action = action;
+        }
     }
 
     /** Used to cleanup and terminate Fibers when the parent Thread dies. */
