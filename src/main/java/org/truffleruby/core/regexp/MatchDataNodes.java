@@ -12,6 +12,7 @@ package org.truffleruby.core.regexp;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
@@ -527,6 +528,8 @@ public abstract class MatchDataNodes {
                     } else {
                         values[n] = nil;
                     }
+
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, n);

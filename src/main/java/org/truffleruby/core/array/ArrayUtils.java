@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.RubyLanguage;
@@ -241,6 +242,7 @@ public abstract class ArrayUtils {
         try {
             for (; loopProfile.inject(i < to); i++) {
                 array[i] = value;
+                TruffleSafepoint.poll(node);
             }
         } finally {
             RubyBaseNode.profileAndReportLoopCount(node, loopProfile, i - from);
@@ -264,6 +266,7 @@ public abstract class ArrayUtils {
                 if (cmp != 0) {
                     return cmp;
                 }
+                TruffleSafepoint.poll(node);
             }
         } finally {
             RubyBaseNode.profileAndReportLoopCount(node, loopProfile, i);

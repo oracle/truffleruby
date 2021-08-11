@@ -13,6 +13,7 @@ package org.truffleruby.core.array.library;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
@@ -97,6 +98,7 @@ public class ObjectArrayStore {
             try {
                 for (; loopProfile.inject(i < length); i++) {
                     destStores.write(destStore, destStart + i, srcStore[srcStart + i]);
+                    TruffleSafepoint.poll(destStores);
                 }
             } finally {
                 RubyBaseNode.profileAndReportLoopCount(destStores.getNode(), loopProfile, i);

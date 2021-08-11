@@ -75,6 +75,7 @@ import static org.truffleruby.core.string.StringSupport.MBCLEN_NEEDMORE_P;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
+import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
@@ -3165,6 +3166,8 @@ public abstract class StringNodes {
                         // Convert upper-case ASCII char to lower-case.
                         modified[i] ^= 0x20;
                     }
+
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, i - start);
@@ -4274,6 +4277,7 @@ public abstract class StringNodes {
                             return i;
                         }
                     }
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, i - byteOffset);
@@ -4543,6 +4547,7 @@ public abstract class StringNodes {
                     if (ArrayUtils.regionEquals(stringBytes, p, patternBytes, 0, pe)) {
                         return p;
                     }
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, p - offset);
@@ -4648,6 +4653,7 @@ public abstract class StringNodes {
                     if (ArrayUtils.regionEquals(stringBytes, p, patternBytes, 0, pe)) {
                         return p;
                     }
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, p - offset);
@@ -4912,6 +4918,7 @@ public abstract class StringNodes {
                         matchFoundProfile.enter();
                         return i;
                     }
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, normalizedStart - i);
@@ -4966,6 +4973,7 @@ public abstract class StringNodes {
                             return i;
                         }
                     }
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, normalizedStart - i);
@@ -5045,6 +5053,7 @@ public abstract class StringNodes {
                             }
 
                             cur--;
+                            TruffleSafepoint.poll(this);
                         }
                     } finally {
                         profileAndReportLoopCount(loopProfile, pos - cur);

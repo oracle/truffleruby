@@ -21,6 +21,7 @@ import static org.truffleruby.core.rope.CodeRange.CR_VALID;
 
 import java.util.Arrays;
 
+import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
@@ -292,6 +293,7 @@ public abstract class RopeNodes {
                     if (bytes.get(i) < 0) {
                         throw new NonAsciiCharException();
                     }
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, i);

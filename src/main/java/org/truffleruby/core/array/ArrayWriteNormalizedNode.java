@@ -12,6 +12,7 @@ package org.truffleruby.core.array;
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
 
+import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyBaseNode;
@@ -93,6 +94,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
         try {
             for (; loopProfile.inject(n < index); n++) {
                 newArrays.write(objectStore, n, nil);
+                TruffleSafepoint.poll(this);
             }
         } finally {
             profileAndReportLoopCount(loopProfile, n - oldSize);
@@ -120,6 +122,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
         try {
             for (; loopProfile.inject(n < index); n++) {
                 newArrays.write(store, n, nil);
+                TruffleSafepoint.poll(this);
             }
         } finally {
             profileAndReportLoopCount(loopProfile, n - array.size);

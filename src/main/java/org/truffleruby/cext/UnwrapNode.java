@@ -14,6 +14,7 @@ import static org.truffleruby.cext.ValueWrapperManager.TRUE_HANDLE;
 import static org.truffleruby.cext.ValueWrapperManager.UNDEF_HANDLE;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -224,6 +225,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
                 for (; loopProfile.inject(i < size); i++) {
                     final Object cValue = readArrayElement(cArray, interop, i);
                     store[i] = unwrapNode.execute(cValue);
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, i);

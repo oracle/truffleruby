@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.control;
 
+import com.oracle.truffle.api.TruffleSafepoint;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
@@ -80,6 +81,7 @@ public final class WhileNode extends RubyContextSourceNode {
                 } catch (RedoException e) {
                     // Just continue in the while(true) loop.
                     redoUsed.enter();
+                    TruffleSafepoint.poll(this);
                 }
             }
         }

@@ -15,6 +15,7 @@ import static org.truffleruby.language.dispatch.DispatchNode.PUBLIC;
 
 import java.util.Arrays;
 
+import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.graalvm.collections.EconomicSet;
@@ -186,6 +187,7 @@ public abstract class ArrayNodes {
             try {
                 for (; loopProfile.inject(n < count); n++) {
                     arrays.copyContents(store, 0, newStore, n * size, size);
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, n);
@@ -498,6 +500,7 @@ public abstract class ArrayNodes {
                         arrayBuilder.appendValue(state, m, v);
                         m++;
                     }
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, n);
@@ -542,6 +545,7 @@ public abstract class ArrayNodes {
                         mutableStores.write(newStore, m, v);
                         m++;
                     }
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, n);
@@ -628,6 +632,7 @@ public abstract class ArrayNodes {
                     } else {
                         result = appendManyNode.executeAppendMany(array, toAryNode.executeToAry(arg));
                     }
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, i);
@@ -705,6 +710,7 @@ public abstract class ArrayNodes {
                         i++;
                         n++;
                     }
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, n);
@@ -875,11 +881,11 @@ public abstract class ArrayNodes {
             int i = 0;
             try {
                 for (; loopProfile.inject(i < aSize); i++) {
-                    if (!sameOrEqualNode
-                            .executeSameOrEqual(stores.read(aStore, i), stores.read(bStore, i))) {
+                    if (!sameOrEqualNode.executeSameOrEqual(stores.read(aStore, i), stores.read(bStore, i))) {
                         falseProfile.enter();
                         return false;
                     }
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, i);
@@ -950,6 +956,7 @@ public abstract class ArrayNodes {
                         falseProfile.enter();
                         return false;
                     }
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, i);
@@ -1003,6 +1010,7 @@ public abstract class ArrayNodes {
             try {
                 for (; loopProfile.inject(i < size); i++) {
                     stores.write(store, i, value);
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, i);
@@ -1051,6 +1059,7 @@ public abstract class ArrayNodes {
                     final Object value = stores.read(store, n);
                     final long valueHash = toLongNode.execute(toHashNode.call(value, "hash"));
                     h = Hashing.update(h, valueHash);
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, n);
@@ -1081,6 +1090,7 @@ public abstract class ArrayNodes {
                     if (sameOrEqualNode.executeSameOrEqual(stored, value)) {
                         return true;
                     }
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, n);
@@ -1167,6 +1177,7 @@ public abstract class ArrayNodes {
                 try {
                     for (; loopProfile.inject(i < size); i++) {
                         allocatedStores.write(allocatedStore, i, fillingValue);
+                        TruffleSafepoint.poll(this);
                     }
                 } finally {
                     profileAndReportLoopCount(loopProfile, i);
@@ -1412,6 +1423,7 @@ public abstract class ArrayNodes {
                 for (; loopProfile.inject(n < array.size); n++) {
                     accumulator = dispatch
                             .dispatch(frame, accumulator, symbol, nil, new Object[]{ stores.read(store, n) });
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, n);
@@ -1700,6 +1712,7 @@ public abstract class ArrayNodes {
             try {
                 for (; loopProfile.inject(i < rest.length); i++) {
                     appendOneNode.executeAppendOne(array, rest[i]);
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, i);
@@ -1982,6 +1995,7 @@ public abstract class ArrayNodes {
                     stores.write(store, to, tmp);
                     from++;
                     to--;
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, loopCount);
@@ -2273,6 +2287,7 @@ public abstract class ArrayNodes {
                     } else {
                         zipped[n] = createArray(new Object[]{ aStores.read(a, n), nil });
                     }
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, n);

@@ -12,6 +12,7 @@ package org.truffleruby.core.array.library;
 import java.util.Set;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.core.array.ArrayGuards;
@@ -92,6 +93,7 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
         try {
             for (; loopProfile.inject(i < length); i++) {
                 destStores.write(destStore, i + destStart, srcStores.read(storage, srcStart + offset + i));
+                TruffleSafepoint.poll(destStores);
             }
         } finally {
             RubyBaseNode.profileAndReportLoopCount(node.getNode(), loopProfile, i);

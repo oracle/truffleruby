@@ -16,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -489,6 +490,7 @@ public class TruffleRegexpNodes {
                     for (int group = 0; loopProfile.inject(group < groupCount); group++) {
                         region.beg[group] = RubyMatchData.LAZY;
                         region.end[group] = RubyMatchData.LAZY;
+                        TruffleSafepoint.poll(this);
                     }
                 } finally {
                     profileAndReportLoopCount(loopProfile, groupCount);

@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.exceptions;
 
+import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -48,6 +49,7 @@ public class RescueSplatNode extends RescueNode {
                 if (matches(exception, stores.read(handlingClasses.store, i))) {
                     return true;
                 }
+                TruffleSafepoint.poll(this);
             }
         } finally {
             profileAndReportLoopCount(loopProfile, i);
