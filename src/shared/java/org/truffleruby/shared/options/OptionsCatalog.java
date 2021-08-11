@@ -151,6 +151,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> METHODMISSING_ALWAYS_INLINE_KEY = new OptionKey<>(INLINE_DEFAULT_KEY.getDefaultValue());
     public static final OptionKey<Boolean> REGEXP_INSTRUMENT_CREATION_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> REGEXP_INSTRUMENT_MATCH_KEY = new OptionKey<>(false);
+    public static final OptionKey<String> REGEXP_INSTRUMENT_OUTPUT_FORMAT_KEY = new OptionKey<>("text");
     public static final OptionKey<Boolean> METRICS_TIME_PARSING_FILE_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> METRICS_TIME_REQUIRE_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> SHARED_OBJECTS_ENABLED_KEY = new OptionKey<>(true);
@@ -1078,6 +1079,13 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
+    public static final OptionDescriptor REGEXP_INSTRUMENT_OUTPUT_FORMAT = OptionDescriptor
+            .newBuilder(REGEXP_INSTRUMENT_OUTPUT_FORMAT_KEY, "ruby.regexp-instrumentation-output-format")
+            .help("Output format for regexp instrumentation (\\\"text\\\" or \\\"json\\\")")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
     public static final OptionDescriptor METRICS_TIME_PARSING_FILE = OptionDescriptor
             .newBuilder(METRICS_TIME_PARSING_FILE_KEY, "ruby.metrics-time-parsing-file")
             .help("Measure time for parsing, translating and executing files, per file")
@@ -1405,6 +1413,8 @@ public class OptionsCatalog {
                 return REGEXP_INSTRUMENT_CREATION;
             case "ruby.regexp-instrument-match":
                 return REGEXP_INSTRUMENT_MATCH;
+            case "ruby.regexp-instrumentation-output-format":
+                return REGEXP_INSTRUMENT_OUTPUT_FORMAT;
             case "ruby.metrics-time-parsing-file":
                 return METRICS_TIME_PARSING_FILE;
             case "ruby.metrics-time-require":
@@ -1561,6 +1571,7 @@ public class OptionsCatalog {
             METHODMISSING_ALWAYS_INLINE,
             REGEXP_INSTRUMENT_CREATION,
             REGEXP_INSTRUMENT_MATCH,
+            REGEXP_INSTRUMENT_OUTPUT_FORMAT,
             METRICS_TIME_PARSING_FILE,
             METRICS_TIME_REQUIRE,
             SHARED_OBJECTS_ENABLED,

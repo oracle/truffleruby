@@ -30,6 +30,18 @@ public final class RegexpCacheKey {
         this.hashing = hashing;
     }
 
+    public Rope getRope() {
+        return rope;
+    }
+
+    public RubyEncoding getEncoding() {
+        return encoding;
+    }
+
+    public int getJoniOptions() {
+        return joniOptions;
+    }
+
     @Override
     public int hashCode() {
         return hashing.hash(rope.hashCode());

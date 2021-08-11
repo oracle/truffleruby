@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -28,7 +29,6 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.IntValueProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.graalvm.collections.Pair;
-import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -50,6 +50,9 @@ import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.hash.HashOperations;
+import org.truffleruby.core.hash.RubyHash;
+import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
 import org.truffleruby.core.regexp.TruffleRegexpNodesFactory.MatchNodeGen;
@@ -436,6 +439,175 @@ public class TruffleRegexpNodes {
             }
 
             return createArray(arrayBuilderNode.finish(state, n), n);
+        }
+    }
+
+    @CoreMethod(names = "compiled_regexp_hash_array", onSingleton = true, required = 0)
+    public abstract static class CompiledRegexpHashArray extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object buildInfoArray(
+                @Cached ArrayBuilderNode arrayBuilderNode,
+                @CachedLibrary(limit = "3") HashStoreLibrary hashStoreLibrary) {
+            final Set<RegexpCacheKey> compiledRegexps = new HashSet<>();
+            compiledRegexps.addAll(COMPILED_REGEXPS_DYNAMIC.keySet());
+            compiledRegexps.addAll(COMPILED_REGEXPS_LITERAL.keySet());
+
+            final Set<RegexpCacheKey> matchedRegexps = new HashSet<>();
+            matchedRegexps.addAll(
+                    MATCHED_REGEXPS_JONI
+                            .keySet()
+                            .stream()
+                            .map(matchInfo -> matchInfo.regexpInfo)
+                            .collect(Collectors.toSet()));
+            matchedRegexps.addAll(
+                    MATCHED_REGEXPS_TREGEX
+                            .keySet()
+                            .stream()
+                            .map(matchInfo -> matchInfo.regexpInfo)
+                            .collect(Collectors.toSet()));
+
+            final int arraySize = COMPILED_REGEXPS_LITERAL.size() + COMPILED_REGEXPS_DYNAMIC.size();
+            final BuilderState state = arrayBuilderNode.start(arraySize);
+
+            processGroup(COMPILED_REGEXPS_LITERAL, matchedRegexps, true, hashStoreLibrary, arrayBuilderNode, state, 0);
+            processGroup(
+                    COMPILED_REGEXPS_DYNAMIC,
+                    matchedRegexps,
+                    false,
+                    hashStoreLibrary,
+                    arrayBuilderNode,
+                    state,
+                    COMPILED_REGEXPS_LITERAL.size());
+
+            return createArray(arrayBuilderNode.finish(state, arraySize), arraySize);
+        }
+
+        private void processGroup(ConcurrentHashMap<RegexpCacheKey, AtomicInteger> group,
+                Set<RegexpCacheKey> matchedRegexps,
+                boolean isRegexpLiteral,
+                HashStoreLibrary hashStoreLibrary,
+                ArrayBuilderNode arrayBuilderNode, BuilderState state, int offset) {
+            int n = 0;
+            for (Entry<RegexpCacheKey, AtomicInteger> entry : group.entrySet()) {
+                arrayBuilderNode
+                        .appendValue(
+                                state,
+                                offset + n,
+                                buildRegexInfoHash(
+                                        getContext(),
+                                        getLanguage(),
+                                        hashStoreLibrary,
+                                        entry.getKey(),
+                                        matchedRegexps.contains(entry.getKey()),
+                                        Optional.of(isRegexpLiteral),
+                                        Optional.of(entry.getValue())));
+                n++;
+            }
+        }
+
+        protected static RubyHash buildRegexInfoHash(RubyContext context, RubyLanguage language,
+                HashStoreLibrary hashStoreLibrary, RegexpCacheKey regexpInfo, boolean isUsed,
+                Optional<Boolean> isRegexpLiteral,
+                Optional<AtomicInteger> count) {
+            final RubyHash hash = HashOperations.newEmptyHash(context, language);
+
+            hashStoreLibrary.set(
+                    hash.store,
+                    hash,
+                    language.getSymbol("value"),
+                    StringOperations.createUTF8String(context, language, regexpInfo.getRope()),
+                    true);
+
+            if (count.isPresent()) {
+                hashStoreLibrary.set(hash.store, hash, language.getSymbol("count"), count.get().get(), true);
+            }
+
+            if (isRegexpLiteral.isPresent()) {
+                hashStoreLibrary.set(hash.store, hash, language.getSymbol("isLiteral"), isRegexpLiteral.get(), true);
+            }
+
+            hashStoreLibrary.set(hash.store, hash, language.getSymbol("isUsed"), isUsed, true);
+            hashStoreLibrary.set(hash.store, hash, language.getSymbol("encoding"), regexpInfo.getEncoding(), true);
+            hashStoreLibrary.set(
+                    hash.store,
+                    hash,
+                    language.getSymbol("options"),
+                    RegexpOptions.fromJoniOptions(regexpInfo.getJoniOptions()).toOptions(),
+                    true);
+
+            assert hashStoreLibrary.verify(hash.store, hash);
+
+            return hash;
+        }
+    }
+
+    @CoreMethod(names = "matched_regexp_hash_array", onSingleton = true, required = 0)
+    public abstract static class MatchedRegexpHashArray extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object buildInfoArray(
+                @Cached ArrayBuilderNode arrayBuilderNode,
+                @CachedLibrary(limit = "3") HashStoreLibrary hashStoreLibrary) {
+            final int arraySize = (MATCHED_REGEXPS_JONI.size() + MATCHED_REGEXPS_TREGEX.size());
+
+            final BuilderState state = arrayBuilderNode.start(arraySize);
+
+            processGroup(MATCHED_REGEXPS_JONI, false, hashStoreLibrary, arrayBuilderNode, state, 0);
+            processGroup(
+                    MATCHED_REGEXPS_TREGEX,
+                    true,
+                    hashStoreLibrary,
+                    arrayBuilderNode,
+                    state,
+                    MATCHED_REGEXPS_JONI.size());
+
+            return createArray(arrayBuilderNode.finish(state, arraySize), arraySize);
+        }
+
+        private void processGroup(ConcurrentHashMap<MatchInfo, AtomicInteger> group,
+                boolean isTRegexMatch,
+                HashStoreLibrary hashStoreLibrary,
+                ArrayBuilderNode arrayBuilderNode, BuilderState state, int offset) {
+            int n = 0;
+            for (Entry<MatchInfo, AtomicInteger> entry : group.entrySet()) {
+                arrayBuilderNode
+                        .appendValue(
+                                state,
+                                offset + n,
+                                buildHash(hashStoreLibrary, isTRegexMatch, entry.getKey(), entry.getValue()));
+                n++;
+            }
+        }
+
+        private RubyHash buildHash(HashStoreLibrary hashStoreLibrary, boolean isTRegexMatch, MatchInfo matchInfo,
+                AtomicInteger count) {
+            final RubyHash regexpInfoHash = CompiledRegexpHashArray.buildRegexInfoHash(
+                    getContext(),
+                    getLanguage(),
+                    hashStoreLibrary,
+                    matchInfo.regexpInfo,
+                    true,
+                    Optional.empty(),
+                    Optional.empty());
+            final RubyHash matchInfoHash = HashOperations.newEmptyHash(getContext(), getLanguage());
+
+            hashStoreLibrary
+                    .set(matchInfoHash.store, matchInfoHash, getLanguage().getSymbol("regexp"), regexpInfoHash, true);
+            hashStoreLibrary
+                    .set(matchInfoHash.store, matchInfoHash, getLanguage().getSymbol("count"), count.get(), true);
+            hashStoreLibrary
+                    .set(matchInfoHash.store, matchInfoHash, getLanguage().getSymbol("isTRegex"), isTRegexMatch, true);
+            hashStoreLibrary.set(
+                    matchInfoHash.store,
+                    matchInfoHash,
+                    getLanguage().getSymbol("fromStart"),
+                    matchInfo.matchStart,
+                    true);
+
+            assert hashStoreLibrary.verify(matchInfoHash.store, matchInfoHash);
+
+            return matchInfoHash;
         }
     }
 

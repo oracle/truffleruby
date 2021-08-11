@@ -193,6 +193,8 @@ public class Options {
     public final boolean METHODMISSING_ALWAYS_INLINE;
     /** --regexp-instrument-match=false */
     public final boolean REGEXP_INSTRUMENT_MATCH;
+    /** --regexp-instrumentation-output-format="text" */
+    public final String REGEXP_INSTRUMENT_OUTPUT_FORMAT;
     /** --metrics-time-parsing-file=false */
     public final boolean METRICS_TIME_PARSING_FILE;
     /** --metrics-time-require=false */
@@ -288,6 +290,7 @@ public class Options {
         METHODMISSING_ALWAYS_CLONE = options.hasBeenSet(OptionsCatalog.METHODMISSING_ALWAYS_CLONE_KEY) ? options.get(OptionsCatalog.METHODMISSING_ALWAYS_CLONE_KEY) : CLONE_DEFAULT;
         METHODMISSING_ALWAYS_INLINE = options.hasBeenSet(OptionsCatalog.METHODMISSING_ALWAYS_INLINE_KEY) ? options.get(OptionsCatalog.METHODMISSING_ALWAYS_INLINE_KEY) : INLINE_DEFAULT;
         REGEXP_INSTRUMENT_MATCH = options.get(OptionsCatalog.REGEXP_INSTRUMENT_MATCH_KEY);
+        REGEXP_INSTRUMENT_OUTPUT_FORMAT = options.get(OptionsCatalog.REGEXP_INSTRUMENT_OUTPUT_FORMAT_KEY);
         METRICS_TIME_PARSING_FILE = options.get(OptionsCatalog.METRICS_TIME_PARSING_FILE_KEY);
         METRICS_TIME_REQUIRE = options.get(OptionsCatalog.METRICS_TIME_REQUIRE_KEY);
         TESTING_RUBYGEMS = options.get(OptionsCatalog.TESTING_RUBYGEMS_KEY);
@@ -466,6 +469,8 @@ public class Options {
                 return METHODMISSING_ALWAYS_INLINE;
             case "ruby.regexp-instrument-match":
                 return REGEXP_INSTRUMENT_MATCH;
+            case "ruby.regexp-instrumentation-output-format":
+                return REGEXP_INSTRUMENT_OUTPUT_FORMAT;
             case "ruby.metrics-time-parsing-file":
                 return METRICS_TIME_PARSING_FILE;
             case "ruby.metrics-time-require":

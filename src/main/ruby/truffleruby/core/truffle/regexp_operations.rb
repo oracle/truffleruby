@@ -171,33 +171,54 @@ module Truffle
     end
 
     def self.print_stats
-      puts '--------------------'
-      puts 'Regular expression statistics'
-      puts '--------------------'
+      output_format = Truffle::Boot.get_option('regexp-instrumentation-output-format')
 
-      if Truffle::Boot.get_option('regexp-instrument-creation')
-        puts '  Compilation (Literal)'
-        print_stats_table compilation_stats_literal_regexp
-        puts '  --------------------'
-        puts '  Compilation (Dynamic)'
-        print_stats_table compilation_stats_dynamic_regexp
-        puts '  --------------------'
-      end
-
-      if Truffle::Boot.get_option('regexp-instrument-match')
-        puts '  Matches (Joni)'
-        print_stats_table match_stats_joni
-        puts '  --------------------'
-        puts '  Matches (TRegex)'
-        print_stats_table match_stats_tregex
+      if output_format == 'text'
+        puts '--------------------'
+        puts 'Regular expression statistics'
+        puts '--------------------'
 
         if Truffle::Boot.get_option('regexp-instrument-creation')
+          puts '  Compilation (Literal)'
+          print_stats_table compilation_stats_literal_regexp
           puts '  --------------------'
-          puts '  Unused Regexps'
-          puts unused_regexps_array.map { |regexp| "  #{regexp}" }
+          puts '  Compilation (Dynamic)'
+          print_stats_table compilation_stats_dynamic_regexp
+          puts '  --------------------'
         end
 
-        puts '--------------------'
+        if Truffle::Boot.get_option('regexp-instrument-match')
+          puts '  Matches (Joni)'
+          print_stats_table match_stats_joni
+          puts '  --------------------'
+          puts '  Matches (TRegex)'
+          print_stats_table match_stats_tregex
+
+          if Truffle::Boot.get_option('regexp-instrument-creation')
+            puts '  --------------------'
+            puts '  Unused Regexps'
+            puts unused_regexps_array.map { |regexp| "  #{regexp}" }
+          end
+
+          puts '--------------------'
+        end
+      elsif output_format == 'json'
+        ret = {}
+
+        if Truffle::Boot.get_option('regexp-instrument-creation')
+          ret[:regexps] = compiled_regexp_hash_array
+        end
+
+        if Truffle::Boot.get_option('regexp-instrument-match')
+          ret[:matches] = matched_regexp_hash_array
+        end
+
+        # The values must be collected before requiring the JSON library, since the JSON library will load new regexps
+        # to support its own operations. We don't want those to pollute the application profile.
+        require 'json'
+        puts JSON.pretty_generate(ret)
+      else
+        raise "Unsupported regexp output format: #{output_format}"
       end
     end
 
