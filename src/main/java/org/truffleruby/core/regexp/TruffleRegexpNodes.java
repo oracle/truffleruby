@@ -962,7 +962,7 @@ public class TruffleRegexpNodes {
 
         if (language.options.REGEXP_INSTRUMENT_CREATION) {
             final RegexpCacheKey key = new RegexpCacheKey(
-                    bytes.getRope(),
+                    RopeOperations.withEncoding(bytes.getRope(), enc.jcoding),
                     enc,
                     options,
                     Hashing.NO_SEED);
