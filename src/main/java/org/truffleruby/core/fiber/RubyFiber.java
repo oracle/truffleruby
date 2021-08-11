@@ -24,7 +24,7 @@ import org.truffleruby.language.objects.ObjectGraphNode;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.Shape;
 
-public class RubyFiber extends RubyDynamicObject implements ObjectGraphNode {
+public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNode {
 
     public final RubyBasicObject fiberLocals;
     public final RubyArray catchTags;
@@ -55,6 +55,24 @@ public class RubyFiber extends RubyDynamicObject implements ObjectGraphNode {
         this.sourceLocation = sourceLocation;
     }
 
+    public boolean isRootFiber() {
+        return rubyThread.getRootFiber() == this;
+    }
+
+    public String getStatus() {
+        if (!resumed) {
+            return "created";
+        } else if (alive) {
+            if (rubyThread.getCurrentFiberRacy() == this) {
+                return "resumed";
+            } else {
+                return "suspended";
+            }
+        } else {
+            return "terminated";
+        }
+    }
+
     @TruffleBoundary
     private static LinkedBlockingQueue<FiberManager.FiberMessage> newMessageQueue() {
         return new LinkedBlockingQueue<>();
@@ -64,20 +82,6 @@ public class RubyFiber extends RubyDynamicObject implements ObjectGraphNode {
     public void getAdjacentObjects(Set<Object> reachable) {
         reachable.add(fiberLocals);
         reachable.add(rubyThread);
-    }
-
-    public String getStatus() {
-        if (!resumed) {
-            return "created";
-        } else if (alive) {
-            if (rubyThread.fiberManager.getCurrentFiberRacy() == this) {
-                return "resumed";
-            } else {
-                return "suspended";
-            }
-        } else {
-            return "terminated";
-        }
     }
 
 }

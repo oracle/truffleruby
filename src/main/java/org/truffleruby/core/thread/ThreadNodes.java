@@ -399,8 +399,7 @@ public abstract class ThreadNodes {
         @TruffleBoundary
         @Specialization
         protected boolean isInitialized(RubyThread thread) {
-            final RubyFiber rootFiber = thread.fiberManager.getRootFiber();
-            return rootFiber.initializedLatch.getCount() == 0;
+            return thread.getRootFiber().initializedLatch.getCount() == 0;
         }
 
     }
@@ -582,7 +581,7 @@ public abstract class ThreadNodes {
         @TruffleBoundary
         @Specialization
         protected RubyThread wakeup(RubyThread rubyThread) {
-            final RubyFiber currentFiber = rubyThread.fiberManager.getCurrentFiberRacy();
+            final RubyFiber currentFiber = rubyThread.getCurrentFiberRacy();
             final Thread thread = currentFiber.thread;
             if (!currentFiber.alive || thread == null) {
                 throw new RaiseException(getContext(), coreExceptions().threadErrorKilledThread(this));
@@ -959,7 +958,7 @@ public abstract class ThreadNodes {
 
         @Specialization
         protected RubyBasicObject getFiberLocals(RubyThread thread) {
-            final RubyFiber fiber = thread.fiberManager.getCurrentFiberRacy();
+            final RubyFiber fiber = thread.getCurrentFiberRacy();
             return fiber.fiberLocals;
         }
     }

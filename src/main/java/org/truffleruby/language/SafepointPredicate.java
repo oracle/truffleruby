@@ -17,9 +17,9 @@ public interface SafepointPredicate {
     SafepointPredicate ALL_THREADS_AND_FIBERS = (context, rubyThread, action) -> true;
 
     SafepointPredicate CURRENT_FIBER_OF_THREAD = (context, thread, action) -> thread == action.getTargetThread() &&
-            context
-                    .getThreadManager()
-                    .getRubyFiberFromCurrentJavaThread() == action.getTargetThread().fiberManager.getCurrentFiber();
+            context.getThreadManager().getRubyFiberFromCurrentJavaThread() == action
+                    .getTargetThread()
+                    .getCurrentFiber();
 
     boolean test(RubyContext context, RubyThread currentThread, SafepointAction action);
 

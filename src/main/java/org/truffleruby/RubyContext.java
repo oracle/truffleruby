@@ -47,6 +47,7 @@ import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.exception.CoreExceptions;
+import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.hash.PreInitializationManager;
 import org.truffleruby.core.hash.ReHashable;
 import org.truffleruby.core.inlined.CoreMethods;
@@ -142,6 +143,7 @@ public class RubyContext {
     private final CoreLibrary coreLibrary;
     @CompilationFinal private CoreMethods coreMethods;
     private final ThreadManager threadManager;
+    public final FiberManager fiberManager;
     private final LexicalScope rootLexicalScope;
     private volatile ConsoleHolder consoleHolder;
 
@@ -226,6 +228,7 @@ public class RubyContext {
 
         Metrics.printTime("before-thread-manager");
         threadManager = new ThreadManager(this, language);
+        fiberManager = new FiberManager(language, this);
         threadManager.initialize();
         threadManager.initializeMainThread(Thread.currentThread());
         Metrics.printTime("after-thread-manager");
