@@ -11,6 +11,7 @@ package org.truffleruby.core.hash.library;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
@@ -283,6 +284,7 @@ public class PackedHashStoreLibrary {
             try {
                 for (; loopProfile.inject(i < cachedSize); i++) {
                     callback.accept(i, getKey(store, i), getValue(store, i), state);
+                    TruffleSafepoint.poll(hashStoreLibrary);
                 }
             } finally {
                 RubyBaseNode.profileAndReportLoopCount(hashStoreLibrary.getNode(), loopProfile, i);

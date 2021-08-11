@@ -75,6 +75,7 @@ import static org.truffleruby.core.string.StringSupport.MBCLEN_NEEDMORE_P;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
+import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
@@ -105,7 +106,7 @@ import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.cast.ToRopeNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
-import org.truffleruby.core.encoding.EncodingLeftCharHeadNode;
+import org.truffleruby.core.encoding.IsCharacterHeadNode;
 import org.truffleruby.core.encoding.EncodingNodes.CheckEncodingNode;
 import org.truffleruby.core.encoding.EncodingNodes.CheckRopeEncodingNode;
 import org.truffleruby.core.encoding.EncodingNodes.GetActualEncodingNode;
@@ -980,7 +981,7 @@ public abstract class StringNodes {
     @Primitive(name = "string_end_with?")
     public abstract static class EndWithNode extends CoreMethodArrayArgumentsNode {
 
-        @Child EncodingLeftCharHeadNode encodingLeftCharHeadNode;
+        @Child IsCharacterHeadNode isCharacterHeadNode;
 
         @Specialization
         protected boolean endWithBytes(Object string, Object suffix, RubyEncoding enc,
@@ -988,8 +989,7 @@ public abstract class StringNodes {
                 @Cached BytesNode suffixBytesNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsSuffix,
-                @Cached ConditionProfile leftAdjustProfile,
-                @Cached LoopConditionProfile loopProfile) {
+                @Cached ConditionProfile isCharacterHeadProfile) {
 
             final Rope stringRope = strings.getRope(string);
             final Rope suffixRope = stringsSuffix.getRope(suffix);
@@ -1007,29 +1007,19 @@ public abstract class StringNodes {
 
             final int offset = stringByteLength - suffixByteLength;
 
-            if (leftAdjustProfile.profile(leftAdjustCharHead(enc, stringByteLength, stringBytes, offset))) {
+            if (isCharacterHeadProfile.profile(!isCharacterHead(enc, stringByteLength, stringBytes, offset))) {
                 return false;
             }
 
-            int i = 0;
-            try {
-                for (; loopProfile.inject(i < suffixByteLength); i++) {
-                    if (stringBytes[offset + i] != suffixBytes[i]) {
-                        return false;
-                    }
-                }
-            } finally {
-                profileAndReportLoopCount(loopProfile, i);
-            }
-            return true;
+            return ArrayUtils.regionEquals(stringBytes, offset, suffixBytes, 0, suffixByteLength);
         }
 
-        private boolean leftAdjustCharHead(RubyEncoding enc, int stringByteLength, byte[] stringBytes, int offset) {
-            if (encodingLeftCharHeadNode == null) {
+        private boolean isCharacterHead(RubyEncoding enc, int stringByteLength, byte[] stringBytes, int offset) {
+            if (isCharacterHeadNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                encodingLeftCharHeadNode = insert(EncodingLeftCharHeadNode.create());
+                isCharacterHeadNode = insert(IsCharacterHeadNode.create());
             }
-            return encodingLeftCharHeadNode.execute(enc, stringBytes, 0, offset, stringByteLength) != offset;
+            return isCharacterHeadNode.execute(enc, stringBytes, offset, stringByteLength);
         }
 
     }
@@ -3176,6 +3166,8 @@ public abstract class StringNodes {
                         // Convert upper-case ASCII char to lower-case.
                         modified[i] ^= 0x20;
                     }
+
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, i - start);
@@ -4285,6 +4277,7 @@ public abstract class StringNodes {
                             return i;
                         }
                     }
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, i - byteOffset);
@@ -4554,6 +4547,7 @@ public abstract class StringNodes {
                     if (ArrayUtils.regionEquals(stringBytes, p, patternBytes, 0, pe)) {
                         return p;
                     }
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, p - offset);
@@ -4659,6 +4653,7 @@ public abstract class StringNodes {
                     if (ArrayUtils.regionEquals(stringBytes, p, patternBytes, 0, pe)) {
                         return p;
                     }
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, p - offset);
@@ -4923,6 +4918,7 @@ public abstract class StringNodes {
                         matchFoundProfile.enter();
                         return i;
                     }
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, normalizedStart - i);
@@ -4977,6 +4973,7 @@ public abstract class StringNodes {
                             return i;
                         }
                     }
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, normalizedStart - i);
@@ -5056,6 +5053,7 @@ public abstract class StringNodes {
                             }
 
                             cur--;
+                            TruffleSafepoint.poll(this);
                         }
                     } finally {
                         profileAndReportLoopCount(loopProfile, pos - cur);

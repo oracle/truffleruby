@@ -14,6 +14,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.cext.UnwrapNode;
@@ -147,6 +148,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
         try {
             for (; loopProfile.inject(i < length); i++) {
                 destStores.write(destStore, destStart + i, srcStores.read(this, srcStart + i));
+                TruffleSafepoint.poll(destStores);
             }
         } finally {
             RubyBaseNode.profileAndReportLoopCount(srcStores.getNode(), loopProfile, i);

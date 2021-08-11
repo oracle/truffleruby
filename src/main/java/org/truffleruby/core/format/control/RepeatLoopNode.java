@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.format.control;
 
+import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.core.format.FormatNode;
 
@@ -32,6 +33,7 @@ public class RepeatLoopNode extends FormatNode {
         try {
             for (; loopProfile.inject(i < count); i++) {
                 child.execute(frame);
+                TruffleSafepoint.poll(this);
             }
         } finally {
             profileAndReportLoopCount(loopProfile, i);

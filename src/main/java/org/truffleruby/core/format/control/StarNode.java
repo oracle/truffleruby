@@ -16,7 +16,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RepeatingNode;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class StarNode extends FormatNode {
 
@@ -36,15 +35,13 @@ public class StarNode extends FormatNode {
 
         @Child private FormatNode child;
 
-        private final ConditionProfile conditionProfile = ConditionProfile.create();
-
         public StarRepeatingNode(FormatNode child) {
             this.child = child;
         }
 
         @Override
         public boolean executeRepeating(VirtualFrame frame) {
-            if (conditionProfile.profile(getSourcePosition(frame) >= getSourceLength(frame))) {
+            if (getSourcePosition(frame) >= getSourceLength(frame)) {
                 return false;
             }
 

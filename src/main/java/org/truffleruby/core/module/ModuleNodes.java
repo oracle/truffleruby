@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -1554,6 +1555,7 @@ public abstract class ModuleNodes {
             try {
                 for (; loopProfile.inject(i < names.length); ++i) {
                     setMethodVisibilityNode.execute(module, names[i], Visibility.MODULE_FUNCTION);
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, i);

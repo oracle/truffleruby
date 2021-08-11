@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.array;
 
+import com.oracle.truffle.api.TruffleSafepoint;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyBaseNode;
@@ -73,6 +74,7 @@ public abstract class ArrayEachIteratorNode extends RubyBaseNode {
                 } else {
                     return getRecurseNode().execute(array, block, i, consumerNode);
                 }
+                TruffleSafepoint.poll(this);
             }
         } finally {
             profileAndReportLoopCount(loopProfile, i - startAt);
