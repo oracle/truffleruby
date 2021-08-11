@@ -1733,16 +1733,18 @@ module Truffle::CExt
     end
   end
 
-  def rb_backref_get
+  def rb_get_special_vars
     vars = Primitive.cext_special_variables_from_stack
     vars = Truffle::ThreadOperations.ruby_caller_special_variables([Truffle::CExt, Truffle::Interop.singleton_class]) if vars.nil?
-    Primitive.regexp_last_match_get(vars)
+    vars
+  end
+
+  def rb_backref_get
+    Primitive.regexp_last_match_get(rb_get_special_vars())
   end
 
   def rb_backref_set(value)
-    vars = Primitive.cext_special_variables_from_stack
-    vars = Truffle::ThreadOperations.ruby_caller_special_variables([Truffle::CExt, Truffle::Interop.singleton_class]) if vars.nil?
-    Truffle::RegexpOperations::LAST_MATCH_SET.call(value, vars)
+    Truffle::RegexpOperations::LAST_MATCH_SET.call(value, rb_get_special_vars())
   end
 
   def rb_gv_set(name, value)
@@ -1760,7 +1762,7 @@ module Truffle::CExt
 
   def rb_reg_match(re, str)
     result = str ? Truffle::RegexpOperations.match(re, str, 0) : nil
-    Primitive.regexp_last_match_set(Truffle::ThreadOperations.ruby_caller_special_variables([Truffle::CExt, Truffle::Interop.singleton_class]), result)
+    Primitive.regexp_last_match_set(rb_get_special_vars(), result)
 
     result.begin(0) if result
   end
@@ -1882,13 +1884,11 @@ module Truffle::CExt
   end
 
   def rb_lastline_set(str)
-    storage = Primitive.ruby_caller_special_variables
-    Primitive.io_last_line_set(storage, str)
+    Primitive.io_last_line_set(rb_get_special_vars(), str)
   end
 
   def rb_lastline_get
-    storage = Primitive.ruby_caller_special_variables
-    Primitive.io_last_line_get(storage)
+    Primitive.io_last_line_get(rb_get_special_vars())
   end
 
   def rb_cFiber
