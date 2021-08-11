@@ -988,8 +988,7 @@ public abstract class StringNodes {
                 @Cached BytesNode suffixBytesNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsSuffix,
-                @Cached ConditionProfile leftAdjustProfile,
-                @Cached LoopConditionProfile loopProfile) {
+                @Cached ConditionProfile isCharacterHeadProfile) {
 
             final Rope stringRope = strings.getRope(string);
             final Rope suffixRope = stringsSuffix.getRope(suffix);
@@ -1007,21 +1006,11 @@ public abstract class StringNodes {
 
             final int offset = stringByteLength - suffixByteLength;
 
-            if (leftAdjustProfile.profile(!isCharacterHead(enc, stringByteLength, stringBytes, offset))) {
+            if (isCharacterHeadProfile.profile(!isCharacterHead(enc, stringByteLength, stringBytes, offset))) {
                 return false;
             }
 
-            int i = 0;
-            try {
-                for (; loopProfile.inject(i < suffixByteLength); i++) {
-                    if (stringBytes[offset + i] != suffixBytes[i]) {
-                        return false;
-                    }
-                }
-            } finally {
-                profileAndReportLoopCount(loopProfile, i);
-            }
-            return true;
+            return ArrayUtils.regionEquals(stringBytes, offset, suffixBytes, 0, suffixByteLength);
         }
 
         private boolean isCharacterHead(RubyEncoding enc, int stringByteLength, byte[] stringBytes, int offset) {
