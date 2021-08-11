@@ -51,7 +51,7 @@ public final class RegexpCacheKey {
     public boolean equals(Object o) {
         if (o instanceof RegexpCacheKey) {
             final RegexpCacheKey other = (RegexpCacheKey) o;
-            return rope.equals(other.rope) && encoding == other.encoding && joniOptions == other.joniOptions;
+            return encoding == other.encoding && joniOptions == other.joniOptions && rope.equals(other.getRope());
         } else {
             return false;
         }
