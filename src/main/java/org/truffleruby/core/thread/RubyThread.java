@@ -23,7 +23,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.exception.RubyException;
-import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.RubyHash;
@@ -90,7 +89,13 @@ public final class RubyThread extends RubyDynamicObject implements ObjectGraphNo
 
         // Initialized last as it captures `this`
         MemoryFence.storeStore();
-        this.rootFiber = FiberManager.createRootFiber(language, context, this);
+        this.rootFiber = new RubyFiber(
+                context.getCoreLibrary().fiberClass,
+                language.fiberShape,
+                context,
+                language,
+                this,
+                "root");
         this.currentFiber = rootFiber;
     }
 

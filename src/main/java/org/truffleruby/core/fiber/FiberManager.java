@@ -16,13 +16,9 @@ import com.oracle.truffle.api.TruffleSafepoint;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.DummyNode;
-import org.truffleruby.core.array.ArrayHelpers;
-import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
-import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.exception.RubyException;
-import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.proc.RubyProc;
@@ -35,11 +31,9 @@ import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.TerminationException;
 
-import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.language.objects.shared.SharedObjects;
@@ -55,27 +49,6 @@ public class FiberManager {
     public FiberManager(RubyLanguage language, RubyContext context) {
         this.language = language;
         this.context = context;
-    }
-
-    public static RubyFiber createRootFiber(RubyLanguage language, RubyContext context, RubyThread thread) {
-        return createFiber(
-                language,
-                context,
-                thread,
-                context.getCoreLibrary().fiberClass,
-                language.fiberShape,
-                "root");
-    }
-
-    public static RubyFiber createFiber(RubyLanguage language, RubyContext context, RubyThread thread,
-            RubyClass rubyClass, Shape shape, String sourceLocation) {
-        CompilerAsserts.partialEvaluationConstant(language);
-        final RubyBasicObject fiberLocals = new RubyBasicObject(
-                context.getCoreLibrary().objectClass,
-                language.basicObjectShape);
-        final RubyArray catchTags = ArrayHelpers.createEmptyArray(context, language);
-
-        return new RubyFiber(rubyClass, shape, fiberLocals, catchTags, thread, sourceLocation);
     }
 
     public void initialize(RubyFiber fiber, RubyProc block, Node currentNode) {

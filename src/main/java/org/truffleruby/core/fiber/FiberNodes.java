@@ -94,12 +94,12 @@ public abstract class FiberNodes {
             }
 
             final RubyThread thread = getLanguage().getCurrentThread();
-            final RubyFiber fiber = FiberManager.createFiber(
-                    getLanguage(),
-                    getContext(),
-                    thread,
+            final RubyFiber fiber = new RubyFiber(
                     rubyClass,
                     getLanguage().fiberShape,
+                    getContext(),
+                    getLanguage(),
+                    thread,
                     "<uninitialized>");
             AllocationTracing.trace(fiber, this);
             return fiber;
