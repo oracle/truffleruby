@@ -169,7 +169,7 @@ public class ThreadManager {
         return thread;
     }
 
-    private Thread createJavaThread(Runnable runnable, RubyFiber fiber) {
+    private Thread createJavaThread(Runnable runnable, RubyThread rubyThread) {
         if (context.getOptions().SINGLE_THREADED) {
             throw new RaiseException(
                     context,
@@ -182,7 +182,8 @@ public class ThreadManager {
 
         final Thread thread = context.getEnv().createThread(runnable);
         rubyManagedThreads.add(thread); // need to be set before initializeThread()
-        thread.setUncaughtExceptionHandler(uncaughtExceptionHandler(fiber));
+        javaThreadToRubyThread.put(thread, rubyThread); // need to be set before initializeThread()
+        thread.setUncaughtExceptionHandler(uncaughtExceptionHandler(rubyThread.getRootFiber()));
         return thread;
     }
 
@@ -289,7 +290,7 @@ public class ThreadManager {
         rubyThread.sourceLocation = info;
         final RubyFiber rootFiber = rubyThread.getRootFiber();
 
-        final Thread thread = createJavaThread(() -> threadMain(rubyThread, currentNode, task), rootFiber);
+        final Thread thread = createJavaThread(() -> threadMain(rubyThread, currentNode, task), rubyThread);
         thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + info);
         rubyThread.thread = thread;
         javaThreadToRubyThread.put(thread, rubyThread);
