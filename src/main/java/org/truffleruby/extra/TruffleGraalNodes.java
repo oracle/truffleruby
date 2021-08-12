@@ -117,9 +117,9 @@ public abstract class TruffleGraalNodes {
             // declaration frame (to allow Proc#binding) so we shall create an empty one.
             final MaterializedFrame newDeclarationFrame = Truffle
                     .getRuntime()
-                    .createMaterializedFrame(args, coreLibrary().emptyDeclarationDescriptor);
+                    .createMaterializedFrame(args, getLanguage().emptyDeclarationDescriptor);
 
-            newDeclarationFrame.setObject(coreLibrary().emptyDeclarationSpecialVariableSlot, variables);
+            newDeclarationFrame.setObject(getLanguage().emptyDeclarationSpecialVariableSlot, variables);
 
             return new RubyProc(
                     coreLibrary().procClass,

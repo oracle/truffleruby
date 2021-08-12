@@ -26,7 +26,6 @@ import com.oracle.truffle.api.RootCallTarget;
 import org.graalvm.collections.Pair;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.transcode.EConvFlags;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
@@ -79,7 +78,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
@@ -232,11 +230,6 @@ public class CoreLibrary {
     public final BindingLocalVariablesObject interactiveBindingLocalVariablesObject;
 
     public final FrameDescriptor emptyDescriptor;
-    /* Some things (such as procs created from symbols) require a declaration frame, and this should include a slot for
-     * special variable storage. This frame descriptor should be used for those frames to provide a constant frame
-     * descriptor in those cases. */
-    public final FrameDescriptor emptyDeclarationDescriptor;
-    public final FrameSlot emptyDeclarationSpecialVariableSlot;
 
     @CompilationFinal private RubyClass eagainWaitReadable;
     @CompilationFinal private RubyClass eagainWaitWritable;
@@ -546,9 +539,6 @@ public class CoreLibrary {
 
         mainObject = new RubyBasicObject(objectClass, language.basicObjectShape);
         emptyDescriptor = new FrameDescriptor(Nil.INSTANCE);
-        emptyDeclarationDescriptor = new FrameDescriptor(Nil.INSTANCE);
-        emptyDeclarationSpecialVariableSlot = emptyDeclarationDescriptor
-                .addFrameSlot(Layouts.SPECIAL_VARIABLES_STORAGE);
         argv = new RubyArray(arrayClass, language.arrayShape, ArrayStoreLibrary.INITIAL_STORE, 0);
 
         globalVariables = new GlobalVariables(context);

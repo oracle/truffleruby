@@ -202,10 +202,10 @@ public abstract class SymbolNodes {
             // binding as this simplifies the logic elsewhere in the runtime.
             final MaterializedFrame declarationFrame = Truffle
                     .getRuntime()
-                    .createVirtualFrame(args, context.getCoreLibrary().emptyDeclarationDescriptor)
+                    .createVirtualFrame(args, language.emptyDeclarationDescriptor)
                     .materialize();
             SpecialVariableStorage variables = new SpecialVariableStorage();
-            declarationFrame.setObject(context.getCoreLibrary().emptyDeclarationSpecialVariableSlot, variables);
+            declarationFrame.setObject(language.emptyDeclarationSpecialVariableSlot, variables);
 
             return ProcOperations.createRubyProc(
                     context.getCoreLibrary().procClass,

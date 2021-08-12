@@ -23,6 +23,8 @@ import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.ContextThreadLocal;
 import com.oracle.truffle.api.TruffleFile;
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
 import com.oracle.truffle.api.nodes.Node;
@@ -95,6 +97,7 @@ import org.truffleruby.extra.ffi.RubyPointer;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.interop.RubyInnerContext;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyEvalInteractiveRootNode;
@@ -279,6 +282,13 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
             .build();
 
     public final ThreadLocal<ParsingParameters> parsingRequestParams = new ThreadLocal<>();
+
+    /* Some things (such as procs created from symbols) require a declaration frame, and this should include a slot for
+     * special variable storage. This frame descriptor should be used for those frames to provide a constant frame
+     * descriptor in those cases. */
+    public final FrameDescriptor emptyDeclarationDescriptor = new FrameDescriptor(Nil.INSTANCE);
+    public final FrameSlot emptyDeclarationSpecialVariableSlot = emptyDeclarationDescriptor
+            .addFrameSlot(Layouts.SPECIAL_VARIABLES_STORAGE);
 
     private static final LanguageReference<RubyLanguage> REFERENCE = LanguageReference.create(RubyLanguage.class);
 
