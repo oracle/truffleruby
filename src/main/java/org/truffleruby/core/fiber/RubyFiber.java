@@ -17,6 +17,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import com.oracle.truffle.api.CompilerAsserts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.MarkingService;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.RubyBasicObject;
@@ -43,6 +44,7 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
     volatile boolean transferred = false;
     public volatile Throwable uncaughtException = null;
     String sourceLocation;
+    public MarkingService.MarkerThreadLocalData markingData = null;
 
     public RubyFiber(
             RubyClass rubyClass,

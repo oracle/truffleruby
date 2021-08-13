@@ -208,7 +208,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final FrozenStringLiterals frozenStringLiterals;
 
     public final ReferenceQueue<Object> sharedReferenceQueue = new ReferenceQueue<>();
-    public final FinalizationService sharedFinzationService = new FinalizationService(sharedReferenceQueue);
+    public final FinalizationService sharedFinzationService = new FinalizationService(this, sharedReferenceQueue);
     public volatile ValueWrapperManager.HandleBlockWeakReference[] handleBlockSharedMap = new ValueWrapperManager.HandleBlockWeakReference[0];
     public final ValueWrapperManager.HandleBlockAllocator handleBlockAllocator = new ValueWrapperManager.HandleBlockAllocator();
 

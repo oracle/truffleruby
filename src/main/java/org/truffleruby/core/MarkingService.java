@@ -13,8 +13,10 @@ import java.lang.ref.ReferenceQueue;
 import java.util.ArrayList;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.core.queue.UnsizedQueue;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -57,9 +59,10 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         private final MarkingService markingService;
 
         public MarkRunnerService(
+                RubyLanguage lanugage,
                 ReferenceQueue<Object> processingQueue,
                 MarkingService markingService) {
-            super(processingQueue);
+            super(lanugage, processingQueue);
             this.markingService = markingService;
         }
 
@@ -172,7 +175,11 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
 
     @TruffleBoundary
     public MarkerThreadLocalData getThreadLocalData() {
-        return threadLocalData.get();
+        RubyFiber fiber = language.getCurrentThread().getCurrentFiber();
+        if (fiber.markingData == null) {
+            fiber.markingData = makeThreadLocalData();
+        }
+        return fiber.markingData;
     }
 
     @TruffleBoundary
@@ -180,14 +187,14 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         threadLocalData.remove();
     }
 
-    public MarkingService(ReferenceProcessor referenceprocessor) {
-        this(referenceprocessor.processingQueue);
+    public MarkingService(RubyLanguage language, ReferenceProcessor referenceprocessor) {
+        this(language, referenceprocessor.processingQueue);
     }
 
-    public MarkingService(ReferenceQueue<Object> processingQueue) {
-        super(processingQueue);
+    public MarkingService(RubyLanguage language, ReferenceQueue<Object> processingQueue) {
+        super(language, processingQueue);
         threadLocalData = ThreadLocal.withInitial(this::makeThreadLocalData);
-        runnerService = new MarkRunnerService(processingQueue, this);
+        runnerService = new MarkRunnerService(language, processingQueue, this);
     }
 
     @TruffleBoundary

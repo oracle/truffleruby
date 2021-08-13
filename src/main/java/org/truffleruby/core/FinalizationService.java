@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.Objects;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.language.RubyDynamicObject;
 
@@ -47,12 +48,12 @@ public class FinalizationService extends ReferenceProcessingService<FinalizerRef
         }
     }
 
-    public FinalizationService(ReferenceQueue<Object> processingQueue) {
-        super(processingQueue);
+    public FinalizationService(RubyLanguage language, ReferenceQueue<Object> processingQueue) {
+        super(language, processingQueue);
     }
 
-    public FinalizationService(ReferenceProcessor referenceProcessor) {
-        this(referenceProcessor.processingQueue);
+    public FinalizationService(RubyLanguage language, ReferenceProcessor referenceProcessor) {
+        this(language, referenceProcessor.processingQueue);
     }
 
     @TruffleBoundary

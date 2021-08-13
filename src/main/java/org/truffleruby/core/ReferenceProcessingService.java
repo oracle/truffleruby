@@ -16,6 +16,7 @@ import java.util.function.BiConsumer;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager;
@@ -250,8 +251,10 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
     private R first = null;
 
     protected final ReferenceQueue<Object> processingQueue;
+    protected final RubyLanguage language;
 
-    public ReferenceProcessingService(ReferenceQueue<Object> processingQueue) {
+    public ReferenceProcessingService(RubyLanguage language, ReferenceQueue<Object> processingQueue) {
+        this.language = language;
         this.processingQueue = processingQueue;
     }
 
