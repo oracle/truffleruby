@@ -617,10 +617,6 @@ public class ThreadManager {
     }
 
     public void cleanupValuesForJavaThread(Thread thread) {
-        if (Thread.currentThread() == thread) {
-            context.getMarkingService().cleanupThreadLocalData();
-            context.getValueWrapperManager().cleanupBlockHolder();
-        }
         javaThreadToRubyThread.remove(thread);
     }
 

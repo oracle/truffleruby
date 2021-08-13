@@ -19,6 +19,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.cext.ValueWrapperManagerFactory.AllocateHandleNodeGen;
 import org.truffleruby.cext.ValueWrapperManagerFactory.GetHandleBlockHolderNodeGen;
+import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.NotProvided;
@@ -60,13 +61,12 @@ public class ValueWrapperManager {
 
     private volatile HandleBlockWeakReference[] blockMap = new HandleBlockWeakReference[0];
 
-    private final ThreadLocal<HandleThreadData> threadBlocks;
-
     private final RubyContext context;
+    private final RubyLanguage language;
 
     public ValueWrapperManager(RubyContext context) {
         this.context = context;
-        this.threadBlocks = ThreadLocal.withInitial(this::makeThreadData);
+        this.language = context.getLanguageSlow();
     }
 
     public HandleThreadData makeThreadData() {
@@ -81,14 +81,12 @@ public class ValueWrapperManager {
         return threadData;
     }
 
-    @TruffleBoundary
     public HandleThreadData getBlockHolder() {
-        return threadBlocks.get();
-    }
-
-    @TruffleBoundary
-    public void cleanupBlockHolder() {
-        threadBlocks.remove();
+        RubyFiber fiber = language.getCurrentThread().getCurrentFiber();
+        if (fiber.handleData == null) {
+            fiber.handleData = makeThreadData();
+        }
+        return fiber.handleData;
     }
 
     /* We keep a map of long wrappers that have been generated because various C extensions assume that any given fixnum
@@ -304,7 +302,7 @@ public class ValueWrapperManager {
         protected HandleBlock sharedHandleBlock = null;
     }
 
-    protected static class HandleThreadData {
+    public static class HandleThreadData {
 
         private final HandleBlockHolder holder = new HandleBlockHolder();
 

@@ -110,8 +110,6 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         }
     }
 
-    private final ThreadLocal<MarkerThreadLocalData> threadLocalData;
-
     private final MarkRunnerService runnerService;
 
     private final UnsizedQueue keptObjectQueue = new UnsizedQueue();
@@ -182,18 +180,12 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         return fiber.markingData;
     }
 
-    @TruffleBoundary
-    public void cleanupThreadLocalData() {
-        threadLocalData.remove();
-    }
-
     public MarkingService(RubyLanguage language, ReferenceProcessor referenceprocessor) {
         this(language, referenceprocessor.processingQueue);
     }
 
     public MarkingService(RubyLanguage language, ReferenceQueue<Object> processingQueue) {
         super(language, processingQueue);
-        threadLocalData = ThreadLocal.withInitial(this::makeThreadLocalData);
         runnerService = new MarkRunnerService(language, processingQueue, this);
     }
 
