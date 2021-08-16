@@ -11,6 +11,8 @@ package org.truffleruby.core.basicobject;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
@@ -36,6 +38,7 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
@@ -261,14 +264,19 @@ public abstract class BasicObjectNodes {
             return id;
         }
 
-        @Specialization(guards = "isForeignObject(object)")
-        protected long objectIDForeign(Object object) {
-            return Integer.toUnsignedLong(hashCode(object));
-        }
-
-        @TruffleBoundary
-        private int hashCode(Object object) {
-            return object.hashCode();
+        @Specialization(guards = "isForeignObject(value)", limit = "getInteropCacheLimit()")
+        protected int objectIDForeign(Object value,
+                @CachedLibrary("value") InteropLibrary interop,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            if (interop.hasIdentity(value)) {
+                try {
+                    return interop.identityHashCode(value);
+                } catch (UnsupportedMessageException e) {
+                    throw translateInteropException.execute(e);
+                }
+            } else {
+                return System.identityHashCode(value);
+            }
         }
 
         protected int getCacheLimit() {

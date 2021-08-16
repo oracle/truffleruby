@@ -231,12 +231,6 @@ module Polyglot
       end
     end
 
-    def object_id
-      Truffle::Interop.identity_hash_code(self)
-    end
-    alias_method :__id__, :object_id
-    alias_method :hash, :object_id
-
     def equal?(other_object)
       Truffle::Interop.identical?(self, other_object)
     end
