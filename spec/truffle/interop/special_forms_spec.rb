@@ -287,6 +287,7 @@ describe "Interop special forms" do
     pfo.equal?(pfo).should == true
     l.log.should include(["isIdentical", pfo, :InteropLibrary])
 
+    pfo, _, l = proxy[Object.new]
     other = Object.new
     pfo.equal?(other).should == false
     l.log.should include(["isIdentical", other, :InteropLibrary])
@@ -297,6 +298,7 @@ describe "Interop special forms" do
     pfo.eql?(pfo).should == true
     l.log.should include(["isIdentical", pfo, :InteropLibrary])
 
+    pfo, _, l = proxy[Object.new]
     other = Object.new
     pfo.eql?(other).should == false
     l.log.should include(["isIdentical", other, :InteropLibrary])
@@ -312,7 +314,7 @@ describe "Interop special forms" do
   it doc['.object_id', 'uses `System.identityHashCode()` otherwise (which might not be unique)'] do
     pfo, _, l = proxy[42] # primitives have no identity in InteropLibrary
     pfo.object_id.should be_kind_of(Integer)
-    l.log.should include(["isIdentical", pfo, :InteropLibrary]) # hasIdentity()
+    l.log.should include(["isIdenticalOrUndefined", 42]) # hasIdentity()
     l.log.should_not include(["identityHashCode"])
   end
 
@@ -326,7 +328,7 @@ describe "Interop special forms" do
   it doc['.__id__', 'uses `System.identityHashCode()` otherwise (which might not be unique)'] do
     pfo, _, l = proxy[42] # primitives have no identity in InteropLibrary
     pfo.__id__.should be_kind_of(Integer)
-    l.log.should include(["isIdentical", pfo, :InteropLibrary]) # hasIdentity()
+    l.log.should include(["isIdenticalOrUndefined", 42]) # hasIdentity()
     l.log.should_not include(["identityHashCode"])
   end
 
@@ -340,7 +342,7 @@ describe "Interop special forms" do
   it doc['.hash', 'uses `System.identityHashCode()` otherwise (which might not be unique)'] do
     pfo, _, l = proxy[42] # primitives have no identity in InteropLibrary
     pfo.hash.should be_kind_of(Integer)
-    l.log.should include(["isIdentical", pfo, :InteropLibrary]) # hasIdentity()
+    l.log.should include(["isIdenticalOrUndefined", 42]) # hasIdentity()
     l.log.should_not include(["identityHashCode"])
   end
 

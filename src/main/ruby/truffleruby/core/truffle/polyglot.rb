@@ -231,11 +231,6 @@ module Polyglot
       end
     end
 
-    def equal?(other_object)
-      Truffle::Interop.identical?(self, other_object)
-    end
-    alias_method :eql?, :equal?
-
     def inspect
       recursive_string_for(self) if Truffle::ThreadOperations.detect_recursion self do
         return Truffle::InteropOperations.foreign_inspect_nonrecursive(self)

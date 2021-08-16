@@ -10,7 +10,6 @@
 package org.truffleruby.core.basicobject;
 
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.object.Shape;
@@ -152,16 +151,42 @@ public abstract class BasicObjectNodes {
             return Double.doubleToRawLongBits(a) == Double.doubleToRawLongBits(b);
         }
 
-        @Specialization(guards = { "a.getClass() == b.getClass()", "!isPrimitive(a)" }) // since a and b have the same class, implies !isPrimitive(b)
-        protected boolean equalSameClassNonPrimitive(Object a, Object b) {
+        @Specialization(guards = { "isNonPrimitiveRubyObject(a)", "isNonPrimitiveRubyObject(b)" })
+        protected boolean equalRubyObjects(Object a, Object b) {
             return a == b;
         }
 
-        @Fallback
-        protected boolean fallback(Object a, Object b) {
+        @Specialization(guards = { "isNonPrimitiveRubyObject(a)", "isPrimitive(b)" })
+        protected boolean rubyObjectPrimitive(Object a, Object b) {
             return false;
         }
 
+        @Specialization(guards = { "isPrimitive(a)", "isNonPrimitiveRubyObject(b)" })
+        protected boolean primitiveRubyObject(Object a, Object b) {
+            return false;
+        }
+
+        @Specialization(guards = { "isPrimitive(a)", "isPrimitive(b)", "!comparablePrimitives(a, b)" })
+        protected boolean nonComparablePrimitives(Object a, Object b) {
+            return false;
+        }
+
+        @Specialization(guards = "isForeignObject(a) || isForeignObject(b)", limit = "getInteropCacheLimit()")
+        protected boolean equalForeign(Object a, Object b,
+                @CachedLibrary("a") InteropLibrary lhsInterop,
+                @CachedLibrary("b") InteropLibrary rhsInterop) {
+            return lhsInterop.isIdentical(a, b, rhsInterop);
+        }
+
+        protected static boolean isNonPrimitiveRubyObject(Object object) {
+            return object instanceof RubyDynamicObject || object instanceof ImmutableRubyObject;
+        }
+
+        protected static boolean comparablePrimitives(Object a, Object b) {
+            return (a instanceof Boolean && b instanceof Boolean) ||
+                    (RubyGuards.isImplicitLong(a) && RubyGuards.isImplicitLong(b)) ||
+                    (RubyGuards.isImplicitDouble(a) && RubyGuards.isImplicitDouble(b));
+        }
     }
 
     @GenerateUncached
