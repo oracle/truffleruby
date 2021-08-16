@@ -304,7 +304,7 @@ describe "Interop special forms" do
 
   it description['.object_id', :identityHashCode, [], 'when `hasIdentity()` is true (which might not be unique)'] do
     pfo, obj, l = proxy[Object.new]
-    pfo.object_id.should == obj.object_id
+    pfo.object_id.should == Truffle::Interop.identity_hash_code(obj)
     l.log.should include(["isIdentical", pfo, :InteropLibrary]) # hasIdentity()
     l.log.should include(["identityHashCode"])
   end
@@ -318,7 +318,7 @@ describe "Interop special forms" do
 
   it description['.__id__', :identityHashCode, [], 'when `hasIdentity()` is true (which might not be unique)'] do
     pfo, obj, l = proxy[Object.new]
-    pfo.__id__.should == obj.__id__
+    pfo.__id__.should == Truffle::Interop.identity_hash_code(obj)
     l.log.should include(["isIdentical", pfo, :InteropLibrary]) # hasIdentity()
     l.log.should include(["identityHashCode"])
   end
@@ -332,7 +332,7 @@ describe "Interop special forms" do
 
   it description['.hash', :identityHashCode, [], 'when `hasIdentity()` is true (which might not be unique)'] do
     pfo, obj, l = proxy[Object.new]
-    pfo.hash.should == obj.__id__
+    pfo.hash.should == Truffle::Interop.identity_hash_code(obj)
     l.log.should include(["isIdentical", pfo, :InteropLibrary]) # hasIdentity()
     l.log.should include(["identityHashCode"])
   end
