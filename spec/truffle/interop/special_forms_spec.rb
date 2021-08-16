@@ -67,9 +67,9 @@ describe "Interop special forms" do
 
   it description['[index]', :readArrayElement, [:index]] do
     pfo, pa, l  = proxy[TruffleInteropSpecs::PolyglotArray.new]
-    -> { pfo[0] }.should raise_error(IndexError)
-    l.log.should include(['readArrayElement', 0])
-    pa.log.should include([:polyglot_read_array_element, 0])
+    pfo[0].should == nil
+    l.log.should include(['getArraySize'])
+    pa.log.should include([:polyglot_array_size])
   end
 
   it description['[name] = value', :writeMember, [:name, :value]] do
@@ -136,9 +136,9 @@ describe "Interop special forms" do
   end
 
   it description['.size', :getArraySize] do
-    pfo, _, l = proxy[Object.new]
-    -> { pfo.size }.should raise_error(Polyglot::UnsupportedMessageError)
-    l.log.should include(['getArraySize'])
+    # Method size does not exist for a foreign object
+    pfo, _, _l = proxy[Object.new]
+    -> { pfo.size }.should raise_error(NameError)
   end
 
   it description['.keys', :getMembers] do
@@ -186,8 +186,9 @@ describe "Interop special forms" do
   end
 
   it description['.new(*arguments)', :instantiate, ['*arguments']] do
-    pfo, _, l = proxy[Object.new]
-    -> { pfo.new }.should raise_error(Polyglot::UnsupportedMessageError)
+    klass = Class.new
+    pfo, _, l = proxy[klass]
+    pfo.new.should.is_a?(klass)
     l.log.should include(["instantiate"])
   end
 
@@ -202,13 +203,13 @@ describe "Interop special forms" do
   it description['.class', :getMetaObject] do
     pfo, _, l = proxy[Truffle::Debug.foreign_object]
     # For Truffle::Debug.foreign_object, hasMetaObject() is false, so then .class returns Truffle::Interop::Foreign
-    pfo.class.should == Truffle::Interop::Foreign
+    pfo.class.should == Polyglot::ForeignObject
     l.log.should include(["hasMetaObject"])
   end
 
   it doc['.inspect', 'returns a Ruby-style `#inspect` string showing members, array elements, etc'] do
     # More detailed specs in spec/truffle/interop/foreign_inspect_to_s_spec.rb
-    Truffle::Debug.foreign_object.inspect.should =~ /\A#<Foreign:0x\h+>\z/
+    Truffle::Debug.foreign_object.inspect.should =~ /\A#<Polyglot::ForeignObject:0x\h+>\z/
   end
 
   it description['.to_s', :asString, [], 'when `isString(foreign_object)` is true'] do
@@ -230,25 +231,25 @@ describe "Interop special forms" do
     l.log.should include(["asString"])
   end
 
-  it doc['.to_str', 'raises `NoMethodError` otherwise'] do
+  it doc['.to_str', 'raises `NameError` otherwise'] do
     pfo, _, l = proxy[Object.new]
-    -> { pfo.to_str }.should raise_error(NoMethodError)
+    -> { pfo.to_str }.should raise_error(NameError)
     l.log.should include(["isString"])
   end
 
   it doc['.to_a', 'converts to a Ruby `Array` with `Truffle::Interop.to_array(foreign_object)`'] do
-    pfo, _, l = proxy[Object.new]
-    -> { pfo.to_a }.should raise_error(RuntimeError)
-    l.log.should include(["hasArrayElements"])
+    # method to_a does not exist for a foreign object
+    pfo, _, _l = proxy[Object.new]
+    -> { pfo.to_a }.should raise_error(NameError)
   end
 
   it doc['.to_ary', 'converts to a Ruby `Array` with `Truffle::Interop.to_array(foreign_object)`'] do
-    pfo, _, l = proxy[Object.new]
-    -> { pfo.to_a }.should raise_error(RuntimeError)
-    l.log.should include(["hasArrayElements"])
+    # method to_a does not exist for a foreign object
+    pfo, _, _l = proxy[Object.new]
+    -> { pfo.to_a }.should raise_error(NameError)
   end
 
-  it doc['.to_f', 'tries to converts to a Ruby `Float` using `asDouble()` and `(double) asLong()` or raises `TypeError`'] do
+  it doc['.to_f', 'tries to converts to a Ruby `Float` using `asDouble()` and `(double) asLong()` or raises `NameError`'] do
     pfo, _, l = proxy[42]
     pfo.to_f.should.eql?(42.0)
     l.log.should include(["fitsInDouble"])
@@ -258,16 +259,14 @@ describe "Interop special forms" do
     pfo, _, l = proxy[does_not_fit_perfectly_in_double]
     pfo.to_f.should.eql?(does_not_fit_perfectly_in_double.to_f)
     l.log.should include(["fitsInDouble"])
-    l.log.should include(["fitsInLong"])
     l.log.should include(["asLong"])
 
     pfo, _, l = proxy[Object.new]
-    -> { pfo.to_f }.should raise_error(TypeError, "can't convert foreign object to Float")
-    l.log.should include(["fitsInDouble"])
-    l.log.should include(["fitsInLong"])
+    -> { pfo.to_f }.should raise_error(NameError, /to_f/)
+    l.log.should include(["isNumber"])
   end
 
-  it doc['.to_i', 'tries to converts to a Ruby `Integer` using `asInt()` and `asLong()` or raises `TypeError`'] do
+  it doc['.to_i', 'tries to converts to a Ruby `Integer` using `asInt()` and `asLong()` or raises `NameError`'] do
     pfo, _, l = proxy[42]
     pfo.to_i.should.eql?(42)
     l.log.should include(["fitsInInt"])
@@ -279,9 +278,8 @@ describe "Interop special forms" do
     l.log.should include(["asLong"])
 
     pfo, _, l = proxy[Object.new]
-    -> { pfo.to_i }.should raise_error(TypeError, "can't convert foreign object to Integer")
-    l.log.should include(["fitsInInt"])
-    l.log.should include(["fitsInLong"])
+    -> { pfo.to_i }.should raise_error(NameError, /to_i/)
+    l.log.should include(["isNumber"])
   end
 
   it description['.equal?(other)', :isIdentical, [:other]] do
@@ -289,6 +287,7 @@ describe "Interop special forms" do
     pfo.equal?(pfo).should == true
     l.log.should include(["isIdentical", pfo, :InteropLibrary])
 
+    pfo, _, l = proxy[Object.new]
     other = Object.new
     pfo.equal?(other).should == false
     l.log.should include(["isIdentical", other, :InteropLibrary])
@@ -299,6 +298,7 @@ describe "Interop special forms" do
     pfo.eql?(pfo).should == true
     l.log.should include(["isIdentical", pfo, :InteropLibrary])
 
+    pfo, _, l = proxy[Object.new]
     other = Object.new
     pfo.eql?(other).should == false
     l.log.should include(["isIdentical", other, :InteropLibrary])
@@ -306,7 +306,7 @@ describe "Interop special forms" do
 
   it description['.object_id', :identityHashCode, [], 'when `hasIdentity()` is true (which might not be unique)'] do
     pfo, obj, l = proxy[Object.new]
-    pfo.object_id.should == obj.object_id
+    pfo.object_id.should == Truffle::Interop.identity_hash_code(obj)
     l.log.should include(["isIdentical", pfo, :InteropLibrary]) # hasIdentity()
     l.log.should include(["identityHashCode"])
   end
@@ -314,13 +314,13 @@ describe "Interop special forms" do
   it doc['.object_id', 'uses `System.identityHashCode()` otherwise (which might not be unique)'] do
     pfo, _, l = proxy[42] # primitives have no identity in InteropLibrary
     pfo.object_id.should be_kind_of(Integer)
-    l.log.should include(["isIdentical", pfo, :InteropLibrary]) # hasIdentity()
+    l.log.should include(["isIdenticalOrUndefined", 42]) # hasIdentity()
     l.log.should_not include(["identityHashCode"])
   end
 
   it description['.__id__', :identityHashCode, [], 'when `hasIdentity()` is true (which might not be unique)'] do
     pfo, obj, l = proxy[Object.new]
-    pfo.__id__.should == obj.__id__
+    pfo.__id__.should == Truffle::Interop.identity_hash_code(obj)
     l.log.should include(["isIdentical", pfo, :InteropLibrary]) # hasIdentity()
     l.log.should include(["identityHashCode"])
   end
@@ -328,13 +328,13 @@ describe "Interop special forms" do
   it doc['.__id__', 'uses `System.identityHashCode()` otherwise (which might not be unique)'] do
     pfo, _, l = proxy[42] # primitives have no identity in InteropLibrary
     pfo.__id__.should be_kind_of(Integer)
-    l.log.should include(["isIdentical", pfo, :InteropLibrary]) # hasIdentity()
+    l.log.should include(["isIdenticalOrUndefined", 42]) # hasIdentity()
     l.log.should_not include(["identityHashCode"])
   end
 
   it description['.hash', :identityHashCode, [], 'when `hasIdentity()` is true (which might not be unique)'] do
     pfo, obj, l = proxy[Object.new]
-    pfo.hash.should == obj.__id__
+    pfo.hash.should == Truffle::Interop.identity_hash_code(obj)
     l.log.should include(["isIdentical", pfo, :InteropLibrary]) # hasIdentity()
     l.log.should include(["identityHashCode"])
   end
@@ -342,7 +342,7 @@ describe "Interop special forms" do
   it doc['.hash', 'uses `System.identityHashCode()` otherwise (which might not be unique)'] do
     pfo, _, l = proxy[42] # primitives have no identity in InteropLibrary
     pfo.hash.should be_kind_of(Integer)
-    l.log.should include(["isIdentical", pfo, :InteropLibrary]) # hasIdentity()
+    l.log.should include(["isIdenticalOrUndefined", 42]) # hasIdentity()
     l.log.should_not include(["identityHashCode"])
   end
 
@@ -374,17 +374,15 @@ describe "Interop special forms" do
     l.log.should include(["hasArrayElements"])
   end
 
-  it doc['.respond_to?(:to_f)', 'sends `fitsInDouble()` and `fitsInLong()`'] do
-    pfo, _, l = proxy[Object.new]
-    pfo.respond_to?(:to_f)
+  it doc['.respond_to?(:to_f)', 'sends `fitsInDouble()`'] do
+    pfo, _, l = proxy[3.14]
+    pfo.should.respond_to?(:to_f)
     l.log.should include(["fitsInDouble"])
-    l.log.should include(["fitsInLong"])
   end
 
-  it doc['.respond_to?(:to_i)', 'sends `fitsInInt()` and `fitsInLong()`'] do
-    pfo, _, l = proxy[Object.new]
-    pfo.respond_to?(:to_i)
-    l.log.should include(["fitsInInt"])
+  it doc['.respond_to?(:to_i)', 'sends `fitsInLong()`'] do
+    pfo, _, l = proxy[42]
+    pfo.should.respond_to?(:to_i)
     l.log.should include(["fitsInLong"])
   end
 

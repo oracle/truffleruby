@@ -15,7 +15,6 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.LongCastNode;
@@ -139,19 +138,16 @@ public abstract class RubyDynamicObject extends DynamicObject {
     }
 
     // region Identity
-    /** Like {@link org.truffleruby.core.hash.HashingNodes} but simplified since {@link ObjectIDNode} for
-     * RubyDynamicObject can only return long. */
     @ExportMessage
-    public int identityHashCode(
-            @Cached ObjectIDNode objectIDNode) {
-        return (int) objectIDNode.execute(this);
+    public int identityHashCode() {
+        return System.identityHashCode(this);
     }
 
     @ExportMessage
     public TriState isIdenticalOrUndefined(Object other,
             @Exclusive @Cached ConditionProfile rubyObjectProfile) {
         if (rubyObjectProfile.profile(other instanceof RubyDynamicObject)) {
-            return this == other ? TriState.TRUE : TriState.FALSE;
+            return TriState.valueOf(this == other);
         } else {
             return TriState.UNDEFINED;
         }

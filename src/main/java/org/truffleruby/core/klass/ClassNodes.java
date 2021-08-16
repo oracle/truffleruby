@@ -82,17 +82,16 @@ public abstract class ClassNodes {
         // See rb_singleton_class() documentation in MRI.
         // Allocator is null here, we cannot create instances of singleton classes.
         assert attached != null;
-        return ensureItHasSingletonClassCreated(
+        final RubyClass rubyClass = createRubyClass(
                 context,
-                createRubyClass(
-                        context,
-                        sourceSection,
-                        getClassClass(superclass),
-                        null,
-                        superclass,
-                        null,
-                        true,
-                        attached));
+                sourceSection,
+                getClassClass(superclass),
+                null,
+                superclass,
+                null,
+                true,
+                attached);
+        return ensureItHasSingletonClassCreated(context, rubyClass);
     }
 
     @TruffleBoundary
@@ -108,12 +107,11 @@ public abstract class ClassNodes {
                 name,
                 false,
                 null);
-        ensureItHasSingletonClassCreated(context, rubyClass);
-        return rubyClass;
+        return ensureItHasSingletonClassCreated(context, rubyClass);
     }
 
     @TruffleBoundary
-    public static RubyClass createRubyClass(RubyContext context,
+    private static RubyClass createRubyClass(RubyContext context,
             SourceSection sourceSection,
             RubyClass classClass,
             RubyModule lexicalParent,

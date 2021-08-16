@@ -25,6 +25,7 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
 import org.truffleruby.language.Nil;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.CallForeignMethodNode;
@@ -117,7 +118,6 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
         assert block instanceof Nil || block instanceof RubyProc : block;
 
         final RubyClass metaclass = metaclassNode.execute(receiver);
-
         final InternalMethod method = methodLookup.execute(frame, metaclass, methodName, config);
 
         if (methodMissing.profile(method == null || method.isUndefined())) {
@@ -126,7 +126,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
                     return MISSING;
                 case CALL_METHOD_MISSING:
                     // Both branches implicitly profile through lazy node creation
-                    if (metaclass == getContext().getCoreLibrary().truffleInteropForeignClass) {
+                    if (RubyGuards.isForeignObject(receiver)) { // TODO (eregon, 16 Aug 2021) maybe use a final boolean on the class to know if foreign
                         return callForeign(receiver, methodName, block, arguments);
                     } else {
                         return callMethodMissing(frame, receiver, methodName, block, arguments);

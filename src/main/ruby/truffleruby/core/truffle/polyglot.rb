@@ -71,6 +71,215 @@ module Polyglot
   def self.as_enumerable(object)
     Truffle::Interop.enumerable(object)
   end
+
+  # region Trait modules for foreign objects
+  module ArrayTrait
+    include Enumerable
+
+    def each
+      return to_enum(:each) { size } unless block_given?
+
+      i = 0
+      while i < length
+        yield Truffle::Interop.read_array_element(self, i)
+        i += 1
+      end
+    end
+
+    def at(index)
+      size = Truffle::Interop.array_size(self)
+      index += size if index < 0
+      if index < 0 || index >= size
+        nil
+      else
+        Truffle::Interop.read_array_element(self, index)
+      end
+    end
+
+    def [](index)
+      if Primitive.object_kind_of?(index, Numeric)
+        at(index)
+      else
+        super(index)
+      end
+    end
+
+    def []=(member, value)
+      if Primitive.object_kind_of?(member, Numeric)
+        Truffle::Interop.write_array_element(self, member, value)
+      else
+        super(member, value)
+      end
+    end
+
+    def delete(member)
+      if Primitive.object_kind_of?(member, Numeric)
+        Truffle::Interop.remove_array_element(self, member)
+      else
+        super(member)
+      end
+    end
+
+    def empty?
+      Truffle::Interop.array_size(self) == 0
+    end
+
+    def first
+      self[0]
+    end
+
+    def last
+      self[-1]
+    end
+
+    def size
+      Truffle::Interop.array_size(self)
+    end
+    alias_method :length, :size
+
+    def to_ary
+      Truffle::Interop.to_array(self)
+    end
+    alias_method :to_a, :to_ary
+  end
+
+  module ExecutableTrait
+    def call(*args)
+      Truffle::Interop.execute(self, *args)
+    end
+  end
+
+  module InstantiableTrait
+    def new(*args)
+      Truffle::Interop.instantiate(self, *args)
+    end
+  end
+
+  module NullTrait
+    def nil?
+      true
+    end
+
+    def inspect
+      klass = Truffle::InteropOperations.ruby_class_and_language(self)
+      "#<#{klass} null>"
+    end
+  end
+
+  module NumberTrait
+    def to_i
+      if Truffle::Interop.fits_in_int?(self)
+        Truffle::Interop.as_int(self)
+      elsif Truffle::Interop.fits_in_long?(self)
+        Truffle::Interop.as_long(self)
+      else
+        Truffle::Interop.as_double(self).to_i
+      end
+    end
+
+    def to_f
+      if Truffle::Interop.fits_in_double?(self)
+        Truffle::Interop.as_double(self)
+      else
+        Truffle::Interop.as_long(self).to_f
+      end
+    end
+
+    def respond_to?(name, include_all = false)
+      case symbol = name.to_sym
+      when :to_f
+        Truffle::Interop.fits_in_double?(self) || Truffle::Interop.fits_in_long?(self)
+      when :to_i
+        Truffle::Interop.fits_in_long?(self)
+      else
+        super(symbol, include_all)
+      end
+    end
+  end
+
+  module PointerTrait
+  end
+
+  module StringTrait
+    def to_str
+      Truffle::Interop.as_string(self)
+    end
+    alias_method :to_s, :to_str
+
+    def inspect
+      to_str.inspect
+    end
+  end
+
+  class ForeignObject < Object
+    def respond_to?(name, include_all = false)
+      case symbol = name.to_sym
+      when :keys
+        Truffle::Interop.has_members?(self)
+      when :class
+        Truffle::Interop.java_class?(self)
+      else
+        super(symbol, include_all)
+      end
+    end
+
+    def class
+      if Truffle::Interop.java_class?(self)
+        Truffle::Interop.read_member(self, :class)
+      else
+        Truffle::Interop.meta_object(self)
+      end
+    end
+
+    def inspect
+      recursive_string_for(self) if Truffle::ThreadOperations.detect_recursion self do
+        return Truffle::InteropOperations.foreign_inspect_nonrecursive(self)
+      end
+    end
+
+    def to_s
+      klass = Truffle::InteropOperations.ruby_class_and_language(self)
+      # Let InteropLibrary#toDisplayString show the class and identity hash code if relevant
+      "#<#{klass} #{Truffle::Interop.to_display_string(self)}>"
+    end
+
+    def is_a?(klass)
+      receiver = Truffle::Interop.unbox_if_needed(self)
+      if Truffle::Interop.foreign?(receiver)
+        if Truffle::Interop.java_class?(klass)
+          # Checking against a Java class
+          Truffle::Interop.java_instanceof?(receiver, klass)
+        elsif Truffle::Interop.foreign?(klass)
+          # Checking a foreign (not Java) object against a foreign (not Java) class
+          raise TypeError, 'cannot check if a foreign object is an instance of a foreign class'
+        else
+          # Checking a foreign or Java object against a Ruby class
+          false
+        end
+      else
+        # The receiver unboxed to a Ruby object or a primitive
+        receiver.is_a?(klass)
+      end
+    end
+    alias_method :kind_of?, :is_a?
+
+    def keys
+      Truffle::Interop.members(self)
+    end
+
+    def [](member)
+      Truffle::Interop.read_member(self, member)
+    end
+
+    def []=(member, value)
+      Truffle::Interop.write_member(self, member, value)
+    end
+
+    def delete(member)
+      Truffle::Interop.remove_member(self, member)
+    end
+  end
+  # endregion
 end
 
 module Java

@@ -11,14 +11,17 @@
 module TruffleInteropSpecs
 
   class Logger
-    attr_reader :log
-
     def initialize
       @log = []
     end
 
     def <<(*args)
-      @log << args
+      @log << args unless @log.frozen?
+    end
+
+    def log
+      # Stop recording so messages caused by spec expectations are not included
+      @log.freeze
     end
   end
 

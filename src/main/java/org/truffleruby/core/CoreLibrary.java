@@ -63,6 +63,7 @@ import org.truffleruby.language.loader.ResourceLoader;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
+import org.truffleruby.language.objects.ForeignClassNode;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.TranslatorDriver;
@@ -164,6 +165,8 @@ public class CoreLibrary {
     public final RubyClass stopIterationClass;
     public final RubyModule polyglotModule;
     public final RubyClass polyglotInnerContextClass;
+    public final RubyClass polyglotForeignObjectClass;
+    @CompilationFinal(dimensions = 1) public final RubyClass[] polyglotForeignClasses;
     public final RubyClass unsupportedMessageErrorClass;
     public final RubyClass stringClass;
     public final RubyClass symbolClass;
@@ -189,7 +192,6 @@ public class CoreLibrary {
     public final RubyModule truffleBootModule;
     public final RubyModule truffleExceptionOperationsModule;
     public final RubyModule truffleInteropModule;
-    public final RubyClass truffleInteropForeignClass;
     public final RubyClass unsupportedMessageExceptionClass;
     public final RubyClass invalidArrayIndexExceptionClass;
     public final RubyClass unknownIdentifierExceptionClass;
@@ -326,6 +328,8 @@ public class CoreLibrary {
         polyglotModule = defineModule("Polyglot");
         polyglotInnerContextClass = defineClass(polyglotModule, objectClass, "InnerContext");
         unsupportedMessageErrorClass = defineClass(polyglotModule, standardErrorClass, "UnsupportedMessageError");
+        polyglotForeignObjectClass = defineClass(polyglotModule, objectClass, "ForeignObject");
+        polyglotForeignClasses = new RubyClass[ForeignClassNode.Trait.COMBINATIONS];
 
         // StandardError > RuntimeError
         runtimeErrorClass = defineClass(standardErrorClass, "RuntimeError");
@@ -457,7 +461,6 @@ public class CoreLibrary {
         graalErrorClass = defineClass(truffleModule, exceptionClass, "GraalError");
         truffleExceptionOperationsModule = defineModule(truffleModule, "ExceptionOperations");
         truffleInteropModule = defineModule(truffleModule, "Interop");
-        truffleInteropForeignClass = defineClass(truffleInteropModule, objectClass, "Foreign");
         RubyClass interopExceptionClass = defineClass(
                 truffleInteropModule,
                 exceptionClass,

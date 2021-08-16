@@ -11,6 +11,8 @@ package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.utilities.TriState;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapper;
@@ -83,6 +85,23 @@ public abstract class ImmutableRubyObject implements TruffleObject {
     public String toDisplayString(boolean allowSideEffects) {
         throw new AbstractMethodError();
     }
+
+    // region Identity
+    @ExportMessage
+    public int identityHashCode() {
+        return System.identityHashCode(this);
+    }
+
+    @ExportMessage
+    public TriState isIdenticalOrUndefined(Object other,
+            @Exclusive @Cached ConditionProfile immutableRubyObjectProfile) {
+        if (immutableRubyObjectProfile.profile(other instanceof ImmutableRubyObject)) {
+            return TriState.valueOf(this == other);
+        } else {
+            return TriState.UNDEFINED;
+        }
+    }
+    // endregion
 
     // region Members
     @ExportMessage

@@ -32,11 +32,11 @@ Format: `Ruby code` sends `InteropLibrary message`
 - `foreign_object.to_s` sends `asString(foreign_object)` when `isString(foreign_object)` is true
 - `foreign_object.to_s` sends `toDisplayString(foreign_object)` otherwise
 - `foreign_object.to_str` sends `asString(foreign_object)` when `isString(foreign_object)` is true
-- `foreign_object.to_str` raises `NoMethodError` otherwise
+- `foreign_object.to_str` raises `NameError` otherwise
 - `foreign_object.to_a` converts to a Ruby `Array` with `Truffle::Interop.to_array(foreign_object)`
 - `foreign_object.to_ary` converts to a Ruby `Array` with `Truffle::Interop.to_array(foreign_object)`
-- `foreign_object.to_f` tries to converts to a Ruby `Float` using `asDouble()` and `(double) asLong()` or raises `TypeError`
-- `foreign_object.to_i` tries to converts to a Ruby `Integer` using `asInt()` and `asLong()` or raises `TypeError`
+- `foreign_object.to_f` tries to converts to a Ruby `Float` using `asDouble()` and `(double) asLong()` or raises `NameError`
+- `foreign_object.to_i` tries to converts to a Ruby `Integer` using `asInt()` and `asLong()` or raises `NameError`
 - `foreign_object.equal?(other)` sends `isIdentical(foreign_object, other)`
 - `foreign_object.eql?(other)` sends `isIdentical(foreign_object, other)`
 - `foreign_object.object_id` sends `identityHashCode(foreign_object)` when `hasIdentity()` is true (which might not be unique)
@@ -52,8 +52,8 @@ Use `.respond_to?` for calling `InteropLibrary` predicates:
 - `foreign_object.respond_to?(:to_str)` sends `isString(foreign_object)`
 - `foreign_object.respond_to?(:to_a)` sends `hasArrayElements(foreign_object)`
 - `foreign_object.respond_to?(:to_ary)` sends `hasArrayElements(foreign_object)`
-- `foreign_object.respond_to?(:to_f)` sends `fitsInDouble()` and `fitsInLong()`
-- `foreign_object.respond_to?(:to_i)` sends `fitsInInt()` and `fitsInLong()`
+- `foreign_object.respond_to?(:to_f)` sends `fitsInDouble()`
+- `foreign_object.respond_to?(:to_i)` sends `fitsInLong()`
 - `foreign_object.respond_to?(:size)` sends `hasArrayElements(foreign_object)`
 - `foreign_object.respond_to?(:keys)` sends `hasMembers(foreign_object)`
 - `foreign_object.respond_to?(:call)` sends `isExecutable(foreign_object)`

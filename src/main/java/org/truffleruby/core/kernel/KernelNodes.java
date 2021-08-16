@@ -16,8 +16,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.utilities.AssumedValue;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
@@ -89,6 +90,7 @@ import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.core.string.ImmutableRubyString;
+import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
@@ -1016,9 +1018,31 @@ public abstract class KernelNodes {
             return symbolHashNode.execute(value);
         }
 
-        @Fallback
-        protected int hashOtherUsingIdentity(Object self) {
-            return System.identityHashCode(self);
+        // Default hash for Kernel#hash, can be overwritten by defining a #hash method
+
+        @Specialization(guards = { "!isRubyBignum(value)", "!isImmutableRubyString(value)", "!isRubySymbol(value)" })
+        protected int hashImmutableRubyObject(ImmutableRubyObject value) {
+            return System.identityHashCode(value);
+        }
+
+        @Specialization(guards = "isNotRubyString(value)")
+        protected int hashRubyDynamicObject(RubyDynamicObject value) {
+            return System.identityHashCode(value);
+        }
+
+        @Specialization(guards = "isForeignObject(value)", limit = "getInteropCacheLimit()")
+        protected int hashForeign(Object value,
+                @CachedLibrary("value") InteropLibrary interop,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            if (interop.hasIdentity(value)) {
+                try {
+                    return interop.identityHashCode(value);
+                } catch (UnsupportedMessageException e) {
+                    throw translateInteropException.execute(e);
+                }
+            } else {
+                return System.identityHashCode(value);
+            }
         }
     }
 

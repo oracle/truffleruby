@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects;
 
+import com.oracle.truffle.api.dsl.Cached;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.RubyBignum;
@@ -90,15 +91,15 @@ public abstract class LogicalClassNode extends RubyBaseNode {
         return coreLibrary().regexpClass;
     }
 
-
     @Specialization
     protected RubyClass logicalClassObject(RubyDynamicObject object) {
         return object.getLogicalClass();
     }
 
     @Specialization(guards = "isForeignObject(object)")
-    protected RubyClass logicalClassForeign(Object object) {
-        return coreLibrary().truffleInteropForeignClass;
+    protected RubyClass logicalClassForeign(Object object,
+            @Cached ForeignClassNode foreignClassNode) {
+        return foreignClassNode.execute(object);
     }
 
     protected int getCacheLimit() {

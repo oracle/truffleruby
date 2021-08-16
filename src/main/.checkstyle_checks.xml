@@ -212,7 +212,7 @@
     </module>
     <module name="RegexpSinglelineJava">
       <property name="format" value='"isRuby(?!Value|DynamicObject|SymbolOrString|Rational|[^"]+\|\|)'/> <!-- Rational is not a builtin type -->
-      <property name="message" value="Type the argument instead of using a positive is Ruby* guard."/>
+      <property name="message" value="Type the argument instead of using a positive isRuby* guard."/>
     </module>
     <module name="RegexpSinglelineJava">
       <property name="format" value='"isNil'/>

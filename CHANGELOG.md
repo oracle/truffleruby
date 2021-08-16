@@ -5,6 +5,8 @@ New features:
 * [TRegex](https://github.com/oracle/graal/tree/master/regex) is now used by default, which provides large speedups for matching regular expressions.
 * Add `Polyglot.languages` to expose the list of available languages.
 * Add `Polyglot::InnerContext` to eval code in any available language in an inner isolated context (#2169).
+* Foreign objects now have a dynamically-generated class based on their interop traits like `ForeignArray` and are better integrated with Ruby objects (#2149).
+* Foreign arrays now have all methods of Ruby `Enumerable` and many methods of `Array` (#2149).
 
 Bug fixes:
 
