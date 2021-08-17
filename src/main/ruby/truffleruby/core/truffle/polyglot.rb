@@ -73,6 +73,9 @@ module Polyglot
   end
 
   # region Trait modules for foreign objects
+  # Specs for these methods are in spec/truffle/interop/special_forms_spec.rb
+  # and in spec/truffle/interop/polyglot/*_spec.rb
+
   module ArrayTrait
     include Enumerable
 
