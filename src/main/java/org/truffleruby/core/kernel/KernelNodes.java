@@ -28,6 +28,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
@@ -544,10 +545,10 @@ public abstract class KernelNodes {
         }
     }
 
-    @CoreMethod(names = "clone", keywordAsOptional = "freeze")
-    @NodeChild(value = "self", type = RubyNode.class)
+    @Primitive(name = "clone")
+    @NodeChild(value = "object", type = RubyNode.class)
     @NodeChild(value = "freeze", type = RubyNode.class)
-    public abstract static class CloneNode extends CoreMethodNode {
+    public abstract static class CloneNode extends PrimitiveNode {
 
         @Child private CopyNode copyNode = CopyNode.create();
         @Child private DispatchNode initializeCloneNode = DispatchNode.create();
@@ -559,86 +560,86 @@ public abstract class KernelNodes {
         }
 
         @Specialization(limit = "getRubyLibraryCacheLimit()")
-        protected RubyDynamicObject clone(RubyDynamicObject self, boolean freeze,
+        protected RubyDynamicObject clone(RubyDynamicObject object, boolean freeze,
                 @Cached ConditionProfile isSingletonProfile,
                 @Cached ConditionProfile freezeProfile,
                 @Cached ConditionProfile isFrozenProfile,
                 @Cached ConditionProfile isRubyClass,
-                @CachedLibrary("self") RubyLibrary rubyLibrary,
+                @CachedLibrary("object") RubyLibrary rubyLibrary,
                 @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibraryFreeze) {
-            final RubyDynamicObject newObject = copyNode.executeCopy(self);
+            final RubyDynamicObject newObject = copyNode.executeCopy(object);
 
             // Copy the singleton class if any.
-            final RubyClass selfMetaClass = self.getMetaClass();
+            final RubyClass selfMetaClass = object.getMetaClass();
             if (isSingletonProfile.profile(selfMetaClass.isSingleton)) {
                 final RubyClass newObjectMetaClass = executeSingletonClass(newObject);
                 newObjectMetaClass.fields.initCopy(selfMetaClass);
             }
 
-            initializeCloneNode.call(newObject, "initialize_clone", self);
+            initializeCloneNode.call(newObject, "initialize_clone", object);
 
-            if (freezeProfile.profile(freeze) && isFrozenProfile.profile(rubyLibrary.isFrozen(self))) {
+            if (freezeProfile.profile(freeze) && isFrozenProfile.profile(rubyLibrary.isFrozen(object))) {
                 rubyLibraryFreeze.freeze(newObject);
             }
 
-            if (isRubyClass.profile(self instanceof RubyClass)) {
-                ((RubyClass) newObject).superclass = ((RubyClass) self).superclass;
+            if (isRubyClass.profile(object instanceof RubyClass)) {
+                ((RubyClass) newObject).superclass = ((RubyClass) object).superclass;
             }
 
             return newObject;
         }
 
         @Specialization
-        protected Object cloneBoolean(boolean self, boolean freeze,
+        protected Object cloneBoolean(boolean object, boolean freeze,
                 @Cached ConditionProfile freezeProfile) {
             if (freezeProfile.profile(!freeze)) {
-                raiseCantUnfreezeError(self);
+                raiseCantUnfreezeError(object);
             }
-            return self;
+            return object;
         }
 
         @Specialization
-        protected Object cloneInteger(int self, boolean freeze,
+        protected Object cloneInteger(int object, boolean freeze,
                 @Cached ConditionProfile freezeProfile) {
             if (freezeProfile.profile(!freeze)) {
-                raiseCantUnfreezeError(self);
+                raiseCantUnfreezeError(object);
             }
-            return self;
+            return object;
         }
 
         @Specialization
-        protected Object cloneLong(long self, boolean freeze,
+        protected Object cloneLong(long object, boolean freeze,
                 @Cached ConditionProfile freezeProfile) {
             if (freezeProfile.profile(!freeze)) {
-                raiseCantUnfreezeError(self);
+                raiseCantUnfreezeError(object);
             }
-            return self;
+            return object;
         }
 
         @Specialization
-        protected Object cloneFloat(double self, boolean freeze,
+        protected Object cloneFloat(double object, boolean freeze,
                 @Cached ConditionProfile freezeProfile) {
             if (freezeProfile.profile(!freeze)) {
-                raiseCantUnfreezeError(self);
+                raiseCantUnfreezeError(object);
             }
-            return self;
+            return object;
         }
 
-        @Specialization(guards = "!isImmutableRubyString(value)")
-        protected Object cloneImmutableObject(ImmutableRubyObject value, boolean freeze,
+        @Specialization(guards = "!isImmutableRubyString(object)")
+        protected Object cloneImmutableObject(ImmutableRubyObject object, boolean freeze,
                 @Cached ConditionProfile freezeProfile) {
             if (freezeProfile.profile(!freeze)) {
-                raiseCantUnfreezeError(value);
+                raiseCantUnfreezeError(object);
             }
-            return value;
+            return object;
         }
 
         @Specialization
-        protected RubyDynamicObject cloneImmutableRubyString(ImmutableRubyString self, boolean freeze,
+        protected RubyDynamicObject cloneImmutableRubyString(ImmutableRubyString object, boolean freeze,
                 @Cached ConditionProfile freezeProfile,
                 @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibraryFreeze,
                 @Cached MakeStringNode makeStringNode) {
-            final RubyDynamicObject newObject = makeStringNode.fromRope(self.rope, self.encoding);
+            final RubyDynamicObject newObject = makeStringNode.fromRope(object.rope, object.encoding);
             if (freezeProfile.profile(freeze)) {
                 rubyLibraryFreeze.freeze(newObject);
             }
@@ -646,8 +647,8 @@ public abstract class KernelNodes {
             return newObject;
         }
 
-        private void raiseCantUnfreezeError(Object self) {
-            throw new RaiseException(getContext(), coreExceptions().argumentErrorCantUnfreeze(self, this));
+        private void raiseCantUnfreezeError(Object object) {
+            throw new RaiseException(getContext(), coreExceptions().argumentErrorCantUnfreeze(object, this));
         }
 
         private RubyClass executeSingletonClass(RubyDynamicObject newObject) {
