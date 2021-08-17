@@ -20,7 +20,9 @@ import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.LazyIntRope;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -78,7 +80,7 @@ public abstract class ToStringNode extends FormatNode {
     @TruffleBoundary
     @Specialization(guards = "convertNumbersToStrings")
     protected Rope toString(int value) {
-        return RopeOperations.encodeAscii(Integer.toString(value), USASCIIEncoding.INSTANCE);
+        return new LazyIntRope(value);
     }
 
     @TruffleBoundary
@@ -98,11 +100,11 @@ public abstract class ToStringNode extends FormatNode {
     protected Rope toStringSpecialClass(RubyClass rubyClass,
             @CachedLibrary(limit = "2") RubyStringLibrary libString) {
         if (rubyClass == getContext().getCoreLibrary().trueClass) {
-            return RopeOperations.encodeAscii("true", USASCIIEncoding.INSTANCE);
+            return RopeConstants.TRUE;
         } else if (rubyClass == getContext().getCoreLibrary().falseClass) {
-            return RopeOperations.encodeAscii("false", USASCIIEncoding.INSTANCE);
+            return RopeConstants.FALSE;
         } else if (rubyClass == getContext().getCoreLibrary().nilClass) {
-            return RopeOperations.encodeAscii("nil", USASCIIEncoding.INSTANCE);
+            return RopeConstants.NIL;
         } else {
             return toString(rubyClass, libString);
         }
