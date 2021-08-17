@@ -228,14 +228,6 @@ module Polyglot
       end
     end
 
-    def class
-      if Truffle::Interop.java_class?(self)
-        Truffle::Interop.read_member(self, :class)
-      else
-        Truffle::Interop.meta_object(self)
-      end
-    end
-
     def inspect
       recursive_string_for(self) if Truffle::ThreadOperations.detect_recursion self do
         return Truffle::InteropOperations.foreign_inspect_nonrecursive(self)
@@ -245,7 +237,11 @@ module Polyglot
     def to_s
       klass = Truffle::InteropOperations.ruby_class_and_language(self)
       # Let InteropLibrary#toDisplayString show the class and identity hash code if relevant
-      "#<#{klass} #{Truffle::Interop.to_display_string(self)}>"
+      if Truffle::InteropOperations.java_type?(self)
+        "#<#{klass} type #{Truffle::Interop.to_display_string(self)}>"
+      else
+        "#<#{klass} #{Truffle::Interop.to_display_string(self)}>"
+      end
     end
 
     def is_a?(klass)

@@ -192,21 +192,6 @@ describe "Interop special forms" do
     l.log.should include(["instantiate"])
   end
 
-  # Always include in the documentation, even when run on native
-  desc = description['.class', :readMember, ['"class"'], 'when `foreign_object` is a `java.lang.Class`']
-  guard -> { !TruffleRuby.native? } do
-    it desc do
-      Java.type('java.math.BigInteger').class.getName.should == 'java.math.BigInteger'
-    end
-  end
-
-  it description['.class', :getMetaObject] do
-    pfo, _, l = proxy[Truffle::Debug.foreign_object]
-    # For Truffle::Debug.foreign_object, hasMetaObject() is false, so then .class returns Truffle::Interop::Foreign
-    pfo.class.should == Polyglot::ForeignObject
-    l.log.should include(["hasMetaObject"])
-  end
-
   it doc['.inspect', 'returns a Ruby-style `#inspect` string showing members, array elements, etc'] do
     # More detailed specs in spec/truffle/interop/foreign_inspect_to_s_spec.rb
     Truffle::Debug.foreign_object.inspect.should =~ /\A#<Polyglot::ForeignObject:0x\h+>\z/

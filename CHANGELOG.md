@@ -42,6 +42,7 @@ Performance:
 
 Changes:
 
+* `foreign_object.class` on foreign objects is no longer special and uses `Kernel#class` (it used to return the `java.lang.Class` object for a Java type or `getMetaObject()`, but that is too incompatible with Ruby code).
 
 # 21.2.0
 

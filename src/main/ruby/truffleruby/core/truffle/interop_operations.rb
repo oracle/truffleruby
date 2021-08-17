@@ -51,10 +51,11 @@ module Truffle
       hash_code = "0x#{Truffle::Interop.identity_hash_code(object).to_s(16)}"
       klass = ruby_class_and_language(object)
 
-      if Truffle::Interop.java_class?(object)
-        "#<#{klass} class #{object.class.getName}>"
+      if java_type?(object) # a Java type from Java.type
+        "#<#{klass} type #{Truffle::Interop.to_display_string(object)}>"
       else
         string = +"#<#{klass}"
+
         if Truffle::Interop.has_meta_object?(object)
           meta_object = Truffle::Interop.meta_object(object)
           string << " #{Truffle::Interop.meta_qualified_name meta_object}"
@@ -66,16 +67,20 @@ module Truffle
           string << ":#{hash_code}"
         end
 
-        array_or_map = false
+        show_members = true
+        if Truffle::Interop.java_class?(object) # a java.lang.Class instance, treat it like a regular object
+          show_members = false
+          string << " #{Truffle::Interop.to_display_string(object)}"
+        end
         if Truffle::Interop.has_array_elements?(object)
-          array_or_map = true
+          show_members = false
           string << " [#{object.map { |e| basic_inspect_for e }.join(', ')}]"
         end
         if Primitive.interop_java_map?(object)
-          array_or_map = true
+          show_members = false
           string << " {#{pairs_from_java_map(object).map { |k, v| "#{basic_inspect_for k}=>#{basic_inspect_for v}" }.join(', ')}}"
         end
-        if Truffle::Interop.has_members?(object) and !array_or_map
+        if Truffle::Interop.has_members?(object) and show_members
           pairs = pairs_from_object(object)
           unless pairs.empty?
             string << " #{pairs.map { |k, v| "#{k}=#{basic_inspect_for v}" }.join(', ')}"
@@ -111,6 +116,10 @@ module Truffle
         hash_code = "0x#{Truffle::Interop.identity_hash_code(object).to_s(16)}"
         Truffle::Interop.java?(object) ? "<Java:#{hash_code} ...>" : "<Foreign:#{hash_code} ...>"
       end
+    end
+
+    def self.java_type?(object)
+      Truffle::Interop.java_class?(object) && Truffle::Interop.member_readable?(object, :class)
     end
 
     def self.pairs_from_java_map(map)

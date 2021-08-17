@@ -26,8 +26,6 @@ Format: `Ruby code` sends `InteropLibrary message`
 - `foreign_object.method_name(*arguments)` sends `invokeMember(foreign_object, method_name, *arguments)`
 - `foreign_object.method_name(*arguments, &block)` sends `invokeMember(foreign_object, method_name, *arguments, block)`
 - `foreign_object.new(*arguments)` sends `instantiate(foreign_object, *arguments)`
-- `foreign_object.class` sends `readMember(foreign_object, "class")` when `foreign_object` is a `java.lang.Class`
-- `foreign_object.class` sends `getMetaObject(foreign_object)`
 - `foreign_object.inspect` returns a Ruby-style `#inspect` string showing members, array elements, etc
 - `foreign_object.to_s` sends `asString(foreign_object)` when `isString(foreign_object)` is true
 - `foreign_object.to_s` sends `toDisplayString(foreign_object)` otherwise
