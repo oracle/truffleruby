@@ -36,9 +36,7 @@ import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
-import org.truffleruby.language.arguments.NotProvidedNode;
 import org.truffleruby.language.arguments.ReadBlockFromCurrentFrameArgumentsNode;
-import org.truffleruby.language.arguments.ReadKeywordArgumentNode;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.ReadRemainingArgumentsNode;
 import org.truffleruby.language.arguments.ReadSelfNode;
@@ -132,14 +130,7 @@ public class CoreMethodNodeManager {
         final Visibility visibility = annotation.visibility();
         verifyUsage(module, methodDetails, annotation, visibility);
 
-        final String keywordAsOptional = annotation.keywordAsOptional().isEmpty()
-                ? null
-                : annotation.keywordAsOptional();
-        final Arity arity = createArity(
-                annotation.required(),
-                annotation.optional(),
-                annotation.rest(),
-                keywordAsOptional);
+        final Arity arity = new Arity(annotation.required(), annotation.optional(), annotation.rest());
         final NodeFactory<? extends RubyBaseNode> nodeFactory = methodDetails.getNodeFactory();
         final boolean onSingleton = annotation.onSingleton() || annotation.constructor();
         final boolean isModuleFunc = annotation.isModuleFunction();
@@ -173,11 +164,10 @@ public class CoreMethodNodeManager {
             int required,
             int optional,
             boolean rest,
-            String keywordAsOptional,
             String... names) {
 
         final RubyModule module = getModule(moduleName, isClass);
-        final Arity arity = createArity(required, optional, rest, keywordAsOptional);
+        final Arity arity = new Arity(required, optional, rest);
         final Split finalSplit;
         if (alwaysInlined) {
             finalSplit = Split.NEVER;
@@ -317,12 +307,6 @@ public class CoreMethodNodeManager {
                 null);
     }
 
-    private static Arity createArity(int required, int optional, boolean rest, String keywordAsOptional) {
-        return keywordAsOptional == null
-                ? new Arity(required, optional, rest)
-                : new Arity(required, optional, rest, 0, new String[]{ keywordAsOptional }, true, false);
-    }
-
     public RootCallTarget createCoreMethodRootNode(NodeFactory<? extends RubyBaseNode> nodeFactory,
             RubyLanguage language, SharedMethodInfo sharedMethodInfo, Split split, CoreMethod method) {
 
@@ -370,18 +354,6 @@ public class CoreMethodNodeManager {
 
         if (method.needsBlock()) {
             argumentsNodes[i++] = new ReadBlockFromCurrentFrameArgumentsNode();
-        }
-
-        if (!method.keywordAsOptional().isEmpty()) {
-            if (optional > 0) {
-                throw new UnsupportedOperationException(
-                        "core method has been declared with both optional arguments and a keyword-as-optional argument");
-            }
-
-            argumentsNodes[i++] = ReadKeywordArgumentNode.create(
-                    required,
-                    language.getSymbol(method.keywordAsOptional()),
-                    new NotProvidedNode());
         }
 
         RubyNode node = (RubyNode) createNodeFromFactory(nodeFactory, argumentsNodes);

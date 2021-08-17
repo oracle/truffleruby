@@ -47,10 +47,6 @@ public @interface CoreMethod {
 
     int optional() default 0;
 
-    /** Declares that a keyword argument with this name will be passed into the method as if it was an extra trailing
-     * positional optional argument. */
-    String keywordAsOptional() default "";
-
     boolean rest() default false;
 
     boolean needsBlock() default false;
