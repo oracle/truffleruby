@@ -14,6 +14,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,7 +29,6 @@ import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.source.SourceSection;
 import org.graalvm.collections.Pair;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -573,17 +573,19 @@ public abstract class TruffleDebugNodes {
 
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    @CoreMethod(names = "foreign_object_from_map", required = 1, onSingleton = true)
-    public abstract static class ForeignObjectFromMapNode extends CoreMethodArrayArgumentsNode {
+    @CoreMethod(names = "foreign_object_with_members", onSingleton = true)
+    public abstract static class ForeignObjectWithMembersNode extends CoreMethodArrayArgumentsNode {
 
         @ExportLibrary(InteropLibrary.class)
-        public static class ForeignObjectFromMap implements TruffleObject {
+        public static class ForeignObjectWithMembers implements TruffleObject {
 
-            private final Map map;
+            private final Map<String, Object> map;
 
-            public ForeignObjectFromMap(Map map) {
-                this.map = map;
+            public ForeignObjectWithMembers() {
+                map = new HashMap<>();
+                map.put("a", 1);
+                map.put("b", 2);
+                map.put("c", 3);
             }
 
             @ExportMessage
@@ -593,9 +595,8 @@ public abstract class TruffleDebugNodes {
 
             @ExportMessage
             @TruffleBoundary
-            protected Object getMembers(boolean includeInternal,
-                    @CachedLibrary("this") InteropLibrary node) {
-                return RubyContext.get(node).getEnv().asGuestValue(map.keySet().toArray());
+            protected Object getMembers(boolean includeInternal) {
+                return new ForeignArrayNode.ForeignArray("a", "b", "c");
             }
 
             @TruffleBoundary
@@ -622,8 +623,8 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object foreignObjectFromMap(Object map) {
-            return new ForeignObjectFromMap((Map) getContext().getEnv().asHostObject(map));
+        protected Object foreignObjectWithMembers() {
+            return new ForeignObjectWithMembers();
         }
 
     }

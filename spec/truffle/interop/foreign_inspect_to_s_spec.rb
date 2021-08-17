@@ -136,7 +136,7 @@ describe "#inspect and #to_s on a foreign" do
 
   describe "object with members" do
     it "gives a similar representation to Ruby" do
-      foreign = Truffle::Debug.foreign_object_from_map(Truffle::Interop.to_java_map({a: 1, b: 2, c: 3}))
+      foreign = Truffle::Debug.foreign_object_with_members
       foreign.inspect.should =~ /\A#<Polyglot::ForeignObject:0x\h+ a=1, b=2, c=3>\z/
       foreign.to_s.should == "#<Polyglot::ForeignObject [foreign object with members]>"
     end
