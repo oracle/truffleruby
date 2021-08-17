@@ -24,6 +24,7 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.thread.RubyThread;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
@@ -45,8 +46,8 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
     volatile boolean transferred = false;
     public volatile Throwable uncaughtException = null;
     String sourceLocation;
-    public MarkingService.MarkerThreadLocalData markingData = null;
-    public ValueWrapperManager.HandleThreadData handleData = null;
+    public final MarkingService.ExtensionCallStack extensionCallStack;
+    public ValueWrapperManager.HandleBlockHolder handleData = null;
 
     public RubyFiber(
             RubyClass rubyClass,
@@ -64,6 +65,7 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
         this.catchTags = ArrayHelpers.createEmptyArray(context, language);
         this.rubyThread = rubyThread;
         this.sourceLocation = sourceLocation;
+        extensionCallStack = new MarkingService.ExtensionCallStack(Nil.INSTANCE);
     }
 
     public boolean isRootFiber() {

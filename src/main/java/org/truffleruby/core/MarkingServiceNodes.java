@@ -11,11 +11,10 @@ package org.truffleruby.core;
 
 import java.util.ArrayList;
 
-import org.truffleruby.core.MarkingService.MarkerThreadLocalData;
+import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 
@@ -27,10 +26,9 @@ public class MarkingServiceNodes {
         public abstract void execute(Object object);
 
         @Specialization
-        protected void keepObjectAlive(Object object,
-                @Cached GetMarkerThreadLocalDataNode getThreadLocalDataNode) {
-            MarkerThreadLocalData data = getThreadLocalDataNode.execute();
-            addToList(data.getExtensionCallStack().getKeptObjects(), object);
+        protected void keepObjectAlive(Object object) {
+            ExtensionCallStack stack = getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack;
+            addToList(stack.getKeptObjects(), object);
         }
 
         @TruffleBoundary
@@ -40,40 +38,6 @@ public class MarkingServiceNodes {
 
         public static KeepAliveNode create() {
             return MarkingServiceNodesFactory.KeepAliveNodeGen.create();
-        }
-    }
-
-    @GenerateUncached
-    public abstract static class GetMarkerThreadLocalDataNode extends RubyBaseNode {
-
-        public final MarkerThreadLocalData execute() {
-            return executeInternal(Boolean.TRUE);
-        }
-
-        protected abstract MarkerThreadLocalData executeInternal(Object dynamicParameter);
-
-        @Specialization(guards = "thread == currentJavaThread(dynamicParameter)", limit = "getCacheLimit()")
-        protected MarkerThreadLocalData getDataOnKnownThread(Object dynamicParameter,
-                @Cached("currentJavaThread(dynamicParameter)") Thread thread,
-                @Cached("getData(dynamicParameter)") MarkerThreadLocalData data) {
-            return data;
-        }
-
-        @Specialization(replaces = "getDataOnKnownThread")
-        protected MarkerThreadLocalData getData(Object dynamicParameter) {
-            return getContext().getMarkingService().getThreadLocalData();
-        }
-
-        protected static Thread currentJavaThread(Object dynamicParameter) {
-            return Thread.currentThread();
-        }
-
-        public int getCacheLimit() {
-            return getLanguage().options.THREAD_CACHE;
-        }
-
-        public static GetMarkerThreadLocalDataNode create() {
-            return MarkingServiceNodesFactory.GetMarkerThreadLocalDataNodeGen.create();
         }
     }
 }

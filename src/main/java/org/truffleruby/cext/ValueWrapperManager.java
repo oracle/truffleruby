@@ -62,26 +62,23 @@ public class ValueWrapperManager {
     private volatile HandleBlockWeakReference[] blockMap = new HandleBlockWeakReference[0];
 
     private final RubyContext context;
-    private final RubyLanguage language;
 
     public ValueWrapperManager(RubyContext context) {
         this.context = context;
-        this.language = context.getLanguageSlow();
     }
 
-    public HandleThreadData makeThreadData() {
-        HandleThreadData threadData = new HandleThreadData();
-        HandleBlockHolder holder = threadData.holder;
+    public HandleBlockHolder makeThreadData() {
+        HandleBlockHolder holder = new HandleBlockHolder();
         context.getFinalizationService().addFinalizer(
                 context,
-                threadData,
+                holder,
                 ValueWrapperManager.class,
                 () -> context.getMarkingService().queueForMarking(holder.handleBlock),
                 null);
-        return threadData;
+        return holder;
     }
 
-    public HandleThreadData getBlockHolder() {
+    public HandleBlockHolder getBlockHolder(RubyLanguage language) {
         RubyFiber fiber = language.getCurrentThread().getCurrentFiber();
         if (fiber.handleData == null) {
             fiber.handleData = makeThreadData();
@@ -297,47 +294,26 @@ public class ValueWrapperManager {
         }
     }
 
-    protected static class HandleBlockHolder {
+    public static class HandleBlockHolder {
         protected HandleBlock handleBlock = null;
         protected HandleBlock sharedHandleBlock = null;
-    }
-
-    public static class HandleThreadData {
-
-        private final HandleBlockHolder holder = new HandleBlockHolder();
-
-        public HandleBlock currentBlock() {
-            return holder.handleBlock;
-        }
-
-        public HandleBlock currentSharedBlock() {
-            return holder.sharedHandleBlock;
-        }
-
-        public HandleBlock makeNewBlock(RubyContext context, HandleBlockAllocator allocator) {
-            return (holder.handleBlock = new HandleBlock(context, allocator));
-        }
-
-        public HandleBlock makeNewSharedBlock(RubyContext context, HandleBlockAllocator allocator) {
-            return (holder.sharedHandleBlock = new HandleBlock(context, allocator));
-        }
     }
 
     @GenerateUncached
     public abstract static class GetHandleBlockHolderNode extends RubyBaseNode {
 
-        public abstract HandleThreadData execute(ValueWrapper wrapper);
+        public abstract HandleBlockHolder execute(ValueWrapper wrapper);
 
         @Specialization(guards = "cachedThread == currentJavaThread(wrapper)", limit = "getCacheLimit()")
-        protected HandleThreadData getHolderOnKnownThread(ValueWrapper wrapper,
+        protected HandleBlockHolder getHolderOnKnownThread(ValueWrapper wrapper,
                 @Cached("currentJavaThread(wrapper)") Thread cachedThread,
-                @Cached("getBlockHolder(wrapper)") HandleThreadData threadData) {
+                @Cached("getBlockHolder(wrapper)") HandleBlockHolder threadData) {
             return threadData;
         }
 
         @Specialization(replaces = "getHolderOnKnownThread")
-        protected HandleThreadData getBlockHolder(ValueWrapper wrapper) {
-            return getContext().getValueWrapperManager().getBlockHolder();
+        protected HandleBlockHolder getBlockHolder(ValueWrapper wrapper) {
+            return getContext().getValueWrapperManager().getBlockHolder(getLanguage());
         }
 
         protected static Thread currentJavaThread(ValueWrapper wrapper) {
@@ -371,12 +347,12 @@ public class ValueWrapperManager {
         }
 
         protected static long allocateHandle(ValueWrapper wrapper, RubyContext context, RubyLanguage language,
-                HandleThreadData threadData, boolean shared) {
+                HandleBlockHolder holder, boolean shared) {
             HandleBlock block;
             if (shared) {
-                block = threadData.holder.sharedHandleBlock;
+                block = holder.sharedHandleBlock;
             } else {
-                block = threadData.holder.handleBlock;
+                block = holder.handleBlock;
             }
 
             if (context.getOptions().CEXTS_TO_NATIVE_STATS) {
@@ -388,12 +364,10 @@ public class ValueWrapperManager {
                     context.getMarkingService().queueForMarking(block);
                 }
                 if (shared) {
-                    block = threadData
-                            .makeNewSharedBlock(context, language.handleBlockAllocator);
+                    block = (holder.sharedHandleBlock = new HandleBlock(context, language.handleBlockAllocator));
                     context.getValueWrapperManager().addToSharedBlockMap(block, language);
                 } else {
-                    block = threadData
-                            .makeNewBlock(context, language.handleBlockAllocator);
+                    block = (holder.handleBlock = new HandleBlock(context, language.handleBlockAllocator));
                     context.getValueWrapperManager().addToBlockMap(block, language);
                 }
 

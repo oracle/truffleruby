@@ -16,11 +16,9 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.core.queue.UnsizedQueue;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import org.truffleruby.language.Nil;
 
 /** Class to provide GC marking and other facilities to keep objects alive for native extensions.
  *
@@ -59,10 +57,10 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         private final MarkingService markingService;
 
         public MarkRunnerService(
-                RubyLanguage lanugage,
+                RubyLanguage language,
                 ReferenceQueue<Object> processingQueue,
                 MarkingService markingService) {
-            super(lanugage, processingQueue);
+            super(language, processingQueue);
             this.markingService = markingService;
         }
 
@@ -89,7 +87,7 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
 
         @TruffleBoundary
         public void runAllMarkers(RubyContext context) {
-            ExtensionCallStack stack = markingService.getThreadLocalData().getExtensionCallStack();
+            ExtensionCallStack stack = markingService.language.getCurrentThread().getCurrentFiber().extensionCallStack;
             stack.push(stack.getVariables(), stack.getBlock());
             try {
                 // TODO (eregon, 15 Sept 2020): there seems to be no synchronization here while walking the list of
@@ -113,18 +111,6 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
     private final MarkRunnerService runnerService;
 
     private final UnsizedQueue keptObjectQueue = new UnsizedQueue();
-
-    public static class MarkerThreadLocalData {
-        private final ExtensionCallStack extensionCallStack;
-
-        public MarkerThreadLocalData(MarkingService service) {
-            this.extensionCallStack = new ExtensionCallStack(Nil.INSTANCE, Nil.INSTANCE);
-        }
-
-        public ExtensionCallStack getExtensionCallStack() {
-            return extensionCallStack;
-        }
-    }
 
     protected static class ExtensionCallStackEntry {
         protected final ExtensionCallStackEntry previous;
@@ -171,15 +157,6 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         }
     }
 
-    @TruffleBoundary
-    public MarkerThreadLocalData getThreadLocalData() {
-        RubyFiber fiber = language.getCurrentThread().getCurrentFiber();
-        if (fiber.markingData == null) {
-            fiber.markingData = makeThreadLocalData();
-        }
-        return fiber.markingData;
-    }
-
     public MarkingService(RubyLanguage language, ReferenceProcessor referenceprocessor) {
         this(language, referenceprocessor.processingQueue);
     }
@@ -187,17 +164,6 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
     public MarkingService(RubyLanguage language, ReferenceQueue<Object> processingQueue) {
         super(language, processingQueue);
         runnerService = new MarkRunnerService(language, processingQueue, this);
-    }
-
-    @TruffleBoundary
-    public MarkerThreadLocalData makeThreadLocalData() {
-        MarkerThreadLocalData data = new MarkerThreadLocalData(this);
-        /* This finalizer will ensure all the objects remaining in our kept objects buffer will be queue at some point.
-         * We don't need to do a queue and reset as the MarkerKeptObjects is going to be GC'ed anyway. We also don't
-         * simply queue the keptObjects buffer because it may only have zero, or very few, objects in it and we don't
-         * want to run mark functions more often than we have to. */
-        //        context.getFinalizationService().addFinalizer(data, null, MarkingService.class, () -> getThreadLocalData().keptObjects.keepObjects(keptObjects), null);
-        return data;
     }
 
     @TruffleBoundary
