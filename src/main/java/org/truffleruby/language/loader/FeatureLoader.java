@@ -48,7 +48,6 @@ import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.platform.TruffleNFIPlatform;
-import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.TruffleRuby;
 
@@ -79,7 +78,7 @@ public class FeatureLoader {
     private boolean cextImplementationLoaded = false;
 
     private String cwd = null;
-    private NativeFunction getcwd;
+    private Object getcwd;
     private static final int PATH_MAX = 1024; // jnr-posix hard codes this value
 
     private static final String[] EXTENSIONS = new String[]{ TruffleRuby.EXTENSION, RubyLanguage.CEXT_EXTENSION };
@@ -198,11 +197,19 @@ public class FeatureLoader {
         final Pointer buffer = IOThreadBufferAllocateNode
                 .getBuffer(rubyThread, bufferSize, ConditionProfile.getUncached());
         try {
-            final long address = nfi.asPointer(getcwd.call(buffer.getAddress(), bufferSize));
+            final long address;
+            try {
+                address = nfi.asPointer(InteropLibrary.getUncached().execute(getcwd, buffer.getAddress(), bufferSize));
+            } catch (InteropException e) {
+                throw CompilerDirectives.shouldNotReachHere(e);
+            }
             if (address == 0) {
                 RubyContext.send(context.getCoreLibrary().errnoModule, "handle");
             }
-            final byte[] bytes = buffer.readZeroTerminatedByteArray(context, 0);
+            final byte[] bytes = buffer.readZeroTerminatedByteArray(
+                    context,
+                    InteropLibrary.getUncached(),
+                    0);
             final Encoding localeEncoding = context.getEncodingManager().getLocaleEncoding().jcoding;
             return new String(bytes, EncodingManager.charsetForEncoding(localeEncoding));
         } finally {

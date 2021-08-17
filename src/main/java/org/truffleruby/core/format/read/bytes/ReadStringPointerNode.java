@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.format.read.bytes;
 
+import com.oracle.truffle.api.interop.InteropLibrary;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.format.FormatFrameDescriptor;
 import org.truffleruby.core.format.FormatNode;
@@ -47,13 +48,18 @@ public abstract class ReadStringPointerNode extends FormatNode {
 
     @Specialization
     protected RubyString read(VirtualFrame frame, long address,
-            @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary) {
+            @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary,
+            @CachedLibrary(limit = "1") InteropLibrary interop) {
         final Pointer pointer = new Pointer(address);
         checkAssociated(
                 (Pointer[]) FrameUtil.getObjectSafe(frame, FormatFrameDescriptor.SOURCE_ASSOCIATED_SLOT),
                 pointer);
 
-        final byte[] bytes = pointer.readZeroTerminatedByteArray(getContext(), 0, limit);
+        final byte[] bytes = pointer.readZeroTerminatedByteArray(
+                getContext(),
+                interop,
+                0,
+                limit);
         return makeStringNode.executeMake(bytes, Encodings.US_ASCII, CodeRange.CR_7BIT);
     }
 

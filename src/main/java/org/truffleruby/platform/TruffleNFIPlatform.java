@@ -10,7 +10,6 @@
 package org.truffleruby.platform;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -27,8 +26,8 @@ public class TruffleNFIPlatform {
     final Object defaultLibrary;
 
     private final String size_t;
-    private final NativeFunction strlen;
-    private final NativeFunction strnlen;
+    private final Object strlen;
+    private final Object strnlen;
 
     public TruffleNFIPlatform(RubyContext context) {
         defaultLibrary = context
@@ -98,39 +97,21 @@ public class TruffleNFIPlatform {
         }
     }
 
-    public NativeFunction getFunction(String functionName, String signature) {
+    public Object getFunction(String functionName, String signature) {
         final Object symbol = lookup(defaultLibrary, functionName);
-        final Object function = bind(symbol, signature);
-        return new NativeFunction(function);
+        return bind(symbol, signature);
     }
 
     public String size_t() {
         return size_t;
     }
 
-    public NativeFunction getStrlen() {
+    public Object getStrlen() {
         return strlen;
     }
 
-    public NativeFunction getStrnlen() {
+    public Object getStrnlen() {
         return strnlen;
-    }
-
-    public static class NativeFunction {
-
-        private final Object function;
-        private final InteropLibrary functionInteropLibrary;
-
-        private NativeFunction(Object function) {
-            this.function = function;
-            this.functionInteropLibrary = InteropLibrary.getFactory().getUncached(this.function);
-        }
-
-        public Object call(Object... arguments) {
-            return InteropNodes
-                    .execute(function, arguments, functionInteropLibrary, TranslateInteropExceptionNode.getUncached());
-        }
-
     }
 
 }
