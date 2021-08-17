@@ -65,10 +65,10 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         }
 
         @Override
-        protected void processReference(RubyContext context, ProcessingReference<?> reference) {
+        protected void processReference(RubyContext context, RubyLanguage language, ProcessingReference<?> reference) {
             /* We need to keep all the objects that might be marked alive during the marking process itself, so we add
              * the arrays to a list to achieve this. */
-            super.processReference(context, reference);
+            super.processReference(context, language, reference);
             ArrayList<ValueWrapperManager.HandleBlock> keptObjectLists = new ArrayList<>();
             ValueWrapperManager.HandleBlock block;
             while (true) {
@@ -80,14 +80,14 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
                 }
             }
             if (!keptObjectLists.isEmpty()) {
-                runAllMarkers(context);
+                runAllMarkers(context, language);
             }
             keptObjectLists.clear();
         }
 
         @TruffleBoundary
-        public void runAllMarkers(RubyContext context) {
-            ExtensionCallStack stack = markingService.language.getCurrentThread().getCurrentFiber().extensionCallStack;
+        public void runAllMarkers(RubyContext context, RubyLanguage language) {
+            final ExtensionCallStack stack = language.getCurrentThread().getCurrentFiber().extensionCallStack;
             stack.push(stack.getVariables(), stack.getBlock());
             try {
                 // TODO (eregon, 15 Sept 2020): there seems to be no synchronization here while walking the list of
@@ -96,7 +96,7 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
                 MarkerReference nextMarker;
                 while (currentMarker != null) {
                     nextMarker = currentMarker.getNext();
-                    markingService.runMarker(context, currentMarker);
+                    markingService.runMarker(context, language, currentMarker);
                     if (nextMarker == currentMarker) {
                         throw new Error("The MarkerReference linked list structure has become broken.");
                     }
@@ -184,11 +184,11 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         add(new MarkerReference(object, processingQueue, action, this));
     }
 
-    private void runMarker(RubyContext context, MarkerReference markerReference) {
-        runCatchingErrors(context, this::runMarkerInternal, markerReference);
+    private void runMarker(RubyContext context, RubyLanguage language, MarkerReference markerReference) {
+        runCatchingErrors(context, language, this::runMarkerInternal, markerReference);
     }
 
-    private void runMarkerInternal(RubyContext context, MarkerReference markerReference) {
+    private void runMarkerInternal(RubyContext context, RubyLanguage language, MarkerReference markerReference) {
         if (!context.isFinalizing()) {
             Object owner = markerReference.get();
             if (owner != null) {

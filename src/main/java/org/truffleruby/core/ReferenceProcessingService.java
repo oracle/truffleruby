@@ -12,7 +12,6 @@ package org.truffleruby.core;
 import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
-import java.util.function.BiConsumer;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyContext;
@@ -172,6 +171,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
 
         protected void createProcessingThread(Class<?> owner) {
             final ThreadManager threadManager = context.getThreadManager();
+            final RubyLanguage language = context.getLanguageSlow();
             RubyThread newThread;
             synchronized (this) {
                 if (processingThread != null) {
@@ -205,7 +205,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
                                 }
                                 return ref;
                             });
-                    reference.service().processReference(context, reference);
+                    reference.service().processReference(context, language, reference);
                 }
             });
         }
@@ -228,7 +228,8 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
         }
 
         protected final void drainReferenceQueues() {
-            ReferenceQueue<Object> sharedReferenceQueue = context.getLanguageSlow().sharedReferenceQueue;
+            final ReferenceQueue<Object> sharedReferenceQueue = context.getLanguageSlow().sharedReferenceQueue;
+            final RubyLanguage language = context.getLanguageSlow();
             while (true) {
                 @SuppressWarnings("unchecked")
                 ProcessingReference<?> reference = (ProcessingReference<?>) processingQueue.poll();
@@ -241,7 +242,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
                     break;
                 }
 
-                reference.service().processReference(context, reference);
+                reference.service().processReference(context, language, reference);
             }
         }
 
@@ -251,21 +252,24 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
     private R first = null;
 
     protected final ReferenceQueue<Object> processingQueue;
-    protected final RubyLanguage language;
 
     public ReferenceProcessingService(RubyLanguage language, ReferenceQueue<Object> processingQueue) {
-        this.language = language;
         this.processingQueue = processingQueue;
     }
 
     @SuppressWarnings("unchecked")
-    protected void processReference(RubyContext context, ProcessingReference<?> reference) {
+    protected void processReference(RubyContext context, RubyLanguage language, ProcessingReference<?> reference) {
         remove((R) reference);
     }
 
-    protected void runCatchingErrors(RubyContext context, BiConsumer<RubyContext, R> action, R reference) {
+    public interface ReferenceRunner<T, U, V> {
+        public void accept(T t, U u, V v);
+    }
+
+    protected void runCatchingErrors(RubyContext context, RubyLanguage language,
+            ReferenceRunner<RubyContext, RubyLanguage, R> action, R reference) {
         try {
-            action.accept(context, reference);
+            action.accept(context, language, reference);
         } catch (TerminationException e) {
             throw e;
         } catch (RaiseException e) {
