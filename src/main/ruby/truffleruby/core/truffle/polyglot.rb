@@ -109,19 +109,19 @@ module Polyglot
       end
     end
 
-    def []=(member, value)
-      if Primitive.object_kind_of?(member, Numeric)
-        Truffle::Interop.write_array_element(self, member, value)
+    def []=(index, value)
+      if Primitive.object_kind_of?(index, Numeric)
+        Truffle::Interop.write_array_element(self, index, value)
       else
-        super(member, value)
+        super(index, value)
       end
     end
 
-    def delete(member)
-      if Primitive.object_kind_of?(member, Numeric)
-        Truffle::Interop.remove_array_element(self, member)
+    def delete(index)
+      if Primitive.object_kind_of?(index, Numeric)
+        Truffle::Interop.remove_array_element(self, index)
       else
-        super(member)
+        super(index)
       end
     end
 
