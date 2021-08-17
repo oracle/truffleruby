@@ -74,7 +74,7 @@ module Polyglot
 
   # region Trait modules for foreign objects
   # Specs for these methods are in spec/truffle/interop/special_forms_spec.rb
-  # and in spec/truffle/interop/polyglot/*_spec.rb
+  # and in spec/truffle/interop/polyglot/foreign_*_spec.rb
 
   module ArrayTrait
     include Enumerable
@@ -157,6 +157,27 @@ module Polyglot
   module InstantiableTrait
     def new(*args)
       Truffle::Interop.instantiate(self, *args)
+    end
+  end
+
+  module IterableTrait
+    include Enumerable
+
+    def each
+      return to_enum(:each) { size } unless block_given?
+
+      iterator = Truffle::Interop.iterator(self)
+      while Truffle::Interop.has_iterator_next_element?(iterator)
+        begin
+          element = Truffle::Interop.iterator_next_element(iterator)
+        rescue StopIteration
+          break
+        end
+
+        yield element
+      end
+
+      self
     end
   end
 

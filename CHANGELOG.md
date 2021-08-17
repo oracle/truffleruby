@@ -7,6 +7,7 @@ New features:
 * Add `Polyglot::InnerContext` to eval code in any available language in an inner isolated context (#2169).
 * Foreign objects now have a dynamically-generated class based on their interop traits like `ForeignArray` and are better integrated with Ruby objects (#2149).
 * Foreign arrays now have all methods of Ruby `Enumerable` and many methods of `Array` (#2149).
+* Foreign iterables (`InteropLibrary#hasIterator`) now have all methods of Ruby `Enumerable` (#2149).
 
 Bug fixes:
 

@@ -331,6 +331,16 @@ describe "Interop special forms" do
     l.log.should_not include(["identityHashCode"])
   end
 
+  it doc['.map', 'and other `Enumerable` methods work for foreign arrays'] do
+    array = Truffle::Debug.foreign_array
+    array.map { _1 * 2 }.should == [2, 4, 6]
+  end
+
+  it doc['.map', 'and other `Enumerable` methods work for foreign iterables (`hasIterator()`)'] do
+    iterable = Truffle::Debug.foreign_iterable
+    iterable.map { _1 * 2 }.should == [2, 4, 6]
+  end
+
   output << "\nUse `.respond_to?` for calling `InteropLibrary` predicates:\n"
 
   it description['.respond_to?(:to_str)', :isString] do

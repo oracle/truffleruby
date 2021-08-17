@@ -238,6 +238,6 @@ module Truffle
       KERNEL_FROZEN.bind(value).call
     end
 
-    # To get the class even if the value's class does not inlucde `Kernel`, use `Truffle::Type.object_class`.
+    # To get the class even if the value's class does not include `Kernel`, use `Truffle::Type.object_class`.
   end
 end

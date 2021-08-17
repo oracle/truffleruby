@@ -11,9 +11,30 @@ require_relative '../../../ruby/spec_helper'
 describe "Polyglot" do
   it "gives a Ruby Class to foreign objects" do
     Truffle::Debug.foreign_object.class.should == Polyglot::ForeignObject
-    Truffle::Debug.java_null.class.should == Polyglot::ForeignNull
+
+    Truffle::Debug.foreign_array.class.should == Polyglot::ForeignArray
     Truffle::Debug.foreign_executable(14).class.should == Polyglot::ForeignExecutable
+    # ForeignInstantiable
+    Truffle::Debug.foreign_iterable.class.should == Polyglot::ForeignIterable
+    Truffle::Debug.java_null.class.should == Polyglot::ForeignNull
+    Truffle::Debug.foreign_boxed_value(42).class.should == Polyglot::ForeignNumber
+    Truffle::Debug.foreign_boxed_value(3.14).class.should == Polyglot::ForeignNumber
     Truffle::Debug.foreign_pointer(0x1234).class.should == Polyglot::ForeignPointer
+    Truffle::Debug.foreign_string("foo").class.should == Polyglot::ForeignString
+
+    Truffle::Debug.foreign_pointer_array.class.should == Polyglot::ForeignArrayPointer
+  end
+
+  it "gives a Ruby Class to Ruby objects behind a foreign proxy" do
+    Truffle::Interop.proxy_foreign_object([1, 2, 3]).class.should == Polyglot::ForeignArray
+    Truffle::Interop.proxy_foreign_object(-> { nil }).class.should == Polyglot::ForeignExecutable
+    Truffle::Interop.proxy_foreign_object(String).class.should == Polyglot::ForeignInstantiable
+    Truffle::Interop.proxy_foreign_object((1..3)).class.should == Polyglot::ForeignIterable
+    Truffle::Interop.proxy_foreign_object(nil).class.should == Polyglot::ForeignNull
+    Truffle::Interop.proxy_foreign_object(42).class.should == Polyglot::ForeignNumber
+    Truffle::Interop.proxy_foreign_object(3.14).class.should == Polyglot::ForeignNumber
+    Truffle::Interop.proxy_foreign_object(Truffle::FFI::Pointer::NULL).class.should == Polyglot::ForeignPointer
+    Truffle::Interop.proxy_foreign_object("foo").class.should == Polyglot::ForeignString
   end
 
   guard -> { !TruffleRuby.native? } do

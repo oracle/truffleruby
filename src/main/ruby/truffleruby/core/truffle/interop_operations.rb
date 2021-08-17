@@ -29,7 +29,15 @@ module Truffle
 
     def self.resolve_polyglot_class(*traits)
       return Polyglot::ForeignObject if traits.empty?
-      name = "Foreign#{traits.join}"
+
+      name_traits = traits.dup
+      if name_traits.include?(:Array)
+        # foreign Array are Iterable by default, so it seems redundant in the name
+        unless name_traits.delete(:Iterable)
+          name_traits[name_traits.index(:Array)] = :ArrayNotIterable
+        end
+      end
+      name = "Foreign#{name_traits.join}"
 
       RESOLVE_POLYGLOT_CLASS_MUTEX.synchronize do
         if Polyglot.const_defined?(name, false)

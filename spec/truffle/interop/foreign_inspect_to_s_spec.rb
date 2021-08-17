@@ -72,8 +72,7 @@ describe "#inspect and #to_s on a foreign" do
 
   describe "recursive array" do
     it "gives a similar representation to Ruby" do
-      x = [1, 2, 3]
-      foreign = Truffle::Debug.foreign_array_from_java(Truffle::Interop.to_java_array(x))
+      foreign = Truffle::Debug.foreign_array
       foreign[0] = foreign
       foreign.inspect.should =~ /\A#<Polyglot::ForeignArray:0x\h+ \[\[...\], 2, 3\]>\z/
       foreign.to_s.should == "#<Polyglot::ForeignArray [foreign array]>"
@@ -104,37 +103,33 @@ describe "#inspect and #to_s on a foreign" do
     end
   end
 
-  guard -> { !TruffleRuby.native? } do
-    describe "array" do
-      it "gives a similar representation to Ruby" do
-        foreign = Truffle::Debug.foreign_array_from_java(Truffle::Interop.to_java_array([1, 2, 3]))
-        foreign.inspect.should =~ /\A#<Polyglot::ForeignArray:0x\h+ \[1, 2, 3\]>\z/
-        foreign.to_s.should == "#<Polyglot::ForeignArray [foreign array]>"
-      end
+  describe "array" do
+    it "gives a similar representation to Ruby" do
+      foreign = Truffle::Debug.foreign_array
+      foreign.inspect.should =~ /\A#<Polyglot::ForeignArray:0x\h+ \[1, 2, 3\]>\z/
+      foreign.to_s.should == "#<Polyglot::ForeignArray [foreign array]>"
+    end
 
-      it "gives a similar representation to Ruby, even if it is also a pointer" do
-        foreign = Truffle::Debug.foreign_pointer_array_from_java(Truffle::Interop.to_java_array([1, 2, 3]))
-        foreign.inspect.should =~ /\A#<Polyglot::ForeignArrayPointer 0x0 \[1, 2, 3\]>\z/
-        foreign.to_s.should == "#<Polyglot::ForeignArrayPointer [foreign pointer array]>"
-      end
+    it "gives a similar representation to Ruby, even if it is also a pointer" do
+      foreign = Truffle::Debug.foreign_pointer_array
+      foreign.inspect.should =~ /\A#<Polyglot::ForeignArrayPointer 0x0 \[1, 2, 3\]>\z/
+      foreign.to_s.should == "#<Polyglot::ForeignArrayPointer [foreign pointer array]>"
     end
   end
 
-  guard -> { !TruffleRuby.native? } do
-    describe "object without members" do
-      it "gives a similar representation to Ruby" do
-        foreign = Truffle::Debug.foreign_object
-        foreign.inspect.should =~ /\A#<Polyglot::ForeignObject:0x\h+>\z/
-        foreign.to_s.should == "#<Polyglot::ForeignObject [foreign object]>"
-      end
+  describe "object without members" do
+    it "gives a similar representation to Ruby" do
+      foreign = Truffle::Debug.foreign_object
+      foreign.inspect.should =~ /\A#<Polyglot::ForeignObject:0x\h+>\z/
+      foreign.to_s.should == "#<Polyglot::ForeignObject [foreign object]>"
     end
+  end
 
-    describe "object with members" do
-      it "gives a similar representation to Ruby" do
-        foreign = Truffle::Debug.foreign_object_from_map(Truffle::Interop.to_java_map({a: 1, b: 2, c: 3}))
-        foreign.inspect.should =~ /\A#<Polyglot::ForeignObject:0x\h+ a=1, b=2, c=3>\z/
-        foreign.to_s.should == "#<Polyglot::ForeignObject [foreign object with members]>"
-      end
+  describe "object with members" do
+    it "gives a similar representation to Ruby" do
+      foreign = Truffle::Debug.foreign_object_from_map(Truffle::Interop.to_java_map({a: 1, b: 2, c: 3}))
+      foreign.inspect.should =~ /\A#<Polyglot::ForeignObject:0x\h+ a=1, b=2, c=3>\z/
+      foreign.to_s.should == "#<Polyglot::ForeignObject [foreign object with members]>"
     end
   end
 end

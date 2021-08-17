@@ -43,6 +43,8 @@ Format: `Ruby code` sends `InteropLibrary message`
 - `foreign_object.__id__` uses `System.identityHashCode()` otherwise (which might not be unique)
 - `foreign_object.hash` sends `identityHashCode(foreign_object)` when `hasIdentity()` is true (which might not be unique)
 - `foreign_object.hash` uses `System.identityHashCode()` otherwise (which might not be unique)
+- `foreign_object.map` and other `Enumerable` methods work for foreign arrays
+- `foreign_object.map` and other `Enumerable` methods work for foreign iterables (`hasIterator()`)
 
 Use `.respond_to?` for calling `InteropLibrary` predicates:
 - `foreign_object.respond_to?(:to_str)` sends `isString(foreign_object)`
