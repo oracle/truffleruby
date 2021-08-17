@@ -8,12 +8,15 @@ In the documentation below:
 
 Format: `Ruby code` sends `InteropLibrary message`
 
+- `foreign_object[key]` sends `readHashValue(foreign_object, key)` if `hasHashEntries(foreign_object)`
 - `foreign_object[name]` sends `readMember(foreign_object, name)`
 - `foreign_object[index]` sends `readArrayElement(foreign_object, index)`
+- `foreign_object[key] = value` sends `writeHashEntry(foreign_object, key)` if `hasHashEntries(foreign_object)`
 - `foreign_object[name] = value` sends `writeMember(foreign_object, name, value)`
 - `foreign_object[index] = value` sends `writeArrayElement(foreign_object, index, value)`
 - `foreign_object.name = value` sends `writeMember(foreign_object, name, value)`
 - `foreign_object.name = *arguments` sends `writeMember(foreign_object, name, arguments)`
+- `foreign_object.delete(key)` sends `removeHashEntry(foreign_object, key)` if `hasHashEntries(foreign_object)`
 - `foreign_object.delete(name)` sends `removeMember(foreign_object, name)`
 - `foreign_object.delete(index)` sends `removeArrayElement(foreign_object, index)`
 - `foreign_object.call(*arguments)` sends `execute(foreign_object, *arguments)`

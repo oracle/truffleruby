@@ -84,11 +84,11 @@ module Truffle
           show_members = false
           string << " [#{object.map { |e| basic_inspect_for e }.join(', ')}]"
         end
-        if Primitive.interop_java_map?(object)
+        if Truffle::Interop.has_hash_entries?(object)
           show_members = false
-          string << " {#{pairs_from_java_map(object).map { |k, v| "#{basic_inspect_for k}=>#{basic_inspect_for v}" }.join(', ')}}"
+          string << " {#{object.map { |k, v| "#{basic_inspect_for k}=>#{basic_inspect_for v}" }.join(', ')}}"
         end
-        if Truffle::Interop.has_members?(object) and show_members
+        if show_members && Truffle::Interop.has_members?(object)
           pairs = pairs_from_object(object)
           unless pairs.empty?
             string << " #{pairs.map { |k, v| "#{k}=#{basic_inspect_for v}" }.join(', ')}"
@@ -107,7 +107,7 @@ module Truffle
         object.inspect
       elsif Truffle::Interop.has_array_elements?(object)
         '[...]'
-      elsif (Truffle::Interop.java?(object) && Primitive.interop_java_map?(object)) || Truffle::Interop.has_members?(object)
+      elsif Truffle::Interop.has_hash_entries?(object) || Truffle::Interop.has_members?(object)
         '{...}'
       else
         object.inspect
@@ -117,7 +117,7 @@ module Truffle
     def self.recursive_string_for(object)
       if Truffle::Interop.has_array_elements?(object)
         '[...]'
-      elsif Truffle::Interop.java?(object) && Primitive.interop_java_map?(object) || Truffle::Interop.has_members?(object)
+      elsif Truffle::Interop.has_hash_entries?(object) || Truffle::Interop.has_members?(object)
         '{...}'
       else
         # This last case should not currently be hit, but could be if we extend inspect with new cases.
@@ -128,12 +128,6 @@ module Truffle
 
     def self.java_type?(object)
       Truffle::Interop.java_class?(object) && Truffle::Interop.member_readable?(object, :class)
-    end
-
-    def self.pairs_from_java_map(map)
-      map.entrySet.toArray.map do |key_value|
-        [key_value.getKey, key_value.getValue]
-      end
     end
 
     def self.pairs_from_object(object)

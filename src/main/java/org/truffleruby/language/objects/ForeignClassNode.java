@@ -36,10 +36,12 @@ public abstract class ForeignClassNode extends RubyBaseNode {
     /** Based on the types and traits of {@link InteropLibrary} */
     public enum Trait {
         // First in the ancestors
-        ARRAY("Array"),
+        HASH("Hash"), // must be before Array
+        ARRAY("Array"), // must be before Iterable
         EXECUTABLE("Executable"),
         INSTANTIABLE("Instantiable"),
         ITERABLE("Iterable"),
+        ITERATOR("Iterator"),
         NULL("Null"),
         NUMBER("Number"),
         POINTER("Pointer"),
@@ -80,10 +82,12 @@ public abstract class ForeignClassNode extends RubyBaseNode {
     }
 
     protected int getTraits(Object object, InteropLibrary interop) {
-        return (interop.hasArrayElements(object) ? Trait.ARRAY.bit : 0) +
+        return (interop.hasHashEntries(object) ? Trait.HASH.bit : 0) +
+                (interop.hasArrayElements(object) ? Trait.ARRAY.bit : 0) +
                 (interop.isExecutable(object) ? Trait.EXECUTABLE.bit : 0) +
                 (interop.isInstantiable(object) ? Trait.INSTANTIABLE.bit : 0) +
                 (interop.hasIterator(object) ? Trait.ITERABLE.bit : 0) +
+                (interop.isIterator(object) ? Trait.ITERATOR.bit : 0) +
                 (interop.isNull(object) ? Trait.NULL.bit : 0) +
                 (interop.isNumber(object) ? Trait.NUMBER.bit : 0) +
                 (interop.isPointer(object) ? Trait.POINTER.bit : 0) +

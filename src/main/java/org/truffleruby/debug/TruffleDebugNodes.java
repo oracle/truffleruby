@@ -22,6 +22,7 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.interop.StopIterationException;
+import com.oracle.truffle.api.interop.UnknownKeyException;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.source.SourceSection;
@@ -54,6 +55,7 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.BoxedValue;
@@ -632,7 +634,11 @@ public abstract class TruffleDebugNodes {
         @ExportLibrary(InteropLibrary.class)
         public static class ForeignArray implements TruffleObject {
 
-            private final Object[] array = { 1, 2, 3 };
+            private final Object[] array;
+
+            public ForeignArray(Object... values) {
+                this.array = values;
+            }
 
             @ExportMessage
             protected boolean hasArrayElements() {
@@ -684,7 +690,7 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization
         protected Object foreignArray() {
-            return new ForeignArray();
+            return new ForeignArray(1, 2, 3);
         }
     }
 
@@ -693,6 +699,10 @@ public abstract class TruffleDebugNodes {
     public abstract static class ForeignPointerArrayNode extends CoreMethodArrayArgumentsNode {
         @ExportLibrary(InteropLibrary.class)
         public static class ForeignPointerArray extends ForeignArrayNode.ForeignArray {
+            public ForeignPointerArray(Object... values) {
+                super(values);
+            }
+
             @ExportMessage
             protected boolean isPointer() {
                 return true;
@@ -713,16 +723,15 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization
         protected Object foreignPointerArray() {
-            return new ForeignPointerArray();
+            return new ForeignPointerArray(1, 2, 3);
         }
     }
 
-    @CoreMethod(names = "foreign_iterable", onSingleton = true)
-    public abstract static class ForeignIterableNode extends CoreMethodArrayArgumentsNode {
-
+    @CoreMethod(names = "foreign_iterator", onSingleton = true)
+    public abstract static class ForeignIteratorNode extends CoreMethodArrayArgumentsNode {
         @ExportLibrary(InteropLibrary.class)
         public static class ForeignIterator implements TruffleObject {
-            int[] values = { 1, 2, 3 };
+            final int[] values = { 1, 2, 3 };
             int index = 0;
 
             @ExportMessage
@@ -735,6 +744,7 @@ public abstract class TruffleDebugNodes {
                 return index < values.length;
             }
 
+            @TruffleBoundary
             @ExportMessage
             protected Object getIteratorNextElement() throws StopIterationException {
                 if (hasIteratorNextElement()) {
@@ -752,6 +762,15 @@ public abstract class TruffleDebugNodes {
             }
         }
 
+        @TruffleBoundary
+        @Specialization
+        protected Object foreignIterator() {
+            return new ForeignIterator();
+        }
+    }
+
+    @CoreMethod(names = "foreign_iterable", onSingleton = true)
+    public abstract static class ForeignIterableNode extends CoreMethodArrayArgumentsNode {
         @ExportLibrary(InteropLibrary.class)
         public static class ForeignIterable implements TruffleObject {
             @ExportMessage
@@ -761,7 +780,7 @@ public abstract class TruffleDebugNodes {
 
             @ExportMessage
             protected Object getIterator() {
-                return new ForeignIterator();
+                return new ForeignIteratorNode.ForeignIterator();
             }
 
             @ExportMessage
@@ -774,6 +793,108 @@ public abstract class TruffleDebugNodes {
         @Specialization
         protected Object foreignIterable() {
             return new ForeignIterable();
+        }
+    }
+
+    @CoreMethod(names = "foreign_hash", onSingleton = true)
+    public abstract static class ForeignHashNode extends CoreMethodArrayArgumentsNode {
+
+        @ExportLibrary(InteropLibrary.class)
+        public static class ForeignHashEntriesIterator implements TruffleObject {
+            final ForeignHash foreignHash;
+            int index = 0;
+
+            public ForeignHashEntriesIterator(ForeignHash foreignHash) {
+                this.foreignHash = foreignHash;
+            }
+
+            @ExportMessage
+            protected boolean isIterator() {
+                return true;
+            }
+
+            @ExportMessage
+            protected boolean hasIteratorNextElement() {
+                return index < 2;
+            }
+
+            @TruffleBoundary
+            @ExportMessage
+            protected Object getIteratorNextElement() throws StopIterationException {
+                if (index == 0) {
+                    index++;
+                    return new ForeignArrayNode.ForeignArray(foreignHash.key1, foreignHash.value1);
+                } else if (index == 1) {
+                    index++;
+                    return new ForeignArrayNode.ForeignArray(foreignHash.key2, foreignHash.value2);
+                } else {
+                    throw StopIterationException.create();
+                }
+            }
+
+            @ExportMessage
+            protected String toDisplayString(boolean allowSideEffects) {
+                return "[foreign hash entries iterator]";
+            }
+        }
+
+        @ExportLibrary(InteropLibrary.class)
+        public static class ForeignHash implements TruffleObject {
+            private final RubySymbol key1;
+            private final int value1;
+            private final RubySymbol key2;
+            private final int value2;
+
+            public ForeignHash(RubySymbol key1, int value1, RubySymbol key2, int value2) {
+                this.key1 = key1;
+                this.value1 = value1;
+                this.key2 = key2;
+                this.value2 = value2;
+            }
+
+            @ExportMessage
+            protected boolean hasHashEntries() {
+                return true;
+            }
+
+            @ExportMessage
+            protected long getHashSize() {
+                return 2;
+            }
+
+            @TruffleBoundary
+            @ExportMessage
+            protected boolean isHashEntryReadable(Object key) {
+                return key == key1 || key == key2;
+            }
+
+            @TruffleBoundary
+            @ExportMessage
+            protected Object readHashValue(Object key) throws UnknownKeyException {
+                if (key == key1) {
+                    return value1;
+                } else if (key == key2) {
+                    return value2;
+                } else {
+                    throw UnknownKeyException.create(key);
+                }
+            }
+
+            @ExportMessage
+            protected Object getHashEntriesIterator() {
+                return new ForeignHashEntriesIterator(this);
+            }
+
+            @ExportMessage
+            protected String toDisplayString(boolean allowSideEffects) {
+                return "[foreign hash]";
+            }
+        }
+
+        @TruffleBoundary
+        @Specialization
+        protected Object foreignHash() {
+            return new ForeignHash(getSymbol("a"), 1, getSymbol("b"), 2);
         }
     }
 

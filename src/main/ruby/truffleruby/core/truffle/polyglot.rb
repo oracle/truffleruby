@@ -76,6 +76,99 @@ module Polyglot
   # Specs for these methods are in spec/truffle/interop/special_forms_spec.rb
   # and in spec/truffle/interop/polyglot/foreign_*_spec.rb
 
+  module HashTrait
+    include Enumerable
+
+    def each(&block)
+      return to_enum(:each) { size } unless block_given?
+
+      iterator = Truffle::Interop.hash_entries_iterator(self)
+      iterator.each(&block)
+      self
+    end
+
+    def each_pair
+      return to_enum(:each_pair) { size } unless block_given?
+
+      each do |key, value|
+        yield key, value
+      end
+      self
+    end
+
+    def each_key(&block)
+      return to_enum(:each_key) { size } unless block_given?
+
+      Truffle::Interop.hash_keys_iterator(self).each(&block)
+      self
+    end
+
+    def keys
+      Truffle::Interop.hash_keys_iterator(self).to_a
+    end
+
+    def each_value(&block)
+      return to_enum(:each_value) { size } unless block_given?
+
+      Truffle::Interop.hash_values_iterator(self).each(&block)
+      self
+    end
+
+    def values
+      Truffle::Interop.hash_values_iterator(self).to_a
+    end
+
+    def [](key)
+      Truffle::Interop.read_hash_value_or_default(self, key, nil)
+    end
+
+    def []=(key, value)
+      Truffle::Interop.write_hash_entry(self, key, value)
+    end
+
+    def delete(key)
+      value = Truffle::Interop.read_hash_value_or_default(self, key, undefined)
+      if Primitive.undefined?(value)
+        nil
+      else
+        Truffle::Interop.remove_hash_entry(self, key)
+        value
+      end
+    end
+
+    def fetch(key, default = undefined)
+      value = Truffle::Interop.read_hash_value_or_default(self, key, undefined)
+      unless Primitive.undefined?(value)
+        return value
+      end
+
+      if block_given?
+        warn 'block supersedes default value argument', uplevel: 1 unless Primitive.undefined?(default)
+
+        return yield(key)
+      end
+
+      return default unless Primitive.undefined?(default)
+      raise KeyError.new("key not found: #{key.inspect}", receiver: self, key: key)
+    end
+
+    def size
+      Truffle::Interop.hash_size(self)
+    end
+    alias_method :length, :size
+
+    def empty?
+      Truffle::Interop.hash_size(self) == 0
+    end
+
+    def to_hash
+      h = {}
+      each_pair { |k,v| h[k] = v }
+      h
+    end
+    alias_method :to_h, :to_hash
+  end
+
   module ArrayTrait
     include Enumerable
 
@@ -83,7 +176,7 @@ module Polyglot
       return to_enum(:each) { size } unless block_given?
 
       i = 0
-      while i < length
+      while i < size
         yield Truffle::Interop.read_array_element(self, i)
         i += 1
       end
@@ -163,13 +256,24 @@ module Polyglot
   module IterableTrait
     include Enumerable
 
-    def each
+    def each(&block)
       return to_enum(:each) { size } unless block_given?
 
       iterator = Truffle::Interop.iterator(self)
-      while Truffle::Interop.has_iterator_next_element?(iterator)
+      iterator.each(&block)
+      self
+    end
+  end
+
+  module IteratorTrait
+    include Enumerable
+
+    def each
+      return to_enum(:each) { size } unless block_given?
+
+      while Truffle::Interop.has_iterator_next_element?(self)
         begin
-          element = Truffle::Interop.iterator_next_element(iterator)
+          element = Truffle::Interop.iterator_next_element(self)
         rescue StopIteration
           break
         end

@@ -55,6 +55,19 @@ describe "Interop special forms" do
   # TODO (pitr-ch 23-Mar-2020): test what method has a precedence, special or the invokable-member on the foreign object
   # TODO (pitr-ch 23-Mar-2020): test left side operator conversion with asBoolean, asString, etc.
 
+  it description['[key]', :readHashValue, [:key], 'if `hasHashEntries(foreign_object)`'] do
+    pfo, h, l = proxy[TruffleInteropSpecs::PolyglotHash.new]
+    pfo[:foo].should == nil
+    l.log.should include(['readHashValueOrDefault', :foo, nil]) # readHashValue
+    h.log.should include([:polyglot_read_hash_entry, :foo])
+
+    pfo, h, l = proxy[TruffleInteropSpecs::PolyglotHash.new]
+    pfo[:foo] = 42
+    pfo[:foo].should == 42
+    l.log.should include(['readHashValueOrDefault', :foo, nil]) # readHashValue
+    h.log.should include([:polyglot_read_hash_entry, :foo])
+  end
+
   it description['[name]', :readMember, [:name]] do
     pfo, pm, l = proxy[TruffleInteropSpecs::PolyglotMember.new]
     -> { pfo[:foo] }.should raise_error(NameError)
@@ -70,6 +83,13 @@ describe "Interop special forms" do
     pfo[0].should == nil
     l.log.should include(['getArraySize'])
     pa.log.should include([:polyglot_array_size])
+  end
+
+  it description['[key] = value', :writeHashEntry, [:key], 'if `hasHashEntries(foreign_object)`'] do
+    pfo, h, l = proxy[TruffleInteropSpecs::PolyglotHash.new]
+    pfo[:foo] = 42
+    l.log.should include(['writeHashEntry', :foo, 42])
+    h.log.should include([:polyglot_write_hash_entry, :foo, 42])
   end
 
   it description['[name] = value', :writeMember, [:name, :value]] do
@@ -107,6 +127,14 @@ describe "Interop special forms" do
     pfo, _, l = proxy[TruffleInteropSpecs::PolyglotMember.new]
     l.log.should_not include(['writeMember', :bar, :baz])
     -> { pfo.__send__(:foo=, :bar, :baz) }.should raise_error(ArgumentError)
+  end
+
+  it description['.delete(key)', :removeHashEntry, [:key], 'if `hasHashEntries(foreign_object)`'] do
+    pfo, h, l = proxy[TruffleInteropSpecs::PolyglotHash.new]
+    pfo[:foo] = 42
+    pfo.delete(:foo).should == 42
+    l.log.should include(['removeHashEntry', :foo])
+    h.log.should include([:polyglot_remove_hash_entry, :foo])
   end
 
   it description['.delete(name)', :removeMember, [:name]] do

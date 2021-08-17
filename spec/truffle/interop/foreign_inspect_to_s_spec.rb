@@ -40,8 +40,8 @@ describe "#inspect and #to_s on a foreign" do
         foreign = Truffle::Interop.to_java_map(hash)
 
         hash.to_s.should == '{:a=>1, :b=>2, :c=>3}' # for comparison
-        foreign.inspect.should =~ /\A#<Polyglot::ForeignObject\[Java\] java\.util\.HashMap:0x\h+ {"a"=>1, "b"=>2, "c"=>3}>\z/
-        foreign.to_s.should == "#<Polyglot::ForeignObject[Java] {a=1, b=2, c=3}>"
+        foreign.inspect.should =~ /\A#<Polyglot::ForeignHash\[Java\] java\.util\.HashMap:0x\h+ {"a"=>1, "b"=>2, "c"=>3}>\z/
+        foreign.to_s.should == "#<Polyglot::ForeignHash[Java] {a=1, b=2, c=3}>"
       end
     end
 
@@ -114,6 +114,15 @@ describe "#inspect and #to_s on a foreign" do
       foreign = Truffle::Debug.foreign_pointer_array
       foreign.inspect.should =~ /\A#<Polyglot::ForeignArrayPointer 0x0 \[1, 2, 3\]>\z/
       foreign.to_s.should == "#<Polyglot::ForeignArrayPointer [foreign pointer array]>"
+    end
+  end
+
+  describe "hash" do
+    it "gives a similar representation to Ruby" do
+      foreign = Truffle::Debug.foreign_hash
+      { a: 1, b: 2 }.inspect.should == "{:a=>1, :b=>2}"
+      foreign.inspect.should =~ /\A#<Polyglot::ForeignHash:0x\h+ {:a=>1, :b=>2}>\z/
+      foreign.to_s.should == "#<Polyglot::ForeignHash [foreign hash]>"
     end
   end
 

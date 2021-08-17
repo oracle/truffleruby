@@ -1681,15 +1681,6 @@ public abstract class InteropNodes {
         }
     }
 
-    @Primitive(name = "interop_java_map?")
-    public abstract static class InteropIsJavaMapNode extends CoreMethodArrayArgumentsNode {
-        @Specialization
-        protected boolean isJavaMap(Object value) {
-            return getContext().getEnv().isHostObject(value) &&
-                    getContext().getEnv().asHostObject(value) instanceof Map;
-        }
-    }
-
     @CoreMethod(names = "java_string?", onSingleton = true, required = 1)
     public abstract static class InteropIsJavaStringNode extends CoreMethodArrayArgumentsNode {
 

@@ -14,8 +14,8 @@ describe "Polyglot::ForeignArray" do
     @empty = Truffle::Interop.to_java_array([])
   end
 
-  it "should have class ForeignArray" do
-    @foreign.inspect.should =~ /\A#<Polyglot::ForeignArray\[Java\] int\[\]:0x\h+ \[1, 2, 3\]>/
+  it "supports #length and #size" do
+    @foreign.size.should == 3
     @foreign.length.should == 3
   end
 
