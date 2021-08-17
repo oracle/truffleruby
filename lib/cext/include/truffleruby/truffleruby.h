@@ -14,6 +14,8 @@
 #ifndef TRUFFLERUBY_H
 #define TRUFFLERUBY_H
 
+#include "ruby/encoding.h"
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -55,18 +57,12 @@ typedef void* (gvl_call)(void *);
 
 // Sprintf
 
-typedef struct OnigEncodingTypeST OnigEncodingType;
-typedef const OnigEncodingType rb_encoding;;
-
-rb_encoding *rb_ascii8bit_encoding(void);
-
 PRINTF_ARGS(ALWAYS_INLINE(static VALUE rb_tr_sprintf(const char *format, ...)), 1, 2);
 ALWAYS_INLINE(static VALUE rb_tr_vsprintf(const char *format, va_list args));
 PRINTF_ARGS(ALWAYS_INLINE(static VALUE rb_tr_enc_sprintf(rb_encoding *enc, const char *format, ...)), 2, 3);
 ALWAYS_INLINE(static VALUE rb_tr_enc_vsprintf(rb_encoding *enc, const char *format, va_list args));
 VALUE rb_tr_get_sprintf_args(va_list args, VALUE types);
 VALUE rb_tr_vsprintf_new_cstr(char *cstr);
-VALUE rb_str_conv_enc(VALUE str, rb_encoding *from, rb_encoding *to);
 
 #define rb_enc_sprintf(encoding, format, ...) rb_tr_enc_sprintf(encoding, format, ##__VA_ARGS__)
 #define rb_enc_vsprintf(encoding, format, args) rb_tr_enc_vsprintf(encoding, format, args)
