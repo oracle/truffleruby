@@ -87,6 +87,8 @@ module Polyglot
         yield Truffle::Interop.read_array_element(self, i)
         i += 1
       end
+
+      self
     end
 
     def at(index)
