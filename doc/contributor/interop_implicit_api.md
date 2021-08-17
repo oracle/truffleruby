@@ -47,8 +47,6 @@ Format: `Ruby code` sends `InteropLibrary message`
 - `foreign_object.hash` uses `System.identityHashCode()` otherwise (which might not be unique)
 
 Use `.respond_to?` for calling `InteropLibrary` predicates:
-- `foreign_object.respond_to?(:inspect)` is always true
-- `foreign_object.respond_to?(:to_s)` is always true
 - `foreign_object.respond_to?(:to_str)` sends `isString(foreign_object)`
 - `foreign_object.respond_to?(:to_a)` sends `hasArrayElements(foreign_object)`
 - `foreign_object.respond_to?(:to_ary)` sends `hasArrayElements(foreign_object)`
@@ -58,4 +56,3 @@ Use `.respond_to?` for calling `InteropLibrary` predicates:
 - `foreign_object.respond_to?(:keys)` sends `hasMembers(foreign_object)`
 - `foreign_object.respond_to?(:call)` sends `isExecutable(foreign_object)`
 - `foreign_object.respond_to?(:new)` sends `isInstantiable(foreign_object)`
-- `foreign_object.respond_to?(:is_a?)` is always true

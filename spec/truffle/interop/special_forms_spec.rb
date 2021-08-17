@@ -348,14 +348,6 @@ describe "Interop special forms" do
 
   output << "\nUse `.respond_to?` for calling `InteropLibrary` predicates:\n"
 
-  it doc['.respond_to?(:inspect)', "is always true"] do
-    Truffle::Debug.foreign_object.respond_to?(:inspect).should be_true
-  end
-
-  it doc['.respond_to?(:to_s)', "is always true"] do
-    Truffle::Debug.foreign_object.respond_to?(:to_s).should be_true
-  end
-
   it description['.respond_to?(:to_str)', :isString] do
     pfo, _, l = proxy[Object.new]
     pfo.respond_to?(:to_str)
@@ -410,12 +402,7 @@ describe "Interop special forms" do
     l.log.should include(["isInstantiable"])
   end
 
-  it doc['.respond_to?(:is_a?)', "is always true"] do
-    Truffle::Debug.foreign_object.respond_to?(:is_a?).should be_true
-  end
-
   describe "#is_a?" do
-
     it "returns false for a non-Java foreign object and a Ruby class" do
       Truffle::Debug.foreign_object.is_a?(Hash).should be_false
     end
