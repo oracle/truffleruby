@@ -2,8 +2,8 @@ Test error in Ruby => C ext support => Ruby
 /bin/backtraces:19:in `callback': Ruby callback error (RuntimeError)
 	from /lib/truffle/truffle/cext.rb:n:in `rb_funcallv'
 	from /src/main/c/cext/call.c:n:in `rb_funcallv'
-	from <internal:core> core/truffle/polyglot.rb:148:in `execute'
-	from <internal:core> core/truffle/polyglot.rb:148:in `call'
+	from <internal:core> core/truffle/polyglot.rb:n:in `execute'
+	from <internal:core> core/truffle/polyglot.rb:n:in `call'
 	from /bin/backtraces:23:in `ruby_call'
 	from /bin/backtraces:27:in `top'
 	from /bin/backtraces:31:in `<main>'
@@ -12,8 +12,8 @@ Test with an internal error from rb_mutex_lock()
 /lib/truffle/truffle/cext.rb:n:in `lock': deadlock; recursive locking (ThreadError)
 	from /lib/truffle/truffle/cext.rb:n:in `rb_mutex_lock'
 	from /src/main/c/cext/mutex.c:n:in `rb_mutex_lock'
-	from <internal:core> core/truffle/polyglot.rb:148:in `execute'
-	from <internal:core> core/truffle/polyglot.rb:148:in `call'
+	from <internal:core> core/truffle/polyglot.rb:n:in `execute'
+	from <internal:core> core/truffle/polyglot.rb:n:in `call'
 	from /bin/backtraces:45:in `double_lock'
 	from /bin/backtraces:49:in `<main>'
 
