@@ -100,6 +100,10 @@ int ruby_vsnprintf(char *str, size_t n, char const *fmt, va_list ap) {
   return vsnprintf(str, n, fmt, ap);
 }
 
+/* This enum type must be kept in sync with the in
+   org.truffleruby.core.format.rbsprintf.RBSprintfConfig as they are
+   used to communicate the types of arguments to be fetched from the
+   va_list. */
 enum printf_arg_types {
   TYPE_UNKNOWN,
   TYPE_CHAR,

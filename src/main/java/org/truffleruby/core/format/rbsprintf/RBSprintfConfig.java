@@ -21,6 +21,8 @@ public class RBSprintfConfig {
         OTHER
     }
 
+    /* This enum type must be kept in sync with the one in printf.c as itas they are used to communicate the types of
+     * arguments to be fetched from the va_list. */
     public enum FormatArgumentType {
         UNKNOWN,
         CHAR,
