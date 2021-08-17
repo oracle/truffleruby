@@ -18,7 +18,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.cext.ValueWrapperManagerFactory.AllocateHandleNodeGen;
-import org.truffleruby.cext.ValueWrapperManagerFactory.GetHandleBlockHolderNodeGen;
 import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.ImmutableRubyObject;
@@ -300,50 +299,28 @@ public class ValueWrapperManager {
     }
 
     @GenerateUncached
-    public abstract static class GetHandleBlockHolderNode extends RubyBaseNode {
-
-        public abstract HandleBlockHolder execute(ValueWrapper wrapper);
-
-        @Specialization(guards = "cachedThread == currentJavaThread(wrapper)", limit = "getCacheLimit()")
-        protected HandleBlockHolder getHolderOnKnownThread(ValueWrapper wrapper,
-                @Cached("currentJavaThread(wrapper)") Thread cachedThread,
-                @Cached("getBlockHolder(wrapper)") HandleBlockHolder threadData) {
-            return threadData;
-        }
-
-        @Specialization(replaces = "getHolderOnKnownThread")
-        protected HandleBlockHolder getBlockHolder(ValueWrapper wrapper) {
-            return getContext().getValueWrapperManager().getBlockHolder(getLanguage());
-        }
-
-        protected static Thread currentJavaThread(ValueWrapper wrapper) {
-            return Thread.currentThread();
-        }
-
-        public int getCacheLimit() {
-            return getLanguage().options.THREAD_CACHE;
-        }
-
-        public static GetHandleBlockHolderNode create() {
-            return GetHandleBlockHolderNodeGen.create();
-        }
-    }
-
-    @GenerateUncached
     public abstract static class AllocateHandleNode extends RubyBaseNode {
 
         public abstract long execute(ValueWrapper wrapper);
 
         @Specialization(guards = "!isSharedObject(wrapper)")
-        protected long allocateHandleOnKnownThread(ValueWrapper wrapper,
-                @Cached GetHandleBlockHolderNode getBlockHolderNode) {
-            return allocateHandle(wrapper, getContext(), getLanguage(), getBlockHolderNode.execute(wrapper), false);
+        protected long allocateHandleOnKnownThread(ValueWrapper wrapper) {
+            return allocateHandle(
+                    wrapper,
+                    getContext(),
+                    getLanguage(),
+                    getContext().getValueWrapperManager().getBlockHolder(getLanguage()),
+                    false);
         }
 
         @Specialization(guards = "isSharedObject(wrapper)")
-        protected long allocateSharedHandleOnKnownThread(ValueWrapper wrapper,
-                @Cached GetHandleBlockHolderNode getBlockHolderNode) {
-            return allocateHandle(wrapper, getContext(), getLanguage(), getBlockHolderNode.execute(wrapper), true);
+        protected long allocateSharedHandleOnKnownThread(ValueWrapper wrapper) {
+            return allocateHandle(
+                    wrapper,
+                    getContext(),
+                    getLanguage(),
+                    getContext().getValueWrapperManager().getBlockHolder(getLanguage()),
+                    true);
         }
 
         protected static long allocateHandle(ValueWrapper wrapper, RubyContext context, RubyLanguage language,

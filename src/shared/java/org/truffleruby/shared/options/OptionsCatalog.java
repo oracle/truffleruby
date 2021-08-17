@@ -127,7 +127,6 @@ public class OptionsCatalog {
     public static final OptionKey<Integer> TIME_FORMAT_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> POW_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> RUBY_LIBRARY_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
-    public static final OptionKey<Integer> THREAD_CACHE_KEY = new OptionKey<>(1);
     public static final OptionKey<Integer> IDENTITY_CACHE_KEY = new OptionKey<>(1);
     public static final OptionKey<Integer> CONTEXT_SPECIFIC_IDENTITY_CACHE_KEY = new OptionKey<>(IDENTITY_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> CLASS_CACHE_KEY = new OptionKey<>(3);
@@ -911,13 +910,6 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
-    public static final OptionDescriptor THREAD_CACHE = OptionDescriptor
-            .newBuilder(THREAD_CACHE_KEY, "ruby.thread-cache")
-            .help("Cache size of operations that depend on a particular thread")
-            .category(OptionCategory.INTERNAL)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
     public static final OptionDescriptor IDENTITY_CACHE = OptionDescriptor
             .newBuilder(IDENTITY_CACHE_KEY, "ruby.identity-cache")
             .help("Cache size for inline caches comparing by identity for context-independent objects")
@@ -1365,8 +1357,6 @@ public class OptionsCatalog {
                 return POW_CACHE;
             case "ruby.ruby-library-cache":
                 return RUBY_LIBRARY_CACHE;
-            case "ruby.thread-cache":
-                return THREAD_CACHE;
             case "ruby.identity-cache":
                 return IDENTITY_CACHE;
             case "ruby.context-identity-cache":
@@ -1547,7 +1537,6 @@ public class OptionsCatalog {
             TIME_FORMAT_CACHE,
             POW_CACHE,
             RUBY_LIBRARY_CACHE,
-            THREAD_CACHE,
             IDENTITY_CACHE,
             CONTEXT_SPECIFIC_IDENTITY_CACHE,
             CLASS_CACHE,

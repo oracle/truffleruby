@@ -44,7 +44,6 @@ LANGUAGE_OPTIONS:
 - TIME_FORMAT_CACHE
 - POW_CACHE
 - RUBY_LIBRARY_CACHE
-- THREAD_CACHE
 - CONTEXT_SPECIFIC_IDENTITY_CACHE
 - IDENTITY_CACHE
 - CLASS_CACHE
@@ -207,7 +206,6 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     RUBY_LIBRARY_CACHE: [ruby-library-cache, integer, DEFAULT_CACHE, Ruby Library cache size]
 
     # Inline caches with a non-default size. When adding a new option here, update test/truffle/integration/limit-zero.sh
-    THREAD_CACHE: [thread-cache, integer, ['!singleContext ? 0 : ', 1], Cache size of operations that depend on a particular thread]
     IDENTITY_CACHE: [identity-cache, integer, 1, Cache size for inline caches comparing by identity for context-independent objects]
     CONTEXT_SPECIFIC_IDENTITY_CACHE: [context-identity-cache, integer, ['!singleContext ? 0 : ', IDENTITY_CACHE], Cache size for inline caches comparing by identity for context-specific objects]
     CLASS_CACHE: [class-cache, integer, 3, .class and .metaclass cache size]
