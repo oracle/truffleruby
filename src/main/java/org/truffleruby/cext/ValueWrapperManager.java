@@ -60,13 +60,7 @@ public class ValueWrapperManager {
 
     private volatile HandleBlockWeakReference[] blockMap = new HandleBlockWeakReference[0];
 
-    private final RubyContext context;
-
-    public ValueWrapperManager(RubyContext context) {
-        this.context = context;
-    }
-
-    public HandleBlockHolder makeThreadData() {
+    public HandleBlockHolder makeThreadData(RubyContext context) {
         HandleBlockHolder holder = new HandleBlockHolder();
         context.getFinalizationService().addFinalizer(
                 context,
@@ -77,10 +71,10 @@ public class ValueWrapperManager {
         return holder;
     }
 
-    public HandleBlockHolder getBlockHolder(RubyLanguage language) {
+    public HandleBlockHolder getBlockHolder(RubyContext context, RubyLanguage language) {
         RubyFiber fiber = language.getCurrentThread().getCurrentFiber();
         if (fiber.handleData == null) {
-            fiber.handleData = makeThreadData();
+            fiber.handleData = makeThreadData(context);
         }
         return fiber.handleData;
     }
@@ -96,7 +90,7 @@ public class ValueWrapperManager {
     }
 
     @TruffleBoundary
-    public synchronized void addToBlockMap(HandleBlock block, RubyLanguage language) {
+    public synchronized void addToBlockMap(HandleBlock block, RubyContext context, RubyLanguage language) {
         int blockIndex = block.getIndex();
         long blockBase = block.getBase();
         HandleBlockAllocator allocator = language.handleBlockAllocator;
@@ -111,7 +105,7 @@ public class ValueWrapperManager {
     }
 
     @TruffleBoundary
-    public void addToSharedBlockMap(HandleBlock block, RubyLanguage language) {
+    public void addToSharedBlockMap(HandleBlock block, RubyContext context, RubyLanguage language) {
         synchronized (language) {
             int blockIndex = block.getIndex();
             long blockBase = block.getBase();
@@ -309,7 +303,7 @@ public class ValueWrapperManager {
                     wrapper,
                     getContext(),
                     getLanguage(),
-                    getContext().getValueWrapperManager().getBlockHolder(getLanguage()),
+                    getContext().getValueWrapperManager().getBlockHolder(getContext(), getLanguage()),
                     false);
         }
 
@@ -319,7 +313,7 @@ public class ValueWrapperManager {
                     wrapper,
                     getContext(),
                     getLanguage(),
-                    getContext().getValueWrapperManager().getBlockHolder(getLanguage()),
+                    getContext().getValueWrapperManager().getBlockHolder(getContext(), getLanguage()),
                     true);
         }
 
@@ -342,10 +336,10 @@ public class ValueWrapperManager {
                 }
                 if (shared) {
                     block = (holder.sharedHandleBlock = new HandleBlock(context, language.handleBlockAllocator));
-                    context.getValueWrapperManager().addToSharedBlockMap(block, language);
+                    context.getValueWrapperManager().addToSharedBlockMap(block, context, language);
                 } else {
                     block = (holder.handleBlock = new HandleBlock(context, language.handleBlockAllocator));
-                    context.getValueWrapperManager().addToBlockMap(block, language);
+                    context.getValueWrapperManager().addToBlockMap(block, context, language);
                 }
 
             }
