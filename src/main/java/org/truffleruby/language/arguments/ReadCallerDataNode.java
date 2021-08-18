@@ -15,17 +15,13 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
-import com.oracle.truffle.api.nodes.DirectCallNode;
-import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-import org.truffleruby.RubyContext;
 import org.truffleruby.language.CallStackManager;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
 import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
 public abstract class ReadCallerDataNode extends RubyBaseNode implements CallerDataReadingNode {

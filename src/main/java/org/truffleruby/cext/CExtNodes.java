@@ -124,7 +124,8 @@ public class CExtNodes {
         @Child protected CallWithCExtLockNode callCextNode = CallWithCExtLockNodeFactory.create(RubyNode.EMPTY_ARRAY);
 
         @Specialization
-        protected Object callWithCExtLockAndFrame(Object receiver, RubyArray argsArray, Object specialVariables, Object block,
+        protected Object callWithCExtLockAndFrame(
+                Object receiver, RubyArray argsArray, Object specialVariables, Object block,
                 @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
             final ExtensionCallStack extensionStack = getDataNode.execute().getExtensionCallStack();
             extensionStack.push(variables, block);

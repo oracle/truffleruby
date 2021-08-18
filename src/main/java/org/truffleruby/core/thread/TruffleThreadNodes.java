@@ -18,9 +18,7 @@ import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
 import org.truffleruby.core.MarkingServiceNodes;
 import org.truffleruby.language.arguments.CallerDataReadingNode;
-import org.truffleruby.language.arguments.ReadCallerDataNode;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
-import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -29,8 +27,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.nodes.DirectCallNode;
-import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 
 @CoreModule("Truffle::ThreadOperations")
@@ -49,7 +45,8 @@ public class TruffleThreadNodes {
 
     @CoreMethod(names = "ruby_caller_special_variables", onSingleton = true, required = 1)
     @ImportStatic(ArrayGuards.class)
-    public abstract static class FindRubyCallerSpecialStorage extends CoreMethodArrayArgumentsNode implements CallerDataReadingNode {
+    public abstract static class FindRubyCallerSpecialStorage extends CoreMethodArrayArgumentsNode
+            implements CallerDataReadingNode {
 
         @TruffleBoundary
         @Specialization(limit = "storageStrategyLimit()")
