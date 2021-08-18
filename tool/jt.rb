@@ -710,7 +710,7 @@ module Commands
                                     Default value is --use jvm, therefore all commands run on truffleruby-jvm by default.
                                     The default can be changed with `export RUBY_BIN=RUBY_SELECTOR`
           --silent                  Does not print the command and which Ruby is used
-          --jdk                     Specifies which version of the JDK should be used: 8, 11 (default) or 16
+          --jdk                     Specifies which version of the JDK should be used: 8, 11 (default) or 17
 
       jt build [graalvm|parser|options] ...   by default it builds graalvm
         jt build [parser|options] [options]
@@ -812,7 +812,7 @@ module Commands
         OPENSSL_PREFIX                               Where to find OpenSSL headers and libraries
         ECLIPSE_EXE                                  Where to find Eclipse
         SYSTEM_RUBY                                  The Ruby interpreter to run 'jt' itself, when using 'bin/jt'
-        JT_JDK                                       The default JDK version to use: 8, 11 (default) or 16
+        JT_JDK                                       The default JDK version to use: 8, 11 (default) or 17
         JT_ENV                                       The default value for 'jt build --env JT_ENV' and for 'jt --use JT_ENV'
         JT_PROFILE_SUBCOMMANDS                       Print the time each subprocess takes on stderr
     TXT
@@ -2024,8 +2024,8 @@ module Commands
       jdk_name = ee ? 'oraclejdk8' : 'openjdk8'
     elsif jdk_version == 11
       jdk_name = ee ? 'labsjdk-ee-11' : 'labsjdk-ce-11'
-    elsif jdk_version == 16
-      jdk_name = ee ? 'labsjdk-ee-16' : 'labsjdk-ce-16'
+    elsif jdk_version == 17
+      jdk_name = ee ? 'labsjdk-ee-17' : 'labsjdk-ce-17'
     else
       raise "Unknown JDK version: #{jdk_version}"
     end
@@ -2850,7 +2850,7 @@ class JT
       end
     end
 
-    raise "Invalid JDK version: #{@jdk_version}" unless [8, 11, 16].include?(@jdk_version)
+    raise "Invalid JDK version: #{@jdk_version}" unless [8, 11, 17].include?(@jdk_version)
 
     if needs_rebuild
       rebuild
