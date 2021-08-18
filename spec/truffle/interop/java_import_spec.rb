@@ -10,38 +10,37 @@ require_relative '../../ruby/spec_helper'
 
 guard -> { !TruffleRuby.native? } do
   describe "Java.import" do
-
-    it "imports a class to the top-level" do
-      ruby_exe(%{
+    it "imports a class under the enclosing module" do
+      module TruffleJavaImportSpecs1
         Java.import 'java.math.BigInteger'
-        puts BigInteger.new('1234').toString
-      }).should == "1234\n"
+        BigInteger.new('1234').toString.should == "1234"
+      end
+
+      TruffleJavaImportSpecs1.should.const_defined?('BigInteger', false)
+      Object.should_not.const_defined?('BigInteger')
     end
 
     it "returns the imported class" do
-      ruby_exe(%{
-        puts Java.import('java.math.BigInteger').class.getName
-      }).should == "java.math.BigInteger\n"
+      module TruffleJavaImportSpecs2
+        Java.import('java.math.BigInteger')[:class].getName.should == "java.math.BigInteger"
+      end
     end
 
     it "can import classes twice" do
-      ruby_exe(%{
+      module TruffleJavaImportSpecs3
         Java.import 'java.math.BigInteger'
         Java.import 'java.math.BigInteger'
-        puts BigInteger.new('1234').toString
-      }).should == "1234\n"
+        BigInteger.new('1234').toString.should == "1234"
+      end
     end
 
     it "raises an error if the constant is already defined" do
-      ruby_exe(%{
+      module TruffleJavaImportSpecs4
         BigInteger = '14'
-        begin
+        -> {
           Java.import 'java.math.BigInteger'
-        rescue NameError => e
-          puts e
-        end
-      }).should == "constant BigInteger already set\n"
+        }.should raise_error(NameError, "constant BigInteger already set")
+      end
     end
-
   end
 end

@@ -132,7 +132,7 @@ With the type object, `.new` will create an instance, `.foo` will call the stati
 To access methods of the `java.lang.Class` instance, use `[:class]`, such as `MyClass[:class].getName`.
 You can also go from the `java.lang.Class` instance to the Java type by using `[:static]`.
 
-To import a Java class as a top-level constant, use `Java.import 'name'`.
+To import a Java class in the enclosing module, use `MyClass = Java.type 'java.lang.MyClass'` or `Java.import 'java.lang.MyClass'`.
 
 ## Embedding in Java
 
