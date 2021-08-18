@@ -9,10 +9,10 @@
  */
 package org.truffleruby.language.arguments;
 
-public class MaybeReadCallerVariablesNode extends ReadCallerVariablesNode {
+public class ReadCallerVariablesIfAvailableNode extends ReadCallerVariablesNode {
 
-    public static MaybeReadCallerVariablesNode create() {
-        return new MaybeReadCallerVariablesNode();
+    public static ReadCallerVariablesIfAvailableNode create() {
+        return new ReadCallerVariablesIfAvailableNode();
     }
 
     @Override

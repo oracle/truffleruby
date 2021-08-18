@@ -37,7 +37,7 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.ReadOwnFrameAndVariablesNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.arguments.MaybeReadCallerVariablesNode;
+import org.truffleruby.language.arguments.ReadCallerVariablesIfAvailableNode;
 import org.truffleruby.language.arguments.ReadCallerVariablesNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -342,10 +342,10 @@ public abstract class TruffleKernelNodes {
         }
     }
 
-    @Primitive(name = "caller_special_variables_if_fast")
+    @Primitive(name = "caller_special_variables_if_available")
     public abstract static class GetCallerSpecialVariableStorageIfFast extends PrimitiveArrayArgumentsNode {
 
-        @Child MaybeReadCallerVariablesNode callerVariablesNode = new MaybeReadCallerVariablesNode();
+        @Child ReadCallerVariablesIfAvailableNode callerVariablesNode = new ReadCallerVariablesIfAvailableNode();
 
         @Specialization
         protected Object storage(VirtualFrame frame,

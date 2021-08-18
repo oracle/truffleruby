@@ -17,6 +17,8 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
 import org.truffleruby.core.MarkingServiceNodes;
+import org.truffleruby.language.arguments.CallerDataReadingNode;
+import org.truffleruby.language.arguments.ReadCallerDataNode;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
 import org.truffleruby.language.RubyNode;
 
@@ -47,7 +49,7 @@ public class TruffleThreadNodes {
 
     @CoreMethod(names = "ruby_caller_special_variables", onSingleton = true, required = 1)
     @ImportStatic(ArrayGuards.class)
-    public abstract static class FindRubyCallerSpecialStorage extends CoreMethodArrayArgumentsNode {
+    public abstract static class FindRubyCallerSpecialStorage extends CoreMethodArrayArgumentsNode implements CallerDataReadingNode {
 
         @TruffleBoundary
         @Specialization(limit = "storageStrategyLimit()")
@@ -65,30 +67,15 @@ public class TruffleThreadNodes {
             if (data == null) {
                 return nil;
             } else {
-                notifyToStartSendingStorage(data.callNode);
+                CallerDataReadingNode.notifyCallerToSendData(getContext(), data.callNode, this);
                 Object variables = storageNode.execute(data.frame.materialize());
                 getDataNode.execute().getExtensionCallStack().setVariables(variables);
                 return variables;
             }
         }
 
-        private static boolean notifyToStartSendingStorage(Node callerNode) {
-            if (callerNode instanceof DirectCallNode || callerNode instanceof IndirectCallNode) {
-                Node parent = callerNode.getParent();
-                while (parent != null) {
-                    if (parent instanceof FrameAndVariablesSendingNode) {
-                        ((FrameAndVariablesSendingNode) parent).startSendingOwnVariables();
-                        return true;
-                    }
-                    if (parent instanceof RubyNode) {
-                        // A node with source info representing Ruby code, we could not find the FrameAndVariablesSendingNode
-                        return false;
-                    }
-                    parent = parent.getParent();
-                }
-            }
-
-            return false;
+        public void startSending(FrameAndVariablesSendingNode node) {
+            node.startSendingOwnVariables();
         }
     }
 }

@@ -31,7 +31,7 @@ public class ReadCallerFrameNode extends ReadCallerDataNode {
     }
 
     @Override
-    protected void startSending(FrameAndVariablesSendingNode node) {
+    public void startSending(FrameAndVariablesSendingNode node) {
         node.startSendingOwnFrame();
     }
 
