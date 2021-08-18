@@ -8,12 +8,15 @@ In the documentation below:
 
 Format: `Ruby code` sends `InteropLibrary message`
 
+- `foreign_object[key]` sends `readHashValue(foreign_object, key)` if `hasHashEntries(foreign_object)`
 - `foreign_object[name]` sends `readMember(foreign_object, name)`
 - `foreign_object[index]` sends `readArrayElement(foreign_object, index)`
+- `foreign_object[key] = value` sends `writeHashEntry(foreign_object, key)` if `hasHashEntries(foreign_object)`
 - `foreign_object[name] = value` sends `writeMember(foreign_object, name, value)`
 - `foreign_object[index] = value` sends `writeArrayElement(foreign_object, index, value)`
 - `foreign_object.name = value` sends `writeMember(foreign_object, name, value)`
 - `foreign_object.name = *arguments` sends `writeMember(foreign_object, name, arguments)`
+- `foreign_object.delete(key)` sends `removeHashEntry(foreign_object, key)` if `hasHashEntries(foreign_object)`
 - `foreign_object.delete(name)` sends `removeMember(foreign_object, name)`
 - `foreign_object.delete(index)` sends `removeArrayElement(foreign_object, index)`
 - `foreign_object.call(*arguments)` sends `execute(foreign_object, *arguments)`
@@ -26,8 +29,6 @@ Format: `Ruby code` sends `InteropLibrary message`
 - `foreign_object.method_name(*arguments)` sends `invokeMember(foreign_object, method_name, *arguments)`
 - `foreign_object.method_name(*arguments, &block)` sends `invokeMember(foreign_object, method_name, *arguments, block)`
 - `foreign_object.new(*arguments)` sends `instantiate(foreign_object, *arguments)`
-- `foreign_object.class` sends `readMember(foreign_object, "class")` when `foreign_object` is a `java.lang.Class`
-- `foreign_object.class` sends `getMetaObject(foreign_object)`
 - `foreign_object.inspect` returns a Ruby-style `#inspect` string showing members, array elements, etc
 - `foreign_object.to_s` sends `asString(foreign_object)` when `isString(foreign_object)` is true
 - `foreign_object.to_s` sends `toDisplayString(foreign_object)` otherwise
@@ -45,10 +46,10 @@ Format: `Ruby code` sends `InteropLibrary message`
 - `foreign_object.__id__` uses `System.identityHashCode()` otherwise (which might not be unique)
 - `foreign_object.hash` sends `identityHashCode(foreign_object)` when `hasIdentity()` is true (which might not be unique)
 - `foreign_object.hash` uses `System.identityHashCode()` otherwise (which might not be unique)
+- `foreign_object.map` and other `Enumerable` methods work for foreign arrays
+- `foreign_object.map` and other `Enumerable` methods work for foreign iterables (`hasIterator()`)
 
 Use `.respond_to?` for calling `InteropLibrary` predicates:
-- `foreign_object.respond_to?(:inspect)` is always true
-- `foreign_object.respond_to?(:to_s)` is always true
 - `foreign_object.respond_to?(:to_str)` sends `isString(foreign_object)`
 - `foreign_object.respond_to?(:to_a)` sends `hasArrayElements(foreign_object)`
 - `foreign_object.respond_to?(:to_ary)` sends `hasArrayElements(foreign_object)`
@@ -58,4 +59,3 @@ Use `.respond_to?` for calling `InteropLibrary` predicates:
 - `foreign_object.respond_to?(:keys)` sends `hasMembers(foreign_object)`
 - `foreign_object.respond_to?(:call)` sends `isExecutable(foreign_object)`
 - `foreign_object.respond_to?(:new)` sends `isInstantiable(foreign_object)`
-- `foreign_object.respond_to?(:is_a?)` is always true

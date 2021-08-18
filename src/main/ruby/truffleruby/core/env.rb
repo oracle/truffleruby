@@ -153,7 +153,7 @@ class << ENV
     if block_given?
       return yield(key)
     elsif Primitive.undefined?(absent)
-      raise KeyError.new("key not found: #{key.inspect}", :receiver => self, :key => key)
+      raise KeyError.new("key not found: #{key.inspect}", receiver: self, key: key)
     end
 
     absent

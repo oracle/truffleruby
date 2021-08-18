@@ -354,7 +354,7 @@ frame.setVisible(true)
 ```
 
 Instead of using Ruby metaprogramming to simulate a Java package name, we explicitly import classes.
-`Java.import` is similar to JRuby's `java_import`, and does `::ClassName = Java.type('package.ClassName')`.
+`Java.import` is similar to JRuby's `java_import`, and does `ClassName = Java.type('package.ClassName')`.
 
 Constants are read by reading properties of the class rather than using Ruby notation.
 
@@ -367,7 +367,7 @@ This is only available in GraalVM - not in the standalone distribution installed
 
 In JRuby, Java classes can either be referenced in the `Java` module, such as `Java::ComFoo::Bar`, or if they have a common TLD they can be referenced as `com.foo.Bar`. `java_import com.foo.Bar` will define `Bar` as a top-level constant.
 
-In TruffleRuby, Java classes are referred to using either `Java.type('com.foo.Bar')`, which you would then normally assign to a constant, or you can use `Java.import 'com.foo.Bar'` to have `Bar` defined as a top-level constant.
+In TruffleRuby, Java classes are referred to using either `Java.type('com.foo.Bar')`, which you would then normally assign to a constant, or you can use `Java.import 'com.foo.Bar'` to have `Bar` defined in the enclosing module.
 
 ### Wildcard Package Imports
 

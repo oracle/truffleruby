@@ -29,14 +29,24 @@ import java.util.ArrayList;
 @GenerateUncached
 public abstract class ForeignClassNode extends RubyBaseNode {
 
+    // Specs for traits are in
+    // spec/truffle/interop/polyglot/class_spec.rb
+    // spec/truffle/interop/special_forms_spec.rb
+    // spec/truffle/interop/polyglot/foreign_*_spec.rb
+    /** Based on the types and traits of {@link InteropLibrary} */
     public enum Trait {
-        ARRAY("Array"),
+        // First in the ancestors
+        HASH("Hash"), // must be before Array
+        ARRAY("Array"), // must be before Iterable
         EXECUTABLE("Executable"),
         INSTANTIABLE("Instantiable"),
+        ITERABLE("Iterable"),
+        ITERATOR("Iterator"),
         NULL("Null"),
         NUMBER("Number"),
         POINTER("Pointer"),
         STRING("String");
+        // Last in the ancestors
 
         public static final Trait[] VALUES = Trait.values();
         public static final int COMBINATIONS = 1 << VALUES.length;
@@ -72,9 +82,12 @@ public abstract class ForeignClassNode extends RubyBaseNode {
     }
 
     protected int getTraits(Object object, InteropLibrary interop) {
-        return (interop.hasArrayElements(object) ? Trait.ARRAY.bit : 0) +
+        return (interop.hasHashEntries(object) ? Trait.HASH.bit : 0) +
+                (interop.hasArrayElements(object) ? Trait.ARRAY.bit : 0) +
                 (interop.isExecutable(object) ? Trait.EXECUTABLE.bit : 0) +
                 (interop.isInstantiable(object) ? Trait.INSTANTIABLE.bit : 0) +
+                (interop.hasIterator(object) ? Trait.ITERABLE.bit : 0) +
+                (interop.isIterator(object) ? Trait.ITERATOR.bit : 0) +
                 (interop.isNull(object) ? Trait.NULL.bit : 0) +
                 (interop.isNumber(object) ? Trait.NUMBER.bit : 0) +
                 (interop.isPointer(object) ? Trait.POINTER.bit : 0) +

@@ -13,19 +13,19 @@ guard -> { !TruffleRuby.native? } do
   describe "Truffle::Interop.java_type" do
 
     it "returns a Java class for a known primitive name" do
-      Truffle::Interop.java_type("int").class.getName.should == "int"
+      Truffle::Interop.java_type("int")[:class].getName.should == "int"
     end
 
     it "returns a Java class for known primitive name as an array" do
-      Truffle::Interop.java_type("int[]").class.getName.should == "[I"
+      Truffle::Interop.java_type("int[]")[:class].getName.should == "[I"
     end
 
     it "returns a Java class for a known class name " do
-      Truffle::Interop.java_type("java.math.BigInteger").class.getName.should == "java.math.BigInteger"
+      Truffle::Interop.java_type("java.math.BigInteger")[:class].getName.should == "java.math.BigInteger"
     end
 
     it "returns a Java class for known class name as an array" do
-      Truffle::Interop.java_type("java.math.BigInteger[]").class.getName.should == "[Ljava.math.BigInteger;"
+      Truffle::Interop.java_type("java.math.BigInteger[]")[:class].getName.should == "[Ljava.math.BigInteger;"
     end
 
     it "throws RuntimeError for unknown class names" do
@@ -33,7 +33,7 @@ guard -> { !TruffleRuby.native? } do
     end
 
     it "works with symbols" do
-      Truffle::Interop.java_type(:int).class.getName.should == "int"
+      Truffle::Interop.java_type(:int)[:class].getName.should == "int"
     end
 
   end

@@ -541,8 +541,7 @@ describe 'Interop:' do
               end,
               Test.new("fails with StopIterationException if the hash is empty", :hash, :polyglot_hash) do |subject|
                 iterator = Truffle::Interop.hash_entries_iterator(subject)
-                # TODO introduce StopIterationException in Ruby
-                -> { Truffle::Interop.iterator_next_element(iterator) }.should raise_error(Exception)
+                -> { Truffle::Interop.iterator_next_element(iterator) }.should raise_error(StopIteration)
               end,
               unsupported_test { |subject| Truffle::Interop.hash_entries_iterator(subject) }],
       Message[:getHashKeysIterator,
@@ -558,8 +557,7 @@ describe 'Interop:' do
               end,
               Test.new("fails with StopIterationException if the hash is empty", :hash, :polyglot_hash) do |subject|
                 iterator = Truffle::Interop.hash_keys_iterator(subject)
-                # TODO introduce StopIterationException in Ruby
-                -> { Truffle::Interop.iterator_next_element(iterator) }.should raise_error(Exception)
+                -> { Truffle::Interop.iterator_next_element(iterator) }.should raise_error(StopIteration)
               end,
               unsupported_test { |subject| Truffle::Interop.hash_entries_iterator(subject) }],
       Message[:getHashValuesIterator,
@@ -575,8 +573,7 @@ describe 'Interop:' do
               end,
               Test.new("fails with StopIterationException if the hash is empty", :hash, :polyglot_hash) do |subject|
                 iterator = Truffle::Interop.hash_values_iterator(subject)
-                # TODO introduce StopIterationException in Ruby
-                -> { Truffle::Interop.iterator_next_element(iterator) }.should raise_error(Exception)
+                -> { Truffle::Interop.iterator_next_element(iterator) }.should raise_error(StopIteration)
               end,
               unsupported_test { |subject| Truffle::Interop.hash_entries_iterator(subject) }],
 

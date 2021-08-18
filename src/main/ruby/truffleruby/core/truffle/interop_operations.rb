@@ -29,7 +29,15 @@ module Truffle
 
     def self.resolve_polyglot_class(*traits)
       return Polyglot::ForeignObject if traits.empty?
-      name = "Foreign#{traits.join}"
+
+      name_traits = traits.dup
+      if name_traits.include?(:Array)
+        # foreign Array are Iterable by default, so it seems redundant in the name
+        unless name_traits.delete(:Iterable)
+          name_traits[name_traits.index(:Array)] = :ArrayNotIterable
+        end
+      end
+      name = "Foreign#{name_traits.join}"
 
       RESOLVE_POLYGLOT_CLASS_MUTEX.synchronize do
         if Polyglot.const_defined?(name, false)
@@ -51,10 +59,11 @@ module Truffle
       hash_code = "0x#{Truffle::Interop.identity_hash_code(object).to_s(16)}"
       klass = ruby_class_and_language(object)
 
-      if Truffle::Interop.java_class?(object)
-        "#<#{klass} class #{object.class.getName}>"
+      if java_type?(object) # a Java type from Java.type
+        "#<#{klass} type #{Truffle::Interop.to_display_string(object)}>"
       else
         string = +"#<#{klass}"
+
         if Truffle::Interop.has_meta_object?(object)
           meta_object = Truffle::Interop.meta_object(object)
           string << " #{Truffle::Interop.meta_qualified_name meta_object}"
@@ -66,16 +75,20 @@ module Truffle
           string << ":#{hash_code}"
         end
 
-        array_or_map = false
+        show_members = true
+        if Truffle::Interop.java_class?(object) # a java.lang.Class instance, treat it like a regular object
+          show_members = false
+          string << " #{Truffle::Interop.to_display_string(object)}"
+        end
         if Truffle::Interop.has_array_elements?(object)
-          array_or_map = true
+          show_members = false
           string << " [#{object.map { |e| basic_inspect_for e }.join(', ')}]"
         end
-        if Primitive.interop_java_map?(object)
-          array_or_map = true
-          string << " {#{pairs_from_java_map(object).map { |k, v| "#{basic_inspect_for k}=>#{basic_inspect_for v}" }.join(', ')}}"
+        if Truffle::Interop.has_hash_entries?(object)
+          show_members = false
+          string << " {#{object.map { |k, v| "#{basic_inspect_for k}=>#{basic_inspect_for v}" }.join(', ')}}"
         end
-        if Truffle::Interop.has_members?(object) and !array_or_map
+        if show_members && Truffle::Interop.has_members?(object)
           pairs = pairs_from_object(object)
           unless pairs.empty?
             string << " #{pairs.map { |k, v| "#{k}=#{basic_inspect_for v}" }.join(', ')}"
@@ -94,7 +107,7 @@ module Truffle
         object.inspect
       elsif Truffle::Interop.has_array_elements?(object)
         '[...]'
-      elsif (Truffle::Interop.java?(object) && Primitive.interop_java_map?(object)) || Truffle::Interop.has_members?(object)
+      elsif Truffle::Interop.has_hash_entries?(object) || Truffle::Interop.has_members?(object)
         '{...}'
       else
         object.inspect
@@ -104,7 +117,7 @@ module Truffle
     def self.recursive_string_for(object)
       if Truffle::Interop.has_array_elements?(object)
         '[...]'
-      elsif Truffle::Interop.java?(object) && Primitive.interop_java_map?(object) || Truffle::Interop.has_members?(object)
+      elsif Truffle::Interop.has_hash_entries?(object) || Truffle::Interop.has_members?(object)
         '{...}'
       else
         # This last case should not currently be hit, but could be if we extend inspect with new cases.
@@ -113,10 +126,8 @@ module Truffle
       end
     end
 
-    def self.pairs_from_java_map(map)
-      map.entrySet.toArray.map do |key_value|
-        [key_value.getKey, key_value.getValue]
-      end
+    def self.java_type?(object)
+      Truffle::Interop.java_class?(object) && Truffle::Interop.member_readable?(object, :class)
     end
 
     def self.pairs_from_object(object)

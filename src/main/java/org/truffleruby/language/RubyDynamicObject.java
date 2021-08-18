@@ -110,6 +110,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
     // endregion
 
     // region InteropLibrary messages
+    // Specs for these messages are in spec/truffle/interop/matrix_spec.rb
     @ExportMessage
     public boolean hasLanguage() {
         return true;

@@ -76,6 +76,7 @@ import com.oracle.truffle.api.nodes.LanguageInfo;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.Source;
 
+/** Specs for these methods are in spec/truffle/interop/matrix_spec.rb and in spec/truffle/interop/methods_spec.rb */
 @CoreModule("Truffle::Interop")
 public abstract class InteropNodes {
 
@@ -1677,15 +1678,6 @@ public abstract class InteropNodes {
         protected boolean isJavaClass(Object value) {
             return getContext().getEnv().isHostObject(value) &&
                     getContext().getEnv().asHostObject(value) instanceof Class;
-        }
-    }
-
-    @Primitive(name = "interop_java_map?")
-    public abstract static class InteropIsJavaMapNode extends CoreMethodArrayArgumentsNode {
-        @Specialization
-        protected boolean isJavaMap(Object value) {
-            return getContext().getEnv().isHostObject(value) &&
-                    getContext().getEnv().asHostObject(value) instanceof Map;
         }
     }
 

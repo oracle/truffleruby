@@ -14,8 +14,8 @@ describe "Polyglot::ForeignArray" do
     @empty = Truffle::Interop.to_java_array([])
   end
 
-  it "should have class ForeignArray" do
-    @foreign.inspect.should =~ /\A#<Polyglot::ForeignArray\[Java\] int\[\]:0x\h+ \[1, 2, 3\]>/
+  it "supports #length and #size" do
+    @foreign.size.should == 3
     @foreign.length.should == 3
   end
 
@@ -120,7 +120,7 @@ end
 
 describe "Foreign arrays that are also pointers" do
   it "can be printed with #print" do
-    foreign = Truffle::Debug.foreign_pointer_array_from_java(Truffle::Interop.to_java_array([1, 2, 3]))
+    foreign = Truffle::Debug.foreign_pointer_array
     -> {
       print foreign
     }.should output_to_fd(foreign.to_s)
@@ -128,12 +128,12 @@ describe "Foreign arrays that are also pointers" do
 
   it "can be printed with #puts" do
     -> {
-      puts Truffle::Debug.foreign_pointer_array_from_java(Truffle::Interop.to_java_array([1, 2, 3]))
+      puts Truffle::Debug.foreign_pointer_array
     }.should output_to_fd("1\n2\n3\n")
   end
 
   it "can be printed with #p" do
-    foreign = Truffle::Debug.foreign_pointer_array_from_java(Truffle::Interop.to_java_array([1, 2, 3]))
+    foreign = Truffle::Debug.foreign_pointer_array
     -> {
       p foreign
     }.should output_to_fd("#{foreign.inspect}\n")

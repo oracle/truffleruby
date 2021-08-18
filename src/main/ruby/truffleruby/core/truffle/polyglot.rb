@@ -73,6 +73,102 @@ module Polyglot
   end
 
   # region Trait modules for foreign objects
+  # Specs for these methods are in spec/truffle/interop/special_forms_spec.rb
+  # and in spec/truffle/interop/polyglot/foreign_*_spec.rb
+
+  module HashTrait
+    include Enumerable
+
+    def each(&block)
+      return to_enum(:each) { size } unless block_given?
+
+      iterator = Truffle::Interop.hash_entries_iterator(self)
+      iterator.each(&block)
+      self
+    end
+
+    def each_pair
+      return to_enum(:each_pair) { size } unless block_given?
+
+      each do |key, value|
+        yield key, value
+      end
+      self
+    end
+
+    def each_key(&block)
+      return to_enum(:each_key) { size } unless block_given?
+
+      Truffle::Interop.hash_keys_iterator(self).each(&block)
+      self
+    end
+
+    def keys
+      Truffle::Interop.hash_keys_iterator(self).to_a
+    end
+
+    def each_value(&block)
+      return to_enum(:each_value) { size } unless block_given?
+
+      Truffle::Interop.hash_values_iterator(self).each(&block)
+      self
+    end
+
+    def values
+      Truffle::Interop.hash_values_iterator(self).to_a
+    end
+
+    def [](key)
+      Truffle::Interop.read_hash_value_or_default(self, key, nil)
+    end
+
+    def []=(key, value)
+      Truffle::Interop.write_hash_entry(self, key, value)
+    end
+
+    def delete(key)
+      value = Truffle::Interop.read_hash_value_or_default(self, key, undefined)
+      if Primitive.undefined?(value)
+        nil
+      else
+        Truffle::Interop.remove_hash_entry(self, key)
+        value
+      end
+    end
+
+    def fetch(key, default = undefined)
+      value = Truffle::Interop.read_hash_value_or_default(self, key, undefined)
+      unless Primitive.undefined?(value)
+        return value
+      end
+
+      if block_given?
+        warn 'block supersedes default value argument', uplevel: 1 unless Primitive.undefined?(default)
+
+        return yield(key)
+      end
+
+      return default unless Primitive.undefined?(default)
+      raise KeyError.new("key not found: #{key.inspect}", receiver: self, key: key)
+    end
+
+    def size
+      Truffle::Interop.hash_size(self)
+    end
+    alias_method :length, :size
+
+    def empty?
+      Truffle::Interop.hash_size(self) == 0
+    end
+
+    def to_hash
+      h = {}
+      each_pair { |k,v| h[k] = v }
+      h
+    end
+    alias_method :to_h, :to_hash
+  end
+
   module ArrayTrait
     include Enumerable
 
@@ -80,10 +176,12 @@ module Polyglot
       return to_enum(:each) { size } unless block_given?
 
       i = 0
-      while i < length
+      while i < size
         yield Truffle::Interop.read_array_element(self, i)
         i += 1
       end
+
+      self
     end
 
     def at(index)
@@ -104,19 +202,19 @@ module Polyglot
       end
     end
 
-    def []=(member, value)
-      if Primitive.object_kind_of?(member, Numeric)
-        Truffle::Interop.write_array_element(self, member, value)
+    def []=(index, value)
+      if Primitive.object_kind_of?(index, Numeric)
+        Truffle::Interop.write_array_element(self, index, value)
       else
-        super(member, value)
+        super(index, value)
       end
     end
 
-    def delete(member)
-      if Primitive.object_kind_of?(member, Numeric)
-        Truffle::Interop.remove_array_element(self, member)
+    def delete(index)
+      if Primitive.object_kind_of?(index, Numeric)
+        Truffle::Interop.remove_array_element(self, index)
       else
-        super(member)
+        super(index)
       end
     end
 
@@ -152,6 +250,38 @@ module Polyglot
   module InstantiableTrait
     def new(*args)
       Truffle::Interop.instantiate(self, *args)
+    end
+  end
+
+  module IterableTrait
+    include Enumerable
+
+    def each(&block)
+      return to_enum(:each) { size } unless block_given?
+
+      iterator = Truffle::Interop.iterator(self)
+      iterator.each(&block)
+      self
+    end
+  end
+
+  module IteratorTrait
+    include Enumerable
+
+    def each
+      return to_enum(:each) { size } unless block_given?
+
+      while Truffle::Interop.has_iterator_next_element?(self)
+        begin
+          element = Truffle::Interop.iterator_next_element(self)
+        rescue StopIteration
+          break
+        end
+
+        yield element
+      end
+
+      self
     end
   end
 
@@ -223,14 +353,6 @@ module Polyglot
       end
     end
 
-    def class
-      if Truffle::Interop.java_class?(self)
-        Truffle::Interop.read_member(self, :class)
-      else
-        Truffle::Interop.meta_object(self)
-      end
-    end
-
     def inspect
       recursive_string_for(self) if Truffle::ThreadOperations.detect_recursion self do
         return Truffle::InteropOperations.foreign_inspect_nonrecursive(self)
@@ -240,7 +362,11 @@ module Polyglot
     def to_s
       klass = Truffle::InteropOperations.ruby_class_and_language(self)
       # Let InteropLibrary#toDisplayString show the class and identity hash code if relevant
-      "#<#{klass} #{Truffle::Interop.to_display_string(self)}>"
+      if Truffle::InteropOperations.java_type?(self)
+        "#<#{klass} type #{Truffle::Interop.to_display_string(self)}>"
+      else
+        "#<#{klass} #{Truffle::Interop.to_display_string(self)}>"
+      end
     end
 
     def is_a?(klass)
@@ -288,18 +414,21 @@ module Java
   end
 
   def self.import(name)
+    nesting = Primitive.caller_nesting
+    mod = nesting.first || Object
+
     name = name.to_s
     simple_name = name.split('.').last
     type = Java.type(name)
-    if Object.const_defined?(simple_name)
-      current = Object.const_get(simple_name)
+    if mod.const_defined?(simple_name)
+      current = mod.const_get(simple_name)
       if current.equal?(type)
         # Ignore - it's already set
       else
         raise NameError, "constant #{simple_name} already set"
       end
     else
-      Object.const_set simple_name, type
+      mod.const_set simple_name, type
     end
     type
   end

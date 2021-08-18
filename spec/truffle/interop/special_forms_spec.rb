@@ -55,6 +55,19 @@ describe "Interop special forms" do
   # TODO (pitr-ch 23-Mar-2020): test what method has a precedence, special or the invokable-member on the foreign object
   # TODO (pitr-ch 23-Mar-2020): test left side operator conversion with asBoolean, asString, etc.
 
+  it description['[key]', :readHashValue, [:key], 'if `hasHashEntries(foreign_object)`'] do
+    pfo, h, l = proxy[TruffleInteropSpecs::PolyglotHash.new]
+    pfo[:foo].should == nil
+    l.log.should include(['readHashValueOrDefault', :foo, nil]) # readHashValue
+    h.log.should include([:polyglot_read_hash_entry, :foo])
+
+    pfo, h, l = proxy[TruffleInteropSpecs::PolyglotHash.new]
+    pfo[:foo] = 42
+    pfo[:foo].should == 42
+    l.log.should include(['readHashValueOrDefault', :foo, nil]) # readHashValue
+    h.log.should include([:polyglot_read_hash_entry, :foo])
+  end
+
   it description['[name]', :readMember, [:name]] do
     pfo, pm, l = proxy[TruffleInteropSpecs::PolyglotMember.new]
     -> { pfo[:foo] }.should raise_error(NameError)
@@ -70,6 +83,13 @@ describe "Interop special forms" do
     pfo[0].should == nil
     l.log.should include(['getArraySize'])
     pa.log.should include([:polyglot_array_size])
+  end
+
+  it description['[key] = value', :writeHashEntry, [:key], 'if `hasHashEntries(foreign_object)`'] do
+    pfo, h, l = proxy[TruffleInteropSpecs::PolyglotHash.new]
+    pfo[:foo] = 42
+    l.log.should include(['writeHashEntry', :foo, 42])
+    h.log.should include([:polyglot_write_hash_entry, :foo, 42])
   end
 
   it description['[name] = value', :writeMember, [:name, :value]] do
@@ -107,6 +127,14 @@ describe "Interop special forms" do
     pfo, _, l = proxy[TruffleInteropSpecs::PolyglotMember.new]
     l.log.should_not include(['writeMember', :bar, :baz])
     -> { pfo.__send__(:foo=, :bar, :baz) }.should raise_error(ArgumentError)
+  end
+
+  it description['.delete(key)', :removeHashEntry, [:key], 'if `hasHashEntries(foreign_object)`'] do
+    pfo, h, l = proxy[TruffleInteropSpecs::PolyglotHash.new]
+    pfo[:foo] = 42
+    pfo.delete(:foo).should == 42
+    l.log.should include(['removeHashEntry', :foo])
+    h.log.should include([:polyglot_remove_hash_entry, :foo])
   end
 
   it description['.delete(name)', :removeMember, [:name]] do
@@ -190,21 +218,6 @@ describe "Interop special forms" do
     pfo, _, l = proxy[klass]
     pfo.new.should.is_a?(klass)
     l.log.should include(["instantiate"])
-  end
-
-  # Always include in the documentation, even when run on native
-  desc = description['.class', :readMember, ['"class"'], 'when `foreign_object` is a `java.lang.Class`']
-  guard -> { !TruffleRuby.native? } do
-    it desc do
-      Java.type('java.math.BigInteger').class.getName.should == 'java.math.BigInteger'
-    end
-  end
-
-  it description['.class', :getMetaObject] do
-    pfo, _, l = proxy[Truffle::Debug.foreign_object]
-    # For Truffle::Debug.foreign_object, hasMetaObject() is false, so then .class returns Truffle::Interop::Foreign
-    pfo.class.should == Polyglot::ForeignObject
-    l.log.should include(["hasMetaObject"])
   end
 
   it doc['.inspect', 'returns a Ruby-style `#inspect` string showing members, array elements, etc'] do
@@ -346,15 +359,17 @@ describe "Interop special forms" do
     l.log.should_not include(["identityHashCode"])
   end
 
+  it doc['.map', 'and other `Enumerable` methods work for foreign arrays'] do
+    array = Truffle::Debug.foreign_array
+    array.map { _1 * 2 }.should == [2, 4, 6]
+  end
+
+  it doc['.map', 'and other `Enumerable` methods work for foreign iterables (`hasIterator()`)'] do
+    iterable = Truffle::Debug.foreign_iterable
+    iterable.map { _1 * 2 }.should == [2, 4, 6]
+  end
+
   output << "\nUse `.respond_to?` for calling `InteropLibrary` predicates:\n"
-
-  it doc['.respond_to?(:inspect)', "is always true"] do
-    Truffle::Debug.foreign_object.respond_to?(:inspect).should be_true
-  end
-
-  it doc['.respond_to?(:to_s)', "is always true"] do
-    Truffle::Debug.foreign_object.respond_to?(:to_s).should be_true
-  end
 
   it description['.respond_to?(:to_str)', :isString] do
     pfo, _, l = proxy[Object.new]
@@ -410,12 +425,7 @@ describe "Interop special forms" do
     l.log.should include(["isInstantiable"])
   end
 
-  it doc['.respond_to?(:is_a?)', "is always true"] do
-    Truffle::Debug.foreign_object.respond_to?(:is_a?).should be_true
-  end
-
   describe "#is_a?" do
-
     it "returns false for a non-Java foreign object and a Ruby class" do
       Truffle::Debug.foreign_object.is_a?(Hash).should be_false
     end
