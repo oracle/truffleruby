@@ -18,6 +18,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.interop.InteropException;
+import com.oracle.truffle.api.interop.InteropLibrary;
 import org.graalvm.nativeimage.ImageInfo;
 import org.graalvm.nativeimage.ProcessProperties;
 import org.jcodings.Encoding;
@@ -36,7 +39,6 @@ import org.truffleruby.core.string.EncodingUtils;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
-import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -151,10 +153,18 @@ public class EncodingManager {
 
             // char *nl_langinfo(nl_item item);
             // nl_item is int on at least Linux and macOS
-            final NativeFunction nl_langinfo = nfi.getFunction("nl_langinfo", "(sint32):string");
+            final Object nl_langinfo = nfi.getFunction("nl_langinfo", "(sint32):string");
 
-            final long address = nfi.asPointer(nl_langinfo.call(codeset));
-            final byte[] bytes = new Pointer(address).readZeroTerminatedByteArray(context, 0);
+            final long address;
+            try {
+                address = nfi.asPointer(InteropLibrary.getUncached().execute(nl_langinfo, codeset));
+            } catch (InteropException e) {
+                throw CompilerDirectives.shouldNotReachHere(e);
+            }
+            final byte[] bytes = new Pointer(address).readZeroTerminatedByteArray(
+                    context,
+                    InteropLibrary.getUncached(),
+                    0);
             localeEncodingName = RopeOperations.decodeAscii(bytes);
         } else {
             localeEncodingName = Charset.defaultCharset().name();

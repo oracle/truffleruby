@@ -11,6 +11,7 @@ package org.truffleruby.extra.ffi;
 
 import java.math.BigInteger;
 
+import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
@@ -273,10 +274,12 @@ public abstract class PointerNodes {
 
         @Specialization(guards = "limit != 0")
         protected RubyString readStringToNull(long address, long limit,
-                @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode) {
+                @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
+                @CachedLibrary(limit = "1") InteropLibrary interop) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
-            final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), 0, limit);
+            final byte[] bytes = ptr
+                    .readZeroTerminatedByteArray(getContext(), interop, 0, limit);
             final Rope rope = makeLeafRopeNode
                     .executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
 
@@ -292,10 +295,12 @@ public abstract class PointerNodes {
 
         @Specialization
         protected RubyString readStringToNull(long address, Nil limit,
-                @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode) {
+                @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
+                @CachedLibrary(limit = "1") InteropLibrary interop) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
-            final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), 0);
+            final byte[] bytes = ptr
+                    .readZeroTerminatedByteArray(getContext(), interop, 0);
             final Rope rope = makeLeafRopeNode
                     .executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
 

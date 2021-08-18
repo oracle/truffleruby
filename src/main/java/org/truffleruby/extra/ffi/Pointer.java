@@ -11,6 +11,8 @@ package org.truffleruby.extra.ffi;
 
 import java.lang.reflect.Field;
 
+import com.oracle.truffle.api.interop.InteropException;
+import com.oracle.truffle.api.interop.InteropLibrary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.FinalizationService;
@@ -190,17 +192,29 @@ public final class Pointer implements AutoCloseable {
         return UNSAFE.getDouble(address + offset);
     }
 
-    public byte[] readZeroTerminatedByteArray(RubyContext context, long offset) {
-        return readBytes(offset, checkStringSize(findNullByte(context, offset)));
+    public byte[] readZeroTerminatedByteArray(RubyContext context, InteropLibrary interopLibrary, long offset) {
+        return readBytes(offset, checkStringSize(findNullByte(
+                context,
+                interopLibrary,
+                offset)));
     }
 
-    public byte[] readZeroTerminatedByteArray(RubyContext context, long offset, long limit) {
-        return readBytes(offset, checkStringSize(findNullByte(context, offset, limit)));
+    public byte[] readZeroTerminatedByteArray(RubyContext context, InteropLibrary interopLibrary, long offset,
+            long limit) {
+        return readBytes(offset, checkStringSize(findNullByte(
+                context,
+                interopLibrary,
+                offset,
+                limit)));
     }
 
-    private long findNullByte(RubyContext context, long offset) {
+    private long findNullByte(RubyContext context, InteropLibrary interopLibrary, long offset) {
         if (context.getOptions().NATIVE_PLATFORM) {
-            return (long) context.getTruffleNFI().getStrlen().call(address + offset);
+            try {
+                return (long) interopLibrary.execute(context.getTruffleNFI().getStrlen(), address + offset);
+            } catch (InteropException e) {
+                throw CompilerDirectives.shouldNotReachHere(e);
+            }
         } else {
             int n = 0;
             while (true) {
@@ -212,9 +226,13 @@ public final class Pointer implements AutoCloseable {
         }
     }
 
-    private long findNullByte(RubyContext context, long offset, long limit) {
+    private long findNullByte(RubyContext context, InteropLibrary interopLibrary, long offset, long limit) {
         if (context.getOptions().NATIVE_PLATFORM) {
-            return (long) context.getTruffleNFI().getStrnlen().call(address + offset, limit);
+            try {
+                return (long) interopLibrary.execute(context.getTruffleNFI().getStrnlen(), address + offset, limit);
+            } catch (InteropException e) {
+                throw CompilerDirectives.shouldNotReachHere(e);
+            }
         } else {
             int n = 0;
             while (n < limit) {
