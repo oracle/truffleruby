@@ -81,10 +81,6 @@ public class CommandLineOptions {
         setOptionRaw(descriptor, RubyOptionTypes.valueToString(value));
     }
 
-    public <T> T getOption(OptionDescriptor descriptor) {
-        return RubyOptionTypes.parseValue(descriptor, getOptionRaw(descriptor));
-    }
-
     public <T> void appendOptionValue(OptionDescriptor descriptor, String newValue) {
         final OptionType<?> type = descriptor.getKey().getType();
 
@@ -105,7 +101,7 @@ public class CommandLineOptions {
         options.put(descriptor.getName(), value);
     }
 
-    private <T> String getOptionRaw(OptionDescriptor descriptor) {
+    public String getOptionRaw(OptionDescriptor descriptor) {
         return options.getOrDefault(
                 descriptor.getName(),
                 RubyOptionTypes.valueToString(descriptor.getKey().getDefaultValue()));

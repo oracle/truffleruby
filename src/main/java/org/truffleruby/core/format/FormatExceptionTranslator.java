@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.format;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
@@ -49,9 +50,8 @@ public abstract class FormatExceptionTranslator {
         } else if (exception instanceof InvalidFormatException) {
             final InvalidFormatException e = (InvalidFormatException) exception;
             return new RaiseException(context, coreExceptions.argumentError(e.getMessage(), currentNode));
-
         } else {
-            throw new IllegalArgumentException();
+            throw CompilerDirectives.shouldNotReachHere(exception);
         }
     }
 

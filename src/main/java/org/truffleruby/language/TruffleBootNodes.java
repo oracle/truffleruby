@@ -163,12 +163,12 @@ public abstract class TruffleBootNodes {
                     String key = global_values[i];
                     String value = global_values[i + 1];
 
-                    getContext().getCoreLibrary().globalVariables.define("$" + key, utf8(value));
+                    getContext().getCoreLibrary().globalVariables.define("$" + key, utf8(value), this);
                 }
 
                 String[] global_flags = getContext().getOptions().ARGV_GLOBAL_FLAGS;
                 for (String flag : global_flags) {
-                    getContext().getCoreLibrary().globalVariables.define("$" + flag, true);
+                    getContext().getCoreLibrary().globalVariables.define("$" + flag, true, this);
                 }
             }
         }

@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.SharedTreeBuilder;
@@ -306,7 +307,7 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
                 decodeNode = ReinterpretLongAsDoubleNodeGen.create(readNode);
                 break;
             default:
-                throw new IllegalArgumentException();
+                throw CompilerDirectives.shouldNotReachHere();
         }
 
         final FormatNode writeNode = WriteValueNodeGen.create(new OutputNode(), decodeNode);
@@ -344,7 +345,7 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
                 }
                 break;
             default:
-                throw new IllegalArgumentException();
+                throw CompilerDirectives.shouldNotReachHere();
         }
 
         if (!signed) {

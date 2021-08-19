@@ -14,6 +14,7 @@ import static org.truffleruby.core.array.ArrayHelpers.createArray;
 import java.io.IOException;
 import java.util.EnumSet;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.interop.InvalidBufferOffsetException;
 import com.oracle.truffle.api.interop.UnknownKeyException;
 import org.jcodings.Encoding;
@@ -1077,7 +1078,7 @@ public class CoreExceptions {
         } else if (value > Integer.MAX_VALUE) {
             direction = "big";
         } else {
-            throw new IllegalArgumentException();
+            throw CompilerDirectives.shouldNotReachHere("long fitting in int");
         }
 
         return rangeError(StringUtils.format("integer %d too %s to convert to `int'", value, direction), currentNode);

@@ -376,9 +376,10 @@ public class RubyContext {
         if (options.OPTIONS_LOG && RubyLanguage.LOGGER.isLoggable(Level.CONFIG)) {
             for (OptionDescriptor descriptor : OptionsCatalog.allDescriptors()) {
                 assert descriptor.getName().startsWith(TruffleRuby.LANGUAGE_ID);
-                final String xName = descriptor.getName().substring(TruffleRuby.LANGUAGE_ID.length() + 1);
+                final String optionName = descriptor.getName().substring(TruffleRuby.LANGUAGE_ID.length() + 1);
                 RubyLanguage.LOGGER.config(
-                        "option " + xName + "=" + RubyOptionTypes.valueToString(options.fromDescriptor(descriptor)));
+                        "option " + optionName + "=" +
+                                RubyOptionTypes.valueToString(options.fromDescriptor(descriptor)));
             }
         }
 

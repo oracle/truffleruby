@@ -79,6 +79,7 @@ import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.graalvm.collections.Pair;
 import org.jcodings.Config;
@@ -1104,7 +1105,7 @@ public abstract class StringNodes {
 
         @TruffleBoundary
         private int processStr(Rope rope, boolean[] squeeze, RubyEncoding compatEncoding, TrTables tables) {
-            return StringSupport.strCount(rope, squeeze, tables, compatEncoding.jcoding);
+            return StringSupport.strCount(rope, squeeze, tables, compatEncoding.jcoding, this);
         }
 
         @Specialization(guards = "!isEmpty(libString.getRope(string))")
@@ -1161,10 +1162,12 @@ public abstract class StringNodes {
                     squeeze,
                     null,
                     true,
-                    enc.jcoding);
+                    enc.jcoding,
+                    this);
 
             for (int i = 1; i < ropesWithEncs.length; i++) {
-                tables = StringSupport.trSetupTable(ropesWithEncs[i].getRope(), squeeze, tables, false, enc.jcoding);
+                tables = StringSupport
+                        .trSetupTable(ropesWithEncs[i].getRope(), squeeze, tables, false, enc.jcoding, this);
             }
             return tables;
         }
@@ -1309,7 +1312,7 @@ public abstract class StringNodes {
 
         @TruffleBoundary
         private Rope processStr(RubyString string, boolean[] squeeze, RubyEncoding enc, StringSupport.TrTables tables) {
-            return StringSupport.delete_bangCommon19(string.rope, squeeze, tables, enc.jcoding);
+            return StringSupport.delete_bangCommon19(string.rope, squeeze, tables, enc.jcoding, this);
         }
     }
 
@@ -1374,7 +1377,7 @@ public abstract class StringNodes {
 
             final RopeBuilder builder = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
             final boolean modified = StringSupport
-                    .downcaseMultiByteComplex(encoding, codeRangeNode.execute(rope), builder, caseMappingOptions);
+                    .downcaseMultiByteComplex(encoding, codeRangeNode.execute(rope), builder, caseMappingOptions, this);
 
             if (modifiedProfile.profile(modified)) {
                 string.setRope(
@@ -2169,7 +2172,7 @@ public abstract class StringNodes {
 
             final RopeBuilder builder = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
             final boolean modified = StringSupport
-                    .swapCaseMultiByteComplex(enc, codeRangeNode.execute(rope), builder, caseMappingOptions);
+                    .swapCaseMultiByteComplex(enc, codeRangeNode.execute(rope), builder, caseMappingOptions, this);
 
             if (modifiedProfile.profile(modified)) {
                 string.setRope(
@@ -2287,7 +2290,7 @@ public abstract class StringNodes {
                                     if (buf == null) {
                                         buf = new RopeBuilder();
                                     }
-                                    int cc = codePointX(enc, rope.getCodeRange(), bytes, p - 1, end);
+                                    int cc = StringSupport.codePoint(enc, rope.getCodeRange(), bytes, p - 1, end, this);
                                     buf.append(StringUtils.formatASCIIBytes("%x", cc));
                                     len += buf.getLength() + 4;
                                     buf.setLength(0);
@@ -2354,7 +2357,7 @@ public abstract class StringNodes {
                     if (enc.isUTF8()) {
                         int n = StringSupport.characterLength(enc, cr, bytes, p - 1, end) - 1;
                         if (n > 0) {
-                            int cc = codePointX(enc, cr, bytes, p - 1, end);
+                            int cc = StringSupport.codePoint(enc, cr, bytes, p - 1, end, this);
                             p += n;
                             outBytes.setLength(q);
                             outBytes.append(StringUtils.formatASCIIBytes("u%04X", cc));
@@ -2382,15 +2385,6 @@ public abstract class StringNodes {
             return c == '$' || c == '@' || c == '{';
         }
 
-        private int codePointX(Encoding enc, CodeRange codeRange, byte[] bytes, int p, int end) {
-            try {
-                return StringSupport.codePoint(enc, codeRange, bytes, p, end);
-            } catch (IllegalArgumentException e) {
-                throw new RaiseException(
-                        getContext(),
-                        getContext().getCoreExceptions().argumentError(e.getMessage(), this));
-            }
-        }
     }
 
     @CoreMethod(names = "undump")
@@ -2568,7 +2562,8 @@ public abstract class StringNodes {
                                 squeeze,
                                 null,
                                 string.rope.getEncoding(),
-                                false)) {
+                                false,
+                                this)) {
                     return nil;
                 } else {
                     string.setRope(RopeOperations.ropeFromRopeBuilder(buffer));
@@ -2619,14 +2614,15 @@ public abstract class StringNodes {
                 }
             }
 
-            StringSupport.TrTables tables = StringSupport.trSetupTable(otherRope, squeeze, null, true, enc.jcoding);
+            StringSupport.TrTables tables = StringSupport
+                    .trSetupTable(otherRope, squeeze, null, true, enc.jcoding, this);
 
             for (int i = 1; i < otherStrings.length; i++) {
                 otherStr = otherStrings[i];
                 otherRope = RubyStringLibrary.getUncached().getRope(otherStr);
                 enc = checkEncodingNode.executeCheckEncoding(string, otherStr);
                 singlebyte = singlebyte && otherRope.isSingleByteOptimizable();
-                tables = StringSupport.trSetupTable(otherRope, squeeze, tables, false, enc.jcoding);
+                tables = StringSupport.trSetupTable(otherRope, squeeze, tables, false, enc.jcoding, this);
             }
 
             if (singleByteOptimizableProfile.profile(singlebyte)) {
@@ -2636,7 +2632,8 @@ public abstract class StringNodes {
                     string.setRope(RopeOperations.ropeFromRopeBuilder(buffer));
                 }
             } else {
-                if (!StringSupport.multiByteSqueeze(buffer, rope.getCodeRange(), squeeze, tables, enc.jcoding, true)) {
+                if (!StringSupport
+                        .multiByteSqueeze(buffer, rope.getCodeRange(), squeeze, tables, enc.jcoding, true, this)) {
                     return nil;
                 } else {
                     string.setRope(RopeOperations.ropeFromRopeBuilder(buffer));
@@ -2658,7 +2655,7 @@ public abstract class StringNodes {
             final Rope rope = string.rope;
 
             if (!rope.isEmpty()) {
-                final RopeBuilder succBuilder = StringSupport.succCommon(rope);
+                final RopeBuilder succBuilder = StringSupport.succCommon(rope, this);
 
                 final Rope newRope = makeLeafRopeNode.executeMake(
                         succBuilder.getBytes(),
@@ -2960,7 +2957,8 @@ public abstract class StringNodes {
                     libFromStr.getRope(fromStr),
                     toStr,
                     libToStr.getRope(toStr),
-                    false);
+                    false,
+                    this);
         }
     }
 
@@ -3017,7 +3015,8 @@ public abstract class StringNodes {
                     libFromStr.getRope(fromStr),
                     toStr,
                     libToStr.getRope(toStr),
-                    true);
+                    true,
+                    this);
         }
     }
 
@@ -3289,7 +3288,7 @@ public abstract class StringNodes {
 
             final RopeBuilder builder = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
             final boolean modified = StringSupport
-                    .upcaseMultiByteComplex(encoding, codeRangeNode.execute(rope), builder, caseMappingOptions);
+                    .upcaseMultiByteComplex(encoding, codeRangeNode.execute(rope), builder, caseMappingOptions, this);
             if (modifiedProfile.profile(modified)) {
                 string.setRope(
                         makeLeafRopeNode
@@ -3435,7 +3434,7 @@ public abstract class StringNodes {
 
             final RopeBuilder builder = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
             final boolean modified = StringSupport
-                    .capitalizeMultiByteComplex(enc, codeRangeNode.execute(rope), builder, caseMappingOptions);
+                    .capitalizeMultiByteComplex(enc, codeRangeNode.execute(rope), builder, caseMappingOptions, this);
             if (modifiedProfile.profile(modified)) {
                 string.setRope(
                         makeLeafRopeNode
@@ -3465,13 +3464,13 @@ public abstract class StringNodes {
         @TruffleBoundary
         private static Object trTransHelper(CheckEncodingNode checkEncodingNode, RubyString self, Rope selfRope,
                 Object fromStr, Rope fromStrRope,
-                Object toStr, Rope toStrRope, boolean sFlag) {
+                Object toStr, Rope toStrRope, boolean sFlag, Node node) {
             final RubyEncoding e1 = checkEncodingNode.executeCheckEncoding(self, fromStr);
             final RubyEncoding e2 = checkEncodingNode.executeCheckEncoding(self, toStr);
             final RubyEncoding enc = e1 == e2 ? e1 : checkEncodingNode.executeCheckEncoding(fromStr, toStr);
 
             final Rope ret = StringSupport
-                    .trTransHelper(selfRope, fromStrRope, toStrRope, e1.jcoding, enc.jcoding, sFlag);
+                    .trTransHelper(selfRope, fromStrRope, toStrRope, e1.jcoding, enc.jcoding, sFlag, node);
             if (ret == null) {
                 return Nil.INSTANCE;
             }
