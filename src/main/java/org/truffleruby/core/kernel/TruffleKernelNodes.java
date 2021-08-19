@@ -192,7 +192,8 @@ public abstract class TruffleKernelNodes {
                     name.getString(),
                     getter,
                     setter,
-                    isDefined);
+                    isDefined,
+                    this);
             return nil;
         }
 

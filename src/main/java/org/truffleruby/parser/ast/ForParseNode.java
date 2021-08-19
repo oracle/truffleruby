@@ -33,6 +33,7 @@ package org.truffleruby.parser.ast;
 
 import java.util.List;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import org.truffleruby.parser.scope.StaticScope;
@@ -63,7 +64,7 @@ public class ForParseNode extends IterParseNode {
 
     @Override
     public ArgsParseNode getArgsNode() {
-        throw new IllegalArgumentException("For nodes are not technically def nodes so they do not have args");
+        throw CompilerDirectives.shouldNotReachHere("For nodes are not technically def nodes so they do not have args");
     }
 
     @Override

@@ -20,6 +20,7 @@ public class RubyOptionTypes {
         if (value == null) {
             return (T) descriptor.getKey().getDefaultValue();
         }
+
         if (value instanceof String) {
             try {
                 return (T) descriptor.getKey().getType().convert((String) value);
@@ -31,8 +32,6 @@ public class RubyOptionTypes {
         } else if (value instanceof Integer) {
             return (T) value;
         } else if (value instanceof Enum<?>) {
-            return (T) value;
-        } else if (value instanceof String) {
             return (T) value;
         } else if (value instanceof String[]) {
             return (T) value;

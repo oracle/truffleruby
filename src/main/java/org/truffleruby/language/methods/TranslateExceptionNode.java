@@ -104,9 +104,6 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
         } catch (OutOfMemoryError error) {
             errorProfile.enter();
             return new RaiseException(getContext(), translateOutOfMemory(getContext(), error));
-        } catch (IllegalArgumentException e) {
-            errorProfile.enter();
-            return new RaiseException(getContext(), translateIllegalArgument(getContext(), e));
         } catch (ThreadDeath exception) {
             errorProfile.enter();
             // it cannot be returned and we want to propagate it always anyway
@@ -161,19 +158,6 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
 
         logJavaException(context, this, error);
         return context.getCoreExceptions().noMemoryError(this, error);
-    }
-
-    @TruffleBoundary
-    private RubyException translateIllegalArgument(RubyContext context, IllegalArgumentException exception) {
-        logJavaException(context, this, exception);
-
-        String message = exception.getMessage();
-
-        if (message == null) {
-            message = exception.toString();
-        }
-
-        return context.getCoreExceptions().argumentError(message, this, exception);
     }
 
     @TruffleBoundary

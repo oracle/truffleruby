@@ -29,11 +29,15 @@ package org.truffleruby.core.string;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.nodes.Node;
 import org.jcodings.Encoding;
 import org.jcodings.ascii.AsciiTables;
 import org.jcodings.specific.ASCIIEncoding;
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.language.control.RaiseException;
 
 public class EncodingUtils {
 
@@ -164,19 +168,25 @@ public class EncodingUtils {
     }
 
     // rb_enc_codepoint_len
-    public static int encCodepointLength(byte[] pBytes, int p, int e, int[] len_p, Encoding enc, CodeRange codeRange) {
+    @TruffleBoundary
+    public static int encCodepointLength(byte[] pBytes, int p, int e, int[] len_p, Encoding enc, CodeRange codeRange,
+            Node node) {
         int r;
         if (e <= p) {
-            throw new IllegalArgumentException("empty string");
+            final RubyContext context = RubyContext.get(node);
+            throw new RaiseException(context, context.getCoreExceptions().argumentError("empty string", node));
         }
         r = StringSupport.characterLength(enc, codeRange, pBytes, p, e);
         if (!StringSupport.MBCLEN_CHARFOUND_P(r)) {
-            throw new IllegalArgumentException("invalid byte sequence in " + enc);
+            final RubyContext context = RubyContext.get(node);
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().argumentError("invalid byte sequence in " + enc, node));
         }
         if (len_p != null) {
             len_p[0] = StringSupport.MBCLEN_CHARFOUND_LEN(r);
         }
-        return StringSupport.codePoint(enc, codeRange, pBytes, p, e);
+        return StringSupport.codePoint(enc, codeRange, pBytes, p, e, node);
     }
 
     // rb_enc_mbcput

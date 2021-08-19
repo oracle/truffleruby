@@ -12,10 +12,12 @@ package org.truffleruby.language.globals;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.ObjectGraph;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -40,20 +42,24 @@ public class GlobalVariables {
         return new GlobalVariableReader(language, name, context.globalVariablesArray);
     }
 
-    public GlobalVariableStorage define(String name, Object value) {
-        return define(name, new GlobalVariableStorage(value, null, null, null));
+    public GlobalVariableStorage define(String name, Object value, Node node) {
+        return define(name, new GlobalVariableStorage(value, null, null, null), node);
     }
 
-    public GlobalVariableStorage define(String name, RubyProc getter, RubyProc setter, RubyProc isDefined) {
-        return define(name, new GlobalVariableStorage(getter, setter, isDefined));
+    public GlobalVariableStorage define(String name, RubyProc getter, RubyProc setter, RubyProc isDefined, Node node) {
+        return define(name, new GlobalVariableStorage(getter, setter, isDefined), node);
     }
 
-    private GlobalVariableStorage define(String name, GlobalVariableStorage storage) {
+    private GlobalVariableStorage define(String name, GlobalVariableStorage storage, Node node) {
         int index = language.getGlobalVariableIndex(name);
         GlobalVariableStorage previous = context.globalVariablesArray.addIfAbsent(index, storage);
 
         if (previous != storage) {
-            throw new IllegalArgumentException("Global variable $" + name + " is already defined");
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().argumentError(
+                            "Global variable $" + name + " is already defined",
+                            node));
         }
         return storage;
     }

@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.method;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.methods.InternalMethod;
 
@@ -57,7 +58,7 @@ public abstract class MethodFilter {
             case PRIVATE:
                 return PRIVATE;
             default:
-                throw new IllegalArgumentException("unsupported visibility: " + visibility);
+                throw CompilerDirectives.shouldNotReachHere("unsupported visibility: " + visibility);
         }
     }
 }

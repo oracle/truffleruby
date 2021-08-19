@@ -71,12 +71,6 @@ public class IntHashMap<V> {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public IntHashMap(int initialCapacity, float loadFactor) {
         super();
-        if (initialCapacity < 0) {
-            throw new IllegalArgumentException("Illegal Capacity: " + initialCapacity);
-        }
-        if (loadFactor <= 0) {
-            throw new IllegalArgumentException("Illegal Load: " + loadFactor);
-        }
         if (initialCapacity == 0) {
             initialCapacity = 1;
         }

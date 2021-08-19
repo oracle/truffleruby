@@ -68,8 +68,10 @@ public class TruffleRubyScriptEngineFactory implements ScriptEngineFactory {
                 return getLanguageName();
             case ScriptEngine.LANGUAGE_VERSION:
                 return getLanguageVersion();
+            case "THREADING":
+                return "MULTITHREADED";
             default:
-                throw new IllegalArgumentException("Invalid key");
+                return null;
         }
     }
 
