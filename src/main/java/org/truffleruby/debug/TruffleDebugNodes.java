@@ -22,8 +22,11 @@ import com.oracle.truffle.api.TruffleStackTraceElement;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.StopIterationException;
 import com.oracle.truffle.api.interop.UnknownKeyException;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.source.SourceSection;
@@ -596,24 +599,48 @@ public abstract class TruffleDebugNodes {
             @ExportMessage
             @TruffleBoundary
             protected Object getMembers(boolean includeInternal) {
-                return new ForeignArrayNode.ForeignArray("a", "b", "c");
+                return new ForeignArrayNode.ForeignArray("a", "b", "c", "method1", "method2");
             }
 
             @TruffleBoundary
             @ExportMessage
             protected boolean isMemberReadable(String member) {
-                return map.containsKey(member);
+                return map.containsKey(member) || isMemberInvocable(member);
             }
 
             @TruffleBoundary
             @ExportMessage
-            protected Object readMember(String key) throws UnknownIdentifierException {
-                final Object value = map.get(key);
+            protected boolean isMemberInvocable(String member) {
+                return "method1".equals(member) || "method2".equals(member);
+            }
+
+            @TruffleBoundary
+            @ExportMessage
+            protected Object readMember(String member) throws UnknownIdentifierException {
+                if (member.equals("method1")) {
+                    return new ForeignExecutableNode.ForeignExecutable(42);
+                } else if (member.equals("method2")) {
+                    return new ForeignExecutableNode.ForeignExecutable(44);
+                }
+
+                final Object value = map.get(member);
                 if (value == null) {
-                    throw UnknownIdentifierException.create(key);
+                    throw UnknownIdentifierException.create(member);
                 }
                 return value;
             }
+
+            @TruffleBoundary
+            @ExportMessage
+            protected Object invokeMember(String member, Object[] arguments) throws UnsupportedMessageException,
+                    ArityException, UnknownIdentifierException, UnsupportedTypeException {
+                if (!isMemberInvocable(member)) {
+                    throw UnknownIdentifierException.create(member);
+                }
+
+                return InteropLibrary.getUncached().execute(readMember("method1"));
+            }
+
 
             @ExportMessage
             protected String toDisplayString(boolean allowSideEffects) {
