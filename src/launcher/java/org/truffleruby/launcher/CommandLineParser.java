@@ -101,7 +101,7 @@ public class CommandLineParser {
     }
 
     private void processArgv() {
-        boolean argvGlobalsOn = config.getOption(OptionsCatalog.ARGV_GLOBALS);
+        boolean argvGlobalsOn = config.getOptionRaw(OptionsCatalog.ARGV_GLOBALS).equals("true");
         ArrayList<String> arglist = new ArrayList<>();
         for (; argumentIndex < arguments.size(); argumentIndex++) {
             String arg = getCurrentArgument();
