@@ -110,8 +110,6 @@ If you want to pass a Ruby object to another language for fields to be read and 
 
 `object.respond_to?(:new)` will tell you if a foreign object can be used to create a new object (if it's a class).
 
-`object.respond_to?(:class)` will tell you if an object is a Java class.
-
 `Polyglot.as_enumerable(object)` will create a Ruby `Enumerable` from the foreign object, using its size or length, and reading from it.
 
 Where boolean value is expected (e.g., in `if` conditions) the foreign value is converted to boolean if possible or considered to be true.

@@ -113,8 +113,6 @@ runtime object instance.
 
 `foreign_object.kind_of?` works like `foreign_object.is_a?`.
 
-`object.respond_to?(:class)` calls `Truffle::Interop.java_class?(object)`.
-
 `object.respond_to?(name)` for other names returns `false`.
 
 `object.__send__(name, *args)` works in the same way as literal method call on

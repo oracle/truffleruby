@@ -342,15 +342,6 @@ module Polyglot
   end
 
   class ForeignObject < Object
-    def respond_to?(name, include_all = false)
-      case symbol = name.to_sym
-      when :class
-        Truffle::Interop.java_class?(self)
-      else
-        super(symbol, include_all)
-      end
-    end
-
     def inspect
       recursive_string_for(self) if Truffle::ThreadOperations.detect_recursion self do
         return Truffle::InteropOperations.foreign_inspect_nonrecursive(self)
