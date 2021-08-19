@@ -77,7 +77,6 @@ module Truffle
 
         show_members = true
         if Truffle::Interop.java_class?(object) # a java.lang.Class instance, treat it like a regular object
-          show_members = false
           string << " #{Truffle::Interop.to_display_string(object)}"
         end
         if Truffle::Interop.has_array_elements?(object)
