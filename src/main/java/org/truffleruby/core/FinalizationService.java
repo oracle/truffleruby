@@ -48,12 +48,12 @@ public class FinalizationService extends ReferenceProcessingService<FinalizerRef
         }
     }
 
-    public FinalizationService(RubyLanguage language, ReferenceQueue<Object> processingQueue) {
-        super(language, processingQueue);
+    public FinalizationService(ReferenceQueue<Object> processingQueue) {
+        super(processingQueue);
     }
 
-    public FinalizationService(RubyLanguage language, ReferenceProcessor referenceProcessor) {
-        this(language, referenceProcessor.processingQueue);
+    public FinalizationService(ReferenceProcessor referenceProcessor) {
+        this(referenceProcessor.processingQueue);
     }
 
     @TruffleBoundary

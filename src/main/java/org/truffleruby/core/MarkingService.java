@@ -57,10 +57,9 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         private final MarkingService markingService;
 
         public MarkRunnerService(
-                RubyLanguage language,
                 ReferenceQueue<Object> processingQueue,
                 MarkingService markingService) {
-            super(language, processingQueue);
+            super(processingQueue);
             this.markingService = markingService;
         }
 
@@ -157,13 +156,13 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         }
     }
 
-    public MarkingService(RubyLanguage language, ReferenceProcessor referenceprocessor) {
-        this(language, referenceprocessor.processingQueue);
+    public MarkingService(ReferenceProcessor referenceprocessor) {
+        this(referenceprocessor.processingQueue);
     }
 
-    public MarkingService(RubyLanguage language, ReferenceQueue<Object> processingQueue) {
-        super(language, processingQueue);
-        runnerService = new MarkRunnerService(language, processingQueue, this);
+    public MarkingService(ReferenceQueue<Object> processingQueue) {
+        super(processingQueue);
+        runnerService = new MarkRunnerService(processingQueue, this);
     }
 
     @TruffleBoundary

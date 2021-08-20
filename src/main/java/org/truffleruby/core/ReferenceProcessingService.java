@@ -253,7 +253,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
 
     protected final ReferenceQueue<Object> processingQueue;
 
-    public ReferenceProcessingService(RubyLanguage language, ReferenceQueue<Object> processingQueue) {
+    public ReferenceProcessingService(ReferenceQueue<Object> processingQueue) {
         this.processingQueue = processingQueue;
     }
 
@@ -262,12 +262,12 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
         remove((R) reference);
     }
 
-    public interface ReferenceRunner<T, U, V> {
-        public void accept(T t, U u, V v);
+    public interface ReferenceRunner<T> {
+        public void accept(RubyContext context, RubyLanguage language, T t);
     }
 
     protected void runCatchingErrors(RubyContext context, RubyLanguage language,
-            ReferenceRunner<RubyContext, RubyLanguage, R> action, R reference) {
+            ReferenceRunner<R> action, R reference) {
         try {
             action.accept(context, language, reference);
         } catch (TerminationException e) {

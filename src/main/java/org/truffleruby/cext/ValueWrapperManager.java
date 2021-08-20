@@ -18,7 +18,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.cext.ValueWrapperManagerFactory.AllocateHandleNodeGen;
-import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.NotProvided;
@@ -60,18 +59,7 @@ public class ValueWrapperManager {
 
     private volatile HandleBlockWeakReference[] blockMap = new HandleBlockWeakReference[0];
 
-    public HandleBlockHolder makeThreadData(RubyContext context) {
-        HandleBlockHolder holder = new HandleBlockHolder();
-        context.getFinalizationService().addFinalizer(
-                context,
-                holder,
-                ValueWrapperManager.class,
-                () -> context.getMarkingService().queueForMarking(holder.handleBlock),
-                null);
-        return holder;
-    }
-
-    public HandleBlockHolder getBlockHolder(RubyContext context, RubyLanguage language) {
+    public static HandleBlockHolder getBlockHolder(RubyContext context, RubyLanguage language) {
         return language.getCurrentThread().getCurrentFiber().handleData;
     }
 
@@ -304,7 +292,7 @@ public class ValueWrapperManager {
                     wrapper,
                     getContext(),
                     getLanguage(),
-                    getContext().getValueWrapperManager().getBlockHolder(getContext(), getLanguage()),
+                    getBlockHolder(getContext(), getLanguage()),
                     false);
         }
 
@@ -314,7 +302,7 @@ public class ValueWrapperManager {
                     wrapper,
                     getContext(),
                     getLanguage(),
-                    getContext().getValueWrapperManager().getBlockHolder(getContext(), getLanguage()),
+                    getBlockHolder(getContext(), getLanguage()),
                     true);
         }
 
