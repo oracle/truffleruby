@@ -128,7 +128,7 @@ public class CExtNodes {
                 Object receiver, RubyArray argsArray, Object specialVariables, Object block,
                 @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
             final ExtensionCallStack extensionStack = getDataNode.execute().getExtensionCallStack();
-            extensionStack.push(variables, block);
+            extensionStack.push(specialVariables, block);
             try {
                 return callCextNode.execute(receiver, argsArray);
             } finally {
