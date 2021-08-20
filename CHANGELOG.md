@@ -41,6 +41,7 @@ Performance:
 * Improved `String#index` performance by adding a fast path for the `string_character_index` primitive (#2383, @LillianZ).
 * Optimized conversion of strings to integers if the string contained a numeric value (#2401, @nirvdrum).
 * Use Truffle's `ContextThreadLocal` to speedup access to thread-local data.
+* Provide a new fast path for `rb_backref*` and `rb_lastline*`functions from C extensions.
 
 Changes:
 
