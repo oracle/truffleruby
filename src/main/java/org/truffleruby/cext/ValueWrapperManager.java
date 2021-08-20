@@ -72,11 +72,7 @@ public class ValueWrapperManager {
     }
 
     public HandleBlockHolder getBlockHolder(RubyContext context, RubyLanguage language) {
-        RubyFiber fiber = language.getCurrentThread().getCurrentFiber();
-        if (fiber.handleData == null) {
-            fiber.handleData = makeThreadData(context);
-        }
-        return fiber.handleData;
+        return language.getCurrentThread().getCurrentFiber().handleData;
     }
 
     /* We keep a map of long wrappers that have been generated because various C extensions assume that any given fixnum
@@ -172,6 +168,11 @@ public class ValueWrapperManager {
                 allocator.addFreeBlock(block.base);
             }
         }
+    }
+
+    public void cleanup(RubyContext context, HandleBlockHolder holder) {
+        context.getMarkingService().queueForMarking(holder.handleBlock);
+        holder.handleBlock = null;
     }
 
     protected static class FreeHandleBlock {

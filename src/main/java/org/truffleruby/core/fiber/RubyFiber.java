@@ -47,7 +47,7 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
     public volatile Throwable uncaughtException = null;
     String sourceLocation;
     public final MarkingService.ExtensionCallStack extensionCallStack;
-    public ValueWrapperManager.HandleBlockHolder handleData = null;
+    public final ValueWrapperManager.HandleBlockHolder handleData;
 
     public RubyFiber(
             RubyClass rubyClass,
@@ -66,6 +66,7 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
         this.rubyThread = rubyThread;
         this.sourceLocation = sourceLocation;
         extensionCallStack = new MarkingService.ExtensionCallStack(Nil.INSTANCE);
+        handleData = new ValueWrapperManager.HandleBlockHolder();
     }
 
     public boolean isRootFiber() {
