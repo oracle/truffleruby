@@ -210,7 +210,7 @@ public class RubyContext {
         coreLibrary = new CoreLibrary(this, language);
         nativeConfiguration = NativeConfiguration.loadNativeConfiguration(this);
         coreLibrary.initialize();
-        valueWrapperManager = new ValueWrapperManager(this);
+        valueWrapperManager = new ValueWrapperManager();
         Metrics.printTime("after-create-core-library");
 
         rootLexicalScope = new LexicalScope(null, coreLibrary.objectClass);

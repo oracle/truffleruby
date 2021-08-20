@@ -17,11 +17,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 import com.oracle.truffle.api.CompilerAsserts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.cext.ValueWrapperManager;
+import org.truffleruby.core.MarkingService;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.thread.RubyThread;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
@@ -43,6 +46,8 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
     volatile boolean transferred = false;
     public volatile Throwable uncaughtException = null;
     String sourceLocation;
+    public final MarkingService.ExtensionCallStack extensionCallStack;
+    public final ValueWrapperManager.HandleBlockHolder handleData;
 
     public RubyFiber(
             RubyClass rubyClass,
@@ -60,6 +65,8 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
         this.catchTags = ArrayHelpers.createEmptyArray(context, language);
         this.rubyThread = rubyThread;
         this.sourceLocation = sourceLocation;
+        extensionCallStack = new MarkingService.ExtensionCallStack(null, Nil.INSTANCE);
+        handleData = new ValueWrapperManager.HandleBlockHolder();
     }
 
     public boolean isRootFiber() {

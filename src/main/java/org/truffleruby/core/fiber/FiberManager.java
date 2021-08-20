@@ -299,6 +299,8 @@ public class FiberManager {
     public void cleanup(RubyFiber fiber, Thread javaThread) {
         final ThreadManager threadManager = context.getThreadManager();
 
+        context.getValueWrapperManager().cleanup(context, fiber.handleData);
+
         fiber.alive = false;
 
         threadManager.cleanupValuesForJavaThread(javaThread);

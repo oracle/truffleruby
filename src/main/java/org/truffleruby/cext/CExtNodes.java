@@ -125,9 +125,10 @@ public class CExtNodes {
 
         @Specialization
         protected Object callWithCExtLockAndFrame(
-                Object receiver, RubyArray argsArray, Object specialVariables, Object block,
-                @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
-            final ExtensionCallStack extensionStack = getDataNode.execute().getExtensionCallStack();
+                Object receiver, RubyArray argsArray, Object specialVariables, Object block) {
+            final ExtensionCallStack extensionStack = getLanguage()
+                    .getCurrentThread()
+                    .getCurrentFiber().extensionCallStack;
             extensionStack.push(specialVariables, block);
             try {
                 return callCextNode.execute(receiver, argsArray);
@@ -693,9 +694,8 @@ public class CExtNodes {
     public abstract static class BlockProcNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object block(
-                @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
-            return getDataNode.execute().getExtensionCallStack().getBlock();
+        protected Object block() {
+            return getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack.getBlock();
         }
     }
 
@@ -703,9 +703,8 @@ public class CExtNodes {
     public abstract static class VarsFromStackNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object variables(
-                @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
-            return getDataNode.execute().getExtensionCallStack().getVariables();
+        protected Object variables() {
+            return getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack.getVariables();
         }
     }
 
@@ -1568,9 +1567,8 @@ public class CExtNodes {
     public abstract static class PushPreservingFrame extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object pushFrame(Object variables, RubyProc block,
-                @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
-            getDataNode.execute().getExtensionCallStack().push(variables, block);
+        protected Object pushFrame(Object variables, RubyProc block) {
+            getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack.push(variables, block);
             return nil;
         }
     }
@@ -1579,9 +1577,8 @@ public class CExtNodes {
     public abstract static class PopPreservingFrame extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object popFrame(
-                @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
-            getDataNode.execute().getExtensionCallStack().pop();
+        protected Object popFrame() {
+            getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack.pop();
             return nil;
         }
     }
