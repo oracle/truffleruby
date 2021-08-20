@@ -9,6 +9,7 @@ New features:
 * Foreign arrays now have all methods of Ruby `Enumerable` and many methods of `Array` (#2149).
 * Foreign hashes now have all methods of Ruby `Enumerable` and many methods of `Hash` (#2149).
 * Foreign iterables (`InteropLibrary#hasIterator`) now have all methods of Ruby `Enumerable` (#2149).
+* Foreign objects now implement `#instance_variables` (readable non-invocable members) and `#methods` (invocable members + Ruby methods).
 
 Bug fixes:
 
@@ -47,6 +48,8 @@ Changes:
 
 * `foreign_object.class` on foreign objects is no longer special and uses `Kernel#class` (it used to return the `java.lang.Class` object for a Java type or `getMetaObject()`, but that is too incompatible with Ruby code).
 * `Java.import name` imports a Java class in the enclosing module instead of always as a top-level constant.
+* `foreign_object.keys` no longer returns members, use `foreign_object.instance_variables` or `foreign_object.methods` instead.
+* `foreign_object.respond_to?(:class)` is now always true (before it was only for Java classes), since the method is always defined.
 
 # 21.2.0
 

@@ -77,7 +77,6 @@ module Truffle
 
         show_members = true
         if Truffle::Interop.java_class?(object) # a java.lang.Class instance, treat it like a regular object
-          show_members = false
           string << " #{Truffle::Interop.to_display_string(object)}"
         end
         if Truffle::Interop.has_array_elements?(object)
@@ -88,7 +87,7 @@ module Truffle
           show_members = false
           string << " {#{object.map { |k, v| "#{basic_inspect_for k}=>#{basic_inspect_for v}" }.join(', ')}}"
         end
-        if show_members && Truffle::Interop.has_members?(object)
+        if show_members
           pairs = pairs_from_object(object)
           unless pairs.empty?
             string << " #{pairs.map { |k, v| "#{k}=#{basic_inspect_for v}" }.join(', ')}"
@@ -131,8 +130,7 @@ module Truffle
     end
 
     def self.pairs_from_object(object)
-      readable_members = Truffle::Interop.members(object).select { |member| Truffle::Interop.member_readable?(object, member) }
-      readable_members.map { |key| [key, object[key]] }
+      object.instance_variables.map { |key| [key, Truffle::Interop.read_member(object, key)] }
     end
 
     def self.ruby_class_and_language(object)

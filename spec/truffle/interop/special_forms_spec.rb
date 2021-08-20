@@ -169,10 +169,18 @@ describe "Interop special forms" do
     -> { pfo.size }.should raise_error(NameError)
   end
 
-  it description['.keys', :getMembers] do
-    pfo, _, l = proxy[Object.new]
-    pfo.keys
+  it description['.instance_variables', :getMembers, [], 'and returns readable non-invocable members'] do
+    pfo, _, l = proxy[Truffle::Debug.foreign_object_with_members]
+    pfo.instance_variables.should == [:a, :b, :c]
     l.log.should include(['getMembers', false])
+  end
+
+  it description['.methods', :getMembers, [], 'and returns invocable members merged with available Ruby methods'] do
+    pfo, _, l = proxy[Truffle::Debug.foreign_object_with_members]
+    methods = pfo.methods
+    l.log.should include(['getMembers', false])
+    methods.last(2).should == [:method1, :method2]
+    methods.should include(*Object.public_instance_methods)
   end
 
   it description['.method_name', :invokeMember, ['method_name'], 'if member is invocable'] do
@@ -405,12 +413,6 @@ describe "Interop special forms" do
     pfo, _, l = proxy[Object.new]
     pfo.respond_to?(:size)
     l.log.should include(["hasArrayElements"])
-  end
-
-  it description['.respond_to?(:keys)', :hasMembers] do
-    pfo, _, l = proxy[Object.new]
-    pfo.respond_to?(:keys)
-    l.log.should include(["hasMembers"])
   end
 
   it description['.respond_to?(:call)', :isExecutable] do

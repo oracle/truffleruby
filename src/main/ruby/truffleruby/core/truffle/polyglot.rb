@@ -342,17 +342,6 @@ module Polyglot
   end
 
   class ForeignObject < Object
-    def respond_to?(name, include_all = false)
-      case symbol = name.to_sym
-      when :keys
-        Truffle::Interop.has_members?(self)
-      when :class
-        Truffle::Interop.java_class?(self)
-      else
-        super(symbol, include_all)
-      end
-    end
-
     def inspect
       recursive_string_for(self) if Truffle::ThreadOperations.detect_recursion self do
         return Truffle::InteropOperations.foreign_inspect_nonrecursive(self)
@@ -389,8 +378,25 @@ module Polyglot
     end
     alias_method :kind_of?, :is_a?
 
-    def keys
-      Truffle::Interop.members(self)
+    def instance_variables
+      return [] unless Truffle::Interop.has_members?(self)
+      Truffle::Interop.members_without_conversion(self).filter_map do |member|
+        # Ruby does not have the concept of non-readable members, ignore those
+        if Truffle::Interop.member_readable?(self, member) &&
+            !Truffle::Interop.member_invocable?(self, member)
+          member.to_s.to_sym
+        end
+      end
+    end
+
+    def methods(regular = true)
+      if regular
+        super() | Truffle::Interop.members_without_conversion(self).filter_map do |member|
+          member.to_s.to_sym if Truffle::Interop.member_invocable?(self, member)
+        end
+      else
+        super(regular)
+      end
     end
 
     def [](member)

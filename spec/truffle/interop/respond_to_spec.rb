@@ -62,18 +62,4 @@ describe "Truffle::Interop.foreign_respond_to?" do
       Truffle::Interop.java_array(1, 2, 3).should.respond_to?(:is_a?)
     end
   end
-
-  describe "for :class" do
-    it "and a Java class returns true" do
-      Truffle::Debug.java_class.should.respond_to?(:class)
-    end
-
-    it "and a Java object returns false" do
-      Truffle::Debug.java_object.should_not.respond_to?(:class)
-    end
-
-    it "and a Java array returns false" do
-      Truffle::Interop.java_array(1, 2, 3).should_not.respond_to?(:class)
-    end
-  end
 end

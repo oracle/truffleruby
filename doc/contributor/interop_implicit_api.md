@@ -22,7 +22,8 @@ Format: `Ruby code` sends `InteropLibrary message`
 - `foreign_object.call(*arguments)` sends `execute(foreign_object, *arguments)`
 - `foreign_object.nil?` sends `isNull(foreign_object)`
 - `foreign_object.size` sends `getArraySize(foreign_object)`
-- `foreign_object.keys` sends `getMembers(foreign_object)`
+- `foreign_object.instance_variables` sends `getMembers(foreign_object)` and returns readable non-invocable members
+- `foreign_object.methods` sends `getMembers(foreign_object)` and returns invocable members merged with available Ruby methods
 - `foreign_object.method_name` sends `invokeMember(foreign_object, method_name)` if member is invocable
 - `foreign_object.method_name` sends `readMember(foreign_object, method_name)` if member is readable but not invocable
 - `foreign_object.method_name` sends `readMember(foreign_object, method_name)` and raises if member is neither invocable nor readable
@@ -56,6 +57,5 @@ Use `.respond_to?` for calling `InteropLibrary` predicates:
 - `foreign_object.respond_to?(:to_f)` sends `fitsInDouble()`
 - `foreign_object.respond_to?(:to_i)` sends `fitsInLong()`
 - `foreign_object.respond_to?(:size)` sends `hasArrayElements(foreign_object)`
-- `foreign_object.respond_to?(:keys)` sends `hasMembers(foreign_object)`
 - `foreign_object.respond_to?(:call)` sends `isExecutable(foreign_object)`
 - `foreign_object.respond_to?(:new)` sends `isInstantiable(foreign_object)`
