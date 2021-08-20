@@ -214,7 +214,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @CompilationFinal public LanguageOptions options;
     @CompilationFinal private String rubyHome;
-    @CompilationFinal private TruffleFile rubyHomeTruffleFile;
+    private TruffleFile rubyHomeTruffleFile;
 
     @CompilationFinal private AllocationReporter allocationReporter;
     @CompilationFinal public CoverageManager coverageManager;
@@ -420,6 +420,15 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
                 primitiveManager.loadCoreMethodNodes(this.options);
             }
         }
+
+        // Set rubyHomeTruffleFile every time, as pre-initialized contexts use a different FileSystem
+        final String oldHome = this.rubyHome;
+        final String newHome = findRubyHome();
+        if (!Objects.equals(newHome, oldHome)) {
+            throw CompilerDirectives.shouldNotReachHere(
+                    "home changed for the same RubyLanguage instance: " + oldHome + " vs " + newHome);
+        }
+        setRubyHomeTruffleFile(env, newHome);
 
         LOGGER.fine("createContext()");
         Metrics.printTime("before-create-context");
@@ -677,6 +686,10 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     private void setRubyHome(Env env, String home) {
         rubyHome = home;
+        setRubyHomeTruffleFile(env, home);
+    }
+
+    private void setRubyHomeTruffleFile(Env env, String home) {
         rubyHomeTruffleFile = home == null ? null : env.getInternalTruffleFile(rubyHome);
     }
 
