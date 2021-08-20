@@ -16,7 +16,6 @@ import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
-import org.truffleruby.core.MarkingServiceNodes;
 import org.truffleruby.language.arguments.CallerDataReadingNode;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
 
@@ -52,8 +51,7 @@ public class TruffleThreadNodes {
         @Specialization(limit = "storageStrategyLimit()")
         protected Object findRubyCaller(RubyArray modules,
                 @CachedLibrary("modules.store") ArrayStoreLibrary stores,
-                @Cached GetSpecialVariableStorage storageNode,
-                @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
+                @Cached GetSpecialVariableStorage storageNode) {
             final int modulesSize = modules.size;
             Object[] moduleArray = stores.boxedCopyOfRange(modules.store, 0, modulesSize);
             FrameAndCallNode data = getContext()
@@ -66,7 +64,7 @@ public class TruffleThreadNodes {
             } else {
                 CallerDataReadingNode.notifyCallerToSendData(getContext(), data.callNode, this);
                 Object variables = storageNode.execute(data.frame.materialize());
-                getDataNode.execute().getExtensionCallStack().setVariables(variables);
+                getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack.setVariables(variables);
                 return variables;
             }
         }

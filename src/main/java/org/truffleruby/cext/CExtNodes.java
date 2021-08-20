@@ -703,9 +703,8 @@ public class CExtNodes {
     public abstract static class VarsFromStackNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object variables(
-                @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
-            return getDataNode.execute().getExtensionCallStack().getVariables();
+        protected Object variables() {
+            return getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack.getVariables();
         }
     }
 

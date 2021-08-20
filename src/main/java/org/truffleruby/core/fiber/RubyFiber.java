@@ -65,7 +65,7 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
         this.catchTags = ArrayHelpers.createEmptyArray(context, language);
         this.rubyThread = rubyThread;
         this.sourceLocation = sourceLocation;
-        extensionCallStack = new MarkingService.ExtensionCallStack(Nil.INSTANCE);
+        extensionCallStack = new MarkingService.ExtensionCallStack(null, Nil.INSTANCE);
         handleData = new ValueWrapperManager.HandleBlockHolder();
     }
 
