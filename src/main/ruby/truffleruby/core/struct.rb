@@ -402,20 +402,21 @@ class Struct
   # are methods to read them
 
   def self._specialize(attrs)
-    # Because people are crazy, they subclass Struct directly, ie.
-    #  class Craptastic < Struct
+    # People want to subclass Struct directly, ie.
     #
-    # NOT
+    #  class MyCoolStruct < Struct
     #
-    #  class Fine < Struct.new(:x, :y)
+    # rather than
     #
-    # When they do this craptastic act, they'll sometimes define their
-    # own #initialize and super into Struct#initialize.
+    #  class MyCoolStruct < Struct.new(:x, :y)
     #
-    # When they do this and then do Craptastic.new(:x, :y), this code
+    # They sometimes then define their own #initialize and super into
+    # Struct#initialize.
+    #
+    # When they do this and then do MyCoolStruct.new(:x, :y), this code
     # will accidentally shadow their #initialize. So for now, only run
     # the specialize if we're trying new Struct's directly from Struct itself,
-    # not a craptastic Struct subclass.
+    # not a Struct subclass.
 
     return unless superclass.equal? Struct
 
