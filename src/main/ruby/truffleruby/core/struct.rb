@@ -402,7 +402,7 @@ class Struct
   # are methods to read them
 
   def self._specialize(attrs)
-    # People want to subclass Struct directly, ie.
+    # People sometimes subclass Struct directly, ie.
     #
     #  class MyCoolStruct < Struct
     #
