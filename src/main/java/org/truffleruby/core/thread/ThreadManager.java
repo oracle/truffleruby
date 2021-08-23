@@ -156,6 +156,7 @@ public class ThreadManager {
         }
 
         final Thread thread = new Thread(runnable); // context.getEnv().createUnenteredThread(runnable);
+        thread.setName("Ruby-FiberPool-" + thread.getName());
         rubyManagedThreads.add(thread); // need to be set before initializeThread()
         thread.setUncaughtExceptionHandler((javaThread, throwable) -> {
             System.err.println("Throwable escaped Fiber pool thread:");
