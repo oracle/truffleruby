@@ -301,7 +301,6 @@ public abstract class HashNodes {
     public abstract static class EachNode extends CoreMethodArrayArgumentsNode implements EachEntryCallback {
 
         @Child HashStoreLibrary.YieldPairNode yieldPair = HashStoreLibrary.YieldPairNode.create();
-        @Child ArrayBuilderNode arrayBuilder = ArrayBuilderNode.create();
 
         @Specialization(limit = "hashStrategyLimit()")
         protected RubyHash each(RubyHash hash, RubyProc block,
