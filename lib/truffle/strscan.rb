@@ -325,7 +325,7 @@ class StringScanner
   private def scan_internal(pattern, advance_pos, getstr, headonly)
     scan_check_args(pattern, headonly)
 
-    if String === pattern
+    if Primitive.object_kind_of?(pattern, String)
       md = scan_internal_string_pattern(pattern, headonly)
     else
       md = Truffle::RegexpOperations.match_in_region pattern, @string, pos, @string.bytesize, headonly, pos
@@ -340,7 +340,11 @@ class StringScanner
   end
 
   private def scan_internal_string_pattern(pattern, headonly)
-    @string[pos..].start_with?(pattern) ? Primitive.matchdata_create_single_group(pattern, @string.dup, pos, pos + pattern.bytesize) : nil
+    if @string[pos..].start_with?(pattern)
+      Primitive.matchdata_create_single_group(pattern, @string.dup, 0, pattern.bytesize)
+    else
+      nil
+    end
   end
 
   private def scan_internal_set_pos_and_str(advance_pos, getstr, md)
