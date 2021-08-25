@@ -70,7 +70,10 @@ import org.truffleruby.core.queue.RubySizedQueue;
 import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.range.RubyLongRange;
 import org.truffleruby.core.range.RubyObjectRange;
+import org.truffleruby.core.regexp.RegexpCacheKey;
+import org.truffleruby.core.regexp.RegexpTable;
 import org.truffleruby.core.regexp.RubyMatchData;
+import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.PathToRopeCache;
 import org.truffleruby.core.rope.Rope;
@@ -204,6 +207,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final CoreSymbols coreSymbols;
     public final PrimitiveManager primitiveManager;
     public final RopeCache ropeCache;
+    public final RegexpTable regexpTable;
     public final SymbolTable symbolTable;
     public final FrozenStringLiterals frozenStringLiterals;
 
@@ -338,6 +342,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         primitiveManager = new PrimitiveManager();
         ropeCache = new RopeCache(coreSymbols);
         symbolTable = new SymbolTable(ropeCache, coreSymbols);
+        regexpTable = new RegexpTable();
         frozenStringLiterals = new FrozenStringLiterals(ropeCache);
     }
 
@@ -354,6 +359,16 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public void setupCurrentThread(Thread javaThread, RubyThread rubyThread) {
         final ThreadLocalState threadLocalState = this.threadLocalState.get(javaThread);
         threadLocalState.rubyThread = rubyThread;
+    }
+
+    @TruffleBoundary
+    public RubyRegexp getRegexp(RegexpCacheKey regexp) {
+        return regexpTable.getRegexpIfExists(regexp);
+    }
+
+    @TruffleBoundary
+    public void addRegexp(RegexpCacheKey key, RubyRegexp regexp) {
+        regexpTable.addRegexp(key, regexp);
     }
 
     @TruffleBoundary

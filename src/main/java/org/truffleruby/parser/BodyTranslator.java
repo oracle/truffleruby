@@ -52,6 +52,7 @@ import org.truffleruby.core.regexp.ClassicRegexp;
 import org.truffleruby.core.regexp.InterpolatedRegexpNode;
 import org.truffleruby.core.regexp.MatchDataNodes.GetIndexNode;
 import org.truffleruby.core.regexp.RegexWarnDeferredCallback;
+import org.truffleruby.core.regexp.RegexpCacheKey;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.regexp.TruffleRegexpNodes;
@@ -2662,20 +2663,33 @@ public class BodyTranslator extends Translator {
     public RubyNode visitRegexpNode(RegexpParseNode node) {
         final Rope rope = node.getValue();
         final RubyEncoding encoding = Encodings.getBuiltInEncoding(rope.getEncoding().getIndex());
-        final RegexpOptions options = (RegexpOptions) node.getOptions().clone();
-        options.setLiteral(true);
-        Regex regex = null;
+        final RegexpOptions options = node.getOptions().setLiteral(true);
         try {
-            regex = TruffleRegexpNodes
-                    .compile(language, rubyWarnings, new RopeWithEncoding(rope, encoding), options, true, currentNode);
+            RegexpCacheKey key = RegexpCacheKey.calculate(new RopeWithEncoding(rope, encoding), options);
+            RubyRegexp regexp = language.getRegexp(key);
+            if (regexp == null) {
+                Regex regex = null;
+                RegexpOptions[] optionsArray = new RegexpOptions[]{ options };
+                regex = TruffleRegexpNodes
+                        .compile(
+                                language,
+                                rubyWarnings,
+                                new RopeWithEncoding(rope, encoding),
+                                optionsArray,
+                                true,
+                                currentNode);
+
+                regexp = new RubyRegexp(regex, optionsArray[0]);
+                language.addRegexp(key, regexp);
+            }
+
+            final ObjectLiteralNode literalNode = new ObjectLiteralNode(regexp);
+            literalNode.unsafeSetSourceSection(node.getPosition());
+            return addNewlineIfNeeded(node, literalNode);
         } catch (DeferredRaiseException dre) {
             throw dre.getException(RubyLanguage.getCurrentContext());
         }
 
-        final RubyRegexp regexp = new RubyRegexp(regex, options);
-        final ObjectLiteralNode literalNode = new ObjectLiteralNode(regexp);
-        literalNode.unsafeSetSourceSection(node.getPosition());
-        return addNewlineIfNeeded(node, literalNode);
     }
 
     @Override

@@ -46,7 +46,6 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.collections.ConcurrentOperations;
-import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.RubyArray;
@@ -93,18 +92,24 @@ public class TruffleRegexpNodes {
             Object string, boolean fromStart, boolean collectDetailedStats) {
         Rope source = regexp.source;
         RegexpOptions options = regexp.options;
-        TruffleRegexpNodes.MatchInfo matchInfo = new TruffleRegexpNodes.MatchInfo(
-                new RegexpCacheKey(source, regexp.encoding, options, Hashing.NO_SEED),
-                fromStart);
-        ConcurrentOperations.getOrCompute(metricsMap, matchInfo, x -> new AtomicInteger()).incrementAndGet();
+        try {
+            TruffleRegexpNodes.MatchInfo matchInfo = new TruffleRegexpNodes.MatchInfo(
+                    RegexpCacheKey.calculate(new RopeWithEncoding(source, regexp.encoding), options),
+                    fromStart);
+            ConcurrentOperations.getOrCompute(metricsMap, matchInfo, x -> new AtomicInteger()).incrementAndGet();
 
-        if (collectDetailedStats) {
-            final MatchInfoStats stats = ConcurrentOperations
-                    .getOrCompute(MATCHED_REGEXP_STATS, matchInfo, x -> new MatchInfoStats());
-            stats.record(
-                    RubyStringLibrary.getUncached().getRope(string),
-                    RubyStringLibrary.getUncached().getEncoding(string));
+            if (collectDetailedStats) {
+                final MatchInfoStats stats = ConcurrentOperations
+                        .getOrCompute(MATCHED_REGEXP_STATS, matchInfo, x -> new MatchInfoStats());
+                stats
+                        .record(
+                                RubyStringLibrary.getUncached().getRope(string),
+                                RubyStringLibrary.getUncached().getEncoding(string));
+            }
+        } catch (DeferredRaiseException dre) {
+            throw dre.getException(RubyLanguage.getCurrentContext());
         }
+
     }
 
     // rb_reg_prepare_enc ... mostly. Some of the error checks are performed by callers of this method.
@@ -276,15 +281,23 @@ public class TruffleRegexpNodes {
 
         @TruffleBoundary
         public RubyRegexp createRegexp(Rope pattern, RubyEncoding encoding) throws DeferredRaiseException {
-            final RegexpOptions regexpOptions = RegexpOptions.fromEmbeddedOptions(0);
-            final Regex regex = compile(
-                    getLanguage(),
-                    null,
-                    new RopeWithEncoding(pattern, encoding),
-                    regexpOptions,
-                    false,
-                    this);
-            return new RubyRegexp(regex, regexpOptions);
+            final RegexpCacheKey key = RegexpCacheKey
+                    .calculate(new RopeWithEncoding(pattern, encoding), RegexpOptions.fromEmbeddedOptions(0));
+            RubyRegexp regexp = getLanguage().getRegexp(key);
+            if (regexp == null) {
+                final RegexpOptions optionsArray[] = new RegexpOptions[]{ RegexpOptions.fromEmbeddedOptions(0) };
+
+                final Regex regex = compile(
+                        getLanguage(),
+                        null,
+                        new RopeWithEncoding(pattern, encoding),
+                        optionsArray,
+                        false,
+                        this);
+                regexp = new RubyRegexp(regex, optionsArray[0]);
+                getLanguage().addRegexp(key, regexp);
+            }
+            return regexp;
         }
     }
 
@@ -1090,9 +1103,9 @@ public class TruffleRegexpNodes {
     /** WARNING: computeRegexpEncoding() mutates options, so the caller should make sure it's a copy */
     @TruffleBoundary
     public static Regex compile(RubyLanguage language, RubyDeferredWarnings rubyDeferredWarnings,
-            RopeWithEncoding bytes, RegexpOptions options, boolean isRegexpLiteral, Node currentNode)
+            RopeWithEncoding bytes, RegexpOptions[] optionsArray, boolean isRegexpLiteral, Node currentNode)
             throws DeferredRaiseException {
-        if (options.isEncodingNone()) {
+        if (optionsArray[0].isEncodingNone()) {
             bytes = new RopeWithEncoding(
                     RopeOperations.withEncoding(bytes.getRope(), ASCIIEncoding.INSTANCE),
                     Encodings.BINARY);
@@ -1101,18 +1114,16 @@ public class TruffleRegexpNodes {
         RubyEncoding[] fixedEnc = new RubyEncoding[]{ null };
         RopeBuilder unescaped = ClassicRegexp
                 .preprocess(bytes.getRope(), enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
-        enc = ClassicRegexp.computeRegexpEncoding(options, enc, fixedEnc);
+        enc = ClassicRegexp.computeRegexpEncoding(optionsArray, enc, fixedEnc);
 
         Regex regexp = ClassicRegexp
-                .makeRegexp(null, rubyDeferredWarnings, unescaped, options, enc, bytes.getRope(), currentNode);
+                .makeRegexp(null, rubyDeferredWarnings, unescaped, optionsArray[0], enc, bytes.getRope(), currentNode);
         regexp.setUserObject(new RopeWithEncoding(RopeOperations.withEncoding(bytes.getRope(), enc.jcoding), enc));
 
         if (language.options.REGEXP_INSTRUMENT_CREATION) {
-            final RegexpCacheKey key = new RegexpCacheKey(
-                    RopeOperations.withEncoding(bytes.getRope(), enc.jcoding),
-                    enc,
-                    options,
-                    Hashing.NO_SEED);
+            final RegexpCacheKey key = RegexpCacheKey.calculate(
+                    new RopeWithEncoding(RopeOperations.withEncoding(bytes.getRope(), enc.jcoding), enc),
+                    optionsArray[0]);
             ConcurrentOperations
                     .getOrCompute(
                             isRegexpLiteral ? COMPILED_REGEXPS_LITERAL : COMPILED_REGEXPS_DYNAMIC,

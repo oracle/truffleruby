@@ -22,35 +22,49 @@ public class RegexpOptions implements Cloneable {
         this(KCode.NONE, true);
     }
 
+    private RegexpOptions newWithFlag(int optionMask, boolean set) {
+        int newOptions;
+        if (set) {
+            newOptions = options | optionMask;
+        } else {
+            newOptions = options & ~optionMask;
+        }
+        return new RegexpOptions(kcode, newOptions);
+    }
+
     public RegexpOptions(KCode kcode, boolean isKCodeDefault) {
+        this(kcode, KCODEDEFAULT);
+    }
+
+    public RegexpOptions(KCode kcode, int options) {
         this.kcode = kcode;
-        this.kcodeDefault = isKCodeDefault;
+        this.options = options;
 
         assert kcode != null : "kcode must always be set to something";
     }
 
     public boolean isExtended() {
-        return extended;
+        return (options & EXTENDED) != 0;
     }
 
-    public void setExtended(boolean extended) {
-        this.extended = extended;
+    public RegexpOptions setExtended(boolean extended) {
+        return newWithFlag(EXTENDED, extended);
     }
 
     public boolean isIgnorecase() {
-        return ignorecase;
+        return (options & IGNORECASE) != 0;
     }
 
-    public void setIgnorecase(boolean ignorecase) {
-        this.ignorecase = ignorecase;
+    public RegexpOptions setIgnorecase(boolean ignorecase) {
+        return newWithFlag(IGNORECASE, ignorecase);
     }
 
     public boolean isFixed() {
-        return fixed;
+        return (options & FIXED) != 0;
     }
 
-    public void setFixed(boolean fixed) {
-        this.fixed = fixed;
+    public RegexpOptions setFixed(boolean fixed) {
+        return newWithFlag(FIXED, fixed);
     }
 
     public KCode getKCode() {
@@ -60,13 +74,17 @@ public class RegexpOptions implements Cloneable {
     /** This regexp has an explicit encoding flag or 'nesu' letter associated with it.
      * 
      * @param kcode to be set */
-    public void setExplicitKCode(KCode kcode) {
-        this.kcode = kcode;
-        kcodeDefault = false;
+    public RegexpOptions setExplicitKCode(KCode kcode) {
+        int newOptions = options & ~KCODEDEFAULT;
+        return new RegexpOptions(kcode, newOptions);
+    }
+
+    private RegexpOptions setKCodeDefault(boolean kcodedefault) {
+        return newWithFlag(KCODEDEFAULT, kcodedefault);
     }
 
     private KCode getExplicitKCode() {
-        if (kcodeDefault) {
+        if (isKcodeDefault()) {
             return null;
         }
 
@@ -76,63 +94,74 @@ public class RegexpOptions implements Cloneable {
     /** Whether the kcode associated with this regexp is implicit (aka default) or is specified explicitly (via 'nesu'
      * syntax postscript or flags to Regexp.new. */
     public boolean isKcodeDefault() {
-        return kcodeDefault;
+        return (options & KCODEDEFAULT) != 0;
     }
 
     public boolean isMultiline() {
-        return multiline;
+        return (options & MULTILINE) != 0;
     }
 
-    public void setMultiline(boolean multiline) {
-        this.multiline = multiline;
+    public RegexpOptions setMultiline(boolean multiline) {
+        return newWithFlag(MULTILINE, multiline);
     }
 
     public boolean isOnce() {
-        return once;
+        return (options & ONCE) != 0;
     }
 
-    public void setOnce(boolean once) {
-        this.once = once;
+    public RegexpOptions setOnce(boolean once) {
+        return newWithFlag(ONCE, once);
     }
 
     public boolean isJava() {
-        return java;
+        return (options & JAVA) != 0;
     }
 
-    public void setJava(boolean java) {
-        this.java = java;
+    public RegexpOptions setJava(boolean java) {
+        return newWithFlag(JAVA, java);
     }
 
     public boolean isEncodingNone() {
-        return encodingNone;
+        return (options & ENCODINGNONE) != 0;
     }
 
-    public void setEncodingNone(boolean encodingNone) {
-        this.encodingNone = encodingNone;
+    public RegexpOptions setEncodingNone(boolean encodingNone) {
+        return newWithFlag(ENCODINGNONE, encodingNone);
     }
 
     public boolean isLiteral() {
-        return literal;
+        return (options & LITERAL) != 0;
     }
 
-    public void setLiteral(boolean literal) {
-        this.literal = literal;
+    public RegexpOptions setLiteral(boolean literal) {
+        return newWithFlag(LITERAL, literal);
     }
 
     public boolean isEmbeddable() {
-        return multiline && ignorecase && extended;
+        return isMultiline() && isIgnorecase() && isExtended();
     }
 
-    public Encoding setup() {
+    // This relies on mutation. Separate into a setup and getEncoding method.
+    public RegexpOptions setup() {
+        KCode explicitKCode = getExplicitKCode();
+
+        if (explicitKCode == null) {
+            return this;
+        } else if (explicitKCode == KCode.NONE) { // None will not set fixed
+            return setEncodingNone(true);
+        } else {
+            return setFixed(true);
+        }
+    }
+
+    public Encoding getEncoding() {
         KCode explicitKCode = getExplicitKCode();
 
         if (explicitKCode == null) {
             return null;
         } else if (explicitKCode == KCode.NONE) { // None will not set fixed
-            setEncodingNone(true);
             return ASCIIEncoding.INSTANCE;
         } else {
-            setFixed(true);
             return explicitKCode.getEncoding();
         }
     }
@@ -142,13 +171,13 @@ public class RegexpOptions implements Cloneable {
     public int toJoniOptions() {
         int options = 0;
         // Note: once is not an option that is pertinent to Joni so we exclude it.
-        if (multiline) {
+        if (isMultiline()) {
             options |= ReOptions.RE_OPTION_MULTILINE;
         }
-        if (ignorecase) {
+        if (isIgnorecase()) {
             options |= ReOptions.RE_OPTION_IGNORECASE;
         }
-        if (extended) {
+        if (isExtended()) {
             options |= ReOptions.RE_OPTION_EXTENDED;
         }
         return options;
@@ -157,19 +186,19 @@ public class RegexpOptions implements Cloneable {
     /** This int value is used by Regex#options */
     public int toOptions() {
         int options = 0;
-        if (multiline) {
+        if (isMultiline()) {
             options |= ReOptions.RE_OPTION_MULTILINE;
         }
-        if (ignorecase) {
+        if (isIgnorecase()) {
             options |= ReOptions.RE_OPTION_IGNORECASE;
         }
-        if (extended) {
+        if (isExtended()) {
             options |= ReOptions.RE_OPTION_EXTENDED;
         }
-        if (fixed) {
+        if (isFixed()) {
             options |= ReOptions.RE_FIXED;
         }
-        if (encodingNone) {
+        if (isEncodingNone()) {
             options |= ReOptions.RE_NONE;
         }
         return options;
@@ -178,28 +207,26 @@ public class RegexpOptions implements Cloneable {
     public static RegexpOptions fromEmbeddedOptions(int embeddedOptions) {
         RegexpOptions options = fromJoniOptions(embeddedOptions);
 
-        options.kcodeDefault = (embeddedOptions & ReOptions.RE_DEFAULT) != 0;
-        options.literal = (embeddedOptions & ReOptions.RE_LITERAL) != 0;
-        options.encodingNone = (embeddedOptions & ReOptions.RE_NONE) != 0;
+        options = options.setKCodeDefault((embeddedOptions & ReOptions.RE_DEFAULT) != 0);
+        options = options.setLiteral((embeddedOptions & ReOptions.RE_LITERAL) != 0);
+        options = options.setEncodingNone((embeddedOptions & ReOptions.RE_NONE) != 0);
 
         return options;
     }
 
     public static RegexpOptions fromJoniOptions(int joniOptions) {
         RegexpOptions options = new RegexpOptions();
-        options.multiline = (joniOptions & ReOptions.RE_OPTION_MULTILINE) != 0;
-        options.ignorecase = (joniOptions & ReOptions.RE_OPTION_IGNORECASE) != 0;
-        options.extended = (joniOptions & ReOptions.RE_OPTION_EXTENDED) != 0;
-        options.fixed = (joniOptions & ReOptions.RE_FIXED) != 0;
-        options.once = (joniOptions & ReOptions.RE_OPTION_ONCE) != 0;
+        options = options.setMultiline((joniOptions & ReOptions.RE_OPTION_MULTILINE) != 0);
+        options = options.setIgnorecase((joniOptions & ReOptions.RE_OPTION_IGNORECASE) != 0);
+        options = options.setExtended((joniOptions & ReOptions.RE_OPTION_EXTENDED) != 0);
+        options = options.setFixed((joniOptions & ReOptions.RE_FIXED) != 0);
+        options = options.setOnce((joniOptions & ReOptions.RE_OPTION_ONCE) != 0);
 
         return options;
     }
 
     public RegexpOptions withoutOnce() {
-        RegexpOptions options = (RegexpOptions) clone();
-        options.once = false;
-        return options;
+        return setOnce(false);
     }
 
     public String toOptionsString() {
@@ -220,15 +247,15 @@ public class RegexpOptions implements Cloneable {
     public int hashCode() {
         int hash = 7;
         hash = 11 * hash + (kcode != null ? kcode.hashCode() : 0);
-        hash = 11 * hash + (fixed ? 1 : 0);
-        hash = 11 * hash + (once ? 1 : 0);
-        hash = 11 * hash + (extended ? 1 : 0);
-        hash = 11 * hash + (multiline ? 1 : 0);
-        hash = 11 * hash + (ignorecase ? 1 : 0);
-        hash = 11 * hash + (java ? 1 : 0);
-        hash = 11 * hash + (encodingNone ? 1 : 0);
-        hash = 11 * hash + (kcodeDefault ? 1 : 0);
-        hash = 11 * hash + (literal ? 1 : 0);
+        hash = 11 * hash + (isFixed() ? 1 : 0);
+        hash = 11 * hash + (isOnce() ? 1 : 0);
+        hash = 11 * hash + (isExtended() ? 1 : 0);
+        hash = 11 * hash + (isMultiline() ? 1 : 0);
+        hash = 11 * hash + (isIgnorecase() ? 1 : 0);
+        hash = 11 * hash + (isJava() ? 1 : 0);
+        hash = 11 * hash + (isEncodingNone() ? 1 : 0);
+        hash = 11 * hash + (isKcodeDefault() ? 1 : 0);
+        hash = 11 * hash + (isLiteral() ? 1 : 0);
         return hash;
     }
 
@@ -247,48 +274,35 @@ public class RegexpOptions implements Cloneable {
             return false;
         }
 
-        // Note: literal and once can be different in this object but for the
-        // sake of equality we ignore those two fields since those flags do
-        // not affect Ruby equality.
         RegexpOptions o = (RegexpOptions) other;
-        boolean equality = o.extended == extended &&
-                o.fixed == fixed &&
-                o.ignorecase == ignorecase &&
-                o.java == java &&
-                o.multiline == multiline;
-        if (encodingNone || o.encodingNone) {
-            return equality && o.kcode == kcode;
-        } else {
-            return equality &&
-                    o.encodingNone == encodingNone &&
-                    o.kcode == kcode &&
-                    o.kcodeDefault == kcodeDefault;
-        }
+        return options == o.options && kcode == o.kcode;
     }
 
     @Override
     public String toString() {
         return "RegexpOptions(kcode: " + kcode +
-                (encodingNone ? ", encodingNone" : "") +
-                (extended ? ", extended" : "") +
-                (fixed ? ", fixed" : "") +
-                (ignorecase ? ", ignorecase" : "") +
-                (java ? ", java" : "") +
-                (kcodeDefault ? ", kcodeDefault" : "") +
-                (literal ? ", literal" : "") +
-                (multiline ? ", multiline" : "") +
-                (once ? ", once" : "") +
+                (isEncodingNone() ? ", encodingNone" : "") +
+                (isExtended() ? ", extended" : "") +
+                (isFixed() ? ", fixed" : "") +
+                (isIgnorecase() ? ", ignorecase" : "") +
+                (isJava() ? ", java" : "") +
+                (isKcodeDefault() ? ", kcodeDefault" : "") +
+                (isLiteral() ? ", literal" : "") +
+                (isMultiline() ? ", multiline" : "") +
+                (isOnce() ? ", once" : "") +
                 ")";
     }
 
-    private KCode kcode;
-    private boolean fixed;
-    private boolean once;
-    private boolean extended;
-    private boolean multiline;
-    private boolean ignorecase;
-    private boolean java;
-    private boolean encodingNone;
-    private boolean kcodeDefault;
-    private boolean literal;
+    private final KCode kcode;
+    private final int options;
+
+    private static final int FIXED = 1;
+    private static final int ONCE = 1 << 1;
+    private static final int EXTENDED = 1 << 2;
+    private static final int MULTILINE = 1 << 3;
+    private static final int IGNORECASE = 1 << 4;
+    private static final int JAVA = 1 << 5;
+    private static final int ENCODINGNONE = 1 << 6;
+    private static final int KCODEDEFAULT = 1 << 7;
+    private static final int LITERAL = 1 << 8;
 }

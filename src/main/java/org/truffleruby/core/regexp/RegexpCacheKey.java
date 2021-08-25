@@ -9,25 +9,49 @@
  */
 package org.truffleruby.core.regexp;
 
-import org.truffleruby.core.Hashing;
+import java.util.Objects;
+
+import org.jcodings.specific.ASCIIEncoding;
+
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.rope.RopeWithEncoding;
+import org.truffleruby.language.control.DeferredRaiseException;
 
 public final class RegexpCacheKey {
 
-    private final Rope rope;
-    private final RubyEncoding encoding;
-    private final int joniOptions;
-    private final Hashing hashing;
+    public static RegexpCacheKey calculate(RopeWithEncoding rope, RegexpOptions options) throws DeferredRaiseException {
+        if (options.isEncodingNone()) {
+            rope = new RopeWithEncoding(
+                    RopeOperations.withEncoding(rope.getRope(), ASCIIEncoding.INSTANCE),
+                    Encodings.BINARY);
+        }
+        RubyEncoding fixedEnc[] = new RubyEncoding[]{ null };
+        RopeBuilder processed = ClassicRegexp
+                .preprocess(rope.getRope(), rope.getEncoding(), fixedEnc, RegexpSupport.ErrorMode.RAISE);
+        RegexpOptions optionsArray[] = new RegexpOptions[]{ options };
+        RubyEncoding enc = ClassicRegexp.computeRegexpEncoding(optionsArray, rope.getEncoding(), fixedEnc);
 
-    public RegexpCacheKey(Rope rope, RubyEncoding encoding, RegexpOptions options, Hashing hashing) {
+        return new RegexpCacheKey(processed.toRope(), enc, optionsArray[0]);
+    }
+
+    public final Rope rope;
+    public final RubyEncoding encoding;
+    public final RegexpOptions options;
+
+    private RegexpCacheKey(Rope rope, RubyEncoding encoding, RegexpOptions options) {
         assert !(rope instanceof NativeRope);
         this.rope = rope;
         this.encoding = encoding;
-        this.joniOptions = options.toJoniOptions();
-        this.hashing = hashing;
+        this.options = options;
+    }
+
+    public RegexpOptions getOptions() {
+        return options;
     }
 
     public Rope getRope() {
@@ -39,19 +63,19 @@ public final class RegexpCacheKey {
     }
 
     public int getJoniOptions() {
-        return joniOptions;
+        return options.toJoniOptions();
     }
 
     @Override
     public int hashCode() {
-        return hashing.hash(rope.hashCode());
+        return Objects.hash(rope, encoding, options);
     }
 
     @Override
     public boolean equals(Object o) {
         if (o instanceof RegexpCacheKey) {
             final RegexpCacheKey other = (RegexpCacheKey) o;
-            return encoding == other.encoding && joniOptions == other.joniOptions && rope.equals(other.getRope());
+            return rope.equals(other.rope) && encoding == other.encoding && options.equals(other.options);
         } else {
             return false;
         }
@@ -60,7 +84,7 @@ public final class RegexpCacheKey {
     @Override
     public String toString() {
         return '/' + RopeOperations.decodeOrEscapeBinaryRope(rope) + '/' +
-                RegexpOptions.fromJoniOptions(joniOptions).toOptionsString() +
+                options.toOptionsString() +
                 " -- " + RopeOperations.decodeOrEscapeBinaryRope(encoding.name.rope);
     }
 }

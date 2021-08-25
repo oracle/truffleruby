@@ -77,10 +77,10 @@ public class ClassicRegexp implements ReOptions {
     private final RubyContext context;
     private final Regex pattern;
     private final Rope str;
-    private final RegexpOptions options;
+    private RegexpOptions options;
 
     public void setLiteral() {
-        options.setLiteral(true);
+        options = options.setLiteral(true);
     }
 
     public Encoding getEncoding() {
@@ -128,40 +128,31 @@ public class ClassicRegexp implements ReOptions {
         }
 
         final Rope rope = RopeOperations.ropeFromRopeBuilder(bytes);
-        final RegexpCacheKey cacheKey = new RegexpCacheKey(
-                rope,
-                encoding,
-                options,
-                context.getHashing(context.getRegexpCache()));
-
-        final Regex regex = context.getRegexpCache().get(cacheKey);
-        if (regex != null) {
-            return regex;
-        } else {
-            final Regex newRegex = makeRegexp(context, null, bytes, options, encoding, source, null);
-            newRegex.setUserObject(bytes);
-            return context.getRegexpCache().addInCacheIfAbsent(cacheKey, newRegex);
-        }
+        final Regex newRegex = makeRegexp(context, null, bytes, options, encoding, source, null);
+        newRegex.setUserObject(bytes);
+        return newRegex;
     }
 
     public ClassicRegexp(RubyContext context, Rope str, RubyEncoding enc, RegexpOptions originalOptions)
             throws DeferredRaiseException {
         this.context = context;
-        this.options = (RegexpOptions) originalOptions.clone();
+        this.options = originalOptions;
 
         if (enc.jcoding.isDummy()) {
             throw new UnsupportedOperationException("can't make regexp with dummy encoding");
         }
 
+        RegexpOptions[] optionsArray = new RegexpOptions[]{ originalOptions };
         RubyEncoding[] fixedEnc = new RubyEncoding[]{ null };
         RopeBuilder unescaped = preprocess(str, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
-        final RubyEncoding computedEnc = computeRegexpEncoding(options, enc, fixedEnc);
+        final RubyEncoding computedEnc = computeRegexpEncoding(optionsArray, enc, fixedEnc);
         this.pattern = getRegexpFromCache(
                 context,
                 unescaped,
                 computedEnc,
                 options,
                 RopeOperations.withEncoding(str, computedEnc.jcoding));
+        this.options = optionsArray[0];
         this.str = str;
     }
 
@@ -859,26 +850,28 @@ public class ClassicRegexp implements ReOptions {
     }
 
     /** WARNING: This mutates options, so the caller should make sure it's a copy */
-    static RubyEncoding computeRegexpEncoding(RegexpOptions options, RubyEncoding enc, RubyEncoding[] fixedEnc)
+    static RubyEncoding computeRegexpEncoding(RegexpOptions[] options, RubyEncoding enc, RubyEncoding[] fixedEnc)
             throws DeferredRaiseException {
         if (fixedEnc[0] != null) {
-            if ((fixedEnc[0] != enc && options.isFixed()) ||
-                    (fixedEnc[0] != Encodings.BINARY && options.isEncodingNone())) {
+            if ((fixedEnc[0] != enc && options[0].isFixed()) ||
+                    (fixedEnc[0] != Encodings.BINARY && options[0].isEncodingNone())) {
                 throw new DeferredRaiseException(context -> context
                         .getCoreExceptions()
                         .regexpError("incompatible character encoding", null));
             }
             if (fixedEnc[0] != Encodings.BINARY) {
-                options.setFixed(true);
+                options[0] = options[0].setFixed(true);
                 enc = fixedEnc[0];
             }
-        } else if (!options.isFixed()) {
+        } else if (!options[0].isFixed()) {
             enc = Encodings.US_ASCII;
         }
 
         if (fixedEnc[0] != null) {
-            options.setFixed(true);
+            options[0] = options[0].setFixed(true);
         }
+
+        // This needs to return the modified options in some way. Sigh.
         return enc;
     }
 
@@ -912,11 +905,11 @@ public class ClassicRegexp implements ReOptions {
                 if ((len -= 2) > 0) {
                     do {
                         if (bytes[p] == 'm') {
-                            newOptions.setMultiline(true);
+                            newOptions = newOptions.setMultiline(true);
                         } else if (bytes[p] == 'i') {
-                            newOptions.setIgnorecase(true);
+                            newOptions = newOptions.setIgnorecase(true);
                         } else if (bytes[p] == 'x') {
-                            newOptions.setExtended(true);
+                            newOptions = newOptions.setExtended(true);
                         } else {
                             break;
                         }
@@ -928,11 +921,11 @@ public class ClassicRegexp implements ReOptions {
                     --len;
                     do {
                         if (bytes[p] == 'm') {
-                            newOptions.setMultiline(false);
+                            newOptions = newOptions.setMultiline(false);
                         } else if (bytes[p] == 'i') {
-                            newOptions.setIgnorecase(false);
+                            newOptions = newOptions.setIgnorecase(false);
                         } else if (bytes[p] == 'x') {
-                            newOptions.setExtended(false);
+                            newOptions = newOptions.setExtended(false);
                         } else {
                             break;
                         }
