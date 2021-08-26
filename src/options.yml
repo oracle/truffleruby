@@ -236,6 +236,7 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     # Instrumentation to debug performance
     REGEXP_INSTRUMENT_CREATION: [regexp-instrument-creation, boolean, false, Enable instrumentation to gather stats on regexp creation]
     REGEXP_INSTRUMENT_MATCH: [regexp-instrument-match, boolean, false, Enable instrumentation to gather stats on regexp matching]
+    REGEXP_INSTRUMENT_MATCH_DETAILED: [regexp-instrument-match-detailed, boolean, false, Enable instrumentation to gather detailed stats on strings matched against a regexp]
     REGEXP_INSTRUMENT_OUTPUT_FORMAT: [regexp-instrumentation-output-format, string, 'text', 'Output format for regexp instrumentation (\\\"text\\\" or \\\"json\\\")']
 
     # Options for metrics, the output cannot be used directly without processing
