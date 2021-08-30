@@ -32,7 +32,6 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -414,14 +413,8 @@ public abstract class FloatNodes {
             return Double.compare(a, b);
         }
 
-        @Specialization(guards = { "!isNaN(a)", "!isRubyBignum(b)" })
-        protected Object compare(double a, RubyDynamicObject b,
-                @Cached DispatchNode redoCompare) {
-            return redoCompare.call(a, "redo_compare_bad_coerce_return_error", b);
-        }
-
-        @Specialization(guards = { "!isNaN(a)" })
-        protected Object compare(double a, Nil b,
+        @Specialization(guards = { "!isNaN(a)", "!isRubyNumber(b)" })
+        protected Object compare(double a, Object b,
                 @Cached DispatchNode redoCompare) {
             return redoCompare.call(a, "redo_compare_bad_coerce_return_error", b);
         }
