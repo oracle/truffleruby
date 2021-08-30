@@ -16,6 +16,7 @@ describe "Float#<=>" do
     (1.0 <=> "1").should be_nil
     (1.0 <=> "1".freeze).should be_nil
     (1.0 <=> :one).should be_nil
+    (1.0 <=> true).should be_nil
   end
 
   it "compares using #coerce when argument is not a Float" do
