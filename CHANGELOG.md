@@ -21,6 +21,7 @@ Bug fixes:
 * Fix issue with `strspn` used in the `date` C extension compiled as a macro on older glibc and then missing the `__strspn_c1` symbol on newer glibc (#2406).
 * Fix constant lookup when loading the same file multiple times (#2408).
 * Fix handling of `break`, `next` and `redo` in `define_method(name, &block)` methods (#2418).
+* Fix handling of incompatible types in `Float#<=>` (#2432, @chrisseaton).
 
 Compatibility:
 
