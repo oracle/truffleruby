@@ -455,7 +455,7 @@ class Dir
         return matches
       end
 
-      left_brace_index = pattern.index('{')
+      left_brace_index = pattern.index(/(?<!\\){/)
       if left_brace_index
         patterns = compile(pattern, left_brace_index, flags)
 
