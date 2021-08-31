@@ -22,6 +22,7 @@ Bug fixes:
 * Fix constant lookup when loading the same file multiple times (#2408).
 * Fix handling of `break`, `next` and `redo` in `define_method(name, &block)` methods (#2418).
 * Fix handling of incompatible types in `Float#<=>` (#2432, @chrisseaton).
+* Fix issue with escaping curly braces for `Dir.glob` (#2425).
 
 Compatibility:
 
