@@ -64,6 +64,7 @@ public abstract class RegexpNodes {
                 null,
                 new RopeWithEncoding(setSource, setSourceEncoding),
                 regexpOptions,
+                false,
                 currentNode);
         return new RubyRegexp(regex, regexpOptions);
     }

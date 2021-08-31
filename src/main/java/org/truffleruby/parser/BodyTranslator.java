@@ -2667,7 +2667,7 @@ public class BodyTranslator extends Translator {
         Regex regex = null;
         try {
             regex = TruffleRegexpNodes
-                    .compile(language, rubyWarnings, new RopeWithEncoding(rope, encoding), options, currentNode);
+                    .compile(language, rubyWarnings, new RopeWithEncoding(rope, encoding), options, true, currentNode);
         } catch (DeferredRaiseException dre) {
             throw dre.getException(RubyLanguage.getCurrentContext());
         }

@@ -30,6 +30,18 @@ public final class RegexpCacheKey {
         this.hashing = hashing;
     }
 
+    public Rope getRope() {
+        return rope;
+    }
+
+    public RubyEncoding getEncoding() {
+        return encoding;
+    }
+
+    public int getJoniOptions() {
+        return joniOptions;
+    }
+
     @Override
     public int hashCode() {
         return hashing.hash(rope.hashCode());
@@ -39,7 +51,7 @@ public final class RegexpCacheKey {
     public boolean equals(Object o) {
         if (o instanceof RegexpCacheKey) {
             final RegexpCacheKey other = (RegexpCacheKey) o;
-            return rope.equals(other.rope) && encoding == other.encoding && joniOptions == other.joniOptions;
+            return encoding == other.encoding && joniOptions == other.joniOptions && rope.equals(other.getRope());
         } else {
             return false;
         }
@@ -48,6 +60,7 @@ public final class RegexpCacheKey {
     @Override
     public String toString() {
         return '/' + RopeOperations.decodeOrEscapeBinaryRope(rope) + '/' +
-                RegexpOptions.fromJoniOptions(joniOptions).toOptionsString();
+                RegexpOptions.fromJoniOptions(joniOptions).toOptionsString() +
+                " -- " + RopeOperations.decodeOrEscapeBinaryRope(encoding.name.rope);
     }
 }
