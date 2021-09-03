@@ -23,6 +23,7 @@ Bug fixes:
 * Fix handling of `break`, `next` and `redo` in `define_method(name, &block)` methods (#2418).
 * Fix handling of incompatible types in `Float#<=>` (#2432, @chrisseaton).
 * Fix issue with escaping curly braces for `Dir.glob` (#2425).
+* Fix `base64` decoding issue with missing output (#2435).
 
 Compatibility:
 
