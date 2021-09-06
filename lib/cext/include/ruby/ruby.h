@@ -2049,6 +2049,12 @@ VALUE rb_check_symbol(volatile VALUE *namep);
 	    rb_intern_id_cache = rb_intern2((str), (long)strlen(str)); \
 	result rb_intern_id_cache;			\
     }
+// Workaround compound-token-split-by-macro warning
+#define RUBY_CONST_ID_CACHE_TOKEN_SPLIT(result, str)		\
+	static ID rb_intern_id_cache;			\
+	if (!polyglot_is_value((void*)rb_intern_id_cache)) \
+	    rb_intern_id_cache = rb_intern2((str), (long)strlen(str)); \
+	result rb_intern_id_cache;
 #else
 #define RUBY_CONST_ID_CACHE(result, str)		\
     {							\
@@ -2065,10 +2071,17 @@ VALUE rb_check_symbol(volatile VALUE *namep);
 #if defined(HAVE_BUILTIN___BUILTIN_CONSTANT_P) && defined(HAVE_STMT_AND_DECL_IN_EXPR)
 /* __builtin_constant_p and statement expression is available
  * since gcc-2.7.2.3 at least. */
+#ifdef TRUFFLERUBY
+#define rb_intern(str) \
+    (__builtin_constant_p(str) ? \
+        __extension__ ({RUBY_CONST_ID_CACHE_TOKEN_SPLIT((ID), (str))}) : \
+        rb_intern(str))
+#else
 #define rb_intern(str) \
     (__builtin_constant_p(str) ? \
         __extension__ (RUBY_CONST_ID_CACHE((ID), (str))) : \
         rb_intern(str))
+#endif
 #define rb_intern_const(str) \
     (__builtin_constant_p(str) ? \
      __extension__ (rb_intern2((str), (long)strlen(str))) : \
