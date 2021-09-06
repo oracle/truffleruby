@@ -750,7 +750,7 @@ module Kernel
   Primitive.method_unimplement nil.method(:fork)
 
   def clone(freeze: true)
-    Primitive.clone self, freeze
+    Primitive.object_clone self, freeze
   end
 
   Truffle::Boot.delay do

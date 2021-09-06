@@ -545,7 +545,7 @@ public abstract class KernelNodes {
         }
     }
 
-    @Primitive(name = "clone")
+    @Primitive(name = "object_clone")
     @NodeChild(value = "object", type = RubyNode.class)
     @NodeChild(value = "freeze", type = RubyNode.class)
     public abstract static class CloneNode extends PrimitiveNode {
