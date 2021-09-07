@@ -43,9 +43,24 @@ When you are interoperating with other languages, including C extensions, backtr
 
 ## Printing Subprocesses
 
-You can print all subprocesses created by TruffleRuby using the option `--log-subprocess`.
+You can log subprocesses created by TruffleRuby using the option `--log-subprocess`.
 
 ```bash
 $ ruby --log-subprocess -e '`ls .`'
 [ruby] INFO: spawn: ls .
 ```
+
+This is not transitive though, unless you set this option in `TRUFFLERUBYOPT`.
+
+## Printing TruffleRuby Processes and Arguments
+
+You can log TruffleRuby processes created using the `bin/truffleruby` launcher and their arguments with `--log-process-args`.
+
+```bash
+$ ruby --log-process-args -e 0
+[ruby] INFO: new process: truffleruby --log-process-args -e 0
+```
+
+You can set this option in `TRUFFLERUBYOPT` to make it apply to TruffleRuby subprocess as well.
+Separate log files will be used for different subprocesses running at the same time when using `--log.file=PATH`.
+These log files start with the same path but end with `1`, `2`, etc suffixes.
