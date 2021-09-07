@@ -19,8 +19,9 @@ import sun.misc.SignalHandler;
 
 public class Signals {
 
-    /** This is used instead of {@link SignalHandler.SIG_IGN} as {@code Signal.handle(sig, anyHandler)} seems to no
-     * longer work after {@code Signal.handle(sig, SIG_IGN)} on (on Native Image it seems fine). */
+    /** This is used instead of {@link SignalHandler#SIG_IGN} as {@code Signal.handle(sig, anyHandler)} seems to no
+     * longer work after {@code Signal.handle(sig, SIG_IGN)} on JVM (on Native Image it seems fine). See
+     * https://bugs.openjdk.java.net/browse/JDK-8262905 */
     private static final SignalHandler IGNORE = sig -> {
     };
 
