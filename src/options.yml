@@ -102,7 +102,7 @@ EXPERT:
     PATCHING: [patching, boolean, true, Use patching]
     HASHING_DETERMINISTIC: [hashing-deterministic, boolean, false, Produce deterministic hash values]
     FIBER_POOL: [fiber-pool, boolean, true, 'Use a thread pool to speed up creating Fibers']
-    LOG_SUBPROCESS: [log-subprocess, boolean, false, 'Log whenever a subprocess is created']
+    LOG_SUBPROCESS: [log-subprocess, boolean, false, 'Log whenever a subprocess is created'] # Also see --log-process-args
     WARN_LOCALE: [warn-locale, boolean, true, 'Warn when the system locale is not set properly']
 
     # Options to tweak backtraces
