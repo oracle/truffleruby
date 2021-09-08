@@ -1,2 +1,6 @@
 exclude :test_mon_locked_and_owned, "needs investigation"
 exclude :test_wait_interruption, "needs investigation"
+exclude :test_cond, "needs investigation"
+exclude :test_exit, "needs investigation"
+exclude :test_new_cond_before_initialize, "needs investigation"
+exclude :test_timedwait, "needs investigation"

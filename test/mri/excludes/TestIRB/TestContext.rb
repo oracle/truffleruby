@@ -1,6 +1,0 @@
-exclude :test_eval_input, "needs investigation"
-exclude :test_evaluate_with_exception, "needs investigation"
-exclude :test_last_value, "needs investigation"
-exclude :test_evaluate_with_encoding_error_without_lineno, "needs investigation"
-exclude :test_evaluate_with_onigmo_warning, "needs investigation"
-exclude :test_omit_multiline_on_assignment, "needs investigation"

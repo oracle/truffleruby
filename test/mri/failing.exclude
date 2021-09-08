@@ -2,11 +2,9 @@
 
 ruby/test_ast.rb
 ruby/test_jit.rb
-ruby/test_continuation.rb
 dbm/test_dbm.rb
 gdbm/test_gdbm.rb
 sdbm/test_sdbm.rb
-io/wait/test_io_wait.rb
 test_pty.rb
 win32ole/test_err_in_callback.rb
 win32ole/test_folderitem2_invokeverb.rb
@@ -27,21 +25,11 @@ win32ole/test_win32ole_variant_m.rb
 win32ole/test_win32ole_variant_outarg.rb
 win32ole/test_word.rb
 
-# Failing since upgrade to 2.6.1
-
-ruby/test_time_tz.rb
-monitor/test_monitor.rb # hangs
-csv/write/test_general.rb # encoding
-ruby/test_parse.rb # encoding
-rubygems/test_gem_security.rb # hangs
-io/wait/test_io_wait_uncommon.rb # unreliable in parallel
-
 # Pattern matching
-ruby/test_pattern_matching.rb
+ruby/test_pattern_matching.rb #  syntax error, unexpected modifier_if (SyntaxError)
 
 # Too slow
 
-test_extlibs.rb
 racc/test_racc_command.rb
 
 # Other issues
@@ -52,55 +40,24 @@ cext-ruby/bignum/test_div.rb
 cext-ruby/bignum/test_mul.rb
 cext-ruby/bignum/test_pack.rb
 cext-ruby/bignum/test_str2big.rb
-cext-ruby/debug/test_debug.rb
-cext-ruby/debug/test_profile_frames.rb
-cext-ruby/exception/test_data_error.rb
-cext-ruby/exception/test_ensured.rb
-cext-ruby/file/test_stat.rb
 cext-ruby/float/test_nextafter.rb
-cext-ruby/funcall/test_passing_block.rb
-cext-ruby/gvl/test_last_thread.rb
 cext-ruby/iseq_load/test_iseq_load.rb
-cext-ruby/iter/test_yield_block.rb
-cext-ruby/marshal/test_usrmarshal.rb
-cext-ruby/method/test_arity.rb
 cext-ruby/popen_deadlock/test_popen_deadlock.rb
 cext-ruby/postponed_job/test_postponed_job.rb
-cext-ruby/proc/test_bmethod.rb
 cext-ruby/rational/test_rat.rb
-cext-ruby/st/test_numhash.rb
-cext-ruby/st/test_update.rb
-cext-ruby/string/test_capacity.rb
-cext-ruby/string/test_coderange.rb
-cext-ruby/string/test_cstr.rb
-cext-ruby/string/test_ellipsize.rb
-cext-ruby/string/test_enc_associate.rb
-cext-ruby/string/test_enc_str_buf_cat.rb
 cext-ruby/string/test_fstring.rb
 cext-ruby/string/test_modify_expand.rb
 cext-ruby/string/test_nofree.rb
-cext-ruby/string/test_normalize.rb
-cext-ruby/string/test_qsort.rb
-cext-ruby/string/test_set_len.rb
-cext-ruby/struct/test_duplicate.rb
-cext-ruby/struct/test_member.rb
 cext-ruby/symbol/noninterned_name.rb
-cext-ruby/symbol/test_inadvertent_creation.rb
-cext-ruby/symbol/test_type.rb
-cext-ruby/test_recursion.rb
-cext-ruby/time/test_new.rb
-cext-ruby/tracepoint/test_tracepoint.rb
-cext-ruby/vm/test_at_exit.rb
 cext-ruby/win32/test_console_attr.rb
 cext-ruby/win32/test_dln.rb
 cext-ruby/win32/test_fd_setsize.rb
-coverage/test_coverage.rb
-csv/test_features.rb # `const_missing': uninitialized constant Zlib::GzipWriter
-csv/test_interface.rb # missing ObjectSpace define_finalizer specialization
+
 drb/test_acl.rb
 drb/test_drb.rb
 drb/test_drbssl.rb
 drb/test_drbunix.rb
+
 dtrace/test_array_create.rb
 dtrace/test_cmethod.rb
 dtrace/test_function_entry.rb
@@ -113,65 +70,9 @@ dtrace/test_raise.rb
 dtrace/test_require.rb
 dtrace/test_singleton_function.rb
 dtrace/test_string.rb
-erb/test_erb_command.rb
-irb/test_completion.rb
-irb/test_option.rb
-irb/test_raise_no_backtrace_exception.rb
-logger/test_logdevice.rb
-minitest/test_minitest_benchmark.rb
-minitest/test_minitest_mock.rb
-minitest/test_minitest_spec.rb
-minitest/test_minitest_unit.rb
 misc/test_ruby_mode.rb
-mkmf/test_have_library.rb
-net/http/test_https.rb
-net/imap/test_imap.rb
-net/imap/test_imap_response_parser.rb
-open-uri/test_open-uri.rb
-open-uri/test_ssl.rb
-psych/visitors/test_to_ruby.rb # test_exception fails and bypasses tag
-psych/visitors/test_yaml_tree.rb # test_exception fails and bypasses tag
-rdoc/test_rdoc_generator_darkfish.rb # TypeError: can't dup NilClass
-rdoc/test_rdoc_generator_json_index.rb # TypeError: can't dup NilClass
-rdoc/test_rdoc_generator_pot.rb # Missing pot lib files
-rdoc/test_rdoc_generator_pot_po.rb # Missing pot lib files
-rdoc/test_rdoc_generator_pot_po_entry.rb # Missing pot lib files
-rdoc/test_rdoc_rubygems_hook.rb # setup raises ArgumentError: Need a Gem::Version: nil
-readline/test_readline.rb
-readline/test_readline_history.rb
-resolv/test_dns.rb
-rinda/test_rinda.rb
-rinda/test_tuplebag.rb
-ruby/enc/test_euc_jp.rb # invalid multibyte char (EUC-JP)
 ruby/enc/test_windows_1251.rb
-ruby/test_argf.rb # spawn needed for tests
-ruby/test_arity.rb
-ruby/test_backtrace.rb
-ruby/test_enum.rb # cannot load such file -- continuation
-ruby/test_env.rb # TestEnv#test_aset = core:/core/rubinius/bootstrap/time.rb:28:in `now': internal implementation error - ClassCastException org.truffleruby.runtime.core.RubyNilClass cannot be cast to org.truffleruby.runtime.core.RubyString org.truffleruby.nodes.time.ReadTimeZoneNode.executeRubyString(ReadTimeZoneNode.java:36) (RuntimeError)
-ruby/test_file.rb
-ruby/test_iseq.rb
-ruby/test_iterator.rb # /Users/chrisseaton/Documents/ruby/jruby/test/mri/lib/minitest/unit.rb:1417:in `sort': internal implementation error - NullPointerException null org.truffleruby.runtime.subsystems.TraceManager$4.probeTaggedAs(TraceManager.java:117) (RuntimeError)
-ruby/test_m17n_comb.rb # cannot load such file -- etc
-ruby/test_marshal.rb # including this causes error in test_objectspace.rb
-ruby/test_pipe.rb # tests not excluding
+ruby/test_iseq.rb # RubyVM
+ruby/test_marshal.rb # invalid encoding symbol (EncodingError), including this causes error in test_objectspace.rb
 ruby/test_rubyvm.rb
-ruby/test_settracefunc.rb # uninitialized constant TestSetTraceFunc::TracePoint
-ruby/test_sleep.rb #  cannot load such file -- etc
-ruby/test_sprintf_comb.rb # almost all failing / regression
-ruby/test_threadgroup.rb
-rubygems/test_gem_remote_fetcher.rb # OpenSSL problems
-rubygems/test_gem_request_set_gem_dependency_api.rb # Expects TRUFFLERUBY_VERSION to exist and other problems
-scanf/test_scanf.rb # many failures / regression
-test_curses.rb
-test_rbconfig.rb
-test_tmpdir.rb
-test_unicode_normalize.rb
-test_weakref.rb
-testunit/test_parallel.rb # Relies on RubyVM.
-thread/test_sync.rb
-xmlrpc/test_client.rb # pollutes other tests
-xmlrpc/test_cookie.rb # undefined method `http' for NilClass
-xmlrpc/test_parser.rb # `const_missing': uninitialized constant Test_REXMLStreamParser::GenericParserTest
-xmlrpc/test_webrick_server.rb # undefined method `<<' for Object
 ruby/test_bignum.rb # relies on Bignums on Fixnum range

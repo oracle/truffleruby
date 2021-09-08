@@ -1,1 +1,1 @@
-exclude :test_while, "needs investigation"
+exclude :test_while, "test hangs"
