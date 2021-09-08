@@ -11,7 +11,9 @@ annotation processing which cause the incremental build to fail regularly and
 need a full rebuild. For these reason, we recommend
 [IntelliJ](using-intellij.md) nowadays.
 
-## Build TruffleRuby
+## Basic Setup
+
+### Build TruffleRuby
 
 First, make sure the project is already built from the command line:
 
@@ -19,13 +21,13 @@ First, make sure the project is already built from the command line:
 jt build
 ```
 
-## Generate the Project Files
+### Generate the Project Files
 
 ```bash
 jt mx eclipseinit
 ```
 
-## Import the Projects
+### Import the Projects
 
 Create a new workspace in Eclipse (>= Luna).
 
@@ -41,9 +43,32 @@ There should be now 4 projects in your workspace:
 * `TRUFFLERUBY-TEST.dist`
 * `TRUFFLERUBY.dist`
 
-## Running from the Eclipse Files Directly
+### Running from the Eclipse Files Directly
 
 ```bash
 jt ruby -e 'p Truffle'
 Truffle
 ```
+
+## Advanced Setup
+
+**Note:** This setup is not widely tested.
+
+When building using specific env files, with `JT_ENV` or `--env`, mx will
+need to be told about it explicitly. For instance:
+
+```bash
+jt mx --env jvm-ce eclipseinit
+```
+
+When working on the Graal/Truffle code itself, the following two lines will
+configure the build so that incremental compilation and even hot code
+replacement works:
+
+```bash
+MX_BUILD_EXPLODED=true
+LINKY_LAYOUT=*.jar
+```
+
+These settings are not recommended for producing distributable artifacts, but
+make development much smoother.
