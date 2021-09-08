@@ -162,7 +162,7 @@ module RbConfig
     'LIBEXT'            => 'a',
     'LIBPATHENV'        => 'LD_LIBRARY_PATH',
     'LIBPATHFLAG'       => ' -L%1$-s',
-    'LIBRUBY'           => '',
+    'LIBRUBY'           => "cext/libtruffleruby.#{Truffle::Platform::SOEXT}",
     'LIBRUBY_A'         => '',
     'LIBRUBYARG'        => librubyarg,
     'LIBRUBYARG_SHARED' => librubyarg,

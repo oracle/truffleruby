@@ -373,13 +373,13 @@ class Socket < BasicSocket
   end
 
   def local_address
-    sockaddr = Truffle::Socket::Foreign.getsockname(Primitive.io_fd(self))
+    sockaddr = Truffle::Socket::Foreign.getsockname(self)
 
     Addrinfo.new(sockaddr, @family, @socket_type, 0)
   end
 
   def remote_address
-    sockaddr = Truffle::Socket::Foreign.getpeername(Primitive.io_fd(self))
+    sockaddr = Truffle::Socket::Foreign.getpeername(self)
 
     Addrinfo.new(sockaddr, @family, @socket_type, 0)
   end
@@ -406,11 +406,12 @@ class Socket < BasicSocket
   end
 
   def accept
-    Truffle::Socket.accept(self, Socket)
+    Truffle::Socket.accept_and_addrinfo(self, Socket, true)
   end
 
   private def __accept_nonblock(exception)
-    Truffle::Socket.accept_nonblock(self, Socket, exception)
+    self.nonblock = true
+    Truffle::Socket.accept_and_addrinfo(self, Socket, exception)
   end
 
   def sysaccept

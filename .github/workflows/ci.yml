@@ -202,7 +202,4 @@ jobs:
           bundler: none
       - name: Setup jt
         run: echo "$PWD/bin" >> $GITHUB_PATH
-      - name: Install webrick for Ruby 3+
-        run: gem install webrick
-        if: startsWith(matrix.ruby, '3.')
       - run: CHECK_LEAKS=true jt -u ruby mspec -fdot --timeout 30 spec/ruby
