@@ -93,7 +93,7 @@ module Truffle
       end
     end
 
-    def self.internal_accept(source, new_class, exception)
+    def self.accept_and_addrinfo(source, new_class, exception)
       raise IOError, 'socket has been closed' if source.closed?
 
       sockaddr = sockaddr_class_for_socket(source).new
@@ -122,17 +122,6 @@ module Truffle
       ensure
         sockaddr.pointer.free
       end
-    end
-    private_class_method :internal_accept
-
-    def self.accept(source, new_class)
-      internal_accept(source, new_class, true)
-    end
-
-    def self.accept_nonblock(source, new_class, exception)
-      source.nonblock = true
-
-      internal_accept(source, new_class, exception)
     end
 
     def self.listen(source, backlog)

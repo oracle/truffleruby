@@ -63,13 +63,14 @@ class TCPServer < TCPSocket
   end
 
   def accept
-    socket, _ = Truffle::Socket.accept(self, TCPSocket)
+    socket, _ = Truffle::Socket.accept_and_addrinfo(self, TCPSocket, true)
 
     socket
   end
 
   private def __accept_nonblock(exception)
-    socket, _ = Truffle::Socket.accept_nonblock(self, TCPSocket, exception)
+    self.nonblock = true
+    socket, _ = Truffle::Socket.accept_and_addrinfo(self, TCPSocket, exception)
 
     socket
   end
