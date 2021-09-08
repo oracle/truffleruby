@@ -51,16 +51,12 @@ class UNIXServer < UNIXSocket
   end
 
   def accept
-    socket, _ = Truffle::Socket.accept_and_addrinfo(self, UNIXSocket, true)
-
-    socket
+    Truffle::Socket.accept(self, UNIXSocket, true)
   end
 
   private def __accept_nonblock(exception)
     self.nonblock = true
-    socket, _ = Truffle::Socket.accept_and_addrinfo(self, UNIXSocket, exception)
-
-    socket
+    Truffle::Socket.accept(self, UNIXSocket, exception)
   end
 
   def sysaccept

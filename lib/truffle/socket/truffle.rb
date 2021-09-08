@@ -124,6 +124,21 @@ module Truffle
       end
     end
 
+    def self.accept(source, new_class, exception)
+      raise IOError, 'socket has been closed' if source.closed?
+
+      fd = Truffle::Socket::Foreign.accept(source.fileno, ::FFI::Pointer::NULL, ::FFI::Pointer::NULL)
+      if fd < 0
+        if !exception and Errno.errno == Truffle::POSIX::EAGAIN_ERRNO
+          return :wait_readable
+        else
+          Error.read_error('accept(2)', source)
+        end
+      end
+
+      new_class.for_fd(fd)
+    end
+
     def self.listen(source, backlog)
       backlog = Primitive.rb_to_int(backlog)
       err     = Foreign.listen(source.fileno, backlog)
