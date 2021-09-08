@@ -229,12 +229,11 @@ module Truffle
         end
       end
 
-      def self.getpeername(descriptor)
+      def self.getpeername(socket)
         buffer, sockaddr_storage_p, len_p = Truffle::FFI::Pool.stack_alloc(128, Primitive.pointer_find_type_size(:socklen_t))
         begin
           len_p.write_int(128)
-
-          err = _getpeername(descriptor, sockaddr_storage_p, len_p)
+          err = _getpeername(socket.fileno, sockaddr_storage_p, len_p)
 
           Errno.handle('getpeername(2)') unless err == 0
 
@@ -244,11 +243,11 @@ module Truffle
         end
       end
 
-      def self.getsockname(descriptor)
+      def self.getsockname(socket)
         buffer, sockaddr_storage_p, len_p = Truffle::FFI::Pool.stack_alloc(128, Primitive.pointer_find_type_size(:socklen_t))
         begin
           len_p.write_int(128)
-          err = _getsockname(descriptor, sockaddr_storage_p, len_p)
+          err = _getsockname(socket.fileno, sockaddr_storage_p, len_p)
 
           Errno.handle('getsockname(2)') unless err == 0
 

@@ -340,7 +340,7 @@ module Truffle
     end
 
     def self.address_info(method, socket, reverse_lookup = nil)
-      sockaddr = Foreign.__send__(method, socket.fileno)
+      sockaddr = Foreign.__send__(method, socket)
 
       reverse_lookup = convert_reverse_lookup(socket, reverse_lookup)
 
