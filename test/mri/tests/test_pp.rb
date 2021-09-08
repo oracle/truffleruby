@@ -218,6 +218,6 @@ class PPAbstractSyntaxTree < Test::Unit::TestCase
     expected = "(SCOPE@1:0-1:3 tbl: [:_] args: nil body: (LASGN@1:0-1:3 :_ (LIT@1:2-1:3 1)))"
     assert_equal(expected, PP.singleline_pp(ast, ''.dup), ast)
   end
-end
+end unless defined?(TruffleRuby) # uses RubyVM
 
 end

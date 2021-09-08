@@ -29,7 +29,6 @@ win32ole/test_word.rb
 
 # Failing since upgrade to 2.6.1
 
-test_pp.rb # uses RubyVM
 ruby/test_time_tz.rb
 monitor/test_monitor.rb # hangs
 csv/write/test_general.rb # encoding
@@ -96,7 +95,6 @@ cext-ruby/win32/test_console_attr.rb
 cext-ruby/win32/test_dln.rb
 cext-ruby/win32/test_fd_setsize.rb
 coverage/test_coverage.rb
-csv/test_encodings.rb # missing ObjectSpace define_finalizer specialization
 csv/test_features.rb # `const_missing': uninitialized constant Zlib::GzipWriter
 csv/test_interface.rb # missing ObjectSpace define_finalizer specialization
 drb/test_acl.rb
