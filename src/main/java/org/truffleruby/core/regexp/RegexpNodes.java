@@ -71,7 +71,6 @@ public abstract class RegexpNodes {
                     null,
                     new RopeWithEncoding(setSource, setSourceEncoding),
                     optionsArray,
-                    false,
                     currentNode);
             regexp = new RubyRegexp(regex, optionsArray[0]);
             language.addRegexp(key, regexp);

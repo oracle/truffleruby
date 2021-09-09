@@ -114,7 +114,6 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
                                     null,
                                     preprocessed,
                                     optionsArray,
-                                    false,
                                     this);
                     regexp = new RubyRegexp(regex, optionsArray[0]);
                     getLanguage().addRegexp(key, regexp);

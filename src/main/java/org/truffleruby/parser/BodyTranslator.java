@@ -2676,7 +2676,6 @@ public class BodyTranslator extends Translator {
                                 rubyWarnings,
                                 new RopeWithEncoding(rope, encoding),
                                 optionsArray,
-                                true,
                                 currentNode);
 
                 regexp = new RubyRegexp(regex, optionsArray[0]);
