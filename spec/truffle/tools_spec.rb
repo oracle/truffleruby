@@ -70,7 +70,7 @@ describe "Tools" do
       RUBY
       out = ruby_exe(code, options: "--cpusampler")
       out.should.include?(":kill")
-      out.should.include?("block (2 levels) in Object#foo")
+      out.should.include?("Kernel#loop")
       out.should_not.include?('KillException')
       $?.should.success?
     end
