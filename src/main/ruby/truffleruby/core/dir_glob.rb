@@ -455,7 +455,8 @@ class Dir
         return matches
       end
 
-      left_brace_index = pattern.index(/(?<!\\){/)
+      left_brace_match = pattern.match(/(\\*)(\{)/)
+      left_brace_index = left_brace_match && left_brace_match[1].size.even? ? left_brace_match.begin(2) : nil
       if left_brace_index
         patterns = compile(pattern, left_brace_index, flags)
 
