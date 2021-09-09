@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Yukihiro Matsumoto".freeze]
   s.bindir = "exe".freeze
-  s.date = "2021-05-04"
+  s.date = "2021-09-09"
   s.description = "Loads constants defined in the OS fcntl.h C header file".freeze
   s.email = ["matz@ruby-lang.org".freeze]
   s.extensions = ["ext/fcntl/extconf.rb".freeze]

@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 2.6".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["Nobu Nakada".freeze]
-  s.date = "2021-05-04"
+  s.date = "2021-09-09"
   s.description = "Pseudo `IO` class from/to `String`.".freeze
   s.email = "nobu@ruby-lang.org".freeze
   s.extensions = ["ext/stringio/extconf.rb".freeze]

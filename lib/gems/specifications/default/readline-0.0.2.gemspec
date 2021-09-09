@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["aycabta".freeze]
-  s.date = "2021-05-04"
+  s.date = "2021-09-09"
   s.description = "This is just a loader for \"readline\". If Ruby has \"readline-ext\" gem that\nis a native extension, this gem will load it first. If Ruby doesn't have\nthe \"readline-ext\" gem this gem will load \"reline\" that is a compatible\nlibrary with \"readline-ext\" gem and is implemented by pure Ruby.\n".freeze
   s.email = ["aycabta@gmail.com".freeze]
   s.files = ["readline.rb".freeze]
