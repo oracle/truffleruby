@@ -340,7 +340,7 @@ class StringScanner
   end
 
   private def scan_internal_string_pattern(pattern, headonly)
-    if @string[pos..].start_with?(pattern)
+    if @string.byteslice(pos..).start_with?(pattern)
       Primitive.matchdata_create_single_group(pattern, @string.dup, 0, pattern.bytesize)
     else
       nil
