@@ -33,6 +33,9 @@ Cross-reference with the details on [the MRI website](https://www.ruby-lang.org/
 
 Number | Description | Their Mitigation | Test | Our Mitigation
 --- | --- | --- | --- | ---
+CVE-2021-31810 | Trusting FTP PASV responses vulnerability in Net::FTP | [Fix](https://github.com/ruby/ruby/commit/3ca1399150ed4eacfd2fe1ee251b966f8d1ee469) | [Test](https://github.com/ruby/ruby/commit/3ca1399150ed4eacfd2fe1ee251b966f8d1ee469) | Same
+CVE-2021-32066 | A StartTLS stripping vulnerability in Net::IMAP | [Fix](https://github.com/ruby/ruby/commit/a21a3b7d23704a01d34bd79d09dc37897e00922a) | [Test](https://github.com/ruby/ruby/commit/a21a3b7d23704a01d34bd79d09dc37897e00922a) | Same
+CVE-2021-31799 | A command injection vulnerability in RDoc | [Fix](https://github.com/ruby/rdoc/commit/a7f5d6ab88632b3b482fe10611382ff73d14eed7) [Backport](https://github.com/ruby/ruby/commit/483f303d02e768b69e476e0b9be4ab2f26389522) | [Test](https://github.com/ruby/rdoc/commit/a7f5d6ab88632b3b482fe10611382ff73d14eed7) | Same
 CVE-2021-28966 | Path traversal in Tempfile on Windows | Sanitization of paths in tmpdir.rb | In `test/mri/tests/test_tmpdir.rb` | Sanitization of paths in tmpdir.rb
 CVE-2021-28965 | XML round-trip vulnerability in REXML | Update to REXML 3.2.5 | In ruby/rexml | Update to REXML 3.2.5
 CVE-2020-10663 | Unsafe Object Creation Vulnerability in JSON (Additional fix) | [Fix](https://bugs.ruby-lang.org/issues/16698) | [Spec](https://github.com/ruby/spec/pull/764) | The pure Ruby version of JSON we use is safe

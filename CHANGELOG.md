@@ -54,6 +54,10 @@ Changes:
 * `foreign_object.keys` no longer returns members, use `foreign_object.instance_variables` or `foreign_object.methods` instead.
 * `foreign_object.respond_to?(:class)` is now always true (before it was only for Java classes), since the method is always defined.
 
+Security:
+
+* Updated to Ruby 2.7.4 to fix CVE-2021-31810, CVE-2021-32066 and CVE-2021-31799.
+
 # 21.2.0
 
 New features:
