@@ -1100,7 +1100,7 @@ class TestRegexp < Test::Unit::TestCase
     assert_no_match(/^\p{age=1.1}$/u, "\u2754")
 
     assert_no_match(/^\p{age=12.0}$/u, "\u32FF")
-    # assert_match(/^\p{age=12.1}$/u, "\u32FF") # TruffleRuby: invalid character property name <age=12.1> (RegexpError)
+    assert_match(/^\p{age=12.1}$/u, "\u32FF")
   end
 
   MatchData_A = eval("class MatchData_\u{3042} < MatchData; self; end")
@@ -1262,7 +1262,7 @@ class TestRegexp < Test::Unit::TestCase
     assert_separately([], "#{<<-"begin;"}\n#{<<-"end;"}")
     begin;
       begin
-        # require '-test-/regexp'
+        require '-test-/regexp'
       rescue LoadError
       else
         bug = '[ruby-core:79624] [Bug #13234]'

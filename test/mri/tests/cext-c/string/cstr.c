@@ -60,15 +60,12 @@ bug_str_unterminated_substring(VALUE str, VALUE vbeg, VALUE vlen)
     if (RSTRING_LEN(str) < beg) rb_raise(rb_eIndexError, "beg: %ld", beg);
     if (RSTRING_LEN(str) < beg + len) rb_raise(rb_eIndexError, "end: %ld", beg + len);
     str = rb_str_new_shared(str);
-#ifndef TRUFFLERUBY
     if (STR_EMBED_P(str)) {
 	RSTRING(str)->basic.flags &= ~RSTRING_EMBED_LEN_MASK;
 	RSTRING(str)->basic.flags |= len << RSTRING_EMBED_LEN_SHIFT;
 	memmove(RSTRING(str)->as.ary, RSTRING(str)->as.ary + beg, len);
     }
-    else
-#endif
-    {
+    else {
 	RSTRING(str)->as.heap.ptr += beg;
 	RSTRING(str)->as.heap.len = len;
     }
@@ -105,7 +102,6 @@ bug_str_s_cstr_term_char(VALUE self, VALUE str)
 	memset(term_fill_ptr, 0, term_fill_len);\
 } while (0)
 
-#ifndef TRUFFLERUBY
 static VALUE
 bug_str_s_cstr_noembed(VALUE self, VALUE str)
 {
@@ -122,7 +118,6 @@ bug_str_s_cstr_noembed(VALUE self, VALUE str)
     TERM_FILL(RSTRING_END(str2), TERM_LEN(str));
     return str2;
 }
-#endif
 
 static VALUE
 bug_str_s_cstr_embedded_p(VALUE self, VALUE str)
@@ -146,9 +141,7 @@ Init_string_cstr(VALUE klass)
     rb_define_singleton_method(klass, "cstr_term", bug_str_s_cstr_term, 1);
     rb_define_singleton_method(klass, "cstr_unterm", bug_str_s_cstr_unterm, 2);
     rb_define_singleton_method(klass, "cstr_term_char", bug_str_s_cstr_term_char, 1);
-#ifndef TRUFFLERUBY
     rb_define_singleton_method(klass, "cstr_noembed", bug_str_s_cstr_noembed, 1);
-#endif
     rb_define_singleton_method(klass, "cstr_embedded?", bug_str_s_cstr_embedded_p, 1);
     rb_define_singleton_method(klass, "rb_str_new_frozen", bug_str_s_rb_str_new_frozen, 1);
 }

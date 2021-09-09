@@ -955,26 +955,14 @@ module Net   #:nodoc:
       end
 
       D "opening connection to #{conn_addr}:#{conn_port}..."
-
-      if defined?(::TruffleRuby)
-        # We'd rather use :connect_timeout than Timeout, as that starts a thread
+      s = Timeout.timeout(@open_timeout, Net::OpenTimeout) {
         begin
-          s = Socket.tcp(conn_addr, conn_port, @local_host, @local_port, connect_timeout: @open_timeout)
+          TCPSocket.open(conn_addr, conn_port, @local_host, @local_port)
         rescue => e
           raise e, "Failed to open TCP connection to " +
             "#{conn_addr}:#{conn_port} (#{e.message})"
         end
-      else
-        s = Timeout.timeout(@open_timeout, Net::OpenTimeout) {
-          begin
-            TCPSocket.open(conn_addr, conn_port, @local_host, @local_port)
-          rescue => e
-            raise e, "Failed to open TCP connection to " +
-                "#{conn_addr}:#{conn_port} (#{e.message})"
-          end
-        }
-      end
-
+      }
       s.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, 1)
       D "opened"
       if use_ssl?

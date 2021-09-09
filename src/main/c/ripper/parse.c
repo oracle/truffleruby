@@ -84,23 +84,12 @@
 #include "internal.h"
 #include "node.h"
 #include "parse.h"
-#ifdef TRUFFLERUBY
-#include <truffleruby/internal/symbol.h>
-#else
 #include "symbol.h"
-#endif
 #include "regenc.h"
 #include <stdio.h>
 #include <errno.h>
 #include <ctype.h>
-
-#ifdef TRUFFLERUBY
-#define DTRACE_PROBES_DISABLED 1
-#endif
 #include "probes.h"
-
-/* TruffleRuby Parse is compiled as part of ripper so we undefine RIPPER.  */
-#undef RIPPER
 
 #ifndef WARN_PAST_SCOPE
 # define WARN_PAST_SCOPE 0

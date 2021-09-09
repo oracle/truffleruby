@@ -1448,7 +1448,7 @@ eom
     assert_syntax_error('proc {_1; _1 = nil}', /Can't assign to numbered parameter _1/)
     mesg = proc {|n| /`_#{n}' is reserved for numbered parameter/}
     assert_warn(mesg[1]) {eval('proc {_1 = nil}')}
-    # assert_warn(mesg[2]) {eval('_2=1')} # GR-30031
+    assert_warn(mesg[2]) {eval('_2=1')}
     assert_warn(mesg[3]) {eval('proc {|_3|}')}
     assert_warn(mesg[4]) {instance_eval('def x(_4) end')}
     assert_warn(mesg[5]) {instance_eval('def _5; end')}
