@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["Yukihiro Matsumoto".freeze]
-  s.date = "2021-05-04"
+  s.date = "2021-09-09"
   s.description = "Provides a simple file-based key-value store with String keys and values.".freeze
   s.email = ["matz@ruby-lang.org".freeze]
   s.extensions = ["ext/sdbm/extconf.rb".freeze]

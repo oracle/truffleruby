@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Aaron Patterson".freeze, "SHIBATA Hiroshi".freeze]
   s.bindir = "exe".freeze
-  s.date = "2021-05-04"
+  s.date = "2021-09-09"
   s.description = "A libffi wrapper for Ruby.".freeze
   s.email = ["aaron@tenderlovemaking.com".freeze, "hsbt@ruby-lang.org".freeze]
   s.files = ["fiddle.rb".freeze, "fiddle.#{Truffle::Platform::DLEXT}".freeze, "fiddle/closure.rb".freeze, "fiddle/cparser.rb".freeze, "fiddle/function.rb".freeze, "fiddle/import.rb".freeze, "fiddle/pack.rb".freeze, "fiddle/struct.rb".freeze, "fiddle/types.rb".freeze, "fiddle/value.rb".freeze]

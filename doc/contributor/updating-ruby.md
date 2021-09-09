@@ -34,7 +34,7 @@ rm -rf ~/.rubies/ruby-$VERSION
 ruby-install ruby $VERSION
 # OR
 rm -rf ~/.rubies/ruby-$VERSION
-bin/ruby-build $VERSION ~/.rubies/ruby-$VERSION
+ruby-build $VERSION ~/.rubies/ruby-$VERSION
 ruby-install -r ~/tmp ruby $VERSION
 ```
 
@@ -81,8 +81,8 @@ You'll usually get some conflicts to work out.
 Run
 
 ```bash
-git grep -E -- "^\\s+require '-test-/"
-git grep -E -- '^\s+require "-test-/'
+git grep -E -- "^\\s*require '-test-/"
+git grep -E -- '^\s*require "-test-/'
 ```
 
 And comment any `require` found in files under `test/mri/tests`
@@ -173,7 +173,10 @@ In a separate commit, update all of these:
 * Run `jt test gems default-bundled-gems`
 * Grep for the old version with `git grep -F x.y.z`
 * If `tool/id.def` or `lib/cext/include/truffleruby/internal/id.h` has changed, `jt build core-symbols` and check for correctness.
+
+For a new major version:
 * Update the list of `:next` specs and change the "next version" in `spec/truffleruby.mspec`.
+* Update the versions in the `ruby/spec on CRuby` job of `.github/workflows/ci.yml`.
 
 ## Last step
 
