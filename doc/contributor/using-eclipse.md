@@ -43,13 +43,6 @@ There should be now 4 projects in your workspace:
 * `TRUFFLERUBY-TEST.dist`
 * `TRUFFLERUBY.dist`
 
-### Running from the Eclipse Files Directly
-
-```bash
-jt ruby -e 'p Truffle'
-Truffle
-```
-
 ## Advanced Setup
 
 **Note:** This setup is not widely tested.
@@ -61,7 +54,8 @@ need to be told about it explicitly. For instance:
 jt mx --env jvm-ce eclipseinit
 ```
 
-When working on the Graal/Truffle code itself, the following two lines will
+When working on the Graal/Truffle code itself, adding the following two lines
+to the used env file, for instance `mx.truffleruby/jvm-ce` will
 configure the build so that incremental compilation and even hot code
 replacement works:
 
@@ -72,3 +66,12 @@ LINKY_LAYOUT=*.jar
 
 These settings must not be used for producing distributable artifacts, but
 make development much smoother.
+
+With these settings, after changes are made, one can simply run for instance
+the following, without having to trigger a build again:
+
+```bash
+jt ruby -e 'p Truffle'
+Truffle
+```
+
