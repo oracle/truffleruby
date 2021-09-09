@@ -10,18 +10,22 @@ module Kernel
     alias open_uri_original_open open # :nodoc:
   end
 
-  def open(name, *rest, **kw, &block) # :nodoc:
+  def open(name, *rest, &block) # :nodoc:
     if (name.respond_to?(:open) && !name.respond_to?(:to_path)) ||
        (name.respond_to?(:to_str) &&
         %r{\A[A-Za-z][A-Za-z0-9+\-\.]*://} =~ name &&
         (uri = URI.parse(name)).respond_to?(:open))
       warn('calling URI.open via Kernel#open is deprecated, call URI.open directly or use URI#open', uplevel: 1)
-      URI.open(name, *rest, **kw, &block)
+      URI.open(name, *rest, &block)
     else
-      open_uri_original_open(name, *rest, **kw, &block)
+      open_uri_original_open(name, *rest, &block)
     end
   end
   module_function :open
+  ruby2_keywords :open
+  class << self
+    ruby2_keywords :open
+  end
 end
 
 module URI

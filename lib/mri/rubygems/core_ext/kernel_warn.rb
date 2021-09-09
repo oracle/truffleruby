@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 # `uplevel` keyword argument of Kernel#warn is available since ruby 2.5.
-if RUBY_VERSION >= "2.5"
+if RUBY_VERSION >= "2.5" and !defined?(::TruffleRuby)
 
   module Kernel
-    path = "#{__dir__}/" # Frames to be skipped start with this path.
+    rubygems_path = "#{__dir__}/" # Frames to be skipped start with this path.
 
     original_warn = method(:warn)
 
@@ -40,7 +40,8 @@ if RUBY_VERSION >= "2.5"
 
           start += 1
 
-          unless loc.path.start_with?(path)
+          path = loc.path
+          unless path.start_with?(rubygems_path) or path.start_with?('<internal:')
             # Non-rubygems frames
             uplevel -= 1
           end

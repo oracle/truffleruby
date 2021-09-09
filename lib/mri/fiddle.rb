@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-require 'fiddle.so'
+require 'truffle/fiddle_backend' # 'fiddle.so' in MRI
 require 'fiddle/function'
 require 'fiddle/closure'
 
