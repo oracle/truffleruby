@@ -34,6 +34,7 @@ Compatibility:
 * Add support for tracing allocations from C functions (#2403, @chrisseaton).
 * Implement `rb_str_catf`.
 * Search the executable in the passed env `PATH` for subprocesses (#2419).
+* Accept a string as the pattern argument to `StringScanner#scan` and `StringScanner#check` (#2423).
 
 Performance:
 

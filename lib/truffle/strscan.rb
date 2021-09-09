@@ -309,7 +309,11 @@ class StringScanner
   end
 
   private def scan_check_args(pattern, headonly)
-    unless pattern.kind_of? Regexp
+    case pattern
+    when String
+      raise TypeError, "bad pattern argument: #{pattern.inspect}" unless headonly
+    when Regexp
+    else
       raise TypeError, "bad pattern argument: #{pattern.inspect}"
     end
     raise ArgumentError, 'uninitialized StringScanner object' unless @string
@@ -321,13 +325,25 @@ class StringScanner
   private def scan_internal(pattern, advance_pos, getstr, headonly)
     scan_check_args(pattern, headonly)
 
-    md = Truffle::RegexpOperations.match_in_region pattern, @string, pos, @string.bytesize, headonly, pos
+    if Primitive.object_kind_of?(pattern, String)
+      md = scan_internal_string_pattern(pattern, headonly)
+    else
+      md = Truffle::RegexpOperations.match_in_region pattern, @string, pos, @string.bytesize, headonly, pos
+    end
     if md
       Primitive.matchdata_fixup_positions(md, pos)
       @match = md
       scan_internal_set_pos_and_str(advance_pos, getstr, md)
     else
       @match = nil
+    end
+  end
+
+  private def scan_internal_string_pattern(pattern, headonly)
+    if @string.byteslice(pos..).start_with?(pattern)
+      Primitive.matchdata_create_single_group(pattern, @string.dup, 0, pattern.bytesize)
+    else
+      nil
     end
   end
 
