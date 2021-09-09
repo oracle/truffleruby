@@ -70,5 +70,5 @@ MX_BUILD_EXPLODED=true
 LINKY_LAYOUT=*.jar
 ```
 
-These settings are not recommended for producing distributable artifacts, but
+These settings must not be used for producing distributable artifacts, but
 make development much smoother.
