@@ -4,7 +4,7 @@ New features:
 
 
 Bug fixes:
-
+* Capture the intercepted feature path during patching to reuse during patch require (#2441).
 
 Compatibility:
 

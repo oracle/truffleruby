@@ -139,6 +139,7 @@ public abstract class RequireNode extends RubyBaseNode {
     private boolean doRequire(String originalFeature, String expandedPath, Object pathString) {
         final ReentrantLockFreeingMap<String> fileLocks = getContext().getFeatureLoader().getFileLocks();
         final ConcurrentMap<String, Boolean> patchFiles = getContext().getCoreLibrary().getPatchFiles();
+        final ConcurrentMap<String, String> originalRequires = getContext().getCoreLibrary().getOriginalRequires();
         String relativeFeature = originalFeature;
         if (new File(originalFeature).isAbsolute()) {
             int i = originalFeature.lastIndexOf("/lib/");
@@ -175,8 +176,13 @@ public abstract class RequireNode extends RubyBaseNode {
                 if (isPatched && !patchLoaded) {
                     String expandedPatchPath = getLanguage().getRubyHome() + "/lib/patches/" + relativeFeature + ".rb";
                     RubyLanguage.LOGGER.config("patch file used: " + expandedPatchPath);
-                    final boolean loaded = parseAndCall(expandedPatchPath, expandedPatchPath);
-                    assert loaded;
+                    originalRequires.put(expandedPatchPath, originalFeature);
+                    try {
+                        final boolean loaded = parseAndCall(expandedPatchPath, expandedPatchPath);
+                        assert loaded;
+                    } finally {
+                        originalRequires.remove(expandedPatchPath);
+                    }
 
                     final boolean originalLoaded = patchFiles.get(relativeFeature);
                     if (!originalLoaded) {
