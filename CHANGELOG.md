@@ -27,6 +27,7 @@ Bug fixes:
 * Fix `StringIO#ungetbyte` to treat a byte as a byte, not a code point (#2436). 
 * Fix `defined?(yield)` when used inside a block (#2446).
 * Fix a couple issues related to native memory allocation and release.
+* Capture the intercepted feature path during patching to reuse during patch require (#2441).
 
 Compatibility:
 
