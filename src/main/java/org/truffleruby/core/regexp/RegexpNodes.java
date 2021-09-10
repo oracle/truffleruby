@@ -53,31 +53,6 @@ import com.oracle.truffle.api.nodes.Node;
 @CoreModule(value = "Regexp", isClass = true)
 public abstract class RegexpNodes {
 
-    @TruffleBoundary
-    public static RubyRegexp create(RubyLanguage language,
-            Rope setSource,
-            RubyEncoding setSourceEncoding,
-            int options,
-            Node currentNode) throws DeferredRaiseException {
-        final RegexpOptions regexpOptions = RegexpOptions.fromEmbeddedOptions(options);
-        final RegexpCacheKey key = RegexpCacheKey.calculate(
-                new RopeWithEncoding(setSource, setSourceEncoding),
-                regexpOptions);
-        RubyRegexp regexp = language.getRegexp(key);
-        if (regexp == null) {
-            RegexpOptions optionsArray[] = new RegexpOptions[]{ regexpOptions };
-            final Regex regex = TruffleRegexpNodes.compile(
-                    language,
-                    null,
-                    new RopeWithEncoding(setSource, setSourceEncoding),
-                    optionsArray,
-                    currentNode);
-            regexp = new RubyRegexp(regex, optionsArray[0]);
-            language.addRegexp(key, regexp);
-        }
-        return regexp;
-    }
-
     @CoreMethod(names = "hash")
     public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
 
@@ -257,7 +232,7 @@ public abstract class RegexpNodes {
                 @Cached BranchProfile errorProfile,
                 @CachedLibrary(limit = "2") RubyStringLibrary libPattern) {
             try {
-                return RegexpNodes.create(
+                return RubyRegexp.create(
                         getLanguage(),
                         libPattern.getRope(pattern),
                         libPattern.getEncoding(pattern),

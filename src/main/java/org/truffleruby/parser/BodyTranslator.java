@@ -2665,23 +2665,7 @@ public class BodyTranslator extends Translator {
         final RubyEncoding encoding = Encodings.getBuiltInEncoding(rope.getEncoding().getIndex());
         final RegexpOptions options = node.getOptions().setLiteral(true);
         try {
-            RegexpCacheKey key = RegexpCacheKey.calculate(new RopeWithEncoding(rope, encoding), options);
-            RubyRegexp regexp = language.getRegexp(key);
-            if (regexp == null) {
-                Regex regex = null;
-                RegexpOptions[] optionsArray = new RegexpOptions[]{ options };
-                regex = TruffleRegexpNodes
-                        .compile(
-                                language,
-                                rubyWarnings,
-                                new RopeWithEncoding(rope, encoding),
-                                optionsArray,
-                                currentNode);
-
-                regexp = new RubyRegexp(regex, optionsArray[0]);
-                language.addRegexp(key, regexp);
-            }
-
+            final RubyRegexp regexp = RubyRegexp.create(language, rope, encoding, options, currentNode);
             final ObjectLiteralNode literalNode = new ObjectLiteralNode(regexp);
             literalNode.unsafeSetSourceSection(node.getPosition());
             return addNewlineIfNeeded(node, literalNode);

@@ -276,20 +276,7 @@ public class TruffleRegexpNodes {
         public RubyRegexp createRegexp(Rope pattern, RubyEncoding encoding) throws DeferredRaiseException {
             final RegexpCacheKey key = RegexpCacheKey
                     .calculate(new RopeWithEncoding(pattern, encoding), RegexpOptions.fromEmbeddedOptions(0));
-            RubyRegexp regexp = getLanguage().getRegexp(key);
-            if (regexp == null) {
-                final RegexpOptions optionsArray[] = new RegexpOptions[]{ RegexpOptions.fromEmbeddedOptions(0) };
-
-                final Regex regex = compile(
-                        getLanguage(),
-                        null,
-                        new RopeWithEncoding(pattern, encoding),
-                        optionsArray,
-                        this);
-                regexp = new RubyRegexp(regex, optionsArray[0]);
-                getLanguage().addRegexp(key, regexp);
-            }
-            return regexp;
+            return RubyRegexp.create(getLanguage(), pattern, encoding, RegexpOptions.fromEmbeddedOptions(0), this);
         }
     }
 
