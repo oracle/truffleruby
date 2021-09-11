@@ -10,15 +10,14 @@
 package org.truffleruby.core.regexp;
 
 import org.joni.WarnCallback;
-import org.truffleruby.RubyContext;
 import org.truffleruby.parser.RubyWarnings;
 
 public class RegexWarnCallback implements WarnCallback {
 
     private final RubyWarnings warnings;
 
-    public RegexWarnCallback(RubyContext context) {
-        this.warnings = new RubyWarnings(context);
+    public RegexWarnCallback() {
+        this.warnings = new RubyWarnings();
     }
 
     @Override

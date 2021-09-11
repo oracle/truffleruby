@@ -40,16 +40,6 @@ public class RubyRegexp extends ImmutableRubyObject implements TruffleObject {
     public static RubyRegexp create(RubyLanguage language,
             Rope setSource,
             RubyEncoding setSourceEncoding,
-            int options,
-            Node currentNode) throws DeferredRaiseException {
-        final RegexpOptions regexpOptions = RegexpOptions.fromEmbeddedOptions(options);
-        return create(language, setSource, setSourceEncoding, regexpOptions, currentNode);
-    }
-
-    @TruffleBoundary
-    public static RubyRegexp create(RubyLanguage language,
-            Rope setSource,
-            RubyEncoding setSourceEncoding,
             RegexpOptions regexpOptions,
             Node currentNode) throws DeferredRaiseException {
         final RegexpCacheKey key = RegexpCacheKey.calculate(
@@ -70,7 +60,9 @@ public class RubyRegexp extends ImmutableRubyObject implements TruffleObject {
             if (language.options.REGEXP_INSTRUMENT_CREATION) {
                 ConcurrentOperations
                         .getOrCompute(
-                                regexpOptions.isLiteral() ? TruffleRegexpNodes.LITERAL_REGEXPS : TruffleRegexpNodes.DYNAMIC_REGEXPS,
+                                regexpOptions.isLiteral()
+                                        ? TruffleRegexpNodes.LITERAL_REGEXPS
+                                        : TruffleRegexpNodes.DYNAMIC_REGEXPS,
                                 language.getRegexp(key),
                                 x -> new AtomicInteger())
                         .incrementAndGet();

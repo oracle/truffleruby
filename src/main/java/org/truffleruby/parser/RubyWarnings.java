@@ -45,7 +45,7 @@ import org.truffleruby.language.control.RaiseException;
 
 public class RubyWarnings implements WarnCallback {
 
-    public RubyWarnings(RubyContext context) {
+    public RubyWarnings() {
     }
 
     public boolean warningsEnabled() {

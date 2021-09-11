@@ -87,7 +87,7 @@ public class ClassicRegexp implements ReOptions {
         return pattern.getEncoding();
     }
 
-    public static Regex makeRegexp(RubyContext context, RubyDeferredWarnings rubyDeferredWarnings,
+    public static Regex makeRegexp(RubyDeferredWarnings rubyDeferredWarnings,
             RopeBuilder processedSource, RegexpOptions options,
             RubyEncoding enc, Rope source, Node currentNode) throws DeferredRaiseException {
         try {
@@ -99,7 +99,7 @@ public class ClassicRegexp implements ReOptions {
                     enc.jcoding,
                     Syntax.RUBY,
                     rubyDeferredWarnings == null
-                            ? new RegexWarnCallback(context)
+                            ? new RegexWarnCallback()
                             : new RegexWarnDeferredCallback(rubyDeferredWarnings));
         } catch (Exception e) {
             String errorMessage = getRegexErrorMessage(source, e, options);
@@ -114,21 +114,7 @@ public class ClassicRegexp implements ReOptions {
 
     private static Regex getRegexpFromCache(RubyContext context, RopeBuilder bytes, RubyEncoding encoding,
             RegexpOptions options, Rope source) throws DeferredRaiseException {
-        if (context == null) {
-            final Regex regex = makeRegexp(
-                    null,
-                    null,
-                    bytes,
-                    options,
-                    encoding,
-                    source,
-                    null);
-            regex.setUserObject(bytes);
-            return regex;
-        }
-
-        final Rope rope = RopeOperations.ropeFromRopeBuilder(bytes);
-        final Regex newRegex = makeRegexp(context, null, bytes, options, encoding, source, null);
+        final Regex newRegex = makeRegexp(null, bytes, options, encoding, source, null);
         newRegex.setUserObject(bytes);
         return newRegex;
     }
@@ -948,7 +934,7 @@ public class ClassicRegexp implements ReOptions {
                                 Option.DEFAULT,
                                 str.getEncoding(),
                                 Syntax.DEFAULT,
-                                new RegexWarnCallback(context));
+                                new RegexWarnCallback());
                         err = false;
                     } catch (JOniException e) {
                         err = true;

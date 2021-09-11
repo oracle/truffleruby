@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.regexp;
 
-import org.joni.Regex;
 import org.truffleruby.core.cast.ToSNode;
 import org.truffleruby.core.regexp.InterpolatedRegexpNodeFactory.RegexpBuilderNodeGen;
 import org.truffleruby.core.rope.RopeNodes;
@@ -103,7 +102,8 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
             try {
                 final RopeWithEncoding preprocessed;
                 preprocessed = ClassicRegexp.preprocessDRegexp(getContext(), strings, options);
-                 return RubyRegexp.create(getLanguage(), preprocessed.getRope(), preprocessed.getEncoding(), options, this);
+                return RubyRegexp
+                        .create(getLanguage(), preprocessed.getRope(), preprocessed.getEncoding(), options, this);
             } catch (DeferredRaiseException dre) {
                 throw dre.getException(getContext());
             }

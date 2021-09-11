@@ -191,7 +191,6 @@ public class TruffleRegexpNodes {
                             RegexpSupport.ErrorMode.RAISE);
             final RegexpOptions options = regexp.options;
             return ClassicRegexp.makeRegexp(
-                    context,
                     null,
                     preprocessed,
                     options,
@@ -274,8 +273,6 @@ public class TruffleRegexpNodes {
 
         @TruffleBoundary
         public RubyRegexp createRegexp(Rope pattern, RubyEncoding encoding) throws DeferredRaiseException {
-            final RegexpCacheKey key = RegexpCacheKey
-                    .calculate(new RopeWithEncoding(pattern, encoding), RegexpOptions.fromEmbeddedOptions(0));
             return RubyRegexp.create(getLanguage(), pattern, encoding, RegexpOptions.fromEmbeddedOptions(0), this);
         }
     }
@@ -1096,7 +1093,7 @@ public class TruffleRegexpNodes {
         enc = ClassicRegexp.computeRegexpEncoding(optionsArray, enc, fixedEnc);
 
         Regex regexp = ClassicRegexp
-                .makeRegexp(null, rubyDeferredWarnings, unescaped, optionsArray[0], enc, bytes.getRope(), currentNode);
+                .makeRegexp(rubyDeferredWarnings, unescaped, optionsArray[0], enc, bytes.getRope(), currentNode);
         regexp.setUserObject(new RopeWithEncoding(RopeOperations.withEncoding(bytes.getRope(), enc.jcoding), enc));
 
         return regexp;
