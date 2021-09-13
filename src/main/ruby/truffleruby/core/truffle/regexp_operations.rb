@@ -41,11 +41,7 @@ module Truffle
       search_check_args(re, str)
 
       end_index = str.bytesize
-      if USE_TRUFFLE_REGEX
-        Primitive.regexp_match_in_region_tregex(re, str, 0, end_index, false, 0)
-      else
-        Primitive.regexp_match_in_region(re, str, 0, end_index, false, 0)
-      end
+      match_in_region(re, str, 0, end_index, false, 0)
     end
 
     def self.match(re, str, pos=0)
@@ -77,7 +73,9 @@ module Truffle
     end
 
     def self.match_in_region(re, str, from, to, at_start, start)
-      if USE_TRUFFLE_REGEX
+      if COMPARE_ENGINES
+        match_in_region_compare_engines(re, str, from, to, at_start, start)
+      elsif USE_TRUFFLE_REGEX
         Primitive.regexp_match_in_region_tregex(re, str, from, to, at_start, start)
       else
         Primitive.regexp_match_in_region(re, str, from, to, at_start, start)
