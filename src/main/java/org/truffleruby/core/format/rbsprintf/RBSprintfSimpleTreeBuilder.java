@@ -180,13 +180,7 @@ public class RBSprintfSimpleTreeBuilder {
                             case 's':
                                 final FormatNode conversionNode;
 
-                                if (config.getAbsoluteArgumentIndex() == null) {
-                                    conversionNode = ReadCStringNodeGen
-                                            .create(stringReader, new SourceNode());
-                                } else {
-                                    conversionNode = ReadCStringNodeGen
-                                            .create(stringReader, new SourceNode());
-                                }
+                                conversionNode = ReadCStringNodeGen.create(stringReader, valueNode);
 
                                 if (config.getWidth() != null || config.isWidthStar() ||
                                         config.getPrecision() != null || config.isPrecisionStar()) {
@@ -204,26 +198,17 @@ public class RBSprintfSimpleTreeBuilder {
                     case RUBY_VALUE: {
                         final String conversionMethodName = config.isPlus() ? "inspect" : "to_s";
                         final FormatNode conversionNode;
-                        if (config.getAbsoluteArgumentIndex() == null) {
-                            conversionNode = ToStringNodeGen
-                                    .create(
-                                            true,
-                                            conversionMethodName,
-                                            false,
-                                            EMPTY_BYTES,
-                                            config.isPlus(),
-                                            ReadCValueNodeGen.create(ReadIntegerNodeGen.create(new SourceNode())));
-                        } else {
-                            conversionNode = ToStringNodeGen
-                                    .create(
-                                            true,
-                                            conversionMethodName,
-                                            false,
-                                            EMPTY_BYTES,
-                                            config.isPlus(),
-                                            ReadCValueNodeGen.create(valueNode));
-                        }
-
+                        conversionNode = ToStringNodeGen
+                                .create(
+                                        true,
+                                        conversionMethodName,
+                                        false,
+                                        EMPTY_BYTES,
+                                        config.isPlus(),
+                                        (config.getAbsoluteArgumentIndex() == null)
+                                                ? (ReadCValueNodeGen
+                                                        .create(ReadIntegerNodeGen.create(new SourceNode())))
+                                                : ReadCValueNodeGen.create(valueNode));
                         if (config.getWidth() != null || config.isWidthStar() || config.getPrecision() != null ||
                                 config.isPrecisionStar()) {
                             node = WritePaddedBytesNodeGen
