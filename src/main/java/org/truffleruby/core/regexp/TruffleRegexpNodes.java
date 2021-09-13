@@ -67,7 +67,6 @@ import org.truffleruby.core.rope.RopeWithEncoding;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
-import org.truffleruby.extra.RubyConcurrentMap;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.interop.TranslateInteropExceptionNodeGen;

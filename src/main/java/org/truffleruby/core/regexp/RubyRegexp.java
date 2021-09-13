@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.regexp;
 
-import java.util.concurrent.atomic.AtomicInteger;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -23,7 +22,6 @@ import com.oracle.truffle.api.nodes.Node;
 import org.joni.Regex;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
@@ -59,8 +57,8 @@ public class RubyRegexp extends ImmutableRubyObject implements TruffleObject {
 
             if (language.options.REGEXP_INSTRUMENT_CREATION) {
                 (regexpOptions.isLiteral()
-                 ? TruffleRegexpNodes.LITERAL_REGEXPS
-                 : TruffleRegexpNodes.DYNAMIC_REGEXPS).add(regexp);
+                        ? TruffleRegexpNodes.LITERAL_REGEXPS
+                        : TruffleRegexpNodes.DYNAMIC_REGEXPS).add(regexp);
             }
 
         }
