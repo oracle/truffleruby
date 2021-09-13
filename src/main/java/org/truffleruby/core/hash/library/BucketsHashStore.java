@@ -11,11 +11,10 @@ package org.truffleruby.core.hash.library;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
-import com.oracle.truffle.api.dsl.CachedContext;
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
@@ -24,7 +23,6 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.RubyContext;
@@ -339,18 +337,18 @@ public class BucketsHashStore {
     protected Object eachEntry(RubyHash hash, EachEntryCallback callback, Object state,
             @CachedLibrary("this") HashStoreLibrary hashStoreLibrary,
             @Cached LoopConditionProfile loopProfile) {
-
         assert verify(hash);
-        loopProfile.profileCounted(hash.size);
+
         int i = 0;
         Entry entry = this.firstInSequence;
         try {
             while (loopProfile.inject(entry != null)) {
                 callback.accept(i++, entry.getKey(), entry.getValue(), state);
                 entry = entry.getNextInSequence();
+                TruffleSafepoint.poll(hashStoreLibrary);
             }
         } finally {
-            LoopNode.reportLoopCount(hashStoreLibrary.getNode(), i);
+            RubyBaseNode.profileAndReportLoopCount(hashStoreLibrary.getNode(), loopProfile, i);
         }
         return state;
     }
@@ -405,8 +403,7 @@ public class BucketsHashStore {
 
     @ExportMessage
     protected RubyArray shift(RubyHash hash,
-            @CachedLanguage RubyLanguage language,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            @CachedLibrary("this") HashStoreLibrary node) {
 
         assert verify(hash);
 
@@ -442,6 +439,8 @@ public class BucketsHashStore {
         hash.size -= 1;
 
         assert verify(hash);
+        final RubyLanguage language = RubyLanguage.get(node);
+        final RubyContext context = RubyContext.get(node);
         return ArrayHelpers.createArray(context, language, new Object[]{ key, value });
     }
 

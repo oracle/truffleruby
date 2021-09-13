@@ -79,8 +79,12 @@ describe "Socket::BasicSocket#recv_nonblock" do
       end
 
       it "raises Errno::ENOTCONN" do
-        -> { @server.recv_nonblock(1) }.should raise_error(Errno::ENOTCONN)
-        -> { @server.recv_nonblock(1, exception: false) }.should raise_error(Errno::ENOTCONN)
+        -> { @server.recv_nonblock(1) }.should raise_error { |e|
+          [Errno::ENOTCONN, Errno::EINVAL].should.include?(e.class)
+        }
+        -> { @server.recv_nonblock(1, exception: false) }.should raise_error { |e|
+          [Errno::ENOTCONN, Errno::EINVAL].should.include?(e.class)
+        }
       end
     end
   end

@@ -10,12 +10,12 @@
 package org.truffleruby.language.globals;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 
-public abstract class ReadSimpleGlobalVariableNode extends RubyContextNode {
+public abstract class ReadSimpleGlobalVariableNode extends RubyBaseNode {
 
     public final String name;
     @Child LookupGlobalVariableStorageNode lookupGlobalVariableStorageNode;

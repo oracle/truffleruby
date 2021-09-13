@@ -15,7 +15,6 @@ import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -49,7 +48,7 @@ public class ProxyForeignObject implements TruffleObject {
             @Cached DispatchNode dispatchNode,
             @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
             @CachedLibrary("this.delegate") ReflectionLibrary reflections,
-            @CachedLanguage RubyLanguage language) throws Exception {
+            @CachedLibrary("this") ReflectionLibrary node) throws Exception {
         if (logger != null) {
             final Object[] args;
             if (message == EXECUTABLE || message == INSTANTIATE) {
@@ -63,7 +62,7 @@ public class ProxyForeignObject implements TruffleObject {
             Object[] loggingArgs = ArrayUtils.unshift(args, message.getSimpleName());
             for (int i = 0; i < loggingArgs.length; i++) {
                 if (loggingArgs[i] instanceof InteropLibrary) {
-                    loggingArgs[i] = language.getSymbol("InteropLibrary");
+                    loggingArgs[i] = RubyLanguage.get(node).getSymbol("InteropLibrary");
                 }
             }
 

@@ -11,14 +11,13 @@ package org.truffleruby.core.exception;
 
 import java.util.Set;
 
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.interop.ExceptionType;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.VMPrimitiveNodes.VMRaiseExceptionNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.klass.RubyClass;
@@ -89,8 +88,8 @@ public class RubyException extends RubyDynamicObject implements ObjectGraphNode 
 
     @ExportMessage
     public RuntimeException throwException(
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        throw VMRaiseExceptionNode.reRaiseException(context, this);
+            @CachedLibrary("this") InteropLibrary node) {
+        throw VMRaiseExceptionNode.reRaiseException(RubyContext.get(node), this);
     }
 
     @ExportMessage

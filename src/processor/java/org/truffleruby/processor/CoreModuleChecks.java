@@ -19,11 +19,9 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.truffleruby.builtins.CoreMethod;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 
@@ -214,9 +212,7 @@ public class CoreModuleChecks {
         // Ignore all the @Cached methods from our consideration.
         while (n >= 0 &&
                 (parameters.get(n).getAnnotation(Cached.class) != null ||
-                        parameters.get(n).getAnnotation(CachedLibrary.class) != null ||
-                        parameters.get(n).getAnnotation(CachedContext.class) != null ||
-                        parameters.get(n).getAnnotation(CachedLanguage.class) != null)) {
+                        parameters.get(n).getAnnotation(CachedLibrary.class) != null)) {
             n--;
         }
         return n;

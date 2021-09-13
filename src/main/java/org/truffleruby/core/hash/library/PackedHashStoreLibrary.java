@@ -11,11 +11,10 @@ package org.truffleruby.core.hash.library;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
-import com.oracle.truffle.api.dsl.CachedContext;
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -26,7 +25,6 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
-import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
@@ -282,14 +280,14 @@ public class PackedHashStoreLibrary {
                 @Cached LoopConditionProfile loopProfile) {
 
             // Don't verify hash here, as `store != hash.store` when calling from `eachEntrySafe`.
-            loopProfile.profileCounted(cachedSize);
             int i = 0;
             try {
                 for (; loopProfile.inject(i < cachedSize); i++) {
                     callback.accept(i, getKey(store, i), getValue(store, i), state);
+                    TruffleSafepoint.poll(hashStoreLibrary);
                 }
             } finally {
-                LoopNode.reportLoopCount(hashStoreLibrary.getNode(), i);
+                RubyBaseNode.profileAndReportLoopCount(hashStoreLibrary.getNode(), loopProfile, i);
             }
             return state;
         }
@@ -324,8 +322,7 @@ public class PackedHashStoreLibrary {
 
     @ExportMessage
     protected static RubyArray shift(Object[] store, RubyHash hash,
-            @CachedLanguage RubyLanguage language,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            @CachedLibrary("store") HashStoreLibrary node) {
 
         assert verify(store, hash);
         final Object key = getKey(store, 0);
@@ -333,6 +330,8 @@ public class PackedHashStoreLibrary {
         removeEntry(store, 0);
         hash.size -= 1;
         assert verify(store, hash);
+        final RubyLanguage language = RubyLanguage.get(node);
+        final RubyContext context = RubyContext.get(node);
         return ArrayHelpers.createArray(context, language, new Object[]{ key, value });
     }
 

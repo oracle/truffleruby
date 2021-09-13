@@ -10,6 +10,9 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.utilities.TriState;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapper;
@@ -21,7 +24,6 @@ import org.truffleruby.language.library.RubyLibrary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
@@ -68,6 +70,7 @@ public abstract class ImmutableRubyObject implements TruffleObject {
     // endregion
 
     // region InteropLibrary messages
+    // Specs for these messages are in spec/truffle/interop/matrix_spec.rb
     @ExportMessage
     public boolean hasLanguage() {
         return true;
@@ -84,6 +87,23 @@ public abstract class ImmutableRubyObject implements TruffleObject {
         throw new AbstractMethodError();
     }
 
+    // region Identity
+    @ExportMessage
+    public int identityHashCode() {
+        return System.identityHashCode(this);
+    }
+
+    @ExportMessage
+    public TriState isIdenticalOrUndefined(Object other,
+            @Exclusive @Cached ConditionProfile immutableRubyObjectProfile) {
+        if (immutableRubyObjectProfile.profile(other instanceof ImmutableRubyObject)) {
+            return TriState.valueOf(this == other);
+        } else {
+            return TriState.UNDEFINED;
+        }
+    }
+    // endregion
+
     // region Members
     @ExportMessage
     public boolean hasMembers() {
@@ -92,10 +112,10 @@ public abstract class ImmutableRubyObject implements TruffleObject {
 
     @ExportMessage
     public Object getMembers(boolean internal,
-            @CachedContext(RubyLanguage.class) RubyContext context,
+            @CachedLibrary("this") InteropLibrary node,
             @Exclusive @Cached DispatchNode dispatchNode) {
         return dispatchNode.call(
-                context.getCoreLibrary().truffleInteropModule,
+                RubyContext.get(node).getCoreLibrary().truffleInteropModule,
                 // language=ruby prefix=Truffle::Interop.
                 "get_members_implementation",
                 this,

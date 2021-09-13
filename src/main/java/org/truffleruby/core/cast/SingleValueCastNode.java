@@ -10,14 +10,14 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 
 @ImportStatic(value = { RubyGuards.class })
-public abstract class SingleValueCastNode extends RubyContextNode {
+public abstract class SingleValueCastNode extends RubyBaseNode {
 
     public abstract Object executeSingleValue(Object[] args);
 

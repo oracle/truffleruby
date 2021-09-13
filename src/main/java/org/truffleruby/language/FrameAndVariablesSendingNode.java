@@ -44,7 +44,7 @@ import org.truffleruby.language.threadlocal.SpecialVariableStorage;
  * require access to this storage ensures they receive an object that will not require node splitting to be accessed
  * efficiently. */
 @SuppressFBWarnings("IS")
-public abstract class FrameAndVariablesSendingNode extends RubyContextNode {
+public abstract class FrameAndVariablesSendingNode extends RubyBaseNode {
 
     @Child protected FrameOrVariablesReadingNode readingNode;
 

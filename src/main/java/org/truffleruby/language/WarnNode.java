@@ -26,7 +26,7 @@ import com.oracle.truffle.api.source.SourceSection;
 
 /** Warns if $VERBOSE is true or false, but not nil. Corresponds to Kernel#warn(message, uplevel: 1), but in Java with a
  * given SourceSection. */
-public class WarnNode extends RubyContextNode {
+public class WarnNode extends RubyBaseNode {
 
     @Child protected ReadSimpleGlobalVariableNode readVerboseNode = ReadSimpleGlobalVariableNode.create("$VERBOSE");
 
@@ -84,13 +84,13 @@ public class WarnNode extends RubyContextNode {
         }
 
         public boolean shouldWarn() {
-            return RubyLanguage.getCurrentContext().getCoreLibrary().warningsEnabled();
+            return coreLibrary().warningsEnabled();
         }
 
         public void warningMessage(SourceSection sourceSection, String message) {
             assert shouldWarn();
             WarnNode.callWarn(
-                    RubyLanguage.getCurrentContext(),
+                    getContext(),
                     sourceSection,
                     message,
                     MakeStringNode.getUncached(),

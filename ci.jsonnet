@@ -10,7 +10,7 @@
 # https://github.com/google/jsonnet/releases and compiled.
 
 # CONFIGURATION
-local overlay = "a8ffba29647185aa9d6c1191be546ef5d9f18708";
+local overlay = "ef7900003d566aa9dad40cfcf771bc4be2b4ca12";
 
 # For debugging: generated builds will be restricted to those listed in
 # the array. No restriction is applied when it is empty.
@@ -28,7 +28,7 @@ local common = (import "common.json");
 # All used objects used to compose a build are listed
 # where build is defined, there are no other objects in the middle.
 local part_definitions = {
-  local jt = function(args) [["ruby", "tool/jt.rb"] + args],
+  local jt = function(args) [["bin/jt"] + args],
   local mri_path = function(version) "/cm/shared/apps/ruby/" + version + "/bin/ruby",
   local mri_version = "2.7.2",
 
@@ -311,7 +311,7 @@ local part_definitions = {
         "CHECK_LEAKS": "true",
       },
       run+: jt(["-u", mri_path(mri_version), "mspec", "spec/ruby"]) +
-            jt(["-u", mri_path("2.5.7"), "mspec", "spec/ruby"]),
+            jt(["-u", mri_path("2.6.6"), "mspec", "spec/ruby"]),
     },
 
     test_fast: {
@@ -490,8 +490,8 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       local native_tests = $.run.testdownstream_aot + $.run.test_integration + $.run.test_compiler,
 
       // Order: platform, jdk, mx_env. Keep aligned for an easy visual comparison.
-      "ruby-test-specs-linux-8":     $.platform.linux  + $.jdk.v8  + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:15:00" },
-      "ruby-test-specs-linux-11":    $.platform.linux  + $.jdk.v11 + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:15:00" },
+      "ruby-test-specs-linux-8":     $.platform.linux  + $.jdk.v8  + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:20:00" },
+      "ruby-test-specs-linux-11":    $.platform.linux  + $.jdk.v11 + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:20:00" },
       "ruby-test-specs-darwin-8":    $.platform.darwin + $.jdk.v8  + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
       "ruby-test-specs-darwin-11":   $.platform.darwin + $.jdk.v11 + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
       "ruby-test-fast-linux-arm64":  $.platform.linux_arm64 + $.jdk.v11 + $.env.jvm + gate + $.run.test_fast + native_config + { timelimit: "45:00" },

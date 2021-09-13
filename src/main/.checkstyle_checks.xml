@@ -212,7 +212,7 @@
     </module>
     <module name="RegexpSinglelineJava">
       <property name="format" value='"isRuby(?!Value|DynamicObject|SymbolOrString|Rational|[^"]+\|\|)'/> <!-- Rational is not a builtin type -->
-      <property name="message" value="Type the argument instead of using a positive is Ruby* guard."/>
+      <property name="message" value="Type the argument instead of using a positive isRuby* guard."/>
     </module>
     <module name="RegexpSinglelineJava">
       <property name="format" value='"isNil'/>
@@ -233,6 +233,14 @@
     <module name="RegexpSinglelineJava">
       <property name="format" value='Collections\.newSetFromMap\(new ConcurrentHashMap'/>
       <property name="message" value="Use ConcurrentHashMap.newKeySet() instead."/>
+    </module>
+    <module name="RegexpSinglelineJava">
+      <property name="format" value='LoopNode\.reportLoopCount\('/>
+      <property name="message" value="Use profileAndReportLoopCount() instead."/>
+    </module>
+    <module name="RegexpSinglelineJava">
+      <property name="format" value='\.profileCounted\('/>
+      <property name="message" value="Use profileAndReportLoopCount() instead."/>
     </module>
     <module name="IllegalType">
       <!-- Use PrintStream instead of PrintWriter, PrintWriter does not consistently flush, even when writing \n.-->

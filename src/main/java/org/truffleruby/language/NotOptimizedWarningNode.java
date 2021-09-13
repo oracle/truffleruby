@@ -13,13 +13,11 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
-import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.ControlFlowException;
@@ -48,8 +46,7 @@ public abstract class NotOptimizedWarningNode extends RubyBaseNode {
     protected abstract void executeWarn(String message);
 
     @Specialization(rewriteOn = Warned.class)
-    protected void warnOnce(String message,
-            @CachedContext(RubyLanguage.class) RubyContext context) throws Warned {
+    protected void warnOnce(String message) throws Warned {
         // The message should be a constant, because we don't want to do anything expensive to create it
         CompilerAsserts.compilationConstant(message);
 
@@ -58,7 +55,7 @@ public abstract class NotOptimizedWarningNode extends RubyBaseNode {
             return;
         }
 
-        log(context, message);
+        log(message);
         throw new Warned();
     }
 
@@ -68,9 +65,9 @@ public abstract class NotOptimizedWarningNode extends RubyBaseNode {
     }
 
     @TruffleBoundary
-    private void log(RubyContext context, String message) {
+    private void log(String message) {
         // We want the topmost user source section, as otherwise lots of warnings will come from the same core methods
-        final SourceSection userSourceSection = context.getCallStack().getTopMostUserSourceSection();
+        final SourceSection userSourceSection = getContext().getCallStack().getTopMostUserSourceSection();
 
         final String displayedWarning = String.format(
                 "%s: %s",

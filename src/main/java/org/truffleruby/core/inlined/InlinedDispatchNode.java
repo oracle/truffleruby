@@ -16,12 +16,12 @@ import com.oracle.truffle.api.frame.Frame;
 
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.DispatchingNode;
 import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 
-public class InlinedDispatchNode extends RubyContextNode implements DispatchingNode {
+public class InlinedDispatchNode extends RubyBaseNode implements DispatchingNode {
 
     @CompilationFinal(dimensions = 1) private final Assumption[] assumptions;
 

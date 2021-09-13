@@ -64,7 +64,7 @@ public class FileLoader {
             RubyLanguage.LOGGER.info("loading " + path);
         }
 
-        final TruffleFile file = getSafeTruffleFile(context, path);
+        final TruffleFile file = getSafeTruffleFile(language, context, path);
         ensureReadable(context, file, null);
 
         /* We read the file's bytes ourselves because the lexer works on bytes and Truffle only gives us a CharSequence.
@@ -77,7 +77,7 @@ public class FileLoader {
         return Pair.create(source, sourceRope);
     }
 
-    static TruffleFile getSafeTruffleFile(RubyContext context, String path) {
+    static TruffleFile getSafeTruffleFile(RubyLanguage language, RubyContext context, String path) {
         final Env env = context.getEnv();
         final TruffleFile file;
         try {
@@ -88,7 +88,7 @@ public class FileLoader {
                     context.getCoreExceptions().loadError("Failed to canonicalize -- " + path, path, null));
         }
 
-        final TruffleFile home = context.getRubyHomeTruffleFile();
+        final TruffleFile home = language.getRubyHomeTruffleFile();
         if (file.startsWith(home) && isStdLibRubyOrCExtFile(home.relativize(file))) {
             return file;
         } else {
@@ -168,8 +168,8 @@ public class FileLoader {
         }
 
         // If the file is part of the standard library then we may consider it internal
-        if (canonicalPath.startsWith(context.getRubyHome() + "/lib/") &&
-                !canonicalPath.startsWith(context.getRubyHome() + "/lib/gems/")) {
+        if (canonicalPath.startsWith(language.getRubyHome() + "/lib/") &&
+                !canonicalPath.startsWith(language.getRubyHome() + "/lib/gems/")) {
             return language.options.STDLIB_AS_INTERNAL;
         } else {
             return false;

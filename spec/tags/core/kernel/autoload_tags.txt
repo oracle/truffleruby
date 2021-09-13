@@ -1,1 +1,2 @@
 slow:Kernel#autoload when Object is frozen raises a FrozenError before defining the constant
+fails:Kernel#autoload inside a Class.new method body should define on the new anonymous class

@@ -17,13 +17,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.ExceptionType;
 import com.oracle.truffle.api.interop.NodeLibrary;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -51,7 +48,6 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
-import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
@@ -80,6 +76,7 @@ import com.oracle.truffle.api.nodes.LanguageInfo;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.Source;
 
+/** Specs for these methods are in spec/truffle/interop/matrix_spec.rb and in spec/truffle/interop/methods_spec.rb */
 @CoreModule("Truffle::Interop")
 public abstract class InteropNodes {
 
@@ -540,10 +537,6 @@ public abstract class InteropNodes {
             final Object foreign = InteropNodes.execute(receiver, convertedArgs, receivers, translateInteropException);
             return foreignToRubyNode.executeConvert(foreign);
         }
-
-        protected static int getInteropCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
-        }
     }
 
     @CoreMethod(names = "execute_without_conversion", onSingleton = true, required = 1, rest = true)
@@ -596,10 +589,6 @@ public abstract class InteropNodes {
             }
 
             return foreignToRubyNode.executeConvert(foreign);
-        }
-
-        protected static int getInteropCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
     }
     // endregion
@@ -659,10 +648,6 @@ public abstract class InteropNodes {
 
             return foreignToRubyNode.executeConvert(foreign);
         }
-
-        protected static int getInteropCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
-        }
     }
 
     @GenerateUncached
@@ -686,10 +671,6 @@ public abstract class InteropNodes {
             } catch (InteropException e) {
                 throw translateInteropException.execute(e);
             }
-        }
-
-        protected static int getInteropCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
     }
 
@@ -718,10 +699,6 @@ public abstract class InteropNodes {
 
             return value;
         }
-
-        protected static int getInteropCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
-        }
     }
 
     @GenerateUncached
@@ -747,10 +724,6 @@ public abstract class InteropNodes {
             }
 
             return Nil.INSTANCE;
-        }
-
-        protected static int getInteropCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
     }
 
@@ -841,11 +814,10 @@ public abstract class InteropNodes {
     public abstract static class GetSourceLocationNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object getSourceLocation(Object receiver,
-                @CachedContext(RubyLanguage.class) RubyContext context,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             try {
-                return context.getEnv().asGuestValue(receivers.getSourceLocation(receiver));
+                return getContext().getEnv().asGuestValue(receivers.getSourceLocation(receiver));
             } catch (UnsupportedMessageException e) {
                 throw translateInteropException.execute(e);
             }
@@ -970,11 +942,10 @@ public abstract class InteropNodes {
     public abstract static class AsDateNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object asDate(Object receiver,
-                @CachedContext(RubyLanguage.class) RubyContext context,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             try {
-                return context.getEnv().asGuestValue(receivers.asDate(receiver));
+                return getContext().getEnv().asGuestValue(receivers.asDate(receiver));
             } catch (UnsupportedMessageException e) {
                 throw translateInteropException.execute(e);
             }
@@ -994,11 +965,10 @@ public abstract class InteropNodes {
     public abstract static class AsDurationNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object asDuration(Object receiver,
-                @CachedContext(RubyLanguage.class) RubyContext context,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             try {
-                return context.getEnv().asGuestValue(receivers.asDuration(receiver));
+                return getContext().getEnv().asGuestValue(receivers.asDuration(receiver));
             } catch (UnsupportedMessageException e) {
                 throw translateInteropException.execute(e);
             }
@@ -1018,11 +988,10 @@ public abstract class InteropNodes {
     public abstract static class AsInstantNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object asInstant(Object receiver,
-                @CachedContext(RubyLanguage.class) RubyContext context,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             try {
-                return context.getEnv().asGuestValue(receivers.asInstant(receiver));
+                return getContext().getEnv().asGuestValue(receivers.asInstant(receiver));
             } catch (UnsupportedMessageException e) {
                 throw translateInteropException.execute(e);
             }
@@ -1042,11 +1011,10 @@ public abstract class InteropNodes {
     public abstract static class AsTimeNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object asTime(Object receiver,
-                @CachedContext(RubyLanguage.class) RubyContext context,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             try {
-                return context.getEnv().asGuestValue(receivers.asTime(receiver));
+                return getContext().getEnv().asGuestValue(receivers.asTime(receiver));
             } catch (UnsupportedMessageException e) {
                 throw translateInteropException.execute(e);
             }
@@ -1066,11 +1034,10 @@ public abstract class InteropNodes {
     public abstract static class AsTimeZoneNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object asTimeZone(Object receiver,
-                @CachedContext(RubyLanguage.class) RubyContext context,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             try {
-                return context.getEnv().asGuestValue(receivers.asTimeZone(receiver));
+                return getContext().getEnv().asGuestValue(receivers.asTimeZone(receiver));
             } catch (UnsupportedMessageException e) {
                 throw translateInteropException.execute(e);
             }
@@ -1245,11 +1212,6 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isNull(receiver);
         }
-
-        protected static int getInteropCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
-        }
-
     }
     // endregion
 
@@ -1337,9 +1299,9 @@ public abstract class InteropNodes {
             return InteropNodesFactory.ReadMemberNodeFactory.create(null);
         }
 
-        abstract Object execute(Object receiver, Object identifier);
+        public abstract Object execute(Object receiver, Object identifier);
 
-        @Specialization(guards = "isRubySymbolOrString(identifier)", limit = "getInteropCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object readMember(Object receiver, Object identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
@@ -1349,11 +1311,6 @@ public abstract class InteropNodes {
             final Object foreign = InteropNodes.readMember(receivers, receiver, name, translateInteropException);
             return foreignToRubyNode.executeConvert(foreign);
         }
-
-        protected static int getInteropCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
-        }
-
     }
 
     @GenerateUncached
@@ -1368,7 +1325,7 @@ public abstract class InteropNodes {
 
         abstract Object execute(Object receiver, Object identifier);
 
-        @Specialization(guards = "isRubySymbolOrString(identifier)", limit = "getInteropCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object readMember(Object receiver, Object identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
@@ -1376,11 +1333,6 @@ public abstract class InteropNodes {
             final String name = toJavaStringNode.executeToJavaString(identifier);
             return InteropNodes.readMember(receivers, receiver, name, translateInteropException);
         }
-
-        protected static int getInteropCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
-        }
-
     }
 
     @GenerateUncached
@@ -1393,11 +1345,9 @@ public abstract class InteropNodes {
             return InteropNodesFactory.WriteMemberNodeFactory.create(null);
         }
 
-        abstract Object execute(Object receiver, Object identifier, Object value);
+        public abstract Object execute(Object receiver, Object identifier, Object value);
 
-        @Specialization(
-                guards = "isRubySymbolOrString(identifier)",
-                limit = "getInteropCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object write(Object receiver, Object identifier, Object value,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ToJavaStringNode toJavaStringNode,
@@ -1412,9 +1362,33 @@ public abstract class InteropNodes {
 
             return value;
         }
+    }
 
-        protected static int getInteropCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
+    @GenerateUncached
+    @GenerateNodeFactory
+    @NodeChild(value = "arguments", type = RubyNode[].class)
+    @CoreMethod(names = "write_member_without_conversion", onSingleton = true, required = 3)
+    public abstract static class WriteMemberWithoutConversionNode extends RubySourceNode {
+
+        public static WriteMemberWithoutConversionNode create() {
+            return InteropNodesFactory.WriteMemberWithoutConversionNodeFactory.create(null);
+        }
+
+        public abstract Object execute(Object receiver, Object identifier, Object value);
+
+        @Specialization(limit = "getInteropCacheLimit()")
+        protected Object write(Object receiver, Object identifier, Object value,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached ToJavaStringNode toJavaStringNode,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            final String name = toJavaStringNode.executeToJavaString(identifier);
+            try {
+                receivers.writeMember(receiver, name, value);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+
+            return value;
         }
     }
 
@@ -1447,7 +1421,7 @@ public abstract class InteropNodes {
             return InteropNodesFactory.InvokeMemberNodeFactory.create(null);
         }
 
-        abstract Object execute(Object receiver, Object identifier, Object[] args);
+        public abstract Object execute(Object receiver, Object identifier, Object[] args);
 
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object invokeCached(Object receiver, Object identifier, Object[] args,
@@ -1460,10 +1434,6 @@ public abstract class InteropNodes {
             final Object[] arguments = rubyToForeignArgumentsNode.executeConvert(args);
             final Object foreign = invoke(receivers, receiver, name, arguments, translateInteropException);
             return foreignToRubyNode.executeConvert(foreign);
-        }
-
-        protected static int getInteropCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
     }
 
@@ -1708,15 +1678,6 @@ public abstract class InteropNodes {
         protected boolean isJavaClass(Object value) {
             return getContext().getEnv().isHostObject(value) &&
                     getContext().getEnv().asHostObject(value) instanceof Class;
-        }
-    }
-
-    @CoreMethod(names = "java_map?", onSingleton = true, visibility = Visibility.PRIVATE, required = 1)
-    public abstract static class InteropIsJavaMapNode extends CoreMethodArrayArgumentsNode {
-        @Specialization
-        protected boolean isJavaMap(Object value) {
-            return getContext().getEnv().isHostObject(value) &&
-                    getContext().getEnv().asHostObject(value) instanceof Map;
         }
     }
 
@@ -2261,9 +2222,8 @@ public abstract class InteropNodes {
     @Primitive(name = "top_scope")
     public abstract static class GetTopScopeNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected Object getTopScope(
-                @CachedContext(RubyLanguage.class) RubyContext context) {
-            return context.getTopScopeObject();
+        protected Object getTopScope() {
+            return getContext().getTopScopeObject();
         }
     }
     // endregion

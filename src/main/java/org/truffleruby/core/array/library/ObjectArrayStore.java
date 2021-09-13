@@ -10,10 +10,13 @@
 
 package org.truffleruby.core.array.library;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
@@ -24,6 +27,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
+import org.truffleruby.language.RubyBaseNode;
 
 @ExportLibrary(value = ArrayStoreLibrary.class, receiverType = Object[].class)
 @GenerateUncached
@@ -88,9 +92,16 @@ public class ObjectArrayStore {
 
         @Specialization(guards = "!isObjectStore(destStore)", limit = "storageStrategyLimit()")
         protected static void copyContents(Object[] srcStore, int srcStart, Object destStore, int destStart, int length,
+                @Cached @Exclusive LoopConditionProfile loopProfile,
                 @CachedLibrary("destStore") ArrayStoreLibrary destStores) {
-            for (int i = 0; i < length; i++) {
-                destStores.write(destStore, destStart + i, srcStore[srcStart + i]);
+            int i = 0;
+            try {
+                for (; loopProfile.inject(i < length); i++) {
+                    destStores.write(destStore, destStart + i, srcStore[srcStart + i]);
+                    TruffleSafepoint.poll(destStores);
+                }
+            } finally {
+                RubyBaseNode.profileAndReportLoopCount(destStores.getNode(), loopProfile, i);
             }
         }
 
@@ -100,13 +111,17 @@ public class ObjectArrayStore {
     }
 
     @ExportMessage
-    protected static void clear(Object[] store, int start, int length) {
-        Arrays.fill(store, start, start + length, null);
+    protected static void clear(Object[] store, int start, int length,
+            @CachedLibrary("store") ArrayStoreLibrary node,
+            @Cached @Exclusive LoopConditionProfile profile) {
+        ArrayUtils.fill(store, start, start + length, null, node, profile);
     }
 
     @ExportMessage
-    protected static void fill(Object[] store, int start, int length, Object value) {
-        Arrays.fill(store, start, start + length, value);
+    protected static void fill(Object[] store, int start, int length, Object value,
+            @CachedLibrary("store") ArrayStoreLibrary node,
+            @Cached @Exclusive LoopConditionProfile profile) {
+        ArrayUtils.fill(store, start, start + length, value, node, profile);
     }
 
     @ExportMessage

@@ -749,6 +749,10 @@ module Kernel
   Primitive.method_unimplement method(:fork)
   Primitive.method_unimplement nil.method(:fork)
 
+  def clone(freeze: true)
+    Primitive.object_clone self, freeze
+  end
+
   Truffle::Boot.delay do
     if Truffle::Boot.get_option('gets-loop')
       def chomp(separator=$/)

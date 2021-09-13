@@ -69,8 +69,8 @@ public class Options {
     public final boolean PATCHING;
     /** --hashing-deterministic=false */
     public final boolean HASHING_DETERMINISTIC;
-    /** --fiber-leave-context=true */
-    public final boolean FIBER_LEAVE_CONTEXT;
+    /** --fiber-pool=true */
+    public final boolean FIBER_POOL;
     /** --log-subprocess=false */
     public final boolean LOG_SUBPROCESS;
     /** --warn-locale=true */
@@ -161,6 +161,8 @@ public class Options {
     public final boolean ROPE_PRINT_INTERN_STATS;
     /** --cexts-to-native-stats=false */
     public final boolean CEXTS_TO_NATIVE_STATS;
+    /** --basic-ops-log-rewrite=false */
+    public final boolean BASICOPS_LOG_REWRITE;
     /** --array-small=3 */
     public final int ARRAY_SMALL;
     /** --cexts-marking-cache=100 */
@@ -191,6 +193,10 @@ public class Options {
     public final boolean METHODMISSING_ALWAYS_INLINE;
     /** --regexp-instrument-match=false */
     public final boolean REGEXP_INSTRUMENT_MATCH;
+    /** --regexp-instrument-match-detailed=false */
+    public final boolean REGEXP_INSTRUMENT_MATCH_DETAILED;
+    /** --regexp-instrumentation-output-format="text" */
+    public final String REGEXP_INSTRUMENT_OUTPUT_FORMAT;
     /** --metrics-time-parsing-file=false */
     public final boolean METRICS_TIME_PARSING_FILE;
     /** --metrics-time-require=false */
@@ -224,7 +230,7 @@ public class Options {
         PATTERN_MATCHING = options.get(OptionsCatalog.PATTERN_MATCHING_KEY);
         PATCHING = options.get(OptionsCatalog.PATCHING_KEY);
         HASHING_DETERMINISTIC = options.get(OptionsCatalog.HASHING_DETERMINISTIC_KEY);
-        FIBER_LEAVE_CONTEXT = options.get(OptionsCatalog.FIBER_LEAVE_CONTEXT_KEY);
+        FIBER_POOL = options.get(OptionsCatalog.FIBER_POOL_KEY);
         LOG_SUBPROCESS = options.get(OptionsCatalog.LOG_SUBPROCESS_KEY);
         WARN_LOCALE = options.get(OptionsCatalog.WARN_LOCALE_KEY);
         EXCEPTIONS_STORE_JAVA = options.get(OptionsCatalog.EXCEPTIONS_STORE_JAVA_KEY);
@@ -270,6 +276,7 @@ public class Options {
         LOG_PENDING_INTERRUPTS = options.get(OptionsCatalog.LOG_PENDING_INTERRUPTS_KEY);
         ROPE_PRINT_INTERN_STATS = options.get(OptionsCatalog.ROPE_PRINT_INTERN_STATS_KEY);
         CEXTS_TO_NATIVE_STATS = options.get(OptionsCatalog.CEXTS_TO_NATIVE_STATS_KEY);
+        BASICOPS_LOG_REWRITE = options.get(OptionsCatalog.BASICOPS_LOG_REWRITE_KEY);
         ARRAY_SMALL = options.get(OptionsCatalog.ARRAY_SMALL_KEY);
         CEXTS_MARKING_CACHE = options.get(OptionsCatalog.CEXTS_MARKING_CACHE_KEY);
         GLOBAL_VARIABLE_MAX_INVALIDATIONS = options.get(OptionsCatalog.GLOBAL_VARIABLE_MAX_INVALIDATIONS_KEY);
@@ -285,6 +292,8 @@ public class Options {
         METHODMISSING_ALWAYS_CLONE = options.hasBeenSet(OptionsCatalog.METHODMISSING_ALWAYS_CLONE_KEY) ? options.get(OptionsCatalog.METHODMISSING_ALWAYS_CLONE_KEY) : CLONE_DEFAULT;
         METHODMISSING_ALWAYS_INLINE = options.hasBeenSet(OptionsCatalog.METHODMISSING_ALWAYS_INLINE_KEY) ? options.get(OptionsCatalog.METHODMISSING_ALWAYS_INLINE_KEY) : INLINE_DEFAULT;
         REGEXP_INSTRUMENT_MATCH = options.get(OptionsCatalog.REGEXP_INSTRUMENT_MATCH_KEY);
+        REGEXP_INSTRUMENT_MATCH_DETAILED = options.get(OptionsCatalog.REGEXP_INSTRUMENT_MATCH_DETAILED_KEY);
+        REGEXP_INSTRUMENT_OUTPUT_FORMAT = options.get(OptionsCatalog.REGEXP_INSTRUMENT_OUTPUT_FORMAT_KEY);
         METRICS_TIME_PARSING_FILE = options.get(OptionsCatalog.METRICS_TIME_PARSING_FILE_KEY);
         METRICS_TIME_REQUIRE = options.get(OptionsCatalog.METRICS_TIME_REQUIRE_KEY);
         TESTING_RUBYGEMS = options.get(OptionsCatalog.TESTING_RUBYGEMS_KEY);
@@ -339,8 +348,8 @@ public class Options {
                 return PATCHING;
             case "ruby.hashing-deterministic":
                 return HASHING_DETERMINISTIC;
-            case "ruby.fiber-leave-context":
-                return FIBER_LEAVE_CONTEXT;
+            case "ruby.fiber-pool":
+                return FIBER_POOL;
             case "ruby.log-subprocess":
                 return LOG_SUBPROCESS;
             case "ruby.warn-locale":
@@ -431,6 +440,8 @@ public class Options {
                 return ROPE_PRINT_INTERN_STATS;
             case "ruby.cexts-to-native-stats":
                 return CEXTS_TO_NATIVE_STATS;
+            case "ruby.basic-ops-log-rewrite":
+                return BASICOPS_LOG_REWRITE;
             case "ruby.array-small":
                 return ARRAY_SMALL;
             case "ruby.cexts-marking-cache":
@@ -461,6 +472,10 @@ public class Options {
                 return METHODMISSING_ALWAYS_INLINE;
             case "ruby.regexp-instrument-match":
                 return REGEXP_INSTRUMENT_MATCH;
+            case "ruby.regexp-instrument-match-detailed":
+                return REGEXP_INSTRUMENT_MATCH_DETAILED;
+            case "ruby.regexp-instrumentation-output-format":
+                return REGEXP_INSTRUMENT_OUTPUT_FORMAT;
             case "ruby.metrics-time-parsing-file":
                 return METRICS_TIME_PARSING_FILE;
             case "ruby.metrics-time-require":

@@ -9,8 +9,6 @@
  */
 package org.truffleruby.language.objects.shared;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ShapeCachingGuards;
@@ -49,9 +47,8 @@ public abstract class IsSharedNode extends RubyBaseNode {
     }
 
     @Specialization(replaces = { "isShareCached", "updateShapeAndIsShared" })
-    protected boolean isSharedUncached(RubyDynamicObject object,
-            @CachedLanguage RubyLanguage language) {
-        return language.options.SHARED_OBJECTS_ENABLED && SharedObjects.isShared(object);
+    protected boolean isSharedUncached(RubyDynamicObject object) {
+        return getLanguage().options.SHARED_OBJECTS_ENABLED && SharedObjects.isShared(object);
     }
 
 }

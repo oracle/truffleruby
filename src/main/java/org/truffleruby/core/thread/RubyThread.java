@@ -12,15 +12,18 @@ package org.truffleruby.core.thread;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.memory.MemoryFence;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.exception.RubyException;
-import org.truffleruby.core.fiber.FiberManager;
+import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.klass.RubyClass;
@@ -35,14 +38,16 @@ import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 
 import com.oracle.truffle.api.object.Shape;
 
-public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
+public final class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
 
     // Fields initialized here are initialized just after the super() call, and before the rest of the constructor
     public final ThreadLocalGlobals threadLocalGlobals = new ThreadLocalGlobals();
     public InterruptMode interruptMode = InterruptMode.IMMEDIATE; // only accessed by this Ruby Thread and its Fibers
     public volatile ThreadStatus status = ThreadStatus.RUN;
-    public final List<Lock> ownedLocks = new ArrayList<>();
-    public final FiberManager fiberManager;
+    public final List<ReentrantLock> ownedLocks = new ArrayList<>();
+    private final RubyFiber rootFiber;
+    private RubyFiber currentFiber;
+    public final Set<RubyFiber> runningFibers = newFiberSet();
     CountDownLatch finishedLatch = new CountDownLatch(1);
     final RubyHash threadLocalVariables;
     final RubyHash recursiveObjects;
@@ -81,18 +86,56 @@ public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
         this.abortOnException = abortOnException;
         this.threadGroup = threadGroup;
         this.sourceLocation = sourceLocation;
+
         // Initialized last as it captures `this`
-        this.fiberManager = new FiberManager(language, context, this);
+        MemoryFence.storeStore();
+        this.rootFiber = new RubyFiber(
+                context.getCoreLibrary().fiberClass,
+                language.fiberShape,
+                context,
+                language,
+                this,
+                "root");
+        this.currentFiber = rootFiber;
+    }
+
+    public RubyFiber getRootFiber() {
+        return rootFiber;
+    }
+
+    public RubyFiber getCurrentFiber() {
+        assert RubyLanguage
+                .getCurrentLanguage()
+                .getCurrentThread() == this : "Trying to read the current Fiber of another Thread which is inherently racy";
+        return currentFiber;
+    }
+
+    // If the currentFiber is read from another Ruby Thread,
+    // there is no guarantee that fiber will remain the current one
+    // as it could switch to another Fiber before the actual operation on the returned fiber.
+    public RubyFiber getCurrentFiberRacy() {
+        return currentFiber;
+    }
+
+    public void setCurrentFiber(RubyFiber fiber) {
+        currentFiber = fiber;
     }
 
     @Override
     public void getAdjacentObjects(Set<Object> reachable) {
         ObjectGraph.addProperty(reachable, threadLocalVariables);
         ObjectGraph.addProperty(reachable, name);
+        // share fibers of a thread as its fiberLocals might be accessed by other threads with Thread#[]
+        reachable.addAll(runningFibers);
     }
 
     @Override
     public String toString() {
         return super.toString() + " " + sourceLocation;
+    }
+
+    @TruffleBoundary
+    private static Set<RubyFiber> newFiberSet() {
+        return ConcurrentHashMap.newKeySet();
     }
 }

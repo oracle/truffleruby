@@ -10,13 +10,10 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
@@ -59,14 +56,13 @@ public abstract class BigIntegerCastNode extends RubySourceNode {
     }
 
     @Specialization(guards = "!isRubyInteger(value)")
-    protected BigInteger doBasicObject(Object value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        throw new RaiseException(context, notAnInteger(context, value));
+    protected BigInteger doBasicObject(Object value) {
+        throw new RaiseException(getContext(), notAnInteger(value));
     }
 
     @TruffleBoundary
-    private RubyException notAnInteger(RubyContext context, Object object) {
-        return context.getCoreExceptions().typeErrorIsNotA(
+    private RubyException notAnInteger(Object object) {
+        return coreExceptions().typeErrorIsNotA(
                 object.toString(),
                 "Integer",
                 this);

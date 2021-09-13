@@ -16,6 +16,7 @@ package org.truffleruby.core.string;
 import java.math.BigInteger;
 import java.util.Arrays;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
@@ -733,7 +734,7 @@ public class ConvertBytes {
 
     public static final byte[] twosComplementToUnsignedBytes(byte[] in, int shift, boolean upper) {
         if (shift < 1 || shift > 4) {
-            throw new IllegalArgumentException("shift value must be 1-4");
+            throw CompilerDirectives.shouldNotReachHere("shift value must be 1-4");
         }
         int ilen = in.length;
         int olen = (ilen * 8 + shift - 1) / shift;

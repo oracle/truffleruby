@@ -21,9 +21,11 @@ import static org.truffleruby.core.rope.CodeRange.CR_VALID;
 
 import java.util.Arrays;
 
+import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
@@ -39,7 +41,6 @@ import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.utils.Utils;
 
@@ -280,14 +281,22 @@ public abstract class RopeNodes {
         @Specialization(
                 rewriteOn = NonAsciiCharException.class,
                 guards = { "!bytes.isEmpty()", "!isBinaryString(encoding)", "isAsciiCompatible(encoding)" })
-        protected StringAttributes calculateAttributesAsciiCompatible(Encoding encoding, Bytes bytes)
+        protected StringAttributes calculateAttributesAsciiCompatible(Encoding encoding, Bytes bytes,
+                @Cached LoopConditionProfile loopProfile)
                 throws NonAsciiCharException {
             // Optimistically assume this string consists only of ASCII characters. If a non-ASCII character is found,
             // fail over to a more generalized search.
-            for (int i = 0; i < bytes.length; i++) {
-                if (bytes.get(i) < 0) {
-                    throw new NonAsciiCharException();
+
+            int i = 0;
+            try {
+                for (; loopProfile.inject(i < bytes.length); i++) {
+                    if (bytes.get(i) < 0) {
+                        throw new NonAsciiCharException();
+                    }
+                    TruffleSafepoint.poll(this);
                 }
+            } finally {
+                profileAndReportLoopCount(loopProfile, i);
             }
 
             return new StringAttributes(bytes.length, CR_7BIT);
@@ -381,7 +390,7 @@ public abstract class RopeNodes {
 
     }
 
-    public abstract static class ConcatNode extends RubyContextNode {
+    public abstract static class ConcatNode extends RubyBaseNode {
 
         public static ConcatNode create() {
             return RopeNodesFactory.ConcatNodeGen.create();
@@ -681,7 +690,7 @@ public abstract class RopeNodes {
     }
 
     @ImportStatic(RopeGuards.class)
-    public abstract static class RepeatNode extends RubyContextNode {
+    public abstract static class RepeatNode extends RubyBaseNode {
 
         public static RepeatNode create() {
             return RopeNodesFactory.RepeatNodeGen.create();
@@ -736,7 +745,7 @@ public abstract class RopeNodes {
 
     }
 
-    public abstract static class DebugPrintRopeNode extends RubyContextNode {
+    public abstract static class DebugPrintRopeNode extends RubyBaseNode {
 
         public abstract Object executeDebugPrint(Rope rope, int currentLevel, boolean printString);
 
@@ -1053,7 +1062,7 @@ public abstract class RopeNodes {
         }
     }
 
-    public abstract static class SetByteNode extends RubyContextNode {
+    public abstract static class SetByteNode extends RubyBaseNode {
 
         @Child private ConcatNode composedConcatNode = ConcatNode.create();
         @Child private ConcatNode middleConcatNode = ConcatNode.create();
@@ -1094,7 +1103,7 @@ public abstract class RopeNodes {
 
     }
 
-    public abstract static class GetCodePointNode extends RubyContextNode {
+    public abstract static class GetCodePointNode extends RubyBaseNode {
 
         @Child private CalculateCharacterLengthNode calculateCharacterLengthNode;
         @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
@@ -1163,7 +1172,7 @@ public abstract class RopeNodes {
     }
 
     @ImportStatic(RopeGuards.class)
-    public abstract static class FlattenNode extends RubyContextNode {
+    public abstract static class FlattenNode extends RubyBaseNode {
 
         @Child private MakeLeafRopeNode makeLeafRopeNode = MakeLeafRopeNode.create();
 
@@ -1202,7 +1211,7 @@ public abstract class RopeNodes {
 
     }
 
-    public abstract static class EqualNode extends RubyContextNode {
+    public abstract static class EqualNode extends RubyBaseNode {
 
         public static EqualNode create() {
             return RopeNodesFactory.EqualNodeGen.create();
@@ -1231,7 +1240,7 @@ public abstract class RopeNodes {
 
     // This node type checks for the equality of the bytes owned by a rope but does not pay
     // attention to the encoding.
-    public abstract static class BytesEqualNode extends RubyContextNode {
+    public abstract static class BytesEqualNode extends RubyBaseNode {
 
         public static BytesEqualNode create() {
             return RopeNodesFactory.BytesEqualNodeGen.create();
@@ -1308,7 +1317,7 @@ public abstract class RopeNodes {
 
         protected boolean canBeCached(Rope a, Rope b) {
             if (getContext().isPreInitializing()) {
-                final String home = getContext().getRubyHome();
+                final String home = getLanguage().getRubyHome();
                 return !RopeOperations.anyChildContains(a, home) && !RopeOperations.anyChildContains(b, home);
             } else {
                 return true;
@@ -1445,7 +1454,7 @@ public abstract class RopeNodes {
 
     }
 
-    public abstract static class CharacterLengthNode extends RubyContextNode {
+    public abstract static class CharacterLengthNode extends RubyBaseNode {
 
         public static CharacterLengthNode create() {
             return RopeNodesFactory.CharacterLengthNodeGen.create();
@@ -1477,7 +1486,7 @@ public abstract class RopeNodes {
 
     }
 
-    public abstract static class SingleByteOptimizableNode extends RubyContextNode {
+    public abstract static class SingleByteOptimizableNode extends RubyBaseNode {
 
         public static SingleByteOptimizableNode create() {
             return RopeNodesFactory.SingleByteOptimizableNodeGen.create();
@@ -1637,7 +1646,7 @@ public abstract class RopeNodes {
 
     }
 
-    public abstract static class NativeToManagedNode extends RubyContextNode {
+    public abstract static class NativeToManagedNode extends RubyBaseNode {
 
         public static NativeToManagedNode create() {
             return RopeNodesFactory.NativeToManagedNodeGen.create();
@@ -1660,7 +1669,7 @@ public abstract class RopeNodes {
     }
 
     @ImportStatic(RopeGuards.class)
-    public abstract static class AreComparableRopesNode extends RubyContextNode {
+    public abstract static class AreComparableRopesNode extends RubyBaseNode {
 
         public static AreComparableRopesNode create() {
             return AreComparableRopesNodeGen.create();
@@ -1707,7 +1716,7 @@ public abstract class RopeNodes {
 
     }
 
-    public abstract static class CompareRopesNode extends RubyContextNode {
+    public abstract static class CompareRopesNode extends RubyBaseNode {
 
         public static CompareRopesNode create() {
             return CompareRopesNodeGen.create();
@@ -1724,6 +1733,7 @@ public abstract class RopeNodes {
                 @Cached ConditionProfile equalProfile,
                 @Cached ConditionProfile notComparableProfile,
                 @Cached ConditionProfile encodingIndexGreaterThanProfile,
+                @Cached LoopConditionProfile loopProfile,
                 @Cached BytesNode firstBytesNode,
                 @Cached BytesNode secondBytesNode,
                 @Cached AreComparableRopesNode areComparableRopesNode) {
@@ -1740,7 +1750,7 @@ public abstract class RopeNodes {
             final byte[] otherBytes = secondBytesNode.execute(secondRope);
 
             final int ret;
-            final int cmp = ArrayUtils.memcmp(bytes, 0, otherBytes, 0, memcmpLength);
+            final int cmp = ArrayUtils.memcmp(bytes, 0, otherBytes, 0, memcmpLength, this, loopProfile);
             if (equalSubsequenceProfile.profile(cmp == 0)) {
                 if (equalLengthProfile.profile(firstRope.byteLength() == secondRope.byteLength())) {
                     ret = 0;

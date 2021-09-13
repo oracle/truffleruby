@@ -285,10 +285,6 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
                 coreMethod.required() + ", " +
                 coreMethod.optional() + ", " +
                 coreMethod.rest() + ", " +
-                (coreMethod.keywordAsOptional().isEmpty()
-                        ? "null"
-                        : quote(coreMethod.keywordAsOptional())) +
-                ", " +
                 names + ");");
 
         final boolean hasSelfArgument = !coreMethod.onSingleton() && !coreMethod.constructor() &&
@@ -337,10 +333,6 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
             if (coreMethod.rest()) {
                 args.add("*" + argumentNames.get(index));
                 index++;
-            }
-            if (!coreMethod.keywordAsOptional().isEmpty()) {
-                // TODO (pitr-ch 03-Oct-2019): check interaction with names, or remove it
-                args.add(coreMethod.keywordAsOptional() + ": :unknown_default_value");
             }
             if (coreMethod.needsBlock()) {
                 args.add("&" + argumentNames.get(index));

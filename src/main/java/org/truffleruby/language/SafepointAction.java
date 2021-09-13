@@ -14,6 +14,7 @@ import com.oracle.truffle.api.ThreadLocalAction;
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.core.thread.RubyThread;
 
 import java.util.Objects;
@@ -58,10 +59,21 @@ public abstract class SafepointAction extends ThreadLocalAction {
         }
 
         final RubyContext context = RubyLanguage.getCurrentContext();
-        final RubyThread rubyThread = context.getThreadManager().getCurrentThread();
+        // Not using language.getCurrentThread() here because it might not be set yet, see fiberMain()
+        final RubyThread rubyThread = context.getThreadManager().getRubyThreadForJavaThread(access.getThread());
         if (filter.test(context, rubyThread, this)) {
             run(rubyThread, access.getLocation());
+
+            if (filter == SafepointPredicate.ALL_THREADS_AND_FIBERS) {
+                final RubyFiber currentFiber = rubyThread.getCurrentFiber();
+                for (RubyFiber fiber : rubyThread.runningFibers) {
+                    if (fiber != currentFiber) {
+                        context.fiberManager.safepoint(currentFiber, fiber, this, access.getLocation());
+                    }
+                }
+            }
         }
+
     }
 
     public boolean isSynchronous() {

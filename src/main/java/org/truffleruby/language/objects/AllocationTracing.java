@@ -21,8 +21,6 @@ import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.LexicalScope;
-import org.truffleruby.language.RubyContextNode;
-import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.arguments.RubyArguments;
 
@@ -37,20 +35,10 @@ import org.truffleruby.language.methods.InternalMethod;
 
 public abstract class AllocationTracing {
 
-    public static void trace(RubyDynamicObject instance, RubyContextNode node) {
-        traceObject(node.getLanguage(), node.getContext(), instance, node);
-    }
+    public static void trace(RubyDynamicObject instance, Node currentNode) {
+        final RubyLanguage language = RubyLanguage.get(currentNode);
+        final RubyContext context = RubyContext.get(currentNode);
 
-    public static void trace(RubyDynamicObject instance, RubyContextSourceNode node) {
-        traceObject(node.getLanguage(), node.getContext(), instance, node);
-    }
-
-    public static void trace(RubyLanguage language, RubyContext context, RubyDynamicObject instance, Node node) {
-        traceObject(language, context, instance, node);
-    }
-
-    private static void traceObject(RubyLanguage language, RubyContext context, RubyDynamicObject instance,
-            Node currentNode) {
         truffleTracing(language, instance);
 
         if (context.getObjectSpaceManager().isTracing(language)) {
@@ -99,7 +87,7 @@ public abstract class AllocationTracing {
 
     @TruffleBoundary
     private static void traceInlineBoundary(RubyContext context, RubyDynamicObject instance, String className,
-            String allocatingMethod, RubyContextSourceNode node) {
+            String allocatingMethod, Node node) {
         final ObjectSpaceManager objectSpaceManager = context.getObjectSpaceManager();
         if (!objectSpaceManager.isTracingPaused()) {
             objectSpaceManager.setTracingPaused(true);
@@ -136,7 +124,7 @@ public abstract class AllocationTracing {
 
     @TruffleBoundary
     private static void callTraceInlineAllocation(RubyContext context, RubyDynamicObject instance, String className,
-            String allocatingMethod, RubyContextSourceNode node) {
+            String allocatingMethod, Node node) {
         final SourceSection allocatingSourceSection = context
                 .getCallStack()
                 .getTopMostUserSourceSection(node.getEncapsulatingSourceSection());

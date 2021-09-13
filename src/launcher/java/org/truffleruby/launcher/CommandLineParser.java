@@ -101,7 +101,7 @@ public class CommandLineParser {
     }
 
     private void processArgv() {
-        boolean argvGlobalsOn = config.getOption(OptionsCatalog.ARGV_GLOBALS);
+        boolean argvGlobalsOn = config.getOptionRaw(OptionsCatalog.ARGV_GLOBALS).equals("true");
         ArrayList<String> arglist = new ArrayList<>();
         for (; argumentIndex < arguments.size(); argumentIndex++) {
             String arg = getCurrentArgument();
@@ -424,6 +424,9 @@ public class CommandLineParser {
                         characterIndex = argument.length();
                         String feature = grabValue(getArgumentError("missing argument for " + argument), false);
                         config.getUnknownArguments().add(argument + "=" + feature);
+                        break FOR;
+                    } else if (argument.equals("--log-process-args") || argument.equals("--log-process-args=true")) {
+                        config.logProcessArguments = true;
                         break FOR;
                     } else if (argument.equals("--yydebug")) {
                         disallowedInRubyOpts(argument);

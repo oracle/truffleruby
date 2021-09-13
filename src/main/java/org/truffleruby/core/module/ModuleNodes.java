@@ -19,15 +19,14 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 import com.oracle.truffle.api.CompilerAsserts;
-import com.oracle.truffle.api.TruffleLanguage.ContextReference;
-import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -77,12 +76,10 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyConstant;
-import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyLambdaRootNode;
-import org.truffleruby.language.RubyMethodRootNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
@@ -137,7 +134,6 @@ import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -397,7 +393,7 @@ public abstract class ModuleNodes {
     @GenerateUncached
     public abstract static class GeneratedReaderNode extends AlwaysInlinedMethodNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getDynamicObjectCacheLimit()")
         protected Object reader(
                 Frame callerFrame, RubyDynamicObject self, Object[] args, Object block, RootCallTarget target,
                 @CachedLibrary("self") DynamicObjectLibrary objectLibrary) {
@@ -411,10 +407,6 @@ public abstract class ModuleNodes {
         @Specialization(guards = "!isRubyDynamicObject(self)")
         protected Object notObject(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target) {
             return nil;
-        }
-
-        protected int getCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.INSTANCE_VARIABLE_CACHE;
         }
     }
 
@@ -436,9 +428,8 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = "rubyLibrary.isFrozen(self)")
         protected Object frozen(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
-                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
-            throw new RaiseException(context, context.getCoreExceptions().frozenError(self, this));
+                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary) {
+            throw new RaiseException(getContext(), coreExceptions().frozenError(self, this));
         }
     }
 
@@ -482,8 +473,6 @@ public abstract class ModuleNodes {
         private void createAccessor(RubyModule module, String name, Accessor accessor, Visibility visibility,
                 SourceSection sourceSection) {
             assert accessor != BOTH;
-            final RubyContext context = RubyLanguage.getCurrentContext();
-            final RubyLanguage language = context.getLanguageSlow();
             final Arity arity = accessor == READER ? Arity.NO_ARGUMENTS : Arity.ONE_REQUIRED;
             final String ivar = "@" + name;
             final String accessorName = accessor == READER ? name : name + "=";
@@ -503,7 +492,7 @@ public abstract class ModuleNodes {
                     : GeneratedWriterNodeFactory.getInstance();
 
             final RubyRootNode reRaiseRootNode = new RubyRootNode(
-                    language,
+                    getLanguage(),
                     sourceSection,
                     null,
                     sharedMethodInfo,
@@ -513,7 +502,7 @@ public abstract class ModuleNodes {
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(reRaiseRootNode);
 
             final InternalMethod method = new InternalMethod(
-                    context,
+                    getContext(),
                     sharedMethodInfo,
                     LexicalScope.IGNORE,
                     DeclarationContext.NONE,
@@ -527,7 +516,7 @@ public abstract class ModuleNodes {
                     null,
                     nil);
 
-            module.fields.addMethod(context, this, method);
+            module.fields.addMethod(getContext(), this, method);
         }
     }
 
@@ -554,10 +543,7 @@ public abstract class ModuleNodes {
         private void warnObsoletedBooleanArgument() {
             final UncachedWarningNode warningNode = UncachedWarningNode.INSTANCE;
             if (warningNode.shouldWarn()) {
-                final SourceSection sourceSection = RubyLanguage
-                        .getCurrentContext()
-                        .getCallStack()
-                        .getTopMostUserSourceSection();
+                final SourceSection sourceSection = getContext().getCallStack().getTopMostUserSourceSection();
                 warningNode.warningMessage(sourceSection, "optional boolean argument is obsoleted");
             }
         }
@@ -1191,7 +1177,7 @@ public abstract class ModuleNodes {
     @NodeChild(value = "module", type = RubyNode.class)
     @NodeChild(value = "name", type = RubyNode.class)
     @NodeChild(value = "value", type = RubyNode.class)
-    public abstract static class ConstSetUncheckedNode extends RubyContextNode {
+    public abstract static class ConstSetUncheckedNode extends RubyBaseNode {
 
         @Child private WarnAlreadyInitializedNode warnAlreadyInitializedNode;
 
@@ -1322,23 +1308,13 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         private RubySymbol defineMethod(RubyModule module, String name, RubyProc proc,
                 MaterializedFrame callerFrame) {
-            final RubyRootNode rootNode = RubyRootNode.of(proc.callTargets.getCallTargetForLambda());
+            final RootCallTarget callTargetForLambda = proc.callTargets.getCallTargetForLambda();
+            final RubyLambdaRootNode rootNode = RubyLambdaRootNode.of(callTargetForLambda);
             final SharedMethodInfo info = proc.sharedMethodInfo.forDefineMethod(module, name);
-            final Arity arityForCheck = rootNode instanceof RubyLambdaRootNode
-                    ? ((RubyLambdaRootNode) rootNode).arityForCheck
-                    : info.getArity();
+            final RubyNode body = rootNode.copyBody();
+            final RubyNode newBody = new CallMethodWithLambdaBody(proc.declarationFrame, body);
 
-            final RubyNode body = NodeUtil.cloneNode(rootNode.getBody());
-            final RubyNode newBody = new CallMethodWithProcBody(proc.declarationFrame, body);
-            final RubyMethodRootNode newRootNode = new RubyMethodRootNode(
-                    getLanguage(),
-                    info.getSourceSection(),
-                    rootNode.getFrameDescriptor(),
-                    info,
-                    newBody,
-                    Split.HEURISTIC,
-                    rootNode.returnID,
-                    arityForCheck);
+            final RubyLambdaRootNode newRootNode = rootNode.copyRootNode(info, newBody);
             final RootCallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
 
             final InternalMethod method = InternalMethod.fromProc(
@@ -1353,20 +1329,20 @@ public abstract class ModuleNodes {
             return addMethod(module, name, method, callerFrame);
         }
 
-        private static class CallMethodWithProcBody extends RubyContextSourceNode {
+        private static class CallMethodWithLambdaBody extends RubyContextSourceNode {
 
             private final MaterializedFrame declarationFrame;
-            @Child private RubyNode procBody;
+            @Child private RubyNode lambdaBody;
 
-            public CallMethodWithProcBody(MaterializedFrame declarationFrame, RubyNode procBody) {
+            public CallMethodWithLambdaBody(MaterializedFrame declarationFrame, RubyNode lambdaBody) {
                 this.declarationFrame = declarationFrame;
-                this.procBody = procBody;
+                this.lambdaBody = lambdaBody;
             }
 
             @Override
             public Object execute(VirtualFrame frame) {
                 RubyArguments.setDeclarationFrame(frame, declarationFrame);
-                return procBody.execute(frame);
+                return lambdaBody.execute(frame);
             }
 
         }
@@ -1561,9 +1537,8 @@ public abstract class ModuleNodes {
         @Specialization(guards = "names.length == 0")
         protected RubyModule frame(
                 Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target,
-                @Cached BranchProfile errorProfile,
-                @CachedContext(RubyLanguage.class) ContextReference<RubyContext> contextRef) {
-            checkNotClass(module, errorProfile, contextRef);
+                @Cached BranchProfile errorProfile) {
+            checkNotClass(module, errorProfile);
             needCallerFrame(callerFrame, "Module#module_function with no arguments");
             DeclarationContext.setCurrentVisibility(callerFrame, Visibility.MODULE_FUNCTION);
             return module;
@@ -1574,22 +1549,26 @@ public abstract class ModuleNodes {
                 Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode,
                 @Cached BranchProfile errorProfile,
-                @CachedContext(RubyLanguage.class) ContextReference<RubyContext> contextRef) {
-            checkNotClass(module, errorProfile, contextRef);
-            for (Object name : names) {
-                setMethodVisibilityNode.execute(module, name, Visibility.MODULE_FUNCTION);
+                @Cached LoopConditionProfile loopProfile) {
+            checkNotClass(module, errorProfile);
+            int i = 0;
+            try {
+                for (; loopProfile.inject(i < names.length); ++i) {
+                    setMethodVisibilityNode.execute(module, names[i], Visibility.MODULE_FUNCTION);
+                    TruffleSafepoint.poll(this);
+                }
+            } finally {
+                profileAndReportLoopCount(loopProfile, i);
             }
             return module;
         }
 
-        private void checkNotClass(RubyModule module, BranchProfile errorProfile,
-                ContextReference<RubyContext> contextRef) {
+        private void checkNotClass(RubyModule module, BranchProfile errorProfile) {
             if (module instanceof RubyClass) {
                 errorProfile.enter();
-                final RubyContext context = contextRef.get();
                 throw new RaiseException(
-                        context,
-                        context.getCoreExceptions().typeError("module_function must be called for modules", this));
+                        getContext(),
+                        coreExceptions().typeError("module_function must be called for modules", this));
             }
         }
     }
@@ -2179,18 +2158,17 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected void setMethodVisibility(RubyModule module, Object name, Visibility visibility,
-                @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached BranchProfile errorProfile,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
             final String methodName = nameToJavaStringNode.execute(name);
 
-            final InternalMethod method = module.fields.deepMethodSearch(context, methodName);
+            final InternalMethod method = module.fields.deepMethodSearch(getContext(), methodName);
 
             if (method == null) {
                 errorProfile.enter();
                 throw new RaiseException(
-                        context,
-                        context.getCoreExceptions().nameErrorUndefinedMethod(methodName, module, this));
+                        getContext(),
+                        coreExceptions().nameErrorUndefinedMethod(methodName, module, this));
             }
 
             // Do nothing if the method already exists with the same visibility, like MRI
@@ -2200,7 +2178,7 @@ public abstract class ModuleNodes {
 
             /* If the method was already defined in this class, that's fine {@link addMethod} will overwrite it,
              * otherwise we do actually want to add a copy of the method with a different visibility to this module. */
-            module.addMethodIgnoreNameVisibility(context, method, visibility, this);
+            module.addMethodIgnoreNameVisibility(getContext(), method, visibility, this);
         }
 
     }
@@ -2282,24 +2260,23 @@ public abstract class ModuleNodes {
     public abstract static class ModuleUsingNode extends UsingNode {
         @Specialization
         protected Object moduleUsing(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
-                @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached BranchProfile errorProfile) {
             needCallerFrame(callerFrame, target);
             final Object refinementModule = args[0];
             if (self != RubyArguments.getSelf(callerFrame)) {
                 errorProfile.enter();
                 throw new RaiseException(
-                        context,
-                        context.getCoreExceptions().runtimeError("Module#using is not called on self", this));
+                        getContext(),
+                        coreExceptions().runtimeError("Module#using is not called on self", this));
             }
             final InternalMethod callerMethod = RubyArguments.getMethod(callerFrame);
             if (!isCalledFromClassOrModule(callerMethod)) {
                 errorProfile.enter();
                 throw new RaiseException(
-                        context,
-                        context.getCoreExceptions().runtimeError("Module#using is not permitted in methods", this));
+                        getContext(),
+                        coreExceptions().runtimeError("Module#using is not permitted in methods", this));
             }
-            using(context, callerFrame, refinementModule, errorProfile);
+            using(callerFrame, refinementModule, errorProfile);
             return self;
         }
 

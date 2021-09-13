@@ -9,7 +9,6 @@
  */
 package org.truffleruby.interop;
 
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -63,7 +62,7 @@ public abstract class ForeignToRubyArgumentsNode extends RubyBaseNode {
     }
 
     protected int getLimit() {
-        return RubyLanguage.getCurrentLanguage().options.INTEROP_CONVERT_CACHE;
+        return getLanguage().options.INTEROP_CONVERT_CACHE;
     }
 
 }

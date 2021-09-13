@@ -1,8 +1,32 @@
+# 22.0.0
+
+New features:
+
+
+Bug fixes:
+
+
+Compatibility:
+
+
+Performance:
+
+
+Changes:
+
+
 # 21.3.0
 
 New features:
 
 * [TRegex](https://github.com/oracle/graal/tree/master/regex) is now used by default, which provides large speedups for matching regular expressions.
+* Add `Polyglot.languages` to expose the list of available languages.
+* Add `Polyglot::InnerContext` to eval code in any available language in an inner isolated context (#2169).
+* Foreign objects now have a dynamically-generated class based on their interop traits like `ForeignArray` and are better integrated with Ruby objects (#2149).
+* Foreign arrays now have all methods of Ruby `Enumerable` and many methods of `Array` (#2149).
+* Foreign hashes now have all methods of Ruby `Enumerable` and many methods of `Hash` (#2149).
+* Foreign iterables (`InteropLibrary#hasIterator`) now have all methods of Ruby `Enumerable` (#2149).
+* Foreign objects now implement `#instance_variables` (readable non-invocable members) and `#methods` (invocable members + Ruby methods).
 
 Bug fixes:
 
@@ -11,6 +35,12 @@ Bug fixes:
 * Fix `String#scrub` when replacement is frozen (#2398, @LillianZ).
 * Fix `Dir.mkdir` error handling for `Pathname` paths (#2397).
 * `BasicSocket#*_nonblock(exception: false)` now only return `:wait_readable/:wait_writable` for `EAGAIN`/`EWOULDBLOCK` like MRI (#2400).
+* Fix issue with `strspn` used in the `date` C extension compiled as a macro on older glibc and then missing the `__strspn_c1` symbol on newer glibc (#2406).
+* Fix constant lookup when loading the same file multiple times (#2408).
+* Fix handling of `break`, `next` and `redo` in `define_method(name, &block)` methods (#2418).
+* Fix handling of incompatible types in `Float#<=>` (#2432, @chrisseaton).
+* Fix issue with escaping curly braces for `Dir.glob` (#2425).
+* Fix `base64` decoding issue with missing output (#2435).
 
 Compatibility:
 
@@ -18,12 +48,33 @@ Compatibility:
 * Update `rb_str_modify` and `rb_str_modify_expand` to raise a `FrozenError` when given a frozen string (#2392).
 * Implement `rb_fiber_*` functions (#2402).
 * Implement `rb_str_vcatf`.
+* Add support for tracing allocations from C functions (#2403, @chrisseaton).
+* Implement `rb_str_catf`.
+* Search the executable in the passed env `PATH` for subprocesses (#2419).
+* Accept a string as the pattern argument to `StringScanner#scan` and `StringScanner#check` (#2423).
 
 Performance:
 
+* Moved most of `MonitorMixin` to primitives to deal with interrupts more efficiently (#2375).
+* Improved the performance of `rb_enc_from_index` by adding cached lookups (#2379, @nirvdrum).
+* Improved the performance of many `MatchData` operations (#2384, @nirvdrum).
+* Significantly improved performance of TRegex calls by allowing Truffle splitting (#2389, @nirvdrum).
+* Improved `String#gsub` performance by adding a fast path for the `string_byte_index` primitive (#2380, @nirvdrum).
+* Improved `String#index` performance by adding a fast path for the `string_character_index` primitive (#2383, @LillianZ).
+* Optimized conversion of strings to integers if the string contained a numeric value (#2401, @nirvdrum).
+* Use Truffle's `ContextThreadLocal` to speedup access to thread-local data.
+* Provide a new fast path for `rb_backref*` and `rb_lastline*`functions from C extensions.
 
 Changes:
 
+* `foreign_object.class` on foreign objects is no longer special and uses `Kernel#class` (it used to return the `java.lang.Class` object for a Java type or `getMetaObject()`, but that is too incompatible with Ruby code).
+* `Java.import name` imports a Java class in the enclosing module instead of always as a top-level constant.
+* `foreign_object.keys` no longer returns members, use `foreign_object.instance_variables` or `foreign_object.methods` instead.
+* `foreign_object.respond_to?(:class)` is now always true (before it was only for Java classes), since the method is always defined.
+
+Security:
+
+* Updated to Ruby 2.7.4 to fix CVE-2021-31810, CVE-2021-32066 and CVE-2021-31799.
 
 # 21.2.0
 
@@ -58,7 +109,7 @@ Compatibility:
 * Allow `Fiber#raise` after `Fiber#transfer` like Ruby 3.0 (#2342).
 * Fix `ObjectSpace._id2ref` for Symbols and frozen String literals (#2358).
 * Implemented `Enumerator::Lazy#filter_map` (#2356).
-* Fix LLVM toolchain issue on macOS 10.13 (#2352, [oracle/graal#3383](https://github.com/oracle/graal/issues/3383)).
+* Fix LLVM toolchain issue on macOS 11.3 (#2352, [oracle/graal#3383](https://github.com/oracle/graal/issues/3383)).
 * Implement `IO#set_encoding_by_bom` (#2372, pawandubey).
 * Implemented `Enumerator::Lazy#with_index` (#2356).
 * Implement `rb_backref_set`.
@@ -77,6 +128,7 @@ Performance:
 * Significantly improved performance of `Time#strftime` for common formats (#2361, @wildmaples, @chrisseaton).
 * Faster solution for lazy integer length (#2365, @lemire, @chrisseaton).
 * Speedup `rb_funcallv*()` by directly unwrapping the C arguments array instead of going through a Ruby `Array` (#2089).
+* Improved the performance of several `Truffle::RegexOperations` methods (#2374, @wildmapes, @nirvdrum).
 
 Changes:
 

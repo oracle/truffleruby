@@ -38,6 +38,12 @@ class Rational < Numeric
   attr_reader :numerator
   attr_reader :denominator
 
+  class << self
+    alias_method :new_already_canonical, :new
+    undef_method :new
+    private :new_already_canonical
+  end
+
   def *(other)
     case other
     when Rational
@@ -67,19 +73,19 @@ class Rational < Numeric
           raise ZeroDivisionError, 'divided by 0' if self == 0
           Rational(@denominator ** -other, @numerator ** -other)
         elsif other == 0
-          Rational.new(1, 1)
+          Rational.__send__(:new_already_canonical, 1, 1)
         end
       else
         if self == 0
           if other < 0
             raise ZeroDivisionError, 'divided by 0'
           elsif other > 0
-            Rational.new(0, 1)
+            Rational.__send__(:new_already_canonical, 0, 1)
           end
         elsif self == 1
-          Rational.new(1, 1)
+          Rational.__send__(:new_already_canonical, 1, 1)
         elsif self == -1
-          Rational.new(other.even? ? 1 : -1, 1)
+          Rational.__send__(:new_already_canonical, other.even? ? 1 : -1, 1)
         else
           to_f ** other
         end
@@ -176,7 +182,7 @@ class Rational < Numeric
   def abs
     return self if @numerator >= 0
 
-    Rational.new(-@numerator, @denominator)
+    Rational.__send__(:new_already_canonical, -@numerator, @denominator)
   end
 
   def ceil(precision = 0)
@@ -190,7 +196,7 @@ class Rational < Numeric
   def coerce(other)
     case other
     when Integer
-      [Rational.new(other, 1), self]
+      [Rational.__send__(:new_already_canonical, other, 1), self]
     when Float
       [other, self.to_f]
     when Rational
@@ -263,7 +269,7 @@ class Rational < Numeric
     end
 
     # The rational number is guaranteed to be in lowest terms.
-    Rational.new(c * p1 + p0, c * q1 + q0)
+    Rational.__send__(:new_already_canonical, c * p1 + p0, c * q1 + q0)
   end
 
   def round(precision = 0, half: nil)
@@ -373,7 +379,7 @@ class Rational < Numeric
       end
 
       if den == 1
-        return new(num, den)
+        return Rational.__send__(:new_already_canonical, num, den)
       end
     when Numeric
       den = den.to_i
@@ -385,14 +391,14 @@ class Rational < Numeric
     num = num / gcd
     den = den / gcd
 
-    new(num, den)
+    Rational.__send__(:new_already_canonical, num, den)
   end
   private_class_method :reduce
 
   def initialize(num, den)
     @numerator = num
     @denominator = den
-    freeze
+    Primitive.object_freeze(self)
   end
   private :initialize
 

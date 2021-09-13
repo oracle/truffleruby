@@ -12,18 +12,13 @@ package org.truffleruby.language.exceptions;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.exception.RubySystemExit;
 import org.truffleruby.core.kernel.AtExitManager;
-import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
-
-public class TopLevelRaiseHandler extends RubyContextNode {
-
-    @Child private GetCurrentRubyThreadNode getCurrentRubyThreadNode;
+public class TopLevelRaiseHandler extends RubyBaseNode {
 
     public int execute(Runnable body) {
         int exitCode = 0;
@@ -35,7 +30,8 @@ public class TopLevelRaiseHandler extends RubyContextNode {
         } catch (RaiseException e) {
             caughtException = e.getException();
             exitCode = statusFromException(caughtException);
-            setLastException(caughtException); // Set $! for at_exit
+            // Set $! for at_exit
+            getLanguage().getCurrentThread().threadLocalGlobals.exception = caughtException;
             // printing the main script exception is delayed after at_exit hooks
         } catch (ExitException e) {
             // hard #exit!, return immediately, skip at_exit hooks
@@ -87,15 +83,6 @@ public class TopLevelRaiseHandler extends RubyContextNode {
         } else {
             return 1;
         }
-    }
-
-    private void setLastException(RubyException exception) {
-        if (getCurrentRubyThreadNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            getCurrentRubyThreadNode = insert(GetCurrentRubyThreadNode.create());
-        }
-
-        getCurrentRubyThreadNode.execute().threadLocalGlobals.exception = exception;
     }
 
     private void handleSignalException(RubyException exception) {

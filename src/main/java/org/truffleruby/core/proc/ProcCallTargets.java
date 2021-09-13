@@ -12,6 +12,9 @@ package org.truffleruby.core.proc;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.nodes.RootNode;
+import org.truffleruby.language.RubyLambdaRootNode;
+import org.truffleruby.language.RubyProcRootNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.methods.BlockDefinitionNode;
 import org.truffleruby.parser.MethodTranslator;
@@ -37,14 +40,16 @@ public final class ProcCallTargets {
             RootCallTarget callTargetForLambda,
             Supplier<RootCallTarget> altCallTargetCompiler) {
         assert callTargetForProc != null || callTargetForLambda != null;
+        assert callTargetForProc == null || validProcRootNode(callTargetForProc);
+        assert callTargetForLambda == null || validLambdaRootNode(callTargetForLambda);
 
         this.callTargetForProc = callTargetForProc;
         this.callTargetForLambda = callTargetForLambda;
         this.altCallTargetCompiler = altCallTargetCompiler;
     }
 
-    public ProcCallTargets(RootCallTarget callTargetForProc, RootCallTarget callTargetForLambda) {
-        this(callTargetForProc, callTargetForLambda, null);
+    public ProcCallTargets(RootCallTarget callTargetForLambda) {
+        this(callTargetForLambda, callTargetForLambda, null);
     }
 
     public RootCallTarget getCallTargetForProc() {
@@ -52,6 +57,7 @@ public final class ProcCallTargets {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callTargetForProc = altCallTargetCompiler.get();
             copySplit(callTargetForLambda, callTargetForProc);
+            assert validProcRootNode(callTargetForProc);
             altCallTargetCompiler = null;
         }
         return callTargetForProc;
@@ -62,6 +68,7 @@ public final class ProcCallTargets {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callTargetForLambda = altCallTargetCompiler.get();
             copySplit(callTargetForProc, callTargetForLambda);
+            assert validLambdaRootNode(callTargetForLambda);
             altCallTargetCompiler = null;
         }
         return callTargetForLambda;
@@ -69,5 +76,20 @@ public final class ProcCallTargets {
 
     private void copySplit(RootCallTarget src, RootCallTarget dst) {
         RubyRootNode.of(dst).setSplit(RubyRootNode.of(src).getSplit());
+    }
+
+    private boolean validProcRootNode(RootCallTarget callTarget) {
+        final RootNode rootNode = callTarget.getRootNode();
+        assert rootNode instanceof RubyProcRootNode ||
+                // RubyLambdaRootNode is used for the ProcCallTargets(RootCallTarget callTargetForLambda) constructor
+                rootNode instanceof RubyLambdaRootNode : rootNode + " " + rootNode.getClass();
+        return true;
+    }
+
+    /** {@link ModuleNodes.DefineMethodNode} relies on this always being a RubyLambdaRootNode */
+    private boolean validLambdaRootNode(RootCallTarget callTarget) {
+        final RootNode rootNode = callTarget.getRootNode();
+        assert rootNode instanceof RubyLambdaRootNode : rootNode + " " + rootNode.getClass();
+        return true;
     }
 }

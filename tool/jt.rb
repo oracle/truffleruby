@@ -19,8 +19,9 @@ autoload :JSON, 'json'
 
 if RUBY_ENGINE != 'ruby' && !RUBY_DESCRIPTION.include?('Native')
   STDERR.puts 'WARNING: jt is not running on MRI or TruffleRuby Native, startup is slow'
-  STDERR.puts '  Consider using following bash alias to run on MRI.'
-  STDERR.puts '  `alias jt=/path/to/mri/bin/ruby /path/to/truffleruby/tool/jt.rb`'
+  STDERR.puts '  Consider adding this to your `~/.bash_profile` to run jt on MRI.'
+  STDERR.puts '    export SYSTEM_RUBY=/path/to/mri/bin/ruby'
+  STDERR.puts '    alias jt=/path/to/truffleruby/bin/jt'
 end
 
 abort "ERROR: jt requires Ruby 2.3 and above, was #{RUBY_VERSION}" if (RUBY_VERSION.split('.').map(&:to_i) <=> [2, 3, 0]) < 0
@@ -38,7 +39,7 @@ TRUFFLERUBY_GEM_TEST_PACK_VERSION = '58d3048b49629102945a60918f31bf74547f51f9'
 
 JDEBUG = '--vm.agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y'
 METRICS_REPS = Integer(ENV['TRUFFLERUBY_METRICS_REPS'] || 10)
-DEFAULT_PROFILE_OPTIONS = %w[--cpusampler --cpusampler.Mode=roots --cpusampler.Output=json]
+DEFAULT_PROFILE_OPTIONS = %w[--cpusampler --cpusampler.Output=json]
 
 RUBOCOP_INCLUDE_LIST = %w[
   lib/cext
@@ -709,7 +710,7 @@ module Commands
                                     Default value is --use jvm, therefore all commands run on truffleruby-jvm by default.
                                     The default can be changed with `export RUBY_BIN=RUBY_SELECTOR`
           --silent                  Does not print the command and which Ruby is used
-          --jdk                     Specifies which version of the JDK should be used: 8, 11 (default) or 16
+          --jdk                     Specifies which version of the JDK should be used: 8, 11 (default) or 17
 
       jt build [graalvm|parser|options] ...   by default it builds graalvm
         jt build [parser|options] [options]
@@ -811,7 +812,7 @@ module Commands
         OPENSSL_PREFIX                               Where to find OpenSSL headers and libraries
         ECLIPSE_EXE                                  Where to find Eclipse
         SYSTEM_RUBY                                  The Ruby interpreter to run 'jt' itself, when using 'bin/jt'
-        JT_JDK                                       The default JDK version to use: 8, 11 (default) or 16
+        JT_JDK                                       The default JDK version to use: 8, 11 (default) or 17
         JT_ENV                                       The default value for 'jt build --env JT_ENV' and for 'jt --use JT_ENV'
         JT_PROFILE_SUBCOMMANDS                       Print the time each subprocess takes on stderr
     TXT
@@ -2023,8 +2024,8 @@ module Commands
       jdk_name = ee ? 'oraclejdk8' : 'openjdk8'
     elsif jdk_version == 11
       jdk_name = ee ? 'labsjdk-ee-11' : 'labsjdk-ce-11'
-    elsif jdk_version == 16
-      jdk_name = ee ? 'labsjdk-ee-16' : 'labsjdk-ce-16'
+    elsif jdk_version == 17
+      jdk_name = ee ? 'labsjdk-ee-17' : 'labsjdk-ce-17'
     else
       raise "Unknown JDK version: #{jdk_version}"
     end
@@ -2303,20 +2304,26 @@ module Commands
       args += RUBOCOP_INCLUDE_LIST
     end
 
+    ruby = RbConfig.ruby
+
     if gem_test_pack?
       gem_home = "#{gem_test_pack}/rubocop-gems"
       env = { 'GEM_HOME' => gem_home, 'GEM_PATH' => gem_home }
-      sh env, 'ruby', "#{gem_home}/bin/rubocop", *args
+      sh env, ruby, "#{gem_home}/bin/rubocop", *args
     else
-      unless sh('rubocop', "_#{RUBOCOP_VERSION}_", *args, continue_on_failure: true)
-        sh 'gem', 'install', 'rubocop', '-v', RUBOCOP_VERSION
-        sh 'rubocop', "_#{RUBOCOP_VERSION}_", *args
+      env = { 'PATH' => "#{File.dirname(ruby)}:#{ENV['PATH']}" }
+      if Gem::Specification.find_all_by_name('rubocop', "#{RUBOCOP_VERSION}").empty?
+        sh env, 'gem', 'install', 'rubocop', '-v', RUBOCOP_VERSION
       end
+      sh env, 'rubocop', "_#{RUBOCOP_VERSION}_", *args
     end
   end
 
   def idea(*args)
     ENV['ECLIPSE_EXE'] ||= install_eclipse
+    if args.empty?
+      args = %w[--dy /substratevm,/tools,/vm]
+    end
     mx(*args, 'intellijinit')
   end
 
@@ -2843,7 +2850,7 @@ class JT
       end
     end
 
-    raise "Invalid JDK version: #{@jdk_version}" unless [8, 11, 16].include?(@jdk_version)
+    raise "Invalid JDK version: #{@jdk_version}" unless [8, 11, 17].include?(@jdk_version)
 
     if needs_rebuild
       rebuild

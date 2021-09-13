@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
 import com.oracle.truffle.api.profiles.BranchProfile;
-import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.module.RubyModule;
@@ -28,12 +27,12 @@ import com.oracle.truffle.api.frame.Frame;
 
 public abstract class UsingNode extends AlwaysInlinedMethodNode {
 
-    protected void using(RubyContext context, Frame callerFrame, Object refinementModule, BranchProfile errorProfile) {
+    protected void using(Frame callerFrame, Object refinementModule, BranchProfile errorProfile) {
         if (refinementModule.getClass() != RubyModule.class) {
             errorProfile.enter();
             throw new RaiseException(
-                    context,
-                    context.getCoreExceptions().typeErrorWrongArgumentType(refinementModule, "Module", this));
+                    getContext(),
+                    coreExceptions().typeErrorWrongArgumentType(refinementModule, "Module", this));
         }
         final RubyModule module = (RubyModule) refinementModule;
         final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(callerFrame);

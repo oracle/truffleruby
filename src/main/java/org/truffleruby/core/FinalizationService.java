@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.Objects;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.language.RubyDynamicObject;
 
@@ -85,15 +86,17 @@ public class FinalizationService extends ReferenceProcessingService<FinalizerRef
     }
 
     @Override
-    protected void processReference(RubyContext context, ProcessingReference<?> finalizerReference) {
-        super.processReference(context, finalizerReference);
+    protected void processReference(RubyContext context, RubyLanguage language,
+            ProcessingReference<?> finalizerReference) {
+        super.processReference(context, language, finalizerReference);
 
-        runCatchingErrors(context, this::processReferenceInternal, (FinalizerReference) finalizerReference);
+        runCatchingErrors(context, language, this::processReferenceInternal, (FinalizerReference) finalizerReference);
     }
 
-    protected void processReferenceInternal(RubyContext context, FinalizerReference finalizerReference) {
-        ExtensionCallStack stack = context.getMarkingService().getThreadLocalData().getExtensionCallStack();
-        stack.push(stack.getBlock());
+    protected void processReferenceInternal(RubyContext context, RubyLanguage language,
+            FinalizerReference finalizerReference) {
+        final ExtensionCallStack stack = language.getCurrentThread().getCurrentFiber().extensionCallStack;
+        stack.push(stack.getVariables(), stack.getBlock());
         try {
             while (!context.isFinalizing()) {
                 final Finalizer finalizer;

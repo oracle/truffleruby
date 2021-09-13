@@ -9,8 +9,8 @@
  */
 package org.truffleruby.interop;
 
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.library.CachedLibrary;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
@@ -26,6 +26,7 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
 
 @GenerateUncached
@@ -75,16 +76,12 @@ public abstract class ToJavaStringNode extends RubySourceNode {
             limit = "getIdentityCacheLimit()")
     protected String symbolCached(RubySymbol symbol,
             @Cached("symbol") RubySymbol cachedSymbol,
-            @Cached("symbolToString(symbol)") String convertedString) {
+            @Cached("cachedSymbol.getString()") String convertedString) {
         return convertedString;
     }
 
     @Specialization(replaces = "symbolCached")
     protected String symbolUncached(RubySymbol symbol) {
-        return symbolToString(symbol);
-    }
-
-    protected String symbolToString(RubySymbol symbol) {
         return symbol.getString();
     }
 
@@ -99,12 +96,16 @@ public abstract class ToJavaStringNode extends RubySourceNode {
         return value;
     }
 
-    protected int getLimit() {
-        return RubyLanguage.getCurrentLanguage().options.INTEROP_CONVERT_CACHE;
+    @Fallback
+    protected String fallback(Object value) {
+        throw new RaiseException(
+                getContext(),
+                coreExceptions()
+                        .typeError("This interop message requires a String or Symbol for the member name", this));
     }
 
-    protected int getIdentityCacheLimit() {
-        return RubyLanguage.getCurrentLanguage().options.IDENTITY_CACHE;
+    protected int getLimit() {
+        return getLanguage().options.INTEROP_CONVERT_CACHE;
     }
 
 }

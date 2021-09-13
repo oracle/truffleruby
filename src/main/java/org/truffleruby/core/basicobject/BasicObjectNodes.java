@@ -10,12 +10,10 @@
 package org.truffleruby.core.basicobject;
 
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.dsl.CachedLanguage;
-import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -39,6 +37,7 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
@@ -71,7 +70,6 @@ import org.truffleruby.parser.RubySource;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -153,16 +151,42 @@ public abstract class BasicObjectNodes {
             return Double.doubleToRawLongBits(a) == Double.doubleToRawLongBits(b);
         }
 
-        @Specialization(guards = { "a.getClass() == b.getClass()", "!isPrimitive(a)" }) // since a and b have the same class, implies !isPrimitive(b)
-        protected boolean equalSameClassNonPrimitive(Object a, Object b) {
+        @Specialization(guards = { "isNonPrimitiveRubyObject(a)", "isNonPrimitiveRubyObject(b)" })
+        protected boolean equalRubyObjects(Object a, Object b) {
             return a == b;
         }
 
-        @Fallback
-        protected boolean fallback(Object a, Object b) {
+        @Specialization(guards = { "isNonPrimitiveRubyObject(a)", "isPrimitive(b)" })
+        protected boolean rubyObjectPrimitive(Object a, Object b) {
             return false;
         }
 
+        @Specialization(guards = { "isPrimitive(a)", "isNonPrimitiveRubyObject(b)" })
+        protected boolean primitiveRubyObject(Object a, Object b) {
+            return false;
+        }
+
+        @Specialization(guards = { "isPrimitive(a)", "isPrimitive(b)", "!comparablePrimitives(a, b)" })
+        protected boolean nonComparablePrimitives(Object a, Object b) {
+            return false;
+        }
+
+        @Specialization(guards = "isForeignObject(a) || isForeignObject(b)", limit = "getInteropCacheLimit()")
+        protected boolean equalForeign(Object a, Object b,
+                @CachedLibrary("a") InteropLibrary lhsInterop,
+                @CachedLibrary("b") InteropLibrary rhsInterop) {
+            return lhsInterop.isIdentical(a, b, rhsInterop);
+        }
+
+        protected static boolean isNonPrimitiveRubyObject(Object object) {
+            return object instanceof RubyDynamicObject || object instanceof ImmutableRubyObject;
+        }
+
+        protected static boolean comparablePrimitives(Object a, Object b) {
+            return (a instanceof Boolean && b instanceof Boolean) ||
+                    (RubyGuards.isImplicitLong(a) && RubyGuards.isImplicitLong(b)) ||
+                    (RubyGuards.isImplicitDouble(a) && RubyGuards.isImplicitDouble(b));
+        }
     }
 
     @GenerateUncached
@@ -224,12 +248,11 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization(guards = "!isNil(object)")
-        protected long objectIDImmutable(ImmutableRubyObject object,
-                @CachedLanguage RubyLanguage language) {
+        protected long objectIDImmutable(ImmutableRubyObject object) {
             final long id = object.getObjectId();
 
             if (id == 0) {
-                final long newId = language.getNextObjectID();
+                final long newId = getLanguage().getNextObjectID();
                 object.setObjectId(newId);
                 return newId;
             }
@@ -239,8 +262,7 @@ public abstract class BasicObjectNodes {
 
         @Specialization(limit = "getCacheLimit()")
         protected long objectID(RubyDynamicObject object,
-                @CachedLibrary("object") DynamicObjectLibrary objectLibrary,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
+                @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
             // Using the context here has the desirable effect that it checks the context is entered on this thread,
             // which is necessary to safely mutate DynamicObjects.
             final long id = ObjectSpaceManager.readObjectID(object, objectLibrary);
@@ -252,13 +274,13 @@ public abstract class BasicObjectNodes {
                         if (existingID != 0L) {
                             return existingID;
                         } else {
-                            final long newId = context.getObjectSpaceManager().getNextObjectID();
+                            final long newId = getContext().getObjectSpaceManager().getNextObjectID();
                             objectLibrary.putLong(object, Layouts.OBJECT_ID_IDENTIFIER, newId);
                             return newId;
                         }
                     }
                 } else {
-                    final long newId = context.getObjectSpaceManager().getNextObjectID();
+                    final long newId = getContext().getObjectSpaceManager().getNextObjectID();
                     objectLibrary.putLong(object, Layouts.OBJECT_ID_IDENTIFIER, newId);
                     return newId;
                 }
@@ -267,18 +289,23 @@ public abstract class BasicObjectNodes {
             return id;
         }
 
-        @Specialization(guards = "isForeignObject(object)")
-        protected long objectIDForeign(Object object) {
-            return Integer.toUnsignedLong(hashCode(object));
-        }
-
-        @TruffleBoundary
-        private int hashCode(Object object) {
-            return object.hashCode();
+        @Specialization(guards = "isForeignObject(value)", limit = "getInteropCacheLimit()")
+        protected int objectIDForeign(Object value,
+                @CachedLibrary("value") InteropLibrary interop,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            if (interop.hasIdentity(value)) {
+                try {
+                    return interop.identityHashCode(value);
+                } catch (UnsupportedMessageException e) {
+                    throw translateInteropException.execute(e);
+                }
+            } else {
+                return System.identityHashCode(value);
+            }
         }
 
         protected int getCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.INSTANCE_VARIABLE_CACHE;
+            return getLanguage().options.INSTANCE_VARIABLE_CACHE;
         }
     }
 

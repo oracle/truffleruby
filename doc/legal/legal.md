@@ -19,7 +19,7 @@ See `epl-2.0.txt`, `gpl-2.txt`, `lgpl-2.1.txt`.
 ## MRI
 
 The standard implementation of Ruby is MRI. TruffleRuby contains code from MRI
-version 2.7.3, including:
+version 2.7.4, including:
 
 * the standard library in `lib/mri`, 
 * Ruby C extension API in `lib/cext/include` and `src/main/c/cext`, 
@@ -59,7 +59,7 @@ MIT licence, see `mit.txt`.
 
 ## JRuby
 
-TruffleRuby contains code from JRuby 9.2.8.0, including Java implementation
+TruffleRuby contains code from JRuby 9.2.19.0, including Java implementation
 code, build system, shell script launchers, standard library modified from MRI,
 and so on.
 

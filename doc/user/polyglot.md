@@ -102,8 +102,6 @@ If you want to pass a Ruby object to another language for fields to be read and 
 
 `object.new(*args)` will create a new object from the foreign object (as if it is some kind of class).
 
-`object.class` on a Java `Class` object will give you an object on which you can call instance methods, rather than static methods.
-
 `object.respond_to?(:size)` will tell you if the foreign object has a size or length.
 
 `object.nil?` will tell you if the foreign object represents the language's equivalent of `null` or `nil`.
@@ -111,10 +109,6 @@ If you want to pass a Ruby object to another language for fields to be read and 
 `object.respond_to?(:call)` will tell you if a foreign object can be executed.
 
 `object.respond_to?(:new)` will tell you if a foreign object can be used to create a new object (if it's a class).
-
-`object.respond_to?(:keys)` will tell you if a foreign object can give you a list of members.
-
-`object.respond_to?(:class)` will tell you if an object is a Java class.
 
 `Polyglot.as_enumerable(object)` will create a Ruby `Enumerable` from the foreign object, using its size or length, and reading from it.
 
@@ -128,11 +122,13 @@ It is easier to use Java interoperability in JVM mode (`--jvm`). Java interopera
 See [here](https://www.graalvm.org/reference-manual/embed-languages/#build-native-images-from-polyglot-applications)
 for more details.
 
-`Java.type('name')` returns a Java class object, given a name such as `java.lang.Integer` or `int[]`. With the class object, `.new` will create an instance, `.foo` will call the static method `foo`, `[:FOO]` will read the field
+`Java.type('name')` returns a Java type, given a name such as `java.lang.Integer` or `int[]`.
+With the type object, `.new` will create an instance, `.foo` will call the static method `foo`, `[:FOO]` will read the static field
 `FOO`, and so on.
-To access instance methods use `.class`, such as `MyClass.class.getName`.
+To access methods of the `java.lang.Class` instance, use `[:class]`, such as `MyClass[:class].getName`.
+You can also go from the `java.lang.Class` instance to the Java type by using `[:static]`.
 
-To import a Java class as a top-level constant, use `Java.import 'name'`.
+To import a Java class in the enclosing module, use `MyClass = Java.type 'java.lang.MyClass'` or `Java.import 'java.lang.MyClass'`.
 
 ## Embedding in Java
 

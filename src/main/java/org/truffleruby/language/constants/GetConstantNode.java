@@ -18,8 +18,8 @@ import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyConstant;
-import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.loader.FeatureLoader;
 
@@ -30,7 +30,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
-public abstract class GetConstantNode extends RubyContextNode {
+public abstract class GetConstantNode extends RubyBaseNode {
 
     private final boolean callConstMissing;
 

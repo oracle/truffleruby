@@ -14,6 +14,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,12 +22,16 @@ import com.oracle.truffle.api.TruffleStackTraceElement;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.interop.ArityException;
+import com.oracle.truffle.api.interop.StopIterationException;
+import com.oracle.truffle.api.interop.UnknownKeyException;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.source.SourceSection;
 import org.graalvm.collections.Pair;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -53,6 +58,7 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.BoxedValue;
@@ -74,7 +80,6 @@ import org.truffleruby.language.yield.CallBlockNode;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -360,12 +365,12 @@ public abstract class TruffleDebugNodes {
         @Specialization
         protected Object logInfo(Object value,
                 @Cached ToJavaStringNode toJavaStringNode) {
-            config(toJavaStringNode.executeToJavaString(value));
+            info(toJavaStringNode.executeToJavaString(value));
             return nil;
         }
 
         @TruffleBoundary
-        static void config(String message) {
+        static void info(String message) {
             RubyLanguage.LOGGER.info(message);
         }
 
@@ -571,17 +576,19 @@ public abstract class TruffleDebugNodes {
 
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    @CoreMethod(names = "foreign_object_from_map", required = 1, onSingleton = true)
-    public abstract static class ForeignObjectFromMapNode extends CoreMethodArrayArgumentsNode {
+    @CoreMethod(names = "foreign_object_with_members", onSingleton = true)
+    public abstract static class ForeignObjectWithMembersNode extends CoreMethodArrayArgumentsNode {
 
         @ExportLibrary(InteropLibrary.class)
-        public static class ForeignObjectFromMap implements TruffleObject {
+        public static class ForeignObjectWithMembers implements TruffleObject {
 
-            private final Map map;
+            private final Map<String, Object> map;
 
-            public ForeignObjectFromMap(Map map) {
-                this.map = map;
+            public ForeignObjectWithMembers() {
+                map = new HashMap<>();
+                map.put("a", 1);
+                map.put("b", 2);
+                map.put("c", 3);
             }
 
             @ExportMessage
@@ -591,26 +598,49 @@ public abstract class TruffleDebugNodes {
 
             @ExportMessage
             @TruffleBoundary
-            protected Object getMembers(boolean includeInternal,
-                    @CachedContext(RubyLanguage.class) RubyContext context) {
-                return context.getEnv().asGuestValue(map.keySet().toArray());
+            protected Object getMembers(boolean includeInternal) {
+                return new ForeignArrayNode.ForeignArray("a", "b", "c", "method1", "method2");
             }
 
             @TruffleBoundary
             @ExportMessage
             protected boolean isMemberReadable(String member) {
-                return map.containsKey(member);
+                return map.containsKey(member) || isMemberInvocable(member);
             }
 
             @TruffleBoundary
             @ExportMessage
-            protected Object readMember(String key) throws UnknownIdentifierException {
-                final Object value = map.get(key);
+            protected boolean isMemberInvocable(String member) {
+                return "method1".equals(member) || "method2".equals(member);
+            }
+
+            @TruffleBoundary
+            @ExportMessage
+            protected Object readMember(String member) throws UnknownIdentifierException {
+                if (member.equals("method1")) {
+                    return new ForeignExecutableNode.ForeignExecutable(42);
+                } else if (member.equals("method2")) {
+                    return new ForeignExecutableNode.ForeignExecutable(44);
+                }
+
+                final Object value = map.get(member);
                 if (value == null) {
-                    throw UnknownIdentifierException.create(key);
+                    throw UnknownIdentifierException.create(member);
                 }
                 return value;
             }
+
+            @TruffleBoundary
+            @ExportMessage
+            protected Object invokeMember(String member, Object[] arguments) throws UnsupportedMessageException,
+                    ArityException, UnknownIdentifierException, UnsupportedTypeException {
+                if (!isMemberInvocable(member)) {
+                    throw UnknownIdentifierException.create(member);
+                }
+
+                return InteropLibrary.getUncached().execute(readMember("method1"));
+            }
+
 
             @ExportMessage
             protected String toDisplayString(boolean allowSideEffects) {
@@ -620,23 +650,22 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object foreignObjectFromMap(Object map) {
-            return new ForeignObjectFromMap((Map) getContext().getEnv().asHostObject(map));
+        protected Object foreignObjectWithMembers() {
+            return new ForeignObjectWithMembers();
         }
 
     }
 
-    @CoreMethod(names = "foreign_array_from_java", required = 1, onSingleton = true)
+    @CoreMethod(names = "foreign_array", onSingleton = true)
     @ImportStatic(ArrayGuards.class)
-    public abstract static class ForeignArrayFromJavaNode extends CoreMethodArrayArgumentsNode {
-
+    public abstract static class ForeignArrayNode extends CoreMethodArrayArgumentsNode {
         @ExportLibrary(InteropLibrary.class)
-        public static class ForeignArrayFromJava implements TruffleObject {
+        public static class ForeignArray implements TruffleObject {
 
             private final Object[] array;
 
-            public ForeignArrayFromJava(Object[] array) {
-                this.array = array;
+            public ForeignArray(Object... values) {
+                this.array = values;
             }
 
             @ExportMessage
@@ -687,29 +716,19 @@ public abstract class TruffleDebugNodes {
         }
 
         @TruffleBoundary
-        @Specialization(limit = "storageStrategyLimit()")
-        protected Object foreignArrayFromJava(Object array,
-                @CachedLibrary("hostObject(array)") ArrayStoreLibrary hostObjects) {
-            final Object hostObject = hostObject(array);
-            final int size = hostObjects.capacity(hostObject);
-            final Object[] boxedArray = hostObjects.boxedCopyOfRange(hostObject, 0, size);
-            return new ForeignArrayFromJava(boxedArray);
-        }
-
-        protected Object hostObject(Object array) {
-            return getContext().getEnv().asHostObject(array);
+        @Specialization
+        protected Object foreignArray() {
+            return new ForeignArray(1, 2, 3);
         }
     }
 
-    @CoreMethod(names = "foreign_pointer_array_from_java", required = 1, onSingleton = true)
+    @CoreMethod(names = "foreign_pointer_array", onSingleton = true)
     @ImportStatic(ArrayGuards.class)
-    public abstract static class ForeignPointerArrayFromJavaNode extends ForeignArrayFromJavaNode {
-
+    public abstract static class ForeignPointerArrayNode extends CoreMethodArrayArgumentsNode {
         @ExportLibrary(InteropLibrary.class)
-        public static class ForeignPointerArrayFromJava extends ForeignArrayFromJava {
-
-            public ForeignPointerArrayFromJava(Object[] array) {
-                super(array);
+        public static class ForeignPointerArray extends ForeignArrayNode.ForeignArray {
+            public ForeignPointerArray(Object... values) {
+                super(values);
             }
 
             @ExportMessage
@@ -729,20 +748,186 @@ public abstract class TruffleDebugNodes {
             }
         }
 
-        @Override
         @TruffleBoundary
         @Specialization
-        protected Object foreignArrayFromJava(Object array,
-                @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
-            final Object hostObject = getContext().getEnv().asHostObject(array);
-            final int size = stores.capacity(hostObject);
-            return new ForeignPointerArrayFromJava(stores.boxedCopyOfRange(hostObject, 0, size));
+        protected Object foreignPointerArray() {
+            return new ForeignPointerArray(1, 2, 3);
+        }
+    }
+
+    @CoreMethod(names = "foreign_iterator", onSingleton = true)
+    public abstract static class ForeignIteratorNode extends CoreMethodArrayArgumentsNode {
+        @ExportLibrary(InteropLibrary.class)
+        public static class ForeignIterator implements TruffleObject {
+            final int[] values = { 1, 2, 3 };
+            int index = 0;
+
+            @ExportMessage
+            protected boolean isIterator() {
+                return true;
+            }
+
+            @ExportMessage
+            protected boolean hasIteratorNextElement() {
+                return index < values.length;
+            }
+
+            @TruffleBoundary
+            @ExportMessage
+            protected Object getIteratorNextElement() throws StopIterationException {
+                if (hasIteratorNextElement()) {
+                    Object value = values[index];
+                    index++;
+                    return value;
+                } else {
+                    throw StopIterationException.create();
+                }
+            }
+
+            @ExportMessage
+            protected String toDisplayString(boolean allowSideEffects) {
+                return "[foreign iterator]";
+            }
+        }
+
+        @TruffleBoundary
+        @Specialization
+        protected Object foreignIterator() {
+            return new ForeignIterator();
+        }
+    }
+
+    @CoreMethod(names = "foreign_iterable", onSingleton = true)
+    public abstract static class ForeignIterableNode extends CoreMethodArrayArgumentsNode {
+        @ExportLibrary(InteropLibrary.class)
+        public static class ForeignIterable implements TruffleObject {
+            @ExportMessage
+            protected boolean hasIterator() {
+                return true;
+            }
+
+            @ExportMessage
+            protected Object getIterator() {
+                return new ForeignIteratorNode.ForeignIterator();
+            }
+
+            @ExportMessage
+            protected String toDisplayString(boolean allowSideEffects) {
+                return "[foreign iterable]";
+            }
+        }
+
+        @TruffleBoundary
+        @Specialization
+        protected Object foreignIterable() {
+            return new ForeignIterable();
+        }
+    }
+
+    @CoreMethod(names = "foreign_hash", onSingleton = true)
+    public abstract static class ForeignHashNode extends CoreMethodArrayArgumentsNode {
+
+        @ExportLibrary(InteropLibrary.class)
+        public static class ForeignHashEntriesIterator implements TruffleObject {
+            final ForeignHash foreignHash;
+            int index = 0;
+
+            public ForeignHashEntriesIterator(ForeignHash foreignHash) {
+                this.foreignHash = foreignHash;
+            }
+
+            @ExportMessage
+            protected boolean isIterator() {
+                return true;
+            }
+
+            @ExportMessage
+            protected boolean hasIteratorNextElement() {
+                return index < 2;
+            }
+
+            @TruffleBoundary
+            @ExportMessage
+            protected Object getIteratorNextElement() throws StopIterationException {
+                if (index == 0) {
+                    index++;
+                    return new ForeignArrayNode.ForeignArray(foreignHash.key1, foreignHash.value1);
+                } else if (index == 1) {
+                    index++;
+                    return new ForeignArrayNode.ForeignArray(foreignHash.key2, foreignHash.value2);
+                } else {
+                    throw StopIterationException.create();
+                }
+            }
+
+            @ExportMessage
+            protected String toDisplayString(boolean allowSideEffects) {
+                return "[foreign hash entries iterator]";
+            }
+        }
+
+        @ExportLibrary(InteropLibrary.class)
+        public static class ForeignHash implements TruffleObject {
+            private final RubySymbol key1;
+            private final int value1;
+            private final RubySymbol key2;
+            private final int value2;
+
+            public ForeignHash(RubySymbol key1, int value1, RubySymbol key2, int value2) {
+                this.key1 = key1;
+                this.value1 = value1;
+                this.key2 = key2;
+                this.value2 = value2;
+            }
+
+            @ExportMessage
+            protected boolean hasHashEntries() {
+                return true;
+            }
+
+            @ExportMessage
+            protected long getHashSize() {
+                return 2;
+            }
+
+            @TruffleBoundary
+            @ExportMessage
+            protected boolean isHashEntryReadable(Object key) {
+                return key == key1 || key == key2;
+            }
+
+            @TruffleBoundary
+            @ExportMessage
+            protected Object readHashValue(Object key) throws UnknownKeyException {
+                if (key == key1) {
+                    return value1;
+                } else if (key == key2) {
+                    return value2;
+                } else {
+                    throw UnknownKeyException.create(key);
+                }
+            }
+
+            @ExportMessage
+            protected Object getHashEntriesIterator() {
+                return new ForeignHashEntriesIterator(this);
+            }
+
+            @ExportMessage
+            protected String toDisplayString(boolean allowSideEffects) {
+                return "[foreign hash]";
+            }
+        }
+
+        @TruffleBoundary
+        @Specialization
+        protected Object foreignHash() {
+            return new ForeignHash(getSymbol("a"), 1, getSymbol("b"), 2);
         }
     }
 
     @CoreMethod(names = "foreign_executable", required = 1, onSingleton = true)
     public abstract static class ForeignExecutableNode extends CoreMethodArrayArgumentsNode {
-
         @ExportLibrary(InteropLibrary.class)
         public static class ForeignExecutable implements TruffleObject {
 
@@ -773,12 +958,10 @@ public abstract class TruffleDebugNodes {
         protected Object foreignExecutable(Object value) {
             return new ForeignExecutable(value);
         }
-
     }
 
     @CoreMethod(names = "foreign_string", onSingleton = true, required = 1)
     public abstract static class ForeignStringNode extends CoreMethodArrayArgumentsNode {
-
         @ExportLibrary(InteropLibrary.class)
         public static class ForeignString implements TruffleObject {
 
@@ -810,18 +993,15 @@ public abstract class TruffleDebugNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             return new ForeignString(strings.getJavaString(string));
         }
-
     }
 
     @CoreMethod(names = "foreign_boxed_value", onSingleton = true, required = 1)
     public abstract static class ForeignBoxedNumberNode extends CoreMethodArrayArgumentsNode {
-
         @TruffleBoundary
         @Specialization
         protected Object foreignBoxedNumber(Object number) {
             return new BoxedValue(number);
         }
-
     }
 
     @CoreMethod(names = "long", onSingleton = true, required = 1)

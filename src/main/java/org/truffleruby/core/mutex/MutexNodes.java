@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.mutex;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -26,7 +25,6 @@ import org.truffleruby.core.cast.DurationToMillisecondsNodeGen;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -55,7 +53,6 @@ public abstract class MutexNodes {
 
         @Specialization
         protected RubyMutex lock(RubyMutex mutex,
-                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
             final ReentrantLock lock = mutex.lock;
 
@@ -64,7 +61,7 @@ public abstract class MutexNodes {
                 throw new RaiseException(getContext(), coreExceptions().threadErrorRecursiveLocking(this));
             }
 
-            final RubyThread thread = getCurrentRubyThreadNode.execute();
+            final RubyThread thread = getLanguage().getCurrentThread();
             MutexOperations.lock(getContext(), lock, thread, this);
             return mutex;
         }
@@ -94,28 +91,16 @@ public abstract class MutexNodes {
 
         @Specialization
         protected boolean tryLock(RubyMutex mutex,
-                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached ConditionProfile heldByCurrentThreadProfile) {
             final ReentrantLock lock = mutex.lock;
-            final RubyThread thread = getCurrentRubyThreadNode.execute();
+            final RubyThread thread = getLanguage().getCurrentThread();
 
             if (heldByCurrentThreadProfile.profile(lock.isHeldByCurrentThread())) {
                 return false;
             } else {
-                return doTryLock(thread, lock);
+                return MutexOperations.tryLock(lock, thread);
             }
         }
-
-        @TruffleBoundary
-        private boolean doTryLock(RubyThread thread, ReentrantLock lock) {
-            if (lock.tryLock()) {
-                thread.ownedLocks.add(lock);
-                return true;
-            } else {
-                return false;
-            }
-        }
-
     }
 
     @CoreMethod(names = "unlock")
@@ -123,10 +108,9 @@ public abstract class MutexNodes {
 
         @Specialization
         protected RubyMutex unlock(RubyMutex mutex,
-                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
             final ReentrantLock lock = mutex.lock;
-            final RubyThread thread = getCurrentRubyThreadNode.execute();
+            final RubyThread thread = getLanguage().getCurrentThread();
 
             MutexOperations.checkOwnedMutex(getContext(), lock, this, errorProfile);
             MutexOperations.unlock(lock, thread);
@@ -140,16 +124,18 @@ public abstract class MutexNodes {
 
         @Specialization
         protected Object synchronize(RubyMutex mutex, RubyProc block,
-                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
             final ReentrantLock lock = mutex.lock;
-            final RubyThread thread = getCurrentRubyThreadNode.execute();
+            final RubyThread thread = getLanguage().getCurrentThread();
 
             if (lock.isHeldByCurrentThread()) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().threadErrorRecursiveLocking(this));
             }
 
+            /* This code uses lock/unlock because the list of owned locks must be maintained. User code can unlock a
+             * mutex inside a synchronize block, and then relock it before exiting the block, and we need the owned
+             * locks list to be in consistent state at the end. */
             MutexOperations.lock(getContext(), lock, thread, this);
             try {
                 return callBlock(block);
@@ -173,10 +159,9 @@ public abstract class MutexNodes {
 
         @Specialization
         protected long sleep(RubyMutex mutex, long durationInMillis,
-                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
             final ReentrantLock lock = mutex.lock;
-            final RubyThread thread = getCurrentRubyThreadNode.execute();
+            final RubyThread thread = getLanguage().getCurrentThread();
 
             MutexOperations.checkOwnedMutex(getContext(), lock, this, errorProfile);
 

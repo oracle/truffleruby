@@ -44,7 +44,6 @@ LANGUAGE_OPTIONS:
 - TIME_FORMAT_CACHE
 - POW_CACHE
 - RUBY_LIBRARY_CACHE
-- THREAD_CACHE
 - CONTEXT_SPECIFIC_IDENTITY_CACHE
 - IDENTITY_CACHE
 - CLASS_CACHE
@@ -96,14 +95,14 @@ EXPERT:
     COVERAGE_GLOBAL: [coverage-global, boolean, false, Run coverage for all code and print results on exit]
     PATTERN_MATCHING: [pattern-matching, boolean, false, Enable pattern matching syntax]
 
-    # Options helpful in for debugging, potentially also for user code
+    # Options helpful for debugging, potentially also for user code
     CORE_AS_INTERNAL: [core-as-internal, boolean, false, 'Mark core library sources as internal']
     STDLIB_AS_INTERNAL: [stdlib-as-internal, boolean, false, 'Mark stdlib sources as internal']
     LAZY_TRANSLATION_USER: [lazy-translation-user, boolean, LAZY_CALLTARGETS, 'Lazily translation of stdlib, gem and user source files']
     PATCHING: [patching, boolean, true, Use patching]
     HASHING_DETERMINISTIC: [hashing-deterministic, boolean, false, Produce deterministic hash values]
-    FIBER_LEAVE_CONTEXT: [fiber-leave-context, boolean, true, 'Leave the TruffleContext when suspending a Fiber (avoids triggering multithreading)']
-    LOG_SUBPROCESS: [log-subprocess, boolean, false, 'Log whenever a subprocess is created']
+    FIBER_POOL: [fiber-pool, boolean, true, 'Use a thread pool to speed up creating Fibers']
+    LOG_SUBPROCESS: [log-subprocess, boolean, false, 'Log whenever a subprocess is created'] # Also see --log-process-args
     WARN_LOCALE: [warn-locale, boolean, true, 'Warn when the system locale is not set properly']
 
     # Options to tweak backtraces
@@ -180,6 +179,7 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
 
     # Options to help debugging the implementation performance
     BASICOPS_INLINE: [basic-ops-inline, boolean, true, Inline basic operations (like Fixnum operators) in the AST without a call]
+    BASICOPS_LOG_REWRITE: [basic-ops-log-rewrite, boolean, false, Log the receiver and arguments when basic operations like Fixnum operators cannot be handled inline]
     PROFILE_ARGUMENTS: [profile-arguments, boolean, true, Profile the value and class of the receiver and arguments]
 
     # Inline cache sizes
@@ -206,7 +206,6 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     RUBY_LIBRARY_CACHE: [ruby-library-cache, integer, DEFAULT_CACHE, Ruby Library cache size]
 
     # Inline caches with a non-default size. When adding a new option here, update test/truffle/integration/limit-zero.sh
-    THREAD_CACHE: [thread-cache, integer, ['!singleContext ? 0 : ', 1], Cache size of operations that depend on a particular thread]
     IDENTITY_CACHE: [identity-cache, integer, 1, Cache size for inline caches comparing by identity for context-independent objects]
     CONTEXT_SPECIFIC_IDENTITY_CACHE: [context-identity-cache, integer, ['!singleContext ? 0 : ', IDENTITY_CACHE], Cache size for inline caches comparing by identity for context-specific objects]
     CLASS_CACHE: [class-cache, integer, 3, .class and .metaclass cache size]
@@ -237,6 +236,8 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     # Instrumentation to debug performance
     REGEXP_INSTRUMENT_CREATION: [regexp-instrument-creation, boolean, false, Enable instrumentation to gather stats on regexp creation]
     REGEXP_INSTRUMENT_MATCH: [regexp-instrument-match, boolean, false, Enable instrumentation to gather stats on regexp matching]
+    REGEXP_INSTRUMENT_MATCH_DETAILED: [regexp-instrument-match-detailed, boolean, false, Enable instrumentation to gather detailed stats on strings matched against a regexp]
+    REGEXP_INSTRUMENT_OUTPUT_FORMAT: [regexp-instrumentation-output-format, string, 'text', 'Output format for regexp instrumentation (\\\"text\\\" or \\\"json\\\")']
 
     # Options for metrics, the output cannot be used directly without processing
     METRICS_TIME_PARSING_FILE: [metrics-time-parsing-file, boolean, false, 'Measure time for parsing, translating and executing files, per file']

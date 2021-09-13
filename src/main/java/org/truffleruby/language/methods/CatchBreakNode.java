@@ -28,6 +28,7 @@ public class CatchBreakNode extends RubyContextSourceNode {
     private final ConditionProfile anyBlockProfile;
 
     public CatchBreakNode(BreakID breakID, RubyNode body, boolean isWhile) {
+        assert breakID != BreakID.INVALID;
         this.isWhile = isWhile;
         this.breakID = breakID;
         this.body = body;

@@ -50,11 +50,14 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.encoding.EncodingManager;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.regexp.ClassicRegexp;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.rope.RopeWithEncoding;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.RaiseException;
@@ -1679,15 +1682,15 @@ public class ParserSupport {
 
     // MRI: reg_fragment_check
     public Rope regexpFragmentCheck(RegexpParseNode end, Rope value) {
-        value = setRegexpEncoding(end, value);
+        final RopeWithEncoding ropeWithEncoding = setRegexpEncoding(end, value);
         try {
-            ClassicRegexp.preprocessCheck(value);
+            ClassicRegexp.preprocessCheck(ropeWithEncoding);
         } catch (DeferredRaiseException dre) {
             throw compile_error(dre.getException(getConfiguration().getContext()).getMessage());
         } catch (RaiseException re) {
             throw compile_error(re.getMessage());
         }
-        return value;
+        return ropeWithEncoding.getRope();
     }
 
     private void allocateNamedLocals(RegexpParseNode regexpNode) {
@@ -1696,6 +1699,7 @@ public class ParserSupport {
             pattern = new ClassicRegexp(
                     configuration.getContext(),
                     regexpNode.getValue(),
+                    Encodings.getBuiltInEncoding(regexpNode.getEncoding().getIndex()),
                     regexpNode.getOptions());
         } catch (DeferredRaiseException dre) {
             throw dre.getException(RubyLanguage.getCurrentContext());
@@ -1773,10 +1777,10 @@ public class ParserSupport {
     }
 
     // MRI: reg_fragment_setenc_gen
-    public Rope setRegexpEncoding(RegexpParseNode end, Rope value) {
+    public RopeWithEncoding setRegexpEncoding(RegexpParseNode end, Rope value) {
         RegexpOptions options = end.getOptions();
         Encoding optionsEncoding = options.setup();
-
+        RubyEncoding encoding = Encodings.getBuiltInEncoding(value.getEncoding().getIndex());
         // Change encoding to one specified by regexp options as long as the string is compatible.
         if (optionsEncoding != null) {
             if (optionsEncoding != value.getEncoding() && !is7BitASCII(value)) {
@@ -1784,25 +1788,33 @@ public class ParserSupport {
             }
 
             value = parserRopeOperations.withEncoding(value, optionsEncoding);
+            encoding = Encodings.getBuiltInEncoding(optionsEncoding.getIndex());
         } else if (options.isEncodingNone()) {
             if (value.getEncoding() == ASCIIEncoding.INSTANCE && !is7BitASCII(value)) {
                 compileError(null, value.getEncoding());
             }
             value = parserRopeOperations.withEncoding(value, ASCIIEncoding.INSTANCE);
+            encoding = Encodings.BINARY;
         } else if (lexer.getEncoding() == USASCIIEncoding.INSTANCE) {
             if (!is7BitASCII(value)) {
                 value = parserRopeOperations.withEncoding(value, USASCIIEncoding.INSTANCE); // This will raise later
+                encoding = Encodings.US_ASCII;
             } else {
                 value = parserRopeOperations.withEncoding(value, ASCIIEncoding.INSTANCE);
+                encoding = Encodings.BINARY;
             }
         }
-        return value;
+        return new RopeWithEncoding(value, encoding);
     }
 
     protected ClassicRegexp checkRegexpSyntax(Rope value, RegexpOptions options) {
         try {
             // This is only for syntax checking but this will as a side-effect create an entry in the regexp cache.
-            return new ClassicRegexp(getConfiguration().getContext(), value, options);
+            return new ClassicRegexp(
+                    getConfiguration().getContext(),
+                    value,
+                    Encodings.getBuiltInEncoding(value.getEncoding().getIndex()),
+                    options);
         } catch (DeferredRaiseException dre) {
             throw compile_error(dre.getException(getConfiguration().getContext()).getMessage());
         } catch (RaiseException re) {

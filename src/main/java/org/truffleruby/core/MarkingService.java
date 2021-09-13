@@ -13,12 +13,12 @@ import java.lang.ref.ReferenceQueue;
 import java.util.ArrayList;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.queue.UnsizedQueue;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import org.truffleruby.language.Nil;
 
 /** Class to provide GC marking and other facilities to keep objects alive for native extensions.
  *
@@ -64,10 +64,10 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         }
 
         @Override
-        protected void processReference(RubyContext context, ProcessingReference<?> reference) {
+        protected void processReference(RubyContext context, RubyLanguage language, ProcessingReference<?> reference) {
             /* We need to keep all the objects that might be marked alive during the marking process itself, so we add
              * the arrays to a list to achieve this. */
-            super.processReference(context, reference);
+            super.processReference(context, language, reference);
             ArrayList<ValueWrapperManager.HandleBlock> keptObjectLists = new ArrayList<>();
             ValueWrapperManager.HandleBlock block;
             while (true) {
@@ -79,15 +79,15 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
                 }
             }
             if (!keptObjectLists.isEmpty()) {
-                runAllMarkers(context);
+                runAllMarkers(context, language);
             }
             keptObjectLists.clear();
         }
 
         @TruffleBoundary
-        public void runAllMarkers(RubyContext context) {
-            ExtensionCallStack stack = markingService.getThreadLocalData().getExtensionCallStack();
-            stack.push(stack.getBlock());
+        public void runAllMarkers(RubyContext context, RubyLanguage language) {
+            final ExtensionCallStack stack = language.getCurrentThread().getCurrentFiber().extensionCallStack;
+            stack.push(stack.getVariables(), stack.getBlock());
             try {
                 // TODO (eregon, 15 Sept 2020): there seems to be no synchronization here while walking the list of
                 // markingService, and concurrent mutations seem to be possible.
@@ -95,7 +95,7 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
                 MarkerReference nextMarker;
                 while (currentMarker != null) {
                     nextMarker = currentMarker.getNext();
-                    markingService.runMarker(context, currentMarker);
+                    markingService.runMarker(context, language, currentMarker);
                     if (nextMarker == currentMarker) {
                         throw new Error("The MarkerReference linked list structure has become broken.");
                     }
@@ -107,40 +107,28 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         }
     }
 
-    private final ThreadLocal<MarkerThreadLocalData> threadLocalData;
-
     private final MarkRunnerService runnerService;
 
     private final UnsizedQueue keptObjectQueue = new UnsizedQueue();
-
-    public static class MarkerThreadLocalData {
-        private final ExtensionCallStack extensionCallStack;
-
-        public MarkerThreadLocalData(MarkingService service) {
-            this.extensionCallStack = new ExtensionCallStack(Nil.INSTANCE);
-        }
-
-        public ExtensionCallStack getExtensionCallStack() {
-            return extensionCallStack;
-        }
-    }
 
     protected static class ExtensionCallStackEntry {
         protected final ExtensionCallStackEntry previous;
         protected final ArrayList<Object> preservedObjects = new ArrayList<>();
         protected final Object block;
+        protected Object variables;
 
-        protected ExtensionCallStackEntry(ExtensionCallStackEntry previous, Object block) {
+        protected ExtensionCallStackEntry(ExtensionCallStackEntry previous, Object variables, Object block) {
             this.previous = previous;
             this.block = block;
+            this.variables = variables;
         }
     }
 
     public static class ExtensionCallStack {
         protected ExtensionCallStackEntry current;
 
-        public ExtensionCallStack(Object block) {
-            current = new ExtensionCallStackEntry(null, block);
+        public ExtensionCallStack(Object variables, Object block) {
+            current = new ExtensionCallStackEntry(null, variables, block);
         }
 
         public ArrayList<Object> getKeptObjects() {
@@ -151,23 +139,21 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
             current = current.previous;
         }
 
-        public void push(Object block) {
-            current = new ExtensionCallStackEntry(current, block);
+        public void push(Object variable, Object block) {
+            current = new ExtensionCallStackEntry(current, variable, block);
+        }
+
+        public Object getVariables() {
+            return current.variables;
+        }
+
+        public void setVariables(Object variables) {
+            current.variables = variables;
         }
 
         public Object getBlock() {
             return current.block;
         }
-    }
-
-    @TruffleBoundary
-    public MarkerThreadLocalData getThreadLocalData() {
-        return threadLocalData.get();
-    }
-
-    @TruffleBoundary
-    public void cleanupThreadLocalData() {
-        threadLocalData.remove();
     }
 
     public MarkingService(ReferenceProcessor referenceprocessor) {
@@ -176,19 +162,7 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
 
     public MarkingService(ReferenceQueue<Object> processingQueue) {
         super(processingQueue);
-        threadLocalData = ThreadLocal.withInitial(this::makeThreadLocalData);
         runnerService = new MarkRunnerService(processingQueue, this);
-    }
-
-    @TruffleBoundary
-    public MarkerThreadLocalData makeThreadLocalData() {
-        MarkerThreadLocalData data = new MarkerThreadLocalData(this);
-        /* This finalizer will ensure all the objects remaining in our kept objects buffer will be queue at some point.
-         * We don't need to do a queue and reset as the MarkerKeptObjects is going to be GC'ed anyway. We also don't
-         * simply queue the keptObjects buffer because it may only have zero, or very few, objects in it and we don't
-         * want to run mark functions more often than we have to. */
-        //        context.getFinalizationService().addFinalizer(data, null, MarkingService.class, () -> getThreadLocalData().keptObjects.keepObjects(keptObjects), null);
-        return data;
     }
 
     @TruffleBoundary
@@ -209,11 +183,11 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         add(new MarkerReference(object, processingQueue, action, this));
     }
 
-    private void runMarker(RubyContext context, MarkerReference markerReference) {
-        runCatchingErrors(context, this::runMarkerInternal, markerReference);
+    private void runMarker(RubyContext context, RubyLanguage language, MarkerReference markerReference) {
+        runCatchingErrors(context, language, this::runMarkerInternal, markerReference);
     }
 
-    private void runMarkerInternal(RubyContext context, MarkerReference markerReference) {
+    private void runMarkerInternal(RubyContext context, RubyLanguage language, MarkerReference markerReference) {
         if (!context.isFinalizing()) {
             Object owner = markerReference.get();
             if (owner != null) {

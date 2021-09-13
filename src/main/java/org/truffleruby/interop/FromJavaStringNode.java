@@ -10,7 +10,6 @@
 package org.truffleruby.interop;
 
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
@@ -58,7 +57,7 @@ public abstract class FromJavaStringNode extends RubyBaseNode {
     }
 
     protected int getLimit() {
-        return RubyLanguage.getCurrentLanguage().options.INTEROP_CONVERT_CACHE;
+        return getLanguage().options.INTEROP_CONVERT_CACHE;
     }
 
 }

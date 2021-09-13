@@ -93,7 +93,7 @@ module Truffle
       end
     end
 
-    def self.internal_accept(source, new_class, exception)
+    def self.accept_and_addrinfo(source, new_class, exception)
       raise IOError, 'socket has been closed' if source.closed?
 
       sockaddr = sockaddr_class_for_socket(source).new
@@ -123,16 +123,20 @@ module Truffle
         sockaddr.pointer.free
       end
     end
-    private_class_method :internal_accept
 
-    def self.accept(source, new_class)
-      internal_accept(source, new_class, true)
-    end
+    def self.accept(source, new_class, exception)
+      raise IOError, 'socket has been closed' if source.closed?
 
-    def self.accept_nonblock(source, new_class, exception)
-      source.nonblock = true
+      fd = Truffle::Socket::Foreign.accept(source.fileno, ::FFI::Pointer::NULL, ::FFI::Pointer::NULL)
+      if fd < 0
+        if !exception and Errno.errno == Truffle::POSIX::EAGAIN_ERRNO
+          return :wait_readable
+        else
+          Error.read_error('accept(2)', source)
+        end
+      end
 
-      internal_accept(source, new_class, exception)
+      new_class.for_fd(fd)
     end
 
     def self.listen(source, backlog)
@@ -351,7 +355,7 @@ module Truffle
     end
 
     def self.address_info(method, socket, reverse_lookup = nil)
-      sockaddr = Foreign.__send__(method, socket.fileno)
+      sockaddr = Foreign.__send__(method, socket)
 
       reverse_lookup = convert_reverse_lookup(socket, reverse_lookup)
 

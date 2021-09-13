@@ -9,9 +9,10 @@
  */
 package org.truffleruby.core.array;
 
+import com.oracle.truffle.api.TruffleSafepoint;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
@@ -19,14 +20,13 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.nodes.NodeInterface;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 
 @ImportStatic(ArrayGuards.class)
 @ReportPolymorphism
-public abstract class ArrayEachIteratorNode extends RubyContextNode {
+public abstract class ArrayEachIteratorNode extends RubyBaseNode {
 
     public interface ArrayElementConsumerNode extends NodeInterface {
         void accept(RubyArray array, RubyProc block, Object element, int index);
@@ -66,7 +66,6 @@ public abstract class ArrayEachIteratorNode extends RubyContextNode {
             @Cached LoopConditionProfile loopProfile,
             @Cached ConditionProfile strategyMatchProfile) {
         int i = startAt;
-        loopProfile.profileCounted(array.size - startAt);
         try {
             for (; loopProfile.inject(i < array.size); i++) {
                 if (strategyMatchProfile.profile(arrays.accepts(array.store))) {
@@ -75,9 +74,10 @@ public abstract class ArrayEachIteratorNode extends RubyContextNode {
                 } else {
                     return getRecurseNode().execute(array, block, i, consumerNode);
                 }
+                TruffleSafepoint.poll(this);
             }
         } finally {
-            LoopNode.reportLoopCount(this, i - startAt);
+            profileAndReportLoopCount(loopProfile, i - startAt);
         }
 
         return array;

@@ -66,7 +66,7 @@ class UNIXSocket < BasicSocket
   end
 
   def path
-    @path ||= Truffle::Socket::Foreign.getsockname(Primitive.io_fd(self)).unpack('SZ*')[1]
+    @path ||= Truffle::Socket::Foreign.getsockname(self).unpack('SZ*')[1]
   end
 
   def addr
@@ -74,7 +74,7 @@ class UNIXSocket < BasicSocket
   end
 
   def peeraddr
-    path = Truffle::Socket::Foreign.getpeername(Primitive.io_fd(self)).unpack('SZ*')[1]
+    path = Truffle::Socket::Foreign.getpeername(self).unpack('SZ*')[1]
 
     ['AF_UNIX', path]
   end

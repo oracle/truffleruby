@@ -11,7 +11,6 @@ package org.truffleruby.language.exceptions;
 
 import org.truffleruby.RubyLanguage;
 import com.oracle.truffle.api.TruffleSafepoint;
-import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -19,7 +18,6 @@ import org.truffleruby.language.control.RetryException;
 import org.truffleruby.language.methods.ExceptionTranslatingNode;
 
 import com.oracle.truffle.api.CompilerAsserts;
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -35,8 +33,6 @@ public class TryNode extends RubyContextSourceNode {
     @Children private final RescueNode[] rescueParts;
     @Child private RubyNode elsePart;
     private final boolean canOmitBacktrace;
-
-    @Child private GetCurrentRubyThreadNode getCurrentRubyThreadNode;
 
     private final BranchProfile elseProfile = BranchProfile.create();
     private final BranchProfile controlFlowProfile = BranchProfile.create();
@@ -111,7 +107,7 @@ public class TryNode extends RubyContextSourceNode {
     }
 
     private Object setLastExceptionAndRunRescue(VirtualFrame frame, RaiseException exception, RescueNode rescue) {
-        final ThreadLocalGlobals threadLocalGlobals = getThreadLocalGlobals();
+        final ThreadLocalGlobals threadLocalGlobals = getLanguage().getCurrentThread().threadLocalGlobals;
         final Object previousException = threadLocalGlobals.exception;
         threadLocalGlobals.exception = exception.getException();
         try {
@@ -120,15 +116,6 @@ public class TryNode extends RubyContextSourceNode {
         } finally {
             threadLocalGlobals.exception = previousException;
         }
-    }
-
-    private ThreadLocalGlobals getThreadLocalGlobals() {
-        if (getCurrentRubyThreadNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            getCurrentRubyThreadNode = insert(GetCurrentRubyThreadNode.create());
-        }
-
-        return getCurrentRubyThreadNode.execute().threadLocalGlobals;
     }
 
     @TruffleBoundary

@@ -9,26 +9,17 @@
  */
 package org.truffleruby.language;
 
-import java.math.BigInteger;
-
-import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.interop.NodeLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.CoreLibrary;
-import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.exception.CoreExceptions;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.method.RubyMethod;
-import org.truffleruby.core.numeric.BignumOperations;
-import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.debug.RubyScope;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.InternalMethod;
@@ -47,10 +38,11 @@ import com.oracle.truffle.api.source.SourceSection;
 
 import static org.truffleruby.debug.RubyScope.RECEIVER_MEMBER;
 
-/** RubyNode has source, execute, and is instrument-able. However, it does not have any fields which would prevent
- * using @GenerateUncached. It should never be subclassed directly, either use {@link RubyContextSourceNode} or
- * {@link RubySourceNode}. SourceRubyNode is not defined since there was no use for it for now. Nodes having context are
- * described by {@link WithContext}. There is also {@link RubyContextNode} if context is needed but source is not. */
+/** RubyNode has source, execute, and is instrument-able. If there is no need for source and instrument-able,
+ * {@link RubyBaseNode} or {@link RubyBaseNodeWithExecute} should be used instead to save footprint. RubyNode does not
+ * have any fields which would prevent using @GenerateUncached. It should never be subclassed directly, either use
+ * {@link RubyContextSourceNode} (cannot be uncached, but avoids the DSL generating 6 field accessors for each subclass)
+ * or {@link RubySourceNode} (can be uncached). SourceRubyNode is not defined since there was no use for it for now. */
 @GenerateWrapper
 @ExportLibrary(NodeLibrary.class)
 public abstract class RubyNode extends RubyBaseNodeWithExecute implements InstrumentableNode {
@@ -242,49 +234,6 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
         return new RubyNodeWrapper(this, probe);
     }
 
-    public interface WithContext {
-        ContextReference<RubyContext> getContextReference();
-
-        RubyContext getContext();
-
-        // Helpers methods for terseness, keep in sync
-
-        default RubyEncoding getLocaleEncoding() {
-            return getContext().getEncodingManager().getLocaleEncoding();
-        }
-
-        default RubyBignum createBignum(BigInteger value) {
-            return BignumOperations.createBignum(value);
-        }
-
-        default CoreLibrary coreLibrary() {
-            return getContext().getCoreLibrary();
-        }
-
-        default CoreExceptions coreExceptions() {
-            return getContext().getCoreExceptions();
-        }
-
-        default int getIdentityCacheLimit() {
-            return getContext().getLanguageSlow().options.IDENTITY_CACHE;
-        }
-
-        default int getDefaultCacheLimit() {
-            return getContext().getLanguageSlow().options.DEFAULT_CACHE;
-        }
-
-        default int getDynamicObjectCacheLimit() {
-            return getContext().getLanguageSlow().options.INSTANCE_VARIABLE_CACHE;
-        }
-
-        default int getInteropCacheLimit() {
-            return getContext().getLanguageSlow().options.METHOD_LOOKUP_CACHE;
-        }
-
-        /** Implement in sub-classes to override {@link RubyBaseNode#getRubyLibraryCacheLimit()}. */
-        int getRubyLibraryCacheLimit();
-    }
-
     /** Return whether nodes following this one can ever be executed. In most cases this will be true, but some nodes
      * such as those representing a return or other control flow may wish to override this. */
     public boolean isContinuable() {
@@ -326,10 +275,9 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
 
     @ExportMessage
     final Object getScope(Frame frame, boolean nodeEnter,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @CachedLanguage RubyLanguage language) throws UnsupportedMessageException {
+            @CachedLibrary("this") NodeLibrary node) throws UnsupportedMessageException {
         if (hasScope(frame)) {
-            return new RubyScope(context, language, frame.materialize(), this);
+            return new RubyScope(RubyContext.get(node), RubyLanguage.get(node), frame.materialize(), this);
         } else {
             throw UnsupportedMessageException.create();
         }
@@ -355,16 +303,15 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
 
     @ExportMessage
     Object getRootInstance(Frame frame,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @CachedLanguage RubyLanguage language) throws UnsupportedMessageException {
+            @CachedLibrary("this") NodeLibrary node) throws UnsupportedMessageException {
         if (frame == null) {
             throw UnsupportedMessageException.create();
         }
         final Object self = RubyArguments.getSelf(frame);
         final InternalMethod method = RubyArguments.getMethod(frame);
         return new RubyMethod(
-                context.getCoreLibrary().methodClass,
-                language.methodShape,
+                RubyContext.get(node).getCoreLibrary().methodClass,
+                RubyLanguage.get(node).methodShape,
                 self,
                 method);
     }

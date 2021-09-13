@@ -14,7 +14,9 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.cext.UnwrapNode;
 import org.truffleruby.cext.UnwrapNodeGen.UnwrapNativeNodeGen;
 import org.truffleruby.cext.ValueWrapper;
@@ -23,6 +25,7 @@ import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
 import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
@@ -30,7 +33,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -39,6 +41,7 @@ import com.oracle.truffle.api.library.ExportMessage;
 
 @ExportLibrary(ArrayStoreLibrary.class)
 @GenerateUncached
+@ImportStatic(ArrayGuards.class)
 public final class NativeArrayStorage implements ObjectGraphNode {
 
     private final Pointer pointer;
@@ -82,39 +85,31 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    public abstract static class Read {
-
-        @Specialization
-        protected static Object read(NativeArrayStorage storage, int index,
-                @Shared("unwrap") @Cached UnwrapNode unwrapNode) {
-            return unwrapNode.execute(storage.readElement(index));
-        }
+    protected Object read(int index,
+            @Shared("unwrap") @Cached UnwrapNode unwrapNode) {
+        return unwrapNode.execute(readElement(index));
     }
 
     @ExportMessage
-    public abstract static class Write {
-
-        @Specialization
-        protected static void write(NativeArrayStorage storage, int index, Object value,
-                @CachedLibrary(limit = "1") InteropLibrary wrappers,
-                @Cached WrapNode wrapNode,
-                @Cached ConditionProfile isPointerProfile) {
-            final ValueWrapper wrapper = wrapNode.execute(value);
-            if (!isPointerProfile.profile(wrappers.isPointer(wrapper))) {
-                wrappers.toNative(wrapper);
-            }
-
-            final long address;
-            try {
-                assert wrappers.isPointer(wrapper);
-                address = wrappers.asPointer(wrapper);
-            } catch (UnsupportedMessageException e) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                throw new UnsupportedOperationException();
-            }
-
-            storage.writeElement(index, address);
+    protected void write(int index, Object value,
+            @CachedLibrary(limit = "1") InteropLibrary wrappers,
+            @Cached WrapNode wrapNode,
+            @Cached ConditionProfile isPointerProfile) {
+        final ValueWrapper wrapper = wrapNode.execute(value);
+        if (!isPointerProfile.profile(wrappers.isPointer(wrapper))) {
+            wrappers.toNative(wrapper);
         }
+
+        final long address;
+        try {
+            assert wrappers.isPointer(wrapper);
+            address = wrappers.asPointer(wrapper);
+        } catch (UnsupportedMessageException e) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            throw new UnsupportedOperationException();
+        }
+
+        writeElement(index, address);
     }
 
     @ExportMessage
@@ -123,18 +118,15 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    public abstract static class Expand {
-
-        @Specialization
-        protected static NativeArrayStorage expand(NativeArrayStorage storage, int newCapacity) {
-            Pointer newPointer = Pointer.malloc(storage.capacity());
-            newPointer.writeBytes(0, storage.pointer, 0, storage.capacity());
-            newPointer.writeBytes(storage.capacity(), newCapacity - storage.capacity(), (byte) 0);
-            /* We copy the contents of the marked objects to ensure the references will be kept alive even if the old
-             * store becomes unreachable. */
-            Object[] newMarkedObjects = ArrayUtils.grow(storage.markedObjects, newCapacity);
-            return new NativeArrayStorage(newPointer, newCapacity, newMarkedObjects);
-        }
+    protected NativeArrayStorage expand(int newCapacity) {
+        final int capacity = this.length;
+        Pointer newPointer = Pointer.malloc(capacity);
+        newPointer.writeBytes(0, pointer, 0, capacity);
+        newPointer.writeBytes(capacity, newCapacity - capacity, (byte) 0);
+        /* We copy the contents of the marked objects to ensure the references will be kept alive even if the old store
+         * becomes unreachable. */
+        Object[] newMarkedObjects = ArrayUtils.grow(markedObjects, newCapacity);
+        return new NativeArrayStorage(newPointer, newCapacity, newMarkedObjects);
     }
 
     @ExportMessage
@@ -148,17 +140,18 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    @ImportStatic(ArrayGuards.class)
-    public abstract static class CopyContents {
-
-        @Specialization
-        protected static void copyContents(
-                NativeArrayStorage srcStore, int srcStart, Object destStore, int destStart, int length,
-                @CachedLibrary(limit = "1") ArrayStoreLibrary srcStores,
-                @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary destStores) {
-            for (int i = 0; i < length; i++) {
-                destStores.write(destStore, destStart + i, srcStores.read(srcStore, srcStart + i));
+    protected void copyContents(int srcStart, Object destStore, int destStart, int length,
+            @CachedLibrary("this") ArrayStoreLibrary srcStores,
+            @Cached LoopConditionProfile loopProfile,
+            @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary destStores) {
+        int i = 0;
+        try {
+            for (; loopProfile.inject(i < length); i++) {
+                destStores.write(destStore, destStart + i, srcStores.read(this, srcStart + i));
+                TruffleSafepoint.poll(destStores);
             }
+        } finally {
+            RubyBaseNode.profileAndReportLoopCount(srcStores.getNode(), loopProfile, i);
         }
     }
 

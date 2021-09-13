@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.core.module.RubyModule;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -44,7 +45,20 @@ public class LexicalScope {
     }
 
     public void unsafeSetLiveModule(RubyModule liveModule) {
-        this.liveModule = liveModule;
+        final RubyModule previous = this.liveModule;
+        if (previous == null) {
+            this.liveModule = liveModule;
+        } else if (previous == liveModule) {
+            // Can be the same module for code like 2.times { module M } (at the toplevel)
+        } else {
+            throw CompilerDirectives.shouldNotReachHere(
+                    "Overriding module for static LexicalScope, old=" + moduleToDebugString(previous) +
+                            ", new=" + moduleToDebugString(liveModule));
+        }
+    }
+
+    private static String moduleToDebugString(RubyModule module) {
+        return module + "@" + Integer.toHexString(module.hashCode());
     }
 
     @Override

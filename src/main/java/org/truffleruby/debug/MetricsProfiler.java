@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.shared.options.Profile;
 
@@ -23,11 +24,13 @@ import com.oracle.truffle.api.Truffle;
 
 public class MetricsProfiler {
 
+    private final RubyLanguage language;
     private final RubyContext context;
     /** We need to use the same CallTarget for the same name to appear as one entry to the profiler */
     private final Map<String, RootCallTarget> summaryCallTargets = new ConcurrentHashMap<>();
 
-    public MetricsProfiler(RubyContext context) {
+    public MetricsProfiler(RubyLanguage language, RubyContext context) {
+        this.language = language;
         this.context = context;
     }
 
@@ -44,7 +47,7 @@ public class MetricsProfiler {
     private <T> RootCallTarget getCallTarget(String metricKind, String feature) {
         final String name;
         if (context.getOptions().METRICS_PROFILE_REQUIRE == Profile.DETAIL) {
-            name = "metrics " + metricKind + " " + context.getPathRelativeToHome(feature);
+            name = "metrics " + metricKind + " " + language.getPathRelativeToHome(feature);
             return newCallTarget(name);
         } else {
             name = "metrics " + metricKind;

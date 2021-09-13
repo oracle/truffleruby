@@ -10,41 +10,44 @@
 package org.truffleruby.core.regexp;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 
 import org.joni.Regex;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeWithEncoding;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 @ExportLibrary(InteropLibrary.class)
 public class RubyRegexp extends ImmutableRubyObject implements TruffleObject {
 
-    public Regex regex;
-    public Rope source;
-    public RegexpOptions options;
-    public EncodingCache cachedEncodings;
-    public TRegexCache tregexCache;
+    public final Regex regex;
+    public final Rope source;
+    public final RubyEncoding encoding;
+    public final RegexpOptions options;
+    public final EncodingCache cachedEncodings;
+    public final TRegexCache tregexCache;
 
-    public RubyRegexp(
-            Regex regex,
-            Rope source,
-            RegexpOptions options,
-            EncodingCache encodingCache,
-            TRegexCache tregexCache) {
+    public RubyRegexp(Regex regex, RegexpOptions options) {
+        // The RegexpNodes.compile operation may modify the encoding of the source rope. This modified copy is stored
+        // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when
+        // constructing the final regexp.
         this.regex = regex;
-        this.source = source;
+        final RopeWithEncoding ropeWithEncoding = (RopeWithEncoding) regex.getUserObject();
+        this.source = ropeWithEncoding.getRope();
+        this.encoding = ropeWithEncoding.getEncoding();
+        assert source.encoding == encoding.jcoding;
         this.options = options;
-        this.cachedEncodings = encodingCache;
-        this.tregexCache = tregexCache;
+        this.cachedEncodings = new EncodingCache();
+        this.tregexCache = new TRegexCache();
     }
 
     // region InteropLibrary messages
@@ -66,8 +69,8 @@ public class RubyRegexp extends ImmutableRubyObject implements TruffleObject {
 
     @ExportMessage
     protected RubyClass getMetaObject(
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getCoreLibrary().regexpClass;
+            @CachedLibrary("this") InteropLibrary node) {
+        return RubyContext.get(node).getCoreLibrary().regexpClass;
     }
     // endregion
 

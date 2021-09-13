@@ -1,5 +1,0 @@
-slow:Java.import imports a class to the top-level
-slow:Java.import returns the imported class
-slow:Java.import returns nil if nothing is imported
-slow:Java.import can import classes twice
-slow:Java.import raises an error if the constant is already defined

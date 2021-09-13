@@ -302,15 +302,15 @@ public abstract class MethodNodes {
                     .pack(null, null, method, null, receiver, nil, EMPTY_ARGUMENTS);
             final MaterializedFrame declarationFrame = Truffle
                     .getRuntime()
-                    .createMaterializedFrame(packedArgs, coreLibrary().emptyDeclarationDescriptor);
+                    .createMaterializedFrame(packedArgs, getLanguage().emptyDeclarationDescriptor);
             SpecialVariableStorage variables = new SpecialVariableStorage();
-            declarationFrame.setObject(coreLibrary().emptyDeclarationSpecialVariableSlot, variables);
+            declarationFrame.setObject(getLanguage().emptyDeclarationSpecialVariableSlot, variables);
             return ProcOperations.createRubyProc(
                     coreLibrary().procClass,
                     getLanguage().procShape,
                     ProcType.LAMBDA,
                     method.getSharedMethodInfo(),
-                    new ProcCallTargets(callTarget, callTarget),
+                    new ProcCallTargets(callTarget),
                     declarationFrame,
                     variables,
                     method,

@@ -9,25 +9,37 @@
  */
 package org.truffleruby.core.regexp;
 
-import org.jcodings.Encoding;
 import org.truffleruby.core.Hashing;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.parser.ReOptions;
+import org.truffleruby.core.rope.RopeOperations;
 
 public final class RegexpCacheKey {
 
     private final Rope rope;
-    private final Encoding encoding;
-    private final int options;
+    private final RubyEncoding encoding;
+    private final int joniOptions;
     private final Hashing hashing;
 
-    public RegexpCacheKey(Rope rope, Encoding encoding, int options, Hashing hashing) {
+    public RegexpCacheKey(Rope rope, RubyEncoding encoding, RegexpOptions options, Hashing hashing) {
         assert !(rope instanceof NativeRope);
         this.rope = rope;
         this.encoding = encoding;
-        this.options = options;
+        this.joniOptions = options.toJoniOptions();
         this.hashing = hashing;
+    }
+
+    public Rope getRope() {
+        return rope;
+    }
+
+    public RubyEncoding getEncoding() {
+        return encoding;
+    }
+
+    public int getJoniOptions() {
+        return joniOptions;
     }
 
     @Override
@@ -39,7 +51,7 @@ public final class RegexpCacheKey {
     public boolean equals(Object o) {
         if (o instanceof RegexpCacheKey) {
             final RegexpCacheKey other = (RegexpCacheKey) o;
-            return rope.equals(other.rope) && encoding == other.encoding && options == other.options;
+            return encoding == other.encoding && joniOptions == other.joniOptions && rope.equals(other.getRope());
         } else {
             return false;
         }
@@ -47,17 +59,8 @@ public final class RegexpCacheKey {
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append('/').append(rope.toString()).append('/');
-        if ((options & ReOptions.RE_OPTION_MULTILINE) != 0) {
-            builder.append('m');
-        }
-        if ((options & ReOptions.RE_OPTION_IGNORECASE) != 0) {
-            builder.append('i');
-        }
-        if ((options & ReOptions.RE_OPTION_EXTENDED) != 0) {
-            builder.append('x');
-        }
-        return builder.toString();
+        return '/' + RopeOperations.decodeOrEscapeBinaryRope(rope) + '/' +
+                RegexpOptions.fromJoniOptions(joniOptions).toOptionsString() +
+                " -- " + RopeOperations.decodeOrEscapeBinaryRope(encoding.name.rope);
     }
 }

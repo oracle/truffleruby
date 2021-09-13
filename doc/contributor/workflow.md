@@ -33,14 +33,15 @@ cd truffleruby
 We then use a Ruby script to run most commands.
 
 ```bash
-ruby tool/jt.rb --help
+bin/jt --help
 ```
 
 Most of us add an alias to our shell profile file so that it can be run with
-just `jt`. To allow this to run from any path, add this to your `.bash_profile`:
+just `jt`. To allow this to run from any path, add this to your `~/.bash_profile`:
 
 ```bash
-echo 'alias jt=/path/to/mri/bin/ruby /path/to/truffleruby/tool/jt.rb' >> ~/.bash_profile
+export SYSTEM_RUBY=/path/to/mri/bin/ruby
+alias jt=/path/to/truffleruby/bin/jt
 ```
 
 ```bash
@@ -124,14 +125,17 @@ This warning is important.
 
 ### Building C Extensions more quickly
 
-To speed up compilation of bundled C extensions, it is possible to use
-*native* toolchain launchers, which might save some build time.
-See the [related documentation](https://github.com/oracle/graal/blob/master/sulong/docs/contributor/TOOLCHAIN.md#using-a-prebuilt-graalvm-as-a-bootstrapping-toolchain)
-in Sulong to build and use them.
+Speeding up compilation of C extensions can be achieved by using *native* toolchain launchers,
+instead of the Bash toolchain launchers used with the `jvm*` build configurations.
 
-You can also use `export JT_CACHE_TOOLCHAIN=true` to have the native toolchain
-launchers built and used by `jt` automatically. `jt` will keep the 4 newest
-built toolchain launchers to avoid rebuilding when branches are switched.
+For bundled C extensions (that is, extensions under `src/main/c`),
+you can `export JT_CACHE_TOOLCHAIN=true` and that will then use native toolchain launchers for the
+[bootstrap toolchain](https://github.com/oracle/graal/blob/master/sulong/docs/contributor/TOOLCHAIN.md#using-a-prebuilt-graalvm-as-a-bootstrapping-toolchain).
+This has no effect after `jt build`.
+
+For C extensions installed after `jt build` by e.g. `gem install` or `bundle install`,
+one can use the `jvm-ce-ntl` build configuration which includes *native* toolchain launchers,
+or use one of the `native*` build configuration (which also builds a native truffleruby launcher).
 
 ## Editors and IDEs
 

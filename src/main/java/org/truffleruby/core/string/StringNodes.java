@@ -75,10 +75,11 @@ import static org.truffleruby.core.string.StringSupport.MBCLEN_NEEDMORE_P;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
+import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
-import com.oracle.truffle.api.nodes.LoopNode;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.graalvm.collections.Pair;
 import org.jcodings.Config;
@@ -87,8 +88,6 @@ import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -108,7 +107,7 @@ import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.cast.ToRopeNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
-import org.truffleruby.core.encoding.EncodingLeftCharHeadNode;
+import org.truffleruby.core.encoding.IsCharacterHeadNode;
 import org.truffleruby.core.encoding.EncodingNodes.CheckEncodingNode;
 import org.truffleruby.core.encoding.EncodingNodes.CheckRopeEncodingNode;
 import org.truffleruby.core.encoding.EncodingNodes.GetActualEncodingNode;
@@ -187,7 +186,6 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
-import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -207,8 +205,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -273,36 +269,30 @@ public abstract class StringNodes {
         }
 
         @Specialization
-        protected RubyString makeStringFromRope(Rope rope, RubyEncoding encoding, NotProvided codeRange,
-                @CachedContext(RubyLanguage.class) RubyContext context,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyString makeStringFromRope(Rope rope, RubyEncoding encoding, NotProvided codeRange) {
             assert rope.encoding == encoding.jcoding;
-            final RubyClass stringClass = context.getCoreLibrary().stringClass;
             final RubyString string = new RubyString(
-                    stringClass,
-                    language.stringShape,
+                    coreLibrary().stringClass,
+                    getLanguage().stringShape,
                     false,
                     rope,
                     encoding);
-            AllocationTracing.trace(language, context, string, this);
+            AllocationTracing.trace(string, this);
             return string;
         }
 
         @Specialization
         protected RubyString makeStringFromBytes(byte[] bytes, RubyEncoding encoding, CodeRange codeRange,
-                @Cached MakeLeafRopeNode makeLeafRopeNode,
-                @CachedContext(RubyLanguage.class) RubyContext context,
-                @CachedLanguage RubyLanguage language) {
+                @Cached MakeLeafRopeNode makeLeafRopeNode) {
             final LeafRope rope = makeLeafRopeNode
                     .executeMake(bytes, encoding.jcoding, codeRange, NotProvided.INSTANCE);
-            final RubyClass stringClass = context.getCoreLibrary().stringClass;
             final RubyString string = new RubyString(
-                    stringClass,
-                    language.stringShape,
+                    coreLibrary().stringClass,
+                    getLanguage().stringShape,
                     false,
                     rope,
                     encoding);
-            AllocationTracing.trace(language, context, string, this);
+            AllocationTracing.trace(string, this);
             return string;
         }
 
@@ -326,7 +316,7 @@ public abstract class StringNodes {
 
     }
 
-    public abstract static class StringSubstringNode extends RubyContextNode {
+    public abstract static class StringSubstringNode extends RubyBaseNode {
 
         @Child private SubstringNode substringNode = SubstringNode.create();
 
@@ -598,7 +588,7 @@ public abstract class StringNodes {
             Object result = argConcatNode.executeConcat(string, first, EMPTY_ARGUMENTS);
             for (int i = 0; i < cachedLength; ++i) {
                 final Object argOrCopy = selfArgProfile.profile(rest[i] == string)
-                        ? createString(getContext(), getLanguage(), rope, string.encoding)
+                        ? createString(this, rope, string.encoding)
                         : rest[i];
                 result = argConcatNode.executeConcat(string, argOrCopy, EMPTY_ARGUMENTS);
             }
@@ -614,7 +604,7 @@ public abstract class StringNodes {
             Object result = argConcatNode.executeConcat(string, first, EMPTY_ARGUMENTS);
             for (Object arg : rest) {
                 if (selfArgProfile.profile(arg == string)) {
-                    Object copy = createString(getContext(), getLanguage(), rope, string.encoding);
+                    Object copy = createString(this, rope, string.encoding);
                     result = argConcatNode.executeConcat(string, copy, EMPTY_ARGUMENTS);
                 } else {
                     result = argConcatNode.executeConcat(string, arg, EMPTY_ARGUMENTS);
@@ -992,7 +982,7 @@ public abstract class StringNodes {
     @Primitive(name = "string_end_with?")
     public abstract static class EndWithNode extends CoreMethodArrayArgumentsNode {
 
-        @Child EncodingLeftCharHeadNode encodingLeftCharHeadNode;
+        @Child IsCharacterHeadNode isCharacterHeadNode;
 
         @Specialization
         protected boolean endWithBytes(Object string, Object suffix, RubyEncoding enc,
@@ -1000,7 +990,7 @@ public abstract class StringNodes {
                 @Cached BytesNode suffixBytesNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsSuffix,
-                @Cached ConditionProfile leftAdjustProfile) {
+                @Cached ConditionProfile isCharacterHeadProfile) {
 
             final Rope stringRope = strings.getRope(string);
             final Rope suffixRope = stringsSuffix.getRope(suffix);
@@ -1018,24 +1008,19 @@ public abstract class StringNodes {
 
             final int offset = stringByteLength - suffixByteLength;
 
-            if (leftAdjustProfile.profile(leftAdjustCharHead(enc, stringByteLength, stringBytes, offset))) {
+            if (isCharacterHeadProfile.profile(!isCharacterHead(enc, stringByteLength, stringBytes, offset))) {
                 return false;
             }
 
-            for (int i = 0; i < suffixByteLength; i++) {
-                if (stringBytes[offset + i] != suffixBytes[i]) {
-                    return false;
-                }
-            }
-            return true;
+            return ArrayUtils.regionEquals(stringBytes, offset, suffixBytes, 0, suffixByteLength);
         }
 
-        private boolean leftAdjustCharHead(RubyEncoding enc, int stringByteLength, byte[] stringBytes, int offset) {
-            if (encodingLeftCharHeadNode == null) {
+        private boolean isCharacterHead(RubyEncoding enc, int stringByteLength, byte[] stringBytes, int offset) {
+            if (isCharacterHeadNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                encodingLeftCharHeadNode = insert(EncodingLeftCharHeadNode.create());
+                isCharacterHeadNode = insert(IsCharacterHeadNode.create());
             }
-            return encodingLeftCharHeadNode.execute(enc, stringBytes, 0, offset, stringByteLength) != offset;
+            return isCharacterHeadNode.execute(enc, stringBytes, offset, stringByteLength);
         }
 
     }
@@ -1120,7 +1105,7 @@ public abstract class StringNodes {
 
         @TruffleBoundary
         private int processStr(Rope rope, boolean[] squeeze, RubyEncoding compatEncoding, TrTables tables) {
-            return StringSupport.strCount(rope, squeeze, tables, compatEncoding.jcoding);
+            return StringSupport.strCount(rope, squeeze, tables, compatEncoding.jcoding, this);
         }
 
         @Specialization(guards = "!isEmpty(libString.getRope(string))")
@@ -1177,10 +1162,12 @@ public abstract class StringNodes {
                     squeeze,
                     null,
                     true,
-                    enc.jcoding);
+                    enc.jcoding,
+                    this);
 
             for (int i = 1; i < ropesWithEncs.length; i++) {
-                tables = StringSupport.trSetupTable(ropesWithEncs[i].getRope(), squeeze, tables, false, enc.jcoding);
+                tables = StringSupport
+                        .trSetupTable(ropesWithEncs[i].getRope(), squeeze, tables, false, enc.jcoding, this);
             }
             return tables;
         }
@@ -1325,7 +1312,7 @@ public abstract class StringNodes {
 
         @TruffleBoundary
         private Rope processStr(RubyString string, boolean[] squeeze, RubyEncoding enc, StringSupport.TrTables tables) {
-            return StringSupport.delete_bangCommon19(string.rope, squeeze, tables, enc.jcoding);
+            return StringSupport.delete_bangCommon19(string.rope, squeeze, tables, enc.jcoding, this);
         }
     }
 
@@ -1390,7 +1377,7 @@ public abstract class StringNodes {
 
             final RopeBuilder builder = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
             final boolean modified = StringSupport
-                    .downcaseMultiByteComplex(encoding, codeRangeNode.execute(rope), builder, caseMappingOptions);
+                    .downcaseMultiByteComplex(encoding, codeRangeNode.execute(rope), builder, caseMappingOptions, this);
 
             if (modifiedProfile.profile(modified)) {
                 string.setRope(
@@ -1581,9 +1568,8 @@ public abstract class StringNodes {
         @Specialization
         protected long hash(Object string,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
-                @Cached RopeNodes.HashNode hashNode,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
-            return context.getHashing(this).hash(CLASS_SALT, hashNode.execute(strings.getRope(string)));
+                @Cached RopeNodes.HashNode hashNode) {
+            return getContext().getHashing(this).hash(CLASS_SALT, hashNode.execute(strings.getRope(string)));
         }
     }
 
@@ -1663,7 +1649,7 @@ public abstract class StringNodes {
         }
     }
 
-    public abstract static class StringGetAssociatedNode extends RubyContextNode {
+    public abstract static class StringGetAssociatedNode extends RubyBaseNode {
 
         public static StringNodes.StringGetAssociatedNode create() {
             return StringNodesFactory.StringGetAssociatedNodeGen.create();
@@ -2186,7 +2172,7 @@ public abstract class StringNodes {
 
             final RopeBuilder builder = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
             final boolean modified = StringSupport
-                    .swapCaseMultiByteComplex(enc, codeRangeNode.execute(rope), builder, caseMappingOptions);
+                    .swapCaseMultiByteComplex(enc, codeRangeNode.execute(rope), builder, caseMappingOptions, this);
 
             if (modifiedProfile.profile(modified)) {
                 string.setRope(
@@ -2304,7 +2290,7 @@ public abstract class StringNodes {
                                     if (buf == null) {
                                         buf = new RopeBuilder();
                                     }
-                                    int cc = codePointX(enc, rope.getCodeRange(), bytes, p - 1, end);
+                                    int cc = StringSupport.codePoint(enc, rope.getCodeRange(), bytes, p - 1, end, this);
                                     buf.append(StringUtils.formatASCIIBytes("%x", cc));
                                     len += buf.getLength() + 4;
                                     buf.setLength(0);
@@ -2371,7 +2357,7 @@ public abstract class StringNodes {
                     if (enc.isUTF8()) {
                         int n = StringSupport.characterLength(enc, cr, bytes, p - 1, end) - 1;
                         if (n > 0) {
-                            int cc = codePointX(enc, cr, bytes, p - 1, end);
+                            int cc = StringSupport.codePoint(enc, cr, bytes, p - 1, end, this);
                             p += n;
                             outBytes.setLength(q);
                             outBytes.append(StringUtils.formatASCIIBytes("u%04X", cc));
@@ -2399,15 +2385,6 @@ public abstract class StringNodes {
             return c == '$' || c == '@' || c == '{';
         }
 
-        private int codePointX(Encoding enc, CodeRange codeRange, byte[] bytes, int p, int end) {
-            try {
-                return StringSupport.codePoint(enc, codeRange, bytes, p, end);
-            } catch (IllegalArgumentException e) {
-                throw new RaiseException(
-                        getContext(),
-                        getContext().getCoreExceptions().argumentError(e.getMessage(), this));
-            }
-        }
     }
 
     @CoreMethod(names = "undump")
@@ -2415,7 +2392,6 @@ public abstract class StringNodes {
     public abstract static class UndumpNode extends CoreMethodArrayArgumentsNode {
         @Specialization(guards = "isAsciiCompatible(libString.getRope(string))")
         protected RubyString undumpAsciiCompatible(Object string,
-                @CachedLanguage RubyLanguage language,
                 @Cached MakeStringNode makeStringNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             // Taken from org.jruby.RubyString#undump
@@ -2478,7 +2454,7 @@ public abstract class StringNodes {
 
     }
 
-    public abstract static class CheckIndexNode extends RubyContextNode {
+    public abstract static class CheckIndexNode extends RubyBaseNode {
 
         public abstract int executeCheck(int index, int length);
 
@@ -2508,7 +2484,7 @@ public abstract class StringNodes {
 
     }
 
-    public abstract static class NormalizeIndexNode extends RubyContextNode {
+    public abstract static class NormalizeIndexNode extends RubyBaseNode {
 
         public abstract int executeNormalize(int index, int length);
 
@@ -2586,7 +2562,8 @@ public abstract class StringNodes {
                                 squeeze,
                                 null,
                                 string.rope.getEncoding(),
-                                false)) {
+                                false,
+                                this)) {
                     return nil;
                 } else {
                     string.setRope(RopeOperations.ropeFromRopeBuilder(buffer));
@@ -2637,14 +2614,15 @@ public abstract class StringNodes {
                 }
             }
 
-            StringSupport.TrTables tables = StringSupport.trSetupTable(otherRope, squeeze, null, true, enc.jcoding);
+            StringSupport.TrTables tables = StringSupport
+                    .trSetupTable(otherRope, squeeze, null, true, enc.jcoding, this);
 
             for (int i = 1; i < otherStrings.length; i++) {
                 otherStr = otherStrings[i];
                 otherRope = RubyStringLibrary.getUncached().getRope(otherStr);
                 enc = checkEncodingNode.executeCheckEncoding(string, otherStr);
                 singlebyte = singlebyte && otherRope.isSingleByteOptimizable();
-                tables = StringSupport.trSetupTable(otherRope, squeeze, tables, false, enc.jcoding);
+                tables = StringSupport.trSetupTable(otherRope, squeeze, tables, false, enc.jcoding, this);
             }
 
             if (singleByteOptimizableProfile.profile(singlebyte)) {
@@ -2654,7 +2632,8 @@ public abstract class StringNodes {
                     string.setRope(RopeOperations.ropeFromRopeBuilder(buffer));
                 }
             } else {
-                if (!StringSupport.multiByteSqueeze(buffer, rope.getCodeRange(), squeeze, tables, enc.jcoding, true)) {
+                if (!StringSupport
+                        .multiByteSqueeze(buffer, rope.getCodeRange(), squeeze, tables, enc.jcoding, true, this)) {
                     return nil;
                 } else {
                     string.setRope(RopeOperations.ropeFromRopeBuilder(buffer));
@@ -2676,7 +2655,7 @@ public abstract class StringNodes {
             final Rope rope = string.rope;
 
             if (!rope.isEmpty()) {
-                final RopeBuilder succBuilder = StringSupport.succCommon(rope);
+                final RopeBuilder succBuilder = StringSupport.succCommon(rope, this);
 
                 final Rope newRope = makeLeafRopeNode.executeMake(
                         succBuilder.getBytes(),
@@ -2978,7 +2957,8 @@ public abstract class StringNodes {
                     libFromStr.getRope(fromStr),
                     toStr,
                     libToStr.getRope(toStr),
-                    false);
+                    false,
+                    this);
         }
     }
 
@@ -3035,7 +3015,8 @@ public abstract class StringNodes {
                     libFromStr.getRope(fromStr),
                     toStr,
                     libToStr.getRope(toStr),
-                    true);
+                    true,
+                    this);
         }
     }
 
@@ -3127,7 +3108,7 @@ public abstract class StringNodes {
 
     }
 
-    public abstract static class InvertAsciiCaseBytesNode extends RubyContextNode {
+    public abstract static class InvertAsciiCaseBytesNode extends RubyBaseNode {
 
         private final boolean lowerToUpper;
         private final boolean upperToLower;
@@ -3154,33 +3135,41 @@ public abstract class StringNodes {
         @Specialization
         protected byte[] invert(byte[] bytes, int start,
                 @Cached BranchProfile foundLowerCaseCharProfile,
-                @Cached BranchProfile foundUpperCaseCharProfile) {
+                @Cached BranchProfile foundUpperCaseCharProfile,
+                @Cached LoopConditionProfile loopProfile) {
             byte[] modified = null;
 
-            for (int i = start; i < bytes.length; i++) {
-                final byte b = bytes[i];
+            int i = start;
+            try {
+                for (; loopProfile.inject(i < bytes.length); i++) {
+                    final byte b = bytes[i];
 
-                if (lowerToUpper && StringSupport.isAsciiLowercase(b)) {
-                    foundLowerCaseCharProfile.enter();
+                    if (lowerToUpper && StringSupport.isAsciiLowercase(b)) {
+                        foundLowerCaseCharProfile.enter();
 
-                    if (modified == null) {
-                        modified = bytes.clone();
+                        if (modified == null) {
+                            modified = bytes.clone();
+                        }
+
+                        // Convert lower-case ASCII char to upper-case.
+                        modified[i] ^= 0x20;
                     }
 
-                    // Convert lower-case ASCII char to upper-case.
-                    modified[i] ^= 0x20;
-                }
+                    if (upperToLower && StringSupport.isAsciiUppercase(b)) {
+                        foundUpperCaseCharProfile.enter();
 
-                if (upperToLower && StringSupport.isAsciiUppercase(b)) {
-                    foundUpperCaseCharProfile.enter();
+                        if (modified == null) {
+                            modified = bytes.clone();
+                        }
 
-                    if (modified == null) {
-                        modified = bytes.clone();
+                        // Convert upper-case ASCII char to lower-case.
+                        modified[i] ^= 0x20;
                     }
 
-                    // Convert upper-case ASCII char to lower-case.
-                    modified[i] ^= 0x20;
+                    TruffleSafepoint.poll(this);
                 }
+            } finally {
+                profileAndReportLoopCount(loopProfile, i - start);
             }
 
             return modified;
@@ -3188,7 +3177,7 @@ public abstract class StringNodes {
 
     }
 
-    public abstract static class InvertAsciiCaseNode extends RubyContextNode {
+    public abstract static class InvertAsciiCaseNode extends RubyBaseNode {
 
         @Child private InvertAsciiCaseBytesNode invertNode;
 
@@ -3299,7 +3288,7 @@ public abstract class StringNodes {
 
             final RopeBuilder builder = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
             final boolean modified = StringSupport
-                    .upcaseMultiByteComplex(encoding, codeRangeNode.execute(rope), builder, caseMappingOptions);
+                    .upcaseMultiByteComplex(encoding, codeRangeNode.execute(rope), builder, caseMappingOptions, this);
             if (modifiedProfile.profile(modified)) {
                 string.setRope(
                         makeLeafRopeNode
@@ -3445,7 +3434,7 @@ public abstract class StringNodes {
 
             final RopeBuilder builder = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
             final boolean modified = StringSupport
-                    .capitalizeMultiByteComplex(enc, codeRangeNode.execute(rope), builder, caseMappingOptions);
+                    .capitalizeMultiByteComplex(enc, codeRangeNode.execute(rope), builder, caseMappingOptions, this);
             if (modifiedProfile.profile(modified)) {
                 string.setRope(
                         makeLeafRopeNode
@@ -3475,13 +3464,13 @@ public abstract class StringNodes {
         @TruffleBoundary
         private static Object trTransHelper(CheckEncodingNode checkEncodingNode, RubyString self, Rope selfRope,
                 Object fromStr, Rope fromStrRope,
-                Object toStr, Rope toStrRope, boolean sFlag) {
+                Object toStr, Rope toStrRope, boolean sFlag, Node node) {
             final RubyEncoding e1 = checkEncodingNode.executeCheckEncoding(self, fromStr);
             final RubyEncoding e2 = checkEncodingNode.executeCheckEncoding(self, toStr);
             final RubyEncoding enc = e1 == e2 ? e1 : checkEncodingNode.executeCheckEncoding(fromStr, toStr);
 
             final Rope ret = StringSupport
-                    .trTransHelper(selfRope, fromStrRope, toStrRope, e1.jcoding, enc.jcoding, sFlag);
+                    .trTransHelper(selfRope, fromStrRope, toStrRope, e1.jcoding, enc.jcoding, sFlag, node);
             if (ret == null) {
                 return Nil.INSTANCE;
             }
@@ -3838,7 +3827,7 @@ public abstract class StringNodes {
     }
 
     @ImportStatic(StringGuards.class)
-    public abstract static class StringAreComparableNode extends RubyContextNode {
+    public abstract static class StringAreComparableNode extends RubyBaseNode {
 
         @Child AreComparableRopesNode areComparableRopesNode = AreComparableRopesNode.create();
 
@@ -3853,7 +3842,7 @@ public abstract class StringNodes {
     }
 
     @ImportStatic({ StringGuards.class, StringOperations.class })
-    public abstract static class StringEqualNode extends RubyContextNode {
+    public abstract static class StringEqualNode extends RubyBaseNode {
 
         @Child private StringAreComparableNode areComparableNode;
 
@@ -4264,6 +4253,7 @@ public abstract class StringNodes {
                 @Cached BytesNode bytesNode,
                 @Cached BranchProfile matchFoundProfile,
                 @Cached BranchProfile noMatchProfile,
+                @Cached LoopConditionProfile loopProfile,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString,
                 @CachedLibrary(limit = "2") RubyStringLibrary libPattern) {
             assert byteOffset >= 0;
@@ -4277,13 +4267,19 @@ public abstract class StringNodes {
 
             int end = sourceRope.byteLength() - searchRope.byteLength();
 
-            for (int i = byteOffset; i <= end; i++) {
-                if (sourceBytes[i] == searchBytes[0]) {
-                    if (ArrayUtils.memcmp(sourceBytes, i, searchBytes, 0, searchRope.byteLength()) == 0) {
-                        matchFoundProfile.enter();
-                        return i;
+            int i = byteOffset;
+            try {
+                for (; loopProfile.inject(i <= end); i++) {
+                    if (sourceBytes[i] == searchBytes[0]) {
+                        if (ArrayUtils.regionEquals(sourceBytes, i, searchBytes, 0, searchRope.byteLength())) {
+                            matchFoundProfile.enter();
+                            return i;
+                        }
                     }
+                    TruffleSafepoint.poll(this);
                 }
+            } finally {
+                profileAndReportLoopCount(loopProfile, i - byteOffset);
             }
 
             noMatchProfile.enter();
@@ -4531,8 +4527,7 @@ public abstract class StringNodes {
         protected Object singleByteOptimizable(Rope stringRope, Rope patternRope, int offset,
                 @Cached @Shared("stringBytesNode") BytesNode stringBytesNode,
                 @Cached @Shared("patternBytesNode") BytesNode patternBytesNode,
-                @Cached LoopConditionProfile loopProfile,
-                @Cached("createCountingProfile()") ConditionProfile matchProfile) {
+                @Cached LoopConditionProfile loopProfile) {
 
             assert offset >= 0;
             assert offset + patternRope.byteLength() <= stringRope
@@ -4547,13 +4542,14 @@ public abstract class StringNodes {
             final byte[] patternBytes = patternBytesNode.execute(patternRope);
 
             try {
-                for (; loopProfile.profile(p < l); p++) {
-                    if (matchProfile.profile(ArrayUtils.memcmp(stringBytes, p, patternBytes, 0, pe) == 0)) {
+                for (; loopProfile.inject(p < l); p++) {
+                    if (ArrayUtils.regionEquals(stringBytes, p, patternBytes, 0, pe)) {
                         return p;
                     }
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
-                LoopNode.reportLoopCount(this, p - offset);
+                profileAndReportLoopCount(loopProfile, p - offset);
             }
 
             return nil;
@@ -4599,7 +4595,7 @@ public abstract class StringNodes {
                 if (!StringSupport.MBCLEN_CHARFOUND_P(c)) {
                     return nil;
                 }
-                if (ArrayUtils.memcmp(stringBytes, p, patternBytes, 0, pe) == 0) {
+                if (ArrayUtils.regionEquals(stringBytes, p, patternBytes, 0, pe)) {
                     return index;
                 }
             }
@@ -4640,8 +4636,7 @@ public abstract class StringNodes {
         protected Object singleByteOptimizable(Rope stringRope, Rope patternRope, int offset,
                 @Cached @Shared("stringBytesNode") BytesNode stringBytesNode,
                 @Cached @Shared("patternBytesNode") BytesNode patternBytesNode,
-                @Cached LoopConditionProfile loopProfile,
-                @Cached("createCountingProfile()") ConditionProfile matchProfile) {
+                @Cached LoopConditionProfile loopProfile) {
 
             assert offset >= 0;
             int p = offset;
@@ -4653,13 +4648,14 @@ public abstract class StringNodes {
             final byte[] patternBytes = patternBytesNode.execute(patternRope);
 
             try {
-                for (; loopProfile.profile(p < l); p++) {
-                    if (matchProfile.profile(ArrayUtils.memcmp(stringBytes, p, patternBytes, 0, pe) == 0)) {
+                for (; loopProfile.inject(p < l); p++) {
+                    if (ArrayUtils.regionEquals(stringBytes, p, patternBytes, 0, pe)) {
                         return p;
                     }
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
-                LoopNode.reportLoopCount(this, p - offset);
+                profileAndReportLoopCount(loopProfile, p - offset);
             }
 
             return nil;
@@ -4693,7 +4689,7 @@ public abstract class StringNodes {
                 if (!StringSupport.MBCLEN_CHARFOUND_P(c)) {
                     return nil;
                 }
-                if (ArrayUtils.memcmp(stringBytes, p, patternBytes, 0, pe) == 0) {
+                if (ArrayUtils.regionEquals(stringBytes, p, patternBytes, 0, pe)) {
                     return p;
                 }
             }
@@ -4715,7 +4711,7 @@ public abstract class StringNodes {
      * @startByteOffset - Starting position in the rope for the calculation of the character's byte offset.
      * @characterIndex - The character index into the rope, starting from the provided byte offset. */
     @ImportStatic({ RopeGuards.class, StringGuards.class, StringOperations.class })
-    public abstract static class ByteIndexFromCharIndexNode extends RubyContextNode {
+    public abstract static class ByteIndexFromCharIndexNode extends RubyBaseNode {
 
         public static ByteIndexFromCharIndexNode create() {
             return ByteIndexFromCharIndexNodeGen.create();
@@ -4897,6 +4893,7 @@ public abstract class StringNodes {
                 @Cached BranchProfile startTooLargeProfile,
                 @Cached BranchProfile matchFoundProfile,
                 @Cached BranchProfile noMatchProfile,
+                @Cached LoopConditionProfile loopProfile,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             assert byteOffset >= 0;
 
@@ -4913,11 +4910,17 @@ public abstract class StringNodes {
                 normalizedStart = end - 1;
             }
 
-            for (int i = normalizedStart; i >= 0; i--) {
-                if (sourceBytes[i] == searchByte) {
-                    matchFoundProfile.enter();
-                    return i;
+            int i = normalizedStart;
+            try {
+                for (; loopProfile.inject(i >= 0); i--) {
+                    if (sourceBytes[i] == searchByte) {
+                        matchFoundProfile.enter();
+                        return i;
+                    }
+                    TruffleSafepoint.poll(this);
                 }
+            } finally {
+                profileAndReportLoopCount(loopProfile, normalizedStart - i);
             }
 
             noMatchProfile.enter();
@@ -4937,6 +4940,7 @@ public abstract class StringNodes {
                 @Cached BranchProfile startTooCloseToEndProfile,
                 @Cached BranchProfile matchFoundProfile,
                 @Cached BranchProfile noMatchProfile,
+                @Cached LoopConditionProfile loopProfile,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             assert byteOffset >= 0;
 
@@ -4945,9 +4949,8 @@ public abstract class StringNodes {
             final Rope sourceRope = libString.getRope(string);
             final int end = sourceRope.byteLength();
             final byte[] sourceBytes = bytesNode.execute(sourceRope);
-            final Rope searchRope = patternRope;
-            final int matchSize = searchRope.byteLength();
-            final byte[] searchBytes = bytesNode.execute(searchRope);
+            final int matchSize = patternRope.byteLength();
+            final byte[] searchBytes = bytesNode.execute(patternRope);
             int normalizedStart = byteOffset;
 
             if (normalizedStart >= end) {
@@ -4960,13 +4963,19 @@ public abstract class StringNodes {
                 normalizedStart = end - matchSize;
             }
 
-            for (int i = normalizedStart; i >= 0; i--) {
-                if (sourceBytes[i] == searchBytes[0]) {
-                    if (ArrayUtils.memcmp(sourceBytes, i, searchBytes, 0, matchSize) == 0) {
-                        matchFoundProfile.enter();
-                        return i;
+            int i = normalizedStart;
+            try {
+                for (; loopProfile.inject(i >= 0); i--) {
+                    if (sourceBytes[i] == searchBytes[0]) {
+                        if (ArrayUtils.regionEquals(sourceBytes, i, searchBytes, 0, matchSize)) {
+                            matchFoundProfile.enter();
+                            return i;
+                        }
                     }
+                    TruffleSafepoint.poll(this);
                 }
+            } finally {
+                profileAndReportLoopCount(loopProfile, normalizedStart - i);
             }
 
             noMatchProfile.enter();
@@ -4990,6 +4999,7 @@ public abstract class StringNodes {
                 @Cached BytesNode patternBytes,
                 @Cached GetByteNode patternGetByteNode,
                 @Cached GetByteNode stringGetByteNode,
+                @Cached LoopConditionProfile loopProfile,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             // Taken from Rubinius's String::rindex.
             assert byteOffset >= 0;
@@ -5030,18 +5040,22 @@ public abstract class StringNodes {
 
                     int cur = pos;
 
-                    while (cur >= 0) {
-                        // TODO (nirvdrum 21-Jan-16): Investigate a more rope efficient memcmp.
-                        if (ArrayUtils.memcmp(
-                                stringBytes.execute(stringRope),
-                                cur,
-                                patternBytes.execute(patternRope),
-                                0,
-                                matchSize) == 0) {
-                            return cur;
-                        }
+                    try {
+                        while (loopProfile.inject(cur >= 0)) {
+                            if (ArrayUtils.regionEquals(
+                                    stringBytes.execute(stringRope),
+                                    cur,
+                                    patternBytes.execute(patternRope),
+                                    0,
+                                    matchSize)) {
+                                return cur;
+                            }
 
-                        cur--;
+                            cur--;
+                            TruffleSafepoint.poll(this);
+                        }
+                    } finally {
+                        profileAndReportLoopCount(loopProfile, pos - cur);
                     }
                 }
             }
@@ -5552,7 +5566,7 @@ public abstract class StringNodes {
 
     }
 
-    public abstract static class StringAppendNode extends RubyContextNode {
+    public abstract static class StringAppendNode extends RubyBaseNode {
 
         @Child private CheckEncodingNode checkEncodingNode;
         @Child private ConcatNode concatNode;

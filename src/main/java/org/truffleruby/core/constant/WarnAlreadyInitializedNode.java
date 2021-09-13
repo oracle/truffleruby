@@ -11,13 +11,13 @@ package org.truffleruby.core.constant;
 
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.WarnNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.source.SourceSection;
 
-public class WarnAlreadyInitializedNode extends RubyContextNode {
+public class WarnAlreadyInitializedNode extends RubyBaseNode {
 
     @Child private WarnNode warnNode = new WarnNode();
 

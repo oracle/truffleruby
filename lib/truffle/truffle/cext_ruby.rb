@@ -38,7 +38,7 @@ module Truffle::CExt
       # We must set block argument if given here so that the
       # `rb_block_*` functions will be able to find it by walking the
       # stack.
-      res = Primitive.cext_unwrap(Primitive.call_with_c_mutex_and_frame(function, args, block))
+      res = Primitive.cext_unwrap(Primitive.call_with_c_mutex_and_frame(function, args, Primitive.caller_special_variables_if_available, block))
       Primitive.thread_set_exception(exc)
       res
     end

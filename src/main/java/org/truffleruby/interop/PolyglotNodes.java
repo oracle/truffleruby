@@ -11,10 +11,16 @@ package org.truffleruby.interop;
 
 import java.io.IOException;
 
+import com.oracle.truffle.api.TruffleContext;
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
@@ -34,6 +40,7 @@ import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.source.Source;
 import org.truffleruby.language.library.RubyStringLibrary;
+import org.truffleruby.utils.Utils;
 
 @CoreModule("Polyglot")
 public abstract class PolyglotNodes {
@@ -45,30 +52,30 @@ public abstract class PolyglotNodes {
 
         @Specialization(
                 guards = {
-                        "stringsId.isRubyString(id)",
-                        "stringsSource.isRubyString(source)",
-                        "idEqualNode.execute(stringsId.getRope(id), cachedMimeType)",
-                        "sourceEqualNode.execute(stringsSource.getRope(source), cachedSource)" },
+                        "idLib.isRubyString(langId)",
+                        "codeLib.isRubyString(code)",
+                        "idEqualNode.execute(idLib.getRope(langId), cachedLangId)",
+                        "codeEqualNode.execute(codeLib.getRope(code), cachedCode)" },
                 limit = "getCacheLimit()")
-        protected Object evalCached(Object id, Object source,
-                @CachedLibrary(limit = "2") RubyStringLibrary stringsId,
-                @CachedLibrary(limit = "2") RubyStringLibrary stringsSource,
-                @Cached("stringsId.getRope(id)") Rope cachedMimeType,
-                @Cached("stringsSource.getRope(source)") Rope cachedSource,
-                @Cached("create(parse(stringsId.getRope(id), stringsSource.getRope(source)))") DirectCallNode callNode,
+        protected Object evalCached(Object langId, Object code,
+                @CachedLibrary(limit = "2") RubyStringLibrary idLib,
+                @CachedLibrary(limit = "2") RubyStringLibrary codeLib,
+                @Cached("idLib.getRope(langId)") Rope cachedLangId,
+                @Cached("codeLib.getRope(code)") Rope cachedCode,
+                @Cached("create(parse(idLib.getRope(langId), codeLib.getRope(code)))") DirectCallNode callNode,
                 @Cached RopeNodes.EqualNode idEqualNode,
-                @Cached RopeNodes.EqualNode sourceEqualNode) {
+                @Cached RopeNodes.EqualNode codeEqualNode) {
             return callNode.call(EMPTY_ARGUMENTS);
         }
 
         @Specialization(
-                guards = { "stringsId.isRubyString(id)", "stringsSource.isRubyString(source)" },
+                guards = { "stringsId.isRubyString(langId)", "stringsSource.isRubyString(code)" },
                 replaces = "evalCached")
-        protected Object evalUncached(Object id, Object source,
+        protected Object evalUncached(Object langId, Object code,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsId,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsSource,
                 @Cached IndirectCallNode callNode) {
-            return callNode.call(parse(stringsId.getRope(id), stringsSource.getRope(source)), EMPTY_ARGUMENTS);
+            return callNode.call(parse(stringsId.getRope(langId), stringsSource.getRope(code)), EMPTY_ARGUMENTS);
         }
 
         @TruffleBoundary
@@ -79,7 +86,9 @@ public abstract class PolyglotNodes {
             try {
                 return getContext().getEnv().parsePublic(source);
             } catch (IllegalStateException e) {
-                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().argumentError(e.getMessage(), this));
             }
         }
 
@@ -156,6 +165,100 @@ public abstract class PolyglotNodes {
             }
         }
 
+    }
+
+    @Primitive(name = "inner_context_new")
+    public abstract static class InnerContextNewNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected RubyInnerContext newInnerContext(RubyClass rubyClass) {
+            final TruffleContext innerContext = getContext()
+                    .getEnv()
+                    .newContextBuilder()
+                    .initializeCreatorContext(false)
+                    .build();
+
+            return new RubyInnerContext(
+                    rubyClass,
+                    getLanguage().innerContextShape,
+                    innerContext);
+        }
+    }
+
+    @Primitive(name = "inner_context_eval")
+    public abstract static class InnerContextEvalNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(guards = {
+                "idLib.isRubyString(langId)",
+                "codeLib.isRubyString(code)",
+                "idEqualNode.execute(langIdRope, cachedLangId)",
+                "codeEqualNode.execute(codeRope, cachedCode)" }, limit = "getCacheLimit()")
+        protected Object evalCached(RubyInnerContext rubyInnerContext, Object langId, Object code,
+                @CachedLibrary(limit = "2") RubyStringLibrary idLib,
+                @CachedLibrary(limit = "2") RubyStringLibrary codeLib,
+                @Bind("idLib.getRope(langId)") Rope langIdRope,
+                @Bind("codeLib.getRope(code)") Rope codeRope,
+                @Cached("langIdRope") Rope cachedLangId,
+                @Cached("codeRope") Rope cachedCode,
+                @Cached("createSource(idLib.getJavaString(langId), codeLib.getJavaString(code))") Source cachedSource,
+                @Cached RopeNodes.EqualNode idEqualNode,
+                @Cached RopeNodes.EqualNode codeEqualNode,
+                @Cached ForeignToRubyNode foreignToRubyNode,
+                @Cached BranchProfile errorProfile) {
+            return eval(rubyInnerContext, cachedSource, foreignToRubyNode, errorProfile);
+        }
+
+        @Specialization(
+                guards = { "idLib.isRubyString(langId)", "codeLib.isRubyString(code)" },
+                replaces = "evalCached")
+        protected Object evalUncached(RubyInnerContext rubyInnerContext, Object langId, Object code,
+                @CachedLibrary(limit = "2") RubyStringLibrary idLib,
+                @CachedLibrary(limit = "2") RubyStringLibrary codeLib,
+                @Cached ForeignToRubyNode foreignToRubyNode,
+                @Cached BranchProfile errorProfile) {
+            final String idString = idLib.getJavaString(langId);
+            final String codeString = codeLib.getJavaString(code);
+
+            final Source source = createSource(idString, codeString);
+
+            return eval(rubyInnerContext, source, foreignToRubyNode, errorProfile);
+        }
+
+        private Object eval(RubyInnerContext rubyInnerContext, Source source,
+                ForeignToRubyNode foreignToRubyNode, BranchProfile errorProfile) {
+            final Object result;
+            try {
+                result = rubyInnerContext.innerContext.evalPublic(this, source);
+            } catch (IllegalStateException closed) {
+                errorProfile.enter();
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().runtimeError("This Polyglot::InnerContext is closed", this));
+            } catch (IllegalArgumentException unknownLanguage) {
+                errorProfile.enter();
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().argumentError(Utils.concat("Unknown language: ", source.getLanguage()), this));
+            }
+
+            return foreignToRubyNode.executeConvert(result);
+        }
+
+        @TruffleBoundary
+        protected Source createSource(String idString, String codeString) {
+            return Source.newBuilder(idString, codeString, "(eval)").build();
+        }
+
+        protected int getCacheLimit() {
+            return getLanguage().options.EVAL_CACHE;
+        }
+    }
+
+    @Primitive(name = "inner_context_close")
+    public abstract static class InnerContextCloseNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected Object close(RubyInnerContext rubyInnerContext) {
+            rubyInnerContext.innerContext.close();
+            return nil;
+        }
     }
 
 }

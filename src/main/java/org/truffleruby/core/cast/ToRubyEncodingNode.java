@@ -14,13 +14,13 @@ import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 
 /** Take a Ruby object that has an encoding and extracts the Java-level encoding object. */
-public abstract class ToRubyEncodingNode extends RubyContextNode {
+public abstract class ToRubyEncodingNode extends RubyBaseNode {
 
     public static ToRubyEncodingNode create() {
         return ToRubyEncodingNodeGen.create();
@@ -45,7 +45,7 @@ public abstract class ToRubyEncodingNode extends RubyContextNode {
 
     @Specialization
     protected RubyEncoding regexpToEncoding(RubyRegexp value) {
-        return getContext().getEncodingManager().getRubyEncoding(value.regex.getEncoding());
+        return value.encoding;
     }
 
     @Specialization

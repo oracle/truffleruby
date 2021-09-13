@@ -1,4 +1,4 @@
-![TruffleRuby logo](logo/png/truffleruby_logo_horizontal_medium.png)
+![TruffleRuby logo](logo/png/truffleruby_logo_horizontal_medium_outlined.png)
 
 TruffleRuby is the [GraalVM](http://graalvm.org/) high-performance implementation
 of the [Ruby programming language](https://www.ruby-lang.org/en/).
@@ -20,8 +20,8 @@ There are four ways to install TruffleRuby releases and nightly builds:
   download. It is meant for users who only want a Ruby implementation and are already
   using a Ruby manager.
 
-* Via Docker: [Oracle Linux-based images](https://github.com/graalvm/container/pkgs/container/truffleruby)
-  and [Debian-based images](https://hub.docker.com/r/flavorjones/truffleruby).
+* Via Docker: [Oracle Linux-based images](https://github.com/graalvm/container/blob/master/truffleruby/README.md)
+  and [Debian-based images](https://github.com/flavorjones/truffleruby/pkgs/container/truffleruby).
 
 * Via the [standalone distribution](doc/user/standalone-distribution.md)
   as a simple binary tarball.
@@ -96,7 +96,7 @@ TruffleRuby is actively tested on the following systems:
 Architectures:
 
 * AMD64 (aka `x86_64`): Supported
-* AArch64 (aka `arm64`): Supported on Linux (from 20.2)
+* AArch64 (aka `arm64`): Supported on Linux (from 21.2)
 
 You may find that TruffleRuby will not work if you severely restrict the
 environment, for example, by unmounting system filesystems such as `/dev/shm`.
@@ -171,7 +171,7 @@ Announcements about GraalVM, including TruffleRuby, are made on the
 ## Authors
 
 The main authors of TruffleRuby ordered by first contribution are:
-Chris Seaton, Benoit Daloze, Kevin Menard, Petr Chalupa, Brandon Fish, Duncan MacGregor, Christian Wirth, Rafael França, Alan Wu, Nicolas Laurent, Carol Chen, Nikolay Sverchkov, and Lillian Zhang.
+Chris Seaton, Benoit Daloze, Kevin Menard, Petr Chalupa, Brandon Fish, Duncan MacGregor, Christian Wirth, Rafael França, Alan Wu, Nicolas Laurent, Carol Chen, Nikolay Sverchkov, Lillian Zhang, Tom Stuart, and Maple Ong.
 
 ## Security
 

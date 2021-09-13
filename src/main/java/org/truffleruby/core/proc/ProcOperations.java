@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.proc;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -72,7 +73,7 @@ public abstract class ProcOperations {
                 callTargetForType = holder.getCallTargetForLambda();
                 break;
             default:
-                throw new IllegalArgumentException();
+                throw CompilerDirectives.shouldNotReachHere();
         }
 
         return new RubyProc(

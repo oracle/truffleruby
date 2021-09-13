@@ -237,7 +237,7 @@ class Thread
     if block_given?
       yield key
     elsif Primitive.undefined?(default)
-      Kernel.raise KeyError.new("key not found: #{key.inspect}", :receiver => self, :key => key)
+      Kernel.raise KeyError.new("key not found: #{key.inspect}", receiver: self, key: key)
     else
       default
     end

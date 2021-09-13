@@ -11,9 +11,6 @@ package org.truffleruby.cext;
 
 import static org.truffleruby.core.symbol.CoreSymbols.idToIndex;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -21,7 +18,6 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -39,16 +35,14 @@ public abstract class IDToSymbolNode extends RubyBaseNode {
 
     @Specialization(guards = "isStaticSymbol(value)")
     protected Object unwrapStaticSymbol(long value,
-            @CachedLanguage RubyLanguage language,
-            @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached BranchProfile errorProfile) {
         final int index = idToIndex(value);
-        final RubySymbol symbol = language.coreSymbols.STATIC_SYMBOLS[index];
+        final RubySymbol symbol = getLanguage().coreSymbols.STATIC_SYMBOLS[index];
         if (symbol == null) {
             errorProfile.enter();
             throw new RaiseException(
-                    context,
-                    context.getCoreExceptions().runtimeError(
+                    getContext(),
+                    coreExceptions().runtimeError(
                             StringUtils.format("invalid static ID2SYM id: %d", value),
                             this));
         }

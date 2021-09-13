@@ -9,10 +9,11 @@
  */
 package org.truffleruby.language.control;
 
+import com.oracle.truffle.api.TruffleSafepoint;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
@@ -21,7 +22,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.nodes.RepeatingNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.LoopConditionProfile;
 
 public final class WhileNode extends RubyContextSourceNode {
 
@@ -37,12 +37,11 @@ public final class WhileNode extends RubyContextSourceNode {
         return nil;
     }
 
-    private abstract static class WhileRepeatingBaseNode extends RubyContextNode implements RepeatingNode {
+    private abstract static class WhileRepeatingBaseNode extends RubyBaseNode implements RepeatingNode {
 
         @Child protected BooleanCastNode condition;
         @Child protected RubyNode body;
 
-        protected final LoopConditionProfile conditionProfile = LoopConditionProfile.createCountingProfile();
         protected final BranchProfile redoUsed = BranchProfile.create();
         protected final BranchProfile nextUsed = BranchProfile.create();
 
@@ -66,7 +65,7 @@ public final class WhileNode extends RubyContextSourceNode {
 
         @Override
         public boolean executeRepeating(VirtualFrame frame) {
-            if (!conditionProfile.profile(condition.executeBoolean(frame))) {
+            if (!condition.executeBoolean(frame)) {
                 return false;
             }
 
@@ -80,6 +79,7 @@ public final class WhileNode extends RubyContextSourceNode {
                 } catch (RedoException e) {
                     // Just continue in the while(true) loop.
                     redoUsed.enter();
+                    TruffleSafepoint.poll(this);
                 }
             }
         }
@@ -104,7 +104,7 @@ public final class WhileNode extends RubyContextSourceNode {
                 return true;
             }
 
-            return conditionProfile.profile(condition.executeBoolean(frame));
+            return condition.executeBoolean(frame);
         }
 
     }

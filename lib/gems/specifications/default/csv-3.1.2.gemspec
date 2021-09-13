@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["James Edward Gray II".freeze, "Kouhei Sutou".freeze]
-  s.date = "2021-05-04"
+  s.date = "2021-09-09"
   s.description = "The CSV library provides a complete interface to CSV files and data. It offers tools to enable you to read and write to and from Strings or IO objects, as needed.".freeze
   s.email = [nil, "kou@cozmixng.org".freeze]
   s.files = ["csv.rb".freeze, "csv/core_ext/array.rb".freeze, "csv/core_ext/string.rb".freeze, "csv/delete_suffix.rb".freeze, "csv/fields_converter.rb".freeze, "csv/match_p.rb".freeze, "csv/parser.rb".freeze, "csv/row.rb".freeze, "csv/table.rb".freeze, "csv/version.rb".freeze, "csv/writer.rb".freeze]

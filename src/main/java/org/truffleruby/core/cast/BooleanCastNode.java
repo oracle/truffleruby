@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.cast;
 
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
@@ -102,6 +101,6 @@ public abstract class BooleanCastNode extends RubyBaseNode {
     }
 
     protected int getCacheLimit() {
-        return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
+        return getLanguage().options.METHOD_LOOKUP_CACHE;
     }
 }

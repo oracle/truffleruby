@@ -10,10 +10,7 @@
 package org.truffleruby.core;
 
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
@@ -38,9 +35,8 @@ public abstract class MainNodes {
     public abstract static class PublicNode extends AlwaysInlinedMethodNode {
         @Specialization
         protected Object forward(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
-                @Cached ModuleNodes.PublicNode publicNode,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
-            return publicNode.execute(callerFrame, context.getCoreLibrary().objectClass, args, block, target);
+                @Cached ModuleNodes.PublicNode publicNode) {
+            return publicNode.execute(callerFrame, coreLibrary().objectClass, args, block, target);
         }
     }
 
@@ -49,9 +45,8 @@ public abstract class MainNodes {
     public abstract static class PrivateNode extends AlwaysInlinedMethodNode {
         @Specialization
         protected Object forward(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
-                @Cached ModuleNodes.PrivateNode privateNode,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
-            return privateNode.execute(callerFrame, context.getCoreLibrary().objectClass, args, block, target);
+                @Cached ModuleNodes.PrivateNode privateNode) {
+            return privateNode.execute(callerFrame, coreLibrary().objectClass, args, block, target);
         }
     }
 
@@ -60,7 +55,6 @@ public abstract class MainNodes {
     public abstract static class MainUsingNode extends UsingNode {
         @Specialization
         protected Object mainUsing(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
-                @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached BranchProfile errorProfile) {
             needCallerFrame(callerFrame, target);
             final Object refinementModule = args[0];
@@ -68,10 +62,10 @@ public abstract class MainNodes {
             if (!isCalledFromTopLevel(callerMethod)) {
                 errorProfile.enter();
                 throw new RaiseException(
-                        context,
-                        context.getCoreExceptions().runtimeError("main.using is permitted only at toplevel", this));
+                        getContext(),
+                        coreExceptions().runtimeError("main.using is permitted only at toplevel", this));
             }
-            using(context, callerFrame, refinementModule, errorProfile);
+            using(callerFrame, refinementModule, errorProfile);
             return nil;
         }
 

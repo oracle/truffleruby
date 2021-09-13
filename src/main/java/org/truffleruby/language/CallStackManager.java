@@ -75,10 +75,10 @@ public class CallStackManager {
     }
 
     @TruffleBoundary
-    public Frame getCallerFrameNotInModules(FrameAccess frameAccess, Object[] modules) {
+    public <R> R iterateFrameNotInModules(Object[] modules, Function<FrameInstance, R> action) {
         final Memo<Boolean> skippedFirstFrameFound = new Memo<>(false);
 
-        return getCallerFrame(frameInstance -> {
+        return iterateFrames(1, frameInstance -> {
             final InternalMethod method = tryGetMethod(frameInstance.getFrame(FrameAccess.READ_ONLY));
             if (method != null && !ArrayUtils.contains(modules, method.getDeclaringModule())) {
                 if (skippedFirstFrameFound.get()) {
@@ -87,7 +87,7 @@ public class CallStackManager {
                 skippedFirstFrameFound.set(true);
             }
             return false;
-        }, frameAccess);
+        }, action);
     }
 
     // Node

@@ -12,12 +12,12 @@ package org.truffleruby.core.array;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 /** Attempts converting its argument to an array by calling #to_ary, or if that doesn't work, by wrapping it inside a
  * one-element array. */
-public abstract class ArrayConvertNode extends RubyContextNode {
+public abstract class ArrayConvertNode extends RubyBaseNode {
 
     public abstract RubyArray execute(Object value);
 

@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -32,14 +31,12 @@ import com.oracle.truffle.api.source.Source;
 
 public class RubyParsingRequestNode extends RubyBaseRootNode implements InternalRootNode {
 
-    private final ContextReference<RubyContext> contextReference;
     private final RootCallTarget callTarget;
 
     @Child private DirectCallNode callNode;
 
     public RubyParsingRequestNode(RubyLanguage language, RubyContext context, Source source, String[] argumentNames) {
         super(language, null, null);
-        this.contextReference = lookupContextReference(RubyLanguage.class);
 
         final RubySource rubySource = new RubySource(source, language.getSourcePath(source));
 
@@ -59,8 +56,8 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final RubyLanguage language = getLanguage(RubyLanguage.class);
-        final RubyContext context = contextReference.get();
+        final RubyLanguage language = getLanguage();
+        final RubyContext context = getContext();
 
         final SharedMethodInfo sharedMethodInfo = RubyRootNode.of(callTarget).getSharedMethodInfo();
         assert sharedMethodInfo.getStaticLexicalScopeOrNull() == context.getRootLexicalScope() ||

@@ -9,7 +9,6 @@
  */
 package org.truffleruby;
 
-import java.io.File;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
@@ -28,6 +27,7 @@ import java.util.logging.Level;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import com.oracle.truffle.api.TruffleLogger;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.Node;
@@ -47,6 +47,7 @@ import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.exception.CoreExceptions;
+import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.hash.PreInitializationManager;
 import org.truffleruby.core.hash.ReHashable;
 import org.truffleruby.core.inlined.CoreMethods;
@@ -89,7 +90,6 @@ import org.truffleruby.stdlib.readline.ConsoleHolder;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.TruffleLanguage.Env;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
@@ -107,8 +107,6 @@ public class RubyContext {
 
     @CompilationFinal public TruffleLogger logger;
     @CompilationFinal private Options options;
-    @CompilationFinal private String rubyHome;
-    @CompilationFinal private TruffleFile rubyHomeTruffleFile;
     @CompilationFinal private boolean hadHome;
 
     private final SafepointManager safepointManager;
@@ -125,7 +123,7 @@ public class RubyContext {
     private final CallStackManager callStack;
     private final CoreExceptions coreExceptions;
     private final EncodingManager encodingManager;
-    private final MetricsProfiler metricsProfiler = new MetricsProfiler(this);
+    private final MetricsProfiler metricsProfiler;
     private final WeakValueCache<RegexpCacheKey, Regex> regexpCache = new WeakValueCache<>();
     private final PreInitializationManager preInitializationManager;
     private final NativeConfiguration nativeConfiguration;
@@ -145,6 +143,7 @@ public class RubyContext {
     private final CoreLibrary coreLibrary;
     @CompilationFinal private CoreMethods coreMethods;
     private final ThreadManager threadManager;
+    public final FiberManager fiberManager;
     private final LexicalScope rootLexicalScope;
     private volatile ConsoleHolder consoleHolder;
 
@@ -160,6 +159,12 @@ public class RubyContext {
 
     private final AssumedValue<Boolean> warningCategoryDeprecated;
     private final AssumedValue<Boolean> warningCategoryExperimental;
+
+    private static final ContextReference<RubyContext> REFERENCE = ContextReference.create(RubyLanguage.class);
+
+    public static RubyContext get(Node node) {
+        return REFERENCE.get(node);
+    }
 
     public RubyContext(RubyLanguage language, TruffleLanguage.Env env) {
         Metrics.printTime("before-context-constructor");
@@ -180,6 +185,7 @@ public class RubyContext {
         coreExceptions = new CoreExceptions(this, language);
         encodingManager = new EncodingManager(this, language);
 
+        metricsProfiler = new MetricsProfiler(language, this);
         codeLoader = new CodeLoader(language, this);
         featureLoader = new FeatureLoader(this, language);
         referenceProcessor = new ReferenceProcessor(this);
@@ -194,9 +200,6 @@ public class RubyContext {
         defaultBacktraceFormatter = BacktraceFormatter.createDefaultFormatter(this, language);
         userBacktraceFormatter = new BacktraceFormatter(this, language, BacktraceFormatter.USER_BACKTRACE_FLAGS);
 
-        rubyHome = findRubyHome();
-        rubyHomeTruffleFile = rubyHome == null ? null : env.getInternalTruffleFile(rubyHome);
-
         // Load the core library classes
 
         Metrics.printTime("before-create-core-library");
@@ -207,7 +210,7 @@ public class RubyContext {
         coreLibrary = new CoreLibrary(this, language);
         nativeConfiguration = NativeConfiguration.loadNativeConfiguration(this);
         coreLibrary.initialize();
-        valueWrapperManager = new ValueWrapperManager(this);
+        valueWrapperManager = new ValueWrapperManager();
         Metrics.printTime("after-create-core-library");
 
         rootLexicalScope = new LexicalScope(null, coreLibrary.objectClass);
@@ -225,6 +228,7 @@ public class RubyContext {
 
         Metrics.printTime("before-thread-manager");
         threadManager = new ThreadManager(this, language);
+        fiberManager = new FiberManager(language, this);
         threadManager.initialize();
         threadManager.initializeMainThread(Thread.currentThread());
         Metrics.printTime("after-thread-manager");
@@ -249,7 +253,6 @@ public class RubyContext {
         coreMethods = new CoreMethods(language, this);
 
         // Load the part of the core library defined in Ruby
-
         Metrics.printTime("before-load-core");
         coreLibrary.loadRubyCoreLibraryAndPostBoot();
         Metrics.printTime("after-load-core");
@@ -263,9 +266,7 @@ public class RubyContext {
             // Cannot save the file descriptor in this SecureRandom in the image
             random = null;
             // Do not save image generator paths in the image heap
-            hadHome = rubyHome != null;
-            rubyHome = null;
-            rubyHomeTruffleFile = null;
+            hadHome = language.getRubyHome() != null;
             featureLoader.setWorkingDirectory(null);
         } else {
             initialized = true;
@@ -283,7 +284,7 @@ public class RubyContext {
 
         final Options oldOptions = this.options;
         final Options newOptions = createOptions(newEnv, language.options);
-        final String newHome = findRubyHome();
+        final String newHome = language.getRubyHome();
         if (!compatibleOptions(oldOptions, newOptions, this.hadHome, newHome != null)) {
             return false;
         }
@@ -294,8 +295,6 @@ public class RubyContext {
         if (newOptions.WARN_EXPERIMENTAL != oldOptions.WARN_EXPERIMENTAL) {
             warningCategoryExperimental.set(newOptions.WARN_EXPERIMENTAL);
         }
-        this.rubyHome = newHome;
-        this.rubyHomeTruffleFile = newHome == null ? null : newEnv.getInternalTruffleFile(newHome);
 
         // Re-read the value of $TZ as it can be different in the new process
         GetTimeZoneNode.invalidateTZ();
@@ -377,9 +376,10 @@ public class RubyContext {
         if (options.OPTIONS_LOG && RubyLanguage.LOGGER.isLoggable(Level.CONFIG)) {
             for (OptionDescriptor descriptor : OptionsCatalog.allDescriptors()) {
                 assert descriptor.getName().startsWith(TruffleRuby.LANGUAGE_ID);
-                final String xName = descriptor.getName().substring(TruffleRuby.LANGUAGE_ID.length() + 1);
+                final String optionName = descriptor.getName().substring(TruffleRuby.LANGUAGE_ID.length() + 1);
                 RubyLanguage.LOGGER.config(
-                        "option " + xName + "=" + RubyOptionTypes.valueToString(options.fromDescriptor(descriptor)));
+                        "option " + optionName + "=" +
+                                RubyOptionTypes.valueToString(options.fromDescriptor(descriptor)));
             }
         }
 
@@ -545,7 +545,7 @@ public class RubyContext {
 
     public RubyLanguage getLanguageSlow() {
         CompilerAsserts.neverPartOfCompilation(
-                "Use getLanguage() or @CachedLanguage instead, so the RubyLanguage instance is constant in PE code");
+                "Use getLanguage() or RubyLanguage.get(Node) instead, so the RubyLanguage instance is constant in PE code");
         return language;
     }
 
@@ -675,14 +675,6 @@ public class RubyContext {
         return logger;
     }
 
-    public String getRubyHome() {
-        return rubyHome;
-    }
-
-    public TruffleFile getRubyHomeTruffleFile() {
-        return rubyHomeTruffleFile;
-    }
-
     public ConsoleHolder getConsoleHolder() {
         if (consoleHolder == null) {
             synchronized (this) {
@@ -709,50 +701,6 @@ public class RubyContext {
 
     public boolean isFinalizing() {
         return finalizing;
-    }
-
-    private String findRubyHome() {
-        final String home = searchRubyHome();
-        if (RubyLanguage.LOGGER.isLoggable(Level.CONFIG)) {
-            RubyLanguage.LOGGER.config("home: " + home);
-        }
-        return home;
-    }
-
-    // Returns a canonical path to the home
-    private String searchRubyHome() {
-        if (language.options.NO_HOME_PROVIDED) {
-            RubyLanguage.LOGGER.config("--ruby.no-home-provided set");
-            return null;
-        }
-
-        final String truffleReported = language.getTruffleLanguageHome();
-        if (truffleReported != null) {
-            final File home = new File(truffleReported);
-            if (isRubyHome(home)) {
-                RubyLanguage.LOGGER.config(
-                        () -> String.format("Using Truffle-reported home %s as the Ruby home", truffleReported));
-                return truffleReported;
-            } else {
-                RubyLanguage.LOGGER.warning(
-                        String.format(
-                                "Truffle-reported home %s does not look like TruffleRuby's home",
-                                truffleReported));
-            }
-        } else {
-            RubyLanguage.LOGGER.config("Truffle-reported home not set, cannot determine home from it");
-        }
-
-        RubyLanguage.LOGGER.warning(
-                "could not determine TruffleRuby's home - the standard library will not be available - use --log.level=CONFIG to see details");
-        return null;
-    }
-
-    private boolean isRubyHome(File path) {
-        final File lib = new File(path, "lib");
-        return new File(lib, "truffle").isDirectory() &&
-                new File(lib, "gems").isDirectory() &&
-                new File(lib, "patches").isDirectory();
     }
 
     public TruffleNFIPlatform getTruffleNFI() {
@@ -794,14 +742,6 @@ public class RubyContext {
 
     public WeakValueCache<RegexpCacheKey, Regex> getRegexpCache() {
         return regexpCache;
-    }
-
-    public String getPathRelativeToHome(String path) {
-        if (path.startsWith(rubyHome) && path.length() > rubyHome.length()) {
-            return path.substring(rubyHome.length() + 1);
-        } else {
-            return path;
-        }
     }
 
     public Object getTopScopeObject() {

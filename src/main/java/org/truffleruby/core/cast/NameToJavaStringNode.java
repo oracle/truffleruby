@@ -10,8 +10,6 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.library.CachedLibrary;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -24,7 +22,6 @@ import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.utils.Utils;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -72,18 +69,16 @@ public abstract class NameToJavaStringNode extends RubySourceNode {
 
     @Specialization(guards = { "!isString(object)", "!isRubySymbol(object)", "isNotRubyString(object)" })
     protected String nameToJavaString(Object object,
-            @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached BranchProfile errorProfile,
             @Cached DispatchNode toStr,
             @CachedLibrary(limit = "2") RubyStringLibrary libString) {
         final Object coerced;
-
         try {
             coerced = toStr.call(object, "to_str");
         } catch (RaiseException e) {
             errorProfile.enter();
-            if (e.getException().getLogicalClass() == context.getCoreLibrary().noMethodErrorClass) {
-                throw new RaiseException(context, context.getCoreExceptions().typeError(
+            if (e.getException().getLogicalClass() == coreLibrary().noMethodErrorClass) {
+                throw new RaiseException(getContext(), coreExceptions().typeError(
                         Utils.concat(object, " is not a symbol nor a string"),
                         this));
             } else {
@@ -95,7 +90,7 @@ public abstract class NameToJavaStringNode extends RubySourceNode {
             return libString.getJavaString(coerced);
         } else {
             errorProfile.enter();
-            throw new RaiseException(context, context.getCoreExceptions().typeErrorBadCoercion(
+            throw new RaiseException(getContext(), coreExceptions().typeErrorBadCoercion(
                     object,
                     "String",
                     "to_str",

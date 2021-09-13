@@ -69,11 +69,11 @@ public abstract class TruffleBootNodes {
         @TruffleBoundary
         @Specialization
         protected Object rubyHome() {
-            if (getContext().getRubyHome() == null) {
+            final String home = getLanguage().getRubyHome();
+            if (home == null) {
                 return nil;
             } else {
-                return makeStringNode
-                        .executeMake(getContext().getRubyHome(), Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                return makeStringNode.executeMake(home, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
             }
         }
 
@@ -163,12 +163,12 @@ public abstract class TruffleBootNodes {
                     String key = global_values[i];
                     String value = global_values[i + 1];
 
-                    getContext().getCoreLibrary().globalVariables.define("$" + key, utf8(value));
+                    getContext().getCoreLibrary().globalVariables.define("$" + key, utf8(value), this);
                 }
 
                 String[] global_flags = getContext().getOptions().ARGV_GLOBAL_FLAGS;
                 for (String flag : global_flags) {
-                    getContext().getCoreLibrary().globalVariables.define("$" + flag, true);
+                    getContext().getCoreLibrary().globalVariables.define("$" + flag, true, this);
                 }
             }
         }
@@ -457,7 +457,7 @@ public abstract class TruffleBootNodes {
         @Specialization
         protected RubyString basicABIVersion(
                 @Cached MakeStringNode makeStringNode) {
-            TruffleFile file = getContext().getRubyHomeTruffleFile().resolve(ABI_VERSION_FILE);
+            TruffleFile file = getLanguage().getRubyHomeTruffleFile().resolve(ABI_VERSION_FILE);
             byte[] bytes;
             try {
                 bytes = file.readAllBytes();

@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["Kenta Murata".freeze, "Zachary Scott".freeze, "Shigeo Kobayashi".freeze]
-  s.date = "2021-05-04"
+  s.date = "2021-09-09"
   s.description = "This library provides arbitrary-precision decimal floating-point number class.".freeze
   s.email = ["mrkn@mrkn.jp".freeze]
   s.extensions = ["ext/bigdecimal/extconf.rb".freeze]

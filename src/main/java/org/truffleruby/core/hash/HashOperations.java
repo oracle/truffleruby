@@ -9,12 +9,18 @@
  */
 package org.truffleruby.core.hash;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.hash.library.EmptyHashStore;
+import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.RubyBaseNode;
+
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 
 public abstract class HashOperations {
 
@@ -25,6 +31,22 @@ public abstract class HashOperations {
                 context,
                 EmptyHashStore.NULL_HASH_STORE,
                 0);
+    }
+
+    @TruffleBoundary
+    public static <K, V> RubyHash toRubyHash(RubyContext context, RubyLanguage language,
+            HashStoreLibrary hashStoreLibrary, Map<K, V> map, Optional<Function<K, Object>> keyMapper,
+            Optional<Function<V, Object>> valueMapper, boolean byIdentity) {
+        final RubyHash ret = newEmptyHash(context, language);
+
+        for (Map.Entry<K, V> entry : map.entrySet()) {
+            final Object key = keyMapper.isPresent() ? keyMapper.get().apply(entry.getKey()) : entry.getKey();
+            final Object value = valueMapper.isPresent() ? valueMapper.get().apply(entry.getValue()) : entry.getValue();
+
+            hashStoreLibrary.set(ret.store, ret, key, value, byIdentity);
+        }
+
+        return ret;
     }
 
     // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes

@@ -9,145 +9,57 @@
 require_relative '../../ruby/spec_helper'
 
 describe "Truffle::Interop.foreign_respond_to?" do
-
   describe "for :to_a" do
-
     it "and a Java array returns true" do
-      Truffle::Interop.foreign_respond_to?(Truffle::Interop.java_array(1, 2, 3), :to_a).should be_true
+      Truffle::Interop.java_array(1, 2, 3).should.respond_to?(:to_a)
     end
-
-    it "and a Ruby object returns false" do
-      Truffle::Interop.foreign_respond_to?(Object.new, :to_a).should be_false
-    end
-
-    describe "via a direct call" do
-
-      it "and a Java array returns true" do
-        Truffle::Interop.java_array(1, 2, 3).respond_to?(:to_a).should be_true
-      end
-
-    end
-
   end
 
   describe "for :to_ary" do
-
     it "and a Java array returns true" do
-      Truffle::Interop.foreign_respond_to?(Truffle::Interop.java_array(1, 2, 3), :to_ary).should be_true
+      Truffle::Interop.java_array(1, 2, 3).should.respond_to?(:to_ary)
     end
-
-    it "and a Ruby object returns false" do
-      Truffle::Interop.foreign_respond_to?(Object.new, :to_ary).should be_false
-    end
-
-    describe "via a direct call" do
-
-      it "and a Java array returns true" do
-        Truffle::Interop.java_array(1, 2, 3).respond_to?(:to_ary).should be_true
-      end
-
-    end
-
   end
 
   describe "for :to_s" do
-
     it "and a Java class returns true" do
-      Truffle::Interop.foreign_respond_to?(Truffle::Debug.java_class, :to_s).should be_true
+      Truffle::Debug.java_class.should.respond_to?(:to_s)
     end
 
     it "and a Java object returns true" do
-      Truffle::Interop.foreign_respond_to?(Truffle::Debug.java_object, :to_s).should be_true
+      Truffle::Debug.java_object.should.respond_to?(:to_s)
     end
-
-    it "and a Ruby object returns true" do
-      Truffle::Interop.foreign_respond_to?(Object.new, :to_s).should be_true
-    end
-
-    describe "via a direct call" do
-
-      it "and a Java array returns true" do
-        Truffle::Interop.java_array(1, 2, 3).respond_to?(:to_s).should be_true
-      end
-
-    end
-
   end
 
   describe "for :to_str" do
-
     it "and a Java class returns false" do
-      Truffle::Interop.foreign_respond_to?(Truffle::Debug.java_class, :to_str).should be_false
+      Truffle::Debug.java_class.should_not.respond_to?(:to_str)
     end
 
     it "and a Java object returns false" do
-      Truffle::Interop.foreign_respond_to?(Truffle::Debug.java_object, :to_str).should be_false
+      Truffle::Debug.java_object.should_not.respond_to?(:to_str)
     end
 
     it "and a boxed string returns true" do
-      Truffle::Interop.foreign_respond_to?(Truffle::Debug.foreign_string('test'), :to_str).should be_true
+      Truffle::Debug.foreign_string('test').should.respond_to?(:to_str)
     end
 
-    it "and a Ruby object returns false" do
-      Truffle::Interop.foreign_respond_to?(Object.new, :to_str).should be_false
+    it "and a Java array returns false" do
+      Truffle::Interop.java_array(1, 2, 3).should_not.respond_to?(:to_str)
     end
-
-    describe "via a direct call" do
-
-      it "and a Java array returns false" do
-        Truffle::Interop.java_array(1, 2, 3).respond_to?(:to_str).should be_false
-      end
-
-    end
-
   end
 
   describe "for :is_a?" do
-
     it "and a Java class returns true" do
-      Truffle::Interop.foreign_respond_to?(Truffle::Debug.java_class, :is_a?).should be_true
+      Truffle::Debug.java_class.should.respond_to?(:is_a?)
     end
 
     it "and a Java object returns true" do
-      Truffle::Interop.foreign_respond_to?(Truffle::Debug.java_object, :is_a?).should be_true
+      Truffle::Debug.java_object.should.respond_to?(:is_a?)
     end
 
-    it "and a Ruby object returns true" do
-      Truffle::Interop.foreign_respond_to?(Object.new, :is_a?).should be_true
+    it "and a Java array returns true" do
+      Truffle::Interop.java_array(1, 2, 3).should.respond_to?(:is_a?)
     end
-
-    describe "via a direct call" do
-
-      it "and a Java array returns true" do
-        Truffle::Interop.java_array(1, 2, 3).respond_to?(:is_a?).should be_true
-      end
-
-    end
-
   end
-
-  describe "for :class" do
-
-    it "and a Java class returns true" do
-      Truffle::Interop.foreign_respond_to?(Truffle::Debug.java_class, :class).should be_true
-    end
-
-    it "and a Java object returns false" do
-      Truffle::Interop.foreign_respond_to?(Truffle::Debug.java_object, :class).should be_false
-    end
-
-    it "and a Ruby object returns false" do
-      Truffle::Interop.foreign_respond_to?(Object.new, :to_ary).should be_false
-    end
-
-    describe "via a direct call" do
-
-      it "and a Java array returns true" do
-        Truffle::Interop.java_array(1, 2, 3).respond_to?(:to_ary).should be_true
-      end
-
-    end
-
-  end
-
 end

@@ -12,9 +12,9 @@ package org.truffleruby.core.regexp;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.jcodings.Encoding;
 import org.joni.NameEntry;
@@ -301,34 +301,43 @@ public abstract class MatchDataNodes {
 
         @Specialization(
                 guards = {
-                        "name != null",
-                        "getRegexp(matchData) == regexp",
-                        "cachedIndex == index" })
-        protected Object getIndexSymbolSingleMatch(RubyMatchData matchData, RubySymbol index, NotProvided length,
-                @Cached("index") RubySymbol cachedIndex,
-                @Cached("getRegexp(matchData)") RubyRegexp regexp,
-                @Cached("findNameEntry(regexp, index)") NameEntry name,
-                @Cached("numBackRefs(name)") int backRefs,
-                @Cached("backRefIndex(name)") int backRefIndex) {
+                        "nameEntry != null",
+                        "getRegexp(matchData) == cachedRegexp",
+                        "symbol == cachedSymbol" })
+        protected Object getIndexSymbolKnownRegexp(RubyMatchData matchData, RubySymbol symbol, NotProvided length,
+                @Cached("symbol") RubySymbol cachedSymbol,
+                @Cached("getRegexp(matchData)") RubyRegexp cachedRegexp,
+                @Cached("findNameEntry(cachedRegexp, cachedSymbol)") NameEntry nameEntry,
+                @Cached("numBackRefs(nameEntry)") int backRefs,
+                @Cached("backRefIndex(nameEntry)") int backRefIndex,
+                @Cached ConditionProfile lazyProfile,
+                @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary libInterop) {
             if (backRefs == 1) {
                 return executeGetIndex(matchData, backRefIndex, NotProvided.INSTANCE);
             } else {
-                final int i = getBackRef(matchData, regexp, name);
+                final int i = getBackRef(matchData, cachedRegexp, cachedSymbol.getRope(), lazyProfile, libInterop);
                 return executeGetIndex(matchData, i, NotProvided.INSTANCE);
             }
         }
 
         @Specialization
-        protected Object getIndexSymbol(RubyMatchData matchData, RubySymbol index, NotProvided length) {
-            return executeGetIndex(matchData, getBackRefFromSymbol(matchData, index), NotProvided.INSTANCE);
+        protected Object getIndexSymbol(RubyMatchData matchData, RubySymbol symbol, NotProvided length,
+                @Cached ConditionProfile lazyProfile,
+                @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary libInterop) {
+            return executeGetIndex(
+                    matchData,
+                    getBackRef(matchData, getRegexp(matchData), symbol.getRope(), lazyProfile, libInterop),
+                    NotProvided.INSTANCE);
         }
 
         @Specialization(guards = "libIndex.isRubyString(index)")
         protected Object getIndexString(RubyMatchData matchData, Object index, NotProvided length,
-                @CachedLibrary(limit = "2") RubyStringLibrary libIndex) {
+                @CachedLibrary(limit = "2") RubyStringLibrary libIndex,
+                @Cached ConditionProfile lazyProfile,
+                @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary libInterop) {
             return executeGetIndex(
                     matchData,
-                    getBackRefFromRope(matchData, libIndex.getRope(index)),
+                    getBackRef(matchData, getRegexp(matchData), libIndex.getRope(index), lazyProfile, libInterop),
                     NotProvided.INSTANCE);
         }
 
@@ -388,42 +397,41 @@ public abstract class MatchDataNodes {
             return regexpNode.executeGetRegexp(matchData);
         }
 
-        @TruffleBoundary
-        private int getBackRefFromSymbol(RubyMatchData matchData, RubySymbol index) {
-            return getBackRefFromRope(matchData, index.getRope());
+        private int getBackRef(RubyMatchData matchData, RubyRegexp regexp, Rope name,
+                ConditionProfile lazyProfile, InteropLibrary libInterop) {
+            if (lazyProfile.profile(matchData.tRegexResult != null)) {
+                // force the calculation of lazy capture group results before invoking nameToBackrefNumber()
+                forceLazyMatchData(matchData, libInterop);
+            }
+            return nameToBackrefNumber(matchData, regexp, name);
         }
 
         @TruffleBoundary
-        private int getBackRefFromRope(RubyMatchData matchData, Rope value) {
+        private int nameToBackrefNumber(RubyMatchData matchData, RubyRegexp regexp, Rope name) {
             try {
-                return getRegexp(matchData).regex.nameToBackrefNumber(
-                        value.getBytes(),
+                return regexp.regex.nameToBackrefNumber(
+                        name.getBytes(),
                         0,
-                        value.byteLength(),
+                        name.byteLength(),
                         matchData.region);
             } catch (ValueException e) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().indexError(
                                 StringUtils
-                                        .format("undefined group name reference: %s", RopeOperations.decodeRope(value)),
+                                        .format("undefined group name reference: %s", RopeOperations.decodeRope(name)),
                                 this));
             }
         }
 
         @TruffleBoundary
-        private int getBackRef(RubyMatchData matchData, RubyRegexp regexp, NameEntry name) {
-            return regexp.regex.nameToBackrefNumber(name.name, name.nameP, name.nameEnd, matchData.region);
+        protected static int numBackRefs(NameEntry nameEntry) {
+            return nameEntry == null ? 0 : nameEntry.getBackRefs().length;
         }
 
         @TruffleBoundary
-        protected static int numBackRefs(NameEntry name) {
-            return name == null ? 0 : name.getBackRefs().length;
-        }
-
-        @TruffleBoundary
-        protected static int backRefIndex(NameEntry name) {
-            return name == null ? 0 : name.getBackRefs()[0];
+        protected static int backRefIndex(NameEntry nameEntry) {
+            return nameEntry == null ? 0 : nameEntry.getBackRefs()[0];
         }
 
         @TruffleBoundary
@@ -433,7 +441,7 @@ public abstract class MatchDataNodes {
             } else if (nameEnd - nameP != byteLength) {
                 return false;
             } else {
-                return ArrayUtils.memcmp(bytes, 0, name, nameP, byteLength) == 0;
+                return ArrayUtils.regionEquals(bytes, 0, name, nameP, byteLength);
             }
         }
     }
@@ -500,10 +508,9 @@ public abstract class MatchDataNodes {
             final Region region = matchData.region;
             final Object[] values = new Object[region.numRegs];
 
+            int n = 0;
             try {
-                loopProfile.profileCounted(region.numRegs);
-
-                for (int n = 0; loopProfile.inject(n < region.numRegs); n++) {
+                for (; loopProfile.inject(n < region.numRegs); n++) {
                     final int start = getStart(matchData, n, lazyProfile, interop);
                     final int end = getEnd(matchData, n, lazyProfile, interop);
 
@@ -521,9 +528,11 @@ public abstract class MatchDataNodes {
                     } else {
                         values[n] = nil;
                     }
+
+                    TruffleSafepoint.poll(this);
                 }
             } finally {
-                LoopNode.reportLoopCount(this, region.numRegs);
+                profileAndReportLoopCount(loopProfile, n);
             }
 
             return values;

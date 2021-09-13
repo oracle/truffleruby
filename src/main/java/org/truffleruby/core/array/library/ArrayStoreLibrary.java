@@ -10,12 +10,15 @@
 
 package org.truffleruby.core.array.library;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.library.GenerateLibrary;
 import com.oracle.truffle.api.library.Library;
 import com.oracle.truffle.api.library.LibraryFactory;
 import com.oracle.truffle.api.library.GenerateLibrary.Abstract;
 import com.oracle.truffle.api.library.GenerateLibrary.DefaultExport;
+import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
+import com.oracle.truffle.api.nodes.Node;
 
 /** Library for accessing and manipulating the storage used for representing arrays. This includes reading, modifying,
  * and copy the storage. */
@@ -183,5 +186,15 @@ public abstract class ArrayStoreLibrary extends Library {
          * default value will be whatever is represented by a zero value in their implementation. */
         public abstract boolean isDefaultValue(Object value);
 
+    }
+
+    public final Node getNode() {
+        boolean adoptable = this.isAdoptable();
+        CompilerAsserts.partialEvaluationConstant(adoptable);
+        if (adoptable) {
+            return this;
+        } else {
+            return EncapsulatingNodeReference.getCurrent().get();
+        }
     }
 }

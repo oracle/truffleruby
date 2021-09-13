@@ -76,6 +76,8 @@ import org.truffleruby.core.method.UnboundMethodNodesBuiltins;
 import org.truffleruby.core.method.UnboundMethodNodesFactory;
 import org.truffleruby.core.module.ModuleNodesBuiltins;
 import org.truffleruby.core.module.ModuleNodesFactory;
+import org.truffleruby.core.monitor.TruffleMonitorNodesBuiltins;
+import org.truffleruby.core.monitor.TruffleMonitorNodesFactory;
 import org.truffleruby.core.mutex.ConditionVariableNodesBuiltins;
 import org.truffleruby.core.mutex.ConditionVariableNodesFactory;
 import org.truffleruby.core.mutex.MutexNodesBuiltins;
@@ -241,6 +243,7 @@ public abstract class BuiltinsClasses {
         TruffleDebugNodesBuiltins.setup(coreManager);
         TruffleGraalNodesBuiltins.setup(coreManager);
         TruffleKernelNodesBuiltins.setup(coreManager);
+        TruffleMonitorNodesBuiltins.setup(coreManager);
         TrufflePosixNodesBuiltins.setup(coreManager);
         TruffleRegexpNodesBuiltins.setup(coreManager);
         TruffleRopesNodesBuiltins.setup(coreManager);
@@ -322,6 +325,7 @@ public abstract class BuiltinsClasses {
         TruffleDebugNodesBuiltins.setupPrimitives(primitiveManager);
         TruffleGraalNodesBuiltins.setupPrimitives(primitiveManager);
         TruffleKernelNodesBuiltins.setupPrimitives(primitiveManager);
+        TruffleMonitorNodesBuiltins.setupPrimitives(primitiveManager);
         TrufflePosixNodesBuiltins.setupPrimitives(primitiveManager);
         TruffleRegexpNodesBuiltins.setupPrimitives(primitiveManager);
         TruffleRopesNodesBuiltins.setupPrimitives(primitiveManager);
@@ -404,6 +408,7 @@ public abstract class BuiltinsClasses {
                 TruffleDebugNodesFactory.getFactories(),
                 TruffleGraalNodesFactory.getFactories(),
                 TruffleKernelNodesFactory.getFactories(),
+                TruffleMonitorNodesFactory.getFactories(),
                 TrufflePosixNodesFactory.getFactories(),
                 TruffleRegexpNodesFactory.getFactories(),
                 TruffleRopesNodesFactory.getFactories(),

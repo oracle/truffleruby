@@ -26,7 +26,6 @@ import com.oracle.truffle.api.RootCallTarget;
 import org.graalvm.collections.Pair;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.transcode.EConvFlags;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
@@ -64,6 +63,7 @@ import org.truffleruby.language.loader.ResourceLoader;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
+import org.truffleruby.language.objects.ForeignClassNode;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.TranslatorDriver;
@@ -79,7 +79,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
@@ -165,6 +164,9 @@ public class CoreLibrary {
     public final RubyClass standardErrorClass;
     public final RubyClass stopIterationClass;
     public final RubyModule polyglotModule;
+    public final RubyClass polyglotInnerContextClass;
+    public final RubyClass polyglotForeignObjectClass;
+    @CompilationFinal(dimensions = 1) public final RubyClass[] polyglotForeignClasses;
     public final RubyClass unsupportedMessageErrorClass;
     public final RubyClass stringClass;
     public final RubyClass symbolClass;
@@ -190,7 +192,6 @@ public class CoreLibrary {
     public final RubyModule truffleBootModule;
     public final RubyModule truffleExceptionOperationsModule;
     public final RubyModule truffleInteropModule;
-    public final RubyClass truffleInteropForeignClass;
     public final RubyClass unsupportedMessageExceptionClass;
     public final RubyClass invalidArrayIndexExceptionClass;
     public final RubyClass unknownIdentifierExceptionClass;
@@ -231,11 +232,6 @@ public class CoreLibrary {
     public final BindingLocalVariablesObject interactiveBindingLocalVariablesObject;
 
     public final FrameDescriptor emptyDescriptor;
-    /* Some things (such as procs created from symbols) require a declaration frame, and this should include a slot for
-     * special variable storage. This frame descriptor should be used for those frames to provide a constant frame
-     * descriptor in those cases. */
-    public final FrameDescriptor emptyDeclarationDescriptor;
-    public final FrameSlot emptyDeclarationSpecialVariableSlot;
 
     @CompilationFinal private RubyClass eagainWaitReadable;
     @CompilationFinal private RubyClass eagainWaitWritable;
@@ -330,7 +326,10 @@ public class CoreLibrary {
         typeErrorClass = defineClass(standardErrorClass, "TypeError");
         zeroDivisionErrorClass = defineClass(standardErrorClass, "ZeroDivisionError");
         polyglotModule = defineModule("Polyglot");
+        polyglotInnerContextClass = defineClass(polyglotModule, objectClass, "InnerContext");
         unsupportedMessageErrorClass = defineClass(polyglotModule, standardErrorClass, "UnsupportedMessageError");
+        polyglotForeignObjectClass = defineClass(polyglotModule, objectClass, "ForeignObject");
+        polyglotForeignClasses = new RubyClass[ForeignClassNode.Trait.COMBINATIONS];
 
         // StandardError > RuntimeError
         runtimeErrorClass = defineClass(standardErrorClass, "RuntimeError");
@@ -462,7 +461,6 @@ public class CoreLibrary {
         graalErrorClass = defineClass(truffleModule, exceptionClass, "GraalError");
         truffleExceptionOperationsModule = defineModule(truffleModule, "ExceptionOperations");
         truffleInteropModule = defineModule(truffleModule, "Interop");
-        truffleInteropForeignClass = defineClass(truffleInteropModule, objectClass, "Foreign");
         RubyClass interopExceptionClass = defineClass(
                 truffleInteropModule,
                 exceptionClass,
@@ -504,6 +502,7 @@ public class CoreLibrary {
         truffleFeatureLoaderModule = defineModule(truffleModule, "FeatureLoader");
         truffleKernelOperationsModule = defineModule(truffleModule, "KernelOperations");
         truffleInteropOperationsModule = defineModule(truffleModule, "InteropOperations");
+        defineModule(truffleModule, "MonitorOperations");
         defineModule(truffleModule, "Binding");
         defineModule(truffleModule, "POSIX");
         defineModule(truffleModule, "Readline");
@@ -543,9 +542,6 @@ public class CoreLibrary {
 
         mainObject = new RubyBasicObject(objectClass, language.basicObjectShape);
         emptyDescriptor = new FrameDescriptor(Nil.INSTANCE);
-        emptyDeclarationDescriptor = new FrameDescriptor(Nil.INSTANCE);
-        emptyDeclarationSpecialVariableSlot = emptyDeclarationDescriptor
-                .addFrameSlot(Layouts.SPECIAL_VARIABLES_STORAGE);
         argv = new RubyArray(arrayClass, language.arrayShape, ArrayStoreLibrary.INITIAL_STORE, 0);
 
         globalVariables = new GlobalVariables(context);
@@ -564,7 +560,7 @@ public class CoreLibrary {
         defineModule(truffleModule, "Patching");
         final ConcurrentMap<String, Boolean> patchFiles = new ConcurrentHashMap<>();
 
-        final String rubyHome = context.getRubyHome();
+        final String rubyHome = language.getRubyHome();
         if (context.getOptions().PATCHING && rubyHome != null) {
             try {
                 final Path patchesDirectory = Paths.get(rubyHome, "lib", "patches");

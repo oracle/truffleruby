@@ -64,6 +64,19 @@ public class RubyLambdaRootNode extends RubyCheckArityRootNode {
         this.breakID = breakID;
     }
 
+    public RubyLambdaRootNode copyRootNode(SharedMethodInfo newSharedMethodInfo, RubyNode newBody) {
+        return new RubyLambdaRootNode(
+                getLanguage(),
+                getSourceSection(),
+                getFrameDescriptor(),
+                newSharedMethodInfo,
+                newBody,
+                getSplit(),
+                returnID,
+                breakID,
+                arityForCheck);
+    }
+
     @Override
     public Object execute(VirtualFrame frame) {
         TruffleSafepoint.poll(this);
@@ -96,7 +109,7 @@ public class RubyLambdaRootNode extends RubyCheckArityRootNode {
             nextProfile.enter();
             return e.getResult();
         } catch (BreakException e) {
-            if (matchingBreakProfile.profile(e.getBreakID() == breakID)) {
+            if (matchingBreakProfile.profile(breakID != BreakID.INVALID && e.getBreakID() == breakID)) {
                 return e.getResult();
             } else {
                 throw e;

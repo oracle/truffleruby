@@ -308,18 +308,47 @@ class StringScanner
     peek len
   end
 
-  def scan_internal(pattern, advance_pos, getstr, headonly)
-    unless pattern.kind_of? Regexp
+  private def scan_check_args(pattern, headonly)
+    case pattern
+    when String
+      raise TypeError, "bad pattern argument: #{pattern.inspect}" unless headonly
+    when Regexp
+    else
       raise TypeError, "bad pattern argument: #{pattern.inspect}"
     end
     raise ArgumentError, 'uninitialized StringScanner object' unless @string
+  end
 
-    md = Truffle::RegexpOperations.match_in_region pattern, @string, pos, @string.bytesize, headonly, pos
-    Primitive.matchdata_fixup_positions(md, pos) if md
-    @match = md
-    return nil unless @match
+  # This method is kept very small so that it should fit within 100
+  # AST nodes and can be split. This is done to avoid indirect calls
+  # to TRegex.
+  private def scan_internal(pattern, advance_pos, getstr, headonly)
+    scan_check_args(pattern, headonly)
 
-    fin = Primitive.match_data_byte_end(@match, 0)
+    if Primitive.object_kind_of?(pattern, String)
+      md = scan_internal_string_pattern(pattern, headonly)
+    else
+      md = Truffle::RegexpOperations.match_in_region pattern, @string, pos, @string.bytesize, headonly, pos
+    end
+    if md
+      Primitive.matchdata_fixup_positions(md, pos)
+      @match = md
+      scan_internal_set_pos_and_str(advance_pos, getstr, md)
+    else
+      @match = nil
+    end
+  end
+
+  private def scan_internal_string_pattern(pattern, headonly)
+    if @string.byteslice(pos..).start_with?(pattern)
+      Primitive.matchdata_create_single_group(pattern, @string.dup, 0, pattern.bytesize)
+    else
+      nil
+    end
+  end
+
+  private def scan_internal_set_pos_and_str(advance_pos, getstr, md)
+    fin = Primitive.match_data_byte_end(md, 0)
 
     @prev_pos = @pos
     @pos = fin if advance_pos
@@ -329,6 +358,5 @@ class StringScanner
 
     @string.byteslice(@prev_pos, width)
   end
-  private :scan_internal
 
 end

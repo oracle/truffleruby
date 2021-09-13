@@ -35,9 +35,9 @@ import org.truffleruby.language.FrameOrVariablesReadingNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.ReadOwnFrameAndVariablesNode;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.arguments.ReadCallerVariablesIfAvailableNode;
 import org.truffleruby.language.arguments.ReadCallerVariablesNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -61,17 +61,13 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.FrameUtil;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import com.oracle.truffle.api.Truffle;
 
 @CoreModule("Truffle::KernelOperations")
 public abstract class TruffleKernelNodes {
@@ -192,7 +188,8 @@ public abstract class TruffleKernelNodes {
                     name.getString(),
                     getter,
                     setter,
-                    isDefined);
+                    isDefined,
+                    this);
             return nil;
         }
 
@@ -232,7 +229,7 @@ public abstract class TruffleKernelNodes {
     }
 
     @ImportStatic({ Layouts.class, TruffleKernelNodes.class })
-    public abstract static class GetSpecialVariableStorage extends RubyContextNode
+    public abstract static class GetSpecialVariableStorage extends RubyBaseNode
             implements FrameOrVariablesReadingNode {
 
         public abstract SpecialVariableStorage execute(Frame frame);
@@ -346,33 +343,20 @@ public abstract class TruffleKernelNodes {
         }
     }
 
-    /* When getting special variables from the wrong side of a C call we know it's going to be slow. */
-    @Primitive(name = "ruby_caller_special_variables")
-    public abstract static class GetSlowCallerSpecialVariableStorage extends PrimitiveArrayArgumentsNode {
+    @Primitive(name = "caller_special_variables_if_available")
+    public abstract static class GetCallerSpecialVariableStorageIfFast extends PrimitiveArrayArgumentsNode {
 
-        @Child GetSpecialVariableStorage getStorageNode = GetSpecialVariableStorage.create();
+        @Child ReadCallerVariablesIfAvailableNode callerVariablesNode = new ReadCallerVariablesIfAvailableNode();
 
         @Specialization
-        @TruffleBoundary
-        protected Object storage() {
-            return getStorageNode.execute(Truffle.getRuntime().iterateFrames(frameInstance -> {
-                final Node callNode = frameInstance.getCallNode();
-
-                if (callNode != null) {
-                    final RootNode rootNode = callNode.getRootNode();
-                    // Skip Ruby frames in cext.rb file since they are implementing methods which are implemented
-                    // with C in MRI, and therefore are also implicitly skipped when when looking up the block passed
-                    // to a C API function.
-                    if (rootNode instanceof RubyRootNode &&
-                            rootNode.getSourceSection().isAvailable() &&
-                            !rootNode.getSourceSection().getSource().getName().endsWith("cext.rb") &&
-                            !rootNode.getSourceSection().getSource().getName().endsWith("cext_ruby.rb")) {
-                        return frameInstance.getFrame(FrameAccess.MATERIALIZE).materialize();
-                    }
-                }
-
-                return null;
-            }));
+        protected Object storage(VirtualFrame frame,
+                @Cached ConditionProfile nullProfile) {
+            Object variables = callerVariablesNode.execute(frame);
+            if (nullProfile.profile(variables == null)) {
+                return nil;
+            } else {
+                return variables;
+            }
         }
     }
 

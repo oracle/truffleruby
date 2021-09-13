@@ -45,6 +45,16 @@ public abstract class InlinedAddNode extends BinaryInlinedOperationNode {
         return a + b;
     }
 
+    @Specialization(assumptions = "assumptions")
+    protected double longDouble(long a, double b) {
+        return a + b;
+    }
+
+    @Specialization(assumptions = "assumptions")
+    protected double doubleLong(double a, long b) {
+        return a + b;
+    }
+
     @Specialization
     protected Object fallback(VirtualFrame frame, Object a, Object b) {
         return rewriteAndCall(frame, a, b);

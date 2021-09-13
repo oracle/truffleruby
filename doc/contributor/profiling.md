@@ -48,11 +48,8 @@ Creating the flame graph is a multi-stage process. First, we need to profile the
 with the JSON formatter:
 
 ```bash
-jt ruby --cpusampler --cpusampler.Mode=roots --cpusampler.Output=json -e 'p :hello' > simple-app.json
+jt ruby --cpusampler --cpusampler.Output=json -e 'p :hello' > simple-app.json
 ```
-
-The `--cpusampler.Mode=roots` option will sample roots, including inlined functions,
-which can often give a better idea of what is contributing to the overall method execution time.
 
 The JSON profiler formatter encodes call graph information that isn't available in the
 histogram format. To make a flame graph out of this output, however, we need to transform

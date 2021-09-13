@@ -51,7 +51,7 @@ class Integer < Numeric
     if (Primitive.object_kind_of?(o, Float) || Primitive.object_kind_of?(o, Rational)) && self < 0 && o != o.round
       return Complex.new(self, 0) ** o
     elsif Primitive.object_kind_of?(o, Integer) && o < 0
-      return Rational.new(self, 1) ** o
+      return Rational.__send__(:new_already_canonical, self, 1) ** o
     elsif Primitive.object_kind_of?(o, Integer) && o > 0
       return self ** o.to_f
     end

@@ -69,12 +69,10 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             polyglotOptions.put(OptionsCatalog.LAUNCHER.getName(), launcher);
         }
 
-        // Instrumentation should not swallow exceptions, especially exceptions from Truffle safepoints (GR-32154)
-        polyglotOptions.put("engine.InstrumentExceptionsAreThrown", "true");
         // TruffleRuby is never distributed without the GraalVM compiler, so this warning is not necessary
         polyglotOptions.put("engine.WarnInterpreterOnly", "false");
 
-        config = new CommandLineOptions();
+        config = new CommandLineOptions(args);
 
         try {
             config.executionAction = ExecutionAction.UNSET;
@@ -249,6 +247,15 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 }
             }
 
+            if (config.logProcessArguments) {
+                Value logInfo = context.eval(
+                        "ruby",
+                        // language=ruby
+                        "-> message { Truffle::Debug.log_info(message) }");
+                String message = "new process: truffleruby " + String.join(" ", config.initialArguments);
+                logInfo.executeVoid(message);
+            }
+
             final Source source = Source.newBuilder(
                     TruffleRuby.LANGUAGE_ID,
                     // language=ruby
@@ -260,7 +267,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             Metrics.printTime("after-run");
             return exitCode;
         } catch (PolyglotException e) {
-            if (e.isHostException()) {
+            if (e.isHostException()) { // GR-22071
                 System.err.println("truffleruby: a host exception reached the top level:");
             } else {
                 System.err.println(

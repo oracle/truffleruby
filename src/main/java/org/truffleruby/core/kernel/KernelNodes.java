@@ -16,13 +16,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import com.oracle.truffle.api.dsl.CachedContext;
-import com.oracle.truffle.api.dsl.CachedLanguage;
-import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.utilities.AssumedValue;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -30,6 +28,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
@@ -73,7 +72,6 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.ProcNodes.ProcNewNode;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -89,11 +87,11 @@ import org.truffleruby.core.support.TypeNodesFactory.ObjectInstanceVariablesNode
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.symbol.SymbolNodes;
 import org.truffleruby.core.symbol.SymbolTable;
-import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.core.string.ImmutableRubyString;
+import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
@@ -364,13 +362,11 @@ public abstract class KernelNodes {
         @Specialization
         protected RubyBinding binding(
                 Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
-                @CachedLanguage RubyLanguage language,
-                @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached(
                         value = "getNode().getEncapsulatingSourceSection()",
                         allowUncached = true) SourceSection sourceSection) {
             needCallerFrame(callerFrame, target);
-            return BindingNodes.createBinding(context, language, callerFrame.materialize(), sourceSection);
+            return BindingNodes.createBinding(getContext(), getLanguage(), callerFrame.materialize(), sourceSection);
         }
     }
 
@@ -493,21 +489,13 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected RubyDynamicObject copyImmutableString(ImmutableRubyString string,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
-            return (RubyDynamicObject) allocateNode().call(context.getCoreLibrary().stringClass, "__allocate__");
+        protected RubyDynamicObject copyImmutableString(ImmutableRubyString string) {
+            return (RubyDynamicObject) allocateNode().call(coreLibrary().stringClass, "__allocate__");
         }
 
         @Specialization
-        protected RubyRegexp copyRubyRegexp(RubyRegexp regexp,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
-            return (RubyRegexp) allocateNode().call(context.getCoreLibrary().regexpClass, "__allocate__");
-        }
-
-        @Specialization
-        protected RubyEncoding copyRubyEncoding(RubyEncoding encoding,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
-            return (RubyEncoding) allocateNode().call(context.getCoreLibrary().encodingClass, "__allocate__");
+        protected RubyEncoding copyRubyEncoding(RubyEncoding encoding) {
+            return (RubyEncoding) allocateNode().call(coreLibrary().encodingClass, "__allocate__");
         }
 
         protected Property[] getCopiedProperties(Shape shape) {
@@ -557,10 +545,10 @@ public abstract class KernelNodes {
         }
     }
 
-    @CoreMethod(names = "clone", keywordAsOptional = "freeze")
-    @NodeChild(value = "self", type = RubyNode.class)
+    @Primitive(name = "object_clone")
+    @NodeChild(value = "object", type = RubyNode.class)
     @NodeChild(value = "freeze", type = RubyNode.class)
-    public abstract static class CloneNode extends CoreMethodNode {
+    public abstract static class CloneNode extends PrimitiveNode {
 
         @Child private CopyNode copyNode = CopyNode.create();
         @Child private DispatchNode initializeCloneNode = DispatchNode.create();
@@ -572,86 +560,86 @@ public abstract class KernelNodes {
         }
 
         @Specialization(limit = "getRubyLibraryCacheLimit()")
-        protected RubyDynamicObject clone(RubyDynamicObject self, boolean freeze,
+        protected RubyDynamicObject clone(RubyDynamicObject object, boolean freeze,
                 @Cached ConditionProfile isSingletonProfile,
                 @Cached ConditionProfile freezeProfile,
                 @Cached ConditionProfile isFrozenProfile,
                 @Cached ConditionProfile isRubyClass,
-                @CachedLibrary("self") RubyLibrary rubyLibrary,
+                @CachedLibrary("object") RubyLibrary rubyLibrary,
                 @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibraryFreeze) {
-            final RubyDynamicObject newObject = copyNode.executeCopy(self);
+            final RubyDynamicObject newObject = copyNode.executeCopy(object);
 
             // Copy the singleton class if any.
-            final RubyClass selfMetaClass = self.getMetaClass();
+            final RubyClass selfMetaClass = object.getMetaClass();
             if (isSingletonProfile.profile(selfMetaClass.isSingleton)) {
                 final RubyClass newObjectMetaClass = executeSingletonClass(newObject);
                 newObjectMetaClass.fields.initCopy(selfMetaClass);
             }
 
-            initializeCloneNode.call(newObject, "initialize_clone", self);
+            initializeCloneNode.call(newObject, "initialize_clone", object);
 
-            if (freezeProfile.profile(freeze) && isFrozenProfile.profile(rubyLibrary.isFrozen(self))) {
+            if (freezeProfile.profile(freeze) && isFrozenProfile.profile(rubyLibrary.isFrozen(object))) {
                 rubyLibraryFreeze.freeze(newObject);
             }
 
-            if (isRubyClass.profile(self instanceof RubyClass)) {
-                ((RubyClass) newObject).superclass = ((RubyClass) self).superclass;
+            if (isRubyClass.profile(object instanceof RubyClass)) {
+                ((RubyClass) newObject).superclass = ((RubyClass) object).superclass;
             }
 
             return newObject;
         }
 
         @Specialization
-        protected Object cloneBoolean(boolean self, boolean freeze,
+        protected Object cloneBoolean(boolean object, boolean freeze,
                 @Cached ConditionProfile freezeProfile) {
             if (freezeProfile.profile(!freeze)) {
-                raiseCantUnfreezeError(self);
+                raiseCantUnfreezeError(object);
             }
-            return self;
+            return object;
         }
 
         @Specialization
-        protected Object cloneInteger(int self, boolean freeze,
+        protected Object cloneInteger(int object, boolean freeze,
                 @Cached ConditionProfile freezeProfile) {
             if (freezeProfile.profile(!freeze)) {
-                raiseCantUnfreezeError(self);
+                raiseCantUnfreezeError(object);
             }
-            return self;
+            return object;
         }
 
         @Specialization
-        protected Object cloneLong(long self, boolean freeze,
+        protected Object cloneLong(long object, boolean freeze,
                 @Cached ConditionProfile freezeProfile) {
             if (freezeProfile.profile(!freeze)) {
-                raiseCantUnfreezeError(self);
+                raiseCantUnfreezeError(object);
             }
-            return self;
+            return object;
         }
 
         @Specialization
-        protected Object cloneFloat(double self, boolean freeze,
+        protected Object cloneFloat(double object, boolean freeze,
                 @Cached ConditionProfile freezeProfile) {
             if (freezeProfile.profile(!freeze)) {
-                raiseCantUnfreezeError(self);
+                raiseCantUnfreezeError(object);
             }
-            return self;
+            return object;
         }
 
-        @Specialization(guards = "!isImmutableRubyString(value)")
-        protected Object cloneImmutableObject(ImmutableRubyObject value, boolean freeze,
+        @Specialization(guards = "!isImmutableRubyString(object)")
+        protected Object cloneImmutableObject(ImmutableRubyObject object, boolean freeze,
                 @Cached ConditionProfile freezeProfile) {
             if (freezeProfile.profile(!freeze)) {
-                raiseCantUnfreezeError(value);
+                raiseCantUnfreezeError(object);
             }
-            return value;
+            return object;
         }
 
         @Specialization
-        protected RubyDynamicObject cloneImmutableRubyString(ImmutableRubyString self, boolean freeze,
+        protected RubyDynamicObject cloneImmutableRubyString(ImmutableRubyString object, boolean freeze,
                 @Cached ConditionProfile freezeProfile,
                 @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibraryFreeze,
                 @Cached MakeStringNode makeStringNode) {
-            final RubyDynamicObject newObject = makeStringNode.fromRope(self.rope, self.encoding);
+            final RubyDynamicObject newObject = makeStringNode.fromRope(object.rope, object.encoding);
             if (freezeProfile.profile(freeze)) {
                 rubyLibraryFreeze.freeze(newObject);
             }
@@ -659,8 +647,8 @@ public abstract class KernelNodes {
             return newObject;
         }
 
-        private void raiseCantUnfreezeError(Object self) {
-            throw new RaiseException(getContext(), coreExceptions().argumentErrorCantUnfreeze(self, this));
+        private void raiseCantUnfreezeError(Object object) {
+            throw new RaiseException(getContext(), coreExceptions().argumentErrorCantUnfreeze(object, this));
         }
 
         private RubyClass executeSingletonClass(RubyDynamicObject newObject) {
@@ -729,8 +717,6 @@ public abstract class KernelNodes {
     public abstract static class EvalPrepareArgsNode extends AlwaysInlinedMethodNode {
         @Specialization
         protected Object eval(Frame callerFrame, Object callerSelf, Object[] args, Object block, RootCallTarget target,
-                @CachedLanguage RubyLanguage language,
-                @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached ToStrNode toStrNode,
                 @Cached ToIntNode toIntNode,
                 @Cached BranchProfile errorProfile,
@@ -746,20 +732,20 @@ public abstract class KernelNodes {
                 if (!(bindingArg instanceof RubyBinding)) {
                     errorProfile.enter();
                     throw new RaiseException(
-                            context,
-                            context.getCoreExceptions().typeErrorWrongArgumentType(bindingArg, "binding", getNode()));
+                            getContext(),
+                            coreExceptions().typeErrorWrongArgumentType(bindingArg, "binding", getNode()));
                 }
                 binding = (RubyBinding) bindingArg;
                 self = RubyArguments.getSelf(binding.getFrame());
             } else {
                 needCallerFrame(callerFrame, "Kernel#eval with no Binding argument");
-                binding = BindingNodes.createBinding(context, language, callerFrame.materialize());
+                binding = BindingNodes.createBinding(getContext(), getLanguage(), callerFrame.materialize());
                 self = callerSelf;
             }
 
             final Object file = args.length > 2 && args[2] != nil
                     ? toStrNode.execute(args[2])
-                    : language.coreStrings.EVAL_FILENAME_STRING.createInstance(context);
+                    : coreStrings().EVAL_FILENAME_STRING.createInstance(getContext());
 
             final int line = args.length > 3 && args[3] != nil ? toIntNode.execute(args[3]) : 1;
 
@@ -789,18 +775,17 @@ public abstract class KernelNodes {
                 limit = "getCacheLimit()")
         protected Object evalBindingNoAddsVarsCached(
                 Object self, Object source, RubyBinding binding, Object file, int line,
-                @CachedContext(RubyLanguage.class) RubyContext context,
                 @CachedLibrary(limit = "2") RubyStringLibrary libSource,
                 @CachedLibrary(limit = "2") RubyStringLibrary libFile,
                 @Cached("libSource.getRope(source)") Rope cachedSource,
                 @Cached("libFile.getRope(file)") Rope cachedFile,
                 @Cached("line") int cachedLine,
                 @Cached("getBindingDescriptor(binding)") FrameDescriptor bindingDescriptor,
-                @Cached("compileSource(context, cachedSource, getBindingFrame(binding), cachedFile, cachedLine)") RootCallTarget cachedCallTarget,
+                @Cached("compileSource(cachedSource, getBindingFrame(binding), cachedFile, cachedLine)") RootCallTarget cachedCallTarget,
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
                 @Cached RopeNodes.EqualNode equalNode) {
             final MaterializedFrame parentFrame = binding.getFrame();
-            return eval(context, self, cachedCallTarget, callNode, parentFrame);
+            return eval(self, cachedCallTarget, callNode, parentFrame);
         }
 
         @Specialization(
@@ -816,32 +801,29 @@ public abstract class KernelNodes {
                 limit = "getCacheLimit()")
         protected Object evalBindingAddsVarsCached(
                 Object self, Object source, RubyBinding binding, Object file, int line,
-                @CachedContext(RubyLanguage.class) RubyContext context,
                 @CachedLibrary(limit = "2") RubyStringLibrary libSource,
                 @CachedLibrary(limit = "2") RubyStringLibrary libFile,
                 @Cached("libSource.getRope(source)") Rope cachedSource,
                 @Cached("libFile.getRope(file)") Rope cachedFile,
                 @Cached("line") int cachedLine,
                 @Cached("getBindingDescriptor(binding)") FrameDescriptor bindingDescriptor,
-                @Cached("compileSource(context, cachedSource, getBindingFrame(binding), cachedFile, cachedLine)") RootCallTarget firstCallTarget,
+                @Cached("compileSource(cachedSource, getBindingFrame(binding), cachedFile, cachedLine)") RootCallTarget firstCallTarget,
                 @Cached("getDescriptor(firstCallTarget).copy()") FrameDescriptor newBindingDescriptor,
-                @Cached("compileSource(context, cachedSource, getBindingFrame(binding), newBindingDescriptor, cachedFile, cachedLine)") RootCallTarget cachedCallTarget,
+                @Cached("compileSource(cachedSource, getBindingFrame(binding), newBindingDescriptor, cachedFile, cachedLine)") RootCallTarget cachedCallTarget,
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
                 @Cached RopeNodes.EqualNode equalNode) {
             final MaterializedFrame parentFrame = BindingNodes.newFrame(binding, newBindingDescriptor);
-            return eval(context, self, cachedCallTarget, callNode, parentFrame);
+            return eval(self, cachedCallTarget, callNode, parentFrame);
         }
 
         @Specialization(
                 guards = { "libSource.isRubyString(source)", "libFile.isRubyString(file)" },
                 replaces = { "evalBindingNoAddsVarsCached", "evalBindingAddsVarsCached" })
         protected Object evalBindingUncached(Object self, Object source, RubyBinding binding, Object file, int line,
-                @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached IndirectCallNode callNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libFile,
                 @CachedLibrary(limit = "2") RubyStringLibrary libSource) {
             final CodeLoader.DeferredCall deferredCall = doEvalX(
-                    context,
                     self,
                     libSource.getRope(source),
                     binding,
@@ -850,11 +832,11 @@ public abstract class KernelNodes {
             return deferredCall.call(callNode);
         }
 
-        private Object eval(RubyContext context, Object self, RootCallTarget callTarget, DirectCallNode callNode,
+        private Object eval(Object self, RootCallTarget callTarget, DirectCallNode callNode,
                 MaterializedFrame parentFrame) {
             final SharedMethodInfo sharedMethodInfo = RubyRootNode.of(callTarget).getSharedMethodInfo();
             final InternalMethod method = new InternalMethod(
-                    context,
+                    getContext(),
                     sharedMethodInfo,
                     RubyArguments.getMethod(parentFrame).getLexicalScope(),
                     RubyArguments.getDeclarationContext(parentFrame),
@@ -874,17 +856,16 @@ public abstract class KernelNodes {
         }
 
         @TruffleBoundary
-        private CodeLoader.DeferredCall doEvalX(RubyContext context, Object self, Rope source, RubyBinding binding,
-                Rope file, int line) {
+        private CodeLoader.DeferredCall doEvalX(Object self, Rope source, RubyBinding binding, Rope file, int line) {
             final MaterializedFrame frame = BindingNodes.newFrame(binding.getFrame());
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             final FrameDescriptor descriptor = frame.getFrameDescriptor();
-            RootCallTarget callTarget = parse(context, source, frame, file, line, false);
+            RootCallTarget callTarget = parse(source, frame, file, line, false);
             if (assignsNewUserVariables(descriptor)) {
                 binding.setFrame(frame);
             }
             final LexicalScope lexicalScope = RubyArguments.getMethod(frame).getLexicalScope();
-            return context.getCodeLoader().prepareExecute(
+            return getContext().getCodeLoader().prepareExecute(
                     callTarget,
                     ParserContext.EVAL,
                     declarationContext,
@@ -893,28 +874,25 @@ public abstract class KernelNodes {
                     lexicalScope);
         }
 
-        protected RootCallTarget parse(RubyContext context, Rope sourceText, MaterializedFrame parentFrame, Rope file,
-                int line,
+        protected RootCallTarget parse(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line,
                 boolean ownScopeForAssignments) {
             //intern() to improve footprint
             final String sourceFile = RopeOperations.decodeRope(file).intern();
             final RubySource source = EvalLoader
-                    .createEvalSource(context, sourceText, "eval", sourceFile, line, this);
+                    .createEvalSource(getContext(), sourceText, "eval", sourceFile, line, this);
             final LexicalScope lexicalScope = RubyArguments.getMethod(parentFrame).getLexicalScope();
-            return context
+            return getContext()
                     .getCodeLoader()
                     .parse(source, ParserContext.EVAL, parentFrame, lexicalScope, ownScopeForAssignments, this);
         }
 
-        protected RootCallTarget compileSource(RubyContext context, Rope sourceText, MaterializedFrame parentFrame,
-                Rope file, int line) {
-            return parse(context, sourceText, parentFrame, file, line, true);
+        protected RootCallTarget compileSource(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line) {
+            return parse(sourceText, parentFrame, file, line, true);
         }
 
-        protected RootCallTarget compileSource(RubyContext context, Rope sourceText, MaterializedFrame parentFrame,
+        protected RootCallTarget compileSource(Rope sourceText, MaterializedFrame parentFrame,
                 FrameDescriptor additionalVariables, Rope file, int line) {
             return compileSource(
-                    context,
                     sourceText,
                     BindingNodes.newFrame(parentFrame, additionalVariables),
                     file,
@@ -943,7 +921,7 @@ public abstract class KernelNodes {
         }
 
         protected int getCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.EVAL_CACHE;
+            return getLanguage().options.EVAL_CACHE;
         }
     }
 
@@ -1041,9 +1019,31 @@ public abstract class KernelNodes {
             return symbolHashNode.execute(value);
         }
 
-        @Fallback
-        protected int hashOtherUsingIdentity(Object self) {
-            return System.identityHashCode(self);
+        // Default hash for Kernel#hash, can be overwritten by defining a #hash method
+
+        @Specialization(guards = { "!isRubyBignum(value)", "!isImmutableRubyString(value)", "!isRubySymbol(value)" })
+        protected int hashImmutableRubyObject(ImmutableRubyObject value) {
+            return System.identityHashCode(value);
+        }
+
+        @Specialization(guards = "isNotRubyString(value)")
+        protected int hashRubyDynamicObject(RubyDynamicObject value) {
+            return System.identityHashCode(value);
+        }
+
+        @Specialization(guards = "isForeignObject(value)", limit = "getInteropCacheLimit()")
+        protected int hashForeign(Object value,
+                @CachedLibrary("value") InteropLibrary interop,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            if (interop.hasIdentity(value)) {
+                try {
+                    return interop.identityHashCode(value);
+                } catch (UnsupportedMessageException e) {
+                    throw translateInteropException.execute(e);
+                }
+            } else {
+                return System.identityHashCode(value);
+            }
         }
     }
 
@@ -1325,11 +1325,10 @@ public abstract class KernelNodes {
         @Specialization
         protected Object localVariables(
                 Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
-                @CachedLanguage RubyLanguage language,
-                @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached DispatchNode callLocalVariables) {
             needCallerFrame(callerFrame, target);
-            final RubyBinding binding = BindingNodes.createBinding(context, language, callerFrame.materialize());
+            final RubyBinding binding = BindingNodes
+                    .createBinding(getContext(), getLanguage(), callerFrame.materialize());
             return callLocalVariables.call(binding, "local_variables");
         }
     }
@@ -1749,7 +1748,6 @@ public abstract class KernelNodes {
 
         @Specialization
         protected long sleep(long durationInMillis,
-                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
             if (durationInMillis < 0) {
                 errorProfile.enter();
@@ -1758,7 +1756,7 @@ public abstract class KernelNodes {
                         coreExceptions().argumentError("time interval must be positive", this));
             }
 
-            final RubyThread thread = getCurrentRubyThreadNode.execute();
+            final RubyThread thread = getLanguage().getCurrentThread();
 
             // Clear the wakeUp flag, following Ruby semantics:
             // it should only be considered if we are inside the sleep when Thread#{run,wakeup} is called.

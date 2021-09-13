@@ -12,7 +12,7 @@ package org.truffleruby.core.array;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -23,7 +23,7 @@ import org.truffleruby.language.objects.AllocationTracing;
 
 /** Dup an array, without using any method lookup. This isn't a call - it's an operation on a core class. */
 @ImportStatic(ArrayGuards.class)
-public abstract class ArrayDupNode extends RubyContextNode {
+public abstract class ArrayDupNode extends RubyBaseNode {
 
     public abstract RubyArray executeDup(RubyArray array);
 

@@ -48,6 +48,9 @@ public class CommandLineOptions {
     boolean showVersion = false;
     boolean showCopyright = false;
     ShowHelp showHelp = ShowHelp.NONE;
+    /** All command-line arguments passed to truffleruby */
+    final String[] initialArguments;
+    boolean logProcessArguments = false;
     /** Read the RUBYOPT and TRUFFLERUBYOPT environment variables */
     boolean readRubyOptEnv = true;
     /** What should be done after context is created */
@@ -58,11 +61,13 @@ public class CommandLineOptions {
     String toExecute = "";
 
     private final Map<String, String> options;
+    /** Application arguments */
     private String[] arguments;
     private final List<String> unknownArguments;
     private Boolean gemOrBundle = null;
 
-    public CommandLineOptions() {
+    public CommandLineOptions(List<String> initialArguments) {
+        this.initialArguments = initialArguments.toArray(EMPTY_STRING_ARRAY);
         this.options = new HashMap<>();
         this.arguments = EMPTY_STRING_ARRAY;
         this.unknownArguments = new ArrayList<>();
@@ -74,10 +79,6 @@ public class CommandLineOptions {
 
     public <T> void setOption(OptionDescriptor descriptor, T value) {
         setOptionRaw(descriptor, RubyOptionTypes.valueToString(value));
-    }
-
-    public <T> T getOption(OptionDescriptor descriptor) {
-        return RubyOptionTypes.parseValue(descriptor, getOptionRaw(descriptor));
     }
 
     public <T> void appendOptionValue(OptionDescriptor descriptor, String newValue) {
@@ -100,7 +101,7 @@ public class CommandLineOptions {
         options.put(descriptor.getName(), value);
     }
 
-    private <T> String getOptionRaw(OptionDescriptor descriptor) {
+    public String getOptionRaw(OptionDescriptor descriptor) {
         return options.getOrDefault(
                 descriptor.getName(),
                 RubyOptionTypes.valueToString(descriptor.getKey().getDefaultValue()));

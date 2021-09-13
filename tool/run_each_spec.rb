@@ -17,7 +17,7 @@ total = files.size
 files.each_with_index do |file, index| 
   specname = file.split('/').last.split('_')[0..-2].join('_')
   puts "specname #{specname}"
-  command = "ruby tool/jt.rb untag #{file}"
+  command = "bin/jt untag #{file}"
   puts "starting #{num} of #{total} process #{command}"
   rout, wout = IO.pipe
   rerr, werr = IO.pipe
@@ -61,7 +61,7 @@ files.each_with_index do |file, index|
   puts "contains #{!@stdout.include?(tags_deleted)}"
 
   if finished && $? != 0 && !@stdout.include?(tags_deleted)
-    test_command = "ruby tool/jt.rb test #{file}"
+    test_command = "bin/jt test #{file}"
     puts "testing process #{test_command}"
     test_pid = Process.spawn(test_command)
       begin

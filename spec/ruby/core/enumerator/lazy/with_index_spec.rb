@@ -28,4 +28,3 @@ ruby_version_is "2.7" do
     end
   end
 end
-

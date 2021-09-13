@@ -57,7 +57,7 @@ class BasicSocket < IO
   end
 
   def getsockopt(level, optname)
-    sockname = Truffle::Socket::Foreign.getsockname(Primitive.io_fd(self))
+    sockname = Truffle::Socket::Foreign.getsockname(self)
     family   = Truffle::Socket.family_for_sockaddr_in(sockname)
     level    = Truffle::Socket::SocketOptions.socket_level(level, family)
     optname  = Truffle::Socket::SocketOptions.socket_option(level, optname)
@@ -78,7 +78,7 @@ class BasicSocket < IO
       Truffle::Type.check_arity(args.size, 3, 3)
     end
 
-    sockname = Truffle::Socket::Foreign.getsockname(Primitive.io_fd(self))
+    sockname = Truffle::Socket::Foreign.getsockname(self)
     family   = Truffle::Socket.family_for_sockaddr_in(sockname)
     level    = Truffle::Socket::SocketOptions.socket_level(level, family)
     optname  = Truffle::Socket::SocketOptions.socket_option(level, optname)
@@ -113,11 +113,11 @@ class BasicSocket < IO
   end
 
   def getsockname
-    Truffle::Socket::Foreign.getsockname(Primitive.io_fd(self))
+    Truffle::Socket::Foreign.getsockname(self)
   end
 
   def getpeername
-    Truffle::Socket::Foreign.getpeername(Primitive.io_fd(self))
+    Truffle::Socket::Foreign.getpeername(self)
   end
 
   def send(message, flags, dest_sockaddr = nil)

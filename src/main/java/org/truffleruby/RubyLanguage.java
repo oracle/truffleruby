@@ -17,11 +17,17 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.ContextThreadLocal;
+import com.oracle.truffle.api.TruffleFile;
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
@@ -89,7 +95,9 @@ import org.truffleruby.extra.RubyAtomicReference;
 import org.truffleruby.extra.RubyConcurrentMap;
 import org.truffleruby.extra.ffi.RubyPointer;
 import org.truffleruby.core.string.ImmutableRubyString;
+import org.truffleruby.interop.RubyInnerContext;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyEvalInteractiveRootNode;
@@ -167,6 +175,15 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     public static final TruffleLogger LOGGER = TruffleLogger.getLogger(TruffleRuby.LANGUAGE_ID);
 
+    /** We need an extra indirection added to ContextThreadLocal due to multiple Fibers of different Ruby Threads
+     * sharing the same Java Thread when using the fiber pool. */
+    private static final class ThreadLocalState {
+        private RubyThread rubyThread;
+    }
+
+    private final ContextThreadLocal<ThreadLocalState> threadLocalState = createContextThreadLocal(
+            (context, thread) -> new ThreadLocalState());
+
     private final CyclicAssumption tracingCyclicAssumption = new CyclicAssumption("object-space-tracing");
     @CompilationFinal private volatile Assumption tracingAssumption = tracingCyclicAssumption.getAssumption();
 
@@ -196,6 +213,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final ValueWrapperManager.HandleBlockAllocator handleBlockAllocator = new ValueWrapperManager.HandleBlockAllocator();
 
     @CompilationFinal public LanguageOptions options;
+    @CompilationFinal private String rubyHome;
+    private TruffleFile rubyHomeTruffleFile;
 
     @CompilationFinal private AllocationReporter allocationReporter;
     @CompilationFinal public CoverageManager coverageManager;
@@ -229,6 +248,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final Shape frozenErrorShape = createShape(RubyFrozenError.class);
     public final Shape handleShape = createShape(RubyHandle.class);
     public final Shape hashShape = createShape(RubyHash.class);
+    public final Shape innerContextShape = createShape(RubyInnerContext.class);
     public final Shape intRangeShape = createShape(RubyIntRange.class);
     public final Shape ioShape = createShape(RubyIO.class);
     public final Shape longRangeShape = createShape(RubyLongRange.class);
@@ -263,14 +283,17 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     public final ThreadLocal<ParsingParameters> parsingRequestParams = new ThreadLocal<>();
 
-    public RubyLanguage() {
-        coreMethodAssumptions = new CoreMethodAssumptions(this);
-        coreStrings = new CoreStrings(this);
-        coreSymbols = new CoreSymbols();
-        primitiveManager = new PrimitiveManager();
-        ropeCache = new RopeCache(coreSymbols);
-        symbolTable = new SymbolTable(ropeCache, coreSymbols);
-        frozenStringLiterals = new FrozenStringLiterals(ropeCache);
+    /* Some things (such as procs created from symbols) require a declaration frame, and this should include a slot for
+     * special variable storage. This frame descriptor should be used for those frames to provide a constant frame
+     * descriptor in those cases. */
+    public final FrameDescriptor emptyDeclarationDescriptor = new FrameDescriptor(Nil.INSTANCE);
+    public final FrameSlot emptyDeclarationSpecialVariableSlot = emptyDeclarationDescriptor
+            .addFrameSlot(Layouts.SPECIAL_VARIABLES_STORAGE);
+
+    private static final LanguageReference<RubyLanguage> REFERENCE = LanguageReference.create(RubyLanguage.class);
+
+    public static RubyLanguage get(Node node) {
+        return REFERENCE.get(node);
     }
 
     public static String getMimeType(boolean coverageEnabled) {
@@ -308,11 +331,35 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
     }
 
+    public RubyLanguage() {
+        coreMethodAssumptions = new CoreMethodAssumptions(this);
+        coreStrings = new CoreStrings(this);
+        coreSymbols = new CoreSymbols();
+        primitiveManager = new PrimitiveManager();
+        ropeCache = new RopeCache(coreSymbols);
+        symbolTable = new SymbolTable(ropeCache, coreSymbols);
+        frozenStringLiterals = new FrozenStringLiterals(ropeCache);
+    }
+
+    public RubyThread getCurrentThread() {
+        final RubyThread rubyThread = threadLocalState.get().rubyThread;
+        if (rubyThread == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            throw CompilerDirectives.shouldNotReachHere(
+                    "No Ruby Thread is associated with current Java Thread: " + Thread.currentThread());
+        }
+        return rubyThread;
+    }
+
+    public void setupCurrentThread(Thread javaThread, RubyThread rubyThread) {
+        final ThreadLocalState threadLocalState = this.threadLocalState.get(javaThread);
+        threadLocalState.rubyThread = rubyThread;
+    }
+
     @TruffleBoundary
     public RubySymbol getSymbol(String string) {
         return symbolTable.getSymbol(string);
     }
-
 
     @TruffleBoundary
     public RubySymbol getSymbol(Rope rope, RubyEncoding encoding) {
@@ -366,12 +413,22 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
             if (this.options == null) { // First context
                 this.allocationReporter = env.lookup(AllocationReporter.class);
                 this.options = new LanguageOptions(env, env.getOptions(), singleContext);
+                setRubyHome(env, findRubyHome());
                 this.coreLoadPath = buildCoreLoadPath(this.options.CORE_LOAD_PATH);
                 this.corePath = coreLoadPath + File.separator + "core" + File.separator;
                 this.coverageManager = new CoverageManager(options, env.lookup(Instrumenter.class));
                 primitiveManager.loadCoreMethodNodes(this.options);
             }
         }
+
+        // Set rubyHomeTruffleFile every time, as pre-initialized contexts use a different FileSystem
+        final String oldHome = this.rubyHome;
+        final String newHome = findRubyHome();
+        if (!Objects.equals(newHome, oldHome)) {
+            throw CompilerDirectives.shouldNotReachHere(
+                    "home changed for the same RubyLanguage instance: " + oldHome + " vs " + newHome);
+        }
+        setRubyHomeTruffleFile(env, newHome);
 
         LOGGER.fine("createContext()");
         Metrics.printTime("before-create-context");
@@ -393,6 +450,9 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         try {
             Metrics.printTime("before-initialize-context");
             context.initialize();
+            if (context.isPreInitializing()) {
+                setRubyHome(context.getEnv(), null);
+            }
             Metrics.printTime("after-initialize-context");
         } catch (Throwable e) {
             if (context.getOptions().EXCEPTIONS_PRINT_JAVA || context.getOptions().EXCEPTIONS_PRINT_UNCAUGHT_JAVA) {
@@ -422,6 +482,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
             return false;
         }
 
+        setRubyHome(newEnv, findRubyHome());
+
         boolean patched = context.patchContext(newEnv);
         Metrics.printTime("after-patch-context");
         return patched;
@@ -444,13 +506,13 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     public static RubyContext getCurrentContext() {
-        CompilerAsserts.neverPartOfCompilation("Use getContext() or @CachedContext instead in PE code");
-        return getCurrentContext(RubyLanguage.class);
+        CompilerAsserts.neverPartOfCompilation("Use getContext() or RubyContext.get(Node) instead in PE code");
+        return RubyContext.get(null);
     }
 
     public static RubyLanguage getCurrentLanguage() {
-        CompilerAsserts.neverPartOfCompilation("Use getLanguage() or @CachedLanguage instead in PE code");
-        return getCurrentLanguage(RubyLanguage.class);
+        CompilerAsserts.neverPartOfCompilation("Use getLanguage() or RubyLanguage.get(Node) instead in PE code");
+        return RubyLanguage.get(null);
     }
 
     @Override
@@ -468,7 +530,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
                     ? ParserContext.TOP_LEVEL_FIRST
                     : ParserContext.TOP_LEVEL;
             final LexicalScope lexicalScope = contextIfSingleContext.map(RubyContext::getRootLexicalScope).orElse(null);
-            return RubyLanguage.getCurrentContext().getCodeLoader().parse(
+            return getCurrentContext().getCodeLoader().parse(
                     rubySource,
                     parserContext,
                     null,
@@ -536,6 +598,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
         if (thread == context.getThreadManager().getOrInitializeRootJavaThread()) {
             // Already initialized when creating the context
+            setupCurrentThread(thread, context.getThreadManager().getRootThread());
             return;
         }
 
@@ -547,6 +610,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
                             .shouldNotReachHere("Ruby threads should be initialized on their Java thread");
                 }
                 context.getThreadManager().start(rubyThread, thread);
+                setupCurrentThread(thread, rubyThread);
             } else {
                 // Fiber
             }
@@ -555,12 +619,13 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
         final RubyThread foreignThread = context.getThreadManager().createForeignThread();
         context.getThreadManager().startForeignThread(foreignThread, thread);
+        setupCurrentThread(thread, foreignThread);
     }
 
     @Override
     public void disposeThread(RubyContext context, Thread thread) {
         LOGGER.fine(
-                () -> "disposeThread(#" + thread.getId() + " " + thread + " " +
+                () -> "disposeThread(#" + thread.getId() + " " + thread + " on " +
                         context.getThreadManager().getCurrentThreadOrNull() + ")");
 
         if (thread == context.getThreadManager().getRootJavaThread()) {
@@ -593,7 +658,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
 
         // A foreign Thread, its Fibers are considered isRubyManagedThread()
-        final RubyThread rubyThread = context.getThreadManager().getRubyThread(thread);
+        final RubyThread rubyThread = context.getThreadManager().getRubyThreadForJavaThread(thread);
         context.getThreadManager().cleanup(rubyThread, thread);
     }
 
@@ -602,8 +667,74 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         return context.getTopScopeObject();
     }
 
-    public String getTruffleLanguageHome() {
-        return getLanguageHome();
+    public String getRubyHome() {
+        return rubyHome;
+    }
+
+    public TruffleFile getRubyHomeTruffleFile() {
+        return rubyHomeTruffleFile;
+    }
+
+    public String getPathRelativeToHome(String path) {
+        final String home = rubyHome;
+        if (home != null && path.startsWith(home) && path.length() > home.length()) {
+            return path.substring(home.length() + 1);
+        } else {
+            return path;
+        }
+    }
+
+    private void setRubyHome(Env env, String home) {
+        rubyHome = home;
+        setRubyHomeTruffleFile(env, home);
+    }
+
+    private void setRubyHomeTruffleFile(Env env, String home) {
+        rubyHomeTruffleFile = home == null ? null : env.getInternalTruffleFile(rubyHome);
+    }
+
+    private String findRubyHome() {
+        final String home = searchRubyHome();
+        if (RubyLanguage.LOGGER.isLoggable(Level.CONFIG)) {
+            RubyLanguage.LOGGER.config("home: " + home);
+        }
+        return home;
+    }
+
+    // Returns a canonical path to the home
+    private String searchRubyHome() {
+        if (options.NO_HOME_PROVIDED) {
+            RubyLanguage.LOGGER.config("--ruby.no-home-provided set");
+            return null;
+        }
+
+        final String truffleReported = getLanguageHome();
+        if (truffleReported != null) {
+            final File home = new File(truffleReported);
+            if (isRubyHome(home)) {
+                RubyLanguage.LOGGER.config(
+                        () -> String.format("Using Truffle-reported home %s as the Ruby home", truffleReported));
+                return truffleReported;
+            } else {
+                RubyLanguage.LOGGER.warning(
+                        String.format(
+                                "Truffle-reported home %s does not look like TruffleRuby's home",
+                                truffleReported));
+            }
+        } else {
+            RubyLanguage.LOGGER.config("Truffle-reported home not set, cannot determine home from it");
+        }
+
+        RubyLanguage.LOGGER.warning(
+                "could not determine TruffleRuby's home - the standard library will not be available - use --log.level=CONFIG to see details");
+        return null;
+    }
+
+    private boolean isRubyHome(File path) {
+        final File lib = new File(path, "lib");
+        return new File(lib, "truffle").isDirectory() &&
+                new File(lib, "gems").isDirectory() &&
+                new File(lib, "patches").isDirectory();
     }
 
     @SuppressFBWarnings("IS2_INCONSISTENT_SYNC")

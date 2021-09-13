@@ -10,13 +10,12 @@
 package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
@@ -90,8 +89,8 @@ public class ImmutableRubyString extends ImmutableRubyObject implements TruffleO
 
     @ExportMessage
     protected RubyClass getMetaObject(
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getCoreLibrary().stringClass;
+            @CachedLibrary("this") InteropLibrary node) {
+        return RubyContext.get(node).getCoreLibrary().stringClass;
     }
     // endregion
 

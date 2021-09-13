@@ -41,24 +41,24 @@ import org.truffleruby.core.cast.ToProcNodeGen;
 import org.truffleruby.core.cast.ToSNode;
 import org.truffleruby.core.cast.ToSNodeGen;
 import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.hash.ConcatHashLiteralNode;
 import org.truffleruby.core.hash.HashLiteralNode;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.module.ModuleNodesFactory;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.range.RangeNodesFactory;
-import org.truffleruby.core.regexp.EncodingCache;
+import org.truffleruby.core.regexp.ClassicRegexp;
 import org.truffleruby.core.regexp.InterpolatedRegexpNode;
 import org.truffleruby.core.regexp.MatchDataNodes.GetIndexNode;
 import org.truffleruby.core.regexp.RegexWarnDeferredCallback;
-import org.truffleruby.core.regexp.RegexpNodes;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.regexp.RubyRegexp;
-import org.truffleruby.core.regexp.TRegexCache;
 import org.truffleruby.core.regexp.TruffleRegexpNodes;
 import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
+import org.truffleruby.core.rope.RopeWithEncoding;
 import org.truffleruby.core.string.InterpolatedStringNode;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.string.ImmutableRubyString;
@@ -2112,14 +2112,22 @@ public class BodyTranslator extends Translator {
         if (node.getReceiverNode() instanceof RegexpParseNode) {
             final RegexpParseNode regexpNode = (RegexpParseNode) node.getReceiverNode();
             final byte[] bytes = regexpNode.getValue().getBytes();
-            final Regex regex = new Regex(
-                    bytes,
-                    0,
-                    bytes.length,
-                    regexpNode.getOptions().toOptions(),
-                    regexpNode.getEncoding(),
-                    Syntax.RUBY,
-                    new RegexWarnDeferredCallback(rubyWarnings));
+            final Regex regex;
+            try {
+                regex = new Regex(
+                        bytes,
+                        0,
+                        bytes.length,
+                        regexpNode.getOptions().toOptions(),
+                        regexpNode.getEncoding(),
+                        Syntax.RUBY,
+                        new RegexWarnDeferredCallback(rubyWarnings));
+            } catch (Exception e) {
+                String errorMessage = ClassicRegexp
+                        .getRegexErrorMessage(regexpNode.getValue(), e, regexpNode.getOptions());
+                final RubyContext context = RubyLanguage.getCurrentContext();
+                throw new RaiseException(context, context.getCoreExceptions().regexpError(errorMessage, currentNode));
+            }
             final int numberOfNames = regex.numberOfNames();
 
             if (numberOfNames > 0) {
@@ -2653,26 +2661,18 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitRegexpNode(RegexpParseNode node) {
         final Rope rope = node.getValue();
+        final RubyEncoding encoding = Encodings.getBuiltInEncoding(rope.getEncoding().getIndex());
         final RegexpOptions options = (RegexpOptions) node.getOptions().clone();
         options.setLiteral(true);
         Regex regex = null;
         try {
-            regex = TruffleRegexpNodes.compile(language, rubyWarnings, rope, options, currentNode);
+            regex = TruffleRegexpNodes
+                    .compile(language, rubyWarnings, new RopeWithEncoding(rope, encoding), options, true, currentNode);
         } catch (DeferredRaiseException dre) {
             throw dre.getException(RubyLanguage.getCurrentContext());
         }
 
-        // The RegexpNodes.compile operation may modify the encoding of the source rope. This modified copy is stored
-        // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when
-        // constructing the final regexp.
-        final Rope updatedRope = (Rope) regex.getUserObject();
-        final RubyRegexp regexp = RegexpNodes.createRubyRegexp(
-                regex,
-                updatedRope,
-                options,
-                new EncodingCache(),
-                new TRegexCache());
-
+        final RubyRegexp regexp = new RubyRegexp(regex, options);
         final ObjectLiteralNode literalNode = new ObjectLiteralNode(regexp);
         literalNode.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, literalNode);

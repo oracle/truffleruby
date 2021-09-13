@@ -13,16 +13,12 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
@@ -54,8 +50,6 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
 
     @Specialization
     protected RubyMethod getMethodObject(Frame frame, Object self, Object name, DispatchConfiguration dispatchConfig,
-            @CachedLanguage RubyLanguage language,
-            @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached NameToJavaStringNode nameToJavaStringNode,
             @Cached LookupMethodOnSelfNode lookupMethodNode,
             @Cached ToSymbolNode toSymbolNode,
@@ -78,35 +72,35 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
                         self,
                         "method_missing",
                         DispatchConfiguration.PRIVATE_RETURN_MISSING_IGNORE_REFINEMENTS);
-                method = createMissingMethod(self, symbolName, normalizedName, methodMissing, language, context);
+                method = createMissingMethod(self, symbolName, normalizedName, methodMissing);
             } else {
                 throw new RaiseException(
-                        context,
-                        context.getCoreExceptions().nameErrorUndefinedMethod(
+                        getContext(),
+                        coreExceptions().nameErrorUndefinedMethod(
                                 normalizedName,
                                 logicalClassNode.execute(self),
                                 this));
             }
         }
         final RubyMethod instance = new RubyMethod(
-                context.getCoreLibrary().methodClass,
-                language.methodShape,
+                coreLibrary().methodClass,
+                getLanguage().methodShape,
                 self,
                 method);
-        AllocationTracing.trace(language, context, instance, this);
+        AllocationTracing.trace(instance, this);
         return instance;
     }
 
     @TruffleBoundary
     private InternalMethod createMissingMethod(Object self, RubySymbol name, String normalizedName,
-            InternalMethod methodMissing, RubyLanguage language, RubyContext context) {
+            InternalMethod methodMissing) {
         final SharedMethodInfo info = methodMissing
                 .getSharedMethodInfo()
                 .convertMethodMissingToMethod(methodMissing.getDeclaringModule(), normalizedName);
 
         final RubyNode newBody = new CallMethodMissingWithStaticName(name);
         final RubyRootNode newRootNode = new RubyRootNode(
-                language,
+                getLanguage(),
                 info.getSourceSection(),
                 new FrameDescriptor(nil),
                 info,
@@ -117,7 +111,7 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
 
         final RubyClass module = MetaClassNode.getUncached().execute(self);
         return new InternalMethod(
-                context,
+                getContext(),
                 info,
                 methodMissing.getLexicalScope(),
                 DeclarationContext.NONE,

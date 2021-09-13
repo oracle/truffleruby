@@ -10,14 +10,10 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.exception.CoreExceptions;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
@@ -51,17 +47,15 @@ public abstract class ToLongNode extends RubyBaseNodeWithExecute {
     }
 
     @Specialization
-    protected long coerceRubyBignum(RubyBignum value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+    protected long coerceRubyBignum(RubyBignum value) {
         throw new RaiseException(
-                context,
-                context.getCoreExceptions().rangeError("bignum too big to convert into `long'", this));
+                getContext(),
+                coreExceptions().rangeError("bignum too big to convert into `long'", this));
     }
 
     @Specialization
     protected long coerceDouble(double value,
-            @Cached BranchProfile errorProfile,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            @Cached BranchProfile errorProfile) {
         // emulate MRI logic
         // We check for `value < MAX_VALUE` because casting Long.MAX_VALUE to double yields a double value of 2^63 which is >
         // Long.MAX_VALUE.
@@ -69,30 +63,27 @@ public abstract class ToLongNode extends RubyBaseNodeWithExecute {
             return (long) value;
         } else {
             errorProfile.enter();
-            final CoreExceptions coreExceptions = context.getCoreExceptions();
             throw new RaiseException(
-                    context,
-                    coreExceptions.rangeError(Utils.concat("float ", value, " out of range of integer"), this));
+                    getContext(),
+                    coreExceptions().rangeError(Utils.concat("float ", value, " out of range of integer"), this));
         }
     }
 
     @Specialization
-    protected long coerceNil(Nil nil,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+    protected long coerceNil(Nil nil) {
         // MRI hardcodes this specific error message, which is slightly different from the one we would get in the
         // catch-all case.
         throw new RaiseException(
-                context,
-                context.getCoreExceptions().typeError("no implicit conversion from nil to integer", this));
+                getContext(),
+                coreExceptions().typeError("no implicit conversion from nil to integer", this));
     }
 
     @Specialization(guards = { "!isRubyInteger(object)", "!isImplicitDouble(object)", "!isNil(object)" })
     protected long coerceObject(Object object,
             @Cached DispatchNode toIntNode,
-            @Cached ToLongNode fitNode,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            @Cached ToLongNode fitNode) {
         final Object coerced = toIntNode
-                .call(context.getCoreLibrary().truffleTypeModule, "rb_to_int_fallback", object);
+                .call(coreLibrary().truffleTypeModule, "rb_to_int_fallback", object);
         return fitNode.execute(coerced);
     }
 }

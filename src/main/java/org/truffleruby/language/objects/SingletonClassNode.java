@@ -9,10 +9,8 @@
  */
 package org.truffleruby.language.objects;
 
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.ImmutableRubyObject;
@@ -44,45 +42,38 @@ public abstract class SingletonClassNode extends RubySourceNode {
     public abstract RubyClass executeSingletonClass(Object value);
 
     @Specialization(guards = "value")
-    protected RubyClass singletonClassTrue(boolean value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getCoreLibrary().trueClass;
+    protected RubyClass singletonClassTrue(boolean value) {
+        return coreLibrary().trueClass;
     }
 
     @Specialization(guards = "!value")
-    protected RubyClass singletonClassFalse(boolean value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getCoreLibrary().falseClass;
+    protected RubyClass singletonClassFalse(boolean value) {
+        return coreLibrary().falseClass;
     }
 
     @Specialization
-    protected RubyClass singletonClassNil(Nil value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getCoreLibrary().nilClass;
+    protected RubyClass singletonClassNil(Nil value) {
+        return coreLibrary().nilClass;
     }
 
     @Specialization
-    protected RubyClass singletonClass(int value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return noSingletonClass(context);
+    protected RubyClass singletonClass(int value) {
+        return noSingletonClass();
     }
 
     @Specialization
-    protected RubyClass singletonClass(long value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return noSingletonClass(context);
+    protected RubyClass singletonClass(long value) {
+        return noSingletonClass();
     }
 
     @Specialization
-    protected RubyClass singletonClass(double value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return noSingletonClass(context);
+    protected RubyClass singletonClass(double value) {
+        return noSingletonClass();
     }
 
     @Specialization(guards = "!isNil(value)")
-    protected RubyClass singletonClassImmutableObject(ImmutableRubyObject value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return noSingletonClass(context);
+    protected RubyClass singletonClassImmutableObject(ImmutableRubyObject value) {
+        return noSingletonClass();
     }
 
     @Specialization(
@@ -91,15 +82,13 @@ public abstract class SingletonClassNode extends RubySourceNode {
             limit = "getIdentityCacheContextLimit()")
     protected RubyClass singletonClassClassCached(RubyClass rubyClass,
             @Cached("rubyClass") RubyClass cachedClass,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @Cached("getSingletonClassOrNull(context, cachedClass)") RubyClass cachedSingletonClass) {
+            @Cached("getSingletonClassOrNull(getContext(), cachedClass)") RubyClass cachedSingletonClass) {
         return cachedSingletonClass;
     }
 
     @Specialization(replaces = "singletonClassClassCached")
-    protected RubyClass singletonClassClassUncached(RubyClass rubyClass,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return ClassNodes.getSingletonClass(context, rubyClass);
+    protected RubyClass singletonClassClassUncached(RubyClass rubyClass) {
+        return ClassNodes.getSingletonClass(getContext(), rubyClass);
     }
 
     @Specialization(
@@ -108,19 +97,17 @@ public abstract class SingletonClassNode extends RubySourceNode {
             limit = "getIdentityCacheContextLimit()")
     protected RubyClass singletonClassInstanceCached(RubyDynamicObject object,
             @Cached("object") RubyDynamicObject cachedObject,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @Cached("getSingletonClassForInstance(context, object)") RubyClass cachedSingletonClass) {
+            @Cached("getSingletonClassForInstance(getContext(), object)") RubyClass cachedSingletonClass) {
         return cachedSingletonClass;
     }
 
     @Specialization(guards = "!isRubyClass(object)", replaces = "singletonClassInstanceCached")
-    protected RubyClass singletonClassInstanceUncached(RubyDynamicObject object,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return getSingletonClassForInstance(context, object);
+    protected RubyClass singletonClassInstanceUncached(RubyDynamicObject object) {
+        return getSingletonClassForInstance(getContext(), object);
     }
 
-    private RubyClass noSingletonClass(RubyContext context) {
-        throw new RaiseException(context, context.getCoreExceptions().typeErrorCantDefineSingleton(this));
+    private RubyClass noSingletonClass() {
+        throw new RaiseException(getContext(), coreExceptions().typeErrorCantDefineSingleton(this));
     }
 
     protected RubyClass getSingletonClassOrNull(RubyContext context, RubyClass rubyClass) {
@@ -155,11 +142,11 @@ public abstract class SingletonClassNode extends RubySourceNode {
     }
 
     protected int getCacheLimit() {
-        return RubyLanguage.getCurrentLanguage().options.CLASS_CACHE;
+        return getLanguage().options.CLASS_CACHE;
     }
 
     protected int getIdentityCacheContextLimit() {
-        return RubyLanguage.getCurrentLanguage().options.CONTEXT_SPECIFIC_IDENTITY_CACHE;
+        return getLanguage().options.CONTEXT_SPECIFIC_IDENTITY_CACHE;
     }
 
 }

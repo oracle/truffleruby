@@ -52,7 +52,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> LAZY_TRANSLATION_USER_KEY = new OptionKey<>(LAZY_CALLTARGETS_KEY.getDefaultValue());
     public static final OptionKey<Boolean> PATCHING_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> HASHING_DETERMINISTIC_KEY = new OptionKey<>(false);
-    public static final OptionKey<Boolean> FIBER_LEAVE_CONTEXT_KEY = new OptionKey<>(true);
+    public static final OptionKey<Boolean> FIBER_POOL_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> LOG_SUBPROCESS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> WARN_LOCALE_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> EXCEPTIONS_STORE_JAVA_KEY = new OptionKey<>(false);
@@ -105,6 +105,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> LAZY_TRANSLATION_CORE_KEY = new OptionKey<>(LAZY_CALLTARGETS_KEY.getDefaultValue());
     public static final OptionKey<Boolean> CHAOS_DATA_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> BASICOPS_INLINE_KEY = new OptionKey<>(true);
+    public static final OptionKey<Boolean> BASICOPS_LOG_REWRITE_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> PROFILE_ARGUMENTS_KEY = new OptionKey<>(true);
     public static final OptionKey<Integer> DEFAULT_CACHE_KEY = new OptionKey<>(8);
     public static final OptionKey<Integer> METHOD_LOOKUP_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
@@ -126,7 +127,6 @@ public class OptionsCatalog {
     public static final OptionKey<Integer> TIME_FORMAT_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> POW_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> RUBY_LIBRARY_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
-    public static final OptionKey<Integer> THREAD_CACHE_KEY = new OptionKey<>(1);
     public static final OptionKey<Integer> IDENTITY_CACHE_KEY = new OptionKey<>(1);
     public static final OptionKey<Integer> CONTEXT_SPECIFIC_IDENTITY_CACHE_KEY = new OptionKey<>(IDENTITY_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> CLASS_CACHE_KEY = new OptionKey<>(3);
@@ -151,6 +151,8 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> METHODMISSING_ALWAYS_INLINE_KEY = new OptionKey<>(INLINE_DEFAULT_KEY.getDefaultValue());
     public static final OptionKey<Boolean> REGEXP_INSTRUMENT_CREATION_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> REGEXP_INSTRUMENT_MATCH_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> REGEXP_INSTRUMENT_MATCH_DETAILED_KEY = new OptionKey<>(false);
+    public static final OptionKey<String> REGEXP_INSTRUMENT_OUTPUT_FORMAT_KEY = new OptionKey<>("text");
     public static final OptionKey<Boolean> METRICS_TIME_PARSING_FILE_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> METRICS_TIME_REQUIRE_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> SHARED_OBJECTS_ENABLED_KEY = new OptionKey<>(true);
@@ -385,9 +387,9 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
-    public static final OptionDescriptor FIBER_LEAVE_CONTEXT = OptionDescriptor
-            .newBuilder(FIBER_LEAVE_CONTEXT_KEY, "ruby.fiber-leave-context")
-            .help("Leave the TruffleContext when suspending a Fiber (avoids triggering multithreading)")
+    public static final OptionDescriptor FIBER_POOL = OptionDescriptor
+            .newBuilder(FIBER_POOL_KEY, "ruby.fiber-pool")
+            .help("Use a thread pool to speed up creating Fibers")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -756,6 +758,13 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
+    public static final OptionDescriptor BASICOPS_LOG_REWRITE = OptionDescriptor
+            .newBuilder(BASICOPS_LOG_REWRITE_KEY, "ruby.basic-ops-log-rewrite")
+            .help("Log the receiver and arguments when basic operations like Fixnum operators cannot be handled inline")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
     public static final OptionDescriptor PROFILE_ARGUMENTS = OptionDescriptor
             .newBuilder(PROFILE_ARGUMENTS_KEY, "ruby.profile-arguments")
             .help("Profile the value and class of the receiver and arguments")
@@ -899,13 +908,6 @@ public class OptionsCatalog {
     public static final OptionDescriptor RUBY_LIBRARY_CACHE = OptionDescriptor
             .newBuilder(RUBY_LIBRARY_CACHE_KEY, "ruby.ruby-library-cache")
             .help("Ruby Library cache size")
-            .category(OptionCategory.INTERNAL)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
-    public static final OptionDescriptor THREAD_CACHE = OptionDescriptor
-            .newBuilder(THREAD_CACHE_KEY, "ruby.thread-cache")
-            .help("Cache size of operations that depend on a particular thread")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1078,6 +1080,20 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
+    public static final OptionDescriptor REGEXP_INSTRUMENT_MATCH_DETAILED = OptionDescriptor
+            .newBuilder(REGEXP_INSTRUMENT_MATCH_DETAILED_KEY, "ruby.regexp-instrument-match-detailed")
+            .help("Enable instrumentation to gather detailed stats on strings matched against a regexp")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor REGEXP_INSTRUMENT_OUTPUT_FORMAT = OptionDescriptor
+            .newBuilder(REGEXP_INSTRUMENT_OUTPUT_FORMAT_KEY, "ruby.regexp-instrumentation-output-format")
+            .help("Output format for regexp instrumentation (\\\"text\\\" or \\\"json\\\")")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
     public static final OptionDescriptor METRICS_TIME_PARSING_FILE = OptionDescriptor
             .newBuilder(METRICS_TIME_PARSING_FILE_KEY, "ruby.metrics-time-parsing-file")
             .help("Measure time for parsing, translating and executing files, per file")
@@ -1207,8 +1223,8 @@ public class OptionsCatalog {
                 return PATCHING;
             case "ruby.hashing-deterministic":
                 return HASHING_DETERMINISTIC;
-            case "ruby.fiber-leave-context":
-                return FIBER_LEAVE_CONTEXT;
+            case "ruby.fiber-pool":
+                return FIBER_POOL;
             case "ruby.log-subprocess":
                 return LOG_SUBPROCESS;
             case "ruby.warn-locale":
@@ -1313,6 +1329,8 @@ public class OptionsCatalog {
                 return CHAOS_DATA;
             case "ruby.basic-ops-inline":
                 return BASICOPS_INLINE;
+            case "ruby.basic-ops-log-rewrite":
+                return BASICOPS_LOG_REWRITE;
             case "ruby.profile-arguments":
                 return PROFILE_ARGUMENTS;
             case "ruby.default-cache":
@@ -1355,8 +1373,6 @@ public class OptionsCatalog {
                 return POW_CACHE;
             case "ruby.ruby-library-cache":
                 return RUBY_LIBRARY_CACHE;
-            case "ruby.thread-cache":
-                return THREAD_CACHE;
             case "ruby.identity-cache":
                 return IDENTITY_CACHE;
             case "ruby.context-identity-cache":
@@ -1405,6 +1421,10 @@ public class OptionsCatalog {
                 return REGEXP_INSTRUMENT_CREATION;
             case "ruby.regexp-instrument-match":
                 return REGEXP_INSTRUMENT_MATCH;
+            case "ruby.regexp-instrument-match-detailed":
+                return REGEXP_INSTRUMENT_MATCH_DETAILED;
+            case "ruby.regexp-instrumentation-output-format":
+                return REGEXP_INSTRUMENT_OUTPUT_FORMAT;
             case "ruby.metrics-time-parsing-file":
                 return METRICS_TIME_PARSING_FILE;
             case "ruby.metrics-time-require":
@@ -1462,7 +1482,7 @@ public class OptionsCatalog {
             LAZY_TRANSLATION_USER,
             PATCHING,
             HASHING_DETERMINISTIC,
-            FIBER_LEAVE_CONTEXT,
+            FIBER_POOL,
             LOG_SUBPROCESS,
             WARN_LOCALE,
             EXCEPTIONS_STORE_JAVA,
@@ -1515,6 +1535,7 @@ public class OptionsCatalog {
             LAZY_TRANSLATION_CORE,
             CHAOS_DATA,
             BASICOPS_INLINE,
+            BASICOPS_LOG_REWRITE,
             PROFILE_ARGUMENTS,
             DEFAULT_CACHE,
             METHOD_LOOKUP_CACHE,
@@ -1536,7 +1557,6 @@ public class OptionsCatalog {
             TIME_FORMAT_CACHE,
             POW_CACHE,
             RUBY_LIBRARY_CACHE,
-            THREAD_CACHE,
             IDENTITY_CACHE,
             CONTEXT_SPECIFIC_IDENTITY_CACHE,
             CLASS_CACHE,
@@ -1561,6 +1581,8 @@ public class OptionsCatalog {
             METHODMISSING_ALWAYS_INLINE,
             REGEXP_INSTRUMENT_CREATION,
             REGEXP_INSTRUMENT_MATCH,
+            REGEXP_INSTRUMENT_MATCH_DETAILED,
+            REGEXP_INSTRUMENT_OUTPUT_FORMAT,
             METRICS_TIME_PARSING_FILE,
             METRICS_TIME_REQUIRE,
             SHARED_OBJECTS_ENABLED,

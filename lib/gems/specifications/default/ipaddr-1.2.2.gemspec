@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Akinori MUSHA".freeze, "Hajimu UMEMOTO".freeze]
   s.bindir = "exe".freeze
-  s.date = "2021-05-04"
+  s.date = "2021-09-09"
   s.description = "IPAddr provides a set of methods to manipulate an IP address.\nBoth IPv4 and IPv6 are supported.\n".freeze
   s.email = ["knu@idaemons.org".freeze, "ume@mahoroba.org".freeze]
   s.files = ["ipaddr.rb".freeze]

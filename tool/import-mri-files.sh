@@ -51,6 +51,7 @@ cp -r ../ruby/ext/digest/sha2/lib/* lib/mri/digest
 cp -r ../ruby/ext/fiddle/lib/fiddle lib/mri
 cp -r ../ruby/ext/fiddle/lib/fiddle.rb lib/mri
 cp ../ruby/ext/nkf/lib/*.rb lib/mri
+cp ../ruby/ext/monitor/lib/*.rb lib/mri
 cp -r ../ruby/ext/openssl/lib/* lib/mri
 cp ../ruby/ext/pty/lib/*.rb lib/mri
 cp ../ruby/ext/psych/lib/psych.rb lib/mri

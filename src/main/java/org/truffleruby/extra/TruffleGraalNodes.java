@@ -18,6 +18,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.cast.ToCallTargetNode;
 import org.truffleruby.core.proc.ProcCallTargets;
+import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyLambdaRootNode;
 import org.truffleruby.language.RubyNode;
@@ -85,31 +86,22 @@ public abstract class TruffleGraalNodes {
         @Specialization(guards = "proc.isLambda()")
         protected RubyProc copyCapturedLocals(RubyProc proc) {
             final RubyLambdaRootNode rootNode = RubyLambdaRootNode.of(proc.callTarget);
-            final RubyNode newBody = NodeUtil.cloneNode(rootNode.getBody());
+            final RubyNode newBody = rootNode.copyBody();
 
             assert NodeUtil.findAllNodeInstances(newBody, WriteDeclarationVariableNode.class).isEmpty();
 
             for (ReadDeclarationVariableNode readNode : NodeUtil
                     .findAllNodeInstances(newBody, ReadDeclarationVariableNode.class)) {
-                MaterializedFrame frame = RubyArguments
+                final MaterializedFrame frame = RubyArguments
                         .getDeclarationFrame(proc.declarationFrame, readNode.getFrameDepth() - 1);
-                Object value = frame.getValue(readNode.getFrameSlot());
+                final Object value = frame.getValue(readNode.getFrameSlot());
                 readNode.replace(new ObjectLiteralNode(value));
             }
-            final RubyLambdaRootNode newRootNode = new RubyLambdaRootNode(
-                    getLanguage(),
-                    rootNode.getSourceSection(),
-                    rootNode.getFrameDescriptor(),
-                    rootNode.getSharedMethodInfo(),
-                    newBody,
-                    Split.HEURISTIC,
-                    rootNode.returnID,
-                    rootNode.breakID,
-                    rootNode.arityForCheck);
 
+            final RubyLambdaRootNode newRootNode = rootNode.copyRootNode(rootNode.getSharedMethodInfo(), newBody);
             final RootCallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
 
-            SpecialVariableStorage variables = proc.declarationVariables;
+            final SpecialVariableStorage variables = proc.declarationVariables;
 
             final Object[] args = RubyArguments
                     .pack(
@@ -125,16 +117,16 @@ public abstract class TruffleGraalNodes {
             // declaration frame (to allow Proc#binding) so we shall create an empty one.
             final MaterializedFrame newDeclarationFrame = Truffle
                     .getRuntime()
-                    .createMaterializedFrame(args, coreLibrary().emptyDeclarationDescriptor);
+                    .createMaterializedFrame(args, getLanguage().emptyDeclarationDescriptor);
 
-            newDeclarationFrame.setObject(coreLibrary().emptyDeclarationSpecialVariableSlot, variables);
+            newDeclarationFrame.setObject(getLanguage().emptyDeclarationSpecialVariableSlot, variables);
 
             return new RubyProc(
                     coreLibrary().procClass,
                     getLanguage().procShape,
-                    proc.type,
+                    ProcType.LAMBDA,
                     proc.sharedMethodInfo,
-                    new ProcCallTargets(newCallTarget, newCallTarget),
+                    new ProcCallTargets(newCallTarget),
                     newCallTarget,
                     newDeclarationFrame,
                     variables,

@@ -9,8 +9,6 @@
  */
 package org.truffleruby.language.objects;
 
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.RubyBignum;
@@ -22,7 +20,6 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 
@@ -42,69 +39,58 @@ public abstract class MetaClassNode extends RubyBaseNode {
     // Cover all primitives, nil and symbols
 
     @Specialization(guards = "value")
-    protected RubyClass metaClassTrue(boolean value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getCoreLibrary().trueClass;
+    protected RubyClass metaClassTrue(boolean value) {
+        return coreLibrary().trueClass;
     }
 
     @Specialization(guards = "!value")
-    protected RubyClass metaClassFalse(boolean value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getCoreLibrary().falseClass;
+    protected RubyClass metaClassFalse(boolean value) {
+        return coreLibrary().falseClass;
     }
 
     @Specialization
-    protected RubyClass metaClassInt(int value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getCoreLibrary().integerClass;
+    protected RubyClass metaClassInt(int value) {
+        return coreLibrary().integerClass;
     }
 
     @Specialization
-    protected RubyClass metaClassLong(long value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getCoreLibrary().integerClass;
+    protected RubyClass metaClassLong(long value) {
+        return coreLibrary().integerClass;
     }
 
     @Specialization
-    protected RubyClass metaClassBignum(RubyBignum value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getCoreLibrary().integerClass;
+    protected RubyClass metaClassBignum(RubyBignum value) {
+        return coreLibrary().integerClass;
     }
 
     @Specialization
-    protected RubyClass metaClassDouble(double value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getCoreLibrary().floatClass;
+    protected RubyClass metaClassDouble(double value) {
+        return coreLibrary().floatClass;
     }
 
     @Specialization
-    protected RubyClass metaClassNil(Nil value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getCoreLibrary().nilClass;
+    protected RubyClass metaClassNil(Nil value) {
+        return coreLibrary().nilClass;
     }
 
     @Specialization
-    protected RubyClass metaClassSymbol(RubySymbol value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getCoreLibrary().symbolClass;
+    protected RubyClass metaClassSymbol(RubySymbol value) {
+        return coreLibrary().symbolClass;
     }
 
     @Specialization
-    protected RubyClass metaClassEncoding(RubyEncoding value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getCoreLibrary().encodingClass;
+    protected RubyClass metaClassEncoding(RubyEncoding value) {
+        return coreLibrary().encodingClass;
     }
 
     @Specialization
-    protected RubyClass metaClassImmutableString(ImmutableRubyString value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getCoreLibrary().stringClass;
+    protected RubyClass metaClassImmutableString(ImmutableRubyString value) {
+        return coreLibrary().stringClass;
     }
 
     @Specialization
-    protected RubyClass metaClassRegexp(RubyRegexp value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getCoreLibrary().regexpClass;
+    protected RubyClass metaClassRegexp(RubyRegexp value) {
+        return coreLibrary().regexpClass;
     }
 
 
@@ -125,18 +111,17 @@ public abstract class MetaClassNode extends RubyBaseNode {
     }
 
     // Foreign object
-
     @Specialization(guards = "isForeignObject(object)")
     protected RubyClass metaClassForeign(Object object,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getCoreLibrary().truffleInteropForeignClass;
+            @Cached ForeignClassNode foreignClassNode) {
+        return foreignClassNode.execute(object);
     }
 
     protected int getCacheLimit() {
-        return RubyLanguage.getCurrentLanguage().options.CLASS_CACHE;
+        return getLanguage().options.CLASS_CACHE;
     }
 
     protected int getIdentityCacheContextLimit() {
-        return RubyLanguage.getCurrentLanguage().options.CONTEXT_SPECIFIC_IDENTITY_CACHE;
+        return getLanguage().options.CONTEXT_SPECIFIC_IDENTITY_CACHE;
     }
 }

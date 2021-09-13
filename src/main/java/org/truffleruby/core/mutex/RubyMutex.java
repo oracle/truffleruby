@@ -18,7 +18,7 @@ import com.oracle.truffle.api.object.Shape;
 
 public final class RubyMutex extends RubyDynamicObject {
 
-    final ReentrantLock lock;
+    public final ReentrantLock lock;
 
     public RubyMutex(RubyClass rubyClass, Shape shape, ReentrantLock lock) {
         super(rubyClass, shape);

@@ -9,8 +9,6 @@
  */
 package org.truffleruby.language.yield;
 
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyBaseNode;
@@ -21,7 +19,6 @@ import org.truffleruby.language.methods.DeclarationContext;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -54,9 +51,8 @@ public abstract class CallBlockNode extends RubyBaseNode {
             Object self,
             Object blockArgument,
             Object[] arguments,
-            @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached("block.callTarget") RootCallTarget cachedCallTarget,
-            @Cached("createBlockCallNode(context, block, cachedCallTarget)") DirectCallNode callNode) {
+            @Cached("createBlockCallNode(cachedCallTarget)") DirectCallNode callNode) {
         final Object[] frameArguments = packArguments(declarationContext, block, self, blockArgument, arguments);
         return callNode.call(frameArguments);
     }
@@ -86,16 +82,16 @@ public abstract class CallBlockNode extends RubyBaseNode {
                 arguments);
     }
 
-    protected DirectCallNode createBlockCallNode(RubyContext context, RubyProc block, RootCallTarget callTarget) {
+    protected DirectCallNode createBlockCallNode(RootCallTarget callTarget) {
         final DirectCallNode callNode = Truffle.getRuntime().createDirectCallNode(callTarget);
 
-        final boolean clone = RubyRootNode.of(block.callTarget).shouldAlwaysClone() ||
-                context.getOptions().YIELD_ALWAYS_CLONE;
+        final boolean clone = RubyRootNode.of(callTarget).shouldAlwaysClone() ||
+                getContext().getOptions().YIELD_ALWAYS_CLONE;
         if (clone && callNode.isCallTargetCloningAllowed()) {
             callNode.cloneCallTarget();
         }
 
-        if (context.getOptions().YIELD_ALWAYS_INLINE && callNode.isInlinable()) {
+        if (getContext().getOptions().YIELD_ALWAYS_INLINE && callNode.isInlinable()) {
             callNode.forceInlining();
         }
 
@@ -103,7 +99,7 @@ public abstract class CallBlockNode extends RubyBaseNode {
     }
 
     protected int getCacheLimit() {
-        return RubyLanguage.getCurrentLanguage().options.YIELD_CACHE;
+        return getLanguage().options.YIELD_CACHE;
     }
 
 }

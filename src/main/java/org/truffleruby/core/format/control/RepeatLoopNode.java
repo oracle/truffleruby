@@ -9,16 +9,18 @@
  */
 package org.truffleruby.core.format.control;
 
+import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.core.format.FormatNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.LoopNode;
 
 public class RepeatLoopNode extends FormatNode {
 
     private final int count;
 
     @Child private FormatNode child;
+    private final LoopConditionProfile loopProfile = LoopConditionProfile.create();
 
     public RepeatLoopNode(int count, FormatNode child) {
         this.count = count;
@@ -27,12 +29,14 @@ public class RepeatLoopNode extends FormatNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
+        int i = 0;
         try {
-            for (int i = 0; i < count; i++) {
+            for (; loopProfile.inject(i < count); i++) {
                 child.execute(frame);
+                TruffleSafepoint.poll(this);
             }
         } finally {
-            LoopNode.reportLoopCount(this, count);
+            profileAndReportLoopCount(loopProfile, i);
         }
 
         return null;

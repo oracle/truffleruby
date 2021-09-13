@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.format.FormatEncoding;
 import org.truffleruby.core.format.FormatNode;
@@ -293,7 +294,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
                 typeNode = readNode;
                 break;
             default:
-                throw new IllegalArgumentException();
+                throw CompilerDirectives.shouldNotReachHere();
         }
 
         appendNode(sharedTreeBuilder.applyCount(
@@ -341,7 +342,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
                 }
                 break;
             default:
-                throw new IllegalArgumentException(Integer.toString(size));
+                throw CompilerDirectives.shouldNotReachHere(Integer.toString(size));
         }
 
         return WriteBytesNodeGen.create(convertNode);
