@@ -12,8 +12,11 @@ package org.truffleruby.core.format.write.bytes;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeNodes;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -44,6 +47,12 @@ public abstract class WriteUUStringNode extends FormatNode {
     protected Object write(VirtualFrame frame, byte[] bytes) {
         writeBytes(frame, encode(bytes));
         return null;
+    }
+
+    @Specialization
+    protected Object write(VirtualFrame frame, Rope rope,
+            @Cached RopeNodes.BytesNode bytesNode) {
+        return write(frame, bytesNode.execute(rope));
     }
 
     @TruffleBoundary

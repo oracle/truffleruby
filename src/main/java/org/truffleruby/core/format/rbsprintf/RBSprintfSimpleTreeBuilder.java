@@ -7,15 +7,13 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.core.format.printf;
+package org.truffleruby.core.format.rbsprintf;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.LiteralFormatNode;
 import org.truffleruby.core.format.SharedTreeBuilder;
@@ -28,47 +26,40 @@ import org.truffleruby.core.format.format.FormatIntegerBinaryNodeGen;
 import org.truffleruby.core.format.format.FormatIntegerNodeGen;
 import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.format.read.array.ReadArgumentIndexValueNodeGen;
-import org.truffleruby.core.format.read.array.ReadHashValueNodeGen;
 import org.truffleruby.core.format.read.array.ReadIntegerNodeGen;
-import org.truffleruby.core.format.read.array.ReadStringNodeGen;
+import org.truffleruby.core.format.read.array.ReadCStringNodeGen;
+import org.truffleruby.core.format.read.array.ReadCValueNodeGen;
 import org.truffleruby.core.format.read.array.ReadValueNodeGen;
 import org.truffleruby.core.format.write.bytes.WriteBytesNodeGen;
 import org.truffleruby.core.format.write.bytes.WritePaddedBytesNodeGen;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.RopeConstants;
-import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.symbol.RubySymbol;
 
-public class PrintfSimpleTreeBuilder {
+public class RBSprintfSimpleTreeBuilder {
 
     private final RubyLanguage language;
     private final List<FormatNode> sequence = new ArrayList<>();
-    private final List<SprintfConfig> configs;
+    private final List<RBSprintfConfig> configs;
+    private final Object stringReader;
 
     public static final int DEFAULT = -1;
 
     private static final byte[] EMPTY_BYTES = RopeConstants.EMPTY_BYTES;
 
-    public PrintfSimpleTreeBuilder(RubyLanguage language, List<SprintfConfig> configs) {
+    public RBSprintfSimpleTreeBuilder(RubyLanguage language, List<RBSprintfConfig> configs, Object stringReader) {
         this.language = language;
         this.configs = configs;
+        this.stringReader = stringReader;
     }
 
     private void buildTree() {
-        for (SprintfConfig config : configs) {
+        for (RBSprintfConfig config : configs) {
             final FormatNode node;
             if (config.isLiteral()) {
                 node = WriteBytesNodeGen.create(new LiteralFormatNode(config.getLiteralBytes()));
             } else {
                 final FormatNode valueNode;
 
-                if (config.getNamesBytes() != null) {
-                    final RubySymbol key = language.getSymbol(RopeOperations.create(
-                            config.getNamesBytes(),
-                            USASCIIEncoding.INSTANCE,
-                            CodeRange.CR_7BIT), Encodings.US_ASCII);
-                    valueNode = ReadHashValueNodeGen.create(key, new SourceNode());
-                } else if (config.getAbsoluteArgumentIndex() != null) {
+                if (config.getAbsoluteArgumentIndex() != null) {
                     valueNode = ReadArgumentIndexValueNodeGen
                             .create(config.getAbsoluteArgumentIndex(), new SourceNode());
                 } else {
@@ -117,29 +108,33 @@ public class PrintfSimpleTreeBuilder {
                         }
 
                         if (config.getFormat() == 'b' || config.getFormat() == 'B') {
-                            node = WriteBytesNodeGen.create(
-                                    FormatIntegerBinaryNodeGen.create(
-                                            format,
-                                            config.isPlus(),
-                                            config.isFsharp(),
-                                            config.isMinus(),
-                                            config.isHasSpace(),
-                                            config.isZero(),
-                                            widthNode,
-                                            precisionNode,
-                                            ToIntegerNodeGen.create(valueNode)));
+                            node = WriteBytesNodeGen
+                                    .create(
+                                            FormatIntegerBinaryNodeGen
+                                                    .create(
+                                                            format,
+                                                            config.isPlus(),
+                                                            config.isFsharp(),
+                                                            config.isMinus(),
+                                                            config.isHasSpace(),
+                                                            config.isZero(),
+                                                            widthNode,
+                                                            precisionNode,
+                                                            ToIntegerNodeGen.create(valueNode)));
                         } else {
-                            node = WriteBytesNodeGen.create(
-                                    FormatIntegerNodeGen.create(
-                                            format,
-                                            config.isHasSpace(),
-                                            config.isZero(),
-                                            config.isPlus(),
-                                            config.isMinus(),
-                                            config.isFsharp(),
-                                            widthNode,
-                                            precisionNode,
-                                            ToIntegerNodeGen.create(valueNode)));
+                            node = WriteBytesNodeGen
+                                    .create(
+                                            FormatIntegerNodeGen
+                                                    .create(
+                                                            format,
+                                                            config.isHasSpace(),
+                                                            config.isZero(),
+                                                            config.isPlus(),
+                                                            config.isMinus(),
+                                                            config.isFsharp(),
+                                                            widthNode,
+                                                            precisionNode,
+                                                            ToIntegerNodeGen.create(valueNode)));
                         }
                         break;
                     case FLOAT:
@@ -151,18 +146,21 @@ public class PrintfSimpleTreeBuilder {
                             case 'E':
                             case 'g':
                             case 'G':
-                                node = WriteBytesNodeGen.create(
-                                        FormatFloatNodeGen.create(
-                                                config.getFormat(),
-                                                config.isHasSpace(),
-                                                config.isZero(),
-                                                config.isPlus(),
-                                                config.isMinus(),
-                                                config.isFsharp(),
-                                                widthNode,
-                                                precisionNode,
-                                                ToDoubleWithCoercionNodeGen.create(
-                                                        valueNode)));
+                                node = WriteBytesNodeGen
+                                        .create(
+                                                FormatFloatNodeGen
+                                                        .create(
+                                                                config.getFormat(),
+                                                                config.isHasSpace(),
+                                                                config.isZero(),
+                                                                config.isPlus(),
+                                                                config.isMinus(),
+                                                                config.isFsharp(),
+                                                                widthNode,
+                                                                precisionNode,
+                                                                ToDoubleWithCoercionNodeGen
+                                                                        .create(
+                                                                                valueNode)));
                                 break;
                             default:
                                 throw new UnsupportedOperationException();
@@ -171,29 +169,18 @@ public class PrintfSimpleTreeBuilder {
                     case OTHER:
                         switch (config.getFormat()) {
                             case 'c':
-                                node = WriteBytesNodeGen.create(
-                                        FormatCharacterNodeGen.create(
-                                                config.isMinus(),
-                                                widthNode,
-                                                valueNode));
+                                node = WriteBytesNodeGen
+                                        .create(
+                                                FormatCharacterNodeGen
+                                                        .create(
+                                                                config.isMinus(),
+                                                                widthNode,
+                                                                valueNode));
                                 break;
                             case 's':
-                            case 'p':
-                                final String conversionMethodName = config.getFormat() == 's' ? "to_s" : "inspect";
                                 final FormatNode conversionNode;
 
-                                if (config.getAbsoluteArgumentIndex() == null && config.getNamesBytes() == null) {
-                                    conversionNode = ReadStringNodeGen
-                                            .create(
-                                                    true,
-                                                    conversionMethodName,
-                                                    false,
-                                                    EMPTY_BYTES,
-                                                    new SourceNode());
-                                } else {
-                                    conversionNode = ToStringNodeGen
-                                            .create(true, conversionMethodName, false, EMPTY_BYTES, valueNode);
-                                }
+                                conversionNode = ReadCStringNodeGen.create(stringReader, valueNode);
 
                                 if (config.getWidth() != null || config.isWidthStar() ||
                                         config.getPrecision() != null || config.isPrecisionStar()) {
@@ -207,6 +194,30 @@ public class PrintfSimpleTreeBuilder {
                                 throw new UnsupportedOperationException();
                         }
                         break;
+                    case POINTER:
+                    case RUBY_VALUE: {
+                        final String conversionMethodName = config.isPlus() ? "inspect" : "to_s";
+                        final FormatNode conversionNode;
+                        conversionNode = ToStringNodeGen
+                                .create(
+                                        true,
+                                        conversionMethodName,
+                                        false,
+                                        EMPTY_BYTES,
+                                        config.isPlus(),
+                                        (config.getAbsoluteArgumentIndex() == null)
+                                                ? (ReadCValueNodeGen
+                                                        .create(ReadIntegerNodeGen.create(new SourceNode())))
+                                                : ReadCValueNodeGen.create(valueNode));
+                        if (config.getWidth() != null || config.isWidthStar() || config.getPrecision() != null ||
+                                config.isPrecisionStar()) {
+                            node = WritePaddedBytesNodeGen
+                                    .create(config.isMinus(), widthNode, precisionNode, conversionNode);
+                        } else {
+                            node = WriteBytesNodeGen.create(conversionNode);
+                        }
+                        break;
+                    }
                     default:
                         throw new UnsupportedOperationException(
                                 "unsupported type: " + config.getFormatType().toString());

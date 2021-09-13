@@ -17,6 +17,7 @@ import org.truffleruby.core.format.convert.ToStringNode;
 import org.truffleruby.core.format.convert.ToStringNodeGen;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 import org.truffleruby.core.format.write.bytes.WriteByteNodeGen;
+import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyGuards;
@@ -83,8 +84,8 @@ public abstract class FormatCharacterNode extends FormatNode {
             // TODO BJF check char length is > 0
             charString = Character.toString((char) charValue);
         } else {
-            byte[] bytes = (byte[]) toStrResult;
-            final String resultString = RopeOperations.decodeAscii(bytes);
+            Rope rope = (Rope) toStrResult;
+            final String resultString = RopeOperations.decodeRope(rope);
             final int size = resultString.length();
             if (size > 1) {
                 throw new RaiseException(

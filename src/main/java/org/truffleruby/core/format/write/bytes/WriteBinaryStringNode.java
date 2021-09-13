@@ -10,7 +10,10 @@
 package org.truffleruby.core.format.write.bytes;
 
 import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeNodes;
 
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -81,6 +84,12 @@ public abstract class WriteBinaryStringNode extends FormatNode {
         }
 
         return null;
+    }
+
+    @Specialization
+    protected Object write(VirtualFrame frame, Rope rope,
+            @Cached RopeNodes.BytesNode bytesNode) {
+        return write(frame, bytesNode.execute(rope));
     }
 
 }

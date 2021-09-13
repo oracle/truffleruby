@@ -10,10 +10,6 @@
 #include <truffleruby-impl.h>
 #include <ruby/encoding.h>
 
-#if defined(__linux__) && !defined(__GLIBC__)
-#define __MUSLC__
-#endif
-
 // *printf* functions
 char* rb_value_to_str(const VALUE *arg, int showsign) {
   char *cstr = NULL;
@@ -40,58 +36,33 @@ char* rb_value_to_str(const VALUE *arg, int showsign) {
   return cstr;
 }
 
-#ifdef __MUSLC__
-int rb_tr_vasprintf(char **output, const char *format, va_list args_in);
+VALUE rb_tr_get_sprintf_args(va_list args, VALUE types);
 
-#else  // __MUSLC__
-#include <printf.h>
-
-#ifdef __APPLE__
-static printf_domain_t printf_domain;
-
-static int rb_tr_fprintf_value_arginfo(const struct printf_info *info,
-                                       size_t n,
-                                       int *argtypes) {
-  if (n > 0) {
-    *argtypes = PA_POINTER;
+VALUE rb_tr_vsprintf_new_cstr(char *cstr) {
+  if (cstr == NULL) {
+    return rb_str_new_cstr("");
+  } else {
+    return rb_str_new_cstr(cstr);
   }
-  return 1;
 }
 
-#else  // __APPLE__
-static int rb_tr_fprintf_value_arginfo(const struct printf_info *info,
-                                       size_t n,
-                                       int *argtypes, int *argsize) {
-  if (n > 0) {
-    *argtypes = PA_POINTER;
-    *argsize = sizeof(VALUE);
-  }
-  return 1;
-}
-#endif  // __APPLE__
-
-static int rb_tr_fprintf_value(FILE *stream,
-                               const struct printf_info *info,
-                               const void *const *args) {
-  char *cstr = rb_value_to_str((const VALUE *) args[0], info->showsign);
-  return fprintf(stream, "%s", cstr);
-}
-#endif  // __MUSLC__
+#undef rb_enc_sprintf
+#undef rb_enc_vsprintf
+#undef rb_sprintf
+#undef rb_vsprintf
 
 VALUE rb_enc_vsprintf(rb_encoding *enc, const char *format, va_list args) {
-  char *buffer;
-  #ifdef __APPLE__
-  if (vasxprintf(&buffer, printf_domain, NULL, format, args) < 0) {
-  #elif defined(__MUSLC__)
-  if (rb_tr_vasprintf(&buffer, format, args) < 0) {
-  #else
-  if (vasprintf(&buffer, format, args) < 0) {
-  #endif
-    rb_tr_error("vasprintf error");
-  }
-  VALUE string = rb_enc_str_new_cstr(buffer, enc);
-  free(buffer);
-  return string;
+  VALUE rubyFormat = rb_str_new_cstr(format);
+  VALUE types = RUBY_CEXT_INVOKE("rb_tr_sprintf_types", rubyFormat);
+  VALUE rubyArgs = rb_tr_get_sprintf_args(args, types);
+
+  return rb_str_conv_enc(rb_tr_wrap(
+                    polyglot_invoke(
+                                    RUBY_CEXT,
+                                    "rb_tr_sprintf",
+                                    rb_tr_unwrap(rubyFormat),
+                                    rb_tr_vsprintf_new_cstr,
+                                    rb_tr_unwrap(rubyArgs))), NULL, enc);
 }
 
 VALUE rb_enc_sprintf(rb_encoding *enc, const char *format, ...) {
@@ -129,15 +100,103 @@ int ruby_vsnprintf(char *str, size_t n, char const *fmt, va_list ap) {
   return vsnprintf(str, n, fmt, ap);
 }
 
-void rb_tr_init_printf(void) {
-  #ifdef __APPLE__
-  printf_domain = new_printf_domain();
-  register_printf_domain_function(printf_domain, 'P', rb_tr_fprintf_value, rb_tr_fprintf_value_arginfo, NULL);
-  #elif defined(__MUSLC__)
-  // no op in musl
-  #else
-  register_printf_specifier('P', rb_tr_fprintf_value, rb_tr_fprintf_value_arginfo);
-  #endif
+/* This enum type must be kept in sync with the in
+   org.truffleruby.core.format.rbsprintf.RBSprintfConfig as they are
+   used to communicate the types of arguments to be fetched from the
+   va_list. */
+enum printf_arg_types {
+  TYPE_UNKNOWN,
+  TYPE_CHAR,
+  TYPE_SHORT,
+  TYPE_INT,
+  TYPE_LONG,
+  TYPE_LONGLONG,
+  TYPE_DOUBLE,
+  TYPE_LONGDOUBLE,
+  TYPE_SIZE_T,
+  TYPE_INTMAX_T,
+  TYPE_PTRDIFF_T,
+  TYPE_STRING,
+  TYPE_POINTER,
+  TYPE_SCHAR = 0x11,
+  TYPE_SSHORT,
+  TYPE_SINT,
+  TYPE_SLONG,
+  TYPE_SLONGLONG,
+};
+
+VALUE rb_tr_get_sprintf_args(va_list args, VALUE types) {
+  VALUE ary = rb_ary_new();
+
+  long len = RARRAY_LEN(types);
+  int pos = 0;
+  while (pos < len) {
+    enum printf_arg_types type = FIX2INT(RARRAY_AREF(types, pos++));
+    VALUE val;
+    switch(type) {
+    case TYPE_CHAR:
+    case TYPE_SHORT:
+    case TYPE_INT:
+      val = UINT2NUM(va_arg(args, unsigned int));
+      break;
+    case TYPE_LONG:
+      val = ULONG2NUM(va_arg(args, unsigned long));
+      break;
+    case TYPE_LONGLONG:
+      val = ULL2NUM(va_arg(args, unsigned long long));
+      break;
+    case TYPE_DOUBLE:
+      val = DBL2NUM(va_arg(args, double));
+      break;
+#if !defined(__aarch64__)
+    case TYPE_LONGDOUBLE:
+      val = DBL2NUM(va_arg(args, long double));
+      break;
+#endif
+    case TYPE_SIZE_T:
+      val = ULONG2NUM(va_arg(args, size_t));
+      break;
+    case TYPE_INTMAX_T:
+      val = ULONG2NUM(va_arg(args, intmax_t));
+      break;
+    case TYPE_PTRDIFF_T:
+      val = LONG2NUM(va_arg(args, ptrdiff_t));
+      break;
+    case TYPE_STRING:
+      val = rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_tr_pointer", va_arg(args, char *)));
+      break;
+    case TYPE_POINTER:
+      val = rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_tr_pointer", va_arg(args, void *)));
+      break;
+    case TYPE_SCHAR:
+    case TYPE_SSHORT:
+    case TYPE_SINT:
+      val = INT2NUM(va_arg(args, int));
+      break;
+    case TYPE_SLONG:
+      {
+        long arg = va_arg(args, long);
+        if (polyglot_is_value(arg)) {
+          arg = rb_tr_force_native(arg);
+        }
+        val = LONG2NUM(arg);
+        break;
+      }
+    case TYPE_SLONGLONG:
+      val = LL2NUM(va_arg(args, long long));
+      break;
+    default:
+      {
+        char *err_str;
+        if (asprintf(&err_str, "unhandled rb_sprintf arg type %d", type) > 0 ) {
+          rb_tr_error(err_str);
+          free(err_str);
+        }
+      }
+    }
+    rb_ary_push(ary, val);
+  }
+  return ary;
 }
 
 VALUE rb_str_vcatf(VALUE str, const char *fmt, va_list args) {

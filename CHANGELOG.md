@@ -53,6 +53,7 @@ Compatibility:
 * Implement `rb_str_catf`.
 * Search the executable in the passed env `PATH` for subprocesses (#2419).
 * Accept a string as the pattern argument to `StringScanner#scan` and `StringScanner#check` (#2423).
+* Implement `rb_sprintf` in our format compiler to provide consistent formatting across C standard libraries.
 
 Performance:
 

@@ -48,7 +48,10 @@ package org.truffleruby.core.format.write.bytes;
 import java.nio.ByteOrder;
 
 import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeNodes;
 
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -62,6 +65,12 @@ public abstract class WriteHexStringNode extends FormatNode {
     public WriteHexStringNode(ByteOrder byteOrder, int length) {
         this.byteOrder = byteOrder;
         this.length = length;
+    }
+
+    @Specialization
+    protected Object write(VirtualFrame frame, Rope rope,
+            @Cached RopeNodes.BytesNode bytesNode) {
+        return write(frame, bytesNode.execute(rope));
     }
 
     @Specialization

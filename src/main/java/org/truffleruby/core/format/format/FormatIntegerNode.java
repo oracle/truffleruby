@@ -141,6 +141,7 @@ public abstract class FormatIntegerNode extends FormatNode {
                         prefix = PREFIX_OCTAL;
                         break;
                     case 'x':
+                    case 'p':
                         prefix = PREFIX_HEX_LC;
                         break;
                     case 'X':
@@ -191,6 +192,7 @@ public abstract class FormatIntegerNode extends FormatNode {
                         leadChar = '7';
                         break;
                     case 'x':
+                    case 'p':
                         leadChar = 'f';
                         break;
                     case 'X':
@@ -274,6 +276,7 @@ public abstract class FormatIntegerNode extends FormatNode {
                 break;
             case 'x':
             case 'X':
+            case 'p':
                 base = 16;
                 break;
             case 'b':
