@@ -58,14 +58,9 @@ public class RubyRegexp extends ImmutableRubyObject implements TruffleObject {
             language.addRegexp(key, regexp);
 
             if (language.options.REGEXP_INSTRUMENT_CREATION) {
-                ConcurrentOperations
-                        .getOrCompute(
-                                regexpOptions.isLiteral()
-                                        ? TruffleRegexpNodes.LITERAL_REGEXPS
-                                        : TruffleRegexpNodes.DYNAMIC_REGEXPS,
-                                language.getRegexp(key),
-                                x -> new AtomicInteger())
-                        .incrementAndGet();
+                (regexpOptions.isLiteral()
+                 ? TruffleRegexpNodes.LITERAL_REGEXPS
+                 : TruffleRegexpNodes.DYNAMIC_REGEXPS).add(regexp);
             }
 
         }

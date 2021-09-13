@@ -16,6 +16,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
@@ -66,6 +67,7 @@ import org.truffleruby.core.rope.RopeWithEncoding;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
+import org.truffleruby.extra.RubyConcurrentMap;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.interop.TranslateInteropExceptionNodeGen;
@@ -361,11 +363,26 @@ public class TruffleRegexpNodes {
         }
 
         @TruffleBoundary
+        protected <T> RubyArray fillinInstrumentData(Set<T> map, ArrayBuilderNode arrayBuilderNode,
+                RubyContext context) {
+            final int arraySize = (LITERAL_REGEXPS.size() + DYNAMIC_REGEXPS.size()) * 2;
+            BuilderState state = arrayBuilderNode.start(arraySize);
+            int n = 0;
+            for (T e : map) {
+                Rope key = StringOperations.encodeRope(e.toString(), UTF8Encoding.INSTANCE);
+                arrayBuilderNode
+                        .appendValue(state, n++, StringOperations.createUTF8String(context, getLanguage(), key));
+                arrayBuilderNode.appendValue(state, n++, 1);
+            }
+            return createArray(arrayBuilderNode.finish(state, n), n);
+        }
+
+        @TruffleBoundary
         protected static Set<RubyRegexp> allCompiledRegexps() {
             final Set<RubyRegexp> ret = new HashSet<>();
 
-            ret.addAll(DYNAMIC_REGEXPS.keySet());
-            ret.addAll(LITERAL_REGEXPS.keySet());
+            ret.addAll(DYNAMIC_REGEXPS);
+            ret.addAll(LITERAL_REGEXPS);
 
             return ret;
         }
@@ -468,13 +485,13 @@ public class TruffleRegexpNodes {
             return createArray(arrayBuilderNode.finish(state, arraySize), arraySize);
         }
 
-        private void processGroup(ConcurrentHashMap<RubyRegexp, AtomicInteger> group,
+        private void processGroup(ConcurrentSkipListSet<RubyRegexp> group,
                 Set<RubyRegexp> matchedRegexps,
                 boolean isRegexpLiteral,
                 HashStoreLibrary hashStoreLibrary,
                 ArrayBuilderNode arrayBuilderNode, BuilderState state, int offset) {
             int n = 0;
-            for (Entry<RubyRegexp, AtomicInteger> entry : group.entrySet()) {
+            for (RubyRegexp entry : group) {
                 arrayBuilderNode
                         .appendValue(
                                 state,
@@ -483,10 +500,10 @@ public class TruffleRegexpNodes {
                                         getContext(),
                                         getLanguage(),
                                         hashStoreLibrary,
-                                        entry.getKey(),
-                                        matchedRegexps.contains(entry.getKey()),
+                                        entry,
+                                        matchedRegexps.contains(entry),
                                         Optional.of(isRegexpLiteral),
-                                        Optional.of(entry.getValue())));
+                                        Optional.of(1)));
                 n++;
             }
         }
@@ -494,7 +511,7 @@ public class TruffleRegexpNodes {
         protected static RubyHash buildRegexInfoHash(RubyContext context, RubyLanguage language,
                 HashStoreLibrary hashStoreLibrary, RubyRegexp regexpInfo, boolean isUsed,
                 Optional<Boolean> isRegexpLiteral,
-                Optional<AtomicInteger> count) {
+                Optional<Integer> count) {
             final RubyHash hash = HashOperations.newEmptyHash(context, language);
 
             hashStoreLibrary.set(
@@ -505,7 +522,7 @@ public class TruffleRegexpNodes {
                     true);
 
             if (count.isPresent()) {
-                hashStoreLibrary.set(hash.store, hash, language.getSymbol("count"), count.get().get(), true);
+                hashStoreLibrary.set(hash.store, hash, language.getSymbol("count"), count.get(), true);
             }
 
             if (isRegexpLiteral.isPresent()) {
@@ -1070,8 +1087,8 @@ public class TruffleRegexpNodes {
 
     }
 
-    static ConcurrentHashMap<RubyRegexp, AtomicInteger> DYNAMIC_REGEXPS = new ConcurrentHashMap<>();
-    static ConcurrentHashMap<RubyRegexp, AtomicInteger> LITERAL_REGEXPS = new ConcurrentHashMap<>();
+    static ConcurrentSkipListSet<RubyRegexp> DYNAMIC_REGEXPS = new ConcurrentSkipListSet<>();
+    static ConcurrentSkipListSet<RubyRegexp> LITERAL_REGEXPS = new ConcurrentSkipListSet<>();
     private static ConcurrentHashMap<MatchInfo, AtomicInteger> MATCHED_REGEXPS_JONI = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<MatchInfo, AtomicInteger> MATCHED_REGEXPS_TREGEX = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<MatchInfo, MatchInfoStats> MATCHED_REGEXP_STATS = new ConcurrentHashMap<>();
