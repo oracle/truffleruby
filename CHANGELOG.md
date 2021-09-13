@@ -41,6 +41,7 @@ Bug fixes:
 * Fix handling of incompatible types in `Float#<=>` (#2432, @chrisseaton).
 * Fix issue with escaping curly braces for `Dir.glob` (#2425).
 * Fix `base64` decoding issue with missing output (#2435).
+* Fix `StringIO#ungetbyte` to treat a byte as a byte, not a code point (#2436). 
 
 Compatibility:
 
