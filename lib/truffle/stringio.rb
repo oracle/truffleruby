@@ -599,20 +599,20 @@ class StringIO
     return unless bytes
 
     if bytes.kind_of? Integer
-      bytes = '' << bytes
+      bytes = ''.b << (bytes & 0xff)
     else
-      bytes = StringValue(bytes)
+      bytes = StringValue(bytes).b
       return if bytes.bytesize == 0
     end
 
     d = @__data__
     pos = d.pos
-    string = d.string
+    string = d.string.b
 
-    enc = string.encoding
+    enc = d.string.encoding
 
     if d.pos == 0
-      d.string = "#{bytes}#{string}"
+      d.string = bytes << string
     else
       size = bytes.bytesize
       a = string.byteslice(0, pos - size) if size < pos
