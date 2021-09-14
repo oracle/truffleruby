@@ -114,7 +114,7 @@ module Truffle
         pos = 0
         empty_count = 0
         limited = limit > 0
-        count = 0;
+        count = 0
 
         ret = []
 
