@@ -34,10 +34,8 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.utilities.AssumedValue;
 import org.graalvm.collections.Pair;
 import org.graalvm.options.OptionDescriptor;
-import org.joni.Regex;
 import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.collections.SharedIndicesMap.ContextArray;
-import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.FinalizationService;
 import org.truffleruby.core.Hashing;
@@ -57,7 +55,6 @@ import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.regexp.RegexpCacheKey;
 import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager;
@@ -124,7 +121,6 @@ public class RubyContext {
     private final CoreExceptions coreExceptions;
     private final EncodingManager encodingManager;
     private final MetricsProfiler metricsProfiler;
-    private final WeakValueCache<RegexpCacheKey, Regex> regexpCache = new WeakValueCache<>();
     private final PreInitializationManager preInitializationManager;
     private final NativeConfiguration nativeConfiguration;
     private final ValueWrapperManager valueWrapperManager;
@@ -738,10 +734,6 @@ public class RubyContext {
         final byte[] bytes = new byte[numBytes];
         random.nextBytes(bytes);
         return bytes;
-    }
-
-    public WeakValueCache<RegexpCacheKey, Regex> getRegexpCache() {
-        return regexpCache;
     }
 
     public Object getTopScopeObject() {

@@ -1779,7 +1779,8 @@ public class ParserSupport {
     // MRI: reg_fragment_setenc_gen
     public RopeWithEncoding setRegexpEncoding(RegexpParseNode end, Rope value) {
         RegexpOptions options = end.getOptions();
-        Encoding optionsEncoding = options.setup();
+        options = options.setup();
+        Encoding optionsEncoding = options.getEncoding();
         RubyEncoding encoding = Encodings.getBuiltInEncoding(value.getEncoding().getIndex());
         // Change encoding to one specified by regexp options as long as the string is compatible.
         if (optionsEncoding != null) {
@@ -1823,7 +1824,7 @@ public class ParserSupport {
     }
 
     public ParseNode newRegexpNode(SourceIndexLength position, ParseNode contents, RegexpParseNode end) {
-        RegexpOptions options = end.getOptions();
+        RegexpOptions options = end.getOptions().setup();
         Encoding encoding = lexer.getEncoding();
 
         if (contents == null) {
@@ -1870,7 +1871,7 @@ public class ParserSupport {
     // regexp options encoding so dregexps can end up starting with the
     // right encoding.
     private Rope createMaster(RegexpOptions options) {
-        final Encoding encoding = options.setup();
+        final Encoding encoding = options.getEncoding();
         return RopeOperations.emptyRope(encoding == null ? ASCIIEncoding.INSTANCE : encoding);
     }
 

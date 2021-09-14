@@ -219,7 +219,7 @@ module Truffle
       sorted = table.to_a.sort_by(&:last).reverse
       width = sorted.first.last.to_s.size
       sorted.each do |regexp, count|
-        printf "    %#{width}d    %s\n", count, regexp
+        printf "    %#{width}d    %s\n", count, regexp.inspect
       end
     end
 

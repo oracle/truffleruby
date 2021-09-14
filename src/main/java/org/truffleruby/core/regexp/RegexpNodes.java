@@ -17,8 +17,6 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import org.graalvm.collections.Pair;
 import org.jcodings.specific.UTF8Encoding;
 import org.joni.NameEntry;
-import org.joni.Regex;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -33,7 +31,6 @@ import org.truffleruby.core.regexp.RegexpNodesFactory.ToSNodeFactory;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.rope.RopeWithEncoding;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -48,26 +45,9 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.nodes.Node;
 
 @CoreModule(value = "Regexp", isClass = true)
 public abstract class RegexpNodes {
-
-    public static RubyRegexp create(RubyLanguage language,
-            Rope setSource,
-            RubyEncoding setSourceEncoding,
-            int options,
-            Node currentNode) throws DeferredRaiseException {
-        final RegexpOptions regexpOptions = RegexpOptions.fromEmbeddedOptions(options);
-        final Regex regex = TruffleRegexpNodes.compile(
-                language,
-                null,
-                new RopeWithEncoding(setSource, setSourceEncoding),
-                regexpOptions,
-                false,
-                currentNode);
-        return new RubyRegexp(regex, regexpOptions);
-    }
 
     @CoreMethod(names = "hash")
     public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
@@ -248,11 +228,11 @@ public abstract class RegexpNodes {
                 @Cached BranchProfile errorProfile,
                 @CachedLibrary(limit = "2") RubyStringLibrary libPattern) {
             try {
-                return RegexpNodes.create(
+                return RubyRegexp.create(
                         getLanguage(),
                         libPattern.getRope(pattern),
                         libPattern.getEncoding(pattern),
-                        options,
+                        RegexpOptions.fromEmbeddedOptions(options),
                         this);
             } catch (DeferredRaiseException dre) {
                 errorProfile.enter();

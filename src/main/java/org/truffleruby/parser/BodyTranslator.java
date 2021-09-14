@@ -54,11 +54,9 @@ import org.truffleruby.core.regexp.MatchDataNodes.GetIndexNode;
 import org.truffleruby.core.regexp.RegexWarnDeferredCallback;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.regexp.RubyRegexp;
-import org.truffleruby.core.regexp.TruffleRegexpNodes;
 import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
-import org.truffleruby.core.rope.RopeWithEncoding;
 import org.truffleruby.core.string.InterpolatedStringNode;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.string.ImmutableRubyString;
@@ -2662,20 +2660,16 @@ public class BodyTranslator extends Translator {
     public RubyNode visitRegexpNode(RegexpParseNode node) {
         final Rope rope = node.getValue();
         final RubyEncoding encoding = Encodings.getBuiltInEncoding(rope.getEncoding().getIndex());
-        final RegexpOptions options = (RegexpOptions) node.getOptions().clone();
-        options.setLiteral(true);
-        Regex regex = null;
+        final RegexpOptions options = node.getOptions().setLiteral(true);
         try {
-            regex = TruffleRegexpNodes
-                    .compile(language, rubyWarnings, new RopeWithEncoding(rope, encoding), options, true, currentNode);
+            final RubyRegexp regexp = RubyRegexp.create(language, rope, encoding, options, currentNode);
+            final ObjectLiteralNode literalNode = new ObjectLiteralNode(regexp);
+            literalNode.unsafeSetSourceSection(node.getPosition());
+            return addNewlineIfNeeded(node, literalNode);
         } catch (DeferredRaiseException dre) {
             throw dre.getException(RubyLanguage.getCurrentContext());
         }
 
-        final RubyRegexp regexp = new RubyRegexp(regex, options);
-        final ObjectLiteralNode literalNode = new ObjectLiteralNode(regexp);
-        literalNode.unsafeSetSourceSection(node.getPosition());
-        return addNewlineIfNeeded(node, literalNode);
     }
 
     @Override

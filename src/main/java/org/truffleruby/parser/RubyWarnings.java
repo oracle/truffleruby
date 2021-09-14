@@ -37,6 +37,7 @@ import java.nio.charset.StandardCharsets;
 import org.jcodings.specific.UTF8Encoding;
 import org.joni.WarnCallback;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
@@ -44,17 +45,15 @@ import org.truffleruby.language.control.RaiseException;
 
 public class RubyWarnings implements WarnCallback {
 
-    private final RubyContext context;
-
-    public RubyWarnings(RubyContext context) {
-        this.context = context;
+    public RubyWarnings() {
     }
 
     public boolean warningsEnabled() {
-        return context.getCoreLibrary().warningsEnabled();
+        return RubyLanguage.getCurrentContext().getCoreLibrary().warningsEnabled();
     }
 
     public boolean isVerbose() {
+        RubyContext context = RubyLanguage.getCurrentContext();
         return context != null && context.getCoreLibrary().isVerbose();
     }
 
@@ -105,6 +104,7 @@ public class RubyWarnings implements WarnCallback {
     }
 
     private void printWarning(String message) {
+        RubyContext context = RubyLanguage.getCurrentContext();
         if (context.getCoreLibrary().isLoaded()) {
             final Object warning = context.getCoreLibrary().warningModule;
             final Rope messageRope = StringOperations.encodeRope(message, UTF8Encoding.INSTANCE);

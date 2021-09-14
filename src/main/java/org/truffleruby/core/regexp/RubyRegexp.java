@@ -9,25 +9,60 @@
  */
 package org.truffleruby.core.regexp;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.nodes.Node;
 
 import org.joni.Regex;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeWithEncoding;
 import org.truffleruby.language.ImmutableRubyObject;
+import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 @ExportLibrary(InteropLibrary.class)
-public class RubyRegexp extends ImmutableRubyObject implements TruffleObject {
+public class RubyRegexp extends ImmutableRubyObject implements TruffleObject, Comparable<RubyRegexp> {
+
+    @TruffleBoundary
+    public static RubyRegexp create(RubyLanguage language,
+            Rope setSource,
+            RubyEncoding setSourceEncoding,
+            RegexpOptions regexpOptions,
+            Node currentNode) throws DeferredRaiseException {
+        final RegexpCacheKey key = RegexpCacheKey.calculate(
+                new RopeWithEncoding(setSource, setSourceEncoding),
+                regexpOptions);
+        RubyRegexp regexp = language.getRegexp(key);
+        if (regexp == null) {
+            RegexpOptions optionsArray[] = new RegexpOptions[]{ regexpOptions };
+            final Regex regex = TruffleRegexpNodes.compile(
+                    language,
+                    null,
+                    new RopeWithEncoding(setSource, setSourceEncoding),
+                    optionsArray,
+                    currentNode);
+            regexp = new RubyRegexp(regex, optionsArray[0]);
+            language.addRegexp(key, regexp);
+
+            if (language.options.REGEXP_INSTRUMENT_CREATION) {
+                (regexpOptions.isLiteral()
+                        ? TruffleRegexpNodes.LITERAL_REGEXPS
+                        : TruffleRegexpNodes.DYNAMIC_REGEXPS).add(regexp);
+            }
+
+        }
+        return regexp;
+    }
 
     public final Regex regex;
     public final Rope source;
@@ -36,7 +71,7 @@ public class RubyRegexp extends ImmutableRubyObject implements TruffleObject {
     public final EncodingCache cachedEncodings;
     public final TRegexCache tregexCache;
 
-    public RubyRegexp(Regex regex, RegexpOptions options) {
+    private RubyRegexp(Regex regex, RegexpOptions options) {
         // The RegexpNodes.compile operation may modify the encoding of the source rope. This modified copy is stored
         // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when
         // constructing the final regexp.
@@ -74,4 +109,13 @@ public class RubyRegexp extends ImmutableRubyObject implements TruffleObject {
     }
     // endregion
 
+    @Override
+    public int compareTo(RubyRegexp o) {
+        final int sourceCompare = source.compareTo(o.source);
+        if (sourceCompare != 0) {
+            return sourceCompare;
+        } else {
+            return options.compareTo(o.options);
+        }
+    }
 }

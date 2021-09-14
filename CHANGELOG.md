@@ -66,6 +66,7 @@ Performance:
 * Optimized conversion of strings to integers if the string contained a numeric value (#2401, @nirvdrum).
 * Use Truffle's `ContextThreadLocal` to speedup access to thread-local data.
 * Provide a new fast path for `rb_backref*` and `rb_lastline*`functions from C extensions.
+* Regexp objects are now interned in a similar way to symbols.
 
 Changes:
 

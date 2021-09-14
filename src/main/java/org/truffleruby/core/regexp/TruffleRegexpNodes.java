@@ -16,6 +16,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
@@ -46,7 +47,6 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.collections.ConcurrentOperations;
-import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.RubyArray;
@@ -93,17 +93,16 @@ public class TruffleRegexpNodes {
             Object string, boolean fromStart, boolean collectDetailedStats) {
         Rope source = regexp.source;
         RegexpOptions options = regexp.options;
-        TruffleRegexpNodes.MatchInfo matchInfo = new TruffleRegexpNodes.MatchInfo(
-                new RegexpCacheKey(source, regexp.encoding, options, Hashing.NO_SEED),
-                fromStart);
+        TruffleRegexpNodes.MatchInfo matchInfo = new TruffleRegexpNodes.MatchInfo(regexp, fromStart);
         ConcurrentOperations.getOrCompute(metricsMap, matchInfo, x -> new AtomicInteger()).incrementAndGet();
 
         if (collectDetailedStats) {
             final MatchInfoStats stats = ConcurrentOperations
                     .getOrCompute(MATCHED_REGEXP_STATS, matchInfo, x -> new MatchInfoStats());
-            stats.record(
-                    RubyStringLibrary.getUncached().getRope(string),
-                    RubyStringLibrary.getUncached().getEncoding(string));
+            stats
+                    .record(
+                            RubyStringLibrary.getUncached().getRope(string),
+                            RubyStringLibrary.getUncached().getEncoding(string));
         }
     }
 
@@ -193,7 +192,6 @@ public class TruffleRegexpNodes {
                             RegexpSupport.ErrorMode.RAISE);
             final RegexpOptions options = regexp.options;
             return ClassicRegexp.makeRegexp(
-                    context,
                     null,
                     preprocessed,
                     options,
@@ -276,15 +274,7 @@ public class TruffleRegexpNodes {
 
         @TruffleBoundary
         public RubyRegexp createRegexp(Rope pattern, RubyEncoding encoding) throws DeferredRaiseException {
-            final RegexpOptions regexpOptions = RegexpOptions.fromEmbeddedOptions(0);
-            final Regex regex = compile(
-                    getLanguage(),
-                    null,
-                    new RopeWithEncoding(pattern, encoding),
-                    regexpOptions,
-                    false,
-                    this);
-            return new RubyRegexp(regex, regexpOptions);
+            return RubyRegexp.create(getLanguage(), pattern, encoding, RegexpOptions.fromEmbeddedOptions(0), this);
         }
     }
 
@@ -359,7 +349,7 @@ public class TruffleRegexpNodes {
         @TruffleBoundary
         protected <T> RubyArray fillinInstrumentData(Map<T, AtomicInteger> map, ArrayBuilderNode arrayBuilderNode,
                 RubyContext context) {
-            final int arraySize = (COMPILED_REGEXPS_LITERAL.size() + COMPILED_REGEXPS_DYNAMIC.size()) * 2;
+            final int arraySize = (LITERAL_REGEXPS.size() + DYNAMIC_REGEXPS.size()) * 2;
             BuilderState state = arrayBuilderNode.start(arraySize);
             int n = 0;
             for (Entry<T, AtomicInteger> e : map.entrySet()) {
@@ -372,30 +362,44 @@ public class TruffleRegexpNodes {
         }
 
         @TruffleBoundary
-        protected static Set<RegexpCacheKey> allCompiledRegexps() {
-            final Set<RegexpCacheKey> ret = new HashSet<>();
+        protected <T> RubyArray fillinInstrumentData(Set<T> map, ArrayBuilderNode arrayBuilderNode,
+                RubyContext context) {
+            final int arraySize = (LITERAL_REGEXPS.size() + DYNAMIC_REGEXPS.size()) * 2;
+            BuilderState state = arrayBuilderNode.start(arraySize);
+            int n = 0;
+            for (T e : map) {
+                arrayBuilderNode
+                        .appendValue(state, n++, e);
+                arrayBuilderNode.appendValue(state, n++, 1);
+            }
+            return createArray(arrayBuilderNode.finish(state, n), n);
+        }
 
-            ret.addAll(COMPILED_REGEXPS_DYNAMIC.keySet());
-            ret.addAll(COMPILED_REGEXPS_LITERAL.keySet());
+        @TruffleBoundary
+        protected static Set<RubyRegexp> allCompiledRegexps() {
+            final Set<RubyRegexp> ret = new HashSet<>();
+
+            ret.addAll(DYNAMIC_REGEXPS);
+            ret.addAll(LITERAL_REGEXPS);
 
             return ret;
         }
 
         @TruffleBoundary
-        protected static Set<RegexpCacheKey> allMatchedRegexps() {
-            final Set<RegexpCacheKey> ret = new HashSet<>();
+        protected static Set<RubyRegexp> allMatchedRegexps() {
+            final Set<RubyRegexp> ret = new HashSet<>();
 
             ret.addAll(
                     MATCHED_REGEXPS_JONI
                             .keySet()
                             .stream()
-                            .map(matchInfo -> matchInfo.regexpInfo)
+                            .map(matchInfo -> matchInfo.regex)
                             .collect(Collectors.toSet()));
             ret.addAll(
                     MATCHED_REGEXPS_TREGEX
                             .keySet()
                             .stream()
-                            .map(matchInfo -> matchInfo.regexpInfo)
+                            .map(matchInfo -> matchInfo.regex)
                             .collect(Collectors.toSet()));
 
             return ret;
@@ -409,7 +413,7 @@ public class TruffleRegexpNodes {
         protected Object buildStatsArray(boolean literalRegexps,
                 @Cached ArrayBuilderNode arrayBuilderNode) {
             return fillinInstrumentData(
-                    literalRegexps ? COMPILED_REGEXPS_LITERAL : COMPILED_REGEXPS_DYNAMIC,
+                    literalRegexps ? LITERAL_REGEXPS : DYNAMIC_REGEXPS,
                     arrayBuilderNode,
                     getContext());
         }
@@ -435,15 +439,15 @@ public class TruffleRegexpNodes {
         @Specialization
         protected Object buildUnusedRegexpsArray(
                 @Cached ArrayBuilderNode arrayBuilderNode) {
-            final Set<RegexpCacheKey> compiledRegexps = allCompiledRegexps();
-            final Set<RegexpCacheKey> matchedRegexps = allMatchedRegexps();
+            final Set<RubyRegexp> compiledRegexps = allCompiledRegexps();
+            final Set<RubyRegexp> matchedRegexps = allMatchedRegexps();
 
-            final Set<RegexpCacheKey> unusedRegexps = new HashSet<>(compiledRegexps);
+            final Set<RubyRegexp> unusedRegexps = new HashSet<>(compiledRegexps);
             unusedRegexps.removeAll(matchedRegexps);
 
             final BuilderState state = arrayBuilderNode.start(unusedRegexps.size());
             int n = 0;
-            for (RegexpCacheKey entry : unusedRegexps) {
+            for (RubyRegexp entry : unusedRegexps) {
                 final Rope key = StringOperations.encodeRope(entry.toString(), UTF8Encoding.INSTANCE);
                 arrayBuilderNode
                         .appendValue(state, n++, StringOperations.createUTF8String(getContext(), getLanguage(), key));
@@ -461,31 +465,31 @@ public class TruffleRegexpNodes {
         protected Object buildInfoArray(
                 @Cached ArrayBuilderNode arrayBuilderNode,
                 @CachedLibrary(limit = "1") HashStoreLibrary hashStoreLibrary) {
-            final Set<RegexpCacheKey> matchedRegexps = allMatchedRegexps();
+            final Set<RubyRegexp> matchedRegexps = allMatchedRegexps();
 
-            final int arraySize = COMPILED_REGEXPS_LITERAL.size() + COMPILED_REGEXPS_DYNAMIC.size();
+            final int arraySize = LITERAL_REGEXPS.size() + DYNAMIC_REGEXPS.size();
             final BuilderState state = arrayBuilderNode.start(arraySize);
 
-            processGroup(COMPILED_REGEXPS_LITERAL, matchedRegexps, true, hashStoreLibrary, arrayBuilderNode, state, 0);
+            processGroup(LITERAL_REGEXPS, matchedRegexps, true, hashStoreLibrary, arrayBuilderNode, state, 0);
             processGroup(
-                    COMPILED_REGEXPS_DYNAMIC,
+                    DYNAMIC_REGEXPS,
                     matchedRegexps,
                     false,
                     hashStoreLibrary,
                     arrayBuilderNode,
                     state,
-                    COMPILED_REGEXPS_LITERAL.size());
+                    LITERAL_REGEXPS.size());
 
             return createArray(arrayBuilderNode.finish(state, arraySize), arraySize);
         }
 
-        private void processGroup(ConcurrentHashMap<RegexpCacheKey, AtomicInteger> group,
-                Set<RegexpCacheKey> matchedRegexps,
+        private void processGroup(ConcurrentSkipListSet<RubyRegexp> group,
+                Set<RubyRegexp> matchedRegexps,
                 boolean isRegexpLiteral,
                 HashStoreLibrary hashStoreLibrary,
                 ArrayBuilderNode arrayBuilderNode, BuilderState state, int offset) {
             int n = 0;
-            for (Entry<RegexpCacheKey, AtomicInteger> entry : group.entrySet()) {
+            for (RubyRegexp entry : group) {
                 arrayBuilderNode
                         .appendValue(
                                 state,
@@ -494,29 +498,29 @@ public class TruffleRegexpNodes {
                                         getContext(),
                                         getLanguage(),
                                         hashStoreLibrary,
-                                        entry.getKey(),
-                                        matchedRegexps.contains(entry.getKey()),
+                                        entry,
+                                        matchedRegexps.contains(entry),
                                         Optional.of(isRegexpLiteral),
-                                        Optional.of(entry.getValue())));
+                                        Optional.of(1)));
                 n++;
             }
         }
 
         protected static RubyHash buildRegexInfoHash(RubyContext context, RubyLanguage language,
-                HashStoreLibrary hashStoreLibrary, RegexpCacheKey regexpInfo, boolean isUsed,
+                HashStoreLibrary hashStoreLibrary, RubyRegexp regexpInfo, boolean isUsed,
                 Optional<Boolean> isRegexpLiteral,
-                Optional<AtomicInteger> count) {
+                Optional<Integer> count) {
             final RubyHash hash = HashOperations.newEmptyHash(context, language);
 
             hashStoreLibrary.set(
                     hash.store,
                     hash,
                     language.getSymbol("value"),
-                    StringOperations.createUTF8String(context, language, regexpInfo.getRope()),
+                    StringOperations.createUTF8String(context, language, regexpInfo.source),
                     true);
 
             if (count.isPresent()) {
-                hashStoreLibrary.set(hash.store, hash, language.getSymbol("count"), count.get().get(), true);
+                hashStoreLibrary.set(hash.store, hash, language.getSymbol("count"), count.get(), true);
             }
 
             if (isRegexpLiteral.isPresent()) {
@@ -527,12 +531,12 @@ public class TruffleRegexpNodes {
                 hashStoreLibrary.set(hash.store, hash, language.getSymbol("isUsed"), isUsed, true);
             }
 
-            hashStoreLibrary.set(hash.store, hash, language.getSymbol("encoding"), regexpInfo.getEncoding(), true);
+            hashStoreLibrary.set(hash.store, hash, language.getSymbol("encoding"), regexpInfo.encoding, true);
             hashStoreLibrary.set(
                     hash.store,
                     hash,
                     language.getSymbol("options"),
-                    RegexpOptions.fromJoniOptions(regexpInfo.getJoniOptions()).toOptions(),
+                    RegexpOptions.fromJoniOptions(regexpInfo.options.toJoniOptions()).toOptions(),
                     true);
 
             assert hashStoreLibrary.verify(hash.store, hash);
@@ -592,7 +596,7 @@ public class TruffleRegexpNodes {
                     getContext(),
                     getLanguage(),
                     hashStoreLibrary,
-                    matchInfo.regexpInfo,
+                    matchInfo.regex,
                     true,
                     Optional.empty(),
                     Optional.empty());
@@ -1013,18 +1017,18 @@ public class TruffleRegexpNodes {
 
     static final class MatchInfo {
 
-        private final RegexpCacheKey regexpInfo;
+        private final RubyRegexp regex;
         private final boolean matchStart;
 
-        MatchInfo(RegexpCacheKey regexpInfo, boolean matchStart) {
-            assert regexpInfo != null;
-            this.regexpInfo = regexpInfo;
+        MatchInfo(RubyRegexp regex, boolean matchStart) {
+            assert regex != null;
+            this.regex = regex;
             this.matchStart = matchStart;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(regexpInfo, matchStart);
+            return Objects.hash(regex, matchStart);
         }
 
         @Override
@@ -1039,14 +1043,14 @@ public class TruffleRegexpNodes {
 
             MatchInfo other = (MatchInfo) obj;
             return matchStart == other.matchStart &&
-                    regexpInfo.equals(other.regexpInfo);
+                    regex.equals(other.regex);
         }
 
         @Override
         public String toString() {
             return String.format(
                     "Match (%s, fromStart = %s)",
-                    regexpInfo,
+                    regex,
                     matchStart);
         }
     }
@@ -1081,8 +1085,8 @@ public class TruffleRegexpNodes {
 
     }
 
-    private static ConcurrentHashMap<RegexpCacheKey, AtomicInteger> COMPILED_REGEXPS_DYNAMIC = new ConcurrentHashMap<>();
-    private static ConcurrentHashMap<RegexpCacheKey, AtomicInteger> COMPILED_REGEXPS_LITERAL = new ConcurrentHashMap<>();
+    static ConcurrentSkipListSet<RubyRegexp> DYNAMIC_REGEXPS = new ConcurrentSkipListSet<>();
+    static ConcurrentSkipListSet<RubyRegexp> LITERAL_REGEXPS = new ConcurrentSkipListSet<>();
     private static ConcurrentHashMap<MatchInfo, AtomicInteger> MATCHED_REGEXPS_JONI = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<MatchInfo, AtomicInteger> MATCHED_REGEXPS_TREGEX = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<MatchInfo, MatchInfoStats> MATCHED_REGEXP_STATS = new ConcurrentHashMap<>();
@@ -1090,9 +1094,9 @@ public class TruffleRegexpNodes {
     /** WARNING: computeRegexpEncoding() mutates options, so the caller should make sure it's a copy */
     @TruffleBoundary
     public static Regex compile(RubyLanguage language, RubyDeferredWarnings rubyDeferredWarnings,
-            RopeWithEncoding bytes, RegexpOptions options, boolean isRegexpLiteral, Node currentNode)
+            RopeWithEncoding bytes, RegexpOptions[] optionsArray, Node currentNode)
             throws DeferredRaiseException {
-        if (options.isEncodingNone()) {
+        if (optionsArray[0].isEncodingNone()) {
             bytes = new RopeWithEncoding(
                     RopeOperations.withEncoding(bytes.getRope(), ASCIIEncoding.INSTANCE),
                     Encodings.BINARY);
@@ -1101,25 +1105,11 @@ public class TruffleRegexpNodes {
         RubyEncoding[] fixedEnc = new RubyEncoding[]{ null };
         RopeBuilder unescaped = ClassicRegexp
                 .preprocess(bytes.getRope(), enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
-        enc = ClassicRegexp.computeRegexpEncoding(options, enc, fixedEnc);
+        enc = ClassicRegexp.computeRegexpEncoding(optionsArray, enc, fixedEnc);
 
         Regex regexp = ClassicRegexp
-                .makeRegexp(null, rubyDeferredWarnings, unescaped, options, enc, bytes.getRope(), currentNode);
+                .makeRegexp(rubyDeferredWarnings, unescaped, optionsArray[0], enc, bytes.getRope(), currentNode);
         regexp.setUserObject(new RopeWithEncoding(RopeOperations.withEncoding(bytes.getRope(), enc.jcoding), enc));
-
-        if (language.options.REGEXP_INSTRUMENT_CREATION) {
-            final RegexpCacheKey key = new RegexpCacheKey(
-                    RopeOperations.withEncoding(bytes.getRope(), enc.jcoding),
-                    enc,
-                    options,
-                    Hashing.NO_SEED);
-            ConcurrentOperations
-                    .getOrCompute(
-                            isRegexpLiteral ? COMPILED_REGEXPS_LITERAL : COMPILED_REGEXPS_DYNAMIC,
-                            key,
-                            x -> new AtomicInteger())
-                    .incrementAndGet();
-        }
 
         return regexp;
     }

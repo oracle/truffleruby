@@ -201,31 +201,31 @@ public class StringTerm extends StrTerm {
         for (c = lexer.nextc(); c != EOF && Character.isLetter(c); c = lexer.nextc()) {
             switch (c) {
                 case 'i':
-                    options.setIgnorecase(true);
+                    options = options.setIgnorecase(true);
                     break;
                 case 'x':
-                    options.setExtended(true);
+                    options = options.setExtended(true);
                     break;
                 case 'm':
-                    options.setMultiline(true);
+                    options = options.setMultiline(true);
                     break;
                 case 'o':
-                    options.setOnce(true);
+                    options = options.setOnce(true);
                     break;
                 case 'n':
-                    options.setExplicitKCode(KCode.NONE);
+                    options = options.setExplicitKCode(KCode.NONE);
                     break;
                 case 'e':
-                    options.setExplicitKCode(KCode.EUC);
+                    options = options.setExplicitKCode(KCode.EUC);
                     break;
                 case 's':
-                    options.setExplicitKCode(KCode.SJIS);
+                    options = options.setExplicitKCode(KCode.SJIS);
                     break;
                 case 'u':
-                    options.setExplicitKCode(KCode.UTF8);
+                    options = options.setExplicitKCode(KCode.UTF8);
                     break;
                 case 'j':
-                    options.setJava(true);
+                    options = options.setJava(true);
                     break;
                 default:
                     unknownFlags.append((char) c);
