@@ -368,9 +368,8 @@ public class TruffleRegexpNodes {
             BuilderState state = arrayBuilderNode.start(arraySize);
             int n = 0;
             for (T e : map) {
-                Rope key = StringOperations.encodeRope(e.toString(), UTF8Encoding.INSTANCE);
                 arrayBuilderNode
-                        .appendValue(state, n++, StringOperations.createUTF8String(context, getLanguage(), key));
+                        .appendValue(state, n++, e);
                 arrayBuilderNode.appendValue(state, n++, 1);
             }
             return createArray(arrayBuilderNode.finish(state, n), n);

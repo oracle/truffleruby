@@ -14,7 +14,7 @@ import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.core.string.KCode;
 import org.truffleruby.parser.ReOptions;
 
-public class RegexpOptions implements Cloneable {
+public class RegexpOptions implements Cloneable, Comparable<RegexpOptions> {
 
     public static final RegexpOptions NULL_OPTIONS = new RegexpOptions(KCode.NONE, true);
 
@@ -291,6 +291,15 @@ public class RegexpOptions implements Cloneable {
                 (isMultiline() ? ", multiline" : "") +
                 (isOnce() ? ", once" : "") +
                 ")";
+    }
+
+    @Override
+    public int compareTo(RegexpOptions o) {
+        if (options - o.options != 0) {
+            return options - o.options;
+        } else {
+            return kcode.ordinal() - o.kcode.ordinal();
+        }
     }
 
     private final KCode kcode;

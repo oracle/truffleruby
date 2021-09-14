@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.regexp;
 
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -32,7 +31,7 @@ import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 @ExportLibrary(InteropLibrary.class)
-public class RubyRegexp extends ImmutableRubyObject implements TruffleObject {
+public class RubyRegexp extends ImmutableRubyObject implements TruffleObject, Comparable<RubyRegexp> {
 
     @TruffleBoundary
     public static RubyRegexp create(RubyLanguage language,
@@ -110,4 +109,13 @@ public class RubyRegexp extends ImmutableRubyObject implements TruffleObject {
     }
     // endregion
 
+    @Override
+    public int compareTo(RubyRegexp o) {
+        final int sourceCompare = source.compareTo(o.source);
+        if (sourceCompare != 0) {
+            return sourceCompare;
+        } else {
+            return options.compareTo(o.options);
+        }
+    }
 }

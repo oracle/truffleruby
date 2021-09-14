@@ -32,7 +32,7 @@ import org.truffleruby.language.objects.ObjectGraphNode;
 import java.util.Set;
 
 @ExportLibrary(InteropLibrary.class)
-public class RubyEncoding extends ImmutableRubyObject implements ObjectGraphNode {
+public class RubyEncoding extends ImmutableRubyObject implements ObjectGraphNode, Comparable<RubyEncoding> {
 
     public final Encoding jcoding;
     public final ImmutableRubyString name;
@@ -80,4 +80,12 @@ public class RubyEncoding extends ImmutableRubyObject implements ObjectGraphNode
     }
     // endregion
 
+    @Override
+    public int compareTo(RubyEncoding o) {
+        if (index != o.index) {
+            return index - o.index;
+        } else {
+            return name.rope.compareTo(o.name.rope);
+        }
+    }
 }
