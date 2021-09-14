@@ -205,24 +205,19 @@ public class RegexpOptions implements Cloneable, Comparable<RegexpOptions> {
     }
 
     public static RegexpOptions fromEmbeddedOptions(int embeddedOptions) {
-        RegexpOptions options = fromJoniOptions(embeddedOptions);
-
-        options = options.setKCodeDefault((embeddedOptions & ReOptions.RE_DEFAULT) != 0);
-        options = options.setLiteral((embeddedOptions & ReOptions.RE_LITERAL) != 0);
-        options = options.setEncodingNone((embeddedOptions & ReOptions.RE_NONE) != 0);
-
-        return options;
+        return fromJoniOptions(embeddedOptions)
+                .setKCodeDefault((embeddedOptions & ReOptions.RE_DEFAULT) != 0)
+                .setLiteral((embeddedOptions & ReOptions.RE_LITERAL) != 0)
+                .setEncodingNone((embeddedOptions & ReOptions.RE_NONE) != 0);
     }
 
     public static RegexpOptions fromJoniOptions(int joniOptions) {
-        RegexpOptions options = new RegexpOptions();
-        options = options.setMultiline((joniOptions & ReOptions.RE_OPTION_MULTILINE) != 0);
-        options = options.setIgnorecase((joniOptions & ReOptions.RE_OPTION_IGNORECASE) != 0);
-        options = options.setExtended((joniOptions & ReOptions.RE_OPTION_EXTENDED) != 0);
-        options = options.setFixed((joniOptions & ReOptions.RE_FIXED) != 0);
-        options = options.setOnce((joniOptions & ReOptions.RE_OPTION_ONCE) != 0);
-
-        return options;
+        return new RegexpOptions()
+                .setMultiline((joniOptions & ReOptions.RE_OPTION_MULTILINE) != 0)
+                .setIgnorecase((joniOptions & ReOptions.RE_OPTION_IGNORECASE) != 0)
+                .setExtended((joniOptions & ReOptions.RE_OPTION_EXTENDED) != 0)
+                .setFixed((joniOptions & ReOptions.RE_FIXED) != 0)
+                .setOnce((joniOptions & ReOptions.RE_OPTION_ONCE) != 0);
     }
 
     public RegexpOptions withoutOnce() {
