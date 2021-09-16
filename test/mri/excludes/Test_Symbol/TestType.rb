@@ -1,0 +1,6 @@
+exclude :test_check_id_invalid_type, "needs investigation"
+exclude :test_check_symbol_invalid_type, "needs investigation"
+exclude :test_id2str_fstring_bug9171, "needs investigation"
+exclude :test_attrset, "needs investigation"
+exclude :test_global, "needs investigation"
+exclude :test_local, "needs investigation"

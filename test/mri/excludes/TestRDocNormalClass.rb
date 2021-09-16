@@ -1,5 +1,0 @@
-exclude :test_aref, "needs investigation"
-exclude :test_ancestors, "needs investigation"
-exclude :test_ancestors_multilevel, "needs investigation"
-exclude :test_definition, "needs investigation"
-exclude :test_direct_ancestors, "needs investigation"

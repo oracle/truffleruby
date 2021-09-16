@@ -1,6 +1,0 @@
-exclude :test_class_create_key, "needs investigation"
-exclude :test_class_create_cert_email, "needs investigation"
-exclude :test_class_email_to_name, "needs investigation"
-exclude :test_class_sign, "needs investigation"
-exclude :test_class_sign_AltName, "needs investigation"
-exclude :test_class_write_encrypted_cipher2019, "needs investigation"
