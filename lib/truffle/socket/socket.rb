@@ -372,22 +372,6 @@ class Socket < BasicSocket
     end
   end
 
-  def local_address
-    sockaddr = Truffle::Socket::Foreign.getsockname(self)
-
-    family = Truffle::Socket::Foreign::Sockaddr.family_of_string(sockaddr)
-    socket_type = getsockopt(:SOCKET, :TYPE).int
-    Addrinfo.new(sockaddr, family, socket_type, 0)
-  end
-
-  def remote_address
-    sockaddr = Truffle::Socket::Foreign.getpeername(self)
-
-    family = Truffle::Socket::Foreign::Sockaddr.family_of_string(sockaddr)
-    socket_type = getsockopt(:SOCKET, :TYPE).int
-    Addrinfo.new(sockaddr, family, socket_type, 0)
-  end
-
   def recvfrom(bytes, flags = 0)
     message, addr = recvmsg(bytes, flags)
 

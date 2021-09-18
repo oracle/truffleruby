@@ -334,18 +334,20 @@ class BasicSocket < IO
     0
   end
 
-  # MRI defines this method in BasicSocket and stuffs all logic in it. Since
-  # inheriting classes behave differently we overwrite this method in said
-  # classes. The method here exists so that code such as the following still
-  # works: BasicSocket.method_defined?(:local_address).
   def local_address
-    raise NotImplementedError,
-      'This method must be implemented by classes inheriting from BasicSocket'
+    sockaddr = Truffle::Socket::Foreign.getsockname(self)
+
+    family = Truffle::Socket::Foreign::Sockaddr.family_of_string(sockaddr)
+    socket_type = getsockopt(:SOCKET, :TYPE).int
+    Addrinfo.new(sockaddr, family, socket_type, 0)
   end
 
   def remote_address
-    raise NotImplementedError,
-      'This method must be implemented by classes inheriting from BasicSocket'
+    sockaddr = Truffle::Socket::Foreign.getpeername(self)
+
+    family = Truffle::Socket::Foreign::Sockaddr.family_of_string(sockaddr)
+    socket_type = getsockopt(:SOCKET, :TYPE).int
+    Addrinfo.new(sockaddr, family, socket_type, 0)
   end
 
   def getpeereid

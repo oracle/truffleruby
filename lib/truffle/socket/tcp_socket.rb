@@ -119,18 +119,4 @@ class TCPSocket < IPSocket
       binmode
     end
   end
-
-  def local_address
-    address  = addr
-    sockaddr = Socket.pack_sockaddr_in(address[1], address[3])
-
-    Addrinfo.new(sockaddr, address[0], :STREAM)
-  end
-
-  def remote_address
-    address  = peeraddr
-    sockaddr = Socket.pack_sockaddr_in(address[1], address[3])
-
-    Addrinfo.new(sockaddr, address[0], :STREAM)
-  end
 end
