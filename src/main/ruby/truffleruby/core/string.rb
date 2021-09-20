@@ -706,6 +706,7 @@ class String
           raise RuntimeError, 'string modified'
         end
         val = val.to_s unless Primitive.object_kind_of?(val, String)
+        val = Truffle::Type.rb_any_to_s(val) unless Primitive.object_kind_of?(val, String)
 
         Primitive.string_append(ret, val)
       else
