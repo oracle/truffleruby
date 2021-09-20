@@ -1,5 +1,3 @@
-exclude :test_aref, "needs investigation"
-exclude :test_aset, "needs investigation"
 exclude :test_attrset_id, "needs investigation"
 exclude :test_inspect, "needs investigation"
 exclude :test_nonascii, "needs investigation"
