@@ -1918,4 +1918,8 @@ module Truffle::CExt
     raise "#{pointer} not a pointer" unless Truffle::Interop.pointer?(pointer)
     Truffle::FFI::Pointer.new(pointer)
   end
+
+  def rb_exception_set_message(e, mesg)
+    Primitive.exception_set_message(e, mesg)
+  end
 end
