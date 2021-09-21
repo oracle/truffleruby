@@ -326,5 +326,104 @@ module Truffle
       str = match[capture]
       [match, str]
     end
+
+    def self.assign_index(string, index, count, replacement)
+      index += string.size if index < 0
+
+      if index < 0 or index > string.size
+        raise IndexError, "index #{index} out of string"
+      end
+
+      unless bi = Primitive.string_byte_index_from_char_index(string, index)
+        raise IndexError, "unable to find character at: #{index}"
+      end
+
+      if count
+        count = Primitive.rb_to_int count
+
+        if count < 0
+          raise IndexError, 'count is negative'
+        end
+
+        total = index + count
+        if total >= string.size
+          bs = string.bytesize - bi
+        else
+          bs = Primitive.string_byte_index_from_char_index(string, total) - bi
+        end
+      else
+        bs = index == string.size ? 0 : Primitive.string_byte_index_from_char_index(string, index + 1) - bi
+      end
+
+      replacement = StringValue replacement
+      enc = Primitive.encoding_ensure_compatible string, replacement
+
+      Primitive.string_splice(string, replacement, bi, bs, enc)
+    end
+
+    def self.assign_string(string, index, replacement)
+      unless start = Primitive.find_string(string, index, 0)
+        raise IndexError, 'string not matched'
+      end
+
+      replacement = StringValue replacement
+      enc = Primitive.encoding_ensure_compatible string, replacement
+
+      Primitive.string_splice(string, replacement, start, index.bytesize, enc)
+    end
+
+    def self.assign_range(string, index, replacement)
+      start, length = Primitive.range_normalized_start_length(index, string.size)
+      stop = start + length - 1
+
+      raise RangeError, "#{index.first} is out of range" if start < 0 or start > string.size
+
+      bi = Primitive.string_byte_index_from_char_index(string, start)
+      raise IndexError, "unable to find character at: #{start}" unless bi
+
+      if stop < start
+        bs = 0
+      elsif stop >= string.size
+        bs = string.bytesize - bi
+      else
+        bs = Primitive.string_byte_index_from_char_index(string, stop + 1) - bi
+      end
+
+      replacement = StringValue replacement
+      enc = Primitive.encoding_ensure_compatible string, replacement
+
+      Primitive.string_splice(string, replacement, bi, bs, enc)
+    end
+
+    def self.assign_regexp(string, index, count, replacement)
+      if count
+        count = Primitive.rb_to_int count
+      else
+        count = 0
+      end
+
+      if match = Truffle::RegexpOperations.match(index, string)
+        ms = match.size
+      else
+        raise IndexError, 'regexp does not match'
+      end
+
+      count += ms if count < 0 and -count < ms
+      unless count < ms and count >= 0
+        raise IndexError, "index #{count} out of match bounds"
+      end
+
+      unless match[count]
+        raise IndexError, "regexp group #{count} not matched"
+      end
+
+      replacement = StringValue replacement
+      enc = Primitive.encoding_ensure_compatible string, replacement
+
+      bi = Primitive.string_byte_index_from_char_index(string, match.begin(count))
+      bs = Primitive.string_byte_index_from_char_index(string, match.end(count)) - bi
+
+      Primitive.string_splice(string, replacement, bi, bs, enc)
+    end
   end
 end
