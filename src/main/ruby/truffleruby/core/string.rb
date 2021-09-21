@@ -319,21 +319,6 @@ class String
     str.tr_s!(source, replacement) || str
   end
 
-  def subpattern(pattern, capture)
-    match = Truffle::RegexpOperations.match(pattern, self)
-
-    return nil unless match
-
-    if index = Truffle::Type.rb_check_convert_type(capture, Integer, :to_int)
-      return nil if index >= match.size || -index >= match.size
-      capture = index
-    end
-
-    str = match[capture]
-    [match, str]
-  end
-  private :subpattern
-
   def each_codepoint
     return to_enum(:each_codepoint) { size } unless block_given?
 

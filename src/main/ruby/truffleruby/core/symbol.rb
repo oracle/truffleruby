@@ -138,7 +138,7 @@ class Symbol
   def [](index, other = undefined)
     if Primitive.object_kind_of?(index, Regexp)
       unless Primitive.undefined?(other)
-        match, str = to_s.send(:subpattern, index, other)
+        match, str = Truffle::StringOperations.subpattern(to_s, index, other)
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, match)
         return str
       end

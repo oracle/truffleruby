@@ -777,7 +777,12 @@ public abstract class StringNodes {
                 @Cached ConditionProfile unsetProfile,
                 @Cached ConditionProfile sameThreadProfile) {
             final Object capture = RubyGuards.wasProvided(maybeCapture) ? maybeCapture : 0;
-            final Object matchStrPair = callNode.call(string, "subpattern", regexp, capture);
+            final Object matchStrPair = callNode.call(
+                    getContext().getCoreLibrary().truffleStringOperationsModule,
+                    "subpattern",
+                    string,
+                    regexp,
+                    capture);
 
             final SpecialVariableStorage variables = readCallerStorageNode.execute(frame);
             if (matchStrPair == nil) {

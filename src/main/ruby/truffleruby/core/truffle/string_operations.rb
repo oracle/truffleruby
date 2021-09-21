@@ -312,5 +312,19 @@ module Truffle
 
       Primitive.string_byte_index(src, str, start)
     end
+
+    def self.subpattern(string, pattern, capture)
+      match = Truffle::RegexpOperations.match(pattern, string)
+
+      return nil unless match
+
+      if index = Truffle::Type.rb_check_convert_type(capture, Integer, :to_int)
+        return nil if index >= match.size || -index >= match.size
+        capture = index
+      end
+
+      str = match[capture]
+      [match, str]
+    end
   end
 end
