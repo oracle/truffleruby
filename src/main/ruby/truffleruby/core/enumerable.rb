@@ -99,6 +99,7 @@ module Enumerable
 
   def map(&block)
     if block
+      return Primitive.hash_collect(self, block) if Primitive.object_kind_of?(self, Hash) && self.method(:each).owner == Hash
       ary = []
       Primitive.share_special_variables(Primitive.proc_special_variables(block))
       b = Primitive.proc_create_same_arity(block, -> *o { ary << yield(*o) })
