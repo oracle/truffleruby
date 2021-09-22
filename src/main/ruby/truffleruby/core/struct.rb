@@ -261,7 +261,7 @@ class Struct
     if var >= a_len
       raise IndexError, "offset #{var} too large for struct(size:#{a_len})"
     elsif var < -a_len
-      raise IndexError, "offset #{var + a_len} too small for struct(size:#{a_len})"
+      raise IndexError, "offset #{var} too small for struct(size:#{a_len})"
     end
     _attrs[var]
   end
