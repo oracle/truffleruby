@@ -84,6 +84,12 @@ class Struct
         new(*args)
       end
 
+      if keyword_init
+        def self.inspect
+          super + '(keyword_init: true)'
+        end
+      end
+
       const_set :STRUCT_ATTRS, attrs
       const_set :KEYWORD_INIT, keyword_init
     end
