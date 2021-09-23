@@ -8,9 +8,11 @@ Bug fixes:
 
 Compatibility:
 
+* Implement `rb_sprintf` in our format compiler to provide consistent formatting across C standard libraries.
 
 Performance:
 
+* Regexp objects are now interned in a similar way to symbols.
 
 Changes:
 
@@ -53,7 +55,6 @@ Compatibility:
 * Implement `rb_str_catf`.
 * Search the executable in the passed env `PATH` for subprocesses (#2419).
 * Accept a string as the pattern argument to `StringScanner#scan` and `StringScanner#check` (#2423).
-* Implement `rb_sprintf` in our format compiler to provide consistent formatting across C standard libraries.
 
 Performance:
 
@@ -66,7 +67,6 @@ Performance:
 * Optimized conversion of strings to integers if the string contained a numeric value (#2401, @nirvdrum).
 * Use Truffle's `ContextThreadLocal` to speedup access to thread-local data.
 * Provide a new fast path for `rb_backref*` and `rb_lastline*`functions from C extensions.
-* Regexp objects are now interned in a similar way to symbols.
 
 Changes:
 
