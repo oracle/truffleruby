@@ -44,6 +44,7 @@ Bug fixes:
 * Fix issue with escaping curly braces for `Dir.glob` (#2425).
 * Fix `base64` decoding issue with missing output (#2435).
 * Fix `StringIO#ungetbyte` to treat a byte as a byte, not a code point (#2436). 
+* Fix `defined?(yield)` when used inside a block (#2446).
 
 Compatibility:
 

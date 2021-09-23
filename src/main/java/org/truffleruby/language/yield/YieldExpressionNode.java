@@ -63,17 +63,11 @@ public class YieldExpressionNode extends RubyContextSourceNode {
             argumentsObjects[i] = arguments[i].execute(frame);
         }
 
-        Object block = readBlockNode.execute(frame);
+        Object block = readBlock(frame);
 
         if (block == nil) {
-            useCapturedBlock.enter();
-
-            block = RubyArguments.getMethod(frame).getCapturedBlock();
-
-            if (block == nil) {
-                noCapturedBlock.enter();
-                throw new RaiseException(getContext(), coreExceptions().noBlockToYieldTo(this));
-            }
+            noCapturedBlock.enter();
+            throw new RaiseException(getContext(), coreExceptions().noBlockToYieldTo(this));
         }
 
         if (unsplat) {
@@ -82,6 +76,17 @@ public class YieldExpressionNode extends RubyContextSourceNode {
 
         return getYieldNode().yield((RubyProc) block, argumentsObjects);
     }
+
+    private Object readBlock(VirtualFrame frame) {
+        Object block = readBlockNode.execute(frame);
+
+        if (block == nil) {
+            useCapturedBlock.enter();
+            block = RubyArguments.getMethod(frame).getCapturedBlock();
+        }
+        return block;
+    }
+
 
     private Object[] unsplat(Object[] argumentsObjects) {
         if (unsplatNode == null) {
@@ -93,7 +98,8 @@ public class YieldExpressionNode extends RubyContextSourceNode {
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
-        if (RubyArguments.getBlock(frame) == nil) {
+        Object block = readBlock(frame);
+        if (block == nil) {
             return nil;
         } else {
             return coreStrings().YIELD.createInstance(context);
