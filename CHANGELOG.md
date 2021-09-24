@@ -13,6 +13,7 @@ Compatibility:
 Performance:
 
 * Regexp objects are now interned in a similar way to symbols.
+* `String#sub`, `sub!`, `gsub`, and `gsub!` have been refactored for better performance.
 
 Changes:
 
