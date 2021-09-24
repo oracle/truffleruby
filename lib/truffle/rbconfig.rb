@@ -192,7 +192,7 @@ module RbConfig
     'rubyarchhdrdir'    => "#{prefix}/lib/cext/include",
     'rubyhdrdir'        => "#{prefix}/lib/cext/include",
     'SOEXT'             => Truffle::Platform::SOEXT.dup,
-    'STRIP'             => strip,
+    'STRIP'             => "#{strip} --keep-section=.llvmbc",
     'sysconfdir'        => "#{prefix}/etc", # doesn't exist, as in MRI
     'target_cpu'        => host_cpu,
     'target_os'         => host_os,
