@@ -13,6 +13,7 @@ Compatibility:
 Performance:
 
 * Regexp objects are now interned in a similar way to symbols.
+* Improve performance of regexps using POSIX bracket expressions (e.g., `[[:lower:]]`) matching against ASCII-only strings (#2447).
 
 Changes:
 
