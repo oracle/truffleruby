@@ -121,8 +121,7 @@ module Truffle
         pat_size = pattern.bytesize
         str_size = string.bytesize
 
-        while pos < str_size
-          break if limited && limit - count <= 1
+        while (pos < str_size && !(limited && limit - count <= 1))
           nxt = Primitive.find_string(string, pattern, pos)
           break unless nxt
 
