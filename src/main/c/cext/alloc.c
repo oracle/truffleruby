@@ -34,7 +34,7 @@ void *ruby_xmalloc2(size_t n, size_t size) {
   if (total_size == 0) {
     total_size = 1;
   }
-  return malloc(xmalloc2_size(n, total_size));
+  return malloc(total_size);
 }
 
 void* rb_xmalloc_mul_add(size_t x, size_t y, size_t z) {
