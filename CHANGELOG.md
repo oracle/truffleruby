@@ -5,6 +5,7 @@ New features:
 
 Bug fixes:
 
+* Fix `File.utime` to use nanoseconds (#2448).
 
 Compatibility:
 

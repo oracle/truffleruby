@@ -1111,8 +1111,8 @@ class File < IO
     mtime = Time.at(mtime) unless Primitive.object_kind_of?(mtime, Time)
     paths.each do |path|
       path = Truffle::Type.coerce_to_path(path)
-      n = POSIX.truffleposix_utimes(path, atime.to_i, atime.usec,
-                                          mtime.to_i, mtime.usec)
+      n = POSIX.truffleposix_utimes(path, atime.to_i, atime.nsec,
+                                          mtime.to_i, mtime.nsec)
       Errno.handle unless n == 0
     end
   end
