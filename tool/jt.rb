@@ -793,15 +793,17 @@ module Commands
                                        note that to run most MRI benchmarks, you should translate them first with normal
                                        Ruby and cache the result, such as benchmark bench/mri/bm_vm1_not.rb --cache
                                        jt benchmark bench/mri/bm_vm1_not.rb --use-cache
-      jt profile                                    profiles an application, including the TruffleRuby runtime, and generates a flamegraph
-      jt igv                                        launches IdealGraphVisualizer
-      jt next                                       tell you what to work on next (give you a random core library spec)
-      jt install [jvmci|eclipse]                    install [the right JVMCI JDK | Eclipse] in the parent directory
-      jt docker                                     build a Docker image - see doc/contributor/docker.md
-      jt sync                                       continuously synchronize changes from the Ruby source files to the GraalVM build
-      jt idea                                       generates IntelliJ projects
-      jt format                                     run eclipse code formatter
-      jt graalvm-home                               prints the GraalVM home of the RUBY_SELECTOR
+      jt profile                                     profiles an application, including the TruffleRuby runtime, and generates a flamegraph
+      jt graph [--method Object#foo] [--watch] file.rb
+                                                     render a graph of Object#foo within file.rb
+      jt igv                                         launches IdealGraphVisualizer
+      jt next                                        tell you what to work on next (give you a random core library spec)
+      jt install [jvmci|eclipse]                     install [the right JVMCI JDK | Eclipse] in the parent directory
+      jt docker                                      build a Docker image - see doc/contributor/docker.md
+      jt sync                                        continuously synchronize changes from the Ruby source files to the GraalVM build
+      jt idea                                        generates IntelliJ projects
+      jt format                                      run eclipse code formatter
+      jt graalvm-home                                prints the GraalVM home of the RUBY_SELECTOR
 
       you can also put --build or --rebuild in front of any command to build or rebuild first
 
@@ -2000,6 +2002,78 @@ module Commands
     raw_sh "#{repo}/flamegraph.pl", *unit, flamegraph_data_file, out: svg_filename
 
     app_open svg_filename
+  end
+
+  def graph(*args)
+    test_file = nil
+    method = 'Object#foo'
+    watch = false
+
+    until args.empty?
+      arg = args.shift
+      case arg
+      when '--method'
+        raise if args.empty?
+        method = args.shift
+      when '--watch'
+        watch = true
+      else
+        raise if arg.start_with?('-')
+        raise if test_file
+        test_file = arg
+      end
+    end
+
+    raise unless test_file
+
+    if Gem::Specification.find_all_by_name('seafoam').empty?
+      sh env, 'gem', 'install', 'seafoam'
+    end
+
+    options = [
+      '--experimental-options',
+      '--engine.TraceCompilation',
+      '--engine.BackgroundCompilation=false',
+      "--engine.CompileOnly=#{method}",
+      '--engine.MultiTier=false',
+      '--engine.NodeSourcePositions',
+      '--vm.Dgraal.PrintGraphWithSchedule=true',
+      '--vm.Dgraal.PrintBackendCFG=true',
+      '--vm.Dgraal.Dump=Truffle:1'
+    ]
+
+    loop do
+      IO.popen([ruby_launcher, *options, test_file], :err=>[:child, :out]) do |pipe|
+        pipe.each_line do |line|
+          if line =~ /\[engine\] opt done     #{method}/
+            puts line
+            Process.kill 'INT', pipe.pid
+            break
+          end
+        end
+      end
+
+      dumps = Dir.glob('graal_dumps/*').sort.last
+      graph = Dir.glob("#{dumps}/*[#{method}].bgv").first
+
+      n = 0
+      IO.popen(['seafoam', graph, 'list']) do |pipe|
+        pipe.each_line do |line|
+          if line =~ /Before phase org.graalvm.compiler.phases.common.LoweringPhase/
+            break
+          end
+          n += 1
+        end
+      end
+
+      sh 'seafoam', "#{graph}:#{n}", 'render'
+
+      break unless watch
+
+      # Sorry... actively poll to avoid any dependencies
+      time = File.mtime(test_file)
+      sleep 1 until File.mtime(test_file) > time
+    end
   end
 
   def igv
