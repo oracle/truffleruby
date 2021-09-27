@@ -16,6 +16,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayIndexNodes.ReadNormalizedNode;
 import org.truffleruby.core.cast.SplatCastNode;
+import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
@@ -86,7 +87,7 @@ public class MultipleAssignmentNode extends RubyContextSourceNode implements Ass
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
-        return language.coreStrings.ASSIGNMENT.createInstance(context);
+        return FrozenStrings.ASSIGNMENT;
     }
 
     private Object read(RubyArray array, int i) {

@@ -12,6 +12,7 @@ package org.truffleruby.language.locals;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.AssignableNode;
+import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -52,7 +53,7 @@ public class WriteLocalVariableNode extends WriteLocalNode {
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
-        return coreStrings().ASSIGNMENT.createInstance(context);
+        return FrozenStrings.ASSIGNMENT;
     }
 
     @Override

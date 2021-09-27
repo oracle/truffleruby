@@ -11,6 +11,7 @@ package org.truffleruby.language.objects;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
@@ -66,7 +67,7 @@ public class ReadInstanceVariableNode extends RubyContextSourceNode {
             final DynamicObjectLibrary objectLibrary = getObjectLibrary();
             final RubyDynamicObject dynamicObject = (RubyDynamicObject) receiverObject;
             if (objectLibrary.containsKey(dynamicObject, name)) {
-                return coreStrings().INSTANCE_VARIABLE.createInstance(context);
+                return FrozenStrings.INSTANCE_VARIABLE;
             } else {
                 return nil;
             }

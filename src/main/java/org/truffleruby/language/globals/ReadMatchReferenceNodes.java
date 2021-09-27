@@ -11,6 +11,7 @@ package org.truffleruby.language.globals;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -58,7 +59,7 @@ public abstract class ReadMatchReferenceNodes extends RubyContextSourceNode {
             if (execute(frame) == nil) {
                 return nil;
             } else {
-                return coreStrings().GLOBAL_VARIABLE.createInstance(context);
+                return FrozenStrings.GLOBAL_VARIABLE;
             }
         }
     }

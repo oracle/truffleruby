@@ -11,7 +11,6 @@ package org.truffleruby.language.literal;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.string.CoreString;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.RubyContextSourceNode;
 
@@ -20,9 +19,9 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 public class FrozenStringLiteralNode extends RubyContextSourceNode {
 
     private final ImmutableRubyString frozenString;
-    private final CoreString definition;
+    private final ImmutableRubyString definition;
 
-    public FrozenStringLiteralNode(ImmutableRubyString frozenString, CoreString definition) {
+    public FrozenStringLiteralNode(ImmutableRubyString frozenString, ImmutableRubyString definition) {
         this.frozenString = frozenString;
         this.definition = definition;
     }
@@ -34,6 +33,6 @@ public class FrozenStringLiteralNode extends RubyContextSourceNode {
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
-        return definition.createInstance(context);
+        return definition;
     }
 }

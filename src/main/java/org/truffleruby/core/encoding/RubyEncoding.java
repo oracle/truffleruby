@@ -47,7 +47,7 @@ public class RubyEncoding extends ImmutableRubyObject implements ObjectGraphNode
     // Special constructor to define US-ASCII encoding which is used for RubyEncoding names
     public RubyEncoding(int index) {
         this.jcoding = USASCIIEncoding.INSTANCE;
-        this.name = FrozenStringLiterals.encodingName((LeafRope) RopeConstants.US_ASCII, this);
+        this.name = FrozenStringLiterals.createStringAndCacheLater((LeafRope) RopeConstants.US_ASCII, this);
         this.index = index;
     }
 

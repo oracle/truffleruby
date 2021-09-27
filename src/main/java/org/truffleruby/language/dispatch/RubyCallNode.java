@@ -18,6 +18,7 @@ import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.inlined.LambdaToProcNode;
+import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -265,7 +266,7 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
                 }
             }
 
-            return coreStrings().METHOD.createInstance(context);
+            return FrozenStrings.METHOD;
         }
     }
 }

@@ -80,7 +80,7 @@ public class Encodings {
             if (encoding == USASCIIEncoding.INSTANCE) {
                 rubyEncoding = US_ASCII;
             } else {
-                final ImmutableRubyString name = FrozenStringLiterals.encodingName(
+                final ImmutableRubyString name = FrozenStringLiterals.createStringAndCacheLater(
                         RopeConstants.ROPE_CONSTANTS.get(encoding.toString()),
                         US_ASCII);
                 rubyEncoding = new RubyEncoding(encoding, name, encoding.getIndex());

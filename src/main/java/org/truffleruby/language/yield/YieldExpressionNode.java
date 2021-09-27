@@ -14,6 +14,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNodeGen;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.WarnNode;
@@ -102,7 +103,7 @@ public class YieldExpressionNode extends RubyContextSourceNode {
         if (block == nil) {
             return nil;
         } else {
-            return coreStrings().YIELD.createInstance(context);
+            return FrozenStrings.YIELD;
         }
     }
 

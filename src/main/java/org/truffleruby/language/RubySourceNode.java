@@ -30,7 +30,7 @@ public abstract class RubySourceNode extends RubyNode {
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
-        return RubyNode.defaultIsDefined(language, context, this);
+        return RubyNode.defaultIsDefined(this);
     }
 
     @Override

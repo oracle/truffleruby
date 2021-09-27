@@ -11,6 +11,7 @@ package org.truffleruby.language.literal;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -34,9 +35,9 @@ public class BooleanLiteralNode extends RubyContextSourceNode {
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
         if (value) {
-            return coreStrings().TRUE.createInstance(context);
+            return FrozenStrings.TRUE;
         } else {
-            return coreStrings().FALSE.createInstance(context);
+            return FrozenStrings.FALSE;
         }
     }
 

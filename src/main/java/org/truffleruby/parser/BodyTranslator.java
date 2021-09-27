@@ -57,6 +57,7 @@ import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
+import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.core.string.InterpolatedStringNode;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.string.ImmutableRubyString;
@@ -513,7 +514,7 @@ public class BodyTranslator extends Translator {
                     .getFrozenStringLiteral(nodeRope.getBytes(), nodeRope.getEncoding(), strNode.getCodeRange());
             return addNewlineIfNeeded(node, withSourceSection(
                     sourceSection,
-                    new FrozenStringLiteralNode(frozenString, language.coreStrings.METHOD)));
+                    new FrozenStringLiteralNode(frozenString, FrozenStrings.METHOD)));
         }
 
         if (environment.getParseEnvironment().canUsePrimitives() &&
@@ -2865,7 +2866,7 @@ public class BodyTranslator extends Translator {
         if (node.isFrozen()) {
             final ImmutableRubyString frozenString = language
                     .getFrozenStringLiteral(nodeRope.getBytes(), nodeRope.getEncoding(), node.getCodeRange());
-            ret = new FrozenStringLiteralNode(frozenString, language.coreStrings.EXPRESSION);
+            ret = new FrozenStringLiteralNode(frozenString, FrozenStrings.EXPRESSION);
         } else {
             final LeafRope cachedRope = language.ropeCache
                     .getRope(nodeRope.getBytes(), nodeRope.getEncoding(), node.getCodeRange());

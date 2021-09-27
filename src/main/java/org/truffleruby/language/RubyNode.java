@@ -20,6 +20,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.method.RubyMethod;
+import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.debug.RubyScope;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.InternalMethod;
@@ -65,9 +66,9 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
     // Declared abstract here so the instrumentation wrapper delegates it
     public abstract Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context);
 
-    protected static Object defaultIsDefined(RubyLanguage language, RubyContext context, Node currentNode) {
+    protected static Object defaultIsDefined(Node currentNode) {
         assert !(currentNode instanceof WrapperNode);
-        return language.coreStrings.EXPRESSION.createInstance(context);
+        return FrozenStrings.EXPRESSION;
     }
 
     // Source

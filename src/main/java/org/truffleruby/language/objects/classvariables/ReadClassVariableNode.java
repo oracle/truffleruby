@@ -12,6 +12,7 @@ package org.truffleruby.language.objects.classvariables;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.RubyModule;
+import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -71,7 +72,7 @@ public class ReadClassVariableNode extends RubyContextSourceNode {
         if (value == null) {
             return nil;
         } else {
-            return coreStrings().CLASS_VARIABLE.createInstance(context);
+            return FrozenStrings.CLASS_VARIABLE;
         }
     }
 

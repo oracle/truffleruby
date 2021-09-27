@@ -11,6 +11,7 @@ package org.truffleruby.language.literal;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -33,7 +34,7 @@ public class NilLiteralNode extends RubyContextSourceNode {
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
-        return coreStrings().NIL.createInstance(context);
+        return FrozenStrings.NIL;
     }
 
     public boolean isImplicit() {

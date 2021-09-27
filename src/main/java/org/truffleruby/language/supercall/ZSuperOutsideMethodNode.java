@@ -11,6 +11,7 @@ package org.truffleruby.language.supercall;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -49,7 +50,7 @@ public class ZSuperOutsideMethodNode extends RubyContextSourceNode {
         if (superMethod == null) {
             return nil;
         } else {
-            return coreStrings().SUPER.createInstance(context);
+            return FrozenStrings.SUPER;
         }
     }
 
