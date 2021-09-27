@@ -330,6 +330,16 @@ module Utilities
     }
   end
 
+  def ruby_running_jt_env
+    ruby_running_jt = RbConfig.ruby
+    bin = File.dirname(ruby_running_jt)
+    if which('ruby') == ruby_running_jt
+      {}
+    else
+      { 'PATH' => "#{bin}:#{ENV['PATH']}" }
+    end
+  end
+
   def human_size(bytes)
     if bytes < 1024
       "#{bytes} B"
@@ -2005,6 +2015,8 @@ module Commands
   end
 
   def graph(*args)
+    truffleruby_compiler!
+
     test_file = nil
     method = 'Object#foo'
     watch = false
@@ -2025,6 +2037,7 @@ module Commands
     end
 
     raise unless test_file
+    env = ruby_running_jt_env
 
     if Gem::Specification.find_all_by_name('seafoam').empty?
       sh env, 'gem', 'install', 'seafoam'
@@ -2039,36 +2052,37 @@ module Commands
       '--engine.NodeSourcePositions',
       '--vm.Dgraal.PrintGraphWithSchedule=true',
       '--vm.Dgraal.PrintBackendCFG=true',
-      '--vm.Dgraal.Dump=Truffle:1'
+      '--vm.Dgraal.Dump=Truffle:1',
     ]
 
-    loop do
+    loop do # for --watch
+      compiled = false
       IO.popen([ruby_launcher, *options, test_file], :err=>[:child, :out]) do |pipe|
         pipe.each_line do |line|
+          puts line
           if line =~ /\[engine\] opt done     #{method}/
-            puts line
+            compiled = true
             Process.kill 'INT', pipe.pid
             break
           end
         end
       end
+      raise "The process did not compile #{method}" unless compiled
 
       dumps = Dir.glob('graal_dumps/*').sort.last
-      graph = Dir.glob("#{dumps}/*[#{method}].bgv").first
+      raise 'Could not dump directory under graal_dumps/' unless dumps
+      graph = Dir.glob("#{dumps}/*\\[#{method}\\].bgv").sort.last
+      raise "Could not find graph in #{dumps}" unless graph
 
-      n = 0
-      IO.popen(['seafoam', graph, 'list']) do |pipe|
-        pipe.each_line do |line|
-          if line =~ /Before phase org.graalvm.compiler.phases.common.LoweringPhase/
-            break
-          end
-          n += 1
-        end
+      list = sh(env, 'seafoam', graph, 'list', capture: :out, no_print_cmd: true)
+      n = list.each_line.with_index do |line, index|
+        break index if line.include? 'Before phase org.graalvm.compiler.phases.common.LoweringPhase'
       end
 
-      sh 'seafoam', "#{graph}:#{n}", 'render'
+      sh env, 'seafoam', "#{graph}:#{n}", 'render'
 
       break unless watch
+      puts # newline between runs
 
       # Sorry... actively poll to avoid any dependencies
       time = File.mtime(test_file)
@@ -2378,14 +2392,12 @@ module Commands
       args += RUBOCOP_INCLUDE_LIST
     end
 
-    ruby = RbConfig.ruby
-
     if gem_test_pack?
       gem_home = "#{gem_test_pack}/rubocop-gems"
       env = { 'GEM_HOME' => gem_home, 'GEM_PATH' => gem_home }
-      sh env, ruby, "#{gem_home}/bin/rubocop", *args
+      sh env, RbConfig.ruby, "#{gem_home}/bin/rubocop", *args
     else
-      env = { 'PATH' => "#{File.dirname(ruby)}:#{ENV['PATH']}" }
+      env = ruby_running_jt_env
       if Gem::Specification.find_all_by_name('rubocop', "#{RUBOCOP_VERSION}").empty?
         sh env, 'gem', 'install', 'rubocop', '-v', RUBOCOP_VERSION
       end
