@@ -130,7 +130,9 @@ public final class TRegexCache {
     public static String toTRegexEncoding(Encoding encoding) {
         if (encoding == UTF8Encoding.INSTANCE) {
             return "UTF-8";
-        } else if (encoding == USASCIIEncoding.INSTANCE || encoding == ISO8859_1Encoding.INSTANCE) {
+        } else if (encoding == USASCIIEncoding.INSTANCE) {
+            return "ASCII";
+        } else if (encoding == ISO8859_1Encoding.INSTANCE) {
             return "LATIN-1";
         } else if (encoding == ASCIIEncoding.INSTANCE) {
             return "BYTES";
