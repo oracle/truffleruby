@@ -39,7 +39,7 @@ TRUFFLERUBY_GEM_TEST_PACK_VERSION = '58d3048b49629102945a60918f31bf74547f51f9'
 
 JDEBUG = '--vm.agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y'
 METRICS_REPS = Integer(ENV['TRUFFLERUBY_METRICS_REPS'] || 10)
-DEFAULT_PROFILE_OPTIONS = %w[--cpusampler --cpusampler.Output=json]
+DEFAULT_PROFILE_OPTIONS = %w[--cpusampler --cpusampler.Output=flamegraph]
 
 RUBOCOP_INCLUDE_LIST = %w[
   lib/cext
@@ -1977,28 +1977,21 @@ module Commands
     env = args.first.is_a?(Hash) ? args.shift : {}
     stdin = args.delete '-'
 
-    repo = find_or_clone_repo('https://github.com/eregon/FlameGraph.git', 'graalvm')
     Dir.mkdir(PROFILES_DIR) unless Dir.exist?(PROFILES_DIR)
 
     time = Time.now.strftime('%Y%m%d-%H%M%S')
-    profile_data_file = "#{PROFILES_DIR}/truffleruby-profile-#{time}.json"
-    flamegraph_data_file = "#{PROFILES_DIR}/truffleruby-flamegraph-data.stacks"
     svg_filename = "#{PROFILES_DIR}/flamegraph_#{time}.svg"
 
     if stdin
-      File.write(profile_data_file, STDIN.read)
+      File.write(svg_filename, STDIN.read)
     else
       require 'benchmark'
-      FileUtils.rm_f(profile_data_file)
-      run_args = DEFAULT_PROFILE_OPTIONS + ["--cpusampler.OutputFile=#{profile_data_file}"] + args
+      FileUtils.rm_f(svg_filename)
+      run_args = DEFAULT_PROFILE_OPTIONS + ["--cpusampler.OutputFile=#{svg_filename}"] + args
       puts Benchmark.measure {
         run_ruby(env, *run_args)
       }
     end
-    raw_sh "#{repo}/stackcollapse-graalvm.rb", profile_data_file, out: flamegraph_data_file
-    unit = args.any?(/^--cpusampler\.Period=/) ? [] : ['--countname', 'ms']
-    raw_sh "#{repo}/flamegraph.pl", *unit, flamegraph_data_file, out: svg_filename
-
     app_open svg_filename
   end
 
