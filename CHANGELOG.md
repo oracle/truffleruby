@@ -10,6 +10,7 @@ Bug fixes:
 Compatibility:
 
 * Implement `rb_sprintf` in our format compiler to provide consistent formatting across C standard libraries.
+* Update `defined?` to return frozen strings (#2450).
 
 Performance:
 

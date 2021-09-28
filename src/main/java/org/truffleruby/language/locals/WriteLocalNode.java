@@ -12,6 +12,7 @@ package org.truffleruby.language.locals;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.AssignableNode;
+import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.debug.SingleMemberDescriptor;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -34,7 +35,7 @@ public abstract class WriteLocalNode extends RubyContextSourceNode implements As
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
-        return coreStrings().ASSIGNMENT.createInstance(context);
+        return FrozenStrings.ASSIGNMENT;
     }
 
     @Override

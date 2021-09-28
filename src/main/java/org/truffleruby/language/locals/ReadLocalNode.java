@@ -11,6 +11,7 @@ package org.truffleruby.language.locals;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.debug.SingleMemberDescriptor;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -41,11 +42,11 @@ public abstract class ReadLocalNode extends RubyContextSourceNode {
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
         switch (type) {
             case FRAME_LOCAL:
-                return coreStrings().LOCAL_VARIABLE.createInstance(context);
+                return FrozenStrings.LOCAL_VARIABLE;
 
             case FRAME_LOCAL_GLOBAL:
                 if (readFrameSlot(frame) != nil) {
-                    return coreStrings().GLOBAL_VARIABLE.createInstance(context);
+                    return FrozenStrings.GLOBAL_VARIABLE;
                 } else {
                     return nil;
                 }

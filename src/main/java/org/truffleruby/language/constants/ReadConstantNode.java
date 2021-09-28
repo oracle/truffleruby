@@ -13,6 +13,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
+import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -88,7 +89,7 @@ public class ReadConstantNode extends RubyContextSourceNode {
         try {
             final RubyModule module = checkModule(moduleNode.execute(frame));
             final RubyConstant constant = getConstantIfDefined(module);
-            return constant == null ? nil : coreStrings().CONSTANT.createInstance(getContext());
+            return constant == null ? nil : FrozenStrings.CONSTANT;
         } catch (RaiseException e) {
             return nil; // MRI swallows all exceptions in defined? (https://bugs.ruby-lang.org/issues/5786)
         }

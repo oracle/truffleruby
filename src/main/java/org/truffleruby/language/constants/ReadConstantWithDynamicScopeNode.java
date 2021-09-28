@@ -13,6 +13,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
+import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
@@ -57,7 +58,7 @@ public class ReadConstantWithDynamicScopeNode extends RubyContextSourceNode {
         }
 
         if (ModuleOperations.isConstantDefined(constant)) {
-            return coreStrings().CONSTANT.createInstance(getContext());
+            return FrozenStrings.CONSTANT;
         } else {
             return nil;
         }

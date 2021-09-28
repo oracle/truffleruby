@@ -12,6 +12,7 @@ package org.truffleruby.language.control;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
@@ -53,6 +54,6 @@ public class OrLazyValueDefinedNode extends RubyContextSourceNode {
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
-        return language.coreStrings.ASSIGNMENT.createInstance(context);
+        return FrozenStrings.ASSIGNMENT;
     }
 }

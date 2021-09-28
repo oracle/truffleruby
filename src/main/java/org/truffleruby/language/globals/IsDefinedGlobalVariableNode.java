@@ -12,6 +12,7 @@ package org.truffleruby.language.globals;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
+import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.yield.CallBlockNode;
 
@@ -37,7 +38,7 @@ public abstract class IsDefinedGlobalVariableNode extends RubyBaseNode {
     protected Object executeDefined(VirtualFrame frame,
             @Bind("getStorage(frame)") GlobalVariableStorage storage) {
         if (storage.isDefined()) {
-            return coreStrings().GLOBAL_VARIABLE.createInstance(getContext());
+            return FrozenStrings.GLOBAL_VARIABLE;
         } else {
             return nil;
         }

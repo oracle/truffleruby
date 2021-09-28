@@ -60,6 +60,6 @@ public class RescueSplatNode extends RescueNode {
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
-        return RubyNode.defaultIsDefined(getLanguage(), context, this);
+        return RubyNode.defaultIsDefined(this);
     }
 }

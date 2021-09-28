@@ -26,15 +26,15 @@ import java.util.List;
 
 public class FrozenStringLiterals {
 
-    private static final List<ImmutableRubyString> ENCODING_NAMES = new ArrayList<>();
+    private static final List<ImmutableRubyString> STRINGS_TO_CACHE = new ArrayList<>();
 
     private final RopeCache ropeCache;
     private final WeakValueCache<LeafRope, ImmutableRubyString> values = new WeakValueCache<>();
 
     public FrozenStringLiterals(RopeCache ropeCache) {
         this.ropeCache = ropeCache;
-        for (ImmutableRubyString name : ENCODING_NAMES) {
-            registerEncodingName(name);
+        for (ImmutableRubyString name : STRINGS_TO_CACHE) {
+            addFrozenStringToCache(name);
         }
     }
 
@@ -57,14 +57,14 @@ public class FrozenStringLiterals {
         }
     }
 
-    public static ImmutableRubyString encodingName(LeafRope name, RubyEncoding encoding) {
+    public static ImmutableRubyString createStringAndCacheLater(LeafRope name, RubyEncoding encoding) {
         final ImmutableRubyString string = new ImmutableRubyString(name, encoding);
-        assert !ENCODING_NAMES.contains(string);
-        ENCODING_NAMES.add(string);
+        assert !STRINGS_TO_CACHE.contains(string);
+        STRINGS_TO_CACHE.add(string);
         return string;
     }
 
-    private void registerEncodingName(ImmutableRubyString string) {
+    private void addFrozenStringToCache(ImmutableRubyString string) {
         final LeafRope cachedRope = ropeCache.getRope(string.rope);
         assert cachedRope == string.rope;
         final ImmutableRubyString existing = values.addInCacheIfAbsent(string.rope, string);

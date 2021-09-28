@@ -15,6 +15,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
+import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.yield.CallBlockNode;
@@ -82,7 +83,7 @@ public abstract class WriteGlobalVariableNode extends RubyContextSourceNode impl
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
-        return coreStrings().ASSIGNMENT.createInstance(context);
+        return FrozenStrings.ASSIGNMENT;
     }
 
     @Override

@@ -13,6 +13,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.core.module.RubyModule;
+import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -60,7 +61,7 @@ public class WriteClassVariableNode extends RubyContextSourceNode implements Ass
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
-        return coreStrings().ASSIGNMENT.createInstance(context);
+        return FrozenStrings.ASSIGNMENT;
     }
 
     private void warnTopLevelClassVariableAccess() {
