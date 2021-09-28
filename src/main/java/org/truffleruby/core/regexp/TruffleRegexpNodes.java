@@ -179,6 +179,11 @@ public class TruffleRegexpNodes {
     }
 
     @TruffleBoundary
+    private static Matcher getMatcherNoRegion(Regex regex, byte[] stringBytes, int start) {
+        return regex.matcherNoRegion(stringBytes, start, stringBytes.length);
+    }
+
+    @TruffleBoundary
     private static Regex makeRegexpForEncoding(RubyContext context, RubyRegexp regexp, RubyEncoding enc,
             Node currentNode) {
         final RubyEncoding[] fixedEnc = new RubyEncoding[]{ null };
@@ -727,7 +732,7 @@ public class TruffleRegexpNodes {
         }
 
         public abstract Object executeMatchInRegion(RubyRegexp regexp, Object string, int fromPos, int toPos,
-                boolean atStart, int startPos);
+                boolean atStart, int startPos, boolean createMatchData);
 
         /** Matches a regular expression against a string over the specified range of characters.
          *
@@ -744,10 +749,20 @@ public class TruffleRegexpNodes {
          *
          * @param startPos The position within the string which the matcher should consider the start. Setting this to
          *            the from position allows scanners to match starting part-way through a string while still setting
-         *            atStart and thus forcing the match to be at the specific starting position. */
+         *            atStart and thus forcing the match to be at the specific starting position.
+         *
+         * @param createMatchData Whether to create a Ruby `MatchData` object with the results of the match or return a
+         *            simple Boolean value indicating a successful match (true: match; false: mismatch). */
         @Specialization(guards = "libString.isRubyString(string)")
         protected Object matchInRegion(
-                RubyRegexp regexp, Object string, int fromPos, int toPos, boolean atStart, int startPos,
+                RubyRegexp regexp,
+                Object string,
+                int fromPos,
+                int toPos,
+                boolean atStart,
+                int startPos,
+                boolean createMatchData,
+                @Cached ConditionProfile createMatchDataProfile,
                 @Cached ConditionProfile encodingMismatchProfile,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached MatchNode matchNode,
@@ -762,8 +777,15 @@ public class TruffleRegexpNodes {
                 regex = encodingCache.getOrCreate(enc, e -> makeRegexpForEncoding(getContext(), regexp, e, this));
             }
 
-            final Matcher matcher = getMatcher(regex, bytesNode.execute(rope), startPos);
-            return matchNode.execute(regexp, string, matcher, fromPos, toPos, atStart);
+            final Matcher matcher;
+
+            if (createMatchDataProfile.profile(createMatchData)) {
+                matcher = getMatcher(regex, bytesNode.execute(rope), startPos);
+            } else {
+                matcher = getMatcherNoRegion(regex, bytesNode.execute(rope), startPos);
+            }
+
+            return matchNode.execute(regexp, string, matcher, fromPos, toPos, atStart, createMatchData);
         }
     }
 
@@ -780,7 +802,14 @@ public class TruffleRegexpNodes {
 
         @Specialization(guards = "libString.isRubyString(string)")
         protected Object matchInRegionTRegex(
-                RubyRegexp regexp, Object string, int fromPos, int toPos, boolean atStart, int startPos,
+                RubyRegexp regexp,
+                Object string,
+                int fromPos,
+                int toPos,
+                boolean atStart,
+                int startPos,
+                boolean createMatchData,
+                @Cached ConditionProfile createMatchDataProfile,
                 @Cached ConditionProfile matchFoundProfile,
                 @Cached ConditionProfile tRegexCouldNotCompileProfile,
                 @Cached ConditionProfile tRegexIncompatibleProfile,
@@ -802,7 +831,7 @@ public class TruffleRegexpNodes {
                             regexp,
                             atStart,
                             checkEncodingNode.executeCheckEncoding(regexp, string))) == nil)) {
-                return fallbackToJoni(regexp, string, fromPos, toPos, atStart, startPos);
+                return fallbackToJoni(regexp, string, fromPos, toPos, atStart, startPos, createMatchData);
             }
 
             if (getContext().getOptions().REGEXP_INSTRUMENT_MATCH) {
@@ -839,28 +868,33 @@ public class TruffleRegexpNodes {
 
             final boolean isMatch = (boolean) readMember(resultInterop, result, "isMatch");
 
-            if (matchFoundProfile.profile(isMatch)) {
-                final int groupCount = groupCountProfile.profile((int) readMember(regexInterop, tRegex, "groupCount"));
-                final Region region = new Region(groupCount);
+            if (createMatchDataProfile.profile(createMatchData)) {
+                if (matchFoundProfile.profile(isMatch)) {
+                    final int groupCount = groupCountProfile
+                            .profile((int) readMember(regexInterop, tRegex, "groupCount"));
+                    final Region region = new Region(groupCount);
 
-                try {
-                    for (int group = 0; loopProfile.inject(group < groupCount); group++) {
-                        region.beg[group] = RubyMatchData.LAZY;
-                        region.end[group] = RubyMatchData.LAZY;
-                        TruffleSafepoint.poll(this);
+                    try {
+                        for (int group = 0; loopProfile.inject(group < groupCount); group++) {
+                            region.beg[group] = RubyMatchData.LAZY;
+                            region.end[group] = RubyMatchData.LAZY;
+                            TruffleSafepoint.poll(this);
+                        }
+                    } finally {
+                        profileAndReportLoopCount(loopProfile, groupCount);
                     }
-                } finally {
-                    profileAndReportLoopCount(loopProfile, groupCount);
-                }
 
-                return createMatchData(regexp, dupString(string), region, result);
+                    return createMatchData(regexp, dupString(string), region, result);
+                } else {
+                    return nil;
+                }
             } else {
-                return nil;
+                return isMatch;
             }
         }
 
         private Object fallbackToJoni(RubyRegexp regexp, Object string, int fromPos, int toPos, boolean atStart,
-                int startPos) {
+                int startPos, boolean createMatchData) {
             if (getContext().getOptions().WARN_TRUFFLE_REGEX_MATCH_FALLBACK) {
                 if (warnOnFallbackNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -883,7 +917,8 @@ public class TruffleRegexpNodes {
                 fallbackMatchInRegionNode = insert(MatchInRegionNode.create());
             }
 
-            return fallbackMatchInRegionNode.executeMatchInRegion(regexp, string, fromPos, toPos, atStart, startPos);
+            return fallbackMatchInRegionNode
+                    .executeMatchInRegion(regexp, string, fromPos, toPos, atStart, startPos, createMatchData);
         }
 
         private Object createMatchData(RubyRegexp regexp, Object string, Region region, Object tRegexResult) {
@@ -941,7 +976,7 @@ public class TruffleRegexpNodes {
         }
 
         public abstract Object execute(RubyRegexp regexp, Object string, Matcher matcher,
-                int startPos, int range, boolean onlyMatchAtStart);
+                int startPos, int range, boolean onlyMatchAtStart, boolean createMatchData);
 
         // Creating a MatchData will store a copy of the source string. It's tempting to use a rope here, but a bit
         // inconvenient because we can't work with ropes directly in Ruby and some MatchData methods are nicely
@@ -956,8 +991,15 @@ public class TruffleRegexpNodes {
         // same as when the MatchData was created.
         @Specialization
         protected Object executeMatch(
-                RubyRegexp regexp, Object string, Matcher matcher, int startPos, int range, boolean onlyMatchAtStart,
-                @Cached ConditionProfile matchesProfile) {
+                RubyRegexp regexp,
+                Object string,
+                Matcher matcher,
+                int startPos,
+                int range,
+                boolean onlyMatchAtStart,
+                boolean createMatchData,
+                @Cached ConditionProfile createMatchDataProfile,
+                @Cached ConditionProfile mismatchProfile) {
             if (getContext().getOptions().REGEXP_INSTRUMENT_MATCH) {
                 TruffleRegexpNodes.instrumentMatch(
                         MATCHED_REGEXPS_JONI,
@@ -969,23 +1011,27 @@ public class TruffleRegexpNodes {
 
             int match = runMatch(matcher, startPos, range, onlyMatchAtStart);
 
-            if (matchesProfile.profile(match == -1)) {
-                return nil;
+            if (createMatchDataProfile.profile(createMatchData)) {
+                if (mismatchProfile.profile(match == Matcher.FAILED)) {
+                    return nil;
+                }
+
+                assert match >= 0;
+
+                final Region region = matcher.getEagerRegion();
+                assert assertValidRegion(region);
+                final RubyString dupedString = (RubyString) dupNode.call(string, "dup");
+                RubyMatchData result = new RubyMatchData(
+                        coreLibrary().matchDataClass,
+                        getLanguage().matchDataShape,
+                        regexp,
+                        dupedString,
+                        region);
+                AllocationTracing.trace(result, this);
+                return result;
+            } else {
+                return match != Matcher.FAILED;
             }
-
-            assert match >= 0;
-
-            final Region region = matcher.getEagerRegion();
-            assert assertValidRegion(region);
-            final RubyString dupedString = (RubyString) dupNode.call(string, "dup");
-            RubyMatchData result = new RubyMatchData(
-                    coreLibrary().matchDataClass,
-                    getLanguage().matchDataShape,
-                    regexp,
-                    dupedString,
-                    region);
-            AllocationTracing.trace(result, this);
-            return result;
         }
 
         @TruffleBoundary

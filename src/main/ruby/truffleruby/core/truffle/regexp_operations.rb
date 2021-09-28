@@ -24,7 +24,7 @@ module Truffle
       Primitive.encoding_ensure_compatible(re, str)
     end
 
-    def self.search_region(re, str, start_index, end_index, forward)
+    def self.search_region(re, str, start_index, end_index, forward, create_match_data)
       search_check_args(re, str)
 
       if forward
@@ -34,7 +34,7 @@ module Truffle
         from = end_index
         to = start_index
       end
-      match_in_region(re, str, from, to, false, 0)
+      match_in_region(re, str, from, to, false, 0, create_match_data)
     end
 
     def self.search_string(re, str)
@@ -47,18 +47,30 @@ module Truffle
     def self.match(re, str, pos=0)
       return nil unless str
 
+      common_match(re, str, pos, true)
+    end
+
+    def self.match?(re, str, pos=0)
+      return false unless str
+
+      common_match(re, str, pos, false)
+    end
+    Truffle::Graal.always_split(method(:match?))
+
+    def self.common_match(re, str, pos, create_match_data)
       str = str.to_s if Primitive.object_kind_of?(str, Symbol)
       str = StringValue(str)
 
       pos = pos < 0 ? pos + str.size : pos
       pos = Primitive.string_byte_index_from_char_index(str, pos)
-      search_region(re, str, pos, str.bytesize, true)
+
+      search_region(re, str, pos, str.bytesize, true, create_match_data)
     end
 
     def self.match_from(re, str, pos)
       return nil unless str
 
-      search_region(re, str, pos, str.bytesize, true)
+      search_region(re, str, pos, str.bytesize, true, true)
     end
 
     Truffle::Boot.delay do
@@ -72,24 +84,24 @@ module Truffle
       end
     end
 
-    def self.match_in_region(re, str, from, to, at_start, start)
+    def self.match_in_region(re, str, from, to, at_start, start, create_match_data=true)
       if COMPARE_ENGINES
-        match_in_region_compare_engines(re, str, from, to, at_start, start)
+        match_in_region_compare_engines(re, str, from, to, at_start, start, create_match_data)
       elsif USE_TRUFFLE_REGEX
-        Primitive.regexp_match_in_region_tregex(re, str, from, to, at_start, start)
+        Primitive.regexp_match_in_region_tregex(re, str, from, to, at_start, start, create_match_data)
       else
-        Primitive.regexp_match_in_region(re, str, from, to, at_start, start)
+        Primitive.regexp_match_in_region(re, str, from, to, at_start, start, create_match_data)
       end
     end
 
-    def self.match_in_region_compare_engines(re, str, from, to, at_start, start)
+    def self.match_in_region_compare_engines(re, str, from, to, at_start, start, create_match_data)
       begin
-        md1 = Primitive.regexp_match_in_region_tregex(re, str, from, to, at_start, start)
+        md1 = Primitive.regexp_match_in_region_tregex(re, str, from, to, at_start, start, create_match_data)
       rescue => e
         md1 = e
       end
       begin
-        md2 = Primitive.regexp_match_in_region(re, str, from, to, at_start, start)
+        md2 = Primitive.regexp_match_in_region(re, str, from, to, at_start, start, create_match_data)
       rescue => e
         md2 = e
       end
