@@ -330,6 +330,16 @@ module Utilities
     }
   end
 
+  def ruby_running_jt_env
+    ruby_running_jt = RbConfig.ruby
+    bin = File.dirname(ruby_running_jt)
+    if which('ruby') == ruby_running_jt
+      {}
+    else
+      { 'PATH' => "#{bin}:#{ENV['PATH']}" }
+    end
+  end
+
   def human_size(bytes)
     if bytes < 1024
       "#{bytes} B"
@@ -793,15 +803,17 @@ module Commands
                                        note that to run most MRI benchmarks, you should translate them first with normal
                                        Ruby and cache the result, such as benchmark bench/mri/bm_vm1_not.rb --cache
                                        jt benchmark bench/mri/bm_vm1_not.rb --use-cache
-      jt profile                                    profiles an application, including the TruffleRuby runtime, and generates a flamegraph
-      jt igv                                        launches IdealGraphVisualizer
-      jt next                                       tell you what to work on next (give you a random core library spec)
-      jt install [jvmci|eclipse]                    install [the right JVMCI JDK | Eclipse] in the parent directory
-      jt docker                                     build a Docker image - see doc/contributor/docker.md
-      jt sync                                       continuously synchronize changes from the Ruby source files to the GraalVM build
-      jt idea                                       generates IntelliJ projects
-      jt format                                     run eclipse code formatter
-      jt graalvm-home                               prints the GraalVM home of the RUBY_SELECTOR
+      jt profile                                     profiles an application, including the TruffleRuby runtime, and generates a flamegraph
+      jt graph [--method Object#foo] [--watch] file.rb
+                                                     render a graph of Object#foo within file.rb
+      jt igv                                         launches IdealGraphVisualizer
+      jt next                                        tell you what to work on next (give you a random core library spec)
+      jt install [jvmci|eclipse]                     install [the right JVMCI JDK | Eclipse] in the parent directory
+      jt docker                                      build a Docker image - see doc/contributor/docker.md
+      jt sync                                        continuously synchronize changes from the Ruby source files to the GraalVM build
+      jt idea                                        generates IntelliJ projects
+      jt format                                      run eclipse code formatter
+      jt graalvm-home                                prints the GraalVM home of the RUBY_SELECTOR
 
       you can also put --build or --rebuild in front of any command to build or rebuild first
 
@@ -1995,6 +2007,82 @@ module Commands
     app_open svg_filename
   end
 
+  def graph(*args)
+    truffleruby_compiler!
+
+    test_file = nil
+    method = 'Object#foo'
+    watch = false
+
+    until args.empty?
+      arg = args.shift
+      case arg
+      when '--method'
+        raise if args.empty?
+        method = args.shift
+      when '--watch'
+        watch = true
+      else
+        raise if arg.start_with?('-')
+        raise if test_file
+        test_file = arg
+      end
+    end
+
+    raise unless test_file
+    env = ruby_running_jt_env
+
+    if Gem::Specification.find_all_by_name('seafoam').empty?
+      sh env, 'gem', 'install', 'seafoam'
+    end
+
+    options = [
+      '--experimental-options',
+      '--engine.TraceCompilation',
+      '--engine.BackgroundCompilation=false',
+      "--engine.CompileOnly=#{method}",
+      '--engine.MultiTier=false',
+      '--engine.NodeSourcePositions',
+      '--vm.Dgraal.PrintGraphWithSchedule=true',
+      '--vm.Dgraal.PrintBackendCFG=true',
+      '--vm.Dgraal.Dump=Truffle:1',
+    ]
+
+    loop do # for --watch
+      compiled = false
+      IO.popen([ruby_launcher, *options, test_file], :err=>[:child, :out]) do |pipe|
+        pipe.each_line do |line|
+          puts line
+          if line =~ /\[engine\] opt done     #{method}/
+            compiled = true
+            Process.kill 'INT', pipe.pid
+            break
+          end
+        end
+      end
+      raise "The process did not compile #{method}" unless compiled
+
+      dumps = Dir.glob('graal_dumps/*').sort.last
+      raise 'Could not dump directory under graal_dumps/' unless dumps
+      graph = Dir.glob("#{dumps}/*\\[#{method}\\].bgv").sort.last
+      raise "Could not find graph in #{dumps}" unless graph
+
+      list = sh(env, 'seafoam', graph, 'list', capture: :out, no_print_cmd: true)
+      n = list.each_line.with_index do |line, index|
+        break index if line.include? 'Before phase org.graalvm.compiler.phases.common.LoweringPhase'
+      end
+
+      sh env, 'seafoam', "#{graph}:#{n}", 'render'
+
+      break unless watch
+      puts # newline between runs
+
+      # Sorry... actively poll to avoid any dependencies
+      time = File.mtime(test_file)
+      sleep 1 until File.mtime(test_file) > time
+    end
+  end
+
   def igv
     clone_enterprise
     graal_enterprise = File.expand_path '../graal-enterprise/graal-enterprise', TRUFFLERUBY_DIR
@@ -2297,14 +2385,12 @@ module Commands
       args += RUBOCOP_INCLUDE_LIST
     end
 
-    ruby = RbConfig.ruby
-
     if gem_test_pack?
       gem_home = "#{gem_test_pack}/rubocop-gems"
       env = { 'GEM_HOME' => gem_home, 'GEM_PATH' => gem_home }
-      sh env, ruby, "#{gem_home}/bin/rubocop", *args
+      sh env, RbConfig.ruby, "#{gem_home}/bin/rubocop", *args
     else
-      env = { 'PATH' => "#{File.dirname(ruby)}:#{ENV['PATH']}" }
+      env = ruby_running_jt_env
       if Gem::Specification.find_all_by_name('rubocop', "#{RUBOCOP_VERSION}").empty?
         sh env, 'gem', 'install', 'rubocop', '-v', RUBOCOP_VERSION
       end
