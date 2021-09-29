@@ -18,7 +18,7 @@ import org.truffleruby.language.Nil;
 @NodeChild("value")
 public abstract class ReinterpretByteAsIntegerNode extends FormatNode {
 
-    public boolean signed;
+    private final boolean signed;
 
     public ReinterpretByteAsIntegerNode(boolean signed) {
         this.signed = signed;
