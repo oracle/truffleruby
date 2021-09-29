@@ -240,7 +240,7 @@ par with one another.
 Java interoperability works in the native configuration but requires more setup.
 By default, only some array classes are available in the image for Java interoperability.
 You can add more classes by compiling a native image including TruffleRuby.
-See [here](../embedding/embed-languages.md/#build-native-images-from-polyglot-applications) for more details.
+See [here](https://github.com/oracle/graal/blob/master/docs/reference-manual/embedding/embed-languages.md#build-native-images-from-polyglot-applications) for more details.
 
 ## Spec Completeness
 
