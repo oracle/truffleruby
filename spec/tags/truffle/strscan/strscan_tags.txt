@@ -1,1 +1,0 @@
-slow:StringScanner has a `scan_internal` method of under 100 AST nodes

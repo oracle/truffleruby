@@ -18,10 +18,14 @@ module Truffle
       Primitive.regexp_last_match_set(s, v)
     }
 
-    def self.search_region(re, str, start_index, end_index, forward)
+    def self.search_check_args(re, str)
       raise TypeError, 'uninitialized regexp' unless Primitive.regexp_initialized?(re)
       raise ArgumentError, "invalid byte sequence in #{str.encoding}" unless str.valid_encoding?
       Primitive.encoding_ensure_compatible(re, str)
+    end
+
+    def self.search_region(re, str, start_index, end_index, forward)
+      search_check_args(re, str)
 
       if forward
         from = start_index
@@ -31,6 +35,13 @@ module Truffle
         to = start_index
       end
       match_in_region(re, str, from, to, false, 0)
+    end
+
+    def self.search_string(re, str)
+      search_check_args(re, str)
+
+      end_index = str.bytesize
+      match_in_region(re, str, 0, end_index, false, 0)
     end
 
     def self.match(re, str, pos=0)

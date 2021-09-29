@@ -24,103 +24,132 @@ module Truffle
       end
     end
 
-    def self.gsub_block_set_last_match(s, pattern, &block)
-      Truffle::StringOperations.gsub_internal_block(s, pattern) do |m|
-        Primitive.regexp_last_match_set(Primitive.proc_special_variables(block), m)
-        yield m.to_s
-      end
-    end
-
-    def self.gsub_internal_block(orig, pattern, &block)
-      duped = orig.dup
-      gsub_internal_core(orig, pattern) do |_ret, m|
-        val = yield m
-        if duped != orig.dup
-          raise RuntimeError, 'string modified'
+    def self.gsub_match_and_replace(orig, matches, replacement, &block)
+      if Primitive.undefined?(replacement)
+        duped = orig.dup
+        gsub_internal_yield_matches(orig, matches) do |_ret, m|
+          Primitive.regexp_last_match_set(Primitive.proc_special_variables(block), m)
+          val = yield m.to_s
+          if duped != orig.dup
+            raise RuntimeError, 'string modified'
+          end
+          val
         end
-        val
-      end
-    end
-
-    def self.gsub_internal(orig, pattern, replacement)
-      unless Primitive.object_kind_of?(replacement, String)
-        hash = Truffle::Type.rb_check_convert_type(replacement, Hash, :to_hash)
-        replacement = StringValue(replacement) unless hash
-      end
-
-      if hash
-        gsub_internal_hash(orig, pattern, hash)
       else
-        gsub_internal_replacement(orig, pattern, replacement)
+        unless Primitive.object_kind_of?(replacement, String)
+          hash = Truffle::Type.rb_check_convert_type(replacement, Hash, :to_hash)
+          replacement = StringValue(replacement) unless hash
+        end
+
+        if hash
+          gsub_internal_hash(orig, matches, hash)
+        else
+          gsub_internal_replacement(orig, matches, replacement)
+        end
       end
     end
 
-    def self.gsub_internal_hash(orig, pattern, replacement)
-      gsub_internal_core(orig, pattern) do |_ret, m|
+    def self.gsub_internal_hash(orig, matches, replacement)
+      gsub_internal_yield_matches(orig, matches) do |_ret, m|
         replacement[m.to_s]
       end
     end
 
-    def self.gsub_internal_replacement(orig, pattern, replacement)
-      gsub_internal_core(orig, pattern) do |ret, m|
+    def self.gsub_internal_replacement(orig, matches, replacement)
+      gsub_internal_yield_matches(orig, matches) do |ret, m|
         Truffle::StringOperations.to_sub_replacement(replacement, ret, m)
       end
     end
 
-    def self.gsub_internal_core(orig, pattern)
+    def self.gsub_internal_core_check_encoding(orig)
       unless orig.valid_encoding?
         raise ArgumentError, "invalid byte sequence in #{orig.encoding}"
       end
+    end
 
-      if String === pattern
-        index = byte_index(orig, pattern, 0)
-        match = index ? Primitive.matchdata_create_single_group(pattern, orig.dup, index, index + pattern.bytesize) : nil
+    def self.gsub_internal_matches(global, orig, pattern)
+      if Primitive.object_kind_of?(pattern, Regexp)
+        gsub_regexp_matches(global, orig, pattern)
+      elsif Primitive.object_kind_of?(pattern, String)
+        gsub_string_matches(global, orig, pattern)
       else
-        pattern = Truffle::Type.coerce_to_regexp(pattern, true) unless Primitive.object_kind_of?(pattern, Regexp)
-        match = Truffle::RegexpOperations.search_region(pattern, orig, 0, orig.bytesize, true)
+        gsub_other_matches(global, orig, pattern)
       end
+    end
 
-      return nil unless match
+    def self.gsub_new_offset(orig, match)
+      start_pos = Primitive.match_data_byte_begin(match, 0)
+      end_pos = Primitive.match_data_byte_end(match, 0)
+      if start_pos == end_pos
+        if char = Primitive.string_find_character(orig, start_pos)
+          start_pos + char.bytesize
+        else
+          start_pos + 1
+        end
+      else
+        end_pos
+      end
+    end
+
+    def self.gsub_regexp_matches(global, orig, pattern)
+      res = []
+      offset = 0
+      Truffle::RegexpOperations.search_check_args(pattern, orig);
+      while match = Truffle::RegexpOperations.match_in_region(pattern, orig, offset, orig.bytesize, false, 0)
+        res << match
+        break unless global
+        offset = gsub_new_offset(orig, match)
+      end
+      res
+    end
+
+    def self.gsub_string_matches(global, orig, pattern)
+      res = []
+      offset = 0
+      while index = byte_index(orig, pattern, offset)
+        match = Primitive.matchdata_create_single_group(pattern, orig.dup, index, index + pattern.bytesize)
+        res << match
+        break unless global
+        offset = gsub_new_offset(orig, match)
+      end
+      res
+    end
+
+    def self.gsub_other_matches(global, orig, pattern)
+      pattern = Truffle::Type.coerce_to_regexp(pattern, true)
+      res = []
+      offset = 0
+      Truffle::RegexpOperations.search_check_args(pattern, orig);
+      while match = Truffle::RegexpOperations.match_in_region(pattern, orig, offset, orig.bytesize, false, 0)
+        res << match
+        break unless global
+        offset = gsub_new_offset(orig, match)
+      end
+      res
+    end
+
+    def self.gsub_internal_yield_matches(orig, matches)
+      return nil if matches.empty?
 
       last_end = 0
-      last_match = nil
       ret = orig.byteslice(0, 0) # Empty string and string subclass
 
-      while match
-        offset = Primitive.match_data_byte_begin(match, 0)
-
+      matches.each do |match|
         str = Truffle::RegexpOperations.pre_match_from(match, last_end)
         Primitive.string_append(ret, str) if str
 
         val = yield ret, match
-        val = val.to_s
+        val = val.to_s unless Primitive.object_kind_of?(val, String)
+        val = Truffle::Type.rb_any_to_s(val) unless Primitive.object_kind_of?(val, String)
+
         Primitive.string_append(ret, val)
-
-        if Truffle::RegexpOperations.collapsing?(match)
-          if (char = Primitive.string_find_character(orig, offset))
-            offset += char.bytesize
-          else
-            offset += 1
-          end
-        else
-          offset = Primitive.match_data_byte_end(match, 0)
-        end
-
-        last_match = match
         last_end = Primitive.match_data_byte_end(match, 0)
-
-        if String === pattern
-          index = byte_index(orig, pattern, offset)
-          match = index ? Primitive.matchdata_create_single_group(pattern, orig.dup, index, index + pattern.bytesize) : nil
-        else
-          match = Truffle::RegexpOperations.match_from(pattern, orig, offset)
-        end
       end
 
       str = orig.byteslice(last_end, orig.bytesize-last_end+1)
       Primitive.string_append(ret, str) if str
 
-      [ret, last_match]
+      ret
     end
 
     def self.concat_internal(string, other)

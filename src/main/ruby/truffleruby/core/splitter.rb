@@ -77,13 +77,10 @@ module Truffle
           valid_encoding?(string)
           valid_encoding?(pattern)
 
-          if limit == 0 && pattern.empty?      # split('', 0)
+          if pattern.empty?
             split_type_chars(string, limit, block)
-          elsif limit <= 0 && !pattern.empty?  # split(':', -1)
+          else
             split_type_string(string, pattern, limit, block)
-          else                                 # transfer to regexp
-            pattern = Regexp.new(Regexp.quote(pattern))
-            split_type_regexp(string, pattern, limit, block)
           end
         end
 
@@ -116,13 +113,15 @@ module Truffle
       def split_type_string(string, pattern, limit, block)
         pos = 0
         empty_count = 0
+        limited = limit > 0
+        count = 0
 
         ret = []
 
         pat_size = pattern.bytesize
         str_size = string.bytesize
 
-        while pos < str_size
+        while (pos < str_size && !(limited && limit - count <= 1))
           nxt = Primitive.find_string(string, pattern, pos)
           break unless nxt
 
@@ -130,6 +129,7 @@ module Truffle
           empty_count = add_substring(string, ret, string.byteslice(pos, match_size), empty_count, block)
 
           pos = nxt + pat_size
+          count += 1
         end
 
         # No more separators, but we need to grab the last part still.
