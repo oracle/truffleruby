@@ -35,6 +35,7 @@ import org.truffleruby.core.format.read.array.ReadValueNodeGen;
 import org.truffleruby.core.format.write.bytes.WriteBytesNodeGen;
 import org.truffleruby.core.format.write.bytes.WritePaddedBytesNodeGen;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -47,7 +48,7 @@ public class PrintfSimpleTreeBuilder {
 
     public static final int DEFAULT = -1;
 
-    private static final byte[] EMPTY_BYTES = RopeConstants.EMPTY_BYTES;
+    private static final LeafRope EMPTY_ROPE = RopeConstants.EMPTY_US_ASCII_ROPE;
 
     public PrintfSimpleTreeBuilder(RubyLanguage language, List<SprintfConfig> configs) {
         this.language = language;
@@ -188,11 +189,11 @@ public class PrintfSimpleTreeBuilder {
                                                     true,
                                                     conversionMethodName,
                                                     false,
-                                                    EMPTY_BYTES,
+                                                    EMPTY_ROPE,
                                                     new SourceNode());
                                 } else {
                                     conversionNode = ToStringNodeGen
-                                            .create(true, conversionMethodName, false, EMPTY_BYTES, valueNode);
+                                            .create(true, conversionMethodName, false, EMPTY_ROPE, valueNode);
                                 }
 
                                 if (config.getWidth() != null || config.isWidthStar() ||
