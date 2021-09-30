@@ -119,8 +119,7 @@ Where boolean value is expected (e.g., in `if` conditions) the foreign value is 
 TruffleRuby's Java interoperability interface is similar to the interface from the Nashorn JavaScript implementation, as also implemented by GraalVM's JavaScript implementation.
 
 It is easier to use Java interoperability in JVM mode (`--jvm`). Java interoperability is also supported in native mode but requires more setup.
-See [here](https://www.graalvm.org/reference-manual/embed-languages/#build-native-images-from-polyglot-applications)
-for more details.
+See [here](https://github.com/oracle/graal/blob/master/docs/reference-manual/embedding/embed-languages.md#build-native-images-from-polyglot-applications) for more details.
 
 `Java.type('name')` returns a Java type, given a name such as `java.lang.Integer` or `int[]`.
 With the type object, `.new` will create an instance, `.foo` will call the static method `foo`, `[:FOO]` will read the static field

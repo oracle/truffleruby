@@ -31,7 +31,7 @@ VisualVM is a GUI with many tools:
 * CPU and memory sampling profilers at the Java level (tab: Sampler)
 * a CPU sampling profiler at the **Ruby** level (tab: Polyglot Sampler)
 
-There is more documentation about VisualVM on the [GraalVM website](https://www.graalvm.org/tools/visualvm/).
+There is more documentation about VisualVM on the [GraalVM website](https://github.com/oracle/graal/blob/master/docs/tools/tools.md).
 
 ## Profiling
 
