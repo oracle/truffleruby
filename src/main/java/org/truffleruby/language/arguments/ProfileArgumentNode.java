@@ -71,6 +71,7 @@ public abstract class ProfileArgumentNode extends RubyContextSourceNode {
 
     @Specialization(replaces = { "cacheBoolean", "cacheInt", "cacheLong", "cacheDouble", "cacheClass" })
     protected Object unprofiled(Object object) {
+        assert object != null;
         return object;
     }
 
