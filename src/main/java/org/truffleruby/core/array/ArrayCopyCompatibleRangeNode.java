@@ -16,6 +16,7 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.shared.IsSharedNode;
 import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
@@ -52,14 +53,14 @@ public abstract class ArrayCopyCompatibleRangeNode extends RubyBaseNode {
 
     @Specialization(guards = "!noopGuard(dst, src, dstStart, srcStart, length)", limit = "storageStrategyLimit()")
     protected void copy(RubyArray dst, RubyArray src, int dstStart, int srcStart, int length,
-            @CachedLibrary("src.store") ArrayStoreLibrary stores,
+            @Bind("src.store") Object srcStore,
+            @CachedLibrary("srcStore") ArrayStoreLibrary stores,
             @Cached IsSharedNode isDstShared,
             @Cached IsSharedNode isSrcShared,
             @Cached WriteBarrierNode writeBarrierNode,
             @Cached ConditionProfile share,
             @Cached LoopConditionProfile loopProfile) {
 
-        final Object srcStore = src.store;
         stores.copyContents(srcStore, srcStart, dst.store, dstStart, length);
 
         if (share.profile(!stores.isPrimitive(srcStore) &&

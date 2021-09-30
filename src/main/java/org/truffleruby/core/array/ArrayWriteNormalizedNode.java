@@ -18,6 +18,7 @@ import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
@@ -35,12 +36,13 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
     // Writing within an existing array with a compatible type
 
     @Specialization(
-            guards = { "isInBounds(array, index)", "arrays.acceptsValue(array.store, value)" },
+            guards = { "isInBounds(array, index)", "stores.acceptsValue(store, value)" },
             limit = "storageStrategyLimit()")
     protected Object writeWithin(RubyArray array, int index, Object value,
-            @CachedLibrary("array.store") ArrayStoreLibrary arrays) {
+            @Bind("array.store") Object store,
+            @CachedLibrary("store") ArrayStoreLibrary stores) {
         propagateSharingNode.executePropagate(array, value);
-        arrays.write(array.store, index, value);
+        stores.write(store, index, value);
         return value;
     }
 
@@ -49,18 +51,18 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
     @Specialization(
             guards = {
                     "isInBounds(array, index)",
-                    "!arrays.acceptsValue(array.store, value)"
+                    "!stores.acceptsValue(store, value)"
             },
             limit = "storageStrategyLimit()")
     protected Object writeWithinGeneralizeNonMutable(RubyArray array, int index, Object value,
-            @CachedLibrary("array.store") ArrayStoreLibrary arrays,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary newArrays) {
+            @Bind("array.store") Object store,
+            @CachedLibrary("store") ArrayStoreLibrary stores,
+            @CachedLibrary(limit = "1") ArrayStoreLibrary newStores) {
         final int size = array.size;
-        final Object store = array.store;
-        final Object newStore = arrays.allocateForNewValue(store, value, size);
-        arrays.copyContents(store, 0, newStore, 0, size);
+        final Object newStore = stores.allocateForNewValue(store, value, size);
+        stores.copyContents(store, 0, newStore, 0, size);
         propagateSharingNode.executePropagate(array, value);
-        newArrays.write(newStore, index, value);
+        newStores.write(newStore, index, value);
         array.store = newStore;
         return value;
     }
@@ -79,28 +81,28 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
             guards = {
                     "!isInBounds(array, index)",
                     "!isExtendingByOne(array, index)",
-                    "arrays.isPrimitive(array.store)" },
+                    "stores.isPrimitive(store)" },
             limit = "storageStrategyLimit()")
     protected Object writeBeyondPrimitive(RubyArray array, int index, Object value,
-            @CachedLibrary("array.store") ArrayStoreLibrary arrays,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary newArrays,
+            @Bind("array.store") Object store,
+            @CachedLibrary("store") ArrayStoreLibrary stores,
+            @CachedLibrary(limit = "1") ArrayStoreLibrary newStores,
             @Cached LoopConditionProfile loopProfile) {
         final int newSize = index + 1;
-        Object store = array.store;
-        final Object objectStore = arrays.allocateForNewValue(store, nil, newSize);
+        final Object objectStore = stores.allocateForNewValue(store, nil, newSize);
         int oldSize = array.size;
-        arrays.copyContents(store, 0, objectStore, 0, oldSize);
+        stores.copyContents(store, 0, objectStore, 0, oldSize);
         int n = oldSize;
         try {
             for (; loopProfile.inject(n < index); n++) {
-                newArrays.write(objectStore, n, nil);
+                newStores.write(objectStore, n, nil);
                 TruffleSafepoint.poll(this);
             }
         } finally {
             profileAndReportLoopCount(loopProfile, n - oldSize);
         }
         propagateSharingNode.executePropagate(array, value);
-        newArrays.write(objectStore, index, value);
+        newStores.write(objectStore, index, value);
         setStoreAndSize(array, objectStore, newSize);
         return value;
     }
@@ -109,26 +111,26 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
             guards = {
                     "!isInBounds(array, index)",
                     "!isExtendingByOne(array, index)",
-                    "!arrays.isPrimitive(array.store)" },
+                    "!stores.isPrimitive(store)" },
             limit = "storageStrategyLimit()")
     protected Object writeBeyondObject(RubyArray array, int index, Object value,
-            @CachedLibrary("array.store") ArrayStoreLibrary arrays,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary newArrays,
+            @Bind("array.store") Object store,
+            @CachedLibrary("store") ArrayStoreLibrary stores,
+            @CachedLibrary(limit = "1") ArrayStoreLibrary newStores,
             @Cached ArrayEnsureCapacityNode ensureCapacityNode,
             @Cached LoopConditionProfile loopProfile) {
         ensureCapacityNode.executeEnsureCapacity(array, index + 1);
-        final Object store = array.store;
         int n = array.size;
         try {
             for (; loopProfile.inject(n < index); n++) {
-                newArrays.write(store, n, nil);
+                newStores.write(store, n, nil);
                 TruffleSafepoint.poll(this);
             }
         } finally {
             profileAndReportLoopCount(loopProfile, n - array.size);
         }
         propagateSharingNode.executePropagate(array, value);
-        newArrays.write(store, index, value);
+        newStores.write(store, index, value);
         setSize(array, index + 1);
         return value;
     }

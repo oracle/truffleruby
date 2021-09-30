@@ -12,6 +12,7 @@ package org.truffleruby.core.array;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyBaseNode;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -32,9 +33,9 @@ public abstract class ArrayToObjectArrayNode extends RubyBaseNode {
 
     @Specialization(limit = "storageStrategyLimit()")
     protected Object[] toObjectArrayOther(RubyArray array,
-            @CachedLibrary("array.store") ArrayStoreLibrary stores) {
+            @Bind("array.store") Object store,
+            @CachedLibrary("store") ArrayStoreLibrary stores) {
         final int size = array.size;
-        final Object store = array.store;
         return stores.boxedCopyOfRange(store, 0, size);
     }
 

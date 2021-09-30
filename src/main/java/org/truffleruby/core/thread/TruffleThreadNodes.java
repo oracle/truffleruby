@@ -20,6 +20,7 @@ import org.truffleruby.language.arguments.CallerDataReadingNode;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -50,10 +51,11 @@ public class TruffleThreadNodes {
         @TruffleBoundary
         @Specialization(limit = "storageStrategyLimit()")
         protected Object findRubyCaller(RubyArray modules,
-                @CachedLibrary("modules.store") ArrayStoreLibrary stores,
+                @Bind("modules.store") Object store,
+                @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached GetSpecialVariableStorage storageNode) {
             final int modulesSize = modules.size;
-            Object[] moduleArray = stores.boxedCopyOfRange(modules.store, 0, modulesSize);
+            Object[] moduleArray = stores.boxedCopyOfRange(store, 0, modulesSize);
             FrameAndCallNode data = getContext()
                     .getCallStack()
                     .iterateFrameNotInModules(

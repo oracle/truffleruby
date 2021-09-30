@@ -12,6 +12,7 @@ package org.truffleruby.core.array;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyBaseNode;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -28,10 +29,10 @@ public abstract class ArrayCopyOnWriteNode extends RubyBaseNode {
 
     public abstract Object execute(RubyArray array, int start, int length);
 
-    @Specialization(guards = "stores.isMutable(array.store)", limit = "storageStrategyLimit()")
+    @Specialization(guards = "stores.isMutable(store)", limit = "storageStrategyLimit()")
     protected Object extractFromMutableArray(RubyArray array, int start, int length,
-            @CachedLibrary("array.store") ArrayStoreLibrary stores) {
-        Object store = array.store;
+            @Bind("array.store") Object store,
+            @CachedLibrary("store") ArrayStoreLibrary stores) {
         int size = array.size;
         Object cowStore = stores.extractRange(store, 0, size);
         Object range = stores.extractRange(store, start, start + length);
@@ -39,10 +40,10 @@ public abstract class ArrayCopyOnWriteNode extends RubyBaseNode {
         return range;
     }
 
-    @Specialization(guards = "!stores.isMutable(array.store)", limit = "storageStrategyLimit()")
+    @Specialization(guards = "!stores.isMutable(store)", limit = "storageStrategyLimit()")
     protected Object extractFromNonMutableArray(RubyArray array, int start, int length,
-            @CachedLibrary("array.store") ArrayStoreLibrary stores) {
-        Object store = array.store;
+            @Bind("array.store") Object store,
+            @CachedLibrary("store") ArrayStoreLibrary stores) {
         Object range = stores.extractRange(store, start, start + length);
         return range;
     }

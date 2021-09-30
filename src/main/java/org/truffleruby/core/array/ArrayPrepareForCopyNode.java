@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.array;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
@@ -48,10 +49,10 @@ public abstract class ArrayPrepareForCopyNode extends RubyBaseNode {
             guards = "start > dst.size",
             limit = "storageStrategyLimit()")
     protected void nilPad(RubyArray dst, RubyArray src, int start, int length,
-            @CachedLibrary("dst.store") ArrayStoreLibrary dstStores) {
+            @Bind("dst.store") Object oldStore,
+            @CachedLibrary("oldStore") ArrayStoreLibrary dstStores) {
 
         final int oldSize = dst.size;
-        final Object oldStore = dst.store;
         final Object[] newStore = new Object[ArrayUtils.capacity(getLanguage(), oldSize, start + length)];
         dstStores.copyContents(oldStore, 0, newStore, 0, oldSize); // copy the original store
         Arrays.fill(newStore, oldSize, start, nil); // nil-pad the new empty part
@@ -63,8 +64,9 @@ public abstract class ArrayPrepareForCopyNode extends RubyBaseNode {
             guards = { "length > 0", "start <= dst.size", "compatible(dstStores, dst, src)" },
             limit = "storageStrategyLimit()")
     protected void resizeCompatible(RubyArray dst, RubyArray src, int start, int length,
+            @Bind("dst.store") Object oldStore,
             @Cached ArrayEnsureCapacityNode ensureCapacityNode,
-            @CachedLibrary("dst.store") ArrayStoreLibrary dstStores) {
+            @CachedLibrary("oldStore") ArrayStoreLibrary dstStores) {
 
         // Necessary even if under capacity to ensure that the destination gets a mutable store.
         ensureCapacityNode.executeEnsureCapacity(dst, start + length);
@@ -77,11 +79,11 @@ public abstract class ArrayPrepareForCopyNode extends RubyBaseNode {
             guards = { "length > 0", "start <= dst.size", "!compatible(dstStores, dst, src)" },
             limit = "storageStrategyLimit()")
     protected void resizeGeneralize(RubyArray dst, RubyArray src, int start, int length,
-            @CachedLibrary("dst.store") ArrayStoreLibrary dstStores) {
+            @Bind("dst.store") Object dstStore,
+            @CachedLibrary("dstStore") ArrayStoreLibrary dstStores) {
 
         final int oldDstSize = dst.size;
         final int newDstSize = Math.max(oldDstSize, start + length);
-        final Object dstStore = dst.store;
         final Object srcStore = src.store;
         final Object newDstStore = dstStores.allocateForNewStore(dstStore, srcStore, newDstSize);
 
@@ -98,6 +100,7 @@ public abstract class ArrayPrepareForCopyNode extends RubyBaseNode {
         }
     }
 
+    // ToDo, we should refactor this to take stores, and bind those.
     protected static boolean compatible(ArrayStoreLibrary stores, RubyArray dst, RubyArray src) {
         return stores.acceptsAllValues(dst.store, src.store);
     }

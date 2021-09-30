@@ -17,6 +17,7 @@ import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -42,12 +43,12 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
     // Append of the correct type
 
     @Specialization(
-            guards = { "stores.acceptsValue(array.store, value)" },
+            guards = { "stores.acceptsValue(store, value)" },
             limit = "storageStrategyLimit()")
     protected RubyArray appendOneSameType(RubyArray array, Object value,
-            @CachedLibrary("array.store") ArrayStoreLibrary stores,
+            @Bind("array.store") Object store,
+            @CachedLibrary("store") ArrayStoreLibrary stores,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {
-        final Object store = array.store;
         final int oldSize = array.size;
         final int newSize = oldSize + 1;
         final int length = stores.capacity(store);
@@ -72,11 +73,11 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
             guards = "!currentStores.acceptsValue(array.store, value)",
             limit = "storageStrategyLimit()")
     protected RubyArray appendOneGeneralizeNonMutable(RubyArray array, Object value,
-            @CachedLibrary("array.store") ArrayStoreLibrary currentStores,
+            @Bind("array.store") Object currentStore,
+            @CachedLibrary("currentStore") ArrayStoreLibrary currentStores,
             @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary newStores) {
         final int oldSize = array.size;
         final int newSize = oldSize + 1;
-        final Object currentStore = array.store;
         final int oldCapacity = currentStores.capacity(currentStore);
         final int newCapacity = newSize > oldCapacity
                 ? ArrayUtils.capacityForOneMore(getLanguage(), oldCapacity)

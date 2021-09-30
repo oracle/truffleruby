@@ -17,6 +17,7 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -46,12 +47,13 @@ public abstract class ArrayIndexNodes {
 
         @Specialization(limit = "storageStrategyLimit()")
         protected Object readInBounds(RubyArray array,
-                @CachedLibrary("array.store") ArrayStoreLibrary arrays,
+                @Bind("array.store") Object store,
+                @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached ConditionProfile isInBounds) {
             final int size = array.size;
             final int normalizedIndex = index >= 0 ? index : size + index;
             if (isInBounds.profile(0 <= normalizedIndex && normalizedIndex < size)) {
-                return arrays.read(array.store, normalizedIndex);
+                return stores.read(store, normalizedIndex);
             } else {
                 return nil;
             }
@@ -77,8 +79,9 @@ public abstract class ArrayIndexNodes {
                 guards = "isInBounds(array, index)",
                 limit = "storageStrategyLimit()")
         protected Object readInBounds(RubyArray array, int index,
-                @CachedLibrary("array.store") ArrayStoreLibrary arrays) {
-            return arrays.read(array.store, index);
+                @Bind("array.store") Object store,
+                @CachedLibrary("store") ArrayStoreLibrary stores) {
+            return stores.read(store, index);
         }
 
         @Specialization(guards = "!isInBounds(array, index)")

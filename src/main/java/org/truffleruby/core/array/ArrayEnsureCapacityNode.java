@@ -12,6 +12,7 @@ package org.truffleruby.core.array;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyBaseNode;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -27,12 +28,11 @@ public abstract class ArrayEnsureCapacityNode extends RubyBaseNode {
 
     public abstract boolean executeEnsureCapacity(RubyArray array, int requiredCapacity);
 
-    @Specialization(guards = "!stores.isMutable(array.store)", limit = "storageStrategyLimit()")
+    @Specialization(guards = "!stores.isMutable(store)", limit = "storageStrategyLimit()")
     protected boolean ensureCapacityAndMakeMutable(RubyArray array, int requiredCapacity,
-            @CachedLibrary("array.store") ArrayStoreLibrary stores,
+            @Bind("array.store") Object store,
+            @CachedLibrary("store") ArrayStoreLibrary stores,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {
-        final Object store = array.store;
-
         final int currentCapacity = stores.capacity(store);
         final int capacity;
         if (extendProfile.profile(currentCapacity < requiredCapacity)) {
@@ -47,12 +47,11 @@ public abstract class ArrayEnsureCapacityNode extends RubyBaseNode {
         return true;
     }
 
-    @Specialization(guards = "stores.isMutable(array.store)", limit = "storageStrategyLimit()")
+    @Specialization(guards = "stores.isMutable(store)", limit = "storageStrategyLimit()")
     protected boolean ensureCapacity(RubyArray array, int requiredCapacity,
-            @CachedLibrary("array.store") ArrayStoreLibrary stores,
+            @Bind("array.store") Object store,
+            @CachedLibrary("store") ArrayStoreLibrary stores,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {
-        final Object store = array.store;
-
         final int length = stores.capacity(store);
         if (extendProfile.profile(length < requiredCapacity)) {
             final int capacity = ArrayUtils.capacity(getLanguage(), length, requiredCapacity);

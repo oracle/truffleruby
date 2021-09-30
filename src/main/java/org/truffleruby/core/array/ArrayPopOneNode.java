@@ -14,6 +14,7 @@ import static org.truffleruby.core.array.ArrayHelpers.setSize;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyBaseNode;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -34,10 +35,11 @@ public abstract class ArrayPopOneNode extends RubyBaseNode {
 
     @Specialization(guards = "!isEmptyArray(array)", limit = "storageStrategyLimit()")
     protected Object popOne(RubyArray array,
-            @CachedLibrary("array.store") ArrayStoreLibrary stores) {
+            @Bind("array.store") Object store,
+            @CachedLibrary("store") ArrayStoreLibrary stores) {
         final int size = array.size;
-        final Object value = stores.read(array.store, size - 1);
-        stores.clear(array.store, size - 1, 1);
+        final Object value = stores.read(store, size - 1);
+        stores.clear(store, size - 1, 1);
         setSize(array, size - 1);
         return value;
     }
