@@ -1915,6 +1915,7 @@ module Truffle::CExt
   end
 
   def rb_tr_pointer(pointer)
+    Truffle::Interop.to_native(pointer) unless Truffle::Interop.pointer?(pointer)
     raise "#{pointer} not a pointer" unless Truffle::Interop.pointer?(pointer)
     Truffle::FFI::Pointer.new(pointer)
   end
