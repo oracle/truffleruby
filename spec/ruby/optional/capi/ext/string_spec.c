@@ -461,6 +461,15 @@ static VALUE string_spec_rb_sprintf6(VALUE self, VALUE width, VALUE precision, V
   return rb_sprintf("Result: %*.*" PRIsVALUE ".", FIX2INT(width), FIX2INT(precision), str);
 }
 
+static VALUE string_spec_rb_sprintf7(VALUE self, VALUE str, VALUE obj) {
+  VALUE results = rb_ary_new();
+  rb_ary_push(results, rb_sprintf(RSTRING_PTR(str), obj));
+  char cstr[256];
+  int len = snprintf(cstr, 256, RSTRING_PTR(str), obj);
+  rb_ary_push(results, rb_str_new(cstr, len));
+  return results;
+}
+
 static VALUE string_spec_rb_vsprintf_worker(char* fmt, ...) {
   va_list varargs;
   VALUE str;
@@ -618,6 +627,7 @@ void Init_string_spec(void) {
   rb_define_method(cls, "rb_sprintf4", string_spec_rb_sprintf4, 1);
   rb_define_method(cls, "rb_sprintf5", string_spec_rb_sprintf5, 3);
   rb_define_method(cls, "rb_sprintf6", string_spec_rb_sprintf6, 3);
+  rb_define_method(cls, "rb_sprintf7", string_spec_rb_sprintf7, 2);
   rb_define_method(cls, "rb_vsprintf", string_spec_rb_vsprintf, 4);
   rb_define_method(cls, "rb_str_equal", string_spec_rb_str_equal, 2);
   rb_define_method(cls, "rb_usascii_str_new", string_spec_rb_usascii_str_new, 2);
