@@ -86,11 +86,13 @@ public class RBSprintfSimpleTreeBuilder {
 
 
                 switch (config.getFormatType()) {
+                    case POINTER:
                     case INTEGER:
                         final char format;
                         switch (config.getFormat()) {
                             case 'b':
                             case 'B':
+                            case 'p':
                             case 'x':
                             case 'X':
                                 format = config.getFormat();
@@ -107,34 +109,52 @@ public class RBSprintfSimpleTreeBuilder {
                                 throw CompilerDirectives.shouldNotReachHere(String.valueOf(config.getFormat()));
                         }
 
-                        if (config.getFormat() == 'b' || config.getFormat() == 'B') {
-                            node = WriteBytesNodeGen
-                                    .create(
-                                            FormatIntegerBinaryNodeGen
-                                                    .create(
-                                                            format,
-                                                            config.isPlus(),
-                                                            config.isFsharp(),
-                                                            config.isMinus(),
-                                                            config.isHasSpace(),
-                                                            config.isZero(),
-                                                            widthNode,
-                                                            precisionNode,
-                                                            ToIntegerNodeGen.create(valueNode)));
-                        } else {
-                            node = WriteBytesNodeGen
-                                    .create(
-                                            FormatIntegerNodeGen
-                                                    .create(
-                                                            format,
-                                                            config.isHasSpace(),
-                                                            config.isZero(),
-                                                            config.isPlus(),
-                                                            config.isMinus(),
-                                                            config.isFsharp(),
-                                                            widthNode,
-                                                            precisionNode,
-                                                            ToIntegerNodeGen.create(valueNode)));
+                        switch (config.getFormat()) {
+                            case 'b':
+                            case 'B':
+                                node = WriteBytesNodeGen
+                                        .create(
+                                                FormatIntegerBinaryNodeGen
+                                                        .create(
+                                                                format,
+                                                                config.isPlus(),
+                                                                config.isFsharp(),
+                                                                config.isMinus(),
+                                                                config.isHasSpace(),
+                                                                config.isZero(),
+                                                                widthNode,
+                                                                precisionNode,
+                                                                ToIntegerNodeGen.create(valueNode)));
+                                break;
+                            case 'p':
+                                node = WriteBytesNodeGen
+                                        .create(
+                                                FormatIntegerNodeGen
+                                                        .create(
+                                                                format,
+                                                                config.isPlus(),
+                                                                config.isFsharp(),
+                                                                config.isMinus(),
+                                                                config.isHasSpace(),
+                                                                true,
+                                                                widthNode,
+                                                                precisionNode,
+                                                                ToIntegerNodeGen.create(valueNode)));
+                                break;
+                            default:
+                                node = WriteBytesNodeGen
+                                        .create(
+                                                FormatIntegerNodeGen
+                                                        .create(
+                                                                format,
+                                                                config.isHasSpace(),
+                                                                config.isZero(),
+                                                                config.isPlus(),
+                                                                config.isMinus(),
+                                                                config.isFsharp(),
+                                                                widthNode,
+                                                                precisionNode,
+                                                                ToIntegerNodeGen.create(valueNode)));
                         }
                         break;
                     case FLOAT:
@@ -194,7 +214,6 @@ public class RBSprintfSimpleTreeBuilder {
                                 throw new UnsupportedOperationException();
                         }
                         break;
-                    case POINTER:
                     case RUBY_VALUE: {
                         final String conversionMethodName = config.isPlus() ? "inspect" : "to_s";
                         final FormatNode conversionNode;
