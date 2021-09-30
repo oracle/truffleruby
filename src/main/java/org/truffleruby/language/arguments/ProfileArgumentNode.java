@@ -22,6 +22,8 @@ import com.oracle.truffle.api.dsl.TypeSystemReference;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
+import java.util.Objects;
+
 @TypeSystemReference(NoImplicitCastsToLong.class)
 @ImportStatic(CompilerDirectives.class)
 @NodeInfo(cost = NodeCost.NONE)
@@ -58,7 +60,7 @@ public abstract class ProfileArgumentNode extends RubyContextSourceNode {
             guards = { "isExact(object, cachedClass)", "!isPrimitiveClass(cachedClass)" },
             limit = "1")
     protected Object cacheClass(Object object,
-            @Cached("object.getClass()") Class<?> cachedClass) {
+            @Cached("getClassOrObject(object)") Class<?> cachedClass) {
         // The cast is only useful for the compiler.
         if (CompilerDirectives.inInterpreter()) {
             return object;
@@ -75,6 +77,10 @@ public abstract class ProfileArgumentNode extends RubyContextSourceNode {
     protected static boolean exactCompare(double a, double b) {
         // -0.0 == 0.0, but you can tell the difference through other means, so we need to differentiate.
         return Double.doubleToRawLongBits(a) == Double.doubleToRawLongBits(b);
+    }
+
+    protected static Class<?> getClassOrObject(Object value) {
+        return value == null ? Objects.class : value.getClass();
     }
 
     @Override
