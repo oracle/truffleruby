@@ -1095,6 +1095,11 @@ end
       res = @s.rb_sprintf7("%p", "Hello")
       res[0].should == res[1]
     end
+
+    it "can format a raw number a pointer and gives the same output as sprintf in C" do
+      res = @s.rb_sprintf7("%p", 0x223643);
+      res[0].should == res[1]
+    end
   end
 
   describe "rb_vsprintf" do
