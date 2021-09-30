@@ -10,13 +10,15 @@ TruffleRuby aims to be fully compatible with the standard implementation of
 Ruby, MRI, version 2.7.4, [including C extensions](#c-extension-compatibility).
 TruffleRuby is still in development, so it is not 100% compatible yet.
 
+TruffleRuby can run Rails and is compatible with many gems, including C extensions.
+TruffleRuby [passes around 97% of ruby/spec](https://eregon.me/blog/2020/06/27/ruby-spec-compatibility-report.html),
+more than any other alternative Ruby implementation.
+
 Any incompatibility with MRI is considered a bug, except for rare cases detailed below.
 If you find an incompatibility with MRI, please [report](https://github.com/oracle/truffleruby/issues) it.
 
 TruffleRuby tries to match the behavior of MRI as much as possible.
 In a few limited cases, TruffleRuby is deliberately incompatible with MRI in order to provide a greater capability.
-
-In the future, TruffleRuby aims to provide compatibility with extra functionality provided by JRuby.
 
 ## Identification
 
