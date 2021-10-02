@@ -397,9 +397,9 @@ public abstract class HashNodes {
         }
     }
 
-    @CoreMethod(names = { "map", "collect" }, needsBlock = true, enumeratorSize = "size")
+    @Primitive(name = "hash_collect")
     @ImportStatic(HashGuards.class)
-    public abstract static class MapNode extends CoreMethodArrayArgumentsNode implements EachEntryCallback {
+    public abstract static class MapNode extends PrimitiveArrayArgumentsNode implements EachEntryCallback {
 
         @Child HashStoreLibrary.YieldPairNode yieldPair = HashStoreLibrary.YieldPairNode.create();
         @Child ArrayBuilderNode arrayBuilder = ArrayBuilderNode.create();
