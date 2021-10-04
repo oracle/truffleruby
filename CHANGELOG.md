@@ -6,6 +6,7 @@ New features:
 Bug fixes:
 
 * Fix `File.utime` to use nanoseconds (#2448).
+* Capture the intercepted feature path during patching to reuse during patch require (#2441).
 
 Compatibility:
 

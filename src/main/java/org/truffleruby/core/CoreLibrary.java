@@ -252,6 +252,10 @@ public class CoreLibrary {
 
     private final ConcurrentMap<String, Boolean> patchFiles;
 
+    /** When patching intercepts a require, this maps the patch being loaded to the original string that was required so
+     * that the patch can require the original string. */
+    private final ConcurrentMap<String, String> originalRequires;
+
     @TruffleBoundary
     private static SourceSection initCoreSourceSection() {
         final Source.SourceBuilder builder = Source.newBuilder(TruffleRuby.LANGUAGE_ID, "", "(core)");
@@ -553,6 +557,7 @@ public class CoreLibrary {
                         mainObject });
 
         patchFiles = initializePatching(context);
+        originalRequires = new ConcurrentHashMap<>();
     }
 
     @SuppressFBWarnings("SIC")
@@ -922,6 +927,10 @@ public class CoreLibrary {
 
     public ConcurrentMap<String, Boolean> getPatchFiles() {
         return patchFiles;
+    }
+
+    public ConcurrentMap<String, String> getOriginalRequires() {
+        return originalRequires;
     }
 
     public boolean isInitializing() {

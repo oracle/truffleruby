@@ -1,4 +1,6 @@
-require 'bundler'
+# truffleruby_primitives: true
+
+require Primitive.get_original_require(__FILE__)
 
 version = Bundler::VERSION.split('.').map(&:to_i)
 
