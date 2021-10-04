@@ -2,8 +2,22 @@ root = File.expand_path('../..', __FILE__)
 
 contents = File.read("#{root}/README.md")
 
-# Update links to user docs which are sibling files on the website
-contents = contents.gsub(%r{\]\(doc/user/([^)]+)\)}, '](\1)')
+contents = contents.gsub(%r{\]\(([^)]+\.(?:md|txt)(?:#.*)?)\)}) {
+  link = $1
+  if link.start_with? 'http:' or link.start_with? 'https:'
+    "](#{link})" # absolute link
+  elsif link.start_with? 'doc/user/'
+    # Update links to user docs which are sibling files on the website
+    "](#{link.sub('doc/user/', '')})"
+  else
+    # Link to GitHub for .md files outside doc/user
+    "](https://github.com/oracle/truffleruby/blob/master/#{link})"
+  end
+}
+
+# Fix link to logo
+contents = contents.gsub(%r{\]\(logo/([^)]+)\)},
+  '](https://raw.githubusercontent.com/oracle/truffleruby/master/logo/\1)')
 
 # Remove the Documentation section for the website (redundant with the sidebar menu)
 contents = contents.sub(/^## Documentation\n.+?\n##/m, '##')
