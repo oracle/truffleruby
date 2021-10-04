@@ -13,10 +13,8 @@ import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.objects.shared.IsSharedNode;
 import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
-import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
@@ -41,31 +39,28 @@ public abstract class ArrayCopyCompatibleRangeNode extends RubyBaseNode {
         return ArrayCopyCompatibleRangeNodeGen.create();
     }
 
-    public abstract void execute(RubyArray dst, RubyArray src, int dstStart, int srcStart, int length);
+    public abstract void execute(Object dstStore, Object srcStore, int dstStart, int srcStart, int length, boolean dstShared, boolean srcShared);
 
-    protected boolean noopGuard(RubyArray dst, RubyArray src, int dstStart, int srcStart, int length) {
-        return length == 0 || dst == src && dstStart == srcStart;
+    protected boolean noopGuard(Object dstStore, Object srcStore, int dstStart, int srcStart, int length) {
+        return length == 0 || dstStore == srcStore && dstStart == srcStart;
     }
 
-    @Specialization(guards = "noopGuard(dst, src, dstStart, srcStart, length)")
-    protected void noop(RubyArray dst, RubyArray src, int dstStart, int srcStart, int length) {
+    @Specialization(guards = "noopGuard(dstStore, srcStore, dstStart, srcStart, length)")
+    protected void noop(Object dstStore, Object srcStore, int dstStart, int srcStart, int length, boolean dstShared, boolean srcShared) {
     }
 
-    @Specialization(guards = "!noopGuard(dst, src, dstStart, srcStart, length)", limit = "storageStrategyLimit()")
-    protected void copy(RubyArray dst, RubyArray src, int dstStart, int srcStart, int length,
-            @Bind("src.store") Object srcStore,
+    @Specialization(guards = "!noopGuard(dstStore, srcStore, dstStart, srcStart, length)", limit = "storageStrategyLimit()")
+    protected void copy(Object dstStore, Object srcStore, int dstStart, int srcStart, int length, boolean dstShared, boolean srcShared,
             @CachedLibrary("srcStore") ArrayStoreLibrary stores,
-            @Cached IsSharedNode isDstShared,
-            @Cached IsSharedNode isSrcShared,
             @Cached WriteBarrierNode writeBarrierNode,
             @Cached ConditionProfile share,
             @Cached LoopConditionProfile loopProfile) {
 
-        stores.copyContents(srcStore, srcStart, dst.store, dstStart, length);
+        stores.copyContents(srcStore, srcStart, dstStore, dstStart, length);
 
         if (share.profile(!stores.isPrimitive(srcStore) &&
-                isDstShared.executeIsShared(dst) &&
-                !isSrcShared.executeIsShared(src))) {
+                dstShared &&
+                !srcShared)) {
             int i = 0;
             try {
                 for (; loopProfile.inject(i < length); ++i) {

@@ -38,7 +38,7 @@ public abstract class ArrayPrepareForCopyNode extends RubyBaseNode {
         return ArrayPrepareForCopyNodeGen.create();
     }
 
-    public abstract void execute(RubyArray dst, RubyArray src, int dstStart, int length);
+    public abstract Object execute(RubyArray dst, RubyArray src, int dstStart, int length);
 
     @ReportPolymorphism.Exclude
     @Specialization(guards = { "length == 0", "start <= dst.size" })
@@ -48,43 +48,46 @@ public abstract class ArrayPrepareForCopyNode extends RubyBaseNode {
     @Specialization(
             guards = "start > dst.size",
             limit = "storageStrategyLimit()")
-    protected void nilPad(RubyArray dst, RubyArray src, int start, int length,
-            @Bind("dst.store") Object oldStore,
-            @CachedLibrary("oldStore") ArrayStoreLibrary dstStores) {
+    protected Object nilPad(RubyArray dst, RubyArray src, int start, int length,
+            @Bind("dst.store") Object dstStore,
+            @CachedLibrary("dstStore") ArrayStoreLibrary dstStores) {
 
         final int oldSize = dst.size;
         final Object[] newStore = new Object[ArrayUtils.capacity(getLanguage(), oldSize, start + length)];
-        dstStores.copyContents(oldStore, 0, newStore, 0, oldSize); // copy the original store
+        dstStores.copyContents(dstStore, 0, newStore, 0, oldSize); // copy the original store
         Arrays.fill(newStore, oldSize, start, nil); // nil-pad the new empty part
         dst.store = newStore;
         dst.size = start + length;
+        return newStore;
     }
 
     @Specialization(
-            guards = { "length > 0", "start <= dst.size", "compatible(dstStores, dst, src)" },
+            guards = { "length > 0", "start <= dst.size", "compatible(dstStores, dstStore, srcStore)" },
             limit = "storageStrategyLimit()")
-    protected void resizeCompatible(RubyArray dst, RubyArray src, int start, int length,
-            @Bind("dst.store") Object oldStore,
+    protected Object resizeCompatible(RubyArray dst, RubyArray src, int start, int length,
+            @Bind("dst.store") Object dstStore,
+            @Bind("src.store") Object srcStore,
             @Cached ArrayEnsureCapacityNode ensureCapacityNode,
-            @CachedLibrary("oldStore") ArrayStoreLibrary dstStores) {
+            @CachedLibrary("dstStore") ArrayStoreLibrary dstStores) {
 
         // Necessary even if under capacity to ensure that the destination gets a mutable store.
-        ensureCapacityNode.executeEnsureCapacity(dst, start + length);
+        Object newStore = ensureCapacityNode.executeEnsureCapacity(dst, start + length);
         if (start + length > dst.size) {
             dst.size = start + length;
         }
+        return newStore;
     }
 
     @Specialization(
-            guards = { "length > 0", "start <= dst.size", "!compatible(dstStores, dst, src)" },
+            guards = { "length > 0", "start <= dst.size", "!compatible(dstStores, dstStore, srcStore)" },
             limit = "storageStrategyLimit()")
-    protected void resizeGeneralize(RubyArray dst, RubyArray src, int start, int length,
+    protected Object resizeGeneralize(RubyArray dst, RubyArray src, int start, int length,
             @Bind("dst.store") Object dstStore,
+            @Bind("src.store") Object srcStore,
             @CachedLibrary("dstStore") ArrayStoreLibrary dstStores) {
 
         final int oldDstSize = dst.size;
         final int newDstSize = Math.max(oldDstSize, start + length);
-        final Object srcStore = src.store;
         final Object newDstStore = dstStores.allocateForNewStore(dstStore, srcStore, newDstSize);
 
         // NOTE(norswap, 10 Jun 2020)
@@ -98,10 +101,10 @@ public abstract class ArrayPrepareForCopyNode extends RubyBaseNode {
         if (newDstSize > oldDstSize) {
             dst.size = newDstSize;
         }
+        return newDstStore;
     }
 
-    // ToDo, we should refactor this to take stores, and bind those.
-    protected static boolean compatible(ArrayStoreLibrary stores, RubyArray dst, RubyArray src) {
-        return stores.acceptsAllValues(dst.store, src.store);
+    protected static boolean compatible(ArrayStoreLibrary stores, Object dstStore, Object srcStore) {
+        return stores.acceptsAllValues(dstStore, srcStore);
     }
 }

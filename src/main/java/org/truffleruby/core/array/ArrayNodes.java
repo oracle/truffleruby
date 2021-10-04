@@ -87,6 +87,7 @@ import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
+import org.truffleruby.language.objects.shared.IsSharedNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.utils.Utils;
@@ -386,6 +387,8 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "length >= 0")
         protected Object setTernary(RubyArray array, int start, int length, RubyArray replacement,
+                @Cached IsSharedNode isArrayShared,
+                @Cached IsSharedNode isReplacementShared,
                 @Cached ConditionProfile negativeDenormalizedIndex,
                 @Cached BranchProfile negativeNormalizedIndex,
                 @Cached ConditionProfile moveNeeded,
@@ -396,9 +399,12 @@ public abstract class ArrayNodes {
 
             final int originalSize = array.size;
             start = normalize(originalSize, start, negativeDenormalizedIndex, negativeNormalizedIndex);
+            final Object replacementStore = replacement.store;
             final int replacementSize = replacement.size;
             final int overwrittenAreaEnd = start + length;
             final int tailSize = originalSize - overwrittenAreaEnd;
+            final boolean arrayShared = isArrayShared.executeIsShared(array);
+            final boolean replacementShared = isReplacementShared.executeIsShared(array);
 
             if (moveNeeded.profile(tailSize > 0)) {
                 // There is a tail (the part of the array to the right of the overwritten area) to be moved.
@@ -408,16 +414,16 @@ public abstract class ArrayNodes {
                 final int newSize = originalSize - length + replacementSize;
                 final int requiredLength = newSize - start;
 
-                prepareToCopy.execute(array, replacement, start, requiredLength);
-                shift.execute(array, array, writtenAreaEnd, overwrittenAreaEnd, tailSize);
-                copyRange.execute(array, replacement, start, 0, replacementSize);
+                final Object newStore = prepareToCopy.execute(array, replacement, start, requiredLength);
+                shift.execute(newStore, newStore, writtenAreaEnd, overwrittenAreaEnd, tailSize, arrayShared, arrayShared);
+                copyRange.execute(newStore, replacementStore, start, 0, replacementSize, arrayShared, replacementShared);
                 truncate.execute(array, newSize);
 
             } else {
                 // The array is overwriten from `start` to end, there is no tail to be moved.
 
-                prepareToCopy.execute(array, replacement, start, replacementSize);
-                copyRange.execute(array, replacement, start, 0, replacementSize);
+                final Object newStore = prepareToCopy.execute(array, replacement, start, replacementSize);
+                copyRange.execute(newStore, replacementStore, start, 0, replacementSize, arrayShared, replacementShared);
                 truncate.execute(array, start + replacementSize);
             }
 
