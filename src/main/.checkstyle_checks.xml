@@ -223,6 +223,10 @@
       <property name="message" value="Use @CachedLibrary(limit = &quot;2&quot;) RubyStringLibrary instead."/>
     </module>
     <module name="RegexpSinglelineJava">
+      <property name="format" value='@CachedLibrary\(".+\.store"\) ArrayStoreLibrary'/>
+      <property name="message" value="Bind array stores to avoid races between threads causing dispatch errors."/>
+    </module>
+    <module name="RegexpSinglelineJava">
       <property name="format" value='@Cached\("createBinaryProfile\(\)"\) ConditionProfile'/>
       <property name="message" value="Use @Cached ConditionProfile instead."/>
     </module>
