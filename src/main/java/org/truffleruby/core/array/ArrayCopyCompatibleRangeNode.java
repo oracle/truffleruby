@@ -47,14 +47,26 @@ public abstract class ArrayCopyCompatibleRangeNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "noopGuard(dstStore, srcStore, dstStart, srcStart, length)")
-    protected void noop(Object dstStore, Object srcStore, int dstStart, int srcStart, int length, boolean dstShared,
+    protected void noop(
+            Object dstStore,
+            Object srcStore,
+            int dstStart,
+            int srcStart,
+            int length,
+            boolean dstShared,
             boolean srcShared) {
     }
 
     @Specialization(
             guards = "!noopGuard(dstStore, srcStore, dstStart, srcStart, length)",
             limit = "storageStrategyLimit()")
-    protected void copy(Object dstStore, Object srcStore, int dstStart, int srcStart, int length, boolean dstShared,
+    protected void copy(
+            Object dstStore,
+            Object srcStore,
+            int dstStart,
+            int srcStart,
+            int length,
+            boolean dstShared,
             boolean srcShared,
             @CachedLibrary("srcStore") ArrayStoreLibrary stores,
             @Cached WriteBarrierNode writeBarrierNode,
