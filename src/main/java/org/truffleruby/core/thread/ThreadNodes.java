@@ -74,6 +74,8 @@ import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.numeric.BigIntegerOps;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
@@ -437,29 +439,45 @@ public abstract class ThreadNodes {
     @CoreMethod(names = "join", optional = 1, lowerFixnum = 1)
     public abstract static class JoinNode extends CoreMethodArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization
         protected RubyThread join(RubyThread thread, NotProvided timeout) {
             doJoin(getContext(), this, thread);
             return thread;
         }
 
+        @TruffleBoundary
         @Specialization
         protected RubyThread join(RubyThread thread, Nil timeout) {
             return join(thread, NotProvided.INSTANCE);
         }
 
+        @TruffleBoundary
         @Specialization
         protected Object join(RubyThread thread, int timeout) {
-            return joinMillis(thread, timeout * 1000);
+            return joinNanos(thread, clampSecondsToNanos(timeout));
         }
 
+        @TruffleBoundary
+        @Specialization
+        protected Object join(RubyThread thread, long timeout) {
+            return joinNanos(thread, clampSecondsToNanos(timeout));
+        }
+
+        @TruffleBoundary
+        @Specialization
+        protected Object join(RubyThread thread, RubyBignum timeout) {
+            return join(thread, BigIntegerOps.doubleValue(timeout));
+        }
+
+        @TruffleBoundary
         @Specialization
         protected Object join(RubyThread thread, double timeout) {
-            return joinMillis(thread, (int) (timeout * 1000.0));
+            return joinNanos(thread, (long) (timeout * 1000000000.0));
         }
 
-        private Object joinMillis(RubyThread self, int timeoutInMillis) {
-            if (doJoinMillis(self, timeoutInMillis)) {
+        private Object joinNanos(RubyThread self, long timeoutInNanos) {
+            if (doJoinNanos(self, timeoutInNanos)) {
                 return self;
             } else {
                 return nil;
@@ -481,17 +499,17 @@ public abstract class ThreadNodes {
         }
 
         @TruffleBoundary
-        private boolean doJoinMillis(RubyThread thread, int timeoutInMillis) {
-            final long start = System.currentTimeMillis();
+        private boolean doJoinNanos(RubyThread thread, long timeoutInNanos) {
+            final long start = System.nanoTime();
 
             final boolean joined = getContext().getThreadManager().runUntilResult(this, () -> {
-                long now = System.currentTimeMillis();
+                long now = System.nanoTime();
                 long waited = now - start;
-                if (waited >= timeoutInMillis) {
+                if (waited >= timeoutInNanos) {
                     // We need to know whether countDown() was called and we do not want to block.
                     return thread.finishedLatch.getCount() == 0;
                 }
-                return thread.finishedLatch.await(timeoutInMillis - waited, TimeUnit.MILLISECONDS);
+                return thread.finishedLatch.await(timeoutInNanos - waited, TimeUnit.NANOSECONDS);
             });
 
             if (joined) {
@@ -503,6 +521,14 @@ public abstract class ThreadNodes {
             }
 
             return joined;
+        }
+
+        @TruffleBoundary
+        private long clampSecondsToNanos(long timeOutSeconds) {
+            if (timeOutSeconds <= 0) {
+                return 0;
+            }
+            return TimeUnit.SECONDS.toNanos(timeOutSeconds);
         }
 
     }
