@@ -39,18 +39,23 @@ public abstract class ArrayCopyCompatibleRangeNode extends RubyBaseNode {
         return ArrayCopyCompatibleRangeNodeGen.create();
     }
 
-    public abstract void execute(Object dstStore, Object srcStore, int dstStart, int srcStart, int length, boolean dstShared, boolean srcShared);
+    public abstract void execute(Object dstStore, Object srcStore, int dstStart, int srcStart, int length,
+            boolean dstShared, boolean srcShared);
 
     protected boolean noopGuard(Object dstStore, Object srcStore, int dstStart, int srcStart, int length) {
         return length == 0 || dstStore == srcStore && dstStart == srcStart;
     }
 
     @Specialization(guards = "noopGuard(dstStore, srcStore, dstStart, srcStart, length)")
-    protected void noop(Object dstStore, Object srcStore, int dstStart, int srcStart, int length, boolean dstShared, boolean srcShared) {
+    protected void noop(Object dstStore, Object srcStore, int dstStart, int srcStart, int length, boolean dstShared,
+            boolean srcShared) {
     }
 
-    @Specialization(guards = "!noopGuard(dstStore, srcStore, dstStart, srcStart, length)", limit = "storageStrategyLimit()")
-    protected void copy(Object dstStore, Object srcStore, int dstStart, int srcStart, int length, boolean dstShared, boolean srcShared,
+    @Specialization(
+            guards = "!noopGuard(dstStore, srcStore, dstStart, srcStart, length)",
+            limit = "storageStrategyLimit()")
+    protected void copy(Object dstStore, Object srcStore, int dstStart, int srcStart, int length, boolean dstShared,
+            boolean srcShared,
             @CachedLibrary("srcStore") ArrayStoreLibrary stores,
             @Cached WriteBarrierNode writeBarrierNode,
             @Cached ConditionProfile share,

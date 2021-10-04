@@ -415,15 +415,24 @@ public abstract class ArrayNodes {
                 final int requiredLength = newSize - start;
 
                 final Object newStore = prepareToCopy.execute(array, replacement, start, requiredLength);
-                shift.execute(newStore, newStore, writtenAreaEnd, overwrittenAreaEnd, tailSize, arrayShared, arrayShared);
-                copyRange.execute(newStore, replacementStore, start, 0, replacementSize, arrayShared, replacementShared);
+                shift.execute(
+                        newStore,
+                        newStore,
+                        writtenAreaEnd,
+                        overwrittenAreaEnd,
+                        tailSize,
+                        arrayShared,
+                        arrayShared);
+                copyRange
+                        .execute(newStore, replacementStore, start, 0, replacementSize, arrayShared, replacementShared);
                 truncate.execute(array, newSize);
 
             } else {
                 // The array is overwriten from `start` to end, there is no tail to be moved.
 
                 final Object newStore = prepareToCopy.execute(array, replacement, start, replacementSize);
-                copyRange.execute(newStore, replacementStore, start, 0, replacementSize, arrayShared, replacementShared);
+                copyRange
+                        .execute(newStore, replacementStore, start, 0, replacementSize, arrayShared, replacementShared);
                 truncate.execute(array, start + replacementSize);
             }
 
