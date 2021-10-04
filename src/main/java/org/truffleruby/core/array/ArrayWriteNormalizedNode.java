@@ -119,18 +119,18 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
             @CachedLibrary(limit = "1") ArrayStoreLibrary newStores,
             @Cached ArrayEnsureCapacityNode ensureCapacityNode,
             @Cached LoopConditionProfile loopProfile) {
-        ensureCapacityNode.executeEnsureCapacity(array, index + 1);
+        Object newStore = ensureCapacityNode.executeEnsureCapacity(array, index + 1);
         int n = array.size;
         try {
             for (; loopProfile.inject(n < index); n++) {
-                newStores.write(store, n, nil);
+                newStores.write(newStore, n, nil);
                 TruffleSafepoint.poll(this);
             }
         } finally {
             profileAndReportLoopCount(loopProfile, n - array.size);
         }
         propagateSharingNode.executePropagate(array, value);
-        newStores.write(store, index, value);
+        newStores.write(newStore, index, value);
         setSize(array, index + 1);
         return value;
     }

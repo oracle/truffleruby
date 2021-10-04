@@ -26,10 +26,10 @@ public abstract class ArrayEnsureCapacityNode extends RubyBaseNode {
         return ArrayEnsureCapacityNodeGen.create();
     }
 
-    public abstract boolean executeEnsureCapacity(RubyArray array, int requiredCapacity);
+    public abstract Object executeEnsureCapacity(RubyArray array, int requiredCapacity);
 
     @Specialization(guards = "!stores.isMutable(store)", limit = "storageStrategyLimit()")
-    protected boolean ensureCapacityAndMakeMutable(RubyArray array, int requiredCapacity,
+    protected Object ensureCapacityAndMakeMutable(RubyArray array, int requiredCapacity,
             @Bind("array.store") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {
@@ -44,21 +44,22 @@ public abstract class ArrayEnsureCapacityNode extends RubyBaseNode {
         final Object newStore = stores.allocator(store).allocate(capacity);
         stores.copyContents(store, 0, newStore, 0, currentCapacity);
         array.store = newStore;
-        return true;
+        return newStore;
     }
 
     @Specialization(guards = "stores.isMutable(store)", limit = "storageStrategyLimit()")
-    protected boolean ensureCapacity(RubyArray array, int requiredCapacity,
+    protected Object ensureCapacity(RubyArray array, int requiredCapacity,
             @Bind("array.store") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {
         final int length = stores.capacity(store);
         if (extendProfile.profile(length < requiredCapacity)) {
             final int capacity = ArrayUtils.capacity(getLanguage(), length, requiredCapacity);
-            array.store = stores.expand(store, capacity);
-            return true;
+            Object newStore = stores.expand(store, capacity);
+            array.store = newStore;
+            return newStore;
         } else {
-            return false;
+            return store;
         }
     }
 }
