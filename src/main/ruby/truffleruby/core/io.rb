@@ -1520,7 +1520,7 @@ class IO
     ret = Truffle::POSIX.ioctl(Primitive.io_fd(self), command, real_arg)
     Errno.handle if ret < 0
 
-    if Primitive.object_kind_of?(arg, String)
+    if buffer
       arg.replace buffer.read_string(buffer_size)
       buffer.free
     end

@@ -45,7 +45,7 @@ module Truffle
           ptr = Truffle::POSIX.truffleposix_get_user_home(name)
           if !ptr.null?
             dir = ptr.read_string
-            ptr.free
+            Truffle::POSIX.truffleposix_free ptr
             raise ArgumentError, "user #{name} does not exist" if dir.empty?
           else
             Errno.handle

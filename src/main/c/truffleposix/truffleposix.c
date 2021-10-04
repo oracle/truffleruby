@@ -224,6 +224,10 @@ retry:
   }
 }
 
+void truffleposix_free(void *pointer) {
+  free(pointer);
+}
+
 struct dirent *truffleposix_readdir(DIR *dirp) {
   errno = 0;
   struct dirent *entry = readdir(dirp);
