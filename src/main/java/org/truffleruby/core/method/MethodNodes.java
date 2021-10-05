@@ -340,7 +340,7 @@ public abstract class MethodNodes {
                     methodRootNode.returnID,
                     BreakID.INVALID,
                     method.getSharedMethodInfo().getArity());
-            return Truffle.getRuntime().createCallTarget(wrapRootNode);
+            return wrapRootNode.getCallTarget();
         }
 
         protected int getCacheLimit() {

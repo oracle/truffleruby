@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2020, 2021 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -20,7 +20,6 @@ import org.truffleruby.shared.options.Profile;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
 
 public class MetricsProfiler {
 
@@ -58,7 +57,7 @@ public class MetricsProfiler {
     private <T> RootCallTarget newCallTarget(String name) {
         final MetricsBodyNode<T> body = new MetricsBodyNode<>();
         final MetricsInternalRootNode rootNode = new MetricsInternalRootNode(context, name, body);
-        return Truffle.getRuntime().createCallTarget(rootNode);
+        return rootNode.getCallTarget();
     }
 
     @SuppressWarnings("unchecked")

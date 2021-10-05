@@ -129,6 +129,7 @@ import com.oracle.truffle.api.TruffleLogger;
 import com.oracle.truffle.api.instrumentation.ProvidedTags;
 import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.nodes.ExecutableNode;
+import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 import org.truffleruby.stdlib.digest.RubyDigest;
 
@@ -554,17 +555,18 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
                     parsingParameters.getCurrentNode());
         }
 
+        RootNode root;
         if (source.isInteractive()) {
-            return Truffle.getRuntime().createCallTarget(new RubyEvalInteractiveRootNode(this, source));
+            root = new RubyEvalInteractiveRootNode(this, source);
         } else {
             final RubyContext context = Objects.requireNonNull(getCurrentContext());
-            return Truffle.getRuntime().createCallTarget(
-                    new RubyParsingRequestNode(
-                            this,
-                            context,
-                            source,
-                            request.getArgumentNames().toArray(StringUtils.EMPTY_STRING_ARRAY)));
+            root = new RubyParsingRequestNode(
+                    this,
+                    context,
+                    source,
+                    request.getArgumentNames().toArray(StringUtils.EMPTY_STRING_ARRAY));
         }
+        return root.getCallTarget();
     }
 
     @Override

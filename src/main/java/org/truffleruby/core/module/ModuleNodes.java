@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2020 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2021 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -122,7 +122,6 @@ import org.truffleruby.parser.RubySource;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -499,7 +498,7 @@ public abstract class ModuleNodes {
                     new ReRaiseInlinedExceptionNode(alwaysInlinedNodeFactory),
                     Split.NEVER,
                     ReturnID.INVALID);
-            final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(reRaiseRootNode);
+            final RootCallTarget callTarget = reRaiseRootNode.getCallTarget();
 
             final InternalMethod method = new InternalMethod(
                     getContext(),
@@ -1315,7 +1314,7 @@ public abstract class ModuleNodes {
             final RubyNode newBody = new CallMethodWithLambdaBody(proc.declarationFrame, body);
 
             final RubyLambdaRootNode newRootNode = rootNode.copyRootNode(info, newBody);
-            final RootCallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
+            final RootCallTarget newCallTarget = newRootNode.getCallTarget();
 
             final InternalMethod method = InternalMethod.fromProc(
                     getContext(),
