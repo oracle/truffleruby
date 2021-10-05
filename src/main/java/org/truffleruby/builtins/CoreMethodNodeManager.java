@@ -48,7 +48,6 @@ import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.parser.Translator;
 
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.NodeFactory;
 
@@ -325,7 +324,7 @@ public class CoreMethodNodeManager {
                     new ReRaiseInlinedExceptionNode(nodeFactory),
                     split,
                     ReturnID.INVALID);
-            return Truffle.getRuntime().createCallTarget(reRaiseRootNode);
+            return reRaiseRootNode.getCallTarget();
         }
 
         final RubyNode[] argumentsNodes = new RubyNode[nodeFactory.getExecutionSignature().size()];
@@ -368,7 +367,7 @@ public class CoreMethodNodeManager {
                 split,
                 ReturnID.INVALID,
                 sharedMethodInfo.getArity());
-        return Truffle.getRuntime().createCallTarget(rootNode);
+        return rootNode.getCallTarget();
     }
 
     public static RubyBaseNode createNodeFromFactory(NodeFactory<? extends RubyBaseNode> nodeFactory,

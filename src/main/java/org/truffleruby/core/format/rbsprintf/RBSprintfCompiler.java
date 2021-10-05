@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2020 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2015, 2021 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -22,7 +22,6 @@ import org.truffleruby.core.format.rbsprintf.RBSprintfConfig.FormatArgumentType;
 import org.truffleruby.core.rope.Rope;
 
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
 
 public class RBSprintfCompiler {
 
@@ -39,12 +38,11 @@ public class RBSprintfCompiler {
         final List<RBSprintfConfig> configs = parser.parse();
         final RBSprintfSimpleTreeBuilder builder = new RBSprintfSimpleTreeBuilder(language, configs, stringReader);
 
-        return Truffle.getRuntime().createCallTarget(
-                new FormatRootNode(
-                        language,
-                        currentNode.getEncapsulatingSourceSection(),
-                        FormatEncoding.find(format.getEncoding(), currentNode),
-                        builder.getNode()));
+        return new FormatRootNode(
+                language,
+                currentNode.getEncapsulatingSourceSection(),
+                FormatEncoding.find(format.getEncoding(), currentNode),
+                builder.getNode()).getCallTarget();
     }
 
     private static int SIGN = 0x10;

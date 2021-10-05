@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2020 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2021 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -55,7 +55,6 @@ import org.truffleruby.parser.ast.UnnamedRestArgParseNode;
 import org.truffleruby.parser.ast.ZSuperParseNode;
 
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
@@ -272,7 +271,7 @@ public class MethodTranslator extends BodyTranslator {
                     Split.HEURISTIC,
                     environment.getReturnID());
 
-            final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(newRootNodeForProcs);
+            final RootCallTarget callTarget = newRootNodeForProcs.getCallTarget();
 
             if (methodCalledLambda) {
                 // The block was previously compiled as lambda, we must rewrite the return nodes to InvalidReturnNode,
@@ -332,7 +331,7 @@ public class MethodTranslator extends BodyTranslator {
                     environment.getBreakID(),
                     arityForCheck);
 
-            final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(newRootNodeForLambdas);
+            final RootCallTarget callTarget = newRootNodeForLambdas.getCallTarget();
 
             if (!isStabbyLambda) {
                 // If we end up executing this block as a lambda, but don't know it statically, e.g., `lambda {}` or
@@ -419,11 +418,11 @@ public class MethodTranslator extends BodyTranslator {
 
         if (shouldLazyTranslate) {
             return new CachedSupplier<>(() -> {
-                return Truffle.getRuntime().createCallTarget(translateMethodNode(sourceSection, defNode, bodyNode));
+                return translateMethodNode(sourceSection, defNode, bodyNode).getCallTarget();
             });
         } else {
             final RubyMethodRootNode root = translateMethodNode(sourceSection, defNode, bodyNode);
-            return new CachedSupplier<>(() -> Truffle.getRuntime().createCallTarget(root));
+            return new CachedSupplier<>(() -> root.getCallTarget());
         }
     }
 

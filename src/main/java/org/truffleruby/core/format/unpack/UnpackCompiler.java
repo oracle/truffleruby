@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2020 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2015, 2021 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -15,7 +15,6 @@ import org.truffleruby.core.format.LoopRecovery;
 import org.truffleruby.core.format.pack.SimplePackParser;
 
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.control.DeferredRaiseException;
 
@@ -43,11 +42,10 @@ public class UnpackCompiler {
 
         builder.exitSequence();
 
-        return Truffle.getRuntime().createCallTarget(
-                new UnpackRootNode(
-                        language,
-                        currentNode.getEncapsulatingSourceSection(),
-                        builder.getNode()));
+        return new UnpackRootNode(
+                language,
+                currentNode.getEncapsulatingSourceSection(),
+                builder.getNode()).getCallTarget();
     }
 
 }

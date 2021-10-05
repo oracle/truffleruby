@@ -99,7 +99,7 @@ public abstract class TruffleGraalNodes {
             }
 
             final RubyLambdaRootNode newRootNode = rootNode.copyRootNode(rootNode.getSharedMethodInfo(), newBody);
-            final RootCallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
+            final RootCallTarget newCallTarget = newRootNode.getCallTarget();
 
             final SpecialVariableStorage variables = proc.declarationVariables;
 
