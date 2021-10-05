@@ -804,7 +804,7 @@ module Commands
                                        Ruby and cache the result, such as benchmark bench/mri/bm_vm1_not.rb --cache
                                        jt benchmark bench/mri/bm_vm1_not.rb --use-cache
       jt profile                                     profiles an application, including the TruffleRuby runtime, and generates a flamegraph
-      jt graph [--method Object#foo] [--watch] file.rb [-- vm-args]
+      jt graph [--method Object#foo] [--watch] [--no-simplify] file.rb [-- vm-args]
                                                      render a graph of Object#foo within file.rb
       jt igv                                         launches IdealGraphVisualizer
       jt next                                        tell you what to work on next (give you a random core library spec)
@@ -2014,6 +2014,7 @@ module Commands
     method = 'Object#foo'
     watch = false
     user_args = []
+    simplify = true
 
     until args.empty?
       arg = args.shift
@@ -2023,6 +2024,8 @@ module Commands
         method = args.shift
       when '--watch'
         watch = true
+      when '--no-simplify'
+        simplify = false
       when '--'
         user_args.push(*args)
         args.clear
@@ -2052,6 +2055,17 @@ module Commands
       '--vm.Dgraal.Dump=Truffle:1',
       '--log.file=/dev/stderr', # suppress the Truffle log output help message
     ]
+
+    # As per https://github.com/Shopify/seafoam/blob/master/docs/getting-graphs.md
+    simplify_options = [
+      '--vm.Dgraal.FullUnroll=false',
+      '--vm.Dgraal.PartialUnroll=false',
+      '--vm.Dgraal.LoopPeeling=false',
+      '--vm.Dgraal.LoopUnswitch=false',
+      '--vm.Dgraal.OptScheduleOutOfLoops=false'
+    ]
+
+    options.push(*simplify_options) if simplify
 
     loop do # for --watch
       compiled = false
