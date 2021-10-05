@@ -251,6 +251,16 @@ VALUE string_spec_rb_str_new5(VALUE self, VALUE str, VALUE ptr, VALUE len) {
   return rb_str_new5(str, RSTRING_PTR(ptr), FIX2INT(len));
 }
 
+#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#elif defined(__clang__) && defined(__has_warning)
+# if __has_warning("-Wdeprecated-declarations")
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wdeprecated-declarations"
+# endif
+#endif
+
 VALUE string_spec_rb_tainted_str_new(VALUE self, VALUE str, VALUE len) {
   return rb_tainted_str_new(RSTRING_PTR(str), FIX2INT(len));
 }
@@ -258,6 +268,14 @@ VALUE string_spec_rb_tainted_str_new(VALUE self, VALUE str, VALUE len) {
 VALUE string_spec_rb_tainted_str_new2(VALUE self, VALUE str) {
   return rb_tainted_str_new2(RSTRING_PTR(str));
 }
+
+#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
+# pragma GCC diagnostic pop
+#elif defined(__clang__) && defined(__has_warning)
+# if __has_warning("-Wdeprecated-declarations")
+#  pragma clang diagnostic pop
+# endif
+#endif
 
 VALUE string_spec_rb_str_plus(VALUE self, VALUE str1, VALUE str2) {
   return rb_str_plus(str1, str2);
@@ -479,6 +497,7 @@ static VALUE string_spec_rb_sprintf8(VALUE self, VALUE str, VALUE num) {
   return results;
 }
 
+PRINTF_ARGS(static VALUE string_spec_rb_vsprintf_worker(char* fmt, ...), 1, 2);
 static VALUE string_spec_rb_vsprintf_worker(char* fmt, ...) {
   va_list varargs;
   VALUE str;
@@ -541,6 +560,7 @@ static VALUE string_spec_rb_utf8_str_new_cstr(VALUE self) {
   return rb_utf8_str_new_cstr("nokogiri");
 }
 
+PRINTF_ARGS(static VALUE call_rb_str_vcatf(VALUE mesg, const char *fmt, ...), 2, 3);
 static VALUE call_rb_str_vcatf(VALUE mesg, const char *fmt, ...){
   va_list ap;
   va_start(ap, fmt);
