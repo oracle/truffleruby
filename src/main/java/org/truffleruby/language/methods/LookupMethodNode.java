@@ -64,7 +64,6 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             Frame frame, RubyClass metaClass, String name, DispatchConfiguration config,
             @Cached MetaClassNode metaClassNode,
             @Cached ConditionProfile noCallerMethodProfile,
-            @Cached ConditionProfile foreignProfile,
             @Cached ConditionProfile noPrependedModulesProfile,
             @Cached ConditionProfile onMetaClassProfile,
             @Cached ConditionProfile hasRefinementsProfile,

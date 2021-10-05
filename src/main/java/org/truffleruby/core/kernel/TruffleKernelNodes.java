@@ -25,11 +25,14 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.kernel.TruffleKernelNodesFactory.GetSpecialVariableStorageNodeGen;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.FrameOrVariablesReadingNode;
 import org.truffleruby.language.LexicalScope;
@@ -356,6 +359,28 @@ public abstract class TruffleKernelNodes {
                 return nil;
             } else {
                 return variables;
+            }
+        }
+    }
+
+    @Primitive(name = "get_original_require")
+    @ImportStatic(Layouts.class)
+    public abstract static class GetOriginalRequireNode extends CoreMethodArrayArgumentsNode {
+
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
+        @TruffleBoundary
+        @Specialization
+        protected Object getOriginalRequire(Object string,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+            final String originalRequire = getContext()
+                    .getCoreLibrary()
+                    .getOriginalRequires()
+                    .get(strings.getJavaString(string));
+            if (originalRequire == null) {
+                return Nil.INSTANCE;
+            } else {
+                return makeStringNode.executeMake(originalRequire, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
             }
         }
     }

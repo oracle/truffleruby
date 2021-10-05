@@ -947,6 +947,18 @@ describe "The defined? keyword for yield" do
   it "returns 'yield' if a block is passed to a method taking a block parameter" do
     DefinedSpecs::Basic.new.yield_block_parameter.should == "yield"
   end
+
+  it "returns 'yield' when called within a block" do
+    def yielder
+      yield
+    end
+
+    def call_defined
+      yielder { defined?(yield) }
+    end
+
+    call_defined() { }.should == "yield"
+  end
 end
 
 describe "The defined? keyword for super" do

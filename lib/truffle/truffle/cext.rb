@@ -1913,4 +1913,8 @@ module Truffle::CExt
         ]))
     end
   end
+
+  def rb_exception_set_message(e, mesg)
+    Primitive.exception_set_message(e, mesg)
+  end
 end
