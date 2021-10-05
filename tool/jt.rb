@@ -36,7 +36,7 @@ JDKS_CACHE_DIR = File.expand_path('~/.mx/jdks')
 CACHE_EXTRA_DIR = File.expand_path('~/.mx/cache/truffleruby')
 FileUtils.mkdir_p(CACHE_EXTRA_DIR)
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = '58d3048b49629102945a60918f31bf74547f51f9'
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = 'ddc9317731f2d0c807931885b58e87ecf570e703'
 
 JDEBUG = '--vm.agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y'
 METRICS_REPS = Integer(ENV['TRUFFLERUBY_METRICS_REPS'] || 10)
@@ -52,7 +52,7 @@ RUBOCOP_INCLUDE_LIST = %w[
   spec/truffle
 ]
 
-RUBOCOP_VERSION = '0.66.0'
+RUBOCOP_VERSION = '1.22.1'
 
 DLEXT = RbConfig::CONFIG['DLEXT']
 

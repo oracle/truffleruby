@@ -165,6 +165,7 @@ In a separate commit, update all of these:
 * Update `.ruby-version`, `TruffleRuby.LANGUAGE_VERSION`
 * Reset `lib/cext/ABI_version.txt` and `lib/cext/ABI_check.txt` to `1` if `RUBY_VERSION` was updated.
 * Update `versions.json` (from `cat ../ruby/gems/bundled_gems`, `ls -l lib/gems/specifications/default` and `jt gem --version`)
+* Update `TargetRubyVersion` in `.rubocop.yml`
 * Copy and paste `-h` and `--help` output to `RubyLauncher`
 * Copy and paste the TruffleRuby `--help` output to `doc/user/options.md`
 * Update `doc/user/compatibility.md` and `README.md`
