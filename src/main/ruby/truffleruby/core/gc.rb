@@ -83,7 +83,7 @@ module GC
     start
   end
 
-  def self.start(full_mark: true, immediate_sweep: true)
+  def self.start(full_mark: true, immediate_mark: true, immediate_sweep: true)
     Primitive.gc_start()
   end
 
@@ -115,8 +115,8 @@ module GC
     ret
   end
 
-  def garbage_collect
-    GC.start
+  def garbage_collect(...)
+    GC.start(...)
   end
 
   def self.stat(key = nil)

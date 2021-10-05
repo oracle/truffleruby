@@ -27,7 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 module ObjectSpace
-  def self.garbage_collect
-    GC.start
+  def self.garbage_collect(...)
+    GC.start(...)
   end
 end
