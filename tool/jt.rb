@@ -804,7 +804,7 @@ module Commands
                                        Ruby and cache the result, such as benchmark bench/mri/bm_vm1_not.rb --cache
                                        jt benchmark bench/mri/bm_vm1_not.rb --use-cache
       jt profile                                     profiles an application, including the TruffleRuby runtime, and generates a flamegraph
-      jt graph [--method Object#foo] [--watch] file.rb
+      jt graph [--method Object#foo] [--watch] file.rb [-- vm-args]
                                                      render a graph of Object#foo within file.rb
       jt igv                                         launches IdealGraphVisualizer
       jt next                                        tell you what to work on next (give you a random core library spec)
@@ -2013,6 +2013,7 @@ module Commands
     test_file = nil
     method = 'Object#foo'
     watch = false
+    user_args = []
 
     until args.empty?
       arg = args.shift
@@ -2022,6 +2023,9 @@ module Commands
         method = args.shift
       when '--watch'
         watch = true
+      when '--'
+        user_args.push(*args)
+        args.clear
       else
         raise if arg.start_with?('-')
         raise if test_file
@@ -2051,7 +2055,7 @@ module Commands
 
     loop do # for --watch
       compiled = false
-      IO.popen([ruby_launcher, *options, test_file], :err=>[:child, :out]) do |pipe|
+      IO.popen([ruby_launcher, *options, *user_args, test_file], :err=>[:child, :out]) do |pipe|
         pipe.each_line do |line|
           puts line
           if line =~ /\[engine\] opt done     #{method}/
