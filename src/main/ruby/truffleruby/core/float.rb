@@ -81,9 +81,9 @@ class Float < Numeric
 
     begin
       b, a = math_coerce(other)
-      return a == b
+      a == b
     rescue TypeError
-      return other == self
+      other == self
     end
   end
   private :equal_fallback

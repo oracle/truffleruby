@@ -124,7 +124,7 @@ module Signal
     end
 
     if !had_old && handler != 'SYSTEM_DEFAULT'
-      return +'DEFAULT'
+      +'DEFAULT'
     else
       old ? old : nil
     end

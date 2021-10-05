@@ -909,7 +909,7 @@ module Commands
       llvm = `brew --prefix llvm@4`.chomp
       shell["#{llvm}/bin/clang -v"]
       shell["#{llvm}/bin/opt -version"]
-    rescue Errno::ENOENT # rubocop:disable Lint/HandleExceptions
+    rescue Errno::ENOENT
       # No Homebrew
     end
     shell['mx version']

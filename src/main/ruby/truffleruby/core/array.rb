@@ -1000,16 +1000,16 @@ class Array
 
     case count
     when 0
-      return []
+      []
     when 1
-      return [at(rng.rand(size))]
+      [at(rng.rand(size))]
     when 2
       i = rng.rand(size)
       j = rng.rand(size - 1)
       if j >= i
         j += 1
       end
-      return [at(i), at(j)]
+      [at(i), at(j)]
     else
       sample_many(count, rng)
     end
