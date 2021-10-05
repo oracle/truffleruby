@@ -2046,6 +2046,7 @@ module Commands
       '--vm.Dgraal.PrintGraphWithSchedule=true',
       '--vm.Dgraal.PrintBackendCFG=true',
       '--vm.Dgraal.Dump=Truffle:1',
+      '--log.file=/dev/stderr', # suppress the Truffle log output help message
     ]
 
     loop do # for --watch
