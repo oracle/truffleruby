@@ -1,0 +1,34 @@
+fails:BasicSocket#local_address using TCPSocket uses AF_INET as the address family
+fails:BasicSocket#local_address using TCPSocket uses PF_INET as the protocol family
+fails:BasicSocket#local_address using TCPSocket uses SOCK_STREAM as the socket type
+fails:BasicSocket#local_address using TCPSocket uses the correct IP address
+fails:BasicSocket#local_address using TCPSocket uses the correct port
+fails:BasicSocket#local_address using TCPSocket equals address of peer socket
+fails:BasicSocket#local_address using TCPSocket returns an Addrinfo
+fails:BasicSocket#local_address using TCPSocket uses 0 as the protocol
+fails:BasicSocket#local_address using TCPSocket can be used to connect to the server
+fails:BasicSocket#local_address using IPv6 uses AF_INET6 as the address family
+fails:BasicSocket#local_address using IPv6 uses PF_INET6 as the protocol family
+fails:BasicSocket#local_address using IPv6 uses SOCK_STREAM as the socket type
+fails:BasicSocket#local_address using IPv6 uses the correct IP address
+fails:BasicSocket#local_address using IPv6 uses the correct port
+fails:BasicSocket#local_address using IPv6 equals address of peer socket
+fails:BasicSocket#local_address using IPv6 returns an Addrinfo
+fails:BasicSocket#local_address using IPv6 uses 0 as the protocol
+fails:BasicSocket#local_address using IPv6 can be used to connect to the server
+fails:BasicSocket#local_address using UNIXSocket uses AF_UNIX as the address family
+fails:BasicSocket#local_address using UNIXSocket uses PF_UNIX as the protocol family
+fails:BasicSocket#local_address using UNIXSocket uses SOCK_STREAM as the socket type
+fails:BasicSocket#local_address using UNIXSocket uses the correct socket path
+fails:BasicSocket#local_address using UNIXSocket equals address of peer socket
+fails:BasicSocket#local_address using UNIXSocket returns an Addrinfo
+fails:BasicSocket#local_address using UNIXSocket uses 0 as the protocol
+fails:BasicSocket#local_address using UNIXSocket can be used to connect to the server
+fails:BasicSocket#local_address using UDPSocket uses the correct address family
+fails:BasicSocket#local_address using UDPSocket uses the correct protocol family
+fails:BasicSocket#local_address using UDPSocket uses SOCK_DGRAM as the socket type
+fails:BasicSocket#local_address using UDPSocket uses the correct IP address
+fails:BasicSocket#local_address using UDPSocket uses the correct port
+fails:BasicSocket#local_address using UDPSocket returns an Addrinfo
+fails:BasicSocket#local_address using UDPSocket uses 0 as the protocol
+fails:BasicSocket#local_address using UDPSocket can be used to connect to the peer
