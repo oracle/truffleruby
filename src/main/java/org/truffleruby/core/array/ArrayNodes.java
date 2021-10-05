@@ -404,7 +404,7 @@ public abstract class ArrayNodes {
             final int overwrittenAreaEnd = start + length;
             final int tailSize = originalSize - overwrittenAreaEnd;
             final boolean arrayShared = isArrayShared.executeIsShared(array);
-            final boolean replacementShared = isReplacementShared.executeIsShared(array);
+            final boolean replacementShared = isReplacementShared.executeIsShared(replacement);
 
             if (moveNeeded.profile(tailSize > 0)) {
                 // There is a tail (the part of the array to the right of the overwritten area) to be moved.
