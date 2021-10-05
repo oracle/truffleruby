@@ -81,7 +81,7 @@ public abstract class ArrayCopyCompatibleRangeNode extends RubyBaseNode {
             int i = 0;
             try {
                 for (; loopProfile.inject(i < length); ++i) {
-                    writeBarrierNode.executeWriteBarrier(stores.read(srcStore, i));
+                    writeBarrierNode.executeWriteBarrier(stores.read(srcStore, srcStart + i));
                 }
                 TruffleSafepoint.poll(this);
             } finally {
