@@ -100,6 +100,7 @@ import org.truffleruby.language.yield.CallBlockNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -413,11 +414,12 @@ public abstract class ThreadNodes {
         @TruffleBoundary
         @Specialization(limit = "storageStrategyLimit()")
         protected Object initialize(RubyThread thread, RubyArray arguments, RubyProc block,
-                @CachedLibrary("arguments.store") ArrayStoreLibrary stores) {
+                @Bind("arguments.store") Object store,
+                @CachedLibrary("store") ArrayStoreLibrary stores) {
             final SourceSection sourceSection = block.sharedMethodInfo.getSourceSection();
             final String info = RubyLanguage.fileLine(sourceSection);
             final int argSize = arguments.size;
-            final Object[] args = stores.boxedCopyOfRange(arguments.store, 0, argSize);
+            final Object[] args = stores.boxedCopyOfRange(store, 0, argSize);
             final String sharingReason = "creating Ruby Thread " + info;
 
             if (getLanguage().options.SHARED_OBJECTS_ENABLED) {

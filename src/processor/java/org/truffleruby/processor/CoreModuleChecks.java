@@ -21,6 +21,7 @@ import javax.lang.model.type.TypeMirror;
 
 import org.truffleruby.builtins.CoreMethod;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -97,7 +98,8 @@ public class CoreModuleChecks {
         int end = parameters.size();
         for (int i = end - 1; i >= start; i--) {
             boolean cached = parameters.get(i).getAnnotation(Cached.class) != null ||
-                    parameters.get(i).getAnnotation(CachedLibrary.class) != null;
+                    parameters.get(i).getAnnotation(CachedLibrary.class) != null ||
+                    parameters.get(i).getAnnotation(Bind.class) != null;
             if (cached) {
                 end--;
             } else {
@@ -212,7 +214,8 @@ public class CoreModuleChecks {
         // Ignore all the @Cached methods from our consideration.
         while (n >= 0 &&
                 (parameters.get(n).getAnnotation(Cached.class) != null ||
-                        parameters.get(n).getAnnotation(CachedLibrary.class) != null)) {
+                        parameters.get(n).getAnnotation(CachedLibrary.class) != null ||
+                        parameters.get(n).getAnnotation(Bind.class) != null)) {
             n--;
         }
         return n;

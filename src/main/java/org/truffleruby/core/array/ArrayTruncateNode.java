@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.array;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -29,23 +30,24 @@ public abstract class ArrayTruncateNode extends RubyBaseNode {
     public abstract void execute(RubyArray array, int size);
 
     @Specialization(
-            guards = { "array.size > size", "stores.isMutable(array.store)" },
+            guards = { "array.size > size", "stores.isMutable(store)" },
             limit = "storageStrategyLimit()")
     protected void truncate(RubyArray array, int size,
-            @CachedLibrary("array.store") ArrayStoreLibrary stores) {
+            @Bind("array.store") Object store,
+            @CachedLibrary("store") ArrayStoreLibrary stores) {
 
         final int oldSize = array.size;
         array.size = size;
-        stores.clear(array.store, size, oldSize - size);
+        stores.clear(store, size, oldSize - size);
     }
 
     @Specialization(
-            guards = { "array.size > size", "!stores.isMutable(array)" },
+            guards = { "array.size > size", "!stores.isMutable(store)" },
             limit = "storageStrategyLimit()")
     protected void truncateCopy(RubyArray array, int size,
-            @CachedLibrary("array.store") ArrayStoreLibrary stores) {
+            @Bind("array.store") Object store,
+            @CachedLibrary("store") ArrayStoreLibrary stores) {
 
-        final Object store = array.store;
         final Object newStore = stores.allocateForNewStore(store, store, size);
         stores.copyContents(store, 0, newStore, 0, size);
         array.store = newStore;

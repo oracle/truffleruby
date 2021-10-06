@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.array;
 
-import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
@@ -17,7 +16,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @NodeChild(value = "array", type = RubyNode.class)
@@ -30,9 +28,8 @@ public abstract class ArrayDropTailNode extends RubyContextSourceNode {
         this.index = index;
     }
 
-    @Specialization(limit = "storageStrategyLimit()")
+    @Specialization
     protected RubyArray dropTail(RubyArray array,
-            @CachedLibrary("array.store") ArrayStoreLibrary arrays,
             @Cached ArrayCopyOnWriteNode cowNode,
             @Cached ConditionProfile indexLargerThanSize) {
         final int size = array.size;

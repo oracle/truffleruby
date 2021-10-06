@@ -24,6 +24,7 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -65,9 +66,10 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
         }
     }
 
-    @Specialization(guards = "stores.isPrimitive(array.store)", limit = "storageStrategyLimit()")
+    @Specialization(guards = "stores.isPrimitive(store)", limit = "storageStrategyLimit()")
     protected void shareCachedPrimitiveArray(RubyArray array,
-            @CachedLibrary("array.store") ArrayStoreLibrary stores) {
+            @Bind("array.store") Object store,
+            @CachedLibrary("store") ArrayStoreLibrary stores) {
         assert ArrayOperations.isPrimitiveStorage(array);
     }
 

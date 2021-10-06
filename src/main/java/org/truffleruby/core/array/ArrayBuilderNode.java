@@ -16,6 +16,7 @@ import org.truffleruby.core.array.ArrayBuilderNodeFactory.AppendOneNodeGen;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -193,7 +194,8 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
                 guards = "arrays.acceptsValue(state.store, value)",
                 limit = "1")
         protected void appendCompatibleType(BuilderState state, int index, Object value,
-                @CachedLibrary("state.store") ArrayStoreLibrary arrays) {
+                @Bind("state.store") Object store,
+                @CachedLibrary("store") ArrayStoreLibrary arrays) {
             assert state.nextIndex == index;
             final int length = arrays.capacity(state.store);
             if (index >= length) {
@@ -211,7 +213,8 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
                 guards = "!arrays.acceptsValue(state.store, value)",
                 limit = "1")
         protected void appendNewStrategy(BuilderState state, int index, Object value,
-                @CachedLibrary("state.store") ArrayStoreLibrary arrays) {
+                @Bind("state.store") Object store,
+                @CachedLibrary("store") ArrayStoreLibrary arrays) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             assert state.nextIndex == index;
             final ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
@@ -251,8 +254,10 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
                 guards = { "arrays.acceptsAllValues(state.store, other.store)" },
                 limit = "storageStrategyLimit()")
         protected void appendCompatibleStrategy(BuilderState state, int index, RubyArray other,
-                @CachedLibrary("state.store") ArrayStoreLibrary arrays,
-                @CachedLibrary("other.store") ArrayStoreLibrary others) {
+                @Bind("state.store") Object store,
+                @Bind("other.store") Object otherStore,
+                @CachedLibrary("store") ArrayStoreLibrary arrays,
+                @CachedLibrary("otherStore") ArrayStoreLibrary others) {
             assert state.nextIndex == index;
             final int otherSize = other.size;
             final int neededSize = index + otherSize;
@@ -266,7 +271,6 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
                 state.capacity = capacity;
             }
 
-            final Object otherStore = other.store;
             others.copyContents(otherStore, 0, state.store, index, otherSize);
             state.nextIndex = state.nextIndex + otherSize;
         }
@@ -275,7 +279,8 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
                 guards = { "!arrayLibrary.acceptsAllValues(state.store, other.store)" },
                 limit = "1")
         protected void appendNewStrategy(BuilderState state, int index, RubyArray other,
-                @CachedLibrary("state.store") ArrayStoreLibrary arrayLibrary) {
+                @Bind("state.store") Object store,
+                @CachedLibrary("store") ArrayStoreLibrary arrayLibrary) {
             assert state.nextIndex == index;
             final int otherSize = other.size;
             if (otherSize != 0) {

@@ -79,6 +79,7 @@ import org.truffleruby.language.yield.CallBlockNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -291,8 +292,9 @@ public abstract class TruffleDebugNodes {
 
         @Specialization(limit = "storageStrategyLimit()")
         protected long arrayStorage(RubyArray array,
-                @CachedLibrary("array.store") ArrayStoreLibrary stores) {
-            return stores.capacity(array.store);
+                @Bind("array.store") Object store,
+                @CachedLibrary("store") ArrayStoreLibrary stores) {
+            return stores.capacity(store);
         }
 
     }

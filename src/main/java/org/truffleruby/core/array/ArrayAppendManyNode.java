@@ -16,6 +16,7 @@ import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -42,14 +43,14 @@ public abstract class ArrayAppendManyNode extends RubyBaseNode {
             guards = { "!isEmptyArray(other)", "stores.acceptsAllValues(array.store, other.store)" },
             limit = "storageStrategyLimit()")
     protected RubyArray appendManySameType(RubyArray array, RubyArray other,
-            @CachedLibrary("array.store") ArrayStoreLibrary stores,
-            @CachedLibrary("other.store") ArrayStoreLibrary otherStores,
+            @Bind("array.store") Object store,
+            @Bind("other.store") Object otherStore,
+            @CachedLibrary("store") ArrayStoreLibrary stores,
+            @CachedLibrary("otherStore") ArrayStoreLibrary otherStores,
             @Cached ConditionProfile extendProfile) {
         final int oldSize = array.size;
         final int otherSize = other.size;
         final int newSize = oldSize + otherSize;
-        final Object store = array.store;
-        final Object otherStore = other.store;
         final int length = stores.capacity(store);
 
         propagateSharingNode.executePropagate(array, other);
@@ -71,13 +72,13 @@ public abstract class ArrayAppendManyNode extends RubyBaseNode {
             guards = { "!isEmptyArray(other)", "!stores.acceptsAllValues(array.store, other.store)" },
             limit = "storageStrategyLimit()")
     protected RubyArray appendManyGeneralize(RubyArray array, RubyArray other,
-            @CachedLibrary("array.store") ArrayStoreLibrary stores,
-            @CachedLibrary("other.store") ArrayStoreLibrary otherStores) {
+            @Bind("array.store") Object store,
+            @Bind("other.store") Object otherStore,
+            @CachedLibrary("store") ArrayStoreLibrary stores,
+            @CachedLibrary("otherStore") ArrayStoreLibrary otherStores) {
         final int oldSize = array.size;
         final int otherSize = other.size;
         final int newSize = oldSize + otherSize;
-        final Object store = array.store;
-        final Object otherStore = other.store;
         final Object newStore = stores.allocateForNewStore(store, otherStore, newSize);
 
         propagateSharingNode.executePropagate(array, other);
