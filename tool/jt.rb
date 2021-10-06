@@ -15,6 +15,7 @@ require 'fileutils'
 require 'timeout'
 require 'rbconfig'
 require 'pathname'
+autoload :Shellwords, 'shellwords'
 autoload :JSON, 'json'
 
 if RUBY_ENGINE != 'ruby' && !RUBY_DESCRIPTION.include?('Native')
@@ -503,16 +504,7 @@ module Utilities
 
   def shellescape(str)
     return str unless str.is_a?(String)
-    if str.include?(' ')
-      if str.include?("'")
-        require 'shellwords'
-        Shellwords.escape(str)
-      else
-        "'#{str}'"
-      end
-    else
-      str
-    end
+    Shellwords.escape(str)
   end
 
   def replace_env_vars(string, env = ENV)
