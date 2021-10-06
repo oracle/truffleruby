@@ -56,6 +56,7 @@ RUBOCOP_VERSION = '0.66.0'
 DLEXT = RbConfig::CONFIG['DLEXT']
 
 JT_PROFILE_SUBCOMMANDS = ENV['JT_PROFILE_SUBCOMMANDS'] == 'true'
+JT_SPECS_COMPILATION = ENV['JT_SPECS_COMPILATION'] == 'false' ? false : true
 
 # Expand GEM_HOME relative to cwd so it cannot be misinterpreted later.
 ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
@@ -827,6 +828,7 @@ module Commands
         JT_JDK                                       The default JDK version to use: 8, 11 (default) or 17
         JT_ENV                                       The default value for 'jt build --env JT_ENV' and for 'jt --use JT_ENV'
         JT_PROFILE_SUBCOMMANDS                       Print the time each subprocess takes on stderr
+        JT_SPECS_COMPILATION                         Controls whether the compiler will be used when running TruffleRuby tests. Only affects jvm-ce and (default: 'true'). Set to 'false' to disable.
     TXT
   end
 
@@ -1559,8 +1561,13 @@ module Commands
     options += %w[--format specdoc] if ci?
 
     args, ruby_args = args_split(args)
-
     vm_args, ruby_args, parsed_options = ruby_options({}, ['--reveal', *ruby_args])
+
+    if !JT_SPECS_COMPILATION && truffleruby_compiler? && truffleruby_jvm?
+      vm_args << '--vm.XX:-UseJVMCICompiler' << '--engine.Compilation=false' << '--engine.Splitting=false'
+    end
+
+
     vm_args << (truffleruby_native? ? '--vm.Xmx3G' : '--vm.Xmx2G')
     vm_args << '--polyglot' if truffleruby_jvm?
     # Until pattern matching is complete, we enable it in specs but not globally
