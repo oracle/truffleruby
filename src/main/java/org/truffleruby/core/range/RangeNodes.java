@@ -95,14 +95,14 @@ public abstract class RangeNodes {
 
         @Specialization
         protected RubyIntRange eachInt(RubyIntRange range, RubyProc block,
+                @Cached ConditionProfile excludedEndProfile,
                 @Cached LoopConditionProfile loopProfile) {
-            int result;
-            if (range.excludedEnd) {
-                result = range.end;
+            final int exclusiveEnd;
+            if (excludedEndProfile.profile(range.excludedEnd)) {
+                exclusiveEnd = range.end;
             } else {
-                result = range.end + 1;
+                exclusiveEnd = range.end + 1;
             }
-            final int exclusiveEnd = result;
 
             int n = range.begin;
             try {
@@ -118,14 +118,14 @@ public abstract class RangeNodes {
 
         @Specialization
         protected RubyLongRange eachLong(RubyLongRange range, RubyProc block,
+                @Cached ConditionProfile excludedEndProfile,
                 @Cached LoopConditionProfile loopProfile) {
-            long result;
-            if (range.excludedEnd) {
-                result = range.end;
+            final long exclusiveEnd;
+            if (excludedEndProfile.profile(range.excludedEnd)) {
+                exclusiveEnd = range.end;
             } else {
-                result = range.end + 1;
+                exclusiveEnd = range.end + 1;
             }
-            final long exclusiveEnd = result;
 
             long n = range.begin;
             try {
