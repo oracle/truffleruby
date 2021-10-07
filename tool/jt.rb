@@ -16,6 +16,7 @@ require 'timeout'
 require 'rbconfig'
 require 'pathname'
 autoload :JSON, 'json'
+autoload :Shellwords, 'shellwords'
 
 if RUBY_ENGINE != 'ruby' && !RUBY_DESCRIPTION.include?('Native')
   STDERR.puts 'WARNING: jt is not running on MRI or TruffleRuby Native, startup is slow'
@@ -501,12 +502,14 @@ module Utilities
     all.join(size <= 180 ? ' ' : " \\\n  ")
   end
 
+  # From Shellwords.escape but without \n and with =
+  MUST_BE_ESCAPED_OR_QUOTED = /[^A-Za-z0-9_\-.,:+\/@=]/
+
   def shellescape(str)
     return str unless str.is_a?(String)
-    if str.include?(' ')
-      if str.include?("'")
-        require 'shellwords'
-        Shellwords.escape(str)
+    if MUST_BE_ESCAPED_OR_QUOTED.match?(str)
+      if str.empty? or str.include?("'") or str.include?("\n")
+        Shellwords.escape(str) # Use Shellwords for complex cases
       else
         "'#{str}'"
       end
