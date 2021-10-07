@@ -804,7 +804,7 @@ module Commands
                                        Ruby and cache the result, such as benchmark bench/mri/bm_vm1_not.rb --cache
                                        jt benchmark bench/mri/bm_vm1_not.rb --use-cache
       jt profile                                     profiles an application, including the TruffleRuby runtime, and generates a flamegraph
-      jt graph [--method Object#foo] [--watch] [--no-simplify] file.rb [-- vm-args]
+      jt graph [ruby options] [--method Object#foo] [--watch] [--no-simplify] file.rb
                                                      render a graph of Object#foo within file.rb
       jt igv                                         launches IdealGraphVisualizer
       jt next                                        tell you what to work on next (give you a random core library spec)
@@ -983,6 +983,8 @@ module Commands
         vm_args << '--vm.Dgraal.PrintBackendCFG=false'
       when '--exec'
         options[:use_exec] = true
+      when /^--vm\./
+        vm_args << arg
       when '--'
         # marks rest of the options as Ruby arguments, stop parsing jt options
         break
@@ -2013,8 +2015,10 @@ module Commands
     test_file = nil
     method = 'Object#foo'
     watch = false
-    user_args = []
     simplify = true
+
+    vm_args, remaining_args, _parsed_options = ruby_options({}, args)
+    args = remaining_args
 
     until args.empty?
       arg = args.shift
@@ -2027,10 +2031,10 @@ module Commands
       when '--no-simplify'
         simplify = false
       when '--'
-        user_args.push(*args)
-        args.clear
+        raise
+      when /^-/
+        vm_args << arg
       else
-        raise if arg.start_with?('-')
         raise if test_file
         test_file = arg
       end
@@ -2043,7 +2047,7 @@ module Commands
       sh env, 'gem', 'install', 'seafoam'
     end
 
-    options = [
+    base_vm_args = [
       '--experimental-options',
       '--engine.TraceCompilation',
       '--engine.BackgroundCompilation=false',
@@ -2057,19 +2061,22 @@ module Commands
     ]
 
     # As per https://github.com/Shopify/seafoam/blob/master/docs/getting-graphs.md
-    simplify_options = [
-      '--vm.Dgraal.FullUnroll=false',
-      '--vm.Dgraal.PartialUnroll=false',
-      '--vm.Dgraal.LoopPeeling=false',
-      '--vm.Dgraal.LoopUnswitch=false',
-      '--vm.Dgraal.OptScheduleOutOfLoops=false'
+    simplify_vm_args = %w[
+      --vm.Dgraal.FullUnroll=false
+      --vm.Dgraal.PartialUnroll=false
+      --vm.Dgraal.LoopPeeling=false
+      --vm.Dgraal.LoopUnswitch=false
+      --vm.Dgraal.OptScheduleOutOfLoops=false
     ]
 
-    options.push(*simplify_options) if simplify
+    base_vm_args += simplify_vm_args if simplify
+    vm_args = base_vm_args + vm_args
 
     loop do # for --watch
       compiled = false
-      IO.popen([ruby_launcher, *options, *user_args, test_file], :err=>[:child, :out]) do |pipe|
+      command = [ruby_launcher, *vm_args, test_file]
+      # STDERR.puts bold "$ #{printable_cmd(command)}"
+      IO.popen(command, err: [:child, :out]) do |pipe|
         pipe.each_line do |line|
           puts line
           if line =~ /\[engine\] opt done     #{method}/
