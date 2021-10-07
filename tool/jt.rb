@@ -507,7 +507,7 @@ module Utilities
 
   def shellescape(str)
     return str unless str.is_a?(String)
-    if MUST_BE_ESCAPED_OR_QUOTED.match?(str)
+    if MUST_BE_ESCAPED_OR_QUOTED =~ str
       if str.empty? or str.include?("'") or str.include?("\n")
         Shellwords.escape(str) # Use Shellwords for complex cases
       else
