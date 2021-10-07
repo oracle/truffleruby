@@ -58,8 +58,7 @@ module Truffle
     Truffle::Graal.always_split(method(:match?))
 
     def self.common_match(re, str, pos, create_match_data)
-      str = str.to_s if Primitive.object_kind_of?(str, Symbol)
-      str = StringValue(str)
+      str = Primitive.object_kind_of?(str, Symbol) ? str.to_s : StringValue(str)
 
       pos = pos < 0 ? pos + str.size : pos
       pos = Primitive.string_byte_index_from_char_index(str, pos)
