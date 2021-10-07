@@ -2085,7 +2085,6 @@ module Commands
           if line =~ /\[engine\] opt done     #{method}/
             compiled = true
             Process.kill 'INT', pipe.pid
-            break
           end
         end
       end
