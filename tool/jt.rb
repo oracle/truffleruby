@@ -2052,8 +2052,7 @@ module Commands
       compiled = false
       IO.popen([ruby_launcher, *options, test_file], :err=>[:child, :out]) do |pipe|
         pipe.each_line do |line|
-          puts line
-          if line =~ /\[engine\] opt done     #{method}/
+          if line =~ /\[engine\] opt done     #{Regexp.escape(method)}/
             compiled = true
             Process.kill 'INT', pipe.pid
             break
@@ -2064,7 +2063,7 @@ module Commands
 
       dumps = Dir.glob('graal_dumps/*').sort.last
       raise 'Could not dump directory under graal_dumps/' unless dumps
-      graph = File.join(Dir.pwd, Dir.glob("#{dumps}/*\\[#{method}\\].bgv").sort.last)
+      graph = File.join(Dir.pwd, Dir.glob("#{dumps}/*.bgv").sort.find { |file| file.match?(/Compilation-\d+\[#{Regexp.escape(method)}(?:_<split-\h+>)?/) })
       raise "Could not find graph in #{dumps}" unless graph
 
       list = sh(env, 'seafoam', graph, 'list', capture: :out, no_print_cmd: true)
