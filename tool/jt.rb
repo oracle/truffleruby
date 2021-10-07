@@ -2064,7 +2064,7 @@ module Commands
 
       dumps = Dir.glob('graal_dumps/*').sort.last
       raise 'Could not dump directory under graal_dumps/' unless dumps
-      graph = Dir.glob("#{dumps}/*\\[#{method}\\].bgv").sort.last
+      graph = File.join(Dir.pwd, Dir.glob("#{dumps}/*\\[#{method}\\].bgv").sort.last)
       raise "Could not find graph in #{dumps}" unless graph
 
       list = sh(env, 'seafoam', graph, 'list', capture: :out, no_print_cmd: true)
