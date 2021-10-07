@@ -578,6 +578,7 @@ public abstract class EncodingNodes {
 
     }
 
+    // Port of MRI's `rb_obj_encoding`/`rb_enc_get_index`.
     @Primitive(name = "encoding_get_object_encoding")
     public abstract static class EncodingGetObjectEncodingNode extends PrimitiveArrayArgumentsNode {
 
@@ -602,15 +603,8 @@ public abstract class EncodingNodes {
         }
 
         @Specialization
-        protected Object encodingGetObjectEncodingRegexp(RubyRegexp object,
-                @Cached ConditionProfile hasRegexpSource) {
-            final Rope regexpSource = object.source;
-
-            if (hasRegexpSource.profile(regexpSource != null)) {
-                return object.encoding;
-            } else {
-                return Encodings.BINARY;
-            }
+        protected RubyEncoding encodingGetObjectEncodingRegexp(RubyRegexp object) {
+            return object.encoding;
         }
 
         @Fallback
