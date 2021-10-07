@@ -69,24 +69,58 @@ public final class Identifiers {
 
     @TruffleBoundary
     private static boolean isValidIdentifier(String id, int start) {
-        return id.length() > start && isInitialCharacter(id.charAt(start)) && isNameString(id, start + 1);
+        return id.length() > start && isInitialCharacter(id.codePointAt(start)) && isNameString(id, start + 1);
     }
 
+    // MRI: similar to is_identchar but does not allow numeric
     @TruffleBoundary
     private static boolean isInitialCharacter(int c) {
-        return Character.isAlphabetic(c) || c == '_';
+        return Character.isAlphabetic(c) || c == '_' || c >= 128;
     }
 
     @TruffleBoundary
     private static boolean isNameString(String id, int start) {
         final int length = id.length();
-        for (int i = start; i < length; i++) {
-            char c = id.charAt(i);
+        int c;
+        for (int i = start; i < length; i += Character.charCount(c)) {
+            c = id.codePointAt(i);
             if (!(Character.isLetterOrDigit(c) || c == '_')) {
                 return false;
             }
         }
         return true;
+    }
+
+    public static IdentifierType stringToType(String id) {
+        if (id.isEmpty()) {
+            return IdentifierType.JUNK;
+        } else {
+            var codepoints = id.codePoints().toArray();
+            final int first = codepoints[0];
+            switch (first) {
+                case '\0':
+                    return IdentifierType.JUNK;
+                case '$':
+                    return isValidIdentifier(id, 1) ? IdentifierType.GLOBAL : IdentifierType.JUNK;
+                case '@':
+                    if (isValidClassVariableName(id)) {
+                        return IdentifierType.CLASS;
+                    } else if (id.length() > 1 && isInitialCharacter(codepoints[1])) {
+                        return IdentifierType.INSTANCE;
+                    } else {
+                        return IdentifierType.JUNK;
+                    }
+                default:
+                    if (Character.isUpperCase(first) ||
+                            (!Character.isLowerCase(first) && Character.isTitleCase(first))) {
+                        return IdentifierType.CONST;
+                    } else if (Character.isLetter(first) && Character.isLowerCase(first) && isNameString(id, 1)) {
+                        return IdentifierType.LOCAL;
+                    } else {
+                        return IdentifierType.JUNK;
+                    }
+            }
+        }
     }
 
 }
