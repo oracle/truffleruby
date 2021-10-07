@@ -828,7 +828,7 @@ module Commands
         JT_JDK                                       The default JDK version to use: 8, 11 (default) or 17
         JT_ENV                                       The default value for 'jt build --env JT_ENV' and for 'jt --use JT_ENV'
         JT_PROFILE_SUBCOMMANDS                       Print the time each subprocess takes on stderr
-        JT_SPECS_COMPILATION                         Controls whether the compiler will be used when running TruffleRuby tests. Only affects jvm-ce and (default: 'true'). Set to 'false' to disable.
+        JT_SPECS_COMPILATION                         Controls whether Graal will be used when running specs (default: 'true'). Only affects JVM with Graal. Set to 'false' to disable for running specs faster when developing with jvm-ce.
     TXT
   end
 
