@@ -2066,7 +2066,7 @@ module Commands
       graph = File.join(Dir.pwd, Dir.glob("#{dumps}/*.bgv").sort.find { |file| file.match?(/Compilation-\d+\[#{Regexp.escape(method)}(?:_<split-\h+>)?/) })
       raise "Could not find graph in #{dumps}" unless graph
 
-      list = sh(env, 'seafoam', graph, 'list', capture: :out, no_print_cmd: true)
+      list = sh(env, 'seafoam', graph, 'list', capture: :both, no_print_cmd: true)
       n = list.each_line.with_index do |line, index|
         break index if line.include? 'Before phase org.graalvm.compiler.phases.common.LoweringPhase'
       end
