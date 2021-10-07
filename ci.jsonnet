@@ -321,11 +321,10 @@ local part_definitions = {
     lint: {
       is_after:: ["$.use.build"],
       downloads+: {
-        JDT: { name: "ecj", version: "4.14.0", platformspecific: false },
         ECLIPSE: { version: "4.5.2", name: "eclipse", platformspecific: true },
       },
       environment+: { ECLIPSE_EXE: "$ECLIPSE/eclipse" },
-      mx_build_options:: ["--jdt", "$JDT", "--warning-as-error", "--force-deprecation-as-warning"],
+      mx_build_options:: ["--jdt", "builtin", "--warning-as-error", "--force-deprecation-as-warning"],
       packages+: {
         "pip:pylint": "==1.9.0",
         "shellcheck": "==0.6.0",
