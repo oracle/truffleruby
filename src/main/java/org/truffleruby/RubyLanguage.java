@@ -51,6 +51,7 @@ import org.truffleruby.core.exception.RubyNoMethodError;
 import org.truffleruby.core.exception.RubySyntaxError;
 import org.truffleruby.core.exception.RubySystemCallError;
 import org.truffleruby.core.exception.RubySystemExit;
+import org.truffleruby.core.fiber.FiberPoolThread;
 import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.core.hash.RubyHash;
 import org.graalvm.options.OptionValues;
@@ -181,12 +182,14 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     /** We need an extra indirection added to ContextThreadLocal due to multiple Fibers of different Ruby Threads
      * sharing the same Java Thread when using the fiber pool. */
-    private static final class ThreadLocalState {
-        private RubyThread rubyThread;
+    public static final class ThreadLocalState {
+        public RubyThread rubyThread;
     }
 
     private final ContextThreadLocal<ThreadLocalState> threadLocalState = createContextThreadLocal(
-            (context, thread) -> new ThreadLocalState());
+            (context, thread) -> thread instanceof FiberPoolThread
+                    ? ((FiberPoolThread) thread).threadLocalState
+                    : new ThreadLocalState());
 
     private final CyclicAssumption tracingCyclicAssumption = new CyclicAssumption("object-space-tracing");
     @CompilationFinal private volatile Assumption tracingAssumption = tracingCyclicAssumption.getAssumption();
