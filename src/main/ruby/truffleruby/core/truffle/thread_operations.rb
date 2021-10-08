@@ -153,7 +153,7 @@ module Truffle::ThreadOperations
         rescue InnerRecursionDetected
           return true
         end
-        return nil
+        nil
       ensure
         rec.delete :__detect_outermost_recursion__
       end

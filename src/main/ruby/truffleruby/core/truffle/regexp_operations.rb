@@ -94,13 +94,13 @@ module Truffle
         md2 = e
       end
       if self.results_match?(md1, md2)
-        return self.return_match_data(md1)
+        self.return_match_data(md1)
       else
         $stderr.puts match_args_to_string(re, str, from, to, at_start, start, 'gave')
         print_match_data(md1)
         $stderr.puts 'but we expected'
         print_match_data(md2)
-        return self.return_match_data(md2)
+        self.return_match_data(md2)
       end
     end
 

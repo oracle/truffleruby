@@ -265,7 +265,7 @@ module Truffle
             # to succeed on some platforms (most notably, Solaris).
             Integer(port)
             type = ::Socket::SOCK_DGRAM
-          rescue ArgumentError # rubocop:disable Lint/HandleExceptions
+          rescue ArgumentError
             # Ignored.
           end
         end

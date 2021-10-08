@@ -67,7 +67,7 @@ describe "TruffleRuby::ConcurrentMap" do
 
   guard -> { !Truffle::Boot.get_option('chaos-data') } do
     it "#replace_pair replaces the entry if the old value is a primitive" do
-      one_as_long = (1 << 48) / (1 << 48)
+      one_as_long = Truffle::Debug.long(1)
       Truffle::Debug.java_class_of(one_as_long).should == 'Long'
       one_as_int = 1
       Truffle::Debug.java_class_of(one_as_int).should == 'Integer'
@@ -128,7 +128,7 @@ describe "TruffleRuby::ConcurrentMap" do
 
   guard -> { !Truffle::Boot.get_option('chaos-data') } do
     it "#delete_pair deletes pair if the old value is a primitive" do
-      one_as_long = (1 << 48) / (1 << 48)
+      one_as_long = Truffle::Debug.long(1)
       Truffle::Debug.java_class_of(one_as_long).should == 'Long'
       one_as_int = 1
       Truffle::Debug.java_class_of(one_as_int).should == 'Integer'

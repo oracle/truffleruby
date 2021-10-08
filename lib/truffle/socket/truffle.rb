@@ -118,7 +118,7 @@ module Truffle
         socktype = source.getsockopt(:SOCKET, :TYPE).int
         addrinfo = Addrinfo.new(sockaddr.to_s, sockaddr.family, socktype)
 
-        return socket, addrinfo
+        [socket, addrinfo]
       ensure
         sockaddr.pointer.free
       end

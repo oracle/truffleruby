@@ -62,7 +62,8 @@
 
 class Float < Numeric
 
-  NAN        = -(0.0 / 0.0) # to match MRI binary representation
+  # to match MRI binary representation
+  NAN        = -(0.0 / 0.0) # rubocop:disable Lint/BinaryOperatorWithIdenticalOperands
   INFINITY   = 1.0 / 0.0
   EPSILON    = 2.2204460492503131e-16
   RADIX      = 2
@@ -81,9 +82,9 @@ class Float < Numeric
 
     begin
       b, a = math_coerce(other)
-      return a == b
+      a == b
     rescue TypeError
-      return other == self
+      other == self
     end
   end
   private :equal_fallback

@@ -2408,7 +2408,7 @@ class IO
       if exception
         raise EAGAINWaitWritable
       else
-        return :wait_writable
+        :wait_writable
       end
     end
   end

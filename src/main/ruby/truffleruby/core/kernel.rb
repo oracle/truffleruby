@@ -595,7 +595,7 @@ module Kernel
       # TODO  (bjfish, 9 Jan 2020): refactoring needed for more descriptive errors
       raise RuntimeError, 'command failed'
     else
-      return false
+      false
     end
   end
   module_function :system

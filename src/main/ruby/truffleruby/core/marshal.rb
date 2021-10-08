@@ -750,7 +750,7 @@ module Marshal
       s = get_byte_sequence
 
       if s == 'nan'
-        obj = 0.0 / 0.0
+        obj = Float::NAN
       elsif s == 'inf'
         obj = 1.0 / 0.0
       elsif s == '-inf'

@@ -1,5 +1,5 @@
 AllCops:
-  TargetRubyVersion: 2.6
+  TargetRubyVersion: 2.7
   DisabledByDefault: true
   DisplayCopNames: true
   ExtraDetails: true
@@ -14,7 +14,7 @@ AllCops:
 
 # Type 'Layout' (166):
 # Supports --auto-correct
-Layout/TrailingBlankLines:
+Layout/TrailingEmptyLines:
   Description: Checks trailing blank lines and final newline.
   StyleGuide: "#newline-eof"
   Enabled: true
@@ -94,7 +94,7 @@ Lint/DuplicateMethods:
   Description: Check for duplicate method definitions.
   Enabled: true
 
-Lint/DuplicatedKey:
+Lint/DuplicateHashKey:
   Description: Check for duplicate keys in hash literals.
   Enabled: true
 
@@ -135,7 +135,7 @@ Layout/EndAlignment:
   - start_of_line
   AutoCorrect: false
 
-Lint/EndInMethod:
+Style/EndBlock:
   Description: END blocks should not be placed inside method definitions.
   Enabled: true
 
@@ -152,7 +152,7 @@ Lint/FormatParameterMismatch:
   Description: The number of parameters to format/sprint must match the fields.
   Enabled: true
 
-Lint/HandleExceptions:
+Lint/SuppressedException:
   Description: Don't suppress exception.
   StyleGuide: "#dont-hide-exceptions"
   Enabled: true
@@ -196,7 +196,7 @@ Lint/Loop:
   Enabled: false
 
 # Supports --auto-correct
-Lint/MultipleCompare:
+Lint/MultipleComparison:
   Description: Use `&&` operator to compare multiple value.
   Enabled: true
 
@@ -258,7 +258,7 @@ Lint/ShadowingOuterLocalVariable:
   Enabled: true
 
 # Supports --auto-correct
-Lint/StringConversionInInterpolation:
+Lint/RedundantStringCoercion:
   Description: Checks for Object#to_s usage in string interpolation.
   StyleGuide: "#no-to-s"
   Enabled: true
@@ -274,13 +274,13 @@ Lint/UnifiedInteger:
   Enabled: false
 
 # Supports --auto-correct
-Lint/UnneededCopDisableDirective:
+Lint/RedundantCopDisableDirective:
   Description: 'Checks for rubocop:disable comments that can be removed. Note: this
     cop is not disabled when disabling all cops. It must be explicitly disabled.'
   Enabled: true
 
 # Supports --auto-correct
-Lint/UnneededSplatExpansion:
+Lint/RedundantSplatExpansion:
   Description: Checks for splat unnecessarily being called on literals
   Enabled: true
 
@@ -316,7 +316,7 @@ Lint/UselessAssignment:
   StyleGuide: "#underscore-unused-vars"
   Enabled: true
 
-Lint/UselessComparison:
+Lint/BinaryOperatorWithIdenticalOperands:
   Description: Checks for comparison of something with itself.
   Enabled: true
 

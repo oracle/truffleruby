@@ -58,9 +58,9 @@ class Regexp
   def self.convert(pattern)
     return pattern if Primitive.object_kind_of?(pattern, Regexp)
     if Primitive.object_kind_of?(pattern, Array)
-      return union(*pattern)
+      union(*pattern)
     else
-      return Regexp.quote(pattern.to_s)
+      Regexp.quote(pattern.to_s)
     end
   end
 
