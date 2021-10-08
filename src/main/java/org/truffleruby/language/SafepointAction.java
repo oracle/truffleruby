@@ -58,17 +58,19 @@ public abstract class SafepointAction extends ThreadLocalAction {
                             Thread.currentThread());
         }
 
+        final RubyLanguage language = RubyLanguage.getCurrentLanguage();
         final RubyContext context = RubyLanguage.getCurrentContext();
-        // Not using language.getCurrentThread() here because it might not be set yet, see fiberMain()
-        final RubyThread rubyThread = context.getThreadManager().getRubyThreadForJavaThread(access.getThread());
+
+        final RubyThread rubyThread = language.getCurrentThread();
+        final Node node = access.getLocation();
         if (filter.test(context, rubyThread, this)) {
-            run(rubyThread, access.getLocation());
+            run(rubyThread, node);
 
             if (filter == SafepointPredicate.ALL_THREADS_AND_FIBERS) {
                 final RubyFiber currentFiber = rubyThread.getCurrentFiber();
                 for (RubyFiber fiber : rubyThread.runningFibers) {
                     if (fiber != currentFiber) {
-                        context.fiberManager.safepoint(currentFiber, fiber, this, access.getLocation());
+                        context.fiberManager.safepoint(currentFiber, fiber, this, node);
                     }
                 }
             }

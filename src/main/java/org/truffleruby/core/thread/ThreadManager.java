@@ -40,6 +40,7 @@ import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.exception.RubySystemExit;
 import org.truffleruby.core.fiber.FiberManager;
+import org.truffleruby.core.fiber.FiberPoolThread;
 import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.StringUtils;
@@ -155,7 +156,7 @@ public class ThreadManager {
             throw new UnsupportedOperationException("fibers should not be created while pre-initializing the context");
         }
 
-        final Thread thread = new Thread(runnable); // context.getEnv().createUnenteredThread(runnable);
+        final Thread thread = new FiberPoolThread(runnable); // context.getEnv().createUnenteredThread(runnable);
         thread.setName("Ruby-FiberPool-" + thread.getName());
         thread.setDaemon(true); // GR-33255
         rubyManagedThreads.add(thread); // need to be set before initializeThread()
