@@ -16,6 +16,7 @@ require 'timeout'
 require 'rbconfig'
 require 'pathname'
 autoload :JSON, 'json'
+autoload :Shellwords, 'shellwords'
 
 if RUBY_ENGINE != 'ruby' && !RUBY_DESCRIPTION.include?('Native')
   STDERR.puts 'WARNING: jt is not running on MRI or TruffleRuby Native, startup is slow'
@@ -502,12 +503,14 @@ module Utilities
     all.join(size <= 180 ? ' ' : " \\\n  ")
   end
 
+  # From Shellwords.escape but without \n and with =
+  MUST_BE_ESCAPED_OR_QUOTED = /[^A-Za-z0-9_\-.,:+\/@=]/
+
   def shellescape(str)
     return str unless str.is_a?(String)
-    if str.include?(' ')
-      if str.include?("'")
-        require 'shellwords'
-        Shellwords.escape(str)
+    if MUST_BE_ESCAPED_OR_QUOTED =~ str
+      if str.empty? or str.include?("'") or str.include?("\n")
+        Shellwords.escape(str) # Use Shellwords for complex cases
       else
         "'#{str}'"
       end
@@ -805,7 +808,7 @@ module Commands
                                        Ruby and cache the result, such as benchmark bench/mri/bm_vm1_not.rb --cache
                                        jt benchmark bench/mri/bm_vm1_not.rb --use-cache
       jt profile                                     profiles an application, including the TruffleRuby runtime, and generates a flamegraph
-      jt graph [--method Object#foo] [--watch] file.rb
+      jt graph [ruby options] [--method Object#foo] [--watch] [--no-simplify] file.rb
                                                      render a graph of Object#foo within file.rb
       jt igv                                         launches IdealGraphVisualizer
       jt next                                        tell you what to work on next (give you a random core library spec)
@@ -985,6 +988,8 @@ module Commands
         vm_args << '--vm.Dgraal.PrintBackendCFG=false'
       when '--exec'
         options[:use_exec] = true
+      when /^--vm\./
+        vm_args << arg
       when '--'
         # marks rest of the options as Ruby arguments, stop parsing jt options
         break
@@ -2020,6 +2025,10 @@ module Commands
     test_file = nil
     method = 'Object#foo'
     watch = false
+    simplify = true
+
+    vm_args, remaining_args, _parsed_options = ruby_options({}, args)
+    args = remaining_args
 
     until args.empty?
       arg = args.shift
@@ -2029,8 +2038,13 @@ module Commands
         method = args.shift
       when '--watch'
         watch = true
+      when '--no-simplify'
+        simplify = false
+      when '--'
+        raise
+      when /^-/
+        vm_args << arg
       else
-        raise if arg.start_with?('-')
         raise if test_file
         test_file = arg
       end
@@ -2043,7 +2057,7 @@ module Commands
       sh env, 'gem', 'install', 'seafoam'
     end
 
-    options = [
+    base_vm_args = [
       '--experimental-options',
       '--engine.TraceCompilation',
       '--engine.BackgroundCompilation=false',
@@ -2051,36 +2065,56 @@ module Commands
       '--engine.MultiTier=false',
       '--engine.NodeSourcePositions',
       '--vm.Dgraal.PrintGraphWithSchedule=true',
-      '--vm.Dgraal.PrintBackendCFG=true',
+      *('--vm.Dgraal.PrintBackendCFG=true' unless truffleruby_native?),
       '--vm.Dgraal.Dump=Truffle:1',
       '--log.file=/dev/stderr', # suppress the Truffle log output help message
     ]
 
+    # As per https://github.com/Shopify/seafoam/blob/master/docs/getting-graphs.md
+    simplify_vm_args = [
+      '--vm.Dgraal.FullUnroll=false',
+      *('--vm.Dgraal.PartialUnroll=false' unless truffleruby_native?),
+      *('--vm.Dgraal.LoopPeeling=false' unless truffleruby_native?),
+      *('--vm.Dgraal.LoopUnswitch=false' unless truffleruby_native?),
+      '--vm.Dgraal.OptScheduleOutOfLoops=false',
+    ]
+
+    base_vm_args += simplify_vm_args if simplify
+    vm_args = base_vm_args + vm_args
+
     loop do # for --watch
       compiled = false
-      IO.popen([ruby_launcher, *options, test_file], :err=>[:child, :out]) do |pipe|
+      command = [ruby_launcher, *vm_args, test_file]
+      # STDERR.puts bold "$ #{printable_cmd(command)}"
+      IO.popen(command, err: [:child, :out]) do |pipe|
         pipe.each_line do |line|
           puts line
-          if line =~ /\[engine\] opt done     #{method}/
+          if line =~ /\[engine\] opt done     #{Regexp.escape(method)}/
             compiled = true
             Process.kill 'INT', pipe.pid
-            break
           end
         end
       end
       raise "The process did not compile #{method}" unless compiled
 
+      # See org.graalvm.compiler.debug.StandardPathUtilitiesProvider#sanitizeFileName
+      method_glob_pattern = method.gsub(/[ \/\p{Cntrl}]/, '_')
+      if truffleruby_native?
+        method_glob_pattern = "Isolated:_#{method_glob_pattern}"
+      end
+
       dumps = Dir.glob('graal_dumps/*').sort.last
       raise 'Could not dump directory under graal_dumps/' unless dumps
-      graph = Dir.glob("#{dumps}/*\\[#{method}\\].bgv").sort.last
+      graphs = Dir.glob("#{dumps}/*\\[#{method_glob_pattern}*\\].bgv").sort
+      graph = graphs.last
       raise "Could not find graph in #{dumps}" unless graph
 
-      list = sh(env, 'seafoam', graph, 'list', capture: :out, no_print_cmd: true)
+      list = raw_sh(env, 'seafoam', graph, 'list', capture: :out, no_print_cmd: true)
       n = list.each_line.with_index do |line, index|
         break index if line.include? 'Before phase org.graalvm.compiler.phases.common.LoweringPhase'
       end
 
-      sh env, 'seafoam', "#{graph}:#{n}", 'render'
+      raw_sh env, 'seafoam', "#{graph}:#{n}", 'render'
 
       break unless watch
       puts # newline between runs
