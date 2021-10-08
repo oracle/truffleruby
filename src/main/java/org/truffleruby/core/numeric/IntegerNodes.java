@@ -809,8 +809,9 @@ public abstract class IntegerNodes {
         }
 
         @Specialization
-        protected int compare(long a, double b) {
-            return Double.compare(a, b);
+        protected int compare(long a, double b,
+                @Cached ConditionProfile equalProfile) {
+            return FloatNodes.CompareNode.compareDoubles(a, b, equalProfile);
         }
 
         @Specialization

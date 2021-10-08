@@ -393,9 +393,16 @@ public abstract class FloatNodes {
             return nil;
         }
 
+        @Specialization(guards = { "!isNaN(a)", "!isNaN(b)" })
+        protected int compareDoubleDouble(double a, double b,
+                @Cached ConditionProfile equalProfile) {
+            return compareDoubles(a, b, equalProfile);
+        }
+
         @Specialization(guards = { "!isNaN(a)" })
-        protected int compare(double a, long b) {
-            return Double.compare(a, b);
+        protected int compareDoubleLong(double a, long b,
+                @Cached ConditionProfile equalProfile) {
+            return compareDoubles(a, b, equalProfile);
         }
 
         @Specialization(guards = { "isInfinity(a)" })
@@ -408,17 +415,19 @@ public abstract class FloatNodes {
             return BigIntegerOps.compare(a, b);
         }
 
-        @Specialization(guards = { "!isNaN(a)", "!isNaN(b)" })
-        protected int compare(double a, double b) {
-            return Double.compare(a, b);
-        }
-
         @Specialization(guards = { "!isNaN(a)", "!isRubyNumber(b)" })
         protected Object compare(double a, Object b,
                 @Cached DispatchNode redoCompare) {
             return redoCompare.call(a, "redo_compare_bad_coerce_return_error", b);
         }
 
+        public static int compareDoubles(double a, double b, ConditionProfile equalProfile) {
+            if (equalProfile.profile(a == b)) {
+                return 0;
+            } else {
+                return a > b ? 1 : -1;
+            }
+        }
     }
 
     @CoreMethod(names = ">=", required = 1)
