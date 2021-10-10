@@ -539,25 +539,42 @@ class Hash
     self
   end
 
-  def transform_keys
-    return to_enum(:transform_keys) { size } unless block_given?
+  def transform_keys(mapping = nil)
+    has_block = block_given?
+    return to_enum(:transform_keys) { size } unless mapping || has_block
+
+    mapping = Truffle::Type.coerce_to(mapping, Hash, :to_hash) if mapping
 
     h = {}
     each_pair do |key, value|
-      h[yield(key)] = value
+      if mapping
+        k = Primitive.hash_get_or_undefined(mapping, key)
+        k = has_block ? yield(key) : key if Primitive.undefined?(k)
+        h[k] = value
+      else
+        h[yield(key)] = value
+      end
     end
     h
   end
 
-  def transform_keys!
-    return to_enum(:transform_keys!) { size } unless block_given?
+  def transform_keys!(mapping = nil)
+    has_block = block_given?
+    return to_enum(:transform_keys!) { size } unless mapping || has_block
 
     Primitive.check_frozen self
+    mapping = Truffle::Type.coerce_to(mapping, Hash, :to_hash) if mapping
 
     h = {}
     begin
       each_pair do |key, value|
-        h[yield(key)] = value
+        if mapping
+          k = Primitive.hash_get_or_undefined(mapping, key)
+          k = has_block ? yield(key) : key if Primitive.undefined?(k)
+          h[k] = value
+        else
+          h[yield(key)] = value
+        end
       end
     ensure
       replace h
