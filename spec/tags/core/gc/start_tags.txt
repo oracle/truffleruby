@@ -1,2 +1,0 @@
-slow:GC.start always returns nil
-slow:GC.start accepts keyword arguments

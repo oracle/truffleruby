@@ -1,1 +1,0 @@
-fails:Readline::HISTORY.push tries to convert the passed Object to a String using #to_str

@@ -1,1 +1,0 @@
-slow:WeakRef#weakref_alive? returns a falsy value if the object is no longer reachable

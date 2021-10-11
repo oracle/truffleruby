@@ -1,2 +1,0 @@
-slow:Sharing is correctly propagated for classes and constants and they are not shared until sharing is started
-slow:Sharing is correctly propagated for thread-local IO buffers which should not trigger sharing

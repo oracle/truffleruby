@@ -1,2 +1,0 @@
-slow:File.ftype returns fifo when the file is a fifo
-fails(depends on cwd length):File.ftype returns 'socket' when the file is a socket

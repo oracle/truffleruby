@@ -1,8 +1,0 @@
-_dump
-ascii_compatible?
-dummy?
-inspect
-name
-names
-replicate
-to_s

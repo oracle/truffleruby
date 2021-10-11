@@ -1,2 +1,0 @@
-slow:Thread.report_on_exception defaults to false
-slow:Thread.report_on_exception defaults to true

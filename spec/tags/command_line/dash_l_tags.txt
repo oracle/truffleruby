@@ -1,4 +1,0 @@
-slow:The -l command line option chomps lines with default separator
-slow:The -l command line option chomps last line based on $/
-slow:The -l command line option sets $\ to the value of $/
-slow:The -l command line option sets $-l

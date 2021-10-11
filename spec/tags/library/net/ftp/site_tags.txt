@@ -1,7 +1,0 @@
-slow:Net::FTP#site sends the SITE command with the passed argument to the server
-slow:Net::FTP#site returns nil
-slow:Net::FTP#site does not raise an error when the response code is 202
-slow:Net::FTP#site raises a Net::FTPPermError when the response code is 500
-slow:Net::FTP#site raises a Net::FTPPermError when the response code is 501
-slow:Net::FTP#site raises a Net::FTPTempError when the response code is 421
-slow:Net::FTP#site raises a Net::FTPPermError when the response code is 530

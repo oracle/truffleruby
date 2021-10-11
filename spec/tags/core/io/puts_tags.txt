@@ -1,2 +1,0 @@
-fails:IO#puts writes crlf when IO is opened with newline: :crlf
-fails:IO#puts writes cr when IO is opened with newline: :cr

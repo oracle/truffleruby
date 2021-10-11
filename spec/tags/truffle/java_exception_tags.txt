@@ -1,3 +1,0 @@
-slow:Internal errors reaching the top level show both the Java stacktrace and Ruby backtrace
-slow:Internal errors reaching the top level show the cause
-slow:Internal errors reaching the top level AssertionError in another Thread is rethrown on the main Ruby Thread

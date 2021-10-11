@@ -1,2 +1,0 @@
-fails:Integer#div fixnum calls #coerce and #div if argument responds to #coerce
-fails:Integer#div bignum calls #coerce and #div if argument responds to #coerce

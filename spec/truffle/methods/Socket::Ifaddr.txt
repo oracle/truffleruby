@@ -1,8 +1,0 @@
-addr
-broadaddr
-dstaddr
-flags
-ifindex
-inspect
-name
-netmask

@@ -1,2 +1,0 @@
-slow:Process::Status#exitstatus returns the process exit code
-slow:Process::Status#exitstatus for a child that raised SignalException returns nil

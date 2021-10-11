@@ -1,2 +1,0 @@
-slow:Process::Status#== returns true when compared to the integer status of an exited child
-slow:Process::Status#== returns true when compared to the integer status of a terminated child

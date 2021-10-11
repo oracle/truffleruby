@@ -1,5 +1,0 @@
-slow:The -I command line option adds the path to the load path ($:)
-slow:The -I command line option adds the path at the front of $LOAD_PATH
-slow:The -I command line option adds the path expanded from CWD to $LOAD_PATH
-slow:The -I command line option expands a path from CWD even if it does not exist
-slow:The -I command line option does not expand symlinks

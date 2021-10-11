@@ -1,9 +1,0 @@
-slow:Net::FTP#abort sends the ABOR command to the server
-slow:Net::FTP#abort ignores the response
-slow:Net::FTP#abort returns the full response
-slow:Net::FTP#abort does not raise any error when the response code is 225
-slow:Net::FTP#abort does not raise any error when the response code is 226
-slow:Net::FTP#abort raises a Net::FTPProtoError when the response code is 500
-slow:Net::FTP#abort raises a Net::FTPProtoError when the response code is 501
-slow:Net::FTP#abort raises a Net::FTPProtoError when the response code is 502
-slow:Net::FTP#abort raises a Net::FTPProtoError when the response code is 421

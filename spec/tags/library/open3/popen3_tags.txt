@@ -1,4 +1,0 @@
-slow:Open3.popen3 returns in, out, err and a thread waiting the process
-slow:Open3.popen3 executes a process with a pipe to read stdout
-slow:Open3.popen3 executes a process with a pipe to read stderr
-slow:Open3.popen3 executes a process with a pipe to write stdin

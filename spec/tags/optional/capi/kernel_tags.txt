@@ -1,2 +1,0 @@
-fails:C-API Kernel function rb_block_lambda converts the implicit block into a lambda
-slow:C-API Kernel function rb_set_end_proc runs a C function on shutdown

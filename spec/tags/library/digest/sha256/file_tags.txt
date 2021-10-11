@@ -1,1 +1,0 @@
-slow:Digest::SHA256.file when passed a path to a file that exists can be used with frozen-string-literal

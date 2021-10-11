@@ -1,3 +1,0 @@
-slow:The --cexts option when disabled can run basic expressions
-slow:The --cexts option when disabled can use reasonable parts of the stdlib
-slow:The --cexts option when disabled cannot use parts of the stdlib that use C extensions

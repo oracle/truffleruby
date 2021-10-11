@@ -1,2 +1,0 @@
-slow:The interpreter prints an error when given a file with invalid syntax
-slow:The interpreter prints an error when given code via -e with invalid syntax

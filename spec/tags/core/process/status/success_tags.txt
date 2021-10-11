@@ -1,3 +1,0 @@
-slow:Process::Status#success? for a child that exited normally returns true
-slow:Process::Status#success? for a child that exited with a non zero status returns false
-slow:Process::Status#success? for a child that was terminated returns nil

@@ -1,3 +1,0 @@
-slow:The -X command line option changes the PWD when using a file
-slow:The -X command line option does not need a space after -C for the argument
-slow:The -X command line option changes the PWD when using -e

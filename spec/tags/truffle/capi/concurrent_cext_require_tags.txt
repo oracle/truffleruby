@@ -1,1 +1,0 @@
-slow:Requiring C extensions concurrently is thread-safe

@@ -1,2 +1,0 @@
-fails:Regexps with repetition does not treat {m,n}+ as possessive
-fails(a bug in Joni; fixed in upstream Joni and in TRegex):Regexps with repetition supports nested quantifiers

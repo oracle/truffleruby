@@ -1,2 +1,0 @@
-slow:CApiGCSpecs rb_gc increases gc count
-fails:CApiGCSpecs rb_gc_adjust_memory_usage adjusts the amount of registered external memory

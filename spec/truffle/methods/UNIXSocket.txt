@@ -1,6 +1,0 @@
-addr
-path
-peeraddr
-recv_io
-recvfrom
-send_io

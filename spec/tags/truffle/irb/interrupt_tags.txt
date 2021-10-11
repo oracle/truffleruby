@@ -1,2 +1,0 @@
-slow:IRB can be interrupted with Ctrl+C
-arm64:IRB can be interrupted with Ctrl+C

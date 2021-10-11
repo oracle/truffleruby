@@ -1,6 +1,0 @@
-fails:ruby -E raises a RuntimeError if used with -U
-slow:ruby -E sets the external encoding with '-E external'
-slow:ruby -E also sets the filesystem encoding with '-E external'
-slow:ruby -E sets the external encoding with '-E external:'
-slow:ruby -E sets the internal encoding with '-E :internal'
-slow:ruby -E sets the external and internal encodings with '-E external:internal'

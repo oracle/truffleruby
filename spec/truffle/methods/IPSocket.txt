@@ -1,4 +1,0 @@
-addr
-inspect
-peeraddr
-recvfrom

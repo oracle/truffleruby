@@ -1,5 +1,0 @@
-fails:rescuing SignalException raises a SignalException when sent a signal
-slow:SignalException can be rescued
-slow:SignalException runs after at_exit
-slow:SignalException cannot be trapped with Signal.trap
-slow:SignalException self-signals for USR1

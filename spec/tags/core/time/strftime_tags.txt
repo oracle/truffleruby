@@ -1,1 +1,0 @@
-fails:Time#strftime with %N formats the picoseconds of the second with %12N

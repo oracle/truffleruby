@@ -1,6 +1,0 @@
-fails:CApiModule rb_define_method returns the correct arity of the method in module
-fails:CApiModule rb_define_module_function returns the correct arity of the module function
-fails:CApiModule rb_define_module_function returns the correct arity for private instance method
-fails:CApiModule rb_define_method returns the correct arity when argc of the method in class is 0
-fails:CApiModule rb_define_method returns the correct arity when argc of the method in class is -2
-fails:CApiModule rb_define_method returns the correct arity when argc of the method in class is 2

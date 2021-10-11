@@ -1,5 +1,0 @@
-fails:UNIXSocket#recv_io reads an IO object across the socket
-fails:UNIXSocket#recv_io takes an optional class to use
-fails:UNIXSocket#recv_io without a custom class returns an IO
-fails:UNIXSocket#recv_io with a custom class returns an instance of the custom class
-fails:UNIXSocket#recv_io with a custom mode opens the IO using the given mode

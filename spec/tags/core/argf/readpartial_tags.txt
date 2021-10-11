@@ -1,2 +1,0 @@
-slow:ARGF.readpartial reads a number of bytes from stdin
-slow:ARGF.readpartial raises an EOFError if the exception was raised while reading STDIN

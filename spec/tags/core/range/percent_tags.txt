@@ -1,1 +1,0 @@
-fails:Range#% produces an arithmetic sequence with a percent sign in #inspect

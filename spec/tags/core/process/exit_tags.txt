@@ -1,5 +1,0 @@
-slow:Process.exit! exits with the given status
-slow:Process.exit! exits when called from a thread
-slow:Process.exit! exits when called from a fiber
-slow:Process.exit! overrides the original exception and exit status when called from #at_exit
-slow:Process.exit! skips at_exit handlers

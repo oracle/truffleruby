@@ -1,1 +1,0 @@
-fails:Module#autoload (concurrently) blocks others threads while doing an autoload

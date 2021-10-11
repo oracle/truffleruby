@@ -1,1 +1,0 @@
-slow:Truffle has no common constants with Object

@@ -1,2 +1,0 @@
-slow:IO.write on a FIFO writes correctly
-fails:IO#write accepts multiple arguments

@@ -1,1 +1,0 @@
-slow:Kernel.srand returns the previous seed value on the first call

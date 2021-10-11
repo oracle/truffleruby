@@ -1,1 +1,0 @@
-fails:Process#last_status returns the status of the last executed child process in the current thread

@@ -1,5 +1,0 @@
-fails:The --debug flag produces debugging info on attempted frozen string modification
-slow:The --enable-frozen-string-literal flag causes string literals to produce the same object each time
-slow:The --enable-frozen-string-literal flag causes string literals to produce the same object for literals with the same content
-slow:The --enable-frozen-string-literal flag causes string literals to produce the same object for literals with the same content in different files
-slow:The --enable-frozen-string-literal flag causes string literals to produce different objects for literals with the same content in different files if they have different encodings

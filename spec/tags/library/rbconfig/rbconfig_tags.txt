@@ -1,3 +1,0 @@
-slow:RbConfig::CONFIG contains no frozen strings even with --enable-frozen-string-literal
-slow:RbConfig::CONFIG ['AR'] exists and can be executed
-slow:RbConfig::CONFIG ['STRIP'] exists and can be executed

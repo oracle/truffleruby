@@ -1,1 +1,0 @@
-slow:The BEGIN keyword returns the top-level script's filename for __FILE__

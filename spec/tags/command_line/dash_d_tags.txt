@@ -1,3 +1,0 @@
-slow:The -d command line option sets $DEBUG to true
-slow:The -d command line option sets $VERBOSE to true
-slow:The -d command line option sets $-d to true

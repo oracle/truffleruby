@@ -1,1 +1,0 @@
-slow:The parse-time name of methods gives an accurate description

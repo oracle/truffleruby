@@ -1,1 +1,0 @@
-fails:ConditionVariable#wait calls #sleep on the given object

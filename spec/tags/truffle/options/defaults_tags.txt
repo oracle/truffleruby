@@ -1,7 +1,0 @@
-slow:Options have a default
-slow:Options can be set explicitly back to their default value
-slow:Options can be set explicitly to a value
-slow:Options can be set explicitly to an implicit value
-slow:Options can be set using a simple referenced option
-slow:Options can be set using a negated referenced option
-slow:Options take an explicit value over a modified referenced option

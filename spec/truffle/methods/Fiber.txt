@@ -1,4 +1,0 @@
-inspect
-raise
-resume
-to_s

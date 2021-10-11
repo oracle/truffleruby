@@ -1,4 +1,0 @@
-slow:The -n command line option runs the code in loop conditional on Kernel.gets()
-slow:The -n command line option only evaluates BEGIN blocks once
-slow:The -n command line option only evaluates END blocks once
-slow:The -n command line option allows summing over a whole file

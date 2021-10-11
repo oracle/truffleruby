@@ -1,2 +1,0 @@
-slow:A Symbol literal inherits the encoding of the magic comment and can have a binary encoding
-fails(cannot parse a Symbol with binary encoding and non-ASCII characters):A Symbol literal inherits the encoding of the magic comment and can have a binary encoding

@@ -1,1 +1,0 @@
-aot(crashes, exits with 99):NFI with callbacks to Ruby propagates exceptions from the callback

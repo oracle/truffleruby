@@ -1,1 +1,0 @@
-fails(ZoneOffset.ofTotalSeconds has smaller range):CApiTimeSpecs rb_time_timespec_new when offset given is within range of -86400 and 86400 (exclusive) sets time's offset to the offset given

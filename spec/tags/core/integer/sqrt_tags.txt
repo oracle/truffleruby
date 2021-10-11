@@ -1,1 +1,0 @@
-fails:Integer.sqrt returns the integer square root of the argument

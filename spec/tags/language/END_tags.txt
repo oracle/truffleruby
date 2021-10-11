@@ -1,3 +1,0 @@
-slow:The END keyword runs only once for multiple calls
-slow:The END keyword runs last in a given code unit
-slow:The END keyword runs multiple ends in LIFO order

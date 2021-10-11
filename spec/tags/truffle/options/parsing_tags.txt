@@ -1,8 +1,0 @@
-slow:Options can correctly parse booleans
-slow:Options can correctly parse integers
-slow:Options can correctly parse enum values
-slow:Options can correctly parse strings
-slow:Options can correctly parse arrays of strings
-slow:Options handles parsing errors with booleans
-slow:Options handles parsing errors with integers
-slow:Options handles parsing errors with enum values

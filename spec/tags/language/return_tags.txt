@@ -1,5 +1,0 @@
-fails:The return keyword in a Thread raises a LocalJumpError if used to exit a thread
-slow:The return keyword at top level stops file execution
-slow:The return keyword at top level within a begin fires ensure block before returning
-slow:The return keyword at top level return with argument warns but does not affect exit status
-fails:The return keyword at top level return with argument warns but does not affect exit status

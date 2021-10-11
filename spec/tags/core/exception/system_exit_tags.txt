@@ -1,2 +1,0 @@
-slow:SystemExit sets the exit status and exits silently when raised
-slow:SystemExit sets the exit status and exits silently when raised when subclassed

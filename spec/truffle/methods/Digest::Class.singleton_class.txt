@@ -1,4 +1,0 @@
-base64digest
-digest
-file
-hexdigest

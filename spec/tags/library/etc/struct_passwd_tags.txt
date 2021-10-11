@@ -1,4 +1,0 @@
-darwin:Etc::Passwd returns user group id
-slow:Etc::Passwd returns user name
-slow:Etc::Passwd returns user id
-slow:Etc::Passwd returns user group id

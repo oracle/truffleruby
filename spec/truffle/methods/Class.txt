@@ -1,3 +1,0 @@
-allocate
-new
-superclass

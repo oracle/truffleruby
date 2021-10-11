@@ -1,2 +1,0 @@
-slow:Process.groups gets an Array of the gids of groups in the supplemental group access list
-fails:Process.groups gets an Array of the gids of groups in the supplemental group access list

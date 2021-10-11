@@ -1,1 +1,0 @@
-fails:Net::HTTPHeader#fetch when passed key and block returns the header entry for the passed key

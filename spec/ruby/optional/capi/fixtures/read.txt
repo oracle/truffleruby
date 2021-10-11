@@ -1,1 +1,0 @@
-fixture file contents to test read() with RSTRING_PTR

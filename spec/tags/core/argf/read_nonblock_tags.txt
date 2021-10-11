@@ -1,3 +1,0 @@
-slow:ARGF.read_nonblock reads a number of bytes from stdin
-slow:ARGF.read_nonblock reads up to the given bytes from STDIN
-slow:ARGF.read_nonblock reads up to the given bytes from a file when a file and STDIN are present

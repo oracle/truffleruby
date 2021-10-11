@@ -1,2 +1,0 @@
-fails:Array.new with (size, object=nil) raises an ArgumentError if size is too large
-fails:Array.new with (size, object=nil) uses the block value instead of using the default value

@@ -1,5 +1,0 @@
-fails(java-class-instance-issue):Java .type returns a Java class for a known primitive name
-fails(java-class-instance-issue):Java .type returns a Java class for known primitive name as an array
-fails(java-class-instance-issue):Java .type returns a Java class for a known class name 
-fails(java-class-instance-issue):Java .type returns a Java class for known class name as an array
-fails(java-class-instance-issue):Java .type works with symbols

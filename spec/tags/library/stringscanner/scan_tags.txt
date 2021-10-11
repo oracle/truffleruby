@@ -1,2 +1,0 @@
-fails:StringScanner#scan with fixed_anchor: true treats ^ as matching from the beginning of line
-fails:StringScanner#scan with fixed_anchor: true treats \A as matching from the beginning of string

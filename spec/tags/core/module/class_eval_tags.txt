@@ -1,2 +1,0 @@
-fails:Module#class_eval activates refinements from the eval scope
-fails:Module#class_eval activates refinements from the eval scope with block

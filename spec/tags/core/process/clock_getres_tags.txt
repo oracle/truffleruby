@@ -1,1 +1,0 @@
-fails:Process.clock_getres with Process::CLOCK_REALTIME reports at least 1 microsecond

@@ -1,2 +1,0 @@
-slow:Net::HTTP#head sends a HEAD request to the passed path and returns the response
-slow:Net::HTTP#head returns a Net::HTTPResponse

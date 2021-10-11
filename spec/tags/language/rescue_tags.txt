@@ -1,2 +1,0 @@
-fails:The rescue keyword raises SyntaxError when else is used without rescue and ensure
-fails(cause not set):The rescue keyword suppresses exception from block when raises one from rescue expression

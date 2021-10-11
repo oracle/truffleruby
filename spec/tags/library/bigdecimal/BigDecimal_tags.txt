@@ -1,2 +1,0 @@
-slow:BigDecimal is not defined unless it is required
-slow:Kernel#BigDecimal does not call to_s when calling inspect

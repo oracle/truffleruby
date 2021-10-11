@@ -1,2 +1,0 @@
-fails:Kernel.rand supports custom object types
-slow:Kernel.rand is random on boot

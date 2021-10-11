@@ -1,6 +1,0 @@
-slow:The -W command line option with 0 sets $VERBOSE to nil
-slow:The -W command line option with 1 sets $VERBOSE to false
-slow:The -W command line option with 2 sets $VERBOSE to true
-slow:The -W command line option with :no-deprecated suppresses deprecation warnings
-slow:The -W command line option with :no-experimental suppresses experimental warnings
-fails:The -W command line option with :no-experimental suppresses experimental warnings

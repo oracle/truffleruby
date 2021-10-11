@@ -1,1 +1,0 @@
-fails:StringIO#external_encoding changes to match string if string's encoding is changed

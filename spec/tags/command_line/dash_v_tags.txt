@@ -1,2 +1,0 @@
-slow:The -v command line option sets $VERBOSE to true
-slow:The -v command line option when used alone prints version and ends

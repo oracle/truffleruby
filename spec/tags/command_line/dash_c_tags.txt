@@ -1,2 +1,0 @@
-slow:The -c command line option checks syntax in given file
-slow:The -c command line option checks syntax in -e strings

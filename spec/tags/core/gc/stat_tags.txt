@@ -1,2 +1,0 @@
-slow:GC.stat increases count after GC is run
-slow:GC.stat increases major_gc_count after GC is run

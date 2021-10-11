@@ -1,8 +1,0 @@
-slow:Net::FTP#rmdir sends the RMD command with the passed pathname to the server
-slow:Net::FTP#rmdir returns nil
-slow:Net::FTP#rmdir raises a Net::FTPPermError when the response code is 500
-slow:Net::FTP#rmdir raises a Net::FTPPermError when the response code is 501
-slow:Net::FTP#rmdir raises a Net::FTPPermError when the response code is 502
-slow:Net::FTP#rmdir raises a Net::FTPTempError when the response code is 421
-slow:Net::FTP#rmdir raises a Net::FTPPermError when the response code is 530
-slow:Net::FTP#rmdir raises a Net::FTPPermError when the response code is 550

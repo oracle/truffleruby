@@ -1,3 +1,0 @@
-slow:The -S command line option runs launcher found in PATH, but only code after the first /#!.*ruby.*/-ish line in target file
-slow:The -S command line option runs launcher found in PATH
-slow:The -S command line option runs launcher found in PATH and sets the exit status to 1 if it fails

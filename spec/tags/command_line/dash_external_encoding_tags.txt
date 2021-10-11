@@ -1,2 +1,0 @@
-slow:The --external-encoding command line option sets Encoding.default_external if given an encoding with an =
-slow:The --external-encoding command line option sets Encoding.default_external if given an encoding as a separate argument

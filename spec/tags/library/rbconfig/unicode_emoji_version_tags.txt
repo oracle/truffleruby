@@ -1,1 +1,0 @@
-fails:RbConfig::CONFIG['UNICODE_EMOJI_VERSION'] is 12.1 for Ruby 2.7

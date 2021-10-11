@@ -1,1 +1,0 @@
-fails:Enumerator.new when passed a block defines iteration with block, yielder argument and treating it as a proc
