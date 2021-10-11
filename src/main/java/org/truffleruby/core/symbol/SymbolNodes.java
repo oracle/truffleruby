@@ -27,6 +27,7 @@ import org.truffleruby.core.proc.ProcCallTargets;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.LexicalScope;
@@ -277,6 +278,16 @@ public abstract class SymbolNodes {
         protected RubyString toS(RubySymbol symbol,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             return makeStringNode.fromRope(symbol.getRope(), symbol.encoding);
+        }
+
+    }
+
+    @CoreMethod(names = "name")
+    public abstract static class NameNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected ImmutableRubyString toS(RubySymbol symbol) {
+            return symbol.getName(getLanguage());
         }
 
     }
