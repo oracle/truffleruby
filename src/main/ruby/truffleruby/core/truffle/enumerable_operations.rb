@@ -27,7 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 module Truffle
-  module EnumerableHelper
+  module EnumerableOperations
     def self.cycle_size(enum_size, many)
       if many
         many = Primitive.rb_num2int many

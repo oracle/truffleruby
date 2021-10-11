@@ -524,7 +524,7 @@ module Enumerable
   def cycle(many=nil)
     unless block_given?
       return to_enum(:cycle, many) do
-        Truffle::EnumerableHelper.cycle_size(enumerator_size, many)
+        Truffle::EnumerableOperations.cycle_size(enumerator_size, many)
       end
     end
 
