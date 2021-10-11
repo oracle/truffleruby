@@ -1011,10 +1011,17 @@ module Enumerable
   end
 
   def sum(init = 0)
+    compensation = Truffle::EnumerableOperations::Compensation.new
     if block_given?
-      inject(init) { |sum, e| sum + yield(e) }
+      result = inject(init) do |sum, e|
+        Truffle::EnumerableOperations.sum_add(sum, yield(e), compensation)
+      end
+      Primitive.object_kind_of?(result, Float) ? result + compensation.value : result
     else
-      inject(init, :+)
+      result = inject(init) do |sum, e|
+        Truffle::EnumerableOperations.sum_add(sum, e, compensation)
+      end
+      Primitive.object_kind_of?(result, Float) ? result + compensation.value : result
     end
   end
 

@@ -37,5 +37,46 @@ module Truffle
         Primitive.nil?(enum_size) ? nil : Float::INFINITY
       end
     end
+
+    class Compensation
+      attr_accessor :value
+
+      def initialize
+        @value = 0.0
+      end
+    end
+
+    # Kahan-Babushka-Neumaier balancing compensated summation algorithm, like in CRuby
+    # See https://en.wikipedia.org/wiki/Kahan_summation_algorithm#Further_enhancements
+    def self.sum_add(a, b, compensation)
+      floats = false
+      lhs = 0.0
+      rhs = 0.0
+      if Primitive.object_kind_of?(a, Float)
+        if Primitive.object_kind_of?(b, Float)
+          lhs = a
+          rhs = b
+          floats = true
+        elsif Primitive.object_kind_of?(b, Integer) || Primitive.object_kind_of?(b, Rational)
+          lhs = a
+          rhs = b.to_f
+          floats = true
+        end
+      elsif Primitive.object_kind_of?(b, Float)
+        if Primitive.object_kind_of?(a, Integer) || Primitive.object_kind_of?(a, Rational)
+          lhs = a.to_f
+          rhs = b
+          floats = true
+        end
+      end
+
+      return a + b unless floats
+
+      t = lhs + rhs
+      if t.finite?
+        compensation.value += lhs.abs >= rhs.abs ? ((lhs - t) + rhs) : ((rhs - t) + lhs)
+      end
+      t
+    end
   end
 end
