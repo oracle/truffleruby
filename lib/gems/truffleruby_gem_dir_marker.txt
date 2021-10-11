@@ -1,2 +1,0 @@
-DO NOT DELETE: This file is used by TruffleRuby to distinguish its
-gem installation directory from that of other Ruby installations.
