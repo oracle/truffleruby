@@ -93,7 +93,7 @@ public class FiberManager {
         assert !fiber.isRootFiber() : "Root Fibers execute threadMain() and not fiberMain()";
         assertNotEntered("Fibers should start unentered to avoid triggering multithreading");
 
-        final Thread thread = Thread.currentThread();
+        final FiberPoolThread thread = (FiberPoolThread) Thread.currentThread();
         final SourceSection sourceSection = block.sharedMethodInfo.getSourceSection();
         final String oldName = thread.getName();
         thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + RubyLanguage.fileLine(sourceSection));
@@ -106,9 +106,14 @@ public class FiberManager {
         final FiberMessage message = waitMessage(fiber, currentNode);
         final TruffleContext truffleContext = context.getEnv().getContext();
 
-        final Object prev = truffleContext.enter(currentNode);
-        language.setupCurrentThread(thread, fiber.rubyThread);
+        /* We need to setup the ThreadLocalState before enter(), as that polls and the current thread is needed for
+         * guest safepoints. It can't just be set in RubyLanguage#initializeThread() as this java.lang.Thread is reused
+         * for multiple Fibers and multiple Ruby Threads due to the Fiber pool, but initializeThread() is only called
+         * once per thread. */
         fiber.rubyThread.setCurrentFiber(fiber);
+        thread.threadLocalState.rubyThread = fiber.rubyThread;
+
+        final Object prev = truffleContext.enter(currentNode);
 
         FiberMessage lastMessage = null;
         try {
@@ -141,8 +146,8 @@ public class FiberManager {
             // Make sure that other fibers notice we are dead before they gain control back
             fiber.alive = false;
             // Leave context before addToMessageQueue() -> parent Fiber starts executing
-            language.setupCurrentThread(thread, null);
             truffleContext.leave(currentNode, prev);
+            thread.threadLocalState.rubyThread = null;
             cleanup(fiber, thread);
             thread.setName(oldName);
 
