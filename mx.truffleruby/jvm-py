@@ -1,2 +1,0 @@
-DYNAMIC_IMPORTS=/tools,graalpython
-COMPONENTS=TruffleRuby,Graal.Python,suite:tools

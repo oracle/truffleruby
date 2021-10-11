@@ -1,2 +1,0 @@
-DYNAMIC_IMPORTS=/graal-enterprise,/tools
-COMPONENTS=TruffleRuby,GraalVM enterprise compiler,suite:tools

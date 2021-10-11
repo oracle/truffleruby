@@ -1,4 +1,0 @@
-DYNAMIC_IMPORTS=/substratevm,/tools
-COMPONENTS=TruffleRuby,SubstrateVM,suite:tools
-NATIVE_IMAGES=true
-DISABLE_INSTALLABLES=false

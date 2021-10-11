@@ -1,3 +1,0 @@
-DYNAMIC_IMPORTS=/compiler,/substratevm,/tools
-COMPONENTS=TruffleRuby,GraalVM compiler,SubstrateVM,LibGraal,suite:tools
-NATIVE_IMAGES=lib:jvmcicompiler

@@ -1,2 +1,0 @@
-DYNAMIC_IMPORTS=/vm,/tools
-COMPONENTS=TruffleRuby,gu,suite:tools

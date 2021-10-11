@@ -1,7 +1,0 @@
-{
-  "ruby-warmup:asciidoctor/asciidoctor-convert": 5,
-  "ruby-warmup:asciidoctor/asciidoctor-load-file": 5,
-  "ruby-warmup:rubykon/rubykon": 5,
-  "ruby-warmup:rails/blog6-bundle-install": 1,
-  "ruby-warmup:rails/blog6-rails-routes": 5
-}
