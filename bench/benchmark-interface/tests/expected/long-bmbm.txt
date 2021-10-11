@@ -1,2 +1,0 @@
- user system total real 
-sleep XXX XXX XXX (XXX) 

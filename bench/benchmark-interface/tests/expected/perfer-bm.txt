@@ -1,4 +1,0 @@
-This benchmark set contains blocks that want a number of iterations - running all iterations XXX times 
- user system total real 
-clamp_a XXX XXX XXX (XXX) 
-clamp_b XXX XXX XXX (XXX) 

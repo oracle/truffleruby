@@ -1,2 +1,0 @@
- user system total real 
-bench9000 XXX XXX XXX (XXX) 

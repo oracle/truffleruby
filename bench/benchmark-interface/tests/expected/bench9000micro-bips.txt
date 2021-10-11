@@ -1,8 +1,0 @@
-Warming up -------------------------------------- 
- bench9000micro XXX i/100ms 
- bench9000micro XXX i/100ms 
- bench9000micro XXX i/100ms 
-Calculating ------------------------------------- 
- bench9000micro XXX (XXX%) i/s - XXX 
- bench9000micro XXX (XXX%) i/s - XXX 
- bench9000micro XXX (XXX%) i/s - XXX 

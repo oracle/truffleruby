@@ -1,3 +1,0 @@
- user system total real 
-clamp_a XXX XXX XXX (XXX) 
-clamp_b XXX XXX XXX (XXX) 

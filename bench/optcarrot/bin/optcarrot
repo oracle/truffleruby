@@ -1,6 +1,0 @@
-#!/usr/bin/env ruby
-
-# I'm too lazy to type `-Ilib` every time...
-require_relative "../lib/optcarrot"
-
-Optcarrot::NES.new.run

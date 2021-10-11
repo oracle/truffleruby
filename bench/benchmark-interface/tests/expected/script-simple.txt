@@ -1,4 +1,0 @@
-clamp_a 
-XXX 
-clamp_b 
-XXX 

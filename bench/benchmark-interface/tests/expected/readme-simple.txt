@@ -1,4 +1,0 @@
-mul 
-XXX 
-pow 
-XXX 

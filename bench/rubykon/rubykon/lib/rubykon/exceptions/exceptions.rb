@@ -1,1 +1,0 @@
-require_relative 'illegal_move_exception'
