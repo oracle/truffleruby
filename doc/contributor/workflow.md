@@ -288,18 +288,17 @@ exception.
 When the spec is fixed the `untag` command will remove the tag and you can
 commit the fix and the removal of the tag.
 
-## Running specs for Ruby 2.7 features
+## Running specs for Ruby 3.0 features
 
-TruffleRuby currently targets Ruby 2.6. However, we welcome pull requests for
-Ruby 2.7 features as long as they don't conflict significantly with
-Ruby 2.6 semantics.
+TruffleRuby currently targets Ruby 2.7. However, we welcome pull requests for
+Ruby 3.0 features as long as they don't conflict significantly with
+Ruby 2.7 semantics.
 
-It is possible to run specs for Ruby 2.7 features by setting
+It is possible to run specs for Ruby 3.0 features by setting
 `PRETEND_RUBY_VERSION`:
 
 ```bash
-# File.absolute_path? is introduced in 2.7
-PRETEND_RUBY_VERSION=2.7.0 jt test spec/ruby/core/file/absolute_path_spec.rb
+PRETEND_RUBY_VERSION=3.0.2 jt test spec/ruby/.../some_spec.rb
 ```
 
 This also works for `jt tag`/`jt untag`.
