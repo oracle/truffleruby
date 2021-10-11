@@ -1,5 +1,0 @@
-exclude :test_caller_locations_label, "needs investigation"
-exclude :test_caller_to_enum, "needs investigation"
-exclude :test_notty_backtrace, "needs investigation"
-exclude :test_caller_lev, "needs investigation"
-exclude :test_caller_lev_and_n, "needs investigation"

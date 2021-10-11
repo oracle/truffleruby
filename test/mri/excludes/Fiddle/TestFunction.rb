@@ -1,7 +1,0 @@
-exclude :test_argument_count, "needs investigation"
-exclude :test_argument_errors, "needs investigation"
-exclude :test_default_abi, "needs investigation"
-exclude :test_last_error, "needs investigation"
-exclude :test_name, "needs investigation"
-exclude :test_no_memory_leak, "needs investigation"
-exclude :test_strcpy, "needs investigation"

@@ -1,5 +1,0 @@
-exclude :test_sized_queue_assign_max, "hangs"
-exclude :test_dump, "needs investigation"
-exclude :test_dup, "needs investigation"
-exclude :test_queue_initialized, "needs investigation"
-exclude :test_sized_queue_initialized, "needs investigation"

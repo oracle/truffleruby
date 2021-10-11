@@ -1,7 +1,0 @@
-exclude :test_addrinfo_new_inet, "needs investigation"
-exclude :test_error_message, "needs investigation"
-exclude :test_ipv6_address_predicates, "needs investigation"
-exclude :test_addrinfo_ip, "needs investigation"
-exclude :test_addrinfo_new_unix, "needs investigation"
-exclude :test_socket_getnameinfo, "needs investigation"
-exclude :test_marshal_memory_leak, "needs investigation"

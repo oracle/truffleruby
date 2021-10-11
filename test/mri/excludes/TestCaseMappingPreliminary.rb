@@ -1,5 +1,0 @@
-exclude :test_cherokee, "needs investigation"
-exclude :test_fold_option, "needs investigation"
-exclude :test_georgian_capitalize, "needs investigation"
-exclude :test_swapcase, "needs investigation"
-exclude :test_titlecase, "needs investigation"

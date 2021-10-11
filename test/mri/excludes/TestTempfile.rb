@@ -1,2 +1,0 @@
-exclude :test_size_flushes_buffer_before_determining_file_size, "needs investigation"
-exclude :test_tempfile_is_unlinked_when_ruby_exits, "needs investigation"

@@ -1,5 +1,0 @@
-exclude :test_after_gc_start_hook_with_GC_stress, "needs investigation"
-exclude :test_tracepoint_specify_normal_and_internal_events, "needs investigation"
-exclude :test_teardown_with_active_GC_end_hook, "needs investigation"
-exclude :test_tracks_objspace_count, "needs investigation"
-exclude :test_tracks_objspace_events, "needs investigation"

@@ -1,6 +1,0 @@
-exclude :test_eq_can_be_redefined, "needs investigation"
-exclude :test_symbol_encoding, "needs investigation"
-exclude :test_to_proc_arg, "needs investigation"
-exclude :test_to_proc_binding, "needs investigation"
-exclude :test_ascii_incomat_inspect, "needs investigation"
-exclude :test_match_method, "needs investigation"

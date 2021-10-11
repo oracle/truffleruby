@@ -1,9 +1,0 @@
-/simple.rb:13:in `m': message (RuntimeError)
-	from /simple.rb:15:in `m'
-	from /simple.rb:15:in `m'
-	from /simple.rb:15:in `m'
-	from /simple.rb:15:in `m'
-	from /simple.rb:15:in `m'
-	from /simple.rb:20:in `block in <main>'
-	from /backtraces.rb:17:in `check'
-	from /simple.rb:19:in `<main>'

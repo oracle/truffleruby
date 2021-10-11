@@ -1,2 +1,0 @@
-exclude :test_ssl_socket_close_on_post_connection_check_fail, "needs investigation"
-exclude :test_ssl_socket_open_on_post_connection_check_success, "needs investigation"

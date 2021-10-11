@@ -1,5 +1,0 @@
-exclude :test_iso8601_encode, "needs investigation"
-exclude :test_strptime_s_N, "needs investigation"
-exclude :test_xmlschema_encode, "needs investigation"
-exclude :test_iso8601, "needs investigation"
-exclude :test_xmlschema, "needs investigation"
