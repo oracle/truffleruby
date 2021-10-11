@@ -93,6 +93,13 @@ local part_definitions = {
               ],
     },
 
+    # Do not run this gate if only **/*.md files were changed
+    skip_docs: {
+      guard+: {
+        excludes+: ["**.md"],
+      },
+    },
+
     truffleruby: {
       "$.benchmark.server":: { options: [] },
       environment+: {
@@ -479,11 +486,11 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     {
       "ruby-lint": $.platform.linux + $.cap.gate + $.jdk.v11 + $.use.common + $.env.jvm + $.use.build + $.run.lint + { timelimit: "45:00" },
       # Run specs on MRI to make sure new specs are compatible and have the needed version guards
-      "ruby-test-specs-mri": $.platform.linux + $.cap.gate + $.use.common + $.run.test_specs_mri + { timelimit: "45:00" },
+      "ruby-test-specs-mri": $.platform.linux + $.cap.gate + $.use.skip_docs + $.use.common + $.run.test_specs_mri + { timelimit: "45:00" },
     } +
 
     {
-      local gate_no_build = $.cap.gate + $.use.common + { timelimit: "01:00:00" },
+      local gate_no_build = $.cap.gate + $.use.skip_docs + $.use.common + { timelimit: "01:00:00" },
       local gate = gate_no_build + $.use.build,
       local native_config = $.run.generate_native_config + $.run.check_native_config,
       local native_tests = $.run.testdownstream_aot + $.run.test_integration + $.run.test_compiler,
