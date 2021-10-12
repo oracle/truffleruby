@@ -1,1 +1,0 @@
-fails:Module#alias_method returned value returns symbol of the defined method name

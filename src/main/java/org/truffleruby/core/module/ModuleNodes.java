@@ -337,7 +337,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        protected RubyModule aliasMethod(RubyModule module, String newName, String oldName,
+        protected RubySymbol aliasMethod(RubyModule module, String newName, String oldName,
                 @Cached BranchProfile errorProfile) {
             final InternalMethod method = module.fields
                     .deepMethodSearch(getContext(), oldName);
@@ -352,7 +352,7 @@ public abstract class ModuleNodes {
 
             final InternalMethod aliasMethod = method.withName(newName);
             module.addMethodConsiderNameVisibility(getContext(), aliasMethod, aliasMethod.getVisibility(), this);
-            return module;
+            return getSymbol(aliasMethod.getName());
         }
 
     }
