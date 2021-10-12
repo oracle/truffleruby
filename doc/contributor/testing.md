@@ -162,8 +162,7 @@ scripts.
 
 The Docker tests use Docker as a virtualisation and software configuration
 tool to test installing and using TruffleRuby in different Linux distributions,
-installing from different sources, using different Ruby version managers,
-rebuilding images or not, and in other types of configuration.
+installing from different sources, and in other types of configuration.
 
 The Docker basic tests run:
 
@@ -225,8 +224,7 @@ and configurations that aren't tested, due to limited resources.
 * Docker full tests on all supported Linux distributions, on all supported Ruby
   version managers, using:
   * release candidate CE tarball and Ruby component,
-  * release candidate EE tarball and Ruby component, and rebuilding images or
-    not,
+  * release candidate EE tarball and Ruby component
   * the standalone Ruby tarball.
 * macOS manually running similar tests.
 

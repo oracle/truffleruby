@@ -64,7 +64,6 @@ class JT
 
       distro_name = 'ol7'
       install_method = nil
-      rebuild_images = false
       rebuild_openssl = true
       basic_test = false
       full_test = false
@@ -83,9 +82,6 @@ class JT
         when '--standalone'
           install_method = :standalone
           standalone_tarball = args.shift
-        when '--rebuild-images'
-          rebuild_images = true
-          native_component = args.shift
         when '--no-rebuild-openssl'
           rebuild_openssl = false
         when '--basic-test'
@@ -203,19 +199,6 @@ class JT
             end
             FileUtils.rm_rf 'truffleruby-tests'
           end
-        end
-      end
-
-
-      if rebuild_images
-        if install_method == :graalvm
-          FileUtils.copy native_component, docker_dir unless print_only
-          native_component = File.basename(native_component)
-          lines << "COPY #{native_component} /test/"
-          lines << "RUN #{graalvm_bin}/gu install --file /test/#{native_component} | tee install.log"
-          lines << "RUN #{graalvm_base}/bin/gu rebuild-images polyglot libpolyglot"
-        else
-          abort "can't rebuild images for a build not from local GraalVM components"
         end
       end
 

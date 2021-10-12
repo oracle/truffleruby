@@ -24,6 +24,7 @@ See [the website](https://www.graalvm.org/downloads) for a comparison.
 GraalVM starts with a base image which provides the platform for high-performance language runtimes.
 
 The Community Edition base image can be installed [from GitHub](https://www.graalvm.org/downloads), under an open source licence.
+
 The Enterprise Edition base image can be installed from [Oracle Downloads](https://www.oracle.com/downloads/graalvm-downloads.html) page by accepting the Oracle License Agreement.
 
 Nightly builds of the GraalVM Community Edition are [also available](https://github.com/graalvm/graalvm-ce-dev-builds/releases).
