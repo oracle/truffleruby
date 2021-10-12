@@ -8,11 +8,11 @@ permalink: /reference-manual/ruby/InstallingGraalVM/
 
 [GraalVM](http://graalvm.org/) is the platform on which TruffleRuby runs.
 
-Installing GraalVM enables you to run TruffleRuby both in the `--native` and `--jvm` [runtime configurations](../#truffleruby-runtime-configurations).
+Installing GraalVM enables you to run TruffleRuby both in the `--native` and `--jvm` [runtime configurations](../../README.md#truffleruby-runtime-configurations).
 
 ## Dependencies
 
-[TruffleRuby's dependencies](../#dependencies) need to be installed for TruffleRuby to run correctly.
+[TruffleRuby's dependencies](../../README.md#dependencies) need to be installed for TruffleRuby to run correctly.
 
 ## Community Edition and Enterprise Edition
 

@@ -104,7 +104,7 @@ The disadvantages of the Native Image version of TruffleRuby are:
 * Java interoperability works in the native configuration but requires more setup.
   First, only for classes loaded in the image can be accessed.
   You can add more classes by compiling a native image including TruffleRuby.
-  See https://www.graalvm.org/docs/reference-manual/embed/#build-native-images-from-polyglot-applications for details.
+  See [Build Native Images from Polyglot Applications](https://github.com/oracle/graal/blob/master/docs/reference-manual/embedding/embed-languages.md#build-native-images-from-polyglot-applications) for details.
 
 So the native version may not be appropriate for all uses.
 
