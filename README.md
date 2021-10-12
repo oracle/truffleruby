@@ -5,47 +5,45 @@ of the [Ruby programming language](https://www.ruby-lang.org/en/).
 
 ## Getting Started
 
-There are four ways to install TruffleRuby releases and nightly builds:
+TruffleRuby comes in two distributions:
 
-* Via [GraalVM](doc/user/installing-graalvm.md), which includes support for
-  other languages such as JavaScript, R, and Python, and supports both the
-  [Native and JVM configurations](#truffleruby-runtime-configurations).
-  Inside GraalVM will then be a `bin/ruby` command that runs TruffleRuby.
-  We recommend that you use a [Ruby manager](doc/user/ruby-managers.md#configuring-ruby-managers-for-the-full-graalvm-distribution)
-  to use TruffleRuby inside GraalVM.
+* Standalone: This only contains TruffleRuby in the [Native configuration](#truffleruby-runtime-configurations), making it a smaller download.
+* GraalVM: This includes support for other languages such as JavaScript, Python and R, and supports both the [Native and JVM configurations](#truffleruby-runtime-configurations).
+  We recommend that you use a [Ruby manager](doc/user/ruby-managers.md#configuring-ruby-managers-for-the-full-graalvm-distribution) to use TruffleRuby inside GraalVM.
 
-* Via your [Ruby manager/installer](doc/user/ruby-managers.md) (RVM, rbenv,
-  chruby, ruby-build, ruby-install). This contains only TruffleRuby, in the
-  [Native configuration](#truffleruby-runtime-configurations), making it a smaller
-  download. It is meant for users who only want a Ruby implementation and are already
-  using a Ruby manager.
+You can install either of those:
 
-* Via Docker: [Oracle Linux-based images](https://github.com/graalvm/container/blob/master/truffleruby/README.md)
-  and [Debian-based images](https://github.com/flavorjones/truffleruby/pkgs/container/truffleruby).
+* Via your [Ruby manager/installer](doc/user/ruby-managers.md) (RVM, rbenv, chruby, ruby-build, ruby-install).
+  We recommend trying TruffleRuby dev builds which contain the latest fixes and improvements.
 
-* Via the [standalone distribution](doc/user/standalone-distribution.md)
-  as a simple binary tarball.
-
-We recommend trying TruffleRuby nightly builds which contain the latest fixes and improvements:
-
+Standalone:
 ```bash
-RVM:    $ rvm install truffleruby-head
-rbenv:  $ rbenv install truffleruby-dev
-chruby: $ ruby-build truffleruby-dev ~/.rubies/truffleruby-dev
+RVM:    $ rvm install truffleruby
+rbenv:  $ rbenv install truffleruby-VERSION OR truffleruby-dev
+chruby: $ ruby-install truffleruby
+        $ ruby-build truffleruby-dev ~/.rubies/truffleruby-dev
+```
+GraalVM:
+```bash
+rbenv:  $ rbenv install truffleruby+graalvm-VERSION OR truffleruby+graalvm-dev
+chruby: $ ruby-install truffleruby-graalvm
+        $ ruby-build truffleruby+graalvm-dev ~/.rubies/truffleruby+graalvm-dev
 ```
 
-See the [Ruby installers](doc/user/ruby-managers.md) documentation for more details.
-
-Testing TruffleRuby in CI is easy.
-On GitHub Actions, you can use:
+* In CI with GitHub Actions, see [Testing TruffleRuby in CI](doc/user/standalone-distribution.md) for more details and other CIs.
 
 ```yaml
 - uses: ruby/setup-ruby@v1
   with:
-    ruby-version: truffleruby # or truffleruby-head
+    ruby-version: truffleruby # or truffleruby-head, or truffleruby+graalvm or truffleruby+graalvm-head
 ```
 
-See [Testing TruffleRuby in CI](doc/user/standalone-distribution.md) for more details and other CIs.
+* Via Docker.
+  For Standalone see [Oracle Linux-based images](https://github.com/graalvm/container/blob/master/truffleruby/README.md)
+  and [Debian-based images](https://github.com/flavorjones/truffleruby/pkgs/container/truffleruby).
+  For GraalVM see [official images](https://github.com/graalvm/container/blob/master/community/README.md).
+
+* Manually, by following the documentation: [Standalone](doc/user/standalone-distribution.md) and [GraalVM](doc/user/installing-graalvm.md).
 
 You can use `gem` and `bundle` to install gems, as usual.
 

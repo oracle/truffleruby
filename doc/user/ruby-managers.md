@@ -22,13 +22,13 @@ Upgrade RVM to let RVM know about the latest TruffleRuby release:
 rvm get head
 ```
 
-Install the latest TruffleRuby release with:
+Install the latest TruffleRuby standalone release with:
 
 ```bash
 rvm install truffleruby
 ```
 
-You can also install the latest nightly build of TruffleRuby with:
+You can also install the latest nightly standalone build of TruffleRuby with:
 
 ```bash
 rvm install truffleruby-head
@@ -53,16 +53,22 @@ Check the latest available version of TruffleRuby with:
 rbenv install --list | grep truffleruby
 ```
 
-Then install the latest TruffleRuby release with:
+Then install the latest TruffleRuby standalone release with:
 
 ```bash
 rbenv install truffleruby-[LATEST_VERSION]
 ```
 
-You can also install the latest nightly build of TruffleRuby with:
+You can also install the latest nightly standalone build of TruffleRuby with:
 
 ```bash
 rbenv install truffleruby-dev
+```
+
+You can also install TruffleRuby+GraalVM with:
+
+```bash
+rbenv install truffleruby+graalvm-[LATEST_VERSION] OR truffleruby+graalvm-dev
 ```
 
 ### `ruby-install` and `chruby`
@@ -77,11 +83,17 @@ ruby-install --version
 If it is older than `0.7.1`, you need to update to the latest `ruby-install`.
 Follow the [installation instructions](https://github.com/postmodern/ruby-install#install), since the steps for upgrading `ruby-install` are the same as the steps for installing it.
 
-Then install the latest TruffleRuby release with:
+Then install the latest TruffleRuby standalone release with:
 
 ```bash
 ruby-install --latest
 ruby-install truffleruby
+```
+
+You can also install TruffleRuby+GraalVM with:
+
+```bash
+ruby-install truffleruby-graalvm
 ```
 
 `ruby-install` does not support installing nightly builds.
@@ -89,6 +101,8 @@ Please use `ruby-build` (which also works with `chruby`) if you want to install 
 
 ```bash
 ruby-build truffleruby-dev ~/.rubies/truffleruby-dev
+OR
+ruby-build truffleruby+graalvm-dev ~/.rubies/truffleruby+graalvm-dev
 ```
 
 There are also instructions on the [chruby wiki](https://github.com/postmodern/chruby/wiki/TruffleRuby) if you prefer to install TruffleRuby manually.
