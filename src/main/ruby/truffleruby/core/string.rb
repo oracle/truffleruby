@@ -399,9 +399,9 @@ class String
         fallback = options[:fallback]
         status = ec.primitive_convert src, dest, nil, nil
         while status != :finished
-          raise ec.last_error unless fallback
-          (result, enc1, enc2, error_bytes, readagain_bytes) = ec.primitive_errinfo
-          rep = (result == :undefined_conversion) ? fallback[error_bytes.force_encoding(enc1)] : nil
+          raise ec.last_error unless fallback && status == :undefined_conversion
+          (_, enc1, enc2, error_bytes, _) = ec.primitive_errinfo
+          rep = fallback[error_bytes.force_encoding(enc1)]
           raise.ec.last_error unless rep
           dest += rep.encode(enc2)
           status = ec.primitive_convert src, dest, nil, nil
