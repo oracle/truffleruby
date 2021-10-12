@@ -15,6 +15,7 @@ Compatibility:
 * Implement `rb_sprintf` in our format compiler to provide consistent formatting across C standard libraries.
 * Update `defined?` to return frozen strings (#2450).
 * Use compensated summation for `{Array,Enumerable}#sum` when floating point values are included.
+* `Module#attr_*` methods now return an array of method names (#2498, @gogainda).
 
 Performance:
 

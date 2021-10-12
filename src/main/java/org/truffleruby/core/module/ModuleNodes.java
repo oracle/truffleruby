@@ -439,16 +439,17 @@ public abstract class ModuleNodes {
             BOTH
         }
 
-        protected void generateAccessor(Frame callerFrame, RubyModule module, Object[] names, Accessor accessor,
-                RootCallTarget target) {
+        protected Object[] generateAccessors(Frame callerFrame, RubyModule module, Object[] names,
+                Accessor accessor, RootCallTarget target) {
             needCallerFrame(callerFrame, target);
             final Visibility visibility = DeclarationContext
                     .findVisibilityCheckSelfAndDefaultDefinee(module, callerFrame);
-            createAccessors(module, names, accessor, visibility);
+            return createAccessors(module, names, accessor, visibility);
         }
 
         @TruffleBoundary
-        private void createAccessors(RubyModule module, Object[] names, Accessor accessor, Visibility visibility) {
+        private Object[] createAccessors(RubyModule module, Object[] names, Accessor accessor,
+                Visibility visibility) {
             final Node currentNode = getNode();
             final SourceSection sourceSection;
             if (currentNode != null) {
@@ -457,19 +458,22 @@ public abstract class ModuleNodes {
                 sourceSection = CoreLibrary.UNAVAILABLE_SOURCE_SECTION;
             }
 
+            Object[] generatedMethods = accessor == BOTH ? new Object[names.length * 2] : new Object[names.length];
+            int i = 0;
             for (Object nameObject : names) {
                 final String name = NameToJavaStringNode.getUncached().execute(nameObject);
                 if (accessor == BOTH) {
-                    createAccessor(module, name, READER, visibility, sourceSection);
-                    createAccessor(module, name, WRITER, visibility, sourceSection);
+                    generatedMethods[i++] = createAccessor(module, name, READER, visibility, sourceSection);
+                    generatedMethods[i++] = createAccessor(module, name, WRITER, visibility, sourceSection);
                 } else {
-                    createAccessor(module, name, accessor, visibility, sourceSection);
+                    generatedMethods[i++] = createAccessor(module, name, accessor, visibility, sourceSection);
                 }
             }
+            return generatedMethods;
         }
 
         @TruffleBoundary
-        private void createAccessor(RubyModule module, String name, Accessor accessor, Visibility visibility,
+        private RubySymbol createAccessor(RubyModule module, String name, Accessor accessor, Visibility visibility,
                 SourceSection sourceSection) {
             assert accessor != BOTH;
             final Arity arity = accessor == READER ? Arity.NO_ARGUMENTS : Arity.ONE_REQUIRED;
@@ -516,6 +520,7 @@ public abstract class ModuleNodes {
                     nil);
 
             module.fields.addMethod(getContext(), this, method);
+            return getLanguage().getSymbol(method.getName());
         }
     }
 
@@ -534,8 +539,7 @@ public abstract class ModuleNodes {
                 setter = false;
             }
 
-            generateAccessor(callerFrame, module, names, setter ? BOTH : READER, target);
-            return nil;
+            return createArray(generateAccessors(callerFrame, module, names, setter ? BOTH : READER, target));
         }
 
         @TruffleBoundary
@@ -554,8 +558,7 @@ public abstract class ModuleNodes {
         @Specialization
         protected Object attrAccessor(
                 Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
-            generateAccessor(callerFrame, module, names, BOTH, target);
-            return nil;
+            return createArray(generateAccessors(callerFrame, module, names, BOTH, target));
         }
     }
 
@@ -565,8 +568,7 @@ public abstract class ModuleNodes {
         @Specialization
         protected Object attrReader(
                 Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
-            generateAccessor(callerFrame, module, names, READER, target);
-            return nil;
+            return createArray(generateAccessors(callerFrame, module, names, READER, target));
         }
     }
 
@@ -576,8 +578,7 @@ public abstract class ModuleNodes {
         @Specialization
         protected Object attrWriter(
                 Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
-            generateAccessor(callerFrame, module, names, WRITER, target);
-            return nil;
+            return createArray(generateAccessors(callerFrame, module, names, WRITER, target));
         }
     }
 
