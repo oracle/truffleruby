@@ -58,12 +58,8 @@ class BasicSocket < IO
 
   def getsockopt(level, optname)
     sockname = Truffle::Socket::Foreign.getsockname(self)
-    family   = Truffle::Socket.family_for_sockaddr_in(sockname)
-    level    = Truffle::Socket::SocketOptions.socket_level(level, family)
-    optname  = Truffle::Socket::SocketOptions.socket_option(level, optname)
-    data     = Truffle::Socket::Foreign.getsockopt(Primitive.io_fd(self), level, optname)
-
-    Socket::Option.new(family, level, optname, data)
+    family = Truffle::Socket.family_for_sockaddr_in(sockname)
+    Truffle::Socket::SocketOptions.getsockopt(self, family, level, optname)
   end
 
   def setsockopt(*args)
@@ -338,7 +334,7 @@ class BasicSocket < IO
     sockaddr = Truffle::Socket::Foreign.getsockname(self)
 
     family = Truffle::Socket::Foreign::Sockaddr.family_of_string(sockaddr)
-    socket_type = getsockopt(:SOCKET, :TYPE).int
+    socket_type = Truffle::Socket::SocketOptions.getsockopt(self, family, :SOCKET, :TYPE).int
     Addrinfo.new(sockaddr, family, socket_type, 0)
   end
 
@@ -346,7 +342,7 @@ class BasicSocket < IO
     sockaddr = Truffle::Socket::Foreign.getpeername(self)
 
     family = Truffle::Socket::Foreign::Sockaddr.family_of_string(sockaddr)
-    socket_type = getsockopt(:SOCKET, :TYPE).int
+    socket_type = Truffle::Socket::SocketOptions.getsockopt(self, family, :SOCKET, :TYPE).int
     Addrinfo.new(sockaddr, family, socket_type, 0)
   end
 
