@@ -110,7 +110,7 @@ environment, for example, by unmounting system filesystems such as `/dev/shm`.
 Without these dependencies, many libraries including RubyGems will not work.
 TruffleRuby will try to print a nice error message if a dependency is missing, but this can only be done on a best effort basis.
 
-You may also need to set up a [UTF-8 locale](doc/user/utf8-locale.md).
+You also need to set up a [UTF-8 locale](doc/user/utf8-locale.md) if not already done.
 
 See the [contributor workflow](doc/contributor/workflow.md) document if you wish to build TruffleRuby from source.
 
