@@ -18,7 +18,6 @@ For example, to run a full set of tests on a set of new release candidate tarbal
 ```bash
 jt docker test --graalvm graalvm-ce.tar.gz llvm-toolchain-installable.jar:ruby-installable-ce.jar --test release_branch
 jt docker test --graalvm graalvm-ee.tar.gz llvm-toolchain-installable.jar:ruby-installable-ee.jar --test release_branch
-jt docker test --graalvm graalvm-ee.tar.gz llvm-toolchain-installable.jar:ruby-installable-ee.jar --rebuild-images native-image-installable-ee.jar --test release_branch
 jt docker test --standalone truffleruby-linux-amd64.tar.gz --test release_branch
 ```
 
@@ -49,7 +48,6 @@ Pick any of:
 ## Other options
 
 * Print the Dockerfile rather than building it, `print` instead of `build`
-* Rebuild `polyglot` and `libpolyglot` images after installing the Ruby component, `--rebuild-images`
 * Run a full set of Docker tests we care about, `test` instead of `build`
 * Do not rebuild `openssl`, to test error messages, `--no-rebuild-openssl`
 

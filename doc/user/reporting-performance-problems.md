@@ -23,8 +23,7 @@ All of these issues make it hard to benchmark TruffleRuby. This is not a problem
 
 ## Using the Enterprise Edition of GraalVM
 
-To experiment with how fast TruffleRuby can be, we recommend using the
-[Enterprise Edition of GraalVM and rebuilding the Ruby executable images](installing-graalvm.md).
+To experiment with how fast TruffleRuby can be, we recommend using the [Enterprise Edition of GraalVM](installing-graalvm.md).
 
 ## Using the JVM Configuration
 
