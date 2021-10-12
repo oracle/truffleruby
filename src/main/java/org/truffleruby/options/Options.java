@@ -39,6 +39,8 @@ public class Options {
     public final String INTERNAL_ENCODING;
     /** --external-encoding="" */
     public final String EXTERNAL_ENCODING;
+    /** --backtrace-limit=-1 */
+    public final int BACKTRACE_LIMIT;
     /** --launcher="" */
     public final String LAUNCHER;
     /** --rubygems=true */
@@ -89,8 +91,6 @@ public class Options {
     public final boolean EXCEPTIONS_WARN_OUT_OF_MEMORY;
     /** --backtraces-interleave-java=false */
     public final boolean BACKTRACES_INTERLEAVE_JAVA;
-    /** --backtraces-limit=9999 */
-    public final int BACKTRACES_LIMIT;
     /** --backtraces-on-interrupt=false */
     public final boolean BACKTRACE_ON_INTERRUPT;
     /** --backtraces-sigalrm=!EMBEDDED */
@@ -215,6 +215,7 @@ public class Options {
         SOURCE_ENCODING = options.get(OptionsCatalog.SOURCE_ENCODING_KEY);
         INTERNAL_ENCODING = options.get(OptionsCatalog.INTERNAL_ENCODING_KEY);
         EXTERNAL_ENCODING = options.get(OptionsCatalog.EXTERNAL_ENCODING_KEY);
+        BACKTRACE_LIMIT = options.get(OptionsCatalog.BACKTRACE_LIMIT_KEY);
         LAUNCHER = options.get(OptionsCatalog.LAUNCHER_KEY);
         RUBYGEMS = options.get(OptionsCatalog.RUBYGEMS_KEY);
         DID_YOU_MEAN = options.get(OptionsCatalog.DID_YOU_MEAN_KEY);
@@ -240,7 +241,6 @@ public class Options {
         EXCEPTIONS_WARN_STACKOVERFLOW = options.get(OptionsCatalog.EXCEPTIONS_WARN_STACKOVERFLOW_KEY);
         EXCEPTIONS_WARN_OUT_OF_MEMORY = options.get(OptionsCatalog.EXCEPTIONS_WARN_OUT_OF_MEMORY_KEY);
         BACKTRACES_INTERLEAVE_JAVA = options.get(OptionsCatalog.BACKTRACES_INTERLEAVE_JAVA_KEY);
-        BACKTRACES_LIMIT = options.get(OptionsCatalog.BACKTRACES_LIMIT_KEY);
         BACKTRACE_ON_INTERRUPT = options.get(OptionsCatalog.BACKTRACE_ON_INTERRUPT_KEY);
         BACKTRACE_ON_SIGALRM = options.hasBeenSet(OptionsCatalog.BACKTRACE_ON_SIGALRM_KEY) ? options.get(OptionsCatalog.BACKTRACE_ON_SIGALRM_KEY) : !EMBEDDED;
         BACKTRACE_ON_RAISE = options.get(OptionsCatalog.BACKTRACE_ON_RAISE_KEY);
@@ -318,6 +318,8 @@ public class Options {
                 return INTERNAL_ENCODING;
             case "ruby.external-encoding":
                 return EXTERNAL_ENCODING;
+            case "ruby.backtrace-limit":
+                return BACKTRACE_LIMIT;
             case "ruby.launcher":
                 return LAUNCHER;
             case "ruby.rubygems":
@@ -368,8 +370,6 @@ public class Options {
                 return EXCEPTIONS_WARN_OUT_OF_MEMORY;
             case "ruby.backtraces-interleave-java":
                 return BACKTRACES_INTERLEAVE_JAVA;
-            case "ruby.backtraces-limit":
-                return BACKTRACES_LIMIT;
             case "ruby.backtraces-on-interrupt":
                 return BACKTRACE_ON_INTERRUPT;
             case "ruby.backtraces-sigalrm":
