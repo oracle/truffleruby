@@ -14,6 +14,7 @@ Compatibility:
 
 * Implement `rb_sprintf` in our format compiler to provide consistent formatting across C standard libraries.
 * Update `defined?` to return frozen strings (#2450).
+* `Module#attr_*` methods now return an array of method names (#2498, @gogainda).
 
 Performance:
 
