@@ -96,6 +96,10 @@ class MSpecScript
     spec/ruby/core/mutex/owned_spec.rb
     spec/ruby/core/fiber/raise_spec.rb
     spec/ruby/core/process/status/wait_spec.rb
+    spec/ruby/core/module/attr_spec.rb
+    spec/ruby/core/module/attr_reader_spec.rb
+    spec/ruby/core/module/attr_writer_spec.rb
+    spec/ruby/core/module/attr_accessor_spec.rb
   ]
 
   set :tags_patterns, [
