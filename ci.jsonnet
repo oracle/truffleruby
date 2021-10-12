@@ -625,7 +625,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-benchmarks-asciidoctor-svm-graal-core-multi-tier": shared + asciidoctor + svm_configurations["svm-graal-core"] + $.use.multi_tier,
       "ruby-benchmarks-asciidoctor-svm-graal-enterprise": shared + asciidoctor + svm_configurations["svm-graal-enterprise"] + $.use.no_multi_tier,
       "ruby-benchmarks-asciidoctor-svm-graal-enterprise-multi-tier": shared + asciidoctor + svm_configurations["svm-graal-enterprise"] + $.use.multi_tier,
-      local warmup = $.benchmark.runner + $.benchmark.warmup + { timelimit: "00:55:00" },
+      local warmup = $.benchmark.runner + $.benchmark.warmup + { timelimit: "01:05:00" },
       "ruby-benchmarks-warmup-mri": shared + warmup + other_rubies.mri + { timelimit: "01:20:00" },
       "ruby-benchmarks-warmup-jruby": shared + warmup + other_rubies.jruby,
       "ruby-benchmarks-warmup-graal-core": shared + warmup + graal_configurations["graal-core"] + $.use.no_multi_tier,
