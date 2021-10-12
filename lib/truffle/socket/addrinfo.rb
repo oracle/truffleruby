@@ -52,21 +52,21 @@ class Addrinfo
 
   def self.ip(ip)
     sockaddr = Socket.sockaddr_in(0, ip)
-    family   = Truffle::Socket.family_for_sockaddr_in(sockaddr)
+    family = Truffle::Socket::Foreign::Sockaddr.family_of_string(sockaddr)
 
     new(sockaddr, family)
   end
 
   def self.tcp(ip, port)
     sockaddr = Socket.sockaddr_in(port, ip)
-    pfamily  = Truffle::Socket.family_for_sockaddr_in(sockaddr)
+    pfamily = Truffle::Socket::Foreign::Sockaddr.family_of_string(sockaddr)
 
     new(sockaddr, pfamily, Socket::SOCK_STREAM, Socket::IPPROTO_TCP)
   end
 
   def self.udp(ip, port)
     sockaddr = Socket.sockaddr_in(port, ip)
-    pfamily  = Truffle::Socket.family_for_sockaddr_in(sockaddr)
+    pfamily = Truffle::Socket::Foreign::Sockaddr.family_of_string(sockaddr)
 
     new(sockaddr, pfamily, Socket::SOCK_DGRAM, Socket::IPPROTO_UDP)
   end

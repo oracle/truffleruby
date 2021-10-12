@@ -58,7 +58,7 @@ class BasicSocket < IO
 
   def getsockopt(level, optname)
     sockname = Truffle::Socket::Foreign.getsockname(self)
-    family = Truffle::Socket.family_for_sockaddr_in(sockname)
+    family = Truffle::Socket::Foreign::Sockaddr.family_of_string(sockname)
     Truffle::Socket::SocketOptions.getsockopt(self, family, level, optname)
   end
 
@@ -75,7 +75,7 @@ class BasicSocket < IO
     end
 
     sockname = Truffle::Socket::Foreign.getsockname(self)
-    family   = Truffle::Socket.family_for_sockaddr_in(sockname)
+    family   = Truffle::Socket::Foreign::Sockaddr.family_of_string(sockname)
     level    = Truffle::Socket::SocketOptions.socket_level(level, family)
     optname  = Truffle::Socket::SocketOptions.socket_option(level, optname)
     error    = 0
