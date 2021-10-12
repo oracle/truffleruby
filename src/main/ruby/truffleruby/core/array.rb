@@ -260,7 +260,7 @@ class Array
   def cycle(n = nil)
     unless block_given?
       return to_enum(:cycle, n) do
-        Truffle::EnumerableHelper.cycle_size(size, n)
+        Truffle::EnumerableOperations.cycle_size(size, n)
       end
     end
 
