@@ -261,7 +261,6 @@ class Socket < BasicSocket
 
     [s1, s2].map do |sock|
       sock.instance_variable_set(:@family, family)
-      sock.instance_variable_set(:@socket_type, type)
       sock
     end
   end
@@ -310,10 +309,10 @@ class Socket < BasicSocket
   def initialize(family, socket_type, protocol = 0)
     @no_reverse_lookup = self.class.do_not_reverse_lookup
 
-    @family      = Truffle::Socket.protocol_family(family)
-    @socket_type = Truffle::Socket.socket_type(socket_type)
+    @family = Truffle::Socket.protocol_family(family)
+    socket_type = Truffle::Socket.socket_type(socket_type)
 
-    descriptor = Truffle::Socket::Foreign.socket(@family, @socket_type, protocol)
+    descriptor = Truffle::Socket::Foreign.socket(@family, socket_type, protocol)
 
     Errno.handle('socket(2)') if descriptor < 0
 
