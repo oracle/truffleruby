@@ -439,9 +439,8 @@ public abstract class ModuleNodes {
             BOTH
         }
 
-        protected Object[] generateAccessor(Frame callerFrame, RubyModule module, Object[] names,
-                Accessor accessor,
-                RootCallTarget target) {
+        protected Object[] generateAccessors(Frame callerFrame, RubyModule module, Object[] names,
+                Accessor accessor, RootCallTarget target) {
             needCallerFrame(callerFrame, target);
             final Visibility visibility = DeclarationContext
                     .findVisibilityCheckSelfAndDefaultDefinee(module, callerFrame);
@@ -540,7 +539,7 @@ public abstract class ModuleNodes {
                 setter = false;
             }
 
-            return createArray(generateAccessor(callerFrame, module, names, setter ? BOTH : READER, target));
+            return createArray(generateAccessors(callerFrame, module, names, setter ? BOTH : READER, target));
         }
 
         @TruffleBoundary
@@ -559,7 +558,7 @@ public abstract class ModuleNodes {
         @Specialization
         protected Object attrAccessor(
                 Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
-            return createArray(generateAccessor(callerFrame, module, names, BOTH, target));
+            return createArray(generateAccessors(callerFrame, module, names, BOTH, target));
         }
     }
 
@@ -569,7 +568,7 @@ public abstract class ModuleNodes {
         @Specialization
         protected Object attrReader(
                 Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
-            return createArray(generateAccessor(callerFrame, module, names, READER, target));
+            return createArray(generateAccessors(callerFrame, module, names, READER, target));
         }
     }
 
@@ -579,7 +578,7 @@ public abstract class ModuleNodes {
         @Specialization
         protected Object attrWriter(
                 Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
-            return createArray(generateAccessor(callerFrame, module, names, WRITER, target));
+            return createArray(generateAccessors(callerFrame, module, names, WRITER, target));
         }
     }
 
