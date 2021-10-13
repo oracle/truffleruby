@@ -16,6 +16,7 @@ Compatibility:
 * Update `defined?` to return frozen strings (#2450).
 * Use compensated summation for `{Array,Enumerable}#sum` when floating point values are included.
 * `Module#attr_*` methods now return an array of method names (#2498, @gogainda).
+* Add `Thread.ignore_deadlock` accessor (#2453).
 
 Performance:
 

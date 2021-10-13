@@ -101,9 +101,10 @@ class Thread
   # Already set in CoreLibrary, but for clarity also defined here
   @abort_on_exception = false
   @report_on_exception = true
+  @ignore_deadlock = false
 
   class << self
-    attr_accessor :abort_on_exception, :report_on_exception
+    attr_accessor :abort_on_exception, :report_on_exception, :ignore_deadlock
 
     def new(*args, &block)
       thread = Primitive.thread_allocate(self)
