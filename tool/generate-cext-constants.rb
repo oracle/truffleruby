@@ -16,7 +16,6 @@ constants = [
     Class,
     Comparable,
     Complex,
-    Data,
     Dir,
     Encoding,
     Enumerable,

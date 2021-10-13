@@ -13,11 +13,12 @@
 
 // Type checks
 
-int rb_type(VALUE value) {
-  return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_type", value));
+enum ruby_value_type rb_type(VALUE value) {
+  int int_type = polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_type", value));
+  return RBIMPL_CAST((enum ruby_value_type) int_type);
 }
 
-bool RB_TYPE_P(VALUE value, int type) {
+bool RB_TYPE_P(VALUE value, enum ruby_value_type type) {
   if (value == Qundef) {
     return 0;
   }
@@ -30,11 +31,11 @@ bool RB_TYPE_P(VALUE value, int type) {
   return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "RB_TYPE_P", rb_tr_unwrap(value), type));
 }
 
-int rb_special_const_p(VALUE object) {
+bool rb_tr_special_const_p(VALUE object) {
   // Ripper calls this from add_mark_object
   // Cannot unwrap a natively-allocated NODE*
   if (rb_tr_is_native_object(object)) {
-    return 0;
+    return false;
   }
 
   return polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("rb_special_const_p", object));

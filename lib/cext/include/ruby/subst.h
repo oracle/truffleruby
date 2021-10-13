@@ -11,7 +11,10 @@
 
 #undef snprintf
 #undef vsnprintf
+#ifndef TRUFFLERUBY
 #define snprintf ruby_snprintf
+#endif
+
 #define vsnprintf ruby_vsnprintf
 
 #ifdef BROKEN_CLOSE

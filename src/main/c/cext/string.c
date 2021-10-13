@@ -42,7 +42,7 @@ char *RSTRING_END_IMPL(VALUE string) {
   return NATIVE_RSTRING_PTR(string) + RSTRING_LEN(string);
 }
 
-int rb_str_len(VALUE string) {
+int rb_tr_str_len(VALUE string) {
   return polyglot_as_i32(polyglot_invoke(rb_tr_unwrap(string), "bytesize"));
 }
 

@@ -52,7 +52,11 @@
     RBIMPL_ATTR_DEPRECATED(("by TypedData"))
 /** @endcond */
 
+#ifdef TRUFFLERUBY
+#define RDATA(obj) (polyglot_as_RData(polyglot_invoke(RUBY_CEXT, "RDATA", rb_tr_unwrap(obj))))
+#else
 #define RDATA(obj)                RBIMPL_CAST((struct RData *)(obj))
+#endif
 #define DATA_PTR(obj)             RDATA(obj)->data
 #define RUBY_MACRO_SELECT         RBIMPL_TOKEN_PASTE
 #define RUBY_DEFAULT_FREE         RBIMPL_DATA_FUNC(-1)
@@ -70,6 +74,10 @@ struct RData {
     RUBY_DATA_FUNC dfree;
     void *data;
 };
+
+#ifdef TRUFFLERUBY
+POLYGLOT_DECLARE_STRUCT(RData)
+#endif
 
 RBIMPL_SYMBOL_EXPORT_BEGIN()
 VALUE rb_data_object_wrap(VALUE klass, void *datap, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree);
@@ -129,8 +137,12 @@ rb_data_object_wrap_warning(VALUE klass, void *ptr, RUBY_DATA_FUNC mark, RUBY_DA
 static inline void *
 rb_data_object_get(VALUE obj)
 {
+#ifdef TRUFFLERUBY
+    return DATA_PTR(obj);
+#else
     Check_Type(obj, RUBY_T_DATA);
     return DATA_PTR(obj);
+#endif
 }
 
 RBIMPL_ATTRSET_UNTYPED_DATA_FUNC()

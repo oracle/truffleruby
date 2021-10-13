@@ -31,7 +31,11 @@
 #include "ruby/internal/value.h"
 #include "ruby/assert.h"
 
+#ifdef TRUFFLERUBY
+#define RBASIC(obj) (polyglot_as_RBasic(polyglot_invoke(RUBY_CEXT, "RBASIC", rb_tr_unwrap(obj))))
+#else
 #define RBASIC(obj)          RBIMPL_CAST((struct RBasic *)(obj))
+#endif
 #define RBASIC_CLASS         RBASIC_CLASS
 #define RVALUE_EMBED_LEN_MAX RVALUE_EMBED_LEN_MAX
 
@@ -46,7 +50,11 @@ struct
 RUBY_ALIGNAS(SIZEOF_VALUE)
 RBasic {
     VALUE flags;                /**< @see enum ::ruby_fl_type. */
+#ifdef TRUFFLERUBY
+    VALUE klass;
+#else
     const VALUE klass;
+#endif
 
 #ifdef __cplusplus
   public:
@@ -68,6 +76,10 @@ RBasic {
 #endif
 };
 
+#ifdef TRUFFLERUBY
+POLYGLOT_DECLARE_STRUCT(RBasic)
+#endif
+
 RBIMPL_SYMBOL_EXPORT_BEGIN()
 VALUE rb_obj_hide(VALUE obj);
 VALUE rb_obj_reveal(VALUE obj, VALUE klass); /* do not use this API to change klass information */
@@ -79,7 +91,12 @@ static inline VALUE
 RBASIC_CLASS(VALUE obj)
 {
     RBIMPL_ASSERT_OR_ASSUME(! RB_SPECIAL_CONST_P(obj));
+#ifdef TRUFFLERUBY
+    VALUE rb_class_of(VALUE object);
+    return rb_class_of(obj);
+#else
     return RBASIC(obj)->klass;
+#endif
 }
 
 #endif /* RBIMPL_RBASIC_H */

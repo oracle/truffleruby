@@ -20,6 +20,8 @@
  *             extension libraries. They could be written in C++98.
  * @brief      Thin wrapper to ruby/config.h
  */
+// Must be first, as it defines feature test macros like _GNU_SOURCE,
+// which influences the definitions exposed by system header files.
 #include "ruby/config.h"
 
 #ifdef RUBY_EXTCONF_H
@@ -140,5 +142,8 @@
 # undef RBIMPL_TEST2
 # undef RBIMPL_TEST3
 #endif /* HAVE_VA_ARGS_MACRO */
+
+// Loaded at the end of config.h, included from defines.h. Needs STRINGIZE().
+#include <truffleruby/truffleruby-pre.h>
 
 #endif /* RBIMPL_CONFIG_H */

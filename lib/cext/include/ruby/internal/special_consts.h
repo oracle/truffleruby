@@ -130,6 +130,9 @@ RB_NIL_P(VALUE obj)
     return obj == RUBY_Qnil;
 }
 
+#ifdef TRUFFLERUBY
+bool RB_FIXNUM_P(VALUE value);
+#else
 RBIMPL_ATTR_CONST()
 RBIMPL_ATTR_CONSTEXPR(CXX11)
 RBIMPL_ATTR_ARTIFICIAL()
@@ -138,6 +141,7 @@ RB_FIXNUM_P(VALUE obj)
 {
     return obj & RUBY_FIXNUM_FLAG;
 }
+#endif
 
 RBIMPL_ATTR_CONST()
 RBIMPL_ATTR_CONSTEXPR(CXX14)
@@ -172,13 +176,21 @@ RB_IMMEDIATE_P(VALUE obj)
     return obj & RUBY_IMMEDIATE_MASK;
 }
 
+#ifdef TRUFFLERUBY
+bool rb_tr_special_const_p(VALUE object);
+#endif
+
 RBIMPL_ATTR_CONST()
 RBIMPL_ATTR_CONSTEXPR(CXX11)
 RBIMPL_ATTR_ARTIFICIAL()
 static inline bool
 RB_SPECIAL_CONST_P(VALUE obj)
 {
+#ifdef TRUFFLERUBY
+    return rb_tr_special_const_p(obj);
+#else
     return RB_IMMEDIATE_P(obj) || ! RB_TEST(obj);
+#endif
 }
 
 RBIMPL_ATTR_CONST()

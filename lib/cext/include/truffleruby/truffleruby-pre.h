@@ -43,6 +43,9 @@ RUBY_SYMBOL_EXPORT_BEGIN
 #define USE_RGENGC 0
 #define USE_RINCGC 0
 
+// Skip DTrace-generated code
+#define DTRACE_PROBES_DISABLED 1
+
 // Value types
 
 typedef unsigned long VALUE;

@@ -18,6 +18,7 @@ class Gem::Platform
   end
 
   def self.match(platform)
+    warn 'Gem::Platform.match should not be used on TruffleRuby, use match_spec? instead', uplevel: 1
     match_platforms?(platform, Gem.platforms)
   end
 
@@ -35,9 +36,12 @@ class Gem::Platform
   end
 
   def self.match_gem?(platform, gem_name)
-    # Note: this method might be redefined by Ruby implementations to
-    # customize behavior per RUBY_ENGINE, gem_name or other criteria.
-    match_platforms?(platform, Gem.platforms)
+    raise unless String === gem_name
+    if gem_name == 'libv8' or gem_name == 'sorbet-static'
+      match_platforms?(platform, [Gem::Platform::RUBY, Gem::Platform.local])
+    else
+      match_platforms?(platform, Gem.platforms)
+    end
   end
 
   def self.installable?(spec)

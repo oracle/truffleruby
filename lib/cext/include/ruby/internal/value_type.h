@@ -147,16 +147,27 @@ RBIMPL_ATTR_COLD()
 void rb_check_type(VALUE obj, int t);
 RBIMPL_SYMBOL_EXPORT_END()
 
+#ifdef TRUFFLERUBY
+enum ruby_value_type rb_type(VALUE obj);
+#endif
+
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 RBIMPL_ATTR_ARTIFICIAL()
 static inline enum ruby_value_type
 RB_BUILTIN_TYPE(VALUE obj)
 {
     RBIMPL_ASSERT_OR_ASSUME(! RB_SPECIAL_CONST_P(obj));
-
+#ifdef TRUFFLERUBY
+    return rb_type(obj);
+#else
     VALUE ret = RBASIC(obj)->flags & RUBY_T_MASK;
     return RBIMPL_CAST((enum ruby_value_type)ret);
+#endif
 }
+
+#ifdef TRUFFLERUBY
+#define RB_BUILTIN_TYPE_NATIVE(x) RBIMPL_CAST((enum ruby_value_type) (((struct RBasic*)(x))->flags & RUBY_T_MASK))
+#endif
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 static inline bool
@@ -173,6 +184,7 @@ rb_integer_type_p(VALUE obj)
     }
 }
 
+#ifndef TRUFFLERUBY // declared above
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 static inline enum ruby_value_type
 rb_type(VALUE obj)
@@ -203,12 +215,17 @@ rb_type(VALUE obj)
         return RUBY_T_FLOAT;
     }
 }
+#endif
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 RBIMPL_ATTR_ARTIFICIAL()
 static inline bool
 RB_FLOAT_TYPE_P(VALUE obj)
 {
+#ifdef TRUFFLERUBY
+    /* TruffleRuby: Simplify the RB_FLOAT_TYPE_P check based on our representation of Floats. */
+    return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "RB_FLOAT_TYPE_P", rb_tr_unwrap(obj)));
+#else
     if (RB_FLONUM_P(obj)) {
         return true;
     }
@@ -218,6 +235,7 @@ RB_FLOAT_TYPE_P(VALUE obj)
     else {
         return RB_BUILTIN_TYPE(obj) == RUBY_T_FLOAT;
     }
+#endif
 }
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
@@ -238,9 +256,16 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline bool
 RB_SYMBOL_P(VALUE obj)
 {
+#ifdef TRUFFLERUBY
+    return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "SYMBOL_P", rb_tr_unwrap(obj)));
+#else
     return RB_STATIC_SYM_P(obj) || RB_DYNAMIC_SYM_P(obj);
+#endif
 }
 
+#ifdef TRUFFLERUBY
+bool RB_TYPE_P(VALUE value, enum ruby_value_type type);
+#else
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 RBIMPL_ATTR_ARTIFICIAL()
 RBIMPL_ATTR_FORCEINLINE()
@@ -301,6 +326,7 @@ RB_TYPE_P(VALUE obj, enum ruby_value_type t)
     (RBIMPL_CONSTANT_P(t)                  ? \
      rbimpl_RB_TYPE_P_fastpath((obj), (t)) : \
      (RB_TYPE_P)((obj), (t)))
+#endif
 #endif
 
 /* clang 3.x (4.2 compatible) can't eliminate CSE of RB_BUILTIN_TYPE

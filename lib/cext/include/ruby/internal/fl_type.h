@@ -234,7 +234,12 @@ static inline VALUE
 RB_FL_TEST_RAW(VALUE obj, VALUE flags)
 {
     RBIMPL_ASSERT_OR_ASSUME(RB_FL_ABLE(obj));
+#ifdef TRUFFLERUBY
+    int rb_tr_flags(VALUE value);
+    return rb_tr_flags(obj) & flags;
+#else
     return RBASIC(obj)->flags & flags;
+#endif
 }
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
@@ -295,7 +300,12 @@ static inline void
 RB_FL_SET_RAW(VALUE obj, VALUE flags)
 {
     RBIMPL_ASSERT_OR_ASSUME(RB_FL_ABLE(obj));
+#ifdef TRUFFLERUBY
+    void rb_tr_add_flags(VALUE value, int flags);
+    rb_tr_add_flags(obj, flags);
+#else
     rbimpl_fl_set_raw_raw(RBASIC(obj), flags);
+#endif
 }
 
 RBIMPL_ATTR_ARTIFICIAL()
@@ -362,6 +372,10 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline bool
 RB_OBJ_TAINTABLE(VALUE obj)
 {
+#ifdef TRUFFLERUBY
+    bool rb_tr_obj_taintable_p(VALUE object);
+    return rb_tr_obj_taintable_p(obj);
+#else
     if (! RB_FL_ABLE(obj)) {
         return false;
     }
@@ -374,6 +388,7 @@ RB_OBJ_TAINTABLE(VALUE obj)
     else {
         return true;
     }
+#endif
 }
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
@@ -381,7 +396,12 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline VALUE
 RB_OBJ_TAINTED_RAW(VALUE obj)
 {
+#ifdef TRUFFLERUBY
+    bool rb_tr_obj_tainted_p(VALUE object);
+    return rb_tr_obj_tainted_p(obj);
+#else
     return RB_FL_TEST_RAW(obj, RUBY_FL_TAINT);
+#endif
 }
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
@@ -389,14 +409,24 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline bool
 RB_OBJ_TAINTED(VALUE obj)
 {
+#ifdef TRUFFLERUBY
+    bool rb_tr_obj_tainted_p(VALUE object);
+    return rb_tr_obj_tainted_p(obj);
+#else
     return RB_FL_ANY(obj, RUBY_FL_TAINT);
+#endif
 }
 
 RBIMPL_ATTR_ARTIFICIAL()
 static inline void
 RB_OBJ_TAINT_RAW(VALUE obj)
 {
+#ifdef TRUFFLERUBY
+    VALUE rb_obj_taint(VALUE);
+    rb_obj_taint(obj);
+#else
     RB_FL_SET_RAW(obj, RUBY_FL_TAINT);
+#endif
 }
 
 RBIMPL_ATTR_ARTIFICIAL()
@@ -414,16 +444,26 @@ RB_OBJ_INFECT_RAW(VALUE dst, VALUE src)
 {
     RBIMPL_ASSERT_OR_ASSUME(RB_OBJ_TAINTABLE(dst));
     RBIMPL_ASSERT_OR_ASSUME(RB_FL_ABLE(src));
+#ifdef TRUFFLERUBY
+    void rb_tr_obj_infect(VALUE a, VALUE b);
+    rb_tr_obj_infect(dst, src);
+#else
     RB_FL_SET_RAW(dst, RB_OBJ_TAINTED_RAW(src));
+#endif
 }
 
 RBIMPL_ATTR_ARTIFICIAL()
 static inline void
 RB_OBJ_INFECT(VALUE dst, VALUE src)
 {
+#ifdef TRUFFLERUBY
+    void rb_tr_obj_infect(VALUE a, VALUE b);
+    rb_tr_obj_infect(dst, src);
+#else
     if (RB_OBJ_TAINTABLE(dst) && RB_FL_ABLE(src)) {
         RB_OBJ_INFECT_RAW(dst, src);
     }
+#endif
 }
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
@@ -434,7 +474,12 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline VALUE
 RB_OBJ_FROZEN_RAW(VALUE obj)
 {
+#ifdef TRUFFLERUBY
+    VALUE rb_obj_frozen_p(VALUE);
+    return rb_obj_frozen_p(obj);
+#else
     return RB_FL_TEST_RAW(obj, RUBY_FL_FREEZE);
+#endif
 }
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
@@ -442,30 +487,45 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline bool
 RB_OBJ_FROZEN(VALUE obj)
 {
+#ifdef TRUFFLERUBY
+    VALUE rb_obj_frozen_p(VALUE);
+    return rb_obj_frozen_p(obj);
+#else
     if (! RB_FL_ABLE(obj)) {
         return true;
     }
     else {
         return RB_OBJ_FROZEN_RAW(obj);
     }
+#endif
 }
 
 RBIMPL_ATTR_ARTIFICIAL()
 static inline void
 RB_OBJ_FREEZE_RAW(VALUE obj)
 {
+#ifdef TRUFFLERUBY
+    VALUE rb_obj_freeze(VALUE);
+    rb_obj_freeze(obj);
+#else
     RB_FL_SET_RAW(obj, RUBY_FL_FREEZE);
+#endif
 }
 
 static inline void
 rb_obj_freeze_inline(VALUE x)
 {
+#ifdef TRUFFLERUBY
+    VALUE rb_obj_freeze(VALUE);
+    rb_obj_freeze(x);
+#else
     if (RB_FL_ABLE(x)) {
         RB_OBJ_FREEZE_RAW(x);
         if (RBASIC_CLASS(x) && !(RBASIC(x)->flags & RUBY_FL_SINGLETON)) {
             rb_freeze_singleton_class(x);
         }
     }
+#endif
 }
 
 #endif /* RBIMPL_FL_TYPE_H */

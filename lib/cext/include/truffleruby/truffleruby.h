@@ -26,8 +26,6 @@ NORETURN(void rb_tr_error(const char *message));
 void rb_tr_log_warning(const char *message);
 #define rb_tr_debug(args...) polyglot_invoke(RUBY_CEXT, "rb_tr_debug", args)
 int rb_tr_obj_equal(VALUE first, VALUE second);
-int rb_tr_flags(VALUE value);
-void rb_tr_add_flags(VALUE value, int flags);
 
 // Initialization
 
@@ -43,10 +41,6 @@ void rb_tr_init_global_constants(void);
 #define rb_rs RUBY_CEXT_INVOKE("rb_rs")
 #define rb_output_rs RUBY_CEXT_INVOKE("rb_output_rs")
 #define rb_default_rs RUBY_CEXT_INVOKE("rb_default_rs")
-
-bool rb_tr_obj_taintable_p(VALUE object);
-bool rb_tr_obj_tainted_p(VALUE object);
-void rb_tr_obj_infect(VALUE a, VALUE b);
 
 int rb_tr_readable(int mode);
 int rb_tr_writable(int mode);

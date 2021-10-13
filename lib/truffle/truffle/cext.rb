@@ -274,7 +274,7 @@ module Truffle::CExt
   end
 
   def SYMBOL_P(value)
-    value.is_a?(Symbol)
+    Symbol === value
   end
 
   def rb_to_int(val)

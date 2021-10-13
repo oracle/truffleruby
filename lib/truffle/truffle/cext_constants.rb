@@ -1,4 +1,4 @@
-# Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2021 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -31,10 +31,6 @@ module Truffle::CExt
 
   def rb_cComplex
     Complex
-  end
-
-  def rb_cData
-    Data
   end
 
   def rb_cDir
@@ -226,7 +222,7 @@ module Truffle::CExt
   end
 
   def rb_eMathDomainError
-    Errno::EDOM
+    Math::DomainError
   end
 
   def rb_eEncCompatError
