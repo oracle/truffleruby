@@ -63,24 +63,6 @@ You can also download the latest Ruby component (`ruby-installable-...`) manuall
 or from [Oracle Downloads](https://www.oracle.com/downloads/graalvm-downloads.html) (EE).
 Then install it with `gu install --file path/to/ruby-installable-...`.
 
-## Rebuilding Polyglot and LibPolyglot Images (Optional)
-
-This is *not* necessary to run  the `polyglot` launcher in the `--jvm` runtime configuration (`bin/polyglot --jvm ...`),
-or if you do not use the `polyglot` launcher and `libpolyglot` library (e.g., but only the `ruby` launcher).
-
-It is only necessary if you want to use Ruby with the `polyglot` launcher in the `--native` runtime configuration or to use Ruby from `libpolyglot`.
-In that case, you need to rebuild the `polyglot` launcher and `libpolyglot` library images so that they include the Ruby language (by default they only include JavaScript).
-
-Rebuilding the executable images can take a few minutes and you should have about 10 GB of RAM available.
-```bash
-gu rebuild-images polyglot libpolyglot
-```
-
-To be able to do so, you may need to install the `native-image` component if not done already:
-```bash
-gu install native-image
-```
-
 ## Using a Ruby Manager
 
 Inside GraalVM is a `jre/languages/ruby` or `languages/ruby` directory which has the usual structure of a Ruby implementation. It is recommended to add this directory to a Ruby manager.
