@@ -56,6 +56,7 @@
 #define HAVE_TIME_H 1
 #define HAVE_UCONTEXT_H 1
 #define HAVE_UTIME_H 1
+#define HAVE_X86INTRIN_H 1
 #define HAVE_TYPEOF 1
 #define restrict __restrict
 #define HAVE_LONG_LONG 1
@@ -129,19 +130,13 @@
 #define CLOCKID2NUM(v) INT2NUM(v)
 #define NUM2CLOCKID(v) NUM2INT(v)
 #define PRI_CLOCKID_PREFIX PRI_INT_PREFIX
-#define HAVE_PROTOTYPES 1
-#define TOKEN_PASTE(x,y) x##y
-#define STRINGIZE(expr) STRINGIZE0(expr)
-#define HAVE_STDARG_PROTOTYPES 1
 #define HAVE_VA_ARGS_MACRO 1
-#define RUBY_ALIGNAS(x) __attribute__((__aligned__(x)))
-#define RUBY_ALIGNOF alignof
+#define HAVE__ALIGNOF 1
 #define CONSTFUNC(x) __attribute__ ((__const__)) x
 #define PUREFUNC(x) __attribute__ ((__pure__)) x
 #define NORETURN(x) __attribute__ ((__noreturn__)) x
 #define DEPRECATED(x) __attribute__ ((__deprecated__)) x
 #define DEPRECATED_BY(n,x) __attribute__ ((__deprecated__("by "#n))) x
-#define DEPRECATED_TYPE(mesg,x) x __attribute__ ((__deprecated__ mesg))
 #define NOINLINE(x) __attribute__ ((__noinline__)) x
 #define ALWAYS_INLINE(x) __attribute__ ((__always_inline__)) x
 #define NO_SANITIZE(san, x) __attribute__ ((__no_sanitize__(san))) x
@@ -152,16 +147,15 @@
 #define WEAK(x) __attribute__ ((__weak__)) x
 #define HAVE_FUNC_WEAK 1
 #define RUBY_CXX_DEPRECATED(msg) __attribute__((__deprecated__(msg)))
+#define HAVE_NULLPTR 1
 #define FUNC_CDECL(x) __attribute__ ((__cdecl__)) x
 #define HAVE_ATTRIBUTE_FUNCTION_ALIAS 1
 #define RUBY_ALIAS_FUNCTION_TYPE(type, prot, name, args) type prot __attribute__((alias(#name)));
 #define RUBY_ALIAS_FUNCTION_VOID(prot, name, args) RUBY_ALIAS_FUNCTION_TYPE(void, prot, name, args)
 #define HAVE_GCC_ATOMIC_BUILTINS 1
 #define HAVE_GCC_SYNC_BUILTINS 1
-#define UNREACHABLE __builtin_unreachable()
 #define RUBY_FUNC_EXPORTED __attribute__ ((__visibility__("default"))) extern
 #define RUBY_FUNC_NONNULL(n,x) __attribute__ ((__nonnull__(n))) x
-#define RUBY_FUNCTION_NAME_STRING __func__
 #define ENUM_OVER_INT 1
 #define HAVE_DECL_SYS_NERR 0
 #define HAVE_DECL_GETENV 1
@@ -214,7 +208,6 @@
 #define SIZEOF_SSIZE_T 8
 #define STACK_END_ADDRESS __libc_stack_end
 #define GETGROUPS_T gid_t
-#define RETSIGTYPE void
 #define HAVE_ALLOCA_H 1
 #define HAVE_ALLOCA 1
 #define HAVE_ACOSH 1
@@ -397,6 +390,7 @@
 #define POSIX_SIGNAL 1
 #define HAVE_SIG_T 1
 #define RSHIFT(x,y) ((x)>>(int)(y))
+#define USE_COPY_FILE_RANGE 1
 #define HAVE__SC_CLK_TCK 1
 #define STACK_GROW_DIRECTION -1
 #define COROUTINE_H "coroutine/amd64/Context.h"
@@ -423,8 +417,9 @@
 #define DLEXT_MAXLEN 3
 #define DLEXT ".so"
 #define HAVE__SETJMP 1
-#define RUBY_SETJMP(env) __builtin_setjmp((void **)(env))
-#define RUBY_LONGJMP(env,val) __builtin_longjmp((void **)(env),val)
+#define RUBY_SETJMP(env) _setjmp((env))
+#define RUBY_LONGJMP(env,val) _longjmp((env),val)
+#define RUBY_JMP_BUF jmp_buf
 #define USE_MJIT 1
 #define HAVE_PTHREAD_H 1
 #define RUBY_PLATFORM "x86_64-linux"
