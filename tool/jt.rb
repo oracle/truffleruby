@@ -2326,7 +2326,12 @@ module Commands
 
     if options.delete('--sforceimports') || sforceimports?(mx_base_args)
       mx('-p', TRUFFLERUBY_DIR, 'sforceimports')
-      checkout_enterprise_revision(env) if ee && !cloned
+      if ee
+        checkout_enterprise_revision(env) if !cloned
+        # sforceimports for optional suites imported in vm-enterprise like substratevm-enterprise-gcs
+        vm_enterprise = File.expand_path '../graal-enterprise/vm-enterprise', TRUFFLERUBY_DIR
+        mx('-p', vm_enterprise, '--env', "#{TRUFFLERUBY_DIR}/mx.truffleruby/#{env}", 'sforceimports')
+      end
     end
 
     mx_options, mx_build_options = args_split(options)
