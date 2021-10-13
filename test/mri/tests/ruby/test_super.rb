@@ -583,4 +583,81 @@ class TestSuper < Test::Unit::TestCase
   def test_super_with_modified_rest_parameter
     assert_equal [13], TestFor_super_with_modified_rest_parameter.new.foo
   end
+
+  def test_super_with_define_method
+    superklass1 = Class.new do
+      def foo; :foo; end
+      def bar; :bar; end
+      def boo; :boo; end
+    end
+    superklass2 = Class.new(superklass1) do
+      alias baz boo
+      def boo; :boo2; end
+    end
+    subklass = Class.new(superklass2)
+    [:foo, :bar, :baz, :boo].each do |sym|
+      subklass.define_method(sym){ super() }
+    end
+    assert_equal :foo, subklass.new.foo
+    assert_equal :bar, subklass.new.bar
+    assert_equal :boo, subklass.new.baz
+    assert_equal :boo2, subklass.new.boo
+  end
+
+  def test_super_attr_writer # [Bug #16785]
+    writer_class = Class.new do
+      attr_writer :test
+    end
+    superwriter_class = Class.new(writer_class) do
+      def initialize
+        @test = 1 # index: 1
+      end
+
+      def test=(test)
+        super(test)
+      end
+    end
+    inherited_class = Class.new(superwriter_class) do
+      def initialize
+        @a = nil
+        @test = 2 # index: 2
+      end
+    end
+
+    superwriter = superwriter_class.new
+    superwriter.test = 3 # set ic->index of superwriter_class#test= to 1
+
+    inherited = inherited_class.new
+    inherited.test = 4 # it may set 4 to index=1 while it should be index=2
+
+    assert_equal 3, superwriter.instance_variable_get(:@test)
+    assert_equal 4, inherited.instance_variable_get(:@test)
+  end
+
+  def test_super_attr_reader
+    reader_class = Class.new do
+      attr_reader :test
+    end
+    superreader_class = Class.new(reader_class) do
+      def initialize
+        @test = 1 # index: 1
+      end
+
+      def test
+        super
+      end
+    end
+    inherited_class = Class.new(superreader_class) do
+      def initialize
+        @a = nil
+        @test = 2 # index: 2
+      end
+    end
+
+    superreader = superreader_class.new
+    assert_equal 1, superreader.test # set ic->index of superreader_class#test to 1
+
+    inherited = inherited_class.new
+    assert_equal 2, inherited.test # it may read index=1 while it should be index=2
+  end
 end

@@ -12,14 +12,14 @@ end
 class TestNetHTTPS < Test::Unit::TestCase
   include TestNetHTTPUtils
 
-  def self.fixture(key)
+  def self.read_fixture(key)
     File.read(File.expand_path("../fixtures/#{key}", __dir__))
   end
 
-  CA_CERT = OpenSSL::X509::Certificate.new(fixture("cacert.pem"))
-  SERVER_KEY = OpenSSL::PKey.read(fixture("server.key"))
-  SERVER_CERT = OpenSSL::X509::Certificate.new(fixture("server.crt"))
-  DHPARAMS = OpenSSL::PKey::DH.new(fixture("dhparams.pem"))
+  CA_CERT = OpenSSL::X509::Certificate.new(read_fixture("cacert.pem"))
+  SERVER_KEY = OpenSSL::PKey.read(read_fixture("server.key"))
+  SERVER_CERT = OpenSSL::X509::Certificate.new(read_fixture("server.crt"))
+  DHPARAMS = OpenSSL::PKey::DH.new(read_fixture("dhparams.pem"))
   TEST_STORE = OpenSSL::X509::Store.new.tap {|s| s.add_cert(CA_CERT) }
 
   CONFIG = {
@@ -112,7 +112,7 @@ class TestNetHTTPS < Test::Unit::TestCase
 
   def test_get_SNI_failure
     TestNetHTTPUtils.clean_http_proxy_env do
-      http = Net::HTTP.new("invalid_servername", config("port"))
+      http = Net::HTTP.new("invalidservername", config("port"))
       http.ipaddr = config('host')
       http.use_ssl = true
       http.cert_store = TEST_STORE
@@ -146,6 +146,14 @@ class TestNetHTTPS < Test::Unit::TestCase
     http = Net::HTTP.new("localhost", config("port"))
     http.use_ssl = true
     http.cert_store = TEST_STORE
+
+    if OpenSSL::OPENSSL_LIBRARY_VERSION =~ /LibreSSL (\d+\.\d+)/ && $1.to_f > 3.19
+      # LibreSSL 3.2 defaults to TLSv1.3 in server and client, which doesn't currently
+      # support session resuse.  Limiting the version to the TLSv1.2 stack allows
+      # this test to continue to work on LibreSSL 3.2+.  LibreSSL may eventually
+      # support session reuse, but there are no current plans to do so.
+      http.ssl_version = :TLSv1
+    end
 
     http.start
     http.get("/")
@@ -206,6 +214,31 @@ class TestNetHTTPS < Test::Unit::TestCase
     }
   rescue SystemCallError
     skip $!
+  end
+
+  def test_skip_hostname_verification
+    TestNetHTTPUtils.clean_http_proxy_env do
+      http = Net::HTTP.new('invalidservername', config('port'))
+      http.ipaddr = config('host')
+      http.use_ssl = true
+      http.cert_store = TEST_STORE
+      http.verify_hostname = false
+      assert_nothing_raised { http.start }
+    ensure
+      http.finish if http&.started?
+    end
+  end
+
+  def test_fail_if_verify_hostname_is_true
+    TestNetHTTPUtils.clean_http_proxy_env do
+      http = Net::HTTP.new('invalidservername', config('port'))
+      http.ipaddr = config('host')
+      http.use_ssl = true
+      http.cert_store = TEST_STORE
+      http.verify_hostname = true
+      @log_tester = lambda { |_| }
+      assert_raise(OpenSSL::SSL::SSLError) { http.start }
+    end
   end
 
   def test_certificate_verify_failure

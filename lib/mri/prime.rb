@@ -31,14 +31,87 @@ class Integer
   end
 
   # Returns true if +self+ is a prime number, else returns false.
+  # Not recommended for very big integers (> 10**23).
   def prime?
     return self >= 2 if self <= 3
+
+    if (bases = miller_rabin_bases)
+      return miller_rabin_test(bases)
+    end
+
     return true if self == 5
     return false unless 30.gcd(self) == 1
     (7..Integer.sqrt(self)).step(30) do |p|
       return false if
         self%(p)    == 0 || self%(p+4)  == 0 || self%(p+6)  == 0 || self%(p+10) == 0 ||
         self%(p+12) == 0 || self%(p+16) == 0 || self%(p+22) == 0 || self%(p+24) == 0
+    end
+    true
+  end
+
+  MILLER_RABIN_BASES = [
+    [2],
+    [2,3],
+    [31,73],
+    [2,3,5],
+    [2,3,5,7],
+    [2,7,61],
+    [2,13,23,1662803],
+    [2,3,5,7,11],
+    [2,3,5,7,11,13],
+    [2,3,5,7,11,13,17],
+    [2,3,5,7,11,13,17,19,23],
+    [2,3,5,7,11,13,17,19,23,29,31,37],
+    [2,3,5,7,11,13,17,19,23,29,31,37,41],
+  ].map!(&:freeze).freeze
+  private_constant :MILLER_RABIN_BASES
+
+  private def miller_rabin_bases
+    # Miller-Rabin's complexity is O(k log^3n).
+    # So we can reduce the complexity by reducing the number of bases tested.
+    # Using values from https://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test
+    i = case
+    when self < 0xffff                            then
+      # For small integers, Miller Rabin can be slower
+      # There is no mathematical significance to 0xffff
+      return nil
+  # when self < 2_047                             then 0
+    when self < 1_373_653                         then 1
+    when self < 9_080_191                         then 2
+    when self < 25_326_001                        then 3
+    when self < 3_215_031_751                     then 4
+    when self < 4_759_123_141                     then 5
+    when self < 1_122_004_669_633                 then 6
+    when self < 2_152_302_898_747                 then 7
+    when self < 3_474_749_660_383                 then 8
+    when self < 341_550_071_728_321               then 9
+    when self < 3_825_123_056_546_413_051         then 10
+    when self < 318_665_857_834_031_151_167_461   then 11
+    when self < 3_317_044_064_679_887_385_961_981 then 12
+    else return nil
+    end
+    MILLER_RABIN_BASES[i]
+  end
+
+  private def miller_rabin_test(bases)
+    return false if even?
+
+    r = 0
+    d = self >> 1
+    while d.even?
+      d >>= 1
+      r += 1
+    end
+
+    self_minus_1 = self-1
+    bases.each do |a|
+      x = a.pow(d, self)
+      next if x == 1 || x == self_minus_1 || a == self
+
+      return false if r.times do
+        x = x.pow(2, self)
+        break if x == self_minus_1
+      end
     end
     true
   end
@@ -84,7 +157,7 @@ end
 # There are few implementations of generator.
 #
 # [+Prime+::+EratosthenesGenerator+]
-#   Uses eratosthenes' sieve.
+#   Uses Eratosthenes' sieve.
 # [+Prime+::+TrialDivisionGenerator+]
 #   Uses the trial division method.
 # [+Prime+::+Generator23+]
@@ -96,7 +169,7 @@ end
 
 class Prime
 
-  VERSION = "0.1.1"
+  VERSION = "0.1.2"
 
   include Enumerable
   include Singleton
@@ -141,8 +214,22 @@ class Prime
     generator.each(&block)
   end
 
+  # Returns true if +obj+ is an Integer and is prime.  Also returns
+  # true if +obj+ is a Module that is an ancestor of +Prime+.
+  # Otherwise returns false.
+  def include?(obj)
+    case obj
+    when Integer
+      prime?(obj)
+    when Module
+      Module.instance_method(:include?).bind(Prime).call(obj)
+    else
+      false
+    end
+  end
 
   # Returns true if +value+ is a prime number, else returns false.
+  # Integer#prime? is much more performant.
   #
   # == Parameters
   #
@@ -161,17 +248,23 @@ class Prime
 
   # Re-composes a prime factorization and returns the product.
   #
+  # For the decomposition:
+  #
+  #   [[p_1, e_1], [p_2, e_2], ..., [p_n, e_n]],
+  #
+  # it returns:
+  #
+  #   p_1**e_1 * p_2**e_2 * ... * p_n**e_n.
+  #
   # == Parameters
-  # +pd+:: Array of pairs of integers. The each internal
-  #        pair consists of a prime number -- a prime factor --
-  #        and a natural number -- an exponent.
+  # +pd+:: Array of pairs of integers.
+  #        Each pair consists of a prime number -- a prime factor --
+  #        and a natural number -- its exponent (multiplicity).
   #
   # == Example
-  # For <tt>[[p_1, e_1], [p_2, e_2], ...., [p_n, e_n]]</tt>, it returns:
+  #   Prime.int_from_prime_division([[3, 2], [5, 1]])  #=> 45
+  #   3**2 * 5                                         #=> 45
   #
-  #   p_1**e_1 * p_2**e_2 * .... * p_n**e_n.
-  #
-  #   Prime.int_from_prime_division([[2,2], [3,1]])  #=> 12
   def int_from_prime_division(pd)
     pd.inject(1){|value, (prime, index)|
       value * prime**index
@@ -180,27 +273,32 @@ class Prime
 
   # Returns the factorization of +value+.
   #
+  # For an arbitrary integer:
+  #
+  #   p_1**e_1 * p_2**e_2 * ... * p_n**e_n,
+  #
+  # prime_division returns an array of pairs of integers:
+  #
+  #   [[p_1, e_1], [p_2, e_2], ..., [p_n, e_n]].
+  #
+  # Each pair consists of a prime number -- a prime factor --
+  # and a natural number -- its exponent (multiplicity).
+  #
   # == Parameters
   # +value+:: An arbitrary integer.
   # +generator+:: Optional. A pseudo-prime generator.
   #               +generator+.succ must return the next
-  #               pseudo-prime number in the ascending
-  #               order. It must generate all prime numbers,
-  #               but may also generate non prime numbers too.
+  #               pseudo-prime number in ascending order.
+  #               It must generate all prime numbers,
+  #               but may also generate non-prime numbers, too.
   #
   # === Exceptions
   # +ZeroDivisionError+:: when +value+ is zero.
   #
   # == Example
-  # For an arbitrary integer:
   #
-  #   n = p_1**e_1 * p_2**e_2 * .... * p_n**e_n,
-  #
-  # prime_division(n) returns:
-  #
-  #   [[p_1, e_1], [p_2, e_2], ...., [p_n, e_n]].
-  #
-  #   Prime.prime_division(12) #=> [[2,2], [3,1]]
+  #   Prime.prime_division(45)  #=> [[3, 2], [5, 1]]
+  #   3**2 * 5                  #=> 45
   #
   def prime_division(value, generator = Prime::Generator23.new)
     raise ZeroDivisionError if value == 0

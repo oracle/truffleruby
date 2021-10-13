@@ -4,15 +4,12 @@ require 'rubygems/request'
 require 'timeout'
 
 class TestGemRequestConnectionPool < Gem::TestCase
-
   class FakeHttp
-
     def initialize(*args)
     end
 
     def start
     end
-
   end
 
   def setup
@@ -143,12 +140,11 @@ class TestGemRequestConnectionPool < Gem::TestCase
     pool.checkout
 
     Thread.new do
-      assert_raises(Timeout::Error) do
+      assert_raise(Timeout::Error) do
         Timeout.timeout(1) do
           pool.checkout
         end
       end
     end.join
   end
-
 end

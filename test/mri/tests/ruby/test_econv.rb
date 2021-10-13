@@ -803,7 +803,7 @@ class TestEncodingConverter < Test::Unit::TestCase
     assert_equal('', ec.finish)
 
     ec = Encoding::Converter.new("", "xml_attr_content_escape")
-    assert_equal('&amp;&lt;&gt;&quot;', ec.convert("&<>\""))
+    assert_equal('&amp;&lt;&gt;&quot;&apos;', ec.convert("&<>\"'"))
     assert_equal('', ec.finish)
   end
 
@@ -844,7 +844,7 @@ class TestEncodingConverter < Test::Unit::TestCase
   def test_xml_hasharg
     assert_equal("&amp;\e$B$&\e(B&#x2665;&amp;\"'".force_encoding("iso-2022-jp"),
         "&\u3046\u2665&\"'".encode("iso-2022-jp", xml: :text))
-    assert_equal("\"&amp;\e$B$&\e(B&#x2661;&amp;&quot;'\"".force_encoding("iso-2022-jp"),
+    assert_equal("\"&amp;\e$B$&\e(B&#x2661;&amp;&quot;&apos;\"".force_encoding("iso-2022-jp"),
       "&\u3046\u2661&\"'".encode("iso-2022-jp", xml: :attr))
 
     assert_equal("&amp;\u3046\u2661&amp;\"'".force_encoding("utf-8"),
@@ -912,6 +912,21 @@ class TestEncodingConverter < Test::Unit::TestCase
     assert_raise_with_message(ArgumentError, /\u{3042}/) {
       Encoding::Converter.new("", "", newline: "\u{3042}".to_sym)
     }
+    newlines = %i[universal_newline crlf_newline cr_newline]
+    (2..newlines.size).each do |i|
+      newlines.combination(i) do |opts|
+        assert_raise(Encoding::ConverterNotFoundError, "#{opts} are mutually exclusive") do
+          Encoding::Converter.new("", "", **opts.inject({}) {|o,nl|o[nl]=true;o})
+        end
+      end
+    end
+    newlines.each do |nl|
+      opts = {newline: :universal, nl => true}
+      ec2 = assert_warning(/:newline option preceds/, opts.inspect) do
+        Encoding::Converter.new("", "", **opts)
+      end
+      assert_equal(ec1, ec2)
+    end
   end
 
   def test_default_external

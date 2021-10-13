@@ -80,7 +80,7 @@ module Psych
           raise(TypeError, "Can't dump #{target.class}") unless method
 
           h[klass] = method
-        end
+        end.compare_by_identity
       end
 
       def start encoding = Nodes::Stream::UTF8
@@ -181,7 +181,7 @@ module Psych
       end
 
       def visit_Exception o
-        dump_exception o, private_iv_get(o, 'mesg')
+        dump_exception o, o.message.to_s
       end
 
       def visit_NameError o

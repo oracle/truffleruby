@@ -73,8 +73,5 @@
 #define RUBY_DTRACE_GC_SWEEP_END_ENABLED() 0
 #define RUBY_DTRACE_GC_SWEEP_END() do {} while (0)
 
-#define RUBY_DTRACE_METHOD_CACHE_CLEAR_ENABLED() 0
-#define RUBY_DTRACE_METHOD_CACHE_CLEAR(class, filename, lineno) do {} while (0)
-
 #endif	/* _PROBES_H */
 

@@ -345,7 +345,7 @@ assert_equal 'ok', %q{
   rescue Exception
     :ok
   end
-}, tagged: true
+}
 
 assert_equal 'ok', %q{
   begin
@@ -357,7 +357,7 @@ assert_equal 'ok', %q{
   rescue Exception
     :ok
   end
-}, tagged: true
+}
 
 assert_equal 'ok', %q{
   m = Thread::Mutex.new
@@ -484,3 +484,17 @@ assert_equal 'foo', %q{
   GC.start
   f.call.source
 }
+assert_normal_exit %q{
+  class C
+    def inspect
+      sleep 0.5
+      'C!!'
+    end
+  end
+  Thread.new{
+    loop{
+      p C.new
+    }
+  }
+  sleep 0.1
+}, timeout: 5

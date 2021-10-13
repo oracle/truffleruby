@@ -194,11 +194,11 @@ module Bundler
       return @md5_available if defined?(@md5_available)
       @md5_available = begin
         require "openssl"
-        OpenSSL::Digest::MD5.digest("")
+        ::OpenSSL::Digest.digest("MD5", "")
         true
       rescue LoadError
         true
-      rescue OpenSSL::Digest::DigestError
+      rescue ::OpenSSL::Digest::DigestError
         false
       end
     end
@@ -212,7 +212,7 @@ module Bundler
       filesystem_access(gemfile_path) {|g| File.open(g, "w") {|file| file.puts contents } }
     end
 
-  private
+    private
 
     def validate_bundle_path
       path_separator = Bundler.rubygems.path_separator

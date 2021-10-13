@@ -1,13 +1,15 @@
+#--
 #
-# $Id: fff07ebfd582f8dbc845e424908cb9f41f8bf42f $
+#
 #
 # Copyright (c) 1999-2006 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the same terms of ruby.
 # see the file "COPYING".
+#
+#++
 
-require 'enumerator'
 require 'racc/compat'
 require 'racc/sourcetext'
 require 'racc/parser-text'
@@ -235,7 +237,7 @@ module Racc
     end
 
     def unique_separator(id)
-      sep = "...end #{id}/module_eval..."
+      sep = String.new "...end #{id}/module_eval..."
       while @used_separator.key?(sep)
         sep.concat sprintf('%02x', rand(255))
       end
@@ -329,7 +331,7 @@ module Racc
       # TODO: this can be made a LOT more clean with a simple split/map
       sep  = "\n"
       nsep = ",\n"
-      buf  = ''
+      buf  = String.new
       com  = ''
       ncom = ','
       co   = com
@@ -339,7 +341,7 @@ module Racc
         if buf.size > 66
           @f.print sep; sep = nsep
           @f.print "'", buf, "'"
-          buf = ''
+          buf = String.new
           co = com
         end
       end

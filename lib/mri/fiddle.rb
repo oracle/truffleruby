@@ -1,7 +1,9 @@
 # frozen_string_literal: true
-require 'truffle/fiddle_backend' # 'fiddle.so' in MRI
-require 'fiddle/function'
+
+require 'fiddle.so'
 require 'fiddle/closure'
+require 'fiddle/function'
+require 'fiddle/version'
 
 module Fiddle
   if WINDOWS

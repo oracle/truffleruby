@@ -1,33 +1,22 @@
-/**********************************************************************
-
-  encoding.h -
-
-  $Author: matz $
-  created at: Thu May 24 11:49:41 JST 2007
-
-  Copyright (C) 2007 Yukihiro Matsumoto
-
-**********************************************************************/
-
-#ifndef RUBY_ENCODING_H
+#ifndef RUBY_ENCODING_H                              /*-*-C++-*-vi:se ft=cpp:*/
 #define RUBY_ENCODING_H 1
-
-#ifdef RUBY_INTERNAL_H
-#error "Include this file before internal.h"
-#endif
-
-#if defined(__cplusplus)
-extern "C" {
-#if 0
-} /* satisfy cc-mode */
-#endif
-#endif
-
+/**
+ * @file
+ * @author     $Author: matz $
+ * @date       Thu May 24 11:49:41 JST 2007
+ * @copyright  Copyright (C) 2007 Yukihiro Matsumoto
+ * @copyright  This  file  is   a  part  of  the   programming  language  Ruby.
+ *             Permission  is hereby  granted,  to  either redistribute  and/or
+ *             modify this file, provided that  the conditions mentioned in the
+ *             file COPYING are met.  Consult the file for details.
+ */
+#include "ruby/internal/config.h"
 #include <stdarg.h>
 #include "ruby/ruby.h"
 #include "ruby/oniguruma.h"
+#include "ruby/internal/dllexport.h"
 
-RUBY_SYMBOL_EXPORT_BEGIN
+RBIMPL_SYMBOL_EXPORT_BEGIN()
 
 enum ruby_encoding_consts {
     RUBY_ENCODING_INLINE_MAX = 127,
@@ -41,27 +30,18 @@ enum ruby_encoding_consts {
 #define ENCODING_SHIFT RUBY_ENCODING_SHIFT
 #define ENCODING_MASK RUBY_ENCODING_MASK
 
-#ifdef TRUFFLERUBY
-#define RB_ENCODING_SET_INLINED(obj,i) RB_ENCODING_SET(obj,i)
-#else
 #define RB_ENCODING_SET_INLINED(obj,i) do {\
     RBASIC(obj)->flags &= ~RUBY_ENCODING_MASK;\
     RBASIC(obj)->flags |= (VALUE)(i) << RUBY_ENCODING_SHIFT;\
 } while (0)
-#endif
 #define RB_ENCODING_SET(obj,i) rb_enc_set_index((obj), (i))
 
-#ifdef TRUFFLERUBY
-#define RB_ENCODING_GET_INLINED(obj) RB_ENCODING_GET(obj)
-#define RB_ENCODING_GET(obj) rb_enc_get_index(obj)
-#else
 #define RB_ENCODING_GET_INLINED(obj) \
     (int)((RBASIC(obj)->flags & RUBY_ENCODING_MASK)>>RUBY_ENCODING_SHIFT)
 #define RB_ENCODING_GET(obj) \
     (RB_ENCODING_GET_INLINED(obj) != RUBY_ENCODING_INLINE_MAX ? \
      RB_ENCODING_GET_INLINED(obj) : \
      rb_enc_get_index(obj))
-#endif
 
 #define RB_ENCODING_IS_ASCII8BIT(obj) (RB_ENCODING_GET_INLINED(obj) == 0)
 
@@ -74,18 +54,12 @@ enum ruby_encoding_consts {
 
 enum ruby_coderange_type {
     RUBY_ENC_CODERANGE_UNKNOWN	= 0,
-#ifdef TRUFFLERUBY
-    RUBY_ENC_CODERANGE_7BIT     = 1,
-    RUBY_ENC_CODERANGE_VALID    = 2,
-    RUBY_ENC_CODERANGE_BROKEN   = 4
-#else
     RUBY_ENC_CODERANGE_7BIT	= ((int)RUBY_FL_USER8),
     RUBY_ENC_CODERANGE_VALID	= ((int)RUBY_FL_USER9),
     RUBY_ENC_CODERANGE_BROKEN	= ((int)(RUBY_FL_USER8|RUBY_FL_USER9)),
     RUBY_ENC_CODERANGE_MASK	= (RUBY_ENC_CODERANGE_7BIT|
 				   RUBY_ENC_CODERANGE_VALID|
 				   RUBY_ENC_CODERANGE_BROKEN)
-#endif
 };
 
 static inline int
@@ -94,23 +68,12 @@ rb_enc_coderange_clean_p(int cr)
     return (cr ^ (cr >> 1)) & RUBY_ENC_CODERANGE_7BIT;
 }
 #define RB_ENC_CODERANGE_CLEAN_P(cr) rb_enc_coderange_clean_p(cr)
-#ifdef TRUFFLERUBY
-enum ruby_coderange_type RB_ENC_CODERANGE(VALUE obj);
-#else
 #define RB_ENC_CODERANGE(obj) ((int)RBASIC(obj)->flags & RUBY_ENC_CODERANGE_MASK)
-#endif
 #define RB_ENC_CODERANGE_ASCIIONLY(obj) (RB_ENC_CODERANGE(obj) == RUBY_ENC_CODERANGE_7BIT)
-
-#ifdef TRUFFLERUBY
-void RB_ENC_CODERANGE_SET(VALUE obj, int cr);
-void rb_enc_coderange_clear(VALUE);
-#define RB_ENC_CODERANGE_CLEAR(obj) rb_enc_coderange_clear(obj)
-#else
 #define RB_ENC_CODERANGE_SET(obj,cr) (\
 	RBASIC(obj)->flags = \
 	(RBASIC(obj)->flags & ~RUBY_ENC_CODERANGE_MASK) | (cr))
 #define RB_ENC_CODERANGE_CLEAR(obj) RB_ENC_CODERANGE_SET((obj),0)
-#endif
 
 /* assumed ASCII compatibility */
 #define RB_ENC_CODERANGE_AND(a, b) \
@@ -164,6 +127,8 @@ void rb_enc_copy(VALUE dst, VALUE src);
 VALUE rb_enc_str_new(const char*, long, rb_encoding*);
 VALUE rb_enc_str_new_cstr(const char*, rb_encoding*);
 VALUE rb_enc_str_new_static(const char*, long, rb_encoding*);
+VALUE rb_enc_interned_str(const char *, long, rb_encoding *);
+VALUE rb_enc_interned_str_cstr(const char *, rb_encoding *);
 VALUE rb_enc_reg_new(const char*, long, rb_encoding*, int);
 PRINTF_ARGS(VALUE rb_enc_sprintf(rb_encoding *, const char*, ...), 2, 3);
 VALUE rb_enc_vsprintf(rb_encoding *, const char*, va_list);
@@ -173,9 +138,6 @@ VALUE rb_obj_encoding(VALUE);
 VALUE rb_enc_str_buf_cat(VALUE str, const char *ptr, long len, rb_encoding *enc);
 VALUE rb_enc_uint_chr(unsigned int code, rb_encoding *enc);
 
-VALUE rb_external_str_with_enc(VALUE string, rb_encoding *eenc);
-rb_encoding *get_encoding(VALUE string);
-#define STR_ENC_GET(string) get_encoding(string)
 VALUE rb_external_str_new_with_enc(const char *ptr, long len, rb_encoding *);
 VALUE rb_str_export_to_enc(VALUE, rb_encoding *);
 VALUE rb_str_conv_enc(VALUE str, rb_encoding *from, rb_encoding *to);
@@ -206,13 +168,8 @@ rb_encoding *rb_enc_find(const char *name);
 #define rb_enc_name(enc) (enc)->name
 
 /* rb_encoding * -> minlen/maxlen */
-#ifdef TRUFFLERUBY
-int rb_enc_mbminlen(rb_encoding *enc);
-int rb_enc_mbmaxlen(rb_encoding *enc);
-#else
 #define rb_enc_mbminlen(enc) (enc)->min_enc_len
 #define rb_enc_mbmaxlen(enc) (enc)->max_enc_len
-#endif
 
 /* -> mbclen (no error notification: 0 < ret <= e-p, no exception) */
 int rb_enc_mbclen(const char *p, const char *e, rb_encoding *enc);
@@ -239,12 +196,7 @@ unsigned int rb_enc_codepoint_len(const char *p, const char *e, int *len, rb_enc
 unsigned int rb_enc_codepoint(const char *p, const char *e, rb_encoding *enc);
 /* overriding macro */
 #define rb_enc_codepoint(p,e,enc) rb_enc_codepoint_len((p),(e),0,(enc))
-#ifdef TRUFFLERUBY
-int rb_enc_mbc_to_codepoint(char *p, char *e, rb_encoding *enc);
-#define rb_enc_mbc_to_codepoint(p, e, enc) rb_enc_mbc_to_codepoint(p, e, enc)
-#else
 #define rb_enc_mbc_to_codepoint(p, e, enc) ONIGENC_MBC_TO_CODE((enc),(UChar*)(p),(UChar*)(e))
-#endif
 
 /* -> codelen>0 or raise exception */
 int rb_enc_codelen(int code, rb_encoding *enc);
@@ -258,11 +210,7 @@ int rb_enc_code_to_mbclen(int code, rb_encoding *enc);
 /* start, ptr, end, encoding -> prev_char */
 #define rb_enc_prev_char(s,p,e,enc) ((char *)onigenc_get_prev_char_head((enc),(UChar*)(s),(UChar*)(p),(UChar*)(e)))
 /* start, ptr, end, encoding -> next_char */
-#ifdef TRUFFLERUBY
-char* rb_enc_left_char_head(char *start, char *p, char *end, rb_encoding *enc);
-#else
 #define rb_enc_left_char_head(s,p,e,enc) ((char *)onigenc_get_left_adjust_char_head((enc),(UChar*)(s),(UChar*)(p),(UChar*)(e)))
-#endif
 #define rb_enc_right_char_head(s,p,e,enc) ((char *)onigenc_get_right_adjust_char_head((enc),(UChar*)(s),(UChar*)(p),(UChar*)(e)))
 #define rb_enc_step_back(s,p,e,n,enc) ((char *)onigenc_step_back((enc),(UChar*)(s),(UChar*)(p),(UChar*)(e),(int)(n)))
 
@@ -275,31 +223,17 @@ char* rb_enc_left_char_head(char *start, char *p, char *end, rb_encoding *enc);
 #define rb_enc_islower(c,enc) ONIGENC_IS_CODE_LOWER((enc),(c))
 #define rb_enc_isupper(c,enc) ONIGENC_IS_CODE_UPPER((enc),(c))
 #define rb_enc_ispunct(c,enc) ONIGENC_IS_CODE_PUNCT((enc),(c))
-#ifdef TRUFFLERUBY
-int rb_enc_isalnum(unsigned char c, rb_encoding *enc);
-#define rb_enc_isalnum(c,enc) rb_enc_isalnum(c,enc)
-#else
 #define rb_enc_isalnum(c,enc) ONIGENC_IS_CODE_ALNUM((enc),(c))
-#endif
 #define rb_enc_isprint(c,enc) ONIGENC_IS_CODE_PRINT((enc),(c))
-#ifdef TRUFFLERUBY
-int rb_enc_isspace(unsigned char c, rb_encoding *enc);
-#define rb_enc_isspace(c,enc) rb_enc_isspace(c,enc)
-#else
 #define rb_enc_isspace(c,enc) ONIGENC_IS_CODE_SPACE((enc),(c))
-#endif
 #define rb_enc_isdigit(c,enc) ONIGENC_IS_CODE_DIGIT((enc),(c))
 
-#ifdef TRUFFLERUBY
-int rb_enc_asciicompat(rb_encoding *enc);
-#else
 static inline int
 rb_enc_asciicompat_inline(rb_encoding *enc)
 {
     return rb_enc_mbminlen(enc)==1 && !rb_enc_dummy_p(enc);
 }
 #define rb_enc_asciicompat(enc) rb_enc_asciicompat_inline(enc)
-#endif
 
 int rb_enc_casefold(char *to, const char *p, const char *e, rb_encoding *enc);
 CONSTFUNC(int rb_enc_toupper(int c, rb_encoding *enc));
@@ -350,9 +284,6 @@ VALUE rb_check_symbol_cstr(const char *ptr, long len, rb_encoding *enc);
 RUBY_EXTERN VALUE rb_cEncoding;
 
 /* econv stuff */
-#ifdef TRUFFLERUBY
-struct rb_econv_t {};
-#endif
 
 typedef enum {
     econv_invalid_byte_sequence,
@@ -477,13 +408,6 @@ enum ruby_econv_flag_type {
 /* end of flags for rb_econv_convert */
 RUBY_ECONV_FLAGS_PLACEHOLDER};
 
-RUBY_SYMBOL_EXPORT_END
-
-#if defined(__cplusplus)
-#if 0
-{ /* satisfy cc-mode */
-#endif
-}  /* extern "C" { */
-#endif
+RBIMPL_SYMBOL_EXPORT_END()
 
 #endif /* RUBY_ENCODING_H */

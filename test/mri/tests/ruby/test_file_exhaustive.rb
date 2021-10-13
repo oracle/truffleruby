@@ -3,7 +3,7 @@ require "test/unit"
 require "fileutils"
 require "tmpdir"
 require "socket"
-require 'c/file'
+require '-test-/file'
 
 class TestFileExhaustive < Test::Unit::TestCase
   DRIVE = Dir.pwd[%r'\A(?:[a-z]:|//[^/]+/[^/]+)'i]
@@ -130,7 +130,7 @@ class TestFileExhaustive < Test::Unit::TestCase
     @hardlinkfile = make_tmp_filename("hardlinkfile")
     begin
       File.link(regular_file, @hardlinkfile)
-    rescue NotImplementedError, Errno::EINVAL	# EINVAL for Windows Vista
+    rescue NotImplementedError, Errno::EINVAL, Errno::EACCES   # EINVAL for Windows Vista, EACCES for Android Termux
       @hardlinkfile = nil
     end
     @hardlinkfile
@@ -679,6 +679,13 @@ class TestFileExhaustive < Test::Unit::TestCase
     File.utime(t + 1, t + 2, zerofile)
     assert_equal(t + 1, File.atime(zerofile))
     assert_equal(t + 2, File.mtime(zerofile))
+    Dir.mktmpdir do |dir|
+      Dir.chdir do
+        path = "foo\u{30b3 30d4 30fc}"
+        File.write(path, "") rescue next
+        assert_equal(1, File.utime(nil, nil, path))
+      end
+    end
   end
 
   def test_utime_symlinkfile

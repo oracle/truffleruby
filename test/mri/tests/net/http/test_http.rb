@@ -283,6 +283,27 @@ module TestNetHTTP_version_1_1_methods
   def test_s_get
     assert_equal $test_net_http_data,
         Net::HTTP.get(config('host'), '/', config('port'))
+
+    assert_equal $test_net_http_data, Net::HTTP.get(
+      URI.parse("http://#{config('host')}:#{config('port')}")
+    )
+    assert_equal $test_net_http_data, Net::HTTP.get(
+      URI.parse("http://#{config('host')}:#{config('port')}"), "Accept" => "text/plain"
+    )
+  end
+
+  def test_s_get_response
+    res = Net::HTTP.get_response(
+      URI.parse("http://#{config('host')}:#{config('port')}")
+    )
+    assert_equal "application/octet-stream", res["Content-Type"]
+    assert_equal $test_net_http_data, res.body
+
+    res = Net::HTTP.get_response(
+      URI.parse("http://#{config('host')}:#{config('port')}"), "Accept" => "text/plain"
+    )
+    assert_equal "text/plain", res["Content-Type"]
+    assert_equal $test_net_http_data, res.body
   end
 
   def test_head
@@ -548,7 +569,7 @@ module TestNetHTTP_version_1_1_methods
 
       conn = Net::HTTP.new('localhost', port)
       conn.read_timeout = EnvUtil.apply_timeout_scale(0.01)
-      conn.open_timeout = EnvUtil.apply_timeout_scale(0.1)
+      conn.open_timeout = EnvUtil.apply_timeout_scale(1)
 
       th = Thread.new do
         assert_raise(Net::ReadTimeout) {

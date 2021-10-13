@@ -194,9 +194,8 @@ module Net
   # String. Normally the unique-id is a hash of the message.
   #
   class POP3 < Protocol
-
-    # svn revision of this library
-    Revision = %q$Revision$.split[1]
+    # version of this library
+    VERSION = "0.1.1"
 
     #
     # Class Parameters
@@ -970,7 +969,7 @@ module Net
           getok('UIDL')
           table = {}
           @socket.each_list_item do |line|
-            num, uid = line.split
+            num, uid = line.split(' ')
             table[num.to_i] = uid
           end
           return table

@@ -14,10 +14,6 @@ end
 
 module EnvUtil
   def rubybin
-    if defined?(::TruffleRuby) # always be correct and do not search some random files on disk
-      return RbConfig.ruby
-    end
-
     if ruby = ENV["RUBY"]
       return ruby
     end
@@ -57,12 +53,9 @@ module EnvUtil
       @original_internal_encoding = Encoding.default_internal
       @original_external_encoding = Encoding.default_external
       @original_verbose = $VERBOSE
-      @original_warning = %i[deprecated experimental].to_h {|i| [i, Warning[i]]}
+      @original_warning = defined?(Warning.[]) ? %i[deprecated experimental].to_h {|i| [i, Warning[i]]} : nil
     end
   end
-
-  # TruffleRuby: startup can take longer, especially on highly loaded CI machines
-  self.timeout_scale = 3 if defined?(::TruffleRuby)
 
   def apply_timeout_scale(t)
     if scale = EnvUtil.timeout_scale
@@ -94,7 +87,20 @@ module EnvUtil
     when nil, false
       pgroup = pid
     end
+
+    lldb = true if /darwin/ =~ RUBY_PLATFORM
+
     while signal = signals.shift
+
+      if lldb and [:ABRT, :KILL].include?(signal)
+        lldb = false
+        # sudo -n: --non-interactive
+        # lldb -p: attach
+        #      -o: run command
+        system(*%W[sudo -n lldb -p #{pid} --batch -o bt\ all -o call\ rb_vmdebug_stack_dump_all_threads() -o quit])
+        true
+      end
+
       begin
         Process.kill signal, pgroup
       rescue Errno::EINVAL
@@ -108,6 +114,8 @@ module EnvUtil
         begin
           Timeout.timeout(reprieve) {Process.wait(pid)}
         rescue Timeout::Error
+        else
+          break
         end
       end
     end
@@ -142,11 +150,14 @@ module EnvUtil
     if RUBYLIB and lib = child_env["RUBYLIB"]
       child_env["RUBYLIB"] = [lib, RUBYLIB].join(File::PATH_SEPARATOR)
     end
+    child_env['ASAN_OPTIONS'] = ENV['ASAN_OPTIONS'] if ENV['ASAN_OPTIONS']
     args = [args] if args.kind_of?(String)
     pid = spawn(child_env, *precommand, rubybin, *args, **opt)
     in_c.close
-    out_c.close if capture_stdout
-    err_c.close if capture_stderr && capture_stderr != :merge_to_stdout
+    out_c&.close
+    out_c = nil
+    err_c&.close
+    err_c = nil
     if block_given?
       return yield in_p, out_p, err_p, pid
     else
@@ -169,7 +180,7 @@ module EnvUtil
       stderr = stderr_filter.call(stderr) if stderr_filter
       if timeout_error
         bt = caller_locations
-        msg = "execution of #{bt.shift.label} expired (took longer than #{timeout} seconds)"
+        msg = "execution of #{bt.shift.label} expired timeout (#{timeout} sec)"
         msg = failure_description(status, terminated, msg, [stdout, stderr].join("\n"))
         raise timeout_error, msg, bt.map(&:to_s)
       end
@@ -188,11 +199,6 @@ module EnvUtil
   end
   module_function :invoke_ruby
 
-  alias rubyexec invoke_ruby
-  class << self
-    alias rubyexec invoke_ruby
-  end
-
   def verbose_warning
     class << (stderr = "".dup)
       alias write concat
@@ -200,13 +206,12 @@ module EnvUtil
     end
     stderr, $stderr = $stderr, stderr
     $VERBOSE = true
-    Warning[:deprecated] = true
     yield stderr
     return $stderr
   ensure
     stderr, $stderr = $stderr, stderr
     $VERBOSE = EnvUtil.original_verbose
-    EnvUtil.original_warning.each {|i, v| Warning[i] = v}
+    EnvUtil.original_warning&.each {|i, v| Warning[i] = v}
   end
   module_function :verbose_warning
 
@@ -252,7 +257,11 @@ module EnvUtil
 
   def labeled_module(name, &block)
     Module.new do
-      singleton_class.class_eval {define_method(:to_s) {name}; alias inspect to_s}
+      singleton_class.class_eval {
+        define_method(:to_s) {name}
+        alias inspect to_s
+        alias name to_s
+      }
       class_eval(&block) if block
     end
   end
@@ -260,7 +269,11 @@ module EnvUtil
 
   def labeled_class(name, superclass = Object, &block)
     Class.new(superclass) do
-      singleton_class.class_eval {define_method(:to_s) {name}; alias inspect to_s}
+      singleton_class.class_eval {
+        define_method(:to_s) {name}
+        alias inspect to_s
+        alias name to_s
+      }
       class_eval(&block) if block
     end
   end

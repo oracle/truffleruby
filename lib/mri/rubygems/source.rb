@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-autoload :FileUtils, 'fileutils'
 
 require "rubygems/text"
 ##
@@ -9,7 +8,6 @@ require "rubygems/text"
 # bundler dependency API and so-forth.
 
 class Gem::Source
-
   include Comparable
   include Gem::Text
 
@@ -81,7 +79,15 @@ class Gem::Source
   def dependency_resolver_set # :nodoc:
     return Gem::Resolver::IndexSet.new self if 'file' == uri.scheme
 
-    bundler_api_uri = uri + './api/v1/dependencies'
+    fetch_uri = if uri.host == "rubygems.org"
+                  index_uri = uri.dup
+                  index_uri.host = "index.rubygems.org"
+                  index_uri
+                else
+                  uri
+                end
+
+    bundler_api_uri = enforce_trailing_slash(fetch_uri)
 
     begin
       fetcher = Gem::RemoteFetcher.fetcher
@@ -89,11 +95,7 @@ class Gem::Source
     rescue Gem::RemoteFetcher::FetchError
       Gem::Resolver::IndexSet.new self
     else
-      if response.respond_to? :uri
-        Gem::Resolver::APISet.new response.uri
-      else
-        Gem::Resolver::APISet.new bundler_api_uri
-      end
+      Gem::Resolver::APISet.new response.uri + "./info/"
     end
   end
 
@@ -132,7 +134,7 @@ class Gem::Source
 
     spec_file_name = name_tuple.spec_name
 
-    source_uri = uri + "#{Gem::MARSHAL_SPEC_DIR}#{spec_file_name}"
+    source_uri = enforce_trailing_slash(uri) + "#{Gem::MARSHAL_SPEC_DIR}#{spec_file_name}"
 
     cache_dir = cache_dir source_uri
 
@@ -150,6 +152,7 @@ class Gem::Source
     spec = Gem::Util.inflate spec
 
     if update_cache?
+      require "fileutils"
       FileUtils.mkdir_p cache_dir
 
       File.open local_spec, 'wb' do |io|
@@ -176,12 +179,15 @@ class Gem::Source
     file       = FILES[type]
     fetcher    = Gem::RemoteFetcher.fetcher
     file_name  = "#{file}.#{Gem.marshal_version}"
-    spec_path  = uri + "#{file_name}.gz"
+    spec_path  = enforce_trailing_slash(uri) + "#{file_name}.gz"
     cache_dir  = cache_dir spec_path
     local_file = File.join(cache_dir, file_name)
     retried    = false
 
-    FileUtils.mkdir_p cache_dir if update_cache?
+    if update_cache?
+      require "fileutils"
+      FileUtils.mkdir_p cache_dir
+    end
 
     spec_dump = fetcher.cache_update_path spec_path, local_file, update_cache?
 
@@ -222,9 +228,14 @@ class Gem::Source
 
   def typo_squatting?(host, distance_threshold=4)
     return if @uri.host.nil?
-    levenshtein_distance(@uri.host, host) <= distance_threshold
+    levenshtein_distance(@uri.host, host).between? 1, distance_threshold
   end
 
+  private
+
+  def enforce_trailing_slash(uri)
+    uri.merge(uri.path.gsub(/\/+$/, '') + '/')
+  end
 end
 
 require 'rubygems/source/git'

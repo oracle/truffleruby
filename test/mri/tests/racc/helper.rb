@@ -22,7 +22,6 @@ module Racc
     TEST_DIR = test_dir
     racc = File.join(PROJECT_DIR, 'bin', 'racc')
     racc = File.join(PROJECT_DIR, '..', 'libexec', 'racc') unless File.exist?(racc)
-    racc = RbConfig::CONFIG["bindir"] + '/racc' if defined?(::TruffleRuby)
     RACC = racc
     ASSET_DIR = File.join(TEST_DIR, 'assets') # test grammars
     REGRESS_DIR  = File.join(TEST_DIR, 'regress') # known-good generated outputs
@@ -87,10 +86,10 @@ module Racc
     end
 
     def assert_output_unchanged(asset)
-      # racc generates the difference results in GitHub Actions
-      omit unless RUBY_PLATFORM =~ /darwin/
-
       file = File.basename(asset, '.y')
+
+      # Code to re-generate the expectation files
+      # File.write("#{REGRESS_DIR}/#{file}", File.read("#{@TAB_DIR}/#{file}"))
 
       expected = File.read("#{REGRESS_DIR}/#{file}")
       actual   = File.read("#{@TAB_DIR}/#{file}")

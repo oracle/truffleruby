@@ -23,103 +23,37 @@ def IO.pread(*args)
   popen(*args) {|f|f.read}
 end
 
-if RUBY_VERSION < "2.0"
-  class IO
-    @orig_popen = method(:popen)
-
-    if defined?(fork)
-      def self.popen(command, *rest, &block)
-        if command.kind_of?(Hash)
-          env = command
-          command = rest.shift
-        end
-        opts = rest.last
-        if opts.kind_of?(Hash)
-          dir = opts.delete(:chdir)
-          rest.pop if opts.empty?
-          opts.delete(:external_encoding)
-        end
-
-        if block
-          @orig_popen.call("-", *rest) do |f|
-            if f
-              yield(f)
-            else
-              Dir.chdir(dir) if dir
-              ENV.replace(env) if env
-              exec(*command)
-            end
-          end
-        else
-          f = @orig_popen.call("-", *rest)
-          unless f
-            Dir.chdir(dir) if dir
-            ENV.replace(env) if env
-            exec(*command)
-          end
-          f
-        end
-      end
-    else
-      require 'shellwords'
-      def self.popen(command, *rest, &block)
-        if command.kind_of?(Hash)
-          env = command
-          oldenv = ENV.to_hash
-          command = rest.shift
-        end
-        opts = rest.last
-        if opts.kind_of?(Hash)
-          dir = opts.delete(:chdir)
-          rest.pop if opts.empty?
-          opts.delete(:external_encoding)
-        end
-
-        command = command.shelljoin if Array === command
-        Dir.chdir(dir || ".") do
-          ENV.replace(env) if env
-          @orig_popen.call(command, *rest, &block)
-          ENV.replace(oldenv) if oldenv
-        end
-      end
-    end
-  end
-else
-  module DebugPOpen
-    verbose, $VERBOSE = $VERBOSE, nil if RUBY_VERSION < "2.1"
-    refine IO.singleton_class do
-      def popen(*args)
-        VCS::DEBUG_OUT.puts args.inspect if $DEBUG
-        super
-      end
-    end
-  ensure
-    $VERBOSE = verbose unless verbose.nil?
-  end
-  using DebugPOpen
-  module DebugSystem
-    def system(*args)
+module DebugPOpen
+  refine IO.singleton_class do
+    def popen(*args)
       VCS::DEBUG_OUT.puts args.inspect if $DEBUG
-      exception = false
-      opts = Hash.try_convert(args[-1])
-      if RUBY_VERSION >= "2.6"
-        unless opts
-          opts = {}
-          args << opts
-        end
-        exception = opts.fetch(:exception) {opts[:exception] = true}
-      elsif opts
-        exception = opts.delete(:exception) {true}
-        args.pop if opts.empty?
-      end
-      ret = super(*args)
-      raise "Command failed with status (#$?): #{args[0]}" if exception and !ret
-      ret
+      super
     end
   end
-  module Kernel
-    prepend(DebugSystem)
+end
+using DebugPOpen
+module DebugSystem
+  def system(*args)
+    VCS::DEBUG_OUT.puts args.inspect if $DEBUG
+    exception = false
+    opts = Hash.try_convert(args[-1])
+    if RUBY_VERSION >= "2.6"
+      unless opts
+        opts = {}
+        args << opts
+      end
+      exception = opts.fetch(:exception) {opts[:exception] = true}
+    elsif opts
+      exception = opts.delete(:exception) {true}
+      args.pop if opts.empty?
+    end
+    ret = super(*args)
+    raise "Command failed with status (#$?): #{args[0]}" if exception and !ret
+    ret
   end
+end
+module Kernel
+  prepend(DebugSystem)
 end
 
 class VCS
@@ -411,9 +345,7 @@ class VCS
       range = [to || 'HEAD', (from ? from+1 : branch_beginning(url))].compact.join(':')
       IO.popen({'TZ' => 'JST-9', 'LANG' => 'C', 'LC_ALL' => 'C'},
                %W"#{COMMAND} log -r#{range} #{url}") do |r|
-        open(path, 'w') do |w|
-          IO.copy_stream(r, w)
-        end
+        IO.copy_stream(r, path)
       end
     end
 
@@ -638,21 +570,36 @@ class VCS
       cmd << date
       cmd.concat(arg)
       File.open(path, 'w') do |w|
+        w.print "-*- coding: utf-8 -*-\n\n"
         cmd_pipe(env, cmd, chdir: @srcdir) do |r|
           while s = r.gets("\ncommit ")
+            h, s = s.split(/^$/, 2)
+            h.gsub!(/^(?:Author|Date): /, '  \&')
             if s.sub!(/\nNotes \(log-fix\):\n((?: +.*\n)+)/, '')
               fix = $1
-              h, s = s.split(/^$/, 2)
               s = s.lines
               fix.each_line do |x|
-                if %r[^ +(\d+)s/(.+)/(.+)/] =~ x
-                  s[$1.to_i][$2] = $3
+                if %r[^ +(\d+)s/(.+)/(.*)/] =~ x
+                  begin
+                    s[$1.to_i][$2] = $3
+                  rescue IndexError
+                    message = ["format_changelog failed to replace #{$2.dump} with #{$3.dump} at #$1\n"]
+                    from = [1, $1.to_i-2].max
+                    to = [s.size-1, $1.to_i+2].min
+                    s.each_with_index do |e, i|
+                      next if i < from
+                      break if to < i
+                      message << "#{i}:#{e}"
+                    end
+                    raise message.join('')
+                  end
                 end
               end
-              s = [h, s.join('')].join('')
+              s = s.join('')
             end
             s.gsub!(/ +\n/, "\n")
-            w.print s
+            s.sub!(/^Notes:/, '  \&')
+            w.print h, s
           end
         end
       end
@@ -661,7 +608,7 @@ class VCS
     def format_changelog_as_svn(path, arg)
       cmd = %W"#{COMMAND} log --topo-order --no-notes -z --format=%an%n%at%n%B"
       cmd.concat(arg)
-      open(path, 'w') do |w|
+      File.open(path, 'w') do |w|
         sep = "-"*72 + "\n"
         w.print sep
         cmd_pipe(cmd) do |r|
@@ -727,7 +674,7 @@ class VCS
 
       commits = cmd_read([COMMAND, "log", "--reverse", "--format=%H %ae %ce", "#{com}..@"], "rb").split("\n")
       commits.each_with_index do |l, i|
-        r, a, c = l.split
+        r, a, c = l.split(' ')
         dcommit = [COMMAND, "svn", "dcommit"]
         dcommit.insert(-2, "-n") if dryrun
         dcommit << "--add-author-from" unless a == c

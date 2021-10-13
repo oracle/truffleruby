@@ -3,7 +3,6 @@ require 'rubygems/test_case'
 require 'rubygems/command_manager'
 
 class TestGemCommandManager < Gem::TestCase
-
   PROJECT_DIR = File.expand_path('../../..', __FILE__).tap(&Gem::UNTAINT)
 
   def setup
@@ -23,7 +22,7 @@ class TestGemCommandManager < Gem::TestCase
   end
 
   def test_find_command_ambiguous
-    e = assert_raises Gem::CommandLineError do
+    e = assert_raise Gem::CommandLineError do
       @command_manager.find_command 'u'
     end
 
@@ -51,7 +50,7 @@ class TestGemCommandManager < Gem::TestCase
   end
 
   def test_find_command_unknown
-    e = assert_raises Gem::CommandLineError do
+    e = assert_raise Gem::CommandLineError do
       @command_manager.find_command 'xyz'
     end
 
@@ -66,7 +65,7 @@ class TestGemCommandManager < Gem::TestCase
     @command_manager.register_command :interrupt
 
     use_ui @ui do
-      assert_raises Gem::MockGemUi::TermError do
+      assert_raise Gem::MockGemUi::TermError do
         @command_manager.run %w[interrupt]
       end
       assert_equal '', ui.output
@@ -83,7 +82,7 @@ class TestGemCommandManager < Gem::TestCase
 
     @command_manager.register_command :crash
     use_ui @ui do
-      assert_raises Gem::MockGemUi::TermError do
+      assert_raise Gem::MockGemUi::TermError do
         @command_manager.run %w[crash]
       end
       assert_equal '', ui.output
@@ -97,7 +96,7 @@ class TestGemCommandManager < Gem::TestCase
 
   def test_process_args_bad_arg
     use_ui @ui do
-      assert_raises Gem::MockGemUi::TermError do
+      assert_raise Gem::MockGemUi::TermError do
         @command_manager.process_args %w[--bad-arg]
       end
     end
@@ -224,26 +223,34 @@ class TestGemCommandManager < Gem::TestCase
     end
 
     #check defaults
-    @command_manager.process_args %w[query]
+    Gem::Deprecate.skip_during do
+      @command_manager.process_args %w[query]
+    end
     assert_equal(//, check_options[:name])
     assert_equal :local, check_options[:domain]
     assert_equal false, check_options[:details]
 
     #check settings
     check_options = nil
-    @command_manager.process_args %w[query --name foobar --local --details]
+    Gem::Deprecate.skip_during do
+      @command_manager.process_args %w[query --name foobar --local --details]
+    end
     assert_equal(/foobar/i, check_options[:name])
     assert_equal :local, check_options[:domain]
     assert_equal true, check_options[:details]
 
     #remote domain
     check_options = nil
-    @command_manager.process_args %w[query --remote]
+    Gem::Deprecate.skip_during do
+      @command_manager.process_args %w[query --remote]
+    end
     assert_equal :remote, check_options[:domain]
 
     #both (local/remote) domains
     check_options = nil
-    @command_manager.process_args %w[query --both]
+    Gem::Deprecate.skip_during do
+      @command_manager.process_args %w[query --both]
+    end
     assert_equal :both, check_options[:domain]
   end
 
@@ -268,4 +275,28 @@ class TestGemCommandManager < Gem::TestCase
     assert_equal Dir.pwd, check_options[:install_dir]
   end
 
+  def test_deprecated_command
+    require 'rubygems/command'
+    foo_command = Class.new(Gem::Command) do
+      extend Gem::Deprecate
+
+      rubygems_deprecate_command
+
+      def execute
+        say "pew pew!"
+      end
+    end
+
+    Gem::Commands.send(:const_set, :FooCommand, foo_command)
+    @command_manager.register_command(:foo, foo_command.new("foo"))
+
+    use_ui @ui do
+      @command_manager.process_args(%w[foo])
+    end
+
+    assert_equal "pew pew!\n", @ui.output
+    assert_match(/WARNING:  foo command is deprecated. It will be removed in Rubygems [0-9]+/, @ui.error)
+  ensure
+    Gem::Commands.send(:remove_const, :FooCommand)
+  end
 end

@@ -49,6 +49,7 @@ static struct {
     ID id_excessed_comma;
     ID id_fcall;
     ID id_field;
+    ID id_fndptn;
     ID id_for;
     ID id_hash;
     ID id_heredoc_dedent;
@@ -188,6 +189,7 @@ static struct {
 #define ripper_id_excessed_comma ripper_parser_ids.id_excessed_comma
 #define ripper_id_fcall ripper_parser_ids.id_fcall
 #define ripper_id_field ripper_parser_ids.id_field
+#define ripper_id_fndptn ripper_parser_ids.id_fndptn
 #define ripper_id_for ripper_parser_ids.id_for
 #define ripper_id_hash ripper_parser_ids.id_hash
 #define ripper_id_heredoc_dedent ripper_parser_ids.id_heredoc_dedent
@@ -330,6 +332,7 @@ ripper_init_eventids1(void)
     set_id1(excessed_comma);
     set_id1(fcall);
     set_id1(field);
+    set_id1(fndptn);
     set_id1(for);
     set_id1(hash);
     set_id1(heredoc_dedent);
@@ -427,7 +430,7 @@ ripper_init_eventids1_table(VALUE self)
     rb_hash_aset(h, intern_sym("BEGIN"), INT2FIX(1));
     rb_hash_aset(h, intern_sym("END"), INT2FIX(1));
     rb_hash_aset(h, intern_sym("alias"), INT2FIX(2));
-    rb_hash_aset(h, intern_sym("alias_error"), INT2FIX(1));
+    rb_hash_aset(h, intern_sym("alias_error"), INT2FIX(2));
     rb_hash_aset(h, intern_sym("aref"), INT2FIX(2));
     rb_hash_aset(h, intern_sym("aref_field"), INT2FIX(2));
     rb_hash_aset(h, intern_sym("arg_ambiguous"), INT2FIX(1));
@@ -440,7 +443,7 @@ ripper_init_eventids1_table(VALUE self)
     rb_hash_aset(h, intern_sym("array"), INT2FIX(1));
     rb_hash_aset(h, intern_sym("aryptn"), INT2FIX(4));
     rb_hash_aset(h, intern_sym("assign"), INT2FIX(2));
-    rb_hash_aset(h, intern_sym("assign_error"), INT2FIX(1));
+    rb_hash_aset(h, intern_sym("assign_error"), INT2FIX(2));
     rb_hash_aset(h, intern_sym("assoc_new"), INT2FIX(2));
     rb_hash_aset(h, intern_sym("assoc_splat"), INT2FIX(1));
     rb_hash_aset(h, intern_sym("assoclist_from_args"), INT2FIX(1));
@@ -455,7 +458,7 @@ ripper_init_eventids1_table(VALUE self)
     rb_hash_aset(h, intern_sym("call"), INT2FIX(3));
     rb_hash_aset(h, intern_sym("case"), INT2FIX(2));
     rb_hash_aset(h, intern_sym("class"), INT2FIX(3));
-    rb_hash_aset(h, intern_sym("class_name_error"), INT2FIX(1));
+    rb_hash_aset(h, intern_sym("class_name_error"), INT2FIX(2));
     rb_hash_aset(h, intern_sym("command"), INT2FIX(2));
     rb_hash_aset(h, intern_sym("command_call"), INT2FIX(4));
     rb_hash_aset(h, intern_sym("const_path_field"), INT2FIX(2));
@@ -474,6 +477,7 @@ ripper_init_eventids1_table(VALUE self)
     rb_hash_aset(h, intern_sym("excessed_comma"), INT2FIX(0));
     rb_hash_aset(h, intern_sym("fcall"), INT2FIX(1));
     rb_hash_aset(h, intern_sym("field"), INT2FIX(3));
+    rb_hash_aset(h, intern_sym("fndptn"), INT2FIX(4));
     rb_hash_aset(h, intern_sym("for"), INT2FIX(3));
     rb_hash_aset(h, intern_sym("hash"), INT2FIX(1));
     rb_hash_aset(h, intern_sym("heredoc_dedent"), INT2FIX(2));
@@ -502,7 +506,7 @@ ripper_init_eventids1_table(VALUE self)
     rb_hash_aset(h, intern_sym("nokw_param"), INT2FIX(1));
     rb_hash_aset(h, intern_sym("opassign"), INT2FIX(3));
     rb_hash_aset(h, intern_sym("operator_ambiguous"), INT2FIX(2));
-    rb_hash_aset(h, intern_sym("param_error"), INT2FIX(1));
+    rb_hash_aset(h, intern_sym("param_error"), INT2FIX(2));
     rb_hash_aset(h, intern_sym("params"), INT2FIX(7));
     rb_hash_aset(h, intern_sym("paren"), INT2FIX(1));
     rb_hash_aset(h, intern_sym("parse_error"), INT2FIX(1));

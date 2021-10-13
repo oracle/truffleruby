@@ -520,7 +520,6 @@ suite = {
                     "dependency:org.truffleruby.cext/src/main/c/spawn-helper/spawn-helper",
                 ],
                 "src/main/c/openssl/": [
-                    "file:src/main/c/openssl/deprecation.rb",
                     "file:src/main/c/openssl/extconf.rb",
                     "file:src/main/c/openssl/*.c",
                     {

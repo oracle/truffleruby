@@ -184,6 +184,7 @@ union YYSTYPE
     st_table *tbl;
     const struct vtable *vars;
     struct rb_strterm_struct *strterm;
+    struct lex_context ctxt;
 
 
 };
