@@ -59,22 +59,9 @@ languages/ruby/lib/truffle/post_install_hook.sh
 $(path/to/graalvm/bin/ruby -e 'print RbConfig::CONFIG["prefix"]')/lib/truffle/post_install_hook.sh
 ```
 
-You can also download the latest Ruby component (`ruby-installable-...`) manually from [GitHub](https://github.com/oracle/truffleruby/releases/latest).
+You can also download the latest Ruby component (`ruby-installable-...`) manually from [GitHub](https://github.com/oracle/truffleruby/releases/latest) (CE)
+or from [Oracle Downloads](https://www.oracle.com/downloads/graalvm-downloads.html) (EE).
 Then install it with `gu install --file path/to/ruby-installable-...`.
-
-If you are installing Ruby into GraalVM Enterprise, then you need to download the Ruby
-Enterprise installable from [Oracle Downloads](https://www.oracle.com/downloads/graalvm-downloads.html) page and install using `--file` in the same way.
-
-After installing Ruby you may want to rebuild other images so that they can use the new language.
-Rebuilding the executable images can take a few minutes and you should have about 10 GB of RAM available.
-```bash
-gu rebuild-images polyglot libpolyglot
-```
-
-To be able to do so, you may need to install the `native-image` component if you have not done so already:
-```bash
-gu install native-image
-```
 
 ## Using a Ruby Manager
 
