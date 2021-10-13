@@ -212,13 +212,11 @@ static inline int rb_tr_scan_args_kw(int kw_flag, int argc, VALUE *argv, const c
   // Interpret kw_flag
 
   int keyword_given = 0;
-  int empty_keyword_given = 0;
   int last_hash_keyword = 0;
 
   switch (kw_flag) {
     case RB_SCAN_ARGS_PASS_CALLED_KEYWORDS: break;
     case RB_SCAN_ARGS_KEYWORDS: keyword_given = 1; break;
-    case RB_SCAN_ARGS_EMPTY_KEYWORDS: empty_keyword_given = 1; break;
     case RB_SCAN_ARGS_LAST_HASH_KEYWORDS: last_hash_keyword = 1; break;
   }
 
@@ -289,7 +287,7 @@ static inline int rb_tr_scan_args_kw(int kw_flag, int argc, VALUE *argv, const c
 
   /* capture an option hash - phase 1: pop */
   /* Ignore final positional hash if empty keywords given */
-  if (argc > 0 && !(kwargs && empty_keyword_given)) {
+  if (argc > 0) {
     VALUE last = argv[argc - 1];
 
     if (kwargs && n_mand < argc) {
@@ -336,8 +334,6 @@ static inline int rb_tr_scan_args_kw(int kw_flag, int argc, VALUE *argv, const c
       rb_warn("Passing the keyword argument as the last hash parameter is deprecated");
     }
   }
-
-  // Skipped the part of MRI where empty_keyword_given with rb_warn("Passing the keyword argument as the last hash parameter is deprecated");
 
   int trailing = post;
 
