@@ -22,8 +22,6 @@ require 'mkmf'
 
 # -DRUBY_EXPORT is added in MRI's configure.in.
 $CFLAGS << " -DRUBY_EXPORT"
-$INCFLAGS << " -I#{ENV['LIBFFI_HEADERS_DIR']}"
-$LIBS << " #{ENV['NFI_LIB_ARGS']}"
 
 # libruby depends on librt on Linux, and C extensions like date rely on that because they then
 # automatically depend on librt (e.g., for clock_gettime).
