@@ -35,7 +35,7 @@ ruby-install ruby $VERSION
 # OR
 rm -rf ~/.rubies/ruby-$VERSION
 ruby-build $VERSION ~/.rubies/ruby-$VERSION
-ruby-install -r ~/tmp ruby $VERSION
+ruby-install --no-install-deps -r ~/tmp ruby $VERSION
 ```
 
 `ruby-build` does not keep the build directory
@@ -149,7 +149,7 @@ cd $TRUFFLERUBY
 ruby tool/patch-default-gemspecs.rb
 ```
 
-## Updating bin/ executables
+## Updating exe/ executables
 
 ```
 rm -rf exe
