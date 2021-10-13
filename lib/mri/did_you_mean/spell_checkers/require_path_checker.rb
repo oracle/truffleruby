@@ -8,7 +8,13 @@ module DidYouMean
     attr_reader :path
 
     INITIAL_LOAD_PATH = $LOAD_PATH.dup.freeze
-    ENV_SPECIFIC_EXT  = ".#{RbConfig::CONFIG["DLEXT"]}"
+    if defined?(::TruffleRuby)
+      # did_you_mean is loaded even with --disable-gems, and then there is no RbConfig autoload.
+      # Also we don't want to require 'rbconfig' as that needs the runtime home, but did_you_mean is loaded during preinit.
+      ENV_SPECIFIC_EXT  = ".#{Truffle::Platform::DLEXT}"
+    else
+      ENV_SPECIFIC_EXT  = ".#{RbConfig::CONFIG["DLEXT"]}"
+    end
 
     private_constant :INITIAL_LOAD_PATH, :ENV_SPECIFIC_EXT
 
