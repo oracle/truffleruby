@@ -37,14 +37,21 @@
 #define RBASIC(obj)          RBIMPL_CAST((struct RBasic *)(obj))
 #endif
 #define RBASIC_CLASS         RBASIC_CLASS
+
+#ifdef TRUFFLERUBY // for bignum.h
+#define RVALUE_EMBED_LEN_MAX 3
+#else
 #define RVALUE_EMBED_LEN_MAX RVALUE_EMBED_LEN_MAX
+#endif
 
 /** @cond INTERNAL_MACRO */
 #define RBIMPL_EMBED_LEN_MAX_OF(T) \
     RBIMPL_CAST((int)(sizeof(VALUE[RVALUE_EMBED_LEN_MAX]) / (sizeof(T))))
 /** @endcond */
 
+#ifndef TRUFFLERUBY
 enum ruby_rvalue_flags { RVALUE_EMBED_LEN_MAX = 3 };
+#endif
 
 struct
 RUBY_ALIGNAS(SIZEOF_VALUE)

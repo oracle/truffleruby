@@ -10,6 +10,7 @@
 #include <truffleruby-impl.h>
 #include <ruby/encoding.h>
 #include <truffleruby/internal/symbol.h>
+#include <internal/symbol.h>
 
 // Symbol and ID, rb_sym*, rb_id*
 

@@ -10,6 +10,7 @@
 #include <truffleruby-impl.h>
 #include <ruby/io.h>
 #include <fcntl.h>
+#include <internal/io.h>
 
 // IO, rb_io_*
 

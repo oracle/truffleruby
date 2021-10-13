@@ -476,10 +476,7 @@ suite = {
                     "dependency:org.truffleruby.rubysignal",
                 ],
                 "lib/cext/include/": [
-                    "file:lib/cext/include/ccan",
-                    "file:lib/cext/include/ruby",
-                    "file:lib/cext/include/truffleruby",
-                    "file:lib/cext/include/*.h",
+                    "file:lib/cext/include/*",
                 ],
                 "lib/mri/": [
                     "dependency:org.truffleruby.cext/src/main/c/bigdecimal/<extsuffix:bigdecimal>",

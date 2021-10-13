@@ -23,6 +23,9 @@ require 'mkmf'
 # -DRUBY_EXPORT is added in MRI's configure.in.
 $CFLAGS << " -DRUBY_EXPORT"
 
+# Add internal files in include path, st.c needs some of them
+$INCFLAGS << ' -I$(top_srcdir)'
+
 # libruby depends on librt on Linux, and C extensions like date rely on that because they then
 # automatically depend on librt (e.g., for clock_gettime).
 $LIBS << '-lrt' if Truffle::Platform.linux?

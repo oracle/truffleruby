@@ -8,6 +8,7 @@
  * GNU Lesser General Public License version 2.1.
  */
 #include <truffleruby-impl.h>
+#include <internal/variable.h>
 
 // Global variables, rb_gvar_*, rb_gv_*
 

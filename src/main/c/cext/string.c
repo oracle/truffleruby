@@ -9,6 +9,7 @@
  */
 #include <truffleruby-impl.h>
 #include <ruby/encoding.h>
+#include <internal/string.h>
 
 // String, rb_str_*
 

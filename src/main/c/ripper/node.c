@@ -10,7 +10,10 @@
 **********************************************************************/
 
 #include "internal.h"
+#include "internal/compilers.h"
+#include "internal/gc.h"
 #include "internal/hash.h"
+#include "internal/static_assert.h"
 #include "internal/variable.h"
 #include "ruby/ruby.h"
 #include "vm_core.h"

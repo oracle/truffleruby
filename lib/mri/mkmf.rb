@@ -288,7 +288,7 @@ module MakeMakefile
       $topdir = $hdrdir # lib/cext/include
       $top_srcdir = $hdrdir # lib/cext/include
     else
-      $top_srcdir ||= topdir + "/lib/cext" # lib/cext
+      $top_srcdir ||= topdir + "/lib/cext/include/stubs" # lib/cext/include/stubs
       $topdir ||= RbConfig::CONFIG["topdir"] # lib/mri
     end
   else
