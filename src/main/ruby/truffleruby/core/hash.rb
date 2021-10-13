@@ -219,7 +219,7 @@ class Hash
   end
 
   def except(*keys)
-    new_hash = Hash.allocate.replace(dup)
+    new_hash = {}.replace(dup)
     new_hash.default = nil
     keys.each do |k|
       new_hash.delete(k)
