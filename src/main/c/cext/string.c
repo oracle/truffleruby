@@ -9,6 +9,7 @@
  */
 #include <truffleruby-impl.h>
 #include <ruby/encoding.h>
+#include <internal/bits.h>
 #include <internal/string.h>
 
 // String, rb_str_*
@@ -357,18 +358,6 @@ VALUE rb_str_drop_bytes(VALUE str, long len) {
 
 size_t rb_str_capacity(VALUE str) {
   return polyglot_as_i64(RUBY_CEXT_INVOKE_NO_WRAP("rb_str_capacity", str));
-}
-
-static inline int ntz_int64(uint64_t x) {
-#ifdef HAVE_BUILTIN___BUILTIN_CTZLL
-  return __builtin_ctzll(x);
-#else
-  return rb_popcount64((~x) & (x-1));
-#endif
-}
-
-static inline int ntz_intptr(uintptr_t x) {
-  return ntz_int64(x);
 }
 
 static inline const char * search_nonascii(const char *p, const char *e) {
