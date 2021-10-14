@@ -77,3 +77,9 @@ slow:The launcher supports running racc symlinked
 slow:The launcher supports running racc2y symlinked
 slow:The launcher supports running y2racc symlinked
 slow:The launcher warns if the locale is not set properly
+slow:The launcher runs rbs as an -S command
+slow:The launcher runs typeprof as an -S command
+slow:The launcher supports running rbs in any of the bin/ directories
+slow:The launcher supports running typeprof in any of the bin/ directories
+slow:The launcher supports running rbs symlinked
+slow:The launcher supports running typeprof symlinked
