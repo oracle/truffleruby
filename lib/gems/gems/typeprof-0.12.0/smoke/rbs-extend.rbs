@@ -1,0 +1,7 @@
+module M
+  def foo: -> Integer
+end
+
+class C
+  extend M
+end

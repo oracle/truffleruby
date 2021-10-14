@@ -1,0 +1,8 @@
+class A
+end
+
+type A::int_or_float = Integer | Float
+
+class A::B
+  def foo: -> int_or_float
+end

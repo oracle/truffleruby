@@ -1,0 +1,46 @@
+module RBS
+  class DefinitionBuilder
+    attr_reader env: Environment
+    attr_reader type_name_resolver: TypeNameResolver
+    attr_reader ancestor_builder: AncestorBuilder
+    attr_reader method_builder: MethodBuilder
+
+    attr_reader instance_cache: Hash[[TypeName, bool], Definition | false | nil]
+    attr_reader singleton_cache: Hash[TypeName, Definition | false | nil]
+    attr_reader singleton0_cache: Hash[TypeName, Definition | false | nil]
+    attr_reader interface_cache: Hash[TypeName, Definition | false | nil]
+
+    def initialize: (env: Environment) -> void
+
+    def validate_super_class!: (TypeName, Environment::ClassEntry) -> void
+
+    def ensure_namespace!: (Namespace, location: Location?) -> void
+
+    def build_interface: (TypeName) -> Definition
+
+    def build_instance: (TypeName, ?no_self_types: bool) -> Definition
+
+    def build_singleton0: (TypeName) -> Definition
+
+    def build_singleton: (TypeName) -> Definition
+
+    def merge_definition: (src: Definition, dest: Definition, subst: Substitution, ?implemented_in: :keep | TypeName | nil, ?keep_super: bool) -> void
+
+    def merge_method: (TypeName, Hash[Symbol, Definition::Method], Symbol, Definition::Method, Substitution, ?implemented_in: :keep | TypeName | nil, ?keep_super: bool) -> void
+
+    def merge_variable: (Hash[Symbol, Definition::Variable], Symbol, Definition::Variable, Substitution, ?keep_super: bool) -> void
+
+    def try_cache: (TypeName, cache: Hash[TypeName, Definition | false | nil]) { () -> Definition } -> Definition
+                 | [A] (TypeName, cache: Hash[A, Definition | false | nil], key: A) { () -> Definition } -> Definition
+
+    def validate_params_with: (AST::Declarations::ModuleTypeParams, result: VarianceCalculator::Result) { (AST::Declarations::ModuleTypeParams::TypeParam) -> void } -> void
+
+    def validate_type_params: (Definition, ancestors: AncestorBuilder::OneAncestors, methods: MethodBuilder::Methods) -> void
+
+    def source_location: (Definition::Ancestor::Instance::source, AST::Declarations::t) -> Location?
+
+    def insert_variable: (TypeName, Hash[Symbol, Definition::Variable], name: Symbol, type: Types::t) -> void
+
+    def define_methods: (Definition, interface_methods: Hash[Symbol, Definition::Method], methods: MethodBuilder::Methods, super_interface_method: bool) -> void
+  end
+end

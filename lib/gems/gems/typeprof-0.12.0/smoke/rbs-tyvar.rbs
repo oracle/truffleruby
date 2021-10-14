@@ -1,0 +1,5 @@
+class Cell[T]
+  def initialize : (T) -> void
+  def set_elem : (T) -> void
+  def get_elem : -> T
+end

@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+require "stackprof"
+
+out = ENV["RBS_STACKPROF_OUT"] || 'tmp/stackprof-cpu-rbs.dump'
+
+StackProf.run(mode: :cpu, out: out) do
+  load File.join(__dir__, "../exe/rbs")
+end

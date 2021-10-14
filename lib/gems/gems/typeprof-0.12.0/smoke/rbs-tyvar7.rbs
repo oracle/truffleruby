@@ -1,0 +1,7 @@
+class Foo[X]
+  def set: (X) -> void
+end
+
+class Bar[X] < Foo[Integer]
+  def initialize: (X) -> void
+end

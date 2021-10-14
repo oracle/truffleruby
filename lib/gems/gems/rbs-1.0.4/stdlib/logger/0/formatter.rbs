@@ -1,0 +1,23 @@
+class Logger
+  class Formatter
+    public
+
+    attr_accessor datetime_format: String?
+
+    def call: (String severity, Time time, untyped progname, untyped msg) -> String
+
+    private
+
+    def format_datetime: (Time time) -> untyped
+
+    def initialize: () -> void
+
+    def msg2str: (String | Exception | untyped msg) -> String
+  end
+
+  interface _Formatter
+    def call: (String severity, Time time, untyped progname, untyped msg) -> _ToS
+  end
+end
+
+Logger::Formatter::Format: String

@@ -1,0 +1,3 @@
+class Foo
+  def foo: (**Hash[Integer, Integer]) -> void
+end

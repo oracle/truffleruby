@@ -1,0 +1,8 @@
+class Cell[X]
+  def set: { -> X } -> self
+  def dummy: { -> void } -> self
+end
+
+class Foo[X, Y]
+  def initialize: (X, Y) -> void
+end

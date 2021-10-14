@@ -1,0 +1,4 @@
+class Foo[X]
+  def set: (X) -> void
+  def get: -> ^() -> X
+end

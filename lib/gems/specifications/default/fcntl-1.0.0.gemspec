@@ -10,28 +10,14 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Yukihiro Matsumoto".freeze]
   s.bindir = "exe".freeze
-  s.date = "2021-09-09"
+  s.date = "2021-10-13"
   s.description = "Loads constants defined in the OS fcntl.h C header file".freeze
   s.email = ["matz@ruby-lang.org".freeze]
   s.extensions = ["ext/fcntl/extconf.rb".freeze]
   s.files = ["ext/fcntl/extconf.rb".freeze, "fcntl.#{Truffle::Platform::DLEXT}".freeze]
   s.homepage = "https://github.com/ruby/fcntl".freeze
-  s.licenses = ["BSD-2-Clause".freeze]
+  s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.3.0".freeze)
-  s.rubygems_version = "3.1.6".freeze
+  s.rubygems_version = "3.2.22".freeze
   s.summary = "Loads constants defined in the OS fcntl.h C header file".freeze
-
-  if s.respond_to? :specification_version then
-    s.specification_version = 4
-  end
-
-  if s.respond_to? :add_runtime_dependency then
-    s.add_development_dependency(%q<bundler>.freeze, ["~> 1.14"])
-    s.add_development_dependency(%q<rake>.freeze, ["~> 12"])
-    s.add_development_dependency(%q<rake-compiler>.freeze, [">= 0"])
-  else
-    s.add_dependency(%q<bundler>.freeze, ["~> 1.14"])
-    s.add_dependency(%q<rake>.freeze, ["~> 12"])
-    s.add_dependency(%q<rake-compiler>.freeze, [">= 0"])
-  end
 end
