@@ -1,21 +1,33 @@
 #ifndef INCLUDE_RUBY_CONFIG_H
 #define INCLUDE_RUBY_CONFIG_H 1
 /* confdefs.h */
-#define STDC_HEADERS 1
-#define HAVE_SYS_TYPES_H 1
-#define HAVE_SYS_STAT_H 1
+#define HAVE_STDIO_H 1
 #define HAVE_STDLIB_H 1
 #define HAVE_STRING_H 1
-#define HAVE_MEMORY_H 1
-#define HAVE_STRINGS_H 1
 #define HAVE_INTTYPES_H 1
 #define HAVE_STDINT_H 1
+#define HAVE_STRINGS_H 1
+#define HAVE_SYS_STAT_H 1
+#define HAVE_SYS_TYPES_H 1
 #define HAVE_UNISTD_H 1
-#define __EXTENSIONS__ 1
+#define HAVE_WCHAR_H 1
+#define STDC_HEADERS 1
 #define _ALL_SOURCE 1
+#define _DARWIN_C_SOURCE 1
 #define _GNU_SOURCE 1
+#define _HPUX_ALT_XOPEN_SOCKET_API 1
+#define _NETBSD_SOURCE 1
+#define _OPENBSD_SOURCE 1
 #define _POSIX_PTHREAD_SEMANTICS 1
+#define __STDC_WANT_IEC_60559_ATTRIBS_EXT__ 1
+#define __STDC_WANT_IEC_60559_BFP_EXT__ 1
+#define __STDC_WANT_IEC_60559_DFP_EXT__ 1
+#define __STDC_WANT_IEC_60559_FUNCS_EXT__ 1
+#define __STDC_WANT_IEC_60559_TYPES_EXT__ 1
+#define __STDC_WANT_LIB_EXT2__ 1
+#define __STDC_WANT_MATH_SPEC_FUNCS__ 1
 #define _TANDEM_SOURCE 1
+#define __EXTENSIONS__ 1
 #define RUBY_SYMBOL_EXPORT_BEGIN _Pragma("GCC visibility push(default)")
 #define RUBY_SYMBOL_EXPORT_END _Pragma("GCC visibility pop")
 #define HAVE_STMT_AND_DECL_IN_EXPR 1
@@ -50,8 +62,9 @@
 #define HAVE_TIME_H 1
 #define HAVE_UCONTEXT_H 1
 #define HAVE_UTIME_H 1
+#define HAVE_X86INTRIN_H 1
 #define HAVE_TYPEOF 1
-#define restrict __restrict
+#define restrict __restrict__
 #define HAVE_LONG_LONG 1
 #define HAVE_OFF_T 1
 #define SIZEOF_INT 4
@@ -123,19 +136,13 @@
 #define CLOCKID2NUM(v) UINT2NUM(v)
 #define NUM2CLOCKID(v) NUM2UINT(v)
 #define PRI_CLOCKID_PREFIX PRI_INT_PREFIX
-#define HAVE_PROTOTYPES 1
-#define TOKEN_PASTE(x,y) x##y
-#define STRINGIZE(expr) STRINGIZE0(expr)
-#define HAVE_STDARG_PROTOTYPES 1
 #define HAVE_VA_ARGS_MACRO 1
-#define RUBY_ALIGNAS(x) __attribute__((__aligned__(x)))
-#define RUBY_ALIGNOF alignof
+#define HAVE__ALIGNOF 1
 #define CONSTFUNC(x) __attribute__ ((__const__)) x
 #define PUREFUNC(x) __attribute__ ((__pure__)) x
 #define NORETURN(x) __attribute__ ((__noreturn__)) x
 #define DEPRECATED(x) __attribute__ ((__deprecated__)) x
 #define DEPRECATED_BY(n,x) __attribute__ ((__deprecated__("by "#n))) x
-#define DEPRECATED_TYPE(mesg,x) x __attribute__ ((__deprecated__ mesg))
 #define NOINLINE(x) __attribute__ ((__noinline__)) x
 #define ALWAYS_INLINE(x) __attribute__ ((__always_inline__)) x
 #define NO_SANITIZE(san, x) __attribute__ ((__no_sanitize__(san))) x
@@ -146,13 +153,12 @@
 #define WEAK(x) __attribute__ ((__weak__)) x
 #define HAVE_FUNC_WEAK 1
 #define RUBY_CXX_DEPRECATED(msg) __attribute__((__deprecated__(msg)))
+#define HAVE_NULLPTR 1
 #define FUNC_CDECL(x) __attribute__ ((__cdecl__)) x
 #define HAVE_GCC_ATOMIC_BUILTINS 1
 #define HAVE_GCC_SYNC_BUILTINS 1
-#define UNREACHABLE __builtin_unreachable()
 #define RUBY_FUNC_EXPORTED __attribute__ ((__visibility__("default"))) extern
 #define RUBY_FUNC_NONNULL(n,x) __attribute__ ((__nonnull__(n))) x
-#define RUBY_FUNCTION_NAME_STRING __func__
 #define ENUM_OVER_INT 1
 #define HAVE_DECL_SYS_NERR 1
 #define HAVE_DECL_GETENV 1
@@ -161,11 +167,8 @@
 #define PRI_SIZE_PREFIX "z"
 #define PRI_PTRDIFF_PREFIX "t"
 #define HAVE_STRUCT_STAT_ST_BLKSIZE 1
-#define HAVE_ST_BLKSIZE 1
 #define HAVE_STRUCT_STAT_ST_BLOCKS 1
-#define HAVE_ST_BLOCKS 1
 #define HAVE_STRUCT_STAT_ST_RDEV 1
-#define HAVE_ST_RDEV 1
 #define SIZEOF_STRUCT_STAT_ST_SIZE SIZEOF_OFF_T
 #define SIZEOF_STRUCT_STAT_ST_BLOCKS SIZEOF_OFF_T
 #define SIZEOF_STRUCT_STAT_ST_INO SIZEOF_LONG
@@ -209,7 +212,6 @@
 #define SIZEOF_SSIZE_T 8
 #define PRI_64_PREFIX "ll"
 #define GETGROUPS_T gid_t
-#define RETSIGTYPE void
 #define HAVE_ALLOCA_H 1
 #define HAVE_ALLOCA 1
 #define HAVE_ACOSH 1
@@ -265,10 +267,15 @@
 #define HAVE_GETGRNAM 1
 #define HAVE_GETGRNAM_R 1
 #define HAVE_GETGROUPS 1
+#define HAVE_GETLOGIN 1
+#define HAVE_GETLOGIN_R 1
 #define HAVE_GETPGID 1
 #define HAVE_GETPGRP 1
 #define HAVE_GETPRIORITY 1
+#define HAVE_GETPWNAM 1
 #define HAVE_GETPWNAM_R 1
+#define HAVE_GETPWUID 1
+#define HAVE_GETPWUID_R 1
 #define HAVE_GETRLIMIT 1
 #define HAVE_GETSID 1
 #define HAVE_GETTIMEOFDAY 1
@@ -336,6 +343,8 @@
 #define HAVE_UTIMES 1
 #define HAVE_WAIT4 1
 #define HAVE_WAITPID 1
+#define HAVE___COSPI 1
+#define HAVE___SINPI 1
 #if !defined __STDC_WANT_LIB_EXT1__
 #define __STDC_WANT_LIB_EXT1__ 1
 #endif /* !defined __STDC_WANT_LIB_EXT1__ */
