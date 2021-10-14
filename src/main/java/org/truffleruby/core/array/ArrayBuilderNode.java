@@ -179,6 +179,9 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
             }
         }
 
+        public BuilderState share(BuilderState state) {
+            return state;
+        }
     }
 
     @ImportStatic(ArrayGuards.class)

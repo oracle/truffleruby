@@ -86,8 +86,8 @@ import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
-import org.truffleruby.language.objects.shared.IsSharedNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
+import org.truffleruby.language.objects.shared.IsSharedNode;
 import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.utils.Utils;
 
@@ -390,8 +390,6 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "length >= 0")
         protected Object setTernary(RubyArray array, int start, int length, RubyArray replacement,
-                @Cached IsSharedNode isArrayShared,
-                @Cached IsSharedNode isReplacementShared,
                 @Cached ConditionProfile negativeDenormalizedIndex,
                 @Cached BranchProfile negativeNormalizedIndex,
                 @Cached ConditionProfile moveNeeded,
@@ -406,8 +404,6 @@ public abstract class ArrayNodes {
             final int replacementSize = replacement.size;
             final int overwrittenAreaEnd = start + length;
             final int tailSize = originalSize - overwrittenAreaEnd;
-            final boolean arrayShared = isArrayShared.executeIsShared(array);
-            final boolean replacementShared = isReplacementShared.executeIsShared(replacement);
 
             if (moveNeeded.profile(tailSize > 0)) {
                 // There is a tail (the part of the array to the right of the overwritten area) to be moved.
@@ -423,11 +419,9 @@ public abstract class ArrayNodes {
                         newStore,
                         writtenAreaEnd,
                         overwrittenAreaEnd,
-                        tailSize,
-                        arrayShared,
-                        arrayShared);
+                        tailSize);
                 copyRange
-                        .execute(newStore, replacementStore, start, 0, replacementSize, arrayShared, replacementShared);
+                        .execute(newStore, replacementStore, start, 0, replacementSize);
                 truncate.execute(array, newSize);
 
             } else {
@@ -435,7 +429,7 @@ public abstract class ArrayNodes {
 
                 final Object newStore = prepareToCopy.execute(array, replacement, start, replacementSize);
                 copyRange
-                        .execute(newStore, replacementStore, start, 0, replacementSize, arrayShared, replacementShared);
+                        .execute(newStore, replacementStore, start, 0, replacementSize);
                 truncate.execute(array, start + replacementSize);
             }
 
@@ -1025,11 +1019,9 @@ public abstract class ArrayNodes {
         protected RubyArray fill(RubyArray array, Object[] args, Nil block,
                 @Bind("array.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached PropagateSharingNode propagateSharingNode,
                 @Cached IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loopProfile) {
             final Object value = args[0];
-            propagateSharingNode.executePropagate(array, value);
 
             final int size = arraySizeProfile.profile(array.size);
 
@@ -1199,11 +1191,9 @@ public abstract class ArrayNodes {
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary allocatedStores,
                 @Cached ConditionProfile needsFill,
-                @Cached PropagateSharingNode propagateSharingNode,
                 @Cached LoopConditionProfile loopProfile) {
             final Object allocatedStore = stores.allocateForNewValue(store, fillingValue, size);
             if (needsFill.profile(!allocatedStores.isDefaultValue(allocatedStore, fillingValue))) {
-                propagateSharingNode.executePropagate(array, fillingValue);
                 int i = 0;
                 try {
                     for (; loopProfile.inject(i < size); i++) {
@@ -1230,15 +1220,15 @@ public abstract class ArrayNodes {
         @Specialization(guards = "size >= 0")
         protected Object initializeBlock(RubyArray array, int size, Object unusedFillingValue, RubyProc block,
                 @Cached ArrayBuilderNode arrayBuilder,
-                @Cached PropagateSharingNode propagateSharingNode,
+                @Cached IsSharedNode isSharedNode,
                 @Cached LoopConditionProfile loopProfile) {
             BuilderState state = arrayBuilder.start(size);
+            boolean shared = isSharedNode.executeIsShared(array);
 
             int n = 0;
             try {
                 for (; loopProfile.inject(n < size); n++) {
                     final Object value = callBlock(block, n);
-                    propagateSharingNode.executePropagate(array, value);
                     arrayBuilder.appendValue(state, n, value);
                 }
             } finally {
@@ -1902,8 +1892,6 @@ public abstract class ArrayNodes {
             return ReplaceNodeFactory.create(null, null);
         }
 
-        @Child private PropagateSharingNode propagateSharingNode = PropagateSharingNode.create();
-
         public abstract RubyArray executeReplace(RubyArray array, RubyArray other);
 
         @CreateCast("other")
@@ -1914,8 +1902,6 @@ public abstract class ArrayNodes {
         @Specialization
         protected RubyArray replace(RubyArray array, RubyArray other,
                 @Cached ArrayCopyOnWriteNode cowNode) {
-            propagateSharingNode.executePropagate(array, other);
-
             final int size = other.size;
 
             array.store = cowNode.execute(other, 0, size);
@@ -2278,6 +2264,7 @@ public abstract class ArrayNodes {
             return array;
         }
 
+        // TODO
         @Specialization(guards = "array != other")
         protected RubyArray stealStorage(RubyArray array, RubyArray other,
                 @Cached PropagateSharingNode propagateSharingNode) {

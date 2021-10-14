@@ -138,6 +138,11 @@ public class ZeroLengthArrayStore {
     }
 
     @ExportMessage
+    public static ArrayAllocator generalizeForSharing(ZeroLengthArrayStore store) {
+        return SharedArrayStorage.SHARED_ZERO_LENGTH_ARRAY_ALLOCATOR;
+    }
+
+    @ExportMessage
     static class AllocateForNewValue {
 
         @Specialization

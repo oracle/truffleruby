@@ -231,6 +231,11 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
+    public ArrayAllocator generalizeForSharing() {
+        return SharedArrayStorage.SHARED_OBJECT_ARRAY_ALLOCATOR;
+    }
+
+    @ExportMessage
     protected Object allocateForNewValue(Object newValue, int length) {
         return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
     }

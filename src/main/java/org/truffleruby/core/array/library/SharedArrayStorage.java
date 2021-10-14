@@ -14,12 +14,14 @@ import java.util.Set;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
+import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -52,9 +54,48 @@ public class SharedArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
+    protected void write(int index, Object value,
+            @Shared("barrier") @Cached WriteBarrierNode writeBarrierNode,
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+        writeBarrierNode.executeWriteBarrier(value);
+        stores.write(storage, index, value);
+    }
+
+    @ExportMessage
+    protected void fill(int start, int length, Object value,
+                        @Shared("barrier") @Cached WriteBarrierNode writeBarrierNode,
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+        writeBarrierNode.executeWriteBarrier(value);
+        stores.fill(storage, start, length, value);
+    }
+
+    @ExportMessage
+    protected boolean acceptsValue(Object value,
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+        return stores.acceptsValue(storage, value);
+    }
+
+    @ExportMessage
+    protected boolean acceptsAllValues(Object otherStore,
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+        return stores.acceptsAllValues(storage, otherStore);
+    }
+
+    @ExportMessage
+    protected boolean isMutable(
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+        return stores.isMutable(storage);
+    }
+
+    @ExportMessage
     protected boolean isPrimitive(
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
         return stores.isPrimitive(storage);
+    }
+
+    @ExportMessage
+    public boolean isShared() {
+        return true;
     }
 
     @ExportMessage
@@ -90,19 +131,8 @@ public class SharedArrayStorage implements ObjectGraphNode {
 
     @ExportMessage
     protected void copyContents(int srcStart, Object destStore, int destStart, int length,
-            @CachedLibrary("this") ArrayStoreLibrary node,
-            @Cached LoopConditionProfile loopProfile,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary srcStores,
-            @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary destStores) {
-        int i = 0;
-        try {
-            for (; loopProfile.inject(i < length); i++) {
-                destStores.write(destStore, i + destStart, srcStores.read(storage, srcStart + i));
-                TruffleSafepoint.poll(destStores);
-            }
-        } finally {
-            RubyBaseNode.profileAndReportLoopCount(node.getNode(), loopProfile, i);
-        }
+            @CachedLibrary(limit = "1") ArrayStoreLibrary srcStores) {
+        srcStores.copyContents(storage, srcStart, destStore, destStart, length);
     }
 
     @ExportMessage
@@ -126,25 +156,30 @@ public class SharedArrayStorage implements ObjectGraphNode {
     @ExportMessage
     protected ArrayAllocator generalizeForValue(Object newValue,
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
-        return stores.generalizeForValue(storage, newValue);
+        return new SharedArrayAllocator(stores.generalizeForValue(storage, newValue));
     }
 
     @ExportMessage
     protected ArrayAllocator generalizeForStore(Object newStore,
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
-        return stores.generalizeForStore(newStore, storage);
+        return new SharedArrayAllocator(stores.generalizeForStore(newStore, storage));
+    }
+
+    @ExportMessage
+    public ArrayAllocator generalizeForSharing(@CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+        return stores.generalizeForSharing(storage);
     }
 
     @ExportMessage
     protected Object allocateForNewValue(Object newValue, int length,
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
-        return stores.allocateForNewValue(storage, newValue, length);
+        return new SharedArrayStorage(stores.allocateForNewValue(storage, newValue, length));
     }
 
     @ExportMessage
     protected Object allocateForNewStore(Object newStore, int length,
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
-        return stores.allocateForNewStore(storage, newStore, length);
+        return new SharedArrayStorage(stores.allocateForNewStore(storage, newStore, length));
     }
 
     @ExportMessage
@@ -156,7 +191,7 @@ public class SharedArrayStorage implements ObjectGraphNode {
     @ExportMessage
     protected ArrayAllocator allocator(
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
-        return stores.allocator(storage);
+        return new SharedArrayAllocator(stores.allocator(storage));
     }
 
     public boolean hasObjectArrayStorage() {
@@ -176,6 +211,42 @@ public class SharedArrayStorage implements ObjectGraphNode {
             }
         } else if (storage instanceof ObjectGraphNode) {
             ((ObjectGraphNode) storage).getAdjacentObjects(reachable);
+        }
+    }
+
+    static final ArrayAllocator SHARED_ZERO_LENGTH_ARRAY_ALLOCATOR = new SharedArrayAllocator(
+            ZeroLengthArrayStore.ZERO_LENGTH_ALLOCATOR);
+    static final ArrayAllocator SHARED_INTEGER_ARRAY_ALLOCATOR = new SharedArrayAllocator(IntegerArrayStore.INTEGER_ARRAY_ALLOCATOR);
+    static final ArrayAllocator SHARED_LONG_ARRAY_ALLOCATOR = new SharedArrayAllocator(LongArrayStore.LONG_ARRAY_ALLOCATOR);
+    static final ArrayAllocator SHARED_DOUBLE_ARRAY_ALLOCATOR = new SharedArrayAllocator(DoubleArrayStore.DOUBLE_ARRAY_ALLOCATOR);
+    static final ArrayAllocator SHARED_OBJECT_ARRAY_ALLOCATOR = new SharedArrayAllocator(ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR);
+
+    private static class SharedArrayAllocator extends ArrayAllocator {
+
+        private final ArrayAllocator storageAllocator;
+
+        SharedArrayAllocator(ArrayAllocator storageAllocator) {
+            this.storageAllocator = storageAllocator;
+        }
+
+        @Override
+        public SharedArrayStorage allocate(int capacity) {
+            return new SharedArrayStorage(storageAllocator.allocate(capacity));
+        }
+
+        @Override
+        public boolean accepts(Object value) {
+            return storageAllocator.accepts(value);
+        }
+
+        @Override
+        public boolean specializesFor(Object value) {
+            return storageAllocator.specializesFor(value);
+        }
+
+        @Override
+        public boolean isDefaultValue(Object value) {
+            return storageAllocator.isDefaultValue(value);
         }
     }
 }

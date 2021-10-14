@@ -15,7 +15,6 @@ import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
@@ -29,8 +28,6 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @NodeChild(value = "valueNode", type = RubyNode.class)
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
-
-    @Child private PropagateSharingNode propagateSharingNode = PropagateSharingNode.create();
 
     public static ArrayAppendOneNode create() {
         return ArrayAppendOneNodeGen.create(null, null);
@@ -52,8 +49,6 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
         final int oldSize = array.size;
         final int newSize = oldSize + 1;
         final int length = stores.capacity(store);
-
-        propagateSharingNode.executePropagate(array, value);
 
         if (extendProfile.profile(newSize > length)) {
             final int capacity = ArrayUtils.capacityForOneMore(getLanguage(), length);
@@ -84,7 +79,6 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
                 : oldCapacity;
         final Object newStore = currentStores.allocateForNewValue(currentStore, value, newCapacity);
         currentStores.copyContents(currentStore, 0, newStore, 0, oldSize);
-        propagateSharingNode.executePropagate(array, value);
         newStores.write(newStore, oldSize, value);
         setStoreAndSize(array, newStore, newSize);
         return array;

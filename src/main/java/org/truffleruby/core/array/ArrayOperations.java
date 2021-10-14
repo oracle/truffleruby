@@ -14,6 +14,7 @@ import java.lang.reflect.Array;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.library.DelegatedArrayStorage;
 import org.truffleruby.core.array.library.NativeArrayStorage;
+import org.truffleruby.core.array.library.SharedArrayStorage;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -102,6 +103,8 @@ public abstract class ArrayOperations {
             if (store instanceof DelegatedArrayStorage) {
                 DelegatedArrayStorage delegate = (DelegatedArrayStorage) store;
                 return Array.getLength(delegate.storage) - delegate.offset;
+            } else if (store instanceof SharedArrayStorage) {
+                return Array.getLength(((SharedArrayStorage) store).storage);
             } else {
                 return Array.getLength(store);
             }

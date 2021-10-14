@@ -73,6 +73,15 @@ public abstract class ArrayStoreLibrary extends Library {
         return false;
     }
 
+    /** Return whether the {@code store} is shared between multiple threads. */
+    public boolean isShared(Object store) {
+        return false;
+    }
+
+    /** Do any work required to start sharing children across threads. */
+    public void shareChildren(Object store) {
+    }
+
     /** Return a description of {@code store} for debugging output. */
     public abstract String toString(Object store);
 
@@ -139,6 +148,9 @@ public abstract class ArrayStoreLibrary extends Library {
      * {@code newStore}. */
     public abstract ArrayAllocator generalizeForStore(Object store, Object newStore);
 
+    /** Return an allocator that can accept all the values of {@code store} and will propagate sharing. */
+    public abstract ArrayAllocator generalizeForSharing(Object store);
+
     /** Return a new store of length {@code length} that can accept all the values of {@code store} and {@code newValue}
      * . */
     public abstract Object allocateForNewValue(Object store, Object newValue, int length);
@@ -186,6 +198,10 @@ public abstract class ArrayStoreLibrary extends Library {
          * default value will be whatever is represented by a zero value in their implementation. */
         public abstract boolean isDefaultValue(Object value);
 
+        /** Return whether the allocated storage is good for sharing across threads. */
+        public boolean isShared() {
+            return false;
+        }
     }
 
     public final Node getNode() {

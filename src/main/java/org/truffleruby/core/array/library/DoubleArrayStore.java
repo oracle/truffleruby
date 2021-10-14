@@ -63,6 +63,12 @@ public class DoubleArrayStore {
             return otherStore.storage instanceof double[];
         }
 
+        @Specialization
+        protected static boolean acceptsDelegateValues(double[] store, SharedArrayStorage otherStore,
+                                                       @CachedLibrary("store") ArrayStoreLibrary stores) {
+            return stores.acceptsAllValues(store, otherStore.storage);
+        }
+
         @Fallback
         protected static boolean acceptsOtherValues(double[] store, Object otherStore) {
             return false;
@@ -227,6 +233,11 @@ public class DoubleArrayStore {
                 @CachedLibrary("newStore") ArrayStoreLibrary newStores) {
             return newStores.generalizeForStore(newStore, store);
         }
+    }
+
+    @ExportMessage
+    public static ArrayAllocator generalizeForSharing(double[] store) {
+        return SharedArrayStorage.SHARED_DOUBLE_ARRAY_ALLOCATOR;
     }
 
     @ExportMessage

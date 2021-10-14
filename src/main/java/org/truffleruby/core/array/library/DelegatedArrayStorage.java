@@ -56,6 +56,12 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
+    protected void shareChildren(
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+        stores.shareChildren(storage);
+    }
+
+    @ExportMessage
     @TruffleBoundary
     protected String toString(
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
@@ -130,6 +136,12 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     protected ArrayAllocator generalizeForStore(Object newStore,
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
         return stores.generalizeForStore(newStore, storage);
+    }
+
+    @ExportMessage
+    public ArrayAllocator generalizeForSharing(
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+        return stores.generalizeForSharing(storage);
     }
 
     @ExportMessage

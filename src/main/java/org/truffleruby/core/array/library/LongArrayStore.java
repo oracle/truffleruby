@@ -68,6 +68,12 @@ public class LongArrayStore {
             return otherStore.storage instanceof int[] || otherStore.storage instanceof long[];
         }
 
+        @Specialization
+        protected static boolean acceptsDelegateValues(long[] store, SharedArrayStorage otherStore,
+                                                       @CachedLibrary("store") ArrayStoreLibrary stores) {
+            return stores.acceptsAllValues(store, otherStore.storage);
+        }
+
         @Fallback
         protected static boolean acceptsOtherValues(long[] store, Object otherStore) {
             return false;
@@ -281,6 +287,11 @@ public class LongArrayStore {
         protected static Object allocateForNewStore(long[] store, Object newValue, int length) {
             return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
         }
+    }
+
+    @ExportMessage
+    public static ArrayAllocator generalizeForSharing(long[] store) {
+        return SharedArrayStorage.SHARED_LONG_ARRAY_ALLOCATOR;
     }
 
     @ExportMessage

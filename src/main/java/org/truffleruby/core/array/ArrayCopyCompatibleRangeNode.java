@@ -39,8 +39,7 @@ public abstract class ArrayCopyCompatibleRangeNode extends RubyBaseNode {
         return ArrayCopyCompatibleRangeNodeGen.create();
     }
 
-    public abstract void execute(Object dstStore, Object srcStore, int dstStart, int srcStart, int length,
-            boolean dstShared, boolean srcShared);
+    public abstract void execute(Object dstStore, Object srcStore, int dstStart, int srcStart, int length);
 
     protected boolean noopGuard(Object dstStore, Object srcStore, int dstStart, int srcStart, int length) {
         return length == 0 || dstStore == srcStore && dstStart == srcStart;
@@ -52,9 +51,7 @@ public abstract class ArrayCopyCompatibleRangeNode extends RubyBaseNode {
             Object srcStore,
             int dstStart,
             int srcStart,
-            int length,
-            boolean dstShared,
-            boolean srcShared) {
+            int length) {
     }
 
     @Specialization(
@@ -66,27 +63,11 @@ public abstract class ArrayCopyCompatibleRangeNode extends RubyBaseNode {
             int dstStart,
             int srcStart,
             int length,
-            boolean dstShared,
-            boolean srcShared,
             @CachedLibrary("srcStore") ArrayStoreLibrary stores,
             @Cached WriteBarrierNode writeBarrierNode,
             @Cached ConditionProfile share,
             @Cached LoopConditionProfile loopProfile) {
 
         stores.copyContents(srcStore, srcStart, dstStore, dstStart, length);
-
-        if (share.profile(!stores.isPrimitive(srcStore) &&
-                dstShared &&
-                !srcShared)) {
-            int i = 0;
-            try {
-                for (; loopProfile.inject(i < length); ++i) {
-                    writeBarrierNode.executeWriteBarrier(stores.read(srcStore, srcStart + i));
-                }
-                TruffleSafepoint.poll(this);
-            } finally {
-                profileAndReportLoopCount(loopProfile, i);
-            }
-        }
     }
 }
