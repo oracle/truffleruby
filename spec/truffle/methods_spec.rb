@@ -20,7 +20,7 @@ require_relative '../ruby/spec_helper'
 # m1=ObjectSpace.each_object(Module).to_a; require "socket"; m2=ObjectSpace.each_object(Module).to_a; p m2-m1
 
 modules = %w[
-  Array BasicObject Binding Class Complex Complex Data Digest
+  Array BasicObject Binding Class Complex Complex Digest
   Digest.singleton_class Digest::Class Digest::Class.singleton_class
   Digest::Base Digest::Base.singleton_class Digest::Instance
   Digest::Instance.singleton_class Digest::MD5 Digest::MD5.singleton_class

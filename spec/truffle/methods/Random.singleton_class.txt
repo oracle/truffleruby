@@ -1,5 +1,6 @@
 bytes
 new_seed
 rand
+seed
 srand
 urandom
