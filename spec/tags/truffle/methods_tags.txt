@@ -7,8 +7,6 @@ fails:Public methods on Float should include positive?
 fails:Public methods on Float should include zero?
 fails:Public methods on Hash should include any?
 fails:Public methods on Hash should not include __store__
-fails:Public methods on Hash should not include collect
-fails:Public methods on Hash should not include map
 fails:Public methods on Hash should not include sort
 fails:Public methods on IO should include fdatasync
 fails:Public methods on IO should include pread
@@ -36,8 +34,6 @@ fails:Public methods on Dir should not include closed?
 fails:Public methods on Exception should include respond_to?
 fails:Public methods on Fiber should not include alive?
 fails:Public methods on Fiber should not include transfer
-fails:Public methods on Fiber should include inspect
-fails:Public methods on Fiber should include to_s
 fails:Public methods on Mutex should not include marshal_dump
 fails:Public methods on Thread should not include freeze
 fails:Public methods on Thread should include add_trace_func
@@ -75,3 +71,24 @@ fails:Public methods on Socket::AncillaryData should include timestamp
 fails:Public methods on Socket::Option should include byte
 fails:Public methods on Socket::Option should include ipv4_multicast_loop
 fails:Public methods on Socket::Option should include ipv4_multicast_ttl
+fails:Public methods on ENV.singleton_class should not include index
+fails:Public methods on ENV.singleton_class should include except
+fails:Public methods on Fiber should include backtrace
+fails:Public methods on Fiber should include backtrace_locations
+fails:Public methods on Fiber should include blocking?
+fails:Public methods on Hash should not include index
+fails:Public methods on Hash should include except
+fails:Public methods on IO should not include bytes
+fails:Public methods on IO should not include chars
+fails:Public methods on IO should not include codepoints
+fails:Public methods on IO should not include lines
+fails:Public methods on IO should include wait_priority
+fails:Public methods on Integer should include zero?
+fails:Public methods on Proc should include ==
+fails:Public methods on Proc should include eql?
+fails:Public methods on Random should not include bytes
+fails:Public methods on Random should not include rand
+fails:Public methods on Random should not include seed
+fails:Public methods on Random.singleton_class should include seed
+fails:Public methods on Symbol should include name
+fails:Public methods on Thread should not include safe_level
