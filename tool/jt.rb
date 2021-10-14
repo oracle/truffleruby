@@ -2434,7 +2434,7 @@ module Commands
 
     if gem_test_pack?
       gem_home = "#{gem_test_pack}/rubocop-gems"
-      env = { 'GEM_HOME' => gem_home, 'GEM_PATH' => gem_home }
+      env = { 'GEM_HOME' => gem_home, 'GEM_PATH' => nil }
       sh env, RbConfig.ruby, "#{gem_home}/bin/rubocop", *args
     else
       env = ruby_running_jt_env
