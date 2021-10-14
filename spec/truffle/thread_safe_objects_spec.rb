@@ -88,15 +88,19 @@ describe "Sharing is correctly propagated for" do
   it "Array#initialize" do
     ary = Array.allocate
     @share = ary
+    $stderr.puts Truffle::Debug.array_storage(ary)
     shared?(ary).should == true
 
     ary.send(:initialize, 3, Object.new)
+    $stderr.puts Truffle::Debug.array_storage(ary)
     ary.each { |e| shared?(e).should == true }
 
     ary.send(:initialize, 3) { Object.new }
+    $stderr.puts Truffle::Debug.array_storage(ary)
     ary.each { |e| shared?(e).should == true }
 
     ary.send(:initialize, [Object.new, Object.new])
+    $stderr.puts Truffle::Debug.array_storage(ary)
     ary.each { |e| shared?(e).should == true }
   end
 
