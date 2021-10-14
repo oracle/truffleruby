@@ -30,7 +30,7 @@ local common = (import "common.json");
 local part_definitions = {
   local jt = function(args) [["bin/jt"] + args],
   local mri_path = function(version) "/cm/shared/apps/ruby/" + version + "/bin/ruby",
-  local mri_version = "2.7.2",
+  local mri_version = "3.0.0",
 
   use: {
     common: {
@@ -318,6 +318,7 @@ local part_definitions = {
         "CHECK_LEAKS": "true",
       },
       run+: jt(["-u", mri_path(mri_version), "mspec", "spec/ruby"]) +
+            jt(["-u", mri_path("2.7.2"), "mspec", "spec/ruby"]) +
             jt(["-u", mri_path("2.6.6"), "mspec", "spec/ruby"]),
     },
 
