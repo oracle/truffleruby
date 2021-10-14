@@ -22,15 +22,15 @@ describe "The launcher" do
     bundler: escape["Bundler version #{@default_gems['bundler']}"],
     erb: escape["erb.rb [#{@default_gems['erb']} $]"],
     gem: escape[@default_gems['gem']],
-    irb: escape["irb #{@default_gems['irb']} (2021-02-07)"],
+    irb: escape["irb #{@default_gems['irb']} (2021-04-03)"],
     racc: escape["racc version #{@default_gems['racc']}"],
-    racc2y: escape["racc2y version #{@default_gems['racc']}"],
-    y2racc: escape["y2racc version #{@default_gems['racc']}"],
     rake: escape["rake, version #{@bundled_gems['rake']}"],
+    rbs: escape["rbs #{@bundled_gems['rbs']}"],
     rdoc: escape[@default_gems['rdoc']],
     ri: escape["ri #{@default_gems['rdoc']}"],
     ruby: /^truffleruby .* like ruby #{Regexp.escape RUBY_VERSION}/,
     truffleruby: /^truffleruby .* like ruby #{Regexp.escape RUBY_VERSION}/,
+    typeprof: escape["typeprof #{@bundled_gems['typeprof']}"],
   }
 
   before :all do
