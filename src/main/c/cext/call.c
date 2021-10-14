@@ -68,7 +68,11 @@ VALUE rb_call_super(int args_count, const VALUE *args) {
   return RUBY_CEXT_INVOKE("rb_call_super", rb_ary_new4(args_count, args));
 }
 
-int rb_block_given_p() {
+int rb_keyword_given_p(void) {
+  return 0; // TODO
+}
+
+int rb_block_given_p(void) {
   return !NIL_P(rb_block_proc());
 }
 
