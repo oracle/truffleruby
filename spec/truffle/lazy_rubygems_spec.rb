@@ -17,18 +17,26 @@ describe "RubyGems" do
 
   # This spec needs no upgraded gems installed
   it "is not loaded for default gems if there is no upgraded default gem" do
-    default_gems = Truffle::GemUtil::DEFAULT_GEMS.keys
+    default_gems = []
+    keep_hyphen = %w[open-uri readline-ext resolv-replace]
+
+    Truffle::GemUtil::DEFAULT_GEMS.each_pair do |prefix, names|
+      if names == true
+        default_gems << prefix
+      else
+        default_gems.concat(names.map do |name|
+          keep_hyphen.include?(name) ? name : name.tr('-', '/')
+        end)
+      end
+    end
     default_gems -= [
       'bundler', # explicitly requires RubyGems
-      'dbm', 'gdbm', 'sdbm', # not available
-      'rss', # rss/xmlparser.rb requires non-existing "xml/parser"
+      'dbm', 'gdbm', # not available
+      'debug', # not available
+      'readline-ext', # readline.so on CRuby, we have no readline C-ext
     ]
-    default_gems.delete('io')
-    default_gems << 'io/console'
-    default_gems.delete('net')
-    default_gems << 'net/pop' << 'net/smtp'
-    default_gems.delete('rexml')
-    default_gems << 'rexml/document'
+    default_gems[default_gems.index('english')] = 'English'
+    default_gems[default_gems.index('rinda')] = 'rinda/rinda'
 
     code = <<-RUBY
     #{default_gems.inspect}.each do |name|
