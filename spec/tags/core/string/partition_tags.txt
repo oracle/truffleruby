@@ -1,1 +1,2 @@
 fails:String#partition with String returns subclass instances when called on a subclass
+fails:String#partition with String returns String instances when called on a subclass

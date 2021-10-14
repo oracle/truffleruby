@@ -1,0 +1,1 @@
+fails:Array#* with an integer with a subclass of Array returns an Array instance

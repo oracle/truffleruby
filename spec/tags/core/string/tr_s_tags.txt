@@ -1,0 +1,1 @@
+fails:String#tr_s returns String instances when called on a subclass

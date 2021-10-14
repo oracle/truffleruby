@@ -12,3 +12,6 @@ fails:ObjectSpace.define_finalizer calls a finalizer defined in a finalizer runn
 slow:ObjectSpace.define_finalizer warns if the finalizer has the object as the receiver
 slow:ObjectSpace.define_finalizer warns if the finalizer is a method bound to the receiver
 slow:ObjectSpace.define_finalizer warns if the finalizer was a block in the receiver
+fails:ObjectSpace.define_finalizer warns if the finalizer has the object as the receiver
+fails:ObjectSpace.define_finalizer warns if the finalizer is a method bound to the receiver
+fails:ObjectSpace.define_finalizer warns if the finalizer was a block in the receiver

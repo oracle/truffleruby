@@ -1,0 +1,1 @@
+fails:ENV.delete returns the result of given block if the named environment variable does not exist

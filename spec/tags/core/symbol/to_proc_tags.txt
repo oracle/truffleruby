@@ -1,0 +1,3 @@
+fails:Symbol#to_proc returns a Proc with #lambda? true
+fails:Symbol#to_proc produces a Proc that always returns [[:req], [:rest]] for #parameters
+fails:Symbol#to_proc raises an ArgumentError when calling #call on the Proc without receiver

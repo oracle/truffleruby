@@ -1,0 +1,2 @@
+fails:String#byteslice with index, length returns String instances
+fails:String#byteslice with Range returns String instances

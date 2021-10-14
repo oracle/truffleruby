@@ -5,3 +5,12 @@ fails:A method assigns local variables from method parameters for definition 'de
 fails:A method assigns local variables from method parameters for definition 'def m(a, **nil); a end;'
 fails:A method when passing an empty keyword splat to a method that does not accept keywords for definition 'def m(*a); a; end'
 fails:A method when passing an empty keyword splat to a method that does not accept keywords for definition 'def m(a); a; end'
+fails:A method assigns local variables from method parameters for definition 'def m(a, b: 1) [a, b] end'
+fails:A method assigns local variables from method parameters for definition 'def m(a, **) a end'
+fails:A method assigns local variables from method parameters for definition 'def m(a, **k) [a, k] end'
+fails:A method assigns local variables from method parameters for definition 'def m(a=1, b:) [a, b] end'
+fails:A method assigns local variables from method parameters for definition 'def m(a=1, b: 2) [a, b] end'
+fails:    end
+fails:A method raises ArgumentError if passing hash as keyword arguments for definition 'def m(a: nil); a; end'
+fails:An endless method definition for definition 'def m(a) = a'
+fails:"A method assigns local variables from method parameters for definition \n    def m(a, b = nil, c = nil, d, e: nil, **f)\n      [a, b, c, d, e, f]\n    end"

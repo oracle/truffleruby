@@ -2,3 +2,5 @@ fails:Module#private_constant marked constants NameError by #private_constant ha
 fails:top-level constant lookup on a class does not search Object after searching other scopes
 fails:Module#private_constant marked constants sends #const_missing to the original class or module
 fails:Allowed characters allows not ASCII upcased characters at the beginning
+fails:Literal (A::X) constant resolution uses the module or class #name to craft the error message
+fails:Literal (A::X) constant resolution uses the module or class #inspect to craft the error message if they are anonymous

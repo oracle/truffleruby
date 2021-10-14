@@ -55,3 +55,5 @@ fails:Pattern matching warning warns about pattern matching is experimental feat
 fails:Pattern matching does not allow calculation or method calls in a pattern
 fails:Pattern matching Hash pattern does not support non-symbol keys
 fails:Pattern matching Array pattern accepts a subclass of Array from #deconstruct
+fails:Pattern matching can be standalone assoc operator that deconstructs value
+fails:Pattern matching Array pattern calls #deconstruct once for multiple patterns, caching the result

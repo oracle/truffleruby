@@ -1,0 +1,3 @@
+fails:Symbol#name returns string
+fails:Symbol#name returns same string instance
+fails:Symbol#name returns frozen string

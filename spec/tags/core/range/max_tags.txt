@@ -1,0 +1,1 @@
+fails:Range#max raises for an exclusive beginless range

@@ -1,0 +1,1 @@
+fails:Range#initialize raises a FrozenError if called on an already initialized Range

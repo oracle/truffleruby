@@ -1,0 +1,1 @@
+fails:String#rjust with length, padding returns String instances when called on subclasses

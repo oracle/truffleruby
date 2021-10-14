@@ -1,1 +1,2 @@
 fails:Module#public on a superclass method calls the redefined method
+fails:Module#public with argument array as a single argument sets visibility of given method names

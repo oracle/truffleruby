@@ -1,1 +1,2 @@
 fails:A class definition extending an object (sclass) allows accessing the block of the original scope
+fails:A class definition extending an object (sclass) does not allow accessing the block of the original scope

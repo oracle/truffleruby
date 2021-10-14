@@ -1,0 +1,6 @@
+fails:Array#[] with a subclass of Array returns a Array instance with [n, m]
+fails:Array#[] with a subclass of Array returns a Array instance with [-n, m]
+fails:Array#[] with a subclass of Array returns a Array instance with [n..m]
+fails:Array#[] with a subclass of Array returns a Array instance with [n...m]
+fails:Array#[] with a subclass of Array returns a Array instance with [-n..-m]
+fails:Array#[] with a subclass of Array returns a Array instance with [-n...-m]

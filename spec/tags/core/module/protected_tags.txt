@@ -1,0 +1,1 @@
+fails:Module#protected with argument array as a single argument sets visibility of given method names
