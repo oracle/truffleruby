@@ -40,7 +40,6 @@ RUBY_SYMBOL_EXPORT_BEGIN
 #define RB_BLOCK_CALL_FUNC_STRICT 1
 
 // To avoid extra write barrier code
-#define USE_RGENGC 0
 #define USE_RINCGC 0
 
 // Skip DTrace-generated code
