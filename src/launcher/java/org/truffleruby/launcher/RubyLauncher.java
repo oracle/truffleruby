@@ -365,6 +365,8 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         out.println("  --verbose       turn on verbose mode and disable script from stdin");
         out.println("  --version       print the version number, then exit");
         out.println("  --help          show this message, -h for short message");
+        out.println("  --backtrace-limit=num");
+        out.println("                  limit the maximum length of backtrace");
         out.println();
         out.println("Features:");
         out.println("  gems            rubygems (default: enabled)");

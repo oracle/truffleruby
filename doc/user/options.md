@@ -40,6 +40,8 @@ Usage: truffleruby [switches] [--] [programfile] [arguments]
   --verbose       turn on verbose mode and disable script from stdin
   --version       print the version number, then exit
   --help          show this message, -h for short message
+  --backtrace-limit=num
+                  limit the maximum length of backtrace
 
 Features:
   gems            rubygems (default: enabled)
