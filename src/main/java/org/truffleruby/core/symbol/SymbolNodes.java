@@ -132,7 +132,7 @@ public abstract class SymbolNodes {
     @ImportStatic(DeclarationContext.class)
     public abstract static class ToProcNode extends CoreMethodArrayArgumentsNode {
 
-        public static final Arity ARITY = new Arity(0, 0, true);
+        public static final Arity ARITY = new Arity(1, 0, true);
 
         public static ToProcNode create() {
             return SymbolNodesFactory.ToProcNodeFactory.create(null);
