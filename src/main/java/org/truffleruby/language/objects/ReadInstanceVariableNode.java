@@ -45,18 +45,10 @@ public class ReadInstanceVariableNode extends RubyContextSourceNode {
         if (objectProfile.profile(receiverObject instanceof RubyDynamicObject)) {
             final DynamicObjectLibrary objectLibrary = getObjectLibrary();
             final RubyDynamicObject dynamicObject = (RubyDynamicObject) receiverObject;
-            if (!objectLibrary.containsKey(dynamicObject, name)) {
-                warnNotInitialized();
-            }
             return objectLibrary.getOrDefault(dynamicObject, name, nil);
         } else {
             return nil;
         }
-    }
-
-    @TruffleBoundary
-    private String getWarningMessage() {
-        return String.format("instance variable %s not initialized", name);
     }
 
     @Override
@@ -85,17 +77,6 @@ public class ReadInstanceVariableNode extends RubyContextSourceNode {
                             .createDispatched(getLanguage().options.INSTANCE_VARIABLE_CACHE));
         }
         return objectLibrary;
-    }
-
-    private void warnNotInitialized() {
-        if (warningNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            warningNode = insert(new WarningNode());
-        }
-
-        if (warningNode.shouldWarn()) {
-            warningNode.warningMessage(getSourceSection(), getWarningMessage());
-        }
     }
 
 }

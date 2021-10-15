@@ -2424,8 +2424,6 @@ public class BodyTranslator extends Translator {
         RubyNode rhs = node.getSecondNode().accept(this);
 
         // This is needed for class variables. Constants are handled separately in visitOpAsgnConstDeclNode.
-        // It is also needed for instance variables to prevent attempted read which may trigger "not initialized"
-        // warnings unintentionally.
         if (node.getFirstNode().needsDefinitionCheck()) {
             RubyNode defined = new DefinedNode(lhs);
             lhs = new AndNode(defined, lhs);
