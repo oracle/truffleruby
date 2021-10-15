@@ -83,3 +83,6 @@ slow:The launcher supports running rbs in any of the bin/ directories
 slow:The launcher supports running typeprof in any of the bin/ directories
 slow:The launcher supports running rbs symlinked
 slow:The launcher supports running typeprof symlinked
+fails(https://github.com/ruby/typeprof/issues/64):The launcher runs typeprof as an -S command
+fails(https://github.com/ruby/typeprof/issues/64):The launcher supports running typeprof in any of the bin/ directories
+fails(https://github.com/ruby/typeprof/issues/64):The launcher supports running typeprof symlinked
