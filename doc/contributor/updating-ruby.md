@@ -158,6 +158,8 @@ rm -f exe/ruby
 ruby tool/patch_launchers.rb
 ```
 
+Also update the list of `provided_executables` in `mx_truffleruby.py` if some launchers were added or removed.
+
 ## Make other changes
 
 In a separate commit, update all of these:
