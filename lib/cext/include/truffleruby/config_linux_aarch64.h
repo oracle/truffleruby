@@ -54,7 +54,6 @@
 #define HAVE_TIME_H 1
 #define HAVE_UCONTEXT_H 1
 #define HAVE_UTIME_H 1
-#define HAVE_X86INTRIN_H 1
 #define HAVE_TYPEOF 1
 #define restrict __restrict
 #define HAVE_LONG_LONG 1
@@ -236,6 +235,7 @@
 #define HAVE_ATAN2L 1
 #define HAVE_ATAN2F 1
 #define HAVE_CHROOT 1
+#define HAVE_CLOCK_GETTIME 1
 #define HAVE_COSH 1
 #define HAVE_CRYPT_R 1
 #define HAVE_DIRFD 1
@@ -368,8 +368,6 @@
 #define HAVE_BUILTIN___BUILTIN_TRAP 1
 #define HAVE_GNU_QSORT_R 1
 #define ATAN2_INF_C99 1
-#define HAVE_LIBRT 1
-#define HAVE_CLOCK_GETTIME 1
 #define HAVE_CLOCK_GETRES 1
 #define HAVE_LIBRT 1
 #define HAVE_LIBRT 1
@@ -385,7 +383,7 @@
 #define RSHIFT(x,y) ((x)>>(int)(y))
 #define HAVE__SC_CLK_TCK 1
 #define STACK_GROW_DIRECTION -1
-#define COROUTINE_H "coroutine/amd64/Context.h"
+#define COROUTINE_H "coroutine/arm64/Context.h"
 #define _REENTRANT 1
 #define _THREAD_SAFE 1
 #define HAVE_LIBPTHREAD 1
@@ -414,5 +412,5 @@
 #define RUBY_JMP_BUF jmp_buf
 #define USE_MJIT 1
 #define HAVE_PTHREAD_H 1
-#define RUBY_PLATFORM "x86_64-linux"
+#define RUBY_PLATFORM "aarch64-linux"
 #endif /* INCLUDE_RUBY_CONFIG_H */
