@@ -1,1 +1,0 @@
-slow:The $SAFE variable warns when set to 0 and remembers the value
