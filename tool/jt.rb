@@ -2963,7 +2963,7 @@ class JT
         needs_rebuild = true
       when '-u', '--use'
         @ruby_name = args.shift
-      when '--silent'
+      when '-q', '--silent'
         @silent = true
       when '--jdk'
         @jdk_version = Integer(args.shift)
