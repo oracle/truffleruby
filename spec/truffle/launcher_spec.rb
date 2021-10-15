@@ -35,7 +35,8 @@ describe "The launcher" do
 
   before :all do
     @default_bindir = RbConfig::CONFIG['bindir']
-    @bin_dirs = [RbConfig::CONFIG['bindir'], *RbConfig::CONFIG['extra_bindirs'].split(File::PATH_SEPARATOR)]
+    @bin_dirs = [RbConfig::CONFIG['bindir']]
+    @bin_dirs += RbConfig::CONFIG['extra_bindirs'].to_s.split(File::PATH_SEPARATOR) if defined?(::TruffleRuby)
   end
 
   before :each do
@@ -237,7 +238,7 @@ describe "The launcher" do
     out.should == "true\n"
   end
 
-  guard -> { !TruffleRuby.native? } do
+  guard -> { defined?(::TruffleRuby) && !TruffleRuby.native? } do
     it "'--vm.cp=' or '--vm.classpath=' add the jar" do
       out = ruby_exe("puts Truffle::System.get_java_property('java.class.path')", options: "--vm.cp=does-not-exist.jar", args: @redirect)
       check_status_and_empty_stderr
@@ -351,7 +352,7 @@ describe "The launcher" do
     out.should include("--ruby.load-paths=")
   end
 
-  guard -> { TruffleRuby.cexts? } do
+  guard -> { defined?(::TruffleRuby) &&TruffleRuby.cexts? } do
     it "prints help:languages containing llvm language options" do
       out = ruby_exe(nil, options: "--help:languages", args: @redirect)
       check_status_and_empty_stderr
@@ -424,7 +425,7 @@ describe "The launcher" do
 
   guard -> {
     # GraalVM with both --jvm and --native
-    TruffleRuby.graalvm_home and TruffleRuby.native?
+    defined?(::TruffleRuby) and TruffleRuby.graalvm_home and TruffleRuby.native?
   } do
     describe "runtime configuration flags" do
       before :each do
