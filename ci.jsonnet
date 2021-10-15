@@ -376,12 +376,15 @@ local part_definitions = {
       run+: [
         ["ruby", "tool/generate-native-config.rb"],
         ["cat", "src/main/java/org/truffleruby/platform/" + self.platform_name + "NativeConfiguration.java"],
+
+        ["tool/generate-config-header.sh"],
+        ["cat", "lib/cext/include/truffleruby/config_" + self.platform + "_" + self.arch + ".h"],
       ],
     },
 
     check_native_config: {
       is_after+:: ["$.run.generate_native_config"],
-      run+: jt(["check_native_configuration"]),
+      run+: jt(["check_native_configuration"]) + jt(["check_config_header"]),
     },
   },
 
@@ -707,9 +710,9 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
   manual_builds: {
     local shared = $.use.common + $.cap.manual + { timelimit: "15:00" },
 
-    "ruby-generate-native-config-linux": $.platform.linux + $.jdk.v11 + shared + $.run.generate_native_config,
-    "ruby-generate-native-config-linux-arm64": $.platform.linux_arm64 + $.jdk.v11 + shared + $.run.generate_native_config,
-    "ruby-generate-native-config-darwin": $.platform.darwin + $.jdk.v11 + shared + $.run.generate_native_config,
+    "ruby-generate-native-config-linux-amd64": $.platform.linux + $.jdk.v11 + shared + $.run.generate_native_config,
+    "ruby-generate-native-config-linux-aarch64": $.platform.linux_arm64 + $.jdk.v11 + shared + $.run.generate_native_config,
+    "ruby-generate-native-config-darwin-amd64": $.platform.darwin + $.jdk.v11 + shared + $.run.generate_native_config,
   },
 
   builds:
