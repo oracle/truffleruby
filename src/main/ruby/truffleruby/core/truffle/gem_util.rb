@@ -141,12 +141,26 @@ module Truffle::GemUtil
   end
 
   def self.compute_gem_path
-    user_dir = "#{Dir.home}/.gem/truffleruby/#{abi_version}"
+    # From Gem.user_dir
+    user_home = Dir.home
+    gem_dir = "#{user_home}/.gem"
+    unless File.exist?(gem_dir)
+      data_home = (ENV['XDG_DATA_HOME'] || "#{user_home}/.local/share")
+      gem_dir = "#{data_home}/gem"
+    end
+    user_dir = "#{gem_dir}/truffleruby/#{abi_version}"
+
+    # From Gem.default_dir, overridden in lib/truffle/rubygems/defaults/truffleruby.rb
     default_dir = "#{Truffle::Boot.ruby_home}/lib/gems"
+
+    # From Gem::PathSupport#initialize
     home = ENV['GEM_HOME'] || default_dir
+
+    # From Gem::PathSupport#default_path and Gem.default_path
     # There is also vendor_dir, but it does not exist on TruffleRuby
     default_path = [user_dir, default_dir, home]
 
+    # From Gem::PathSupport#split_gem_path
     if gem_path = ENV['GEM_PATH']
       paths = gem_path.split(File::PATH_SEPARATOR)
       if gem_path.end_with?(File::PATH_SEPARATOR)
