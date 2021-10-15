@@ -368,13 +368,12 @@ local part_definitions = {
         ["mx", "sforceimports"], # clone the graal repo
         ["mx", "-p", "../graal/sulong", "build"],
         ["set-export", "TOOLCHAIN_PATH", ["mx", "-p", "../graal/sulong", "lli", "--print-toolchain-path"]],
-        ["set-export", "CC", "$TOOLCHAIN_PATH/clang"],
-        ["set-export", "CXX", "$TOOLCHAIN_PATH/clang++"],
+        ["set-export", "PATH", "$TOOLCHAIN_PATH:$PATH"],
         # for finding libc++
-        ["set-export", "LD_LIBRARY_PATH", "$BUILD_DIR/graal/sulong/mxbuild/" + self.platform + "-" + self.arch + "/SULONG_HOME/native/lib:$LD_LIBRARY_PATH"],
+        ["set-export", "LIBCXX_LD_LIBRARY_PATH", "$BUILD_DIR/graal/sulong/mxbuild/" + self.platform + "-" + self.arch + "/SULONG_HOME/native/lib:$LD_LIBRARY_PATH"],
       ],
       run+: [
-        ["ruby", "tool/generate-native-config.rb"],
+        ["env", "LD_LIBRARY_PATH=$LIBCXX_LD_LIBRARY_PATH", "ruby", "tool/generate-native-config.rb"],
         ["cat", "src/main/java/org/truffleruby/platform/" + self.platform_name + "NativeConfiguration.java"],
 
         ["tool/generate-config-header.sh"],
