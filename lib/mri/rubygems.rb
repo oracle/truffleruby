@@ -1357,6 +1357,9 @@ begin
 rescue LoadError
 end
 
+# the autoload + patch seems problematic for require 'rubygems/specification' in user code before require 'rubygems'
+require 'rubygems/specification' if defined?(::TruffleRuby)
+
 ##
 # Loads the default specs.
 Gem::Specification.load_defaults
