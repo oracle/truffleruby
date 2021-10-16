@@ -21,6 +21,7 @@
 
 // ls lib/cext/include/stubs/internal | ruby -e 'puts STDIN.readlines.map { |l| "#include <internal/#{l.chomp}>" }'
 #include <internal/array.h>
+#include <internal/file.h>
 #include <internal/gc.h>
 #include <internal/hash.h>
 #include <internal/io.h>
