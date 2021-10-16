@@ -48,6 +48,3 @@ class FalseClass
     raise TypeError, "allocator undefined for #{self}"
   end
 end
-
-FALSE = false
-Object.deprecate_constant :FALSE

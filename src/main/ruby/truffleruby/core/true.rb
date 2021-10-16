@@ -48,6 +48,3 @@ class TrueClass
     raise TypeError, "allocator undefined for #{self}"
   end
 end
-
-TRUE = true
-Object.deprecate_constant :TRUE
