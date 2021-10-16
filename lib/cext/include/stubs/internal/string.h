@@ -1,6 +1,8 @@
 #ifndef INTERNAL_STRING_H                                /*-*-C-*-vi:se ft=c:*/
 #define INTERNAL_STRING_H
 
+#include "ruby.h"
+
 #define STR_EMBED_P(str) (false)
 #define STR_SHARED_P(str) (false)
 
