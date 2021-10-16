@@ -14936,11 +14936,13 @@ formal_argument(struct parser_params *p, VALUE lhs)
 #undef ERR
     }
 #ifdef TRUFFLERUBY
-    shadowing_lvar(p, get_id(lhs));
+    ID id = get_id(lhs);
+    shadowing_lvar(p, id);
+    return id;
 #else
     shadowing_lvar(p, lhs);
-#endif
     return lhs;
+#endif
 }
 
 static int
