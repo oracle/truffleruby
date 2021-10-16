@@ -30,7 +30,7 @@ local common = (import "common.json");
 local part_definitions = {
   local jt = function(args) [["bin/jt"] + args],
   local mri_path = function(version) "/cm/shared/apps/ruby/" + version + "/bin/ruby",
-  local mri_version = "3.0.0",
+  local mri_version = "3.0.2",
 
   use: {
     common: {
