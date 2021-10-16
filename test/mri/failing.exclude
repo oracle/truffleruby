@@ -2,6 +2,7 @@
 
 ruby/test_ast.rb
 ruby/test_jit.rb
+ruby/test_jit_debug.rb
 dbm/test_dbm.rb
 gdbm/test_gdbm.rb
 sdbm/test_sdbm.rb
