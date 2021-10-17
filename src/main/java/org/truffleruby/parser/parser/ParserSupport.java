@@ -270,10 +270,8 @@ public class ParserSupport {
         if (isNumberedParameter(name)) {
             int depth = currentScope.isDefined(name) >> 16;
             if (depth < 0) { // not defined
-                SourceIndexLength position = node == null
-                        ? lexer.getPosition()
-                        : node.getPosition();
-                warnNumberedParameterLikeDeclaration(position, name);
+                // assigning to a numbered parameter is a SyntaxError
+                throw compile_error(name + " is reserved for numbered parameter");
             } else if (depth == 0 && currentScope.isBlockScope() &&
                     currentScope.isNumberedBlockScope()) {
                 // "real" implicit parameter
