@@ -400,10 +400,10 @@ class String
         status = ec.primitive_convert src, dest, nil, nil
         while status != :finished
           raise ec.last_error unless fallback && status == :undefined_conversion
-          (_, enc1, enc2, error_bytes, _) = ec.primitive_errinfo
-          rep = fallback[error_bytes.force_encoding(enc1)]
+          (_, fallback_enc_from, fallback_enc_to, error_bytes, _) = ec.primitive_errinfo
+          rep = fallback[error_bytes.force_encoding(fallback_enc_from)]
           raise.ec.last_error unless rep
-          dest += rep.encode(enc2)
+          dest << rep.encode(fallback_enc_to)
           status = ec.primitive_convert src, dest, nil, nil
         end
 
