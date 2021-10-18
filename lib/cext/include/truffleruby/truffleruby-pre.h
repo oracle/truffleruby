@@ -62,7 +62,7 @@ extern void* rb_tr_cext;
 #endif
 void* rb_tr_abi_version(void) __attribute__((weak));
 void* rb_tr_abi_version(void) {
-  char* abi_version = STRINGIZE(TRUFFLERUBY_ABI_VERSION);
+  const char* abi_version = STRINGIZE(TRUFFLERUBY_ABI_VERSION);
   return polyglot_from_string(abi_version, "US-ASCII");
 }
 
