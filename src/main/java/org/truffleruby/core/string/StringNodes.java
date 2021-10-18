@@ -176,6 +176,7 @@ import org.truffleruby.core.string.StringNodesFactory.StringAppendPrimitiveNodeF
 import org.truffleruby.core.string.StringNodesFactory.StringAreComparableNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.StringByteCharacterIndexNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.StringByteSubstringPrimitiveNodeFactory;
+import org.truffleruby.core.string.StringNodesFactory.StringDupAsStringInstanceNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.StringEqualNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.StringSubstringPrimitiveNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.SumNodeFactory;
@@ -406,12 +407,10 @@ public abstract class StringNodes {
 
         @Specialization(guards = "times == 0")
         protected RubyString multiplyZero(Object string, int times,
-                @CachedLibrary(limit = "2") RubyStringLibrary libString,
-                @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode) {
+                @CachedLibrary(limit = "2") RubyStringLibrary libString) {
 
-            final RubyClass logicalClass = logicalClassNode.execute(string);
             final RubyString instance = new RubyString(
-                    logicalClass,
+                    coreLibrary().stringClass,
                     getLanguage().stringShape,
                     false,
                     RopeOperations.emptyRope(libString.getRope(string).getEncoding()),
@@ -428,7 +427,6 @@ public abstract class StringNodes {
         @Specialization(guards = { "times > 0", "!isEmpty(libString.getRope(string))" })
         protected RubyString multiply(Object string, int times,
                 @Cached @Shared("repeatNode") RepeatNode repeatNode,
-                @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode,
                 @Cached BranchProfile tooBigProfile,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             final Rope stringRope = libString.getRope(string);
@@ -439,9 +437,8 @@ public abstract class StringNodes {
             }
 
             final Rope repeated = repeatNode.executeRepeat(stringRope, times);
-            final RubyClass logicalClass = logicalClassNode.execute(string);
             final RubyString instance = new RubyString(
-                    logicalClass,
+                    coreLibrary().stringClass,
                     getLanguage().stringShape,
                     false,
                     repeated,
@@ -453,13 +450,11 @@ public abstract class StringNodes {
         @Specialization(guards = { "times > 0", "isEmpty(libString.getRope(string))" })
         protected RubyString multiplyEmpty(Object string, long times,
                 @Cached @Shared("repeatNode") RepeatNode repeatNode,
-                @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             final Rope repeated = repeatNode.executeRepeat(libString.getRope(string), 0);
 
-            final RubyClass logicalClass = logicalClassNode.execute(string);
             final RubyString instance = new RubyString(
-                    logicalClass,
+                    coreLibrary().stringClass,
                     getLanguage().stringShape,
                     false,
                     repeated,
@@ -541,6 +536,34 @@ public abstract class StringNodes {
             }
 
             return compareNode.execute(firstRope, secondRope);
+        }
+
+    }
+
+    @Primitive(name = "dup_as_string_instance")
+    public abstract static class StringDupAsStringInstanceNode extends PrimitiveArrayArgumentsNode {
+
+        public static StringDupAsStringInstanceNode create() {
+            return StringDupAsStringInstanceNodeFactory.create(null);
+        }
+
+        public abstract RubyString executeDupAsStringInstance(Object a);
+
+        @Specialization
+        protected RubyString dupAsStringInstance(Object string,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+
+            final Rope rope = strings.getRope(string);
+            final RubyEncoding encoding = strings.getEncoding(string);
+
+            final RubyString ret = new RubyString(
+                    coreLibrary().stringClass,
+                    getLanguage().stringShape,
+                    false,
+                    rope,
+                    encoding);
+            AllocationTracing.trace(ret, this);
+            return ret;
         }
 
     }
@@ -775,7 +798,8 @@ public abstract class StringNodes {
                 @Cached @Exclusive DispatchNode callNode,
                 @Cached ReadCallerVariablesNode readCallerStorageNode,
                 @Cached ConditionProfile unsetProfile,
-                @Cached ConditionProfile sameThreadProfile) {
+                @Cached ConditionProfile sameThreadProfile,
+                @Cached StringDupAsStringInstanceNode dupNode) {
             final Object capture = RubyGuards.wasProvided(maybeCapture) ? maybeCapture : 0;
             final Object matchStrPair = callNode.call(
                     getContext().getCoreLibrary().truffleStringOperationsModule,
@@ -791,7 +815,7 @@ public abstract class StringNodes {
             } else {
                 final Object[] array = (Object[]) ((RubyArray) matchStrPair).store;
                 variables.setLastMatch(array[0], getContext(), unsetProfile, sameThreadProfile);
-                return array[1];
+                return dupNode.executeDupAsStringInstance(array[1]);
             }
         }
 
@@ -803,12 +827,12 @@ public abstract class StringNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsMatchStr,
                 @Cached @Exclusive DispatchNode includeNode,
                 @Cached BooleanCastNode booleanCastNode,
-                @Cached @Exclusive DispatchNode dupNode) {
+                @Cached @Exclusive StringDupAsStringInstanceNode dupNode) {
 
             final Object included = includeNode.call(string, "include?", matchStr);
 
             if (booleanCastNode.executeToBoolean(included)) {
-                return dupNode.call(matchStr, "dup");
+                return dupNode.executeDupAsStringInstance(matchStr);
             }
 
             return nil;
@@ -1436,8 +1460,7 @@ public abstract class StringNodes {
         protected Object eachChar(Object string, RubyProc block,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @Cached CalculateCharacterLengthNode calculateCharacterLengthNode,
-                @Cached CodeRangeNode codeRangeNode,
-                @Cached LogicalClassNode logicalClassNode) {
+                @Cached CodeRangeNode codeRangeNode) {
             final Rope rope = strings.getRope(string);
             final RubyEncoding encoding = strings.getEncoding(string);
             final byte[] ptrBytes = bytesNode.execute(rope);
@@ -1450,7 +1473,7 @@ public abstract class StringNodes {
             for (int i = 0; i < len; i += n) {
                 n = calculateCharacterLengthNode
                         .characterLengthWithRecovery(enc, cr, Bytes.fromRange(ptrBytes, i, len));
-                callBlock(block, substr(rope, encoding, i, n, logicalClassNode.execute(string)));
+                callBlock(block, substr(rope, encoding, i, n, coreLibrary().stringClass));
             }
 
             return string;
@@ -2200,7 +2223,6 @@ public abstract class StringNodes {
         @TruffleBoundary
         @Specialization(guards = "isAsciiCompatible(libString.getRope(string))")
         protected RubyString dumpAsciiCompatible(Object string,
-                @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             // Taken from org.jruby.RubyString#dump
 
@@ -2210,9 +2232,8 @@ public abstract class StringNodes {
             final Rope rope = makeLeafRopeNode
                     .executeMake(outputBytes.getBytes(), outputBytes.getEncoding(), CR_7BIT, outputBytes.getLength());
 
-            final RubyClass logicalClass = logicalClassNode.execute(string);
             final RubyString result = new RubyString(
-                    logicalClass,
+                    coreLibrary().stringClass,
                     getLanguage().stringShape,
                     false,
                     rope,
@@ -2224,7 +2245,6 @@ public abstract class StringNodes {
         @TruffleBoundary
         @Specialization(guards = "!isAsciiCompatible(libString.getRope(string))")
         protected RubyString dump(Object string,
-                @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             // Taken from org.jruby.RubyString#dump
 
@@ -2245,9 +2265,8 @@ public abstract class StringNodes {
             final Rope rope = makeLeafRopeNode
                     .executeMake(outputBytes.getBytes(), outputBytes.getEncoding(), CR_7BIT, outputBytes.getLength());
 
-            final RubyClass logicalClass = logicalClassNode.execute(string);
             final RubyString result = new RubyString(
-                    logicalClass,
+                    coreLibrary().stringClass,
                     getLanguage().stringShape,
                     false,
                     rope,
@@ -5322,7 +5341,6 @@ public abstract class StringNodes {
         @Child CharacterLengthNode characterLengthNode = CharacterLengthNode.create();
         @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode
                 .create();
-        @Child LogicalClassNode logicalClassNode = LogicalClassNode.create();
         @Child private SubstringNode substringNode;
 
         public abstract Object execute(Object string, int index, int length);
@@ -5519,10 +5537,9 @@ public abstract class StringNodes {
                 substringNode = insert(SubstringNode.create());
             }
 
-            final RubyClass logicalClass = logicalClassNode.execute(string);
             final Rope substringRope = substringNode.executeSubstring(rope, beg, byteLength);
             final RubyString ret = new RubyString(
-                    logicalClass,
+                    coreLibrary().stringClass,
                     getLanguage().stringShape,
                     false,
                     substringRope,

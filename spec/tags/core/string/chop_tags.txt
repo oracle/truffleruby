@@ -1,1 +1,0 @@
-fails:String#chop returns String instances when called on a subclass

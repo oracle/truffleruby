@@ -25,6 +25,7 @@ Compatibility:
 * Do not warn when uninitialized instance variable is accessed (#2502, @andrykonchin).
 * Remove `TRUE`, `FALSE`, and `NIL` constants like CRuby 3.0 (#2505, @andrykonchin).
 * `Symbol#to_proc` now returns a lambda like in Ruby 3 (#2508, @andrykonchin).
+* Update `String` methods to return `String` instances when called on a subclass (#2453).
 
 Performance:
 
