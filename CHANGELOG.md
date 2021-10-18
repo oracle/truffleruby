@@ -16,6 +16,7 @@ Compatibility:
 * Update `defined?` to return frozen strings (#2450).
 * Use compensated summation for `{Array,Enumerable}#sum` when floating point values are included.
 * `Module#attr_*` methods now return an array of method names (#2498, @gogainda).
+* Fixed `Socket#(local|remote)_address` to retrieve family and type from the file descriptor (#2444, @larskanis).
 
 Performance:
 

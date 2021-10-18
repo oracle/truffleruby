@@ -58,12 +58,8 @@ class BasicSocket < IO
 
   def getsockopt(level, optname)
     sockname = Truffle::Socket::Foreign.getsockname(self)
-    family   = Truffle::Socket.family_for_sockaddr_in(sockname)
-    level    = Truffle::Socket::SocketOptions.socket_level(level, family)
-    optname  = Truffle::Socket::SocketOptions.socket_option(level, optname)
-    data     = Truffle::Socket::Foreign.getsockopt(Primitive.io_fd(self), level, optname)
-
-    Socket::Option.new(family, level, optname, data)
+    family = Truffle::Socket::Foreign::Sockaddr.family_of_string(sockname)
+    Truffle::Socket::SocketOptions.getsockopt(self, family, level, optname)
   end
 
   def setsockopt(*args)
@@ -79,7 +75,7 @@ class BasicSocket < IO
     end
 
     sockname = Truffle::Socket::Foreign.getsockname(self)
-    family   = Truffle::Socket.family_for_sockaddr_in(sockname)
+    family   = Truffle::Socket::Foreign::Sockaddr.family_of_string(sockname)
     level    = Truffle::Socket::SocketOptions.socket_level(level, family)
     optname  = Truffle::Socket::SocketOptions.socket_option(level, optname)
     error    = 0
@@ -334,18 +330,20 @@ class BasicSocket < IO
     0
   end
 
-  # MRI defines this method in BasicSocket and stuffs all logic in it. Since
-  # inheriting classes behave differently we overwrite this method in said
-  # classes. The method here exists so that code such as the following still
-  # works: BasicSocket.method_defined?(:local_address).
   def local_address
-    raise NotImplementedError,
-      'This method must be implemented by classes inheriting from BasicSocket'
+    sockaddr = Truffle::Socket::Foreign.getsockname(self)
+
+    family = Truffle::Socket::Foreign::Sockaddr.family_of_string(sockaddr)
+    socket_type = Truffle::Socket::SocketOptions.getsockopt(self, family, :SOCKET, :TYPE).int
+    Addrinfo.new(sockaddr, family, socket_type, 0)
   end
 
   def remote_address
-    raise NotImplementedError,
-      'This method must be implemented by classes inheriting from BasicSocket'
+    sockaddr = Truffle::Socket::Foreign.getpeername(self)
+
+    family = Truffle::Socket::Foreign::Sockaddr.family_of_string(sockaddr)
+    socket_type = Truffle::Socket::SocketOptions.getsockopt(self, family, :SOCKET, :TYPE).int
+    Addrinfo.new(sockaddr, family, socket_type, 0)
   end
 
   def getpeereid

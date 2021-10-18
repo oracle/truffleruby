@@ -29,6 +29,14 @@
 module Truffle
   module Socket
     module SocketOptions
+      def self.getsockopt(socket, family, level, optname)
+        level = socket_level(level, family)
+        optname = socket_option(level, optname)
+        data = Truffle::Socket::Foreign.getsockopt(Primitive.io_fd(socket), level, optname)
+
+        ::Socket::Option.new(family, level, optname, data)
+      end
+
       def self.socket_level(level, family = nil)
         if level.is_a?(Symbol) or level.is_a?(String)
           if ::Socket.const_defined?(level, false) # Truffle: added inherit false

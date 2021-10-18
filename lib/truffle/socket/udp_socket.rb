@@ -84,18 +84,4 @@ class UDPSocket < IPSocket
   def inspect
     "#<#{self.class}:fd #{fileno}>"
   end
-
-  def local_address
-    address  = addr
-    sockaddr = Socket.pack_sockaddr_in(address[1], address[3])
-
-    Addrinfo.new(sockaddr, address[0], :DGRAM)
-  end
-
-  def remote_address
-    address  = peeraddr
-    sockaddr = Socket.pack_sockaddr_in(address[1], address[3])
-
-    Addrinfo.new(sockaddr, address[0], :DGRAM)
-  end
 end

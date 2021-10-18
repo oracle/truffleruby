@@ -86,16 +86,4 @@ class UNIXSocket < BasicSocket
   def recv_io(klass = IO, mode = nil)
     raise NotImplementedError, 'IO#recv_io not yet implemented'
   end
-
-  def local_address
-    address = addr
-
-    Addrinfo.new(Socket.pack_sockaddr_un(address[1]), :UNIX, :STREAM)
-  end
-
-  def remote_address
-    address = peeraddr
-
-    Addrinfo.new(Socket.pack_sockaddr_un(address[1]), :UNIX, :STREAM)
-  end
 end
