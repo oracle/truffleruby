@@ -15,7 +15,6 @@
 #include "ruby/encoding.h"
 
 #define DYNAMIC_ID_P(id) (!(id&ID_STATIC_SYM)&&id>tLAST_OP_ID)
-
 #ifdef TRUFFLERUBY
 #define STATIC_ID2SYM(id)  rb_id2sym(id)
 #else
@@ -115,8 +114,9 @@ sym_type(VALUE sym)
 
 RUBY_FUNC_EXPORTED const unsigned int ruby_global_name_punct_bits[(0x7e - 0x20 + 31) / 32];
 
-/* this can be shared with ripper, since it's independent from struct
- * parser_params. */
+#ifdef TRUFFLERUBY
+// We need to define ruby_global_name_punct_bits to link it correctly
+// since it is included in libtruffleruby via symbol.c
 #ifndef RIPPER
 #define BIT(c, idx) (((c) / 32 - 1 == idx) ? (1U << ((c) % 32)) : 0)
 #define SPECIAL_PUNCT(idx) ( \
@@ -133,6 +133,7 @@ const unsigned int ruby_global_name_punct_bits[] = {
 };
 #undef BIT
 #undef SPECIAL_PUNCT
+#endif
 #endif
 
 static inline int
