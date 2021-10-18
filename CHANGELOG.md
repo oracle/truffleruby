@@ -19,6 +19,7 @@ Compatibility:
 * `Module#attr_*` methods now return an array of method names (#2498, @gogainda).
 * Fixed `Socket#(local|remote)_address` to retrieve family and type from the file descriptor (#2444, @larskanis).
 * Add `Thread.ignore_deadlock` accessor (#2453).
+* Update `Module#{public, protected, private, public_class_method, private_class_method}` and top-level `private` and `public` methods to accept single array argument with a list of method names (#2453).
 
 Performance:
 
