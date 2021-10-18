@@ -355,21 +355,6 @@ public abstract class EncodingNodes {
         }
     }
 
-    @Primitive(name = "encoding_ensure_compatible")
-    public abstract static class EnsureCompatibleNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private CheckEncodingNode checkEncodingNode = CheckEncodingNode.create();
-
-        public static EnsureCompatibleNode create() {
-            return EncodingNodesFactory.EnsureCompatibleNodeFactory.create(null);
-        }
-
-        @Specialization
-        protected Object ensureCompatible(Object first, Object second) {
-            return checkEncodingNode.executeCheckEncoding(first, second);
-        }
-    }
-
     @CoreMethod(names = "list", onSingleton = true)
     public abstract static class ListNode extends CoreMethodArrayArgumentsNode {
 
@@ -728,13 +713,14 @@ public abstract class EncodingNodes {
 
     }
 
-    public abstract static class CheckEncodingNode extends RubyBaseNode {
+    @Primitive(name = "encoding_ensure_compatible")
+    public abstract static class CheckEncodingNode extends PrimitiveArrayArgumentsNode {
 
         @Child private NegotiateCompatibleEncodingNode negotiateCompatibleEncodingNode;
         @Child private ToEncodingNode toEncodingNode;
 
         public static CheckEncodingNode create() {
-            return EncodingNodesFactory.CheckEncodingNodeGen.create();
+            return EncodingNodesFactory.CheckEncodingNodeFactory.create(null);
         }
 
         public abstract RubyEncoding executeCheckEncoding(Object first, Object second);
