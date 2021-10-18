@@ -90,6 +90,9 @@ POLYGLOT_DECLARE_STRUCT(RBasic)
 RBIMPL_SYMBOL_EXPORT_BEGIN()
 VALUE rb_obj_hide(VALUE obj);
 VALUE rb_obj_reveal(VALUE obj, VALUE klass); /* do not use this API to change klass information */
+#ifdef TRUFFLERUBY
+VALUE rb_class_of(VALUE object);
+#endif
 RBIMPL_SYMBOL_EXPORT_END()
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
@@ -99,7 +102,6 @@ RBASIC_CLASS(VALUE obj)
 {
     RBIMPL_ASSERT_OR_ASSUME(! RB_SPECIAL_CONST_P(obj));
 #ifdef TRUFFLERUBY
-    VALUE rb_class_of(VALUE object);
     return rb_class_of(obj);
 #else
     return RBASIC(obj)->klass;

@@ -170,7 +170,9 @@ rbimpl_right_shift_is_arithmetic_p(void)
 }
 
 RBIMPL_ATTR_CONST_UNLESS_DEBUG()
+#ifndef TRUFFLERUBY
 RBIMPL_ATTR_CONSTEXPR_UNLESS_DEBUG(CXX14)
+#endif
 static inline long
 rb_fix2long(VALUE x)
 {

@@ -110,6 +110,13 @@ void rb_ary_ptr_use_end(VALUE a);
 #if USE_TRANSIENT_HEAP
 void rb_ary_detransient(VALUE a);
 #endif
+#ifdef TRUFFLERUBY
+long rb_array_len(VALUE a);
+int RARRAY_LENINT(VALUE ary);
+VALUE *RARRAY_PTR_IMPL(VALUE array);
+void rb_ary_store(VALUE, long, VALUE);
+VALUE RARRAY_AREF(VALUE array, long index);
+#endif
 RBIMPL_SYMBOL_EXPORT_END()
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
@@ -126,9 +133,7 @@ RARRAY_EMBED_LEN(VALUE ary)
     return RBIMPL_CAST((long)f);
 }
 
-#ifdef TRUFFLERUBY
-long rb_array_len(VALUE a);
-#else
+#ifndef TRUFFLERUBY
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 static inline long
 rb_array_len(VALUE a)
@@ -144,9 +149,7 @@ rb_array_len(VALUE a)
 }
 #endif
 
-#ifdef TRUFFLERUBY
-int RARRAY_LENINT(VALUE ary);
-#else
+#ifndef TRUFFLERUBY
 RBIMPL_ATTR_ARTIFICIAL()
 static inline int
 RARRAY_LENINT(VALUE ary)
@@ -177,7 +180,6 @@ rb_array_const_ptr_transient(VALUE a)
     RBIMPL_ASSERT_TYPE(a, RUBY_T_ARRAY);
 
 #ifdef TRUFFLERUBY
-    VALUE *RARRAY_PTR_IMPL(VALUE array);
     return FIX_CONST_VALUE_PTR(RARRAY_PTR_IMPL(a));
 #else
     if (RB_FL_ANY_RAW(a, RARRAY_EMBED_FLAG)) {
@@ -261,7 +263,6 @@ RARRAY_PTR(VALUE ary)
     RBIMPL_ASSERT_TYPE(ary, RUBY_T_ARRAY);
 
 #ifdef TRUFFLERUBY
-    VALUE *RARRAY_PTR_IMPL(VALUE array);
     return RARRAY_PTR_IMPL(ary);
 #else
     VALUE tmp = RB_OBJ_WB_UNPROTECT_FOR(ARRAY, ary);
@@ -273,7 +274,6 @@ static inline void
 RARRAY_ASET(VALUE ary, long i, VALUE v)
 {
 #ifdef TRUFFLERUBY
-    void rb_ary_store(VALUE, long, VALUE);
     rb_ary_store(ary, i, v);
 #else
     RARRAY_PTR_USE_TRANSIENT(ary, ptr,
@@ -292,7 +292,6 @@ RARRAY_ASET(VALUE ary, long i, VALUE v)
  */
 #ifdef TRUFFLERUBY
 #define RARRAY_AREF RARRAY_AREF
-VALUE RARRAY_AREF(VALUE array, long index);
 #else
 #define RARRAY_AREF(a, i) RARRAY_CONST_PTR_TRANSIENT(a)[i]
 #endif
