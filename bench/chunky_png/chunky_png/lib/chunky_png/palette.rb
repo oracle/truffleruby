@@ -11,7 +11,7 @@ module ChunkyPNG
   # to an explicit palette (stores as PLTE & tRNS chunks in a PNG file).
   #
   # @see ChunkyPNG::Color
-  class Palette < SortedSet
+  class Palette # Workaround SortedSet no longer being stdlib in Ruby 3, was `class Palette < SortedSet`
 
     # Builds a new palette given a set (Enumerable instance) of colors.
     #

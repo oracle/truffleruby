@@ -6,12 +6,6 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-class Set
-end
-
-class SortedSet < Set
-end
-
 $LOAD_PATH << File.join(File.dirname(__FILE__), 'chunky_png', 'lib')
 
 if ENV['USE_CEXTS']
