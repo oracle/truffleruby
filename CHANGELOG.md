@@ -25,6 +25,7 @@ Performance:
 * Regexp objects are now interned in a similar way to symbols.
 * Improve performance of regexps using POSIX bracket expressions (e.g., `[[:lower:]]`) matching against ASCII-only strings (#2447).
 * `String#sub`, `sub!`, `gsub`, and `gsub!` have been refactored for better performance.
+* Add `ENV.except` (#2507, @Strech).
 
 Changes:
 
