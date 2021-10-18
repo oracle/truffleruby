@@ -842,5 +842,12 @@ describe "Instance variables" do
         -> { obj.foobar }.should_not complain(verbose: true)
       end
     end
+
+    it "doesn't warn at lazy initialization" do
+      obj = Object.new
+      def obj.foobar; @a ||= 42; end
+
+      -> { obj.foobar }.should_not complain(verbose: true)
+    end
   end
 end
