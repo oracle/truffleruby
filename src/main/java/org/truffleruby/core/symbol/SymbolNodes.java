@@ -210,7 +210,7 @@ public abstract class SymbolNodes {
             return ProcOperations.createRubyProc(
                     context.getCoreLibrary().procClass,
                     language.procShape,
-                    ProcType.PROC,
+                    ProcType.LAMBDA,
                     RubyRootNode.of(callTarget).getSharedMethodInfo(),
                     new ProcCallTargets(callTarget),
                     declarationFrame,
