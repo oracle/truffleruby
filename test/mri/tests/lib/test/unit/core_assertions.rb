@@ -294,8 +294,11 @@ eom
       ensure
         if res_c
           res_c.close
-          res = res_p.read
-          res_p.close
+          begin
+            res = res_p.read
+          ensure
+            res_p.close
+          end
         else
           res = stdout
         end
