@@ -145,11 +145,11 @@ ruby_value_type {
 RBIMPL_SYMBOL_EXPORT_BEGIN()
 RBIMPL_ATTR_COLD()
 void rb_check_type(VALUE obj, int t);
-RBIMPL_SYMBOL_EXPORT_END()
-
 #ifdef TRUFFLERUBY
 enum ruby_value_type rb_type(VALUE obj);
+bool RB_TYPE_P(VALUE value, enum ruby_value_type type);
 #endif
+RBIMPL_SYMBOL_EXPORT_END()
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 RBIMPL_ATTR_ARTIFICIAL()
@@ -263,9 +263,7 @@ RB_SYMBOL_P(VALUE obj)
 #endif
 }
 
-#ifdef TRUFFLERUBY
-bool RB_TYPE_P(VALUE value, enum ruby_value_type type);
-#else
+#ifndef TRUFFLERUBY
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 RBIMPL_ATTR_ARTIFICIAL()
 RBIMPL_ATTR_FORCEINLINE()
@@ -327,7 +325,7 @@ RB_TYPE_P(VALUE obj, enum ruby_value_type t)
      rbimpl_RB_TYPE_P_fastpath((obj), (t)) : \
      (RB_TYPE_P)((obj), (t)))
 #endif
-#endif
+#endif // TRUFFLERUBY
 
 /* clang 3.x (4.2 compatible) can't eliminate CSE of RB_BUILTIN_TYPE
  * in inline function and caller function

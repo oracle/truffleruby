@@ -108,6 +108,11 @@ VALUE rb_str_export_locale(VALUE);
 RBIMPL_ATTR_ERROR(("rb_check_safe_str() and Check_SafeStr() are obsolete; use StringValue() instead"))
 void rb_check_safe_str(VALUE);
 #define Check_SafeStr(v) rb_check_safe_str(RBIMPL_CAST((VALUE)(v)))
+#ifdef TRUFFLERUBY
+int rb_tr_str_len(VALUE string);
+char *RSTRING_PTR_IMPL(VALUE string);
+char *RSTRING_END_IMPL(VALUE string);
+#endif
 RBIMPL_SYMBOL_EXPORT_END()
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
@@ -149,12 +154,6 @@ rbimpl_rstring_getmem(VALUE str)
 }
 
 RBIMPL_WARNING_POP()
-
-#ifdef TRUFFLERUBY
-int rb_tr_str_len(VALUE string);
-char *RSTRING_PTR_IMPL(VALUE string);
-char *RSTRING_END_IMPL(VALUE string);
-#endif
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 RBIMPL_ATTR_ARTIFICIAL()

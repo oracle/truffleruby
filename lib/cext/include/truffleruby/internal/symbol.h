@@ -49,7 +49,9 @@ struct RSymbol {
 #define is_junk_id(id) (id_type(id)==ID_JUNK)
 
 #ifdef TRUFFLERUBY
+RBIMPL_SYMBOL_EXPORT_BEGIN()
 int id_type(ID id);
+RBIMPL_SYMBOL_EXPORT_END()
 #else
 static inline int
 id_type(ID id)

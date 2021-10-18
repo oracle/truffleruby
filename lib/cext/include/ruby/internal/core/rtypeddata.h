@@ -107,6 +107,9 @@ VALUE rb_data_typed_object_zalloc(VALUE klass, size_t size, const rb_data_type_t
 int rb_typeddata_inherited_p(const rb_data_type_t *child, const rb_data_type_t *parent);
 int rb_typeddata_is_kind_of(VALUE obj, const rb_data_type_t *data_type);
 void *rb_check_typeddata(VALUE obj, const rb_data_type_t *data_type);
+#ifdef TRUFFLERUBY
+VALUE rb_data_typed_object_make(VALUE ruby_class, const rb_data_type_t *type, void **data_pointer, size_t size);
+#endif
 RBIMPL_SYMBOL_EXPORT_END()
 
 #define TypedData_Wrap_Struct(klass,data_type,sval)\
@@ -180,9 +183,7 @@ RTYPEDDATA_TYPE(VALUE obj)
     return RTYPEDDATA(obj)->type;
 }
 
-#ifdef TRUFFLERUBY
-VALUE rb_data_typed_object_make(VALUE ruby_class, const rb_data_type_t *type, void **data_pointer, size_t size);
-#else
+#ifndef TRUFFLERUBY
 static inline VALUE
 rb_data_typed_object_make(VALUE klass, const rb_data_type_t *type, void **datap, size_t size)
 {

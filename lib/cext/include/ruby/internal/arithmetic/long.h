@@ -85,6 +85,9 @@ void rb_out_of_int(SIGNED_VALUE num);
 
 long rb_num2long(VALUE num);
 unsigned long rb_num2ulong(VALUE num);
+#ifdef TRUFFLERUBY
+int rb_long2int(long value);
+#endif
 RBIMPL_SYMBOL_EXPORT_END()
 
 RBIMPL_ATTR_CONST_UNLESS_DEBUG()
@@ -107,9 +110,7 @@ RB_INT2FIX(long i)
     return n;
 }
 
-#ifdef TRUFFLERUBY
-int rb_long2int(long value);
-#else
+#ifndef TRUFFLERUBY
 static inline int
 rb_long2int_inline(long n)
 {
