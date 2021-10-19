@@ -147,7 +147,8 @@ module ObjectSpace
   def memsize_of(object)
     size = Truffle::ObjSpace.memsize_of(object)
 
-    memsizer = Primitive.object_hidden_var_get object, Truffle::CExt::DATA_MEMSIZER
+    memsizer = defined?(Truffle::CExt::DATA_MEMSIZER) &&
+      Primitive.object_hidden_var_get(object, Truffle::CExt::DATA_MEMSIZER)
     if memsizer
       size + memsizer.call
     else
