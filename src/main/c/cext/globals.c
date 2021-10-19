@@ -78,10 +78,6 @@ void rb_set_safe_level(int level) {
   polyglot_invoke(RUBY_CEXT, "rb_set_safe_level", level);
 }
 
-void rb_check_safe_obj(VALUE object) {
-  rb_warn("rb_check_safe_obj will be removed in Ruby 3.0");
-}
-
 void rb_check_trusted(VALUE obj) {
   rb_warning("rb_check_trusted is deprecated and will be removed in Ruby 3.2.");
 }
