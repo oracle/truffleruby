@@ -38,6 +38,7 @@ import org.truffleruby.core.array.ArrayIndexNodes.ReadSliceNormalizedNode;
 import org.truffleruby.core.array.ArrayNodesFactory.ReplaceNodeFactory;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.library.NativeArrayStorage;
+import org.truffleruby.core.array.library.SharedArrayStorage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.CmpIntNode;
 import org.truffleruby.core.cast.ToAryNode;
@@ -1138,18 +1139,30 @@ public abstract class ArrayNodes {
         @Child private KernelNodes.RespondToNode respondToToAryNode;
 
         protected abstract RubyArray executeInitialize(RubyArray array, Object size, Object fillingValue,
-                Nil block);
+                Object block);
 
         @Specialization
-        protected RubyArray initializeNoArgs(RubyArray array, NotProvided size, NotProvided fillingValue, Nil block) {
-            setStoreAndSize(array, ArrayStoreLibrary.INITIAL_STORE, 0);
+        protected RubyArray initializeNoArgs(RubyArray array, NotProvided size, NotProvided fillingValue, Nil block,
+                @Cached IsSharedNode isSharedNode,
+                @Cached ConditionProfile sharedProfile) {
+            if (sharedProfile.profile(isSharedNode.executeIsShared(array))) {
+                setStoreAndSize(array, ArrayStoreLibrary.SHARED_INITIAL_STORE, 0);
+            } else {
+                setStoreAndSize(array, ArrayStoreLibrary.INITIAL_STORE, 0);
+            }
             return array;
         }
 
         @Specialization
         protected RubyArray initializeOnlyBlock(
-                RubyArray array, NotProvided size, NotProvided fillingValue, RubyProc block) {
-            setStoreAndSize(array, ArrayStoreLibrary.INITIAL_STORE, 0);
+                RubyArray array, NotProvided size, NotProvided fillingValue, RubyProc block,
+                @Cached IsSharedNode isShared,
+                @Cached ConditionProfile sharedProfile) {
+            if (sharedProfile.profile(isShared.executeIsShared(array))) {
+                setStoreAndSize(array, ArrayStoreLibrary.SHARED_INITIAL_STORE, 0);
+            } else {
+                setStoreAndSize(array, ArrayStoreLibrary.INITIAL_STORE, 0);
+            }
             return array;
         }
 
@@ -1176,9 +1189,17 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = "size >= 0")
-        protected RubyArray initializeWithSizeNoValue(RubyArray array, int size, NotProvided fillingValue, Nil block) {
-            final Object[] store = new Object[size];
-            Arrays.fill(store, nil);
+        protected RubyArray initializeWithSizeNoValue(RubyArray array, int size, NotProvided fillingValue, Nil block,
+                @Cached IsSharedNode isShared,
+                @Cached ConditionProfile sharedProfile,
+                @CachedLibrary(limit = "2") ArrayStoreLibrary stores) {
+            final Object store;
+            if (sharedProfile.profile(isShared.executeIsShared(array))) {
+                store = new SharedArrayStorage(new Object[size]);
+            } else {
+                store = new Object[size];
+            }
+            stores.fill(store, 0, size, nil);
             setStoreAndSize(array, store, size);
             return array;
         }
@@ -1191,7 +1212,9 @@ public abstract class ArrayNodes {
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary allocatedStores,
                 @Cached ConditionProfile needsFill,
-                @Cached LoopConditionProfile loopProfile) {
+                @Cached LoopConditionProfile loopProfile,
+                @Cached IsSharedNode isSharedNode,
+                @Cached ConditionProfile sharedProfile) {
             final Object allocatedStore = stores.allocateForNewValue(store, fillingValue, size);
             if (needsFill.profile(!allocatedStores.isDefaultValue(allocatedStore, fillingValue))) {
                 int i = 0;
@@ -1204,7 +1227,14 @@ public abstract class ArrayNodes {
                     profileAndReportLoopCount(loopProfile, i);
                 }
             }
-            setStoreAndSize(array, allocatedStore, size);
+
+            final Object finalStore;
+            if (sharedProfile.profile(isSharedNode.executeIsShared(array))) {
+                finalStore = allocatedStores.makeShared(allocatedStore);
+            } else {
+                finalStore = allocatedStore;
+            }
+            setStoreAndSize(array, finalStore, size);
             return array;
         }
 
@@ -1220,10 +1250,11 @@ public abstract class ArrayNodes {
         @Specialization(guards = "size >= 0")
         protected Object initializeBlock(RubyArray array, int size, Object unusedFillingValue, RubyProc block,
                 @Cached ArrayBuilderNode arrayBuilder,
+                                         @CachedLibrary(limit = "2") ArrayStoreLibrary stores,
                 @Cached IsSharedNode isSharedNode,
+                @Cached ConditionProfile sharedProfile,
                 @Cached LoopConditionProfile loopProfile) {
             BuilderState state = arrayBuilder.start(size);
-            boolean shared = isSharedNode.executeIsShared(array);
 
             int n = 0;
             try {
@@ -1233,7 +1264,11 @@ public abstract class ArrayNodes {
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, n);
-                setStoreAndSize(array, arrayBuilder.finish(state, n), n);
+                Object store = arrayBuilder.finish(state, n);
+                if (sharedProfile.profile(isSharedNode.executeIsShared(array))) {
+                    store = stores.makeShared(store);
+                }
+                setStoreAndSize(array, store, n);
             }
 
             return array;
@@ -1901,10 +1936,16 @@ public abstract class ArrayNodes {
 
         @Specialization
         protected RubyArray replace(RubyArray array, RubyArray other,
-                @Cached ArrayCopyOnWriteNode cowNode) {
+                                    @Cached ArrayCopyOnWriteNode cowNode,
+                                    @Cached IsSharedNode isSharedNode,
+                                    @Cached ConditionProfile sharedProfile,
+                                    @CachedLibrary(limit = "2") ArrayStoreLibrary stores) {
             final int size = other.size;
-
-            array.store = cowNode.execute(other, 0, size);
+            Object store = cowNode.execute(other, 0, size);
+            if (sharedProfile.profile(isSharedNode.executeIsShared(array))) {
+                store = stores.makeShared(store);
+            }
+            array.store = store;
             array.size = size;
             return array;
         }

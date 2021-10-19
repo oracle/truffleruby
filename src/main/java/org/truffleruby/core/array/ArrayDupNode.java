@@ -47,7 +47,7 @@ public abstract class ArrayDupNode extends RubyBaseNode {
             ArrayStoreLibrary toStores,
             Object fromStore,
             int cachedSize) {
-        final Object copy = fromStores.allocator(fromStore).allocate(cachedSize);
+        final Object copy = fromStores.unsharedAllocator(fromStore).allocate(cachedSize);
         for (int i = 0; i < cachedSize; i++) {
             toStores.write(copy, i, fromStores.read(fromStore, i));
         }

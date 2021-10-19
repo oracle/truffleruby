@@ -33,6 +33,9 @@ public abstract class ArrayStoreLibrary extends Library {
     public static final Object INITIAL_STORE = ZeroLengthArrayStore.ZERO_LENGTH_STORE;
     public static final ArrayAllocator INITIAL_ALLOCATOR = ZeroLengthArrayStore.ZERO_LENGTH_ALLOCATOR;
 
+    public static final Object SHARED_INITIAL_STORE = new SharedArrayStorage(ZeroLengthArrayStore.ZERO_LENGTH_STORE);
+    public static final ArrayAllocator SHARED_INITIAL_ALLOCATOR = SharedArrayStorage.SHARED_ZERO_LENGTH_ARRAY_ALLOCATOR;
+
     private static final LibraryFactory<ArrayStoreLibrary> FACTORY = LibraryFactory.resolve(ArrayStoreLibrary.class);
 
     public static LibraryFactory<ArrayStoreLibrary> getFactory() {
@@ -76,6 +79,11 @@ public abstract class ArrayStoreLibrary extends Library {
     /** Return whether the {@code store} is shared between multiple threads. */
     public boolean isShared(Object store) {
         return false;
+    }
+
+    /** Return a store that can be shared across threads. */
+    public Object makeShared(Object store) {
+        return new SharedArrayStorage(store);
     }
 
     /** Do any work required to start sharing children across threads. */
@@ -161,6 +169,11 @@ public abstract class ArrayStoreLibrary extends Library {
 
     /** Return an allocator for a mutable version of {@code store}. */
     public abstract ArrayAllocator allocator(Object store);
+
+    /** Return an allocator for a mutable version of {@code store}. */
+    public ArrayAllocator unsharedAllocator(Object store) {
+        return allocator(store);
+    }
 
     /** Return whether the {@code store}'s default value is {@code value}. */
     public abstract boolean isDefaultValue(Object store, Object value);

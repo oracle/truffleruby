@@ -99,6 +99,11 @@ public class SharedArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
+    public Object makeShared() {
+        return this;
+    }
+
+    @ExportMessage
     @TruffleBoundary
     protected String toString(
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
@@ -120,7 +125,7 @@ public class SharedArrayStorage implements ObjectGraphNode {
     @ExportMessage
     protected Object extractRange(int start, int end,
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
-        return stores.extractRange(storage, start, end);
+        return new SharedArrayStorage(stores.extractRange(storage, start, end));
     }
 
     @ExportMessage
@@ -192,6 +197,12 @@ public class SharedArrayStorage implements ObjectGraphNode {
     protected ArrayAllocator allocator(
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
         return new SharedArrayAllocator(stores.allocator(storage));
+    }
+
+    @ExportMessage
+    protected ArrayAllocator unsharedAllocator(
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+        return stores.allocator(storage);
     }
 
     public boolean hasObjectArrayStorage() {

@@ -88,19 +88,15 @@ describe "Sharing is correctly propagated for" do
   it "Array#initialize" do
     ary = Array.allocate
     @share = ary
-    $stderr.puts Truffle::Debug.array_storage(ary)
     shared?(ary).should == true
 
     ary.send(:initialize, 3, Object.new)
-    $stderr.puts Truffle::Debug.array_storage(ary)
     ary.each { |e| shared?(e).should == true }
 
     ary.send(:initialize, 3) { Object.new }
-    $stderr.puts Truffle::Debug.array_storage(ary)
     ary.each { |e| shared?(e).should == true }
 
     ary.send(:initialize, [Object.new, Object.new])
-    $stderr.puts Truffle::Debug.array_storage(ary)
     ary.each { |e| shared?(e).should == true }
   end
 
@@ -166,9 +162,11 @@ describe "Sharing is correctly propagated for" do
     @share = ary
     shared?(ary).should == true
 
-    new_ary = []
+    new_ary = [Object.new]
     ary.replace(new_ary)
-    shared?(new_ary).should == true
+    # new_ary is not shared, but any object it contained should be.
+    shared?(new_ary).should == false
+    new_ary.each { |e| shared?(e).should == true }
   end
 
   it "Array :steal_array_storage" do

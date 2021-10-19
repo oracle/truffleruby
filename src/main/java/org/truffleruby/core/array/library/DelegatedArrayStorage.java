@@ -56,6 +56,13 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
+    protected Object makeShared(
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+        stores.shareChildren(this);
+        return new SharedArrayStorage(this);
+    }
+
+    @ExportMessage
     protected void shareChildren(
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
         stores.shareChildren(storage);

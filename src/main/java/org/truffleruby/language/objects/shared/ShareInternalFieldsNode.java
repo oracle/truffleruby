@@ -46,20 +46,12 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
 
     public abstract void executeShare(RubyDynamicObject object);
 
-    @Specialization(guards = "!stores.isShared(store)", limit = "CACHE_LIMIT")
-    protected void shareUnsharedArray(RubyArray array,
+    @Specialization(limit = "CACHE_LIMIT")
+    protected void shareArray(RubyArray array,
             @Bind("array.store") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores,
             @Cached @Exclusive WriteBarrierNode writeBarrierNode) {
-        SharedArrayStorage newStore = new SharedArrayStorage(store);
-        array.store = newStore;
-        stores.shareChildren(store);
-    }
-
-    @Specialization(guards = "stores.isShared(store)", limit = "CACHE_LIMIT")
-    protected void shareSharedArray(RubyArray array,
-            @Bind("array.store") Object store,
-            @CachedLibrary("store") ArrayStoreLibrary stores) {
+        array.store = stores.makeShared(store);
     }
 
     @Specialization
@@ -81,8 +73,7 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
 
     @Specialization(
             replaces = {
-                    "shareSharedArray",
-                    "shareUnsharedArray",
+                    "shareArray",
                     "shareCachedQueue",
                     "shareCachedBasicObject" })
     protected void shareUncached(RubyDynamicObject object) {

@@ -82,6 +82,13 @@ public class ObjectArrayStore {
     }
 
     @ExportMessage
+    protected static Object makeShared(Object[] store,
+            @CachedLibrary("store") ArrayStoreLibrary stores) {
+        stores.shareChildren(store);
+        return new SharedArrayStorage(store);
+    }
+
+    @ExportMessage
     static class ShareChildren {
 
         @Specialization
