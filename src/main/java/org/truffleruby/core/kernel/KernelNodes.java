@@ -556,13 +556,8 @@ public abstract class KernelNodes {
         @Child private DispatchNode initializeCloneNode = DispatchNode.create();
         @Child private SingletonClassNode singletonClassNode;
 
-        @CreateCast("freeze")
-        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute freeze) {
-            return BooleanCastWithDefaultNode.create(true, freeze);
-        }
-
         @Specialization(limit = "getRubyLibraryCacheLimit()")
-        protected RubyDynamicObject clone(RubyDynamicObject object, boolean freeze,
+        protected RubyDynamicObject clone(RubyDynamicObject object, Object freeze,
                 @Cached ConditionProfile isSingletonProfile,
                 @Cached ConditionProfile freezeProfile,
                 @Cached ConditionProfile isFrozenProfile,
@@ -580,7 +575,8 @@ public abstract class KernelNodes {
 
             initializeCloneNode.call(newObject, "initialize_clone", object);
 
-            if (freezeProfile.profile(freeze) && isFrozenProfile.profile(rubyLibrary.isFrozen(object))) {
+            // Default behavior - is just to copy the frozen state of the original object
+            if (toForceFreezing(freeze) || (toNotForceChangingFreezeState(freeze) && rubyLibrary.isFrozen(object))) {
                 rubyLibraryFreeze.freeze(newObject);
             }
 
@@ -592,61 +588,93 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected Object cloneBoolean(boolean object, boolean freeze,
+        protected Object cloneBoolean(boolean object, Object freeze,
                 @Cached ConditionProfile freezeProfile) {
-            if (freezeProfile.profile(!freeze)) {
+            if (toForceUnfreezing(freeze)) {
                 raiseCantUnfreezeError(object);
             }
             return object;
         }
 
         @Specialization
-        protected Object cloneInteger(int object, boolean freeze,
+        protected Object cloneInteger(int object, Object freeze,
                 @Cached ConditionProfile freezeProfile) {
-            if (freezeProfile.profile(!freeze)) {
+            if (toForceUnfreezing(freeze)) {
                 raiseCantUnfreezeError(object);
             }
             return object;
         }
 
         @Specialization
-        protected Object cloneLong(long object, boolean freeze,
+        protected Object cloneLong(long object, Object freeze,
                 @Cached ConditionProfile freezeProfile) {
-            if (freezeProfile.profile(!freeze)) {
+            if (toForceUnfreezing(freeze)) {
                 raiseCantUnfreezeError(object);
             }
             return object;
         }
 
         @Specialization
-        protected Object cloneFloat(double object, boolean freeze,
+        protected Object cloneFloat(double object, Object freeze,
                 @Cached ConditionProfile freezeProfile) {
-            if (freezeProfile.profile(!freeze)) {
+            if (toForceUnfreezing(freeze)) {
                 raiseCantUnfreezeError(object);
             }
             return object;
         }
 
         @Specialization(guards = "!isImmutableRubyString(object)")
-        protected Object cloneImmutableObject(ImmutableRubyObject object, boolean freeze,
+        protected Object cloneImmutableObject(ImmutableRubyObject object, Object freeze,
                 @Cached ConditionProfile freezeProfile) {
-            if (freezeProfile.profile(!freeze)) {
+            if (toForceUnfreezing(freeze)) {
                 raiseCantUnfreezeError(object);
             }
             return object;
         }
 
         @Specialization
-        protected RubyDynamicObject cloneImmutableRubyString(ImmutableRubyString object, boolean freeze,
+        protected RubyDynamicObject cloneImmutableRubyString(ImmutableRubyString object, Object freeze,
                 @Cached ConditionProfile freezeProfile,
                 @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibraryFreeze,
                 @Cached MakeStringNode makeStringNode) {
             final RubyDynamicObject newObject = makeStringNode.fromRope(object.rope, object.encoding);
-            if (freezeProfile.profile(freeze)) {
+            if (!toForceUnfreezing(freeze)) {
                 rubyLibraryFreeze.freeze(newObject);
             }
 
             return newObject;
+        }
+
+        private boolean toForceFreezing(Object freeze) {
+           if (freeze instanceof Nil) {
+               return false;
+           }
+
+           if (freeze instanceof Boolean) {
+               return (boolean) freeze;
+           }
+
+           throw new RaiseException(getContext(), coreExceptions().argumentError(
+                   "Kernel#clone expects :freeze to be boolean or nil",
+                   this));
+        }
+
+        private boolean toForceUnfreezing(Object freeze) {
+            if (freeze instanceof Nil) {
+                return false;
+            }
+
+            if (freeze instanceof Boolean) {
+                return !(boolean) freeze;
+            }
+
+            throw new RaiseException(getContext(), coreExceptions().argumentError(
+                    "Kernel#clone expects :freeze to be boolean or nil",
+                    this));
+        }
+
+        private boolean toNotForceChangingFreezeState(Object freeze) {
+            return freeze instanceof Nil;
         }
 
         private void raiseCantUnfreezeError(Object object) {

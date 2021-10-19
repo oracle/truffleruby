@@ -749,7 +749,7 @@ module Kernel
   Primitive.method_unimplement method(:fork)
   Primitive.method_unimplement nil.method(:fork)
 
-  def clone(freeze: true)
+  def clone(freeze: nil)
     Primitive.object_clone self, freeze
   end
 

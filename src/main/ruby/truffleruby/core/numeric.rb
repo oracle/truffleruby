@@ -29,8 +29,8 @@
 class Numeric
   include Comparable
 
-  def clone(freeze: true)
-    unless freeze
+  def clone(freeze: nil)
+    if freeze == false
       raise ArgumentError, "can't unfreeze #{self.class.name}"
     end
     self
