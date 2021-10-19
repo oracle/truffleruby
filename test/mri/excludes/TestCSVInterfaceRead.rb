@@ -1,1 +1,5 @@
 exclude :test_open_encoding_nonexistent, "needs investigation"
+exclude :test_open_with_invalid_replace, "needs investigation"
+exclude :test_open_with_invalid_replace_and_replace_string, "needs investigation"
+exclude :test_open_with_undef_replace, "needs investigation"
+exclude :test_open_with_undef_replace_and_replace_string, "needs investigation"

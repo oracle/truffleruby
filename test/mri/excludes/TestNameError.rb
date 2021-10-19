@@ -1,0 +1,7 @@
+exclude :test_info_const, "needs investigation"
+exclude :test_info_const_name, "needs investigation"
+exclude :test_info_parent_iseq_mark, "needs investigation"
+exclude :test_large_receiver_inspect, "needs investigation"
+exclude :test_info_local_variables, "needs investigation"
+exclude :test_info_method, "needs investigation"
+exclude :test_info_method_missing, "needs investigation"
