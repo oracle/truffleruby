@@ -13,6 +13,7 @@ cp Gemfile.lock.renamed Gemfile.lock
 
 if [ "$gem_test_pack_path" ]; then
   truffleruby bundle config --local cache_path "$gem_test_pack_path/gem-cache"
+  truffleruby bundle config --local no_prune true
 else
   truffleruby bundle config --delete cache_path
 fi
