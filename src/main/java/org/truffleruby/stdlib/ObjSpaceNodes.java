@@ -75,7 +75,7 @@ public abstract class ObjSpaceNodes {
                         "isNotRubyString(object)",
                         "!isRubyMatchData(object)" })
         protected int memsizeOfObject(RubyDynamicObject object) {
-            return 1 + object.getShape().getPropertyListInternal(false).size();
+            return 1 + object.getShape().getPropertyCount();
         }
 
         @Specialization(guards = "!isRubyDynamicObject(object)")
