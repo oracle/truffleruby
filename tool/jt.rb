@@ -1215,8 +1215,7 @@ module Commands
     }
 
     cext_tests = test_files.select do |f|
-      f.include?('cext-ruby') ||
-      f == 'ruby/test_file_exhaustive.rb'
+      f.include?('cext-ruby') || MRI_TEST_CAPI_TESTS.include?(f)
     end
     cext_tests.each do |test|
       puts

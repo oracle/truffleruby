@@ -79,3 +79,4 @@ cext-ruby/win32/test_console_attr.rb
 cext-ruby/win32/test_dln.rb
 cext-ruby/win32/test_fd_setsize.rb
 ruby/test_file_exhaustive.rb
+ruby/test_memory_view.rb
