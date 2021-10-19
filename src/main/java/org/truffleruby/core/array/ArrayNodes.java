@@ -163,12 +163,7 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "count == 0")
         protected RubyArray mulZero(RubyArray array, int count) {
-            final RubyClass logicalClass = array.getLogicalClass();
-            return new RubyArray(
-                    logicalClass,
-                    getLanguage().arrayShape,
-                    ArrayStoreLibrary.INITIAL_STORE,
-                    0);
+            return createEmptyArray();
         }
 
         @Specialization(
@@ -197,12 +192,7 @@ public abstract class ArrayNodes {
                 profileAndReportLoopCount(loopProfile, n);
             }
 
-            final RubyClass logicalClass = array.getLogicalClass();
-            return new RubyArray(
-                    logicalClass,
-                    getLanguage().arrayShape,
-                    newStore,
-                    newSize);
+            return createArray(newStore, newSize);
         }
 
         @Specialization(guards = "count < 0")
@@ -217,12 +207,7 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "isEmptyArray(array)" })
         protected RubyArray mulEmpty(RubyArray array, long count) {
-            final RubyClass logicalClass = array.getLogicalClass();
-            return new RubyArray(
-                    logicalClass,
-                    getLanguage().arrayShape,
-                    ArrayStoreLibrary.INITIAL_STORE,
-                    0);
+            return createEmptyArray();
         }
 
         @Specialization(guards = { "!isImplicitLong(count)" })
