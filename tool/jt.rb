@@ -1478,7 +1478,8 @@ module Commands
     ]
     gems = %w[algebrick]
 
-    gem_server = spawn('gem', 'server', '-b', '127.0.0.1', '-p', '0', '-d', "#{gem_test_pack}/gems")
+    gem_server_env = { 'RUBYLIB' => "#{gem_test_pack}/gems/gems/webrick-1.7.0/lib" }
+    gem_server = spawn(gem_server_env, 'gem', 'server', '-b', '127.0.0.1', '-p', '0', '-d', "#{gem_test_pack}/gems")
     SUBPROCESSES << gem_server
     begin
       ports = find_ports_for_pid(gem_server)
