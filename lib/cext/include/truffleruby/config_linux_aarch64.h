@@ -34,6 +34,7 @@
 #define HAVE_LOCALE_H 1
 #define HAVE_MALLOC_H 1
 #define HAVE_PWD_H 1
+#define HAVE_SANITIZER_ASAN_INTERFACE_H 1
 #define HAVE_STDALIGN_H 1
 #define HAVE_SYS_EVENTFD_H 1
 #define HAVE_SYS_FCNTL_H 1
@@ -136,23 +137,27 @@
 #define DEPRECATED_BY(n,x) __attribute__ ((__deprecated__("by "#n))) x
 #define NOINLINE(x) __attribute__ ((__noinline__)) x
 #define ALWAYS_INLINE(x) __attribute__ ((__always_inline__)) x
-#define NO_SANITIZE(san, x) __attribute__ ((__no_sanitize__(san))) x
 #define NO_SANITIZE_ADDRESS(x) __attribute__ ((__no_sanitize_address__)) x
 #define NO_ADDRESS_SAFETY_ANALYSIS(x) __attribute__ ((__no_address_safety_analysis__)) x
 #define WARN_UNUSED_RESULT(x) __attribute__ ((__warn_unused_result__)) x
 #define MAYBE_UNUSED(x) __attribute__ ((__unused__)) x
+#define ERRORFUNC(mesg,x) __attribute__ ((__error__ mesg)) x
+#define WARNINGFUNC(mesg,x) __attribute__ ((__warning__ mesg)) x
 #define WEAK(x) __attribute__ ((__weak__)) x
 #define HAVE_FUNC_WEAK 1
 #define RUBY_CXX_DEPRECATED(msg) __attribute__((__deprecated__(msg)))
 #define HAVE_NULLPTR 1
-#define FUNC_CDECL(x) __attribute__ ((__cdecl__)) x
+#define FUNC_UNOPTIMIZED(x) __attribute__ ((__optimize__("O0"))) x
+#define FUNC_MINIMIZED(x) __attribute__ ((__optimize__("-Os","-fomit-frame-pointer"))) x
 #define HAVE_ATTRIBUTE_FUNCTION_ALIAS 1
 #define RUBY_ALIAS_FUNCTION_TYPE(type, prot, name, args) type prot __attribute__((alias(#name)));
 #define RUBY_ALIAS_FUNCTION_VOID(prot, name, args) RUBY_ALIAS_FUNCTION_TYPE(void, prot, name, args)
 #define HAVE_GCC_ATOMIC_BUILTINS 1
 #define HAVE_GCC_SYNC_BUILTINS 1
+#define UNREACHABLE __builtin_unreachable()
 #define RUBY_FUNC_EXPORTED __attribute__ ((__visibility__("default"))) extern
 #define RUBY_FUNC_NONNULL(n,x) __attribute__ ((__nonnull__(n))) x
+#define RUBY_FUNCTION_NAME_STRING __func__
 #define ENUM_OVER_INT 1
 #define HAVE_DECL_SYS_NERR 1
 #define HAVE_DECL_GETENV 1
@@ -361,6 +366,7 @@
 #define HAVE_BUILTIN___BUILTIN_ADD_OVERFLOW 1
 #define HAVE_BUILTIN___BUILTIN_SUB_OVERFLOW 1
 #define HAVE_BUILTIN___BUILTIN_MUL_OVERFLOW 1
+#define HAVE_BUILTIN___BUILTIN_MUL_OVERFLOW_P 1
 #define HAVE_BUILTIN___BUILTIN_CONSTANT_P 1
 #define HAVE_BUILTIN___BUILTIN_CHOOSE_EXPR 1
 #define HAVE_BUILTIN___BUILTIN_CHOOSE_EXPR_CONSTANT_P 1
@@ -407,9 +413,8 @@
 #define DLEXT_MAXLEN 3
 #define DLEXT ".so"
 #define HAVE__SETJMP 1
-#define RUBY_SETJMP(env) _setjmp((env))
-#define RUBY_LONGJMP(env,val) _longjmp((env),val)
-#define RUBY_JMP_BUF jmp_buf
+#define RUBY_SETJMP(env) __builtin_setjmp((env))
+#define RUBY_LONGJMP(env,val) __builtin_longjmp((env),val)
 #define USE_MJIT 1
 #define HAVE_PTHREAD_H 1
 #define RUBY_PLATFORM "aarch64-linux"
