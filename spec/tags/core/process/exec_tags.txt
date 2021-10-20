@@ -17,7 +17,6 @@ slow:Process.exec (environment variables) unsets other environment variables whe
 slow:Process.exec with a command array uses the first element as the command name and the second as the argv[0] value
 slow:Process.exec with a command array coerces the argument using to_ary
 slow:Process.exec with a command array raises an ArgumentError if the Array does not have exactly two elements
-slow:Process.exec with an options Hash with Integer option keys maps the key to a file descriptor in the child that inherits the file descriptor from the parent specified by the value
 slow:Process.exec with an options Hash with Integer option keys lets the process after exec have specified file descriptor despite close_on_exec
 slow:Process.exec with an options Hash with Integer option keys sets close_on_exec to false on specified fd even when it fails
-jvm(transient, JDK11, since PR 1232):Process.exec with an options Hash with Integer option keys maps the key to a file descriptor in the child that inherits the file descriptor from the parent specified by the value
+slow:Process.exec with an options Hash with Integer option keys maps the key to a file descriptor in the child that inherits the file descriptor from the parent specified by the value

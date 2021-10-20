@@ -1,4 +1,3 @@
-slow:Process.spawn returns the process ID of the new process as a Fixnum
 slow:Process.spawn returns immediately
 slow:Process.spawn sets environment variables in the child environment
 slow:Process.spawn unsets environment variables whose value is nil

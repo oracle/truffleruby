@@ -1,1 +1,6 @@
 fails:Hash#transform_keys! returns the processed keys and non evaluated keys if we broke from the block
+fails:Hash#transform_keys allows a hash argument
+fails:Hash#transform_keys allows a partial transformation of keys when using a hash argument
+fails:Hash#transform_keys allows a combination of hash and block argument
+fails:Hash#transform_keys! allows a hash argument
+fails:Hash#transform_keys! on frozen instance raises a FrozenError on hash argument

@@ -51,9 +51,18 @@ fails:Pattern matching Hash pattern supports double splat operator **rest
 fails:Pattern matching Hash pattern treats **nil like there should not be any other keys in a matched Hash
 fails:Pattern matching Hash pattern matches anything with **
 fails:Pattern matching refinements are used for #deconstruct_keys
-fails:Pattern matching warning warns about pattern matching is experimental feature
 fails:Pattern matching does not allow calculation or method calls in a pattern
 fails:Pattern matching Hash pattern does not support non-symbol keys
 fails:Pattern matching Array pattern accepts a subclass of Array from #deconstruct
 fails:Pattern matching can be standalone assoc operator that deconstructs value
 fails:Pattern matching Array pattern calls #deconstruct once for multiple patterns, caching the result
+fails:Pattern matching find pattern captures preceding elements to the pattern
+fails:Pattern matching find pattern captures following elements to the pattern
+fails:Pattern matching find pattern captures both preceding and following elements to the pattern
+fails:Pattern matching find pattern can capture the entirety of the pattern
+fails:Pattern matching find pattern will match an empty Array-like structure
+fails:Pattern matching warning when regular form does not warn about pattern matching is experimental feature
+fails:Pattern matching warning when one-line form warns about pattern matching is experimental feature
+fails:Pattern matching alternative pattern can be used as a nested pattern
+fails:Pattern matching Array pattern can be used as a nested pattern
+fails:Pattern matching Hash pattern can be used as a nested pattern

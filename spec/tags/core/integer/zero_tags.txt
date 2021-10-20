@@ -1,0 +1,1 @@
+fails:Integer#zero? Integer#zero? overrides Numeric#zero?

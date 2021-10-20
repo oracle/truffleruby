@@ -1,0 +1,3 @@
+fails:Dir.[] result is sorted by default
+fails:Dir.[] result is sorted with sort: true
+fails:Dir.[] sort: false returns same files

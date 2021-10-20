@@ -1,7 +1,5 @@
 slow:Kernel#require (concurrently) blocks based on the path
 slow:Kernel.require (concurrently) blocks based on the path
-slow:Kernel#require ($LOADED_FEATURES) complex, enumerator, rational and thread are already required
-slow:Kernel.require ($LOADED_FEATURES) complex, enumerator, rational and thread are already required
 slow:Kernel#require ($LOADED_FEATURES) unicode_normalize is part of core and not $LOADED_FEATURES
 slow:Kernel.require ($LOADED_FEATURES) unicode_normalize is part of core and not $LOADED_FEATURES
 fails:Kernel#require (non-extensioned path) loads a .rb extensioned file when a C-extension file exists on an earlier load path
