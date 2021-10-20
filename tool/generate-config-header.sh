@@ -5,7 +5,7 @@ set -x
 
 url="$1"
 if [ -z "$url" ]; then
-    url=https://cache.ruby-lang.org/pub/ruby/3.0/ruby-3.0.2.tar.gz
+    url=$(mx urlrewrite https://lafo.ssw.uni-linz.ac.at/pub/graal-external-deps/ruby-3.0.2.tar.gz)
 fi
 
 archive=$(basename "$url")
