@@ -47,24 +47,25 @@ module Truffle
     def self.match(re, str, pos=0)
       return nil unless str
 
-      common_match(re, str, pos, true)
-    end
-
-    def self.match?(re, str, pos=0)
-      return false unless str
-
-      common_match(re, str, pos, false)
-    end
-    Truffle::Graal.always_split(method(:match?))
-
-    def self.common_match(re, str, pos, create_match_data)
       str = Primitive.object_kind_of?(str, Symbol) ? str.to_s : StringValue(str)
 
       pos = pos < 0 ? pos + str.size : pos
       pos = Primitive.string_byte_index_from_char_index(str, pos)
 
-      search_region(re, str, pos, str.bytesize, true, create_match_data)
+      search_region(re, str, pos, str.bytesize, true, true)
     end
+
+    def self.match?(re, str, pos=0)
+      return false unless str
+
+      str = Primitive.object_kind_of?(str, Symbol) ? str.to_s : StringValue(str)
+
+      pos = pos < 0 ? pos + str.size : pos
+      pos = Primitive.string_byte_index_from_char_index(str, pos)
+
+      search_region(re, str, pos, str.bytesize, true, false)
+    end
+    Truffle::Graal.always_split(method(:match?))
 
     def self.match_from(re, str, pos)
       return nil unless str
