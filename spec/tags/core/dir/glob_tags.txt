@@ -1,1 +1,4 @@
 fails:Dir.glob recursively matches files and directories in nested dot subdirectory with 'nested/**/*' from the current directory and option File::FNM_DOTMATCH
+fails:Dir.glob result is sorted by default
+fails:Dir.glob result is sorted with sort: true
+fails:Dir.glob sort: false returns same files

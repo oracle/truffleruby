@@ -1,0 +1,1 @@
+fails:Set#initialize_clone does not freeze the new Set when called from clone(freeze: false)
