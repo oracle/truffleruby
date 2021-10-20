@@ -1,0 +1,13 @@
+module RBS
+  interface _HashEqual
+    def ==: (untyped other) -> bool
+
+    alias eql? ==
+
+    def hash: () -> Integer
+  end
+
+  interface _ToJson
+    def to_json: (*untyped) -> String
+  end
+end

@@ -63,7 +63,7 @@ module Bundler
       development_group = opts[:development_group] || :development
       expanded_path     = gemfile_root.join(path)
 
-      gemspecs = Dir[File.join(expanded_path, "{,*}.gemspec")].map {|g| Bundler.load_gemspec(g) }.compact
+      gemspecs = Gem::Util.glob_files_in_dir("{,*}.gemspec", expanded_path).map {|g| Bundler.load_gemspec(g) }.compact
       gemspecs.reject! {|s| s.name != name } if name
       Index.sort_specs(gemspecs)
       specs_by_name_and_version = gemspecs.group_by {|s| [s.name, s.version] }
@@ -75,8 +75,7 @@ module Bundler
 
         @gemspecs << spec
 
-        gem_platforms = Bundler::Dependency::REVERSE_PLATFORM_MAP[Bundler::GemHelpers.generic_local_platform]
-        gem spec.name, :name => spec.name, :path => path, :glob => glob, :platforms => gem_platforms
+        gem spec.name, :name => spec.name, :path => path, :glob => glob
 
         group(development_group) do
           spec.development_dependencies.each do |dep|
@@ -165,8 +164,7 @@ module Bundler
       elsif block_given?
         with_source(@sources.add_rubygems_source("remotes" => source), &blk)
       else
-        check_primary_source_safety(@sources)
-        @sources.global_rubygems_source = source
+        @sources.add_global_rubygems_remote(source)
       end
     end
 
@@ -184,24 +182,14 @@ module Bundler
     end
 
     def path(path, options = {}, &blk)
-      unless block_given?
-        msg = "You can no longer specify a path source by itself. Instead, \n" \
-              "either use the :path option on a gem, or specify the gems that \n" \
-              "bundler should find in the path source by passing a block to \n" \
-              "the path method, like: \n\n" \
-              "    path 'dir/containing/rails' do\n" \
-              "      gem 'rails'\n" \
-              "    end\n\n"
-
-        raise DeprecatedError, msg if Bundler.feature_flag.disable_multisource?
-        SharedHelpers.major_deprecation(2, msg.strip)
-      end
-
       source_options = normalize_hash(options).merge(
         "path" => Pathname.new(path),
         "root_path" => gemfile_root,
         "gemspec" => gemspecs.find {|g| g.name == options["name"] }
       )
+
+      source_options["global"] = true unless block_given?
+
       source = @sources.add_path_source(source_options)
       with_source(source, &blk)
     end
@@ -223,7 +211,6 @@ module Bundler
 
     def github(repo, options = {})
       raise ArgumentError, "GitHub sources require a block" unless block_given?
-      raise DeprecatedError, "The #github method has been removed" if Bundler.feature_flag.skip_default_git_sources?
       github_uri  = @git_sources["github"].call(repo)
       git_options = normalize_hash(options).merge("uri" => github_uri)
       git_source  = @sources.add_git_source(git_options)
@@ -231,6 +218,7 @@ module Bundler
     end
 
     def to_definition(lockfile, unlock)
+      check_primary_source_safety
       Definition.new(lockfile, @dependencies, @sources, unlock, @ruby_version, @optional_groups, @gemfiles)
     end
 
@@ -281,11 +269,14 @@ module Bundler
       raise GemfileError, "Undefined local variable or method `#{name}' for Gemfile"
     end
 
-  private
+    def check_primary_source_safety
+      check_path_source_safety
+      check_rubygems_source_safety
+    end
+
+    private
 
     def add_git_sources
-      return if Bundler.feature_flag.skip_default_git_sources?
-
       git_source(:github) do |repo_name|
         warn_deprecated_git_source(:github, <<-'RUBY'.strip, 'Change any "reponame" :github sources to "username/reponame".')
 "https://github.com/#{repo_name}.git"
@@ -444,25 +435,33 @@ repo_name ||= user_name
       end
     end
 
-    def check_primary_source_safety(source_list)
-      return if source_list.rubygems_primary_remotes.empty? && source_list.global_rubygems_source.nil?
+    def check_path_source_safety
+      return if @sources.global_path_source.nil?
 
-      if Bundler.feature_flag.disable_multisource?
+      msg = "You can no longer specify a path source by itself. Instead, \n" \
+              "either use the :path option on a gem, or specify the gems that \n" \
+              "bundler should find in the path source by passing a block to \n" \
+              "the path method, like: \n\n" \
+              "    path 'dir/containing/rails' do\n" \
+              "      gem 'rails'\n" \
+              "    end\n\n"
+
+      SharedHelpers.major_deprecation(2, msg.strip)
+    end
+
+    def check_rubygems_source_safety
+      return unless @sources.aggregate_global_source?
+
+      if Bundler.feature_flag.bundler_3_mode?
         msg = "This Gemfile contains multiple primary sources. " \
           "Each source after the first must include a block to indicate which gems " \
           "should come from that source"
-        unless Bundler.feature_flag.bundler_2_mode?
-          msg += ". To downgrade this error to a warning, run " \
-            "`bundle config unset disable_multisource`"
-        end
         raise GemfileEvalError, msg
       else
         Bundler::SharedHelpers.major_deprecation 2, "Your Gemfile contains multiple primary sources. " \
           "Using `source` more than once without a block is a security risk, and " \
           "may result in installing unexpected gems. To resolve this warning, use " \
-          "a block to indicate which gems should come from the secondary source. " \
-          "To upgrade this warning to an error, run `bundle config set " \
-          "disable_multisource true`."
+          "a block to indicate which gems should come from the secondary source."
       end
     end
 
@@ -571,7 +570,7 @@ The :#{name} git source is deprecated, and will be removed in the future.#{addit
         end
       end
 
-    private
+      private
 
       def parse_line_number_from_description
         description = self.description

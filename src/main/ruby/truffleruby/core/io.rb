@@ -935,7 +935,7 @@ class IO
       mode &= ACCMODE
 
       if cur_mode and (cur_mode == RDONLY or cur_mode == WRONLY) and mode != cur_mode
-        raise Errno::EINVAL, "Invalid new mode for existing descriptor #{fd}"
+        raise Errno::EINVAL, "Invalid mode #{cur_mode} for existing descriptor #{fd} (expected #{mode})"
       end
     else
       mode = cur_mode or raise 'No mode given for IO'

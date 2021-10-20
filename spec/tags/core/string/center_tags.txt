@@ -1,0 +1,1 @@
+fails:String#center with length, padding returns String instances when called on subclasses

@@ -1,0 +1,4 @@
+module TSort[Node]
+  class Cyclic < StandardError
+  end
+end

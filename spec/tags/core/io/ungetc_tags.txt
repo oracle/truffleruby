@@ -1,0 +1,1 @@
+fails:IO#ungetc raises TypeError if passed nil

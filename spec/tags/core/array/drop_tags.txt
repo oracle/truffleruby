@@ -1,0 +1,1 @@
+fails:Array#drop returns a Array instance for Array subclasses

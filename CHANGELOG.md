@@ -2,6 +2,7 @@
 
 New features:
 
+* Updated to Ruby 3.0.2 (#2453).
 
 Bug fixes:
 

@@ -1,0 +1,1 @@
+fails:Kernel#proc raises an ArgumentError when passed no block

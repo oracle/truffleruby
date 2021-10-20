@@ -49,7 +49,7 @@ module JSON
         )+
       )mx
 
-        UNPARSED = Object.new.freeze
+      UNPARSED = Object.new.freeze
 
       # Creates a new JSON::Pure::Parser instance for the string _source_.
       #
@@ -61,12 +61,14 @@ module JSON
       # * *allow_nan*: If set to true, allow NaN, Infinity and -Infinity in
       #   defiance of RFC 7159 to be parsed by the Parser. This option defaults
       #   to false.
+      # * *freeze*: If set to true, all parsed objects will be frozen. Parsed
+      #   string will be deduplicated if possible.
       # * *symbolize_names*: If set to true, returns symbols for the names
       #   (keys) in a JSON object. Otherwise strings are returned, which is
       #   also the default. It's not possible to use this option in
       #   conjunction with the *create_additions* option.
       # * *create_additions*: If set to true, the Parser creates
-      #   additions when if a matching class and create_id was found. This
+      #   additions when a matching class and create_id are found. This
       #   option defaults to false.
       # * *object_class*: Defaults to Hash
       # * *array_class*: Defaults to Array
@@ -86,6 +88,7 @@ module JSON
         end
         @allow_nan = !!opts[:allow_nan]
         @symbolize_names = !!opts[:symbolize_names]
+        @freeze = !!opts[:freeze]
         if opts.key?(:create_additions)
           @create_additions = !!opts[:create_additions]
         else
@@ -120,6 +123,7 @@ module JSON
           obj = parse_value
           UNPARSED.equal?(obj) and raise ParserError,
             "source is not valid JSON!"
+          obj.freeze if @freeze
         end
         while !eos? && skip(IGNORE) do end
         eos? or raise ParserError, "source is not valid JSON!"
@@ -161,6 +165,7 @@ module JSON
         EMPTY_8BIT_STRING.force_encoding Encoding::ASCII_8BIT
       end
 
+      STR_UMINUS = ''.respond_to?(:-@)
       def parse_string
         if scan(STRING)
           return '' if self[1].empty?
@@ -180,6 +185,15 @@ module JSON
           if string.respond_to?(:force_encoding)
             string.force_encoding(::Encoding::UTF_8)
           end
+
+          if @freeze
+            if STR_UMINUS
+              string = -string
+            else
+              string.freeze
+            end
+          end
+
           if @create_additions and @match_string
             for (regexp, klass) in @match_string
               klass.json_creatable? or next
@@ -242,8 +256,10 @@ module JSON
           @max_nesting.nonzero? && @current_nesting > @max_nesting
         result = @array_class.new
         delim = false
-        until eos?
+        loop do
           case
+          when eos?
+            raise ParserError, "unexpected end of string while parsing array"
           when !UNPARSED.equal?(value = parse_value)
             delim = false
             result << value
@@ -274,8 +290,10 @@ module JSON
           @max_nesting.nonzero? && @current_nesting > @max_nesting
         result = @object_class.new
         delim = false
-        until eos?
+        loop do
           case
+          when eos?
+            raise ParserError, "unexpected end of string while parsing object"
           when !UNPARSED.equal?(string = parse_string)
             skip(IGNORE)
             unless scan(PAIR_DELIMITER)

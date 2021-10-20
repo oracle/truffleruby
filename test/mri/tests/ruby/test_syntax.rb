@@ -93,6 +93,17 @@ class TestSyntax < Test::Unit::TestCase
     assert_valid_syntax("tap (proc do end)", __FILE__, bug9726)
   end
 
+  def test_hash_kwsplat_hash
+    kw = {}
+    h = {a: 1}
+    assert_equal({}, {**{}})
+    assert_equal({}, {**kw})
+    assert_equal(h, {**h})
+    assert_equal(false, {**{}}.frozen?)
+    assert_equal(false, {**kw}.equal?(kw))
+    assert_equal(false, {**h}.equal?(h))
+  end
+
   def test_array_kwsplat_hash
     kw = {}
     h = {a: 1}
@@ -182,9 +193,7 @@ class TestSyntax < Test::Unit::TestCase
     h = {k3: 31}
     assert_raise(ArgumentError) {o.kw(**h)}
     h = {"k1"=>11, k2: 12}
-    assert_warn(/Splitting the last argument into positional and keyword parameters is deprecated.*The called method `kw'/m) do
-      assert_raise(ArgumentError) {o.kw(**h)}
-    end
+    assert_raise(ArgumentError) {o.kw(**h)}
   end
 
   def test_keyword_duplicated
@@ -199,7 +208,7 @@ class TestSyntax < Test::Unit::TestCase
     assert_equal([1, 2], a, bug10315)
     a.clear
     r = nil
-    assert_warn(/duplicated/) {r = eval("a.f({k: a.add(1), k: a.add(2)})")}
+    assert_warn(/duplicated/) {r = eval("a.f(**{k: a.add(1), k: a.add(2)})")}
     assert_equal(2, r)
     assert_equal([1, 2], a, bug10315)
   end
@@ -610,6 +619,11 @@ WARN
   def test_do_block_after_lambda
     bug11380 = '[ruby-core:70067] [Bug #11380]'
     assert_valid_syntax('p -> { :hello }, a: 1 do end', bug11380)
+
+    assert_valid_syntax('->(opt = (foo.[] bar)) {}')
+    assert_valid_syntax('->(opt = (foo.[]= bar)) {}')
+    assert_valid_syntax('->(opt = (foo.[] bar)) do end')
+    assert_valid_syntax('->(opt = (foo.[]= bar)) do end')
   end
 
   def test_reserved_method_no_args
@@ -951,9 +965,14 @@ eom
 
   def test_warning_for_cr
     feature8699 = '[ruby-core:56240] [Feature #8699]'
-    assert_warning(/encountered \\r/, feature8699) do
-      eval("\r""__id__\r")
+    s = assert_warning(/encountered \\r/, feature8699) do
+      eval("'\r'\r")
     end
+    assert_equal("\r", s)
+    s = assert_warning('') do
+      eval("'\r'\r\n")
+    end
+    assert_equal("\r", s)
   end
 
   def test_unexpected_fraction
@@ -984,6 +1003,19 @@ eom
     assert_warn('') {eval("(1...)")}
     assert_warn('') {eval("(1...\n2)")}
     assert_warn('') {eval("{a: 1...\n2}")}
+
+    assert_warn(/\.\.\. at EOL/) do
+      assert_valid_syntax('foo.[]= ...', verbose: true)
+    end
+    assert_warn(/\.\.\. at EOL/) do
+      assert_valid_syntax('foo.[] ...', verbose: true)
+    end
+    assert_warn(/\.\.\. at EOL/) do
+      assert_syntax_error('foo.[]= bar, ...', /unexpected/, verbose: true)
+    end
+    assert_warn(/\.\.\. at EOL/) do
+      assert_syntax_error('foo.[] bar, ...', /unexpected/, verbose: true)
+    end
   end
 
   def test_too_big_nth_ref
@@ -1409,6 +1441,27 @@ eom
     assert_equal(line, e.backtrace_locations[0].lineno)
   end
 
+  def test_methoddef_endless
+    assert_valid_syntax('private def foo = 42')
+    assert_valid_syntax('private def foo() = 42')
+    assert_valid_syntax('private def inc(x) = x + 1')
+    assert_valid_syntax('private def obj.foo = 42')
+    assert_valid_syntax('private def obj.foo() = 42')
+    assert_valid_syntax('private def obj.inc(x) = x + 1')
+    k = Class.new do
+      class_eval('def rescued(x) = raise("to be caught") rescue "instance #{x}"')
+      class_eval('def self.rescued(x) = raise("to be caught") rescue "class #{x}"')
+    end
+    assert_equal("class ok", k.rescued("ok"))
+    assert_equal("instance ok", k.new.rescued("ok"))
+
+    error = /setter method cannot be defined in an endless method definition/
+    assert_syntax_error('def foo=() = 42', error)
+    assert_syntax_error('def obj.foo=() = 42', error)
+    assert_syntax_error('def foo=() = 42 rescue nil', error)
+    assert_syntax_error('def obj.foo=() = 42 rescue nil', error)
+  end
+
   def test_methoddef_in_cond
     assert_valid_syntax('while def foo; tap do end; end; break; end')
     assert_valid_syntax('while def foo a = tap do end; end; break; end')
@@ -1446,13 +1499,12 @@ eom
     assert_syntax_error('-> {_1; -> {_2}}', /numbered parameter is already used/)
     assert_syntax_error('-> {-> {_1}; _2}', /numbered parameter is already used/)
     assert_syntax_error('proc {_1; _1 = nil}', /Can't assign to numbered parameter _1/)
-    mesg = proc {|n| /`_#{n}' is reserved for numbered parameter/}
-    assert_warn(mesg[1]) {eval('proc {_1 = nil}')}
-    # assert_warn(mesg[2]) {eval('_2=1')} # GR-30031
-    assert_warn(mesg[3]) {eval('proc {|_3|}')}
-    assert_warn(mesg[4]) {instance_eval('def x(_4) end')}
-    assert_warn(mesg[5]) {instance_eval('def _5; end')}
-    assert_warn(mesg[6]) {instance_eval('def self._6; end')}
+    assert_syntax_error('proc {_1 = nil}', /_1 is reserved for numbered parameter/)
+    # assert_syntax_error('_2=1', /_2 is reserved for numbered parameter/) # GR-30031
+    assert_syntax_error('proc {|_3|}', /_3 is reserved for numbered parameter/)
+    assert_syntax_error('def x(_4) end', /_4 is reserved for numbered parameter/)
+    assert_syntax_error('def _5; end', /_5 is reserved for numbered parameter/)
+    assert_syntax_error('def self._6; end', /_6 is reserved for numbered parameter/)
     assert_raise_with_message(NameError, /undefined local variable or method `_1'/) {
       eval('_1')
     }
@@ -1461,7 +1513,13 @@ eom
       assert_valid_syntax("->{_1;#{c};->{_1};end}\n")
     end
 
-    1.times {_1}
+    1.times {
+      [
+        _1,
+        assert_equal([:a], eval("[:a].map{_1}")),
+        assert_raise(NameError) {eval("_1")},
+      ]
+    }
   end
 
   def test_value_expr_in_condition
@@ -1472,6 +1530,11 @@ eom
     assert_valid_syntax("tap {a = (break unless true)}")
   end
 
+  def test_tautological_condition
+    assert_valid_syntax("def f() return if false and invalid; nil end")
+    assert_valid_syntax("def f() return unless true or invalid; nil end")
+  end
+
   def test_argument_forwarding
     assert_valid_syntax('def foo(...) bar(...) end')
     assert_valid_syntax('def foo(...) end')
@@ -1480,10 +1543,11 @@ eom
     assert_valid_syntax('def nil(...) end')
     assert_valid_syntax('def true(...) end')
     assert_valid_syntax('def false(...) end')
+    unexpected = /unexpected \.{3}/
     assert_syntax_error('iter do |...| end', /unexpected/)
     assert_syntax_error('iter {|...|}', /unexpected/)
-    assert_syntax_error('->... {}', /unexpected/)
-    assert_syntax_error('->(...) {}', /unexpected/)
+    assert_syntax_error('->... {}', unexpected)
+    assert_syntax_error('->(...) {}', unexpected)
     assert_syntax_error('def foo(x, y, z) bar(...); end', /unexpected/)
     assert_syntax_error('def foo(x, y, z) super(...); end', /unexpected/)
     assert_syntax_error('def foo(...) yield(...); end', /unexpected/)
@@ -1539,12 +1603,12 @@ eom
       assert_warning('') {
         assert_equal([[1, 2, 3], {k1: 4, k2: 5}], obj.foo(1, 2, 3, k1: 4, k2: 5))
       }
-      warning = "warning: Using the last argument as keyword parameters is deprecated"
-      assert_warning(/\A\z|:(?!#{__LINE__+1})\d+: #{warning}/o) {
-        assert_equal([[], {}], obj.foo({}) {|*x| x})
+      array = obj == obj3 ? [] : [{}]
+      assert_warning('') {
+        assert_equal([array, {}], obj.foo({}) {|*x| x})
       }
-      assert_warning(/\A\z|:(?!#{__LINE__+1})\d+: #{warning}/o) {
-        assert_equal([[], {}], obj.foo({}))
+      assert_warning('') {
+        assert_equal([array, {}], obj.foo({}))
       }
       assert_equal(-1, obj.method(:foo).arity)
       parameters = obj.method(:foo).parameters
@@ -1664,6 +1728,21 @@ eom
     assert_equal [[4, 1, 5, 2], {a: 1}], obj.foo(4, 5, 2, a: 1)
     assert_equal [[4, 1, 5, 2, 3], {a: 1}], obj.foo(4, 5, 2, 3, a: 1)
     assert_equal [[4, 1, 5, 2, 3], {a: 1}], obj.foo(4, 5, 2, 3, a: 1){|args, kws| [args, kws]}
+  end
+
+  def test_cdhash
+    assert_separately([], <<-RUBY)
+      n = case 1 when 2r then false else true end
+      assert_equal(n, true, '[ruby-core:103759] [Bug #17854]')
+    RUBY
+    assert_separately([], <<-RUBY)
+      n = case 3/2r when 1.5r then true else false end
+      assert_equal(n, true, '[ruby-core:103759] [Bug #17854]')
+    RUBY
+    assert_separately([], <<-RUBY)
+      n = case 1i when 1i then true else false end
+      assert_equal(n, true, '[ruby-core:103759] [Bug #17854]')
+    RUBY
   end
 
   private

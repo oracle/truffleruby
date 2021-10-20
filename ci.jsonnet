@@ -30,7 +30,7 @@ local common = (import "common.json");
 local part_definitions = {
   local jt = function(args) [["bin/jt"] + args],
   local mri_path = function(version) "/cm/shared/apps/ruby/" + version + "/bin/ruby",
-  local mri_version = "2.7.2",
+  local mri_version = "3.0.2",
 
   use: {
     common: {
@@ -318,6 +318,7 @@ local part_definitions = {
         "CHECK_LEAKS": "true",
       },
       run+: jt(["-u", mri_path(mri_version), "mspec", "spec/ruby"]) +
+            jt(["-u", mri_path("2.7.2"), "mspec", "spec/ruby"]) +
             jt(["-u", mri_path("2.6.6"), "mspec", "spec/ruby"]),
     },
 
@@ -367,20 +368,23 @@ local part_definitions = {
         ["mx", "sforceimports"], # clone the graal repo
         ["mx", "-p", "../graal/sulong", "build"],
         ["set-export", "TOOLCHAIN_PATH", ["mx", "-p", "../graal/sulong", "lli", "--print-toolchain-path"]],
-        ["set-export", "CC", "$TOOLCHAIN_PATH/clang"],
-        ["set-export", "CXX", "$TOOLCHAIN_PATH/clang++"],
-        # for finding libc++
-        ["set-export", "LD_LIBRARY_PATH", "$BUILD_DIR/graal/sulong/mxbuild/" + self.platform + "-" + self.arch + "/SULONG_HOME/native/lib:$LD_LIBRARY_PATH"],
       ],
       run+: [
-        ["ruby", "tool/generate-native-config.rb"],
+        ["env",
+          "LD_LIBRARY_PATH=$BUILD_DIR/graal/sulong/mxbuild/" + self.platform + "-" + self.arch + "/SULONG_HOME/native/lib:$LD_LIBRARY_PATH", # for finding libc++
+          "PATH=$TOOLCHAIN_PATH:$PATH",
+          "ruby", "tool/generate-native-config.rb"],
         ["cat", "src/main/java/org/truffleruby/platform/" + self.platform_name + "NativeConfiguration.java"],
+
+        # Uses the system compiler as using the toolchain for this does not work on macOS
+        ["tool/generate-config-header.sh"],
+        ["cat", "lib/cext/include/truffleruby/config_" + self.platform + "_" + self.arch + ".h"],
       ],
     },
 
     check_native_config: {
       is_after+:: ["$.run.generate_native_config"],
-      run+: jt(["check_native_configuration"]),
+      run+: jt(["check_native_configuration"]) + jt(["check_config_header"]),
     },
   },
 
@@ -706,9 +710,9 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
   manual_builds: {
     local shared = $.use.common + $.cap.manual + { timelimit: "15:00" },
 
-    "ruby-generate-native-config-linux": $.platform.linux + $.jdk.v11 + shared + $.run.generate_native_config,
-    "ruby-generate-native-config-linux-arm64": $.platform.linux_arm64 + $.jdk.v11 + shared + $.run.generate_native_config,
-    "ruby-generate-native-config-darwin": $.platform.darwin + $.jdk.v11 + shared + $.run.generate_native_config,
+    "ruby-generate-native-config-linux-amd64": $.platform.linux + $.jdk.v11 + shared + $.run.generate_native_config,
+    "ruby-generate-native-config-linux-aarch64": $.platform.linux_arm64 + $.jdk.v11 + shared + $.run.generate_native_config,
+    "ruby-generate-native-config-darwin-amd64": $.platform.darwin + $.jdk.v11 + shared + $.run.generate_native_config,
   },
 
   builds:

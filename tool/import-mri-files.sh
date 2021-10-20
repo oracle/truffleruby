@@ -81,6 +81,7 @@ cp ../ruby/ext/zlib/*.{c,rb} src/main/c/zlib
 cp "$RUBY_BUILD_DIR"/{id.h,symbol.h} lib/cext/include/truffleruby/internal
 cp "$RUBY_BUILD_DIR"/{node.c,parse.c,lex.c} src/main/c/ripper
 cp "$RUBY_BUILD_DIR"/ext/ripper/*.{c,rb} src/main/c/ripper
+cp "$RUBY_BUILD_DIR"/ext/ripper/ripper.y src/main/c/ripper/ripper.y.renamed
 cp "$RUBY_BUILD_DIR"/{node.h,parse.h,probes.h,probes.dmyh,regenc.h} src/main/c/ripper
 
 # test/
@@ -113,10 +114,18 @@ cp lib/cext/include/ccan/licenses/BSD-MIT doc/legal/ccan-bsd-mit.txt
 cp lib/cext/include/ccan/licenses/CC0 doc/legal/ccan-cc0.txt
 
 # include/
-rm -rf lib/cext/include/ruby lib/cext/include/ccan
+rm -rf lib/cext/include/ruby
 git checkout lib/cext/include/ruby/config.h
 cp -r ../ruby/include/. lib/cext/include
-cp -r ../ruby/ccan/. lib/cext/include/ccan
+
+rm -rf lib/cext/include/ccan
+cp -r ../ruby/ccan lib/cext/include
+
+internal_headers=({bignum,bits,compile,compilers,complex,error,fixnum,imemo,numeric,parse,rational,re,static_assert,util}.h)
+rm -f "${internal_headers[@]/#/lib/cext/include/internal/}"
+cp -r "${internal_headers[@]/#/../ruby/internal/}" lib/cext/include/internal
+
+rm -f lib/cext/include/ruby_assert.h && cp ../ruby/ruby_assert.h lib/cext/include/ruby_assert.h
 
 # defs/
 cp ../ruby/defs/known_errors.def tool

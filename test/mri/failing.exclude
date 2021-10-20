@@ -2,6 +2,7 @@
 
 ruby/test_ast.rb
 ruby/test_jit.rb
+ruby/test_jit_debug.rb
 dbm/test_dbm.rb
 gdbm/test_gdbm.rb
 sdbm/test_sdbm.rb
@@ -27,6 +28,9 @@ win32ole/test_word.rb
 
 # Pattern matching
 ruby/test_pattern_matching.rb #  syntax error, unexpected modifier_if (SyntaxError)
+
+# MemoryView C API
+ruby/test_memory_view.rb # rb_memory_view_register not found
 
 # Too slow
 

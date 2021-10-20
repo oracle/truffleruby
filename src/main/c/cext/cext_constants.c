@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2021 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -18,7 +18,6 @@ VALUE rb_cBinding;
 VALUE rb_cClass;
 VALUE rb_mComparable;
 VALUE rb_cComplex;
-VALUE rb_cData;
 VALUE rb_cDir;
 VALUE rb_cEncoding;
 VALUE rb_mEnumerable;
@@ -98,7 +97,6 @@ void rb_tr_init_global_constants(void) {
   rb_cClass = RUBY_CEXT_INVOKE("rb_cClass");
   rb_mComparable = RUBY_CEXT_INVOKE("rb_mComparable");
   rb_cComplex = RUBY_CEXT_INVOKE("rb_cComplex");
-  rb_cData = RUBY_CEXT_INVOKE("rb_cData");
   rb_cDir = RUBY_CEXT_INVOKE("rb_cDir");
   rb_cEncoding = RUBY_CEXT_INVOKE("rb_cEncoding");
   rb_mEnumerable = RUBY_CEXT_INVOKE("rb_mEnumerable");

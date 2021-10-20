@@ -1,0 +1,3 @@
+fails:String#scrub with a default replacement returns String instances when called on a subclass
+fails:String#scrub with a custom replacement returns String instances when called on a subclass
+fails:String#scrub with a block returns String instances when called on a subclass

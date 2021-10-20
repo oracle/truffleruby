@@ -92,14 +92,9 @@ class MSpecScript
     "spec/truffle/capi"
   ]
 
+  # Use spec/ruby/core/nil/nil_spec.rb as a dummy file to avoid being empty
   set :next, %w[
-    spec/ruby/core/mutex/owned_spec.rb
-    spec/ruby/core/fiber/raise_spec.rb
-    spec/ruby/core/process/status/wait_spec.rb
-    spec/ruby/core/module/attr_spec.rb
-    spec/ruby/core/module/attr_reader_spec.rb
-    spec/ruby/core/module/attr_writer_spec.rb
-    spec/ruby/core/module/attr_accessor_spec.rb
+    spec/ruby/core/nil/nil_spec.rb
   ]
 
   set :tags_patterns, [
@@ -153,7 +148,7 @@ if MSpecScript.child_process?
     ::VersionGuard::FULL_RUBY_VERSION = SpecVersion.new(version)
   elsif ARGV.include? ":next"
     ::VersionGuard.send :remove_const, :FULL_RUBY_VERSION
-    ::VersionGuard::FULL_RUBY_VERSION = SpecVersion.new("3.0.0")
+    ::VersionGuard::FULL_RUBY_VERSION = SpecVersion.new("3.1.0")
   end
 end
 

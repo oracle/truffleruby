@@ -27,6 +27,14 @@ class TestPrime < Test::Unit::TestCase
     assert_equal PRIMES, primes
   end
 
+  def test_include?
+    assert_equal(false, Prime.include?(nil))
+    assert_equal(true, Prime.include?(3))
+    assert_equal(false, Prime.include?(4))
+    assert_equal(true, Prime.include?(Enumerable))
+    assert_equal(false, Prime.include?(Comparable))
+  end
+
   def test_integer_each_prime
     primes = []
     Integer.each_prime(1000) do |p|
@@ -249,7 +257,18 @@ class TestPrime < Test::Unit::TestCase
       assert_not_predicate(-2, :prime?)
       assert_not_predicate(-3, :prime?)
       assert_not_predicate(-4, :prime?)
+
+      assert_equal 1229, (1..10_000).count(&:prime?)
+      assert_equal 861, (100_000..110_000).count(&:prime?)
     end
+
+=begin
+  # now Ractor should not use in test-all process
+    def test_prime_in_ractor
+      # Test usage of private constant...
+      assert_equal false, Ractor.new { ((2**13-1) * (2**17-1)).prime? }.take
+    end if defined?(Ractor)
+=end
   end
 
   def test_eratosthenes_works_fine_after_timeout

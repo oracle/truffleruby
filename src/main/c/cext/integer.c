@@ -8,10 +8,11 @@
  * GNU Lesser General Public License version 2.1.
  */
 #include <truffleruby-impl.h>
+#include <internal/numeric.h>
 
 // Integer, rb_integer_*, rb_*int*, rb_big_*
 
-int RB_FIXNUM_P(VALUE value) {
+bool RB_FIXNUM_P(VALUE value) {
   return polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("RB_FIXNUM_P", value));
 }
 

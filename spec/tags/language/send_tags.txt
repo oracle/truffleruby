@@ -1,0 +1,1 @@
+fails:Invoking a method expands the Array elements from the splat before applying block argument operations

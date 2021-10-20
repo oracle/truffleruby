@@ -1,3 +1,4 @@
+# frozen_string_literal: false
 # truffleruby_primitives: true
 
 # Copyright (c) 2015, 2020 Oracle and/or its affiliates. All rights reserved. This
@@ -8,10 +9,15 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-# Original version licensed under LICENSE.RUBY as it is derived from
-# lib/ruby/stdlib/digest.rb and is Copyright (C) 2001 Shugo Maeda
-# <shugo@ruby-lang.org>
+# = monitor.rb
+#
+# Copyright (C) 2001  Shugo Maeda <shugo@ruby-lang.org>
+#
+# This library is distributed under the terms of the Ruby license.
+# You can freely distribute/modify this library.
+#
 
+#
 # In concurrent programming, a monitor is an object or module intended to be
 # used safely by more than one thread.  The defining characteristic of a
 # monitor is that its methods are executed with mutual exclusion.  That is, at
@@ -21,7 +27,7 @@
 # structure.
 #
 # You can read more about the general principles on the Wikipedia page for
-# Monitors[http://en.wikipedia.org/wiki/Monitor_%28synchronization%29]
+# Monitors[https://en.wikipedia.org/wiki/Monitor_%28synchronization%29]
 #
 # == Examples
 #
@@ -90,6 +96,11 @@
 # This Class is implemented as subclass of Array which includes the
 # MonitorMixin module.
 #
+
+unless defined?(::TruffleRuby)
+  require 'monitor.so'
+end
+
 module MonitorMixin
   #
   # FIXME: This isn't documented in Nutshell.
@@ -210,16 +221,18 @@ module MonitorMixin
 
   #
   # Creates a new MonitorMixin::ConditionVariable associated with the
-  # receiver.
+  # Monitor object.
   #
   def new_cond
     ConditionVariable.new(@mon_mutex)
   end
 
+  private
+
   # Use <tt>extend MonitorMixin</tt> or <tt>include MonitorMixin</tt> instead
   # of this constructor.  Have look at the examples above to understand how to
   # use this module.
-  def initialize(*args)
+  def initialize(...)
     super
     mon_initialize
   end
@@ -253,7 +266,6 @@ class Monitor
   alias exit mon_exit
 end
 
-
 # Documentation comments:
 #  - All documentation comes from Nutshell.
 #  - MonitorMixin.new_cond appears in the example, but is not documented in
@@ -269,8 +281,3 @@ end
 #    directly in the RDoc output.
 #  - in short, it may be worth changing the code layout in this file to make the
 #    documentation easier
-
-# Local variables:
-# mode: Ruby
-# tab-width: 8
-# End:

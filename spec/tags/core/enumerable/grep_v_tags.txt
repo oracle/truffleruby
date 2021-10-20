@@ -1,0 +1,1 @@
+fails:Enumerable#grep_v does not set $~ when given no block

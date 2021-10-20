@@ -1,6 +1,6 @@
 # coding: utf-8
 
-bigdecimal_version = '2.0.0'
+bigdecimal_version = '3.0.0'
 
 Gem::Specification.new do |s|
   s.name          = "bigdecimal"
@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.summary       = "Arbitrary-precision decimal floating-point number library."
   s.description   = "This library provides arbitrary-precision decimal floating-point number class."
   s.homepage      = "https://github.com/ruby/bigdecimal"
-  s.license       = "ruby"
+  s.license       = "Ruby"
 
   s.require_paths = %w[lib]
   s.extensions    = %w[ext/bigdecimal/extconf.rb]
@@ -30,9 +30,9 @@ Gem::Specification.new do |s|
     sample/pi.rb
   ]
 
-  s.required_ruby_version = Gem::Requirement.new(">= 2.3.0")
+  s.required_ruby_version = Gem::Requirement.new(">= 2.4.0")
 
-  s.add_development_dependency "rake", "~> 10.0"
+  s.add_development_dependency "rake", ">= 12.3.3"
   s.add_development_dependency "rake-compiler", ">= 0.9"
   s.add_development_dependency "minitest", "< 5.0.0"
   s.add_development_dependency "pry"

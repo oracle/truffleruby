@@ -5,7 +5,6 @@ require 'test/unit'
 class TestObject < Test::Unit::TestCase
   def setup
     @verbose = $VERBOSE
-    $VERBOSE = nil
   end
 
   def teardown
@@ -47,15 +46,27 @@ class TestObject < Test::Unit::TestCase
     a = Object.new
     def a.b; 2 end
 
+    c = a.clone
+    assert_equal(false, c.frozen?)
+    assert_equal(false, a.frozen?)
+    assert_equal(2, c.b)
+
+    c = a.clone(freeze: true)
+    assert_equal(true, c.frozen?)
+    assert_equal(false, a.frozen?)
+    assert_equal(2, c.b)
+
     a.freeze
     c = a.clone
     assert_equal(true, c.frozen?)
+    assert_equal(true, a.frozen?)
     assert_equal(2, c.b)
 
     assert_raise(ArgumentError) {a.clone(freeze: [])}
     d = a.clone(freeze: false)
     def d.e; 3; end
     assert_equal(false, d.frozen?)
+    assert_equal(true, a.frozen?)
     assert_equal(2, d.b)
     assert_equal(3, d.e)
 
@@ -75,6 +86,30 @@ class TestObject < Test::Unit::TestCase
     assert_raise_with_message(ArgumentError, /\u{1f4a9}/) do
       Object.new.clone(freeze: x)
     end
+
+    c = Class.new do
+      attr_reader :f
+    end
+    o = c.new
+    def o.initialize_clone(_, freeze: true)
+      @f = freeze
+      super
+    end
+    clone = o.clone
+    assert_kind_of c, clone
+    assert_equal true, clone.f
+    clone = o.clone(freeze: false)
+    assert_kind_of c, clone
+    assert_equal false, clone.f
+
+    class << o
+      remove_method(:initialize_clone)
+    end
+    def o.initialize_clone(_)
+      super
+    end
+    assert_kind_of c, o.clone
+    assert_raise(ArgumentError) { o.clone(freeze: false) }
   end
 
   def test_init_dupclone
@@ -324,6 +359,7 @@ class TestObject < Test::Unit::TestCase
     o = Object.new
     def o.to_s; 1; end
     assert_raise(TypeError) { String(o) }
+    o.singleton_class.remove_method(:to_s)
     def o.to_s; "o"; end
     assert_equal("o", String(o))
     def o.to_str; "O"; end
@@ -336,6 +372,7 @@ class TestObject < Test::Unit::TestCase
     o = Object.new
     def o.to_a; 1; end
     assert_raise(TypeError) { Array(o) }
+    o.singleton_class.remove_method(:to_a)
     def o.to_a; [1]; end
     assert_equal([1], Array(o))
     def o.to_ary; [2]; end
@@ -353,6 +390,7 @@ class TestObject < Test::Unit::TestCase
     o = Object.new
     def o.to_hash; {a: 1, b: 2}; end
     assert_equal({a: 1, b: 2}, Hash(o))
+    o.singleton_class.remove_method(:to_hash)
     def o.to_hash; 9; end
     assert_raise(TypeError) { Hash(o) }
   end
@@ -361,6 +399,7 @@ class TestObject < Test::Unit::TestCase
     o = Object.new
     def o.to_i; nil; end
     assert_raise(TypeError) { Integer(o) }
+    o.singleton_class.remove_method(:to_i)
     def o.to_i; 42; end
     assert_equal(42, Integer(o))
     def o.respond_to?(*) false; end
@@ -595,7 +634,7 @@ class TestObject < Test::Unit::TestCase
 
     called = []
     p.singleton_class.class_eval do
-      define_method(:respond_to?) do |a|
+      define_method(:respond_to?) do |a, priv = false|
         called << [:respond_to?, a]
         false
       end

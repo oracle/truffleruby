@@ -59,5 +59,6 @@ to_r
 to_s
 truncate
 upto
+zero?
 |
 ~

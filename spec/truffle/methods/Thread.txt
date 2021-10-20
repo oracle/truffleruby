@@ -23,7 +23,6 @@ raise
 report_on_exception
 report_on_exception=
 run
-safe_level
 set_trace_func
 status
 stop?

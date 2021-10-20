@@ -252,8 +252,8 @@ module MakeMakefile
         ['RUBYCOMMONDIR', '$(vendordir)$(target_prefix)'],
         ['RUBYLIBDIR',    '$(vendorlibdir)$(target_prefix)'],
         ['RUBYARCHDIR',   '$(vendorarchdir)$(target_prefix)'],
-        ['HDRDIR',        '$(rubyhdrdir)/ruby$(target_prefix)'],
-        ['ARCHHDRDIR',    '$(rubyhdrdir)/$(arch)/ruby$(target_prefix)'],
+        ['HDRDIR',        '$(vendorhdrdir)$(target_prefix)'],
+        ['ARCHHDRDIR',    '$(vendorarchhdrdir)$(target_prefix)'],
       ]
     else
       dirs = [
@@ -261,8 +261,8 @@ module MakeMakefile
         ['RUBYCOMMONDIR', '$(sitedir)$(target_prefix)'],
         ['RUBYLIBDIR',    '$(sitelibdir)$(target_prefix)'],
         ['RUBYARCHDIR',   '$(sitearchdir)$(target_prefix)'],
-        ['HDRDIR',        '$(rubyhdrdir)/ruby$(target_prefix)'],
-        ['ARCHHDRDIR',    '$(rubyhdrdir)/$(arch)/ruby$(target_prefix)'],
+        ['HDRDIR',        '$(sitehdrdir)$(target_prefix)'],
+        ['ARCHHDRDIR',    '$(sitearchhdrdir)$(target_prefix)'],
       ]
     end
     dirs << ['target_prefix', (target_prefix ? "/#{target_prefix}" : "")]
@@ -288,7 +288,7 @@ module MakeMakefile
       $topdir = $hdrdir # lib/cext/include
       $top_srcdir = $hdrdir # lib/cext/include
     else
-      $top_srcdir ||= topdir + "/lib/cext" # lib/cext
+      $top_srcdir ||= topdir + "/lib/cext/include/stubs" # lib/cext/include/stubs
       $topdir ||= RbConfig::CONFIG["topdir"] # lib/mri
     end
   else
@@ -859,7 +859,7 @@ int main() {printf("%"PRI_CONFTEST_PREFIX"#{neg ? 'd' : 'u'}\\n", conftest_const
     if opt and !opt.empty?
       [[:to_str], [:join, " "], [:to_s]].each do |meth, *args|
         if opt.respond_to?(meth)
-          break opt = opt.send(meth, *args)
+          break opt = opt.__send__(meth, *args)
         end
       end
       opt = "#{opt} #{libs}"
@@ -1057,7 +1057,7 @@ SRC
       if noun
         [[:to_str], [:join, ","], [:to_s]].each do |meth, *args|
           if noun.respond_to?(meth)
-            break noun = noun.send(meth, *args)
+            break noun = noun.__send__(meth, *args)
           end
         end
         unless noun.empty?
@@ -2017,7 +2017,7 @@ NULLCMD = #{CONFIG['NULLCMD']}
 srcdir = #{srcdir.gsub(/\$\((srcdir)\)|\$\{(srcdir)\}/) {mkintpath(CONFIG[$1||$2]).unspace}}
 topdir = #{mkintpath(topdir = $extmk ? CONFIG["topdir"] : $topdir).unspace}
 hdrdir = #{(hdrdir = CONFIG["hdrdir"]) == topdir ? "$(topdir)" : mkintpath(hdrdir).unspace}
-arch_hdrdir = #{$arch_hdrdir.quote}
+arch_hdrdir = #{mkintpath($arch_hdrdir).unspace}
 PATH_SEPARATOR = #{CONFIG['PATH_SEPARATOR']}
 VPATH = #{vpath.join(CONFIG['PATH_SEPARATOR'])}
 }
@@ -2045,7 +2045,7 @@ VPATH = #{vpath.join(CONFIG['PATH_SEPARATOR'])}
     else
       sep = ""
     end
-    possible_command = (proc {|s| s if /top_srcdir/ !~ s} unless $extmk)
+    possible_command = (proc {|s| s if /top_srcdir|tooldir/ !~ s} unless $extmk)
     extconf_h = $extconf_h ? "-DRUBY_EXTCONF_H=\\\"$(RUBY_EXTCONF_H)\\\" " : $defs.join(" ") << " "
     headers = %w[
       $(hdrdir)/ruby.h
@@ -2314,7 +2314,7 @@ RULES
     message "creating Makefile\n"
     MakeMakefile.rm_f "#{CONFTEST}*"
     if CONFIG["DLEXT"] == $OBJEXT
-      for lib in libs = $libs.split
+      for lib in libs = $libs.split(' ')
         lib.sub!(/-l(.*)/, %%"lib\\1.#{$LIBEXT}"%)
       end
       $defs.push(format("-DEXTLIB='%s'", libs.join(",")))
@@ -2940,7 +2940,12 @@ realclean: distclean
   end
 end
 
-include MakeMakefile
+# MakeMakefile::Global = #
+m = Module.new {
+  include(MakeMakefile)
+  private(*MakeMakefile.public_instance_methods(false))
+}
+include m
 
 if not $extmk and /\A(extconf|makefile).rb\z/ =~ File.basename($0)
   END {mkmf_failed($0)}

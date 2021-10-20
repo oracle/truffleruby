@@ -1,0 +1,1 @@
+fails:Array#flatten returns Array instance for Array subclasses

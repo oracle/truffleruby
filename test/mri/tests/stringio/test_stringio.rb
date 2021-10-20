@@ -187,6 +187,40 @@ class TestStringIO < Test::Unit::TestCase
     assert_equal(Encoding::UTF_8, s.encoding, "honor the original encoding over ASCII-8BIT")
   end
 
+  def test_write_encoding_conversion
+    convertible = "\u{3042}"
+    inconvertible = "\u{1f363}"
+    conversion_encoding = Encoding::Windows_31J
+
+    s = StringIO.new.set_encoding(conversion_encoding)
+    s.write(convertible)
+    assert_equal(conversion_encoding, s.string.encoding)
+
+    s = StringIO.new.set_encoding(Encoding::UTF_8)
+    s.write("foo".force_encoding("ISO-8859-1"), convertible)
+    assert_equal(Encoding::UTF_8, s.string.encoding)
+
+    s = StringIO.new.set_encoding(Encoding::US_ASCII)
+    s.write("foo".force_encoding("US-ASCII"), convertible)
+    assert_equal(Encoding::UTF_8, s.string.encoding)
+
+    all_assertions do |a|
+      [
+        inconvertible,
+        convertible + inconvertible,
+        [convertible, inconvertible],
+        ["a", inconvertible],
+      ].each do |data|
+        a.for(data.inspect) do
+          s = StringIO.new.set_encoding(conversion_encoding)
+          assert_raise(Encoding::CompatibilityError) do
+            s.write(*data)
+          end
+        end
+      end
+    end
+  end
+
   def test_write_integer_overflow
     f = StringIO.new
     f.pos = RbConfig::LIMITS["LONG_MAX"]
@@ -489,6 +523,16 @@ class TestStringIO < Test::Unit::TestCase
   def test_each_codepoint
     f = StringIO.new("1234")
     assert_equal([49, 50, 51, 52], f.each_codepoint.to_a)
+  end
+
+  def test_each_codepoint_enumerator
+    io = StringIO.new('你好построить')
+
+    chinese_part = io.each_codepoint.take(2).pack('U*')
+    russian_part = io.read(40).force_encoding('UTF-8')
+
+    assert_equal("你好", chinese_part)
+    assert_equal("построить", russian_part)
   end
 
   def test_gets2

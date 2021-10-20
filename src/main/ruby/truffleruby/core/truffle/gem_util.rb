@@ -9,7 +9,10 @@
 # GNU Lesser General Public License version 2.1.
 
 module Truffle::GemUtil
+  # See spec/truffle/rubygems/default_gems_list_spec.rb
   DEFAULT_GEMS = {
+    'abbrev' => true,
+    'base64' => true,
     'benchmark' => true,
     'bigdecimal' => true,
     'bundler' => true,
@@ -17,46 +20,66 @@ module Truffle::GemUtil
     'csv' => true,
     'date' => true,
     'dbm' => true,
+    'debug' => true,
     'delegate' => true,
     'did_you_mean' => true,
+    'digest' => true,
+    'drb' => true,
+    'english' => true,
+    'erb' => true,
     'etc' => true,
     'fcntl' => true,
     'fiddle' => true,
     'fileutils' => true,
+    'find' => true,
     'forwardable' => true,
     'gdbm' => true,
     'getoptlong' => true,
-    'io' => true, # gem 'io-console', required as 'io/console'
+    'io' => ['io-console', 'io-nonblock', 'io-wait'],
     'ipaddr' => true,
     'irb' => true,
     'json' => true,
     'logger' => true,
     'matrix' => true,
     'mutex_m' => true,
-    'net' => true, # gem 'net-pop', 'net-smtp', required as 'net/pop', 'net/smtp'
+    'net' => ['net-ftp', 'net-http', 'net-imap', 'net-pop', 'net-protocol', 'net-smtp'],
+    'nkf' => true,
     'observer' => true,
+    'open' => ['open-uri'],
     'open3' => true,
     'openssl' => true,
+    'optparse' => true,
     'ostruct' => true,
+    'pathname' => true,
+    'pp' => true,
+    'prettyprint' => true,
     'prime' => true,
     'pstore' => true,
     'psych' => true,
     'racc' => true,
     'rdoc' => true,
-    'readline' => true,
+    'readline' => ['readline', 'readline-ext'],
     'reline' => true,
-    'rexml' => true,
-    'rss' => true,
-    'sdbm' => true,
+    'resolv' => ['resolv', 'resolv-replace'],
+    'rinda' => true,
+    'securerandom' => true,
+    'set' => true,
+    'shellwords' => true,
     'singleton' => true,
     'stringio' => true,
     'strscan' => true,
+    'syslog' => true,
+    'tempfile' => true,
+    'time' => true,
     'timeout' => true,
+    'tmpdir' => true,
     'tracer' => true,
+    'tsort' => true,
+    'un' => true,
     'uri' => true,
-    'webrick' => true,
+    'weakref' => true,
     'yaml' => true,
-    'zlib' => true
+    'zlib' => true,
   }
 
   MARKER_NAME = 'truffleruby_gem_dir_marker.txt'
@@ -118,12 +141,26 @@ module Truffle::GemUtil
   end
 
   def self.compute_gem_path
-    user_dir = "#{Dir.home}/.gem/truffleruby/#{abi_version}"
+    # From Gem.user_dir
+    user_home = Dir.home
+    gem_dir = "#{user_home}/.gem"
+    unless File.exist?(gem_dir)
+      data_home = (ENV['XDG_DATA_HOME'] || "#{user_home}/.local/share")
+      gem_dir = "#{data_home}/gem"
+    end
+    user_dir = "#{gem_dir}/truffleruby/#{abi_version}"
+
+    # From Gem.default_dir, overridden in lib/truffle/rubygems/defaults/truffleruby.rb
     default_dir = "#{Truffle::Boot.ruby_home}/lib/gems"
+
+    # From Gem::PathSupport#initialize
     home = ENV['GEM_HOME'] || default_dir
+
+    # From Gem::PathSupport#default_path and Gem.default_path
     # There is also vendor_dir, but it does not exist on TruffleRuby
     default_path = [user_dir, default_dir, home]
 
+    # From Gem::PathSupport#split_gem_path
     if gem_path = ENV['GEM_PATH']
       paths = gem_path.split(File::PATH_SEPARATOR)
       if gem_path.end_with?(File::PATH_SEPARATOR)

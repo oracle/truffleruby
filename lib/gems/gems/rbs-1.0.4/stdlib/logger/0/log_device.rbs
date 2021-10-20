@@ -1,0 +1,38 @@
+class Logger
+  class LogDevice
+    include MonitorMixin
+
+    include Period
+
+    attr_reader dev: _WriteCloser
+    attr_reader filename: String?
+
+    public
+
+    def close: () -> nil
+
+    def reopen: (?logdev log) -> self
+
+    def write: (untyped message) -> untyped
+
+    private
+
+    def add_log_header: (IO file) -> untyped
+
+    def check_shift_log: () -> untyped
+
+    def create_logfile: (String filename) -> File
+
+    def initialize: (?untyped logdev, ?binmode: boolish, ?shift_period_suffix: String, ?shift_size: Integer, ?shift_age: Numeric | String) -> void
+
+    def lock_shift_log: () { () -> untyped } -> untyped
+
+    def open_logfile: (String filename) -> File
+
+    def set_dev: (logdev log) -> untyped
+
+    def shift_log_age: () -> true
+
+    def shift_log_period: (Time period_end) -> true
+  end
+end

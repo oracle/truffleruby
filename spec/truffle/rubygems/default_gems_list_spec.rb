@@ -12,9 +12,17 @@ require 'rubygems'
 
 describe "Truffle::GemUtil::DEFAULT_GEMS" do
   it "is a Hash listing all default gem paths" do
-    hash = Dir.children("#{Gem.default_dir}/specifications/default").sort.map do |spec|
-      spec.split("-").first # 'io' for gem 'io-console' required as 'io/console'
-    end.to_h { |name| [name, true] }
+    hash = Hash.new { |h,k| h[k] = [] }
+    Dir.children("#{Gem.default_dir}/specifications/default").sort.each do |spec|
+      name = spec[/^([\w-]+)-\d+(?:\.\d+)*\.gemspec$/, 1]
+      raise spec unless name
+      prefix = name.split("-").first # 'io' for gem 'io-console' required as 'io/console'
+      hash[prefix] << name
+    end
+    hash = hash.to_h { |prefix, names| [prefix, names == [prefix] ? true : names] }
+
+    # To copy-paste to gem_util.rb conveniently:
+    # hash.each_pair { |k,v| puts "#{k.inspect} => #{v},".tr('"', "'") }
 
     Truffle::GemUtil::DEFAULT_GEMS.should == hash
   end

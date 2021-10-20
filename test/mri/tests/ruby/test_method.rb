@@ -5,7 +5,6 @@ require 'test/unit'
 class TestMethod < Test::Unit::TestCase
   def setup
     @verbose = $VERBOSE
-    $VERBOSE = nil
   end
 
   def teardown
@@ -103,6 +102,12 @@ class TestMethod < Test::Unit::TestCase
     assert_equal(:derived, um.bind(Derived.new).call)
     assert_raise(TypeError) do
       um.bind(Base.new)
+    end
+
+    # cleanup
+    Derived.class_eval do
+      remove_method :foo
+      def foo() :derived; end
     end
   end
 
@@ -459,6 +464,23 @@ class TestMethod < Test::Unit::TestCase
     c3.class_eval { alias bar foo }
     m3 = c3.new.method(:bar)
     assert_equal("#<Method: #{c3.inspect}(#{c.inspect})#bar(foo)() #{__FILE__}:#{line_no}>", m3.inspect, bug7806)
+
+    bug15608 = '[ruby-core:91570] [Bug #15608]'
+    c4 = Class.new(c)
+    c4.class_eval { alias bar foo }
+    o = c4.new
+    o.singleton_class
+    m4 = o.method(:bar)
+    assert_equal("#<Method: #{c4.inspect}(#{c.inspect})#bar(foo)() #{__FILE__}:#{line_no}>", m4.inspect, bug15608)
+
+    bug17428 = '[ruby-core:101635] [Bug #17428]'
+    assert_equal("#<Method: #<Class:String>(Module)#prepend(*)>", String.method(:prepend).inspect, bug17428)
+
+    c5 = Class.new(String)
+    m = Module.new{def prepend; end; alias prep prepend}; line_no = __LINE__
+    c5.extend(m)
+    c6 = Class.new(c5)
+    assert_equal("#<Method: #<Class:#{c6.inspect}>(#{m.inspect})#prep(prepend)() #{__FILE__}:#{line_no}>", c6.method(:prep).inspect, bug17428)
   end
 
   def test_callee_top_level
@@ -790,7 +812,9 @@ class TestMethod < Test::Unit::TestCase
     assert_instance_of String, __dir__
     assert_equal(File.dirname(File.realpath(__FILE__)), __dir__)
     bug8436 = '[ruby-core:55123] [Bug #8436]'
-    assert_equal(__dir__, eval("__dir__", binding), bug8436)
+    file, line = *binding.source_location
+    file = File.realpath(file)
+    assert_equal(__dir__, eval("__dir__", binding, file, line), bug8436)
     bug8662 = '[ruby-core:56099] [Bug #8662]'
     assert_equal("arbitrary", eval("__dir__", binding, "arbitrary/file.rb"), bug8662)
     assert_equal("arbitrary", Object.new.instance_eval("__dir__", "arbitrary/file.rb"), bug8662)
@@ -812,7 +836,7 @@ class TestMethod < Test::Unit::TestCase
     assert_equal(c, c.instance_method(:foo).owner)
     assert_equal(c, x.method(:foo).owner)
     assert_equal(x.singleton_class, x.method(:bar).owner)
-    assert_not_equal(x.method(:foo), x.method(:bar), bug7613)
+    assert_equal(x.method(:foo), x.method(:bar), bug7613)
     assert_equal(c, x.method(:zot).owner, bug7993)
     assert_equal(c, c.instance_method(:zot).owner, bug7993)
   end
@@ -1193,17 +1217,22 @@ class TestMethod < Test::Unit::TestCase
     assert_equal([:bar, :foo], b.local_variables.sort, bug11012)
   end
 
-  class MethodInMethodClass
-    def m1
-      def m2
-      end
+  MethodInMethodClass_Setup = -> do
+    remove_const :MethodInMethodClass if defined? MethodInMethodClass
 
-      self.class.send(:define_method, :m3){} # [Bug #11754]
+    class MethodInMethodClass
+      def m1
+        def m2
+        end
+        self.class.send(:define_method, :m3){} # [Bug #11754]
+      end
+      private
     end
-    private
   end
 
   def test_method_in_method_visibility_should_be_public
+    MethodInMethodClass_Setup.call
+
     assert_equal([:m1].sort, MethodInMethodClass.public_instance_methods(false).sort)
     assert_equal([].sort, MethodInMethodClass.private_instance_methods(false).sort)
 
@@ -1251,6 +1280,27 @@ class TestMethod < Test::Unit::TestCase
     assert_separately [], body
     # without trace insn
     assert_separately [], "RubyVM::InstructionSequence.compile_option = {trace_instruction: false}\n" + body
+  end
+
+  def test_zsuper_private_override_instance_method
+    assert_separately(%w(--disable-gems), <<-'end;', timeout: 30)
+      # Bug #16942 [ruby-core:98691]
+      module M
+        def x
+        end
+      end
+
+      module M2
+        prepend Module.new
+        include M
+        private :x
+      end
+
+      ::Object.prepend(M2)
+
+      m = Object.instance_method(:x)
+      assert_equal M, m.owner
+    end;
   end
 
   def test_eqq
@@ -1358,5 +1408,9 @@ class TestMethod < Test::Unit::TestCase
 
     assert_operator nummodule, :>, 0
     assert_operator nummethod, :>, 0
+  end
+
+  def test_invalidating_CC_ASAN
+    assert_ruby_status(['-e', 'using Module.new'])
   end
 end

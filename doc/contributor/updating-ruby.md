@@ -35,7 +35,7 @@ ruby-install ruby $VERSION
 # OR
 rm -rf ~/.rubies/ruby-$VERSION
 ruby-build $VERSION ~/.rubies/ruby-$VERSION
-ruby-install -r ~/tmp ruby $VERSION
+ruby-install --no-install-deps -r ~/tmp ruby $VERSION
 ```
 
 `ruby-build` does not keep the build directory
@@ -90,36 +90,9 @@ but not for files under `test/mri/tests/cext-ruby`.
 
 ## Update config_*.h files
 
-Configuration files must be regenerated from ruby for Linux and macOS
-and copied into `lib/cext/include/truffleruby`. In the MRI repository
-do the following:
-
-```
-ruby-build truffleruby-dev ~/.rubies/truffleruby-dev
-chruby truffleruby-dev
-
-graalvm_clang=$(ruby -e 'puts RbConfig::CONFIG["CC"]')
-
-autoconf
-CC=$graalvm_clang ./configure
-```
-
-The output of configure should report that it has created or updated a
-config.h file. For example
-
-```
-.ext/include/x86_64-linux/ruby/config.h updated
-```
-
-You will need to copy that file to
-`lib/cext/include/truffleruby/config_linux.h` or
-`lib/cext/include/truffleruby/config_darwin.h`.
-
-After that you should clean your MRI source repository with:
-
-```bash
-git clean -Xdf
-```
+Configuration files must be regenerated for each platform with `tool/generate-config-header.sh`.
+Adapt the Ruby versions in that script.
+Then run all the `ruby-generate-native-config-*` jobs in CI and copy their output.
 
 ## Update libraries from third-party repos
 
@@ -130,6 +103,8 @@ copy `flori/json`'s `lib` directory into `lib/json`:
 rm -rf lib/json/lib
 cp -R ../../json/lib lib/json
 ```
+
+Also reapply our changes to json files, by looking with `git log -p lib/json`.
 
 ## Updating default and bundled gems
 
@@ -149,7 +124,7 @@ cd $TRUFFLERUBY
 ruby tool/patch-default-gemspecs.rb
 ```
 
-## Updating bin/ executables
+## Updating exe/ executables
 
 ```
 rm -rf exe
@@ -157,6 +132,8 @@ cp -R ~/.rubies/ruby-$VERSION/bin exe
 rm -f exe/ruby
 ruby tool/patch_launchers.rb
 ```
+
+Also update the list of `provided_executables` in `mx_truffleruby.py` if some launchers were added or removed.
 
 ## Make other changes
 

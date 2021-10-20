@@ -1,0 +1,494 @@
+# The [Kernel](Kernel) module is included by class
+# [Object](https://ruby-doc.org/core-2.6.3/Object.html), so its methods
+# are available in every Ruby object.
+#
+# The [Kernel](Kernel) instance methods are documented
+# in class [Object](https://ruby-doc.org/core-2.6.3/Object.html) while the
+# module methods are documented here. These methods are called without a
+# receiver and thus can be called in functional form:
+#
+# ```ruby
+# sprintf "%.1f", 1.234 #=> "1.2"
+# ```
+module Kernel : BasicObject
+  private
+
+  def self?.caller: (?Integer start_or_range, ?Integer length) -> ::Array[String]?
+            | (?::Range[Integer] start_or_range) -> ::Array[String]?
+            | () -> ::Array[String]
+
+  def self?.caller_locations: (?Integer start_or_range, ?Integer length) -> ::Array[Thread::Backtrace::Location]?
+                      | (?::Range[Integer] start_or_range) -> ::Array[Thread::Backtrace::Location]?
+
+  def self?.catch: [T] (T tag) { (T tag) -> untyped } -> untyped
+           | () { (Object tag) -> untyped } -> untyped
+
+  # In a perfect world this should be:
+  #
+  #   returns(T.class_of(T.self_type))
+  #
+  # but that doesn't work (yet). Even making it:
+  #
+  #   returns(Class)
+  #
+  # is very surprising since users expect their methods to be present.
+  # So we settle for untyped.
+  def `class`: () -> untyped
+
+  def define_singleton_method: (Symbol | String symbol, ?Proc | Method | UnboundMethod method) -> Symbol
+                             | (Symbol | String symbol) { () -> untyped } -> Symbol
+
+  def self?.eval: (String arg0, ?Binding arg1, ?String filename, ?Integer lineno) -> untyped
+
+  # Returns `true` if `yield` would execute a block in the current context.
+  #
+  # ```ruby
+  # def try
+  #   if block_given?
+  #     yield
+  #   else
+  #     "no block"
+  #   end
+  # end
+  # try                  #=> "no block"
+  # try { "hello" }      #=> "hello"
+  # try do "hello" end   #=> "hello"
+  # ```
+  def self?.block_given?: () -> bool
+
+  # Returns the names of the current local variables.
+  #
+  # ```ruby
+  # fred = 1
+  # for i in 1..10
+  #    # ...
+  # end
+  # local_variables   #=> [:fred, :i]
+  # ```
+  def self?.local_variables: () -> ::Array[Symbol]
+
+  def self?.srand: (?Numeric number) -> Numeric
+
+  # Creates a subprocess. If a block is specified, that block is run in the
+  # subprocess, and the subprocess terminates with a status of zero.
+  # Otherwise, the `fork` call returns twice, once in the parent, returning
+  # the process ID of the child, and once in the child, returning *nil* .
+  # The child process can exit using `Kernel.exit!` to avoid running any
+  # `at_exit` functions. The parent process should use `Process.wait` to
+  # collect the termination statuses of its children or use `Process.detach`
+  # to register disinterest in their status; otherwise, the operating system
+  # may accumulate zombie processes.
+  #
+  # The thread calling fork is the only thread in the created child process.
+  # fork doesn’t copy other threads.
+  #
+  # If fork is not usable, Process.respond\_to?(:fork) returns false.
+  #
+  # Note that fork(2) is not available on some platforms like Windows and
+  # NetBSD 4. Therefore you should use spawn() instead of fork().
+  def self?.fork: () -> Integer?
+          | () { () -> untyped } -> Integer?
+
+  def initialize_copy: (self object) -> self
+
+  # Returns `arg` as an [Array](https://ruby-doc.org/core-2.6.3/Array.html)
+  # .
+  #
+  # First tries to call `to_ary` on `arg`, then `to_a` . If `arg` does not
+  # respond to `to_ary` or `to_a`, returns an
+  # [Array](https://ruby-doc.org/core-2.6.3/Array.html) of length 1
+  # containing `arg` .
+  #
+  # If `to_ary` or `to_a` returns something other than an
+  # [Array](https://ruby-doc.org/core-2.6.3/Array.html), raises a
+  # `TypeError` .
+  #
+  # ```ruby
+  # Array(["a", "b"])  #=> ["a", "b"]
+  # Array(1..5)        #=> [1, 2, 3, 4, 5]
+  # Array(key: :value) #=> [[:key, :value]]
+  # Array(nil)         #=> []
+  # Array(1)           #=> [1]
+  # ```
+  def self?.Array: (NilClass x) -> [ ]
+           | [T] (::Array[T] x) -> ::Array[T]
+           | [T] (::Range[T] x) -> ::Array[T]
+           | [K, V] (::Hash[K, V] x) -> ::Array[[K, V]]
+           | [T] (T x) -> ::Array[T]
+
+  def self?.Complex: (Numeric | String x, ?Numeric | String y, ?exception: bool exception) -> Complex
+
+  def self?.Float: (Numeric | String x, ?exception: bool exception) -> Float
+
+  def self?.Hash: [K, V] (Object x) -> ::Hash[K, V]
+
+  def self?.Integer: (Numeric | String arg, ?exception: bool exception) -> Integer
+             | (String arg, ?Integer base, ?exception: bool exception) -> Integer
+
+  def self?.Rational: (Numeric | String | Object x, ?Numeric | String y, ?exception: bool exception) -> Rational
+
+  def self?.String: (Object x) -> String
+
+  # Returns the called name of the current method as a
+  # [Symbol](https://ruby-doc.org/core-2.6.3/Symbol.html). If called
+  # outside of a method, it returns `nil` .
+  def self?.__callee__: () -> Symbol?
+
+  # Returns the canonicalized absolute path of the directory of the file
+  # from which this method is called. It means symlinks in the path is
+  # resolved. If `__FILE__` is `nil`, it returns `nil` . The return value
+  # equals to `File.dirname(File.realpath(__FILE__))` .
+  def self?.__dir__: () -> String?
+
+  # Returns the name at the definition of the current method as a
+  # [Symbol](https://ruby-doc.org/core-2.6.3/Symbol.html). If called
+  # outside of a method, it returns `nil` .
+  def self?.__method__: () -> Symbol?
+
+  def self?.`: (String arg0) -> String
+
+  def self?.abort: (?String msg) -> bot
+
+  def self?.at_exit: () { () -> untyped } -> Proc
+
+  def self?.autoload: (String | Symbol _module, String filename) -> NilClass
+
+  def self?.autoload?: (Symbol | String name) -> String?
+
+  # Returns a `Binding` object, describing the variable and method bindings
+  # at the point of call. This object can be used when calling `eval` to
+  # execute the evaluated command in this environment. See also the
+  # description of class `Binding` .
+  #
+  # ```ruby
+  # def get_binding(param)
+  #   binding
+  # end
+  # b = get_binding("hello")
+  # eval("param", b)   #=> "hello"
+  # ```
+  def self?.binding: () -> Binding
+
+  # Initiates the termination of the Ruby script by raising the `SystemExit`
+  # exception. This exception may be caught. The optional parameter is used
+  # to return a status code to the invoking environment. `true` and `FALSE`
+  # of *status* means success and failure respectively. The interpretation
+  # of other integer values are system dependent.
+  #
+  # ```ruby
+  # begin
+  #   exit
+  #   puts "never get here"
+  # rescue SystemExit
+  #   puts "rescued a SystemExit exception"
+  # end
+  # puts "after begin block"
+  # ```
+  #
+  # *produces:*
+  #
+  #     rescued a SystemExit exception
+  #     after begin block
+  #
+  # Just prior to termination, Ruby executes any `at_exit` functions (see
+  # Kernel::at\_exit) and runs any object finalizers (see
+  # [ObjectSpace.define\_finalizer](https://ruby-doc.org/core-2.6.3/ObjectSpace.html#method-c-define_finalizer)
+  # ).
+  #
+  # ```ruby
+  # at_exit { puts "at_exit function" }
+  # ObjectSpace.define_finalizer("string",  proc { puts "in finalizer" })
+  # exit
+  # ```
+  #
+  # *produces:*
+  #
+  #     at_exit function
+  #     in finalizer
+  def self?.exit: () -> bot
+          | (?Integer | TrueClass | FalseClass status) -> bot
+
+  def self?.exit!: (Integer | TrueClass | FalseClass status) -> bot
+
+  # With no arguments, raises the exception in `$!` or raises a
+  # `RuntimeError` if `$!` is `nil` . With a single `String` argument,
+  # raises a `RuntimeError` with the string as a message. Otherwise, the
+  # first parameter should be the name of an `Exception` class (or an object
+  # that returns an `Exception` object when sent an `exception` message).
+  # The optional second parameter sets the message associated with the
+  # exception, and the third parameter is an array of callback information.
+  # Exceptions are caught by the `rescue` clause of `begin...end` blocks.
+  #
+  # ```ruby
+  # raise "Failed to create socket"
+  # raise ArgumentError, "No parameters", caller
+  # ```
+  #
+  # The `cause` of the generated exception is automatically set to the
+  # “current” exception ( `$!` ) if any. An alternative value, either an
+  # `Exception` object or `nil`, can be specified via the `:cause`
+  # argument.
+  def self?.fail: () -> bot
+          | (String arg0) -> bot
+          | (_Exception arg0, ?untyped arg1, ?::Array[String] arg2) -> bot
+  alias raise fail
+  alias self.raise self.fail
+
+  def self?.format: (String format, *untyped args) -> String
+  alias sprintf format
+  alias self.sprintf self.format
+
+  def self?.gets: (?String arg0, ?Integer arg1) -> String?
+
+  # Returns an array of the names of global variables.
+  #
+  # ```ruby
+  # global_variables.grep /std/   #=> [:$stdin, :$stdout, :$stderr]
+  # ```
+  def self?.global_variables: () -> ::Array[Symbol]
+
+  def self?.load: (String filename, ?boolish) -> bool
+
+  # Repeatedly executes the block.
+  #
+  # If no block is given, an enumerator is returned instead.
+  #
+  # ```ruby
+  # loop do
+  #   print "Input: "
+  #   line = gets
+  #   break if !line or line =~ /^qQ/
+  #   # ...
+  # end
+  # ```
+  #
+  # [StopIteration](https://ruby-doc.org/core-2.6.3/StopIteration.html)
+  # raised in the block breaks the loop. In this case, loop returns the
+  # "result" value stored in the exception.
+  #
+  # ```ruby
+  # enum = Enumerator.new { |y|
+  #   y << "one"
+  #   y << "two"
+  #   :ok
+  # }
+  #
+  # result = loop {
+  #   puts enum.next
+  # } #=> :ok
+  # ```
+  def self?.loop: () { (nil) -> untyped } -> bot
+          | () -> ::Enumerator[nil, bot]
+
+  def self?.open: (String name, ?String mode, ?Integer perm) -> IO?
+          | [T] (String name, ?String mode, ?Integer perm) { (IO) -> T } -> T
+
+  # Prints each object in turn to `$stdout` . If the output field separator
+  # ( `$,` ) is not `nil`, its contents will appear between each field. If
+  # the output record separator ( `$\` ) is not `nil`, it will be appended
+  # to the output. If no arguments are given, prints `$_` . Objects that
+  # aren’t strings will be converted by calling their `to_s` method.
+  #
+  # ```ruby
+  # print "cat", [1,2,3], 99, "\n"
+  # $, = ", "
+  # $\ = "\n"
+  # print "cat", [1,2,3], 99
+  # ```
+  #
+  # *produces:*
+  #
+  #     cat12399
+  #     cat, 1, 2, 3, 99
+  def self?.print: (*Kernel args) -> nil
+
+  def self?.printf: (IO arg0, String arg1, *untyped args) -> nil
+            | (String arg1, *untyped args) -> nil
+            | -> nil
+
+  def self?.proc: () { () -> untyped } -> Proc
+
+  def self?.lambda: () { () -> untyped } -> Proc
+
+  def self?.putc: (Integer arg0) -> Integer
+          | (String arg0) -> String
+
+  def self?.puts: (*untyped arg0) -> NilClass
+
+  def self?.p: [T] (T arg0) -> T
+       | (*untyped arg0) -> Array[untyped]
+
+  def self?.pp: [T] (T arg0) -> T
+        | (*untyped arg0) -> Array[untyped]
+
+  # If called without an argument, or if `max.to_i.abs == 0`, rand returns
+  # a pseudo-random floating point number between 0.0 and 1.0, including 0.0
+  # and excluding 1.0.
+  #
+  # ```ruby
+  # rand        #=> 0.2725926052826416
+  # ```
+  #
+  # When `max.abs` is greater than or equal to 1, `rand` returns a
+  # pseudo-random integer greater than or equal to 0 and less than
+  # `max.to_i.abs` .
+  #
+  # ```ruby
+  # rand(100)   #=> 12
+  # ```
+  #
+  # When `max` is a [Range](https://ruby-doc.org/core-2.6.3/Range.html),
+  # `rand` returns a random number where range.member?(number) == true.
+  #
+  # Negative or floating point values for `max` are allowed, but may give
+  # surprising results.
+  #
+  # ```ruby
+  # rand(-100) # => 87
+  # rand(-0.5) # => 0.8130921818028143
+  # rand(1.9)  # equivalent to rand(1), which is always 0
+  # ```
+  #
+  # [\#srand](Kernel.downloaded.ruby_doc#method-i-srand) may be used to
+  # ensure that sequences of random numbers are reproducible between
+  # different runs of a program.
+  #
+  # See also
+  # [Random\#rand](https://ruby-doc.org/core-2.6.3/Random.html#method-i-rand)
+  # .
+  def self?.rand: () -> Float
+          | (Integer arg0) -> Integer
+          | (::Range[Integer] arg0) -> Integer
+          | (::Range[Float] arg0) -> Float
+
+  def self?.readline: (?String arg0, ?Integer arg1) -> String
+
+  def self?.readlines: (?String arg0, ?Integer arg1) -> ::Array[String]
+
+  def self?.require: (String path) -> bool
+
+  def self?.require_relative: (String feature) -> bool
+
+  def self?.select: (::Array[IO] read, ?::Array[IO] write, ?::Array[IO] error, ?Integer timeout) -> ::Array[String]
+
+  def self?.sleep: () -> bot
+           | (Numeric duration) -> Integer
+
+  def self?.syscall: (Integer num, *untyped args) -> untyped
+
+  def self?.test: (String | Integer cmd, String | IO file1, ?String | IO file2) -> (TrueClass | FalseClass | Time | nil | Integer)
+
+  def self?.throw: (Object tag, ?untyped obj) -> bot
+
+  def self?.warn: (*untyped msg, ?uplevel: Integer | nil) -> NilClass
+
+  # Replaces the current process by running the given external *command* ,
+  # which can take one of the following forms:
+  #
+  #   - `exec(commandline)`
+  #     command line string which is passed to the standard shell
+  #
+  #   - `exec(cmdname, arg1, ...)`
+  #     command name and one or more arguments (no shell)
+  #
+  #   - `exec([cmdname, argv0], arg1, ...)`
+  #     command name, [argv](https://ruby-doc.org/core-2.6.3/0) and zero or
+  #     more arguments (no shell)
+  #
+  # In the first form, the string is taken as a command line that is subject
+  # to shell expansion before being executed.
+  #
+  # The standard shell always means `"/bin/sh"` on Unix-like systems, same
+  # as `ENV["RUBYSHELL"]` (or `ENV["COMSPEC"]` on Windows NT series), and
+  # similar.
+  #
+  # If the string from the first form ( `exec("command")` ) follows these
+  # simple rules:
+  #
+  #   - no meta characters
+  #
+  #   - no shell reserved word and no special built-in
+  #
+  #   - Ruby invokes the command directly without shell
+  #
+  # You can force shell invocation by adding “;” to the string (because “;”
+  # is a meta character).
+  #
+  # Note that this behavior is observable by pid obtained (return value of
+  # spawn() and
+  # [IO\#pid](https://ruby-doc.org/core-2.6.3/IO.html#method-i-pid) for
+  # [IO.popen](https://ruby-doc.org/core-2.6.3/IO.html#method-c-popen) ) is
+  # the pid of the invoked command, not shell.
+  #
+  # In the second form ( `exec("command1", "arg1", ...)` ), the first is
+  # taken as a command name and the rest are passed as parameters to command
+  # with no shell expansion.
+  #
+  # In the third form ( `exec(["command", "argv0"], "arg1", ...)` ),
+  # starting a two-element array at the beginning of the command, the first
+  # element is the command to be executed, and the second argument is used
+  # as the `argv[0]` value, which may show up in process listings.
+  #
+  # In order to execute the command, one of the `exec(2)` system calls are
+  # used, so the running command may inherit some of the environment of the
+  # original program (including open file descriptors).
+  #
+  # This behavior is modified by the given `env` and `options` parameters.
+  # See ::spawn for details.
+  #
+  # If the command fails to execute (typically `Errno::ENOENT` when it was
+  # not found) a
+  # [SystemCallError](https://ruby-doc.org/core-2.6.3/SystemCallError.html)
+  # exception is raised.
+  #
+  # This method modifies process attributes according to given `options`
+  # before `exec(2)` system call. See ::spawn for more details about the
+  # given `options` .
+  #
+  # The modified attributes may be retained when `exec(2)` system call
+  # fails.
+  #
+  # For example, hard resource limits are not restorable.
+  #
+  # Consider to create a child process using ::spawn or
+  # [\#system](Kernel.downloaded.ruby_doc#method-i-system) if this is not
+  # acceptable.
+  #
+  # ```ruby
+  # exec "echo *"       # echoes list of files in current directory
+  # # never get here
+  #
+  # exec "echo", "*"    # echoes an asterisk
+  # # never get here
+  # ```
+  def self?.exec: (*String args) -> bot
+
+  # Executes *command…* in a subshell. *command…* is one of following forms.
+  #
+  #     commandline                 : command line string which is passed to the standard shell
+  #     cmdname, arg1, ...          : command name and one or more arguments (no shell)
+  #     [cmdname, argv0], arg1, ... : command name, argv[0] and zero or more arguments (no shell)
+  #
+  # system returns `true` if the command gives zero exit status, `false` for
+  # non zero exit status. Returns `nil` if command execution fails. An error
+  # status is available in `$?` . The arguments are processed in the same
+  # way as for `Kernel.spawn` .
+  #
+  # The hash arguments, env and options, are same as `exec` and `spawn` .
+  # See `Kernel.spawn` for details.
+  #
+  # ```ruby
+  # system("echo *")
+  # system("echo", "*")
+  # ```
+  #
+  # *produces:*
+  #
+  #     config.h main.rb
+  #     *
+  #
+  # See `Kernel.exec` for the standard shell.
+  def self?.system: (*String args) -> (NilClass | FalseClass | TrueClass)
+end
+
+Kernel::RUBYGEMS_ACTIVATION_MONITOR: untyped

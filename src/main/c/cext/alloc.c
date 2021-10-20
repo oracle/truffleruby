@@ -8,6 +8,9 @@
  * GNU Lesser General Public License version 2.1.
  */
 #include <truffleruby-impl.h>
+#include <internal/gc.h>
+#include <internal.h>
+#include <internal/imemo.h>
 
 // Memory-related function, *alloc*, *free*, rb_mem*
 

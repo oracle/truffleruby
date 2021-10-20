@@ -8,17 +8,24 @@
  * GNU Lesser General Public License version 2.1.
  */
 #include <truffleruby-impl.h>
+#include <internal/numeric.h>
 
 // Float, rb_float_*
 
+#undef rb_float_new
 VALUE rb_float_new(double value) {
   return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_float_new", value));
+}
+
+VALUE rb_float_new_in_heap(double value) {
+  return rb_float_new(value);
 }
 
 VALUE rb_Float(VALUE value) {
   return RUBY_CEXT_INVOKE("rb_Float", value);
 }
 
+#undef rb_float_value
 double rb_float_value(VALUE value) {
   return polyglot_as_double(RUBY_CEXT_INVOKE_NO_WRAP("RFLOAT_VALUE", value));
 }

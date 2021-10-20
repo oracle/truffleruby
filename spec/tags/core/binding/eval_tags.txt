@@ -1,0 +1,5 @@
+fails:Binding#eval starts with line 1 if single argument is given
+fails:Binding#eval preserves __LINE__ across multiple calls to eval
+fails:Binding#eval increments __LINE__ on each line of a multiline eval
+fails:Binding#eval starts with line 1 if the Binding is created with #send
+fails:Binding#eval Uses (eval) as __FILE__ if single argument given

@@ -7,7 +7,6 @@ require 'delegate'
 class TestTime < Test::Unit::TestCase
   def setup
     @verbose = $VERBOSE
-    $VERBOSE = nil
   end
 
   def teardown
@@ -108,6 +107,10 @@ class TestTime < Test::Unit::TestCase
       assert_equal(78796800, Time.utc(1972, 7, 1, 0, 0, 0).tv_sec)
       assert_equal(78796801, Time.utc(1972, 7, 1, 0, 0, 1).tv_sec)
       assert_equal(946684800, Time.utc(2000, 1, 1, 0, 0, 0).tv_sec)
+
+      # Giveup to try 2nd test because some state is changed.
+      skip if Minitest::Unit.current_repeat_count > 0
+
       assert_equal(0x7fffffff, Time.utc(2038, 1, 19, 3, 14, 7).tv_sec)
       assert_equal(0x80000000, Time.utc(2038, 1, 19, 3, 14, 8).tv_sec)
     else
@@ -417,8 +420,10 @@ class TestTime < Test::Unit::TestCase
     def o.to_int; 0; end
     def o.to_r; nil; end
     assert_raise(TypeError) { Time.gm(2000, 1, 1, 0, 0, o, :foo, :foo) }
+    class << o; remove_method(:to_r); end
     def o.to_r; ""; end
     assert_raise(TypeError) { Time.gm(2000, 1, 1, 0, 0, o, :foo, :foo) }
+    class << o; remove_method(:to_r); end
     def o.to_r; Rational(11); end
     assert_equal(11, Time.gm(2000, 1, 1, 0, 0, o).sec)
     o = Object.new
@@ -431,6 +436,10 @@ class TestTime < Test::Unit::TestCase
 
     assert_equal(-4427700000, Time.utc(-4427700000,12,1).year)
     assert_equal(-2**30+10, Time.utc(-2**30+10,1,1).year)
+
+    assert_raise(ArgumentError) { Time.gm(2000, 1, -1) }
+    assert_raise(ArgumentError) { Time.gm(2000, 1, 2**30 + 1) }
+    assert_raise(ArgumentError) { Time.gm(2000, 1, -2**30 + 1) }
   end
 
   def test_time_interval
@@ -596,13 +605,12 @@ class TestTime < Test::Unit::TestCase
     assert_nil(t.getlocal("+02:00").zone)
   end
 
-  def test_plus_minus_succ
+  def test_plus_minus
     t2000 = get_t2000
     # assert_raise(RangeError) { t2000 + 10000000000 }
     # assert_raise(RangeError)  t2000 - 3094168449 }
     # assert_raise(RangeError) { t2000 + 1200798848 }
     assert_raise(TypeError) { t2000 + Time.now }
-    assert_equal(t2000 + 1, t2000.succ)
   end
 
   def test_plus_type
@@ -705,7 +713,9 @@ class TestTime < Test::Unit::TestCase
     assert_equal("12:00:00 AM", t2000.strftime("%r"))
     assert_equal("Sat 2000-01-01T00:00:00", t2000.strftime("%3a %FT%T"))
 
-    assert_equal("", t2000.strftime(""))
+    assert_warning(/strftime called with empty format string/) do
+      assert_equal("", t2000.strftime(""))
+    end
     assert_equal("foo\0bar\x0000\x0000\x0000", t2000.strftime("foo\0bar\0%H\0%M\0%S"))
     assert_equal("foo" * 1000, t2000.strftime("foo" * 1000))
 
@@ -1061,6 +1071,11 @@ class TestTime < Test::Unit::TestCase
     t2 = (t+0.123456789).ceil(4)
     assert_equal([59,59,23, 31,12,1999, 5,365,false,"UTC"], t2.to_a)
     assert_equal(Rational(1235,10000), t2.subsec)
+
+    time = Time.utc(2016, 4, 23, 0, 0, 0.123456789r)
+    assert_equal(time, time.ceil(9))
+    assert_equal(time, time.ceil(10))
+    assert_equal(time, time.ceil(11))
   end
 
   def test_getlocal_dont_share_eigenclass
@@ -1136,6 +1151,9 @@ class TestTime < Test::Unit::TestCase
   end
 
   def test_2038
+    # Giveup to try 2nd test because some state is changed.
+    skip if Minitest::Unit.current_repeat_count > 0
+
     if no_leap_seconds?
       assert_equal(0x80000000, Time.utc(2038, 1, 19, 3, 14, 8).tv_sec)
     end
@@ -1200,12 +1218,6 @@ class TestTime < Test::Unit::TestCase
     assert_equal [00, 00,  9,  1,  1, 2000], t.getlocal("+09:00").to_a[0, 6]
     assert_equal [20, 29, 21, 31, 12, 1999], t.getlocal("-02:30:40").to_a[0, 6]
     assert_equal [35, 10,  9,  1,  1, 2000], t.getlocal("+09:10:35").to_a[0, 6]
-    assert_equal [00, 30, 21, 31, 12, 1999], t.getlocal("-0230").to_a[0, 6]
-    assert_equal [00, 00,  9,  1,  1, 2000], t.getlocal("+0900").to_a[0, 6]
-    assert_equal [20, 29, 21, 31, 12, 1999], t.getlocal("-023040").to_a[0, 6]
-    assert_equal [35, 10,  9,  1,  1, 2000], t.getlocal("+091035").to_a[0, 6]
-    assert_raise(ArgumentError) {t.getlocal("-02:3040")}
-    assert_raise(ArgumentError) {t.getlocal("+0910:35")}
   end
 
   def test_getlocal_nil
@@ -1266,6 +1278,7 @@ class TestTime < Test::Unit::TestCase
   def test_memsize
     # Time objects are common in some code, try to keep them small
     skip "Time object size test" if /^(?:i.?86|x86_64)-linux/ !~ RUBY_PLATFORM
+    skip "GC is in debug" if GC::INTERNAL_CONSTANTS[:DEBUG]
     require 'objspace'
     t = Time.at(0)
     size = GC::INTERNAL_CONSTANTS[:RVALUE_SIZE]

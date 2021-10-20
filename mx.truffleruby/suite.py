@@ -311,24 +311,6 @@ suite = {
                 "TRUFFLERUBY_BOOTSTRAP_LAUNCHER": "<path:TRUFFLERUBY-BOOTSTRAP-LAUNCHER>/miniruby",
                 "GRAALVM_TOOLCHAIN_CC": "<toolchainGetToolPath:native,CC>",
             },
-            "os_arch": {
-                "linux-musl": {
-                    "<others>": {
-                        "buildDependencies": [
-                            "truffle:LIBFFI_DIST",
-                        ],
-                        "buildEnv": {
-                            "LIBFFI_HEADERS_DIR": "<path:truffle:LIBFFI_DIST>/include",
-                            "NFI_LIB_ARGS": "-L<path:truffle:TRUFFLE_NFI_NATIVE>/bin -ltrufflenfi",
-                        }
-                    }
-                },
-                "<others>": {
-                    "<others>": {
-                        "buildEnv": {},
-                    },
-                },
-            },
             "output": ".",
             "results": [
                 "src/main/c/spawn-helper/spawn-helper",
@@ -494,10 +476,7 @@ suite = {
                     "dependency:org.truffleruby.rubysignal",
                 ],
                 "lib/cext/include/": [
-                    "file:lib/cext/include/ccan",
-                    "file:lib/cext/include/ruby",
-                    "file:lib/cext/include/truffleruby",
-                    "file:lib/cext/include/*.h",
+                    "file:lib/cext/include/*",
                 ],
                 "lib/mri/": [
                     "dependency:org.truffleruby.cext/src/main/c/bigdecimal/<extsuffix:bigdecimal>",
@@ -520,7 +499,6 @@ suite = {
                     "dependency:org.truffleruby.cext/src/main/c/spawn-helper/spawn-helper",
                 ],
                 "src/main/c/openssl/": [
-                    "file:src/main/c/openssl/deprecation.rb",
                     "file:src/main/c/openssl/extconf.rb",
                     "file:src/main/c/openssl/*.c",
                     {

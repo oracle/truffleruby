@@ -1,10 +1,6 @@
 # Merge options
 
-# The changelog should use union merge on master, but not on release branches
 /CHANGELOG.md merge=union
-
-# spec/truffleruby.mspec should use union merge to make it easier to add specs to :next
-/spec/truffleruby.mspec merge=union
 
 # Rules for GitHub's Linguist language-classification system. We're abusing the
 # 'vendored' attribute to exclude files as a lot of this isn't really vendored,

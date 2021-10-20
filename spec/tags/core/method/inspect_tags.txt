@@ -1,0 +1,1 @@
+fails:Method#inspect returns a String containing the Module containing the method if object has a singleton class but method is not defined in the singleton class

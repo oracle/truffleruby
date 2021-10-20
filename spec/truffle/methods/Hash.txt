@@ -26,6 +26,7 @@ each_pair
 each_value
 empty?
 eql?
+except
 fetch
 fetch_values
 filter
@@ -35,7 +36,6 @@ has_key?
 has_value?
 hash
 include?
-index
 inspect
 invert
 keep_if

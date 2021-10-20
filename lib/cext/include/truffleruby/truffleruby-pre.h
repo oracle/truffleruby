@@ -40,8 +40,10 @@ RUBY_SYMBOL_EXPORT_BEGIN
 #define RB_BLOCK_CALL_FUNC_STRICT 1
 
 // To avoid extra write barrier code
-#define USE_RGENGC 0
 #define USE_RINCGC 0
+
+// Skip DTrace-generated code
+#define DTRACE_PROBES_DISABLED 1
 
 // Value types
 
@@ -60,7 +62,7 @@ extern void* rb_tr_cext;
 #endif
 void* rb_tr_abi_version(void) __attribute__((weak));
 void* rb_tr_abi_version(void) {
-  char* abi_version = STRINGIZE(TRUFFLERUBY_ABI_VERSION);
+  const char* abi_version = STRINGIZE(TRUFFLERUBY_ABI_VERSION);
   return polyglot_from_string(abi_version, "US-ASCII");
 }
 

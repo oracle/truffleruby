@@ -1,2 +1,4 @@
 fails:IO.for_fd ignores the :encoding option when the :external_encoding option is present
 fails:IO.for_fd ignores the :encoding option when the :internal_encoding option is present
+fails:IO.for_fd raises ArgumentError for nil options
+fails:IO.for_fd raises ArgumentError if passed a hash for mode and nil for options

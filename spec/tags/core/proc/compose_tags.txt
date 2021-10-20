@@ -1,0 +1,1 @@
+fails:Proc#<< composition is a lambda when parameter is lambda

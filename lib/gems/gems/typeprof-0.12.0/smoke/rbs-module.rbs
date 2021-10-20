@@ -1,0 +1,4 @@
+module Foo
+  def self.foo: -> Integer
+  def bar: -> Integer
+end

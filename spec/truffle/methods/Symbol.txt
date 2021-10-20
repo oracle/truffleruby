@@ -16,6 +16,7 @@ intern
 length
 match
 match?
+name
 next
 size
 slice

@@ -1,0 +1,1 @@
+fails:Array#uniq returns Array instance on Array subclasses

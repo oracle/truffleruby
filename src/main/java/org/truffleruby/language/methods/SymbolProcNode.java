@@ -12,19 +12,16 @@ package org.truffleruby.language.methods;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
 import static org.truffleruby.language.dispatch.DispatchNode.PUBLIC;
 
 public class SymbolProcNode extends RubyContextSourceNode {
 
     private final String symbol;
-    private final BranchProfile noReceiverProfile = BranchProfile.create();
 
     @Child private DispatchNode callNode;
 
@@ -34,12 +31,8 @@ public class SymbolProcNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        // Not using CheckArityNode as the message is different and arity is reported as -1
         final int given = RubyArguments.getArgumentsCount(frame);
-        if (given == 0) {
-            noReceiverProfile.enter();
-            throw new RaiseException(getContext(), coreExceptions().argumentError("no receiver given", this));
-        }
+        assert given >= 1 : "guaranteed from arity check";
 
         final Object receiver = RubyArguments.getArgument(frame, 0);
         final Object[] arguments = ArrayUtils.extractRange(RubyArguments.getArguments(frame), 1, given);

@@ -29,10 +29,18 @@ class TestVariable < Test::Unit::TestCase
     @@rule = "Cronus"			# modifies @@rule in Gods
     include Olympians
     def ruler4
-      EnvUtil.suppress_warning {
-        @@rule
-      }
+      @@rule
     end
+  end
+
+  def test_setting_class_variable_on_module_through_inheritance
+    mod = Module.new
+    mod.class_variable_set(:@@foo, 1)
+    mod.freeze
+    c = Class.new { include(mod) }
+    assert_raise(FrozenError) { c.class_variable_set(:@@foo, 2) }
+    assert_raise(FrozenError) { c.class_eval("@@foo = 2") }
+    assert_equal(1, c.class_variable_get(:@@foo))
   end
 
   def test_singleton_class_included_class_variable
@@ -107,7 +115,7 @@ class TestVariable < Test::Unit::TestCase
     atlas = Titans.new
     assert_equal("Cronus", atlas.ruler0)
     assert_equal("Zeus", atlas.ruler3)
-    assert_equal("Cronus", atlas.ruler4)
+    assert_raise(RuntimeError) { atlas.ruler4 }
     assert_nothing_raised do
       class << Gods
         defined?(@@rule) && @@rule

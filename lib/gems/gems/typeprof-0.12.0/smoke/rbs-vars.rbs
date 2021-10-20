@@ -1,0 +1,7 @@
+$gvar: :gvar_example
+
+class Foo
+  CONST: :const_example
+  @ivar: :ivar_example
+  @@cvar: :cvar_example
+end

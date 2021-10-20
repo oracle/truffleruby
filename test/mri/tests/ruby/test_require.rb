@@ -88,6 +88,7 @@ class TestRequire < Test::Unit::TestCase
   end
 
   def prepare_require_path(dir, encoding)
+    require 'enc/trans/single_byte'
     Dir.mktmpdir {|tmp|
       begin
         require_path = File.join(tmp, dir, 'foo.rb').encode(encoding)
@@ -199,6 +200,7 @@ class TestRequire < Test::Unit::TestCase
   end
 
   def assert_syntax_error_backtrace
+    loaded_features = $LOADED_FEATURES.dup
     Dir.mktmpdir do |tmp|
       req = File.join(tmp, "test.rb")
       File.write(req, ",\n")
@@ -208,6 +210,7 @@ class TestRequire < Test::Unit::TestCase
       assert_not_nil(bt = e.backtrace, "no backtrace")
       assert_not_empty(bt.find_all {|b| b.start_with? __FILE__}, proc {bt.inspect})
     end
+    $LOADED_FEATURES.replace loaded_features
   end
 
   def test_require_syntax_error
@@ -388,6 +391,8 @@ class TestRequire < Test::Unit::TestCase
 
   def test_relative
     load_path = $:.dup
+    loaded_featrures = $LOADED_FEATURES.dup
+
     $:.delete(".")
     Dir.mktmpdir do |tmp|
       Dir.chdir(tmp) do
@@ -407,6 +412,7 @@ class TestRequire < Test::Unit::TestCase
     end
   ensure
     $:.replace(load_path) if load_path
+    $LOADED_FEATURES.replace loaded_featrures
   end
 
   def test_relative_symlink
@@ -764,6 +770,8 @@ class TestRequire < Test::Unit::TestCase
   end if File.respond_to?(:mkfifo)
 
   def test_loading_fifo_fd_leak
+    skip if RUBY_PLATFORM =~ /android/ # https://rubyci.org/logs/rubyci.s3.amazonaws.com/android29-x86_64/ruby-master/log/20200419T124100Z.fail.html.gz
+
     Tempfile.create(%w'fifo .rb') {|f|
       f.close
       File.unlink(f.path)

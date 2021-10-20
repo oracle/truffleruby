@@ -55,13 +55,15 @@ module ObjectSpace
   end
 
   def count_objects_size(hash = {})
-    total = 0
-    ObjectSpace.each_object(Class) do |klass|
-      per_klass = memsize_of_all(klass)
-      hash[klass.name.to_sym] = per_klass unless klass.name.nil?
-      total += per_klass
+    ObjectSpace.each_object do |obj|
+      class_name = obj.class.name
+      if class_name
+        class_name_sym = class_name.to_sym
+        hash[class_name_sym] = hash.fetch(class_name_sym, 0) + ObjectSpace.memsize_of(obj)
+      end
     end
-    hash[:TOTAL] = total
+
+    hash[:TOTAL] = hash.values.sum
     hash
   end
 
@@ -147,7 +149,8 @@ module ObjectSpace
   def memsize_of(object)
     size = Truffle::ObjSpace.memsize_of(object)
 
-    memsizer = Primitive.object_hidden_var_get object, Truffle::CExt::DATA_MEMSIZER
+    memsizer = defined?(Truffle::CExt::DATA_MEMSIZER) &&
+      Primitive.object_hidden_var_get(object, Truffle::CExt::DATA_MEMSIZER)
     if memsizer
       size + memsizer.call
     else

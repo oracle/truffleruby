@@ -20,7 +20,7 @@ RUBY := $(TRUFFLERUBY_BOOTSTRAP_LAUNCHER)
 TRUFFLE_POSIX := truffleposix/libtruffleposix.$(SOEXT)
 SPAWN_HELPER := spawn-helper/spawn-helper
 
-RUBY_HEADERS := $(wildcard $(ROOT)/lib/cext/include/*.h) $(wildcard $(ROOT)/lib/cext/include/*/*.h) $(wildcard $(ROOT)/lib/cext/include/*/*/*.h)
+RUBY_HEADERS := $(shell find $(ROOT)/lib/cext/include -name '*.h')
 ABI_VERSION := $(ROOT)/lib/cext/ABI_version.txt
 RBCONFIG := $(ROOT)/lib/truffle/rbconfig.rb
 MKMF := $(ROOT)/lib/mri/mkmf.rb

@@ -3,31 +3,6 @@ require 'uri'
 require 'stringio'
 require 'time'
 
-module Kernel
-  private
-  alias open_uri_original_open open # :nodoc:
-  class << self
-    alias open_uri_original_open open # :nodoc:
-  end
-
-  def open(name, *rest, &block) # :nodoc:
-    if (name.respond_to?(:open) && !name.respond_to?(:to_path)) ||
-       (name.respond_to?(:to_str) &&
-        %r{\A[A-Za-z][A-Za-z0-9+\-\.]*://} =~ name &&
-        (uri = URI.parse(name)).respond_to?(:open))
-      warn('calling URI.open via Kernel#open is deprecated, call URI.open directly or use URI#open', uplevel: 1)
-      URI.open(name, *rest, &block)
-    else
-      open_uri_original_open(name, *rest, &block)
-    end
-  end
-  module_function :open
-  ruby2_keywords :open
-  class << self
-    ruby2_keywords :open
-  end
-end
-
 module URI
   # Allows the opening of various resources including URIs.
   #
@@ -53,9 +28,7 @@ module URI
           (uri = URI.parse(name)).respond_to?(:open)
       uri.open(*rest, &block)
     else
-      open_uri_original_open(name, *rest, &block)
-      # After Kernel#open override is removed:
-      #super
+      super
     end
   end
 end
@@ -748,7 +721,7 @@ module OpenURI
       OpenURI.open_uri(self, *rest, &block)
     end
 
-    # OpenURI::OpenRead#read([options]) reads a content referenced by self and
+    # OpenURI::OpenRead#read([ options ]) reads a content referenced by self and
     # returns the content as string.
     # The string is extended with OpenURI::Meta.
     # The argument +options+ is same as OpenURI::OpenRead#open.

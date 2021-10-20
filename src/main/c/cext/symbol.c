@@ -10,6 +10,7 @@
 #include <truffleruby-impl.h>
 #include <ruby/encoding.h>
 #include <truffleruby/internal/symbol.h>
+#include <internal/symbol.h>
 
 // Symbol and ID, rb_sym*, rb_id*
 
@@ -35,7 +36,8 @@ VALUE rb_sym2str(VALUE string) {
 }
 
 const char *rb_id2name(ID id) {
-    return RSTRING_PTR(rb_id2str(id));
+  VALUE str = rb_id2str(id);
+  return RSTRING_PTR(str);
 }
 
 VALUE rb_id2str(ID id) {

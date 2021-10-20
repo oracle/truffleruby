@@ -9,6 +9,7 @@
  */
 #include <truffleruby-impl.h>
 #include <errno.h>
+#include <internal/error.h>
 
 // Exceptions, rb_exc_* and function to raise and rescue Ruby Exceptions from C
 

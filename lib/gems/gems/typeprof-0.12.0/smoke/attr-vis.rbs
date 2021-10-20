@@ -1,0 +1,4 @@
+class Foo
+  private
+  attr_accessor bar: Integer
+end

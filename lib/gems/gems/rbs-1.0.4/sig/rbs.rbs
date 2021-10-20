@@ -1,0 +1,11 @@
+module RBS
+  def self.logger: () -> Logger
+                 
+  def self.logger_level: () -> untyped
+                  
+  def self.logger_level=: (untyped) -> untyped
+                   
+  def self.logger_output: () -> IO
+                   
+  def self.logger_output=: (IO) -> IO
+end

@@ -1,0 +1,1 @@
+fails:Kernel#clone takes an freeze: true option to frozen copy

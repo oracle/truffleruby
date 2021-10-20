@@ -21,7 +21,7 @@ fi
 
 output=$(GEM_HOME=$PWD/temp-gem-home jt ruby -Ctest/truffle/integration/bundler-version/two bundler-version.rb)
 
-if [ "$output" = '"2.1.4"' ]; then
+if [ "$output" = '"2.2.22"' ]; then
   echo Success
 else
   echo Unexpected bundler 2 output

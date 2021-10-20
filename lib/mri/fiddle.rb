@@ -1,7 +1,13 @@
 # frozen_string_literal: true
-require 'truffle/fiddle_backend' # 'fiddle.so' in MRI
-require 'fiddle/function'
+
+if defined?(::TruffleRuby)
+  require 'truffle/fiddle_backend'
+else
+  require 'fiddle.so'
+end
 require 'fiddle/closure'
+require 'fiddle/function'
+require 'fiddle/version'
 
 module Fiddle
   if WINDOWS

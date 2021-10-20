@@ -26,8 +26,6 @@ NORETURN(void rb_tr_error(const char *message));
 void rb_tr_log_warning(const char *message);
 #define rb_tr_debug(args...) polyglot_invoke(RUBY_CEXT, "rb_tr_debug", args)
 int rb_tr_obj_equal(VALUE first, VALUE second);
-int rb_tr_flags(VALUE value);
-void rb_tr_add_flags(VALUE value, int flags);
 
 // Initialization
 
@@ -43,10 +41,6 @@ void rb_tr_init_global_constants(void);
 #define rb_rs RUBY_CEXT_INVOKE("rb_rs")
 #define rb_output_rs RUBY_CEXT_INVOKE("rb_output_rs")
 #define rb_default_rs RUBY_CEXT_INVOKE("rb_default_rs")
-
-bool rb_tr_obj_taintable_p(VALUE object);
-bool rb_tr_obj_tainted_p(VALUE object);
-void rb_tr_obj_infect(VALUE a, VALUE b);
 
 int rb_tr_readable(int mode);
 int rb_tr_writable(int mode);
@@ -218,13 +212,11 @@ static inline int rb_tr_scan_args_kw(int kw_flag, int argc, VALUE *argv, const c
   // Interpret kw_flag
 
   int keyword_given = 0;
-  int empty_keyword_given = 0;
   int last_hash_keyword = 0;
 
   switch (kw_flag) {
     case RB_SCAN_ARGS_PASS_CALLED_KEYWORDS: break;
     case RB_SCAN_ARGS_KEYWORDS: keyword_given = 1; break;
-    case RB_SCAN_ARGS_EMPTY_KEYWORDS: empty_keyword_given = 1; break;
     case RB_SCAN_ARGS_LAST_HASH_KEYWORDS: last_hash_keyword = 1; break;
   }
 
@@ -295,7 +287,7 @@ static inline int rb_tr_scan_args_kw(int kw_flag, int argc, VALUE *argv, const c
 
   /* capture an option hash - phase 1: pop */
   /* Ignore final positional hash if empty keywords given */
-  if (argc > 0 && !(kwargs && empty_keyword_given)) {
+  if (argc > 0) {
     VALUE last = argv[argc - 1];
 
     if (kwargs && n_mand < argc) {
@@ -342,8 +334,6 @@ static inline int rb_tr_scan_args_kw(int kw_flag, int argc, VALUE *argv, const c
       rb_warn("Passing the keyword argument as the last hash parameter is deprecated");
     }
   }
-
-  // Skipped the part of MRI where empty_keyword_given with rb_warn("Passing the keyword argument as the last hash parameter is deprecated");
 
   int trailing = post;
 

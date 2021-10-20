@@ -50,6 +50,21 @@ class TestDelegateClass < Test::Unit::TestCase
     assert_equal(SimpleDelegator,simple.clone.class)
   end
 
+  def test_simpledelegator_clone
+    simple=SimpleDelegator.new([])
+    simple.freeze
+
+    clone = simple.clone
+    assert_predicate clone, :frozen?
+    assert_predicate clone.__getobj__, :frozen?
+    assert_equal true, Kernel.instance_method(:frozen?).bind(clone).call
+
+    clone = simple.clone(freeze: false)
+    assert_not_predicate clone, :frozen?
+    assert_not_predicate clone.__getobj__, :frozen?
+    assert_equal false, Kernel.instance_method(:frozen?).bind(clone).call
+  end
+
   class Object
     def m
       :o
@@ -91,6 +106,10 @@ class TestDelegateClass < Test::Unit::TestCase
     protected
 
     def parent_protected; end
+
+    private
+
+    def parent_private; end
   end
 
   class Child < DelegateClass(Parent)
@@ -102,6 +121,10 @@ class TestDelegateClass < Test::Unit::TestCase
     protected
 
     def parent_protected_added; end
+
+    private
+
+    def parent_private_added; end
   end
 
   def test_public_instance_methods
@@ -114,6 +137,32 @@ class TestDelegateClass < Test::Unit::TestCase
     ignores = Object.protected_instance_methods | Delegator.protected_instance_methods
     assert_equal([:parent_protected, :parent_protected_added], (Child.protected_instance_methods - ignores).sort)
     assert_equal([:parent_protected, :parent_protected_added], (Child.new(Parent.new).protected_methods - ignores).sort)
+  end
+
+  def test_instance_methods
+    ignores = Object.instance_methods | Delegator.instance_methods
+    assert_equal([:parent_protected, :parent_protected_added, :parent_public, :parent_public_added], (Child.instance_methods - ignores).sort)
+    assert_equal([:parent_protected, :parent_protected_added, :parent_public, :parent_public_added], (Child.new(Parent.new).methods - ignores).sort)
+  end
+
+  def test_DelegateClass_instance_method
+    assert_instance_of UnboundMethod, Child.instance_method(:parent_public)
+    assert_instance_of UnboundMethod, Child.instance_method(:parent_public_added)
+    assert_instance_of UnboundMethod, Child.instance_method(:parent_protected)
+    assert_instance_of UnboundMethod, Child.instance_method(:parent_protected_added)
+    assert_raise(NameError) { Child.instance_method(:parent_private) }
+    assert_raise(NameError) { Child.instance_method(:parent_private_added) }
+    assert_instance_of UnboundMethod, Child.instance_method(:to_s)
+  end
+
+  def test_DelegateClass_public_instance_method
+    assert_instance_of UnboundMethod, Child.public_instance_method(:parent_public)
+    assert_instance_of UnboundMethod, Child.public_instance_method(:parent_public_added)
+    assert_raise(NameError) { Child.public_instance_method(:parent_protected) }
+    assert_raise(NameError) { Child.public_instance_method(:parent_protected_added) }
+    assert_raise(NameError) { Child.instance_method(:parent_private) }
+    assert_raise(NameError) { Child.instance_method(:parent_private_added) }
+    assert_instance_of UnboundMethod, Child.public_instance_method(:to_s)
   end
 
   class IV < DelegateClass(Integer)
@@ -190,9 +239,7 @@ class TestDelegateClass < Test::Unit::TestCase
     assert_equal([], d.bar)
     assert_equal([[], {:a=>1}], d.foo(:a=>1))
     assert_equal([{:a=>1}], d.bar(:a=>1))
-    assert_warn(/Using the last argument as keyword parameters is deprecated.*The called method `foo'/m) do
-      assert_equal([[], {:a=>1}], d.foo({:a=>1}))
-    end
+    assert_equal([[{:a=>1}], {}], d.foo({:a=>1}))
     assert_equal([{:a=>1}], d.bar({:a=>1}))
   end
 

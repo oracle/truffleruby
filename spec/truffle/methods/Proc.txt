@@ -1,4 +1,5 @@
 <<
+==
 ===
 >>
 []
@@ -8,6 +9,7 @@ call
 clone
 curry
 dup
+eql?
 hash
 inspect
 lambda?

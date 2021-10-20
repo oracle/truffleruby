@@ -269,17 +269,17 @@ class TestPathname < Test::Unit::TestCase
     Pathname.new(path).relative?
   end
 
+  defassert(:relative?, true, '')
   defassert(:relative?, false, '/')
   defassert(:relative?, false, '/a')
   defassert(:relative?, false, '/..')
   defassert(:relative?, true, 'a')
   defassert(:relative?, true, 'a/b')
 
-  if DOSISH_DRIVE_LETTER
-    defassert(:relative?, false, 'A:')
-    defassert(:relative?, false, 'A:/')
-    defassert(:relative?, false, 'A:/a')
-  end
+  defassert(:relative?, !DOSISH_DRIVE_LETTER, 'A:.')
+  defassert(:relative?, !DOSISH_DRIVE_LETTER, 'A:')
+  defassert(:relative?, !DOSISH_DRIVE_LETTER, 'A:/')
+  defassert(:relative?, !DOSISH_DRIVE_LETTER, 'A:/a')
 
   if File.dirname('//') == '//'
     defassert(:relative?, false, '//')
@@ -345,9 +345,26 @@ class TestPathname < Test::Unit::TestCase
   def has_symlink?
     begin
       File.symlink("", "")
-    rescue NotImplementedError, Errno::EACCES
+    rescue NotImplementedError
       return false
     rescue Errno::ENOENT
+      return false
+    rescue Errno::EACCES
+      return false
+    end
+    return true
+  end
+
+  def has_hardlink?
+    begin
+      with_tmpchdir("rubytest-pathname") {|dir|
+        File.write("dummy", "dummy")
+        File.link("dummy", "hardlink")
+      }
+    rescue NotImplementedError
+      return false
+    rescue Errno::EACCES
+      return false
     end
     return true
   end
@@ -616,7 +633,7 @@ class TestPathname < Test::Unit::TestCase
   def test_kernel_open
     count = 0
     result = Kernel.open(Pathname.new(__FILE__)) {|f|
-      assert(File.identical?(__FILE__, f))
+      assert_file.identical?(__FILE__, f)
       count += 1
       2
     }
@@ -912,6 +929,7 @@ class TestPathname < Test::Unit::TestCase
   end
 
   def test_make_link
+    return if !has_hardlink?
     with_tmpchdir('rubytest-pathname') {|dir|
       open("a", "w") {|f| f.write "abc" }
       Pathname("l").make_link(Pathname("a"))
@@ -1324,18 +1342,18 @@ class TestPathname < Test::Unit::TestCase
   def test_mkdir
     with_tmpchdir('rubytest-pathname') {|dir|
       Pathname("d").mkdir
-      assert(File.directory?("d"))
+      assert_file.directory?("d")
       Pathname("e").mkdir(0770)
-      assert(File.directory?("e"))
+      assert_file.directory?("e")
     }
   end
 
   def test_rmdir
     with_tmpchdir('rubytest-pathname') {|dir|
       Pathname("d").mkdir
-      assert(File.directory?("d"))
+      assert_file.directory?("d")
       Pathname("d").rmdir
-      assert(!File.exist?("d"))
+      assert_file.not_exist?("d")
     }
   end
 
@@ -1398,16 +1416,16 @@ class TestPathname < Test::Unit::TestCase
   def test_mkpath
     with_tmpchdir('rubytest-pathname') {|dir|
       Pathname("a/b/c/d").mkpath
-      assert(File.directory?("a/b/c/d"))
+      assert_file.directory?("a/b/c/d")
     }
   end
 
   def test_rmtree
     with_tmpchdir('rubytest-pathname') {|dir|
       Pathname("a/b/c/d").mkpath
-      assert(File.exist?("a/b/c/d"))
+      assert_file.exist?("a/b/c/d")
       Pathname("a").rmtree
-      assert(!File.exist?("a"))
+      assert_file.not_exist?("a")
     }
   end
 
@@ -1415,10 +1433,10 @@ class TestPathname < Test::Unit::TestCase
     with_tmpchdir('rubytest-pathname') {|dir|
       open("f", "w") {|f| f.write "abc" }
       Pathname("f").unlink
-      assert(!File.exist?("f"))
+      assert_file.not_exist?("f")
       Dir.mkdir("d")
       Pathname("d").unlink
-      assert(!File.exist?("d"))
+      assert_file.not_exist?("d")
     }
   end
 
@@ -1443,7 +1461,7 @@ class TestPathname < Test::Unit::TestCase
   end
 
   def test_file_fnmatch
-    assert(File.fnmatch("*.*", Pathname.new("bar.baz")))
+    assert_file.fnmatch("*.*", Pathname.new("bar.baz"))
   end
 
   def test_relative_path_from_casefold

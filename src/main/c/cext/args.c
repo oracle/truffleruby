@@ -9,6 +9,7 @@
  */
 #include <truffleruby-impl.h>
 #include <internal.h>
+#include <internal/hash.h>
 
 // Parsing Ruby arguments from C functions
 

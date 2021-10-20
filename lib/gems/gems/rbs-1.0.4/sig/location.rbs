@@ -1,0 +1,52 @@
+module RBS
+  # Location is the range on buffer, `start_pos..end_pos`.
+  # The index is based on characters.
+  class Location
+    # The buffer this location points on.
+    attr_reader buffer: Buffer
+
+    # The index of character the range starts from.
+    attr_reader start_pos: Integer
+
+    # The index of character the range ends at.
+    attr_reader end_pos: Integer
+
+    def initialize: (buffer: Buffer, start_pos: Integer, end_pos: Integer) -> void
+
+    def inspect: () -> ::String
+
+    def name: () -> untyped
+
+    def start_line: () -> Integer
+
+    def start_column: () -> Integer
+
+    def end_line: () -> Integer
+
+    def end_column: () -> Integer
+
+    def start_loc: () -> Buffer::loc
+
+    def end_loc: () -> Buffer::loc
+
+    def source: () -> String
+
+    def to_s: () -> String
+
+    def self.to_string: (Location? location, ?default: ::String default) -> String
+
+    def ==: (untyped other) -> bool
+
+    def +: (Location other) -> Location
+
+    def pred?: (Location loc) -> bool
+
+    def to_json: (*untyped args) -> untyped
+
+    # `<<` locations given as argument.
+    def concat: (*Location?) -> Location
+
+    # Append given location destructively.
+    def <<: (Location?) -> Location
+  end
+end

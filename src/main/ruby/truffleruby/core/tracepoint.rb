@@ -32,7 +32,7 @@ class TracePoint
 
   def inspect
     if enabled?
-      "#<TracePoint:#{event}@#{path}:#{lineno}>"
+      "#<TracePoint:#{event} #{path}:#{lineno}>"
     else
       '#<TracePoint:disabled>'
     end

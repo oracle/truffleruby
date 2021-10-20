@@ -1,0 +1,3 @@
+class Object
+  def foo: (Integer) -> Integer | (String) -> String
+end

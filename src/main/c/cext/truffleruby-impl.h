@@ -14,6 +14,8 @@
 #include <stdarg.h>
 #include <stdbool.h>
 
+#include <internal_all.h>
+
 // Private helper macros
 
 #define rb_boolean(c) ((c) ? Qtrue : Qfalse)

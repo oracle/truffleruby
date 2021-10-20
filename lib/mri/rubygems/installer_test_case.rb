@@ -3,7 +3,6 @@ require 'rubygems/test_case'
 require 'rubygems/installer'
 
 class Gem::Installer
-
   ##
   # Available through requiring rubygems/installer_test_case
 
@@ -58,14 +57,12 @@ class Gem::Installer
   # Available through requiring rubygems/installer_test_case
 
   attr_writer :wrappers
-
 end
 
 ##
 # A test case for Gem::Installer.
 
 class Gem::InstallerTestCase < Gem::TestCase
-
   def setup
     super
 
@@ -111,9 +108,9 @@ class Gem::InstallerTestCase < Gem::TestCase
   #
   # And returns a Gem::Installer for the @spec that installs into @gemhome
 
-  def setup_base_installer
+  def setup_base_installer(force = true)
     @gem = setup_base_gem
-    util_installer @spec, @gemhome
+    util_installer @spec, @gemhome, false, force
   end
 
   ##
@@ -171,10 +168,10 @@ class Gem::InstallerTestCase < Gem::TestCase
   ##
   # Sets up the base @gem, builds it and returns an installer for it.
   #
-  def util_setup_installer
+  def util_setup_installer(&block)
     @gem = setup_base_gem
 
-    util_setup_gem
+    util_setup_gem(&block)
   end
 
   ##
@@ -185,7 +182,7 @@ class Gem::InstallerTestCase < Gem::TestCase
   #   lib/code.rb
   #   ext/a/mkrf_conf.rb
 
-  def util_setup_gem(ui = @ui)
+  def util_setup_gem(ui = @ui, force = true)
     @spec.files << File.join('lib', 'code.rb')
     @spec.extensions << File.join('ext', 'a', 'mkrf_conf.rb')
 
@@ -217,17 +214,34 @@ class Gem::InstallerTestCase < Gem::TestCase
       end
     end
 
-    Gem::Installer.at @gem
+    Gem::Installer.at @gem, :force => force
   end
 
   ##
   # Creates an installer for +spec+ that will install into +gem_home+.  If
   # +user+ is true a user-install will be performed.
 
-  def util_installer(spec, gem_home, user=false)
+  def util_installer(spec, gem_home, user=false, force=true)
     Gem::Installer.at(spec.cache_file,
                        :install_dir => gem_home,
-                       :user_install => user)
+                       :user_install => user,
+                       :force => force)
   end
 
+  @@symlink_supported = nil
+
+  # This is needed for Windows environment without symlink support enabled (the default
+  # for non admin) to be able to skip test for features using symlinks.
+  def symlink_supported?
+    if @@symlink_supported.nil?
+      begin
+        File.symlink("", "")
+      rescue Errno::ENOENT, Errno::EEXIST
+        @@symlink_supported = true
+      rescue NotImplementedError, SystemCallError
+        @@symlink_supported = false
+      end
+    end
+    @@symlink_supported
+  end
 end
