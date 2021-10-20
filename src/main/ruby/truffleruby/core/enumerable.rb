@@ -378,14 +378,21 @@ module Enumerable
         end
       end
     else
-      each do
-        o = Primitive.single_block_arg
-        if pattern === o
-          ary << o
+      if Primitive.object_kind_of?(pattern, Regexp)
+        each do
+          o = Primitive.single_block_arg
+          if pattern.match?(o)
+            ary << o
+          end
+        end
+      else
+        each do
+          o = Primitive.single_block_arg
+          if pattern === o
+            ary << o
+          end
         end
       end
-
-      Primitive.regexp_last_match_set(Primitive.caller_special_variables, $~)
     end
 
     ary
@@ -404,14 +411,21 @@ module Enumerable
         end
       end
     else
-      each do
-        o = Primitive.single_block_arg
-        unless pattern === o
-          ary << o
+      if Primitive.object_kind_of?(pattern, Regexp)
+        each do
+          o = Primitive.single_block_arg
+          unless pattern.match?(o)
+            ary << o
+          end
+        end
+      else
+        each do
+          o = Primitive.single_block_arg
+          unless pattern === o
+            ary << o
+          end
         end
       end
-
-      Primitive.regexp_last_match_set(Primitive.caller_special_variables, $~)
     end
 
     ary

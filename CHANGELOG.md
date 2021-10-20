@@ -19,6 +19,7 @@ Compatibility:
 * `Module#attr_*` methods now return an array of method names (#2498, @gogainda).
 * Fixed `Socket#(local|remote)_address` to retrieve family and type from the file descriptor (#2444, @larskanis).
 * Add `Thread.ignore_deadlock` accessor (#2453).
+* Add `Enumerable#grep{_v}` optimization for `Regexp` (#2453).
 
 Performance:
 
