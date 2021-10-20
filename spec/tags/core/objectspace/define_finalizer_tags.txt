@@ -1,5 +1,4 @@
 fails:ObjectSpace.define_finalizer calls finalizer on process termination
-fails:ObjectSpace.define_finalizer calls finalizer at exit even if it is self-referencing
 slow:ObjectSpace.define_finalizer allows multiple finalizers with different 'callables' to be defined
 fails:ObjectSpace.define_finalizer allows multiple finalizers with different 'callables' to be defined
 slow:ObjectSpace.define_finalizer calls a finalizer at exit even if it is self-referencing

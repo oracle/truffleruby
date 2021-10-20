@@ -51,7 +51,6 @@ fails:Pattern matching Hash pattern supports double splat operator **rest
 fails:Pattern matching Hash pattern treats **nil like there should not be any other keys in a matched Hash
 fails:Pattern matching Hash pattern matches anything with **
 fails:Pattern matching refinements are used for #deconstruct_keys
-fails:Pattern matching warning warns about pattern matching is experimental feature
 fails:Pattern matching does not allow calculation or method calls in a pattern
 fails:Pattern matching Hash pattern does not support non-symbol keys
 fails:Pattern matching Array pattern accepts a subclass of Array from #deconstruct

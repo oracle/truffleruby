@@ -1,4 +1,4 @@
-fails:String#split with String when $; is not nil warns
 fails:String#split with String returns String instances based on self
 fails:String#split with Regexp returns String instances based on self
 fails:String#split with Regexp for a String subclass yields instances of String
+fails:String#split with String when $; is not nil warns

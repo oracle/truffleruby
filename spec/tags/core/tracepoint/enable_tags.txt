@@ -2,13 +2,7 @@ fails:TracePoint#enable target: option enables trace point for specific location
 fails:TracePoint#enable target: option traces all the events triggered in specified location
 fails:TracePoint#enable target: option does not trace events in nested locations
 fails:TracePoint#enable target: option traces some events in nested blocks
-fails:TracePoint#enable target: option raises ArgumentError when passed object isn't consisted of InstructionSequence (iseq)
 fails:TracePoint#enable target: option raises ArgumentError if target object cannot trigger specified event
-fails:TracePoint#enable target: option raises ArgumentError if passed not Method/UnboundMethod/Proc/RubyVM::InstructionSequence
-fails:TracePoint#enable target: option option value excepts Method
-fails:TracePoint#enable target: option option value excepts UnboundMethod
-fails:TracePoint#enable target: option option value excepts Proc
-fails:TracePoint#enable target: option option value excepts RubyVM::InstructionSequence
 fails:TracePoint#enable target: option nested enabling and disabling raises ArgumentError if trace point already enabled with target is re-enabled with target
 fails:TracePoint#enable target: option nested enabling and disabling raises ArgumentError if trace point already enabled without target is re-enabled with target
 fails:TracePoint#enable target: option nested enabling and disabling raises ArgumentError if trace point already enabled with target is re-enabled without target
@@ -22,7 +16,6 @@ fails:TracePoint#enable target_line: option raises ArgumentError if :line event 
 fails:TracePoint#enable target_line: option raises ArgumentError if :target_line value is out of target code lines range
 fails:TracePoint#enable target_line: option raises TypeError if :target_line value couldn't be coerced to Integer
 fails:TracePoint#enable target_line: option raises ArgumentError if :target_line value is negative
-fails:TracePoint#enable target_line: option excepts value that could be coerced to Integer
 fails:TracePoint#enable target: option raises ArgumentError if passed not Method/UnboundMethod/Proc
 fails:TracePoint#enable target: option option value accepts Method
 fails:TracePoint#enable target: option option value accepts UnboundMethod

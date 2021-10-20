@@ -1,4 +1,3 @@
-fails:Kernel#clone takes an freeze: true option to frozen copy
 fails:Kernel#clone with freeze: true freezes the copy even if the original was not frozen
 fails:Kernel#clone with freeze: true calls #initialize_clone with kwargs freeze: true
 fails:Kernel#clone with freeze: true calls #initialize_clone with kwargs freeze: true even if #initialize_clone only takes a single argument
