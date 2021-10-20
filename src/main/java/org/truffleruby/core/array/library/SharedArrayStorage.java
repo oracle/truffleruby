@@ -11,14 +11,10 @@ package org.truffleruby.core.array.library;
 
 import java.util.Set;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
-import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
-import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 import org.truffleruby.language.objects.shared.WriteBarrierNode;

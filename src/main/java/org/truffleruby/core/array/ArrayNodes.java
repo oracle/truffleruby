@@ -2374,14 +2374,19 @@ public abstract class ArrayNodes {
         protected RubyArray storeToNative(RubyArray array,
                 @Bind("array.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached IntValueProfile arraySizeProfile) {
+                @Cached IntValueProfile arraySizeProfile,
+                @Cached IsSharedNode isSharedNode,
+                @Cached ConditionProfile sharedProfile) {
             final int size = arraySizeProfile.profile(array.size);
             Pointer pointer = Pointer.mallocAutoRelease(size * Pointer.SIZE, getLanguage());
-            NativeArrayStorage newStore = new NativeArrayStorage(pointer, size);
+            Object newStore = new NativeArrayStorage(pointer, size);
             stores.copyContents(store, 0, newStore, 0, size);
             getContext().getMarkingService().addMarker(
                     newStore,
                     (aStore) -> ((NativeArrayStorage) aStore).preserveMembers());
+            if (sharedProfile.profile(isSharedNode.executeIsShared(array))) {
+                newStore = new SharedArrayStorage(newStore);
+            }
             array.store = newStore;
             return array;
         }
