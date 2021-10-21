@@ -2375,8 +2375,12 @@ class IO
     nil
   end
 
-  def write(data)
-    data = String data
+  def write(*data)
+    data = if data.size > 1
+             data.map { |d| Truffle::Type.rb_obj_as_string(d) }.join
+           else
+             Truffle::Type.rb_obj_as_string(data[0])
+           end
     return 0 if data.empty?
 
     ensure_open_and_writable
