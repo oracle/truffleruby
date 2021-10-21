@@ -39,7 +39,7 @@ import org.truffleruby.builtins.ReRaiseInlinedExceptionNode;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
+import org.truffleruby.core.cast.BooleanCastWithDefaultNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToPathNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
@@ -625,7 +625,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "autoload?", required = 1, optional = 1)
     @NodeChild(value = "module", type = RubyNode.class)
     @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "inherit", type = RubyNode.class)
+    @NodeChild(value = "inherit", type = RubyBaseNodeWithExecute.class)
     public abstract static class IsAutoloadNode extends CoreMethodNode {
 
         @CreateCast("name")
@@ -634,8 +634,8 @@ public abstract class ModuleNodes {
         }
 
         @CreateCast("inherit")
-        protected RubyNode coerceToBoolean(RubyNode inherit) {
-            return BooleanCastWithDefaultNodeGen.create(true, inherit);
+        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute inherit) {
+            return BooleanCastWithDefaultNode.create(true, inherit);
         }
 
         @Specialization
@@ -901,12 +901,12 @@ public abstract class ModuleNodes {
 
     @CoreMethod(names = "constants", optional = 1)
     @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "inherit", type = RubyNode.class)
+    @NodeChild(value = "inherit", type = RubyBaseNodeWithExecute.class)
     public abstract static class ConstantsNode extends CoreMethodNode {
 
         @CreateCast("inherit")
-        protected RubyNode coerceToBoolean(RubyNode inherit) {
-            return BooleanCastWithDefaultNodeGen.create(true, inherit);
+        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute inherit) {
+            return BooleanCastWithDefaultNode.create(true, inherit);
         }
 
         @TruffleBoundary
@@ -936,7 +936,7 @@ public abstract class ModuleNodes {
     @Primitive(name = "module_const_defined?")
     @NodeChild(value = "module", type = RubyNode.class)
     @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "inherit", type = RubyNode.class)
+    @NodeChild(value = "inherit", type = RubyBaseNodeWithExecute.class)
     @NodeChild(value = "check_name", type = RubyNode.class)
     public abstract static class ConstDefinedNode extends PrimitiveNode {
 
@@ -946,8 +946,8 @@ public abstract class ModuleNodes {
         }
 
         @CreateCast("inherit")
-        protected RubyNode coerceToBoolean(RubyNode inherit) {
-            return BooleanCastWithDefaultNodeGen.create(true, inherit);
+        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute inherit) {
+            return BooleanCastWithDefaultNode.create(true, inherit);
         }
 
         @TruffleBoundary
@@ -963,7 +963,7 @@ public abstract class ModuleNodes {
     @Primitive(name = "module_const_get")
     @NodeChild(value = "module", type = RubyNode.class)
     @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "inherit", type = RubyNode.class)
+    @NodeChild(value = "inherit", type = RubyBaseNodeWithExecute.class)
     @NodeChild(value = "check_name", type = RubyNode.class)
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     public abstract static class ConstGetNode extends PrimitiveNode {
@@ -978,8 +978,8 @@ public abstract class ModuleNodes {
         }
 
         @CreateCast("inherit")
-        protected RubyNode coerceToBoolean(RubyNode inherit) {
-            return BooleanCastWithDefaultNodeGen.create(true, inherit);
+        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute inherit) {
+            return BooleanCastWithDefaultNode.create(true, inherit);
         }
 
         // Symbol
@@ -1090,7 +1090,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "const_source_location", required = 1, optional = 1)
     @NodeChild(value = "module", type = RubyNode.class)
     @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "inherit", type = RubyNode.class)
+    @NodeChild(value = "inherit", type = RubyBaseNodeWithExecute.class)
     public abstract static class ConstSourceLocationNode extends CoreMethodNode {
 
         @Child private MakeStringNode makeStringNode = MakeStringNode.create();
@@ -1101,8 +1101,8 @@ public abstract class ModuleNodes {
         }
 
         @CreateCast("inherit")
-        protected RubyNode coerceToBoolean(RubyNode inherit) {
-            return BooleanCastWithDefaultNodeGen.create(true, inherit);
+        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute inherit) {
+            return BooleanCastWithDefaultNode.create(true, inherit);
         }
 
         @Specialization(guards = { "strings.isRubyString(name)" })
@@ -1503,7 +1503,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "method_defined?", required = 1, optional = 1)
     @NodeChild(value = "module", type = RubyNode.class)
     @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "inherit", type = RubyNode.class)
+    @NodeChild(value = "inherit", type = RubyBaseNodeWithExecute.class)
     public abstract static class MethodDefinedNode extends CoreMethodNode {
 
         @CreateCast("name")
@@ -1512,8 +1512,8 @@ public abstract class ModuleNodes {
         }
 
         @CreateCast("inherit")
-        protected RubyNode coerceToBoolean(RubyNode inherit) {
-            return BooleanCastWithDefaultNodeGen.create(true, inherit);
+        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute inherit) {
+            return BooleanCastWithDefaultNode.create(true, inherit);
         }
 
         @TruffleBoundary
@@ -1750,7 +1750,7 @@ public abstract class ModuleNodes {
     }
 
     @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "includeAncestors", type = RubyNode.class)
+    @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
     protected abstract static class AbstractInstanceMethodsNode extends CoreMethodNode {
 
         final Visibility visibility;
@@ -1760,8 +1760,8 @@ public abstract class ModuleNodes {
         }
 
         @CreateCast("includeAncestors")
-        protected RubyNode coerceToBoolean(RubyNode includeAncestors) {
-            return BooleanCastWithDefaultNodeGen.create(true, includeAncestors);
+        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute includeAncestors) {
+            return BooleanCastWithDefaultNode.create(true, includeAncestors);
         }
 
         @Specialization
@@ -1805,7 +1805,7 @@ public abstract class ModuleNodes {
 
     @NodeChild(value = "module", type = RubyNode.class)
     @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "inherit", type = RubyNode.class)
+    @NodeChild(value = "inherit", type = RubyBaseNodeWithExecute.class)
     protected abstract static class AbstractMethodDefinedNode extends CoreMethodNode {
 
         final Visibility visibility;
@@ -1820,8 +1820,8 @@ public abstract class ModuleNodes {
         }
 
         @CreateCast("inherit")
-        protected RubyNode coerceToBoolean(RubyNode inherit) {
-            return BooleanCastWithDefaultNodeGen.create(true, inherit);
+        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute inherit) {
+            return BooleanCastWithDefaultNode.create(true, inherit);
         }
 
         // NOTE(norswap): We considered caching the lookup here, but determined that the resulting complexity
@@ -1865,12 +1865,12 @@ public abstract class ModuleNodes {
 
     @CoreMethod(names = "instance_methods", optional = 1)
     @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "includeAncestors", type = RubyNode.class)
+    @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
     public abstract static class InstanceMethodsNode extends CoreMethodNode {
 
         @CreateCast("includeAncestors")
-        protected RubyNode coerceToBoolean(RubyNode includeAncestors) {
-            return BooleanCastWithDefaultNodeGen.create(true, includeAncestors);
+        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute includeAncestors) {
+            return BooleanCastWithDefaultNode.create(true, includeAncestors);
         }
 
         @TruffleBoundary

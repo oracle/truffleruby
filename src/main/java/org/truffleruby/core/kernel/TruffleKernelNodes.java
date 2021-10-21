@@ -24,7 +24,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.basicobject.RubyBasicObject;
-import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
+import org.truffleruby.core.cast.BooleanCastWithDefaultNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.kernel.TruffleKernelNodesFactory.GetSpecialVariableStorageNodeGen;
 import org.truffleruby.core.module.ModuleNodes;
@@ -39,6 +39,7 @@ import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.ReadOwnFrameAndVariablesNode;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.ReadCallerVariablesIfAvailableNode;
 import org.truffleruby.language.arguments.ReadCallerVariablesNode;
@@ -87,13 +88,13 @@ public abstract class TruffleKernelNodes {
     }
 
     @NodeChild(value = "file", type = RubyNode.class)
-    @NodeChild(value = "wrap", type = RubyNode.class)
+    @NodeChild(value = "wrap", type = RubyBaseNodeWithExecute.class)
     @CoreMethod(names = "load", onSingleton = true, required = 1, optional = 1)
     public abstract static class LoadNode extends CoreMethodNode {
 
         @CreateCast("wrap")
-        protected RubyNode coerceToBoolean(RubyNode inherit) {
-            return BooleanCastWithDefaultNodeGen.create(false, inherit);
+        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute inherit) {
+            return BooleanCastWithDefaultNode.create(false, inherit);
         }
 
         @TruffleBoundary

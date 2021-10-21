@@ -22,11 +22,12 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
+import org.truffleruby.core.cast.BooleanCastWithDefaultNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -497,12 +498,12 @@ public abstract class RangeNodes {
     @NodeChild(value = "rubyClass", type = RubyNode.class)
     @NodeChild(value = "begin", type = RubyNode.class)
     @NodeChild(value = "end", type = RubyNode.class)
-    @NodeChild(value = "excludeEnd", type = RubyNode.class)
+    @NodeChild(value = "excludeEnd", type = RubyBaseNodeWithExecute.class)
     public abstract static class NewNode extends CoreMethodNode {
 
         @CreateCast("excludeEnd")
-        protected RubyNode coerceToBoolean(RubyNode excludeEnd) {
-            return BooleanCastWithDefaultNodeGen.create(false, excludeEnd);
+        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute excludeEnd) {
+            return BooleanCastWithDefaultNode.create(false, excludeEnd);
         }
 
         @Specialization(guards = "rubyClass == getRangeClass()")

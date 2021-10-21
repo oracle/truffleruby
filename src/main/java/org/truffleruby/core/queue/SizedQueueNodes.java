@@ -19,9 +19,10 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
-import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
+import org.truffleruby.core.cast.BooleanCastWithDefaultNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
+import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -99,14 +100,14 @@ public abstract class SizedQueueNodes {
     @CoreMethod(names = { "push", "<<", "enq" }, required = 1, optional = 1)
     @NodeChild(value = "queue", type = RubyNode.class)
     @NodeChild(value = "value", type = RubyNode.class)
-    @NodeChild(value = "nonBlocking", type = RubyNode.class)
+    @NodeChild(value = "nonBlocking", type = RubyBaseNodeWithExecute.class)
     public abstract static class PushNode extends CoreMethodNode {
 
         @Child PropagateSharingNode propagateSharingNode = PropagateSharingNode.create();
 
         @CreateCast("nonBlocking")
-        protected RubyNode coerceToBoolean(RubyNode nonBlocking) {
-            return BooleanCastWithDefaultNodeGen.create(false, nonBlocking);
+        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute nonBlocking) {
+            return BooleanCastWithDefaultNode.create(false, nonBlocking);
         }
 
         @Specialization(guards = "!nonBlocking")
@@ -155,12 +156,12 @@ public abstract class SizedQueueNodes {
 
     @CoreMethod(names = { "pop", "shift", "deq" }, optional = 1)
     @NodeChild(value = "queue", type = RubyNode.class)
-    @NodeChild(value = "nonBlocking", type = RubyNode.class)
+    @NodeChild(value = "nonBlocking", type = RubyBaseNodeWithExecute.class)
     public abstract static class PopNode extends CoreMethodNode {
 
         @CreateCast("nonBlocking")
-        protected RubyNode coerceToBoolean(RubyNode nonBlocking) {
-            return BooleanCastWithDefaultNodeGen.create(false, nonBlocking);
+        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute nonBlocking) {
+            return BooleanCastWithDefaultNode.create(false, nonBlocking);
         }
 
         @Specialization(guards = "!nonBlocking")

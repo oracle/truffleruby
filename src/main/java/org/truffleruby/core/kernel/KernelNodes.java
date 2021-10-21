@@ -39,7 +39,7 @@ import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
-import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
+import org.truffleruby.core.cast.BooleanCastWithDefaultNode;
 import org.truffleruby.core.cast.DurationToMillisecondsNodeGen;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToIntNode;
@@ -548,7 +548,7 @@ public abstract class KernelNodes {
 
     @Primitive(name = "object_clone")
     @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "freeze", type = RubyNode.class)
+    @NodeChild(value = "freeze", type = RubyBaseNodeWithExecute.class)
     public abstract static class CloneNode extends PrimitiveNode {
 
         @Child private CopyNode copyNode = CopyNode.create();
@@ -556,8 +556,8 @@ public abstract class KernelNodes {
         @Child private SingletonClassNode singletonClassNode;
 
         @CreateCast("freeze")
-        protected RubyNode coerceToBoolean(RubyNode freeze) {
-            return BooleanCastWithDefaultNodeGen.create(true, freeze);
+        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute freeze) {
+            return BooleanCastWithDefaultNode.create(true, freeze);
         }
 
         @Specialization(limit = "getRubyLibraryCacheLimit()")
@@ -1362,12 +1362,12 @@ public abstract class KernelNodes {
 
     @CoreMethod(names = "methods", optional = 1)
     @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "regular", type = RubyNode.class)
+    @NodeChild(value = "regular", type = RubyBaseNodeWithExecute.class)
     public abstract static class MethodsNode extends CoreMethodNode {
 
         @CreateCast("regular")
-        protected RubyNode coerceToBoolean(RubyNode regular) {
-            return BooleanCastWithDefaultNodeGen.create(true, regular);
+        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute regular) {
+            return BooleanCastWithDefaultNode.create(true, regular);
         }
 
         @TruffleBoundary
@@ -1421,14 +1421,14 @@ public abstract class KernelNodes {
 
     @CoreMethod(names = "private_methods", optional = 1)
     @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "includeAncestors", type = RubyNode.class)
+    @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
     public abstract static class PrivateMethodsNode extends CoreMethodNode {
 
         @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
         @CreateCast("includeAncestors")
-        protected RubyNode coerceToBoolean(RubyNode includeAncestors) {
-            return BooleanCastWithDefaultNodeGen.create(true, includeAncestors);
+        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute includeAncestors) {
+            return BooleanCastWithDefaultNode.create(true, includeAncestors);
         }
 
         @TruffleBoundary
@@ -1457,14 +1457,14 @@ public abstract class KernelNodes {
 
     @CoreMethod(names = "protected_methods", optional = 1)
     @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "includeAncestors", type = RubyNode.class)
+    @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
     public abstract static class ProtectedMethodsNode extends CoreMethodNode {
 
         @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
         @CreateCast("includeAncestors")
-        protected RubyNode coerceToBoolean(RubyNode includeAncestors) {
-            return BooleanCastWithDefaultNodeGen.create(true, includeAncestors);
+        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute includeAncestors) {
+            return BooleanCastWithDefaultNode.create(true, includeAncestors);
         }
 
         @TruffleBoundary
@@ -1496,14 +1496,14 @@ public abstract class KernelNodes {
 
     @CoreMethod(names = "public_methods", optional = 1)
     @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "includeAncestors", type = RubyNode.class)
+    @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
     public abstract static class PublicMethodsNode extends CoreMethodNode {
 
         @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
         @CreateCast("includeAncestors")
-        protected RubyNode coerceToBoolean(RubyNode includeAncestors) {
-            return BooleanCastWithDefaultNodeGen.create(true, includeAncestors);
+        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute includeAncestors) {
+            return BooleanCastWithDefaultNode.create(true, includeAncestors);
         }
 
         @TruffleBoundary
@@ -1537,7 +1537,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "respond_to?", required = 1, optional = 1)
     @NodeChild(value = "object", type = RubyNode.class)
     @NodeChild(value = "name", type = RubyNode.class)
-    @NodeChild(value = "includeProtectedAndPrivate", type = RubyNode.class)
+    @NodeChild(value = "includeProtectedAndPrivate", type = RubyBaseNodeWithExecute.class)
     public abstract static class RespondToNode extends CoreMethodNode {
 
         @Child private InternalRespondToNode dispatch;
@@ -1562,8 +1562,8 @@ public abstract class KernelNodes {
                 boolean includeProtectedAndPrivate);
 
         @CreateCast("includeProtectedAndPrivate")
-        protected RubyNode coerceToBoolean(RubyNode includeProtectedAndPrivate) {
-            return BooleanCastWithDefaultNodeGen.create(false, includeProtectedAndPrivate);
+        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute includeProtectedAndPrivate) {
+            return BooleanCastWithDefaultNode.create(false, includeProtectedAndPrivate);
         }
 
         @Specialization
@@ -1706,7 +1706,7 @@ public abstract class KernelNodes {
 
     @CoreMethod(names = "singleton_methods", optional = 1)
     @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "includeAncestors", type = RubyNode.class)
+    @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
     public abstract static class SingletonMethodsNode extends CoreMethodNode {
 
         public static SingletonMethodsNode create() {
@@ -1716,8 +1716,8 @@ public abstract class KernelNodes {
         public abstract RubyArray executeSingletonMethods(VirtualFrame frame, Object self, boolean includeAncestors);
 
         @CreateCast("includeAncestors")
-        protected RubyNode coerceToBoolean(RubyNode includeAncestors) {
-            return BooleanCastWithDefaultNodeGen.create(true, includeAncestors);
+        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute includeAncestors) {
+            return BooleanCastWithDefaultNode.create(true, includeAncestors);
         }
 
         @TruffleBoundary
