@@ -27,7 +27,8 @@ import com.oracle.truffle.api.dsl.Specialization;
 
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
 
-/** Splat as used to cast a value to an array if it isn't already, as in {@code *value}. */
+/** Splat as used to cast a value to an array if it isn't already, as in {@code *value}. Must be a RubyNode because it's
+ * used in the translator. */
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class SplatCastNode extends RubyContextSourceNode {
 

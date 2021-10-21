@@ -128,13 +128,13 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = "+", required = 1)
     @NodeChild(value = "a", type = RubyNode.class)
-    @NodeChild(value = "b", type = RubyNode.class)
+    @NodeChild(value = "b", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
     public abstract static class AddNode extends CoreMethodNode {
 
         @CreateCast("b")
-        protected RubyNode coerceOtherToAry(RubyNode other) {
+        protected RubyBaseNodeWithExecute coerceOtherToAry(RubyBaseNodeWithExecute other) {
             return ToAryNodeGen.create(other);
         }
 
@@ -599,7 +599,7 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "wasProvided(first)", "rest.length == 0" })
         protected RubyArray concatOne(RubyArray array, Object first, Object[] rest,
-                @Cached("createInternal()") ToAryNode toAryNode,
+                @Cached ToAryNode toAryNode,
                 @Cached ArrayAppendManyNode appendManyNode) {
             appendManyNode.executeAppendMany(array, toAryNode.executeToAry(first));
             return array;
@@ -614,7 +614,7 @@ public abstract class ArrayNodes {
                         "cachedLength <= MAX_EXPLODE_SIZE" })
         protected RubyArray concatMany(RubyArray array, Object first, Object[] rest,
                 @Cached("rest.length") int cachedLength,
-                @Cached("createInternal()") ToAryNode toAryNode,
+                @Cached ToAryNode toAryNode,
                 @Cached ArrayAppendManyNode appendManyNode,
                 @Cached ArrayCopyOnWriteNode cowNode,
                 @Cached ConditionProfile selfArgProfile) {
@@ -635,7 +635,7 @@ public abstract class ArrayNodes {
                 guards = { "wasProvided(first)", "rest.length > 0" },
                 replaces = "concatMany")
         protected RubyArray concatManyGeneral(RubyArray array, Object first, Object[] rest,
-                @Cached("createInternal()") ToAryNode toAryNode,
+                @Cached ToAryNode toAryNode,
                 @Cached ArrayAppendManyNode appendManyNode,
                 @Cached ArrayCopyOnWriteNode cowNode,
                 @Cached ConditionProfile selfArgProfile,
@@ -1302,12 +1302,12 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = "initialize_copy", required = 1, raiseIfFrozenSelf = true)
     @NodeChild(value = "self", type = RubyNode.class)
-    @NodeChild(value = "from", type = RubyNode.class)
+    @NodeChild(value = "from", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(ArrayGuards.class)
     public abstract static class InitializeCopyNode extends CoreMethodNode {
 
         @CreateCast("from")
-        protected RubyNode coerceOtherToAry(RubyNode other) {
+        protected RubyBaseNodeWithExecute coerceOtherToAry(RubyBaseNodeWithExecute other) {
             return ToAryNodeGen.create(other);
         }
 
@@ -1868,7 +1868,7 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = "replace", required = 1, raiseIfFrozenSelf = true)
     @NodeChild(value = "array", type = RubyNode.class)
-    @NodeChild(value = "other", type = RubyNode.class)
+    @NodeChild(value = "other", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
     public abstract static class ReplaceNode extends CoreMethodNode {
@@ -1882,7 +1882,7 @@ public abstract class ArrayNodes {
         public abstract RubyArray executeReplace(RubyArray array, RubyArray other);
 
         @CreateCast("other")
-        protected RubyNode coerceOtherToAry(RubyNode index) {
+        protected RubyBaseNodeWithExecute coerceOtherToAry(RubyBaseNodeWithExecute index) {
             return ToAryNodeGen.create(index);
         }
 

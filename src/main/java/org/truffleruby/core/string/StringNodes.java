@@ -4510,20 +4510,20 @@ public abstract class StringNodes {
 
     /** Search pattern in string starting after offset characters, and return a character index or nil */
     @Primitive(name = "string_character_index", lowerFixnum = 2)
-    @NodeChild(value = "string", type = RubyNode.class)
-    @NodeChild(value = "pattern", type = RubyNode.class)
+    @NodeChild(value = "string", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "pattern", type = RubyBaseNodeWithExecute.class)
     @NodeChild(value = "offset", type = RubyNode.class)
     public abstract static class StringCharacterIndexNode extends PrimitiveNode {
 
         @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
 
         @CreateCast("string")
-        protected RubyNode coerceStringToRope(RubyNode string) {
+        protected RubyBaseNodeWithExecute coerceStringToRope(RubyBaseNodeWithExecute string) {
             return ToRopeNodeGen.create(string);
         }
 
         @CreateCast("pattern")
-        protected RubyNode coercePatternToRope(RubyNode pattern) {
+        protected RubyBaseNodeWithExecute coercePatternToRope(RubyBaseNodeWithExecute pattern) {
             return ToRopeNodeGen.create(pattern);
         }
 
@@ -4611,20 +4611,20 @@ public abstract class StringNodes {
 
     /** Search pattern in string starting after offset bytes, and return a byte index or nil */
     @Primitive(name = "string_byte_index", lowerFixnum = 2)
-    @NodeChild(value = "string", type = RubyNode.class)
-    @NodeChild(value = "pattern", type = RubyNode.class)
+    @NodeChild(value = "string", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "pattern", type = RubyBaseNodeWithExecute.class)
     @NodeChild(value = "offset", type = RubyNode.class)
     public abstract static class StringByteIndexNode extends PrimitiveNode {
 
         @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
 
         @CreateCast("string")
-        protected RubyNode coerceStringToRope(RubyNode string) {
+        protected RubyBaseNodeWithExecute coerceStringToRope(RubyBaseNodeWithExecute string) {
             return ToRopeNodeGen.create(string);
         }
 
         @CreateCast("pattern")
-        protected RubyNode coercePatternToRope(RubyNode pattern) {
+        protected RubyBaseNodeWithExecute coercePatternToRope(RubyBaseNodeWithExecute pattern) {
             return ToRopeNodeGen.create(pattern);
         }
 
@@ -5251,14 +5251,14 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_to_inum", lowerFixnum = 1)
-    @NodeChild(value = "string", type = RubyNode.class)
+    @NodeChild(value = "string", type = RubyBaseNodeWithExecute.class)
     @NodeChild(value = "fixBase", type = RubyNode.class)
     @NodeChild(value = "strict", type = RubyNode.class)
     @NodeChild(value = "raiseOnError", type = RubyNode.class)
     public abstract static class StringToInumPrimitiveNode extends PrimitiveNode {
 
         @CreateCast("string")
-        protected RubyNode coerceStringToRope(RubyNode string) {
+        protected RubyBaseNodeWithExecute coerceStringToRope(RubyBaseNodeWithExecute string) {
             return ToRopeNodeGen.create(string);
         }
 

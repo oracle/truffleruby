@@ -18,17 +18,10 @@ import org.jcodings.Encoding;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNodeWithExecute;
 
-@NodeChild(value = "child", type = RubyNode.class)
-public abstract class ToRopeNode extends RubyContextSourceNode {
-
-    public abstract Rope executeToRope(Object object);
-
-    public static ToRopeNode create() {
-        return ToRopeNodeGen.create(null);
-    }
+@NodeChild(value = "child", type = RubyBaseNodeWithExecute.class)
+public abstract class ToRopeNode extends RubyBaseNodeWithExecute {
 
     @Specialization
     protected Rope coerceRubyString(RubyString string) {

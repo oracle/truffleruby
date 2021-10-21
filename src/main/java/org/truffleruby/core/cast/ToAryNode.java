@@ -10,8 +10,7 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
@@ -20,10 +19,10 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-@NodeChild(value = "child", type = RubyNode.class)
-public abstract class ToAryNode extends RubyContextSourceNode {
+@NodeChild(value = "child", type = RubyBaseNodeWithExecute.class)
+public abstract class ToAryNode extends RubyBaseNodeWithExecute {
 
-    public static ToAryNode createInternal() {
+    public static ToAryNode create() {
         return ToAryNodeGen.create(null);
     }
 

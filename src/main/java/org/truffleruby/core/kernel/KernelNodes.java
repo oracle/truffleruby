@@ -1738,12 +1738,12 @@ public abstract class KernelNodes {
 
     }
 
-    @NodeChild(value = "duration", type = RubyNode.class)
+    @NodeChild(value = "duration", type = RubyBaseNodeWithExecute.class)
     @CoreMethod(names = "sleep", isModuleFunction = true, optional = 1)
     public abstract static class SleepNode extends CoreMethodNode {
 
         @CreateCast("duration")
-        protected RubyNode coerceDuration(RubyNode duration) {
+        protected RubyBaseNodeWithExecute coerceDuration(RubyBaseNodeWithExecute duration) {
             return DurationToMillisecondsNodeGen.create(false, duration);
         }
 

@@ -585,7 +585,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "autoload", required = 2)
     @NodeChild(value = "module", type = RubyNode.class)
     @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "filename", type = RubyNode.class)
+    @NodeChild(value = "filename", type = RubyBaseNodeWithExecute.class)
     public abstract static class AutoloadNode extends CoreMethodNode {
 
         @CreateCast("name")
@@ -594,7 +594,7 @@ public abstract class ModuleNodes {
         }
 
         @CreateCast("filename")
-        protected RubyNode coerceFilenameToPath(RubyNode filename) {
+        protected RubyBaseNodeWithExecute coerceFilenameToPath(RubyBaseNodeWithExecute filename) {
             return ToPathNodeGen.create(filename);
         }
 
