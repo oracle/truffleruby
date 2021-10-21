@@ -87,6 +87,3 @@ class NilClass
     raise TypeError, "allocator undefined for #{self}"
   end
 end
-
-NIL = nil
-Object.deprecate_constant :NIL
