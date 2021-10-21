@@ -1637,9 +1637,6 @@ module Commands
 
   def untag(path, *args)
     require_ruby_launcher!
-    puts
-    puts "WARNING: untag is currently not very reliable - run `jt test #{[path,*args] * ' '}` after and manually annotate any new failures"
-    puts
     test_specs('untag', path, *args)
   end
 
