@@ -304,10 +304,10 @@ public abstract class EncodingNodes {
                 return null;
             }
 
-            if (enc2.jcoding instanceof USASCIIEncoding) {
+            if (enc2.jcoding == USASCIIEncoding.INSTANCE) {
                 return enc1;
             }
-            if (enc1.jcoding instanceof USASCIIEncoding) {
+            if (enc1.jcoding == USASCIIEncoding.INSTANCE) {
                 return enc2;
             }
 
