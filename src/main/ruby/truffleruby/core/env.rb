@@ -348,6 +348,14 @@ class << ENV
     result
   end
 
+  def except(*keys)
+    # More memory-efficient than delegating to Hash.except
+    result = to_hash
+    keys.each { |k| result.delete(k) }
+
+    result
+  end
+
   def set_encoding(value)
     return unless Primitive.object_kind_of?(value, String)
     if Encoding.default_internal && value.ascii_only?

@@ -1,6 +1,0 @@
-fails:ENV.except returns the ENV as a hash
-fails:ENV.except uses the locale encoding for keys
-fails:ENV.except uses the locale encoding for values
-fails:ENV.except duplicates the ENV when converting to a Hash
-fails:ENV.except returns a hash without the requested subset
-fails:ENV.except ignores keys not present in the original hash
