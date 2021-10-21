@@ -210,7 +210,7 @@ public abstract class SymbolNodes {
             return ProcOperations.createRubyProc(
                     context.getCoreLibrary().procClass,
                     language.procShape,
-                    ProcType.PROC,
+                    ProcType.LAMBDA,
                     RubyRootNode.of(callTarget).getSharedMethodInfo(),
                     new ProcCallTargets(callTarget),
                     declarationFrame,
@@ -234,7 +234,7 @@ public abstract class SymbolNodes {
                     0,
                     "&:" + symbol.getString(),
                     "Symbol#to_proc",
-                    ArgumentDescriptor.ANON_REST);
+                    ArgumentDescriptor.AT_LEAST_ONE);
 
             // ModuleNodes.DefineMethodNode relies on the lambda CallTarget to always use a RubyLambdaRootNode,
             // and we want to use a single CallTarget for both proc and lambda.
