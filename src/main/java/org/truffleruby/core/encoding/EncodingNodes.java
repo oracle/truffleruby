@@ -66,6 +66,7 @@ public abstract class EncodingNodes {
         }
     }
 
+    // MRI: enc_compatible_str and enc_compatible_latter
     public abstract static class NegotiateCompatibleRopeEncodingNode extends RubyBaseNode {
 
         public abstract RubyEncoding executeNegotiate(Rope first, RubyEncoding firstEncoding, Rope second,
@@ -116,7 +117,7 @@ public abstract class EncodingNodes {
         @TruffleBoundary
         private static RubyEncoding compatibleEncodingForRopes(Rope firstRope, RubyEncoding firstRubyEncoding,
                 Rope secondRope, RubyEncoding secondRubyEncoding) {
-            // Taken from org.jruby.RubyEncoding#areCompatible.
+            // MRI: enc_compatible_latter
 
             final Encoding firstEncoding = firstRope.getEncoding();
             final Encoding secondEncoding = secondRope.getEncoding();
@@ -332,6 +333,7 @@ public abstract class EncodingNodes {
 
     }
 
+    // MRI: rb_enc_compatible
     @Primitive(name = "encoding_compatible?")
     public abstract static class CompatibleQueryNode extends CoreMethodArrayArgumentsNode {
 
@@ -448,7 +450,7 @@ public abstract class EncodingNodes {
 
     }
 
-    // Port of MRI's `get_actual_encoding`.
+    // MRI: get_actual_encoding
     public abstract static class GetActualEncodingNode extends RubyBaseNode {
 
         public static GetActualEncodingNode create() {
@@ -562,7 +564,7 @@ public abstract class EncodingNodes {
 
     }
 
-    // Port of MRI's `rb_obj_encoding`/`rb_enc_get_index`.
+    // MRI: rb_obj_encoding and rb_enc_get_index
     @Primitive(name = "encoding_get_object_encoding")
     public abstract static class EncodingGetObjectEncodingNode extends PrimitiveArrayArgumentsNode {
 
@@ -713,6 +715,7 @@ public abstract class EncodingNodes {
 
     }
 
+    // MRI: rb_enc_check
     @Primitive(name = "encoding_ensure_compatible")
     public abstract static class CheckEncodingNode extends PrimitiveArrayArgumentsNode {
 
