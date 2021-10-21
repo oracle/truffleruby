@@ -80,4 +80,9 @@ public class InstVarParseNode extends ParseNode implements INameNode, SideEffect
     public void setName(String name) {
         this.name = name;
     }
+
+    @Override
+    public boolean needsDefinitionCheck() {
+        return false;
+    }
 }

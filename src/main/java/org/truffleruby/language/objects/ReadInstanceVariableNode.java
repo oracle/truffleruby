@@ -15,10 +15,8 @@ import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.WarningNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -29,7 +27,6 @@ public class ReadInstanceVariableNode extends RubyContextSourceNode {
 
     @Child private RubyNode receiver;
     @Child private DynamicObjectLibrary objectLibrary;
-    @Child private WarningNode warningNode;
 
     private final ConditionProfile objectProfile = ConditionProfile.create();
 
@@ -45,18 +42,10 @@ public class ReadInstanceVariableNode extends RubyContextSourceNode {
         if (objectProfile.profile(receiverObject instanceof RubyDynamicObject)) {
             final DynamicObjectLibrary objectLibrary = getObjectLibrary();
             final RubyDynamicObject dynamicObject = (RubyDynamicObject) receiverObject;
-            if (!objectLibrary.containsKey(dynamicObject, name)) {
-                warnNotInitialized();
-            }
             return objectLibrary.getOrDefault(dynamicObject, name, nil);
         } else {
             return nil;
         }
-    }
-
-    @TruffleBoundary
-    private String getWarningMessage() {
-        return String.format("instance variable %s not initialized", name);
     }
 
     @Override
@@ -85,17 +74,6 @@ public class ReadInstanceVariableNode extends RubyContextSourceNode {
                             .createDispatched(getLanguage().options.INSTANCE_VARIABLE_CACHE));
         }
         return objectLibrary;
-    }
-
-    private void warnNotInitialized() {
-        if (warningNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            warningNode = insert(new WarningNode());
-        }
-
-        if (warningNode.shouldWarn()) {
-            warningNode.warningMessage(getSourceSection(), getWarningMessage());
-        }
     }
 
 }

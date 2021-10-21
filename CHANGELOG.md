@@ -22,6 +22,7 @@ Compatibility:
 * Allow `Hash#transform_keys` to take a hash argument (@ccocchi, #2464).
 * Add `Enumerable#grep{_v}` optimization for `Regexp` (#2453).
 * Update `IO#write` to accept multiple arguments (#2501).
+* Do not warn when uninitialized instance variable is accessed (#2502, @andrykonchin).
 
 Performance:
 
