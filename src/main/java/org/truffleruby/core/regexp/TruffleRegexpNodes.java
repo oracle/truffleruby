@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -329,12 +330,7 @@ public class TruffleRegexpNodes {
             }
         }
 
-        @Specialization(
-                guards = {
-                        "encoding != US_ASCII",
-                        "encoding != ISO_8859_1",
-                        "encoding != UTF_8",
-                        "encoding != BINARY" })
+        @Fallback
         protected Object other(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
             return nil;
         }
