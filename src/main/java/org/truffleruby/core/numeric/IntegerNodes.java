@@ -41,7 +41,7 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.NoImplicitCastsToLong;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -1817,24 +1817,25 @@ public abstract class IntegerNodes {
     }
 
     @Primitive(name = "mod_pow")
-    @NodeChild(value = "base", type = RubyNode.class)
-    @NodeChild(value = "exponent", type = RubyNode.class)
-    @NodeChild(value = "modulo", type = RubyNode.class)
+    @NodeChild(value = "base", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "exponent", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "modulo", type = RubyBaseNodeWithExecute.class)
     public abstract static class ModPowNode extends PrimitiveNode {
+
         @Child private FixnumOrBignumNode fixnumOrBignum = new FixnumOrBignumNode();
 
         @CreateCast("base")
-        protected RubyNode baseToBigInteger(RubyNode base) {
+        protected RubyBaseNodeWithExecute baseToBigInteger(RubyBaseNodeWithExecute base) {
             return BigIntegerCastNode.create(base);
         }
 
         @CreateCast("exponent")
-        protected RubyNode exponentToBigInteger(RubyNode exponent) {
+        protected RubyBaseNodeWithExecute exponentToBigInteger(RubyBaseNodeWithExecute exponent) {
             return BigIntegerCastNode.create(exponent);
         }
 
         @CreateCast("modulo")
-        protected RubyNode moduloToBigInteger(RubyNode modulo) {
+        protected RubyBaseNodeWithExecute moduloToBigInteger(RubyBaseNodeWithExecute modulo) {
             return BigIntegerCastNode.create(modulo);
         }
 

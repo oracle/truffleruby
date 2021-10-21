@@ -10,35 +10,26 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
+import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.control.RaiseException;
 
 import java.math.BigInteger;
 
 /** Casts a value into a BigInteger. */
-@GenerateUncached
 @ImportStatic(RubyGuards.class)
-@NodeChild(value = "value", type = RubyNode.class)
-public abstract class BigIntegerCastNode extends RubySourceNode {
+@NodeChild(value = "value", type = RubyBaseNodeWithExecute.class)
+public abstract class BigIntegerCastNode extends RubyBaseNodeWithExecute {
 
-    public static BigIntegerCastNode create() {
-        return BigIntegerCastNodeGen.create(null);
-    }
-
-    public static BigIntegerCastNode create(RubyNode value) {
+    public static BigIntegerCastNode create(RubyBaseNodeWithExecute value) {
         return BigIntegerCastNodeGen.create(value);
     }
-
-    public abstract BigInteger executeCastBigInteger(Object value);
 
     @Specialization
     protected BigInteger doInt(int value) {
