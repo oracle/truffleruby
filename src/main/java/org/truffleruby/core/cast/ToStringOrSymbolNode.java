@@ -10,7 +10,6 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -34,10 +33,6 @@ public abstract class ToStringOrSymbolNode extends RubyBaseNodeWithExecute {
         return ToStringOrSymbolNodeGen.create(null);
     }
 
-    /** Execute with child node */
-    public abstract Object execute(VirtualFrame frame);
-
-    /** Execute with given value */
     public abstract Object execute(Object value);
 
     @Specialization
