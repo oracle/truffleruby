@@ -24,8 +24,9 @@ Compatibility:
 Performance:
 
 * Regexp objects are now interned in a similar way to symbols.
-* Improve performance of regexps using POSIX bracket expressions (e.g., `[[:lower:]]`) matching against ASCII-only strings (#2447).
+* Improve performance of regexps using POSIX bracket expressions (e.g., `[[:lower:]]`) matching against ASCII-only strings (#2447, @nirvdrum).
 * `String#sub`, `sub!`, `gsub`, and `gsub!` have been refactored for better performance.
+* Don't allocate a `MatchData` object when `Regexp#match?` or `String#match?` is used (#2509, @nirvdrum).
 
 Changes:
 

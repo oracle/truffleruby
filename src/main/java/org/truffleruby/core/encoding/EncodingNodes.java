@@ -578,19 +578,7 @@ public abstract class EncodingNodes {
 
     }
 
-    @Primitive(name = "encoding_enc_find_index")
-    public abstract static class EncodingFindIndexNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization(guards = "strings.isRubyString(nameObject)")
-        protected int encodingFindIndex(Object nameObject,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
-            final String name = strings.getJavaString(nameObject);
-            final RubyEncoding encodingObject = getContext().getEncodingManager().getRubyEncoding(name);
-            return encodingObject != null ? encodingObject.index : -1;
-        }
-
-    }
-
+    // Port of MRI's `rb_obj_encoding`/`rb_enc_get_index`.
     @Primitive(name = "encoding_get_object_encoding")
     public abstract static class EncodingGetObjectEncodingNode extends PrimitiveArrayArgumentsNode {
 
@@ -615,15 +603,8 @@ public abstract class EncodingNodes {
         }
 
         @Specialization
-        protected Object encodingGetObjectEncodingRegexp(RubyRegexp object,
-                @Cached ConditionProfile hasRegexpSource) {
-            final Rope regexpSource = object.source;
-
-            if (hasRegexpSource.profile(regexpSource != null)) {
-                return object.encoding;
-            } else {
-                return Encodings.BINARY;
-            }
+        protected RubyEncoding encodingGetObjectEncodingRegexp(RubyRegexp object) {
+            return object.encoding;
         }
 
         @Fallback

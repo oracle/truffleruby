@@ -177,7 +177,7 @@ class Regexp
   end
 
   def match?(str, pos = 0)
-    Truffle::RegexpOperations.match(self, str, pos) != nil
+    Truffle::RegexpOperations.match?(self, str, pos)
   end
 
   def ===(other)

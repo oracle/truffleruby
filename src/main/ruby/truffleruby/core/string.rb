@@ -77,7 +77,7 @@ class String
   def =~(pattern)
     case pattern
     when Regexp
-      match_data = Truffle::RegexpOperations.search_region(pattern, self, 0, bytesize, true)
+      match_data = Truffle::RegexpOperations.search_region(pattern, self, 0, bytesize, true, true)
       Primitive.regexp_last_match_set(Primitive.caller_special_variables, match_data)
       return match_data.begin(0) if match_data
     when String
@@ -203,7 +203,7 @@ class String
 
   def rpartition(pattern)
     if Primitive.object_kind_of?(pattern, Regexp)
-      if m = Truffle::RegexpOperations.search_region(pattern, self, 0, bytesize, false)
+      if m = Truffle::RegexpOperations.search_region(pattern, self, 0, bytesize, false, true)
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, m)
         return [m.pre_match, m[0], m.post_match]
       end
@@ -318,21 +318,6 @@ class String
     str = dup
     str.tr_s!(source, replacement) || str
   end
-
-  def subpattern(pattern, capture)
-    match = Truffle::RegexpOperations.match(pattern, self)
-
-    return nil unless match
-
-    if index = Truffle::Type.rb_check_convert_type(capture, Integer, :to_int)
-      return nil if index >= match.size || -index >= match.size
-      capture = index
-    end
-
-    str = match[capture]
-    [match, str]
-  end
-  private :subpattern
 
   def each_codepoint
     return to_enum(:each_codepoint) { size } unless block_given?
@@ -1004,13 +989,13 @@ class String
 
     case index
     when Integer
-      assign_index(index, count, replacement)
+      Truffle::StringOperations.assign_index(self, index, count, replacement)
     when String
-      assign_string(index, replacement)
+      Truffle::StringOperations.assign_string(self, index, replacement)
     when Range
-      assign_range(index, replacement)
+      Truffle::StringOperations.assign_range(self, index, replacement)
     when Regexp
-      assign_regexp(index, count, replacement)
+      Truffle::StringOperations.assign_regexp(self, index, count, replacement)
     else
       index = Primitive.rb_to_int index
 
@@ -1023,107 +1008,6 @@ class String
 
     replacement
   end
-
-  def assign_index(index, count, replacement)
-    index += size if index < 0
-
-    if index < 0 or index > size
-      raise IndexError, "index #{index} out of string"
-    end
-
-    unless bi = Primitive.string_byte_index_from_char_index(self, index)
-      raise IndexError, "unable to find character at: #{index}"
-    end
-
-    if count
-      count = Primitive.rb_to_int count
-
-      if count < 0
-        raise IndexError, 'count is negative'
-      end
-
-      total = index + count
-      if total >= size
-        bs = bytesize - bi
-      else
-        bs = Primitive.string_byte_index_from_char_index(self, total) - bi
-      end
-    else
-      bs = index == size ? 0 : Primitive.string_byte_index_from_char_index(self, index + 1) - bi
-    end
-
-    replacement = StringValue replacement
-    enc = Primitive.encoding_ensure_compatible self, replacement
-
-    Primitive.string_splice(self, replacement, bi, bs, enc)
-  end
-
-  def assign_string(index, replacement)
-    unless start = Primitive.find_string(self, index, 0)
-      raise IndexError, 'string not matched'
-    end
-
-    replacement = StringValue replacement
-    enc = Primitive.encoding_ensure_compatible self, replacement
-
-    Primitive.string_splice(self, replacement, start, index.bytesize, enc)
-  end
-
-  def assign_range(index, replacement)
-    start, length = Primitive.range_normalized_start_length(index, size)
-    stop = start + length - 1
-
-    raise RangeError, "#{index.first} is out of range" if start < 0 or start > size
-
-    bi = Primitive.string_byte_index_from_char_index(self, start)
-    raise IndexError, "unable to find character at: #{start}" unless bi
-
-    if stop < start
-      bs = 0
-    elsif stop >= size
-      bs = bytesize - bi
-    else
-      bs = Primitive.string_byte_index_from_char_index(self, stop + 1) - bi
-    end
-
-    replacement = StringValue replacement
-    enc = Primitive.encoding_ensure_compatible self, replacement
-
-    Primitive.string_splice(self, replacement, bi, bs, enc)
-  end
-
-  def assign_regexp(index, count, replacement)
-    if count
-      count = Primitive.rb_to_int count
-    else
-      count = 0
-    end
-
-    if match = Truffle::RegexpOperations.match(index, self)
-      ms = match.size
-    else
-      raise IndexError, 'regexp does not match'
-    end
-
-    count += ms if count < 0 and -count < ms
-    unless count < ms and count >= 0
-      raise IndexError, "index #{count} out of match bounds"
-    end
-
-    unless match[count]
-      raise IndexError, "regexp group #{count} not matched"
-    end
-
-    replacement = StringValue replacement
-    enc = Primitive.encoding_ensure_compatible self, replacement
-
-    bi = Primitive.string_byte_index_from_char_index(self, match.begin(count))
-    bs = Primitive.string_byte_index_from_char_index(self, match.end(count)) - bi
-
-    Primitive.string_splice(self, replacement, bi, bs, enc)
-  end
-
-  private :assign_index, :assign_string, :assign_range, :assign_regexp
 
   def center(width, padding=' ')
     padding = StringValue(padding)
@@ -1319,7 +1203,7 @@ class String
     when Regexp
       Primitive.encoding_ensure_compatible self, sub
 
-      match_data = Truffle::RegexpOperations.search_region(sub, self, 0, byte_finish, false)
+      match_data = Truffle::RegexpOperations.search_region(sub, self, 0, byte_finish, false, true)
       Primitive.regexp_last_match_set(Primitive.caller_special_variables, match_data)
       return match_data.begin(0) if match_data
 
