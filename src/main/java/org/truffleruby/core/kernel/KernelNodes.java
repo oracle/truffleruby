@@ -97,6 +97,7 @@ import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -1140,11 +1141,11 @@ public abstract class KernelNodes {
 
     @CoreMethod(names = "instance_variable_defined?", required = 1)
     @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     public abstract static class InstanceVariableDefinedNode extends CoreMethodNode {
 
         @CreateCast("name")
-        protected RubyNode coerceToString(RubyNode name) {
+        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
 
@@ -1185,11 +1186,11 @@ public abstract class KernelNodes {
 
     @CoreMethod(names = "instance_variable_get", required = 1)
     @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     public abstract static class InstanceVariableGetNode extends CoreMethodNode {
 
         @CreateCast("name")
-        protected RubyNode coerceName(RubyNode name) {
+        protected RubyBaseNodeWithExecute coerceName(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
 
@@ -1204,12 +1205,12 @@ public abstract class KernelNodes {
 
     @CoreMethod(names = "instance_variable_set", raiseIfFrozenSelf = true, required = 2)
     @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     @NodeChild(value = "value", type = RubyNode.class)
     public abstract static class InstanceVariableSetNode extends CoreMethodNode {
 
         @CreateCast("name")
-        protected RubyNode coerceName(RubyNode name) {
+        protected RubyBaseNodeWithExecute coerceName(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
 
@@ -1225,11 +1226,11 @@ public abstract class KernelNodes {
 
     @CoreMethod(names = "remove_instance_variable", raiseIfFrozenSelf = true, required = 1)
     @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     public abstract static class RemoveInstanceVariableNode extends CoreMethodNode {
 
         @CreateCast("name")
-        protected RubyNode coerceToString(RubyNode name) {
+        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
 
@@ -1665,13 +1666,13 @@ public abstract class KernelNodes {
 
     @CoreMethod(names = "singleton_method", required = 1)
     @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     public abstract static class SingletonMethodNode extends CoreMethodNode {
 
         @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
         @CreateCast("name")
-        protected RubyNode coerceToString(RubyNode name) {
+        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
 

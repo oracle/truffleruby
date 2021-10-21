@@ -584,12 +584,12 @@ public abstract class ModuleNodes {
 
     @CoreMethod(names = "autoload", required = 2)
     @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     @NodeChild(value = "filename", type = RubyNode.class)
     public abstract static class AutoloadNode extends CoreMethodNode {
 
         @CreateCast("name")
-        protected RubyNode coerceNameToString(RubyNode name) {
+        protected RubyBaseNodeWithExecute coerceNameToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
 
@@ -624,12 +624,12 @@ public abstract class ModuleNodes {
 
     @CoreMethod(names = "autoload?", required = 1, optional = 1)
     @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     @NodeChild(value = "inherit", type = RubyNode.class)
     public abstract static class IsAutoloadNode extends CoreMethodNode {
 
         @CreateCast("name")
-        protected RubyNode coerceToString(RubyNode name) {
+        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
 
@@ -810,11 +810,11 @@ public abstract class ModuleNodes {
 
     @CoreMethod(names = "class_variable_defined?", required = 1)
     @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     public abstract static class ClassVariableDefinedNode extends CoreMethodNode {
 
         @CreateCast("name")
-        protected RubyNode coerceToString(RubyNode name) {
+        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
 
@@ -830,11 +830,11 @@ public abstract class ModuleNodes {
 
     @CoreMethod(names = "class_variable_get", required = 1)
     @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     public abstract static class ClassVariableGetNode extends CoreMethodNode {
 
         @CreateCast("name")
-        protected RubyNode coerceToString(RubyNode name) {
+        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
 
@@ -859,12 +859,12 @@ public abstract class ModuleNodes {
 
     @CoreMethod(names = "class_variable_set", required = 2, raiseIfFrozenSelf = true)
     @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     @NodeChild(value = "value", type = RubyNode.class)
     public abstract static class ClassVariableSetNode extends CoreMethodNode {
 
         @CreateCast("name")
-        protected RubyNode coerceToString(RubyNode name) {
+        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
 
@@ -935,13 +935,13 @@ public abstract class ModuleNodes {
 
     @Primitive(name = "module_const_defined?")
     @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     @NodeChild(value = "inherit", type = RubyNode.class)
     @NodeChild(value = "check_name", type = RubyNode.class)
     public abstract static class ConstDefinedNode extends PrimitiveNode {
 
         @CreateCast("name")
-        protected RubyNode coerceToString(RubyNode name) {
+        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
 
@@ -1072,11 +1072,11 @@ public abstract class ModuleNodes {
 
     @CoreMethod(names = "const_missing", required = 1)
     @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     public abstract static class ConstMissingNode extends CoreMethodNode {
 
         @CreateCast("name")
-        protected RubyNode coerceToString(RubyNode name) {
+        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
 
@@ -1145,7 +1145,7 @@ public abstract class ModuleNodes {
 
     @CoreMethod(names = "const_set", required = 2)
     @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     @NodeChild(value = "value", type = RubyNode.class)
     public abstract static class ConstSetNode extends CoreMethodNode {
 
@@ -1156,7 +1156,7 @@ public abstract class ModuleNodes {
         @Child private ConstSetUncheckedNode uncheckedSetNode = ConstSetUncheckedNode.create();
 
         @CreateCast("name")
-        protected RubyNode coerceToString(RubyNode name) {
+        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
 
@@ -1222,7 +1222,7 @@ public abstract class ModuleNodes {
             split = Split.NEVER,
             argumentNames = { "name", "proc_or_method", "block" })
     @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     @NodeChild(value = "proc", type = RubyNode.class)
     @NodeChild(value = "block", type = RubyNode.class)
     public abstract static class DefineMethodNode extends CoreMethodNode {
@@ -1230,7 +1230,7 @@ public abstract class ModuleNodes {
         @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
 
         @CreateCast("name")
-        protected RubyNode coerceToString(RubyNode name) {
+        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
 
@@ -1502,12 +1502,12 @@ public abstract class ModuleNodes {
 
     @CoreMethod(names = "method_defined?", required = 1, optional = 1)
     @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     @NodeChild(value = "inherit", type = RubyNode.class)
     public abstract static class MethodDefinedNode extends CoreMethodNode {
 
         @CreateCast("name")
-        protected RubyNode coerceToString(RubyNode name) {
+        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
 
@@ -1716,11 +1716,11 @@ public abstract class ModuleNodes {
 
     @CoreMethod(names = "public_instance_method", required = 1)
     @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     public abstract static class PublicInstanceMethodNode extends CoreMethodNode {
 
         @CreateCast("name")
-        protected RubyNode coerceToString(RubyNode name) {
+        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
 
@@ -1804,7 +1804,7 @@ public abstract class ModuleNodes {
 
 
     @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     @NodeChild(value = "inherit", type = RubyNode.class)
     protected abstract static class AbstractMethodDefinedNode extends CoreMethodNode {
 
@@ -1815,7 +1815,7 @@ public abstract class ModuleNodes {
         }
 
         @CreateCast("name")
-        protected RubyNode coerceToString(RubyNode name) {
+        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
 
@@ -1885,12 +1885,12 @@ public abstract class ModuleNodes {
 
     @CoreMethod(names = "instance_method", required = 1)
     @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     public abstract static class InstanceMethodNode extends CoreMethodNode {
         @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
 
         @CreateCast("name")
-        protected RubyNode coerceToString(RubyNode name) {
+        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
 
@@ -1988,11 +1988,11 @@ public abstract class ModuleNodes {
 
     @CoreMethod(names = "remove_class_variable", required = 1)
     @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     public abstract static class RemoveClassVariableNode extends CoreMethodNode {
 
         @CreateCast("name")
-        protected RubyNode coerceToString(RubyNode name) {
+        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
 
@@ -2007,11 +2007,11 @@ public abstract class ModuleNodes {
 
     @Primitive(name = "module_remove_const")
     @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     public abstract static class RemoveConstNode extends PrimitiveNode {
 
         @CreateCast("name")
-        protected RubyNode coerceToString(RubyNode name) {
+        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
 
