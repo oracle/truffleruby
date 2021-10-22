@@ -27,6 +27,7 @@ Compatibility:
 * `Symbol#to_proc` now returns a lambda like in Ruby 3 (#2508, @andrykonchin).
 * `Kernel#lambda` now warns if called without a literal block (#2500, @andrykonchin).
 * Implement Hash#except (#2463, @wildmaples).
+* Remove special `$SAFE` global and related C API methods (#2453).
 
 Performance:
 

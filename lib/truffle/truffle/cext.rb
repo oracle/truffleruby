@@ -639,18 +639,6 @@ module Truffle::CExt
     end
   end
 
-  def rb_safe_level
-    $SAFE
-  end
-
-  def rb_set_safe_level(level)
-    $SAFE = level
-  end
-
-  def rb_set_safe_level_force(level)
-    $SAFE = level
-  end
-
   def rb_tracepoint_new(events, func, data)
     TracePoint.new(*events_to_events_array(events)) do |tp|
       Primitive.call_with_c_mutex(func, [tp, data])

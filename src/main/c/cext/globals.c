@@ -58,26 +58,6 @@ VALUE rb_gv_get(const char *name) {
 
 // $SAFE
 
-void rb_secure(int safe_level) {
-  rb_gv_set("$SAFE", INT2FIX(safe_level));
-}
-
-void rb_insecure_operation(void) {
-  rb_raise(rb_eSecurityError, "Insecure operation: -r");
-}
-
-int rb_safe_level(void) {
-  return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_safe_level"));
-}
-
-void rb_set_safe_level_force(int level) {
-  polyglot_invoke(RUBY_CEXT, "rb_set_safe_level_force", level);
-}
-
-void rb_set_safe_level(int level) {
-  polyglot_invoke(RUBY_CEXT, "rb_set_safe_level", level);
-}
-
 void rb_check_trusted(VALUE obj) {
   rb_warning("rb_check_trusted is deprecated and will be removed in Ruby 3.2.");
 }

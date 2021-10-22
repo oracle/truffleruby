@@ -70,13 +70,6 @@ TruffleRuby provides its own backend implementation for the `ffi` gem, similar t
 This should be completely transparent and behave the same as on MRI.
 The implementation should be fairly complete and passes all the specs of the `ffi` gem except for some rarely-used corner cases.
 
-### Safe levels
-
-`$SAFE` and `Thread#safe_level` are `0` and no other levels are implemented.
-Trying to use level `1` will raise a `SecurityError`.
-Other levels will raise `ArgumentError` as in standard Ruby.
-See the [security notes](known-cves.md) for more explanation on this.
-
 ### Internal MRI functionality
 
 `RubyVM` is not intended for users and is not implemented.

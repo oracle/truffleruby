@@ -210,10 +210,6 @@ class Thread
     Primitive.thread_set_report_on_exception(self, Primitive.as_boolean(val))
   end
 
-  def safe_level
-    0
-  end
-
   # Fiber-local variables
 
   private def convert_to_local_name(name)
@@ -365,17 +361,6 @@ class ConditionVariable
     raise TypeError, "can't dump #{self.class}"
   end
 end
-
-Truffle::KernelOperations.define_hooked_variable(
-  :$SAFE,
-  -> {
-    warn '$SAFE will become a normal global variable in Ruby 3.0', uplevel: 1
-    Thread.current.safe_level
-  },
-  -> level {
-    raise SecurityError, 'Setting $SAFE is no longer supported.' unless level == 0
-  }
-)
 
 Truffle::KernelOperations.define_read_only_global(:$!, -> { Primitive.thread_get_exception })
 Truffle::KernelOperations.define_read_only_global(:$?, -> { Primitive.thread_get_return_code })

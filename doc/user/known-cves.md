@@ -9,20 +9,6 @@ permalink: /reference-manual/ruby/KnownCVEs/
 Please report security vulnerabilities via the process outlined in the [reporting vulnerabilities guide](https://www.oracle.com/corporate/security-practices/assurance/vulnerability/reporting.html).
 Specific guidelines for reporting security issues of the GraalVM project, including TruffleRuby, can be found in the [SECURITY file](https://github.com/oracle/truffleruby/blob/master/SECURITY.md).
 
-## Unimplemented Security Features
-
-Ruby's `$SAFE` feature adds additional checks regarding how tainted data is used, but they are not always correct.
-The checks for tainted data are likewise inconsistent and their implementation has been the subject of many vulnerabilities,
-including regressions of previously fixed vulnerabilities, as detailed below.
-Consensus in the Ruby community is that `$SAFE` is a broken security feature that does not provide genuine safety and it will eventually be removed.
-
-For these reasons, TruffleRuby will not let you enable the `$SAFE` feature.
-This does not disable a security feature that would normally be enabled - it prevents you from using a broken security feature.
-
-This has the effect that `$SAFE` and `Thread#safe_level` are `0` and no other levels are implemented.
-Trying to use level `1` will raise a `SecurityError`.
-Other levels will raise an `ArgumentError` as in standard Ruby.
-
 ## MRI Vulnerabilities
 
 Vulnerabilities reported against MRI may apply to the design of Ruby or to code that we share with MRI.

@@ -1,3 +1,2 @@
-fails:SafeStringValue raises for tained string when $SAFE is 1
 fails:C-API String function rb_str_tmp_new returns a hidden string (RBasic->klass is NULL)
 fails:C-API String function rb_str_times returns String instances
