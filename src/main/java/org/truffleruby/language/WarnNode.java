@@ -38,9 +38,8 @@ public class WarnNode extends RubyBaseNode {
         return verbosity != nil;
     }
 
-    public boolean shouldWarnForDeprecation() {
-        final Object verbosity = readVerboseNode.execute();
-        return verbosity != nil && getContext().getWarningCategoryDeprecated().get();
+    public final boolean shouldWarnForDeprecation() {
+        return shouldWarn() && getContext().getWarningCategoryDeprecated().get();
     }
 
     /** Must only be called if {@link #shouldWarn()} or {@link #shouldWarnForDeprecation()} is true, in order to avoid
