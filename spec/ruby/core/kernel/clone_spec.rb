@@ -44,6 +44,30 @@ describe "Kernel#clone" do
     end
   end
 
+  describe "with freeze: nil" do
+    ruby_version_is ""..."3.0" do
+      it "raises ArgumentError" do
+        -> { @obj.clone(freeze: nil) }.should raise_error(ArgumentError, /unexpected value for freeze: NilClass/)
+      end
+    end
+
+    ruby_version_is "3.0" do
+      it "copies frozen state from the original" do
+        o2 = @obj.clone(freeze: nil)
+        @obj.freeze
+        o3 = @obj.clone(freeze: nil)
+
+        o2.should_not.frozen?
+        o3.should.frozen?
+      end
+
+      it "copies frozen?" do
+        o = "".freeze.clone(freeze: nil)
+        o.frozen?.should be_true
+      end
+    end
+  end
+
   describe "with freeze: true" do
     it 'makes a frozen copy if the original is frozen' do
       @obj.freeze
