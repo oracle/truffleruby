@@ -28,6 +28,7 @@ Compatibility:
 * `Kernel#lambda` now warns if called without a literal block (#2500, @andrykonchin).
 * Implement Hash#except (#2463, @wildmaples).
 * Remove special `$SAFE` global and related C API methods (#2453).
+* Assigning to a numbered parameter raises `SyntaxError` (#2506, @andrykonchin).
 
 Performance:
 
