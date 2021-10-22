@@ -139,7 +139,7 @@ describe "Kernel.lambda" do
   ruby_version_is "3.0" do
     context "when called without a literal block" do
       it "warns when proc isn't a lambda" do
-        -> { lambda(&proc{}) }.should complain("#{__FILE__}:#{__LINE__}: warning: lambda without a literal block is deprecated; use the proc without lambda instead\n", verbose: true)
+        -> { lambda(&proc{}) }.should complain("#{__FILE__}:#{__LINE__}: warning: lambda without a literal block is deprecated; use the proc without lambda instead\n")
       end
 
       it "doesn't warn when proc is lambda" do

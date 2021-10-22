@@ -103,6 +103,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.WarningNode;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -1307,9 +1308,9 @@ public abstract class KernelNodes {
 
         @Specialization(guards = { "!isLiteralBlock(block)", "block.isProc()" })
         protected RubyProc lambdaFromExistingProc(RubyProc block,
-                @Cached("new()") WarningNode warningNode) {
-            if (warningNode.shouldWarnForDeprecation()) {
-                warningNode.warningMessage(
+                @Cached("new()") WarnNode warnNode) {
+            if (warnNode.shouldWarnForDeprecation()) {
+                warnNode.warningMessage(
                         getContext().getCallStack().getTopMostUserSourceSection(),
                         "lambda without a literal block is deprecated; use the proc without lambda instead");
             }
