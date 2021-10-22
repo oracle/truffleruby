@@ -26,6 +26,7 @@ Compatibility:
 * Remove `TRUE`, `FALSE`, and `NIL` constants like CRuby 3.0 (#2505, @andrykonchin).
 * `Symbol#to_proc` now returns a lambda like in Ruby 3 (#2508, @andrykonchin).
 * `Kernel#lambda` now warns if called without a literal block (#2500, @andrykonchin).
+* Implement Hash#except (#2463, @wildmaples).
 
 Performance:
 

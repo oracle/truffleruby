@@ -218,6 +218,15 @@ class Hash
     self
   end
 
+  def except(*keys)
+    new_hash = {}.replace(dup)
+    new_hash.default = nil
+    keys.each do |k|
+      new_hash.delete(k)
+    end
+    new_hash
+  end
+
   def fetch(key, default=undefined)
     value = Primitive.hash_get_or_undefined(self, key)
     unless Primitive.undefined?(value)

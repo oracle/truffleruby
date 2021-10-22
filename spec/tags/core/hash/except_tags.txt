@@ -1,4 +1,0 @@
-fails:Hash#except returns a new duplicate hash without arguments
-fails:Hash#except returns a hash without the requested subset
-fails:Hash#except ignores keys not present in the original hash
-fails:Hash#except always returns a Hash without a default
