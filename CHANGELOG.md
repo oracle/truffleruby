@@ -21,6 +21,7 @@ Compatibility:
 * Add `Thread.ignore_deadlock` accessor (#2453).
 * Allow `Hash#transform_keys` to take a hash argument (@ccocchi, #2464).
 * Add `Enumerable#grep{_v}` optimization for `Regexp` (#2453).
+* Implement Hash#except (#2463, @wildmaples).
 
 Performance:
 
