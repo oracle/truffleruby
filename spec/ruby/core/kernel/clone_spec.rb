@@ -31,10 +31,10 @@ describe "Kernel#clone" do
   describe "with no arguments" do
     it "copies frozen state from the original" do
       o2 = @obj.clone
+      o2.should_not.frozen?
+
       @obj.freeze
       o3 = @obj.clone
-
-      o2.should_not.frozen?
       o3.should.frozen?
     end
 
@@ -52,12 +52,12 @@ describe "Kernel#clone" do
     end
 
     ruby_version_is "3.0" do
-      it "copies frozen state from the original" do
+      it "copies frozen state from the original, like #clone without arguments" do
         o2 = @obj.clone(freeze: nil)
+        o2.should_not.frozen?
+
         @obj.freeze
         o3 = @obj.clone(freeze: nil)
-
-        o2.should_not.frozen?
         o3.should.frozen?
       end
 

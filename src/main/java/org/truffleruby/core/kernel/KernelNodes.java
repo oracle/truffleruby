@@ -556,11 +556,11 @@ public abstract class KernelNodes {
         @Child private DispatchNode initializeCloneNode = DispatchNode.create();
         @Child private SingletonClassNode singletonClassNode;
 
+        private final BranchProfile errorProfile = BranchProfile.create();
+
         @Specialization(limit = "getRubyLibraryCacheLimit()")
         protected RubyDynamicObject clone(RubyDynamicObject object, Object freeze,
                 @Cached ConditionProfile isSingletonProfile,
-                @Cached ConditionProfile freezeProfile,
-                @Cached ConditionProfile isFrozenProfile,
                 @Cached ConditionProfile isRubyClass,
                 @CachedLibrary("object") RubyLibrary rubyLibrary,
                 @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibraryFreeze) {
@@ -588,8 +588,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected Object cloneBoolean(boolean object, Object freeze,
-                @Cached ConditionProfile freezeProfile) {
+        protected Object cloneBoolean(boolean object, Object freeze) {
             if (toForceUnfreezing(freeze)) {
                 raiseCantUnfreezeError(object);
             }
@@ -597,8 +596,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected Object cloneInteger(int object, Object freeze,
-                @Cached ConditionProfile freezeProfile) {
+        protected Object cloneInteger(int object, Object freeze) {
             if (toForceUnfreezing(freeze)) {
                 raiseCantUnfreezeError(object);
             }
@@ -606,8 +604,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected Object cloneLong(long object, Object freeze,
-                @Cached ConditionProfile freezeProfile) {
+        protected Object cloneLong(long object, Object freeze) {
             if (toForceUnfreezing(freeze)) {
                 raiseCantUnfreezeError(object);
             }
@@ -615,8 +612,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected Object cloneFloat(double object, Object freeze,
-                @Cached ConditionProfile freezeProfile) {
+        protected Object cloneFloat(double object, Object freeze) {
             if (toForceUnfreezing(freeze)) {
                 raiseCantUnfreezeError(object);
             }
@@ -624,8 +620,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "!isImmutableRubyString(object)")
-        protected Object cloneImmutableObject(ImmutableRubyObject object, Object freeze,
-                @Cached ConditionProfile freezeProfile) {
+        protected Object cloneImmutableObject(ImmutableRubyObject object, Object freeze) {
             if (toForceUnfreezing(freeze)) {
                 raiseCantUnfreezeError(object);
             }
@@ -634,7 +629,6 @@ public abstract class KernelNodes {
 
         @Specialization
         protected RubyDynamicObject cloneImmutableRubyString(ImmutableRubyString object, Object freeze,
-                @Cached ConditionProfile freezeProfile,
                 @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibraryFreeze,
                 @Cached MakeStringNode makeStringNode) {
             final RubyDynamicObject newObject = makeStringNode.fromRope(object.rope, object.encoding);
@@ -646,17 +640,18 @@ public abstract class KernelNodes {
         }
 
         private boolean toForceFreezing(Object freeze) {
-           if (freeze instanceof Nil) {
-               return false;
-           }
+            if (freeze instanceof Nil) {
+                return false;
+            }
 
-           if (freeze instanceof Boolean) {
-               return (boolean) freeze;
-           }
+            if (freeze instanceof Boolean) {
+                return (boolean) freeze;
+            }
 
-           throw new RaiseException(getContext(), coreExceptions().argumentError(
-                   "Kernel#clone expects :freeze to be boolean or nil",
-                   this));
+            errorProfile.enter();
+            throw new RaiseException(getContext(), coreExceptions().argumentError(
+                    "Kernel#clone expects :freeze to be boolean or nil",
+                    this));
         }
 
         private boolean toForceUnfreezing(Object freeze) {
@@ -668,6 +663,7 @@ public abstract class KernelNodes {
                 return !(boolean) freeze;
             }
 
+            errorProfile.enter();
             throw new RaiseException(getContext(), coreExceptions().argumentError(
                     "Kernel#clone expects :freeze to be boolean or nil",
                     this));
