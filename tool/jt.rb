@@ -2086,7 +2086,7 @@ module Commands
       IO.popen(command, err: [:child, :out]) do |pipe|
         pipe.each_line do |line|
           puts line
-          if line =~ /\[engine\] opt done     #{Regexp.escape(method)}/
+          if line =~ /\[engine\] opt done\s+id=\d+\s+#{Regexp.escape(method)}/
             compiled = true
             Process.kill 'INT', pipe.pid
           end
