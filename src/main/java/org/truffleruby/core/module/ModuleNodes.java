@@ -322,17 +322,17 @@ public abstract class ModuleNodes {
 
     @CoreMethod(names = "alias_method", required = 2, raiseIfFrozenSelf = true, split = Split.NEVER)
     @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "newName", type = RubyNode.class)
-    @NodeChild(value = "oldName", type = RubyNode.class)
+    @NodeChild(value = "newName", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "oldName", type = RubyBaseNodeWithExecute.class)
     public abstract static class AliasMethodNode extends CoreMethodNode {
 
         @CreateCast("newName")
-        protected RubyNode coerceNewNameToString(RubyNode newName) {
+        protected RubyBaseNodeWithExecute coerceNewNameToString(RubyBaseNodeWithExecute newName) {
             return NameToJavaStringNode.create(newName);
         }
 
         @CreateCast("oldName")
-        protected RubyNode coerceOldNameToString(RubyNode oldName) {
+        protected RubyBaseNodeWithExecute coerceOldNameToString(RubyBaseNodeWithExecute oldName) {
             return NameToJavaStringNode.create(oldName);
         }
 
