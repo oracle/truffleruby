@@ -63,7 +63,7 @@ USER:
     SOURCE_ENCODING: [[source-encoding, -K], string, '', Source encoding]
     INTERNAL_ENCODING: [[internal-encoding, -E, -U], string, '', Internal encoding]
     EXTERNAL_ENCODING: [[external-encoding, -E], string, '', External encoding]
-    BACKTRACE_LIMIT: [[backtrace-limit], integer, -1, limit the maximum length of backtrace]
+    BACKTRACE_LIMIT: [[backtrace-limit], integer, -1, limit the maximum length of backtrace displayed]
 
 EXPERT:
   EXPERIMENTAL:

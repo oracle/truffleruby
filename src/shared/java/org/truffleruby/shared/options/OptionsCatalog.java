@@ -221,7 +221,7 @@ public class OptionsCatalog {
 
     public static final OptionDescriptor BACKTRACE_LIMIT = OptionDescriptor
             .newBuilder(BACKTRACE_LIMIT_KEY, "ruby.backtrace-limit")
-            .help("limit the maximum length of backtrace")
+            .help("limit the maximum length of backtrace displayed")
             .category(OptionCategory.USER)
             .stability(OptionStability.STABLE)
             .build();
