@@ -13,8 +13,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.ImmutableRubyString;
-import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -24,8 +23,8 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.library.RubyStringLibrary;
 
-@NodeChild(value = "value", type = RubyNode.class)
-public abstract class ToSNode extends RubyContextSourceNode {
+@NodeChild(value = "value", type = RubyBaseNodeWithExecute.class)
+public abstract class ToSNode extends RubyBaseNodeWithExecute {
 
     @Child private KernelNodes.ToSNode kernelToSNode;
 

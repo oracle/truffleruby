@@ -36,6 +36,7 @@ import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.language.CallStackManager;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.Visibility;
@@ -202,13 +203,13 @@ public abstract class BindingNodes {
     @GenerateNodeFactory
     @CoreMethod(names = "local_variable_defined?", required = 1)
     @NodeChild(value = "binding", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     public abstract static class LocalVariableDefinedNode extends RubySourceNode {
 
         public abstract boolean execute(RubyBinding binding, String name);
 
         @CreateCast("name")
-        protected RubyNode coerceToString(RubyNode name) {
+        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
 
@@ -248,7 +249,7 @@ public abstract class BindingNodes {
     @GenerateUncached
     @GenerateNodeFactory
     @NodeChild(value = "binding", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(BindingNodes.class)
     @CoreMethod(names = "local_variable_get", required = 1)
     public abstract static class LocalVariableGetNode extends RubySourceNode {
@@ -260,7 +261,7 @@ public abstract class BindingNodes {
         }
 
         @CreateCast("name")
-        protected RubyNode coerceToString(RubyNode name) {
+        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
 
@@ -296,7 +297,7 @@ public abstract class BindingNodes {
     @GenerateNodeFactory
     @CoreMethod(names = "local_variable_set", required = 2)
     @NodeChild(value = "binding", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     @NodeChild(value = "value", type = RubyNode.class)
     @ImportStatic({ BindingNodes.class, FindDeclarationVariableNodes.class })
     public abstract static class LocalVariableSetNode extends RubySourceNode {
@@ -308,7 +309,7 @@ public abstract class BindingNodes {
         public abstract Object execute(RubyBinding binding, String name, Object value);
 
         @CreateCast("name")
-        protected RubyNode coerceToString(RubyNode name) {
+        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
 

@@ -32,7 +32,7 @@ import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.RubyBasicObject;
-import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
+import org.truffleruby.core.cast.BooleanCastWithDefaultNode;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.encoding.Encodings;
@@ -124,7 +124,7 @@ public abstract class ReadlineNodes {
 
     @CoreMethod(names = "readline", isModuleFunction = true, optional = 2)
     @NodeChild(value = "prompt", type = RubyNode.class)
-    @NodeChild(value = "addToHistory", type = RubyNode.class)
+    @NodeChild(value = "addToHistory", type = RubyBaseNodeWithExecute.class)
     public abstract static class ReadlineNode extends CoreMethodNode {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
@@ -135,8 +135,8 @@ public abstract class ReadlineNodes {
         }
 
         @CreateCast("addToHistory")
-        protected RubyNode coerceToBoolean(RubyNode addToHistory) {
-            return BooleanCastWithDefaultNodeGen.create(false, addToHistory);
+        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute addToHistory) {
+            return BooleanCastWithDefaultNode.create(false, addToHistory);
         }
 
         @TruffleBoundary

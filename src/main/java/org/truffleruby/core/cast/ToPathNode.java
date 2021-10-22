@@ -11,16 +11,15 @@ package org.truffleruby.core.cast;
 
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.ImmutableRubyString;
-import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
-@NodeChild(value = "child", type = RubyNode.class)
-public abstract class ToPathNode extends RubyContextSourceNode {
+@NodeChild(value = "child", type = RubyBaseNodeWithExecute.class)
+public abstract class ToPathNode extends RubyBaseNodeWithExecute {
 
     @Specialization
     protected RubyString coerceRubyString(RubyString path) {

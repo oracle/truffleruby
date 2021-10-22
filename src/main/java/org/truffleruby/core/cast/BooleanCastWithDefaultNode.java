@@ -11,17 +11,20 @@ package org.truffleruby.core.cast;
 
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
-import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
 /** Casts a value into a boolean and defaults to the given value if not provided. */
-@NodeChild(value = "value", type = RubyNode.class)
-public abstract class BooleanCastWithDefaultNode extends RubyContextSourceNode {
+@NodeChild(value = "value", type = RubyBaseNodeWithExecute.class)
+public abstract class BooleanCastWithDefaultNode extends RubyBaseNodeWithExecute {
+
+    public static BooleanCastWithDefaultNode create(boolean defaultValue, RubyBaseNodeWithExecute node) {
+        return BooleanCastWithDefaultNodeGen.create(defaultValue, node);
+    }
 
     private final boolean defaultValue;
 

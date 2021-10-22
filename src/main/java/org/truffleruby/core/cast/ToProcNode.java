@@ -33,7 +33,8 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 
 import java.util.Map;
 
-/** The `&` in `foo(&block)`. Converts the passed block to a RubyProc or nil. */
+/** The `&` in `foo(&block)`. Converts the passed block to a RubyProc or nil. Must be a RubyNode because it's used in
+ * the translator. */
 @NodeChild(value = "child", type = RubyNode.class)
 @ImportStatic(DeclarationContext.class)
 public abstract class ToProcNode extends RubyContextSourceNode {

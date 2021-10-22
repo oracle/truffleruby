@@ -11,10 +11,9 @@ package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.Cached;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -22,8 +21,8 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.dispatch.DispatchNode;
 
-@NodeChild(value = "duration", type = RubyNode.class)
-public abstract class DurationToMillisecondsNode extends RubyContextSourceNode {
+@NodeChild(value = "duration", type = RubyBaseNodeWithExecute.class)
+public abstract class DurationToMillisecondsNode extends RubyBaseNodeWithExecute {
 
     private final ConditionProfile durationLessThanZeroProfile = ConditionProfile.create();
     private final boolean acceptsNil;

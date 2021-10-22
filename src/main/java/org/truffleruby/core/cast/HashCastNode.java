@@ -21,6 +21,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
+/** Must be a RubyNode because it's used for ** in the translator. */
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class HashCastNode extends RubyContextSourceNode {
 

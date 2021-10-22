@@ -26,6 +26,7 @@ import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.thread.RubyThread;
+import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -148,12 +149,12 @@ public abstract class MutexNodes {
     }
 
     @NodeChild(value = "mutex", type = RubyNode.class)
-    @NodeChild(value = "duration", type = RubyNode.class)
+    @NodeChild(value = "duration", type = RubyBaseNodeWithExecute.class)
     @CoreMethod(names = "sleep", optional = 1)
     public abstract static class SleepNode extends CoreMethodNode {
 
         @CreateCast("duration")
-        protected RubyNode coerceDuration(RubyNode duration) {
+        protected RubyBaseNodeWithExecute coerceDuration(RubyBaseNodeWithExecute duration) {
             return DurationToMillisecondsNodeGen.create(true, duration);
         }
 

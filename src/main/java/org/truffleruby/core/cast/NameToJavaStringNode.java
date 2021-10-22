@@ -14,8 +14,7 @@ import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.ToJavaStringNode;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.RubySourceNode;
+import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
@@ -32,14 +31,14 @@ import com.oracle.truffle.api.profiles.BranchProfile;
  * name. */
 @ImportStatic({ StringCachingGuards.class, StringOperations.class })
 @GenerateUncached
-@NodeChild(value = "value", type = RubyNode.class)
-public abstract class NameToJavaStringNode extends RubySourceNode {
+@NodeChild(value = "value", type = RubyBaseNodeWithExecute.class)
+public abstract class NameToJavaStringNode extends RubyBaseNodeWithExecute {
 
     public static NameToJavaStringNode create() {
         return NameToJavaStringNodeGen.create(null);
     }
 
-    public static NameToJavaStringNode create(RubyNode name) {
+    public static NameToJavaStringNode create(RubyBaseNodeWithExecute name) {
         return NameToJavaStringNodeGen.create(name);
     }
 

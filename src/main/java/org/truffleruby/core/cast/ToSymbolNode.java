@@ -10,7 +10,9 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -18,14 +20,22 @@ import org.truffleruby.core.symbol.RubySymbol;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyBaseNodeWithExecute;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
+import org.truffleruby.utils.Utils;
 
 @GenerateUncached
-public abstract class ToSymbolNode extends RubyBaseNode {
+@NodeChild(value = "value", type = RubyBaseNodeWithExecute.class)
+public abstract class ToSymbolNode extends RubyBaseNodeWithExecute {
 
     public static ToSymbolNode create() {
-        return ToSymbolNodeGen.create();
+        return ToSymbolNodeGen.create(null);
+    }
+
+    public static ToSymbolNode create(RubyBaseNodeWithExecute value) {
+        return ToSymbolNodeGen.create(value);
     }
 
     public static ToSymbolNode getUncached() {
@@ -35,19 +45,19 @@ public abstract class ToSymbolNode extends RubyBaseNode {
     public abstract RubySymbol execute(Object object);
 
     @Specialization
-    protected RubySymbol toSymbolSymbol(RubySymbol symbol) {
+    protected RubySymbol symbol(RubySymbol symbol) {
         return symbol;
     }
 
     @Specialization(guards = "str == cachedStr", limit = "getCacheLimit()")
-    protected RubySymbol toSymbolJavaString(String str,
+    protected RubySymbol javaString(String str,
             @Cached(value = "str") String cachedStr,
             @Cached(value = "getSymbol(cachedStr)") RubySymbol rubySymbol) {
         return rubySymbol;
     }
 
-    @Specialization(replaces = "toSymbolJavaString")
-    protected RubySymbol toSymbolJavaStringUncached(String str) {
+    @Specialization(replaces = "javaString")
+    protected RubySymbol javaStringUncached(String str) {
         return getSymbol(str);
     }
 
@@ -57,7 +67,7 @@ public abstract class ToSymbolNode extends RubyBaseNode {
                     "equals.execute(strings.getRope(str), cachedRope)",
                     "strings.getEncoding(str) == cachedEncoding" },
             limit = "getCacheLimit()")
-    protected RubySymbol toSymbolRubyString(Object str,
+    protected RubySymbol rubyString(Object str,
             @CachedLibrary(limit = "2") RubyStringLibrary strings,
             @Cached(value = "strings.getRope(str)") Rope cachedRope,
             @Cached(value = "strings.getEncoding(str)") RubyEncoding cachedEncoding,
@@ -66,10 +76,43 @@ public abstract class ToSymbolNode extends RubyBaseNode {
         return rubySymbol;
     }
 
-    @Specialization(guards = "strings.isRubyString(str)", replaces = "toSymbolRubyString")
-    protected RubySymbol toSymbolRubyStringUncached(Object str,
+    @Specialization(guards = "strings.isRubyString(str)", replaces = "rubyString")
+    protected RubySymbol rubyStringUncached(Object str,
             @CachedLibrary(limit = "2") RubyStringLibrary strings) {
         return getSymbol(strings.getRope(str), strings.getEncoding(str));
+    }
+
+    @Specialization(guards = { "!isRubySymbol(object)", "!isString(object)", "isNotRubyString(object)" })
+    protected RubySymbol toStr(Object object,
+            @Cached BranchProfile errorProfile,
+            @Cached DispatchNode toStr,
+            @CachedLibrary(limit = "2") RubyStringLibrary libString,
+            @Cached ToSymbolNode toSymbolNode) {
+        final Object coerced;
+        try {
+            coerced = toStr.call(object, "to_str");
+        } catch (RaiseException e) {
+            errorProfile.enter();
+            if (e.getException().getLogicalClass() == coreLibrary().noMethodErrorClass) {
+                throw new RaiseException(getContext(), coreExceptions().typeError(
+                        Utils.concat(object, " is not a symbol nor a string"),
+                        this));
+            } else {
+                throw e;
+            }
+        }
+
+        if (libString.isRubyString(coerced)) {
+            return toSymbolNode.execute(coerced);
+        } else {
+            errorProfile.enter();
+            throw new RaiseException(getContext(), coreExceptions().typeErrorBadCoercion(
+                    object,
+                    "String",
+                    "to_str",
+                    coerced,
+                    this));
+        }
     }
 
     protected int getCacheLimit() {

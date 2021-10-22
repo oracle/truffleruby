@@ -18,7 +18,7 @@ import org.truffleruby.language.RubyNode;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
-/** Creates a symbol from a string. */
+/** Creates a symbol from a string. Must be a RubyNode because it's used in the translator. */
 @NodeChild(value = "string", type = RubyNode.class)
 public abstract class StringToSymbolNode extends RubyContextSourceNode {
 
