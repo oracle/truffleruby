@@ -323,4 +323,14 @@ public abstract class ExceptionNodes {
 
     }
 
+    @Primitive(name = "exception_backtrace_limit")
+    public abstract static class BacktraceLimitNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected int limit() {
+            return getContext().getOptions().BACKTRACE_LIMIT;
+        }
+
+    }
+
 }

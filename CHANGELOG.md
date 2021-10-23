@@ -29,6 +29,7 @@ Compatibility:
 * Implement Hash#except (#2463, @wildmaples).
 * Remove special `$SAFE` global and related C API methods (#2453).
 * Assigning to a numbered parameter raises `SyntaxError` (#2506, @andrykonchin).
+* Implement `--backtrace-limit` option (#2453).
 
 Performance:
 

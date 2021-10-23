@@ -112,15 +112,18 @@ module Truffle
       message = Truffle::ExceptionOperations.message_and_class(exc, highlight)
       message = message.end_with?("\n") ? message : "#{message}\n"
       return '' if Primitive.nil?(bt) || bt.empty?
-      if reverse
-        bt[1..-1].reverse.map do |l|
-          "\tfrom #{l}\n"
-        end.join + "#{bt[0]}: #{message}"
-      else
-        "#{bt[0]}: #{message}" + bt[1..-1].map do |l|
-          "\tfrom #{l}\n"
-        end.join
-      end
+      limit = Primitive.exception_backtrace_limit
+      limit = limit >= 0 && bt.size - 1 >= limit + 2 ? limit : -1
+      result = if reverse
+                 bt[1..limit].reverse.map do |l|
+                   "\tfrom #{l}\n"
+                 end.join
+               else
+                 "#{bt[0]}: #{message}" + bt[1..limit].map do |l|
+                   "\tfrom #{l}\n"
+                 end.join
+               end
+      result + (limit != -1 ? "\t ... #{bt.size - limit - 1} levels...\n" : '') + (reverse ? "#{bt[0]}: #{message}" : '')
     end
 
     def self.backtrace?(exc)

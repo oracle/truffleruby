@@ -28,6 +28,7 @@ public class OptionsCatalog {
     public static final OptionKey<String> SOURCE_ENCODING_KEY = new OptionKey<>("");
     public static final OptionKey<String> INTERNAL_ENCODING_KEY = new OptionKey<>("");
     public static final OptionKey<String> EXTERNAL_ENCODING_KEY = new OptionKey<>("");
+    public static final OptionKey<Integer> BACKTRACE_LIMIT_KEY = new OptionKey<>(-1);
     public static final OptionKey<Boolean> NO_HOME_PROVIDED_KEY = new OptionKey<>(false);
     public static final OptionKey<String> LAUNCHER_KEY = new OptionKey<>("");
     public static final OptionKey<String> CORE_LOAD_PATH_KEY = new OptionKey<>("resource:/truffleruby");
@@ -62,7 +63,6 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> EXCEPTIONS_WARN_STACKOVERFLOW_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> EXCEPTIONS_WARN_OUT_OF_MEMORY_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> BACKTRACES_INTERLEAVE_JAVA_KEY = new OptionKey<>(false);
-    public static final OptionKey<Integer> BACKTRACES_LIMIT_KEY = new OptionKey<>(9999);
     public static final OptionKey<Boolean> BACKTRACES_OMIT_UNUSED_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> BACKTRACE_ON_INTERRUPT_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> BACKTRACE_ON_SIGALRM_KEY = new OptionKey<>(!EMBEDDED_KEY.getDefaultValue());
@@ -215,6 +215,13 @@ public class OptionsCatalog {
     public static final OptionDescriptor EXTERNAL_ENCODING = OptionDescriptor
             .newBuilder(EXTERNAL_ENCODING_KEY, "ruby.external-encoding")
             .help("External encoding (configured by the -E Ruby option)")
+            .category(OptionCategory.USER)
+            .stability(OptionStability.STABLE)
+            .build();
+
+    public static final OptionDescriptor BACKTRACE_LIMIT = OptionDescriptor
+            .newBuilder(BACKTRACE_LIMIT_KEY, "ruby.backtrace-limit")
+            .help("limit the maximum length of backtrace displayed")
             .category(OptionCategory.USER)
             .stability(OptionStability.STABLE)
             .build();
@@ -453,13 +460,6 @@ public class OptionsCatalog {
     public static final OptionDescriptor BACKTRACES_INTERLEAVE_JAVA = OptionDescriptor
             .newBuilder(BACKTRACES_INTERLEAVE_JAVA_KEY, "ruby.backtraces-interleave-java")
             .help("Interleave Java stacktraces into the Ruby backtrace")
-            .category(OptionCategory.EXPERT)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
-    public static final OptionDescriptor BACKTRACES_LIMIT = OptionDescriptor
-            .newBuilder(BACKTRACES_LIMIT_KEY, "ruby.backtraces-limit")
-            .help("Limit the size of Ruby backtraces")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1175,6 +1175,8 @@ public class OptionsCatalog {
                 return INTERNAL_ENCODING;
             case "ruby.external-encoding":
                 return EXTERNAL_ENCODING;
+            case "ruby.backtrace-limit":
+                return BACKTRACE_LIMIT;
             case "ruby.no-home-provided":
                 return NO_HOME_PROVIDED;
             case "ruby.launcher":
@@ -1243,8 +1245,6 @@ public class OptionsCatalog {
                 return EXCEPTIONS_WARN_OUT_OF_MEMORY;
             case "ruby.backtraces-interleave-java":
                 return BACKTRACES_INTERLEAVE_JAVA;
-            case "ruby.backtraces-limit":
-                return BACKTRACES_LIMIT;
             case "ruby.backtraces-omit-unused":
                 return BACKTRACES_OMIT_UNUSED;
             case "ruby.backtraces-on-interrupt":
@@ -1458,6 +1458,7 @@ public class OptionsCatalog {
             SOURCE_ENCODING,
             INTERNAL_ENCODING,
             EXTERNAL_ENCODING,
+            BACKTRACE_LIMIT,
             NO_HOME_PROVIDED,
             LAUNCHER,
             CORE_LOAD_PATH,
@@ -1492,7 +1493,6 @@ public class OptionsCatalog {
             EXCEPTIONS_WARN_STACKOVERFLOW,
             EXCEPTIONS_WARN_OUT_OF_MEMORY,
             BACKTRACES_INTERLEAVE_JAVA,
-            BACKTRACES_LIMIT,
             BACKTRACES_OMIT_UNUSED,
             BACKTRACE_ON_INTERRUPT,
             BACKTRACE_ON_SIGALRM,
