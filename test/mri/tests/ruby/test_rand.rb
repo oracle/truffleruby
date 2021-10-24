@@ -395,8 +395,9 @@ class TestRand < Test::Unit::TestCase
     assert_separately([], "#{<<~"begin;"}\n#{<<~'end;'}")
     begin;
       verbose, $VERBOSE = $VERBOSE, nil
-      seed = Random::DEFAULT::seed
-      rand1 = Random::DEFAULT::rand
+      random_default = Random::DEFAULT.new
+      seed = random_default.seed
+      rand1 = random_default.rand
       $VERBOSE = verbose
       rand2 = Random.new(seed).rand
       assert_equal(rand1, rand2)

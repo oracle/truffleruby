@@ -138,5 +138,5 @@ class Random
 end
 
 Truffle::Boot.delay do
-  Random::DEFAULT = Random.new
+  Random::DEFAULT = Random
 end
