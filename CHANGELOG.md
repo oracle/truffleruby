@@ -30,6 +30,7 @@ Compatibility:
 * Remove special `$SAFE` global and related C API methods (#2453).
 * Assigning to a numbered parameter raises `SyntaxError` (#2506, @andrykonchin).
 * Implement `--backtrace-limit` option (#2453).
+* Make `Random::DEFAULT` returns the `Random` class instead of an instance of `Random` (#2515, @tmnhat2001).
 
 Performance:
 
