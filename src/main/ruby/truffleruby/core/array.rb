@@ -168,15 +168,22 @@ class Array
 
       start += len if start < 0
       stop  += len if stop < 0
-      stop  -= 1 if seq.exclude_end?
 
       if start < 0 || start > len
         raise RangeError, "#{seq.inspect} out of range" if step < -1 || step > 1
         return nil
       end
 
+      stop -= 1 if seq.exclude_end?
       diff = stop - start
+
       return [] if diff < 0
+      return self[start, 1] if (step > 0 && step > diff) || (step < 0 && step < -diff)
+
+      if diff >= len
+        raise RangeError, "#{seq.inspect} out of range" if step < -1 || step > 1
+        diff = len - start - 1
+      end
 
       ustep = step.abs
       nlen = (diff + ustep) / ustep
