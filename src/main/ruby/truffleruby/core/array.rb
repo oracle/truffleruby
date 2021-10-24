@@ -146,6 +146,60 @@ class Array
     true
   end
 
+  alias_method :java_slice, :[]
+
+  def slice(start_or_range_or_sequence, *args)
+    if Primitive.object_kind_of?(start_or_range_or_sequence, Enumerator::ArithmeticSequence)
+      seq = start_or_range_or_sequence
+      len = size
+
+      if seq.step < 0 # inverse range with negative step
+        start = seq.end
+        stop  = seq.begin
+        step  = seq.step
+      else
+        start = seq.begin
+        stop  = seq.end
+        step  = seq.step
+      end
+
+      start ||= 0 # begin-less range
+      stop ||= -1 # endless range
+
+      start += len if start < 0
+      stop  += len if stop < 0
+      stop  -= 1 if seq.exclude_end?
+
+      if start < 0 || start > len
+        raise RangeError, "#{seq.inspect} out of range" if step < -1 || step > 1
+        return nil
+      end
+
+      diff = stop - start
+      return [] if diff < 0
+
+      ustep = step.abs
+      nlen = (diff + ustep) / ustep
+      i = 0
+      j = start + (step > 0 ? 0 : diff) # because we inverted negative step ranges
+      res = Array.new(nlen)
+
+      while i < nlen
+        res[i] = self[j]
+        i += 1
+        j += step
+      end
+
+      res
+    else
+      java_slice(start_or_range_or_sequence, *args)
+    end
+  end
+
+  def [](*args)
+    slice(*args)
+  end
+
   def assoc(obj)
     each do |x|
       if Primitive.object_kind_of?(x, Array) and x.first == obj
