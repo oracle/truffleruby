@@ -103,10 +103,16 @@ describe "String#encode" do
       encoded.encode("UTF-8").should == "Bfoo"
     end
 
-    it "replaces unknown encoding in destination using a fallback proc" do
+    it "replaces undefined encoding in destination using a fallback proc" do
       encoded = "B\ufffd".encode(Encoding::US_ASCII, fallback: proc {|x| "bar"})
       encoded.should == "Bbar".encode(Encoding::US_ASCII)
       encoded.encode("UTF-8").should == "Bbar"
+    end
+
+    it "replaces invalid encoding in source using replace even when fallback is given as proc" do
+      encoded = "ち\xE3\x81\xFF".encode("UTF-16LE", invalid: :replace, replace: "foo", fallback: proc {|x| "bar"})
+      encoded.should == "\u3061foofoo".encode("UTF-16LE")
+      encoded.encode("UTF-8").should == "ちfoofoo"
     end
   end
 
