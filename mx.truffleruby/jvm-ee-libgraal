@@ -1,3 +1,5 @@
 DYNAMIC_IMPORTS=/graal-enterprise,/substratevm-enterprise,/tools
 COMPONENTS=TruffleRuby,GraalVM enterprise compiler,SubstrateVM Enterprise,LibGraal,suite:tools
-NATIVE_IMAGES=lib:jvmcicompiler
+# NATIVE_IMAGES=lib:jvmcicompiler,graalvm-native-*
+FORCE_BASH_LAUNCHERS=truffleruby
+SKIP_LIBRARIES=false

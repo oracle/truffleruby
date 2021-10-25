@@ -1,5 +1,6 @@
 # "ntl" stands for native toolchain launchers
 DYNAMIC_IMPORTS=/substratevm,/tools
 COMPONENTS=TruffleRuby,SubstrateVM,suite:tools
+# NATIVE_IMAGES=graalvm-native-*
 FORCE_BASH_LAUNCHERS=truffleruby
 DISABLE_INSTALLABLES=false
