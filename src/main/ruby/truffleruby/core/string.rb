@@ -355,100 +355,73 @@ class String
     end
   end
 
-  def encode!(to=undefined, from=undefined, options=undefined)
+  def encode!(to=undefined, from=undefined, **options)
     Primitive.check_frozen self
 
-    if Primitive.undefined?(to)
+    if !Primitive.undefined?(to)
+      begin
+        to_enc = Truffle::Type.coerce_to_encoding(to)
+      rescue ArgumentError
+        raise Encoding::ConverterNotFoundError, "Encoding #{to} not found."
+      end
+    else
       to_enc = Encoding.default_internal
-      return self unless to_enc
-    else
-      case to
-      when Encoding
-        to_enc = to
-      when Hash
-        options = to
-        to_enc = Encoding.default_internal
-      else
-        opts = Truffle::Type.rb_check_convert_type to, Hash, :to_hash
-
-        if opts
-          options = opts
-          to_enc = Encoding.default_internal
-        else
-          to_enc = Encoding.try_convert(to)
-        end
-      end
     end
 
-    from = encoding if Primitive.undefined?(from)
-    case from
-    when Encoding
-      from_enc = from
-    when Hash
-      options = from
+    if !Primitive.undefined?(from)
+      begin
+        from_enc = Truffle::Type.coerce_to_encoding(from)
+      rescue ArgumentError
+        raise Encoding::ConverterNotFoundError, "Encoding #{from} not found."
+      end
+    else
       from_enc = encoding
-    else
-      opts = Truffle::Type.rb_check_convert_type from, Hash, :to_hash
-
-      if opts
-        options = opts
-        from_enc = encoding
-      else
-        from_enc = Truffle::Type.coerce_to_encoding from
-      end
-    end
-
-    if false == to_enc
-      raise Encoding::ConverterNotFoundError, "undefined code converter (#{from} to #{to})"
-    end
-
-    if Primitive.undefined?(options)
-      options = 0
-    else
-      case options
-      when Hash
-        # do nothing
-      else
-        options = Truffle::Type.coerce_to options, Hash, :to_hash
-      end
     end
 
     if ascii_only? and from_enc.ascii_compatible? and to_enc and to_enc.ascii_compatible?
       force_encoding to_enc
     elsif to_enc
       if from_enc != to_enc
-        ec = Encoding::Converter.new from_enc, to_enc, options
+        ec = Encoding::Converter.new from_enc, to_enc, **options
         dest = +''
-        status = ec.primitive_convert self.dup, dest, nil, nil, ec.options
-        raise ec.last_error unless status == :finished
+        src = self.dup
+        fallback = options[:fallback]
+        status = ec.primitive_convert src, dest, nil, nil
+        while status != :finished
+          raise ec.last_error unless fallback && status == :undefined_conversion
+          (_, fallback_enc_from, fallback_enc_to, error_bytes, _) = ec.primitive_errinfo
+          rep = fallback[error_bytes.force_encoding(fallback_enc_from)]
+          raise ec.last_error unless rep
+          dest << rep.encode(fallback_enc_to)
+          status = ec.primitive_convert src, dest, nil, nil
+        end
+
         return replace(dest)
       else
         force_encoding to_enc
       end
     end
 
-    # TODO: replace this hack with transcoders
-    if Primitive.object_kind_of?(options, Hash)
-      case options[:invalid]
-      when :replace
-        self.scrub!
-      end
-      case xml = options[:xml]
-      when :text
-        gsub!(/[&><]/, '&' => '&amp;', '>' => '&gt;', '<' => '&lt;')
-      when :attr
-        gsub!(/[&><"]/, '&' => '&amp;', '>' => '&gt;', '<' => '&lt;', '"' => '&quot;')
-        insert(0, '"')
-        insert(-1, '"')
-      when nil
-        # nothing
-      else
-        raise ArgumentError, "unexpected value for xml option: #{xml.inspect}"
-      end
+    case options[:invalid]
+    when :replace
+      replacement = options[:replace] || (Primitive.encoding_is_unicode(from_enc) ? "\ufffd" : '?')
+      self.scrub!(replacement)
+    end
+    case xml = options[:xml]
+    when :text
+      gsub!(/[&><]/, '&' => '&amp;', '>' => '&gt;', '<' => '&lt;')
+    when :attr
+      gsub!(/[&><"]/, '&' => '&amp;', '>' => '&gt;', '<' => '&lt;', '"' => '&quot;')
+      insert(0, '"')
+      insert(-1, '"')
+    when nil
+    # nothing
+    else
+      raise ArgumentError, "unexpected value for xml option: #{xml.inspect}"
+    end
 
-      if options[:universal_newline]
-        gsub!(/\r\n|\r/, "\r\n" => "\n", "\r" => "\n")
-      end
+    if options[:universal_newline]
+      gsub!(/\r\n|\r/, "\r\n" => "\n", "\r" => "\n")
     end
 
     self
@@ -458,8 +431,8 @@ class String
     dup.force_encoding(Encoding::BINARY)
   end
 
-  def encode(to=undefined, from=undefined, options=undefined)
-    dup.encode! to, from, options
+  def encode(to=undefined, from=undefined, **options)
+    dup.encode! to, from, **options
   end
 
   def end_with?(*suffixes)

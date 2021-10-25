@@ -848,7 +848,7 @@ module Truffle::CExt
     dest = ''
     # This C API will (unlike primitive convert) not alter the source
     # string, so we need to duplicate it.
-    status = ec.primitive_convert str.dup, dest, nil, nil, ec.options
+    status = ec.primitive_convert str.dup, dest, nil, nil
     status == :finished ? dest : str
   end
 

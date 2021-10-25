@@ -86,7 +86,6 @@ class Encoding
   class Converter
     attr_accessor :source_encoding
     attr_accessor :destination_encoding
-    attr_reader :options
 
     def self.asciicompat_encoding(string_or_encoding)
       encoding = Encoding.try_convert(string_or_encoding)
