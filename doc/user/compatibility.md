@@ -56,7 +56,6 @@ The following standard libraries are unsupported:
 * `continuation` (obsolete in MRI)
 * `dbm`
 * `gdbm`
-* `sdbm`
 * `debug` (could be implemented in the future, use [`--inspect`](tools.md) instead)
 * `profile` (could be implemented in the future, use [`--cpusampler`](tools.md) instead)
 * `profiler` (could be implemented in the future, use [`--cpusampler`](tools.md) instead)

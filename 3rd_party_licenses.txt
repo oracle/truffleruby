@@ -935,8 +935,6 @@ missing/tgamma.c:
 ext/date/date_strftime.c:
 ext/digest/sha1/sha1.c:
 ext/digest/sha1/sha1.h:
-ext/sdbm/_sdbm.c:
-ext/sdbm/sdbm.h:
 
   These files are all under public domain.
 
