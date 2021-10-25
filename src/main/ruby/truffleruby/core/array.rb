@@ -174,21 +174,23 @@ class Array
         return nil
       end
 
-      stop -= 1 if seq.exclude_end?
+      stop += 1 unless seq.exclude_end?
+      stop = len if (step == -1 || step == 1) && stop > len
+
       diff = stop - start
 
-      return [] if diff < 0
+      return [] if diff <= 0
       return self[start, 1] if (step > 0 && step > diff) || (step < 0 && step < -diff)
 
-      if diff >= len
+      if diff > len
         raise RangeError, "#{seq.inspect} out of range" if step < -1 || step > 1
-        diff = len - start - 1
+        diff = len - start
       end
 
       ustep = step.abs
-      nlen = (diff + ustep) / ustep
+      nlen = (diff + ustep - 1) / ustep
       i = 0
-      j = start + (step > 0 ? 0 : diff) # because we inverted negative step ranges
+      j = start + (step > 0 ? 0 : diff - 1) # because we inverted negative step ranges
       res = Array.new(nlen)
 
       while i < nlen
