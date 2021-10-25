@@ -65,7 +65,7 @@ public class IntegerArrayStore {
 
         @Specialization
         protected static boolean acceptsDelegateValues(int[] store, SharedArrayStorage otherStore,
-                                                       @CachedLibrary("store") ArrayStoreLibrary stores) {
+                @CachedLibrary("store") ArrayStoreLibrary stores) {
             return stores.acceptsAllValues(store, otherStore.storage);
         }
 
@@ -83,6 +83,33 @@ public class IntegerArrayStore {
     @ExportMessage
     protected static boolean isPrimitive(int[] store) {
         return true;
+    }
+
+    @ExportMessage
+    static class IsStorageSame {
+
+        @Specialization
+        protected static boolean sameZeroLength(int[] store, int[] other) {
+            return store == other;
+        }
+
+        @Specialization
+        protected static boolean sameDelegated(int[] store, DelegatedArrayStorage other,
+                @CachedLibrary(limit = "1") ArrayStoreLibrary others) {
+            return others.isStorageSame(other, store);
+        }
+
+        @Specialization
+        protected static boolean sameShared(int[] store, SharedArrayStorage other,
+                @CachedLibrary(limit = "1") ArrayStoreLibrary others) {
+            return others.isStorageSame(other, store);
+        }
+
+        @Specialization
+        protected static boolean sameShared(int[] store, Object other) {
+            return false;
+        }
+
     }
 
     @ExportMessage
@@ -245,7 +272,7 @@ public class IntegerArrayStore {
     }
 
     @ExportMessage
-    public static ArrayAllocator generalizeForSharing(int[] store) {
+    protected static ArrayAllocator generalizeForSharing(int[] store) {
         return SharedArrayStorage.SHARED_INTEGER_ARRAY_ALLOCATOR;
     }
 

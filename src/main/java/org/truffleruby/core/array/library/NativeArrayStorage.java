@@ -83,6 +83,33 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
+    static class IsStorageSame {
+
+        @Specialization
+        protected static boolean sameZeroLength(NativeArrayStorage store, NativeArrayStorage other) {
+            return store == other;
+        }
+
+        @Specialization
+        protected static boolean sameDelegated(NativeArrayStorage store, DelegatedArrayStorage other,
+                @CachedLibrary(limit = "1") ArrayStoreLibrary others) {
+            return others.isStorageSame(other, store);
+        }
+
+        @Specialization
+        protected static boolean sameShared(NativeArrayStorage store, SharedArrayStorage other,
+                @CachedLibrary(limit = "1") ArrayStoreLibrary others) {
+            return others.isStorageSame(other, store);
+        }
+
+        @Specialization
+        protected static boolean sameShared(NativeArrayStorage store, Object other) {
+            return false;
+        }
+
+    }
+
+    @ExportMessage
     protected static String toString(NativeArrayStorage storage) {
         return "NativeArrayStorage";
     }

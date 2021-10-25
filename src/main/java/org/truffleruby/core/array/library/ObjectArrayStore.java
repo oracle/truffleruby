@@ -55,6 +55,33 @@ public class ObjectArrayStore {
     }
 
     @ExportMessage
+    static class IsStorageSame {
+
+        @Specialization
+        protected static boolean sameZeroLength(Object[] store, Object[] other) {
+            return store == other;
+        }
+
+        @Specialization
+        protected static boolean sameDelegated(Object[] store, DelegatedArrayStorage other,
+                @CachedLibrary(limit = "1") ArrayStoreLibrary others) {
+            return others.isStorageSame(other, store);
+        }
+
+        @Specialization
+        protected static boolean sameShared(Object[] store, SharedArrayStorage other,
+                @CachedLibrary(limit = "1") ArrayStoreLibrary others) {
+            return others.isStorageSame(other, store);
+        }
+
+        @Specialization
+        protected static boolean sameShared(Object[] store, Object other) {
+            return false;
+        }
+
+    }
+
+    @ExportMessage
     protected static String toString(Object[] store) {
         return "Object[]";
     }
@@ -197,7 +224,7 @@ public class ObjectArrayStore {
     }
 
     @ExportMessage
-    public static ArrayAllocator generalizeForSharing(Object[] store) {
+    protected static ArrayAllocator generalizeForSharing(Object[] store) {
         return SharedArrayStorage.SHARED_OBJECT_ARRAY_ALLOCATOR;
     }
 

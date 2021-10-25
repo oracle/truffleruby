@@ -65,7 +65,7 @@ public class DoubleArrayStore {
 
         @Specialization
         protected static boolean acceptsDelegateValues(double[] store, SharedArrayStorage otherStore,
-                                                       @CachedLibrary("store") ArrayStoreLibrary stores) {
+                @CachedLibrary("store") ArrayStoreLibrary stores) {
             return stores.acceptsAllValues(store, otherStore.storage);
         }
 
@@ -83,6 +83,33 @@ public class DoubleArrayStore {
     @ExportMessage
     protected static boolean isPrimitive(double[] store) {
         return true;
+    }
+
+    @ExportMessage
+    static class IsStorageSame {
+
+        @Specialization
+        protected static boolean sameZeroLength(double[] store, double[] other) {
+            return store == other;
+        }
+
+        @Specialization
+        protected static boolean sameDelegated(double[] store, DelegatedArrayStorage other,
+                @CachedLibrary(limit = "1") ArrayStoreLibrary others) {
+            return others.isStorageSame(other, store);
+        }
+
+        @Specialization
+        protected static boolean sameShared(double[] store, SharedArrayStorage other,
+                @CachedLibrary(limit = "1") ArrayStoreLibrary others) {
+            return others.isStorageSame(other, store);
+        }
+
+        @Specialization
+        protected static boolean sameShared(double[] store, Object other) {
+            return false;
+        }
+
     }
 
     @ExportMessage
@@ -236,7 +263,7 @@ public class DoubleArrayStore {
     }
 
     @ExportMessage
-    public static ArrayAllocator generalizeForSharing(double[] store) {
+    protected static ArrayAllocator generalizeForSharing(double[] store) {
         return SharedArrayStorage.SHARED_DOUBLE_ARRAY_ALLOCATOR;
     }
 

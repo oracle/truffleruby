@@ -46,20 +46,20 @@ public abstract class ArrayStoreLibrary extends Library {
     public abstract Object read(Object store, int index);
 
     /** Return whether {@code store} can accept this {@code value}. */
-    @Abstract(ifExported = { "write", "acceptsAllValues", "isMutable" })
+    @Abstract(ifExported = { "write", "acceptsAllValues", "isMutable", "fill" })
     public boolean acceptsValue(Object store, Object value) {
         return false;
     }
 
     /** Return whether {@code store} can accept all values that could be held in {@code otherStore}. */
-    @Abstract(ifExported = { "write", "acceptsValue", "isMutable" })
+    @Abstract(ifExported = { "write", "acceptsValue", "isMutable", "fill" })
     public boolean acceptsAllValues(Object store, Object otherStore) {
         return false;
     }
 
     /** Return whether {@code store} can be mutated. If not, then an allocator must be used to create a mutable version
      * of the store and contents copied in order to make modifications. */
-    @Abstract(ifExported = { "write", "acceptsValue", "acceptsAllValues" })
+    @Abstract(ifExported = { "write", "acceptsValue", "acceptsAllValues", "fill" })
     public boolean isMutable(Object store) {
         return false;
     }
@@ -81,6 +81,17 @@ public abstract class ArrayStoreLibrary extends Library {
         return false;
     }
 
+    /** Return whether the {@code store} is shared between multiple threads. */
+    public boolean isStorageSame(Object store, Object other) {
+        System.err.printf("Checking %s and %s.\n", store, other);
+        throw new Error();
+    }
+
+    /** Return the underlying storage used by this array. */
+    public Object backingStore(Object store) {
+        return store;
+    }
+
     /** Return a store that can be shared across threads. */
     public Object makeShared(Object store) {
         return new SharedArrayStorage(store);
@@ -94,7 +105,7 @@ public abstract class ArrayStoreLibrary extends Library {
     public abstract String toString(Object store);
 
     /** Write {@code value} to {@code index} of {@code store}. */
-    @Abstract(ifExported = { "acceptsValue", "acceptsAllValues", "isMutable" })
+    @Abstract(ifExported = { "acceptsValue", "acceptsAllValues", "isMutable", "fill" })
     public void write(Object store, int index, Object value) {
         CompilerDirectives.transferToInterpreterAndInvalidate();
         throw new UnsupportedOperationException();
@@ -124,6 +135,7 @@ public abstract class ArrayStoreLibrary extends Library {
      * elements, so that that range does not retain references to objects/memory/resources. This can be understood as
      * "nulling out" that part of the array, and will do nothing for primitive arrays. */
     public void clear(Object store, int start, int length) {
+        throw new UnsupportedOperationException();
     }
 
     /** Fill the part of the array starting at {@code start} and extending for {@code length} elements using

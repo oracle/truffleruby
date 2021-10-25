@@ -24,6 +24,7 @@ import org.truffleruby.language.objects.ObjectGraphNode;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
@@ -53,6 +54,35 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     protected boolean isPrimitive(
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
         return stores.isPrimitive(storage);
+    }
+
+    @ExportMessage
+    static class IsStorageSame {
+
+        @Specialization
+        protected static boolean sameDelegated(DelegatedArrayStorage store, DelegatedArrayStorage other,
+                @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            return store.offset == other.offset && stores.isStorageSame(store.storage, other.storage);
+        }
+
+        @Specialization
+        protected static boolean sameDelegated(DelegatedArrayStorage store, SharedArrayStorage other,
+                @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            return stores.isStorageSame(other.storage, store);
+        }
+
+        @Specialization
+        protected static boolean sameShared(DelegatedArrayStorage store, Object other,
+                @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            return store.offset == 0 && stores.isStorageSame(store.storage, other);
+        }
+
+    }
+
+    @ExportMessage
+    public Object backingStore(
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+        return stores.backingStore(storage);
     }
 
     @ExportMessage

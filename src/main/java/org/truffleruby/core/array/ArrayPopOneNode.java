@@ -33,8 +33,10 @@ public abstract class ArrayPopOneNode extends RubyBaseNode {
 
     // Pop from a non-empty array
 
-    @Specialization(guards = "!isEmptyArray(array)", limit = "storageStrategyLimit()")
-    protected Object popOne(RubyArray array,
+    @Specialization(
+            guards = { "!isEmptyArray(array)", "mutableNonPrimitive(stores, store)" },
+            limit = "storageStrategyLimit()")
+    protected Object popOneAndClear(RubyArray array,
             @Bind("array.store") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores) {
         final int size = array.size;
@@ -42,6 +44,22 @@ public abstract class ArrayPopOneNode extends RubyBaseNode {
         stores.clear(store, size - 1, 1);
         setSize(array, size - 1);
         return value;
+    }
+
+    @Specialization(
+            guards = { "!isEmptyArray(array)", "!mutableNonPrimitive(stores, store)" },
+            limit = "storageStrategyLimit()")
+    protected Object popOneDontClear(RubyArray array,
+            @Bind("array.store") Object store,
+            @CachedLibrary("store") ArrayStoreLibrary stores) {
+        final int size = array.size;
+        final Object value = stores.read(store, size - 1);
+        setSize(array, size - 1);
+        return value;
+    }
+
+    protected boolean mutableNonPrimitive(ArrayStoreLibrary stores, Object store) {
+        return !stores.isPrimitive(store) && stores.isMutable(store);
     }
 
 }

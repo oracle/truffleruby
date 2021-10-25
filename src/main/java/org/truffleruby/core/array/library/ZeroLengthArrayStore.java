@@ -46,6 +46,33 @@ public class ZeroLengthArrayStore {
     }
 
     @ExportMessage
+    static class IsStorageSame {
+
+        @Specialization
+        protected static boolean sameZeroLength(ZeroLengthArrayStore store, ZeroLengthArrayStore other) {
+            return true;
+        }
+
+        @Specialization
+        protected static boolean sameDelegated(ZeroLengthArrayStore store, DelegatedArrayStorage other,
+                @CachedLibrary(limit = "1") ArrayStoreLibrary others) {
+            return others.isStorageSame(other, store);
+        }
+
+        @Specialization
+        protected static boolean sameShared(ZeroLengthArrayStore store, SharedArrayStorage other,
+                @CachedLibrary(limit = "1") ArrayStoreLibrary others) {
+            return others.isStorageSame(other, store);
+        }
+
+        @Specialization
+        protected static boolean sameShared(ZeroLengthArrayStore store, Object other) {
+            return false;
+        }
+
+    }
+
+    @ExportMessage
     protected static String toString(ZeroLengthArrayStore store) {
         return "empty";
     }
@@ -138,7 +165,7 @@ public class ZeroLengthArrayStore {
     }
 
     @ExportMessage
-    public static ArrayAllocator generalizeForSharing(ZeroLengthArrayStore store) {
+    protected static ArrayAllocator generalizeForSharing(ZeroLengthArrayStore store) {
         return SharedArrayStorage.SHARED_ZERO_LENGTH_ARRAY_ALLOCATOR;
     }
 
