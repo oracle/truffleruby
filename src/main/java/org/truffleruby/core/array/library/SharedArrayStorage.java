@@ -154,9 +154,37 @@ public class SharedArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    protected void copyContents(int srcStart, Object destStore, int destStart, int length,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary srcStores) {
-        srcStores.copyContents(storage, srcStart, destStore, destStart, length);
+    @ImportStatic(ArrayGuards.class)
+    static class CopyContents {
+
+        @Specialization(guards = "srcStore == destStore")
+        protected static void copyContents(
+                SharedArrayStorage srcStore, int srcStart, SharedArrayStorage destStore, int destStart, int length) {
+            System.arraycopy(srcStore.storage, srcStart, destStore.storage, destStart, length);
+        }
+
+        @Specialization(guards = "differentStores(srcStore, destStore)", limit = "storageStrategyLimit()")
+        protected static void copyContents(
+                SharedArrayStorage srcStore, int srcStart, Object destStore, int destStart, int length,
+                @Cached @Exclusive LoopConditionProfile loopProfile,
+                @CachedLibrary(limit = "1") ArrayStoreLibrary srcStores,
+                @CachedLibrary("destStore") ArrayStoreLibrary destStores) {
+            int i = 0;
+            try {
+                for (; loopProfile.inject(i < length); i++) {
+                    destStores.write(destStore, destStart + i, srcStore.read(srcStart + i, srcStores));
+                    TruffleSafepoint.poll(destStores);
+                }
+            } finally {
+                RubyBaseNode.profileAndReportLoopCount(destStores.getNode(), loopProfile, i);
+            }
+        }
+
+        protected static boolean differentStores(SharedArrayStorage srcStore, Object destStore) {
+            return srcStore != destStore;
+        }
+    }
+
     @ExportMessage
     protected void clear(int start, int length,
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
