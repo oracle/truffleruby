@@ -5,10 +5,7 @@
 
 module Concurrent
   begin
-    # Cannot `require Primitive.get_original_require(__FILE__)` here because
-    # concurrent-ruby uses the non-standard s.require_paths = ["lib/concurrent-ruby"]
-    # and so the patch is not found in this nested require.
-    require 'concurrent/atomic/atomic_reference'
+    require Primitive.get_original_require(__FILE__)
   rescue TypeError => e
     if e.message == 'superclass must be a Class' and
         defined?(AtomicReferenceImplementation) and

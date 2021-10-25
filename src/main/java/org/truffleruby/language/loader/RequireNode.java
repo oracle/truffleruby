@@ -54,6 +54,7 @@ public abstract class RequireNode extends RubyBaseNode {
     @Child private DispatchNode isInLoadedFeatures = DispatchNode.create();
     @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
     @Child private DispatchNode addToLoadedFeatures = DispatchNode.create();
+    @Child private DispatchNode relativeFeatureNode = DispatchNode.create();
 
     @Child private WarningNode warningNode;
 
@@ -140,14 +141,13 @@ public abstract class RequireNode extends RubyBaseNode {
         final ReentrantLockFreeingMap<String> fileLocks = getContext().getFeatureLoader().getFileLocks();
         final ConcurrentMap<String, Boolean> patchFiles = getContext().getCoreLibrary().getPatchFiles();
         final ConcurrentMap<String, String> originalRequires = getContext().getCoreLibrary().getOriginalRequires();
+
         String relativeFeature = originalFeature;
         if (new File(originalFeature).isAbsolute()) {
-            int i = originalFeature.lastIndexOf("/lib/");
-            if (i != -1) {
-                relativeFeature = originalFeature.substring(i + "/lib/".length());
-            }
-            if (relativeFeature.endsWith(".rb")) {
-                relativeFeature = relativeFeature.substring(0, relativeFeature.length() - ".rb".length());
+            Object relativeFeatureString = relativeFeatureNode
+                    .call(coreLibrary().truffleFeatureLoaderModule, "relative_feature", pathString);
+            if (RubyStringLibrary.getUncached().isRubyString(relativeFeatureString)) {
+                relativeFeature = RubyStringLibrary.getUncached().getJavaString(relativeFeatureString);
             }
         }
         Boolean patchLoaded = patchFiles.get(relativeFeature);

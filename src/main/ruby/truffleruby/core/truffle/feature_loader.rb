@@ -218,6 +218,18 @@ module Truffle
       end
     end
 
+    def self.relative_feature(expanded_path)
+      load_path_entry = get_expanded_load_path.find do |load_dir|
+        expanded_path.start_with?(load_dir) and expanded_path[load_dir.size] == '/'
+      end
+      if load_path_entry
+        before_dot_rb = expanded_path.end_with?('.rb') ? -4 : -1
+        expanded_path[load_path_entry.size+1..before_dot_rb]
+      else
+        nil
+      end
+    end
+
     def self.binary_ext?(ext)
       ext == :so || ext == :dlext
     end
