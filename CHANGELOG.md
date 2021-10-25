@@ -32,6 +32,7 @@ Compatibility:
 * Implement `--backtrace-limit` option (#2453).
 * Update `String` methods to return `String` instances when called on a subclass (#2453).
 * Update `String#encode` to support the `:fallback` option (#1391).
+* `Module#alias_method` now returns the defined alias as a symbol(#2499, @gogainda).
 
 Performance:
 

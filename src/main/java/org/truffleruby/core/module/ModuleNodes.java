@@ -44,6 +44,7 @@ import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToPathNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
+import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.constant.WarnAlreadyInitializedNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
@@ -327,32 +328,32 @@ public abstract class ModuleNodes {
     public abstract static class AliasMethodNode extends CoreMethodNode {
 
         @CreateCast("newName")
-        protected RubyBaseNodeWithExecute coerceNewNameToString(RubyBaseNodeWithExecute newName) {
-            return NameToJavaStringNode.create(newName);
+        protected RubyBaseNodeWithExecute coerceNewNameToSymbol(RubyBaseNodeWithExecute newName) {
+            return ToSymbolNode.create(newName);
         }
 
         @CreateCast("oldName")
-        protected RubyBaseNodeWithExecute coerceOldNameToString(RubyBaseNodeWithExecute oldName) {
-            return NameToJavaStringNode.create(oldName);
+        protected RubyBaseNodeWithExecute coerceOldNameToSymbol(RubyBaseNodeWithExecute oldName) {
+            return ToSymbolNode.create(oldName);
         }
 
         @Specialization
-        protected RubyModule aliasMethod(RubyModule module, String newName, String oldName,
+        protected RubySymbol aliasMethod(RubyModule module, RubySymbol newName, RubySymbol oldName,
                 @Cached BranchProfile errorProfile) {
             final InternalMethod method = module.fields
-                    .deepMethodSearch(getContext(), oldName);
+                    .deepMethodSearch(getContext(), oldName.getString());
 
             if (method == null) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().nameErrorUndefinedMethod(
-                        oldName,
+                        oldName.getString(),
                         module,
                         this));
             }
 
-            final InternalMethod aliasMethod = method.withName(newName);
+            final InternalMethod aliasMethod = method.withName(newName.getString());
             module.addMethodConsiderNameVisibility(getContext(), aliasMethod, aliasMethod.getVisibility(), this);
-            return module;
+            return newName;
         }
 
     }
