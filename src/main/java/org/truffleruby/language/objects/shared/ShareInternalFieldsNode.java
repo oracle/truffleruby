@@ -12,11 +12,8 @@ package org.truffleruby.language.objects.shared;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.core.array.ArrayGuards;
-import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
-import org.truffleruby.core.array.library.DelegatedArrayStorage;
-import org.truffleruby.core.array.library.SharedArrayStorage;
 import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.queue.RubyQueue;
 import org.truffleruby.core.queue.UnsizedQueue;
@@ -78,11 +75,6 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
                     "shareCachedBasicObject" })
     protected void shareUncached(RubyDynamicObject object) {
         SharedObjects.shareInternalFields(object);
-    }
-
-    protected static boolean isDelegatedObjectArray(RubyArray array) {
-        final Object store = array.store;
-        return store instanceof DelegatedArrayStorage && ((DelegatedArrayStorage) store).hasObjectArrayStorage();
     }
 
     protected WriteBarrierNode createWriteBarrierNode() {
