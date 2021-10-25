@@ -5,7 +5,6 @@ ruby/test_jit.rb
 ruby/test_jit_debug.rb
 dbm/test_dbm.rb
 gdbm/test_gdbm.rb
-sdbm/test_sdbm.rb
 test_pty.rb
 win32ole/test_err_in_callback.rb
 win32ole/test_folderitem2_invokeverb.rb

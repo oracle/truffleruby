@@ -31,6 +31,9 @@ Compatibility:
 * Assigning to a numbered parameter raises `SyntaxError` (#2506, @andrykonchin).
 * Implement `--backtrace-limit` option (#2453).
 * Make `Random::DEFAULT` returns the `Random` class instead of an instance of `Random` (#2515, @tmnhat2001).
+* Update `String` methods to return `String` instances when called on a subclass (#2453).
+* Update `String#encode` to support the `:fallback` option (#1391).
+* `Module#alias_method` now returns the defined alias as a symbol(#2499, @gogainda).
 
 Performance:
 

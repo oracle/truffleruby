@@ -1420,7 +1420,7 @@ module Commands
 
     STDERR.puts
     candidates.each do |test_script|
-      time_test(test_script) do
+      time_test("jt test #{File.basename(tests_path)} #{File.basename(test_script, '.sh')}") do
         yield test_script
       end
     end

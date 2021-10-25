@@ -1,2 +1,1 @@
 fails:String#lines yields paragraphs (broken by 2 or more successive newlines) when passed '' and replaces multiple newlines with only two ones
-fails:String#lines yields String instances for subclasses

@@ -1,1 +1,0 @@
-fails:String#upcase returns a String instance for subclasses

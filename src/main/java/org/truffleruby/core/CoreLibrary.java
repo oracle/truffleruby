@@ -252,8 +252,9 @@ public class CoreLibrary {
 
     private final ConcurrentMap<String, Boolean> patchFiles;
 
-    /** When patching intercepts a require, this maps the patch being loaded to the original string that was required so
-     * that the patch can require the original string. */
+    /** When patching intercepts a require, this maps the patch being loaded to the the expanded path that would be
+     * required without the patch. That way it is possible to require the original file from the patch, even it was
+     * using require_relative and the patch location is not enough to find the correct file. */
     private final ConcurrentMap<String, String> originalRequires;
 
     @TruffleBoundary

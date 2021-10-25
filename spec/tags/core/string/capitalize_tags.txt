@@ -1,1 +1,0 @@
-fails:String#capitalize returns String instances when called on a subclass

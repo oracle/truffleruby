@@ -1,1 +1,0 @@
-fails:String#gsub with pattern and replacement returns String instances when called on a subclass

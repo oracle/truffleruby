@@ -92,22 +92,22 @@ class String
   end
 
   def chomp(separator=$/)
-    str = dup
+    str = Primitive.dup_as_string_instance(self)
     str.chomp!(separator) || str
   end
 
   def chop
-    str = dup
+    str = Primitive.dup_as_string_instance(self)
     str.chop! || str
   end
 
   def delete(*strings)
-    str = dup
+    str = Primitive.dup_as_string_instance(self)
     str.delete!(*strings) || str
   end
 
   def delete_prefix(prefix)
-    str = dup
+    str = Primitive.dup_as_string_instance(self)
     str.delete_prefix!(prefix) || str
   end
 
@@ -123,7 +123,7 @@ class String
   end
 
   def delete_suffix(suffix)
-    str = dup
+    str = Primitive.dup_as_string_instance(self)
     str.delete_suffix!(suffix) || str
   end
 
@@ -152,7 +152,7 @@ class String
   end
 
   def lstrip
-    str = dup
+    str = Primitive.dup_as_string_instance(self)
     str.lstrip! || str
   end
 
@@ -173,7 +173,7 @@ class String
   end
 
   def reverse
-    dup.reverse!
+    Primitive.dup_as_string_instance(self).reverse!
   end
 
   def partition(pattern=nil)
@@ -182,7 +182,9 @@ class String
     if Primitive.object_kind_of?(pattern, Regexp)
       if m = Truffle::RegexpOperations.match(pattern, self)
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, m)
-        return [m.pre_match, m.to_s, m.post_match]
+        return [Primitive.dup_as_string_instance(m.pre_match),
+                Primitive.dup_as_string_instance(m.to_s),
+                Primitive.dup_as_string_instance(m.post_match)]
       end
     else
       pattern = StringValue(pattern)
@@ -198,14 +200,16 @@ class String
 
     # Nothing worked out, this is the default.
     empty = String.new(encoding: encoding)
-    [self, empty, empty.dup]
+    [Primitive.dup_as_string_instance(self), empty, empty.dup]
   end
 
   def rpartition(pattern)
     if Primitive.object_kind_of?(pattern, Regexp)
       if m = Truffle::RegexpOperations.search_region(pattern, self, 0, bytesize, false, true)
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, m)
-        return [m.pre_match, m[0], m.post_match]
+        return [Primitive.dup_as_string_instance(m.pre_match),
+                Primitive.dup_as_string_instance(m[0]),
+                Primitive.dup_as_string_instance(m.post_match)]
       end
     else
       pattern = StringValue(pattern)
@@ -221,11 +225,11 @@ class String
 
     # Nothing worked out, this is the default.
     empty = String.new(encoding: encoding)
-    [empty, empty.dup, self.dup]
+    [empty, empty.dup, Primitive.dup_as_string_instance(self)]
   end
 
   def rstrip
-    str = dup
+    str = Primitive.dup_as_string_instance(self)
     str.rstrip! || str
   end
 
@@ -265,16 +269,16 @@ class String
   end
 
   def split(pattern=nil, limit=undefined, &block)
-    Truffle::Splitter.split(self, pattern, limit, &block)
+    Truffle::Splitter.split(Primitive.dup_as_string_instance(self), pattern, limit, &block)
   end
 
   def squeeze(*strings)
-    str = dup
+    str = Primitive.dup_as_string_instance(self)
     str.squeeze!(*strings) || str
   end
 
   def strip
-    str = dup
+    str = Primitive.dup_as_string_instance(self)
     str.strip! || str
   end
 
@@ -285,7 +289,7 @@ class String
   end
 
   def succ
-    dup.succ!
+    Primitive.dup_as_string_instance(self).succ!
   end
 
   def swapcase!(*options)
@@ -294,7 +298,7 @@ class String
   end
 
   def swapcase(*options)
-    str = dup
+    str = Primitive.dup_as_string_instance(self)
     str.swapcase!(*options) || str
   end
 
@@ -309,13 +313,13 @@ class String
   end
 
   def tr(source, replacement)
-    str = dup
+    str = Primitive.dup_as_string_instance(self)
     str.tr!(source, replacement) || str
   end
   Truffle::Graal.always_split(instance_method(:tr))
 
   def tr_s(source, replacement)
-    str = dup
+    str = Primitive.dup_as_string_instance(self)
     str.tr_s!(source, replacement) || str
   end
 
@@ -351,100 +355,73 @@ class String
     end
   end
 
-  def encode!(to=undefined, from=undefined, options=undefined)
+  def encode!(to=undefined, from=undefined, **options)
     Primitive.check_frozen self
 
-    if Primitive.undefined?(to)
+    if !Primitive.undefined?(to)
+      begin
+        to_enc = Truffle::Type.coerce_to_encoding(to)
+      rescue ArgumentError
+        raise Encoding::ConverterNotFoundError, "Encoding #{to} not found."
+      end
+    else
       to_enc = Encoding.default_internal
-      return self unless to_enc
-    else
-      case to
-      when Encoding
-        to_enc = to
-      when Hash
-        options = to
-        to_enc = Encoding.default_internal
-      else
-        opts = Truffle::Type.rb_check_convert_type to, Hash, :to_hash
-
-        if opts
-          options = opts
-          to_enc = Encoding.default_internal
-        else
-          to_enc = Encoding.try_convert(to)
-        end
-      end
     end
 
-    from = encoding if Primitive.undefined?(from)
-    case from
-    when Encoding
-      from_enc = from
-    when Hash
-      options = from
+    if !Primitive.undefined?(from)
+      begin
+        from_enc = Truffle::Type.coerce_to_encoding(from)
+      rescue ArgumentError
+        raise Encoding::ConverterNotFoundError, "Encoding #{from} not found."
+      end
+    else
       from_enc = encoding
-    else
-      opts = Truffle::Type.rb_check_convert_type from, Hash, :to_hash
-
-      if opts
-        options = opts
-        from_enc = encoding
-      else
-        from_enc = Truffle::Type.coerce_to_encoding from
-      end
-    end
-
-    if false == to_enc
-      raise Encoding::ConverterNotFoundError, "undefined code converter (#{from} to #{to})"
-    end
-
-    if Primitive.undefined?(options)
-      options = 0
-    else
-      case options
-      when Hash
-        # do nothing
-      else
-        options = Truffle::Type.coerce_to options, Hash, :to_hash
-      end
     end
 
     if ascii_only? and from_enc.ascii_compatible? and to_enc and to_enc.ascii_compatible?
       force_encoding to_enc
     elsif to_enc
       if from_enc != to_enc
-        ec = Encoding::Converter.new from_enc, to_enc, options
+        ec = Encoding::Converter.new from_enc, to_enc, **options
         dest = +''
-        status = ec.primitive_convert self.dup, dest, nil, nil, ec.options
-        raise ec.last_error unless status == :finished
+        src = self.dup
+        fallback = options[:fallback]
+        status = ec.primitive_convert src, dest, nil, nil
+        while status != :finished
+          raise ec.last_error unless fallback && status == :undefined_conversion
+          (_, fallback_enc_from, fallback_enc_to, error_bytes, _) = ec.primitive_errinfo
+          rep = fallback[error_bytes.force_encoding(fallback_enc_from)]
+          raise ec.last_error unless rep
+          dest << rep.encode(fallback_enc_to)
+          status = ec.primitive_convert src, dest, nil, nil
+        end
+
         return replace(dest)
       else
         force_encoding to_enc
       end
     end
 
-    # TODO: replace this hack with transcoders
-    if Primitive.object_kind_of?(options, Hash)
-      case options[:invalid]
-      when :replace
-        self.scrub!
-      end
-      case xml = options[:xml]
-      when :text
-        gsub!(/[&><]/, '&' => '&amp;', '>' => '&gt;', '<' => '&lt;')
-      when :attr
-        gsub!(/[&><"]/, '&' => '&amp;', '>' => '&gt;', '<' => '&lt;', '"' => '&quot;')
-        insert(0, '"')
-        insert(-1, '"')
-      when nil
-        # nothing
-      else
-        raise ArgumentError, "unexpected value for xml option: #{xml.inspect}"
-      end
+    case options[:invalid]
+    when :replace
+      replacement = options[:replace] || (Primitive.encoding_is_unicode(from_enc) ? "\ufffd" : '?')
+      self.scrub!(replacement)
+    end
+    case xml = options[:xml]
+    when :text
+      gsub!(/[&><]/, '&' => '&amp;', '>' => '&gt;', '<' => '&lt;')
+    when :attr
+      gsub!(/[&><"]/, '&' => '&amp;', '>' => '&gt;', '<' => '&lt;', '"' => '&quot;')
+      insert(0, '"')
+      insert(-1, '"')
+    when nil
+    # nothing
+    else
+      raise ArgumentError, "unexpected value for xml option: #{xml.inspect}"
+    end
 
-      if options[:universal_newline]
-        gsub!(/\r\n|\r/, "\r\n" => "\n", "\r" => "\n")
-      end
+    if options[:universal_newline]
+      gsub!(/\r\n|\r/, "\r\n" => "\n", "\r" => "\n")
     end
 
     self
@@ -454,8 +431,8 @@ class String
     dup.force_encoding(Encoding::BINARY)
   end
 
-  def encode(to=undefined, from=undefined, options=undefined)
-    dup.encode! to, from, options
+  def encode(to=undefined, from=undefined, **options)
+    dup.encode! to, from, **options
   end
 
   def end_with?(*suffixes)
@@ -641,7 +618,7 @@ class String
   end
 
   def sub(pattern, replacement=undefined, &block)
-    s = dup
+    s = Primitive.dup_as_string_instance(self)
     if Primitive.undefined?(replacement) && !block_given?
       raise ArgumentError, "method '#{__method__}': given 1, expected 2"
     end
@@ -805,7 +782,7 @@ class String
 
     # weird edge case.
     if Primitive.nil? sep
-      yield self
+      yield Primitive.dup_as_string_instance(self)
       return self
     end
 
@@ -838,7 +815,7 @@ class String
         break if pos == bytesize
 
         str = byteslice pos, match_size
-        yield maybe_chomp.call(str) unless str.empty?
+        yield Primitive.dup_as_string_instance(maybe_chomp.call(str)) unless str.empty?
 
         # detect mutation within the block
         if duped != self
@@ -850,7 +827,7 @@ class String
 
       # No more separates, but we need to grab the last part still.
       fin = byteslice pos, bytesize - pos
-      yield maybe_chomp.call(fin) if fin and !fin.empty?
+      yield Primitive.dup_as_string_instance(maybe_chomp.call(fin)) if fin and !fin.empty?
     else
 
       # This is the normal case.
@@ -863,14 +840,14 @@ class String
 
         match_size = nxt - pos
         str = unmodified_self.byteslice pos, match_size + pat_size
-        yield maybe_chomp.call(str) unless str.empty?
+        yield Primitive.dup_as_string_instance(maybe_chomp.call(str)) unless str.empty?
 
         pos = nxt + pat_size
       end
 
       # No more separates, but we need to grab the last part still.
       fin = unmodified_self.byteslice pos, bytesize - pos
-      yield maybe_chomp.call(fin) unless fin.empty?
+      yield Primitive.dup_as_string_instance(maybe_chomp.call(fin)) unless fin.empty?
     end
 
     self
@@ -886,7 +863,7 @@ class String
 
 
   def gsub(pattern, replacement=undefined, &block)
-    s = dup
+    s = Primitive.dup_as_string_instance(self)
     if Primitive.undefined?(replacement) && !block_given?
       return s.to_enum(:gsub, pattern, replacement)
     end
@@ -936,7 +913,7 @@ class String
   end
 
   def scrub(replace = nil, &block)
-    return dup if valid_encoding?
+    return Primitive.dup_as_string_instance(self) if valid_encoding?
 
     if !replace and !block
       # The unicode replacement character or '?''
@@ -1016,7 +993,7 @@ class String
     enc = Primitive.encoding_ensure_compatible self, padding
 
     width = Primitive.rb_to_int width
-    return dup if width <= size
+    return Primitive.dup_as_string_instance(self) if width <= size
 
     width -= size
     left = width / 2
@@ -1039,14 +1016,14 @@ class String
       rpbi = Primitive.string_byte_index_from_char_index(padding, y)
       rbytes = x * pbs + rpbi
 
-      pad = self.class.pattern rbytes, padding
-      str = self.class.pattern lbytes + bs + rbytes, ''
+      pad = String.pattern rbytes, padding
+      str = String.pattern lbytes + bs + rbytes, ''
 
       Truffle::StringOperations.copy_from(str, self, 0, bs, lbytes)
       Truffle::StringOperations.copy_from(str, pad, 0, lbytes, 0)
       Truffle::StringOperations.copy_from(str, pad, 0, rbytes, lbytes + bs)
     else
-      str = self.class.pattern width + bs, padding
+      str = String.pattern width + bs, padding
       Truffle::StringOperations.copy_from(str, self, 0, bs, left)
     end
 
@@ -1075,7 +1052,7 @@ class String
       pbi = Primitive.string_byte_index_from_char_index(padding, y)
       bytes = x * pbs + pbi
 
-      str = self.class.pattern bytes + bs, self
+      str = String.pattern bytes + bs, self
 
       i = 0
       bi = bs
@@ -1089,7 +1066,7 @@ class String
 
       Truffle::StringOperations.copy_from(str, padding, 0, pbi, bi)
     else
-      str = self.class.pattern width + bs, padding
+      str = String.pattern width + bs, padding
       Truffle::StringOperations.copy_from(str, self, 0, bs, 0)
     end
 
@@ -1120,7 +1097,7 @@ class String
       bytes = width
     end
 
-    str = self.class.pattern bytes + bs, padding
+    str = String.pattern bytes + bs, padding
 
     Truffle::StringOperations.copy_from(str, self, 0, bs, bytes)
 
@@ -1297,7 +1274,7 @@ class String
   end
 
   def capitalize(*options)
-    s = dup
+    s = Primitive.dup_as_string_instance(self)
     s.capitalize!(*options)
     s
   end
@@ -1308,7 +1285,7 @@ class String
   end
 
   def downcase(*options)
-    s = dup
+    s = Primitive.dup_as_string_instance(self)
     s.downcase!(*options)
     s
   end
@@ -1319,7 +1296,7 @@ class String
   end
 
   def upcase(*options)
-    s = dup
+    s = Primitive.dup_as_string_instance(self)
     s.upcase!(*options)
     s
   end

@@ -1,1 +1,0 @@
-fails:String#delete_suffix returns a String instance when called on a subclass instance
