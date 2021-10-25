@@ -176,7 +176,7 @@ public abstract class RequireNode extends RubyBaseNode {
                 if (isPatched && !patchLoaded) {
                     String expandedPatchPath = getLanguage().getRubyHome() + "/lib/patches/" + relativeFeature + ".rb";
                     RubyLanguage.LOGGER.config("patch file used: " + expandedPatchPath);
-                    originalRequires.put(expandedPatchPath, originalFeature);
+                    originalRequires.put(expandedPatchPath, expandedPath);
                     try {
                         final boolean loaded = parseAndCall(expandedPatchPath, expandedPatchPath);
                         assert loaded;
