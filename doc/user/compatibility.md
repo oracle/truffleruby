@@ -57,8 +57,6 @@ The following standard libraries are unsupported:
 * `dbm`
 * `gdbm`
 * `debug` (could be implemented in the future, use [`--inspect`](tools.md) instead)
-* `profile` (could be implemented in the future, use [`--cpusampler`](tools.md) instead)
-* `profiler` (could be implemented in the future, use [`--cpusampler`](tools.md) instead)
 * `io/console` (partially implemented, could be implemented in the future)
 * `io/wait` (partially implemented, could be implemented in the future)
 * `pty` (could be implemented in the future)
