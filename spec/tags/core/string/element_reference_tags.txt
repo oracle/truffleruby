@@ -1,6 +1,0 @@
-fails:String#[] with index, length returns String instances
-fails:String#[] with Range returns String instances
-fails:String#[] with Regexp returns String instances
-fails:String#[] with Regexp, index returns String instances
-fails:String#[] with Regexp, group returns String instances
-fails:String#[] with String returns a String instance when given a subclass instance

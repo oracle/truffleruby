@@ -92,22 +92,22 @@ class String
   end
 
   def chomp(separator=$/)
-    str = dup
+    str = Primitive.dup_as_string_instance(self)
     str.chomp!(separator) || str
   end
 
   def chop
-    str = dup
+    str = Primitive.dup_as_string_instance(self)
     str.chop! || str
   end
 
   def delete(*strings)
-    str = dup
+    str = Primitive.dup_as_string_instance(self)
     str.delete!(*strings) || str
   end
 
   def delete_prefix(prefix)
-    str = dup
+    str = Primitive.dup_as_string_instance(self)
     str.delete_prefix!(prefix) || str
   end
 
@@ -123,7 +123,7 @@ class String
   end
 
   def delete_suffix(suffix)
-    str = dup
+    str = Primitive.dup_as_string_instance(self)
     str.delete_suffix!(suffix) || str
   end
 
@@ -152,7 +152,7 @@ class String
   end
 
   def lstrip
-    str = dup
+    str = Primitive.dup_as_string_instance(self)
     str.lstrip! || str
   end
 
@@ -173,7 +173,7 @@ class String
   end
 
   def reverse
-    dup.reverse!
+    Primitive.dup_as_string_instance(self).reverse!
   end
 
   def partition(pattern=nil)
@@ -182,7 +182,9 @@ class String
     if Primitive.object_kind_of?(pattern, Regexp)
       if m = Truffle::RegexpOperations.match(pattern, self)
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, m)
-        return [m.pre_match, m.to_s, m.post_match]
+        return [Primitive.dup_as_string_instance(m.pre_match),
+                Primitive.dup_as_string_instance(m.to_s),
+                Primitive.dup_as_string_instance(m.post_match)]
       end
     else
       pattern = StringValue(pattern)
@@ -198,14 +200,16 @@ class String
 
     # Nothing worked out, this is the default.
     empty = String.new(encoding: encoding)
-    [self, empty, empty.dup]
+    [Primitive.dup_as_string_instance(self), empty, empty.dup]
   end
 
   def rpartition(pattern)
     if Primitive.object_kind_of?(pattern, Regexp)
       if m = Truffle::RegexpOperations.search_region(pattern, self, 0, bytesize, false, true)
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, m)
-        return [m.pre_match, m[0], m.post_match]
+        return [Primitive.dup_as_string_instance(m.pre_match),
+                Primitive.dup_as_string_instance(m[0]),
+                Primitive.dup_as_string_instance(m.post_match)]
       end
     else
       pattern = StringValue(pattern)
@@ -221,11 +225,11 @@ class String
 
     # Nothing worked out, this is the default.
     empty = String.new(encoding: encoding)
-    [empty, empty.dup, self.dup]
+    [empty, empty.dup, Primitive.dup_as_string_instance(self)]
   end
 
   def rstrip
-    str = dup
+    str = Primitive.dup_as_string_instance(self)
     str.rstrip! || str
   end
 
@@ -265,16 +269,16 @@ class String
   end
 
   def split(pattern=nil, limit=undefined, &block)
-    Truffle::Splitter.split(self, pattern, limit, &block)
+    Truffle::Splitter.split(Primitive.dup_as_string_instance(self), pattern, limit, &block)
   end
 
   def squeeze(*strings)
-    str = dup
+    str = Primitive.dup_as_string_instance(self)
     str.squeeze!(*strings) || str
   end
 
   def strip
-    str = dup
+    str = Primitive.dup_as_string_instance(self)
     str.strip! || str
   end
 
@@ -285,7 +289,7 @@ class String
   end
 
   def succ
-    dup.succ!
+    Primitive.dup_as_string_instance(self).succ!
   end
 
   def swapcase!(*options)
@@ -294,7 +298,7 @@ class String
   end
 
   def swapcase(*options)
-    str = dup
+    str = Primitive.dup_as_string_instance(self)
     str.swapcase!(*options) || str
   end
 
@@ -309,13 +313,13 @@ class String
   end
 
   def tr(source, replacement)
-    str = dup
+    str = Primitive.dup_as_string_instance(self)
     str.tr!(source, replacement) || str
   end
   Truffle::Graal.always_split(instance_method(:tr))
 
   def tr_s(source, replacement)
-    str = dup
+    str = Primitive.dup_as_string_instance(self)
     str.tr_s!(source, replacement) || str
   end
 
@@ -641,7 +645,7 @@ class String
   end
 
   def sub(pattern, replacement=undefined, &block)
-    s = dup
+    s = Primitive.dup_as_string_instance(self)
     if Primitive.undefined?(replacement) && !block_given?
       raise ArgumentError, "method '#{__method__}': given 1, expected 2"
     end
@@ -805,7 +809,7 @@ class String
 
     # weird edge case.
     if Primitive.nil? sep
-      yield self
+      yield Primitive.dup_as_string_instance(self)
       return self
     end
 
@@ -838,7 +842,7 @@ class String
         break if pos == bytesize
 
         str = byteslice pos, match_size
-        yield maybe_chomp.call(str) unless str.empty?
+        yield Primitive.dup_as_string_instance(maybe_chomp.call(str)) unless str.empty?
 
         # detect mutation within the block
         if duped != self
@@ -850,7 +854,7 @@ class String
 
       # No more separates, but we need to grab the last part still.
       fin = byteslice pos, bytesize - pos
-      yield maybe_chomp.call(fin) if fin and !fin.empty?
+      yield Primitive.dup_as_string_instance(maybe_chomp.call(fin)) if fin and !fin.empty?
     else
 
       # This is the normal case.
@@ -863,14 +867,14 @@ class String
 
         match_size = nxt - pos
         str = unmodified_self.byteslice pos, match_size + pat_size
-        yield maybe_chomp.call(str) unless str.empty?
+        yield Primitive.dup_as_string_instance(maybe_chomp.call(str)) unless str.empty?
 
         pos = nxt + pat_size
       end
 
       # No more separates, but we need to grab the last part still.
       fin = unmodified_self.byteslice pos, bytesize - pos
-      yield maybe_chomp.call(fin) unless fin.empty?
+      yield Primitive.dup_as_string_instance(maybe_chomp.call(fin)) unless fin.empty?
     end
 
     self
@@ -886,7 +890,7 @@ class String
 
 
   def gsub(pattern, replacement=undefined, &block)
-    s = dup
+    s = Primitive.dup_as_string_instance(self)
     if Primitive.undefined?(replacement) && !block_given?
       return s.to_enum(:gsub, pattern, replacement)
     end
@@ -936,7 +940,7 @@ class String
   end
 
   def scrub(replace = nil, &block)
-    return dup if valid_encoding?
+    return Primitive.dup_as_string_instance(self) if valid_encoding?
 
     if !replace and !block
       # The unicode replacement character or '?''
@@ -1016,7 +1020,7 @@ class String
     enc = Primitive.encoding_ensure_compatible self, padding
 
     width = Primitive.rb_to_int width
-    return dup if width <= size
+    return Primitive.dup_as_string_instance(self) if width <= size
 
     width -= size
     left = width / 2
@@ -1039,14 +1043,14 @@ class String
       rpbi = Primitive.string_byte_index_from_char_index(padding, y)
       rbytes = x * pbs + rpbi
 
-      pad = self.class.pattern rbytes, padding
-      str = self.class.pattern lbytes + bs + rbytes, ''
+      pad = String.pattern rbytes, padding
+      str = String.pattern lbytes + bs + rbytes, ''
 
       Truffle::StringOperations.copy_from(str, self, 0, bs, lbytes)
       Truffle::StringOperations.copy_from(str, pad, 0, lbytes, 0)
       Truffle::StringOperations.copy_from(str, pad, 0, rbytes, lbytes + bs)
     else
-      str = self.class.pattern width + bs, padding
+      str = String.pattern width + bs, padding
       Truffle::StringOperations.copy_from(str, self, 0, bs, left)
     end
 
@@ -1075,7 +1079,7 @@ class String
       pbi = Primitive.string_byte_index_from_char_index(padding, y)
       bytes = x * pbs + pbi
 
-      str = self.class.pattern bytes + bs, self
+      str = String.pattern bytes + bs, self
 
       i = 0
       bi = bs
@@ -1089,7 +1093,7 @@ class String
 
       Truffle::StringOperations.copy_from(str, padding, 0, pbi, bi)
     else
-      str = self.class.pattern width + bs, padding
+      str = String.pattern width + bs, padding
       Truffle::StringOperations.copy_from(str, self, 0, bs, 0)
     end
 
@@ -1120,7 +1124,7 @@ class String
       bytes = width
     end
 
-    str = self.class.pattern bytes + bs, padding
+    str = String.pattern bytes + bs, padding
 
     Truffle::StringOperations.copy_from(str, self, 0, bs, bytes)
 
@@ -1297,7 +1301,7 @@ class String
   end
 
   def capitalize(*options)
-    s = dup
+    s = Primitive.dup_as_string_instance(self)
     s.capitalize!(*options)
     s
   end
@@ -1308,7 +1312,7 @@ class String
   end
 
   def downcase(*options)
-    s = dup
+    s = Primitive.dup_as_string_instance(self)
     s.downcase!(*options)
     s
   end
@@ -1319,7 +1323,7 @@ class String
   end
 
   def upcase(*options)
-    s = dup
+    s = Primitive.dup_as_string_instance(self)
     s.upcase!(*options)
     s
   end
