@@ -402,7 +402,7 @@ class String
           raise ec.last_error unless fallback && status == :undefined_conversion
           (_, fallback_enc_from, fallback_enc_to, error_bytes, _) = ec.primitive_errinfo
           rep = fallback[error_bytes.force_encoding(fallback_enc_from)]
-          raise.ec.last_error unless rep
+          raise ec.last_error unless rep
           dest << rep.encode(fallback_enc_to)
           status = ec.primitive_convert src, dest, nil, nil
         end
