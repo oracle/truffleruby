@@ -38,6 +38,8 @@ import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.builtins.ReRaiseInlinedExceptionNode;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
@@ -124,6 +126,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -2149,6 +2152,7 @@ public abstract class ModuleNodes {
     }
 
     @GenerateUncached
+    @ImportStatic(ArrayGuards.class)
     public abstract static class SetMethodVisibilityNode extends RubyBaseNode {
 
         public static SetMethodVisibilityNode create() {
@@ -2157,16 +2161,15 @@ public abstract class ModuleNodes {
 
         public abstract void execute(RubyModule module, Object name, Visibility visibility);
 
-        @Specialization
+        @TruffleBoundary
+        @Specialization(guards = "!isRubyArray(name)")
         protected void setMethodVisibility(RubyModule module, Object name, Visibility visibility,
-                @Cached BranchProfile errorProfile,
-                @Cached NameToJavaStringNode nameToJavaStringNode) {
+                @Cached @Shared("nameToJavaStringNode") NameToJavaStringNode nameToJavaStringNode) {
             final String methodName = nameToJavaStringNode.execute(name);
 
             final InternalMethod method = module.fields.deepMethodSearch(getContext(), methodName);
 
             if (method == null) {
-                errorProfile.enter();
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().nameErrorUndefinedMethod(methodName, module, this));
@@ -2180,6 +2183,20 @@ public abstract class ModuleNodes {
             /* If the method was already defined in this class, that's fine {@link addMethod} will overwrite it,
              * otherwise we do actually want to add a copy of the method with a different visibility to this module. */
             module.addMethodIgnoreNameVisibility(getContext(), method, visibility, this);
+        }
+
+        @TruffleBoundary
+        @Specialization
+        protected void setMethodVisibilityArray(RubyModule module, RubyArray array, Visibility visibility,
+                @Cached @Shared("nameToJavaStringNode") NameToJavaStringNode nameToJavaStringNode) {
+            for (Object name : ArrayOperations.toIterable(array)) {
+                setMethodVisibility(
+                        module,
+                        name,
+                        visibility,
+                        nameToJavaStringNode);
+                TruffleSafepoint.poll(this);
+            }
         }
 
     }

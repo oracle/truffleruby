@@ -1,2 +1,1 @@
 fails:Module#private continues to allow a prepended module method to call super
-fails:Module#private with argument array as a single argument sets visibility of given method names

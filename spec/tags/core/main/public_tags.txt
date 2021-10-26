@@ -1,1 +1,0 @@
-fails:main#public when single argument is passed and is an array sets the visibility of the given methods to public
