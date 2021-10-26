@@ -1372,15 +1372,19 @@ public abstract class RopeNodes {
             return rope.getRawBytes()[index];
         }
 
+        @TruffleBoundary
+        @Specialization(guards = { "rope.getRawBytes() == null", "!isSubstringRope(rope)" })
+        protected byte getByteFromRope(ManagedRope rope, int index) {
+            return rope.getByteSlow(index);
+        }
+
         @Specialization
         protected byte getByteFromNativeRope(NativeRope rope, int index) {
             return rope.getByteSlow(index);
         }
 
-        @TruffleBoundary
-        @Specialization(guards = "rope.getRawBytes() == null")
-        protected byte getByteFromRope(ManagedRope rope, int index) {
-            return rope.getByteSlow(index);
+        protected static boolean isSubstringRope(ManagedRope rope) {
+            return rope instanceof SubstringRope;
         }
     }
 

@@ -14,7 +14,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 
-public class SubstringRope extends ManagedRope {
+public final class SubstringRope extends ManagedRope {
 
     private final ManagedRope child;
     private final int byteOffset;
@@ -68,6 +68,11 @@ public class SubstringRope extends ManagedRope {
                 byteLength(),
                 byteLength(),
                 CodeRange.CR_VALID);
+    }
+
+    @Override
+    protected byte getByteSlow(int index) {
+        return child.get(byteOffset + index);
     }
 
     @Override
