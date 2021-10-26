@@ -94,7 +94,6 @@ module Truffle
     def self.gsub_regexp_matches(global, orig, pattern)
       res = []
       offset = 0
-      Truffle::RegexpOperations.search_check_args(pattern, orig);
       while match = Truffle::RegexpOperations.match_in_region(pattern, orig, offset, orig.bytesize, false, 0)
         res << match
         break unless global
@@ -119,7 +118,6 @@ module Truffle
       pattern = Truffle::Type.coerce_to_regexp(pattern, true)
       res = []
       offset = 0
-      Truffle::RegexpOperations.search_check_args(pattern, orig);
       while match = Truffle::RegexpOperations.match_in_region(pattern, orig, offset, orig.bytesize, false, 0)
         res << match
         break unless global
