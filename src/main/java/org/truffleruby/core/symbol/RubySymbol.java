@@ -18,6 +18,7 @@ import org.truffleruby.core.Hashing;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.LeafRope;
+import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.ImmutableRubyObject;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -40,6 +41,7 @@ public final class RubySymbol extends ImmutableRubyObject implements TruffleObje
     private final LeafRope rope;
     private final int javaStringHashCode;
     private final long id;
+    private ImmutableRubyString name;
 
     private volatile RootCallTarget callTargetNoRefinements = null;
 
@@ -90,6 +92,13 @@ public final class RubySymbol extends ImmutableRubyObject implements TruffleObje
     @Override
     public String toString() {
         return ":" + string;
+    }
+
+    public ImmutableRubyString getName(RubyLanguage language) {
+        if (name == null) {
+            name = language.getFrozenStringLiteral(this.getRope());
+        }
+        return name;
     }
 
     // region InteropLibrary messages
