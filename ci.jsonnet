@@ -457,6 +457,9 @@ local part_definitions = {
       packages+: {
         "apache/ab": ">=2.3",
       },
+      setup+: [
+        ["set-export", "GEM_TEST_PACK", jt(["gem-test-pack"])[0]],
+      ],
       benchmarks+:: ["server"],
     },
 
