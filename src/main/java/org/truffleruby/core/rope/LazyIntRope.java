@@ -100,9 +100,4 @@ public class LazyIntRope extends ManagedRope {
         return value;
     }
 
-    @Override
-    protected byte getByteSlow(int index) {
-        return getBytes()[index];
-    }
-
 }

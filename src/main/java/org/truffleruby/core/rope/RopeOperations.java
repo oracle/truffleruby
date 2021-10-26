@@ -503,40 +503,6 @@ public class RopeOperations {
         return buffer;
     }
 
-    /** Used to implement {@link Rope#getByteSlow(int)} in a non-recursive fashion for some Rope subclasses. Do not call
-     * directly, call {@link Rope#getByteSlow(int) instead.} */
-    @TruffleBoundary
-    static byte getByteSlow(Rope rope, int index) {
-        while (true) {
-            final byte[] rawBytes = rope.getRawBytes();
-            if (rawBytes != null) {
-                return rawBytes[index];
-            } else if (rope instanceof ConcatRope) {
-                final ConcatRope concatRope = (ConcatRope) rope;
-                final ConcatState state = concatRope.getState();
-                if (state.isFlattened()) {
-                    // Rope got concurrently flattened.
-                    return state.bytes[index];
-                }
-                if (index < state.left.byteLength()) {
-                    rope = state.left;
-                } else {
-                    rope = state.right;
-                    index -= state.left.byteLength();
-                }
-            } else if (rope instanceof SubstringRope) {
-                final SubstringRope substringRope = (SubstringRope) rope;
-                rope = substringRope.getChild();
-                index += substringRope.getByteOffset();
-            } else if (rope instanceof RepeatingRope) {
-                rope = ((RepeatingRope) rope).getChild();
-                index %= rope.byteLength();
-            } else {
-                return rope.getByteSlow(index);
-            }
-        }
-    }
-
     private static int computeLoopCount(int offset, int times, int length, int patternLength) {
         // The loopCount has to be precisely determined so every repetition has at least some parts used.
         // It has to account for the beginning we don't need (offset), has to reach the end but, and must not

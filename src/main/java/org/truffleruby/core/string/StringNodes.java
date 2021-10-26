@@ -1685,7 +1685,7 @@ public abstract class StringNodes {
 
         public abstract Object execute(Object string);
 
-        @Specialization(limit = "1")
+        @Specialization(limit = "getDynamicObjectCacheLimit()")
         protected Object getAssociated(RubyString string,
                 @CachedLibrary("string") DynamicObjectLibrary objectLibrary) {
             return objectLibrary.getOrDefault(string, Layouts.ASSOCIATED_IDENTIFIER, null);
