@@ -34,6 +34,7 @@ Compatibility:
 * Update `String#encode` to support the `:fallback` option (#1391).
 * `Module#alias_method` now returns the defined alias as a symbol(#2499, @gogainda).
 * Implement `Symbol#name` (#2453).
+* Integer#zero? overrides Numeric#zero? for optimization (#2453).
 
 Performance:
 
