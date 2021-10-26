@@ -101,7 +101,6 @@ local part_definitions = {
     },
 
     truffleruby: {
-      "$.benchmark.server":: { options: [] },
       environment+: {
         # Using jruby for compatibility with existing benchmark results.
         GUEST_VM: "jruby",
@@ -122,8 +121,6 @@ local part_definitions = {
     },
 
     mri: {
-      "$.benchmark.server":: { options: ["--", "--no-core-load-path"] },
-
       environment+: {
         HOST_VM: "mri",
         HOST_VM_CONFIG: "default",
@@ -134,7 +131,6 @@ local part_definitions = {
     },
 
     jruby: {
-      "$.benchmark.server":: { options: ["--", "--no-core-load-path"] },
       downloads+: {
         JRUBY_HOME: { name: "jruby", version: "9.1.12.0" },
       },
@@ -458,11 +454,10 @@ local part_definitions = {
     },
 
     server: {
-      local build = self,
       packages+: {
         "apache/ab": ">=2.3",
       },
-      benchmarks+:: [["server"] + build["$.benchmark.server"].options],
+      benchmarks+:: ["server"],
     },
 
     cext_chunky: {
@@ -671,7 +666,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     {
-      local shared = $.platform.linux + $.jdk.v8 + $.use.common +
+      local shared = $.platform.linux + $.jdk.v8 + $.use.common + $.use.gem_test_pack +
                      $.benchmark.runner + $.benchmark.server +
                      { timelimit: "00:30:00" },
 
