@@ -3543,8 +3543,7 @@ public abstract class StringNodes {
         public abstract RubyString executeStringAppend(RubyString string, Object other);
 
         @Specialization
-        protected RubyString stringAppend(RubyString string, Object other,
-                @CachedLibrary(limit = "2") RubyStringLibrary otherStringLibrary) {
+        protected RubyString stringAppend(RubyString string, Object other) {
             final Pair<Rope, RubyEncoding> result = stringAppendNode.executeStringAppend(string, other);
             string.setRope(result.getLeft(), result.getRight());
             return string;
