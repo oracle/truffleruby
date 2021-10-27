@@ -636,7 +636,7 @@ public abstract class EncodingNodes {
     }
 
     @Primitive(name = "encoding_create_dummy")
-    public abstract static class DummyEncodingeNode extends EncodingCreationNode {
+    public abstract static class DummyEncodingNode extends EncodingCreationNode {
 
         @Specialization(guards = "strings.isRubyString(nameObject)")
         protected RubyArray createDummyEncoding(Object nameObject,
