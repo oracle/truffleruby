@@ -55,9 +55,10 @@ public class FiberManager {
         this.context = context;
     }
 
-    public void initialize(RubyFiber fiber, RubyProc block, Node currentNode) {
+    public void initialize(RubyFiber fiber, boolean blocking, RubyProc block, Node currentNode) {
         final SourceSection sourceSection = block.sharedMethodInfo.getSourceSection();
         fiber.sourceLocation = RubyLanguage.fileLine(sourceSection);
+        fiber.blocking = blocking;
 
         final TruffleContext truffleContext = context.getEnv().getContext();
 

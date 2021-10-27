@@ -89,6 +89,7 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
     String sourceLocation;
     public final MarkingService.ExtensionCallStack extensionCallStack;
     public final ValueWrapperManager.HandleBlockHolder handleData;
+    volatile boolean blocking;
 
     public RubyFiber(
             RubyClass rubyClass,
@@ -96,7 +97,8 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
             RubyContext context,
             RubyLanguage language,
             RubyThread rubyThread,
-            String sourceLocation) {
+            String sourceLocation,
+            boolean blocking) {
         super(rubyClass, shape);
         assert rubyThread != null;
         CompilerAsserts.partialEvaluationConstant(language);
@@ -106,6 +108,7 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
         this.catchTags = ArrayHelpers.createEmptyArray(context, language);
         this.rubyThread = rubyThread;
         this.sourceLocation = sourceLocation;
+        this.blocking = blocking;
         extensionCallStack = new MarkingService.ExtensionCallStack(null, Nil.INSTANCE);
         handleData = new ValueWrapperManager.HandleBlockHolder();
     }

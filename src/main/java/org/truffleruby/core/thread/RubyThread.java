@@ -95,7 +95,8 @@ public final class RubyThread extends RubyDynamicObject implements ObjectGraphNo
                 context,
                 language,
                 this,
-                "root");
+                "root",
+                true);
         this.currentFiber = rootFiber;
     }
 
