@@ -49,7 +49,7 @@ public abstract class LookupConstantWithLexicalScopeNode extends LookupConstantB
     protected RubyConstant lookupConstant(
             @Cached("doLookup()") ConstantLookupResult constant) {
         if (constant.isDeprecated()) {
-            warnDeprecatedConstant(getModule(), constant.getConstant(), name);
+            warnDeprecatedConstant(getModule(), name);
         }
         return constant.getConstant();
     }
@@ -59,7 +59,7 @@ public abstract class LookupConstantWithLexicalScopeNode extends LookupConstantB
             @Cached ConditionProfile isDeprecatedProfile) {
         final ConstantLookupResult constant = doLookup();
         if (isDeprecatedProfile.profile(constant.isDeprecated())) {
-            warnDeprecatedConstant(getModule(), constant.getConstant(), name);
+            warnDeprecatedConstant(getModule(), name);
         }
         return constant.getConstant();
     }

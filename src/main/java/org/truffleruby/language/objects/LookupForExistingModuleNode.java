@@ -51,7 +51,7 @@ public class LookupForExistingModuleNode extends LookupConstantBaseNode implemen
             }
 
             if (constant.isDeprecated()) {
-                warnDeprecatedConstant(lexicalParent, constant, name);
+                warnDeprecatedConstant(lexicalParent, name);
             }
         }
 
