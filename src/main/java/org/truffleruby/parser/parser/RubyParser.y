@@ -2062,7 +2062,7 @@ literal         : numeric {
                 | dsym
 
 strings         : string {
-                    $$ = $1 instanceof EvStrParseNode ? new DStrParseNode($1.getPosition(), lexer.getEncoding(), support.getConfiguration().isFrozenStringLiteral()).add($1) : $1;
+                    $$ = $1 instanceof EvStrParseNode ? new DStrParseNode($1.getPosition(), lexer.getEncoding()).add($1) : $1;
                     /*
                     NODE *node = $1;
                     if (!node) {
@@ -2122,7 +2122,7 @@ word_list       : /* none */ {
                     $$ = new ArrayParseNode(lexer.getPosition());
                 }
                 | word_list word ' ' {
-                     $$ = $1.add($2 instanceof EvStrParseNode ? new DStrParseNode($1.getPosition(), lexer.getEncoding(), false).add($2) : $2);
+                     $$ = $1.add($2 instanceof EvStrParseNode ? new DStrParseNode($1.getPosition(), lexer.getEncoding()).add($2) : $2);
                 }
 
 word            : string_content {
@@ -2726,7 +2726,7 @@ assoc           : arg_value tASSOC arg_value {
                 }
                 | tSTRING_BEG string_contents tLABEL_END arg_value {
                     if ($2 instanceof StrParseNode) {
-                        DStrParseNode dnode = new DStrParseNode(support.getPosition($2), lexer.getEncoding(), false);
+                        DStrParseNode dnode = new DStrParseNode(support.getPosition($2), lexer.getEncoding());
                         dnode.add($2);
                         $$ = support.createKeyValue(new DSymbolParseNode(support.getPosition($2), dnode), $4);
                     } else if ($2 instanceof DStrParseNode) {

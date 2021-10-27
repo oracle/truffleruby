@@ -1295,11 +1295,7 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitDStrNode(DStrParseNode node) {
-        final RubyNode ret = translateInterpolatedString(
-                node.getPosition(),
-                node.getEncoding(),
-                node.children(),
-                node.isFrozen() && !environment.getParseEnvironment().inCore());
+        final RubyNode ret = translateInterpolatedString(node.getPosition(), node.getEncoding(), node.children());
         return addNewlineIfNeeded(node, ret);
     }
 
@@ -1307,11 +1303,7 @@ public class BodyTranslator extends Translator {
     public RubyNode visitDSymbolNode(DSymbolParseNode node) {
         SourceIndexLength sourceSection = node.getPosition();
 
-        final RubyNode stringNode = translateInterpolatedString(
-                sourceSection,
-                node.getEncoding(),
-                node.children(),
-                false);
+        final RubyNode stringNode = translateInterpolatedString(sourceSection, node.getEncoding(), node.children());
 
         final RubyNode ret = StringToSymbolNodeGen.create(stringNode);
         ret.unsafeSetSourceSection(sourceSection);
@@ -1319,14 +1311,14 @@ public class BodyTranslator extends Translator {
     }
 
     private RubyNode translateInterpolatedString(SourceIndexLength sourceSection,
-            Encoding encoding, ParseNode[] childNodes, boolean frozen) {
+            Encoding encoding, ParseNode[] childNodes) {
         final ToSNode[] children = new ToSNode[childNodes.length];
 
         for (int i = 0; i < childNodes.length; i++) {
             children[i] = ToSNodeGen.create(childNodes[i].accept(this));
         }
 
-        final RubyNode ret = new InterpolatedStringNode(children, encoding, frozen);
+        final RubyNode ret = new InterpolatedStringNode(children, encoding);
         ret.unsafeSetSourceSection(sourceSection);
         return ret;
     }
@@ -1361,7 +1353,7 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitDXStrNode(DXStrParseNode node) {
-        final DStrParseNode string = new DStrParseNode(node.getPosition(), node.getEncoding(), false);
+        final DStrParseNode string = new DStrParseNode(node.getPosition(), node.getEncoding());
         string.addAll(node);
         final ParseNode argsNode = buildArrayNode(node.getPosition(), string);
         final ParseNode callNode = new FCallParseNode(node.getPosition(), "`", argsNode, null);
