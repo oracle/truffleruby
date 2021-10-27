@@ -29,7 +29,7 @@ public abstract class LookupConstantBaseNode extends RubyBaseNode {
             warnNode = insert(new WarnNode());
         }
 
-        if (warnNode.shouldWarn()) {
+        if (warnNode.shouldWarnForDeprecation()) {
             warnNode.warningMessage(getSection(), formatMessage(module, name));
         }
     }
