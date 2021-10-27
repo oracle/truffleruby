@@ -53,6 +53,9 @@ class Truffle::CustomRandomizer < Truffle::Randomizer
 end
 
 class Random
+  DEFAULT = self
+  deprecate_constant :DEFAULT
+
   def self.new_seed
     Primitive.thread_randomizer.generate_seed
   end
@@ -78,6 +81,10 @@ class Random
 
   def self.bytes(length)
     Primitive.randomizer_bytes(Primitive.thread_randomizer, length)
+  end
+
+  def self.seed
+    Primitive.thread_randomizer.seed
   end
 
   def initialize(seed = undefined)
@@ -135,8 +142,4 @@ end
 class Random
   include Formatter
   extend Formatter
-end
-
-Truffle::Boot.delay do
-  Random::DEFAULT = Random.new
 end

@@ -1,3 +1,1 @@
 slow:Random::DEFAULT changes seed on reboot
-fails:Random::DEFAULT refers to the Random class
-fails:Random::DEFAULT is deprecated
