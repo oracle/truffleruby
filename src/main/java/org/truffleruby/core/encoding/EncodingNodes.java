@@ -76,7 +76,19 @@ public abstract class EncodingNodes {
             return NegotiateCompatibleRopeEncodingNodeGen.create();
         }
 
-        @Specialization(guards = "firstEncoding == secondEncoding")
+        @Specialization(guards = {
+                "firstEncoding == cachedEncoding",
+                "secondEncoding == cachedEncoding",
+        }, limit = "getCacheLimit()")
+        protected RubyEncoding negotiateSameEncodingCached(
+                Rope first, RubyEncoding firstEncoding, Rope second, RubyEncoding secondEncoding,
+                @Cached("firstEncoding") RubyEncoding cachedEncoding) {
+            assert first.encoding == firstEncoding.jcoding && second.encoding == secondEncoding.jcoding;
+            return cachedEncoding;
+        }
+
+
+        @Specialization(guards = "firstEncoding == secondEncoding", replaces = "negotiateSameEncodingCached")
         protected RubyEncoding negotiateSameEncodingUncached(
                 Rope first, RubyEncoding firstEncoding, Rope second, RubyEncoding secondEncoding) {
             assert first.encoding == firstEncoding.jcoding && second.encoding == secondEncoding.jcoding;
