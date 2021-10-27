@@ -101,7 +101,7 @@ public abstract class EncodingNodes {
                 @Cached("second.getCodeRange()") CodeRange secondCodeRange,
                 @Cached("firstEncoding") RubyEncoding cachedFirstEncoding,
                 @Cached("secondEncoding") RubyEncoding cachedSecondEncoding,
-                @Cached("negotiateRopeRopeUncached(first, firstEncoding, second, secondEncoding)") RubyEncoding negotiatedEncoding,
+                @Cached("compatibleEncodingForRopes(first, firstEncoding, second, secondEncoding)") RubyEncoding negotiatedEncoding,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode) {
             assert first.encoding == firstEncoding.jcoding && second.encoding == secondEncoding.jcoding;
             return negotiatedEncoding;
@@ -115,7 +115,7 @@ public abstract class EncodingNodes {
         }
 
         @TruffleBoundary
-        private static RubyEncoding compatibleEncodingForRopes(Rope firstRope, RubyEncoding firstRubyEncoding,
+        protected static RubyEncoding compatibleEncodingForRopes(Rope firstRope, RubyEncoding firstRubyEncoding,
                 Rope secondRope, RubyEncoding secondRubyEncoding) {
             // MRI: enc_compatible_latter
 
