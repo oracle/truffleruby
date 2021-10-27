@@ -50,6 +50,7 @@ Compatibility:
 * Implement all `StringScanner` methods (#2520, @eregon).
 * Handle `Kernel#clone(freeze: true)` (#2512, @andrykonchin).
 * Relax `Fiber#transfer` limitations (#2453).
+* Implement `Fiber#blocking?` like CRuby 3 (#2453, @aardvark179).
 
 Performance:
 
