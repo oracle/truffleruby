@@ -442,7 +442,7 @@ class Range
 
   private def step_internal(step_size=1, &block) # :yields: object
 
-    if !block_given? && Primitive.object_kind_of?(self.begin, Numeric) && (Primitive.nil?(self.end) || Primitive.object_kind_of?(self.end, Numeric))
+    if !block_given? && (Primitive.nil?(self.begin) || Primitive.object_kind_of?(self.begin, Numeric)) && (Primitive.nil?(self.end) || Primitive.object_kind_of?(self.end, Numeric))
       return Enumerator::ArithmeticSequence.new(self, :step, self.begin, self.end, step_size, self.exclude_end?)
     end
 
