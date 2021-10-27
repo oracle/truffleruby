@@ -327,6 +327,10 @@ class Integer < Numeric
     result
   end
 
+  def zero?
+    self == 0
+  end
+
   def self.sqrt(n)
     n = Primitive.rb_to_int(n)
     raise Math::DomainError if n.negative?
