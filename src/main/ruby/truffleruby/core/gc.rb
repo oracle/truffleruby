@@ -88,8 +88,11 @@ module GC
   end
 
   # Totally fake.
+  @stress_level = false
+
+  # Totally fake.
   def self.stress
-    @stress_level ||= false
+    @stress_level
   end
 
   # Totally fake.
@@ -113,6 +116,19 @@ module GC
     ret = !@enabled
     @enabled = false
     ret
+  end
+
+  # Totally fake.
+  @auto_compact = false
+
+  # Totally fake.
+  def self.auto_compact
+    @auto_compact
+  end
+
+  # Totally fake.
+  def self.auto_compact=(flag)
+    @auto_compact = Primitive.as_boolean(flag)
   end
 
   def garbage_collect(...)
