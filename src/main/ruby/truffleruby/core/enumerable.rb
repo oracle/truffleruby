@@ -381,7 +381,13 @@ module Enumerable
       if Primitive.object_kind_of?(pattern, Regexp)
         each do
           o = Primitive.single_block_arg
-          if pattern.match?(o)
+          matchable =
+            if Primitive.object_kind_of?(o, Symbol)
+              o
+            else
+              Truffle::Type.rb_check_convert_type(o, String, :to_str)
+            end
+          if matchable && pattern.match?(matchable)
             ary << o
           end
         end
@@ -414,7 +420,13 @@ module Enumerable
       if Primitive.object_kind_of?(pattern, Regexp)
         each do
           o = Primitive.single_block_arg
-          unless pattern.match?(o)
+          matchable =
+            if Primitive.object_kind_of?(o, Symbol)
+              o
+            else
+              Truffle::Type.rb_check_convert_type(o, String, :to_str)
+            end
+          unless matchable && pattern.match?(matchable)
             ary << o
           end
         end
