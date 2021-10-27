@@ -159,6 +159,7 @@ public abstract class EncodingNodes {
 
     }
 
+    // MRI: enc_compatible_latter
     public abstract static class NegotiateCompatibleEncodingNode extends RubyBaseNode {
 
         @Child private RopeNodes.CodeRangeNode codeRangeNode;
@@ -682,6 +683,7 @@ public abstract class EncodingNodes {
         }
     }
 
+    // MRI: rb_enc_check_str / rb_encoding_check
     public abstract static class CheckRopeEncodingNode extends RubyBaseNode {
 
         @Child private NegotiateCompatibleRopeEncodingNode negotiateCompatibleEncodingNode = NegotiateCompatibleRopeEncodingNode
@@ -715,7 +717,7 @@ public abstract class EncodingNodes {
 
     }
 
-    // MRI: rb_enc_check
+    // MRI: rb_enc_check / rb_encoding_check
     @Primitive(name = "encoding_ensure_compatible")
     public abstract static class CheckEncodingNode extends PrimitiveArrayArgumentsNode {
 
