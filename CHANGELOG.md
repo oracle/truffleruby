@@ -38,6 +38,7 @@ Compatibility:
 * Constants deprecated by `Module#deprecate_constant` only warn if `Warning[:deprecated]` is `true`.
 * All Array methods now return Array instances and not subclasses (#2510, @Strech).
 * Integer#zero? overrides Numeric#zero? for optimization (#2453).
+* Default `Kernel#eval` source file and line to `(eval):1` like CRuby 3 (#2453).
 
 Performance:
 

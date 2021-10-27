@@ -723,7 +723,9 @@ public abstract class KernelNodes {
                 @Cached ToIntNode toIntNode,
                 @Cached BranchProfile errorProfile,
                 @Cached ConditionProfile hasBindingArgument,
-                @Cached EvalInternalNode evalInternalNode) {
+                @Cached EvalInternalNode evalInternalNode,
+                @Cached ConditionProfile fileAndLineProfile,
+                @Cached ConditionProfile fileNoLineProfile) {
 
             final Object source = toStrNode.execute(args[0]);
 
@@ -745,11 +747,19 @@ public abstract class KernelNodes {
                 self = callerSelf;
             }
 
-            final Object file = args.length > 2 && args[2] != nil
-                    ? toStrNode.execute(args[2])
-                    : coreStrings().EVAL_FILENAME_STRING.createInstance(getContext());
+            final Object file;
+            final int line;
 
-            final int line = args.length > 3 && args[3] != nil ? toIntNode.execute(args[3]) : 1;
+            if (fileAndLineProfile.profile(args.length > 3 && args[3] != nil)) {
+                line = toIntNode.execute(args[3]);
+                file = toStrNode.execute(args[2]);
+            } else if (fileNoLineProfile.profile(args.length > 2 && args[2] != nil)) {
+                file = toStrNode.execute(args[2]);
+                line = 1;
+            } else {
+                file = coreStrings().EVAL_FILENAME_STRING.createInstance(getContext());
+                line = 1;
+            }
 
             return evalInternalNode.execute(self, source, binding, file, line);
         }
