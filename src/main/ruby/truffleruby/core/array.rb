@@ -109,6 +109,7 @@ class Array
 
   def *(count)
     result = Primitive.array_mul(self, count)
+
     if !Primitive.undefined?(result)
       result
     elsif str = Truffle::Type.rb_check_convert_type(count, String, :to_str)
@@ -443,9 +444,9 @@ class Array
 
   def flatten(level=-1)
     level = Primitive.rb_num2int level
-    return self.dup if level == 0
+    return Array.new(self) if level == 0
 
-    out = self.class.allocate # new_reserved size
+    out = [] # new_reserved size
     Primitive.array_flatten_helper(self, out, level)
     out
   end
@@ -1590,13 +1591,6 @@ class Array
     end
   end
   private :delete_range
-
-  def uniq(&block)
-    copy_of_same_class = dup
-    result = super(&block)
-    Primitive.steal_array_storage(copy_of_same_class, result)
-    copy_of_same_class
-  end
 
   def uniq!(&block)
     Primitive.check_frozen self
