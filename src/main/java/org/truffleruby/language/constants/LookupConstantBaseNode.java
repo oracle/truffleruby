@@ -12,7 +12,6 @@ package org.truffleruby.language.constants;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.WarnNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -23,13 +22,13 @@ public abstract class LookupConstantBaseNode extends RubyBaseNode {
 
     @Child private WarnNode warnNode;
 
-    protected void warnDeprecatedConstant(RubyModule module, RubyConstant constant, String name) {
+    protected void warnDeprecatedConstant(RubyModule module, String name) {
         if (warnNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             warnNode = insert(new WarnNode());
         }
 
-        if (warnNode.shouldWarn()) {
+        if (warnNode.shouldWarnForDeprecation()) {
             warnNode.warningMessage(getSection(), formatMessage(module, name));
         }
     }

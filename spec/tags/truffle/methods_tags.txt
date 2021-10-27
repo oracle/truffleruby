@@ -55,16 +55,8 @@ fails:Public methods on TracePoint should include return_value
 fails:Public methods on ENV.singleton_class should include freeze
 fails:Public methods on BasicSocket should include read_nonblock
 fails:Public methods on BasicSocket should include write_nonblock
-fails:Public methods on Socket should not include local_address
-fails:Public methods on Socket should not include remote_address
 fails:Public methods on IPSocket should include inspect
-fails:Public methods on TCPSocket should not include local_address
-fails:Public methods on TCPSocket should not include remote_address
 fails:Public methods on UDPSocket should not include inspect
-fails:Public methods on UDPSocket should not include local_address
-fails:Public methods on UDPSocket should not include remote_address
-fails:Public methods on UNIXSocket should not include local_address
-fails:Public methods on UNIXSocket should not include remote_address
 fails:Public methods on UNIXServer should not include inspect
 fails:Public methods on Socket::AncillaryData should include inspect
 fails:Public methods on Socket::AncillaryData should include timestamp
@@ -72,12 +64,10 @@ fails:Public methods on Socket::Option should include byte
 fails:Public methods on Socket::Option should include ipv4_multicast_loop
 fails:Public methods on Socket::Option should include ipv4_multicast_ttl
 fails:Public methods on ENV.singleton_class should not include index
-fails:Public methods on ENV.singleton_class should include except
 fails:Public methods on Fiber should include backtrace
 fails:Public methods on Fiber should include backtrace_locations
 fails:Public methods on Fiber should include blocking?
 fails:Public methods on Hash should not include index
-fails:Public methods on Hash should include except
 fails:Public methods on IO should not include bytes
 fails:Public methods on IO should not include chars
 fails:Public methods on IO should not include codepoints
@@ -89,6 +79,3 @@ fails:Public methods on Proc should include eql?
 fails:Public methods on Random should not include bytes
 fails:Public methods on Random should not include rand
 fails:Public methods on Random should not include seed
-fails:Public methods on Random.singleton_class should include seed
-fails:Public methods on Symbol should include name
-fails:Public methods on Thread should not include safe_level

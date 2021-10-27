@@ -69,7 +69,7 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
             throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(module, name, this));
         }
         if (constant.isDeprecated()) {
-            warnDeprecatedConstant(module, constant.getConstant(), name);
+            warnDeprecatedConstant(module, name);
         }
         return constant.getConstant();
     }
@@ -88,7 +88,7 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
             throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(module, name, this));
         }
         if (isDeprecatedProfile.profile(constant.isDeprecated())) {
-            warnDeprecatedConstant(module, constant.getConstant(), name);
+            warnDeprecatedConstant(module, name);
         }
         return constant.getConstant();
     }

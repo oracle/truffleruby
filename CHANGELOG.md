@@ -35,6 +35,7 @@ Compatibility:
 * `Module#alias_method` now returns the defined alias as a symbol(#2499, @gogainda).
 * Implement `Symbol#name` (#2453).
 * Update `Module#{public, protected, private, public_class_method, private_class_method}` and top-level `private` and `public` methods to accept single array argument with a list of method names (#2453).
+* Constants deprecated by `Module#deprecate_constant` only warn if `Warning[:deprecated]` is `true`.
 
 Performance:
 
