@@ -1,1 +1,2 @@
 slow:The -w command line option sets $VERBOSE to true
+slow:The -w command line option enables both deprecated and experimental warnings

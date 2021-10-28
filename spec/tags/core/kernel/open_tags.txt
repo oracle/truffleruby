@@ -1,1 +1,2 @@
 slow:Kernel#open works correctly when redefined by open-uri
+slow:Kernel#open is not redefined by open-uri
