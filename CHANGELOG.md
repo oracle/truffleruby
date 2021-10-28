@@ -10,6 +10,7 @@ Bug fixes:
 * Capture the intercepted feature path during patching to reuse during patch require (#2441).
 * Update `Module#constants` to filter invalid constant identifiers (#2452).
 * Fixed `-0.0 <=> 0.0` and `-0.0 <=> 0` to return `0` like on CRuby (#1391).
+* Fixed `Range#step` to return correct class with begin-less range (@ccocchi, #2516).
 
 Compatibility:
 

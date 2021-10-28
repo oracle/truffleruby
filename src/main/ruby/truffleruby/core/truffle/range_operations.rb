@@ -36,6 +36,25 @@
 
 module Truffle
   module RangeOperations
+    def self.step_no_block(range, step_size)
+      from, to = range.begin, range.end
+      if arithmetic_range?(from, to)
+        Enumerator::ArithmeticSequence.new(range, :step, from, to, step_size, range.exclude_end?)
+      else
+        to_enum(:step, step_size) do
+          validated_step_args = validate_step_size(from, to, step_size)
+          step_iterations_size(range, *validated_step_args)
+        end
+      end
+    end
+
+    def self.arithmetic_range?(from, to)
+      if Primitive.object_kind_of?(from, Numeric)
+        Primitive.object_kind_of?(to, Numeric) || Primitive.nil?(to)
+      else
+        Primitive.nil?(from) && Primitive.object_kind_of?(to, Numeric)
+      end
+    end
 
     def self.step_iterations_size(range, first, last, step_size)
       case first
