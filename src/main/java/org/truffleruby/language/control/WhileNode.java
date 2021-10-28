@@ -71,7 +71,7 @@ public final class WhileNode extends RubyContextSourceNode {
 
             while (true) { // for redo
                 try {
-                    body.execute(frame);
+                    body.doExecuteVoid(frame);
                     return true;
                 } catch (NextException e) {
                     nextUsed.enter();
@@ -95,7 +95,7 @@ public final class WhileNode extends RubyContextSourceNode {
         @Override
         public boolean executeRepeating(VirtualFrame frame) {
             try {
-                body.execute(frame);
+                body.doExecuteVoid(frame);
             } catch (NextException e) {
                 nextUsed.enter();
             } catch (RedoException e) {
