@@ -36,6 +36,13 @@
 
 module Truffle
   module RangeOperations
+    def self.arithmetic_range?(from, to)
+      if Primitive.object_kind_of?(from, Numeric)
+        Primitive.object_kind_of?(to, Numeric) || Primitive.nil?(to)
+      else
+        Primitive.nil?(from) && Primitive.object_kind_of?(to, Numeric)
+      end
+    end
 
     def self.step_iterations_size(range, first, last, step_size)
       case first

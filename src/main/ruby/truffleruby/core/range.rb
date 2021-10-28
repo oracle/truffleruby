@@ -441,22 +441,24 @@ class Range
   end
 
   private def step_internal(step_size=1, &block) # :yields: object
-
-    if !block_given? && (Primitive.nil?(self.begin) || Primitive.object_kind_of?(self.begin, Numeric)) && (Primitive.nil?(self.end) || Primitive.object_kind_of?(self.end, Numeric))
-      return Enumerator::ArithmeticSequence.new(self, :step, self.begin, self.end, step_size, self.exclude_end?)
+    from, to = self.begin, self.end
+    unless block
+      if Truffle::RangeOperations.arithmetic_range?(from, to)
+        return Enumerator::ArithmeticSequence.new(self, :step, from, to, step_size, self.exclude_end?)
+      else
+        return to_enum(:step, step_size) do
+          validated_step_args = Truffle::RangeOperations.validate_step_size(from, to, step_size)
+          Truffle::RangeOperations.step_iterations_size(self, *validated_step_args)
+        end
+      end
     end
 
-    return to_enum(:step, step_size) do
-      validated_step_args = Truffle::RangeOperations.validate_step_size(self.begin, self.end, step_size)
-      Truffle::RangeOperations.step_iterations_size(self, *validated_step_args)
-    end unless block_given?
-
-    values = Truffle::RangeOperations.validate_step_size(self.begin, self.end, step_size)
+    values = Truffle::RangeOperations.validate_step_size(from, to, step_size)
     first = values[0]
     last = values[1]
     step_size = values[2]
 
-    return step_endless(first, step_size, &block) if Primitive.nil? last
+    return step_endless(first, step_size, &block) if Primitive.nil?(last)
 
     case first
     when Float
