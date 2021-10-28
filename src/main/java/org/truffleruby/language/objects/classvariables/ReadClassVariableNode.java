@@ -16,10 +16,8 @@ import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.control.RaiseException;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
@@ -27,12 +25,12 @@ public class ReadClassVariableNode extends RubyContextSourceNode {
 
     private final String name;
     private final BranchProfile missingProfile = BranchProfile.create();
+    private final BranchProfile topLevelProfile = BranchProfile.create();
 
     @Child private RubyNode lexicalScopeNode;
     @Child private ResolveTargetModuleForClassVariablesNode resolveTargetModuleNode = ResolveTargetModuleForClassVariablesNode
             .create();
     @Child private LookupClassVariableNode lookupClassVariableNode = LookupClassVariableNode.create();
-    @Child private WarnNode warnNode;
 
     public ReadClassVariableNode(RubyNode lexicalScopeNode, String name) {
         this.lexicalScopeNode = lexicalScopeNode;
@@ -42,6 +40,11 @@ public class ReadClassVariableNode extends RubyContextSourceNode {
     @Override
     public Object execute(VirtualFrame frame) {
         final LexicalScope lexicalScope = (LexicalScope) lexicalScopeNode.execute(frame);
+        if (lexicalScope.getParent() == null) {
+            topLevelProfile.enter();
+            throw new RaiseException(getContext(), coreExceptions().runtimeErrorClassVariableTopLevel(this));
+        }
+
         final RubyModule module = resolveTargetModuleNode.execute(lexicalScope);
         final Object value = lookupClassVariableNode.execute(module, name);
 
@@ -50,10 +53,6 @@ public class ReadClassVariableNode extends RubyContextSourceNode {
             throw new RaiseException(
                     getContext(),
                     coreExceptions().nameErrorUninitializedClassVariable(module, name, this));
-        }
-
-        if (lexicalScope.getParent() == null) {
-            warnTopLevelClassVariableAccess();
         }
 
         return value;
@@ -65,25 +64,10 @@ public class ReadClassVariableNode extends RubyContextSourceNode {
         final RubyModule module = resolveTargetModuleNode.execute(lexicalScope);
         final Object value = lookupClassVariableNode.execute(module, name);
 
-        if (lexicalScope.getParent() == null) {
-            warnTopLevelClassVariableAccess();
-        }
-
         if (value == null) {
             return nil;
         } else {
             return FrozenStrings.CLASS_VARIABLE;
-        }
-    }
-
-    private void warnTopLevelClassVariableAccess() {
-        if (warnNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            warnNode = insert(new WarnNode());
-        }
-
-        if (warnNode.shouldWarn()) {
-            warnNode.warningMessage(getSourceSection(), "class variable access from toplevel");
         }
     }
 
