@@ -365,8 +365,19 @@ public abstract class FiberNodes {
         }
     }
 
+
+    @CoreMethod(names = "blocking?")
+    public abstract static class IsBlockingInstanceNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected boolean isBlocking(RubyFiber fiber) {
+            return fiber.blocking;
+        }
+
+    }
+
     @CoreMethod(names = "blocking?", onSingleton = true)
-    public abstract static class IsBlockingNode extends CoreMethodNode {
+    public abstract static class IsBlockingNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object isBlocking() {
