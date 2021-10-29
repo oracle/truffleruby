@@ -10,17 +10,17 @@
 package org.truffleruby.core.inlined;
 
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.numeric.IntegerNodes.AddNode;
-import org.truffleruby.core.numeric.IntegerNodesFactory.AddNodeFactory;
+import org.truffleruby.core.numeric.BigIntegerOps;
+import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
-import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
+/** See {@link org.truffleruby.core.numeric.IntegerNodes.AddNode} and
+ * {@link org.truffleruby.core.numeric.FloatNodes.AddNode} */
 public abstract class InlinedAddNode extends BinaryInlinedOperationNode {
-
-    @Child AddNode fixnumAdd;
 
     public InlinedAddNode(RubyLanguage language, RubyCallNodeParameters callNodeParameters) {
         super(
@@ -30,14 +30,25 @@ public abstract class InlinedAddNode extends BinaryInlinedOperationNode {
                 language.coreMethodAssumptions.floatAddAssumption);
     }
 
-    @Specialization(assumptions = "assumptions")
-    protected Object intAdd(int a, int b) {
-        return getAddNode().executeAdd(a, b);
+    @Specialization(rewriteOn = ArithmeticException.class, assumptions = "assumptions")
+    protected int intAdd(int a, int b) {
+        return Math.addExact(a, b);
     }
 
     @Specialization(assumptions = "assumptions")
-    protected Object longAdd(long a, long b) {
-        return getAddNode().executeAdd(a, b);
+    protected long intAddWithOverflow(int a, int b) {
+        return (long) a + (long) b;
+    }
+
+    @Specialization(rewriteOn = ArithmeticException.class, assumptions = "assumptions")
+    protected long longAdd(long a, long b) {
+        return Math.addExact(a, b);
+    }
+
+    @Specialization(assumptions = "assumptions")
+    protected Object longAddWithOverflow(long a, long b,
+            @Cached FixnumOrBignumNode fixnumOrBignum) {
+        return fixnumOrBignum.fixnumOrBignum(BigIntegerOps.add(a, b));
     }
 
     @Specialization(assumptions = "assumptions")
@@ -59,13 +70,4 @@ public abstract class InlinedAddNode extends BinaryInlinedOperationNode {
     protected Object fallback(VirtualFrame frame, Object a, Object b) {
         return rewriteAndCall(frame, a, b);
     }
-
-    private AddNode getAddNode() {
-        if (fixnumAdd == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            fixnumAdd = insert(AddNodeFactory.create(null));
-        }
-        return fixnumAdd;
-    }
-
 }

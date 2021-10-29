@@ -52,6 +52,7 @@ public abstract class FloatNodes {
 
     }
 
+    /** See {@link org.truffleruby.core.inlined.InlinedAddNode} */
     @CoreMethod(names = "+", required = 1)
     public abstract static class AddNode extends CoreMethodArrayArgumentsNode {
 
@@ -77,6 +78,7 @@ public abstract class FloatNodes {
         }
     }
 
+    /** See {@link org.truffleruby.core.inlined.InlinedSubNode} */
     @CoreMethod(names = "-", required = 1)
     public abstract static class SubNode extends CoreMethodArrayArgumentsNode {
 
@@ -639,7 +641,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "isPositive(n)", replaces = "roundFittingLongPositive")
         protected Object roundPositive(double n,
-                @Cached("new()") FixnumOrBignumNode fixnumOrBignum) {
+                @Cached FixnumOrBignumNode fixnumOrBignum) {
             double f = Math.floor(n);
             if (n - f >= 0.5) {
                 f += 1.0;
@@ -649,7 +651,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isPositive(n)", replaces = "roundFittingLongNegative")
         protected Object roundNegative(double n,
-                @Cached("new()") FixnumOrBignumNode fixnumOrBignum) {
+                @Cached FixnumOrBignumNode fixnumOrBignum) {
             double f = Math.ceil(n);
             if (f - n >= 0.5) {
                 f -= 1.0;
@@ -702,7 +704,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "isPositive(n)", replaces = "roundFittingLongPositive")
         protected Object roundPositive(double n,
-                @Cached("new()") FixnumOrBignumNode fixnumOrBignum) {
+                @Cached FixnumOrBignumNode fixnumOrBignum) {
             double f = Math.floor(n);
             if (n - f == 0.5) {
                 f += f % 2;
@@ -712,7 +714,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isPositive(n)", replaces = "roundFittingLongNegative")
         protected Object roundNegative(double n,
-                @Cached("new()") FixnumOrBignumNode fixnumOrBignum) {
+                @Cached FixnumOrBignumNode fixnumOrBignum) {
             double f = Math.ceil(n);
             if (n - f == 0.5) {
                 f -= f % 2;
@@ -764,7 +766,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "isPositive(n)", replaces = "roundFittingLongPositive")
         protected Object roundPositive(double n,
-                @Cached("new()") FixnumOrBignumNode fixnumOrBignum) {
+                @Cached FixnumOrBignumNode fixnumOrBignum) {
             double f = Math.floor(n);
             if (n - f > 0.5) {
                 f += 1.0;
@@ -774,7 +776,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isPositive(n)", replaces = "roundFittingLongNegative")
         protected Object roundNegative(double n,
-                @Cached("new()") FixnumOrBignumNode fixnumOrBignum) {
+                @Cached FixnumOrBignumNode fixnumOrBignum) {
             double f = Math.ceil(n);
             if (f - n > 0.5) {
                 f -= 1.0;
