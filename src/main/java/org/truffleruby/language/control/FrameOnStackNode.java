@@ -11,8 +11,6 @@ package org.truffleruby.language.control;
 
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.locals.WriteFrameSlotNode;
-import org.truffleruby.language.locals.WriteFrameSlotNodeGen;
 
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -20,18 +18,18 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 public class FrameOnStackNode extends RubyContextSourceNode {
 
     @Child private RubyNode child;
-    @Child private WriteFrameSlotNode writeMarker;
+    private final FrameSlot markerSlot;
 
     public FrameOnStackNode(RubyNode child, FrameSlot markerSlot) {
         this.child = child;
-        writeMarker = WriteFrameSlotNodeGen.create(markerSlot);
+        this.markerSlot = markerSlot;
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
         final FrameOnStackMarker marker = new FrameOnStackMarker();
 
-        writeMarker.executeWrite(frame, marker);
+        frame.setObject(markerSlot, marker);
 
         try {
             return child.execute(frame);
