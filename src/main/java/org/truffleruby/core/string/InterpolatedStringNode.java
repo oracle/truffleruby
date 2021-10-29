@@ -30,14 +30,12 @@ public final class InterpolatedStringNode extends RubyContextSourceNode {
 
     private final Rope emptyRope;
     private final RubyEncoding encoding;
-    private final boolean frozen;
 
-    public InterpolatedStringNode(ToSNode[] children, Encoding encoding, boolean frozen) {
+    public InterpolatedStringNode(ToSNode[] children, Encoding encoding) {
         assert children.length > 0;
         this.children = children;
         this.emptyRope = RopeOperations.emptyRope(encoding);
         this.encoding = Encodings.getBuiltInEncoding(encoding.getIndex());
-        this.frozen = frozen;
     }
 
     @ExplodeLoop
@@ -53,9 +51,6 @@ public final class InterpolatedStringNode extends RubyContextSourceNode {
             builder = executeStringAppend(builder, toInterpolate);
         }
 
-        if (frozen) {
-            builder.freeze();
-        }
 
         return builder;
     }
