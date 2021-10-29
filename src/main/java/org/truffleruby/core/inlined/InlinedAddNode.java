@@ -18,6 +18,8 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
+/** See {@link org.truffleruby.core.numeric.IntegerNodes.AddNode} and
+ * {@link org.truffleruby.core.numeric.FloatNodes.AddNode} */
 public abstract class InlinedAddNode extends BinaryInlinedOperationNode {
 
     public InlinedAddNode(RubyLanguage language, RubyCallNodeParameters callNodeParameters) {

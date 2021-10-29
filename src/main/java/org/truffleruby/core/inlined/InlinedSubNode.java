@@ -9,18 +9,18 @@
  */
 package org.truffleruby.core.inlined;
 
+import com.oracle.truffle.api.dsl.Cached;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.numeric.IntegerNodes.SubNode;
-import org.truffleruby.core.numeric.IntegerNodesFactory.SubNodeFactory;
+import org.truffleruby.core.numeric.BigIntegerOps;
+import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
+/** See {@link org.truffleruby.core.numeric.IntegerNodes.SubNode} and
+ * {@link org.truffleruby.core.numeric.FloatNodes.SubNode} */
 public abstract class InlinedSubNode extends BinaryInlinedOperationNode {
-
-    @Child SubNode fixnumSub;
 
     public InlinedSubNode(RubyLanguage language, RubyCallNodeParameters callNodeParameters) {
         super(
@@ -30,14 +30,25 @@ public abstract class InlinedSubNode extends BinaryInlinedOperationNode {
                 language.coreMethodAssumptions.floatSubAssumption);
     }
 
-    @Specialization(assumptions = "assumptions")
-    protected Object intSub(int a, int b) {
-        return getSubNode().executeSub(a, b);
+    @Specialization(rewriteOn = ArithmeticException.class)
+    protected int sub(int a, int b) {
+        return Math.subtractExact(a, b);
     }
 
-    @Specialization(assumptions = "assumptions")
-    protected Object longSub(long a, long b) {
-        return getSubNode().executeSub(a, b);
+    @Specialization
+    protected long subWithOverflow(int a, int b) {
+        return (long) a - (long) b;
+    }
+
+    @Specialization(rewriteOn = ArithmeticException.class)
+    protected long sub(long a, long b) {
+        return Math.subtractExact(a, b);
+    }
+
+    @Specialization
+    protected Object subWithOverflow(long a, long b,
+            @Cached FixnumOrBignumNode fixnumOrBignumNode) {
+        return fixnumOrBignumNode.fixnumOrBignum(BigIntegerOps.subtract(a, b));
     }
 
     @Specialization(assumptions = "assumptions")
@@ -59,13 +70,4 @@ public abstract class InlinedSubNode extends BinaryInlinedOperationNode {
     protected Object fallback(VirtualFrame frame, Object a, Object b) {
         return rewriteAndCall(frame, a, b);
     }
-
-    private SubNode getSubNode() {
-        if (fixnumSub == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            fixnumSub = insert(SubNodeFactory.create(null));
-        }
-        return fixnumSub;
-    }
-
 }

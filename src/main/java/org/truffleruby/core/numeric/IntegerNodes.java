@@ -111,10 +111,9 @@ public abstract class IntegerNodes {
 
     }
 
+    /** See {@link org.truffleruby.core.inlined.InlinedAddNode} */
     @CoreMethod(names = "+", required = 1)
     public abstract static class AddNode extends BignumCoreMethodNode {
-
-        public abstract Object executeAdd(Object a, Object b);
 
         @Specialization(rewriteOn = ArithmeticException.class)
         protected int add(int a, int b) {
@@ -168,10 +167,9 @@ public abstract class IntegerNodes {
         }
     }
 
+    /** See {@link org.truffleruby.core.inlined.InlinedSubNode} */
     @CoreMethod(names = "-", required = 1)
     public abstract static class SubNode extends BignumCoreMethodNode {
-
-        public abstract Object executeSub(Object a, Object b);
 
         @Specialization(rewriteOn = ArithmeticException.class)
         protected int sub(int a, int b) {
