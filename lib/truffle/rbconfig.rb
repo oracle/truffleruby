@@ -200,6 +200,7 @@ module RbConfig
     'UNICODE_VERSION'   => '12.0.0',
     'UNICODE_EMOJI_VERSION' => '12.1',
     'warnflags'         => warnflags,
+    'WERRORFLAG'        => '-Werror',
   }
 
   MAKEFILE_CONFIG = CONFIG.dup
