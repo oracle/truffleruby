@@ -698,18 +698,34 @@ public abstract class EncodingNodes {
     // MRI: rb_enc_check_str / rb_encoding_check
     public abstract static class CheckRopeEncodingNode extends RubyBaseNode {
 
-        @Child private NegotiateCompatibleRopeEncodingNode negotiateCompatibleEncodingNode = NegotiateCompatibleRopeEncodingNode
-                .create();
-
         public static CheckRopeEncodingNode create() {
             return CheckRopeEncodingNodeGen.create();
         }
 
         public abstract RubyEncoding executeCheckEncoding(RopeWithEncoding first, RopeWithEncoding second);
 
-        @Specialization
+        @Specialization(guards = {
+                "first.getEncoding() == second.getEncoding()",
+                "first.getEncoding() == cachedEncoding"
+        })
+        protected RubyEncoding checkEncodingSameEncodingCached(RopeWithEncoding first, RopeWithEncoding second,
+                @Cached("first.getEncoding()") RubyEncoding cachedEncoding) {
+            return cachedEncoding;
+        }
+
+        @Specialization(guards = {
+                "first.getEncoding() == second.getEncoding()"
+        }, replaces = "checkEncodingSameEncodingCached")
+        protected RubyEncoding checkEncodingSameEncodingUncached(RopeWithEncoding first, RopeWithEncoding second,
+                @Cached("first.getEncoding()") RubyEncoding cachedEncoding) {
+            return first.getEncoding();
+        }
+
+
+        @Specialization(guards = "first.getEncoding() != second.getEncoding()")
         protected RubyEncoding checkEncoding(RopeWithEncoding first, RopeWithEncoding second,
-                @Cached BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile,
+                @Cached NegotiateCompatibleRopeEncodingNode negotiateCompatibleEncodingNode) {
             final RubyEncoding negotiatedEncoding = negotiateCompatibleEncodingNode.executeNegotiate(
                     first.getRope(),
                     first.getEncoding(),

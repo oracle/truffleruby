@@ -5589,7 +5589,7 @@ public abstract class StringNodes {
 
     public abstract static class StringAppendNode extends RubyBaseNode {
 
-        @Child private CheckEncodingNode checkEncodingNode;
+        @Child private CheckRopeEncodingNode checkEncodingNode;
         @Child private ConcatNode concatNode;
 
         public static StringAppendNode create() {
@@ -5605,7 +5605,9 @@ public abstract class StringNodes {
             final Rope left = libString.getRope(string);
             final Rope right = libOther.getRope(other);
 
-            final RubyEncoding compatibleEncoding = executeCheckEncoding(string, other);
+            final RubyEncoding compatibleEncoding = executeCheckEncoding(
+                    stringToRopeWithEncoding(libString, string),
+                    stringToRopeWithEncoding(libOther, other));
 
             final Rope result = executeConcat(left, right, compatibleEncoding);
             return Pair.create(result, compatibleEncoding);
@@ -5619,14 +5621,17 @@ public abstract class StringNodes {
             return concatNode.executeConcat(left, right, compatibleEncoding.jcoding);
         }
 
-        private RubyEncoding executeCheckEncoding(Object string, Object other) {
+        private RubyEncoding executeCheckEncoding(RopeWithEncoding string, RopeWithEncoding other) {
             if (checkEncodingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                checkEncodingNode = insert(CheckEncodingNode.create());
+                checkEncodingNode = insert(CheckRopeEncodingNode.create());
             }
             return checkEncodingNode.executeCheckEncoding(string, other);
         }
 
+        protected RopeWithEncoding stringToRopeWithEncoding(RubyStringLibrary strings, Object string) {
+            return new RopeWithEncoding(strings.getRope(string), strings.getEncoding(string));
+        }
     }
 
     @Primitive(name = "string_to_null_terminated_byte_array")
