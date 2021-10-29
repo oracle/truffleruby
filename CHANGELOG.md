@@ -49,6 +49,7 @@ Performance:
 * `String#sub`, `sub!`, `gsub`, and `gsub!` have been refactored for better performance.
 * Don't allocate a `MatchData` object when `Regexp#match?` or `String#match?` is used (#2509, @nirvdrum).
 * Add `ENV.except` (#2507, @Strech).
+* Fully inline the `Integer#+` and `Integer#-` logic for interpreter speed (#2518, @smarr).
 
 Changes:
 
