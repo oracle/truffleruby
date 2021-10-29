@@ -31,22 +31,22 @@ public abstract class InlinedSubNode extends BinaryInlinedOperationNode {
     }
 
     @Specialization(rewriteOn = ArithmeticException.class)
-    protected int sub(int a, int b) {
+    protected int intSub(int a, int b) {
         return Math.subtractExact(a, b);
     }
 
     @Specialization
-    protected long subWithOverflow(int a, int b) {
+    protected long intSubWithOverflow(int a, int b) {
         return (long) a - (long) b;
     }
 
     @Specialization(rewriteOn = ArithmeticException.class)
-    protected long sub(long a, long b) {
+    protected long longSub(long a, long b) {
         return Math.subtractExact(a, b);
     }
 
     @Specialization
-    protected Object subWithOverflow(long a, long b,
+    protected Object longSubWithOverflow(long a, long b,
             @Cached FixnumOrBignumNode fixnumOrBignumNode) {
         return fixnumOrBignumNode.fixnumOrBignum(BigIntegerOps.subtract(a, b));
     }

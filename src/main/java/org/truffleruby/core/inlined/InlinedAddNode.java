@@ -31,22 +31,22 @@ public abstract class InlinedAddNode extends BinaryInlinedOperationNode {
     }
 
     @Specialization(rewriteOn = ArithmeticException.class)
-    protected int add(int a, int b) {
+    protected int intAdd(int a, int b) {
         return Math.addExact(a, b);
     }
 
     @Specialization
-    protected long addWithOverflow(int a, int b) {
+    protected long intAddWithOverflow(int a, int b) {
         return (long) a + (long) b;
     }
 
     @Specialization(rewriteOn = ArithmeticException.class)
-    protected long add(long a, long b) {
+    protected long longAdd(long a, long b) {
         return Math.addExact(a, b);
     }
 
     @Specialization
-    protected Object addWithOverflow(long a, long b,
+    protected Object longAddWithOverflow(long a, long b,
             @Cached FixnumOrBignumNode fixnumOrBignum) {
         return fixnumOrBignum.fixnumOrBignum(BigIntegerOps.add(a, b));
     }
