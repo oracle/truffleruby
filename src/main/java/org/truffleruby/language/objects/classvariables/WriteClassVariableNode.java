@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects.classvariables;
 
+import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.AssignableNode;
@@ -17,21 +18,20 @@ import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.WarnNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.control.RaiseException;
 
 public class WriteClassVariableNode extends RubyContextSourceNode implements AssignableNode {
 
     private final String name;
+    private final BranchProfile topLevelProfile = BranchProfile.create();
 
     @Child private RubyNode rhs;
     @Child private RubyNode lexicalScopeNode;
     @Child private ResolveTargetModuleForClassVariablesNode resolveTargetModuleNode = ResolveTargetModuleForClassVariablesNode
             .create();
     @Child private SetClassVariableNode setClassVariableNode = SetClassVariableNode.create();
-    @Child private WarnNode warnNode;
 
     public WriteClassVariableNode(RubyNode lexicalScopeNode, String name, RubyNode rhs) {
         this.lexicalScopeNode = lexicalScopeNode;
@@ -50,29 +50,18 @@ public class WriteClassVariableNode extends RubyContextSourceNode implements Ass
     @Override
     public void assign(VirtualFrame frame, Object value) {
         final LexicalScope lexicalScope = (LexicalScope) lexicalScopeNode.execute(frame);
-        final RubyModule module = resolveTargetModuleNode.execute(lexicalScope);
-
-        setClassVariableNode.execute(module, name, value);
-
         if (lexicalScope.getParent() == null) {
-            warnTopLevelClassVariableAccess();
+            topLevelProfile.enter();
+            throw new RaiseException(getContext(), coreExceptions().runtimeErrorClassVariableTopLevel(this));
         }
+
+        final RubyModule module = resolveTargetModuleNode.execute(lexicalScope);
+        setClassVariableNode.execute(module, name, value);
     }
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
         return FrozenStrings.ASSIGNMENT;
-    }
-
-    private void warnTopLevelClassVariableAccess() {
-        if (warnNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            warnNode = insert(new WarnNode());
-        }
-
-        if (warnNode.shouldWarn()) {
-            warnNode.warningMessage(getSourceSection(), "class variable access from toplevel");
-        }
     }
 
     @Override

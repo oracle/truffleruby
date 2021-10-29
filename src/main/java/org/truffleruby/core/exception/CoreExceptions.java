@@ -305,6 +305,10 @@ public class CoreExceptions {
 
     // RuntimeError
 
+    public RubyException runtimeErrorClassVariableTopLevel(Node currentNode) {
+        return runtimeError("class variable access from toplevel", currentNode);
+    }
+
     public RubyException runtimeErrorCoverageNotEnabled(Node currentNode) {
         return runtimeError("coverage measurement is not enabled", currentNode);
     }
