@@ -486,7 +486,13 @@ public abstract class IntegerNodes {
         }
 
         @Specialization(replaces = "modPowerOfTwo")
-        protected int mod(int a, int b) {
+        protected int mod(int a, int b,
+                @Cached @Shared("errorProfile") BranchProfile errorProfile) {
+            if (b == 0) {
+                errorProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
+            }
+
             int mod = a % b;
 
             if (mod < 0 && b > 0 || mod > 0 && b < 0) {
@@ -498,9 +504,11 @@ public abstract class IntegerNodes {
         }
 
         @Specialization
-        protected double mod(long a, double b) {
+        protected double mod(long a, double b,
+                @Cached @Shared("errorProfile") BranchProfile errorProfile) {
             if (b == 0) {
-                throw new ArithmeticException("divide by zero");
+                errorProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             }
 
             double mod = a % b;
@@ -514,7 +522,13 @@ public abstract class IntegerNodes {
         }
 
         @Specialization
-        protected long mod(long a, long b) {
+        protected long mod(long a, long b,
+                @Cached @Shared("errorProfile") BranchProfile errorProfile) {
+            if (b == 0) {
+                errorProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
+            }
+
             long mod = a % b;
 
             if (mod < 0 && b > 0 || mod > 0 && b < 0) {
@@ -544,7 +558,7 @@ public abstract class IntegerNodes {
         @Specialization
         protected Object mod(RubyBignum a, long b) {
             if (b == 0) {
-                throw new ArithmeticException("divide by zero");
+                throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             } else if (b < 0) {
                 final BigInteger bigint = BigInteger.valueOf(b);
                 final BigInteger mod = a.value.mod(bigint.negate());
@@ -557,7 +571,7 @@ public abstract class IntegerNodes {
         @Specialization
         protected double mod(RubyBignum a, double b) {
             if (b == 0) {
-                throw new ArithmeticException("divide by zero");
+                throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             }
 
             double mod = a.value.doubleValue() % b;
@@ -575,7 +589,7 @@ public abstract class IntegerNodes {
             final BigInteger bigint = b.value;
             final int compare = bigint.compareTo(BigInteger.ZERO);
             if (compare == 0) {
-                throw new ArithmeticException("divide by zero");
+                throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             } else if (compare < 0) {
                 final BigInteger mod = a.value.mod(bigint.negate());
                 return fixnumOrBignum(mod.add(bigint));
