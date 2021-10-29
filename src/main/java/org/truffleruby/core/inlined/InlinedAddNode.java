@@ -43,10 +43,6 @@ public abstract class InlinedAddNode extends BinaryInlinedOperationNode {
         return Math.addExact(a, b);
     }
 
-    protected static FixnumOrBignumNode create() {
-        return new FixnumOrBignumNode();
-    }
-
     @Specialization
     protected Object addWithOverflow(long a, long b,
             @Cached FixnumOrBignumNode fixnumOrBignum) {

@@ -4180,7 +4180,7 @@ public abstract class StringNodes {
         @Specialization
         protected Object stringToF(Object string,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
-                @Cached("new()") FixnumOrBignumNode fixnumOrBignumNode,
+                @Cached FixnumOrBignumNode fixnumOrBignumNode,
                 @Cached BytesNode bytesNode) {
             final Rope rope = strings.getRope(string);
             if (rope.isEmpty()) {
@@ -5288,7 +5288,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "!isLazyIntRopeOptimizable(rope, fixBase)")
         protected Object stringToInum(Rope rope, int fixBase, boolean strict, boolean raiseOnError,
-                @Cached("new()") FixnumOrBignumNode fixnumOrBignumNode,
+                @Cached FixnumOrBignumNode fixnumOrBignumNode,
                 @Cached BytesNode bytesNode,
                 @Cached BranchProfile exceptionProfile) {
             try {
