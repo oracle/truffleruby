@@ -30,22 +30,22 @@ public abstract class InlinedAddNode extends BinaryInlinedOperationNode {
                 language.coreMethodAssumptions.floatAddAssumption);
     }
 
-    @Specialization(rewriteOn = ArithmeticException.class)
+    @Specialization(rewriteOn = ArithmeticException.class, assumptions = "assumptions")
     protected int intAdd(int a, int b) {
         return Math.addExact(a, b);
     }
 
-    @Specialization
+    @Specialization(assumptions = "assumptions")
     protected long intAddWithOverflow(int a, int b) {
         return (long) a + (long) b;
     }
 
-    @Specialization(rewriteOn = ArithmeticException.class)
+    @Specialization(rewriteOn = ArithmeticException.class, assumptions = "assumptions")
     protected long longAdd(long a, long b) {
         return Math.addExact(a, b);
     }
 
-    @Specialization
+    @Specialization(assumptions = "assumptions")
     protected Object longAddWithOverflow(long a, long b,
             @Cached FixnumOrBignumNode fixnumOrBignum) {
         return fixnumOrBignum.fixnumOrBignum(BigIntegerOps.add(a, b));

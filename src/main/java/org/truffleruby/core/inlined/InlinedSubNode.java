@@ -30,22 +30,22 @@ public abstract class InlinedSubNode extends BinaryInlinedOperationNode {
                 language.coreMethodAssumptions.floatSubAssumption);
     }
 
-    @Specialization(rewriteOn = ArithmeticException.class)
+    @Specialization(rewriteOn = ArithmeticException.class, assumptions = "assumptions")
     protected int intSub(int a, int b) {
         return Math.subtractExact(a, b);
     }
 
-    @Specialization
+    @Specialization(assumptions = "assumptions")
     protected long intSubWithOverflow(int a, int b) {
         return (long) a - (long) b;
     }
 
-    @Specialization(rewriteOn = ArithmeticException.class)
+    @Specialization(rewriteOn = ArithmeticException.class, assumptions = "assumptions")
     protected long longSub(long a, long b) {
         return Math.subtractExact(a, b);
     }
 
-    @Specialization
+    @Specialization(assumptions = "assumptions")
     protected Object longSubWithOverflow(long a, long b,
             @Cached FixnumOrBignumNode fixnumOrBignumNode) {
         return fixnumOrBignumNode.fixnumOrBignum(BigIntegerOps.subtract(a, b));
