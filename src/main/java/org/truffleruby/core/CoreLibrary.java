@@ -399,7 +399,7 @@ public class CoreLibrary {
         dirClass = defineClass("Dir");
         encodingClass = defineClass("Encoding");
         enumeratorClass = defineClass("Enumerator");
-        arithmeticSequenceClass = defineClass("ArithmeticSequence");
+        arithmeticSequenceClass = defineClass(enumeratorClass, enumeratorClass, "ArithmeticSequence");
         falseClass = defineClass("FalseClass");
         fiberClass = defineClass("Fiber");
         defineModule("FileTest");

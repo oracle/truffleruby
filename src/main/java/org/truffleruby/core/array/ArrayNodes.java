@@ -86,6 +86,7 @@ import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.objects.AllocationTracing;
+import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.shared.IsSharedNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
@@ -282,15 +283,23 @@ public abstract class ArrayNodes {
             return readSlice.executeReadSlice(array, startLength[0], len);
         }
 
-        @Specialization(guards = { "isRubyArithmeticSequence(index)" })
+        @Specialization(guards = { "isANode.executeIsA(index, coreLibrary().arithmeticSequenceClass)" })
         protected Object indexArithmeticSequence(RubyArray array, Object index, NotProvided length,
-                                                 @Cached DispatchNode callSliceArithmeticSequence) {
+                @Cached IsANode isANode,
+                @Cached DispatchNode callSliceArithmeticSequence) {
             return callSliceArithmeticSequence.call(array, "slice_arithmetic_sequence", index);
         }
 
         @Specialization(guards = { "!isInteger(index)", "!isRubyRange(index)" })
         protected Object indexFallback(RubyArray array, Object index, NotProvided length,
+                //                                       @Cached IsANode isANode,
                 @Cached AtNode accessWithIndexConversion) {
+
+            //            if (isANode.executeIsA(index, coreLibrary().arithmeticSequenceClass)) {
+            //                CompilerDirectives.transferToInterpreterAndInvalidate();
+            //                return indexArithmeticSequence(array, index, length, isANode, DispatchNode.create());
+            //            }
+
             return accessWithIndexConversion.executeAt(array, index);
         }
 
