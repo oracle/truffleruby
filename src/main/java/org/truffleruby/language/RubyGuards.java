@@ -169,6 +169,10 @@ public abstract class RubyGuards {
         return object == Nil.INSTANCE;
     }
 
+    public static boolean isRubyArithmeticSequence(Object object) {
+        return true;
+    }
+
     // Internal types
 
     public static boolean isRubyDynamicObject(Object object) {

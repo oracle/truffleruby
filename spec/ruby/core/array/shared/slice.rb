@@ -743,6 +743,22 @@ describe :array_slice, shared: true do
         @array.send(@method, eval("(-2..-4).step(10)")).should == []
         @array.send(@method, eval("(-2...-4).step(10)")).should == []
       end
+
+      it "foos" do
+        @array.send(@method, eval("(0..6).step(1)")).should == [0, 1, 2, 3, 4, 5]
+        -> { @array.send(@method, eval("(0..6).step(2)")) }.should raise_error(RangeError, /out of range/)
+
+        @array.send(@method, eval("(1..6).step(2)")).should == [1, 3, 5]
+        @array.send(@method, eval("(2..7).step(2)")).should == [2, 4]
+        -> { @array.send(@method, eval("(2..8).step(2)")) }.should raise_error(RangeError, /out of range/)
+
+        @array.send(@method, eval("(6..1).step(-2)")).should == [5, 3, 1]
+        @array.send(@method, eval("(7..2).step(-2)")).should == [5, 3]
+        -> { @array.send(@method, eval("(8..2).step(-2)")) }.should raise_error(RangeError, /out of range/)
+
+        @array.send(@method, eval("(6..).step(1)")).should == []
+        @array.send(@method, eval("(7..).step(1)")).should == nil
+      end
     end
   end
 

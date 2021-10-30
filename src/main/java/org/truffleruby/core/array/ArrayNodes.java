@@ -282,6 +282,12 @@ public abstract class ArrayNodes {
             return readSlice.executeReadSlice(array, startLength[0], len);
         }
 
+        @Specialization(guards = { "isRubyArithmeticSequence(index)" })
+        protected Object indexArithmeticSequence(RubyArray array, Object index, NotProvided length,
+                                                 @Cached DispatchNode callSliceArithmeticSequence) {
+            return callSliceArithmeticSequence.call(array, "slice_arithmetic_sequence", index);
+        }
+
         @Specialization(guards = { "!isInteger(index)", "!isRubyRange(index)" })
         protected Object indexFallback(RubyArray array, Object index, NotProvided length,
                 @Cached AtNode accessWithIndexConversion) {

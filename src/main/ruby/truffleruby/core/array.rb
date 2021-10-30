@@ -146,67 +146,57 @@ class Array
     true
   end
 
-  alias_method :java_slice, :[]
+  private def slice_arithmetic_sequence(seq)
+    len = size
 
-  def slice(start_or_range_or_sequence, *args)
-    if Primitive.object_kind_of?(start_or_range_or_sequence, Enumerator::ArithmeticSequence)
-      seq = start_or_range_or_sequence
-      len = size
-
-      if seq.step < 0 # inverse range with negative step
-        start = seq.end
-        stop  = seq.begin
-        step  = seq.step
-      else
-        start = seq.begin
-        stop  = seq.end
-        step  = seq.step
-      end
-
-      start ||= 0 # begin-less range
-      stop ||= -1 # endless range
-
-      start += len if start < 0
-      stop  += len if stop < 0
-
-      if start < 0 || start > len
-        raise RangeError, "#{seq.inspect} out of range" if step < -1 || step > 1
-        return nil
-      end
-
-      stop += 1 unless seq.exclude_end?
-      stop = len if (step == -1 || step == 1) && stop > len
-
-      diff = stop - start
-
-      return [] if diff <= 0
-      return self[start, 1] if (step > 0 && step > diff) || (step < 0 && step < -diff)
-
-      if diff > len
-        raise RangeError, "#{seq.inspect} out of range" if step < -1 || step > 1
-        diff = len - start
-      end
-
-      ustep = step.abs
-      nlen = (diff + ustep - 1) / ustep
-      i = 0
-      j = start + (step > 0 ? 0 : diff - 1) # because we inverted negative step ranges
-      res = Array.new(nlen)
-
-      while i < nlen
-        res[i] = self[j]
-        i += 1
-        j += step
-      end
-
-      res
+    if seq.step < 0 # inverse range with negative step
+      start = seq.end
+      stop  = seq.begin
+      step  = seq.step
     else
-      java_slice(start_or_range_or_sequence, *args)
+      start = seq.begin
+      stop  = seq.end
+      step  = seq.step
     end
-  end
 
-  def [](*args)
-    slice(*args)
+    start ||= 0 # begin-less range
+    stop ||= -1 # endless range
+
+    # negative indexes refer to end of array
+    start += len if start < 0
+    stop  += len if stop < 0
+
+    if start < 0 || start > len
+      raise RangeError, "#{seq.inspect} out of range" if step < -1 || step > 1
+      return nil
+    end
+
+    stop += 1 unless seq.exclude_end?
+    diff = stop - start
+
+    raise RangeError, "#{seq.inspect} out of range" if diff > len && (step < -1 || step > 1)
+    return [] if diff <= 0
+
+    diff = len - start if (len < diff || len < start + diff)
+
+    return self[start, diff] if step == 1 # step == 1 is a simple slice
+
+    # optimize when no step will be done and only start element is returned
+    return self[start, 1] if (step > 0 && step > diff) || (step < 0 && step < -diff)
+
+    ustep = step.abs
+    nlen = (diff + ustep - 1) / ustep
+    i = 0
+    j = start + (step > 0 ? 0 : diff - 1) # because we inverted negative step ranges
+    res = Array.new(nlen)
+
+    while i < nlen
+      res[i] = self[j]
+      i += 1
+      j += step
+    end
+
+    res
   end
 
   def assoc(obj)
