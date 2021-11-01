@@ -11,6 +11,7 @@
  */
 package org.truffleruby.core.encoding;
 
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.library.CachedLibrary;
 import org.jcodings.Encoding;
 import org.jcodings.EncodingDB;
@@ -34,6 +35,7 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeGuards;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeWithEncoding;
 import org.truffleruby.core.string.RubyString;
@@ -67,7 +69,10 @@ public abstract class EncodingNodes {
     }
 
     // MRI: enc_compatible_str and enc_compatible_latter
+    @ImportStatic({ CodeRange.class, RopeGuards.class })
     public abstract static class NegotiateCompatibleRopeEncodingNode extends RubyBaseNode {
+
+        @Child RopeNodes.CodeRangeNode codeRangeNode;
 
         public abstract RubyEncoding executeNegotiate(Rope first, RubyEncoding firstEncoding, Rope second,
                 RubyEncoding secondEncoding);
@@ -93,6 +98,23 @@ public abstract class EncodingNodes {
                 Rope first, RubyEncoding firstEncoding, Rope second, RubyEncoding secondEncoding) {
             assert first.encoding == firstEncoding.jcoding && second.encoding == secondEncoding.jcoding;
             return firstEncoding;
+        }
+
+        @Specialization(guards = {
+                "firstEncoding != secondEncoding",
+                "firstEncoding == cachedEncoding",
+                "isStandardEncoding(firstEncoding)",
+                "getCodeRange(second) == CR_7BIT"
+        })
+        protected RubyEncoding negotiateStandardEncodingAndCr7Bit(
+                Rope first, RubyEncoding firstEncoding, Rope second, RubyEncoding secondEncoding,
+                @Cached("firstEncoding") RubyEncoding cachedEncoding) {
+            // Encoding negotiation of two strings is most often between strings with the same encoding. The next most
+            // frequent case is two strings with different encodings, but each being one of the standard/default runtime
+            // encodings. When the second string is CR_7BIT, we can short-circuit the full set of encoding negotiation
+            // rules and simply return the encoding of the first string.
+
+            return cachedEncoding;
         }
 
         @Specialization(
@@ -169,6 +191,23 @@ public abstract class EncodingNodes {
             return getLanguage().options.ENCODING_COMPATIBLE_QUERY_CACHE;
         }
 
+        protected CodeRange getCodeRange(Rope rope) {
+            if (codeRangeNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                codeRangeNode = insert(RopeNodes.CodeRangeNode.create());
+            }
+
+            return codeRangeNode.execute(rope);
+        }
+
+        /** Indicates whether the encoding is one of the runtime-default encodings. Many (most?) applications do not
+         * override the default encodings and as such, this set of encodings is used very frequently in real-world Ruby
+         * applications. */
+        protected boolean isStandardEncoding(RubyEncoding encoding) {
+            return encoding == Encodings.UTF_8 || encoding == Encodings.US_ASCII || encoding == Encodings.BINARY;
+        }
+
+
     }
 
     // MRI: enc_compatible_latter
@@ -201,7 +240,7 @@ public abstract class EncodingNodes {
             return getEncoding(first);
         }
 
-        @Specialization(guards = { "libFirst.isRubyString(first)", "libSecond.isRubyString(second)", })
+        @Specialization(guards = { "libFirst.isRubyString(first)", "libSecond.isRubyString(second)" })
         protected RubyEncoding negotiateStringStringEncoding(Object first, Object second,
                 @CachedLibrary(limit = "2") RubyStringLibrary libFirst,
                 @CachedLibrary(limit = "2") RubyStringLibrary libSecond,

@@ -44,6 +44,10 @@ public class RopeGuards {
         return codeRangeNode.execute(rope) == CodeRange.CR_7BIT;
     }
 
+    public static boolean isBroken(Rope rope, RopeNodes.CodeRangeNode codeRangeNode) {
+        return codeRangeNode.execute(rope) == CodeRange.CR_BROKEN;
+    }
+
     public static boolean isAsciiCompatible(Rope rope) {
         return rope.getEncoding().isAsciiCompatible();
     }
