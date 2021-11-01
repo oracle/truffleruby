@@ -182,9 +182,7 @@ class String
     if Primitive.object_kind_of?(pattern, Regexp)
       if m = Truffle::RegexpOperations.match(pattern, self)
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, m)
-        return [Primitive.dup_as_string_instance(m.pre_match),
-                Primitive.dup_as_string_instance(m.to_s),
-                Primitive.dup_as_string_instance(m.post_match)]
+        return [m.pre_match, m.to_s, m.post_match]
       end
     else
       pattern = StringValue(pattern)
@@ -207,9 +205,7 @@ class String
     if Primitive.object_kind_of?(pattern, Regexp)
       if m = Truffle::RegexpOperations.search_region(pattern, self, 0, bytesize, false, true)
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, m)
-        return [Primitive.dup_as_string_instance(m.pre_match),
-                Primitive.dup_as_string_instance(m[0]),
-                Primitive.dup_as_string_instance(m.post_match)]
+        return [m.pre_match, m[0], m.post_match]
       end
     else
       pattern = StringValue(pattern)

@@ -56,7 +56,6 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.objects.AllocationTracing;
-import org.truffleruby.language.objects.LogicalClassNode;
 
 @CoreModule(value = "MatchData", isClass = true)
 public abstract class MatchDataNodes {
@@ -254,8 +253,7 @@ public abstract class MatchDataNodes {
                 @Cached ConditionProfile indexOutOfBoundsProfile,
                 @Cached ConditionProfile lazyProfile,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop,
-                @Cached ConditionProfile hasValueProfile,
-                @Cached LogicalClassNode logicalClassNode) {
+                @Cached ConditionProfile hasValueProfile) {
 
             final Region region = matchData.region;
             if (normalizedIndexProfile.profile(index < 0)) {
@@ -272,9 +270,8 @@ public abstract class MatchDataNodes {
                     final Object source = matchData.source;
                     final Rope sourceRope = strings.getRope(source);
                     final Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
-                    final RubyClass logicalClass = logicalClassNode.execute(source);
                     final RubyString string = new RubyString(
-                            logicalClass,
+                            coreLibrary().stringClass,
                             getLanguage().stringShape,
                             false,
                             rope,
@@ -501,8 +498,7 @@ public abstract class MatchDataNodes {
                 @Cached ConditionProfile lazyProfile,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop,
                 @Cached ConditionProfile hasValueProfile,
-                @Cached LoopConditionProfile loopProfile,
-                @Cached LogicalClassNode logicalClassNode) {
+                @Cached LoopConditionProfile loopProfile) {
             final Object source = matchData.source;
             final Rope sourceRope = strings.getRope(source);
             final Region region = matchData.region;
@@ -516,9 +512,8 @@ public abstract class MatchDataNodes {
 
                     if (hasValueProfile.profile(start >= 0 && end >= 0)) {
                         final Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
-                        final RubyClass logicalClass = logicalClassNode.execute(source);
                         final RubyString string = new RubyString(
-                                logicalClass,
+                                coreLibrary().stringClass,
                                 getLanguage().stringShape,
                                 false,
                                 rope,
@@ -643,15 +638,13 @@ public abstract class MatchDataNodes {
         protected RubyString preMatch(RubyMatchData matchData,
                 @Cached ConditionProfile lazyProfile,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings,
-                @Cached LogicalClassNode logicalClassNode) {
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             Object source = matchData.source;
             Rope sourceRope = strings.getRope(source);
             final int length = getStart(matchData, 0, lazyProfile, interop);
             final Rope rope = substringNode.executeSubstring(sourceRope, 0, length);
-            final RubyClass logicalClass = logicalClassNode.execute(source);
             final RubyString string = new RubyString(
-                    logicalClass,
+                    coreLibrary().stringClass,
                     getLanguage().stringShape,
                     false,
                     rope,
@@ -672,16 +665,14 @@ public abstract class MatchDataNodes {
         protected RubyString postMatch(RubyMatchData matchData,
                 @Cached ConditionProfile lazyProfile,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings,
-                @Cached LogicalClassNode logicalClassNode) {
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             Object source = matchData.source;
             Rope sourceRope = strings.getRope(source);
             final int start = getEnd(matchData, 0, lazyProfile, interop);
             int length = sourceRope.byteLength() - start;
             Rope rope = substringNode.executeSubstring(sourceRope, start, length);
-            final RubyClass logicalClass = logicalClassNode.execute(source);
             final RubyString string = new RubyString(
-                    logicalClass,
+                    coreLibrary().stringClass,
                     getLanguage().stringShape,
                     false,
                     rope,

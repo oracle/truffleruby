@@ -44,6 +44,7 @@ Compatibility:
 * Update accessing a class variable from the top-level scope to be a `RuntimeError` (#2453, @bjfish).
 * Update interpolated strings to not be frozen (#2453).
 * Add `WERRORFLAG` to `RbConfig` (#2519, @bjfish).
+* Update `MatchData` methods to return `String` instances when called on a subclass (#2453, @bjfish).
 
 Performance:
 
