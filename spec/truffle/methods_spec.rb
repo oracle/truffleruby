@@ -37,9 +37,11 @@ modules = %w[
 
   Addrinfo BasicSocket Socket IPSocket TCPSocket TCPServer UDPSocket UNIXSocket UNIXServer
   Socket::AncillaryData Socket::Constants Socket::Ifaddr Socket::Option Socket::UDPSource SocketError
+
+  StringScanner StringScanner.singleton_class
 ]
 
-requires = %w[digest socket]
+requires = %w[digest socket strscan]
 requires_code = requires.map { |lib| "require #{lib.inspect}" }.join("\n")
 
 guard -> { !defined?(SKIP_SLOW_SPECS) } do
