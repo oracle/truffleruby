@@ -44,7 +44,7 @@ import org.truffleruby.utils.Utils;
  * <li>{@link IntegerLowerNode}: to lower {@code long} into {@code int} values if they fit. Can be useful conjointly
  * with {@link ToLongNode}.</li>
  * </ul>
-*/
+ */
 @GenerateUncached
 @NodeChild(value = "child", type = RubyBaseNodeWithExecute.class)
 public abstract class ToIntNode extends RubyBaseNodeWithExecute {

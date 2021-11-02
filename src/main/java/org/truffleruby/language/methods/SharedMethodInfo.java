@@ -31,11 +31,11 @@ public class SharedMethodInfo {
     /** LexicalScope if it can be determined statically at parse time, otherwise null */
     private final LexicalScope staticLexicalScope;
     private final Arity arity;
-    /** The original name of the method. Does not change when aliased. Looks like "block in foo" or
-     * "block (2 levels) in foo" for blocks. This is the name shown in backtraces: "from FILE:LINE:in `NAME'". */
+    /** The original name of the method. Does not change when aliased. Looks like "block in foo" or "block (2 levels) in
+     * foo" for blocks. This is the name shown in backtraces: "from FILE:LINE:in `NAME'". */
     private final String backtraceName;
-    /** The "static" name of this method at parse time, such as "M::C#foo", "M::C.foo", "<module:Inner>",
-     * "block (2 levels) in M::C.foo" or "block (2 levels) in <module:Inner>". This name is used for tools. */
+    /** The "static" name of this method at parse time, such as "M::C#foo", "M::C.foo", "<module:Inner>", "block (2
+     * levels) in M::C.foo" or "block (2 levels) in <module:Inner>". This name is used for tools. */
     private final String parseName;
     private final int blockDepth;
     /** Extra information. If blockDepth > 0 then it is the name of the method containing this block. */

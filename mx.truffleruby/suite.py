@@ -129,7 +129,7 @@ suite = {
             "dir": "src/annotations",
             "sourceDirs": ["java"],
             "jacoco": "include",
-            "javaCompliance": "8+",
+            "javaCompliance": "11+",
             "checkstyle": "org.truffleruby",
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
@@ -139,6 +139,7 @@ suite = {
         "org.truffleruby.shared": {
             "dir": "src/shared",
             "sourceDirs": ["java"],
+            "requires": ["java.management"],
             "dependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "sdk:GRAAL_SDK",
@@ -147,39 +148,38 @@ suite = {
                 "TRUFFLERUBY-PROCESSOR",
             ],
             "jacoco": "include",
-            "javaCompliance": "8+",
+            "javaCompliance": "11+",
             "checkstyle": "org.truffleruby",
             "workingSets": "TruffleRuby",
-            "checkPackagePrefix": "false",
             "license": ["EPL-2.0"],
         },
 
         "org.truffleruby.processor": {
             "dir": "src/processor",
             "sourceDirs": ["java"],
+            "requires": ["java.compiler"],
             "dependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "truffle:TRUFFLE_API",
             ],
             "jacoco": "include",
-            "javaCompliance": "8+",
+            "javaCompliance": "11+",
             "checkstyle": "org.truffleruby",
             "workingSets": "TruffleRuby",
-            "checkPackagePrefix": "false",
             "license": ["EPL-2.0"],
         },
 
         "org.truffleruby.services": {
             "dir": "src/services",
             "sourceDirs": ["java"],
+            "requires": ["java.scripting"],
             "dependencies": [
                 "sdk:GRAAL_SDK",
             ],
             "jacoco": "include",
-            "javaCompliance": "8+",
+            "javaCompliance": "11+",
             "checkstyle": "org.truffleruby",
             "workingSets": "TruffleRuby",
-            "checkPackagePrefix": "false",
             "license": ["EPL-2.0"],
         },
 
@@ -198,6 +198,11 @@ suite = {
             "dir": "src/main",
             "sourceDirs": ["java"],
             "jniHeaders": True,
+            "requires": [
+                "java.logging",
+                "java.management",
+                "jdk.unsupported", # sun.misc.Signal
+            ],
             "dependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "truffleruby:TRUFFLERUBY-SHARED",
@@ -213,11 +218,10 @@ suite = {
                 "TRUFFLERUBY-PROCESSOR",
             ],
             "jacoco": "include",
-            "javaCompliance": "8+",
+            "javaCompliance": "11+",
             "checkstyle": "org.truffleruby",
             "workingSets": "TruffleRuby",
             "findbugsIgnoresGenerated": True,
-            "checkPackagePrefix": "false",
             "license": [
                 "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
                 "BSD-new",          # Rubinius
@@ -229,7 +233,7 @@ suite = {
         "org.truffleruby.ruby": {
             "dir": "src/main/ruby",
             "sourceDirs": ["."],
-            "javaCompliance": "8+",
+            "javaCompliance": "11+",
             "license": [
                 "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
                 "BSD-new",          # Rubinius
@@ -247,6 +251,7 @@ suite = {
         "org.truffleruby.launcher": {
             "dir": "src/launcher",
             "sourceDirs": ["java"],
+            "requires": ["java.logging"],
             "dependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "truffleruby:TRUFFLERUBY-SHARED",
@@ -254,16 +259,16 @@ suite = {
                 "sdk:LAUNCHER_COMMON",
             ],
             "jacoco": "include",
-            "javaCompliance": "8+",
+            "javaCompliance": "11+",
             "checkstyle": "org.truffleruby",
             "workingSets": "TruffleRuby",
-            "checkPackagePrefix": "false",
             "license": ["EPL-2.0"],
         },
 
         "org.truffleruby.test": {
             "dir": "src/test",
             "sourceDirs": ["java", "ruby"],
+            "requires": ["java.scripting", "java.management", "jdk.management"],
             "dependencies": [
                 "org.truffleruby",
                 "org.truffleruby.services",
@@ -271,9 +276,8 @@ suite = {
                 "NETBEANS-LIB-PROFILER",
                 "sdk:LAUNCHER_COMMON"
             ],
-            "javaCompliance": "8+",
+            "javaCompliance": "11+",
             "checkstyle": "org.truffleruby",
-            "checkPackagePrefix": "false",
             "license": ["EPL-2.0"],
         },
 
@@ -282,7 +286,7 @@ suite = {
             "dir": "src/tck",
             "sourceDirs": ["java", "ruby"],
             "dependencies": ["truffle:TRUFFLE_TCK"],
-            "javaCompliance": "8+",
+            "javaCompliance": "11+",
             "checkstyle": "org.truffleruby",
             "license": ["EPL-2.0"],
         },
@@ -377,7 +381,6 @@ suite = {
         "TRUFFLERUBY-SERVICES": {
             "moduleInfo": {
                 "name": "org.truffleruby.services",
-                "requires": ["java.scripting"],
                 "exports": ["org.truffleruby.services.scriptengine"],
             },
             "dependencies": [
@@ -429,7 +432,6 @@ suite = {
             "distDependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "truffleruby:TRUFFLERUBY-SHARED",
-                "truffleruby:TRUFFLERUBY-SERVICES",     # For the file type detection service
                 "sdk:GRAAL_SDK",
                 "sdk:LAUNCHER_COMMON",
             ],

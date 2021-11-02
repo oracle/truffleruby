@@ -1047,7 +1047,7 @@ public class BodyTranslator extends Translator {
      * is the module or class object that is being defined. Therefore for a module or class definition we translate into
      * a special method. We run that method with self set to be the newly allocated module or class.
      * </p>
-    */
+     */
     private ModuleBodyDefinitionNode compileClassNode(SourceIndexLength sourceSection, ParseNode bodyNode,
             OpenModule type) {
         RubyNode body = translateNodeOrNil(sourceSection, bodyNode);

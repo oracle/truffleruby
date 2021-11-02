@@ -173,7 +173,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
         argumentsToString(builder, exception.getSuppliedValues());
         builder.append('\n');
         appendJavaStackTrace(exception, builder);
-        String message = builder.toString().trim();
+        String message = builder.toString().strip();
         return context.getCoreExceptions().typeError(message, this, exception);
     }
 

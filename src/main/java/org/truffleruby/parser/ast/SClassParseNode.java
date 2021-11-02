@@ -44,7 +44,7 @@ import org.truffleruby.parser.scope.StaticScope;
  *
  * end
  * </pre>
-*/
+ */
 public class SClassParseNode extends ParseNode {
     private final ParseNode receiverNode;
     private final StaticScope scope;

@@ -465,7 +465,7 @@ public abstract class TruffleBootNodes {
                 throw CompilerDirectives.shouldNotReachHere(e);
             }
 
-            String basicVersion = RopeOperations.decodeAscii(bytes).trim();
+            String basicVersion = RopeOperations.decodeAscii(bytes).strip();
             return makeStringNode.executeMake(basicVersion, Encodings.UTF_8, CodeRange.CR_7BIT);
         }
 

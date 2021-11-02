@@ -221,15 +221,15 @@ local part_definitions = {
   jdk: {
     local with_path = { environment+: { path+:: ["$JAVA_HOME/bin"] } },
 
-    v8: with_path {
-      downloads+: {
-        JAVA_HOME: common.jdks.oraclejdk8,
-      },
-    },
-
     v11: with_path {
       downloads+: {
         JAVA_HOME: common.jdks["labsjdk-ce-11"],
+      },
+    },
+
+    v17: with_path {
+      downloads+: {
+        JAVA_HOME: common.jdks["labsjdk-ce-17"],
       },
     },
   },
@@ -319,10 +319,8 @@ local part_definitions = {
 
     lint: {
       is_after:: ["$.use.build"],
-      downloads+: {
-        ECLIPSE: { version: "4.5.2", name: "eclipse", platformspecific: true },
-      },
-      environment+: { ECLIPSE_EXE: "$ECLIPSE/eclipse" },
+      downloads+: common.downloads.eclipse.downloads,
+      environment+: common.downloads.eclipse.environment,
       mx_build_options:: ["--jdt", "builtin", "--warning-as-error", "--force-deprecation-as-warning"],
       packages+: {
         "pip:pylint": "==1.9.0",
@@ -493,10 +491,10 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       local native_tests = $.run.testdownstream_aot + $.run.test_integration + $.run.test_compiler,
 
       // Order: platform, jdk, mx_env. Keep aligned for an easy visual comparison.
-      "ruby-test-specs-linux-8":     $.platform.linux  + $.jdk.v8  + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:20:00" },
       "ruby-test-specs-linux-11":    $.platform.linux  + $.jdk.v11 + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:20:00" },
-      "ruby-test-specs-darwin-8":    $.platform.darwin + $.jdk.v8  + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
+      "ruby-test-specs-linux-17":    $.platform.linux  + $.jdk.v17 + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:20:00" },
       "ruby-test-specs-darwin-11":   $.platform.darwin + $.jdk.v11 + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
+      "ruby-test-specs-darwin-17":   $.platform.darwin + $.jdk.v17 + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
       "ruby-test-fast-linux-arm64":  $.platform.linux_arm64 + $.jdk.v11 + $.env.jvm + gate + $.run.test_fast + native_config + { timelimit: "45:00" },
       "ruby-test-fast-linux":        $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.run.test_fast + { timelimit: "45:00" },  # To catch missing slow tags
       "ruby-test-mri-linux":         $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.run.test_mri + { timelimit: "01:10:00" },
@@ -509,15 +507,15 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-ecosystem-linux":   $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.use.node + $.use.sqlite331 + $.use.gem_test_pack + $.run.test_ecosystem,
       "ruby-test-standalone-linux":  $.platform.linux  + $.jdk.v11+ gate_no_build + $.run.test_make_standalone_distribution,
 
-      "ruby-test-compiler-graal-core-8":        $.platform.linux + $.jdk.v8  + $.env.jvm_ce + gate + $.use.truffleruby + $.run.test_compiler,
       "ruby-test-compiler-graal-core-11":       $.platform.linux + $.jdk.v11 + $.env.jvm_ce + gate + $.use.truffleruby + $.run.test_compiler,
-      "ruby-test-compiler-graal-enterprise-8":  $.platform.linux + $.jdk.v8 +  $.env.jvm_ee + gate + $.use.truffleruby + $.run.test_compiler,
+      "ruby-test-compiler-graal-core-17":       $.platform.linux + $.jdk.v17 + $.env.jvm_ce + gate + $.use.truffleruby + $.run.test_compiler,
       "ruby-test-compiler-graal-enterprise-11": $.platform.linux + $.jdk.v11 + $.env.jvm_ee + gate + $.use.truffleruby + $.run.test_compiler,
+      "ruby-test-compiler-graal-enterprise-17": $.platform.linux + $.jdk.v17 + $.env.jvm_ee + gate + $.use.truffleruby + $.run.test_compiler,
 
-      "ruby-test-svm-graal-core-linux-8":      $.platform.linux  + $.jdk.v8  + $.env.native    + gate + native_tests,
       "ruby-test-svm-graal-core-linux-11":     $.platform.linux  + $.jdk.v11 + $.env.native    + gate + native_tests,
-      "ruby-test-svm-graal-core-darwin-8":     $.platform.darwin + $.jdk.v8  + $.env.native    + gate + native_tests,
+      "ruby-test-svm-graal-core-linux-17":     $.platform.linux  + $.jdk.v17 + $.env.native    + gate + native_tests,
       "ruby-test-svm-graal-core-darwin-11":    $.platform.darwin + $.jdk.v11 + $.env.native    + gate + native_tests,
+      "ruby-test-svm-graal-core-darwin-17":    $.platform.darwin + $.jdk.v17 + $.env.native    + gate + native_tests,
       "ruby-test-svm-graal-enterprise-linux":  $.platform.linux  + $.jdk.v11 + $.env.native_ee + gate + native_tests,
       "ruby-test-svm-graal-enterprise-darwin": $.platform.darwin + $.jdk.v11 + $.env.native_ee + gate + native_tests,
     },
@@ -541,7 +539,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
   bench_builds:
     {
-      local shared = $.platform.linux + $.jdk.v8 + $.use.common +
+      local shared = $.platform.linux + $.jdk.v11 + $.use.common +
                      $.benchmark.runner + $.benchmark.compiler_metrics + { timelimit: "01:15:00" },
 
       "ruby-metrics-compiler-graal-core": shared + graal_configurations["graal-core"] + $.use.no_multi_tier,
@@ -551,7 +549,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     {
-      local shared = $.platform.linux + $.jdk.v8 + $.use.common +
+      local shared = $.platform.linux + $.jdk.v11 + $.use.common +
                      $.benchmark.runner + $.benchmark.svm_build_stats + { timelimit: "00:20:00" },
       # TODO this 2 jobs have GUEST_VM_CONFIG: 'default' instead of 'truffle', why?
       local guest_vm_override = { environment+: { GUEST_VM_CONFIG: "default" } },
@@ -561,7 +559,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     {
-      local shared = $.platform.linux + $.jdk.v8 + $.use.common +
+      local shared = $.platform.linux + $.jdk.v11 + $.use.common +
                      $.benchmark.run_svm_metrics + { timelimit: "00:45:00" },
 
       "ruby-metrics-svm-graal-core": shared + svm_configurations["svm-graal-core"] + $.use.no_multi_tier,
@@ -571,7 +569,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     {
-      local shared = $.platform.linux + $.jdk.v8 + $.use.common +
+      local shared = $.platform.linux + $.jdk.v11 + $.use.common +
                      $.benchmark.runner + $.benchmark.classic,
 
       "ruby-benchmarks-classic-mri": shared + other_rubies.mri + { timelimit: "00:55:00" },
@@ -587,7 +585,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     {
-      local shared = $.platform.linux + $.jdk.v8 + $.use.common,
+      local shared = $.platform.linux + $.jdk.v11 + $.use.common,
 
       local chunky = $.benchmark.runner + $.benchmark.chunky + { timelimit: "01:30:00" },
       "ruby-benchmarks-chunky-mri": shared + chunky + other_rubies.mri,
@@ -669,7 +667,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     {
-      local shared = $.platform.linux + $.jdk.v8 + $.use.common + $.use.gem_test_pack +
+      local shared = $.platform.linux + $.jdk.v11 + $.use.common + $.use.gem_test_pack +
                      $.benchmark.runner + $.benchmark.server +
                      { timelimit: "00:30:00" },
 
@@ -683,7 +681,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
     {
       "ruby-metrics-truffle":
-        $.platform.linux + $.jdk.v8 + $.use.common + $.env.jvm + $.use.build +
+        $.platform.linux + $.jdk.v11 + $.use.common + $.env.jvm + $.use.build +
         $.use.truffleruby +
         $.cap.bench + $.cap.daily +
         $.benchmark.runner + $.benchmark.interpreter_metrics +
@@ -692,7 +690,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
     {
       "ruby-benchmarks-cext":
-        $.platform.linux + $.jdk.v8 + $.use.common +
+        $.platform.linux + $.jdk.v11 + $.use.common +
         $.use.truffleruby + $.use.truffleruby_cexts +
         $.env.jvm_ce + $.use.build + $.use.gem_test_pack +
         $.cap.bench + $.cap.daily +

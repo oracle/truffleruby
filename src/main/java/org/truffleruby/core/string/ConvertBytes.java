@@ -483,7 +483,7 @@ public class ConvertBytes {
         BigInteger digits[] = new BigInteger[j / nDigits + 1];
 
         for (int z = 0; j >= 0; z++) {
-            digits[z] = new BigInteger(str.substring(i, j + 1).trim());
+            digits[z] = new BigInteger(str.substring(i, j + 1).strip());
             j = i - 1;
             i = j - nDigits + 1;
             if (i < 0) {
@@ -515,23 +515,19 @@ public class ConvertBytes {
     public static class ERange extends RuntimeException {
         private static final long serialVersionUID = 3393153027217708024L;
 
-        public static enum Kind {
+        public enum Kind {
             Overflow,
             Underflow
         }
 
-        private ConvertBytes.ERange.Kind kind;
+        private final Kind kind;
 
-        public ERange() {
-            super();
-        }
-
-        public ERange(ConvertBytes.ERange.Kind kind) {
+        public ERange(Kind kind) {
             super();
             this.kind = kind;
         }
 
-        public ConvertBytes.ERange.Kind getKind() {
+        public Kind getKind() {
             return kind;
         }
     }

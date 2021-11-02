@@ -111,7 +111,7 @@ public class MemoryHistory implements History {
             return;
         }
         if (isSet(reader, LineReader.Option.HISTORY_REDUCE_BLANKS)) {
-            line = line.trim();
+            line = line.strip();
         }
         if (isSet(reader, LineReader.Option.HISTORY_IGNORE_DUPS)) {
             if (!entries.isEmpty() && line.equals(entries.getLast().line())) {

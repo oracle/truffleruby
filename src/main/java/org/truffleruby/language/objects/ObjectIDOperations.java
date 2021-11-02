@@ -23,7 +23,8 @@ import org.truffleruby.core.numeric.BignumOperations;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.core.numeric.RubyBignum;
 
-/** <pre>
+/**
+ * <pre>
  * Object IDs distribution
  *
  * We try to respect MRI scheme when it makes sense (Fixnum for the moment).
@@ -41,7 +42,7 @@ import org.truffleruby.core.numeric.RubyBignum;
  * ... 0001 | 64-bit long = Fixnum if value < -2^62 or value >= 2^62
  * ... 0010 | 64-bit raw double bits = Float
  * </pre>
-*/
+ */
 public abstract class ObjectIDOperations {
 
     public static final long FALSE = FALSE_HANDLE;
