@@ -52,7 +52,7 @@ import org.truffleruby.parser.parser.RubyParser;
  * EOS = marker
  * ',bar)\n' = lastLine
  * </pre>
-*/
+ */
 public final class HeredocTerm extends StrTerm {
     /** End marker delimiting heredoc boundary. */
     private final Rope nd_lit;

@@ -19,7 +19,7 @@ package org.truffleruby.core.hash;
  * <li>A entry was found for our key, in which case the entry will be the one correspond to the key, and the previous
  * entry will be the one in the entry chain before that one</li>
  * </ul>
-*/
+ */
 public class HashLookupResult {
 
     private final int hashed;

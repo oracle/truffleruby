@@ -101,7 +101,7 @@ import com.oracle.truffle.api.source.SourceSection;
  * also, or additionally, be done in Ruby code. Doing it here saves a few invalidations. If done both here and in Ruby
  * code, it should be done at the top of the Ruby class.)
  * </ul>
-*/
+ */
 public class CoreLibrary {
 
     public static final SourceSection UNAVAILABLE_SOURCE_SECTION = Source

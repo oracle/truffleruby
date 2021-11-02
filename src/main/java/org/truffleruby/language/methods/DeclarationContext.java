@@ -29,7 +29,7 @@ import org.truffleruby.language.objects.SingletonClassNode;
  * <li>the current module (default definee) to define the method on</li>
  * <li>the currently activated refinement modules which apply to the method</li>
  * </ul>
-*/
+ */
 public class DeclarationContext {
 
     public static final Map<RubyModule, RubyModule[]> NO_REFINEMENTS = Collections.emptyMap();
