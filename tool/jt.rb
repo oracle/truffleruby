@@ -2158,13 +2158,13 @@ module Commands
   private def install_eclipse
     require 'digest'
     if linux?
-      eclipse_url = 'https://github.com/chrisseaton/eclipse-mirror/releases/download/eclipse-SDK-4.5.2/eclipse-SDK-4.5.2-linux-gtk-x86_64.tar.gz'
+      eclipse_url = 'https://github.com/chrisseaton/eclipse-mirror/releases/download/eclipse-SDK-4.14/eclipse-SDK-4.14-linux-gtk-x86_64.tar.gz'
       eclipse_exe = 'eclipse/eclipse'
-      sha256 = '87f82b0c13c245ee20928557dbc4435657d1e029f72d9135683c8d585c69ba8d'
+      sha256 = '3f98e2bdf8667b0f4664895b703f0fdd7f59f81821ddebe291d8ce297cc07563'
     elsif darwin?
-      eclipse_url = 'https://github.com/chrisseaton/eclipse-mirror/releases/download/eclipse-SDK-4.5.2/eclipse-SDK-4.5.2-macosx-cocoa-x86_64.tar.gz'
+      eclipse_url = 'https://github.com/chrisseaton/eclipse-mirror/releases/download/eclipse-SDK-4.14/eclipse-SDK-4.14-macosx-cocoa-x86_64.tar.gz'
       eclipse_exe = 'Eclipse.app/Contents/MacOS/eclipse'
-      sha256 = '755f8a75075f6310a8d0453b5766a84aca2fcc687808341b7a657259230b490f'
+      sha256 = '17e712f40287aadfe49e2c902d8d59a437bec7f790def7992afe12219e8a9918'
     else
       raise 'Installing Eclipse is only available on Linux and macOS currently'
     end
