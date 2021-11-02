@@ -56,7 +56,8 @@ Performance:
 * Don't allocate a `MatchData` object when `Regexp#match?` or `String#match?` is used (#2509, @nirvdrum).
 * Add `ENV.except` (#2507, @Strech).
 * Fully inline the `Integer#+` and `Integer#-` logic for interpreter speed (#2518, @smarr).
-* Remove unnecessary work in negotiating the encoding to use in a Regexp match (@nirvdrum).
+* Remove unnecessary work in negotiating the encoding to use in a Regexp match (#2522, @nirvdrum).
+* Add new fast paths for encoding negotiation between strings with different encodings, but which match common default cases (#2522, @nirvdrum).
 
 Changes:
 
