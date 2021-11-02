@@ -319,10 +319,8 @@ local part_definitions = {
 
     lint: {
       is_after:: ["$.use.build"],
-      downloads+: {
-        ECLIPSE: { version: "4.5.2", name: "eclipse", platformspecific: true },
-      },
-      environment+: { ECLIPSE_EXE: "$ECLIPSE/eclipse" },
+      downloads+: common.downloads.eclipse.downloads,
+      environment+: common.downloads.eclipse.environment,
       mx_build_options:: ["--jdt", "builtin", "--warning-as-error", "--force-deprecation-as-warning"],
       packages+: {
         "pip:pylint": "==1.9.0",
