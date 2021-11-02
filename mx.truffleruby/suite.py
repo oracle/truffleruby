@@ -438,7 +438,6 @@ suite = {
             "distDependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "truffleruby:TRUFFLERUBY-SHARED",
-                "truffleruby:TRUFFLERUBY-SERVICES",     # For the file type detection service
                 "sdk:GRAAL_SDK",
                 "sdk:LAUNCHER_COMMON",
             ],
