@@ -83,7 +83,7 @@ class StringScanner
   end
 
   def bol?
-    @pos == 0 or @string.getbyte(pos-1) == 10
+    @pos == 0 or @string.getbyte(@pos-1) == 10
   end
 
   alias_method :beginning_of_line?, :bol?
@@ -132,10 +132,11 @@ class StringScanner
     end
 
     # We need to match one byte, regardless of the string encoding
-    @match = Primitive.matchdata_create_single_group(/./mn, @string, pos, pos+1)
+    pos = @pos
+    @match = Primitive.matchdata_create_single_group(/./mn, @string, pos, pos + 1)
 
-    @prev_pos = @pos
-    @pos += 1
+    @prev_pos = pos
+    @pos = pos + 1
 
     @string.byteslice(@prev_pos, 1)
   end
@@ -154,6 +155,7 @@ class StringScanner
       if eos?
         str = "#<#{self.class} fin>"
       else
+        pos = @pos
         if string.bytesize - pos > 5
           rest = "#{string[pos..pos+4]}..."
         else
@@ -295,7 +297,7 @@ class StringScanner
   def peek(len)
     raise ArgumentError if len < 0
     return '' if len.zero?
-    @string.byteslice(pos, len)
+    @string.byteslice(@pos, len)
   end
 
   def peep(len)
@@ -323,10 +325,10 @@ class StringScanner
     if Primitive.object_kind_of?(pattern, String)
       md = scan_internal_string_pattern(pattern, headonly)
     else
-      md = Truffle::RegexpOperations.match_in_region pattern, @string, pos, @string.bytesize, headonly, pos
+      md = Truffle::RegexpOperations.match_in_region pattern, @string, @pos, @string.bytesize, headonly, @pos
     end
     if md
-      Primitive.matchdata_fixup_positions(md, pos)
+      Primitive.matchdata_fixup_positions(md, @pos)
       @match = md
       scan_internal_set_pos_and_str(advance_pos, getstr, md)
     else
@@ -335,7 +337,7 @@ class StringScanner
   end
 
   private def scan_internal_string_pattern(pattern, headonly)
-    if @string.byteslice(pos..).start_with?(pattern)
+    if @string.byteslice(@pos..).start_with?(pattern)
       Primitive.matchdata_create_single_group(pattern, @string.dup, 0, pattern.bytesize)
     else
       nil
