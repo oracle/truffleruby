@@ -20,6 +20,7 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.utilities.AssumedValue;
+import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -55,6 +56,9 @@ import org.truffleruby.core.format.exceptions.FormatException;
 import org.truffleruby.core.format.exceptions.InvalidFormatException;
 import org.truffleruby.core.format.printf.PrintfCompiler;
 import org.truffleruby.core.hash.HashOperations;
+import org.truffleruby.core.hash.HashingNodes;
+import org.truffleruby.core.hash.RubyHash;
+import org.truffleruby.core.hash.library.PackedHashStoreLibrary;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.inlined.InlinedDispatchNode;
 import org.truffleruby.core.inlined.InlinedMethodNode;
@@ -73,6 +77,7 @@ import org.truffleruby.core.proc.ProcNodes.ProcNewNode;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
@@ -562,6 +567,7 @@ public abstract class KernelNodes {
         protected RubyDynamicObject clone(RubyDynamicObject object, Object freeze,
                 @Cached ConditionProfile isSingletonProfile,
                 @Cached ConditionProfile isRubyClass,
+                @Cached HashingNodes.ToHashByHashCode hashNode,
                 @CachedLibrary("object") RubyLibrary rubyLibrary,
                 @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibraryFreeze) {
             final RubyDynamicObject newObject = copyNode.executeCopy(object);
@@ -573,7 +579,28 @@ public abstract class KernelNodes {
                 newObjectMetaClass.fields.initCopy(selfMetaClass);
             }
 
-            initializeCloneNode.call(newObject, "initialize_clone", object);
+            // pass :freeze keyword argument to #initialize_clone
+            if (toForceFreezing(freeze) || toForceUnfreezing(freeze)) {
+                final String string = "freeze";
+                final LeafRope rope = RopeOperations.encodeAscii(string, USASCIIEncoding.INSTANCE);
+                final RubySymbol key = new RubySymbol(string, rope, Encodings.US_ASCII);
+                final boolean value = toForceFreezing(freeze);
+
+                final Object[] newStore = PackedHashStoreLibrary.createStore();
+                final int hashed = hashNode.execute(key);
+                PackedHashStoreLibrary.setHashedKeyValue(newStore, 0, hashed, key, value);
+
+                final RubyHash hash = new RubyHash(
+                        coreLibrary().hashClass,
+                        getLanguage().hashShape,
+                        getContext(),
+                        newStore,
+                        1);
+
+                initializeCloneNode.call(newObject, "initialize_clone", object, hash);
+            } else {
+                initializeCloneNode.call(newObject, "initialize_clone", object);
+            }
 
             // Default behavior - is just to copy the frozen state of the original object
             if (toForceFreezing(freeze) || (toNotForceChangingFreezeState(freeze) && rubyLibrary.isFrozen(object))) {
