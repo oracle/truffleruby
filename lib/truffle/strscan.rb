@@ -46,6 +46,7 @@ class StringScanner
   Version = '1.0.0'.freeze
 
   attr_reader :pos
+  alias_method :pointer, :pos
 
   def initialize(string, dup=false)
     if string.instance_of? String
@@ -70,8 +71,6 @@ class StringScanner
 
     @pos = n
   end
-
-  alias_method :pointer, :pos
   alias_method :pointer=, :pos=
 
   def [](n)
@@ -82,11 +81,10 @@ class StringScanner
     end
   end
 
-  def bol?
+  def beginning_of_line?
     @pos == 0 or @string.getbyte(@pos-1) == 10
   end
-
-  alias_method :beginning_of_line?, :bol?
+  alias_method :bol?, :beginning_of_line?
 
   def charpos
     @string.byteslice(0, @pos).length
@@ -208,11 +206,10 @@ class StringScanner
     @string.byteslice(0, Primitive.match_data_byte_begin(@match, 0)) if @match
   end
 
-  def reset_state
+  private def reset_state
     @prev_pos = @pos = 0
     @match = nil
   end
-  private :reset_state
 
   def reset
     reset_state
