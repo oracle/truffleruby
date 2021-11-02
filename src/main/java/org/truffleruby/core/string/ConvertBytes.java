@@ -483,7 +483,7 @@ public class ConvertBytes {
         BigInteger digits[] = new BigInteger[j / nDigits + 1];
 
         for (int z = 0; j >= 0; z++) {
-            digits[z] = new BigInteger(str.substring(i, j + 1).trim());
+            digits[z] = new BigInteger(str.substring(i, j + 1).strip());
             j = i - 1;
             i = j - nDigits + 1;
             if (i < 0) {

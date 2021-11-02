@@ -281,7 +281,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     private static List<String> getArgsFromEnvVariable(String name) {
         String value = System.getenv(name);
         if (value != null) {
-            value = value.trim();
+            value = value.strip();
             if (value.length() != 0) {
                 return new ArrayList<>(Arrays.asList(value.split("\\s+")));
             }
