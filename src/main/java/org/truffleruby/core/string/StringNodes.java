@@ -107,9 +107,9 @@ import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.cast.ToRopeNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
+import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.encoding.IsCharacterHeadNode;
 import org.truffleruby.core.encoding.EncodingNodes.CheckEncodingNode;
-import org.truffleruby.core.encoding.EncodingNodes.CheckRopeEncodingNode;
 import org.truffleruby.core.encoding.EncodingNodes.GetActualEncodingNode;
 import org.truffleruby.core.encoding.EncodingNodes.NegotiateCompatibleEncodingNode;
 import org.truffleruby.core.encoding.Encodings;
@@ -1161,7 +1161,8 @@ public abstract class StringNodes {
     }
 
     public abstract static class TrTableNode extends CoreMethodArrayArgumentsNode {
-        @Child protected CheckRopeEncodingNode checkEncodingNode = CheckRopeEncodingNode.create();
+        @Child protected EncodingNodes.CheckStringEncodingNode checkEncodingNode = EncodingNodes.CheckStringEncodingNode
+                .create();
         @Child protected RopeNodes.EqualNode ropeEqualNode = RopeNodes.EqualNode.create();
 
         protected boolean[] squeeze() {
@@ -5589,7 +5590,7 @@ public abstract class StringNodes {
 
     public abstract static class StringAppendNode extends RubyBaseNode {
 
-        @Child private CheckRopeEncodingNode checkEncodingNode;
+        @Child private EncodingNodes.CheckStringEncodingNode checkEncodingNode;
         @Child private ConcatNode concatNode;
 
         public static StringAppendNode create() {
@@ -5624,7 +5625,7 @@ public abstract class StringNodes {
         private RubyEncoding executeCheckEncoding(RopeWithEncoding string, RopeWithEncoding other) {
             if (checkEncodingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                checkEncodingNode = insert(CheckRopeEncodingNode.create());
+                checkEncodingNode = insert(EncodingNodes.CheckStringEncodingNode.create());
             }
             return checkEncodingNode.executeCheckEncoding(string, other);
         }

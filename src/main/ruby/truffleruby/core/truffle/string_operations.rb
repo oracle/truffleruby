@@ -306,7 +306,7 @@ module Truffle
 
       return start if str == ''
 
-      Primitive.encoding_ensure_compatible src, str
+      Primitive.encoding_ensure_compatible_str src, str
 
       Primitive.string_byte_index(src, str, start)
     end
@@ -354,7 +354,7 @@ module Truffle
       end
 
       replacement = StringValue replacement
-      enc = Primitive.encoding_ensure_compatible string, replacement
+      enc = Primitive.encoding_ensure_compatible_str string, replacement
 
       Primitive.string_splice(string, replacement, bi, bs, enc)
     end
@@ -365,7 +365,7 @@ module Truffle
       end
 
       replacement = StringValue replacement
-      enc = Primitive.encoding_ensure_compatible string, replacement
+      enc = Primitive.encoding_ensure_compatible_str string, replacement
 
       Primitive.string_splice(string, replacement, start, index.bytesize, enc)
     end
@@ -388,7 +388,7 @@ module Truffle
       end
 
       replacement = StringValue replacement
-      enc = Primitive.encoding_ensure_compatible string, replacement
+      enc = Primitive.encoding_ensure_compatible_str string, replacement
 
       Primitive.string_splice(string, replacement, bi, bs, enc)
     end
@@ -416,7 +416,7 @@ module Truffle
       end
 
       replacement = StringValue replacement
-      enc = Primitive.encoding_ensure_compatible string, replacement
+      enc = Primitive.encoding_ensure_compatible_str string, replacement
 
       bi = Primitive.string_byte_index_from_char_index(string, match.begin(count))
       bs = Primitive.string_byte_index_from_char_index(string, match.end(count)) - bi

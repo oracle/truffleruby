@@ -433,13 +433,13 @@ class String
 
   def end_with?(*suffixes)
     if suffixes.size == 1 and suffix = suffixes[0] and String === suffix
-      enc = Primitive.encoding_ensure_compatible self, suffix
+      enc = Primitive.encoding_ensure_compatible_str self, suffix
       return Primitive.string_end_with?(self, suffix, enc)
     end
 
     suffixes.each do |original_suffix|
       suffix = Truffle::Type.rb_convert_type original_suffix, String, :to_str
-      enc = Primitive.encoding_ensure_compatible self, suffix
+      enc = Primitive.encoding_ensure_compatible_str self, suffix
       return true if Primitive.string_end_with?(self, suffix, enc)
     end
 
@@ -986,7 +986,7 @@ class String
     padding = StringValue(padding)
     raise ArgumentError, 'zero width padding' if padding.empty?
 
-    enc = Primitive.encoding_ensure_compatible self, padding
+    enc = Primitive.encoding_ensure_compatible_str self, padding
 
     width = Primitive.rb_to_int width
     return Primitive.dup_as_string_instance(self) if width <= size
@@ -1030,7 +1030,7 @@ class String
     padding = StringValue(padding)
     raise ArgumentError, 'zero width padding' if padding.empty?
 
-    enc = Primitive.encoding_ensure_compatible self, padding
+    enc = Primitive.encoding_ensure_compatible_str self, padding
 
     width = Primitive.rb_to_int width
     return dup if width <= size
@@ -1073,7 +1073,7 @@ class String
     padding = StringValue(padding)
     raise ArgumentError, 'zero width padding' if padding.empty?
 
-    enc = Primitive.encoding_ensure_compatible self, padding
+    enc = Primitive.encoding_ensure_compatible_str self, padding
 
     width = Primitive.rb_to_int width
     return dup if width <= size
@@ -1129,7 +1129,7 @@ class String
     str = StringValue(str)
     return start if str == ''
 
-    Primitive.encoding_ensure_compatible self, str
+    Primitive.encoding_ensure_compatible_str self, str
 
     return if start + str.size > size
 
@@ -1190,7 +1190,7 @@ class String
       # Boundary case
       return finish if needle.empty?
 
-      Primitive.encoding_ensure_compatible self, needle
+      Primitive.encoding_ensure_compatible_str self, needle
       if byte_index = Primitive.find_string_reverse(self, needle, byte_finish)
         return Primitive.string_byte_character_index(self, byte_index)
       end
