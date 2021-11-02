@@ -49,10 +49,6 @@ class StringScanner
   alias_method :pointer, :pos
 
   def initialize(string, dup = false, fixed_anchor: false)
-    if fixed_anchor
-      raise ArgumentError, 'StringScanner.new(..., fixed_anchor: true) is not yet supported on TruffleRuby'
-    end
-
     if string.instance_of? String
       @original = string
       @string = string
@@ -62,6 +58,8 @@ class StringScanner
     end
 
     reset_state
+
+    @fixed_anchor = Primitive.as_boolean(fixed_anchor)
   end
 
   def pos=(n)
@@ -132,7 +130,7 @@ class StringScanner
   end
 
   def fixed_anchor?
-    false
+    @fixed_anchor
   end
 
   def get_byte
@@ -339,10 +337,11 @@ class StringScanner
     if Primitive.object_kind_of?(pattern, String)
       md = scan_internal_string_pattern(pattern, headonly)
     else
-      md = Truffle::RegexpOperations.match_in_region pattern, @string, @pos, @string.bytesize, headonly, @pos
+      start = @fixed_anchor ? 0 : @pos
+      md = Truffle::RegexpOperations.match_in_region pattern, @string, @pos, @string.bytesize, headonly, start
+      Primitive.matchdata_fixup_positions(md, start) if md
     end
     if md
-      Primitive.matchdata_fixup_positions(md, @pos)
       @match = md
       scan_internal_set_pos_and_str(advance_pos, getstr, md)
     else
@@ -351,8 +350,9 @@ class StringScanner
   end
 
   private def scan_internal_string_pattern(pattern, headonly)
-    if @string.byteslice(@pos..).start_with?(pattern)
-      Primitive.matchdata_create_single_group(pattern, @string.dup, 0, pattern.bytesize)
+    pos = @pos
+    if @string.byteslice(pos..).start_with?(pattern)
+      Primitive.matchdata_create_single_group(pattern, @string.dup, pos, pos + pattern.bytesize)
     else
       nil
     end
