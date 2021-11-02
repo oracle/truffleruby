@@ -78,8 +78,7 @@ class StringScanner
   def [](n)
     if @match
       raise TypeError, "no implicit conversion of #{n.class} into Integer" if Range === n
-      str = @match[n]
-      str
+      @match[n]
     end
   end
 
