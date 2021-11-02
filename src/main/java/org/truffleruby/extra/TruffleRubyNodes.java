@@ -10,7 +10,6 @@
 package org.truffleruby.extra;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.memory.MemoryFence;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -32,6 +31,7 @@ import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.language.RubyDynamicObject;
 
+import java.lang.invoke.VarHandle;
 import java.util.concurrent.locks.ReentrantLock;
 
 @CoreModule("TruffleRuby")
@@ -98,7 +98,7 @@ public abstract class TruffleRubyNodes {
     public abstract static class FullMemoryBarrierPrimitiveNode extends CoreMethodNode {
         @Specialization
         protected Object fullMemoryBarrier() {
-            MemoryFence.full();
+            VarHandle.fullFence();
             return nil;
         }
     }

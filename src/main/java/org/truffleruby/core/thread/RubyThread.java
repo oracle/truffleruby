@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.thread;
 
+import java.lang.invoke.VarHandle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -18,7 +19,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.memory.MemoryFence;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.InterruptMode;
@@ -88,7 +88,7 @@ public final class RubyThread extends RubyDynamicObject implements ObjectGraphNo
         this.sourceLocation = sourceLocation;
 
         // Initialized last as it captures `this`
-        MemoryFence.storeStore();
+        VarHandle.storeStoreFence();
         this.rootFiber = new RubyFiber(
                 context.getCoreLibrary().fiberClass,
                 language.fiberShape,
