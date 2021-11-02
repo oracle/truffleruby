@@ -48,7 +48,11 @@ class StringScanner
   attr_reader :pos
   alias_method :pointer, :pos
 
-  def initialize(string, dup=false)
+  def initialize(string, dup = false, fixed_anchor: false)
+    if fixed_anchor
+      raise ArgumentError, 'StringScanner.new(..., fixed_anchor: true) is not yet supported on TruffleRuby'
+    end
+
     if string.instance_of? String
       @original = string
       @string = string
@@ -125,6 +129,10 @@ class StringScanner
 
   def exist?(pattern)
     scan_internal pattern, false, false, false
+  end
+
+  def fixed_anchor?
+    false
   end
 
   def get_byte
