@@ -221,15 +221,15 @@ local part_definitions = {
   jdk: {
     local with_path = { environment+: { path+:: ["$JAVA_HOME/bin"] } },
 
-    v8: with_path {
-      downloads+: {
-        JAVA_HOME: common.jdks.oraclejdk8,
-      },
-    },
-
     v11: with_path {
       downloads+: {
         JAVA_HOME: common.jdks["labsjdk-ce-11"],
+      },
+    },
+
+    v17: with_path {
+      downloads+: {
+        JAVA_HOME: common.jdks["labsjdk-ce-17"],
       },
     },
   },
@@ -493,10 +493,10 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       local native_tests = $.run.testdownstream_aot + $.run.test_integration + $.run.test_compiler,
 
       // Order: platform, jdk, mx_env. Keep aligned for an easy visual comparison.
-      "ruby-test-specs-linux-8":     $.platform.linux  + $.jdk.v8  + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:20:00" },
       "ruby-test-specs-linux-11":    $.platform.linux  + $.jdk.v11 + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:20:00" },
-      "ruby-test-specs-darwin-8":    $.platform.darwin + $.jdk.v8  + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
+      "ruby-test-specs-linux-17":    $.platform.linux  + $.jdk.v17 + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:20:00" },
       "ruby-test-specs-darwin-11":   $.platform.darwin + $.jdk.v11 + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
+      "ruby-test-specs-darwin-17":   $.platform.darwin + $.jdk.v17 + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
       "ruby-test-fast-linux-arm64":  $.platform.linux_arm64 + $.jdk.v11 + $.env.jvm + gate + $.run.test_fast + native_config + { timelimit: "45:00" },
       "ruby-test-fast-linux":        $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.run.test_fast + { timelimit: "45:00" },  # To catch missing slow tags
       "ruby-test-mri-linux":         $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.run.test_mri + { timelimit: "01:10:00" },
@@ -509,15 +509,15 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-ecosystem-linux":   $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.use.node + $.use.sqlite331 + $.use.gem_test_pack + $.run.test_ecosystem,
       "ruby-test-standalone-linux":  $.platform.linux  + $.jdk.v11+ gate_no_build + $.run.test_make_standalone_distribution,
 
-      "ruby-test-compiler-graal-core-8":        $.platform.linux + $.jdk.v8  + $.env.jvm_ce + gate + $.use.truffleruby + $.run.test_compiler,
       "ruby-test-compiler-graal-core-11":       $.platform.linux + $.jdk.v11 + $.env.jvm_ce + gate + $.use.truffleruby + $.run.test_compiler,
-      "ruby-test-compiler-graal-enterprise-8":  $.platform.linux + $.jdk.v8 +  $.env.jvm_ee + gate + $.use.truffleruby + $.run.test_compiler,
+      "ruby-test-compiler-graal-core-17":       $.platform.linux + $.jdk.v17 + $.env.jvm_ce + gate + $.use.truffleruby + $.run.test_compiler,
       "ruby-test-compiler-graal-enterprise-11": $.platform.linux + $.jdk.v11 + $.env.jvm_ee + gate + $.use.truffleruby + $.run.test_compiler,
+      "ruby-test-compiler-graal-enterprise-17": $.platform.linux + $.jdk.v17 + $.env.jvm_ee + gate + $.use.truffleruby + $.run.test_compiler,
 
-      "ruby-test-svm-graal-core-linux-8":      $.platform.linux  + $.jdk.v8  + $.env.native    + gate + native_tests,
       "ruby-test-svm-graal-core-linux-11":     $.platform.linux  + $.jdk.v11 + $.env.native    + gate + native_tests,
-      "ruby-test-svm-graal-core-darwin-8":     $.platform.darwin + $.jdk.v8  + $.env.native    + gate + native_tests,
+      "ruby-test-svm-graal-core-linux-17":     $.platform.linux  + $.jdk.v17 + $.env.native    + gate + native_tests,
       "ruby-test-svm-graal-core-darwin-11":    $.platform.darwin + $.jdk.v11 + $.env.native    + gate + native_tests,
+      "ruby-test-svm-graal-core-darwin-17":    $.platform.darwin + $.jdk.v17 + $.env.native    + gate + native_tests,
       "ruby-test-svm-graal-enterprise-linux":  $.platform.linux  + $.jdk.v11 + $.env.native_ee + gate + native_tests,
       "ruby-test-svm-graal-enterprise-darwin": $.platform.darwin + $.jdk.v11 + $.env.native_ee + gate + native_tests,
     },
