@@ -151,7 +151,6 @@ suite = {
             "javaCompliance": "11+",
             "checkstyle": "org.truffleruby",
             "workingSets": "TruffleRuby",
-            "checkPackagePrefix": "false",
             "license": ["EPL-2.0"],
         },
 
@@ -167,7 +166,6 @@ suite = {
             "javaCompliance": "11+",
             "checkstyle": "org.truffleruby",
             "workingSets": "TruffleRuby",
-            "checkPackagePrefix": "false",
             "license": ["EPL-2.0"],
         },
 
@@ -182,7 +180,6 @@ suite = {
             "javaCompliance": "11+",
             "checkstyle": "org.truffleruby",
             "workingSets": "TruffleRuby",
-            "checkPackagePrefix": "false",
             "license": ["EPL-2.0"],
         },
 
@@ -225,7 +222,6 @@ suite = {
             "checkstyle": "org.truffleruby",
             "workingSets": "TruffleRuby",
             "findbugsIgnoresGenerated": True,
-            "checkPackagePrefix": "false",
             "license": [
                 "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
                 "BSD-new",          # Rubinius
@@ -266,7 +262,6 @@ suite = {
             "javaCompliance": "11+",
             "checkstyle": "org.truffleruby",
             "workingSets": "TruffleRuby",
-            "checkPackagePrefix": "false",
             "license": ["EPL-2.0"],
         },
 
@@ -283,7 +278,6 @@ suite = {
             ],
             "javaCompliance": "11+",
             "checkstyle": "org.truffleruby",
-            "checkPackagePrefix": "false",
             "license": ["EPL-2.0"],
         },
 
