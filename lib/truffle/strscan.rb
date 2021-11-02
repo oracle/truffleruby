@@ -86,6 +86,10 @@ class StringScanner
   end
   alias_method :bol?, :beginning_of_line?
 
+  def captures
+    @match&.captures
+  end
+
   def charpos
     @string.byteslice(0, @pos).length
   end
@@ -184,10 +188,7 @@ class StringScanner
   end
 
   def matched
-    if @match
-      matched = @match.to_s
-      matched
-    end
+    @match&.to_s
   end
 
   def matched?
@@ -199,7 +200,7 @@ class StringScanner
   end
 
   def post_match
-    @match.post_match if @match
+    @match&.post_match
   end
 
   def pre_match
@@ -253,6 +254,10 @@ class StringScanner
     self
   end
 
+  def size
+    @match&.size
+  end
+
   def skip(pattern)
     scan_internal pattern, true, false, true
   end
@@ -289,6 +294,10 @@ class StringScanner
     @prev_pos = nil
     @match = nil
     self
+  end
+
+  def values_at(*args)
+    @match&.values_at(*args)
   end
 
   def peek(len)
