@@ -198,11 +198,6 @@ class StringScanner
     Primitive.match_data_byte_end(@match, 0) - Primitive.match_data_byte_begin(@match, 0) if @match
   end
 
-  def matchedsize
-    warn 'StringScanner#matchedsize is obsolete; use #matched_size instead' if $VERBOSE
-    matched_size
-  end
-
   def post_match
     @match.post_match if @match
   end
