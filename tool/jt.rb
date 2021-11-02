@@ -155,11 +155,7 @@ module Utilities
   def jvmci_version
     @jvmci_version ||= begin
       ci = File.read("#{TRUFFLERUBY_DIR}/common.json")
-      if @jdk_version == 8
-        regex = /{\s*"name"\s*:\s*"openjdk"\s*,\s*"version"\s*:\s*"8u.+-(jvmci-[^"]+)"\s*,/
-      else
-        regex = /{\s*"name"\s*:\s*"labsjdk"\s*,\s*"version"\s*:\s*"ce-11\..+-(jvmci-[^"]+)"\s*,/
-      end
+      regex = /{\s*"name"\s*:\s*"labsjdk"\s*,\s*"version"\s*:\s*"ce-11\..+-(jvmci-[^"]+)"\s*,/
       raise 'JVMCI version not found in common.json' unless regex =~ ci
       $1
     end
@@ -204,7 +200,7 @@ module Utilities
                       File.directory?(@ruby_name) ? "#{@ruby_name}/bin/ruby" : @ruby_name
                     else
                       graalvm = "#{TRUFFLERUBY_DIR}/mxbuild/truffleruby-#{@ruby_name}"
-                      "#{graalvm}/#{language_dir(graalvm)}/ruby/bin/ruby"
+                      "#{graalvm}/languages/ruby/bin/ruby"
                     end
 
     raise "The Ruby executable #{ruby_launcher} does not exist" unless File.exist?(ruby_launcher)
@@ -214,8 +210,9 @@ module Utilities
     @ruby_launcher_realpath = File.realpath(ruby_launcher)
 
     unless @silent
-      shortened_path = @ruby_launcher.sub(%r[^#{Regexp.escape TRUFFLERUBY_DIR}/], '').sub(%r[/bin/(ruby|truffleruby)$], '')
-      shortened_path = shortened_path.sub(%r[/#{language_dir(graalvm_home)}/ruby$], '') if graalvm_home
+      shortened_path = @ruby_launcher.sub(%r[^#{Regexp.escape TRUFFLERUBY_DIR}/], '')
+      shortened_path = shortened_path.sub(%r[/bin/(ruby|truffleruby)$], '')
+      shortened_path = shortened_path.sub(%r[/languages/ruby$], '') if graalvm_home
       tags = [*('Interpreted' if truffleruby? && !truffleruby_compiler?),
               truffleruby? ? 'TruffleRuby' : 'a Ruby',
               *('with Native' if truffleruby_native_built?),
@@ -299,10 +296,6 @@ module Utilities
     @truffleruby_compiler = File.readlines("#{graalvm_home}/release").grep(/^COMMIT_INFO=/).any? do |line|
       line.include?('"compiler":') || line.include?("'compiler':")
     end
-  end
-
-  def jdk8?
-    graalvm_home and !Dir.exist?("#{graalvm_home}/jmods")
   end
 
   def truffleruby_launcher_path
@@ -585,15 +578,6 @@ module Utilities
     end
   end
 
-  def language_dir(graalvm_home)
-    raise "GraalVM #{graalvm_home} does not exist" unless Dir.exist?(graalvm_home)
-    if Dir.exist?("#{graalvm_home}/jmods")
-      'languages'
-    else
-      'jre/languages'
-    end
-  end
-
   def mx(*args, java_home: find_java_home, **options)
     mx_args = args.dup
 
@@ -724,7 +708,7 @@ module Commands
                                     Default value is --use jvm, therefore all commands run on truffleruby-jvm by default.
                                     The default can be changed with `export RUBY_BIN=RUBY_SELECTOR`
           --silent                  Does not print the command and which Ruby is used
-          --jdk                     Specifies which version of the JDK should be used: 8, 11 (default) or 17
+          --jdk                     Specifies which version of the JDK should be used: 11 (default) or 17
 
       jt build [graalvm|parser|options] ...   by default it builds graalvm
         jt build [parser|options] [options]
@@ -828,7 +812,7 @@ module Commands
         OPENSSL_PREFIX                               Where to find OpenSSL headers and libraries
         ECLIPSE_EXE                                  Where to find Eclipse
         SYSTEM_RUBY                                  The Ruby interpreter to run 'jt' itself, when using 'bin/jt'
-        JT_JDK                                       The default JDK version to use: 8, 11 (default) or 17
+        JT_JDK                                       The default JDK version to use: 11 (default) or 17
         JT_ENV                                       The default value for 'jt build --env JT_ENV' and for 'jt --use JT_ENV'
         JT_PROFILE_SUBCOMMANDS                       Print the time each subprocess takes on stderr
         JT_SPECS_COMPILATION                         Controls whether Graal will be used when running specs (default: 'true'). Only affects JVM with Graal. Set to 'false' to disable for running specs faster when developing with jvm-ce.
@@ -1005,7 +989,7 @@ module Commands
       vm_args << "--core-load-path=#{TRUFFLERUBY_DIR}/src/main/ruby/truffleruby"
     end
 
-    if ci? and truffleruby_jvm? and !jdk8?
+    if ci? and truffleruby_jvm?
       vm_args << '--vm.Xlog:os+thread=off' # GR-23507: prevent thread warnings on stdout to break specs/tests
     end
 
@@ -2140,9 +2124,7 @@ module Commands
   end
 
   private def install_jvmci(download_message, ee, jdk_version: @jdk_version)
-    if jdk_version == 8
-      jdk_name = ee ? 'oraclejdk8' : 'openjdk8'
-    elsif jdk_version == 11
+    if jdk_version == 11
       jdk_name = ee ? 'labsjdk-ee-11' : 'labsjdk-ce-11'
     elsif jdk_version == 17
       jdk_name = ee ? 'labsjdk-ee-17' : 'labsjdk-ce-17'
@@ -2340,7 +2322,7 @@ module Commands
     build_dir = mx(*mx_args, 'graalvm-home', capture: :out).lines.last.chomp
 
     dest = "#{TRUFFLERUBY_DIR}/mxbuild/#{name}"
-    dest_ruby = "#{dest}/#{language_dir(build_dir)}/ruby"
+    dest_ruby = "#{dest}/languages/ruby"
     dest_bin = "#{dest_ruby}/bin"
     FileUtils.rm_rf dest
     if @ruby_name != @mx_env
@@ -2983,7 +2965,7 @@ class JT
       end
     end
 
-    raise "Invalid JDK version: #{@jdk_version}" unless [8, 11, 17].include?(@jdk_version)
+    raise "Invalid JDK version: #{@jdk_version}" unless [11, 17].include?(@jdk_version)
 
     if needs_rebuild
       rebuild
