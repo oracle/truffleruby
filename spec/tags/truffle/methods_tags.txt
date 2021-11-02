@@ -78,8 +78,6 @@ fails:Public methods on Proc should include eql?
 fails:Public methods on Random should not include bytes
 fails:Public methods on Random should not include rand
 fails:Public methods on Random should not include seed
-fails:Public methods on StringScanner should not include match
-fails:Public methods on StringScanner should not include prev_pos
 fails:Public methods on StringScanner should include captures
 fails:Public methods on StringScanner should include fixed_anchor?
 fails:Public methods on StringScanner should include size

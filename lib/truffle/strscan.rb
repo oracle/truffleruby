@@ -45,7 +45,7 @@ class StringScanner
   Id = 'None$Id'.freeze
   Version = '1.0.0'.freeze
 
-  attr_reader :pos, :match, :prev_pos
+  attr_reader :pos
 
   def initialize(string, dup=false)
     if string.instance_of? String
@@ -203,7 +203,7 @@ class StringScanner
   end
 
   def pre_match
-    @string.byteslice(0, Primitive.match_data_byte_begin(match, 0)) if @match
+    @string.byteslice(0, Primitive.match_data_byte_begin(@match, 0)) if @match
   end
 
   def reset_state
