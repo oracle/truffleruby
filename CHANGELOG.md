@@ -57,6 +57,7 @@ Performance:
 
 Changes:
 
+* TruffleRuby now requires Java 11+ and no longer supports Java 8.
 
 # 21.3.0
 
