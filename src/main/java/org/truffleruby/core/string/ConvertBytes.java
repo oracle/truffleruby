@@ -515,23 +515,19 @@ public class ConvertBytes {
     public static class ERange extends RuntimeException {
         private static final long serialVersionUID = 3393153027217708024L;
 
-        public static enum Kind {
+        public enum Kind {
             Overflow,
             Underflow
         }
 
-        private ConvertBytes.ERange.Kind kind;
+        private final Kind kind;
 
-        public ERange() {
-            super();
-        }
-
-        public ERange(ConvertBytes.ERange.Kind kind) {
+        public ERange(Kind kind) {
             super();
             this.kind = kind;
         }
 
-        public ConvertBytes.ERange.Kind getKind() {
+        public Kind getKind() {
             return kind;
         }
     }
