@@ -25,7 +25,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
-import org.truffleruby.language.backtrace.BacktraceInterleaver;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -162,7 +161,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
         builder.append(" node with values of type");
         argumentsToString(builder, exception.getSuppliedValues());
         builder.append('\n');
-        appendJavaStackTrace(exception, builder);
+        BacktraceFormatter.appendJavaStackTrace(exception, builder);
         String message = builder.toString().strip();
         return context.getCoreExceptions().typeError(message, this, exception);
     }
@@ -260,7 +259,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
                 if (t instanceof AbstractTruffleException) {
                     lastBacktrace = new Backtrace((AbstractTruffleException) t);
                 } else {
-                    appendJavaStackTrace(t, builder);
+                    BacktraceFormatter.appendJavaStackTrace(t, builder);
 
                     if (TruffleStackTrace.getStackTrace(t) != null) {
                         lastBacktrace = new Backtrace(t);
@@ -290,16 +289,6 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
                 EnumSet.noneOf(FormattingFlags.class));
         final String formattedBacktrace = formatter.formatBacktrace(null, backtrace);
         builder.append(formattedBacktrace).append('\n');
-    }
-
-    private void appendJavaStackTrace(Throwable t, StringBuilder builder) {
-        final StackTraceElement[] stackTrace = t.getStackTrace();
-        for (StackTraceElement stackTraceElement : stackTrace) {
-            builder.append('\t').append("from ").append(stackTraceElement).append('\n');
-            if (BacktraceInterleaver.isCallBoundary(stackTraceElement)) {
-                break;
-            }
-        }
     }
 
     @TruffleBoundary

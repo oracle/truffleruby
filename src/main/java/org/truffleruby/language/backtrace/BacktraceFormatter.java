@@ -459,14 +459,20 @@ public class BacktraceFormatter {
         stream.println("```");
     }
 
-    private static void printJavaStackTrace(PrintStream stream, Throwable t) {
+    public static void appendJavaStackTrace(Throwable t, StringBuilder builder) {
         final StackTraceElement[] stackTrace = t.getStackTrace();
         for (StackTraceElement stackTraceElement : stackTrace) {
-            stream.println("\tfrom " + stackTraceElement);
+            builder.append("\tfrom ").append(stackTraceElement).append('\n');
             if (BacktraceInterleaver.isCallBoundary(stackTraceElement)) {
                 break;
             }
         }
+    }
+
+    private static void printJavaStackTrace(PrintStream stream, Throwable t) {
+        final StringBuilder stringBuilder = new StringBuilder();
+        appendJavaStackTrace(t, stringBuilder);
+        stream.print(stringBuilder.toString());
     }
 
 }

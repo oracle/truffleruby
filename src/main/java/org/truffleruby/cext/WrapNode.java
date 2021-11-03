@@ -12,7 +12,6 @@ package org.truffleruby.cext;
 import static org.truffleruby.cext.ValueWrapperManager.LONG_TAG;
 import static org.truffleruby.cext.ValueWrapperManager.UNSET_HANDLE;
 
-import com.oracle.truffle.api.memory.MemoryFence;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.encoding.Encodings;
@@ -32,6 +31,8 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
+
+import java.lang.invoke.VarHandle;
 
 @GenerateUncached
 @ImportStatic(RubyGuards.class)
@@ -99,7 +100,7 @@ public abstract class WrapNode extends RubyBaseNode {
                     /* This is double-checked locking, but it's safe because the object that we create, the
                      * ValueWrapper, is not published until after a memory store fence. */
                     wrapper = new ValueWrapper(value, UNSET_HANDLE, null);
-                    MemoryFence.storeStore();
+                    VarHandle.storeStoreFence();
                     value.setValueWrapper(wrapper);
                 }
             }
@@ -120,7 +121,7 @@ public abstract class WrapNode extends RubyBaseNode {
                     /* This is double-checked locking, but it's safe because the object that we create, the
                      * ValueWrapper, is not published until after a memory store fence. */
                     wrapper = new ValueWrapper(value, UNSET_HANDLE, null);
-                    MemoryFence.storeStore();
+                    VarHandle.storeStoreFence();
                     objectLibrary.put(value, Layouts.VALUE_WRAPPER_IDENTIFIER, wrapper);
                 }
             }

@@ -127,10 +127,6 @@ class MSpecScript
     excludes << 'arm64'
   end
 
-  if defined?(::TruffleRuby) and Primitive.vm_java_version <= 8
-    excludes << 'java8'
-  end
-
   # All specs, excluding specs needing C-extensions support.
   set :files, get(:command_line) + get(:language) + get(:core) + get(:library) + get(:truffle) + get(:security)
 

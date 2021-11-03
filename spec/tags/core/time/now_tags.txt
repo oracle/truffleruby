@@ -1,1 +1,0 @@
-java8:Time.now has at least microsecond precision

@@ -12,10 +12,11 @@ package org.truffleruby.core.rope;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.ValueType;
-import com.oracle.truffle.api.memory.MemoryFence;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
+
+import java.lang.invoke.VarHandle;
 
 public class ConcatRope extends ManagedRope {
 
@@ -101,7 +102,7 @@ public class ConcatRope extends ManagedRope {
 
     private void flatten() {
         bytes = RopeOperations.flattenBytes(this);
-        MemoryFence.storeStore();
+        VarHandle.storeStoreFence();
         left = null;
         right = null;
     }
@@ -122,7 +123,7 @@ public class ConcatRope extends ManagedRope {
     public ConcatState getState(ConditionProfile bytesNotNull) {
         final ManagedRope left = this.left;
         final ManagedRope right = this.right;
-        MemoryFence.loadLoad();
+        VarHandle.loadLoadFence();
         final byte[] bytes = this.bytes;
         if (bytesNotNull.profile(bytes != null)) {
             return new ConcatState(null, null, bytes);
