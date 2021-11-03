@@ -113,7 +113,7 @@ module Process
             1_000
           when CLOCK_REALTIME
             # https://bugs.openjdk.java.net/browse/JDK-8068730
-            Primitive.vm_java_version >= 9 ? 1000 : 1_000_000
+            1000
           when :TIMES_BASED_CLOCK_MONOTONIC,
                :TIMES_BASED_CLOCK_PROCESS_CPUTIME_ID
             10_000_000
