@@ -29,10 +29,11 @@ public abstract class ErrnoErrorNode extends RubyBaseNode {
 
     @Child private DispatchNode formatMessageNode;
 
-    public abstract RubySystemCallError execute(int errno, Object extraMessage, Backtrace backtrace);
+    public abstract RubySystemCallError execute(RubyClass rubyClass, int errno, Object extraMessage,
+            Backtrace backtrace);
 
     @Specialization
-    protected RubySystemCallError errnoError(int errno, Object extraMessage, Backtrace backtrace) {
+    protected RubySystemCallError errnoError(RubyClass rubyClass, int errno, Object extraMessage, Backtrace backtrace) {
         final String errnoName = getContext().getCoreLibrary().getErrnoName(errno);
 
         final Object errnoDescription;
@@ -41,7 +42,11 @@ public abstract class ErrnoErrorNode extends RubyBaseNode {
             errnoClass = getContext().getCoreLibrary().systemCallErrorClass;
             errnoDescription = nil;
         } else {
-            errnoClass = getContext().getCoreLibrary().getErrnoClass(errnoName);
+            if (rubyClass != null && rubyClass != getContext().getCoreLibrary().systemCallErrorClass) {
+                errnoClass = rubyClass;
+            } else {
+                errnoClass = getContext().getCoreLibrary().getErrnoClass(errnoName);
+            }
             errnoDescription = StringOperations.createUTF8String(
                     getContext(),
                     getLanguage(),

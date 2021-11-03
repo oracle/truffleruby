@@ -554,7 +554,8 @@ public abstract class RubyDateFormatter {
                 final RubyString message = StringOperations.createUTF8String(context, language, messageRope);
                 throw new RaiseException(
                         context,
-                        errnoErrorNode.execute(context.getCoreLibrary().getErrnoValue("ERANGE"), message, backtrace));
+                        errnoErrorNode.execute(null, context.getCoreLibrary().getErrnoValue("ERANGE"), message,
+                                backtrace));
             }
 
             // reset formatter

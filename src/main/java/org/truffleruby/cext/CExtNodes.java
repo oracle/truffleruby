@@ -1005,7 +1005,7 @@ public class CExtNodes {
         protected Object rbSysErrFail(int errno, Object string,
                 @Cached ErrnoErrorNode errnoErrorNode) {
             final Backtrace backtrace = getContext().getCallStack().getBacktrace(this);
-            throw new RaiseException(getContext(), errnoErrorNode.execute(errno, string, backtrace));
+            throw new RaiseException(getContext(), errnoErrorNode.execute(null, errno, string, backtrace));
         }
 
     }
