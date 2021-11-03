@@ -561,8 +561,6 @@ public abstract class KernelNodes {
         @Child private DispatchNode initializeCloneNode = DispatchNode.create();
         @Child private SingletonClassNode singletonClassNode;
 
-        private final BranchProfile errorProfile = BranchProfile.create();
-
         @Specialization(limit = "getRubyLibraryCacheLimit()")
         protected RubyDynamicObject clone(RubyDynamicObject object, Object freeze,
                 @Cached ConditionProfile isSingletonProfile,
@@ -581,23 +579,8 @@ public abstract class KernelNodes {
 
             // pass :freeze keyword argument to #initialize_clone
             if (toForceFreezing(freeze) || toForceUnfreezing(freeze)) {
-                final String string = "freeze";
-                final LeafRope rope = RopeOperations.encodeAscii(string, USASCIIEncoding.INSTANCE);
-                final RubySymbol key = new RubySymbol(string, rope, Encodings.US_ASCII);
-                final boolean value = toForceFreezing(freeze);
-
-                final Object[] newStore = PackedHashStoreLibrary.createStore();
-                final int hashed = hashNode.execute(key);
-                PackedHashStoreLibrary.setHashedKeyValue(newStore, 0, hashed, key, value);
-
-                final RubyHash hash = new RubyHash(
-                        coreLibrary().hashClass,
-                        getLanguage().hashShape,
-                        getContext(),
-                        newStore,
-                        1);
-
-                initializeCloneNode.call(newObject, "initialize_clone", object, hash);
+                final RubyHash keywordArguments = createFreezeBooleanHash((boolean) freeze, hashNode);
+                initializeCloneNode.call(newObject, "initialize_clone", object, keywordArguments);
             } else {
                 initializeCloneNode.call(newObject, "initialize_clone", object);
             }
@@ -666,19 +649,30 @@ public abstract class KernelNodes {
             return newObject;
         }
 
+        private RubyHash createFreezeBooleanHash(boolean freeze, HashingNodes.ToHashByHashCode hashNode) {
+            final RubySymbol key = coreSymbols().FREEZE;
+            final boolean value = freeze;
+
+            final Object[] newStore = PackedHashStoreLibrary.createStore();
+            final int hashed = hashNode.execute(key);
+            PackedHashStoreLibrary.setHashedKeyValue(newStore, 0, hashed, key, value);
+
+            final RubyHash hash = new RubyHash(
+                    coreLibrary().hashClass,
+                    getLanguage().hashShape,
+                    getContext(),
+                    newStore,
+                    1);
+
+            return hash;
+        }
+
         private boolean toForceFreezing(Object freeze) {
             if (freeze instanceof Nil) {
                 return false;
             }
 
-            if (freeze instanceof Boolean) {
-                return (boolean) freeze;
-            }
-
-            errorProfile.enter();
-            throw new RaiseException(getContext(), coreExceptions().argumentError(
-                    "Kernel#clone expects :freeze to be boolean or nil",
-                    this));
+            return (boolean) freeze;
         }
 
         private boolean toForceUnfreezing(Object freeze) {
@@ -686,14 +680,7 @@ public abstract class KernelNodes {
                 return false;
             }
 
-            if (freeze instanceof Boolean) {
-                return !(boolean) freeze;
-            }
-
-            errorProfile.enter();
-            throw new RaiseException(getContext(), coreExceptions().argumentError(
-                    "Kernel#clone expects :freeze to be boolean or nil",
-                    this));
+            return !(boolean) freeze;
         }
 
         private boolean toNotForceChangingFreezeState(Object freeze) {

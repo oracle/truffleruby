@@ -22,4 +22,9 @@ describe "Numeric#clone" do
   it "raises ArgumentError if passed freeze: false" do
     -> { 1.clone(freeze: false) }.should raise_error(ArgumentError, /can't unfreeze/)
   end
+
+  it "does not change frozen status if passed freeze: nil" do
+    value = 1
+    value.clone(freeze: nil).should equal(value)
+  end
 end

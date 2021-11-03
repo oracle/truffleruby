@@ -750,6 +750,10 @@ module Kernel
   Primitive.method_unimplement nil.method(:fork)
 
   def clone(freeze: nil)
+    unless TrueClass === freeze || FalseClass === freeze || NilClass === freeze
+      raise ArgumentError, "unexpected value for freeze: #{freeze.class}"
+    end
+
     Primitive.object_clone self, freeze
   end
 

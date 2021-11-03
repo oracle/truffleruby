@@ -136,6 +136,14 @@ describe "Kernel#clone" do
     end
   end
 
+  describe "with freeze: anything else" do
+    it 'raises ArgumentError when passed not true/false/nil' do
+      -> { @obj.clone(freeze: 1) }.should raise_error(ArgumentError, /unexpected value for freeze: Integer/)
+      -> { @obj.clone(freeze: "") }.should raise_error(ArgumentError, /unexpected value for freeze: String/)
+      -> { @obj.clone(freeze: Object.new) }.should raise_error(ArgumentError, /unexpected value for freeze: Object/)
+    end
+  end
+
   it "copies instance variables" do
     clone = @obj.clone
     clone.one.should == 1
