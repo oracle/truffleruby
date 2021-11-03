@@ -73,7 +73,7 @@ public class GeneralDivModNode extends RubyBaseNode {
     private RubyArray divMod(long a, long b) {
         if (b == 0) {
             bZeroProfile.enter();
-            throw new ArithmeticException("divide by zero");
+            throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
         }
 
         long mod;
@@ -118,7 +118,7 @@ public class GeneralDivModNode extends RubyBaseNode {
     private RubyArray divMod(double a, double b) {
         if (b == 0) {
             bZeroProfile.enter();
-            throw new ArithmeticException("divide by zero");
+            throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
         }
 
         double mod = Math.IEEEremainder(a, b);
@@ -143,7 +143,7 @@ public class GeneralDivModNode extends RubyBaseNode {
     private RubyArray divMod(BigInteger a, BigInteger b) {
         if (b.signum() == 0) {
             bZeroProfile.enter();
-            throw new ArithmeticException("divide by zero");
+            throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
         }
 
         final BigInteger[] bigIntegerResults = a.divideAndRemainder(b);

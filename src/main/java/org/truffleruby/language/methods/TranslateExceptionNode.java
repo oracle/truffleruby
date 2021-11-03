@@ -75,7 +75,6 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
             @Cached BranchProfile controlProfile,
             @Cached BranchProfile raiseProfile,
             @Cached BranchProfile terminationProfile,
-            @Cached BranchProfile arithmeticProfile,
             @Cached BranchProfile unsupportedProfile,
             @Cached BranchProfile errorProfile) {
         try {
@@ -90,9 +89,6 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
         } catch (TerminationException exception) {
             terminationProfile.enter();
             return exception;
-        } catch (ArithmeticException exception) {
-            arithmeticProfile.enter();
-            return new RaiseException(getContext(), translateArithmeticException(getContext(), exception));
         } catch (UnsupportedSpecializationException exception) {
             unsupportedProfile.enter();
             return new RaiseException(
@@ -126,12 +122,6 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
                 throw ExceptionOperations.rethrow(exception);
             }
         }
-    }
-
-    @TruffleBoundary
-    private RubyException translateArithmeticException(RubyContext context, ArithmeticException exception) {
-        logJavaException(context, this, exception);
-        return context.getCoreExceptions().zeroDivisionError(this, exception);
     }
 
     @TruffleBoundary
