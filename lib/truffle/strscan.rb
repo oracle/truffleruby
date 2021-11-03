@@ -45,9 +45,10 @@ class StringScanner
   Id = 'None$Id'.freeze
   Version = '1.0.0'.freeze
 
-  attr_reader :pos, :match, :prev_pos
+  attr_reader :pos
+  alias_method :pointer, :pos
 
-  def initialize(string, dup=false)
+  def initialize(string, dup = false, fixed_anchor: false)
     if string.instance_of? String
       @original = string
       @string = string
@@ -57,6 +58,8 @@ class StringScanner
     end
 
     reset_state
+
+    @fixed_anchor = Primitive.as_boolean(fixed_anchor)
   end
 
   def pos=(n)
@@ -70,23 +73,23 @@ class StringScanner
 
     @pos = n
   end
-
-  alias_method :pointer, :pos
   alias_method :pointer=, :pos=
 
   def [](n)
     if @match
       raise TypeError, "no implicit conversion of #{n.class} into Integer" if Range === n
-      str = @match[n]
-      str
+      @match[n]
     end
   end
 
-  def bol?
-    @pos == 0 or @string.getbyte(pos-1) == 10
+  def beginning_of_line?
+    @pos == 0 or @string.getbyte(@pos-1) == 10
   end
+  alias_method :bol?, :beginning_of_line?
 
-  alias_method :beginning_of_line?, :bol?
+  def captures
+    @match&.captures
+  end
 
   def charpos
     @string.byteslice(0, @pos).length
@@ -125,6 +128,10 @@ class StringScanner
     scan_internal pattern, false, false, false
   end
 
+  def fixed_anchor?
+    @fixed_anchor
+  end
+
   def get_byte
     if eos?
       @match = nil
@@ -132,10 +139,11 @@ class StringScanner
     end
 
     # We need to match one byte, regardless of the string encoding
-    @match = Primitive.matchdata_create_single_group(/./mn, @string, pos, pos+1)
+    pos = @pos
+    @match = Primitive.matchdata_create_single_group(/./mn, @string, pos, pos + 1)
 
-    @prev_pos = @pos
-    @pos += 1
+    @prev_pos = pos
+    @pos = pos + 1
 
     @string.byteslice(@prev_pos, 1)
   end
@@ -154,6 +162,7 @@ class StringScanner
       if eos?
         str = "#<#{self.class} fin>"
       else
+        pos = @pos
         if string.bytesize - pos > 5
           rest = "#{string[pos..pos+4]}..."
         else
@@ -184,10 +193,7 @@ class StringScanner
   end
 
   def matched
-    if @match
-      matched = @match.to_s
-      matched
-    end
+    @match&.to_s
   end
 
   def matched?
@@ -198,24 +204,18 @@ class StringScanner
     Primitive.match_data_byte_end(@match, 0) - Primitive.match_data_byte_begin(@match, 0) if @match
   end
 
-  def matchedsize
-    warn 'StringScanner#matchedsize is obsolete; use #matched_size instead' if $VERBOSE
-    matched_size
-  end
-
   def post_match
-    @match.post_match if @match
+    @match&.post_match
   end
 
   def pre_match
-    @string.byteslice(0, Primitive.match_data_byte_begin(match, 0)) if @match
+    @string.byteslice(0, Primitive.match_data_byte_begin(@match, 0)) if @match
   end
 
-  def reset_state
+  private def reset_state
     @prev_pos = @pos = 0
     @match = nil
   end
-  private :reset_state
 
   def reset
     reset_state
@@ -259,6 +259,10 @@ class StringScanner
     self
   end
 
+  def size
+    @match&.size
+  end
+
   def skip(pattern)
     scan_internal pattern, true, false, true
   end
@@ -297,10 +301,14 @@ class StringScanner
     self
   end
 
+  def values_at(*args)
+    @match&.values_at(*args)
+  end
+
   def peek(len)
     raise ArgumentError if len < 0
     return '' if len.zero?
-    @string.byteslice(pos, len)
+    @string.byteslice(@pos, len)
   end
 
   def peep(len)
@@ -311,7 +319,7 @@ class StringScanner
   private def scan_check_args(pattern, headonly)
     case pattern
     when String
-      raise TypeError, "bad pattern argument: #{pattern.inspect}" unless headonly
+      raise TypeError, 'wrong argument type String (expected Regexp)' unless headonly
     when Regexp
     else
       raise TypeError, "bad pattern argument: #{pattern.inspect}"
@@ -326,12 +334,13 @@ class StringScanner
     scan_check_args(pattern, headonly)
 
     if Primitive.object_kind_of?(pattern, String)
-      md = scan_internal_string_pattern(pattern, headonly)
+      md = scan_internal_string_pattern(pattern)
     else
-      md = Truffle::RegexpOperations.match_in_region pattern, @string, pos, @string.bytesize, headonly, pos
+      start = @fixed_anchor ? 0 : @pos
+      md = Truffle::RegexpOperations.match_in_region pattern, @string, @pos, @string.bytesize, headonly, start
+      Primitive.matchdata_fixup_positions(md, start) if md
     end
     if md
-      Primitive.matchdata_fixup_positions(md, pos)
       @match = md
       scan_internal_set_pos_and_str(advance_pos, getstr, md)
     else
@@ -339,9 +348,11 @@ class StringScanner
     end
   end
 
-  private def scan_internal_string_pattern(pattern, headonly)
+  private def scan_internal_string_pattern(pattern)
+    # always headonly=true, see #scan_check_args
+    pos = @pos
     if @string.byteslice(pos..).start_with?(pattern)
-      Primitive.matchdata_create_single_group(pattern, @string.dup, 0, pattern.bytesize)
+      Primitive.matchdata_create_single_group(pattern, @string.dup, pos, pos + pattern.bytesize)
     else
       nil
     end
