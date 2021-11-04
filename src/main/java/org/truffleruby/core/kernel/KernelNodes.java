@@ -555,12 +555,13 @@ public abstract class KernelNodes {
     @NodeChild(value = "freeze", type = RubyBaseNodeWithExecute.class)
     public abstract static class CloneNode extends PrimitiveNode {
 
-        @Child private CopyNode copyNode = CopyNode.create();
-        @Child private DispatchNode initializeCloneNode = DispatchNode.create();
         @Child private SingletonClassNode singletonClassNode;
+        private final BranchProfile cantUnfreezeErrorProfile = BranchProfile.create();
 
         @Specialization(limit = "getRubyLibraryCacheLimit()")
         protected RubyDynamicObject clone(RubyDynamicObject object, Object freeze,
+                @Cached CopyNode copyNode,
+                @Cached DispatchNode initializeCloneNode,
                 @Cached ConditionProfile isSingletonProfile,
                 @Cached ConditionProfile isRubyClass,
                 @Cached HashingNodes.ToHashByHashCode hashNode,
@@ -575,16 +576,18 @@ public abstract class KernelNodes {
                 newObjectMetaClass.fields.initCopy(selfMetaClass);
             }
 
-            // pass :freeze keyword argument to #initialize_clone
-            if (toForceFreezing(freeze) || toForceUnfreezing(freeze)) {
+            final boolean copyFrozen = freeze instanceof Nil;
+
+            if (copyFrozen) {
+                initializeCloneNode.call(newObject, "initialize_clone", object);
+            } else {
+                // pass :freeze keyword argument to #initialize_clone
                 final RubyHash keywordArguments = createFreezeBooleanHash((boolean) freeze, hashNode);
                 initializeCloneNode.call(newObject, "initialize_clone", object, keywordArguments);
-            } else {
-                initializeCloneNode.call(newObject, "initialize_clone", object);
             }
 
             // Default behavior - is just to copy the frozen state of the original object
-            if (toForceFreezing(freeze) || (toNotForceChangingFreezeState(freeze) && rubyLibrary.isFrozen(object))) {
+            if (forceFrozen(freeze) || (copyFrozen && rubyLibrary.isFrozen(object))) {
                 rubyLibraryFreeze.freeze(newObject);
             }
 
@@ -596,40 +599,40 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected Object cloneBoolean(boolean object, Object freeze) {
-            if (toForceUnfreezing(freeze)) {
+        protected boolean cloneBoolean(boolean object, Object freeze) {
+            if (forceNotFrozen(freeze)) {
                 raiseCantUnfreezeError(object);
             }
             return object;
         }
 
         @Specialization
-        protected Object cloneInteger(int object, Object freeze) {
-            if (toForceUnfreezing(freeze)) {
+        protected int cloneInteger(int object, Object freeze) {
+            if (forceNotFrozen(freeze)) {
                 raiseCantUnfreezeError(object);
             }
             return object;
         }
 
         @Specialization
-        protected Object cloneLong(long object, Object freeze) {
-            if (toForceUnfreezing(freeze)) {
+        protected long cloneLong(long object, Object freeze) {
+            if (forceNotFrozen(freeze)) {
                 raiseCantUnfreezeError(object);
             }
             return object;
         }
 
         @Specialization
-        protected Object cloneFloat(double object, Object freeze) {
-            if (toForceUnfreezing(freeze)) {
+        protected double cloneFloat(double object, Object freeze) {
+            if (forceNotFrozen(freeze)) {
                 raiseCantUnfreezeError(object);
             }
             return object;
         }
 
         @Specialization(guards = "!isImmutableRubyString(object)")
-        protected Object cloneImmutableObject(ImmutableRubyObject object, Object freeze) {
-            if (toForceUnfreezing(freeze)) {
+        protected ImmutableRubyObject cloneImmutableObject(ImmutableRubyObject object, Object freeze) {
+            if (forceNotFrozen(freeze)) {
                 raiseCantUnfreezeError(object);
             }
             return object;
@@ -640,7 +643,7 @@ public abstract class KernelNodes {
                 @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibraryFreeze,
                 @Cached MakeStringNode makeStringNode) {
             final RubyDynamicObject newObject = makeStringNode.fromRope(object.rope, object.encoding);
-            if (!toForceUnfreezing(freeze)) {
+            if (!forceNotFrozen(freeze)) {
                 rubyLibraryFreeze.freeze(newObject);
             }
 
@@ -649,43 +652,25 @@ public abstract class KernelNodes {
 
         private RubyHash createFreezeBooleanHash(boolean freeze, HashingNodes.ToHashByHashCode hashNode) {
             final RubySymbol key = coreSymbols().FREEZE;
-            final boolean value = freeze;
 
             final Object[] newStore = PackedHashStoreLibrary.createStore();
             final int hashed = hashNode.execute(key);
-            PackedHashStoreLibrary.setHashedKeyValue(newStore, 0, hashed, key, value);
+            PackedHashStoreLibrary.setHashedKeyValue(newStore, 0, hashed, key, freeze);
 
-            final RubyHash hash = new RubyHash(
-                    coreLibrary().hashClass,
-                    getLanguage().hashShape,
-                    getContext(),
-                    newStore,
-                    1);
-
-            return hash;
+            return new RubyHash(coreLibrary().hashClass, getLanguage().hashShape, getContext(), newStore, 1);
         }
 
-        private boolean toForceFreezing(Object freeze) {
-            if (freeze instanceof Nil) {
-                return false;
-            }
+        private boolean forceFrozen(Object freeze) {
+            return freeze instanceof Boolean && (boolean) freeze;
 
-            return (boolean) freeze;
         }
 
-        private boolean toForceUnfreezing(Object freeze) {
-            if (freeze instanceof Nil) {
-                return false;
-            }
-
-            return !(boolean) freeze;
-        }
-
-        private boolean toNotForceChangingFreezeState(Object freeze) {
-            return freeze instanceof Nil;
+        private boolean forceNotFrozen(Object freeze) {
+            return freeze instanceof Boolean && !(boolean) freeze;
         }
 
         private void raiseCantUnfreezeError(Object object) {
+            cantUnfreezeErrorProfile.enter();
             throw new RaiseException(getContext(), coreExceptions().argumentErrorCantUnfreeze(object, this));
         }
 
