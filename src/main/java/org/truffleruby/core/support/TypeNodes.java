@@ -175,6 +175,24 @@ public abstract class TypeNodes {
         }
     }
 
+    @Primitive(name = "boolean_or_nil?")
+    public abstract static class IsBooleanOrNilNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected boolean bool(boolean value) {
+            return true;
+        }
+
+        @Specialization
+        protected boolean nil(Nil value) {
+            return true;
+        }
+
+        @Fallback
+        protected boolean other(Object value) {
+            return false;
+        }
+    }
+
     @Primitive(name = "object_ivars")
     public abstract static class ObjectInstanceVariablesNode extends PrimitiveArrayArgumentsNode {
 
