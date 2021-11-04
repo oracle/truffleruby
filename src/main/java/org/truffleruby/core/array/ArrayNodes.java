@@ -18,6 +18,7 @@ import java.util.Arrays;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.EconomicSet;
 import org.graalvm.collections.Equivalence;
 import org.truffleruby.Layouts;
@@ -65,7 +66,6 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringCachingGuards;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -1543,8 +1543,7 @@ public abstract class ArrayNodes {
     @ReportPolymorphism
     public abstract static class PackNode extends CoreMethodNode {
 
-        @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode;
-        @Child private StringNodes.MakeStringNode makeStringNode;
+        @Child private TruffleString.FromByteArrayNode fromByteArrayNode = TruffleString.FromByteArrayNode.create();
         @Child private WriteObjectFieldNode writeAssociatedNode;
 
         private final BranchProfile exceptionProfile = BranchProfile.create();
@@ -1605,24 +1604,8 @@ public abstract class ArrayNodes {
                 bytes = Arrays.copyOf(bytes, result.getOutputLength());
             }
 
-            if (makeLeafRopeNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                makeLeafRopeNode = insert(RopeNodes.MakeLeafRopeNode.create());
-            }
-
-            if (makeStringNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                makeStringNode = insert(StringNodes.MakeStringNode.create());
-            }
-
             final RubyEncoding rubyEncoding = result.getEncoding().getEncodingForLength(formatLength);
-            final RubyString string = makeStringNode.fromRope(
-                    makeLeafRopeNode.executeMake(
-                            bytes,
-                            rubyEncoding.jcoding,
-                            result.getStringCodeRange(),
-                            result.getStringLength()),
-                    rubyEncoding);
+            final RubyString string = createString(fromByteArrayNode, bytes, rubyEncoding); // result.getStringCodeRange(), result.getStringLength()
 
             if (result.getAssociated() != null) {
                 if (writeAssociatedNode == null) {

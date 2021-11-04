@@ -14,7 +14,7 @@ package org.truffleruby.core.rope;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 
-public class RopeGuards {
+public abstract class RopeGuards {
 
     public static boolean isSingleByteString(Rope rope) {
         return rope.byteLength() == 1;

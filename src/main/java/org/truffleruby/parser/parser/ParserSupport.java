@@ -41,8 +41,8 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
-import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.EUCJPEncoding;
 import org.jcodings.specific.SJISEncoding;
 import org.jcodings.specific.USASCIIEncoding;
@@ -53,13 +53,12 @@ import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.regexp.ClassicRegexp;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
-import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.rope.RopeWithEncoding;
-import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.RaiseException;
@@ -159,8 +158,8 @@ public class ParserSupport {
     public static final String FORWARD_ARGS_REST_VAR = Layouts.TEMP_PREFIX + "forward_rest";
     /** The local variable to store ... keyword arguments in */
     public static final String FORWARD_ARGS_KWREST_VAR = Layouts.TEMP_PREFIX + "forward_kwrest";
-    public static final Rope FORWARD_ARGS_KWREST_VAR_ROPE = StringOperations.encodeRope(FORWARD_ARGS_KWREST_VAR,
-            USASCIIEncoding.INSTANCE);
+    public static final TruffleString FORWARD_ARGS_KWREST_VAR_TSTRING = TStringUtils
+            .usAsciiString(FORWARD_ARGS_KWREST_VAR);
     /** The local variable to store the block from ... in */
     public static final String FORWARD_ARGS_BLOCK_VAR = Layouts.TEMP_PREFIX + "forward_block";
 
@@ -183,7 +182,6 @@ public class ParserSupport {
 
     private final String file;
     private final RubyDeferredWarnings warnings;
-    private final ParserRopeOperations parserRopeOperations = new ParserRopeOperations();
 
     public ParserSupport(LexerSource source, RubyDeferredWarnings warnings) {
         this.file = source.getSourcePath();
@@ -246,8 +244,8 @@ public class ParserSupport {
             case DASGNNODE: // LOCALVAR
             case LOCALASGNNODE:
                 String name = ((INameNode) node).getName();
-                final Rope currentArg = lexer.getCurrentArg();
-                if (currentArg != null && name.equals(currentArg.getJavaString())) {
+                final TruffleString currentArg = lexer.getCurrentArg();
+                if (currentArg != null && name.equals(currentArg.toJavaStringUncached())) {
                     warn(node.getPosition(), "circular argument reference - " + name);
                 }
                 checkDeclarationForNumberedParameterMisuse(name, node);
@@ -289,22 +287,22 @@ public class ParserSupport {
         return name.length() == 2 && name.charAt(0) == '_' && '1' <= name.charAt(1) && name.charAt(1) <= '9';
     }
 
-    public void checkMethodName(Rope rope) {
-        String name = rope.getJavaString();
+    public void checkMethodName(TruffleString rope) {
+        String name = rope.toJavaStringUncached();
         if (isNumberedParameter(name)) {
             warnNumberedParameterLikeDeclaration(lexer.getPosition(), name);
         }
     }
 
-    public ParseNode declareIdentifier(Rope rope) {
-        return declareIdentifier(rope.getJavaString());
+    public ParseNode declareIdentifier(TruffleString rope) {
+        return declareIdentifier(rope.toJavaStringUncached());
     }
 
     // Despite the confusing name, called for every identifier use in expressions.
     public ParseNode declareIdentifier(String string) {
         String name = string.intern();
-        final Rope currentArg = lexer.getCurrentArg();
-        if (currentArg != null && name.equals(currentArg.getJavaString())) {
+        final TruffleString currentArg = lexer.getCurrentArg();
+        if (currentArg != null && name.equals(currentArg.toJavaStringUncached())) {
             warn(lexer.getPosition(), "circular argument reference - " + name);
         }
 
@@ -340,8 +338,8 @@ public class ParserSupport {
     }
 
     // We know it has to be tLABEL or tIDENTIFIER so none of the other assignable logic is needed
-    public AssignableParseNode assignableLabelOrIdentifier(Rope name, ParseNode value) {
-        return assignableLabelOrIdentifier(name.getJavaString().intern(), value);
+    public AssignableParseNode assignableLabelOrIdentifier(TruffleString name, ParseNode value) {
+        return assignableLabelOrIdentifier(name.toJavaStringUncached().intern(), value);
     }
 
     public AssignableParseNode assignableLabelOrIdentifier(String name, ParseNode value) {
@@ -350,7 +348,7 @@ public class ParserSupport {
     }
 
     // We know it has to be tLABEL or tIDENTIFIER so none of the other assignable logic is needed
-    public AssignableParseNode assignableKeyword(Rope name, ParseNode value) {
+    public AssignableParseNode assignableKeyword(TruffleString name, ParseNode value) {
         // JRuby does some extra kwarg tracking when it sees an assignable keyword. We track kwargs in a different
         // manner and thus don't require a special method for it. However, keeping this method in ParserSupport helps
         // reduce the differences with the JRuby grammar.
@@ -423,24 +421,24 @@ public class ParserSupport {
     }
 
     // We know it has to be tLABEL or tIDENTIFIER so none of the other assignable logic is needed
-    public AssignableParseNode assignableInCurr(Rope name, ParseNode value) {
-        String nameString = name.getJavaString().intern();
+    public AssignableParseNode assignableInCurr(TruffleString name, ParseNode value) {
+        String nameString = name.toJavaStringUncached().intern();
         checkDeclarationForNumberedParameterMisuse(nameString, value);
         currentScope.addVariableThisScope(nameString);
         return currentScope.assign(lexer.getPosition(), nameString, makeNullNil(value));
     }
 
-    public ParseNode getOperatorCallNode(ParseNode firstNode, Rope operator) {
+    public ParseNode getOperatorCallNode(ParseNode firstNode, TruffleString operator) {
         value_expr(lexer, firstNode);
 
-        return new CallParseNode(firstNode.getPosition(), firstNode, operator.getJavaString(), null, null);
+        return new CallParseNode(firstNode.getPosition(), firstNode, operator.toJavaStringUncached(), null, null);
     }
 
-    public ParseNode getOperatorCallNode(ParseNode firstNode, Rope operator, ParseNode secondNode) {
+    public ParseNode getOperatorCallNode(ParseNode firstNode, TruffleString operator, ParseNode secondNode) {
         return getOperatorCallNode(firstNode, operator, secondNode, null);
     }
 
-    public ParseNode getOperatorCallNode(ParseNode firstNode, Rope operator, ParseNode secondNode,
+    public ParseNode getOperatorCallNode(ParseNode firstNode, TruffleString operator, ParseNode secondNode,
             SourceIndexLength defaultPosition) {
         if (defaultPosition != null) {
             firstNode = checkForNilNode(firstNode, defaultPosition);
@@ -453,7 +451,7 @@ public class ParserSupport {
         return new CallParseNode(
                 firstNode.getPosition(),
                 firstNode,
-                operator.getJavaString(),
+                operator.toJavaStringUncached(),
                 new ArrayParseNode(secondNode.getPosition(), secondNode),
                 null);
     }
@@ -487,17 +485,17 @@ public class ParserSupport {
      * @param receiver object which contains attribute
      * @param name of the attribute being set
      * @return an AttrAssignParseNode */
-    public ParseNode attrset(ParseNode receiver, Rope name) {
+    public ParseNode attrset(ParseNode receiver, TruffleString name) {
         return attrset(receiver, RopeConstants.DOT, name);
     }
 
-    public ParseNode attrset(ParseNode receiver, Rope callType, Rope name) {
+    public ParseNode attrset(ParseNode receiver, TruffleString callType, TruffleString name) {
         value_expr(lexer, receiver);
 
         return new_attrassign(
                 receiver.getPosition(),
                 receiver,
-                name.getJavaString() + "=",
+                name.toJavaStringUncached() + "=",
                 null,
                 isLazy(callType));
     }
@@ -1027,14 +1025,14 @@ public class ParserSupport {
     }
 
     // FIXME: Currently this is passing in position of receiver
-    public ParseNode new_opElementAsgnNode(ParseNode receiverNode, Rope operatorName, ParseNode argsNode,
+    public ParseNode new_opElementAsgnNode(ParseNode receiverNode, TruffleString operatorName, ParseNode argsNode,
             ParseNode valueNode) {
         SourceIndexLength position = lexer.tokline;  // FIXME: ruby_sourceline in new lexer.
 
         ParseNode newNode = new OpElementAsgnParseNode(
                 position,
                 receiverNode,
-                operatorName.getJavaString(),
+                operatorName.toJavaStringUncached(),
                 argsNode,
                 valueNode);
 
@@ -1044,22 +1042,24 @@ public class ParserSupport {
     }
 
     // JRuby would return a RubySymbol but we don't want to create RubySymbols so early, and don't need the Symbol
-    public Rope symbolID(Rope identifier) {
+    public TruffleString symbolID(TruffleString identifier) {
         return identifier;
     }
 
-    public ParseNode newOpAsgn(SourceIndexLength position, ParseNode receiverNode, Rope callType, ParseNode valueNode,
-            Rope variableName, Rope operatorName) {
+    public ParseNode newOpAsgn(SourceIndexLength position, ParseNode receiverNode, TruffleString callType,
+            ParseNode valueNode,
+            TruffleString variableName, TruffleString operatorName) {
         return new OpAsgnParseNode(
                 position,
                 receiverNode,
                 valueNode,
-                variableName.getJavaString(),
-                operatorName.getJavaString(),
+                variableName.toJavaStringUncached(),
+                operatorName.toJavaStringUncached(),
                 isLazy(callType));
     }
 
-    public ParseNode newOpConstAsgn(SourceIndexLength position, ParseNode lhs, Rope operatorName, ParseNode rhs) {
+    public ParseNode newOpConstAsgn(SourceIndexLength position, ParseNode lhs, TruffleString operatorName,
+            ParseNode rhs) {
         // FIXME: Maybe need to fixup position?
         if (lhs != null) {
             return new OpAsgnConstDeclParseNode(position, lhs, operatorName, rhs);
@@ -1068,7 +1068,7 @@ public class ParserSupport {
         }
     }
 
-    public boolean isLazy(Rope callType) {
+    public boolean isLazy(TruffleString callType) {
         return callType == RopeConstants.AMPERSAND_DOT;
     }
 
@@ -1077,7 +1077,8 @@ public class ParserSupport {
         return new AttrAssignParseNode(position, receiver, name, args, isLazy);
     }
 
-    public ParseNode new_call(ParseNode receiver, Rope callType, Rope name, ParseNode argsNode, ParseNode iter) {
+    public ParseNode new_call(ParseNode receiver, TruffleString callType, TruffleString name, ParseNode argsNode,
+            ParseNode iter) {
         if (argsNode instanceof BlockPassParseNode) {
             if (iter != null) {
                 lexer.compile_error(PID.BLOCK_ARG_AND_BLOCK_GIVEN, "Both block arg and actual block given.");
@@ -1087,7 +1088,7 @@ public class ParserSupport {
             return new CallParseNode(
                     position(receiver, argsNode),
                     receiver,
-                    name.getJavaString(),
+                    name.toJavaStringUncached(),
                     blockPass.getArgsNode(),
                     blockPass,
                     isLazy(callType));
@@ -1096,18 +1097,18 @@ public class ParserSupport {
         return new CallParseNode(
                 position(receiver, argsNode),
                 receiver,
-                name.getJavaString(),
+                name.toJavaStringUncached(),
                 argsNode,
                 iter,
                 isLazy(callType));
 
     }
 
-    public ParseNode new_call(ParseNode receiver, Rope name, ParseNode argsNode, ParseNode iter) {
+    public ParseNode new_call(ParseNode receiver, TruffleString name, ParseNode argsNode, ParseNode iter) {
         return new_call(receiver, RopeConstants.DOT, name, argsNode, iter);
     }
 
-    public Colon2ParseNode new_colon2(SourceIndexLength position, ParseNode leftNode, Rope name) {
+    public Colon2ParseNode new_colon2(SourceIndexLength position, ParseNode leftNode, TruffleString name) {
         if (leftNode == null) {
             return new Colon2ImplicitParseNode(position, name);
         }
@@ -1115,7 +1116,7 @@ public class ParserSupport {
         return new Colon2ConstParseNode(position, leftNode, name);
     }
 
-    public Colon3ParseNode new_colon3(SourceIndexLength position, Rope name) {
+    public Colon3ParseNode new_colon3(SourceIndexLength position, TruffleString name) {
         return new Colon3ParseNode(position, name);
     }
 
@@ -1142,8 +1143,8 @@ public class ParserSupport {
         node.setPosition(orig.getPosition());
     }
 
-    public ParseNode new_fcall(Rope operation) {
-        return new FCallParseNode(lexer.tokline, operation.getJavaString());
+    public ParseNode new_fcall(TruffleString operation) {
+        return new FCallParseNode(lexer.tokline, operation.toJavaStringUncached());
     }
 
     public ParseNode new_super(SourceIndexLength position, ParseNode args) {
@@ -1251,6 +1252,12 @@ public class ParserSupport {
         final SymbolParseNode symbolParseNode = new SymbolParseNode(position, value);
         checkSymbolCodeRange(symbolParseNode);
         return symbolParseNode;
+    }
+
+    public ParseNode asSymbol(SourceIndexLength position, TruffleString value) {
+        var tstringWithCorrectEncoding = value.switchEncodingUncached(lexer.encoding.tencoding);
+        Rope rope = TStringUtils.toRope(tstringWithCorrectEncoding, lexer.encoding);
+        return asSymbol(position, rope);
     }
 
     public ParseNode asSymbol(SourceIndexLength position, ParseNode value) {
@@ -1434,7 +1441,7 @@ public class ParserSupport {
     }
 
     public ArgsTailHolder new_args_tail(SourceIndexLength position, ListParseNode keywordArg,
-            Rope keywordRestArgNameRope, BlockArgParseNode blockArg) {
+            TruffleString keywordRestArgNameRope, BlockArgParseNode blockArg) {
         if (keywordRestArgNameRope == null) {
             return new ArgsTailHolder(position, keywordArg, null, blockArg);
         } else if (keywordRestArgNameRope == RubyLexer.Keyword.NIL.bytes) { // def m(**nil)
@@ -1446,7 +1453,7 @@ public class ParserSupport {
         if (keywordRestArgNameRope.isEmpty()) {
             restKwargsName = Layouts.TEMP_PREFIX + "kwrest";
         } else {
-            restKwargsName = keywordRestArgNameRope.getJavaString().intern();
+            restKwargsName = keywordRestArgNameRope.toJavaStringUncached().intern();
         }
 
         int slot = currentScope.exists(restKwargsName);
@@ -1545,8 +1552,8 @@ public class ParserSupport {
     }
 
     // ENEBO: Totally weird naming (in MRI is not allocated and is a local var name) [1.9]
-    public boolean is_local_id(Rope name) {
-        return lexer.isIdentifierChar(name.get(0) & 0xFF);
+    public boolean is_local_id(TruffleString name) {
+        return lexer.isIdentifierChar(name.readByteUncached(0, lexer.tencoding));
     }
 
     // 1.9
@@ -1562,9 +1569,9 @@ public class ParserSupport {
     }
 
     // 1.9
-    public ParseNode new_bv(Rope identifier) {
+    public ParseNode new_bv(TruffleString identifier) {
         if (!is_local_id(identifier)) {
-            getterIdentifierError(lexer.getPosition(), identifier.getJavaString());
+            getterIdentifierError(lexer.getPosition(), identifier.toJavaStringUncached());
         }
         shadowing_lvar(identifier);
 
@@ -1573,8 +1580,8 @@ public class ParserSupport {
 
     // 1.9
     @SuppressFBWarnings("ES")
-    public ArgumentParseNode arg_var(Rope rope) {
-        return arg_var(rope.getJavaString());
+    public ArgumentParseNode arg_var(TruffleString rope) {
+        return arg_var(rope.toJavaStringUncached());
     }
 
     // Called with parameter names
@@ -1601,7 +1608,7 @@ public class ParserSupport {
         return new ArgumentParseNode(lexer.getPosition(), name, current.addVariableThisScope(name));
     }
 
-    public Rope formal_argument(Rope identifier) {
+    public TruffleString formal_argument(TruffleString identifier) {
         lexer.validateFormalIdentifier(identifier);
 
         return shadowing_lvar(identifier);
@@ -1609,10 +1616,10 @@ public class ParserSupport {
 
     // 1.9
     @SuppressFBWarnings("ES")
-    public Rope shadowing_lvar(Rope rope) {
-        String name = rope.getJavaString().intern();
+    public TruffleString shadowing_lvar(TruffleString tstring) {
+        String name = tstring.toJavaStringUncached().intern();
         if (name == "_") {
-            return rope;
+            return tstring;
         }
 
         StaticScope current = getCurrentScope();
@@ -1620,7 +1627,7 @@ public class ParserSupport {
             yyerror("duplicated argument name");
         }
 
-        return rope;
+        return tstring;
     }
 
     // 1.9
@@ -1674,25 +1681,24 @@ public class ParserSupport {
     }
 
     // MRI: reg_fragment_check
-    public Rope regexpFragmentCheck(RegexpParseNode end, Rope value) {
-        final RopeWithEncoding ropeWithEncoding = setRegexpEncoding(end, value);
+    public TStringWithEncoding regexpFragmentCheck(RegexpParseNode end, TStringWithEncoding value) {
+        final TStringWithEncoding strEnc = setRegexpEncoding(end, value);
         try {
-            ClassicRegexp.preprocessCheck(ropeWithEncoding);
+            ClassicRegexp.preprocessCheck(strEnc);
         } catch (DeferredRaiseException dre) {
             throw compile_error(dre.getException(getConfiguration().getContext()).getMessage());
         } catch (RaiseException re) {
             throw compile_error(re.getMessage());
         }
-        return ropeWithEncoding.getRope();
+        return strEnc;
     }
 
     private void allocateNamedLocals(RegexpParseNode regexpNode) {
-        ClassicRegexp pattern = null;
+        final ClassicRegexp pattern;
         try {
             pattern = new ClassicRegexp(
                     configuration.getContext(),
-                    regexpNode.getValue(),
-                    Encodings.getBuiltInEncoding(regexpNode.getEncoding().getIndex()),
+                    TStringUtils.fromRopeWithEnc(regexpNode.getValue(), regexpNode.getRubyEncoding()),
                     regexpNode.getOptions());
         } catch (DeferredRaiseException dre) {
             throw dre.getException(RubyLanguage.getCurrentContext());
@@ -1716,10 +1722,6 @@ public class ParserSupport {
                 }
             }
         }
-    }
-
-    private boolean is7BitASCII(Rope value) {
-        return value.isAsciiOnly();
     }
 
     // TODO: Put somewhere more consolidated (similar)
@@ -1757,10 +1759,11 @@ public class ParserSupport {
                         position.toSourceSection(lexer.getSource())));
     }
 
-    protected void compileError(Encoding optionEncoding, Encoding encoding) {
+    protected void compileError(RubyEncoding optionEncoding, RubyEncoding encoding) {
         lexer.compile_error(
                 PID.REGEXP_ENCODING_MISMATCH,
-                "regexp encoding option '" + optionsEncodingChar(optionEncoding) +
+                "regexp encoding option '" +
+                        optionsEncodingChar(optionEncoding == null ? null : optionEncoding.jcoding) +
                         "' differs from source encoding '" + encoding + "'");
     }
 
@@ -1769,45 +1772,39 @@ public class ParserSupport {
     }
 
     // MRI: reg_fragment_setenc_gen
-    public RopeWithEncoding setRegexpEncoding(RegexpParseNode end, Rope value) {
+    public TStringWithEncoding setRegexpEncoding(RegexpParseNode end, TStringWithEncoding value) {
         RegexpOptions options = end.getOptions();
         options = options.setup();
-        Encoding optionsEncoding = options.getEncoding();
-        RubyEncoding encoding = Encodings.getBuiltInEncoding(value.getEncoding().getIndex());
+        final RubyEncoding optionsEncoding = options.getEncoding() == null
+                ? null
+                : Encodings.getBuiltInEncoding(options.getEncoding());
+        final RubyEncoding encoding = value.encoding;
         // Change encoding to one specified by regexp options as long as the string is compatible.
         if (optionsEncoding != null) {
-            if (optionsEncoding != value.getEncoding() && !is7BitASCII(value)) {
-                compileError(optionsEncoding, value.getEncoding());
+            if (optionsEncoding != encoding && !value.isAsciiOnly()) {
+                compileError(optionsEncoding, encoding);
             }
 
-            value = parserRopeOperations.withEncoding(value, optionsEncoding);
-            encoding = Encodings.getBuiltInEncoding(optionsEncoding.getIndex());
+            value = value.forceEncoding(optionsEncoding);
         } else if (options.isEncodingNone()) {
-            if (value.getEncoding() == ASCIIEncoding.INSTANCE && !is7BitASCII(value)) {
-                compileError(null, value.getEncoding());
+            if (encoding == Encodings.BINARY && !value.isAsciiOnly()) {
+                compileError(null, encoding);
             }
-            value = parserRopeOperations.withEncoding(value, ASCIIEncoding.INSTANCE);
-            encoding = Encodings.BINARY;
+            value = value.forceEncoding(Encodings.BINARY);
         } else if (lexer.getEncoding() == USASCIIEncoding.INSTANCE) {
-            if (!is7BitASCII(value)) {
-                value = parserRopeOperations.withEncoding(value, USASCIIEncoding.INSTANCE); // This will raise later
-                encoding = Encodings.US_ASCII;
+            if (!value.isAsciiOnly()) {
+                value = value.forceEncoding(Encodings.US_ASCII); // This will raise later
             } else {
-                value = parserRopeOperations.withEncoding(value, ASCIIEncoding.INSTANCE);
-                encoding = Encodings.BINARY;
+                value = value.forceEncoding(Encodings.BINARY);
             }
         }
-        return new RopeWithEncoding(value, encoding);
+        return value;
     }
 
-    protected ClassicRegexp checkRegexpSyntax(Rope value, RegexpOptions options) {
+    protected ClassicRegexp checkRegexpSyntax(TStringWithEncoding value, RegexpOptions options) {
         try {
             // This is only for syntax checking but this will as a side effect create an entry in the regexp cache.
-            return new ClassicRegexp(
-                    getConfiguration().getContext(),
-                    value,
-                    Encodings.getBuiltInEncoding(value.getEncoding().getIndex()),
-                    options);
+            return new ClassicRegexp(getConfiguration().getContext(), value, options);
         } catch (DeferredRaiseException dre) {
             throw compile_error(dre.getException(getConfiguration().getContext()).getMessage());
         } catch (RaiseException re) {
@@ -1816,22 +1813,24 @@ public class ParserSupport {
     }
 
     public ParseNode newRegexpNode(SourceIndexLength position, ParseNode contents, RegexpParseNode end) {
-        RegexpOptions options = end.getOptions().setup();
-        Encoding encoding = lexer.getEncoding();
+        final RegexpOptions options = end.getOptions().setup();
+        final Encoding encoding = lexer.getEncoding();
 
         if (contents == null) {
-            Rope newValue = RopeConstants.EMPTY_US_ASCII_ROPE;
+            TStringWithEncoding newValue = new TStringWithEncoding(RopeConstants.EMPTY_US_ASCII_TSTRING,
+                    Encodings.US_ASCII);
             if (encoding != null) {
-                newValue = parserRopeOperations.withEncoding(newValue, encoding);
+                newValue = newValue.forceEncoding(Encodings.getBuiltInEncoding(encoding));
             }
 
             newValue = regexpFragmentCheck(end, newValue);
-            return new RegexpParseNode(position, newValue, options.withoutOnce());
+            return new RegexpParseNode(position, newValue.toRope(), options.withoutOnce());
         } else if (contents instanceof StrParseNode) {
-            Rope meat = ((StrParseNode) contents).getValue();
+            Rope rope = ((StrParseNode) contents).getValue();
+            TStringWithEncoding meat = TStringUtils.fromRopeWithEnc(rope, Encodings.getBuiltInEncoding(rope.encoding));
             meat = regexpFragmentCheck(end, meat);
             checkRegexpSyntax(meat, options.withoutOnce());
-            return new RegexpParseNode(contents.getPosition(), meat, options.withoutOnce());
+            return new RegexpParseNode(contents.getPosition(), meat.toRope(), options.withoutOnce());
         } else if (contents instanceof DStrParseNode) {
             DStrParseNode dStrNode = (DStrParseNode) contents;
 
@@ -1839,22 +1838,22 @@ public class ParserSupport {
                 ParseNode fragment = dStrNode.get(i);
                 if (fragment instanceof StrParseNode) {
                     Rope frag = ((StrParseNode) fragment).getValue();
-                    regexpFragmentCheck(end, frag);
+                    regexpFragmentCheck(end,
+                            TStringUtils.fromRopeWithEnc(frag, Encodings.getBuiltInEncoding(frag.getEncoding())));
                 }
             }
 
             DRegexpParseNode dRegexpNode = new DRegexpParseNode(position, options, encoding);
-            dRegexpNode.add(new StrParseNode(contents.getPosition(), createMaster(options)));
+            dRegexpNode.add(new StrParseNode(contents.getPosition(), createMaster(options).toRope()));
             dRegexpNode.addAll(dStrNode);
             return dRegexpNode;
         }
 
         // EvStrParseNode: #{val}: no fragment check, but at least set encoding
-        Rope master = createMaster(options);
+        TStringWithEncoding master = createMaster(options);
         master = regexpFragmentCheck(end, master);
-        encoding = master.getEncoding();
-        DRegexpParseNode node = new DRegexpParseNode(position, options, encoding);
-        node.add(new StrParseNode(contents.getPosition(), master));
+        DRegexpParseNode node = new DRegexpParseNode(position, options, master.encoding.jcoding);
+        node.add(new StrParseNode(contents.getPosition(), master.toRope()));
         node.add(contents);
         return node;
     }
@@ -1862,9 +1861,10 @@ public class ParserSupport {
     // Create the magical empty 'master' string which will be encoded with
     // regexp options encoding so dregexps can end up starting with the
     // right encoding.
-    private Rope createMaster(RegexpOptions options) {
+    private TStringWithEncoding createMaster(RegexpOptions options) {
         final Encoding encoding = options.getEncoding();
-        return RopeOperations.emptyRope(encoding == null ? ASCIIEncoding.INSTANCE : encoding);
+        final RubyEncoding enc = encoding == null ? Encodings.BINARY : Encodings.getBuiltInEncoding(encoding);
+        return new TStringWithEncoding(enc.tencoding.getEmpty(), enc);
     }
 
     public KeywordArgParseNode keyword_arg(SourceIndexLength position, AssignableParseNode assignable) {
@@ -1894,7 +1894,7 @@ public class ParserSupport {
         return new DefinedParseNode(position, makeNullNil(something));
     }
 
-    public static final Rope INTERNAL_ID = RopeConstants.EMPTY_US_ASCII_ROPE;
+    public static final TruffleString INTERNAL_ID = RopeConstants.EMPTY_US_ASCII_TSTRING;
 
     public SourceIndexLength extendedUntil(SourceIndexLength start, SourceIndexLength end) {
         return new SourceIndexLength(start.getCharIndex(), end.getCharEnd() - start.getCharIndex());

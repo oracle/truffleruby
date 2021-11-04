@@ -33,7 +33,8 @@ package org.truffleruby.parser.ast;
 
 import java.util.List;
 
-import org.jcodings.Encoding;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.language.SourceIndexLength;
@@ -52,8 +53,8 @@ public class RegexpParseNode extends ParseNode implements ILiteralNode {
         this.options = options;
     }
 
-    public Encoding getEncoding() {
-        return value.getEncoding();
+    public RubyEncoding getRubyEncoding() {
+        return Encodings.getBuiltInEncoding(value.getEncoding());
     }
 
     @Override

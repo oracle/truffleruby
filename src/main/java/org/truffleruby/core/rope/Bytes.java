@@ -17,6 +17,7 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.strings.InternalByteArray;
 
 @ValueType
 @ExportLibrary(InteropLibrary.class)
@@ -34,6 +35,15 @@ public final class Bytes implements TruffleObject {
 
     public Bytes(byte[] array) {
         this(array, 0, array.length);
+    }
+
+    public static Bytes from(InternalByteArray bytes) {
+        return new Bytes(bytes.getArray(), bytes.getOffset(), bytes.getLength());
+    }
+
+    public static Bytes fromRange(InternalByteArray bytes, int start, int end) {
+        assert 0 <= start && start <= end && end <= bytes.getLength();
+        return new Bytes(bytes.getArray(), bytes.getOffset() + start, end - start);
     }
 
     public static Bytes fromRange(byte[] array, int start, int end) {

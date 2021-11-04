@@ -9,17 +9,15 @@
  */
 package org.truffleruby.core.thread;
 
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.backtrace.Backtrace;
 
@@ -50,16 +48,14 @@ public class ThreadBacktraceLocationNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object absolutePath(RubyBacktraceLocation threadBacktraceLocation,
-                @Cached MakeStringNode makeStringNode) {
+        protected Object absolutePath(RubyBacktraceLocation threadBacktraceLocation) {
             final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
-            return getAbsolutePath(sourceSection, makeStringNode, this);
+            return getAbsolutePath(sourceSection, this);
         }
 
         @TruffleBoundary
-        public static Object getAbsolutePath(SourceSection sourceSection, MakeStringNode makeStringNode,
-                RubyBaseNode node) {
+        public static Object getAbsolutePath(SourceSection sourceSection, RubyBaseNode node) {
             var context = node.getContext();
             var language = node.getLanguage();
 
@@ -72,12 +68,12 @@ public class ThreadBacktraceLocationNodes {
                 } else if (source.getPath() != null) { // A normal file
                     final String path = language.getSourcePath(source);
                     final String canonicalPath = context.getFeatureLoader().canonicalize(path);
-                    final Rope cachedRope = language.ropeCache
-                            .getRope(StringOperations.encodeRope(canonicalPath, UTF8Encoding.INSTANCE));
-                    return makeStringNode.fromRope(cachedRope, Encodings.UTF_8);
+                    var cachedRope = language.tstringCache.getTString(TStringUtils.utf8TString(canonicalPath),
+                            Encodings.UTF_8);
+                    return node.createString(cachedRope, Encodings.UTF_8);
                 } else { // eval()
-                    final Rope cachedPath = language.getPathToRopeCache().getCachedPath(source);
-                    return makeStringNode.fromRope(cachedPath, Encodings.UTF_8);
+                    var cachedPath = language.getPathToRopeCache().getCachedPath(source);
+                    return node.createString(cachedPath, Encodings.UTF_8);
                 }
             }
         }
@@ -89,15 +85,14 @@ public class ThreadBacktraceLocationNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyString path(RubyBacktraceLocation threadBacktraceLocation,
-                @Cached MakeStringNode makeStringNode) {
+        protected RubyString path(RubyBacktraceLocation threadBacktraceLocation) {
             final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
             if (sourceSection == null) {
                 return coreStrings().UNKNOWN.createInstance(getContext());
             } else {
-                final Rope path = getLanguage().getPathToRopeCache().getCachedPath(sourceSection.getSource());
-                return makeStringNode.fromRope(path, Encodings.UTF_8);
+                var path = getLanguage().getPathToRopeCache().getCachedPath(sourceSection.getSource());
+                return createString(path, Encodings.UTF_8);
             }
         }
 

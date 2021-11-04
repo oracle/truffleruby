@@ -12,8 +12,10 @@ package org.truffleruby.core.symbol;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
@@ -203,7 +205,12 @@ public class CoreSymbols {
             rope = RopeOperations.encodeAscii(string, USASCIIEncoding.INSTANCE);
         }
 
-        final RubySymbol symbol = new RubySymbol(string, rope, Encodings.US_ASCII, id);
+        TruffleString tstring = RopeConstants.lookupUSASCIITString(string);
+        if (tstring == null) {
+            tstring = TStringUtils.fromByteArray(rope.getBytes(), TruffleString.Encoding.US_ASCII);
+        }
+
+        final RubySymbol symbol = new RubySymbol(string, rope, tstring, Encodings.US_ASCII, id);
         CORE_SYMBOLS.add(symbol);
 
         if (id != RubySymbol.UNASSIGNED_ID) {

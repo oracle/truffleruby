@@ -10,7 +10,9 @@
 
 package org.truffleruby.core.string;
 
+import com.oracle.truffle.api.strings.AbstractTruffleString;
 import org.jcodings.Config;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -19,16 +21,14 @@ public class StringGuards {
 
     private static final int CASE_FULL_UNICODE = 0;
 
-    public static boolean isSingleByteOptimizable(Rope rope,
-            RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
-        return singleByteOptimizableNode.execute(rope);
+    public static boolean isSingleByteOptimizable(RubyString string,
+            StringNodes.NewSingleByteOptimizableNode singleByteOptimizableNode) {
+        return singleByteOptimizableNode.execute(string.tstring, string.encoding);
     }
 
-    public static boolean isSingleByteOptimizable(RubyString string,
-            RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
-
-        final Rope rope = string.rope;
-        return singleByteOptimizableNode.execute(rope);
+    public static boolean isSingleByteOptimizable(AbstractTruffleString tString, RubyEncoding encoding,
+            StringNodes.NewSingleByteOptimizableNode singleByteOptimizableNode) {
+        return singleByteOptimizableNode.execute(tString, encoding);
     }
 
     public static boolean is7Bit(Rope rope, RopeNodes.CodeRangeNode codeRangeNode) {
@@ -63,12 +63,15 @@ public class StringGuards {
         return rope.byteLength() == 1;
     }
 
-    public static boolean canMemcmp(Rope sourceRope, Rope patternRope,
-            RopeNodes.SingleByteOptimizableNode singleByteNode) {
+    public static boolean canMemcmp(AbstractTruffleString sourceRope, AbstractTruffleString patternRope,
+            RubyEncoding sourceEncoding,
+            RubyEncoding patternEncoding,
+            StringNodes.NewSingleByteOptimizableNode singleByteNode) {
 
-        return (singleByteNode.execute(sourceRope) || sourceRope.getEncoding().isUTF8()) &&
-                (singleByteNode.execute(patternRope) || patternRope.getEncoding().isUTF8());
+        return (singleByteNode.execute(sourceRope, sourceEncoding) || sourceEncoding.jcoding.isUTF8()) &&
+                (singleByteNode.execute(patternRope, patternEncoding) || patternEncoding.jcoding.isUTF8());
     }
+
 
     /** The case mapping is simple (ASCII-only or full Unicode): no complex option like Turkic, case-folding, etc. */
     public static boolean isAsciiCompatMapping(int caseMappingOptions) {
@@ -78,21 +81,21 @@ public class StringGuards {
     /** The string can be optimized to single-byte representation and is a simple case mapping (ASCII-only or full
      * Unicode). */
     public static boolean isSingleByteCaseMapping(RubyString string, int caseMappingOptions,
-            RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
+            StringNodes.NewSingleByteOptimizableNode singleByteOptimizableNode) {
         return isSingleByteOptimizable(string, singleByteOptimizableNode) && isAsciiCompatMapping(caseMappingOptions);
     }
 
     /** The string's encoding is ASCII-compatible, the mapping is ASCII-only and {@link #isSingleByteCaseMapping} is not
      * applicable. */
     public static boolean isSimpleAsciiCaseMapping(RubyString string, int caseMappingOptions,
-            RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
+            StringNodes.NewSingleByteOptimizableNode singleByteOptimizableNode) {
         return !isSingleByteOptimizable(string, singleByteOptimizableNode) &&
                 caseMappingOptions == Config.CASE_ASCII_ONLY && isAsciiCompatible(string);
     }
 
     /** Both {@link #isSingleByteCaseMapping} and {@link #isSimpleAsciiCaseMapping} are not applicable. */
     public static boolean isComplexCaseMapping(RubyString string, int caseMappingOptions,
-            RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
+            StringNodes.NewSingleByteOptimizableNode singleByteOptimizableNode) {
         return !isSingleByteCaseMapping(string, caseMappingOptions, singleByteOptimizableNode) &&
                 !isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode);
     }

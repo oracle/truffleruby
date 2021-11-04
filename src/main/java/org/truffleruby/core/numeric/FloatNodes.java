@@ -36,7 +36,6 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.thread.RubyThread;
-import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -892,19 +891,19 @@ public abstract class FloatNodes {
         @Specialization(guards = "value == POSITIVE_INFINITY")
         protected RubyString toSPositiveInfinity(double value,
                 @Cached("specialValueRope(POSITIVE_INFINITY)") Rope cachedRope) {
-            return makeStringNode.executeMake(cachedRope, Encodings.US_ASCII, NotProvided.INSTANCE);
+            return createString(cachedRope, Encodings.US_ASCII);
         }
 
         @Specialization(guards = "value == NEGATIVE_INFINITY")
         protected RubyString toSNegativeInfinity(double value,
                 @Cached("specialValueRope(NEGATIVE_INFINITY)") Rope cachedRope) {
-            return makeStringNode.executeMake(cachedRope, Encodings.US_ASCII, NotProvided.INSTANCE);
+            return createString(cachedRope, Encodings.US_ASCII);
         }
 
         @Specialization(guards = "isNaN(value)")
         protected RubyString toSNaN(double value,
                 @Cached("specialValueRope(value)") Rope cachedRope) {
-            return makeStringNode.executeMake(cachedRope, Encodings.US_ASCII, NotProvided.INSTANCE);
+            return createString(cachedRope, Encodings.US_ASCII);
         }
 
         @Specialization(guards = "hasNoExp(value)")

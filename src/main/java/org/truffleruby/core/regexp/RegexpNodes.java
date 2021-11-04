@@ -29,9 +29,8 @@ import org.truffleruby.core.regexp.RegexpNodesFactory.ToSNodeFactory;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.rope.RopeWithEncoding;
+import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.DeferredRaiseException;
@@ -49,20 +48,16 @@ public abstract class RegexpNodes {
 
     @CoreMethod(names = "hash")
     public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
-
         @Specialization
         protected int hash(RubyRegexp regexp) {
-            int options = regexp.regex.getOptions() &
-                    ~32 /* option n, NO_ENCODING in common/regexp.rb */;
-            return options ^ regexp.source.hashCode();
+            int options = regexp.regex.getOptions() & ~32 /* option n, NO_ENCODING in common/regexp.rb */;
+            return options ^ regexp.sourceTString.hashCode();
         }
-
     }
 
     @CoreMethod(names = { "quote", "escape" }, onSingleton = true, required = 1)
     public abstract static class QuoteNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode;
         @Child private ToStrNode toStrNode;
         @Child private QuoteNode quoteNode;
 
@@ -75,16 +70,12 @@ public abstract class RegexpNodes {
         @Specialization(guards = "libRaw.isRubyString(raw)")
         protected RubyString quoteString(Object raw,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libRaw) {
-            final Rope rope = libRaw.getRope(raw);
-            final RopeWithEncoding ropeQuotedResult = ClassicRegexp.quote19(rope, libRaw.getEncoding(raw));
-            return getMakeStringNode().fromRope(ropeQuotedResult.getRope(), ropeQuotedResult.getEncoding());
+            return createString(ClassicRegexp.quote19(new TStringWithEncoding(libRaw, raw)));
         }
 
         @Specialization
         protected RubyString quoteSymbol(RubySymbol raw) {
-            return doQuoteString(
-                    getMakeStringNode()
-                            .executeMake(raw.getString(), Encodings.UTF_8, CodeRange.CR_UNKNOWN));
+            return doQuoteString(createString(raw.getRope(), raw.encoding));
         }
 
         @Fallback
@@ -104,32 +95,18 @@ public abstract class RegexpNodes {
             }
             return quoteNode.execute(raw);
         }
-
-        private StringNodes.MakeStringNode getMakeStringNode() {
-            if (makeStringNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                makeStringNode = insert(StringNodes.MakeStringNode.create());
-            }
-
-            return makeStringNode;
-        }
     }
 
     @CoreMethod(names = "source")
     public abstract static class SourceNode extends CoreMethodArrayArgumentsNode {
-
         @Specialization
-        protected RubyString source(RubyRegexp regexp,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
-            return makeStringNode.fromRope(regexp.source, regexp.encoding);
+        protected RubyString source(RubyRegexp regexp) {
+            return createString(regexp.sourceTString, regexp.encoding);
         }
-
     }
 
     @CoreMethod(names = "to_s")
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         public static ToSNode create() {
             return ToSNodeFactory.create(null);
@@ -141,13 +118,13 @@ public abstract class RegexpNodes {
         protected RubyString toSCached(RubyRegexp regexp,
                 @Cached("regexp") RubyRegexp cachedRegexp,
                 @Cached("createRope(cachedRegexp)") Rope rope) {
-            return makeStringNode.fromRope(rope, Encodings.getBuiltInEncoding(rope.getEncoding().getIndex()));
+            return createString(rope, Encodings.getBuiltInEncoding(rope.getEncoding()));
         }
 
         @Specialization
         protected RubyString toS(RubyRegexp regexp) {
             final Rope rope = createRope(regexp);
-            return makeStringNode.fromRope(rope, Encodings.getBuiltInEncoding(rope.getEncoding().getIndex()));
+            return createString(rope, Encodings.getBuiltInEncoding(rope.getEncoding()));
         }
 
         @TruffleBoundary
@@ -156,8 +133,7 @@ public abstract class RegexpNodes {
             try {
                 classicRegexp = new ClassicRegexp(
                         getContext(),
-                        regexp.source,
-                        regexp.encoding,
+                        new TStringWithEncoding(regexp.sourceTString, regexp.encoding),
                         RegexpOptions.fromEmbeddedOptions(regexp.regex.getOptions()));
             } catch (DeferredRaiseException dre) {
                 throw dre.getException(getContext());
@@ -226,7 +202,7 @@ public abstract class RegexpNodes {
             try {
                 return RubyRegexp.create(
                         getLanguage(),
-                        libPattern.getRope(pattern),
+                        libPattern.getTString(pattern),
                         libPattern.getEncoding(pattern),
                         RegexpOptions.fromEmbeddedOptions(options),
                         this);

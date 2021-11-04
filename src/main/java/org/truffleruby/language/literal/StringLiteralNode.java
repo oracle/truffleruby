@@ -9,35 +9,30 @@
  */
 package org.truffleruby.language.literal;
 
+import com.oracle.truffle.api.strings.AbstractTruffleString;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.language.objects.AllocationTracing;
 
 public class StringLiteralNode extends RubyContextSourceNode {
 
-    private final Rope rope;
+    private final AbstractTruffleString tstring;
     private final RubyEncoding encoding;
 
     public StringLiteralNode(Rope rope) {
-        this.rope = rope;
-        this.encoding = Encodings.getBuiltInEncoding(rope.encoding.getIndex());
+        final RubyEncoding rubyEncoding = Encodings.getBuiltInEncoding(rope.encoding);
+        this.encoding = rubyEncoding;
+        this.tstring = TStringUtils.fromRope(rope, rubyEncoding);
     }
 
     @Override
     public RubyString execute(VirtualFrame frame) {
-        final RubyString string = new RubyString(
-                coreLibrary().stringClass,
-                getLanguage().stringShape,
-                false,
-                rope,
-                encoding);
-        AllocationTracing.trace(string, this);
-        return string;
+        return createString(tstring, encoding);
     }
 
 }

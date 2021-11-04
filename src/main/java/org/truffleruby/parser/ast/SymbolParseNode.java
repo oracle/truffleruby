@@ -75,7 +75,7 @@ public class SymbolParseNode extends ParseNode implements ILiteralNode, INameNod
             rope = value;
         }
 
-        //intern() to allow identity checks for caching
+        // intern() to allow identity checks for caching
         this.name = RopeOperations.decodeRope(rope).intern();
     }
 

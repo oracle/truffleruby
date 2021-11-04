@@ -36,13 +36,12 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.lexer;
 
-import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
-
-import java.nio.charset.StandardCharsets;
-
+import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.TStringUtils;
+import org.truffleruby.core.rope.ManagedRope;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.parser.ParserRopeOperations;
 
@@ -50,28 +49,38 @@ import com.oracle.truffle.api.source.Source;
 
 public class LexerSource {
 
-    private final ParserRopeOperations parserRopeOperations = new ParserRopeOperations();
+    public ParserRopeOperations parserRopeOperations;
     private final Source source;
     private final String sourcePath;
     private final boolean fromRope;
 
-    private Rope sourceBytes;
+    private TruffleString sourceBytes;
+    private final int sourceByteLength;
+    private RubyEncoding encoding;
     private int byteOffset;
     private final int lineOffset;
 
-    public LexerSource(RubySource rubySource, Encoding encoding) {
+    public LexerSource(RubySource rubySource) {
         this.source = rubySource.getSource();
         this.sourcePath = rubySource.getSourcePath();
 
         fromRope = rubySource.getRope() != null;
 
+        final RubyEncoding rubyEncoding;
         if (fromRope) {
-            this.sourceBytes = rubySource.getRope();
+            var rope = (ManagedRope) rubySource.getRope();
+            rubyEncoding = Encodings.getBuiltInEncoding(rope.getEncoding());
+            this.sourceBytes = TStringUtils.fromRope(rope, rubyEncoding);
         } else {
-            // TODO CS 5-Sep-17 can we get the bytes directly rather than using getCharacters ->  toString -> getBytes?
-            this.sourceBytes = RopeOperations
-                    .create(source.getCharacters().toString().getBytes(StandardCharsets.UTF_8), encoding, CR_UNKNOWN);
+            rubyEncoding = Encodings.UTF_8;
+            // TODO CS 5-Sep-17 can we get the bytes directly rather than using getCharacters -> toString -> getBytes?
+            var sourceString = source.getCharacters().toString();
+            // this.sourceBytes = TStringUtils.fromByteArray(sourceString.getBytes(StandardCharsets.UTF_8), TruffleString.Encoding.UTF_8);
+            this.sourceBytes = TStringUtils.utf8TString(sourceString);
         }
+        this.sourceByteLength = sourceBytes.byteLength(rubyEncoding.tencoding);
+        this.encoding = rubyEncoding;
+        parserRopeOperations = new ParserRopeOperations(this.encoding);
         this.lineOffset = rubySource.getLineOffset();
     }
 
@@ -84,26 +93,33 @@ public class LexerSource {
     }
 
     public Encoding getEncoding() {
-        return sourceBytes.getEncoding();
+        return encoding.jcoding;
     }
 
-    public void setEncoding(Encoding encoding) {
-        sourceBytes = parserRopeOperations.withEncoding(sourceBytes, encoding);
+    public RubyEncoding getRubyEncoding() {
+        return encoding;
+    }
+
+    public void setEncoding(Encoding jcoding) {
+        var rubyEncoding = Encodings.getBuiltInEncoding(jcoding);
+        this.sourceBytes = sourceBytes.forceEncodingUncached(this.encoding.tencoding, rubyEncoding.tencoding);
+        this.encoding = rubyEncoding;
+        this.parserRopeOperations = new ParserRopeOperations(this.encoding);
     }
 
     public int getOffset() {
         return byteOffset;
     }
 
-    public Rope gets() {
-        if (byteOffset >= sourceBytes.byteLength()) {
+    public TruffleString gets() {
+        if (byteOffset >= sourceByteLength) {
             return null;
         }
 
         int lineEnd = nextNewLine() + 1;
 
         if (lineEnd == 0) {
-            lineEnd = sourceBytes.byteLength();
+            lineEnd = sourceByteLength;
         }
 
         final int start = byteOffset;
@@ -111,17 +127,15 @@ public class LexerSource {
 
         byteOffset = lineEnd;
 
-        final Rope line = parserRopeOperations.makeShared(sourceBytes, start, length);
-        assert line.getEncoding() == sourceBytes.getEncoding();
-        return line;
+        return parserRopeOperations.makeShared(sourceBytes, start, length);
     }
 
     private int nextNewLine() {
+        // TODO: Try indexOf
         int n = byteOffset;
 
-        final byte[] bytes = sourceBytes.getBytes();
-        while (n < bytes.length) {
-            if (bytes[n] == '\n') {
+        while (n < sourceByteLength) {
+            if (sourceBytes.readByteUncached(n, encoding.tencoding) == '\n') {
                 return n;
             }
 

@@ -18,6 +18,7 @@ import java.util.Set;
 
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
 import org.jcodings.Ptr;
 import org.jcodings.transcode.EConv;
@@ -36,12 +37,10 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
-import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
-import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.EncodingUtils;
@@ -49,7 +48,6 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyNode;
@@ -186,74 +184,24 @@ public abstract class EncodingConverterNodes {
 
     @Primitive(name = "encoding_converter_primitive_convert", lowerFixnum = { 3, 4, 5 })
     public abstract static class PrimitiveConvertNode extends PrimitiveArrayArgumentsNode {
-
-        @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
-
         @TruffleBoundary
-        @Specialization(guards = "stringsSource.isRubyString(source)")
-        protected Object encodingConverterPrimitiveConvert(
-                RubyEncodingConverter encodingConverter,
-                Object source,
-                RubyString target,
-                int offset,
-                int size,
-                RubyHash options,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsSource) {
-            throw new UnsupportedOperationException("not implemented");
-        }
-
         @Specialization
-        protected Object primitiveConvertNilSource(
-                RubyEncodingConverter encodingConverter,
-                Nil source,
-                RubyString target,
-                int offset,
-                int size,
-                int options,
-                @Cached DispatchNode destinationEncodingNode) {
-            return primitiveConvertHelper(
-                    encodingConverter,
-                    source,
-                    RopeConstants.EMPTY_UTF8_ROPE,
-                    target,
-                    offset,
-                    size,
-                    options,
-                    destinationEncodingNode);
-        }
-
-        @Specialization(guards = "stringsSource.isRubyString(source)")
         protected Object encodingConverterPrimitiveConvert(
                 RubyEncodingConverter encodingConverter,
-                Object source,
+                RubyString source,
                 RubyString target,
                 int offset,
                 int size,
                 int options,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsSource,
-                @Cached DispatchNode destinationEncodingNode) {
-
+                @Cached DispatchNode destinationEncodingNode,
+                @Cached TruffleString.SubstringByteIndexNode substringNode,
+                @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode) {
             // Taken from org.jruby.RubyConverter#primitive_convert.
 
-            return primitiveConvertHelper(
-                    encodingConverter,
-                    source,
-                    stringsSource.getRope(source),
-                    target,
-                    offset,
-                    size,
-                    options,
-                    destinationEncodingNode);
-        }
+            var tencoding = source.encoding.tencoding;
 
-        @TruffleBoundary
-        private Object primitiveConvertHelper(RubyEncodingConverter encodingConverter, Object source, Rope sourceRope,
-                RubyString target, int offset, int size, int options, DispatchNode destinationEncodingNode) {
-            // Taken from org.jruby.RubyConverter#primitive_convert.
-
-            Rope targetRope = target.rope;
-            final boolean nonNullSource = source != nil;
-            final RopeBuilder outBytes = RopeOperations.toRopeBuilderCopy(targetRope);
+            var tstring = source.tstring;
+            final RopeBuilder outBytes = RopeBuilder.createRopeBuilder(target);
 
             final Ptr inPtr = new Ptr();
             final Ptr outPtr = new Ptr();
@@ -264,17 +212,11 @@ public abstract class EncodingConverterNodes {
             final boolean growOutputBuffer = (size == -1);
 
             if (size == -1) {
-                size = 16; // in MRI, this is RSTRING_EMBED_LEN_MAX
-
-                if (nonNullSource) {
-                    if (size < sourceRope.byteLength()) {
-                        size = sourceRope.byteLength();
-                    }
-                }
+                int minSize = 16; // in MRI, this is RSTRING_EMBED_LEN_MAX
+                size = Math.max(minSize, source.byteLength());
             }
 
             while (true) {
-
                 if (changeOffset) {
                     offset = outBytes.getLength();
                 }
@@ -285,7 +227,7 @@ public abstract class EncodingConverterNodes {
                             coreExceptions().argumentError("output offset too big", this));
                 }
 
-                long outputByteEnd = offset + size;
+                long outputByteEnd = (long) offset + size;
 
                 if (outputByteEnd > Integer.MAX_VALUE) {
                     // overflow check
@@ -296,25 +238,21 @@ public abstract class EncodingConverterNodes {
 
                 outBytes.unsafeEnsureSpace((int) outputByteEnd);
 
-                inPtr.p = 0;
+                var sourceBytes = getInternalByteArrayNode.execute(tstring, tencoding);
+
+                inPtr.p = sourceBytes.getOffset();
                 outPtr.p = offset;
-                int os = outPtr.p + size;
-                EConvResult res = convert(
-                        ec,
-                        sourceRope.getBytes(),
-                        inPtr,
-                        sourceRope.byteLength() + inPtr.p,
-                        outBytes.getUnsafeBytes(),
-                        outPtr,
-                        os,
+                EConvResult res = ec.convert(
+                        sourceBytes.getArray(), inPtr, sourceBytes.getEnd(),
+                        outBytes.getUnsafeBytes(), outPtr, outPtr.p + size,
                         options);
 
                 outBytes.setLength(outPtr.p);
 
-                if (nonNullSource) {
-                    sourceRope = substringNode.executeSubstring(sourceRope, inPtr.p, sourceRope.byteLength() - inPtr.p);
-                    ((RubyString) source).setRope(sourceRope);
-                }
+                int inputOffset = inPtr.p - sourceBytes.getOffset();
+                tstring = substringNode.execute(source.tstring, inputOffset, source.byteLength() - inputOffset,
+                        tencoding, true);
+                source.setTString(tstring);
 
                 if (growOutputBuffer && res == EConvResult.DestinationBufferFull) {
                     if (Integer.MAX_VALUE / 2 < size) {
@@ -327,7 +265,7 @@ public abstract class EncodingConverterNodes {
                 }
 
                 if (ec.destinationEncoding != null) {
-                    outBytes.setEncoding(ec.destinationEncoding);
+                    outBytes.setEncoding(Encodings.getBuiltInEncoding(ec.destinationEncoding));
                 }
 
                 target.setRope(
@@ -337,13 +275,6 @@ public abstract class EncodingConverterNodes {
                 return getSymbol(res.symbolicName());
             }
         }
-
-        @TruffleBoundary
-        private EConvResult convert(EConv ec, byte[] in, Ptr inPtr, int inStop, byte[] out, Ptr outPtr, int outStop,
-                int flags) {
-            return ec.convert(in, inPtr, inStop, out, outPtr, outStop, flags);
-        }
-
     }
 
     @CoreMethod(names = "putback", optional = 1, lowerFixnum = 1)

@@ -14,9 +14,10 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.jcodings.specific.UTF8Encoding;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.TStringUtils;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.source.Source;
@@ -27,39 +28,39 @@ public class PathToRopeCache {
 
     private final RubyLanguage language;
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
-    private final WeakHashMap<String, Rope> javaStringToRope = new WeakHashMap<>();
+    private final WeakHashMap<String, TruffleString> javaStringToTString = new WeakHashMap<>();
 
     public PathToRopeCache(RubyLanguage language) {
         this.language = language;
     }
 
     @TruffleBoundary
-    public Rope getCachedPath(Source source) {
+    public TruffleString getCachedPath(Source source) {
         final String path = language.getSourcePath(source);
 
         final Lock readLock = lock.readLock();
         readLock.lock();
         try {
-            final Rope rope = javaStringToRope.get(path);
-            if (rope != null) {
-                return rope;
+            var tstring = javaStringToTString.get(path);
+            if (tstring != null) {
+                return tstring;
             }
         } finally {
             readLock.unlock();
         }
 
-        final Rope cachedRope = language.ropeCache.getRope(
-                StringOperations.encodeRope(path, UTF8Encoding.INSTANCE));
+        final TruffleString cachedString = language.tstringCache.getTString(TStringUtils.utf8TString(path),
+                Encodings.UTF_8);
 
         final Lock writeLock = lock.writeLock();
         writeLock.lock();
         try {
-            javaStringToRope.putIfAbsent(path, cachedRope);
+            javaStringToTString.putIfAbsent(path, cachedString);
         } finally {
             writeLock.unlock();
         }
 
-        return cachedRope;
+        return cachedString;
     }
 
 }

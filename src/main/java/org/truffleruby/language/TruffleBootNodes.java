@@ -340,7 +340,7 @@ public abstract class TruffleBootNodes {
             } else if (value instanceof Enum) {
                 return getSymbol(value.toString());
             } else if (value instanceof String) {
-                return makeStringNode.executeMake(value, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                return makeStringNode.executeMake((String) value, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
             } else if (value instanceof String[]) {
                 return toRubyArray((String[]) value);
             } else {

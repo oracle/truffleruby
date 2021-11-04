@@ -48,7 +48,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
  * Callers must hold to the returned value. The entry will stay in the map as long as the value is referenced. */
 public class WeakValueCache<Key, Value> implements ReHashable {
 
-    private Map<Key, KeyedReference<Key, Value>> map;
+    private ConcurrentHashMap<Key, KeyedReference<Key, Value>> map;
     private final ReferenceQueue<Value> deadRefs = new ReferenceQueue<>();
 
     @TruffleBoundary

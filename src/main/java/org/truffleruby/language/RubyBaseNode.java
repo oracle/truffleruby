@@ -16,6 +16,8 @@ import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.CoreLibrary;
@@ -27,9 +29,13 @@ import org.truffleruby.core.exception.CoreExceptions;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.CoreStrings;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.library.RubyStringLibrary;
+import org.truffleruby.language.objects.AllocationTracing;
 
 import java.math.BigInteger;
 
@@ -150,6 +156,59 @@ public abstract class RubyBaseNode extends Node {
 
     protected final RubyArray createEmptyArray() {
         return ArrayHelpers.createEmptyArray(getContext(), getLanguage());
+    }
+
+    protected final RubyString createString(Rope rope, RubyEncoding encoding) {
+        final RubyString instance = new RubyString(
+                coreLibrary().stringClass,
+                getLanguage().stringShape,
+                false,
+                rope,
+                encoding);
+        AllocationTracing.trace(instance, this);
+        return instance;
+    }
+
+    public final RubyString createString(AbstractTruffleString tstring, RubyEncoding encoding) {
+        final RubyString instance = new RubyString(
+                coreLibrary().stringClass,
+                getLanguage().stringShape,
+                false,
+                tstring,
+                encoding);
+        AllocationTracing.trace(instance, this);
+        return instance;
+    }
+
+    public final RubyString createString(TStringWithEncoding tStringWithEncoding) {
+        return createString(tStringWithEncoding.tstring, tStringWithEncoding.encoding);
+    }
+
+    protected final RubyString createString(TruffleString.FromByteArrayNode fromByteArrayNode, byte[] bytes,
+            RubyEncoding encoding) {
+        var tstring = fromByteArrayNode.execute(bytes, encoding.tencoding, false);
+        return createString(tstring, encoding);
+    }
+
+    protected final RubyString createSubString(TruffleString.SubstringByteIndexNode substringNode,
+            RubyStringLibrary strings, Object source, int byteOffset, int byteLength) {
+        return createSubString(substringNode, strings.getTString(source), strings.getEncoding(source), byteOffset,
+                byteLength);
+    }
+
+    protected final RubyString createSubString(TruffleString.SubstringByteIndexNode substringNode,
+            AbstractTruffleString tstring, RubyEncoding encoding, int byteOffset, int byteLength) {
+        final TruffleString substring = substringNode.execute(tstring, byteOffset, byteLength, encoding.tencoding,
+                true);
+        return createString(substring, encoding);
+    }
+
+    protected final RubyString createSubString(TruffleString.SubstringNode substringNode,
+            AbstractTruffleString tstring, RubyEncoding encoding, int codePointOffset, int codePointLength) {
+        final TruffleString substring = substringNode.execute(tstring, codePointOffset, codePointLength,
+                encoding.tencoding,
+                true);
+        return createString(substring, encoding);
     }
 
     protected final CoreLibrary coreLibrary() {

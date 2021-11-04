@@ -18,9 +18,12 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.TStringGuards;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.LeafRope;
@@ -33,18 +36,20 @@ import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 
 /** All ImmutableRubyString are interned and must be created through
- * {@link FrozenStringLiterals#getFrozenStringLiteral(Rope)}. */
+ * {@link FrozenStringLiterals#getFrozenStringLiteral}. */
 @ExportLibrary(InteropLibrary.class)
 @ExportLibrary(RubyStringLibrary.class)
 public class ImmutableRubyString extends ImmutableRubyObjectCopyable implements TruffleObject {
 
     public final LeafRope rope;
+    public final TruffleString tstring;
     public final RubyEncoding encoding;
     private NativeRope nativeRope = null;
 
-    ImmutableRubyString(LeafRope rope, RubyEncoding encoding) {
-        assert rope.encoding == encoding.jcoding;
+    ImmutableRubyString(TruffleString tstring, LeafRope rope, RubyEncoding encoding) {
+        assert tstring.isCompatibleTo(encoding.tencoding);
         this.rope = rope;
+        this.tstring = tstring;
         this.encoding = encoding;
     }
 
@@ -88,6 +93,11 @@ public class ImmutableRubyString extends ImmutableRubyObjectCopyable implements 
     @ExportMessage
     protected Rope getRope() {
         return rope;
+    }
+
+    @ExportMessage
+    protected AbstractTruffleString getTString() {
+        return tstring;
     }
 
     @ExportMessage
@@ -141,12 +151,12 @@ public class ImmutableRubyString extends ImmutableRubyObjectCopyable implements 
         @Specialization(replaces = "asStringCached")
         protected static String asStringUncached(ImmutableRubyString string,
                 @Cached ConditionProfile asciiOnlyProfile,
-                @Cached RopeNodes.AsciiOnlyNode asciiOnlyNode,
+                @Cached TruffleString.GetByteCodeRangeNode codeRangeNode,
                 @Cached RopeNodes.BytesNode bytesNode) {
             final Rope rope = string.rope;
             final byte[] bytes = bytesNode.execute(rope);
 
-            if (asciiOnlyProfile.profile(asciiOnlyNode.execute(rope))) {
+            if (asciiOnlyProfile.profile(TStringGuards.is7Bit(string.tstring, string.encoding, codeRangeNode))) {
                 return RopeOperations.decodeAscii(bytes);
             } else {
                 return RopeOperations.decodeNonAscii(rope.getEncoding(), bytes, 0, bytes.length);

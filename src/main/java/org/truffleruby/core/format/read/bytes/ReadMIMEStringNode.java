@@ -35,14 +35,12 @@
  */
 package org.truffleruby.core.format.read.bytes;
 
-import java.util.Arrays;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.read.SourceNode;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.string.StringNodes;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -51,10 +49,9 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 @NodeChild(value = "source", type = SourceNode.class)
 public abstract class ReadMIMEStringNode extends FormatNode {
 
-    @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-
     @Specialization
-    protected Object read(VirtualFrame frame, byte[] source) {
+    protected Object read(VirtualFrame frame, byte[] source,
+            @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
         final int position = getSourcePosition(frame);
         final int sourceLength = getSourceLength(frame);
 
@@ -64,8 +61,8 @@ public abstract class ReadMIMEStringNode extends FormatNode {
 
         setSourcePosition(frame, sourceLength);
 
-        return makeStringNode
-                .executeMake(Arrays.copyOfRange(store, 0, storeIndex), Encodings.BINARY, CodeRange.CR_UNKNOWN);
+        var tstring = fromByteArrayNode.execute(store, 0, storeIndex, Encodings.BINARY.tencoding, true);
+        return createString(tstring, Encodings.BINARY);
     }
 
     // Logic from MRI pack.c pack_unpack_internal

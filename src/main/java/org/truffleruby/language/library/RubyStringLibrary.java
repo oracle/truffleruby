@@ -12,16 +12,18 @@ package org.truffleruby.language.library;
 import com.oracle.truffle.api.library.GenerateLibrary;
 import com.oracle.truffle.api.library.Library;
 import com.oracle.truffle.api.library.LibraryFactory;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.language.RubyBaseNode;
 
 @GenerateLibrary
 public abstract class RubyStringLibrary extends Library {
 
     private static final LibraryFactory<RubyStringLibrary> FACTORY = LibraryFactory.resolve(RubyStringLibrary.class);
 
-    public static LibraryFactory<RubyStringLibrary> getFactory() {
-        return FACTORY;
+    public static RubyStringLibrary createDispatched() {
+        return FACTORY.createDispatched(RubyBaseNode.LIBSTRING_CACHE);
     }
 
     public static RubyStringLibrary getUncached() {
@@ -33,6 +35,8 @@ public abstract class RubyStringLibrary extends Library {
     }
 
     public abstract Rope getRope(Object object);
+
+    public abstract AbstractTruffleString getTString(Object object);
 
     public abstract RubyEncoding getEncoding(Object object);
 

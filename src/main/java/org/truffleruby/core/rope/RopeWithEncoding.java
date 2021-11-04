@@ -9,7 +9,9 @@
  */
 package org.truffleruby.core.rope;
 
+import com.oracle.truffle.api.strings.AbstractTruffleString;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.TStringUtils;
 
 import java.util.Objects;
 
@@ -47,6 +49,14 @@ public final class RopeWithEncoding {
     @Override
     public int hashCode() {
         return Objects.hash(rope, encoding);
+    }
+
+    public AbstractTruffleString toTString() {
+        return TStringUtils.fromRope(rope, encoding);
+    }
+
+    public TStringWithEncoding toTStringWithEncoding() {
+        return new TStringWithEncoding(TStringUtils.fromRope(rope, encoding), encoding);
     }
 
 }

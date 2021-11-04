@@ -46,7 +46,6 @@ public class XStrParseNode extends ParseNode implements ILiteralNode {
     private CodeRange coderange;
 
     public XStrParseNode(SourceIndexLength position, Rope value, CodeRange coderange) {
-        // FIXME: Shouldn't this have codeRange like StrParseNode?
         super(position);
         this.value = (value == null ? RopeConstants.EMPTY_US_ASCII_ROPE : value);
         this.coderange = coderange;

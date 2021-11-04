@@ -9,10 +9,10 @@
  */
 package org.truffleruby.core.regexp;
 
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.cast.ToSNode;
 import org.truffleruby.core.regexp.InterpolatedRegexpNodeFactory.RegexpBuilderNodeGen;
-import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.rope.RopeWithEncoding;
+import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -34,7 +34,7 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
     public InterpolatedRegexpNode(ToSNode[] children, RegexpOptions options) {
         this.children = children;
         builderNode = RegexpBuilderNode.create(options);
-        rubyStringLibrary = RubyStringLibrary.getFactory().createDispatched(2);
+        rubyStringLibrary = RubyStringLibrary.createDispatched();
     }
 
     @Override
@@ -43,18 +43,19 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
     }
 
     @ExplodeLoop
-    protected RopeWithEncoding[] executeChildren(VirtualFrame frame) {
-        RopeWithEncoding[] values = new RopeWithEncoding[children.length];
+    protected TStringWithEncoding[] executeChildren(VirtualFrame frame) {
+        TStringWithEncoding[] values = new TStringWithEncoding[children.length];
         for (int i = 0; i < children.length; i++) {
             final Object value = children[i].execute(frame);
-            values[i] = new RopeWithEncoding(rubyStringLibrary.getRope(value), rubyStringLibrary.getEncoding(value));
+            values[i] = new TStringWithEncoding(rubyStringLibrary.getTString(value),
+                    rubyStringLibrary.getEncoding(value));
         }
         return values;
     }
 
     public abstract static class RegexpBuilderNode extends RubyBaseNode {
 
-        @Child private RopeNodes.EqualNode ropesEqualNode = RopeNodes.EqualNode.create();
+        @Child private TruffleString.EqualNode equalNode = TruffleString.EqualNode.create();
         private final RegexpOptions options;
 
         public static RegexpBuilderNode create(RegexpOptions options) {
@@ -65,29 +66,30 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
             this.options = options;
         }
 
-        public abstract Object execute(RopeWithEncoding[] parts);
+        public abstract Object execute(TStringWithEncoding[] parts);
 
         @Specialization(guards = "ropesWithEncodingsMatch(cachedParts, parts)", limit = "getDefaultCacheLimit()")
-        protected Object executeFast(RopeWithEncoding[] parts,
-                @Cached(value = "parts", dimensions = 1) RopeWithEncoding[] cachedParts,
+        protected Object executeFast(TStringWithEncoding[] parts,
+                @Cached(value = "parts", dimensions = 1) TStringWithEncoding[] cachedParts,
                 @Cached("createRegexp(cachedParts)") RubyRegexp regexp) {
             return regexp;
         }
 
         @Specialization(replaces = "executeFast")
-        protected Object executeSlow(RopeWithEncoding[] parts,
+        protected Object executeSlow(TStringWithEncoding[] parts,
                 @Cached NotOptimizedWarningNode notOptimizedWarningNode) {
             notOptimizedWarningNode.warn("unstable interpolated regexps are not optimized");
             return createRegexp(parts);
         }
 
         @ExplodeLoop
-        protected boolean ropesWithEncodingsMatch(RopeWithEncoding[] a, RopeWithEncoding[] b) {
+        protected boolean ropesWithEncodingsMatch(TStringWithEncoding[] a, TStringWithEncoding[] b) {
             for (int i = 0; i < a.length; i++) {
-                if (!ropesEqualNode.execute(a[i].getRope(), b[i].getRope())) {
+                var aEncoding = a[i].encoding;
+                if (aEncoding != b[i].encoding) {
                     return false;
                 }
-                if (a[i].getEncoding() != b[i].getEncoding()) {
+                if (!equalNode.execute(a[i].tstring, b[i].tstring, aEncoding.tencoding)) {
                     return false;
                 }
             }
@@ -95,12 +97,10 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
         }
 
         @TruffleBoundary
-        protected RubyRegexp createRegexp(RopeWithEncoding[] strings) {
+        protected RubyRegexp createRegexp(TStringWithEncoding[] strings) {
             try {
-                final RopeWithEncoding preprocessed;
-                preprocessed = ClassicRegexp.preprocessDRegexp(getContext(), strings, options);
-                return RubyRegexp
-                        .create(getLanguage(), preprocessed.getRope(), preprocessed.getEncoding(), options, this);
+                var preprocessed = ClassicRegexp.preprocessDRegexp(getContext(), strings, options);
+                return RubyRegexp.create(getLanguage(), preprocessed.tstring, preprocessed.encoding, options, this);
             } catch (DeferredRaiseException dre) {
                 throw dre.getException(getContext());
             }

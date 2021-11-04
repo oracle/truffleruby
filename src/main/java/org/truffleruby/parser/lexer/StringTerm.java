@@ -86,7 +86,7 @@ public class StringTerm extends StrTerm {
 
     protected RopeBuilder createRopeBuilder(RubyLexer lexer) {
         RopeBuilder builder = new RopeBuilder();
-        builder.setEncoding(lexer.getEncoding());
+        builder.setEncoding(lexer.encoding);
         return builder;
     }
 
@@ -286,7 +286,7 @@ public class StringTerm extends StrTerm {
                                 // note the newline and the backslash have been consumed and haven't been added to the buffer!
                                 c = '\\';
                                 if (enc != null) {
-                                    buffer.setEncoding(lexer.getEncoding());
+                                    buffer.setEncoding(lexer.encoding);
                                 }
                                 return c;
                             }

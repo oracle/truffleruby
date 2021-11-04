@@ -18,15 +18,18 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.Node;
 
+import com.oracle.truffle.api.strings.AbstractTruffleString;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.joni.Regex;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeWithEncoding;
 import org.truffleruby.language.ImmutableRubyObjectNotCopyable;
+import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
@@ -35,20 +38,22 @@ public class RubyRegexp extends ImmutableRubyObjectNotCopyable implements Truffl
 
     @TruffleBoundary
     public static RubyRegexp create(RubyLanguage language,
-            Rope setSource,
-            RubyEncoding setSourceEncoding,
+            AbstractTruffleString source,
+            RubyEncoding sourceEncoding,
             RegexpOptions regexpOptions,
             Node currentNode) throws DeferredRaiseException {
-        final RegexpCacheKey key = RegexpCacheKey.calculate(
-                new RopeWithEncoding(setSource, setSourceEncoding),
-                regexpOptions);
+        var strEnc = new TStringWithEncoding(source, sourceEncoding);
+        if (regexpOptions.isEncodingNone()) {
+            strEnc = strEnc.forceEncoding(Encodings.BINARY);
+        }
+
+        final RegexpCacheKey key = RegexpCacheKey.calculate(strEnc, regexpOptions);
         RubyRegexp regexp = language.getRegexp(key);
         if (regexp == null) {
-            RegexpOptions optionsArray[] = new RegexpOptions[]{ regexpOptions };
+            var optionsArray = new RegexpOptions[]{ regexpOptions };
             final Regex regex = TruffleRegexpNodes.compile(
-                    language,
                     null,
-                    new RopeWithEncoding(setSource, setSourceEncoding),
+                    strEnc,
                     optionsArray,
                     currentNode);
             regexp = new RubyRegexp(regex, optionsArray[0]);
@@ -66,6 +71,7 @@ public class RubyRegexp extends ImmutableRubyObjectNotCopyable implements Truffl
 
     public final Regex regex;
     public final Rope source;
+    public final TruffleString sourceTString;
     public final RubyEncoding encoding;
     public final RegexpOptions options;
     public final EncodingCache cachedEncodings;
@@ -76,10 +82,10 @@ public class RubyRegexp extends ImmutableRubyObjectNotCopyable implements Truffl
         // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when
         // constructing the final regexp.
         this.regex = regex;
-        final RopeWithEncoding ropeWithEncoding = (RopeWithEncoding) regex.getUserObject();
-        this.source = ropeWithEncoding.getRope();
+        final TStringWithEncoding ropeWithEncoding = (TStringWithEncoding) regex.getUserObject();
+        this.sourceTString = (TruffleString) ropeWithEncoding.tstring;
+        this.source = ropeWithEncoding.toRope();
         this.encoding = ropeWithEncoding.getEncoding();
-        assert source.encoding == encoding.jcoding;
         this.options = options;
         this.cachedEncodings = new EncodingCache();
         this.tregexCache = new TRegexCache();

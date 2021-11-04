@@ -9,10 +9,12 @@
  */
 package org.truffleruby.core.string;
 
+import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 
@@ -26,6 +28,7 @@ public class CoreString {
     private final String literal;
 
     @CompilationFinal private volatile Rope rope;
+    @CompilationFinal private volatile TruffleString tstring;
 
     public CoreString(RubyLanguage language, String literal) {
         assert language != null;
@@ -49,8 +52,26 @@ public class CoreString {
         return rope;
     }
 
+    public TruffleString getTruffleString() {
+        if (tstring == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+
+            // Binary because error message Strings have a ASCII-8BIT encoding on MRI.
+            // When used for creating a Symbol, the encoding is adapted as needed.
+            // TODO: use RopeCache equivalent
+            tstring = TStringUtils.fromByteArray(RopeOperations.encodeAsciiBytes(literal), Encodings.BINARY);
+        }
+
+        return tstring;
+    }
+
     public RubyString createInstance(RubyContext context) {
-        return StringOperations.createString(context, language, getRope(), Encodings.BINARY);
+        return new RubyString(
+                context.getCoreLibrary().stringClass,
+                language.stringShape,
+                false,
+                getTruffleString(),
+                Encodings.BINARY);
     }
 
     private static boolean is7Bit(String literal) {

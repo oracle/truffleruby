@@ -34,6 +34,7 @@ package org.truffleruby.parser.ast;
 
 import java.util.List;
 
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
@@ -65,7 +66,7 @@ public class StrParseNode extends ParseNode implements ILiteralNode, SideEffectF
         Rope tailBL = tail.getValue();
 
         RopeBuilder myValue = new RopeBuilder();
-        myValue.setEncoding(headBL.getEncoding());
+        myValue.setEncoding(Encodings.getBuiltInEncoding(headBL.getEncoding()));
         myValue.append(headBL);
         myValue.append(tailBL);
 

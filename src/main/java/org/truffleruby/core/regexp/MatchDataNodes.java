@@ -16,7 +16,8 @@ import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
-import org.jcodings.Encoding;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.joni.NameEntry;
 import org.joni.Regex;
 import org.joni.Region;
@@ -31,13 +32,14 @@ import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.ToIntNode;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.regexp.MatchDataNodesFactory.ValuesNodeFactory;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -99,10 +101,11 @@ public abstract class MatchDataNodes {
     }
 
     @TruffleBoundary
-    private static Region getCharOffsetsManyRegs(RubyMatchData matchData, Rope source, Encoding encoding) {
+    private static Region getCharOffsetsManyRegs(RubyMatchData matchData, AbstractTruffleString source,
+            RubyEncoding encoding) {
         // Taken from org.jruby.RubyMatchData
 
-        assert !encoding.isSingleByte() : "Should be checked by callers";
+        assert !encoding.jcoding.isSingleByte() : "Should be checked by callers";
 
         final Region regs = matchData.region;
         int numRegs = regs.numRegs;
@@ -144,37 +147,38 @@ public abstract class MatchDataNodes {
     }
 
     @TruffleBoundary
-    private static void updatePairs(Rope source, Encoding encoding, Pair[] pairs) {
+    private static void updatePairs(AbstractTruffleString source, RubyEncoding encoding, Pair[] pairs) {
         // Taken from org.jruby.RubyMatchData
         Arrays.sort(pairs);
 
-        byte[] bytes = source.getBytes();
-        int p = 0;
+        var byteArray = source.getInternalByteArrayUncached(encoding.tencoding);
+        byte[] bytes = byteArray.getArray();
+        int p = byteArray.getOffset();
         int s = p;
         int c = 0;
 
         for (Pair pair : pairs) {
             int q = s + pair.bytePos;
-            c += StringSupport.strLength(encoding, bytes, p, q);
+            c += StringSupport.strLength(encoding.jcoding, bytes, p, q);
             pair.charPos = c;
             p = q;
         }
     }
 
     @TruffleBoundary
-    private static Region createCharOffsets(RubyMatchData matchData, Rope source) {
-        final Encoding enc = source.getEncoding();
-        final Region charOffsets = getCharOffsetsManyRegs(matchData, source, enc);
+    private static Region createCharOffsets(RubyMatchData matchData, AbstractTruffleString source,
+            RubyEncoding encoding) {
+        final Region charOffsets = getCharOffsetsManyRegs(matchData, source, encoding);
         matchData.charOffsets = charOffsets;
         return charOffsets;
     }
 
-    private static Region getCharOffsets(RubyMatchData matchData, Rope sourceRope) {
+    private static Region getCharOffsets(RubyMatchData matchData, AbstractTruffleString source, RubyEncoding encoding) {
         final Region charOffsets = matchData.charOffsets;
         if (charOffsets != null) {
             return charOffsets;
         } else {
-            return createCharOffsets(matchData, sourceRope);
+            return createCharOffsets(matchData, source, encoding);
         }
     }
 
@@ -238,7 +242,6 @@ public abstract class MatchDataNodes {
 
         @Child private RegexpNode regexpNode;
         @Child private ValuesNode getValuesNode = ValuesNode.create();
-        @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
 
         public static GetIndexNode create(RubyNode... nodes) {
             return MatchDataNodesFactory.GetIndexNodeFactory.create(nodes);
@@ -253,7 +256,8 @@ public abstract class MatchDataNodes {
                 @Cached ConditionProfile indexOutOfBoundsProfile,
                 @Cached ConditionProfile lazyProfile,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop,
-                @Cached ConditionProfile hasValueProfile) {
+                @Cached ConditionProfile hasValueProfile,
+                @Cached TruffleString.SubstringByteIndexNode substringNode) {
 
             final Region region = matchData.region;
             if (normalizedIndexProfile.profile(index < 0)) {
@@ -268,16 +272,7 @@ public abstract class MatchDataNodes {
 
                 if (hasValueProfile.profile(start >= 0 && end >= 0)) {
                     final Object source = matchData.source;
-                    final Rope sourceRope = strings.getRope(source);
-                    final Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
-                    final RubyString string = new RubyString(
-                            coreLibrary().stringClass,
-                            getLanguage().stringShape,
-                            false,
-                            rope,
-                            strings.getEncoding(source));
-                    AllocationTracing.trace(string, this);
-                    return string;
+                    return createSubString(substringNode, strings, source, start, end - start);
                 } else {
                     return nil;
                 }
@@ -464,7 +459,7 @@ public abstract class MatchDataNodes {
                 @Cached ConditionProfile lazyProfile,
                 @Cached ConditionProfile negativeBeginProfile,
                 @Cached ConditionProfile multiByteCharacterProfile,
-                @Cached RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode,
+                @Cached StringNodes.NewSingleByteOptimizableNode singleByteOptimizableNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop) {
             final int begin = getStart(matchData, index, lazyProfile, interop);
@@ -473,9 +468,12 @@ public abstract class MatchDataNodes {
                 return nil;
             }
 
-            final Rope matchDataSourceRope = strings.getRope(matchData.source);
-            if (multiByteCharacterProfile.profile(!singleByteOptimizableNode.execute(matchDataSourceRope))) {
-                return getCharOffsets(matchData, matchDataSourceRope).beg[index];
+            var matchDataSource = strings.getTString(matchData.source);
+            var encoding = strings.getEncoding(matchData.source);
+
+            if (multiByteCharacterProfile.profile(
+                    !singleByteOptimizableNode.execute(matchDataSource, encoding))) {
+                return getCharOffsets(matchData, matchDataSource, encoding).beg[index];
             }
 
             return begin;
@@ -497,8 +495,6 @@ public abstract class MatchDataNodes {
 
     public abstract static class ValuesNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
-
         public static ValuesNode create() {
             return ValuesNodeFactory.create(null);
         }
@@ -511,7 +507,8 @@ public abstract class MatchDataNodes {
                 @Cached ConditionProfile lazyProfile,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop,
                 @Cached ConditionProfile hasValueProfile,
-                @Cached LoopConditionProfile loopProfile) {
+                @Cached LoopConditionProfile loopProfile,
+                @Cached TruffleString.SubstringByteIndexNode substringNode) {
             final Object source = matchData.source;
             final Rope sourceRope = strings.getRope(source);
             final Region region = matchData.region;
@@ -524,15 +521,7 @@ public abstract class MatchDataNodes {
                     final int end = getEnd(matchData, n, lazyProfile, interop);
 
                     if (hasValueProfile.profile(start >= 0 && end >= 0)) {
-                        final Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
-                        final RubyString string = new RubyString(
-                                coreLibrary().stringClass,
-                                getLanguage().stringShape,
-                                false,
-                                rope,
-                                strings.getEncoding(source));
-                        AllocationTracing.trace(string, this);
-                        values[n] = string;
+                        values[n] = createSubString(substringNode, strings, source, start, end - start);
                     } else {
                         values[n] = nil;
                     }
@@ -556,7 +545,7 @@ public abstract class MatchDataNodes {
                 @Cached ConditionProfile lazyProfile,
                 @Cached ConditionProfile negativeEndProfile,
                 @Cached ConditionProfile multiByteCharacterProfile,
-                @Cached RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode,
+                @Cached StringNodes.NewSingleByteOptimizableNode singleByteOptimizableNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop) {
             final int end = getEnd(matchData, index, lazyProfile, interop);
@@ -565,9 +554,12 @@ public abstract class MatchDataNodes {
                 return nil;
             }
 
-            final Rope matchDataSourceRope = strings.getRope(matchData.source);
-            if (multiByteCharacterProfile.profile(!singleByteOptimizableNode.execute(matchDataSourceRope))) {
-                return getCharOffsets(matchData, matchDataSourceRope).end[index];
+            var matchDataSource = strings.getTString(matchData.source);
+            var encoding = strings.getEncoding(matchData.source);
+
+            if (multiByteCharacterProfile.profile(
+                    !singleByteOptimizableNode.execute(matchDataSource, encoding))) {
+                return getCharOffsets(matchData, matchDataSource, encoding).end[index];
             }
 
             return end;
@@ -643,34 +635,22 @@ public abstract class MatchDataNodes {
     @CoreMethod(names = "pre_match")
     public abstract static class PreMatchNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
-
         public abstract RubyString execute(RubyMatchData matchData);
 
         @Specialization
         protected RubyString preMatch(RubyMatchData matchData,
                 @Cached ConditionProfile lazyProfile,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached TruffleString.SubstringByteIndexNode substringNode) {
             Object source = matchData.source;
-            Rope sourceRope = strings.getRope(source);
             final int length = getStart(matchData, 0, lazyProfile, interop);
-            final Rope rope = substringNode.executeSubstring(sourceRope, 0, length);
-            final RubyString string = new RubyString(
-                    coreLibrary().stringClass,
-                    getLanguage().stringShape,
-                    false,
-                    rope,
-                    strings.getEncoding(source));
-            AllocationTracing.trace(string, this);
-            return string;
+            return createSubString(substringNode, strings, source, 0, length);
         }
     }
 
     @CoreMethod(names = "post_match")
     public abstract static class PostMatchNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
 
         public abstract RubyString execute(RubyMatchData matchData);
 
@@ -678,20 +658,13 @@ public abstract class MatchDataNodes {
         protected RubyString postMatch(RubyMatchData matchData,
                 @Cached ConditionProfile lazyProfile,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached TruffleString.SubstringByteIndexNode substringNode) {
             Object source = matchData.source;
             Rope sourceRope = strings.getRope(source);
             final int start = getEnd(matchData, 0, lazyProfile, interop);
             int length = sourceRope.byteLength() - start;
-            Rope rope = substringNode.executeSubstring(sourceRope, start, length);
-            final RubyString string = new RubyString(
-                    coreLibrary().stringClass,
-                    getLanguage().stringShape,
-                    false,
-                    rope,
-                    strings.getEncoding(source));
-            AllocationTracing.trace(string, this);
-            return string;
+            return createSubString(substringNode, strings, source, start, length);
         }
     }
 

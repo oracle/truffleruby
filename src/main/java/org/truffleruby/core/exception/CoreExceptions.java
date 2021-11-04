@@ -23,7 +23,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.binding.RubyBinding;
-import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.ExceptionOperations.ExceptionFormatter;
 import org.truffleruby.core.klass.RubyClass;
@@ -39,6 +38,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
 import org.truffleruby.language.Nil;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
@@ -128,44 +128,48 @@ public class CoreExceptions {
 
     // ArgumentError
 
-    public RubyException argumentErrorOneHashRequired(Node currentNode) {
-        return argumentError(coreStrings().ONE_HASH_REQUIRED.getRope(), Encodings.BINARY, currentNode, null);
-    }
-
-    public RubyException argumentError(Rope message, RubyEncoding encoding, Node currentNode) {
-        return argumentError(message, encoding, currentNode, null);
+    public RubyException argumentErrorOneHashRequired(RubyBaseNode currentNode) {
+        return argumentError(coreStrings().ONE_HASH_REQUIRED.createInstance(currentNode.getContext()), currentNode,
+                null);
     }
 
     public RubyException argumentError(String message, Node currentNode) {
         return argumentError(message, currentNode, null);
     }
 
-    public RubyException argumentErrorProcWithoutBlock(Node currentNode) {
-        return argumentError(coreStrings().PROC_WITHOUT_BLOCK.getRope(), Encodings.BINARY, currentNode, null);
+    public RubyException argumentErrorProcWithoutBlock(RubyBaseNode currentNode) {
+        return argumentError(coreStrings().PROC_WITHOUT_BLOCK.createInstance(currentNode.getContext()), currentNode,
+                null);
     }
 
-    public RubyException argumentErrorTooFewArguments(Node currentNode) {
-        return argumentError(coreStrings().TOO_FEW_ARGUMENTS.getRope(), Encodings.BINARY, currentNode, null);
+    public RubyException argumentErrorTooFewArguments(RubyBaseNode currentNode) {
+        return argumentError(coreStrings().TOO_FEW_ARGUMENTS.createInstance(currentNode.getContext()), currentNode,
+                null);
     }
 
-    public RubyException argumentErrorTimeIntervalPositive(Node currentNode) {
-        return argumentError(coreStrings().TIME_INTERVAL_MUST_BE_POS.getRope(), Encodings.BINARY, currentNode, null);
+    public RubyException argumentErrorTimeIntervalPositive(RubyBaseNode currentNode) {
+        return argumentError(coreStrings().TIME_INTERVAL_MUST_BE_POS.createInstance(currentNode.getContext()),
+                currentNode, null);
     }
 
-    public RubyException argumentErrorXOutsideOfString(Node currentNode) {
-        return argumentError(coreStrings().X_OUTSIDE_OF_STRING.getRope(), Encodings.BINARY, currentNode, null);
+    public RubyException argumentErrorXOutsideOfString(RubyBaseNode currentNode) {
+        return argumentError(coreStrings().X_OUTSIDE_OF_STRING.createInstance(currentNode.getContext()), currentNode,
+                null);
     }
 
-    public RubyException argumentErrorCantCompressNegativeNumbers(Node currentNode) {
-        return argumentError(coreStrings().CANT_COMPRESS_NEGATIVE.getRope(), Encodings.BINARY, currentNode, null);
+    public RubyException argumentErrorCantCompressNegativeNumbers(RubyBaseNode currentNode) {
+        return argumentError(coreStrings().CANT_COMPRESS_NEGATIVE.createInstance(currentNode.getContext()), currentNode,
+                null);
     }
 
-    public RubyException argumentErrorOutOfRange(Node currentNode) {
-        return argumentError(coreStrings().ARGUMENT_OUT_OF_RANGE.getRope(), Encodings.BINARY, currentNode, null);
+    public RubyException argumentErrorOutOfRange(RubyBaseNode currentNode) {
+        return argumentError(coreStrings().ARGUMENT_OUT_OF_RANGE.createInstance(currentNode.getContext()), currentNode,
+                null);
     }
 
-    public RubyException argumentErrorNegativeArraySize(Node currentNode) {
-        return argumentError(coreStrings().NEGATIVE_ARRAY_SIZE.getRope(), Encodings.BINARY, currentNode, null);
+    public RubyException argumentErrorNegativeArraySize(RubyBaseNode currentNode) {
+        return argumentError(coreStrings().NEGATIVE_ARRAY_SIZE.createInstance(currentNode.getContext()), currentNode,
+                null);
     }
 
     public RubyException argumentErrorTooLargeString(Node currentNode) {
@@ -237,8 +241,9 @@ public class CoreExceptions {
         }
     }
 
-    public RubyException argumentErrorEmptyVarargs(Node currentNode) {
-        return argumentError(coreStrings().WRONG_ARGS_ZERO_PLUS_ONE.getRope(), Encodings.BINARY, currentNode, null);
+    public RubyException argumentErrorEmptyVarargs(RubyBaseNode currentNode) {
+        return argumentError(coreStrings().WRONG_ARGS_ZERO_PLUS_ONE.createInstance(currentNode.getContext()),
+                currentNode, null);
     }
 
     @TruffleBoundary
@@ -267,21 +272,13 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException argumentError(String message, Node currentNode, Throwable javaThrowable) {
-        return argumentError(
-                StringOperations.encodeRope(message, UTF8Encoding.INSTANCE),
-                Encodings.UTF_8,
-                currentNode,
-                javaThrowable);
+        return argumentError(StringOperations.createUTF8String(context, language,
+                StringOperations.encodeRope(message, UTF8Encoding.INSTANCE)), currentNode, javaThrowable);
     }
 
-    public RubyException argumentError(Rope message, RubyEncoding encoding, Node currentNode, Throwable javaThrowable) {
+    public RubyException argumentError(RubyString message, Node currentNode, Throwable javaThrowable) {
         RubyClass exceptionClass = context.getCoreLibrary().argumentErrorClass;
-        return ExceptionOperations.createRubyException(
-                context,
-                exceptionClass,
-                StringOperations.createString(currentNode, message, encoding),
-                currentNode,
-                javaThrowable);
+        return ExceptionOperations.createRubyException(context, exceptionClass, message, currentNode, javaThrowable);
     }
 
     @TruffleBoundary

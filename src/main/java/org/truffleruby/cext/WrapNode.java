@@ -72,12 +72,9 @@ public abstract class WrapNode extends RubyBaseNode {
 
     @Specialization
     protected ValueWrapper wrapWrappedValue(ValueWrapper value) {
-        throw new RaiseException(
-                getContext(),
-                coreExceptions().argumentError(
-                        RopeOperations.encodeAscii("Wrapping wrapped object", UTF8Encoding.INSTANCE),
-                        Encodings.UTF_8,
-                        this));
+        var message = createString(RopeOperations.encodeAscii("Wrapping wrapped object", UTF8Encoding.INSTANCE),
+                Encodings.UTF_8);
+        throw new RaiseException(getContext(), coreExceptions().argumentError(message, this, null));
     }
 
     @Specialization

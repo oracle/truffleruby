@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.format.format;
 
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToIntNodeGen;
 import org.truffleruby.core.format.FormatNode;
@@ -84,7 +85,7 @@ public abstract class FormatCharacterNode extends FormatNode {
             final int charValue = toIntegerNode.execute(value);
             // TODO BJF check char length is > 0
             charString = Character.toString((char) charValue);
-        } else {
+        } else if (toStrResult instanceof Rope) {
             Rope rope = (Rope) toStrResult;
             final String resultString = RopeOperations.decodeRope(rope);
             final int size = resultString.length();
@@ -94,6 +95,14 @@ public abstract class FormatCharacterNode extends FormatNode {
                         getContext().getCoreExceptions().argumentErrorCharacterRequired(this));
             }
             charString = resultString;
+        } else {
+            var tstring = (TruffleString) toStrResult;
+            charString = tstring.toJavaStringUncached();
+            if (charString.length() > 1) {
+                throw new RaiseException(
+                        getContext(),
+                        getContext().getCoreExceptions().argumentErrorCharacterRequired(this));
+            }
         }
         return charString;
     }

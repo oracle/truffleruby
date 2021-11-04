@@ -34,6 +34,7 @@ import static org.truffleruby.core.rope.CodeRange.CR_VALID;
 import java.util.Arrays;
 
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
 import org.graalvm.collections.Pair;
 import org.jcodings.Config;
 import org.jcodings.Encoding;
@@ -48,6 +49,7 @@ import org.truffleruby.collections.IntHashMap;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.rope.Bytes;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
@@ -487,10 +489,19 @@ public final class StringSupport {
 
     /** rb_str_tr / rb_str_tr_bang */
     public static final class TR {
-        public TR(Rope bytes) {
+        public TR(Rope rope) {
             p = 0;
-            pend = bytes.byteLength() + p;
-            buf = bytes.getBytes();
+            pend = p + rope.byteLength();
+            buf = rope.getBytes();
+            now = max = 0;
+            gen = false;
+        }
+
+        public TR(AbstractTruffleString string, RubyEncoding encoding) {
+            var bytes = string.getInternalByteArrayUncached(encoding.tencoding);
+            p = bytes.getOffset();
+            pend = bytes.getEnd();
+            buf = bytes.getArray();
             now = max = 0;
             gen = false;
         }
@@ -508,14 +519,17 @@ public final class StringSupport {
     private static final Object DUMMY_VALUE = "";
 
     @TruffleBoundary
-    public static TrTables trSetupTable(Rope str, boolean[] stable, TrTables tables, boolean first, Encoding enc,
+    public static TrTables trSetupTable(AbstractTruffleString str, RubyEncoding encoding, boolean[] stable,
+            TrTables tables, boolean first, Encoding enc,
             Node node) {
         int i, l[] = { 0 };
         final boolean cflag;
 
-        final TR tr = new TR(str);
+        final TR tr = new TR(str, encoding);
 
-        if (str.byteLength() > 1 && EncodingUtils.encAscget(tr.buf, tr.p, tr.pend, l, enc, str.getCodeRange()) == '^') {
+        CodeRange codeRange = TStringUtils.toCodeRange(str.getByteCodeRangeUncached(encoding.tencoding));
+        if (str.byteLength(encoding.tencoding) > 1 &&
+                EncodingUtils.encAscget(tr.buf, tr.p, tr.pend, l, enc, codeRange) == '^') {
             cflag = true;
             tr.p += l[0];
         } else {
@@ -539,7 +553,7 @@ public final class StringSupport {
         IntHashMap<Object> table = null, ptable = null;
 
         int c;
-        while ((c = trNext(tr, enc, str.getCodeRange(), node)) != -1) {
+        while ((c = trNext(tr, enc, codeRange, node)) != -1) {
             if (c < TRANS_SIZE) {
                 if (buf == null) { // initialize buf
                     buf = new byte[TRANS_SIZE];
@@ -678,14 +692,14 @@ public final class StringSupport {
 
     // MRI: str_succ
     @TruffleBoundary
-    public static RopeBuilder succCommon(Rope original, Node node) {
+    public static RopeBuilder succCommon(RubyString original, Node node) {
         byte carry[] = new byte[org.jcodings.Config.ENC_CODE_TO_MBC_MAXLEN];
         int carryP = 0;
         carry[0] = 1;
         int carryLen = 1;
 
-        Encoding enc = original.getEncoding();
-        RopeBuilder valueCopy = RopeBuilder.createRopeBuilder(original.getBytes(), enc);
+        Encoding enc = original.encoding.jcoding;
+        RopeBuilder valueCopy = RopeBuilder.createRopeBuilder(original);
         int p = 0;
         int end = p + valueCopy.getLength();
         int s = end;
@@ -1709,7 +1723,7 @@ public final class StringSupport {
         boolean[] utf8 = { false };
         boolean[] binary = { false };
         RopeBuilder undumped = new RopeBuilder();
-        undumped.setEncoding(enc[0]);
+        undumped.setEncoding(encoding);
 
         CodeRange cr = rope.getCodeRange();
         if (cr != CR_7BIT) {
@@ -1800,7 +1814,7 @@ public final class StringSupport {
                                         "dumped string has unknown encoding name",
                                         currentNode));
                     }
-                    undumped.setEncoding(enc2.jcoding);
+                    undumped.setEncoding(enc2);
                     resultEncoding = enc2;
                 }
                 break;
@@ -1878,7 +1892,7 @@ public final class StringSupport {
                 }
                 if (enc[0] != UTF8Encoding.INSTANCE) {
                     enc[0] = UTF8Encoding.INSTANCE;
-                    out.setEncoding(UTF8Encoding.INSTANCE);
+                    out.setEncoding(Encodings.UTF_8);
                     resultEncoding = Encodings.UTF_8;
                 }
                 if (bytes[start] == '{') { /* handle u{...} form */
@@ -2007,4 +2021,5 @@ public final class StringSupport {
                 return -1;
         }
     }
+    // endregion
 }

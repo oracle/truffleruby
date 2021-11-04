@@ -284,6 +284,7 @@ module Truffle
       end
     end
 
+    # MRI: rb_str_byteindex_m
     def self.byte_index(src, str, start=0)
       start += src.bytesize if start < 0
       if start < 0 or start > src.bytesize

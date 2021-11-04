@@ -28,17 +28,17 @@ package org.truffleruby.parser.ast;
 
 import java.util.List;
 
-import org.truffleruby.core.rope.Rope;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** A::B ||= 1 */
 public class OpAsgnConstDeclParseNode extends ParseNode implements BinaryOperatorParseNode {
     private ParseNode lhs;
-    private Rope operator;
+    private TruffleString operator;
     private ParseNode rhs;
 
-    public OpAsgnConstDeclParseNode(SourceIndexLength position, ParseNode lhs, Rope operator, ParseNode rhs) {
+    public OpAsgnConstDeclParseNode(SourceIndexLength position, ParseNode lhs, TruffleString operator, ParseNode rhs) {
         super(position);
 
         this.lhs = lhs;
@@ -57,7 +57,7 @@ public class OpAsgnConstDeclParseNode extends ParseNode implements BinaryOperato
     }
 
     public String getOperator() {
-        return operator.getJavaString();
+        return operator.toJavaStringUncached();
     }
 
     @Override

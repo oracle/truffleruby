@@ -450,9 +450,7 @@ public abstract class VMPrimitiveNodes {
             throw new RaiseException(
                     getContext(),
                     getContext().getCoreExceptions().argumentError(
-                            coreStrings().NEGATIVE_STRING_SIZE.getRope(),
-                            Encodings.BINARY,
-                            this));
+                            coreStrings().NEGATIVE_STRING_SIZE.createInstance(getContext()), this, null));
         }
 
     }

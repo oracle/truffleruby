@@ -33,7 +33,7 @@ package org.truffleruby.parser.ast;
 
 import java.util.List;
 
-import org.truffleruby.core.rope.Rope;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
@@ -42,8 +42,8 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 public class ConstParseNode extends ParseNode implements INameNode {
     private String name;
 
-    public ConstParseNode(SourceIndexLength position, Rope name) {
-        this(position, name.getJavaString());
+    public ConstParseNode(SourceIndexLength position, TruffleString name) {
+        this(position, name.toJavaStringUncached());
     }
 
     public ConstParseNode(SourceIndexLength position, String name) {

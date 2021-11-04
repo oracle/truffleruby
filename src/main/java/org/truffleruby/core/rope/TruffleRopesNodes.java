@@ -10,6 +10,7 @@
 package org.truffleruby.core.rope;
 
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -17,7 +18,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.cext.CExtNodes;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.rope.ConcatRope.ConcatState;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
@@ -110,12 +111,8 @@ public abstract class TruffleRopesNodes {
         protected static String getStructure(Rope rope) {
             if (rope instanceof LeafRope) {
                 return getStructure((LeafRope) rope);
-            } else if (rope instanceof ConcatRope) {
-                return getStructure((ConcatRope) rope);
             } else if (rope instanceof SubstringRope) {
                 return getStructure((SubstringRope) rope);
-            } else if (rope instanceof RepeatingRope) {
-                return getStructure((RepeatingRope) rope);
             } else {
                 return "(unknown rope class: " + rope.getClass() + ")";
             }
@@ -125,13 +122,6 @@ public abstract class TruffleRopesNodes {
             return RopeOperations.escape(rope);
         }
 
-        private static String getStructure(ConcatRope rope) {
-            final ConcatState state = rope.getState();
-            return state.isFlattened()
-                    ? "(\"flat concat rope\"; " + RopeOperations.escape(rope) + ")"
-                    : "(" + getStructure(state.left) + " + " + getStructure(state.right) + ")";
-        }
-
         private static String getStructure(SubstringRope rope) {
             final Rope child = rope.getChild();
             final int characterOffset = RopeOperations
@@ -139,34 +129,23 @@ public abstract class TruffleRopesNodes {
             return getStructure(child) + "[" + characterOffset + ", " + rope.characterLength() + "]";
         }
 
-        private static String getStructure(RepeatingRope rope) {
-            return "(" + getStructure(rope.getChild()) + "*" + rope.getTimes() + ")";
-        }
-
-    }
-
-    @CoreMethod(names = "bytes?", onSingleton = true, required = 1)
-    public abstract static class HasBytesNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization(guards = "strings.isRubyString(string)")
-        protected boolean hasBytes(Object string,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            return strings.getRope(string).getRawBytes() != null;
-        }
-
     }
 
     @CoreMethod(names = "flatten_rope", onSingleton = true, required = 1)
     public abstract static class FlattenRopeNode extends CoreMethodArrayArgumentsNode {
 
+        // Also flattens the original String, but that one might still have an offset
+        @TruffleBoundary
         @Specialization(guards = "libString.isRubyString(string)")
         protected RubyString flattenRope(Object string,
-                @Cached RopeNodes.FlattenNode flattenNode,
-                @Cached StringNodes.MakeStringNode makeStringNode,
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
-            final LeafRope flattened = flattenNode.executeFlatten(libString.getRope(string));
             final RubyEncoding rubyEncoding = libString.getEncoding(string);
-            return makeStringNode.fromRope(flattened, rubyEncoding);
+            var tstring = libString.getTString(string);
+            // Use GetInternalByteArrayNode as a way to flatten the TruffleString.
+            // Ensure the result has offset = 0 and length = byte[].length for image build time checks
+            byte[] byteArray = TStringUtils.getBytesOrCopy(tstring, rubyEncoding);
+            return createString(fromByteArrayNode, byteArray, rubyEncoding);
         }
 
     }
@@ -186,19 +165,14 @@ public abstract class TruffleRopesNodes {
 
     /* Truffle.create_simple_string creates a string 'test' without any part of the string escaping. Useful for testing
      * compilation of String because most other ways to construct a string can currently escape. */
-
     @CoreMethod(names = "create_simple_string", onSingleton = true)
     public abstract static class CreateSimpleStringNode extends CoreMethodArrayArgumentsNode {
-
         @Specialization
-        protected RubyString createSimpleString(
-                @Cached StringNodes.MakeStringNode makeStringNode) {
-            return makeStringNode
-                    .fromRope(
-                            new AsciiOnlyLeafRope(new byte[]{ 't', 'e', 's', 't' }, UTF8Encoding.INSTANCE),
-                            Encodings.UTF_8);
+        protected RubyString createSimpleString() {
+            return createString(
+                    new AsciiOnlyLeafRope(new byte[]{ 't', 'e', 's', 't' }, UTF8Encoding.INSTANCE),
+                    Encodings.UTF_8);
         }
-
     }
 
 }

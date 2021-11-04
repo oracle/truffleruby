@@ -14,17 +14,19 @@ import java.lang.reflect.Field;
 
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.library.ExportMessage;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.SuppressFBWarnings;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 import sun.misc.Unsafe;
 
-@SuppressFBWarnings("Nm")
-public final class Pointer implements AutoCloseable {
+@ExportLibrary(InteropLibrary.class)
+public final class Pointer implements AutoCloseable, TruffleObject {
 
     public static final Pointer NULL = new Pointer(0);
     public static final long SIZE = Long.BYTES;
@@ -102,6 +104,7 @@ public final class Pointer implements AutoCloseable {
         enableAutoreleaseUnsynchronized(language);
     }
 
+    @ExportMessage.Ignore
     public boolean isNull() {
         return address == 0;
     }
@@ -121,6 +124,16 @@ public final class Pointer implements AutoCloseable {
 
     public boolean isBounded() {
         return size != UNBOUNDED;
+    }
+
+    @ExportMessage
+    protected boolean isPointer() {
+        return true;
+    }
+
+    @ExportMessage
+    protected long asPointer() {
+        return address;
     }
 
     public void writeByte(long offset, byte b) {
@@ -207,24 +220,6 @@ public final class Pointer implements AutoCloseable {
         assert length >= 0;
 
         UNSAFE.copyMemory(null, address + offset, buffer, Unsafe.ARRAY_BYTE_BASE_OFFSET + bufferPos, length);
-    }
-
-    @TruffleBoundary
-    public boolean readBytesCheck8Bit(byte[] buffer, int length) {
-        assert address != 0 || length == 0;
-        assert buffer != null;
-        assert length >= 0;
-
-        long base = address;
-        boolean highBitUsed = false;
-        for (int i = 0; i < length; i++) {
-            byte aByte = UNSAFE.getByte(null, base + i);
-            if (aByte < 0) {
-                highBitUsed = true;
-            }
-            buffer[i] = aByte;
-        }
-        return highBitUsed;
     }
 
     public short readShort(long offset) {

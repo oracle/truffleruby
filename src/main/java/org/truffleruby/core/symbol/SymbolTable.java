@@ -11,6 +11,7 @@ package org.truffleruby.core.symbol;
 
 import java.util.Collection;
 
+import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.collections.WeakValueCache;
@@ -22,12 +23,14 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeCache;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.RopeWithEncoding;
+import org.truffleruby.core.rope.TStringCache;
 import org.truffleruby.core.string.StringOperations;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public class SymbolTable {
 
+    private final TStringCache tstringCache;
     private final RopeCache ropeCache;
 
     // A cache for j.l.String to Symbols. Entries are kept as long as the Symbol is alive.
@@ -38,7 +41,8 @@ public class SymbolTable {
     // As long as the Symbol is referenced, the entry will stay in the symbolMap.
     private final WeakValueCache<RopeWithEncoding, RubySymbol> symbolMap = new WeakValueCache<>();
 
-    public SymbolTable(RopeCache ropeCache, CoreSymbols coreSymbols) {
+    public SymbolTable(TStringCache tstringCache, RopeCache ropeCache, CoreSymbols coreSymbols) {
+        this.tstringCache = tstringCache;
         this.ropeCache = ropeCache;
         addCoreSymbols(coreSymbols);
     }
@@ -96,9 +100,10 @@ public class SymbolTable {
 
         final LeafRope cachedRope = ropeCache.getRope(ropeEncodingForLookup.getRope());
         final RubyEncoding symbolEncoding = ropeEncodingForLookup.getEncoding();
-        final RubySymbol newSymbol = createSymbol(cachedRope, symbolEncoding);
+        final TruffleString cachedTString = tstringCache.getTString(cachedRope.getBytes(), symbolEncoding);
+        final RubySymbol newSymbol = createSymbol(cachedRope, cachedTString, symbolEncoding);
         // Use a RopeWithEncoding with the cached Rope in symbolMap, since the Symbol refers to it and so we
-        // do not keep rope alive unnecessarily.
+        // do not keep the other Rope alive unnecessarily.
         return symbolMap.addInCacheIfAbsent(new RopeWithEncoding(cachedRope, symbolEncoding), newSymbol);
     }
 
@@ -121,9 +126,9 @@ public class SymbolTable {
         return new RopeWithEncoding(rope, encoding);
     }
 
-    private RubySymbol createSymbol(LeafRope cachedRope, RubyEncoding encoding) {
+    private RubySymbol createSymbol(LeafRope cachedRope, TruffleString truffleString, RubyEncoding encoding) {
         final String string = RopeOperations.decodeOrEscapeBinaryRope(cachedRope);
-        return new RubySymbol(string, cachedRope, encoding);
+        return new RubySymbol(string, cachedRope, truffleString, encoding);
     }
 
     @TruffleBoundary

@@ -39,11 +39,11 @@ package org.truffleruby.platform;
 
 import java.math.BigInteger;
 
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.core.rope.RopeOperations;
 
 import org.truffleruby.core.string.ImmutableRubyString;
 
@@ -56,7 +56,7 @@ public abstract class DefaultNativeConfiguration {
     protected static ImmutableRubyString string(RubyContext context, String value) {
         return context
                 .getLanguageSlow()
-                .getFrozenStringLiteral(RopeOperations.encodeAscii(value, UTF8Encoding.INSTANCE));
+                .getFrozenStringLiteral(TStringUtils.utf8TString(value), Encodings.UTF_8);
     }
 
 }

@@ -13,9 +13,13 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.TStringGuards;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -31,31 +35,67 @@ import org.truffleruby.language.library.RubyStringLibrary;
 @ExportLibrary(RubyLibrary.class)
 @ExportLibrary(InteropLibrary.class)
 @ExportLibrary(RubyStringLibrary.class)
-public class RubyString extends RubyDynamicObject {
+public final class RubyString extends RubyDynamicObject {
 
     public boolean frozen;
     public boolean locked = false;
     public Rope rope;
+    public AbstractTruffleString tstring;
     public RubyEncoding encoding;
 
+    public RubyString(
+            RubyClass rubyClass,
+            Shape shape,
+            boolean frozen,
+            AbstractTruffleString tstring,
+            RubyEncoding rubyEncoding) {
+        super(rubyClass, shape);
+        assert tstring.isCompatibleTo(rubyEncoding.tencoding);
+        this.frozen = frozen;
+        this.tstring = tstring;
+        this.rope = TStringUtils.toRope(tstring, rubyEncoding);
+        assert rope.encoding == rubyEncoding.jcoding;
+        this.encoding = rubyEncoding;
+    }
+
+    @Deprecated
     public RubyString(RubyClass rubyClass, Shape shape, boolean frozen, Rope rope, RubyEncoding rubyEncoding) {
         super(rubyClass, shape);
         assert rope.encoding == rubyEncoding.jcoding;
         this.frozen = frozen;
         this.rope = rope;
+        this.tstring = TStringUtils.fromRope(rope, rubyEncoding);
         this.encoding = rubyEncoding;
     }
 
     public void setRope(Rope rope) {
-        assert rope.encoding == encoding.jcoding : rope.encoding.toString() + " does not equal " +
-                encoding.jcoding.toString();
+        assert rope.encoding == encoding.jcoding : rope.encoding + " does not equal " + encoding.jcoding;
         this.rope = rope;
+        this.tstring = TStringUtils.fromRope(rope, encoding);
     }
 
     public void setRope(Rope rope, RubyEncoding encoding) {
         assert rope.encoding == encoding.jcoding;
         this.rope = rope;
+        this.tstring = TStringUtils.fromRope(rope, encoding);
         this.encoding = encoding;
+    }
+
+    public void setTString(AbstractTruffleString tstring) {
+        assert tstring.isCompatibleTo(encoding.tencoding);
+        this.rope = TStringUtils.toRope(tstring, encoding);
+        this.tstring = tstring;
+    }
+
+    public void setTString(AbstractTruffleString tstring, RubyEncoding encoding) {
+        assert tstring.isCompatibleTo(encoding.tencoding);
+        this.rope = TStringUtils.toRope(tstring, encoding);
+        this.tstring = tstring;
+        this.encoding = encoding;
+    }
+
+    public int byteLength() {
+        return tstring.byteLength(encoding.tencoding);
     }
 
     /** should only be used for debugging */
@@ -83,6 +123,11 @@ public class RubyString extends RubyDynamicObject {
     @ExportMessage
     protected Rope getRope() {
         return rope;
+    }
+
+    @ExportMessage
+    protected AbstractTruffleString getTString() {
+        return tstring;
     }
 
     @ExportMessage
@@ -124,12 +169,12 @@ public class RubyString extends RubyDynamicObject {
         @Specialization(replaces = "asStringCached")
         protected static String asStringUncached(RubyString string,
                 @Cached ConditionProfile asciiOnlyProfile,
-                @Cached RopeNodes.AsciiOnlyNode asciiOnlyNode,
+                @Cached TruffleString.GetByteCodeRangeNode codeRangeNode,
                 @Cached RopeNodes.BytesNode bytesNode) {
             final Rope rope = string.rope;
             final byte[] bytes = bytesNode.execute(rope);
 
-            if (asciiOnlyProfile.profile(asciiOnlyNode.execute(rope))) {
+            if (asciiOnlyProfile.profile(TStringGuards.is7Bit(string.tstring, string.encoding, codeRangeNode))) {
                 return RopeOperations.decodeAscii(bytes);
             } else {
                 return RopeOperations.decodeNonAscii(rope.getEncoding(), bytes, 0, bytes.length);

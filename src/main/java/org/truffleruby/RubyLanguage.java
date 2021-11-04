@@ -30,8 +30,8 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.options.OptionDescriptors;
-import org.jcodings.Encoding;
 import org.truffleruby.builtins.PrimitiveManager;
 import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.collections.SharedIndicesMap;
@@ -71,10 +71,10 @@ import org.truffleruby.core.regexp.RegexpCacheKey;
 import org.truffleruby.core.regexp.RegexpTable;
 import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.regexp.RubyRegexp;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.PathToRopeCache;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeCache;
+import org.truffleruby.core.rope.TStringCache;
 import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.FrozenStringLiterals;
 import org.truffleruby.core.string.RubyString;
@@ -146,7 +146,8 @@ import org.truffleruby.stdlib.digest.RubyDigest;
                 RubyLanguage.MIME_TYPE_MAIN_SCRIPT },
         defaultMimeType = RubyLanguage.MIME_TYPE,
         dependentLanguages = { "nfi", "llvm", "regex" },
-        fileTypeDetectors = RubyFileTypeDetector.class)
+        fileTypeDetectors = RubyFileTypeDetector.class,
+        needsAllEncodings = true)
 @ProvidedTags({
         CoverageManager.LineTag.class,
         TraceManager.CallTag.class,
@@ -211,6 +212,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final CoreSymbols coreSymbols;
     public final PrimitiveManager primitiveManager;
     public final RopeCache ropeCache;
+    public final TStringCache tstringCache;
     public final RegexpTable regexpTable;
     public final SymbolTable symbolTable;
     public final KeywordArgumentsDescriptorManager keywordArgumentsDescriptorManager = new KeywordArgumentsDescriptorManager();
@@ -324,9 +326,10 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         coreSymbols = new CoreSymbols();
         primitiveManager = new PrimitiveManager();
         ropeCache = new RopeCache(coreSymbols);
-        symbolTable = new SymbolTable(ropeCache, coreSymbols);
+        tstringCache = new TStringCache(coreSymbols);
+        symbolTable = new SymbolTable(tstringCache, ropeCache, coreSymbols);
         regexpTable = new RegexpTable();
-        frozenStringLiterals = new FrozenStringLiterals(ropeCache);
+        frozenStringLiterals = new FrozenStringLiterals(tstringCache, ropeCache);
     }
 
     public RubyThread getCurrentThread() {
@@ -701,12 +704,12 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         return allocationReporter;
     }
 
-    public ImmutableRubyString getFrozenStringLiteral(byte[] bytes, Encoding encoding, CodeRange codeRange) {
-        return frozenStringLiterals.getFrozenStringLiteral(bytes, encoding, codeRange);
+    public ImmutableRubyString getFrozenStringLiteral(byte[] bytes, RubyEncoding encoding) {
+        return frozenStringLiterals.getFrozenStringLiteral(bytes, encoding);
     }
 
-    public ImmutableRubyString getFrozenStringLiteral(Rope rope) {
-        return frozenStringLiterals.getFrozenStringLiteral(rope);
+    public ImmutableRubyString getFrozenStringLiteral(TruffleString tstring, RubyEncoding encoding) {
+        return frozenStringLiterals.getFrozenStringLiteral(tstring, encoding);
     }
 
     public long getNextObjectID() {

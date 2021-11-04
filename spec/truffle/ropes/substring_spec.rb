@@ -10,8 +10,7 @@
 require_relative '../../ruby/spec_helper'
 
 describe "A substring" do
-
-  describe "of a UTF-8 valid SubtringRope" do
+  describe "of a UTF-8 valid SubstringRope" do
     it "correctly computes the index and consider offset as a byte offset" do
       complex = ("ééé" + "ascii)")[2..-1]
       complex[-1,1].should == ")"
@@ -23,22 +22,4 @@ describe "A substring" do
       complex.end_with?(")").should == true
     end
   end
-
-  describe "of a substring of a complex Rope" do
-    it "computes the bytes of that Rope to avoid flattening repetitively" do
-      side = 512
-      big_string = ("a".b * side + "é".b + "z".b * side)
-      substring = big_string[1...-1]
-      Truffle::Ropes.should.bytes?(big_string)
-      Truffle::Ropes.should_not.bytes?(substring)
-
-      subsubstring = substring.byteslice(4, 8)
-      Truffle::Ropes.should.bytes?(big_string)
-      Truffle::Ropes.should_not.bytes?(subsubstring)
-
-      # done last as it computes the bytes as a side effect
-      subsubstring.should == "aaaaaaaa"
-    end
-  end
-
 end

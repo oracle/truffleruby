@@ -11,30 +11,23 @@ package org.truffleruby.core.regexp;
 
 import java.util.Objects;
 
-import org.jcodings.specific.ASCIIEncoding;
-
-import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.rope.RopeWithEncoding;
+import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.language.control.DeferredRaiseException;
 
 public final class RegexpCacheKey {
 
-    public static RegexpCacheKey calculate(RopeWithEncoding rope, RegexpOptions options) throws DeferredRaiseException {
-        if (options.isEncodingNone()) {
-            rope = new RopeWithEncoding(
-                    RopeOperations.withEncoding(rope.getRope(), ASCIIEncoding.INSTANCE),
-                    Encodings.BINARY);
-        }
+    public static RegexpCacheKey calculate(TStringWithEncoding source, RegexpOptions options)
+            throws DeferredRaiseException {
         RubyEncoding fixedEnc[] = new RubyEncoding[]{ null };
-        RopeBuilder processed = ClassicRegexp
-                .preprocess(rope.getRope(), rope.getEncoding(), fixedEnc, RegexpSupport.ErrorMode.RAISE);
+        RopeBuilder processed = ClassicRegexp.preprocess(source, source.getEncoding(), fixedEnc,
+                RegexpSupport.ErrorMode.RAISE);
         RegexpOptions optionsArray[] = new RegexpOptions[]{ options };
-        RubyEncoding enc = ClassicRegexp.computeRegexpEncoding(optionsArray, rope.getEncoding(), fixedEnc);
+        RubyEncoding enc = ClassicRegexp.computeRegexpEncoding(optionsArray, source.getEncoding(), fixedEnc);
 
         return new RegexpCacheKey(processed.toRope(), enc, optionsArray[0]);
     }

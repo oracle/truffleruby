@@ -33,7 +33,7 @@ package org.truffleruby.parser.ast;
 
 import java.util.List;
 
-import org.truffleruby.core.rope.Rope;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
@@ -44,10 +44,10 @@ public class ClassVarAsgnParseNode extends AssignableParseNode implements INameN
 
     /** @param name id of the class variable to assign to
      * @param valueNode ParseNode used to compute the new value when the assignment is evaled */
-    public ClassVarAsgnParseNode(SourceIndexLength position, Rope name, ParseNode valueNode) {
+    public ClassVarAsgnParseNode(SourceIndexLength position, TruffleString name, ParseNode valueNode) {
         super(position, valueNode);
 
-        this.name = name.getJavaString();
+        this.name = name.toJavaStringUncached();
     }
 
     @Override

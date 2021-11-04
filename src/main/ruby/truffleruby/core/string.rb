@@ -323,6 +323,7 @@ class String
     str.tr_s!(source, replacement) || str
   end
 
+  # TODO: could use TruffleStringIterator
   def each_codepoint
     return to_enum(:each_codepoint) { size } unless block_given?
 
@@ -1260,7 +1261,7 @@ class String
 
   def <=>(other)
     if String === other
-      return Primitive.string_cmp self, other
+      return Primitive.string_cmp(self, other, Primitive.strings_compatible?(self, other))
     end
 
     Truffle::ThreadOperations.detect_pair_recursion self, other do

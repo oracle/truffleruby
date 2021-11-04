@@ -44,7 +44,6 @@ public abstract class WritePaddedBytesNode extends FormatNode {
         if (padding == PrintfSimpleTreeBuilder.DEFAULT) {
             padding = 0;
         }
-        final byte[] bytes = bytesNode.execute(rope);
         if (leftJustifiedProfile.profile(leftJustified || padding < 0)) {
             writeStringBytes(frame, precision, rope, bytesNode, indexNode);
             writePaddingBytes(frame, Math.abs(padding), precision, rope, charLengthNode);

@@ -13,6 +13,7 @@ import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.encoding.EncodingNodes.NegotiateCompatibleRopeEncodingNode;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
@@ -61,17 +62,23 @@ public abstract class InlinedEqualNode extends BinaryInlinedOperationNode {
 
     @Specialization(
             guards = {
-                    "stringsSelf.isRubyString(self)",
-                    "stringsB.isRubyString(b)",
-                    "lookupNode.lookupProtected(frame, self, METHOD) == coreMethods().STRING_EQUAL"
+                    "libA.isRubyString(a)",
+                    "libB.isRubyString(b)",
+                    "lookupNode.lookupProtected(frame, a, METHOD) == coreMethods().STRING_EQUAL"
             },
             assumptions = "assumptions")
-    protected boolean stringEqual(VirtualFrame frame, Object self, Object b,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsSelf,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsB,
+    protected boolean stringEqual(VirtualFrame frame, Object a, Object b,
+            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libA,
+            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libB,
             @Cached LookupMethodOnSelfNode lookupNode,
+            @Cached NegotiateCompatibleRopeEncodingNode negotiateCompatibleRopeEncodingNode,
             @Cached StringNodes.StringEqualNode stringEqualNode) {
-        return stringEqualNode.executeStringEqual(stringsSelf.getRope(self), stringsB.getRope(b));
+        var stringA = libA.getTString(a);
+        var encodingA = libA.getEncoding(a);
+        var stringB = libB.getTString(b);
+        var encodingB = libB.getEncoding(b);
+        var compatibleEncoding = negotiateCompatibleRopeEncodingNode.execute(stringA, encodingA, stringB, encodingB);
+        return stringEqualNode.executeStringEqual(stringA, stringB, compatibleEncoding);
     }
 
     @Specialization

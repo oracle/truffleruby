@@ -28,6 +28,7 @@ import org.truffleruby.core.rope.CannotConvertBinaryRubyStringToJavaString;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.Nil;
@@ -149,7 +150,7 @@ public final class TRegexCache {
         try {
             ropeBuilder = ClassicRegexp
                     .preprocess(
-                            regexp.source,
+                            new TStringWithEncoding(regexp.sourceTString, regexp.encoding),
                             enc,
                             fixedEnc,
                             RegexpSupport.ErrorMode.RAISE);

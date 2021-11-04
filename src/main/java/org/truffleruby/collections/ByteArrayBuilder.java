@@ -9,7 +9,12 @@
  */
 package org.truffleruby.collections;
 
+import com.oracle.truffle.api.strings.InternalByteArray;
+import com.oracle.truffle.api.strings.TruffleString;
+import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.rope.RopeConstants;
+import org.truffleruby.core.rope.TStringWithEncoding;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -26,6 +31,12 @@ public class ByteArrayBuilder {
 
     public ByteArrayBuilder(int size) {
         bytes = new byte[size];
+    }
+
+    public static ByteArrayBuilder create(InternalByteArray bytes) {
+        final ByteArrayBuilder builder = new ByteArrayBuilder(bytes.getLength());
+        builder.append(bytes.getArray(), bytes.getOffset(), bytes.getLength());
+        return builder;
     }
 
     public static ByteArrayBuilder createUnsafeBuilder(byte[] wrap) {
@@ -70,6 +81,14 @@ public class ByteArrayBuilder {
         length += appendLength;
     }
 
+    public void append(InternalByteArray bytes) {
+        append(bytes.getArray(), bytes.getOffset(), bytes.getLength());
+    }
+
+    public void append(TStringWithEncoding other) {
+        append(other.getInternalByteArray());
+    }
+
     public void unsafeReplace(byte[] bytes, int size) {
         this.bytes = bytes;
         this.length = size;
@@ -101,6 +120,10 @@ public class ByteArrayBuilder {
     @Override
     public String toString() {
         return new String(bytes, 0, length, StandardCharsets.ISO_8859_1);
+    }
+
+    public TruffleString toTString(RubyEncoding encoding) {
+        return TStringUtils.fromByteArray(getBytes(), encoding);
     }
 
     // TODO CS 14-Feb-17 review all uses of this method
