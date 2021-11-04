@@ -15,7 +15,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import com.oracle.truffle.api.CompilerAsserts;
-import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapperManager;
@@ -34,13 +33,37 @@ import com.oracle.truffle.api.object.Shape;
 
 public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNode {
 
-    /* Fiber status: [Fiber.new] ------> FIBER_CREATED | [Fiber#resume] v +--> FIBER_RESUMED ----+ [Fiber#resume] | |
-     * [Fiber.yield] | | v | +-- FIBER_SUSPENDED | [Terminate] | FIBER_TERMINATED <-+ */
+    // @formatter:off
+    /*
+     * Fiber status:
+     * Fiber status:
+     *    [Fiber.new] ------> FIBER_CREATED
+     *                        | [Fiber#resume]
+     *                        v
+     *                   +--> FIBER_RESUMED ----+
+     *    [Fiber#resume] |    | [Fiber.yield]   |
+     *                   |    v                 |
+     *                   +-- FIBER_SUSPENDED    | [Terminate]
+     *                                          |
+     *                       FIBER_TERMINATED <-+
+     */
+    // @formatter:on
+
     public enum FiberStatus {
-        CREATED,
-        RESUMED,
-        SUSPENDED,
-        TERMINATED
+        CREATED("created"),
+
+        /** ran at least once */
+        RESUMED("resumed"),
+
+        SUSPENDED("suspended"),
+        TERMINATED("terminated");
+
+        public final String label;
+
+        FiberStatus(String label) {
+            this.label = label;
+        }
+
     }
 
     public final RubyBasicObject fiberLocals;
@@ -49,15 +72,24 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
     public CountDownLatch finishedLatch = new CountDownLatch(1);
     final BlockingQueue<FiberManager.FiberMessage> messageQueue = newMessageQueue();
     public final RubyThread rubyThread;
+    // @formatter:off
+    /*
+     *               |------Fiber 1-------|                                 |------Fiber 2-------|
+     *               | resumingFiber      |---Fiber 1 resumed Fiber 2------>| resumingFiber      | ----> null
+     *    null <-----| lastResumedByFiber |<--Fiber 2 resumed by Fiber 1----| lastResumedByFiber |
+     *               |--------------------|                                 |--------------------|
+     */
+    // @formatter:on
     volatile RubyFiber lastResumedByFiber = null;
+    /** the most recently-resumed Fiber by this Fiber */
     volatile RubyFiber resumingFiber = null;
+    volatile boolean yielding = false;
+    volatile FiberStatus status = FiberStatus.CREATED;
     public Thread thread = null;
     public volatile Throwable uncaughtException = null;
     String sourceLocation;
     public final MarkingService.ExtensionCallStack extensionCallStack;
     public final ValueWrapperManager.HandleBlockHolder handleData;
-    volatile boolean yielding = false;
-    volatile FiberStatus status = FiberStatus.CREATED;
 
     public RubyFiber(
             RubyClass rubyClass,
@@ -89,21 +121,6 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
 
     public void restart() {
         status = FiberStatus.CREATED;
-    }
-
-    public String getStatusString() {
-        switch (status) {
-            case CREATED:
-                return "created";
-            case RESUMED:
-                return "resumed";
-            case SUSPENDED:
-                return "suspended";
-            case TERMINATED:
-                return "terminated";
-            default:
-                throw CompilerDirectives.shouldNotReachHere();
-        }
     }
 
     @TruffleBoundary

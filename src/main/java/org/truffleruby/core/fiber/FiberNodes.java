@@ -179,12 +179,7 @@ public abstract class FiberNodes {
             final RubyThread currentThread = getLanguage().getCurrentThread();
             final RubyFiber currentFiber = currentThread.getCurrentFiber();
 
-            if (operation == FiberOperation.RAISE && fiber.status == RubyFiber.FiberStatus.CREATED) {
-                errorProfile.enter();
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().fiberError("cannot raise exception on unborn fiber", this));
-            } else if (fiber.status == RubyFiber.FiberStatus.TERMINATED) {
+            if (fiber.status == RubyFiber.FiberStatus.TERMINATED) {
                 errorProfile.enter();
                 throw new RaiseException(
                         getContext(),
@@ -242,6 +237,11 @@ public abstract class FiberNodes {
                         fiber,
                         FiberOperation.RAISE,
                         new Object[]{ exception });
+            } else if (fiber.status == RubyFiber.FiberStatus.CREATED) {
+                errorProfile.enter();
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().fiberError("cannot raise exception on unborn fiber", this));
             } else {
                 return getResumeNode().executeResume(FiberOperation.RAISE, fiber, new Object[]{ exception });
             }
@@ -336,7 +336,7 @@ public abstract class FiberNodes {
         @Specialization
         protected RubyString status(RubyFiber fiber,
                 @Cached MakeStringNode makeStringNode) {
-            return makeStringNode.executeMake(fiber.getStatusString(), Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(fiber.status.label, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
         }
     }
 

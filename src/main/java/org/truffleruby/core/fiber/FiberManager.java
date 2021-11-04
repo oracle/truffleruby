@@ -237,6 +237,12 @@ public class FiberManager {
             assert language.getCurrentThread() == resumeMessage.getSendingFiber().rubyThread;
             final FiberOperation operation = resumeMessage.getOperation();
 
+            if (operation == FiberOperation.RESUME) {
+                fiber.yielding = false;
+            }
+            fiber.status = FiberStatus.RESUMED;
+
+
             if (operation == FiberOperation.RESUME || operation == FiberOperation.RAISE) {
                 fiber.lastResumedByFiber = resumeMessage.getSendingFiber();
             }
@@ -258,24 +264,14 @@ public class FiberManager {
     }
 
     @TruffleBoundary
-    public Object[] transferControlTo(RubyFiber fromFiber, RubyFiber fiber, FiberOperation operation, Object[] args,
+    public Object[] transferControlTo(RubyFiber fromFiber, RubyFiber toFiber, FiberOperation operation, Object[] args,
             Node currentNode) {
-        final FiberMessage message = resumeAndWait(fromFiber, fiber, operation, args, currentNode);
-        return handleMessage(fromFiber, message, currentNode);
-    }
-
-    @TruffleBoundary
-    private FiberMessage resumeAndWait(RubyFiber fromFiber, RubyFiber fiber, FiberOperation operation, Object[] args,
-            Node currentNode) {
-
         assert fromFiber.resumingFiber == null;
         if (operation == FiberOperation.RESUME) {
-            fromFiber.resumingFiber = fiber;
-            fiber.lastResumedByFiber = fromFiber;
-            fiber.yielding = false;
+            fromFiber.resumingFiber = toFiber;
         }
 
-        //        assert !fromFiber.yielding;
+        assert !fromFiber.yielding;
         if (operation == FiberOperation.YIELD) {
             fromFiber.yielding = true;
         }
@@ -283,14 +279,24 @@ public class FiberManager {
         if (fromFiber.status == FiberStatus.RESUMED) {
             fromFiber.status = FiberStatus.SUSPENDED;
         }
+        final FiberMessage message = resumeAndWait(fromFiber, toFiber, operation, args, currentNode);
+        return handleMessage(fromFiber, message, currentNode);
+    }
 
-        fiber.status = FiberStatus.RESUMED;
-
+    /** @param fromFiber the current fiber which will soon be suspended
+     * @param toFiber the fiber we resume or transfer to
+     * @param operation
+     * @param args
+     * @param currentNode
+     * @return */
+    @TruffleBoundary
+    private FiberMessage resumeAndWait(RubyFiber fromFiber, RubyFiber toFiber, FiberOperation operation, Object[] args,
+            Node currentNode) {
         final TruffleContext truffleContext = context.getEnv().getContext();
         final FiberMessage message = context
                 .getThreadManager()
                 .leaveAndEnter(truffleContext, currentNode, () -> {
-                    resume(fromFiber, fiber, operation, args);
+                    resume(fromFiber, toFiber, operation, args);
                     return waitMessage(fromFiber, currentNode);
                 });
         fromFiber.rubyThread.setCurrentFiber(fromFiber);
