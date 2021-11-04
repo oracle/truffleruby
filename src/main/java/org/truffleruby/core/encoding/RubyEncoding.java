@@ -56,6 +56,11 @@ public class RubyEncoding extends ImmutableRubyObject implements ObjectGraphNode
         ObjectGraph.addProperty(reachable, name);
     }
 
+    @Override
+    public String toString() {
+        return jcoding.toString();
+    }
+
     // region InteropLibrary messages
     @ExportMessage
     protected Object toDisplayString(boolean allowSideEffects,

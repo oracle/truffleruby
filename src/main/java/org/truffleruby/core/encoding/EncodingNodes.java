@@ -16,8 +16,6 @@ import org.jcodings.Encoding;
 import org.jcodings.EncodingDB;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.unicode.UnicodeEncoding;
-import org.jcodings.util.CaseInsensitiveBytesHash;
-import org.jcodings.util.Hash;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -428,10 +426,11 @@ public abstract class EncodingNodes {
         @TruffleBoundary
         @Specialization
         protected Object eachAlias(RubyProc block) {
-            for (Hash.HashEntry<EncodingDB.Entry> entry : EncodingDB.getAliases().entryIterator()) {
-                final CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = (CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry<EncodingDB.Entry>) entry;
+            var iterator = EncodingDB.getAliases().entryIterator();
+            while (iterator.hasNext()) {
+                var entry = iterator.next();
                 final RubyString aliasName = makeStringNode.executeMake(
-                        ArrayUtils.extractRange(e.bytes, e.p, e.end),
+                        ArrayUtils.extractRange(entry.bytes, entry.p, entry.end),
                         Encodings.US_ASCII,
                         CodeRange.CR_7BIT);
                 yieldNode.yield(
