@@ -23,7 +23,6 @@ import org.jcodings.specific.UTF16LEEncoding;
 import org.jcodings.specific.UTF32BEEncoding;
 import org.jcodings.specific.UTF32LEEncoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.jcodings.util.CaseInsensitiveBytesHash;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
@@ -68,13 +67,8 @@ public class Encodings {
 
     private static RubyEncoding[] initializeRubyEncodings() {
         final RubyEncoding[] encodings = new RubyEncoding[INITIAL_NUMBER_OF_ENCODINGS];
-        final CaseInsensitiveBytesHash<EncodingDB.Entry>.CaseInsensitiveBytesHashEntryIterator hei = EncodingDB
-                .getEncodings()
-                .entryIterator();
-        while (hei.hasNext()) {
-            final CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = hei.next();
-            final EncodingDB.Entry encodingEntry = e.value;
-            final Encoding encoding = encodingEntry.getEncoding();
+        for (var entry : EncodingDB.getEncodings()) {
+            final Encoding encoding = entry.getEncoding();
 
             final RubyEncoding rubyEncoding;
             if (encoding == USASCIIEncoding.INSTANCE) {

@@ -27,8 +27,6 @@ import org.jcodings.Encoding;
 import org.jcodings.EncodingDB;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
-import org.jcodings.util.CaseInsensitiveBytesHash;
-import org.jcodings.util.CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
@@ -70,37 +68,32 @@ public class EncodingManager {
     }
 
     private void initializeEncodings(RubyClass encodingClass) {
-        final CaseInsensitiveBytesHash<EncodingDB.Entry>.CaseInsensitiveBytesHashEntryIterator hei = EncodingDB
-                .getEncodings()
-                .entryIterator();
-
-        while (hei.hasNext()) {
-            final CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = hei.next();
-            if (e.value.getEncoding() == Encodings.DUMMY_ENCODING_BASE) {
+        var iterator = EncodingDB.getEncodings().entryIterator();
+        while (iterator.hasNext()) {
+            var entry = iterator.next();
+            if (entry.value.getEncoding() == Encodings.DUMMY_ENCODING_BASE) {
                 continue;
             }
-            final RubyEncoding rubyEncoding = defineBuiltInEncoding(e.value);
-            for (String constName : EncodingUtils.encodingNames(e.bytes, e.p, e.end)) {
+            final RubyEncoding rubyEncoding = defineBuiltInEncoding(entry.value);
+            for (String constName : EncodingUtils.encodingNames(entry.bytes, entry.p, entry.end)) {
                 encodingClass.fields.setConstant(context, null, constName, rubyEncoding);
             }
         }
     }
 
     private void initializeEncodingAliases(RubyClass encodingClass) {
-        final CaseInsensitiveBytesHash<EncodingDB.Entry>.CaseInsensitiveBytesHashEntryIterator hei = EncodingDB
-                .getAliases()
-                .entryIterator();
-
-        while (hei.hasNext()) {
-            final CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = hei.next();
-            final EncodingDB.Entry encodingEntry = e.value;
+        var iterator = EncodingDB.getAliases().entryIterator();
+        while (iterator.hasNext()) {
+            var entry = iterator.next();
+            final EncodingDB.Entry encodingEntry = entry.value;
 
             // The alias name should be exactly the one in the encodings DB.
             final Encoding encoding = encodingEntry.getEncoding();
-            final RubyEncoding rubyEncoding = defineAlias(encoding, RopeOperations.decodeAscii(e.bytes, e.p, e.end));
+            final RubyEncoding rubyEncoding = defineAlias(encoding,
+                    RopeOperations.decodeAscii(entry.bytes, entry.p, entry.end));
 
             // The constant names must be treated by the the <code>encodingNames</code> helper.
-            for (String constName : EncodingUtils.encodingNames(e.bytes, e.p, e.end)) {
+            for (String constName : EncodingUtils.encodingNames(entry.bytes, entry.p, entry.end)) {
                 encodingClass.fields.setConstant(context, null, constName, rubyEncoding);
             }
         }
