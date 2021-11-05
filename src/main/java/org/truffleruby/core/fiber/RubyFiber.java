@@ -36,16 +36,15 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
     // @formatter:off
     /*
      * Fiber status:
-     * Fiber status:
-     *    [Fiber.new] ------> FIBER_CREATED
-     *                        | [Fiber#resume]
-     *                        v
-     *                   +--> FIBER_RESUMED ----+
-     *    [Fiber#resume] |    | [Fiber.yield]   |
-     *                   |    v                 |
-     *                   +-- FIBER_SUSPENDED    | [Terminate]
-     *                                          |
-     *                       FIBER_TERMINATED <-+
+     *    [Fiber.new] -----------------------> FIBER_CREATED
+     *                                         | [Fiber#{resume,transfer}]
+     *                                         v
+     *                                    +--> FIBER_RESUMED -----------------+
+     *    [Fiber#{resume,transfer,raise}] |    | [Fiber.yield or #transfer]   |
+     *                                    |    v                              |
+     *                                    +--- FIBER_SUSPENDED                | [Terminate]
+     *                                                                        |
+     *                                         FIBER_TERMINATED <-------------+
      */
     // @formatter:on
 

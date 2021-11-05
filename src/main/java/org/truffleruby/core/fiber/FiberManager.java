@@ -283,12 +283,15 @@ public class FiberManager {
         return handleMessage(fromFiber, message, currentNode);
     }
 
-    /** @param fromFiber the current fiber which will soon be suspended
-     * @param toFiber the fiber we resume or transfer to
-     * @param operation
-     * @param args
-     * @param currentNode
-     * @return */
+    /** This methods switches from the currently-running fromFiber to toFiber. This method notifies toFiber to start
+     * executing again and then just after suspends fromFiber. We only return from this method call for fromFiber once
+     * control is passed back to fromFiber. As soon as toFiber is notified, it pops the message from the queue in
+     * waitMessage() and then calls handleMessage(). There must be no code between notifying toFiber and suspending
+     * fromFiber, as during that time both threads can be running, yet this does not matter semantically since fromFiber
+     * will suspend and nothing happens fromFiber until then.
+     *
+     * @param fromFiber the current fiber which will soon be suspended
+     * @param toFiber the fiber we resume or transfer to */
     @TruffleBoundary
     private FiberMessage resumeAndWait(RubyFiber fromFiber, RubyFiber toFiber, FiberOperation operation, Object[] args,
             Node currentNode) {
