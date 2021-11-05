@@ -1552,7 +1552,7 @@ public abstract class InteropNodes {
         @TruffleBoundary
         @Specialization
         protected Object export(String name, Object object) {
-            getContext().getInteropManager().exportObject(name, object);
+            getContext().getEnv().exportSymbol(name, object);
             return object;
         }
 
@@ -1581,7 +1581,7 @@ public abstract class InteropNodes {
 
         @TruffleBoundary
         private Object doImport(String name) {
-            return getContext().getInteropManager().importObject(name);
+            return getContext().getEnv().importSymbol(name);
         }
 
     }

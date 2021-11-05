@@ -102,7 +102,6 @@ import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.interop.RubyInnerContext;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyEvalInteractiveRootNode;
 import org.truffleruby.language.RubyInlineParsingRequestNode;
@@ -576,30 +575,6 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     protected ExecutableNode parse(InlineParsingRequest request) {
         final RubyContext context = Objects.requireNonNull(getCurrentContext());
         return new RubyInlineParsingRequestNode(this, context, request.getSource(), request.getFrame());
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    protected Object findExportedSymbol(RubyContext context, String symbolName, boolean onlyExplicit) {
-        final Object explicit = context.getInteropManager().findExportedObject(symbolName);
-
-        if (explicit != null) {
-            return explicit;
-        }
-
-        if (onlyExplicit) {
-            return null;
-        }
-
-        Object implicit = RubyContext.send(
-                context.getCoreLibrary().truffleInteropModule,
-                "lookup_symbol",
-                symbolTable.getSymbol(symbolName));
-        if (implicit == NotProvided.INSTANCE) {
-            return null;
-        } else {
-            return implicit;
-        }
     }
 
     @Override
