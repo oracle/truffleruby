@@ -47,6 +47,7 @@ Compatibility:
 * Update `MatchData` methods to return `String` instances when called on a subclass (#2453, @bjfish).
 * Implement `Proc#{==,eql?}` (#2453).
 * Implement all `StringScanner` methods (#2520, @eregon).
+* Handle `Kernel#clone(freeze: true)` (#2512, @andrykonchin).
 
 Performance:
 

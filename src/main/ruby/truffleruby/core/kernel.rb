@@ -749,8 +749,16 @@ module Kernel
   Primitive.method_unimplement method(:fork)
   Primitive.method_unimplement nil.method(:fork)
 
-  def clone(freeze: true)
+  def clone(freeze: nil)
+    unless Primitive.boolean_or_nil?(freeze)
+      raise ArgumentError, "unexpected value for freeze: #{freeze.class}"
+    end
+
     Primitive.object_clone self, freeze
+  end
+
+  private def initialize_clone(from, freeze: nil)
+    initialize_copy(from)
   end
 
   Truffle::Boot.delay do

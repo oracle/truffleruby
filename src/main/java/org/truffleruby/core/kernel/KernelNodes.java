@@ -55,6 +55,9 @@ import org.truffleruby.core.format.exceptions.FormatException;
 import org.truffleruby.core.format.exceptions.InvalidFormatException;
 import org.truffleruby.core.format.printf.PrintfCompiler;
 import org.truffleruby.core.hash.HashOperations;
+import org.truffleruby.core.hash.HashingNodes;
+import org.truffleruby.core.hash.RubyHash;
+import org.truffleruby.core.hash.library.PackedHashStoreLibrary;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.inlined.InlinedDispatchNode;
 import org.truffleruby.core.inlined.InlinedMethodNode;
@@ -552,21 +555,16 @@ public abstract class KernelNodes {
     @NodeChild(value = "freeze", type = RubyBaseNodeWithExecute.class)
     public abstract static class CloneNode extends PrimitiveNode {
 
-        @Child private CopyNode copyNode = CopyNode.create();
-        @Child private DispatchNode initializeCloneNode = DispatchNode.create();
         @Child private SingletonClassNode singletonClassNode;
-
-        @CreateCast("freeze")
-        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute freeze) {
-            return BooleanCastWithDefaultNode.create(true, freeze);
-        }
+        private final BranchProfile cantUnfreezeErrorProfile = BranchProfile.create();
 
         @Specialization(limit = "getRubyLibraryCacheLimit()")
-        protected RubyDynamicObject clone(RubyDynamicObject object, boolean freeze,
+        protected RubyDynamicObject clone(RubyDynamicObject object, Object freeze,
+                @Cached CopyNode copyNode,
+                @Cached DispatchNode initializeCloneNode,
                 @Cached ConditionProfile isSingletonProfile,
-                @Cached ConditionProfile freezeProfile,
-                @Cached ConditionProfile isFrozenProfile,
                 @Cached ConditionProfile isRubyClass,
+                @Cached HashingNodes.ToHashByHashCode hashNode,
                 @CachedLibrary("object") RubyLibrary rubyLibrary,
                 @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibraryFreeze) {
             final RubyDynamicObject newObject = copyNode.executeCopy(object);
@@ -578,9 +576,18 @@ public abstract class KernelNodes {
                 newObjectMetaClass.fields.initCopy(selfMetaClass);
             }
 
-            initializeCloneNode.call(newObject, "initialize_clone", object);
+            final boolean copyFrozen = freeze instanceof Nil;
 
-            if (freezeProfile.profile(freeze) && isFrozenProfile.profile(rubyLibrary.isFrozen(object))) {
+            if (copyFrozen) {
+                initializeCloneNode.call(newObject, "initialize_clone", object);
+            } else {
+                // pass :freeze keyword argument to #initialize_clone
+                final RubyHash keywordArguments = createFreezeBooleanHash((boolean) freeze, hashNode);
+                initializeCloneNode.call(newObject, "initialize_clone", object, keywordArguments);
+            }
+
+            // Default behavior - is just to copy the frozen state of the original object
+            if (forceFrozen(freeze) || (copyFrozen && rubyLibrary.isFrozen(object))) {
                 rubyLibraryFreeze.freeze(newObject);
             }
 
@@ -592,64 +599,78 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected Object cloneBoolean(boolean object, boolean freeze,
-                @Cached ConditionProfile freezeProfile) {
-            if (freezeProfile.profile(!freeze)) {
+        protected boolean cloneBoolean(boolean object, Object freeze) {
+            if (forceNotFrozen(freeze)) {
                 raiseCantUnfreezeError(object);
             }
             return object;
         }
 
         @Specialization
-        protected Object cloneInteger(int object, boolean freeze,
-                @Cached ConditionProfile freezeProfile) {
-            if (freezeProfile.profile(!freeze)) {
+        protected int cloneInteger(int object, Object freeze) {
+            if (forceNotFrozen(freeze)) {
                 raiseCantUnfreezeError(object);
             }
             return object;
         }
 
         @Specialization
-        protected Object cloneLong(long object, boolean freeze,
-                @Cached ConditionProfile freezeProfile) {
-            if (freezeProfile.profile(!freeze)) {
+        protected long cloneLong(long object, Object freeze) {
+            if (forceNotFrozen(freeze)) {
                 raiseCantUnfreezeError(object);
             }
             return object;
         }
 
         @Specialization
-        protected Object cloneFloat(double object, boolean freeze,
-                @Cached ConditionProfile freezeProfile) {
-            if (freezeProfile.profile(!freeze)) {
+        protected double cloneFloat(double object, Object freeze) {
+            if (forceNotFrozen(freeze)) {
                 raiseCantUnfreezeError(object);
             }
             return object;
         }
 
         @Specialization(guards = "!isImmutableRubyString(object)")
-        protected Object cloneImmutableObject(ImmutableRubyObject object, boolean freeze,
-                @Cached ConditionProfile freezeProfile) {
-            if (freezeProfile.profile(!freeze)) {
+        protected ImmutableRubyObject cloneImmutableObject(ImmutableRubyObject object, Object freeze) {
+            if (forceNotFrozen(freeze)) {
                 raiseCantUnfreezeError(object);
             }
             return object;
         }
 
         @Specialization
-        protected RubyDynamicObject cloneImmutableRubyString(ImmutableRubyString object, boolean freeze,
-                @Cached ConditionProfile freezeProfile,
+        protected RubyDynamicObject cloneImmutableRubyString(ImmutableRubyString object, Object freeze,
                 @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibraryFreeze,
                 @Cached MakeStringNode makeStringNode) {
             final RubyDynamicObject newObject = makeStringNode.fromRope(object.rope, object.encoding);
-            if (freezeProfile.profile(freeze)) {
+            if (!forceNotFrozen(freeze)) {
                 rubyLibraryFreeze.freeze(newObject);
             }
 
             return newObject;
         }
 
+        private RubyHash createFreezeBooleanHash(boolean freeze, HashingNodes.ToHashByHashCode hashNode) {
+            final RubySymbol key = coreSymbols().FREEZE;
+
+            final Object[] newStore = PackedHashStoreLibrary.createStore();
+            final int hashed = hashNode.execute(key);
+            PackedHashStoreLibrary.setHashedKeyValue(newStore, 0, hashed, key, freeze);
+
+            return new RubyHash(coreLibrary().hashClass, getLanguage().hashShape, getContext(), newStore, 1);
+        }
+
+        private boolean forceFrozen(Object freeze) {
+            return freeze instanceof Boolean && (boolean) freeze;
+
+        }
+
+        private boolean forceNotFrozen(Object freeze) {
+            return freeze instanceof Boolean && !(boolean) freeze;
+        }
+
         private void raiseCantUnfreezeError(Object object) {
+            cantUnfreezeErrorProfile.enter();
             throw new RaiseException(getContext(), coreExceptions().argumentErrorCantUnfreeze(object, this));
         }
 
@@ -708,7 +729,7 @@ public abstract class KernelNodes {
                 initializeDupNode = insert(
                         new InlinedDispatchNode(
                                 getLanguage(),
-                                InitializeDupCloneNode.create()));
+                                InitializeDupNode.create()));
             }
             return initializeDupNode;
         }
@@ -1104,11 +1125,11 @@ public abstract class KernelNodes {
         }
     }
 
-    @CoreMethod(names = { "initialize_dup", "initialize_clone" }, required = 1)
-    public abstract static class InitializeDupCloneNode extends InlinedMethodNode {
+    @CoreMethod(names = "initialize_dup", required = 1)
+    public abstract static class InitializeDupNode extends InlinedMethodNode {
 
-        public static InitializeDupCloneNode create() {
-            return KernelNodesFactory.InitializeDupCloneNodeFactory.create(null);
+        public static InitializeDupNode create() {
+            return KernelNodesFactory.InitializeDupNodeFactory.create(null);
         }
 
         @Child private DispatchingNode initializeCopyNode;
