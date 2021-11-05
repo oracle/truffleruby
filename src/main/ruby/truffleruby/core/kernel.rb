@@ -757,6 +757,10 @@ module Kernel
     Primitive.object_clone self, freeze
   end
 
+  private def initialize_clone(from, freeze: nil)
+    initialize_copy(from)
+  end
+
   Truffle::Boot.delay do
     if Truffle::Boot.get_option('gets-loop')
       def chomp(separator=$/)

@@ -729,7 +729,7 @@ public abstract class KernelNodes {
                 initializeDupNode = insert(
                         new InlinedDispatchNode(
                                 getLanguage(),
-                                InitializeDupCloneNode.create()));
+                                InitializeDupNode.create()));
             }
             return initializeDupNode;
         }
@@ -1125,11 +1125,11 @@ public abstract class KernelNodes {
         }
     }
 
-    @CoreMethod(names = { "initialize_dup", "initialize_clone" }, required = 1)
-    public abstract static class InitializeDupCloneNode extends InlinedMethodNode {
+    @CoreMethod(names = "initialize_dup", required = 1)
+    public abstract static class InitializeDupNode extends InlinedMethodNode {
 
-        public static InitializeDupCloneNode create() {
-            return KernelNodesFactory.InitializeDupCloneNodeFactory.create(null);
+        public static InitializeDupNode create() {
+            return KernelNodesFactory.InitializeDupNodeFactory.create(null);
         }
 
         @Child private DispatchingNode initializeCopyNode;
