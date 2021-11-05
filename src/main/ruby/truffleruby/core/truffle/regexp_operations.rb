@@ -95,7 +95,7 @@ module Truffle
       if self.results_match?(md1, md2)
         self.return_match_data(md1)
       else
-        $stderr.puts match_args_to_string(re, str, from, to, at_start, start, 'gave')
+        $stderr.puts match_args_to_string(re, str, '?', from, to, at_start, start, 'gave')
         print_match_data(md1)
         $stderr.puts 'but we expected'
         print_match_data(md2)
@@ -103,8 +103,8 @@ module Truffle
       end
     end
 
-    def self.warn_fallback(re, str, from, to, at_start, start)
-      warn match_args_to_string(re, str, from, to, at_start, start, 'cannot be run as a Truffle regexp and fell back to Joni'), uplevel: 1
+    def self.warn_fallback(re, str, enc, from, to, at_start, start)
+      warn match_args_to_string(re, str, enc, from, to, at_start, start, 'cannot be run as a Truffle regexp and fell back to Joni'), uplevel: 1
     end
 
     def self.warn_fallback_regex(re, at_start, encoding)
@@ -115,8 +115,8 @@ module Truffle
       warn "Regexp #{re.inspect} at_start=#{at_start} encoding=#{encoding} requires backtracking and will not match in linear time", uplevel: 1
     end
 
-    def self.match_args_to_string(re, str, from, to, at_start, start, suffix)
-      "match_in_region(#{re.inspect}, #{str.inspect}@#{str.encoding}, #{from}, #{to}, #{at_start}, #{start}) #{suffix}"
+    def self.match_args_to_string(re, str, enc, from, to, at_start, start, suffix)
+      "match_in_region(#{re.inspect}, #{str.inspect}@#{str.encoding}, #{from}, #{to}, #{at_start}, #{start}) enc=#{enc} #{suffix}"
     end
 
     def self.results_match?(md1, md2)
