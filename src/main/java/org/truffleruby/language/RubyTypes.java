@@ -24,13 +24,17 @@ import com.oracle.truffle.api.dsl.TypeSystem;
 @TypeSystem
 public abstract class RubyTypes {
 
+    // Ordered from most frequent to least frequent for interpreter performance
+
     @ImplicitCast
-    public static int promoteToInt(byte value) {
+    public static long promoteToLong(int value) {
         return value;
     }
 
+    // For handling interop primitives
+
     @ImplicitCast
-    public static int promoteToInt(short value) {
+    public static long promoteToLong(short value) {
         return value;
     }
 
@@ -40,12 +44,12 @@ public abstract class RubyTypes {
     }
 
     @ImplicitCast
-    public static long promoteToLong(short value) {
+    public static int promoteToInt(short value) {
         return value;
     }
 
     @ImplicitCast
-    public static long promoteToLong(int value) {
+    public static int promoteToInt(byte value) {
         return value;
     }
 
