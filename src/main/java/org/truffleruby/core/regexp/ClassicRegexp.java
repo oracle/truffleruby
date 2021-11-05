@@ -44,7 +44,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Iterator;
 
-import org.graalvm.collections.Pair;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
@@ -700,7 +699,7 @@ public class ClassicRegexp implements ReOptions {
 
     /** rb_reg_quote */
     @TruffleBoundary
-    public static Pair<Rope, RubyEncoding> quote19(Rope bs, RubyEncoding encoding) {
+    public static RopeWithEncoding quote19(Rope bs, RubyEncoding encoding) {
         final boolean asciiOnly = bs.isAsciiOnly();
         int p = 0;
         int end = bs.byteLength();
@@ -753,9 +752,10 @@ public class ClassicRegexp implements ReOptions {
                 p += cl;
             }
             if (asciiOnly) {
-                return Pair.create(RopeOperations.withEncoding(bs, USASCIIEncoding.INSTANCE), Encodings.US_ASCII);
+                return new RopeWithEncoding(RopeOperations.withEncoding(bs, USASCIIEncoding.INSTANCE),
+                        Encodings.US_ASCII);
             }
-            return Pair.create(bs, encoding);
+            return new RopeWithEncoding(bs, encoding);
         } while (false);
 
         RopeBuilder result = RopeBuilder.createRopeBuilder(end * 2);
@@ -832,7 +832,7 @@ public class ClassicRegexp implements ReOptions {
         }
 
         result.setLength(op);
-        return Pair.create(RopeOperations.ropeFromRopeBuilder(result), resultEncoding);
+        return new RopeWithEncoding(RopeOperations.ropeFromRopeBuilder(result), resultEncoding);
     }
 
     /** WARNING: This mutates options, so the caller should make sure it's a copy */

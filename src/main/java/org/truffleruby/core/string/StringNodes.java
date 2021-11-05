@@ -378,15 +378,15 @@ public abstract class StringNodes {
         protected RubyString add(Object string, Object other,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringLibrary,
                 @Cached StringAppendNode stringAppendNode) {
-            final Pair<Rope, RubyEncoding> concatRopeResult = stringAppendNode.executeStringAppend(string, other);
+            final RopeWithEncoding concatRopeResult = stringAppendNode.executeStringAppend(string, other);
             final RubyClass rubyClass = coreLibrary().stringClass;
             final Shape shape = getLanguage().stringShape;
             final RubyString ret = new RubyString(
                     rubyClass,
                     shape,
                     false,
-                    concatRopeResult.getLeft(),
-                    concatRopeResult.getRight());
+                    concatRopeResult.getRope(),
+                    concatRopeResult.getEncoding());
             AllocationTracing.trace(ret, this);
             return ret;
         }
@@ -3545,8 +3545,8 @@ public abstract class StringNodes {
 
         @Specialization
         protected RubyString stringAppend(RubyString string, Object other) {
-            final Pair<Rope, RubyEncoding> result = stringAppendNode.executeStringAppend(string, other);
-            string.setRope(result.getLeft(), result.getRight());
+            final RopeWithEncoding result = stringAppendNode.executeStringAppend(string, other);
+            string.setRope(result.getRope(), result.getEncoding());
             return string;
         }
 
@@ -5597,10 +5597,10 @@ public abstract class StringNodes {
             return StringAppendNodeGen.create();
         }
 
-        public abstract Pair<Rope, RubyEncoding> executeStringAppend(Object string, Object other);
+        public abstract RopeWithEncoding executeStringAppend(Object string, Object other);
 
         @Specialization(guards = "libOther.isRubyString(other)")
-        protected Pair<Rope, RubyEncoding> stringAppend(Object string, Object other,
+        protected RopeWithEncoding stringAppend(Object string, Object other,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString,
                 @CachedLibrary(limit = "2") RubyStringLibrary libOther) {
             final Rope left = libString.getRope(string);
@@ -5611,7 +5611,7 @@ public abstract class StringNodes {
                     stringToRopeWithEncoding(libOther, other));
 
             final Rope result = executeConcat(left, right, compatibleEncoding);
-            return Pair.create(result, compatibleEncoding);
+            return new RopeWithEncoding(result, compatibleEncoding);
         }
 
         private Rope executeConcat(Rope left, Rope right, RubyEncoding compatibleEncoding) {

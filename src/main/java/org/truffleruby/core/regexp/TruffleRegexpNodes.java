@@ -32,7 +32,6 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.IntValueProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
-import org.graalvm.collections.Pair;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.joni.Matcher;
@@ -336,9 +335,9 @@ public class TruffleRegexpNodes {
         public Object string(Object obj) {
             if (rubyStringLibrary.isRubyString(obj)) {
                 final Rope rope = rubyStringLibrary.getRope(obj);
-                final Pair<Rope, RubyEncoding> quotedRopeResult = ClassicRegexp
+                final RopeWithEncoding quotedRopeResult = ClassicRegexp
                         .quote19(rope, rubyStringLibrary.getEncoding(obj));
-                return makeStringNode.fromRope(quotedRopeResult.getLeft(), quotedRopeResult.getRight());
+                return makeStringNode.fromRope(quotedRopeResult.getRope(), quotedRopeResult.getEncoding());
             } else {
                 return toSNode.execute((RubyRegexp) obj);
             }
