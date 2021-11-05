@@ -8,9 +8,6 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-# Used by Truffle::Interop.lookup_symbol
-Truffle::Interop::MAIN = self
-
 module Truffle
   module Interop
 
@@ -85,16 +82,6 @@ module Truffle
       keys.map { |s| Truffle::Interop.to_java_string(s) }
     end
     private_class_method :get_members_implementation
-
-    def self.lookup_symbol(name)
-      if MAIN.respond_to?(name, true)
-        MAIN.method(name)
-      elsif Truffle::SymbolOperations.is_constant?(name) && Object.const_defined?(name)
-        Object.const_get(name)
-      else
-        undefined
-      end
-    end
 
     class HashKeysAsPolyglotMembers
       def initialize(hash)

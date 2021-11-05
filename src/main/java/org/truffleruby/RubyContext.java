@@ -60,7 +60,6 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.time.GetTimeZoneNode;
 import org.truffleruby.debug.MetricsProfiler;
-import org.truffleruby.interop.InteropManager;
 import org.truffleruby.language.CallStackManager;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.LexicalScope;
@@ -107,7 +106,6 @@ public class RubyContext {
     @CompilationFinal private boolean hadHome;
 
     private final SafepointManager safepointManager;
-    private final InteropManager interopManager = new InteropManager(this);
     private final CodeLoader codeLoader;
     private final FeatureLoader featureLoader;
     private final TraceManager traceManager;
@@ -629,10 +627,6 @@ public class RubyContext {
 
     public CodeLoader getCodeLoader() {
         return codeLoader;
-    }
-
-    public InteropManager getInteropManager() {
-        return interopManager;
     }
 
     public CallStackManager getCallStack() {

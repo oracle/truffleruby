@@ -168,11 +168,3 @@ class Symbol
     raise TypeError, "allocator undefined for #{self}"
   end
 end
-
-module Truffle::SymbolOperations
-
-  def self.is_constant?(name)
-    name =~ /\A[A-Z][[:alnum:]_]*\z/
-  end
-
-end
