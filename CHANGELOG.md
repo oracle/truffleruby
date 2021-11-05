@@ -11,6 +11,7 @@ Bug fixes:
 * Update `Module#constants` to filter invalid constant identifiers (#2452).
 * Fixed `-0.0 <=> 0.0` and `-0.0 <=> 0` to return `0` like on CRuby (#1391).
 * Fixed `Range#step` to return correct class with begin-less range (@ccocchi, #2516).
+* Fixed exception creation when an `Errno` is sub-classed (@bjfish, #2521).
 
 Compatibility:
 

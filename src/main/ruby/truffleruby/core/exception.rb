@@ -348,10 +348,10 @@ end
 
 class SystemCallError < StandardError
 
-  def self.errno_error(message, errno, location)
+  def self.errno_error(klass, message, errno, location)
     message = message ? " - #{message}" : +''
     message = " @ #{location}#{message}" if location
-    Primitive.exception_errno_error message, errno
+    Primitive.exception_errno_error klass, message, errno
   end
 
   # We use .new here because when errno is set, we attempt to
@@ -388,7 +388,7 @@ class SystemCallError < StandardError
       # If it corresponds to a known Errno class, create and return it now
       if errno
         errno = Primitive.rb_num2long(errno)
-        error = SystemCallError.errno_error(message, errno, location)
+        error = SystemCallError.errno_error(self, message, errno, location)
         return error unless Primitive.nil? error
       end
       super(message, errno, location)
@@ -407,7 +407,7 @@ class SystemCallError < StandardError
       end
 
       if defined?(self::Errno) && Primitive.object_kind_of?(self::Errno, Integer)
-        error = SystemCallError.errno_error(message, self::Errno, location)
+        error = SystemCallError.errno_error(self, message, self::Errno, location)
         if error && error.class.equal?(self)
           return error
         end

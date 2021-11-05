@@ -295,14 +295,14 @@ public abstract class ExceptionNodes {
 
     }
 
-    @Primitive(name = "exception_errno_error", lowerFixnum = 1)
+    @Primitive(name = "exception_errno_error", lowerFixnum = 2)
     public abstract static class ExceptionErrnoErrorPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child ErrnoErrorNode errnoErrorNode = ErrnoErrorNode.create();
 
         @Specialization
-        protected RubySystemCallError exceptionErrnoError(Object message, int errno) {
-            return errnoErrorNode.execute(errno, message, null);
+        protected RubySystemCallError exceptionErrnoError(RubyClass errorClass, Object message, int errno) {
+            return errnoErrorNode.execute(errorClass, errno, message, null);
         }
 
     }
