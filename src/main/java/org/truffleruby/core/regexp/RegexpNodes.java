@@ -14,7 +14,6 @@ import java.util.Iterator;
 
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import org.graalvm.collections.Pair;
 import org.jcodings.specific.UTF8Encoding;
 import org.joni.NameEntry;
 import org.truffleruby.builtins.CoreMethod;
@@ -25,12 +24,12 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.encoding.Encodings;
-import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.regexp.RegexpNodesFactory.ToSNodeFactory;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.rope.RopeWithEncoding;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -78,8 +77,8 @@ public abstract class RegexpNodes {
         protected RubyString quoteString(Object raw,
                 @CachedLibrary(limit = "2") RubyStringLibrary libRaw) {
             final Rope rope = libRaw.getRope(raw);
-            final Pair<Rope, RubyEncoding> ropeQuotedResult = ClassicRegexp.quote19(rope, libRaw.getEncoding(raw));
-            return getMakeStringNode().fromRope(ropeQuotedResult.getLeft(), ropeQuotedResult.getRight());
+            final RopeWithEncoding ropeQuotedResult = ClassicRegexp.quote19(rope, libRaw.getEncoding(raw));
+            return getMakeStringNode().fromRope(ropeQuotedResult.getRope(), ropeQuotedResult.getEncoding());
         }
 
         @Specialization
