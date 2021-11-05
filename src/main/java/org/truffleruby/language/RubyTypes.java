@@ -10,6 +10,8 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.dsl.ImplicitCast;
+import com.oracle.truffle.api.dsl.TypeCast;
+import com.oracle.truffle.api.dsl.TypeCheck;
 import com.oracle.truffle.api.dsl.TypeSystem;
 
 /** Here are all types used for representing Ruby values (see {@link RubyGuards#isRubyValue(Object)}):
@@ -24,13 +26,41 @@ import com.oracle.truffle.api.dsl.TypeSystem;
 @TypeSystem
 public abstract class RubyTypes {
 
+    // Check singletons by identity for performance
+
+    @TypeCheck(Nil.class)
+    public static boolean isNil(Object value) {
+        return value == Nil.INSTANCE;
+
+    }
+
+    @TypeCast(Nil.class)
+    public static Nil asNil(Object value) {
+        return Nil.INSTANCE;
+    }
+
+    @TypeCheck(NotProvided.class)
+    public static boolean isNotProvided(Object value) {
+        return value == NotProvided.INSTANCE;
+
+    }
+
+    @TypeCast(NotProvided.class)
+    public static NotProvided asNotProvided(Object value) {
+        return NotProvided.INSTANCE;
+    }
+
+    // Ordered from most frequent to least frequent for interpreter performance
+
     @ImplicitCast
-    public static int promoteToInt(byte value) {
+    public static long promoteToLong(int value) {
         return value;
     }
 
+    // For handling interop primitives
+
     @ImplicitCast
-    public static int promoteToInt(short value) {
+    public static long promoteToLong(short value) {
         return value;
     }
 
@@ -40,12 +70,12 @@ public abstract class RubyTypes {
     }
 
     @ImplicitCast
-    public static long promoteToLong(short value) {
+    public static int promoteToInt(short value) {
         return value;
     }
 
     @ImplicitCast
-    public static long promoteToLong(int value) {
+    public static int promoteToInt(byte value) {
         return value;
     }
 
