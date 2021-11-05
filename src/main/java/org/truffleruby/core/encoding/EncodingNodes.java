@@ -107,7 +107,7 @@ public abstract class EncodingNodes {
         @Specialization(guards = {
                 "firstEncoding != secondEncoding",
                 "firstEncoding == cachedEncoding",
-                "isStandardEncoding(firstEncoding)",
+                "isStandardEncoding(cachedEncoding)",
                 "getCodeRange(second) == CR_7BIT"
         })
         protected RubyEncoding negotiateStandardEncodingAndCr7Bit(
