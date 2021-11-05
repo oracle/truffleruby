@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, 2020 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2017, 2021 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -67,10 +68,13 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.interop.TranslateInteropExceptionNodeGen;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.control.DeferredRaiseException;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -105,71 +109,149 @@ public class TruffleRegexpNodes {
         }
     }
 
-    // rb_reg_prepare_enc ... mostly. Some of the error checks are performed by callers of this method.
-    public abstract static class CheckEncodingNode extends RubyBaseNode {
+    // MRI: rb_reg_prepare_enc
+    @Primitive(name = "regexp_prepare_encoding")
+    public abstract static class PrepareRegexpEncodingNode extends PrimitiveArrayArgumentsNode {
 
         @Child RopeNodes.CodeRangeNode codeRangeNode = RopeNodes.CodeRangeNode.create();
         @Child RubyStringLibrary stringLibrary = RubyStringLibrary.getFactory().createDispatched(2);
+        @Child WarnNode warnNode;
 
-        public static CheckEncodingNode create() {
-            return TruffleRegexpNodesFactory.CheckEncodingNodeGen.create();
+        public static PrepareRegexpEncodingNode create() {
+            return TruffleRegexpNodesFactory.PrepareRegexpEncodingNodeFactory.create(null);
         }
 
-        public final RubyEncoding executeCheckEncoding(RubyRegexp regexp, Object string) {
-            return executeInternal(
-                    regexp,
-                    stringLibrary.getRope(string),
-                    stringLibrary.getEncoding(string));
+        public abstract RubyEncoding executePrepare(RubyRegexp regexp, Object matchString);
+
+        @Specialization(guards = "stringLibrary.isRubyString(matchString)")
+        protected RubyEncoding regexpPrepareEncoding(RubyRegexp regexp, Object matchString,
+                @Cached BranchProfile asciiOnlyProfile,
+                @Cached BranchProfile asciiIncompatibleFixedRegexpEncodingProfile,
+                @Cached BranchProfile asciiIncompatibleMatchStringEncodingProfile,
+                @Cached BranchProfile binaryRegexpMatchProfile,
+                @Cached BranchProfile brokenMatchStringProfile,
+                @Cached BranchProfile defaultRegexEncodingProfile,
+                @Cached BranchProfile fallbackProcessingProfile,
+                @Cached BranchProfile fixedRegexpEncodingProfile,
+                @Cached BranchProfile returnMatchStringEncodingProfile,
+                @Cached BranchProfile sameEncodingProfile,
+                @Cached BranchProfile uninitializedRegexpProfile,
+                @Cached BranchProfile validBinaryMatchStringProfile,
+                @Cached BranchProfile validUtf8MatchStringProfile) {
+            final RubyEncoding regexpEncoding = regexp.encoding;
+            final RubyEncoding matchStringEncoding = stringLibrary.getEncoding(matchString);
+            final Rope matchRope = stringLibrary.getRope(matchString);
+            final CodeRange matchStringCodeRange = codeRangeNode.execute(matchRope);
+
+            if (matchStringCodeRange == CodeRange.CR_BROKEN) {
+                brokenMatchStringProfile.enter();
+
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().argumentErrorInvalidByteSequence(matchRope, this));
+            }
+
+            if (!RegexpGuards.isInitialized(regexp)) {
+                uninitializedRegexpProfile.enter();
+
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().typeErrorUninitializedRegexp(this));
+            }
+
+            // This set of checks optimizes for the very common case where the regexp uses the default encoding and
+            // the match string is valid and uses an ASCII-compatible encoding. This extra set of checks is not present
+            // in MRI as of 3.0.2. While they permit an early return of the method, they do not conflict with any of
+            // the branches in the fallback strategy.
+            if (regexpEncoding == Encodings.US_ASCII && regexp.options.canAdaptEncoding()) {
+                defaultRegexEncodingProfile.enter();
+
+                // The default String encodings are UTF-8 for internal strings and ASCII-8BIT for external strings.
+                // Both encodings are ASCII-compatible and as such can either be CR_7BIT or CR_VALID at this point
+                // depending on the contents. CR_BROKEN strings are handled as a failure case earlier.
+
+                if (matchStringCodeRange == CodeRange.CR_7BIT) {
+                    asciiOnlyProfile.enter();
+
+                    return Encodings.US_ASCII;
+                } else if (matchStringEncoding == Encodings.UTF_8) {
+                    validUtf8MatchStringProfile.enter();
+                    assert matchStringCodeRange == CodeRange.CR_VALID;
+
+                    return Encodings.UTF_8;
+                } else if (matchStringEncoding == Encodings.BINARY) {
+                    validBinaryMatchStringProfile.enter();
+                    assert matchStringCodeRange == CodeRange.CR_VALID;
+
+                    return Encodings.BINARY;
+                }
+            }
+
+            // The following set of checks follow the logic in MRI's `rb_reg_prepare_enc`. The branch order is
+            // generally significant, although some branches could be reordered because their conditions do not
+            // conflict with those in other branches.
+            fallbackProcessingProfile.enter();
+
+            if (regexpEncoding == stringLibrary.getEncoding(matchString)) {
+                sameEncodingProfile.enter();
+
+                return regexpEncoding;
+            } else if (matchStringCodeRange == CodeRange.CR_7BIT && regexpEncoding == Encodings.US_ASCII) {
+                asciiOnlyProfile.enter();
+
+                return Encodings.US_ASCII;
+            } else if (!matchStringEncoding.jcoding.isAsciiCompatible()) {
+                asciiIncompatibleMatchStringEncodingProfile.enter();
+
+                return raiseEncodingCompatibilityError(regexp, matchRope);
+            } else if (regexp.options.isFixed()) {
+                fixedRegexpEncodingProfile.enter();
+
+                if (!regexpEncoding.jcoding.isAsciiCompatible() || matchStringCodeRange != CodeRange.CR_7BIT) {
+                    asciiIncompatibleFixedRegexpEncodingProfile.enter();
+
+                    return raiseEncodingCompatibilityError(regexp, matchRope);
+                }
+
+                return regexpEncoding;
+            } else {
+                returnMatchStringEncodingProfile.enter();
+
+                if (regexp.options.isEncodingNone() && matchStringEncoding != Encodings.BINARY &&
+                        matchStringCodeRange != CodeRange.CR_7BIT) {
+                    binaryRegexpMatchProfile.enter();
+
+                    warnHistoricalBinaryRegexpMatch(matchStringEncoding);
+                }
+
+                return matchStringEncoding;
+            }
         }
 
-        public abstract RubyEncoding executeInternal(RubyRegexp regexp, Rope rope, RubyEncoding encoding);
-
-        @Specialization(guards = {
-                "!isSameEncoding(regexp, encoding)",
-                "isUSASCII(regexp, rope)"
-        })
-        protected RubyEncoding checkEncodingAsciiOnly(RubyRegexp regexp, Rope rope, RubyEncoding encoding) {
-            return Encodings.US_ASCII;
+        // MRI: reg_enc_error
+        private RubyEncoding raiseEncodingCompatibilityError(RubyRegexp regexp, Rope matchRope) {
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().encodingCompatibilityErrorRegexpIncompatible(
+                            regexp.encoding.jcoding,
+                            matchRope.getEncoding(),
+                            this));
         }
 
-        @Specialization(guards = {
-                "isSameEncoding(regexp, encoding)"
-        })
-        protected RubyEncoding checkEncodingSameEncoding(RubyRegexp regexp, Rope rope, RubyEncoding encoding) {
-            return regexp.encoding;
-        }
+        private void warnHistoricalBinaryRegexpMatch(RubyEncoding matchStringEncoding) {
+            if (warnNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                warnNode = insert(new WarnNode());
+            }
 
-        @Specialization(guards = {
-                "!isSameEncoding(regexp, encoding)",
-                "!isUSASCII(regexp, rope)",
-                "isFixedEncoding(regexp, encoding)",
-        })
-        protected RubyEncoding checkEncodingFixedEncoding(RubyRegexp regexp, Rope rope, RubyEncoding encoding) {
-            return regexp.encoding;
+            if (warnNode.shouldWarn()) {
+                warnNode.warningMessage(
+                        getContext().getCallStack().getTopMostUserSourceSection(),
+                        StringUtils.format(
+                                "historical binary regexp match /.../n against %s string",
+                                stringLibrary.getJavaString(matchStringEncoding.name)));
+            }
         }
-
-        @Specialization(guards = {
-                "!isSameEncoding(regexp, encoding)",
-                "!isUSASCII(regexp, rope)",
-                "!isFixedEncoding(regexp, encoding)"
-        })
-        protected RubyEncoding fallback(RubyRegexp regexp, Rope rope, RubyEncoding encoding) {
-            return encoding;
-        }
-
-        protected boolean isSameEncoding(RubyRegexp regexp, RubyEncoding encoding) {
-            return regexp.encoding == encoding;
-        }
-
-        protected boolean isUSASCII(RubyRegexp regexp, Rope rope) {
-            return regexp.encoding == Encodings.US_ASCII &&
-                    codeRangeNode.execute(rope) == CodeRange.CR_7BIT;
-        }
-
-        protected boolean isFixedEncoding(RubyRegexp regexp, RubyEncoding encoding) {
-            return regexp.options.isFixed() && encoding.jcoding.isAsciiCompatible();
-        }
-
     }
 
     @TruffleBoundary
@@ -329,12 +411,7 @@ public class TruffleRegexpNodes {
             }
         }
 
-        @Specialization(
-                guards = {
-                        "encoding != US_ASCII",
-                        "encoding != ISO_8859_1",
-                        "encoding != UTF_8",
-                        "encoding != BINARY" })
+        @Fallback
         protected Object other(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
             return nil;
         }
@@ -763,17 +840,18 @@ public class TruffleRegexpNodes {
                 boolean createMatchData,
                 @Cached ConditionProfile createMatchDataProfile,
                 @Cached ConditionProfile encodingMismatchProfile,
+                @Cached PrepareRegexpEncodingNode prepareRegexpEncodingNode,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached MatchNode matchNode,
-                @Cached CheckEncodingNode checkEncodingNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             final Rope rope = libString.getRope(string);
-            final RubyEncoding enc = checkEncodingNode.executeCheckEncoding(regexp, string);
             Regex regex = regexp.regex;
+            final RubyEncoding negotiatedEncoding = prepareRegexpEncodingNode.executePrepare(regexp, string);
 
-            if (encodingMismatchProfile.profile(regexp.encoding != enc)) {
+            if (encodingMismatchProfile.profile(regexp.encoding != negotiatedEncoding)) {
                 final EncodingCache encodingCache = regexp.cachedEncodings;
-                regex = encodingCache.getOrCreate(enc, e -> makeRegexpForEncoding(getContext(), regexp, e, this));
+                regex = encodingCache
+                        .getOrCreate(negotiatedEncoding, e -> makeRegexpForEncoding(getContext(), regexp, e, this));
             }
 
             final Matcher matcher;
@@ -816,21 +894,30 @@ public class TruffleRegexpNodes {
                 @Cached LoopConditionProfile loopProfile,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary regexInterop,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary resultInterop,
+                @Cached PrepareRegexpEncodingNode prepareRegexpEncodingNode,
                 @Cached RopeNodes.BytesNode bytesNode,
-                @Cached CheckEncodingNode checkEncodingNode,
                 @Cached TRegexCompileNode tRegexCompileNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString,
                 @Cached("createIdentityProfile()") IntValueProfile groupCountProfile) {
             Rope rope = libString.getRope(string);
             final Object tRegex;
+            final RubyEncoding negotiatedEncoding = prepareRegexpEncodingNode.executePrepare(regexp, string);
 
             if (tRegexIncompatibleProfile
                     .profile(toPos < fromPos || toPos != rope.byteLength() || fromPos < 0) ||
                     tRegexCouldNotCompileProfile.profile((tRegex = tRegexCompileNode.executeTRegexCompile(
                             regexp,
                             atStart,
-                            checkEncodingNode.executeCheckEncoding(regexp, string))) == nil)) {
-                return fallbackToJoni(regexp, string, fromPos, toPos, atStart, startPos, createMatchData);
+                            negotiatedEncoding)) == nil)) {
+                return fallbackToJoni(
+                        regexp,
+                        string,
+                        negotiatedEncoding,
+                        fromPos,
+                        toPos,
+                        atStart,
+                        startPos,
+                        createMatchData);
             }
 
             if (getContext().getOptions().REGEXP_INSTRUMENT_MATCH) {
@@ -892,8 +979,8 @@ public class TruffleRegexpNodes {
             }
         }
 
-        private Object fallbackToJoni(RubyRegexp regexp, Object string, int fromPos, int toPos, boolean atStart,
-                int startPos, boolean createMatchData) {
+        private Object fallbackToJoni(RubyRegexp regexp, Object string, RubyEncoding encoding, int fromPos, int toPos,
+                boolean atStart, int startPos, boolean createMatchData) {
             if (getContext().getOptions().WARN_TRUFFLE_REGEX_MATCH_FALLBACK) {
                 if (warnOnFallbackNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -905,6 +992,7 @@ public class TruffleRegexpNodes {
                         "warn_fallback",
                         regexp,
                         string,
+                        encoding,
                         fromPos,
                         toPos,
                         atStart,

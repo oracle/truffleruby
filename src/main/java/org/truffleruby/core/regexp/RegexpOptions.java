@@ -67,6 +67,10 @@ public class RegexpOptions implements Cloneable, Comparable<RegexpOptions> {
         return newWithFlag(FIXED, fixed);
     }
 
+    public boolean canAdaptEncoding() {
+        return (options & (FIXED | ENCODINGNONE)) == 0;
+    }
+
     public KCode getKCode() {
         return kcode;
     }

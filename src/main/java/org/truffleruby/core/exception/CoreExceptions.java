@@ -182,6 +182,13 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
+    public RubyException argumentErrorInvalidByteSequence(Rope rope, Node currentNode) {
+        final String formattedObject = RopeOperations.decodeRope(rope);
+        return argumentError(StringUtils.format("invalid byte sequence in %s", formattedObject), currentNode);
+    }
+
+
+    @TruffleBoundary
     public RubyException argumentErrorInvalidRadix(int radix, Node currentNode) {
         return argumentError(StringUtils.format("invalid radix %d", radix), currentNode);
     }
@@ -678,6 +685,11 @@ public class CoreExceptions {
         return typeError("unsupported type " + formattedValues, currentNode);
     }
 
+    @TruffleBoundary
+    public RubyException typeErrorUninitializedRegexp(Node currentNode) {
+        return typeError("uninitialized Regexp", currentNode);
+    }
+
     // NameError
 
     @TruffleBoundary
@@ -1140,6 +1152,14 @@ public class CoreExceptions {
                 StringUtils.format("incompatible character encodings: %s and %s", a, b),
                 currentNode);
     }
+
+    @TruffleBoundary
+    public RubyException encodingCompatibilityErrorRegexpIncompatible(Encoding a, Encoding b, Node currentNode) {
+        return encodingCompatibilityError(
+                StringUtils.format("incompatible encoding regexp match (%s regexp with %s string)", a, b),
+                currentNode);
+    }
+
 
     @TruffleBoundary
     public RubyException encodingCompatibilityErrorIncompatibleWithOperation(Encoding encoding, Node currentNode) {
