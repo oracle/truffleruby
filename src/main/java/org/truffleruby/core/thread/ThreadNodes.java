@@ -611,7 +611,7 @@ public abstract class ThreadNodes {
         protected RubyThread wakeup(RubyThread rubyThread) {
             final RubyFiber currentFiber = rubyThread.getCurrentFiberRacy();
             final Thread thread = currentFiber.thread;
-            if (!currentFiber.alive || thread == null) {
+            if (currentFiber.isTerminated() || thread == null) {
                 throw new RaiseException(getContext(), coreExceptions().threadErrorKilledThread(this));
             }
 

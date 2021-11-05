@@ -48,6 +48,7 @@ Compatibility:
 * Implement `Proc#{==,eql?}` (#2453).
 * Implement all `StringScanner` methods (#2520, @eregon).
 * Handle `Kernel#clone(freeze: true)` (#2512, @andrykonchin).
+* Relax `Fiber#transfer` limitations (#2453).
 
 Performance:
 

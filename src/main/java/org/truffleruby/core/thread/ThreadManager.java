@@ -139,7 +139,7 @@ public class ThreadManager {
         rootThread.finishedLatch = new CountDownLatch(1);
 
         final RubyFiber rootFiber = rootThread.getRootFiber();
-        rootFiber.alive = true;
+        rootFiber.restart();
         rootFiber.finishedLatch = new CountDownLatch(1);
 
         PRNGRandomizerNodes.resetSeed(context, rootThread.randomizer);
