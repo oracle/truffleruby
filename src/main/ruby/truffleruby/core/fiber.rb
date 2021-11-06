@@ -11,7 +11,7 @@
 class Fiber
 
   private def initialize(blocking: false, &block)
-    Primitive.fiber_initialize(self, blocking ? true : false, block)
+    Primitive.fiber_initialize(self, Primitive.as_boolean(blocking), block)
   end
 
   def raise(*args)

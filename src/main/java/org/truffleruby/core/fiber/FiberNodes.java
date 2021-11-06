@@ -105,8 +105,7 @@ public abstract class FiberNodes {
                     getContext(),
                     getLanguage(),
                     thread,
-                    "<uninitialized>",
-                    false);
+                    "<uninitialized>");
             AllocationTracing.trace(fiber, this);
             return fiber;
         }
@@ -381,7 +380,8 @@ public abstract class FiberNodes {
 
         @Specialization
         protected Object isBlocking() {
-            if (getLanguage().getCurrentThread().getCurrentFiber().blocking) {
+            RubyFiber currentFiber = getLanguage().getCurrentThread().getCurrentFiber();
+            if (currentFiber.blocking) {
                 return 1;
             } else {
                 return false;
