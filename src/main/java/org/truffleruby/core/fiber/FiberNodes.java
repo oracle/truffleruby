@@ -111,19 +111,19 @@ public abstract class FiberNodes {
         }
     }
 
-    @CoreMethod(names = "initialize", needsBlock = true)
-    public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "fiber_initialize")
+    public abstract static class InitializeNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
-        protected Object initialize(RubyFiber fiber, RubyProc block) {
+        protected Object initialize(RubyFiber fiber, boolean blocking, RubyProc block) {
             final RubyThread thread = getLanguage().getCurrentThread();
-            getContext().fiberManager.initialize(fiber, block, this);
+            getContext().fiberManager.initialize(fiber, blocking, block, this);
             return nil;
         }
 
         @Specialization
-        protected Object noBlock(RubyFiber fiber, Nil block) {
+        protected Object noBlock(RubyFiber fiber, boolean blocking, Nil block) {
             throw new RaiseException(getContext(), coreExceptions().argumentErrorProcWithoutBlock(this));
         }
 
@@ -318,7 +318,7 @@ public abstract class FiberNodes {
 
     }
 
-    @CoreMethod(names = "current", onSingleton = true)
+    @Primitive(name = "fiber_current")
     public abstract static class CurrentNode extends CoreMethodNode {
 
         @Specialization
@@ -362,6 +362,32 @@ public abstract class FiberNodes {
             final RubyFiber currentFiber = getLanguage().getCurrentThread().getCurrentFiber();
             return currentFiber.catchTags;
         }
+    }
+
+
+    @CoreMethod(names = "blocking?")
+    public abstract static class IsBlockingInstanceNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected boolean isBlocking(RubyFiber fiber) {
+            return fiber.blocking;
+        }
+
+    }
+
+    @CoreMethod(names = "blocking?", onSingleton = true)
+    public abstract static class IsBlockingNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object isBlocking() {
+            RubyFiber currentFiber = getLanguage().getCurrentThread().getCurrentFiber();
+            if (currentFiber.blocking) {
+                return 1;
+            } else {
+                return false;
+            }
+        }
+
     }
 
 }
