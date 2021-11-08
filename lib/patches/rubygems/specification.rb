@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # rubygems/specification.rb is required by rubygems.rb.
 # require "rubygems/specification" only works on MRI if RubyGems is
 # already loaded (and is a no-op), and fails with --disable-gems.
@@ -9,5 +11,5 @@ if Object.autoload?(:Gem) # lazy-rubygems enabled, rubygems.rb was not yet loade
   require 'rubygems'
   raise 'Gem::Specification should have been defined' unless defined?(Gem::Specification)
 else
-  require 'rubygems/specification'
+  require Primitive.get_original_require(__FILE__)
 end

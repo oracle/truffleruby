@@ -1,6 +1,6 @@
 # truffleruby_primitives: true
 
-require 'securerandom'
+require Primitive.get_original_require(__FILE__)
 
 module SecureRandom
   @randomizer = Truffle::SecureRandomizer.new

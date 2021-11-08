@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright © 2012 Chad Humphries, David Chelimsky, Myron Marston
 # Copyright © 2009 Chad Humphries, David Chelimsky
 # Copyright © 2006 David Chelimsky, The RSpec Development Team
@@ -21,7 +23,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'rspec/core/source'
+require Primitive.get_original_require(__FILE__)
 
 module RSpec
   module Core
