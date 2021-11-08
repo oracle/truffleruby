@@ -31,7 +31,6 @@ import org.truffleruby.core.format.convert.Integer64BigToBytesNodeGen;
 import org.truffleruby.core.format.convert.Integer64LittleToBytesNodeGen;
 import org.truffleruby.core.format.convert.ReinterpretAsLongNodeGen;
 import org.truffleruby.core.format.convert.StringToPointerNodeGen;
-import org.truffleruby.core.format.convert.ToFloatNodeGen;
 import org.truffleruby.core.format.convert.ToLongNodeGen;
 import org.truffleruby.core.format.convert.ToStringObjectNodeGen;
 import org.truffleruby.core.format.read.SourceNode;
@@ -281,26 +280,12 @@ public class SimplePackTreeBuilder implements SimplePackListener {
     private void appendFloatNode(int size, ByteOrder byteOrder, int count) {
         final FormatNode readNode = ReadDoubleNodeGen.create(new SourceNode());
 
-        final FormatNode typeNode;
-
-        switch (size) {
-            case 32:
-                typeNode = ToFloatNodeGen.create(readNode);
-                break;
-            case 64:
-                typeNode = readNode;
-                break;
-            default:
-                throw CompilerDirectives.shouldNotReachHere();
-        }
-
         appendNode(sharedTreeBuilder.applyCount(
                 count,
                 writeInteger(
                         size,
                         byteOrder,
-                        ReinterpretAsLongNodeGen.create(
-                                typeNode))));
+                        ReinterpretAsLongNodeGen.create(size, readNode))));
     }
 
     private FormatNode writeInteger(int size, ByteOrder byteOrder) {

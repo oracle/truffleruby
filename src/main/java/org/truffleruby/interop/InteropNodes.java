@@ -2474,8 +2474,9 @@ public abstract class InteropNodes {
             return SymbolToByteOrderNode.create(byteOrder);
         }
 
+        // must return double so Ruby nodes can deal with it
         @Specialization(limit = "getInteropCacheLimit()")
-        protected float readBufferFloat(Object receiver, ByteOrder byteOrder, long byteOffset,
+        protected double readBufferFloat(Object receiver, ByteOrder byteOrder, long byteOffset,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             try {

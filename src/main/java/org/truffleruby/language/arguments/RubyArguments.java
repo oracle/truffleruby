@@ -96,7 +96,7 @@ public final class RubyArguments {
         assert declarationContext != null;
         assert self != null;
         assert arguments != null;
-        assert ArrayUtils.assertNoNullElement(arguments);
+        assert ArrayUtils.assertValidElements(arguments, arguments.length);
 
         assert callerFrameOrVariables == null ||
                 callerFrameOrVariables instanceof MaterializedFrame ||

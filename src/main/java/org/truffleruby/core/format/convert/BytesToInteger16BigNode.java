@@ -19,6 +19,12 @@ import org.truffleruby.language.Nil;
 @NodeChild("bytes")
 public abstract class BytesToInteger16BigNode extends FormatNode {
 
+    private final boolean signed;
+
+    protected BytesToInteger16BigNode(boolean signed) {
+        this.signed = signed;
+    }
+
     @Specialization
     protected MissingValue decode(MissingValue missingValue) {
         return missingValue;
@@ -30,11 +36,15 @@ public abstract class BytesToInteger16BigNode extends FormatNode {
     }
 
     @Specialization
-    protected short decode(byte[] bytes) {
+    protected int decode(byte[] bytes) { // must return int so Ruby nodes can deal with it
         short value = 0;
         value |= (bytes[0] & 0xff) << 8;
         value |= bytes[1] & 0xff;
-        return value;
+        if (signed) {
+            return value;
+        } else {
+            return Short.toUnsignedInt(value);
+        }
     }
 
 }

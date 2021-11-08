@@ -185,7 +185,7 @@ public abstract class BasicObjectNodes {
         protected static boolean comparablePrimitives(Object a, Object b) {
             return (a instanceof Boolean && b instanceof Boolean) ||
                     (RubyGuards.isImplicitLong(a) && RubyGuards.isImplicitLong(b)) ||
-                    (RubyGuards.isImplicitDouble(a) && RubyGuards.isImplicitDouble(b));
+                    (RubyGuards.isDouble(a) && RubyGuards.isDouble(b));
         }
     }
 

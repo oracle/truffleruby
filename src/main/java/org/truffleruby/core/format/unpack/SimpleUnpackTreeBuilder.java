@@ -28,7 +28,6 @@ import org.truffleruby.core.format.convert.BytesToInteger32BigNodeGen;
 import org.truffleruby.core.format.convert.BytesToInteger32LittleNodeGen;
 import org.truffleruby.core.format.convert.BytesToInteger64BigNodeGen;
 import org.truffleruby.core.format.convert.BytesToInteger64LittleNodeGen;
-import org.truffleruby.core.format.convert.ReinterpretAsUnsignedNodeGen;
 import org.truffleruby.core.format.convert.ReinterpretByteAsIntegerNodeGen;
 import org.truffleruby.core.format.convert.ReinterpretIntegerAsFloatNodeGen;
 import org.truffleruby.core.format.convert.ReinterpretLongAsDoubleNodeGen;
@@ -325,31 +324,27 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
         switch (size) {
             case 16:
                 if (byteOrder == ByteOrder.LITTLE_ENDIAN) {
-                    decodeNode = BytesToInteger16LittleNodeGen.create(readNode);
+                    decodeNode = BytesToInteger16LittleNodeGen.create(signed, readNode);
                 } else {
-                    decodeNode = BytesToInteger16BigNodeGen.create(readNode);
+                    decodeNode = BytesToInteger16BigNodeGen.create(signed, readNode);
                 }
                 break;
             case 32:
                 if (byteOrder == ByteOrder.LITTLE_ENDIAN) {
-                    decodeNode = BytesToInteger32LittleNodeGen.create(readNode);
+                    decodeNode = BytesToInteger32LittleNodeGen.create(signed, readNode);
                 } else {
-                    decodeNode = BytesToInteger32BigNodeGen.create(readNode);
+                    decodeNode = BytesToInteger32BigNodeGen.create(signed, readNode);
                 }
                 break;
             case 64:
                 if (byteOrder == ByteOrder.LITTLE_ENDIAN) {
-                    decodeNode = BytesToInteger64LittleNodeGen.create(readNode);
+                    decodeNode = BytesToInteger64LittleNodeGen.create(signed, readNode);
                 } else {
-                    decodeNode = BytesToInteger64BigNodeGen.create(readNode);
+                    decodeNode = BytesToInteger64BigNodeGen.create(signed, readNode);
                 }
                 break;
             default:
                 throw CompilerDirectives.shouldNotReachHere();
-        }
-
-        if (!signed) {
-            decodeNode = ReinterpretAsUnsignedNodeGen.create(decodeNode);
         }
 
         return decodeNode;

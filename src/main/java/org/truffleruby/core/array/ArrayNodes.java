@@ -282,7 +282,7 @@ public abstract class ArrayNodes {
             return readSlice.executeReadSlice(array, startLength[0], len);
         }
 
-        @Specialization(guards = { "!isImplicitInteger(index)", "!isRubyRange(index)" })
+        @Specialization(guards = { "!isInteger(index)", "!isRubyRange(index)" })
         protected Object indexFallback(RubyArray array, Object index, NotProvided length,
                 @Cached AtNode accessWithIndexConversion) {
             return accessWithIndexConversion.executeAt(array, index);
@@ -301,7 +301,7 @@ public abstract class ArrayNodes {
             return readSliceNode.executeReadSlice(array, start, length);
         }
 
-        @Specialization(guards = { "wasProvided(length)", "!isImplicitInteger(start) || !isImplicitInteger(length)" })
+        @Specialization(guards = { "wasProvided(length)", "!isInteger(start) || !isInteger(length)" })
         protected Object sliceFallback(RubyArray array, Object start, Object length,
                 @Cached ToIntNode indexToInt,
                 @Cached ToIntNode lengthToInt) {
@@ -357,7 +357,7 @@ public abstract class ArrayNodes {
             return executeIntIndices(array, start, length, value);
         }
 
-        @Specialization(guards = { "!isImplicitInteger(start)", "!isRubyRange(start)" })
+        @Specialization(guards = { "!isInteger(start)", "!isRubyRange(start)" })
         protected Object fallbackBinary(RubyArray array, Object start, Object value, NotProvided unused,
                 @Cached ToIntNode toInt) {
             return executeIntIndex(array, toInt.execute(start), value, unused);
@@ -436,7 +436,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(
-                guards = { "!isImplicitInteger(start) || !isImplicitInteger(length)", "wasProvided(replacement)" })
+                guards = { "!isInteger(start) || !isInteger(length)", "wasProvided(replacement)" })
         protected Object fallbackTernary(RubyArray array, Object start, Object length, Object replacement,
                 @Cached ToIntNode startToInt,
                 @Cached ToIntNode lengthToInt) {
@@ -1680,7 +1680,7 @@ public abstract class ArrayNodes {
             return createArray(popped, numPop);
         }
 
-        @Specialization(guards = { "wasProvided(n)", "!isImplicitInteger(n)" })
+        @Specialization(guards = { "wasProvided(n)", "!isInteger(n)" })
         protected Object popNToInt(RubyArray array, Object n,
                 @Cached ToIntNode toIntNode) {
             return executePop(array, toIntNode.execute(n));
@@ -2115,7 +2115,7 @@ public abstract class ArrayNodes {
             return createArray(result, numShift);
         }
 
-        @Specialization(guards = { "wasProvided(n)", "!isImplicitInteger(n)" })
+        @Specialization(guards = { "wasProvided(n)", "!isInteger(n)" })
         protected Object shiftNToInt(RubyArray array, Object n,
                 @Cached ToIntNode toIntNode) {
             return executeShift(array, toIntNode.execute(n));

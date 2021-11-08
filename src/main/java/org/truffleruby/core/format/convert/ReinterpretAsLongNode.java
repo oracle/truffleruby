@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.format.convert;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.core.format.FormatNode;
 
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -17,14 +18,21 @@ import com.oracle.truffle.api.dsl.Specialization;
 @NodeChild("value")
 public abstract class ReinterpretAsLongNode extends FormatNode {
 
-    @Specialization
-    protected long asLong(float object) {
-        return Float.floatToRawIntBits(object);
+    private final int bits;
+
+    protected ReinterpretAsLongNode(int bits) {
+        this.bits = bits;
     }
 
     @Specialization
     protected long asLong(double object) {
-        return Double.doubleToRawLongBits(object);
+        if (bits == 32) {
+            return Float.floatToRawIntBits((float) object);
+        } else if (bits == 64) {
+            return Double.doubleToRawLongBits(object);
+        } else {
+            throw CompilerDirectives.shouldNotReachHere();
+        }
     }
 
 }

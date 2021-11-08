@@ -46,36 +46,51 @@ public abstract class RubyGuards {
         return value instanceof String;
     }
 
-    // no isInteger/isLong/isDouble, use isImplicit* instead in guards to account for implicit casts of RubyTypes
+    // no isLong, use isImplicitLong instead in guards to account for the int->long implicit cast of RubyTypes
 
-    public static boolean isImplicitInteger(Object object) {
-        return object instanceof Byte || object instanceof Short || object instanceof Integer;
+    public static boolean isInteger(Object object) {
+        return object instanceof Integer;
+    }
+
+    public static boolean isDouble(Object object) {
+        return object instanceof Double;
     }
 
     public static boolean isImplicitLong(Object object) {
-        return object instanceof Byte || object instanceof Short || object instanceof Integer || object instanceof Long;
-    }
-
-    public static boolean isImplicitDouble(Object object) {
-        return object instanceof Float || object instanceof Double;
+        return object instanceof Integer || object instanceof Long;
     }
 
     public static boolean isImplicitLongOrDouble(Object object) {
-        return object instanceof Byte || object instanceof Short || object instanceof Integer ||
-                object instanceof Long || object instanceof Float || object instanceof Double;
+        return object instanceof Integer || object instanceof Long || object instanceof Double;
     }
 
-    /** Does not include {@link Character} as those are converted as the interop boundary and are not implicit casts in
-     * {@link RubyTypes}. */
-    public static boolean isPrimitive(Object object) {
-        return object instanceof Boolean || object instanceof Byte || object instanceof Short ||
-                object instanceof Integer || object instanceof Long || object instanceof Float ||
-                object instanceof Double;
+    public static boolean isRubyInteger(Object object) {
+        return isImplicitLong(object) || object instanceof RubyBignum;
+    }
+
+    public static boolean isRubyNumber(Object object) {
+        // Doesn't include classes like BigDecimal
+        return isImplicitLongOrDouble(object) || object instanceof RubyBignum;
+    }
+
+    public static boolean assertIsValidRubyValue(Object value) {
+        assert value != null : "null flowing in Ruby nodes";
+        if (value instanceof Byte || value instanceof Short || value instanceof Float || value instanceof Character) {
+            assert false : "Invalid primitive flowing in Ruby nodes: " + value + " (" +
+                    value.getClass().getSimpleName() + ")";
+        }
+        return true;
+    }
+
+    /** Does not include {@link Byte}, {@link Short}, {@link Float}, {@link Character} as those are converted as the
+     * interop boundary and are not implicit casts in {@link RubyTypes}. */
+    public static boolean isPrimitive(Object value) {
+        assert assertIsValidRubyValue(value);
+        return value instanceof Boolean || value instanceof Integer || value instanceof Long || value instanceof Double;
     }
 
     public static boolean isPrimitiveClass(Class<?> clazz) {
-        return clazz == Boolean.class || clazz == Byte.class || clazz == Short.class || clazz == Integer.class ||
-                clazz == Long.class || clazz == Float.class || clazz == Double.class;
+        return clazz == Boolean.class || clazz == Integer.class || clazz == Long.class || clazz == Double.class;
     }
 
     // Ruby types
@@ -148,15 +163,6 @@ public abstract class RubyGuards {
 
     public static boolean isRubyMatchData(Object object) {
         return object instanceof RubyMatchData;
-    }
-
-    public static boolean isRubyInteger(Object object) {
-        return isImplicitLong(object) || object instanceof RubyBignum;
-    }
-
-    public static boolean isRubyNumber(Object object) {
-        // Doesn't include classes like BigDecimal
-        return isImplicitLongOrDouble(object) || object instanceof RubyBignum;
     }
 
     public static boolean isNil(Object object) {

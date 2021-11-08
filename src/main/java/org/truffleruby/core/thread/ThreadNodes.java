@@ -85,6 +85,7 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.RubyPRNGRandomizer;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager.BlockingCallInterruptible;
+import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
@@ -1002,19 +1003,22 @@ public abstract class ThreadNodes {
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @CachedLibrary(limit = "1") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
-                @Cached("new(receivers, translateInteropExceptionNode)") BlockingCallInterruptible blockingCallInterruptible) {
+                @Cached("new(receivers, translateInteropExceptionNode)") BlockingCallInterruptible blockingCallInterruptible,
+                @Cached ForeignToRubyNode foreignToRubyNode) {
             final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
             final RubyThread thread = getLanguage().getCurrentThread();
 
             final ThreadManager threadManager = getContext().getThreadManager();
             final Interrupter nativeCallInterrupter = threadManager.getNativeCallInterrupter();
-            return ThreadManager.executeBlockingCall(
+            final Object result = ThreadManager.executeBlockingCall(
                     thread,
                     nativeCallInterrupter,
                     executable,
                     args,
                     blockingCallInterruptible,
                     this);
+            // Convert byte, short & float from NFI to int & double
+            return foreignToRubyNode.executeConvert(result);
         }
     }
 }

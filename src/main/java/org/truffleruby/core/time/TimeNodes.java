@@ -470,7 +470,7 @@ public abstract class TimeNodes {
             return buildTime(language, timeClass, sec, min, hour, mday, month, year, nsec, isdst, isutc, utcoffset);
         }
 
-        @Specialization(guards = "!isImplicitInteger(sec) || !isImplicitInteger(nsec)")
+        @Specialization(guards = "!isInteger(sec) || !isInteger(nsec)")
         protected Object timeSFromArrayFallback(
                 RubyClass timeClass,
                 Object sec,

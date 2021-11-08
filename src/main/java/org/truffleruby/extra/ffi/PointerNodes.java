@@ -479,6 +479,7 @@ public abstract class PointerNodes {
     @Primitive(name = "pointer_read_float")
     public abstract static class PointerReadFloatNode extends PointerPrimitiveArrayArgumentsNode {
 
+        // must return double so Ruby nodes can deal with it
         @Specialization
         protected double readFloat(long address) {
             final Pointer ptr = new Pointer(address);

@@ -9,6 +9,7 @@
  */
 package org.truffleruby.interop;
 
+import com.oracle.truffle.api.dsl.Fallback;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.language.RubyBaseNode;
 
@@ -33,7 +34,7 @@ public abstract class RubyToForeignNode extends RubyBaseNode {
         return toJavaStringNode.executeToJavaString(value);
     }
 
-    @Specialization(guards = { "isNotRubyString(value)", "!isRubySymbol(value)" })
+    @Fallback
     protected Object noConversion(Object value) {
         return value;
     }

@@ -19,6 +19,12 @@ import org.truffleruby.language.Nil;
 @NodeChild("bytes")
 public abstract class BytesToInteger32LittleNode extends FormatNode {
 
+    private final boolean signed;
+
+    protected BytesToInteger32LittleNode(boolean signed) {
+        this.signed = signed;
+    }
+
     @Specialization
     protected MissingValue decode(MissingValue missingValue) {
         return missingValue;
@@ -30,13 +36,17 @@ public abstract class BytesToInteger32LittleNode extends FormatNode {
     }
 
     @Specialization
-    protected int decode(byte[] bytes) {
+    protected Object decode(byte[] bytes) {
         int value = 0;
         value |= (bytes[3] & 0xff) << 24;
         value |= (bytes[2] & 0xff) << 16;
         value |= (bytes[1] & 0xff) << 8;
         value |= bytes[0] & 0xff;
-        return value;
+        if (signed) {
+            return value;
+        } else {
+            return Integer.toUnsignedLong(value);
+        }
     }
 
 }

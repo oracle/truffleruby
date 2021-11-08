@@ -22,6 +22,7 @@ import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.methods.BlockDefinitionNode;
@@ -138,10 +139,11 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
 
         final Object returnValue = dispatch.dispatch(frame, receiverObject, methodName, blockObject, argumentsObjects);
         if (isAttrAssign) {
-            assert argumentsObjects[argumentsObjects.length - 1] != null;
-            return argumentsObjects[argumentsObjects.length - 1];
+            final Object value = argumentsObjects[argumentsObjects.length - 1];
+            assert RubyGuards.assertIsValidRubyValue(value);
+            return value;
         } else {
-            assert returnValue != null;
+            assert RubyGuards.assertIsValidRubyValue(returnValue);
             return returnValue;
         }
     }

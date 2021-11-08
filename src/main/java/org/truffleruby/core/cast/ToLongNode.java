@@ -10,6 +10,7 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -78,7 +79,7 @@ public abstract class ToLongNode extends RubyBaseNodeWithExecute {
                 coreExceptions().typeError("no implicit conversion from nil to integer", this));
     }
 
-    @Specialization(guards = { "!isRubyInteger(object)", "!isImplicitDouble(object)", "!isNil(object)" })
+    @Fallback
     protected long coerceObject(Object object,
             @Cached DispatchNode toIntNode,
             @Cached ToLongNode fitNode) {

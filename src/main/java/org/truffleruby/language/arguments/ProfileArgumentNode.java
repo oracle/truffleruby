@@ -12,6 +12,7 @@ package org.truffleruby.language.arguments;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import org.truffleruby.language.NoImplicitCastsToLong;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -71,7 +72,7 @@ public abstract class ProfileArgumentNode extends RubyContextSourceNode {
 
     @Specialization(replaces = { "cacheBoolean", "cacheInt", "cacheLong", "cacheDouble", "cacheClass" })
     protected Object unprofiled(Object object) {
-        assert object != null;
+        assert RubyGuards.assertIsValidRubyValue(object);
         return object;
     }
 

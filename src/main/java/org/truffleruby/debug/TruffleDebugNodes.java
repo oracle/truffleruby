@@ -52,8 +52,6 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
-import org.truffleruby.core.numeric.BigIntegerOps;
-import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
@@ -1017,26 +1015,6 @@ public abstract class TruffleDebugNodes {
         @Specialization
         protected long asLong(long value) {
             return value;
-        }
-
-    }
-
-    @CoreMethod(names = "float", onSingleton = true, required = 1)
-    public abstract static class FloatNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected float asFloat(long value) {
-            return value;
-        }
-
-        @Specialization
-        protected float asFloat(RubyBignum value) {
-            return (float) BigIntegerOps.doubleValue(value);
-        }
-
-        @Specialization
-        protected float asFloat(double value) {
-            return (float) value;
         }
 
     }
