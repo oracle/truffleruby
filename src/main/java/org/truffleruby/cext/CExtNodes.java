@@ -735,6 +735,53 @@ public class CExtNodes {
 
     }
 
+    @CoreMethod(names = "rb_str_locktmp", onSingleton = true, required = 1)
+    public abstract static class RbStrLockTmpNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected RubyString rbStrLockTmp(RubyString string,
+                @Cached BranchProfile errorProfile) {
+            if (string.locked) {
+                errorProfile.enter();
+                throw new RaiseException(getContext(),
+                        coreExceptions().runtimeError("temporal locking already locked string", this));
+            }
+            string.locked = true;
+            return string;
+        }
+
+        @Specialization
+        protected RubyString rbStrLockTmpImmutable(ImmutableRubyString string) {
+            throw new RaiseException(getContext(),
+                    coreExceptions().runtimeError("temporal locking immutable string", this));
+        }
+
+    }
+
+    @CoreMethod(names = "rb_str_unlocktmp", onSingleton = true, required = 1)
+    public abstract static class RbStrUnlockTmpNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected RubyString rbStrUnlockTmp(RubyString string,
+                @Cached BranchProfile errorProfile) {
+            if (!string.locked) {
+                errorProfile.enter();
+                throw new RaiseException(getContext(),
+                        coreExceptions().runtimeError("temporal unlocking already unlocked string", this));
+            }
+            string.locked = false;
+            return string;
+        }
+
+        @Specialization
+        protected ImmutableRubyString rbStrUnlockTmpImmutable(ImmutableRubyString string,
+                @Cached BranchProfile errorProfile) {
+            throw new RaiseException(getContext(),
+                    coreExceptions().runtimeError("temporal unlocking immutable string", this));
+        }
+
+    }
+
     @CoreMethod(names = "rb_const_get", onSingleton = true, required = 2)
     @NodeChild(value = "module", type = RubyNode.class)
     @NodeChild(value = "name", type = RubyNode.class)

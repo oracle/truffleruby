@@ -49,6 +49,9 @@ public class PrimitiveNodeConstructor {
             if (ArrayUtils.contains(annotation.raiseIfFrozen(), n)) {
                 arguments[n] = TypeNodes.CheckFrozenNode.create(arguments[n]);
             }
+            if (ArrayUtils.contains(annotation.raiseIfNotMutable(), n)) {
+                arguments[n] = TypeNodes.CheckMutableStringNode.create(arguments[n]);
+            }
         }
 
         final RubyNode primitiveNode = (RubyNode) CoreMethodNodeManager.createNodeFromFactory(factory, arguments);

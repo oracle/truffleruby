@@ -31,6 +31,7 @@ import org.truffleruby.language.library.RubyStringLibrary;
 public class RubyString extends RubyDynamicObject {
 
     public boolean frozen;
+    public boolean locked = false;
     public Rope rope;
     public RubyEncoding encoding;
 

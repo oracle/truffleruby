@@ -96,6 +96,16 @@ VALUE rb_str_freeze(VALUE string) {
   return rb_obj_freeze(string);
 }
 
+VALUE rb_str_locktmp(VALUE str) {
+  RUBY_CEXT_INVOKE("rb_str_locktmp", str);
+  return str;
+}
+
+VALUE rb_str_unlocktmp(VALUE str) {
+  RUBY_CEXT_INVOKE("rb_str_unlocktmp", str);
+  return str;
+}
+
 VALUE rb_str_inspect(VALUE string) {
   return rb_inspect(string);
 }

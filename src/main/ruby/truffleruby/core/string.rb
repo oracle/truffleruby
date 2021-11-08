@@ -112,7 +112,7 @@ class String
   end
 
   def delete_prefix!(prefix)
-    Primitive.check_frozen self
+    Primitive.check_mutable_string self
     prefix = Truffle::Type.coerce_to(prefix, String, :to_str)
     if !prefix.empty? && start_with?(prefix)
       self[0, prefix.size] = ''
@@ -128,7 +128,7 @@ class String
   end
 
   def delete_suffix!(suffix)
-    Primitive.check_frozen self
+    Primitive.check_mutable_string self
     suffix = Truffle::Type.coerce_to(suffix, String, :to_str)
     if !suffix.empty? && end_with?(suffix)
       self[size - suffix.size, suffix.size] = ''
@@ -352,7 +352,7 @@ class String
   end
 
   def encode!(to=undefined, from=undefined, **options)
-    Primitive.check_frozen self
+    Primitive.check_mutable_string self
 
     if !Primitive.undefined?(to)
       begin
@@ -630,7 +630,7 @@ class String
     if Primitive.undefined?(replacement) && !block_given?
       raise ArgumentError, "method '#{__method__}': given 1, expected 2"
     end
-    Primitive.check_frozen self
+    Primitive.check_mutable_string self
 
     Truffle::StringOperations.gsub_internal_core_check_encoding(self)
     matches = Truffle::StringOperations.gsub_internal_matches(false, self, pattern)
@@ -645,7 +645,7 @@ class String
   end
 
   def slice!(one, two=undefined)
-    Primitive.check_frozen self
+    Primitive.check_mutable_string self
     # This is un-DRY, but it's a simple manual argument splitting. Keeps
     # the code fast and clean since the sequence are pretty short.
     #
@@ -686,7 +686,7 @@ class String
   end
 
   def chop!
-    Primitive.check_frozen self
+    Primitive.check_mutable_string self
 
     bytes = Primitive.string_previous_byte_index(self, bytesize)
     return unless bytes
@@ -706,7 +706,7 @@ class String
   end
 
   def chomp!(sep=undefined)
-    Primitive.check_frozen self
+    Primitive.check_mutable_string self
 
     if Primitive.undefined?(sep)
       sep = $/
@@ -875,7 +875,7 @@ class String
     if Primitive.undefined?(replacement) && !block_given?
       return to_enum(:gsub!, pattern, replacement)
     end
-    Primitive.check_frozen self
+    Primitive.check_mutable_string self
 
     Truffle::StringOperations.gsub_internal_core_check_encoding(self)
     matches = Truffle::StringOperations.gsub_internal_matches(true, self, pattern)
@@ -951,7 +951,7 @@ class String
   end
 
   def []=(index, count_or_replacement, replacement=undefined)
-    Primitive.check_frozen self
+    Primitive.check_mutable_string self
 
     if Primitive.undefined?(replacement)
       replacement = count_or_replacement
@@ -1138,7 +1138,7 @@ class String
 
   def initialize(other = undefined, capacity: nil, encoding: nil)
     unless Primitive.undefined?(other)
-      Primitive.check_frozen self
+      Primitive.check_mutable_string self
       Primitive.string_initialize(self, other, encoding)
     end
     self.force_encoding(encoding) if encoding
@@ -1234,7 +1234,7 @@ class String
       raise IndexError, "index #{index} out of string"
     end
 
-    Primitive.check_frozen self
+    Primitive.check_mutable_string self
 
     if index == 0
       replace(other + self)

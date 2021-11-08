@@ -403,6 +403,8 @@ public class CoreMethodNodeManager {
 
         if (n == 0 && method.raiseIfFrozenSelf()) {
             argument = TypeNodes.CheckFrozenNode.create(argument);
+        } else if (n == 0 && method.raiseIfNotMutableSelf()) {
+            argument = TypeNodes.CheckMutableStringNode.create(argument);
         }
 
         return argument;

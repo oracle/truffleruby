@@ -59,6 +59,9 @@ public @interface CoreMethod {
     /** Raise an error if self is frozen. */
     boolean raiseIfFrozenSelf() default false;
 
+    /** Raise an error if the string/self's temporary lock is set to true or if it is frozen. */
+    boolean raiseIfNotMutableSelf() default false;
+
     boolean returnsEnumeratorIfNoBlock() default false;
 
     /** Method to call to determine the size of the returned Enumerator. Implies {@link #returnsEnumeratorIfNoBlock()}

@@ -568,7 +568,7 @@ public abstract class StringNodes {
 
     }
 
-    @CoreMethod(names = { "<<", "concat" }, optional = 1, rest = true, raiseIfFrozenSelf = true)
+    @CoreMethod(names = { "<<", "concat" }, optional = 1, rest = true, raiseIfNotMutableSelf = true)
     @ImportStatic(StringGuards.class)
     public abstract static class StringConcatNode extends CoreMethodArrayArgumentsNode {
 
@@ -1220,7 +1220,7 @@ public abstract class StringNodes {
         }
     }
 
-    @CoreMethod(names = "delete!", rest = true, raiseIfFrozenSelf = true)
+    @CoreMethod(names = "delete!", rest = true, raiseIfNotMutableSelf = true)
     @ImportStatic(StringGuards.class)
     public abstract static class DeleteBangNode extends CoreMethodArrayArgumentsNode {
 
@@ -1346,7 +1346,7 @@ public abstract class StringNodes {
         }
     }
 
-    @Primitive(name = "string_downcase!", raiseIfFrozen = 0, lowerFixnum = 1)
+    @Primitive(name = "string_downcase!", raiseIfNotMutable = 0, lowerFixnum = 1)
     @ImportStatic({ StringGuards.class, Config.class })
     public abstract static class StringDowncaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
@@ -1510,7 +1510,7 @@ public abstract class StringNodes {
         }
     }
 
-    @CoreMethod(names = "force_encoding", required = 1, raiseIfFrozenSelf = true)
+    @CoreMethod(names = "force_encoding", required = 1, raiseIfNotMutableSelf = true)
     public abstract static class ForceEncodingNode extends CoreMethodArrayArgumentsNode {
 
         @Child private WithEncodingNode withEncodingNode = WithEncodingNode.create();
@@ -1699,7 +1699,7 @@ public abstract class StringNodes {
 
     }
 
-    @CoreMethod(names = "initialize_copy", required = 1, raiseIfFrozenSelf = true)
+    @CoreMethod(names = "initialize_copy", required = 1, raiseIfNotMutableSelf = true)
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
         @Child private WriteObjectFieldNode writeAssociatedNode; // for synchronization
@@ -1759,7 +1759,7 @@ public abstract class StringNodes {
         }
     }
 
-    @CoreMethod(names = "lstrip!", raiseIfFrozenSelf = true)
+    @CoreMethod(names = "lstrip!", raiseIfNotMutableSelf = true)
     @ImportStatic(StringGuards.class)
     public abstract static class LstripBangNode extends CoreMethodArrayArgumentsNode {
 
@@ -1854,7 +1854,7 @@ public abstract class StringNodes {
 
     }
 
-    @CoreMethod(names = "replace", required = 1, raiseIfFrozenSelf = true)
+    @CoreMethod(names = "replace", required = 1, raiseIfNotMutableSelf = true)
     @NodeChild(value = "string", type = RubyNode.class)
     @NodeChild(value = "other", type = RubyBaseNodeWithExecute.class)
     public abstract static class ReplaceNode extends CoreMethodNode {
@@ -1884,7 +1884,7 @@ public abstract class StringNodes {
 
     }
 
-    @CoreMethod(names = "rstrip!", raiseIfFrozenSelf = true)
+    @CoreMethod(names = "rstrip!", raiseIfNotMutableSelf = true)
     @ImportStatic(StringGuards.class)
     public abstract static class RstripBangNode extends CoreMethodArrayArgumentsNode {
 
@@ -2136,7 +2136,7 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_swapcase!", raiseIfFrozen = 0, lowerFixnum = 1)
+    @Primitive(name = "string_swapcase!", raiseIfNotMutable = 0, lowerFixnum = 1)
     @ImportStatic({ StringGuards.class, Config.class })
     public abstract static class StringSwapcaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
@@ -2441,7 +2441,7 @@ public abstract class StringNodes {
 
     }
 
-    @CoreMethod(names = "setbyte", required = 2, raiseIfFrozenSelf = true, lowerFixnum = { 1, 2 })
+    @CoreMethod(names = "setbyte", required = 2, raiseIfNotMutableSelf = true, lowerFixnum = { 1, 2 })
     @NodeChild(value = "string", type = RubyNode.class)
     @NodeChild(value = "index", type = RubyBaseNodeWithExecute.class)
     @NodeChild(value = "value", type = RubyBaseNodeWithExecute.class)
@@ -2548,7 +2548,7 @@ public abstract class StringNodes {
 
     }
 
-    @CoreMethod(names = "squeeze!", rest = true, raiseIfFrozenSelf = true)
+    @CoreMethod(names = "squeeze!", rest = true, raiseIfNotMutableSelf = true)
     @ImportStatic(StringGuards.class)
     public abstract static class SqueezeBangNode extends CoreMethodArrayArgumentsNode {
 
@@ -2670,7 +2670,7 @@ public abstract class StringNodes {
 
     }
 
-    @CoreMethod(names = "succ!", raiseIfFrozenSelf = true)
+    @CoreMethod(names = "succ!", raiseIfNotMutableSelf = true)
     public abstract static class SuccBangNode extends CoreMethodArrayArgumentsNode {
 
         @Child private MakeLeafRopeNode makeLeafRopeNode = MakeLeafRopeNode.create();
@@ -2835,7 +2835,7 @@ public abstract class StringNodes {
         }
     }
 
-    @CoreMethod(names = "reverse!", raiseIfFrozenSelf = true)
+    @CoreMethod(names = "reverse!", raiseIfNotMutableSelf = true)
     @ImportStatic(StringGuards.class)
     public abstract static class ReverseBangNode extends CoreMethodArrayArgumentsNode {
 
@@ -2922,7 +2922,7 @@ public abstract class StringNodes {
         }
     }
 
-    @CoreMethod(names = "tr!", required = 2, raiseIfFrozenSelf = true)
+    @CoreMethod(names = "tr!", required = 2, raiseIfNotMutableSelf = true)
     @NodeChild(value = "self", type = RubyNode.class)
     @NodeChild(value = "fromStr", type = RubyBaseNodeWithExecute.class)
     @NodeChild(value = "toStr", type = RubyBaseNodeWithExecute.class)
@@ -2987,7 +2987,7 @@ public abstract class StringNodes {
         }
     }
 
-    @CoreMethod(names = "tr_s!", required = 2, raiseIfFrozenSelf = true)
+    @CoreMethod(names = "tr_s!", required = 2, raiseIfNotMutableSelf = true)
     @NodeChild(value = "self", type = RubyNode.class)
     @NodeChild(value = "fromStr", type = RubyBaseNodeWithExecute.class)
     @NodeChild(value = "toStrNode", type = RubyBaseNodeWithExecute.class)
@@ -3252,7 +3252,7 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_upcase!", raiseIfFrozen = 0, lowerFixnum = 1)
+    @Primitive(name = "string_upcase!", raiseIfNotMutable = 0, lowerFixnum = 1)
     @ImportStatic({ StringGuards.class, Config.class })
     public abstract static class StringUpcaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
@@ -3341,7 +3341,7 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_capitalize!", raiseIfFrozen = 0, lowerFixnum = 1)
+    @Primitive(name = "string_capitalize!", raiseIfNotMutable = 0, lowerFixnum = 1)
     @ImportStatic({ StringGuards.class, Config.class })
     public abstract static class StringCapitalizeBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
@@ -3472,7 +3472,7 @@ public abstract class StringNodes {
 
     }
 
-    @CoreMethod(names = "clear", raiseIfFrozenSelf = true)
+    @CoreMethod(names = "clear", raiseIfNotMutableSelf = true)
     public abstract static class ClearNode extends CoreMethodArrayArgumentsNode {
 
         @Child private SubstringNode substringNode = SubstringNode.create();
