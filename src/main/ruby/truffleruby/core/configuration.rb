@@ -28,9 +28,6 @@
 
 module Truffle
   class Configuration
-    private def initialize
-    end
-
     def section(section, &block)
       Primitive.vm_get_config_section section, block
     end
