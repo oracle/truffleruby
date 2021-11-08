@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2007-2013 Jeremy Hinegardner
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -12,7 +14,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-require 'launchy/detect/runner'
+require Primitive.get_original_require(__FILE__)
 
 module Launchy::Detect
   class Runner

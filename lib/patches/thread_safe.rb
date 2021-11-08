@@ -1,4 +1,6 @@
-require 'thread_safe'
+# truffleruby_primitives: true
+
+require Primitive.get_original_require(__FILE__)
 
 # Copyright (c) 2012 thedarkone
 #

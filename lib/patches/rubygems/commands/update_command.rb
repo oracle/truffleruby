@@ -1,4 +1,6 @@
-require 'rubygems/commands/update_command'
+# truffleruby_primitives: true
+
+require Primitive.get_original_require(__FILE__)
 
 # Redefine update --system to do nothing
 

@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright © 2013 David Chelimsky, Myron Marston, Jon Rowe, Sam Phippen,
 # Xavier Shay, Bradley Schaefer
 #
@@ -19,7 +21,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'rspec/support'
+require Primitive.get_original_require(__FILE__)
 
 module RSpec
   module Support

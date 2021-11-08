@@ -1,9 +1,11 @@
+# truffleruby_primitives: true
+
 # Check if the Gem paths are correct as early as possible
 unless Truffle::Boot.get_option 'testing-rubygems'
   Truffle::GemUtil.verify_gem_paths
 end
 
-require 'rubygems'
+require Primitive.get_original_require(__FILE__)
 
 # Add TruffleRuby rubygems hooks to install and uninstall executables from additional
 # GraalVM bin directories (./bin, ./jre/bin on JDK8)
