@@ -757,7 +757,7 @@ module Kernel
     Primitive.object_clone self, freeze
   end
 
-  private def initialize_clone(from, freeze: nil)
+  def initialize_clone(from, freeze: nil)
     initialize_copy(from)
   end
 

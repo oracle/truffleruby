@@ -158,7 +158,7 @@ class Struct
   end
   alias_method :inspect, :to_s
 
-  private def initialize(*args)
+  def initialize(*args)
     attrs = _attrs
 
     unless args.length <= attrs.length

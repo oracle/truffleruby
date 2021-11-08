@@ -9,8 +9,7 @@
 # GNU Lesser General Public License version 2.1.
 
 class Fiber
-
-  private def initialize(blocking: false, &block)
+  def initialize(blocking: false, &block)
     Primitive.fiber_initialize(self, Primitive.as_boolean(blocking), block)
   end
 
