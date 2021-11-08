@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.format.convert;
 
+import com.oracle.truffle.api.memory.ByteArraySupport;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.MissingValue;
 
@@ -38,15 +39,7 @@ public abstract class BytesToInteger64LittleNode extends FormatNode {
 
     @Specialization
     protected Object decode(byte[] bytes) {
-        long value = 0;
-        value |= (long) (bytes[7] & 0xff) << 56;
-        value |= (long) (bytes[6] & 0xff) << 48;
-        value |= (long) (bytes[5] & 0xff) << 40;
-        value |= (long) (bytes[4] & 0xff) << 32;
-        value |= (long) (bytes[3] & 0xff) << 24;
-        value |= (long) (bytes[2] & 0xff) << 16;
-        value |= (long) (bytes[1] & 0xff) << 8;
-        value |= bytes[0] & 0xff;
+        long value = ByteArraySupport.littleEndian().getLong(bytes, 0);
         if (signed) {
             return value;
         } else {

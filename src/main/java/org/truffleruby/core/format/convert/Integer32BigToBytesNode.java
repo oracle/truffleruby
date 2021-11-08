@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.format.convert;
 
+import com.oracle.truffle.api.memory.ByteArraySupport;
 import org.truffleruby.core.format.FormatNode;
 
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -19,12 +20,9 @@ public abstract class Integer32BigToBytesNode extends FormatNode {
 
     @Specialization
     protected byte[] encode(long value) {
-        return new byte[]{
-                (byte) (value >>> 24),
-                (byte) (value >>> 16),
-                (byte) (value >>> 8),
-                (byte) value
-        };
+        byte[] bytes = new byte[4];
+        ByteArraySupport.bigEndian().putInt(bytes, 0, (int) value);
+        return bytes;
     }
 
 }

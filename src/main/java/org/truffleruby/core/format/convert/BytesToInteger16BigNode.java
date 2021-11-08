@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.format.convert;
 
+import com.oracle.truffle.api.memory.ByteArraySupport;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.MissingValue;
 
@@ -37,9 +38,7 @@ public abstract class BytesToInteger16BigNode extends FormatNode {
 
     @Specialization
     protected int decode(byte[] bytes) { // must return int so Ruby nodes can deal with it
-        short value = 0;
-        value |= (bytes[0] & 0xff) << 8;
-        value |= bytes[1] & 0xff;
+        short value = ByteArraySupport.bigEndian().getShort(bytes, 0);
         if (signed) {
             return value;
         } else {
