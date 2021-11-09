@@ -46,6 +46,7 @@ Compatibility:
 * Add `WERRORFLAG` to `RbConfig` (#2519, @bjfish).
 * Update `MatchData` methods to return `String` instances when called on a subclass (#2453, @bjfish).
 * Implement `Proc#{==,eql?}` (#2453).
+* Sort by default for `Dir.{glob,[]}` and add `sort:` keyword argument (#2523, @Strech).
 
 Performance:
 
