@@ -405,12 +405,14 @@ class Dir
       last
     end
 
-    def self.run(node, all_matches, glob_base_dir)
+    def self.run(node, all_matches, glob_base_dir, flags = 0)
       if ConstantEntry === node
         node.process_directory all_matches, nil, nil, glob_base_dir
       else
         matches = []
         node.process_directory matches, nil, nil, glob_base_dir
+        matches.sort! if (flags & File::FNM_GLOB_NOSORT) == 0
+
         all_matches.concat(matches)
       end
     end
@@ -461,10 +463,10 @@ class Dir
         patterns = compile(pattern, left_brace_index, flags)
 
         patterns.each do |node|
-          run node, matches, base_dir
+          run node, matches, base_dir, flags
         end
       elsif node = single_compile(pattern, flags)
-        run node, matches, base_dir
+        run node, matches, base_dir, flags
       else
         matches
       end

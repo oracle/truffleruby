@@ -104,11 +104,12 @@ class File < IO
     W_OK = 2 # test for write permission
     R_OK = 4 # test for read permission
 
-    FNM_NOESCAPE = 0x01
-    FNM_PATHNAME = 0x02
-    FNM_DOTMATCH = 0x04
-    FNM_CASEFOLD = 0x08
-    FNM_EXTGLOB  = 0x10
+    FNM_NOESCAPE    = 0x01
+    FNM_PATHNAME    = 0x02
+    FNM_DOTMATCH    = 0x04
+    FNM_CASEFOLD    = 0x08
+    FNM_EXTGLOB     = 0x10
+    FNM_GLOB_NOSORT = 0x40
 
     if Truffle::Platform.windows?
       NULL = 'NUL'

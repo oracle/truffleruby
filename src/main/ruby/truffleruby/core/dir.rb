@@ -212,7 +212,7 @@ class Dir
       PrivateFile.expand_path("~#{user}")
     end
 
-    def [](*patterns, base: nil)
+    def [](*patterns, base: nil, sort: true)
       if patterns.size == 1
         pattern = Truffle::Type.coerce_to_path(patterns[0], false)
         return [] if pattern.empty?
@@ -220,10 +220,10 @@ class Dir
         patterns = [pattern]
       end
 
-      glob patterns, base: base
+      glob patterns, base: base, sort: sort
     end
 
-    def glob(pattern, flags=0, base: nil, &block)
+    def glob(pattern, flags=0, base: nil, sort: true, &block)
       if Primitive.object_kind_of?(pattern, Array)
         patterns = pattern
       else
@@ -236,6 +236,7 @@ class Dir
 
       matches = []
       index = 0
+      flags |= File::FNM_GLOB_NOSORT if Primitive.object_equal(sort, false)
 
       normalized_base = if Primitive.nil? base
                           nil
