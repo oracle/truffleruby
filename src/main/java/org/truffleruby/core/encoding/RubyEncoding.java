@@ -29,6 +29,7 @@ import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
+import java.util.Objects;
 import java.util.Set;
 
 @ExportLibrary(InteropLibrary.class)
@@ -39,15 +40,16 @@ public class RubyEncoding extends ImmutableRubyObject implements ObjectGraphNode
     public final int index;
 
     public RubyEncoding(Encoding jcoding, ImmutableRubyString name, int index) {
-        this.jcoding = jcoding;
-        this.name = name;
+        this.jcoding = Objects.requireNonNull(jcoding);
+        this.name = Objects.requireNonNull(name);
         this.index = index;
     }
 
     // Special constructor to define US-ASCII encoding which is used for RubyEncoding names
     public RubyEncoding(int index) {
-        this.jcoding = USASCIIEncoding.INSTANCE;
-        this.name = FrozenStringLiterals.createStringAndCacheLater((LeafRope) RopeConstants.US_ASCII, this);
+        this.jcoding = Objects.requireNonNull(USASCIIEncoding.INSTANCE);
+        this.name = Objects.requireNonNull(
+                FrozenStringLiterals.createStringAndCacheLater((LeafRope) RopeConstants.US_ASCII, this));
         this.index = index;
     }
 

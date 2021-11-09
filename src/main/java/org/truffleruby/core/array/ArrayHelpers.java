@@ -29,13 +29,13 @@ public abstract class ArrayHelpers {
         array.size = size;
     }
 
-    private static boolean assertNoNullElement(Object store, int size) {
-        return !(store instanceof Object[]) || ArrayUtils.assertNoNullElement((Object[]) store, size);
+    private static boolean assertValidElements(Object store, int size) {
+        return !(store instanceof Object[]) || ArrayUtils.assertValidElements((Object[]) store, size);
     }
 
     public static RubyArray createArray(RubyContext context, RubyLanguage language, Object store, int size) {
         assert !(store instanceof Object[]) || store.getClass() == Object[].class;
-        assert assertNoNullElement(store, size);
+        assert assertValidElements(store, size);
         return new RubyArray(context.getCoreLibrary().arrayClass, language.arrayShape, store, size);
     }
 

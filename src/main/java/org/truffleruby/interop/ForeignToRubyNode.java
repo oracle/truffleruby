@@ -9,6 +9,7 @@
  */
 package org.truffleruby.interop;
 
+import com.oracle.truffle.api.dsl.Fallback;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
@@ -29,18 +30,33 @@ public abstract class ForeignToRubyNode extends RubyBaseNode {
     public abstract Object executeConvert(Object value);
 
     @Specialization
-    protected RubyString convertCharacterCached(char value,
+    protected int convertByte(byte value) {
+        return value;
+    }
+
+    @Specialization
+    protected int convertShort(short value) {
+        return value;
+    }
+
+    @Specialization
+    protected double convertFloat(float value) {
+        return value;
+    }
+
+    @Specialization
+    protected RubyString convertChar(char value,
             @Cached FromJavaStringNode fromJavaStringNode) {
         return fromJavaStringNode.executeFromJavaString(String.valueOf(value));
     }
 
     @Specialization
-    protected RubyString convertStringCached(String value,
+    protected RubyString convertString(String value,
             @Cached FromJavaStringNode fromJavaStringNode) {
         return fromJavaStringNode.executeFromJavaString(value);
     }
 
-    @Specialization(guards = { "!isCharacter(value)", "!isString(value)" })
+    @Fallback
     protected Object convert(Object value) {
         return value;
     }

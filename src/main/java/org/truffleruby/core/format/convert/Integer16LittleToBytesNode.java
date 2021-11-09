@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.format.convert;
 
+import com.oracle.truffle.api.memory.ByteArraySupport;
 import org.truffleruby.core.format.FormatNode;
 
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -19,10 +20,9 @@ public abstract class Integer16LittleToBytesNode extends FormatNode {
 
     @Specialization
     protected byte[] encode(long value) {
-        return new byte[]{
-                (byte) value,
-                (byte) (value >>> 8)
-        };
+        byte[] bytes = new byte[2];
+        ByteArraySupport.littleEndian().putShort(bytes, 0, (short) value);
+        return bytes;
     }
 
 }

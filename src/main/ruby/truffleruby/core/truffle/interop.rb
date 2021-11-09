@@ -169,8 +169,8 @@ module Truffle
       end
 
       def each
-        (0...size).each do |n|
-          yield foreign[n]
+        (0...size).each do |i|
+          yield foreign[i]
         end
       end
 
@@ -210,8 +210,8 @@ module Truffle
         raise 'foreign object returns false for hasArrayElements() and cannot be converted into an array'
       end
 
-      Array.new(Truffle::Interop.array_size(object)) do |n|
-        Truffle::Interop.read_array_element(object, n)
+      Array.new(Truffle::Interop.array_size(object)) do |i|
+        Truffle::Interop.read_array_element(object, i)
       end
     end
 

@@ -9,15 +9,23 @@
  */
 package org.truffleruby.core.format.convert;
 
+import com.oracle.truffle.api.memory.ByteArraySupport;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.MissingValue;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.language.Nil;
 
 @NodeChild("bytes")
 public abstract class BytesToInteger64BigNode extends FormatNode {
+
+    private final boolean signed;
+
+    protected BytesToInteger64BigNode(boolean signed) {
+        this.signed = signed;
+    }
 
     @Specialization
     protected MissingValue decode(MissingValue missingValue) {
@@ -30,17 +38,13 @@ public abstract class BytesToInteger64BigNode extends FormatNode {
     }
 
     @Specialization
-    protected long decode(byte[] bytes) {
-        long value = 0;
-        value |= (long) (bytes[0] & 0xff) << 56;
-        value |= (long) (bytes[1] & 0xff) << 48;
-        value |= (long) (bytes[2] & 0xff) << 40;
-        value |= (long) (bytes[3] & 0xff) << 32;
-        value |= (long) (bytes[4] & 0xff) << 24;
-        value |= (long) (bytes[5] & 0xff) << 16;
-        value |= (long) (bytes[6] & 0xff) << 8;
-        value |= bytes[7] & 0xff;
-        return value;
+    protected Object decode(byte[] bytes) {
+        long value = ByteArraySupport.bigEndian().getLong(bytes, 0);
+        if (signed) {
+            return value;
+        } else {
+            return BigIntegerOps.asUnsignedFixnumOrBignum(value);
+        }
     }
 
 }

@@ -19,20 +19,18 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyGuards;
 
 public abstract class ArrayUtils {
 
     public static final Object[] EMPTY_ARRAY = new Object[0];
 
-    public static boolean assertNoNullElement(Object[] array) {
-        return assertNoNullElement(array, array.length);
-    }
-
-    public static boolean assertNoNullElement(Object[] array, int size) {
+    public static boolean assertValidElements(Object[] array, int size) {
         assert size <= array.length;
         for (int i = 0; i < size; i++) {
             final Object element = array[i];
             assert element != null : nullElementAt(array, i);
+            assert RubyGuards.assertIsValidRubyValue(element);
         }
         return true;
     }

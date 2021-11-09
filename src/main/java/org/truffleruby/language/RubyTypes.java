@@ -31,7 +31,6 @@ public abstract class RubyTypes {
     @TypeCheck(Nil.class)
     public static boolean isNil(Object value) {
         return value == Nil.INSTANCE;
-
     }
 
     @TypeCast(Nil.class)
@@ -42,7 +41,6 @@ public abstract class RubyTypes {
     @TypeCheck(NotProvided.class)
     public static boolean isNotProvided(Object value) {
         return value == NotProvided.INSTANCE;
-
     }
 
     @TypeCast(NotProvided.class)
@@ -50,37 +48,10 @@ public abstract class RubyTypes {
         return NotProvided.INSTANCE;
     }
 
-    // Ordered from most frequent to least frequent for interpreter performance
+    // int -> long
 
     @ImplicitCast
     public static long promoteToLong(int value) {
-        return value;
-    }
-
-    // For handling interop primitives
-
-    @ImplicitCast
-    public static long promoteToLong(short value) {
-        return value;
-    }
-
-    @ImplicitCast
-    public static long promoteToLong(byte value) {
-        return value;
-    }
-
-    @ImplicitCast
-    public static int promoteToInt(short value) {
-        return value;
-    }
-
-    @ImplicitCast
-    public static int promoteToInt(byte value) {
-        return value;
-    }
-
-    @ImplicitCast
-    public static double promoteToDouble(float value) {
         return value;
     }
 

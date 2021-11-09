@@ -30,7 +30,7 @@ public abstract class ReinterpretIntegerAsFloatNode extends FormatNode {
     }
 
     @Specialization
-    protected float decode(int value) {
+    protected double decode(int value) { // must return double so Ruby nodes can deal with it
         return Float.intBitsToFloat(value);
     }
 

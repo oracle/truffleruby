@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.dsl.ImplicitCast;
 import com.oracle.truffle.api.dsl.TypeCast;
 import com.oracle.truffle.api.dsl.TypeCheck;
 import com.oracle.truffle.api.dsl.TypeSystem;
@@ -23,7 +22,6 @@ public abstract class NoImplicitCastsToLong {
     @TypeCheck(Nil.class)
     public static boolean isNil(Object value) {
         return value == Nil.INSTANCE;
-
     }
 
     @TypeCast(Nil.class)
@@ -34,31 +32,11 @@ public abstract class NoImplicitCastsToLong {
     @TypeCheck(NotProvided.class)
     public static boolean isNotProvided(Object value) {
         return value == NotProvided.INSTANCE;
-
     }
 
     @TypeCast(NotProvided.class)
     public static NotProvided asNotProvided(Object value) {
         return NotProvided.INSTANCE;
-    }
-
-    // Ordered from most frequent to least frequent for interpreter performance
-
-    // For handling interop primitives
-
-    @ImplicitCast
-    public static int promoteToInt(short value) {
-        return value;
-    }
-
-    @ImplicitCast
-    public static int promoteToInt(byte value) {
-        return value;
-    }
-
-    @ImplicitCast
-    public static double promoteToDouble(float value) {
-        return value;
     }
 
 }

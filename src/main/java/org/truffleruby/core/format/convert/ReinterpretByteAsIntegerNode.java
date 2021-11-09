@@ -34,7 +34,7 @@ public abstract class ReinterpretByteAsIntegerNode extends FormatNode {
         if (signed) {
             return value;
         } else {
-            return value & 0xff;
+            return Byte.toUnsignedInt(value);
         }
     }
 

@@ -17,8 +17,8 @@ describe "Interop coercion" do
       -> { 14 * true }.should raise_error(TypeError, /can't be coerced into Integer/)
       -> { 14.2 + true }.should raise_error(TypeError, /can't be coerced into Float/)
       -> { 14.2 * true }.should raise_error(TypeError, /can't be coerced into Float/)
-      (14 + Truffle::Debug.float(2)).should == 16.0
-      (14.0 + Truffle::Debug.float(2.0)).should == 16.0
+      (14 + 2.0).should == 16.0
+      (14.0 + 2.0).should == 16.0
     end
 
     it "unboxes a LHS operand" do

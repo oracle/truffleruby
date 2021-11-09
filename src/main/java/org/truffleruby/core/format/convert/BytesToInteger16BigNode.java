@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.format.convert;
 
+import com.oracle.truffle.api.memory.ByteArraySupport;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.MissingValue;
 
@@ -18,6 +19,12 @@ import org.truffleruby.language.Nil;
 
 @NodeChild("bytes")
 public abstract class BytesToInteger16BigNode extends FormatNode {
+
+    private final boolean signed;
+
+    protected BytesToInteger16BigNode(boolean signed) {
+        this.signed = signed;
+    }
 
     @Specialization
     protected MissingValue decode(MissingValue missingValue) {
@@ -30,11 +37,13 @@ public abstract class BytesToInteger16BigNode extends FormatNode {
     }
 
     @Specialization
-    protected short decode(byte[] bytes) {
-        short value = 0;
-        value |= (bytes[0] & 0xff) << 8;
-        value |= bytes[1] & 0xff;
-        return value;
+    protected int decode(byte[] bytes) { // must return int so Ruby nodes can deal with it
+        short value = ByteArraySupport.bigEndian().getShort(bytes, 0);
+        if (signed) {
+            return value;
+        } else {
+            return Short.toUnsignedInt(value);
+        }
     }
 
 }
