@@ -28,6 +28,9 @@ public @interface Primitive {
      * {@link #lowerFixnum()}. */
     int[] raiseIfFrozen() default {};
 
+    /** Raise an error if the string's temporary lock is set to true or if it is frozen. */
+    int[] raiseIfNotMutable() default {};
+
     /** Use these names in Ruby core methods stubs, ignore argument names in Java specializations. */
     String[] argumentNames() default {};
 }

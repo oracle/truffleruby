@@ -35,6 +35,7 @@ import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
@@ -425,6 +426,42 @@ public abstract class TypeNodes {
 
             return value;
         }
+    }
+
+    @Primitive(name = "check_mutable_string")
+    @NodeChild(value = "value", type = RubyNode.class)
+    public abstract static class CheckMutableStringNode extends PrimitiveNode {
+
+        public static CheckMutableStringNode create() {
+            return create(null);
+        }
+
+        public static CheckMutableStringNode create(RubyNode node) {
+            return TypeNodesFactory.CheckMutableStringNodeFactory.create(node);
+        }
+
+        public abstract void execute(Object object);
+
+
+        @Specialization
+        protected Object check(RubyString value,
+                @Cached BranchProfile errorProfile) {
+            if (value.locked) {
+                errorProfile.enter();
+                throw new RaiseException(getContext(),
+                        coreExceptions().runtimeError("can't modify string; temporarily locked", this));
+            } else if (value.frozen) {
+                errorProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().frozenError(value, this));
+            }
+            return value;
+        }
+
+        @Specialization
+        protected Object checkImmutable(ImmutableRubyString value) {
+            throw new RaiseException(getContext(), coreExceptions().frozenError(value, this));
+        }
+
     }
 
     @Primitive(name = "check_real?")
