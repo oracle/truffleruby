@@ -38,9 +38,7 @@ module BenchmarkInterface
             block = benchmark.block
             if short_iterations
               x.report(benchmark.name) do
-                samples.times do
-                  block.call
-                end
+                BenchmarkInterface.run_n_iterations(samples, &block)
               end
             else
               x.report(benchmark.name, &benchmark.block)
