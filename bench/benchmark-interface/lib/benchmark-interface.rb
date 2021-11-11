@@ -21,11 +21,17 @@ require 'benchmark-interface/require'
 require 'benchmark-interface/run'
 
 module BenchmarkInterface
-  
   def self.benchmark(name=nil, &block)
     BenchmarkInterface::BenchmarkSet.current.register name, block
   end
-  
+
+  def self.run_n_iterations(iterations)
+    i = 0
+    while i < iterations
+      yield
+      i += 1
+    end
+  end
 end
 
 def benchmark(name=nil, &block)

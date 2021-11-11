@@ -27,9 +27,7 @@ module BenchmarkInterface
         if block.arity == 1
           block.call iterations
         else
-          iterations.times do
-            block.call
-          end
+          BenchmarkInterface.run_n_iterations(iterations, &block)
         end
 
         time = Time.now - start
@@ -61,9 +59,7 @@ module BenchmarkInterface
         end
       else
         @block = Proc.new do
-          iterations.times do
-            original_block.call
-          end
+          BenchmarkInterface.run_n_iterations(iterations, &original_block)
         end
       end
     end

@@ -25,6 +25,14 @@ module BenchmarkInterface
         end
       end
 
+      def self.run_n_iterations(iterations)
+        i = 0
+        while i < iterations
+          yield
+          i += 1
+        end
+      end
+
       def self.run(benchmark_set, names, options)
         full_time = options['--time']
         freq = options['--freq']
@@ -42,11 +50,7 @@ module BenchmarkInterface
 
           while get_time - start_time < full_time
             start_round_time = get_time
-            
-            iterations.times do
-              block.call
-            end
-            
+            BenchmarkInterface.run_n_iterations(iterations, &block)
             round_time = get_time - start_round_time
             
             # If the round time was very low and so very imprecise then we may
