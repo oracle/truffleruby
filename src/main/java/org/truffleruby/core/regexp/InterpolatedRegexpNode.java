@@ -17,7 +17,6 @@ import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.control.DeferredRaiseException;
-import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -56,7 +55,6 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
     public abstract static class RegexpBuilderNode extends RubyBaseNode {
 
         @Child private RopeNodes.EqualNode ropesEqualNode = RopeNodes.EqualNode.create();
-        @Child private DispatchNode copyNode = DispatchNode.create();
         private final RegexpOptions options;
 
         public static RegexpBuilderNode create(RegexpOptions options) {
@@ -73,8 +71,7 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
         protected Object executeFast(RopeWithEncoding[] parts,
                 @Cached(value = "parts", dimensions = 1) RopeWithEncoding[] cachedParts,
                 @Cached("createRegexp(cachedParts)") RubyRegexp regexp) {
-            final Object clone = copyNode.call(regexp, "clone");
-            return clone;
+            return regexp;
         }
 
         @Specialization(replaces = "executeFast")
