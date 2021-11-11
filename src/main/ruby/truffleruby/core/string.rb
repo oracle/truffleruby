@@ -828,7 +828,7 @@ class String
 
       # This is the normal case.
       pat_size = sep.bytesize
-      unmodified_self = clone
+      unmodified_self = Primitive.dup_as_string_instance(self)
 
       while pos < bytesize
         nxt = Primitive.find_string(unmodified_self, sep, pos)
