@@ -10,7 +10,6 @@
 package org.truffleruby.core.support;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -38,7 +37,6 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
@@ -202,7 +200,7 @@ public abstract class TypeNodes {
         @TruffleBoundary
         @Specialization
         protected RubyArray instanceVariables(RubyDynamicObject object) {
-            final List<String> names = new ArrayList<>();
+            final List<String> names = new ArrayList<>(object.getShape().getPropertyCount());
 
             for (Object name : DynamicObjectLibrary.getUncached().getKeyArray(object)) {
                 if (name instanceof String) {
@@ -211,12 +209,9 @@ public abstract class TypeNodes {
             }
 
             final int size = names.size();
-            final String[] sortedNames = names.toArray(StringUtils.EMPTY_STRING_ARRAY);
-            Arrays.sort(sortedNames);
-
             final Object[] nameSymbols = new Object[size];
-            for (int i = 0; i < sortedNames.length; i++) {
-                nameSymbols[i] = getSymbol(sortedNames[i]);
+            for (int i = 0; i < size; i++) {
+                nameSymbols[i] = getSymbol(names.get(i));
             }
 
             return createArray(nameSymbols);
