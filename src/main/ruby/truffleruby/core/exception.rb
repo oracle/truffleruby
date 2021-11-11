@@ -47,23 +47,19 @@ class Exception
 
   def to_s
     msg = Primitive.exception_message self
-    if Primitive.nil? msg
-      formatter = Primitive.exception_formatter self
-      if Primitive.nil? formatter
+    if Primitive.nil?(msg)
+      formatter = Primitive.exception_formatter(self)
+      if Primitive.nil?(formatter)
         self.class.to_s
       else
         msg = formatter.call(self).to_s
-        Primitive.exception_set_message self, msg
+        Primitive.exception_set_message(self, msg)
         msg
       end
     else
       msg.to_s
     end
   end
-
-  # Needed to properly implement #exception, which must clone and call
-  # #initialize again, BUT not a subclasses initialize.
-  alias_method :__initialize__, :initialize
 
   def set_backtrace(bt)
     case bt
@@ -137,20 +133,15 @@ class Exception
     alias_method :exception, :new
   end
 
-  def exception(message=nil)
-    if message
-      unless message.equal? self
-        # As strange as this might seem, this IS actually the protocol
-        # that MRI implements for this. The explicit call to
-        # Exception#initialize (via __initialize__) is exactly what MRI
-        # does.
-        e = clone
-        e.__send__ :__initialize__, message
-        return e
-      end
+  def exception(message = nil)
+    # As strange as this may seem, this is actually the protocol that CRuby implements
+    if message and !Primitive.object_equal(message, self)
+      copy = clone # note: rb_obj_clone() in CRuby
+      Primitive.exception_set_message copy, message
+      copy
+    else
+      self
     end
-
-    self
   end
 
   def self.to_tty?
