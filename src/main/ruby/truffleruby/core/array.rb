@@ -162,19 +162,21 @@ class Array
     start ||= 0 # begin-less range
     stop ||= -1 # endless range
 
-    # negative indexes refer to end of array
+    # negative indexes refer to the end of array
     start += len if start < 0
     stop  += len if stop < 0
-
-    if start < 0 || start > len
-      raise RangeError, "#{seq.inspect} out of range" if step < -1 || step > 1
-      return nil
-    end
 
     stop += 1 unless seq.exclude_end?
     diff = stop - start
 
-    raise RangeError, "#{seq.inspect} out of range" if diff > len && (step < -1 || step > 1)
+    is_out_of_bound = start < 0 || start > len
+
+    if step < -1 || step > 1
+      raise RangeError, "#{seq.inspect} out of range" if is_out_of_bound || diff > len
+    elsif is_out_of_bound
+      return nil
+    end
+
     return [] if diff <= 0
 
     diff = len - start if (len < diff || len < start + diff)
