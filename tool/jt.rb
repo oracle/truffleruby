@@ -54,7 +54,7 @@ RUBOCOP_INCLUDE_LIST = %w[
 
 RUBOCOP_VERSION = '1.22.1'
 
-DLEXT = RbConfig::CONFIG['DLEXT']
+DLEXT = RbConfig::CONFIG.fetch('DLEXT')
 
 JT_PROFILE_SUBCOMMANDS = ENV['JT_PROFILE_SUBCOMMANDS'] == 'true'
 JT_SPECS_COMPILATION = ENV['JT_SPECS_COMPILATION'] == 'false' ? false : true
@@ -133,6 +133,11 @@ module Utilities
 
   def ci?
     ENV.key?('BUILD_URL')
+  end
+
+  def soext
+    # RbConfig::CONFIG["SOEXT"] is not set for system ruby 2.3 in macOS CI
+    RbConfig::CONFIG.fetch('SOEXT') { darwin? ? 'dylib' : 'so' }
   end
 
   def bold(text)
@@ -266,11 +271,13 @@ module Utilities
     @truffleruby = File.executable?(truffleruby_launcher_path)
   end
 
+  def language_lib_path
+    "#{ruby_home}/lib/librubyvm.#{soext}"
+  end
+
   def truffleruby_native_built?
     return @truffleruby_native_built if defined?(@truffleruby_native_built)
-    # the truffleruby executable is bigger than 10MB if it is a native executable
-    # the executable delegator for mac has less than 1MB
-    @truffleruby_native_built = truffleruby? && File.size(truffleruby_launcher_path) > 10*1024*1024
+    @truffleruby_native_built = truffleruby? && File.exist?(language_lib_path)
   end
 
   def truffleruby_native?
