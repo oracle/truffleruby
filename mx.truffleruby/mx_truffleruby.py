@@ -273,9 +273,10 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
         'bin/ri',
         'bin/typeprof',
     ],
-    launcher_configs=[
-        mx_sdk_vm.LanguageLauncherConfig(
-            destination='bin/<exe:truffleruby>',
+    library_configs=[
+        mx_sdk_vm.LanguageLibraryConfig(
+            destination='lib/<lib:rubyvm>',
+            launchers=['bin/<exe:ruby>', 'bin/<exe:truffleruby>'],
             jar_distributions=['truffleruby:TRUFFLERUBY-LAUNCHER'],
             main_class='org.truffleruby.launcher.RubyLauncher',
             build_args=[
@@ -284,7 +285,6 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
                 '-H:+TruffleCheckBlockListMethods'
             ],
             language='ruby',
-            links=['bin/<exe:ruby>'],
             option_vars=[
                 'RUBYOPT',
                 'TRUFFLERUBYOPT'
