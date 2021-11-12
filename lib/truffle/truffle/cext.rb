@@ -963,7 +963,9 @@ module Truffle::CExt
     rescue NameError
       raise ArgumentError, "undefined class/module #{path}"
     end
-    raise TypeError unless const.is_a?(Class)
+    unless Primitive.object_kind_of?(const, ::Module)
+      raise TypeError, "#{path} does not refer to class/module"
+    end
     const
   end
 
