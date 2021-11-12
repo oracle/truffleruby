@@ -18,18 +18,18 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 public class FrameOnStackNode extends RubyContextSourceNode {
 
     @Child private RubyNode child;
-    private final FrameSlot markerSlot;
+    private final FrameSlot frameOnStackMarkerSlot;
 
-    public FrameOnStackNode(RubyNode child, FrameSlot markerSlot) {
+    public FrameOnStackNode(RubyNode child, FrameSlot frameOnStackMarkerSlot) {
         this.child = child;
-        this.markerSlot = markerSlot;
+        this.frameOnStackMarkerSlot = frameOnStackMarkerSlot;
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
         final FrameOnStackMarker marker = new FrameOnStackMarker();
 
-        frame.setObject(markerSlot, marker);
+        frame.setObject(frameOnStackMarkerSlot, marker);
 
         try {
             return child.execute(frame);
