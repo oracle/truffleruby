@@ -59,12 +59,7 @@ module RbConfig
 
   prefix = ruby_home
   graalvm_home = TruffleRuby.graalvm_home
-  extra_bindirs = if graalvm_home
-                    jre_bin = "#{graalvm_home}/jre/bin"
-                    ["#{graalvm_home}/bin", *(jre_bin if File.directory?(jre_bin))]
-                  else
-                    []
-                  end
+  extra_bindirs = graalvm_home ? ["#{graalvm_home}/bin"] : []
   rubyhdrdir = "#{prefix}/lib/cext/include"
 
   ar = Truffle::Boot.toolchain_executable(:AR)
