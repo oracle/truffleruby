@@ -2848,6 +2848,8 @@ module Commands
 
     mx 'verify-ci' if changed['.py']
 
+    check_abi(fail: !compare_to)
+
     unless fast
       mx 'gate', '--tags', 'style' # mx eclipseformat, mx checkstyle and a few more checks
 
@@ -2857,7 +2859,6 @@ module Commands
       check_documentation
       check_documentation_urls
       check_license
-      check_abi
 
       check_source_files if ci?
       check_heap_dump if ci?
@@ -2867,7 +2868,7 @@ module Commands
   ABI_VERSION_FILE = 'lib/cext/ABI_version.txt'
   ABI_CHECK_FILE = 'lib/cext/ABI_check.txt'
 
-  def check_abi
+  def check_abi(fail: true)
     # Check since the last commit at which ABI_CHECK_FILE or ABI_VERSION_FILE were modified
     base_commit = `git log -n 1 --format=%H #{ABI_VERSION_FILE} #{ABI_CHECK_FILE}`.chomp
 
@@ -2897,7 +2898,11 @@ module Commands
         puts
         puts 'Changing a macro, changing compilation flags, removing or adding a non-static function'
         puts '(because e.g. mkmf have_func can depend on that) should all be considered ABI changes.'
-        abort
+        if fail
+          abort
+        else
+          warn 'WARNING: fix the above before creating the PR'
+        end
       end
     end
   end
