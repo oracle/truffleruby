@@ -65,6 +65,7 @@ module RbConfig
                   else
                     []
                   end
+  rubyhdrdir = "#{prefix}/lib/cext/include"
 
   ar = Truffle::Boot.toolchain_executable(:AR)
   cc = Truffle::Boot.toolchain_executable(:CC)
@@ -189,8 +190,8 @@ module RbConfig
     'RUBY_INSTALL_NAME' => ruby_install_name,
     'RUBYW_INSTALL_NAME'=> '',
     'ruby_version'      => ruby_abi_version.dup,
-    'rubyarchhdrdir'    => "#{prefix}/lib/cext/include",
-    'rubyhdrdir'        => "#{prefix}/lib/cext/include",
+    'rubyarchhdrdir'    => rubyhdrdir.dup,
+    'rubyhdrdir'        => rubyhdrdir,
     'SOEXT'             => Truffle::Platform::SOEXT.dup,
     'STRIP'             => "#{strip} --keep-section=.llvmbc",
     'sysconfdir'        => "#{prefix}/etc", # doesn't exist, as in MRI
@@ -238,6 +239,8 @@ module RbConfig
   sitedir = \
   expanded['sitedir'] = "#{rubylibprefix}/site_ruby"
   mkconfig['sitedir'] = '$(rubylibprefix)/site_ruby'
+  expanded['sitehdrdir'] = "#{rubyhdrdir}/site_ruby"
+  mkconfig['sitehdrdir'] = '$(rubyhdrdir)/site_ruby'
   # Must be kept in sync with post.rb
   sitelibdir = \
   expanded['sitelibdir'] = "#{sitedir}/#{ruby_abi_version}"
