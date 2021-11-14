@@ -11,18 +11,23 @@
 module Warning
   extend self
 
-  def warn(message)
-    unless Primitive.object_kind_of?(message, String)
-      raise TypeError, "wrong argument type #{message.class} (expected String)"
-    end
+  def warn(message, category: nil)
+    Truffle::Type.rb_check_type(message, String)
     unless message.encoding.ascii_compatible?
       raise Encoding::CompatibilityError, "ASCII incompatible encoding: #{message.encoding}"
     end
+    unless Primitive.nil?(category)
+      Truffle::Type.rb_check_type(category, Symbol)
+      Truffle::WarningOperations.check_category(category)
+    end
+
     $stderr.write message
     nil
   end
 
   def self.[](category)
+    Truffle::Type.rb_check_type(category, Symbol)
+
     case category
     when :deprecated
       Primitive.warning_get_category(:deprecated)
@@ -34,6 +39,8 @@ module Warning
   end
 
   def self.[]=(category, value)
+    Truffle::Type.rb_check_type(category, Symbol)
+
     case category
     when :deprecated
       Primitive.warning_set_category(:deprecated, Primitive.as_boolean(value))
