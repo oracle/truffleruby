@@ -55,6 +55,7 @@ Compatibility:
 * Implement `rb_str_locktmp` and `rb_str_unlocktmp` (#2524, @bjfish).
 * Update `Kernel#instance_variables` to return insertion order (@bjfish).
 * Fixed `rb_path2class()` to not error for a module (#2511, @eregon).
+* Update `Kernel#print` to print `$_` when no arguments are given (#2531, @bjfish).
 
 Performance:
 

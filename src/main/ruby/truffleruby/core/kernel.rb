@@ -436,6 +436,7 @@ module Kernel
   # Kernel#p is in post.rb
 
   def print(*args)
+    args = [Primitive.io_last_line_get(Primitive.caller_special_variables)] if args.empty?
     args.each do |obj|
       $stdout.write obj.to_s
     end
