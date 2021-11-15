@@ -272,6 +272,8 @@ public final class StringSupport {
         return c;
     }
 
+    /** See {@link RopeNodes.CalculateAttributesNode#calculateAttributesAsciiCompatibleGeneric} */
+    // MRI: rb_enc_strlen_cr
     public static StringAttributes strLengthWithCodeRangeAsciiCompatible(Encoding enc, byte[] bytes, int p, int end) {
         CodeRange cr = CR_UNKNOWN;
         int c = 0;
@@ -299,6 +301,8 @@ public final class StringSupport {
         return new StringAttributes(c, cr == CR_UNKNOWN ? CR_7BIT : cr);
     }
 
+    /** See {@link RopeNodes.CalculateAttributesNode#calculateAttributesNonAsciiCompatible} */
+    // MRI: rb_enc_strlen_cr
     public static StringAttributes strLengthWithCodeRangeNonAsciiCompatible(Encoding enc, byte[] bytes, int p,
             int end) {
         CodeRange cr = CR_UNKNOWN;
@@ -312,7 +316,7 @@ public final class StringSupport {
                 p += cl;
             } else {
                 cr = CR_BROKEN;
-                p++;
+                p += enc.minLength();
             }
         }
 

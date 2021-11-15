@@ -244,6 +244,7 @@ public abstract class RopeNodes {
 
     }
 
+    /** See {@link RopeOperations#calculateCodeRangeAndLength} */
     @ImportStatic(RopeGuards.class)
     @GenerateUncached
     public abstract static class CalculateAttributesNode extends RubyBaseNode {
@@ -302,14 +303,13 @@ public abstract class RopeNodes {
             return new StringAttributes(bytes.length, CR_7BIT);
         }
 
+        /** See {@link StringSupport#strLengthWithCodeRangeAsciiCompatible} */
         @Specialization(
                 replaces = "calculateAttributesAsciiCompatible",
                 guards = { "!bytes.isEmpty()", "!isBinaryString(encoding)", "isAsciiCompatible(encoding)" })
         protected StringAttributes calculateAttributesAsciiCompatibleGeneric(Encoding encoding, Bytes bytes,
                 @Cached CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached ConditionProfile validCharacterProfile) {
-            // Taken from StringSupport.strLengthWithCodeRangeAsciiCompatible.
-
             CodeRange codeRange = CR_7BIT;
             int characters = 0;
             int p = 0;
@@ -347,14 +347,12 @@ public abstract class RopeNodes {
             return new StringAttributes(characters, codeRange);
         }
 
-
+        /** See {@link StringSupport#strLengthWithCodeRangeNonAsciiCompatible} */
         @Specialization(guards = { "!bytes.isEmpty()", "!isBinaryString(encoding)", "!isAsciiCompatible(encoding)" })
-        protected StringAttributes calculateAttributesGeneric(Encoding encoding, Bytes bytes,
+        protected StringAttributes calculateAttributesNonAsciiCompatible(Encoding encoding, Bytes bytes,
                 @Cached CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached ConditionProfile validCharacterProfile,
                 @Cached ConditionProfile fixedWidthProfile) {
-            // Taken from StringSupport.strLengthWithCodeRangeNonAsciiCompatible.
-
             CodeRange codeRange = CR_VALID;
             int characters;
             int p = 0;
@@ -376,7 +374,7 @@ public abstract class RopeNodes {
 
                         return new StringAttributes(characters, CR_BROKEN);
                     } else {
-                        p++;
+                        p += encoding.minLength();
                     }
                 }
             }
