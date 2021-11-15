@@ -188,7 +188,8 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
                                     ? coreMethod
                                     : null;
                             coreModuleChecks.checks(coreMethod.lowerFixnum(), checkAmbiguous, klass, needsSelf);
-                            processCoreMethod(stream, rubyStream, coreModuleElement, coreModule, klass, coreMethod);
+                            processCoreMethod(stream, rubyStream, coreModuleElement, coreModule, klass, coreMethod,
+                                    needsSelf);
                         }
                     }
                 }
@@ -265,7 +266,8 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
             TypeElement element,
             CoreModule coreModule,
             TypeElement klass,
-            CoreMethod coreMethod) {
+            CoreMethod coreMethod,
+            boolean needsSelf) {
         final StringJoiner names = new StringJoiner(", ");
         for (String name : coreMethod.names()) {
             names.add(quote(name));
@@ -287,15 +289,9 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
                 coreMethod.rest() + ", " +
                 names + ");");
 
-        final boolean hasSelfArgument = !coreMethod.onSingleton() && !coreMethod.constructor() &&
-                !coreMethod.isModuleFunction() && coreMethod.needsSelf();
-
         int numberOfArguments = getNumberOfArguments(coreMethod);
         String[] argumentNamesFromAnnotation = coreMethod.argumentNames();
-        final List<String> argumentNames = getArgumentNames(
-                klass,
-                argumentNamesFromAnnotation,
-                hasSelfArgument,
+        final List<String> argumentNames = getArgumentNames(klass, argumentNamesFromAnnotation, needsSelf,
                 numberOfArguments);
 
         if (argumentNames.isEmpty() && numberOfArguments > 0) {
