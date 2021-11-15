@@ -40,6 +40,7 @@ package org.truffleruby.core;
 import java.util.Map.Entry;
 
 import com.oracle.truffle.api.TruffleStackTrace;
+import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
@@ -64,6 +65,7 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.RubyThread;
+import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.SafepointAction;
 import org.truffleruby.language.backtrace.Backtrace;
@@ -564,6 +566,36 @@ public abstract class VMPrimitiveNodes {
             return JAVA_SPECIFICATION_VERSION;
         }
 
+    }
+
+    @Primitive(name = "vm_native_argv")
+    public abstract static class VMNativeArgvNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected long argv() {
+            return getContext().nativeArgv;
+        }
+    }
+
+    @Primitive(name = "vm_native_argv_length")
+    public abstract static class VMNativeArgvLengthNode extends PrimitiveArrayArgumentsNode {
+        @TruffleBoundary
+        @Specialization
+        protected long argvLength() {
+            long nativeArgvLength = getContext().nativeArgvLength;
+            if (nativeArgvLength != -1L) {
+                return nativeArgvLength;
+            }
+
+            int argc = getContext().nativeArgc;
+            Pointer argv = new Pointer(getContext().nativeArgv, argc * Pointer.SIZE);
+            Pointer first = argv.readPointer(0);
+            Pointer last = argv.readPointer((argc - 1) * Pointer.SIZE);
+            long lastByte = last.getAddress() + last.findNullByte(getContext(), InteropLibrary.getUncached(), 0);
+            nativeArgvLength = lastByte - first.getAddress();
+
+            getContext().nativeArgvLength = nativeArgvLength;
+            return nativeArgvLength;
+        }
     }
 
 }

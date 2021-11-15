@@ -106,7 +106,7 @@ public abstract class TruffleBootNodes {
         }
     }
 
-    @CoreMethod(names = "main", onSingleton = true, required = 2)
+    @CoreMethod(names = "main", onSingleton = true, required = 4, lowerFixnum = 1)
     public abstract static class MainNode extends CoreMethodArrayArgumentsNode {
 
         @Child TopLevelRaiseHandler topLevelRaiseHandler = new TopLevelRaiseHandler();
@@ -117,10 +117,12 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization(guards = { "stringsKind.isRubyString(kind)", "stringsToExecute.isRubyString(toExecute)" })
-        protected int main(Object kind, Object toExecute,
+        protected int main(int argc, long argv, Object kind, Object toExecute,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsKind,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsToExecute) {
             return topLevelRaiseHandler.execute(() -> {
+                getContext().nativeArgc = argc;
+                getContext().nativeArgv = argv;
                 setArgvGlobals();
 
                 // Need to set $0 before loading required libraries

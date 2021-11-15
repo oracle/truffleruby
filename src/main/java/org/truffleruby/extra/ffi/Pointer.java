@@ -208,7 +208,7 @@ public final class Pointer implements AutoCloseable {
                 limit)));
     }
 
-    private long findNullByte(RubyContext context, InteropLibrary interopLibrary, long offset) {
+    public long findNullByte(RubyContext context, InteropLibrary interopLibrary, long offset) {
         if (context.getOptions().NATIVE_PLATFORM) {
             try {
                 return (long) interopLibrary.execute(context.getTruffleNFI().getStrlen(), address + offset);

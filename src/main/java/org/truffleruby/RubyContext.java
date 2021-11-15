@@ -151,6 +151,10 @@ public class RubyContext {
     private boolean initialized;
     private volatile boolean finalizing;
 
+    public int nativeArgc = 0;
+    public long nativeArgv = 0L;
+    public long nativeArgvLength = -1L;
+
     private final AssumedValue<Boolean> warningCategoryDeprecated;
     private final AssumedValue<Boolean> warningCategoryExperimental;
 
