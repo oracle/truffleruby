@@ -27,6 +27,8 @@ public abstract class ManagedRope extends Rope {
 
         this.codeRange = codeRange;
         this.characterLength = characterLength;
+
+        assert !encoding.isSingleByte() || byteLength == characterLength;
     }
 
     @Override
