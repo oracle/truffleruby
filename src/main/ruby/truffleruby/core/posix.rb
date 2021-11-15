@@ -446,7 +446,9 @@ module Truffle::POSIX
               return written
             end
           else
-            raise SignalException.new(:SIGPIPE) if errno == 32
+            if errno == Errno::EPIPE::Errno && fd == 1
+              raise SignalException, :SIGPIPE
+            end
             Errno.handle_errno(errno)
           end
         end
