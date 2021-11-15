@@ -191,7 +191,8 @@ suite = {
                 "org.truffleruby", # for the generated JNI header file
             ],
             "use_jdk_headers": True, # the generated JNI header includes jni.h
-            "cflags": ["-g", "-Wall", "-Werror"],
+            "cflags": ["-g", "-Wall", "-Werror", "-pthread"],
+            "ldflags": ["-pthread"],
         },
 
         "org.truffleruby": {
