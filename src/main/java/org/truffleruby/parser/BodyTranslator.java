@@ -266,6 +266,7 @@ import org.truffleruby.parser.scope.StaticScope;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.source.Source;
@@ -713,6 +714,7 @@ public class BodyTranslator extends Translator {
             frameOnStackMarkerSlot = null;
         } else if (iterNode != null) {
             frameOnStackMarkerSlot = environment.declareVar(environment.allocateLocalTemp("frame_on_stack_marker"));
+            environment.getFrameDescriptor().setFrameSlotKind(frameOnStackMarkerSlot, FrameSlotKind.Object);
 
             frameOnStackMarkerSlotStack.push(frameOnStackMarkerSlot);
             try {

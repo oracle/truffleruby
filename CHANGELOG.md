@@ -66,6 +66,7 @@ Performance:
 * Fully inline the `Integer#+` and `Integer#-` logic for interpreter speed (#2518, @smarr).
 * Remove unnecessary work in negotiating the encoding to use in a Regexp match (#2522, @nirvdrum).
 * Add new fast paths for encoding negotiation between strings with different encodings, but which match common default cases (#2522, @nirvdrum).
+* Reduce footprint by removing unnecessary nodes for accessing the `FrameOnStackMarker` (#2530, @smarr).
 
 Changes:
 

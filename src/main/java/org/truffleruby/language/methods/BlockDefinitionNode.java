@@ -18,11 +18,10 @@ import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.FrameOnStackMarker;
-import org.truffleruby.language.locals.ReadFrameSlotNode;
-import org.truffleruby.language.locals.ReadFrameSlotNodeGen;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.frame.FrameUtil;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 /** Create a Ruby Proc to pass as a block to the called method. The literal block is represented as call targets and a
@@ -33,8 +32,8 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
     private final SharedMethodInfo sharedMethodInfo;
     private final ProcCallTargets callTargets;
     private final BreakID breakID;
+    private final FrameSlot frameOnStackMarkerSlot;
 
-    @Child private ReadFrameSlotNode readFrameOnStackMarkerNode;
     @Child private GetSpecialVariableStorage readSpecialVariableStorageNode;
     @Child private WithoutVisibilityNode withoutVisibilityNode;
 
@@ -50,11 +49,7 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
         this.callTargets = callTargets;
         this.breakID = breakID;
 
-        if (frameOnStackMarkerSlot == null) {
-            readFrameOnStackMarkerNode = null;
-        } else {
-            readFrameOnStackMarkerNode = ReadFrameSlotNodeGen.create(frameOnStackMarkerSlot);
-        }
+        this.frameOnStackMarkerSlot = frameOnStackMarkerSlot;
         readSpecialVariableStorageNode = GetSpecialVariableStorage.create();
     }
 
@@ -65,8 +60,8 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
     @Override
     public RubyProc execute(VirtualFrame frame) {
         final FrameOnStackMarker frameOnStackMarker;
-        if (readFrameOnStackMarkerNode != null) {
-            frameOnStackMarker = (FrameOnStackMarker) readFrameOnStackMarkerNode.executeRead(frame);
+        if (frameOnStackMarkerSlot != null) {
+            frameOnStackMarker = (FrameOnStackMarker) FrameUtil.getObjectSafe(frame, frameOnStackMarkerSlot);
             assert frameOnStackMarker != null;
         } else {
             frameOnStackMarker = null;
@@ -82,7 +77,7 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
                 readSpecialVariableStorageNode.execute(frame),
                 RubyArguments.getMethod(frame),
                 RubyArguments.getBlock(frame),
-                readFrameOnStackMarkerNode != null ? frameOnStackMarker : null,
+                frameOnStackMarker,
                 executeWithoutVisibility(RubyArguments.getDeclarationContext(frame)));
     }
 
