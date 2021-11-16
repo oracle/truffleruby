@@ -28,6 +28,7 @@ module Truffle
       end
       match_in_region(re, str, from, to, false, 0, create_match_data)
     end
+    Truffle::Graal.always_split(method(:search_region))
 
     # MRI: rb_reg_match_m/reg_match_pos
     def self.match(re, str, pos=0)
@@ -40,6 +41,7 @@ module Truffle
 
       search_region(re, str, pos, str.bytesize, true, true)
     end
+
 
     # MRI: rb_reg_match_p
     def self.match?(re, str, pos=0)
@@ -59,6 +61,7 @@ module Truffle
 
       search_region(re, str, pos, str.bytesize, true, true)
     end
+    Truffle::Graal.always_split(method(:match_from))
 
     Truffle::Boot.delay do
       COMPARE_ENGINES = Truffle::Boot.get_option('compare-regex-engines')

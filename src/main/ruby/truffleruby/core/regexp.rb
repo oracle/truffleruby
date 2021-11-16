@@ -175,10 +175,12 @@ class Regexp
       result
     end
   end
+  Truffle::Graal.always_split(instance_method(:match))
 
   def match?(str, pos = 0)
     Truffle::RegexpOperations.match?(self, str, pos)
   end
+  Truffle::Graal.always_split(instance_method(:match?))
 
   def ===(other)
     if Primitive.object_kind_of?(other, Symbol)
@@ -199,6 +201,7 @@ class Regexp
       false
     end
   end
+  Truffle::Graal.always_split(instance_method(:===))
 
   def eql?(other)
     return false unless Primitive.object_kind_of?(other, Regexp)
