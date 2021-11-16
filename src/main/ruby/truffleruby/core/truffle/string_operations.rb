@@ -168,19 +168,6 @@ module Truffle
       Primitive.string_append(string, other)
     end
 
-    def self.copy_from(string, other, other_offset, byte_count_to_copy, dest_offset)
-      sz = string.bytesize
-      osz = other.bytesize
-
-      other_offset = 0 if other_offset < 0
-      dest_offset = 0 if dest_offset < 0
-      byte_count_to_copy = osz - other_offset if byte_count_to_copy > osz - other_offset
-      byte_count_to_copy = sz - dest_offset if byte_count_to_copy > sz - dest_offset
-
-      replacement = other.byteslice(other_offset, byte_count_to_copy)
-      Primitive.string_splice(string, replacement, dest_offset, byte_count_to_copy, string.encoding)
-    end
-
     def self.case_mapping_option_to_int(option, downcasing=false)
       case option
       when :ascii

@@ -982,122 +982,52 @@ class String
     replacement
   end
 
-  def center(width, padding=' ')
+  def center(width, padding = ' ')
     padding = StringValue(padding)
     raise ArgumentError, 'zero width padding' if padding.empty?
 
-    enc = Primitive.encoding_ensure_compatible_str self, padding
+    Primitive.encoding_ensure_compatible_str self, padding
 
     width = Primitive.rb_to_int width
-    return Primitive.dup_as_string_instance(self) if width <= size
+    pad = width - size
+    return Primitive.dup_as_string_instance(self) if pad <= 0
 
-    width -= size
-    left = width / 2
-
-    bs = bytesize
-    pbs = padding.bytesize
-
-    if pbs > 1
-      ps = padding.size
-      x = left / ps
-      y = left % ps
-
-      lpbi = Primitive.string_byte_index_from_char_index(padding, y)
-      lbytes = x * pbs + lpbi
-
-      right = left + (width & 0x1)
-      x = right / ps
-      y = right % ps
-
-      rpbi = Primitive.string_byte_index_from_char_index(padding, y)
-      rbytes = x * pbs + rpbi
-
-      pad = String.pattern rbytes, padding
-      str = String.pattern lbytes + bs + rbytes, ''
-
-      Truffle::StringOperations.copy_from(str, self, 0, bs, lbytes)
-      Truffle::StringOperations.copy_from(str, pad, 0, lbytes, 0)
-      Truffle::StringOperations.copy_from(str, pad, 0, rbytes, lbytes + bs)
-    else
-      str = String.pattern width + bs, padding
-      Truffle::StringOperations.copy_from(str, self, 0, bs, left)
-    end
-
-    str.force_encoding enc
+    rjust(size + pad / 2, padding).ljust(width, padding)
   end
 
-  def ljust(width, padding=' ')
+  def ljust(width, padding = ' ')
     padding = StringValue(padding)
     raise ArgumentError, 'zero width padding' if padding.empty?
 
     enc = Primitive.encoding_ensure_compatible_str self, padding
 
     width = Primitive.rb_to_int width
-    return dup if width <= size
+    pad = width - size
+    return Primitive.dup_as_string_instance(self) if pad <= 0
 
-    width -= size
-
-    bs = bytesize
-    pbs = padding.bytesize
-
-    if pbs > 1
-      ps = padding.size
-      x = width / ps
-      y = width % ps
-
-      pbi = Primitive.string_byte_index_from_char_index(padding, y)
-      bytes = x * pbs + pbi
-
-      str = String.pattern bytes + bs, self
-
-      i = 0
-      bi = bs
-
-      while i < x
-        Truffle::StringOperations.copy_from(str, padding, 0, pbs, bi)
-
-        bi += pbs
-        i += 1
-      end
-
-      Truffle::StringOperations.copy_from(str, padding, 0, pbi, bi)
-    else
-      str = String.pattern width + bs, padding
-      Truffle::StringOperations.copy_from(str, self, 0, bs, 0)
-    end
-
-    str.force_encoding enc
+    result = Primitive.dup_as_string_instance(self).force_encoding(enc)
+    whole, remaining = pad.divmod(padding.size)
+    result << (padding * whole)
+    result << padding[0, remaining] if remaining > 0
+    result
   end
 
-  def rjust(width, padding=' ')
+  def rjust(width, padding = ' ')
     padding = StringValue(padding)
     raise ArgumentError, 'zero width padding' if padding.empty?
 
     enc = Primitive.encoding_ensure_compatible_str self, padding
 
     width = Primitive.rb_to_int width
-    return dup if width <= size
+    pad = width - size
+    return Primitive.dup_as_string_instance(self) if pad <= 0
 
-    width -= size
-
-    bs = bytesize
-    pbs = padding.bytesize
-
-    if pbs > 1
-      ps = padding.size
-      x = width / ps
-      y = width % ps
-
-      bytes = x * pbs + Primitive.string_byte_index_from_char_index(padding, y)
-    else
-      bytes = width
-    end
-
-    str = String.pattern bytes + bs, padding
-
-    Truffle::StringOperations.copy_from(str, self, 0, bs, bytes)
-
-    str.force_encoding enc
+    result = Primitive.dup_as_string_instance('').force_encoding(enc)
+    whole, remaining = pad.divmod(padding.size)
+    result << (padding * whole)
+    result << padding[0, remaining] if remaining > 0
+    result << self
+    result
   end
 
   def index(str, start=undefined)
