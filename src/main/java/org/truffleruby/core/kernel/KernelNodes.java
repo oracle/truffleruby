@@ -34,6 +34,7 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
+import org.truffleruby.collections.SharedIndicesMap;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
@@ -522,7 +523,8 @@ public abstract class KernelNodes {
         protected RubyDynamicObject copyRubyClass(RubyClass self,
                 @Cached CopyInstanceVariablesNode copyInstanceVariablesNode) {
             var newClass = new RubyClass(coreLibrary().classClass, getLanguage(), getEncapsulatingSourceSection(),
-                    null, null, false, null, self.superclass);
+                    null, null, false, null, self.superclass, newSharedIndicesMap());
+            RubyClass.copyVTable(newClass, self);
             copyInstanceVariablesNode.execute(newClass, self);
             return newClass;
         }
@@ -537,6 +539,11 @@ public abstract class KernelNodes {
         protected RubyDynamicObject copy(RubyIntOrLongRange range,
                 @Cached RangeNodes.AllocateNode allocateRangeNode) {
             return allocateRangeNode.execute(coreLibrary().rangeClass);
+        }
+
+        @TruffleBoundary
+        private SharedIndicesMap newSharedIndicesMap() {
+            return new SharedIndicesMap();
         }
     }
 
@@ -565,6 +572,7 @@ public abstract class KernelNodes {
             if (isSingletonProfile.profile(selfMetaClass.isSingleton)) {
                 final RubyClass newObjectMetaClass = executeSingletonClass(newObject);
                 newObjectMetaClass.fields.initCopy(selfMetaClass);
+                RubyClass.copyVTable(newObjectMetaClass, selfMetaClass);
             }
 
             final boolean copyFrozen = freeze instanceof Nil;

@@ -1481,7 +1481,7 @@ public abstract class ModuleNodes {
             final RubyClass selfMetaClass = getSingletonClass(self);
             final RubyClass fromMetaClass = getSingletonClass(from);
             selfMetaClass.fields.initCopy(fromMetaClass);
-
+            RubyClass.copyVTable(selfMetaClass, fromMetaClass);
             return nil;
         }
 
@@ -1497,6 +1497,7 @@ public abstract class ModuleNodes {
             }
 
             self.fields.initCopy(from);
+            RubyClass.copyVTable(self, from);
 
             final RubyClass selfMetaClass = getSingletonClass(self);
             final RubyClass fromMetaClass = from.getMetaClass();
@@ -1505,6 +1506,7 @@ public abstract class ModuleNodes {
             assert self.getMetaClass().isSingleton;
 
             selfMetaClass.fields.initCopy(fromMetaClass); // copy class methods
+            RubyClass.copyVTable(selfMetaClass, fromMetaClass);
 
             return nil;
         }

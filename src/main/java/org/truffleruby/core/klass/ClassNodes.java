@@ -20,6 +20,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.collections.SharedIndicesMap;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.module.RubyModule;
@@ -59,8 +60,8 @@ public abstract class ClassNodes {
      * outside this class. */
     @TruffleBoundary
     public static RubyClass createBootClass(RubyLanguage language, RubyClass classClass, Object superclass,
-            String name) {
-        return new RubyClass(classClass, language, null, null, name, false, null, superclass);
+            String name, SharedIndicesMap methodNamesToIndex) {
+        return new RubyClass(classClass, language, null, null, name, false, null, superclass, methodNamesToIndex);
     }
 
     @TruffleBoundary
@@ -78,13 +79,14 @@ public abstract class ClassNodes {
                 superclass,
                 null,
                 true,
-                attached);
+                attached,
+                superclass.methodNamesToIndex.getCopy());
         return ensureItHasSingletonClassCreated(context, rubyClass);
     }
 
     @TruffleBoundary
     public static RubyClass createInitializedRubyClass(RubyContext context, SourceSection sourceSection,
-            RubyModule lexicalParent, RubyClass superclass, String name) {
+            RubyModule lexicalParent, RubyClass superclass, String name, SharedIndicesMap methodNamesToIndex) {
         assert superclass != null;
         final RubyClass rubyClass = createRubyClass(
                 context,
@@ -94,7 +96,8 @@ public abstract class ClassNodes {
                 superclass,
                 name,
                 false,
-                null);
+                null,
+                methodNamesToIndex);
         return ensureItHasSingletonClassCreated(context, rubyClass);
     }
 
@@ -106,7 +109,8 @@ public abstract class ClassNodes {
             RubyClass superclass,
             String name,
             boolean isSingleton,
-            RubyDynamicObject attached) {
+            RubyDynamicObject attached,
+            SharedIndicesMap methodNamesToIndex) {
         assert superclass != null;
         final RubyClass rubyClass = new RubyClass(
                 classClass,
@@ -116,7 +120,8 @@ public abstract class ClassNodes {
                 name,
                 isSingleton,
                 attached,
-                superclass);
+                superclass,
+                methodNamesToIndex);
 
         if (lexicalParent != null) {
             rubyClass.fields.getAdoptedByLexicalParent(context, lexicalParent, name, null);
@@ -182,7 +187,8 @@ public abstract class ClassNodes {
                 singletonSuperclass,
                 null,
                 true,
-                rubyClass);
+                rubyClass,
+                getClassClass(rubyClass).methodNamesToIndex.getCopy());
         SharedObjects.propagate(context.getLanguageSlow(), rubyClass, metaClass);
         rubyClass.setMetaClass(metaClass);
 
@@ -219,7 +225,8 @@ public abstract class ClassNodes {
                     null,
                     false,
                     null,
-                    superclass);
+                    superclass,
+                    newSharedIndicesMap());
 
             if (initializeClassNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -234,6 +241,11 @@ public abstract class ClassNodes {
         @Specialization(guards = "!isRubyClass(superclass)")
         protected RubyClass newClass(Object superclass, boolean callInherited, Object maybeBlock) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorSuperclassMustBeClass(this));
+        }
+
+        @TruffleBoundary
+        private SharedIndicesMap newSharedIndicesMap() {
+            return new SharedIndicesMap();
         }
     }
 

@@ -13,6 +13,8 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.ref.Cleaner;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
@@ -236,6 +238,11 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
             globalVariablesMap,
             Assumption[]::new,
             () -> Assumption.create("global variable was never aliased: "));
+
+    public final Map<String, SharedIndicesMap> classToMethodNamesMap = new HashMap<>();
+    public final SharedIndicesMap basicObjectMethodNamesMap = new SharedIndicesMap();
+    public final SharedIndicesMap objectMethodNamesMap = new SharedIndicesMap();
+    public final SharedIndicesMap moduleMethodNamesMap = new SharedIndicesMap();
 
     private static final RubyObjectType objectType = new RubyObjectType();
 

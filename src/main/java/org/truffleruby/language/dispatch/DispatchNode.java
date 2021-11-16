@@ -388,15 +388,13 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
 
     /** This will be called from the {@link CallInternalMethodNode} child whenever it creates a new
      * {@link DirectCallNode}. */
-    public final void applySplittingInliningStrategy(RootCallTarget callTarget, String methodName,
-            DirectCallNode callNode) {
-
-
+    public final void applySplittingInliningStrategy(RootCallTarget callTarget, DirectCallNode callNode) {
         final Options options = getContext().getOptions();
 
         // The way that #method_missing is used is usually as an indirection to call some other method, and possibly to
         // modify the arguments. In both cases, but especially the latter, it makes a lot of sense to manually clone the
         // call target and to inline it.
+        final String methodName = RubyRootNode.of(callTarget).getSharedMethodInfo().getMethodName();
         final boolean isMethodMissing = methodName.equals("method_missing");
 
         if (callNode.isCallTargetCloningAllowed() &&

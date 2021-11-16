@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects;
 
+import org.truffleruby.collections.SharedIndicesMap;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.RubyModule;
@@ -34,6 +35,8 @@ public class DefineClassNode extends RubyContextSourceNode {
     private final ConditionProfile needToDefineProfile = ConditionProfile.create();
     private final ConditionProfile noSuperClassSupplied = ConditionProfile.create();
     private final BranchProfile errorProfile = BranchProfile.create();
+
+    private final SharedIndicesMap methodNamesToIndex = new SharedIndicesMap();
 
     public DefineClassNode(
             String name,
@@ -73,7 +76,8 @@ public class DefineClassNode extends RubyContextSourceNode {
                     getEncapsulatingSourceSection(),
                     lexicalParentModule,
                     superClass,
-                    name);
+                    name,
+                    methodNamesToIndex);
             callInherited(frame, superClass, definedClass);
         } else {
             if (!(existing instanceof RubyClass)) {

@@ -28,8 +28,17 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
  * values for a name. */
 public final class SharedIndicesMap {
 
-    private final AtomicInteger nextIndex = new AtomicInteger(0);
-    private final ConcurrentHashMap<String, Integer> nameToIndex = new ConcurrentHashMap<>();
+    private final AtomicInteger nextIndex;
+    public final ConcurrentHashMap<String, Integer> nameToIndex;
+
+    public SharedIndicesMap() {
+        this(new AtomicInteger(0), new ConcurrentHashMap<>());
+    }
+
+    public SharedIndicesMap(final AtomicInteger nextIndex, final ConcurrentHashMap<String, Integer> nameToIndex) {
+        this.nextIndex = nextIndex;
+        this.nameToIndex = nameToIndex;
+    }
 
     /** Find the index for an existing name, or allocate a new index for this name */
     @TruffleBoundary
@@ -37,6 +46,16 @@ public final class SharedIndicesMap {
         // We need the semantics of ConcurrentHashMap#computeIfAbsent() here to ensure the lambda is only executed once per missing key.
         // Otherwise we could waste unused indices.
         return ConcurrentOperations.getOrCompute(nameToIndex, name, k -> nextIndex.getAndIncrement());
+    }
+
+    @TruffleBoundary
+    public SharedIndicesMap getCopy() {
+        return new SharedIndicesMap(new AtomicInteger(nextIndex.get()), new ConcurrentHashMap<>(nameToIndex));
+    }
+
+    @TruffleBoundary
+    public boolean contains(String name) {
+        return nameToIndex.contains(name);
     }
 
     public int size() {

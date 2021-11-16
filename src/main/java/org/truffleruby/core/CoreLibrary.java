@@ -33,6 +33,8 @@ import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.aot.ParserCache;
 import org.truffleruby.builtins.BuiltinsClasses;
 import org.truffleruby.builtins.CoreMethodNodeManager;
+import org.truffleruby.collections.ConcurrentOperations;
+import org.truffleruby.collections.SharedIndicesMap;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.basicobject.RubyBasicObject;
@@ -729,11 +731,26 @@ public class CoreLibrary {
     }
 
     private RubyClass defineClass(RubyClass superclass, String name) {
-        return ClassNodes.createInitializedRubyClass(context, null, objectClass, superclass, name);
+        var constName = constantNameNoLeadingColon(superclass, name);
+        var methodNames = ConcurrentOperations.getOrCompute(language.classToMethodNamesMap, constName,
+                k -> new SharedIndicesMap());
+        return ClassNodes.createInitializedRubyClass(context, null, objectClass, superclass, name,
+                methodNames);
     }
 
     private RubyClass defineClass(RubyModule lexicalParent, RubyClass superclass, String name) {
-        return ClassNodes.createInitializedRubyClass(context, null, lexicalParent, superclass, name);
+        var constName = constantNameNoLeadingColon(superclass, name);
+        var methodNames = ConcurrentOperations.getOrCompute(language.classToMethodNamesMap, constName,
+                k -> new SharedIndicesMap());
+        return ClassNodes.createInitializedRubyClass(context, null, lexicalParent, superclass, name, methodNames);
+    }
+
+    public String constantNameNoLeadingColon(RubyModule module, String name) {
+        if (module == this.objectClass) {
+            return name;
+        } else {
+            return module.fields.getName() + "::" + name;
+        }
     }
 
     private RubyModule defineModule(String name) {

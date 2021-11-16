@@ -10,7 +10,9 @@
 package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.HostCompilerDirectives.InliningCutoff;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import org.truffleruby.RubyContext;
+import org.truffleruby.collections.SharedIndicesMap;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleFields;
@@ -30,9 +32,12 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
+import java.util.Map;
+
 /** Caches {@link ModuleOperations#lookupMethodCached(RubyModule, String, DeclarationContext)} on an actual instance. */
 @ReportPolymorphism
 @GenerateUncached
+@ImportStatic(DeclarationContext.class)
 public abstract class LookupMethodNode extends RubyBaseNode {
 
     public static LookupMethodNode create() {
@@ -60,8 +65,41 @@ public abstract class LookupMethodNode extends RubyBaseNode {
         return methodLookupResult.getMethod();
     }
 
+
+    @Specialization(
+            guards = {
+                    "!isSingleContext()", // Use temporarily for single context for testing
+                    "metaClass.methodNamesToIndex == cachedMethodNamesToIndex",
+                    "getRefinements(frame, cachedConfig) == NO_REFINEMENTS",
+                    "name == cachedName",
+                    "config == cachedConfig" },
+            limit = "getCacheLimit()")
+    protected InternalMethod lookupMethodCachedMultiContext(
+            Frame frame, RubyClass metaClass, String name, DispatchConfiguration config,
+            @Cached("name") String cachedName,
+            @Cached("config") DispatchConfiguration cachedConfig,
+            @Cached("metaClass.methodNamesToIndex") SharedIndicesMap cachedMethodNamesToIndex,
+            @Cached("cachedMethodNamesToIndex.lookup(name)") Integer index,
+            @Cached MetaClassNode metaClassNode,
+            @Cached ConditionProfile noCallerMethodProfile,
+            @Cached ConditionProfile notFoundProfile,
+            @Cached ConditionProfile outOfBoundsVTableProfile,
+            @Cached ConditionProfile publicProfile,
+            @Cached ConditionProfile privateProfile,
+            @Cached ConditionProfile isVisibleProfile) {
+        final InternalMethod[] methods = metaClass.methodVTable;
+        final InternalMethod method = outOfBoundsVTableProfile.profile(index < methods.length) ? methods[index] : null;
+
+        if (notFoundProfile.profile(method == null || method.isUndefined())) {
+            return null;
+        }
+
+        return getInternalMethod(frame, config, metaClassNode, noCallerMethodProfile, publicProfile, privateProfile,
+                isVisibleProfile, method);
+    }
+
     @InliningCutoff
-    @Specialization(replaces = "lookupMethodCached")
+    @Specialization(replaces = { "lookupMethodCachedMultiContext", "lookupMethodCached" }) // "lookupMethodCached",
     protected InternalMethod lookupMethodUncached(
             Frame frame, RubyClass metaClass, String name, DispatchConfiguration config,
             @Cached MetaClassNode metaClassNode,
@@ -94,8 +132,15 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             return null;
         }
 
-        // Check visibility
+        return getInternalMethod(frame, config, metaClassNode, noCallerMethodProfile, publicProfile, privateProfile,
+                isVisibleProfile, method);
+    }
 
+    // Check visibility
+    private InternalMethod getInternalMethod(Frame frame, DispatchConfiguration config, MetaClassNode metaClassNode,
+            ConditionProfile noCallerMethodProfile, ConditionProfile publicProfile,
+            ConditionProfile privateProfile, ConditionProfile isVisibleProfile,
+            InternalMethod method) {
         if (!config.ignoreVisibility) {
             final Visibility visibility = method.getVisibility();
             if (publicProfile.profile(visibility == Visibility.PUBLIC)) {
@@ -166,7 +211,21 @@ public abstract class LookupMethodNode extends RubyBaseNode {
     }
 
     private static DeclarationContext getDeclarationContext(Frame frame, DispatchConfiguration config) {
-        return config.ignoreRefinements ? null : RubyArguments.tryGetDeclarationContext(frame);
+        if (config.ignoreRefinements) {
+            return null;
+        }
+
+        return frame == null ? null : RubyArguments.getDeclarationContext(frame);
+    }
+
+    protected static Map<RubyModule, RubyModule[]> getRefinements(Frame frame, DispatchConfiguration config) {
+        if (config.ignoreRefinements) {
+            return DeclarationContext.NO_REFINEMENTS;
+        }
+
+        return frame == null
+                ? DeclarationContext.NO_REFINEMENTS
+                : RubyArguments.getDeclarationContext(frame).getRefinements();
     }
 
     private static RubyClass getCallerClass(RubyContext context, Frame callingFrame) {

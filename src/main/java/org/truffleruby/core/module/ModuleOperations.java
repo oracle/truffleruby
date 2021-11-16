@@ -478,6 +478,10 @@ public abstract class ModuleOperations {
         return new MethodLookupResult(null, toArray(assumptions));
     }
 
+    public static InternalMethod lookupMethodUncached(RubyModule module, String name) {
+        return lookupMethodUncached(module, null, name, null);
+    }
+
     public static InternalMethod lookupMethodUncached(RubyModule module, String name,
             DeclarationContext declarationContext) {
         return lookupMethodUncached(module, null, name, declarationContext);

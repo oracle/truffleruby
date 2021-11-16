@@ -11,6 +11,7 @@ package org.truffleruby.core.module;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
@@ -320,7 +321,14 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
             if (rubyModule instanceof RubyClass) {
                 // M.include(N) just registers N but does nothing for methods until C.include/prepend(M)
                 newMethodsVersion(toInclude.fields.getMethodNames());
+                updateVTableRecursiveNames(toInclude.fields.getMethodNames());
             }
+        }
+    }
+
+    private void updateVTableRecursiveNames(List<String> methodNames) {
+        for (String name : methodNames) {
+            updateVTableRecursive((RubyClass) rubyModule, name);
         }
     }
 
@@ -371,6 +379,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
                         if (isClass) {
                             // M.prepend(N) just registers N but does nothing for methods until C.prepend/include(M)
                             moduleToInvalidate.fields.newMethodsVersion(methodsToInvalidate);
+                            updateVTableRecursiveNames(methodsToInvalidate);
                         }
                     }
 
@@ -535,6 +544,9 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
             }
         }
 
+
+        updateVTableRecursive(rubyModule, method.getName());
+
         if (context.getCoreLibrary().isLoaded() && !method.isUndefined()) {
             final RubySymbol methodSymbol = context.getLanguageSlow().getSymbol(method.getName());
             if (RubyGuards.isSingletonClass(rubyModule)) {
@@ -542,6 +554,29 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
                 RubyContext.send(currentNode, receiver, "singleton_method_added", methodSymbol);
             } else {
                 RubyContext.send(currentNode, rubyModule, "method_added", methodSymbol);
+            }
+        }
+    }
+
+
+    public static void updateVTableRecursive(RubyModule rubyModule, String name) {
+        if (rubyModule instanceof RubyClass) {
+            RubyClass rubyClass = (RubyClass) rubyModule;
+            final int index = rubyClass.methodNamesToIndex.lookup(name);
+            final int len = rubyClass.methodVTable.length;
+            if (index >= len) {
+                final int newLength = Math.max(10, Math.max(len * 2, index + 1));
+                rubyClass.methodVTable = Arrays.copyOf(rubyClass.methodVTable, newLength);
+            }
+            rubyClass.methodVTable[index] = ModuleOperations.lookupMethodUncached(rubyClass, name);
+            for (RubyClass subclass : rubyClass.includedBy) {
+                updateVTableRecursive(subclass, name);
+            }
+        } else {
+            if (rubyModule.fields.includedBy != null) {
+                for (RubyModule module : rubyModule.fields.includedBy) {
+                    updateVTableRecursive(module, name);
+                }
             }
         }
     }
@@ -559,6 +594,8 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
 
         changedMethod(methodName);
+
+        updateVTableRecursive(rubyModule, method.getName());
         return true;
     }
 
@@ -925,6 +962,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return results;
     }
 
+    @TruffleBoundary
     public List<String> getMethodNames() {
         List<String> results = new ArrayList<>();
         for (Entry<String, MethodEntry> entry : methods.entrySet()) {
