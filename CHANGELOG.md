@@ -17,6 +17,7 @@ Compatibility:
 * Implement `Pathname#{empty?, glob}` (#2559, @bjfish)
 * Fixed `Rational('')` to raise error like MRI (#2566, @aardvark179).
 * Freeze instances of `Range` but not subclasses, like CRuby (#2570, @MattAlp).
+* When writing to STDOUT redirected to a closed pipe, no broken pipe error message will be shown now. (#2532, @gogainda).
 
 Performance:
 
