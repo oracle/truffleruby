@@ -86,7 +86,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     static class IsStorageSame {
 
         @Specialization
-        protected static boolean sameZeroLength(NativeArrayStorage store, NativeArrayStorage other) {
+        protected static boolean sameNativeStore(NativeArrayStorage store, NativeArrayStorage other) {
             return store == other;
         }
 

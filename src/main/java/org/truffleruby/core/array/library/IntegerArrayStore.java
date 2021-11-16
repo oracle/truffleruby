@@ -89,7 +89,7 @@ public class IntegerArrayStore {
     static class IsStorageSame {
 
         @Specialization
-        protected static boolean sameZeroLength(int[] store, int[] other) {
+        protected static boolean sameIntegerStore(int[] store, int[] other) {
             return store == other;
         }
 

@@ -89,7 +89,7 @@ public class DoubleArrayStore {
     static class IsStorageSame {
 
         @Specialization
-        protected static boolean sameZeroLength(double[] store, double[] other) {
+        protected static boolean sameDoubleStore(double[] store, double[] other) {
             return store == other;
         }
 

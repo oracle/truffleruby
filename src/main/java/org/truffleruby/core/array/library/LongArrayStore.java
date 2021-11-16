@@ -94,7 +94,7 @@ public class LongArrayStore {
     static class IsStorageSame {
 
         @Specialization
-        protected static boolean sameZeroLength(long[] store, long[] other) {
+        protected static boolean sameLongStore(long[] store, long[] other) {
             return store == other;
         }
 

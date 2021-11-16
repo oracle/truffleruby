@@ -58,7 +58,7 @@ public class ObjectArrayStore {
     static class IsStorageSame {
 
         @Specialization
-        protected static boolean sameZeroLength(Object[] store, Object[] other) {
+        protected static boolean sameObjectStore(Object[] store, Object[] other) {
             return store == other;
         }
 
