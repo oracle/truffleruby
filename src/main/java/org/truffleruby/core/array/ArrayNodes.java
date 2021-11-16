@@ -541,7 +541,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = "!stores.isPrimitive(store)", limit = "storageStrategyLimit()")
-        protected Object compactObjectsNonMutable(RubyArray array,
+        protected Object compactObjects(RubyArray array,
                 @Bind("array.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary mutableStores,
@@ -571,7 +571,9 @@ public abstract class ArrayNodes {
                 profileAndReportLoopCount(loopProfile, n);
             }
 
-            stores.clear(oldStore, m, size - m);
+            if (stores.isMutable(oldStore)) {
+                stores.clear(oldStore, m, size - m);
+            }
 
             array.store = newStore;
             array.size = m;
