@@ -164,7 +164,7 @@ describe "Sharing is correctly propagated for" do
 
     new_ary = [Object.new]
     ary.replace(new_ary)
-    # new_ary is not shared, but any object it contained should be.
+    # new_ary is not shared, but any object it contains should be.
     shared?(new_ary).should == false
     new_ary.each { |e| shared?(e).should == true }
   end
