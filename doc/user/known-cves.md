@@ -19,6 +19,7 @@ Cross-reference with the details on [the MRI website](https://www.ruby-lang.org/
 
 Number | Description | Their Mitigation | Test | Our Mitigation
 --- | --- | --- | --- | ---
+CVE-2021-41817 | Regular expression denial of service vulnerability (ReDoS) in date | [Fix](https://github.com/ruby/date/commit/3959accef8) | [Test](https://github.com/ruby/date/commit/3959accef8) | Not affected thanks to TRegex
 CVE-2021-31810 | Trusting FTP PASV responses vulnerability in Net::FTP | [Fix](https://github.com/ruby/ruby/commit/3ca1399150ed4eacfd2fe1ee251b966f8d1ee469) | [Test](https://github.com/ruby/ruby/commit/3ca1399150ed4eacfd2fe1ee251b966f8d1ee469) | Same
 CVE-2021-32066 | A StartTLS stripping vulnerability in Net::IMAP | [Fix](https://github.com/ruby/ruby/commit/a21a3b7d23704a01d34bd79d09dc37897e00922a) | [Test](https://github.com/ruby/ruby/commit/a21a3b7d23704a01d34bd79d09dc37897e00922a) | Same
 CVE-2021-31799 | A command injection vulnerability in RDoc | [Fix](https://github.com/ruby/rdoc/commit/a7f5d6ab88632b3b482fe10611382ff73d14eed7) [Backport](https://github.com/ruby/ruby/commit/483f303d02e768b69e476e0b9be4ab2f26389522) | [Test](https://github.com/ruby/rdoc/commit/a7f5d6ab88632b3b482fe10611382ff73d14eed7) | Same
