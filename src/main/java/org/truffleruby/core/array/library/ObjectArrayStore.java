@@ -111,15 +111,15 @@ public class ObjectArrayStore {
     @ExportMessage
     protected static Object makeShared(Object[] store,
             @CachedLibrary("store") ArrayStoreLibrary stores) {
-        stores.shareChildren(store);
+        stores.shareElements(store);
         return new SharedArrayStorage(store);
     }
 
     @ExportMessage
-    static class ShareChildren {
+    static class ShareElements {
 
         @Specialization
-        protected static void shareChildren(Object[] store,
+        protected static void shareElements(Object[] store,
                 @CachedLibrary("store") ArrayStoreLibrary node,
                 @Cached @Exclusive LoopConditionProfile loopProfile,
                 @Cached WriteBarrierNode writeBarrierNode) {

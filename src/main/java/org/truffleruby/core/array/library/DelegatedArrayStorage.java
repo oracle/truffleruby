@@ -57,23 +57,24 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
+    @ImportStatic(ArrayGuards.class)
     static class IsStorageSame {
 
         @Specialization
         protected static boolean sameDelegated(DelegatedArrayStorage store, DelegatedArrayStorage other,
-                @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+                @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
             return store.offset == other.offset && stores.isStorageSame(store.storage, other.storage);
         }
 
         @Specialization
-        protected static boolean sameDelegated(DelegatedArrayStorage store, SharedArrayStorage other,
-                @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+        protected static boolean sameShared(DelegatedArrayStorage store, SharedArrayStorage other,
+                @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
             return stores.isStorageSame(other.storage, store);
         }
 
         @Specialization
-        protected static boolean sameShared(DelegatedArrayStorage store, Object other,
-                @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+        protected static boolean sameOther(DelegatedArrayStorage store, Object other,
+                @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
             return store.offset == 0 && stores.isStorageSame(store.storage, other);
         }
 
@@ -88,14 +89,14 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     @ExportMessage
     protected Object makeShared(
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
-        stores.shareChildren(this);
+        stores.shareElements(this);
         return new SharedArrayStorage(this);
     }
 
     @ExportMessage
-    protected void shareChildren(
+    protected void shareElements(
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
-        stores.shareChildren(storage);
+        stores.shareElements(storage);
     }
 
     @ExportMessage

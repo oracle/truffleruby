@@ -172,15 +172,15 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     @ExportMessage
     protected static Object makeShared(NativeArrayStorage store,
             @CachedLibrary("store") ArrayStoreLibrary stores) {
-        stores.shareChildren(store);
+        stores.shareElements(store);
         return new SharedArrayStorage(store);
     }
 
     @ExportMessage
-    static class ShareChildren {
+    static class ShareElements {
 
         @Specialization
-        protected static void shareChildren(NativeArrayStorage store,
+        protected static void shareElements(NativeArrayStorage store,
                 @CachedLibrary("store") ArrayStoreLibrary node,
                 @Cached @Exclusive LoopConditionProfile loopProfile,
                 @Cached WriteBarrierNode writeBarrierNode) {

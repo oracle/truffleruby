@@ -81,13 +81,11 @@ public abstract class ArrayStoreLibrary extends Library {
         return false;
     }
 
-    /** Return whether the {@code store} is shared between multiple threads. */
-    public boolean isStorageSame(Object store, Object other) {
-        System.err.printf("Checking %s and %s.\n", store, other);
-        throw new Error();
-    }
+    /** Return whether {@code store} and {@code other} share the same underlying array storage. */
+    public abstract boolean isStorageSame(Object store, Object other);
 
-    /** Return the underlying storage used by this array. */
+    /** Return the underlying storage used by this array, which may be behind multiple warppers. Stores which wrap some
+     * array store should always recursively unwrap that store using this same library call. */
     public Object backingStore(Object store) {
         return store;
     }
@@ -97,8 +95,8 @@ public abstract class ArrayStoreLibrary extends Library {
         return new SharedArrayStorage(store);
     }
 
-    /** Do any work required to start sharing children across threads. */
-    public void shareChildren(Object store) {
+    /** Do any work required to start sharing elements across threads. */
+    public void shareElements(Object store) {
     }
 
     /** Return a description of {@code store} for debugging output. */
@@ -135,7 +133,7 @@ public abstract class ArrayStoreLibrary extends Library {
      * elements, so that that range does not retain references to objects/memory/resources. This can be understood as
      * "nulling out" that part of the array, and will do nothing for primitive arrays. */
     public void clear(Object store, int start, int length) {
-        throw new UnsupportedOperationException();
+        throw CompilerDirectives.shouldNotReachHere();
     }
 
     /** Fill the part of the array starting at {@code start} and extending for {@code length} elements using
@@ -182,7 +180,7 @@ public abstract class ArrayStoreLibrary extends Library {
     /** Return an allocator for a mutable version of {@code store}. */
     public abstract ArrayAllocator allocator(Object store);
 
-    /** Return an allocator for a mutable version of {@code store}. */
+    /** Return an allocator for a mutable, unshared version of {@code store}. */
     public ArrayAllocator unsharedAllocator(Object store) {
         return allocator(store);
     }
