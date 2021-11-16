@@ -182,9 +182,8 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public RubyException argumentErrorInvalidByteSequence(Rope rope, Node currentNode) {
-        final String formattedObject = RopeOperations.decodeRope(rope);
-        return argumentError(StringUtils.format("invalid byte sequence in %s", formattedObject), currentNode);
+    public RubyException argumentErrorInvalidByteSequence(RubyEncoding encoding, Node currentNode) {
+        return argumentError("invalid byte sequence in " + encoding, currentNode);
     }
 
 

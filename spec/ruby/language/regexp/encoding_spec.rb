@@ -129,6 +129,10 @@ describe "Regexps with encoding modifiers" do
     -> { Regexp.new("".force_encoding("US-ASCII"), Regexp::FIXEDENCODING) =~ "\303\251".force_encoding('UTF-8') }.should raise_error(Encoding::CompatibilityError)
   end
 
+  it "raises ArgumentError when trying to match a broken String" do
+    s = "\x80".force_encoding('UTF-8')
+    -> { s =~ /./ }.should raise_error(ArgumentError, "invalid byte sequence in UTF-8")
+  end
 
   it "computes the Regexp Encoding for each interpolated Regexp instance" do
     make_regexp = -> str { /#{str}/ }

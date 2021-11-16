@@ -147,7 +147,7 @@ public class TruffleRegexpNodes {
 
                 throw new RaiseException(
                         getContext(),
-                        coreExceptions().argumentErrorInvalidByteSequence(matchRope, this));
+                        coreExceptions().argumentErrorInvalidByteSequence(matchStringEncoding, this));
             }
 
             if (!RegexpGuards.isInitialized(regexp)) {
