@@ -286,6 +286,11 @@ public class DoubleArrayStore {
     static class AllocateForNewStore {
 
         @Specialization
+        protected static Object allocate(double[] store, ZeroLengthArrayStore newStore, int length) {
+            return DoubleArrayStore.DOUBLE_ARRAY_ALLOCATOR.allocate(length);
+        }
+
+        @Specialization
         protected static Object allocate(double[] store, int[] newStore, int length) {
             return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
         }

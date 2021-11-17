@@ -306,6 +306,11 @@ public class IntegerArrayStore {
     static class AllocateForNewStore {
 
         @Specialization
+        protected static Object allocate(int[] store, ZeroLengthArrayStore newStore, int length) {
+            return IntegerArrayStore.INTEGER_ARRAY_ALLOCATOR.allocate(length);
+        }
+
+        @Specialization
         protected static Object allocate(int[] store, int[] newStore, int length) {
             return IntegerArrayStore.INTEGER_ARRAY_ALLOCATOR.allocate(length);
         }

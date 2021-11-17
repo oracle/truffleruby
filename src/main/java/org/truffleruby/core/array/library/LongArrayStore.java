@@ -326,6 +326,11 @@ public class LongArrayStore {
     static class AllocateForNewStore {
 
         @Specialization
+        protected static Object allocate(long[] store, ZeroLengthArrayStore newStore, int length) {
+            return LongArrayStore.LONG_ARRAY_ALLOCATOR.allocate(length);
+        }
+
+        @Specialization
         protected static Object allocate(long[] store, int[] newStore, int length) {
             return LongArrayStore.LONG_ARRAY_ALLOCATOR.allocate(length);
         }

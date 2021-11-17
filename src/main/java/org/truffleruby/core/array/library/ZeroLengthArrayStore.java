@@ -207,7 +207,10 @@ public class ZeroLengthArrayStore {
         @Specialization(guards = "!zeroLengthStore(newStore)", limit = "storageStrategyLimit()")
         protected static Object allocateForNewStore(ZeroLengthArrayStore store, Object newStore, int length,
                 @CachedLibrary("newStore") ArrayStoreLibrary newStores) {
-            return newStores.allocateForNewStore(newStore, newStore, length);
+            // We have to be careful here in case newStore is a a
+            // wrapped version of the zero length store, and we don't
+            // want to end up recursing back to this case repeatedly.
+            return newStores.allocateForNewStore(newStore, store, length);
         }
 
         protected static boolean zeroLengthStore(Object store) {
