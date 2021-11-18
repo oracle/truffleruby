@@ -1,1 +1,2 @@
 slow:IO.write on a FIFO writes correctly
+slow:IO#write on STDOUT raises SignalException SIGPIPE if the stream is closed instead of Errno::EPIPE like other IOs
