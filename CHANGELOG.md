@@ -54,6 +54,7 @@ Compatibility:
 * Sort by default for `Dir.{glob,[]}` and add `sort:` keyword argument (#2523, @Strech).
 * Implement `rb_str_locktmp` and `rb_str_unlocktmp` (#2524, @bjfish).
 * Update `Kernel#instance_variables` to return insertion order (@bjfish).
+* Implement `Array#slice` with `ArithmeticSequence` (#2526, @ccocchi).
 
 Performance:
 
