@@ -616,7 +616,7 @@ module Kernel
   end
   module_function :untrace_var
 
-  def warn(*messages, uplevel: undefined)
+  def warn(*messages, uplevel: undefined, category: nil)
     if !Primitive.nil?($VERBOSE) && !messages.empty?
       prefix = if Primitive.undefined?(uplevel)
                  ''
@@ -651,11 +651,20 @@ module Kernel
         unless message.encoding.ascii_compatible?
           raise Encoding::CompatibilityError, "ASCII incompatible encoding: #{message.encoding}"
         end
+        Truffle::WarningOperations.check_category(category) unless Primitive.nil?(category)
+
         $stderr.write message
       else
-        Warning.warn(message)
+        warning_warn = Warning.method(:warn)
+        if warning_warn.arity == 1
+          warning_warn.call(message)
+        else
+          category = Truffle::Type.rb_convert_type(category, Symbol, :to_sym) unless Primitive.nil?(category)
+          warning_warn.call(message, category: category)
+        end
       end
     end
+
     nil
   end
   module_function :warn
