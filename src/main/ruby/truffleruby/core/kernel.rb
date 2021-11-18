@@ -654,11 +654,12 @@ module Kernel
 
         $stderr.write message
       else
-        if Primitive.nil?(category)
-          Warning.warn(message)
+        warning_warn = Warning.method(:warn)
+        if warning_warn.arity == 1
+          warning_warn.call(message)
         else
-          category = Truffle::Type.rb_convert_type(category, Symbol, :to_sym)
-          Warning.warn(message, category: category)
+          category = Truffle::Type.rb_convert_type(category, Symbol, :to_sym) unless Primitive.nil?(category)
+          warning_warn.call(message, category: category)
         end
       end
     end
