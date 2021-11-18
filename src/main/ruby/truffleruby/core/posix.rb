@@ -446,7 +446,9 @@ module Truffle::POSIX
               return written
             end
           else
-            if errno == Errno::EPIPE::Errno && fd == 1
+            # stdout must raise a SIGPIPE SignalException instead of Errno::EPIPE
+            # https://bugs.ruby-lang.org/issues/14413
+            if fd == 1 and errno == Errno::EPIPE::Errno
               raise SignalException, :SIGPIPE
             end
             Errno.handle_errno(errno)
