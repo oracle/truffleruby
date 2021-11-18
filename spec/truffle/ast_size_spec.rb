@@ -1,4 +1,20 @@
-require_relative '../../ruby/spec_helper'
+require_relative '../ruby/spec_helper'
+
+describe 'Regexp' do
+  it 'has critical methods of under 100 AST nodes' do
+    cmd = <<-EOF
+puts Truffle::Debug.ast_size(Regexp.instance_method(:match)) < 100
+puts Truffle::Debug.ast_size(Regexp.instance_method(:match?)) < 100
+puts Truffle::Debug.ast_size(Regexp.instance_method(:===)) < 100
+puts Truffle::Debug.ast_size(Truffle::RegexpOperations.method(:match)) < 100
+puts Truffle::Debug.ast_size(Truffle::RegexpOperations.method(:match?)) < 100
+puts Truffle::Debug.ast_size(Truffle::RegexpOperations.method(:match_from)) < 100
+puts Truffle::Debug.ast_size(Truffle::RegexpOperations.method(:search_region)) < 100
+EOF
+    ruby_exe(cmd).should == "true\n" * 7;
+  end
+end
+
 
 describe 'String' do
   it 'has critical methods of under 100 AST nodes' do
