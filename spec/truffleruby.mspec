@@ -95,6 +95,8 @@ class MSpecScript
   # Use spec/ruby/core/nil/nil_spec.rb as a dummy file to avoid being empty
   set :next, %w[
     spec/ruby/core/nil/nil_spec.rb
+    spec/ruby/core/gc/measure_total_time_spec.rb
+    spec/ruby/core/gc/total_time_spec.rb
   ]
 
   set :tags_patterns, [

@@ -35,45 +35,56 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 module Truffle::GCOperations
-  KNOWN_KEYS = %i[
-    time
-    count
-    minor_gc_count
-    major_gc_count
-    unknown_count
-    heap_available_slots
-    heap_live_slots
-    heap_free_slots
-    used
-    committed
-    init
-    max
-  ]
-
-  def self.stat_hash(key = nil)
-    time, count, minor_count, major_count, unknown_count, used, committed, init, max = Primitive.gc_stat
-
-    # Initialize stat for statistics that come from memory pools, and populate it with some final stats (ordering similar to MRI)
-    stat = {
-        time: time,
-        count: count,
-        minor_gc_count: minor_count,
-        major_gc_count: major_count,
-        unknown_count: unknown_count, # if nonzero, major or minor count needs to be updated for this GC case
-        heap_available_slots: committed,
-        heap_live_slots: used,
-        heap_free_slots: committed - used,
-        used: used,
-        committed: committed,
-        init: init,
-        max: max,
-    }
-    stat.default = 0
-
-    if key
-      stat[key]
+  def self.stat_hash(key_or_hash)
+    if Primitive.object_kind_of?(key_or_hash, Symbol)
+      case key_or_hash
+      when :time
+        Primitive.gc_stat[0]
+      when :count
+        Primitive.gc_stat[1]
+      when :minor_gc_count
+        Primitive.gc_stat[2]
+      when :major_gc_count
+        Primitive.gc_stat[3]
+      when :unknown_count
+        Primitive.gc_stat[4]
+      when :used
+        Primitive.gc_stat[5]
+      when :heap_live_slots
+        Primitive.gc_stat[5]
+      when :heap_available_slots
+        Primitive.gc_stat[6]
+      when :committed
+        Primitive.gc_stat[6]
+      when :heap_free_slots
+        stat = Primitive.gc_stat
+        stat[6] - stat[5]
+      when :init
+        Primitive.gc_stat[7]
+      when :max
+        Primitive.gc_stat[8]
+      else
+        # differs from MRI, more compatible than raising argument error, use GC.stat.key? to check if key is supported
+        0
+      end
     else
-      stat
+      time, count, minor_count, major_count, unknown_count, used, committed, init, max = Primitive.gc_stat
+      # Initialize stat for statistics that come from memory pools, and populate it with some final stats (ordering similar to MRI)
+      key_or_hash[:time] = time
+      key_or_hash[:count] = count
+      key_or_hash[:minor_gc_count] = minor_count
+      key_or_hash[:major_gc_count] = major_count
+      key_or_hash[:unknown_count] = unknown_count # if nonzero, major or minor count needs to be updated for this GC case
+      key_or_hash[:used] = used
+      key_or_hash[:heap_live_slots] = used
+      key_or_hash[:committed] = committed
+      key_or_hash[:heap_available_slots] = committed
+      key_or_hash[:heap_free_slots] = committed - used
+      key_or_hash[:init] = init
+      key_or_hash[:max] = max
+      # differs from MRI, more compatible than raising argument error, use GC.stat.key? to check if key is supported
+      key_or_hash.default = 0
+      key_or_hash
     end
   end
 end
@@ -131,19 +142,34 @@ module GC
     @auto_compact = Primitive.as_boolean(flag)
   end
 
+  # Totally fake.
+  @measure_total_time = true
+
+  def self.measure_total_time
+    @measure_total_time
+  end
+
+  def self.measure_total_time=(flag)
+    @measure_total_time = Primitive.as_boolean(flag)
+    flag
+  end
+
+  def self.total_time
+    Primitive.gc_time * 1_000_000
+  end
+
   def garbage_collect(...)
     GC.start(...)
   end
 
   def self.stat(key = nil)
-    if key
-      if Truffle::GCOperations::KNOWN_KEYS.include?(key)
-        Truffle::GCOperations.stat_hash(key)
-      else
-        0
-      end
+    case key
+    when NilClass
+      Truffle::GCOperations.stat_hash({})
+    when Symbol, Hash
+      Truffle::GCOperations.stat_hash(key)
     else
-      Truffle::GCOperations.stat_hash
+      raise TypeError, 'non-hash or symbol given'
     end
   end
 
@@ -185,7 +211,7 @@ module GC
     @since   = 0
 
     def self.clear
-      @since = GC.time
+      @since = Primitive.gc_time
       nil
     end
 
@@ -216,12 +242,12 @@ module GC
 Complete process runtime statistics
 ===================================
 Collections: #{GC.count}
-Total time (ms): #{GC.time}
+Total time (ms): #{Primitive.gc_time}
       OUT
     end
 
     def self.total_time
-      (GC.time - @since) / 1000.0
+      (Primitive.gc_time - @since) / 1000.0
     end
   end
 end

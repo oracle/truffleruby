@@ -120,8 +120,8 @@ public abstract class GCNodes {
 
     }
 
-    @CoreMethod(names = "time", onSingleton = true)
-    public abstract static class TimeNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "gc_time")
+    public abstract static class TimeNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization

@@ -57,6 +57,7 @@ Compatibility:
 * Fixed `rb_path2class()` to not error for a module (#2511, @eregon).
 * Update `Kernel#print` to print `$_` when no arguments are given (#2531, @bjfish).
 * Add category kwarg to Kernel.warn and Warning.warn (#2533, @Strech).
+* Implement `GC.{measure_total_time, total_time}` and update `GC.stat` to update provided hash (#2535, @bjfish).
 
 Performance:
 
