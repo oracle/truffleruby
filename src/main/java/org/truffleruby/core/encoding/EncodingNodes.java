@@ -164,7 +164,7 @@ public abstract class EncodingNodes {
                 return firstRubyEncoding;
             }
             if (firstRope.isEmpty()) {
-                return firstEncoding.isAsciiCompatible() && (secondRope.getCodeRange() == CodeRange.CR_7BIT)
+                return (firstEncoding.isAsciiCompatible() && secondRope.getCodeRange() == CodeRange.CR_7BIT)
                         ? firstRubyEncoding
                         : secondRubyEncoding;
             }
@@ -173,14 +173,6 @@ public abstract class EncodingNodes {
                 return null;
             }
 
-            if (firstRope.getCodeRange() != secondRope.getCodeRange()) {
-                if (firstRope.getCodeRange() == CodeRange.CR_7BIT) {
-                    return secondRubyEncoding;
-                }
-                if (secondRope.getCodeRange() == CodeRange.CR_7BIT) {
-                    return firstRubyEncoding;
-                }
-            }
             if (secondRope.getCodeRange() == CodeRange.CR_7BIT) {
                 return firstRubyEncoding;
             }
