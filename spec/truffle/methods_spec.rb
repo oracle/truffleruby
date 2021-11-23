@@ -22,7 +22,7 @@ require_relative '../ruby/spec_helper'
 modules = %w[
   Array BasicObject Binding Class Complex Complex Dir ENV.singleton_class
   Encoding Enumerable Enumerator Enumerator::Lazy Exception FalseClass Fiber
-  File FileTest Float GC Hash IO Integer Kernel Marshal MatchData Math Method
+  File FileTest Float GC GC.singleton_class Hash IO Integer Kernel Marshal MatchData Math Method
   Module Mutex NilClass Numeric Object ObjectSpace Proc Process Queue Random
   Random::Formatter Random.singleton_class Range Rational Regexp Signal
   SizedQueue String Struct Symbol SystemExit Thread TracePoint TrueClass

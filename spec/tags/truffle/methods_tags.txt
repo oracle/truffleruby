@@ -78,3 +78,16 @@ fails:Public methods on Proc should include eql?
 fails:Public methods on Random should not include bytes
 fails:Public methods on Random should not include rand
 fails:Public methods on Random should not include seed
+fails:Public methods on GC should not include measure_total_time
+fails:Public methods on GC should not include total_time
+fails:Public methods on GC.singleton_class should not include heap_stats
+fails:Public methods on GC.singleton_class should not include measure_total_time=
+fails:Public methods on GC.singleton_class should not include run
+fails:Public methods on GC.singleton_class should include compact
+fails:Public methods on GC.singleton_class should include latest_compact_info
+fails:Public methods on GC.singleton_class should include latest_gc_info
+fails:Public methods on GC.singleton_class should include verify_compaction_references
+fails:Public methods on GC.singleton_class should include verify_internal_consistency
+fails:Public methods on GC.singleton_class should include verify_transient_heap_internal_consistency
+fails:Public methods on GC.singleton_class should not include measure_total_time
+fails:Public methods on GC.singleton_class should not include total_time

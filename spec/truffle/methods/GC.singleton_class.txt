@@ -1,0 +1,15 @@
+auto_compact
+auto_compact=
+compact
+count
+disable
+enable
+latest_compact_info
+latest_gc_info
+start
+stat
+stress
+stress=
+verify_compaction_references
+verify_internal_consistency
+verify_transient_heap_internal_consistency

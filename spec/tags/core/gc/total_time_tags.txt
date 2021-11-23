@@ -1,0 +1,1 @@
+slow:GC.total_time increases as collections are run
