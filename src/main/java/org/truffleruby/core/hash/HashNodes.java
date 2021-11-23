@@ -300,7 +300,7 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class EachNode extends CoreMethodArrayArgumentsNode implements EachEntryCallback {
 
-        @Child HashStoreLibrary.YieldPairNode yieldPair = HashStoreLibrary.YieldPairNode.create();
+        @Child CallBlockNode callBlockNode = CallBlockNode.create();
 
         @Specialization(limit = "hashStrategyLimit()")
         protected RubyHash each(RubyHash hash, RubyProc block,
@@ -311,7 +311,7 @@ public abstract class HashNodes {
 
         @Override
         public void accept(int index, Object key, Object value, Object state) {
-            yieldPair.execute((RubyProc) state, key, value);
+            callBlockNode.yield((RubyProc) state, createArray(new Object[]{ key, value }));
         }
     }
 
