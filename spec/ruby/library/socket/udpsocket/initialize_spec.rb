@@ -30,6 +30,17 @@ describe 'UDPSocket#initialize' do
     @socket.binmode?.should be_true
   end
 
+  it 'sets the socket to nonblock' do
+    require 'io/nonblock'
+    @socket = UDPSocket.new(:INET)
+    @socket.should.nonblock?
+  end
+
+  it 'sets the socket to close on exec' do
+    @socket = UDPSocket.new(:INET)
+    @socket.should.close_on_exec?
+  end
+
   it 'raises Errno::EAFNOSUPPORT or Errno::EPROTONOSUPPORT when given an invalid address family' do
     -> {
       UDPSocket.new(666)
