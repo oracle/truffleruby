@@ -146,6 +146,61 @@ class Array
     true
   end
 
+  private def slice_arithmetic_sequence(seq)
+    len = size
+
+    if seq.step < 0 # inverse range with negative step
+      start = seq.end
+      stop  = seq.begin
+      step  = seq.step
+    else
+      start = seq.begin
+      stop  = seq.end
+      step  = seq.step
+    end
+
+    start ||= 0 # begin-less range
+    stop ||= -1 # endless range
+
+    # negative indexes refer to the end of array
+    start += len if start < 0
+    stop  += len if stop < 0
+
+    stop += 1 unless seq.exclude_end?
+    diff = stop - start
+
+    is_out_of_bound = start < 0 || start > len
+
+    if step < -1 || step > 1
+      raise RangeError, "#{seq.inspect} out of range" if is_out_of_bound || diff > len
+    elsif is_out_of_bound
+      return nil
+    end
+
+    return [] if diff <= 0
+
+    diff = len - start if (len < diff || len < start + diff)
+
+    return self[start, diff] if step == 1 # step == 1 is a simple slice
+
+    # optimize when no step will be done and only start element is returned
+    return self[start, 1] if (step > 0 && step > diff) || (step < 0 && step < -diff)
+
+    ustep = step.abs
+    nlen = (diff + ustep - 1) / ustep
+    i = 0
+    j = start + (step > 0 ? 0 : diff - 1) # because we inverted negative step ranges
+    res = Array.new(nlen)
+
+    while i < nlen
+      res[i] = self[j]
+      i += 1
+      j += step
+    end
+
+    res
+  end
+
   def assoc(obj)
     each do |x|
       if Primitive.object_kind_of?(x, Array) and x.first == obj

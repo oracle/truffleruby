@@ -180,6 +180,7 @@ public class CoreLibrary {
     public final RubyClass zeroDivisionErrorClass;
     public final RubyModule enumerableModule;
     public final RubyClass enumeratorClass;
+    public final RubyClass arithmeticSequenceClass;
     public final RubyModule errnoModule;
     public final RubyModule kernelModule;
     public final RubyModule truffleFFIModule;
@@ -398,6 +399,7 @@ public class CoreLibrary {
         dirClass = defineClass("Dir");
         encodingClass = defineClass("Encoding");
         enumeratorClass = defineClass("Enumerator");
+        arithmeticSequenceClass = defineClass(enumeratorClass, enumeratorClass, "ArithmeticSequence");
         falseClass = defineClass("FalseClass");
         fiberClass = defineClass("Fiber");
         defineModule("FileTest");

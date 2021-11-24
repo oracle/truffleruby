@@ -86,6 +86,7 @@ import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.objects.AllocationTracing;
+import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.shared.IsSharedNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
@@ -282,8 +283,20 @@ public abstract class ArrayNodes {
             return readSlice.executeReadSlice(array, startLength[0], len);
         }
 
-        @Specialization(guards = { "!isInteger(index)", "!isRubyRange(index)" })
+        @Specialization(guards = { "isArithmeticSequence(index, isANode)" })
+        protected Object indexArithmeticSequence(RubyArray array, Object index, NotProvided length,
+                @Cached IsANode isANode,
+                @Cached DispatchNode callSliceArithmeticSequence) {
+            return callSliceArithmeticSequence.call(array, "slice_arithmetic_sequence", index);
+        }
+
+        @Specialization(
+                guards = {
+                        "!isInteger(index)",
+                        "!isRubyRange(index)",
+                        "!isArithmeticSequence(index, isANode)" })
         protected Object indexFallback(RubyArray array, Object index, NotProvided length,
+                @Cached IsANode isANode,
                 @Cached AtNode accessWithIndexConversion) {
             return accessWithIndexConversion.executeAt(array, index);
         }
@@ -306,6 +319,10 @@ public abstract class ArrayNodes {
                 @Cached ToIntNode indexToInt,
                 @Cached ToIntNode lengthToInt) {
             return executeIntIndices(array, indexToInt.execute(start), lengthToInt.execute(length));
+        }
+
+        protected boolean isArithmeticSequence(Object object, IsANode isANode) {
+            return isANode.executeIsA(object, coreLibrary().arithmeticSequenceClass);
         }
     }
 
