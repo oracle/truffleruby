@@ -214,6 +214,10 @@ def verify_ci(args):
     """Verify CI configuration"""
     mx.verify_ci(args, mx.suite('truffle'), _suite, 'common.json')
 
+
+# Fail early and clearly when trying to build with a too old JDK
+mx.get_jdk(mx.JavaCompliance('11+'), 'building TruffleRuby which requires JDK 11 or newer')
+
 mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
     suite=_suite,
     name='TruffleRuby license files',
