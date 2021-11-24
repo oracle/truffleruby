@@ -51,3 +51,5 @@ $RUBY $repo_root/tool/optimize_parser.rb $PARSER_BASE.out2 $YYTABLE_PREFIX > $PA
 rm -f $PARSER_BASE.out $PARSER_BASE.out2
 
 popd
+
+$RUBY $repo_root/tool/post-process-parser.rb
