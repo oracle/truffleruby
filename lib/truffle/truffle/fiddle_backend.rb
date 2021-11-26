@@ -1,6 +1,6 @@
 # truffleruby_primitives: true
 
-# Copyright (c) 2019, 2020 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2019, 2021 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -213,8 +213,8 @@ module Fiddle
       if ptr.is_a?(Closure)
         @function = ptr.method(:call)
       else
-        ptr = Truffle::POSIX.nfi_function_from_pointer(ptr, signature)
-        @function = ptr.bind(signature)
+        ptr = Truffle::FFI::Pointer.new(ptr)
+        @function = Truffle::POSIX.nfi_function_from_pointer(ptr, signature)
       end
     end
 

@@ -92,11 +92,6 @@ struct truffleposix_stat {
 
 static void copy_stat(struct stat *stat, struct truffleposix_stat* buffer);
 
-/* A workaround to be able to create a NFI NativePointer from a long */
-void* identity_pointer(void *pointer) {
-  return pointer;
-}
-
 /* Creates a native function handle for an executable TruffleObject,
    such that it can be called from native code. The returned wrapper
    is IS_POINTER and keeps the native part alive as long it is referenced. */

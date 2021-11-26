@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2017, 2020 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2017, 2021 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -85,9 +85,8 @@ module Truffle::POSIX
   end
 
   def self.nfi_function_from_pointer(pointer, signature)
-    lib = LIBTRUFFLEPOSIX.resolve
-    # We have to bind each time as the signature changes - should be an offline operation
-    lib['identity_pointer'].bind("(pointer):#{signature}").call(pointer)
+    parsed_sig = Primitive.interop_eval_nfi signature
+    parsed_sig.bind(pointer)
   end
 
   # the actual function is looked up and attached on its first call
@@ -129,7 +128,8 @@ module Truffle::POSIX
         unsigned_return_type = 1 << nfi_return_type.to_s[-2..-1].to_i
       end
 
-      bound_func = func.bind("(#{nfi_args_types.join(',')}):#{nfi_return_type}")
+      parsed_sig = Primitive.interop_eval_nfi "(#{nfi_args_types.join(',')}):#{nfi_return_type}"
+      bound_func = parsed_sig.bind(func)
 
       on.define_singleton_method method_name, -> *args do
         string_args.each do |i|
