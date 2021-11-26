@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2020 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2021 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -90,7 +90,7 @@ public class FeatureLoader {
 
     public void initialize(NativeConfiguration nativeConfiguration, TruffleNFIPlatform nfi) {
         if (context.getOptions().NATIVE_PLATFORM) {
-            this.getcwd = nfi.getFunction("getcwd", "(pointer," + nfi.size_t() + "):pointer");
+            this.getcwd = nfi.getFunction(context, "getcwd", "(pointer," + nfi.size_t() + "):pointer");
         }
     }
 

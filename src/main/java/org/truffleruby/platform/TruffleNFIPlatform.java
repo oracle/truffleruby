@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, 2020 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2017, 2021 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -11,15 +11,14 @@ package org.truffleruby.platform;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
+import org.truffleruby.language.library.RubyStringLibrary;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.source.Source;
-import org.truffleruby.language.library.RubyStringLibrary;
+import com.oracle.truffle.nfi.api.SignatureLibrary;
 
 public class TruffleNFIPlatform {
 
@@ -36,8 +35,8 @@ public class TruffleNFIPlatform {
                 .call();
 
         size_t = resolveType(context.getNativeConfiguration(), "size_t");
-        strlen = getFunction("strlen", String.format("(pointer):%s", size_t));
-        strnlen = getFunction("strnlen", String.format("(pointer,%s):%s", size_t, size_t));
+        strlen = getFunction(context, "strlen", String.format("(pointer):%s", size_t));
+        strnlen = getFunction(context, "strnlen", String.format("(pointer,%s):%s", size_t, size_t));
     }
 
     public Object getDefaultLibrary() {
@@ -52,17 +51,12 @@ public class TruffleNFIPlatform {
         }
     }
 
-    private static Object invoke(Object receiver, String identifier, Object... args) {
-        try {
-            return InteropLibrary.getFactory().getUncached(receiver).invokeMember(receiver, identifier, args);
-        } catch (UnsupportedMessageException | UnsupportedTypeException | ArityException
-                | UnknownIdentifierException e) {
-            throw TranslateInteropExceptionNode.getUncached().execute(e);
-        }
-    }
-
-    private Object bind(Object function, String signature) {
-        return invoke(function, "bind", signature);
+    private static Object bind(RubyContext context, Object function, String signature) {
+        Object parsedSignature = context
+                .getEnv()
+                .parseInternal(Source.newBuilder("nfi", signature, "native").build())
+                .call();
+        return SignatureLibrary.getUncached().bind(parsedSignature, function);
     }
 
     public long asPointer(Object object) {
@@ -97,9 +91,9 @@ public class TruffleNFIPlatform {
         }
     }
 
-    public Object getFunction(String functionName, String signature) {
+    public Object getFunction(RubyContext context, String functionName, String signature) {
         final Object symbol = lookup(defaultLibrary, functionName);
-        return bind(symbol, signature);
+        return bind(context, symbol, signature);
     }
 
     public String size_t() {

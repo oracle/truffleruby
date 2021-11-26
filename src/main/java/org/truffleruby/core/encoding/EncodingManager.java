@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, 2020 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2014, 2021 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -146,7 +146,7 @@ public class EncodingManager {
 
             // char *nl_langinfo(nl_item item);
             // nl_item is int on at least Linux and macOS
-            final Object nl_langinfo = nfi.getFunction("nl_langinfo", "(sint32):string");
+            final Object nl_langinfo = nfi.getFunction(context, "nl_langinfo", "(sint32):string");
 
             final long address;
             try {
