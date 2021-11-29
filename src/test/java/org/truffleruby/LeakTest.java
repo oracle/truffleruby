@@ -230,14 +230,22 @@ public class LeakTest extends AbstractLanguageLauncher {
     @Override
     protected void launch(Builder contextBuilder) {
         if (sharedEngine) {
-            engine = Engine.newBuilder().option("engine.WarnInterpreterOnly", "false").build();
+            engine = Engine.newBuilder()
+                    .allowExperimentalOptions(true)
+                    .option("engine.WarnInterpreterOnly", "false")
+                    .option("engine.TraceCodeSharing", "true")
+                    .build();
             contextBuilder.engine(engine);
         }
-        contextBuilder.allowExperimentalOptions(true).allowAllAccess(true);
 
-        try (Context c = contextBuilder.build()) {
+        contextBuilder
+                .allowExperimentalOptions(true)
+                .allowAllAccess(true)
+                .option("ruby.experimental-engine-caching", "true");
+
+        try (Context context = contextBuilder.build()) {
             try {
-                c.eval(getLanguageId(), code);
+                context.eval(getLanguageId(), code);
             } catch (PolyglotException e) {
                 if (e.isExit()) {
                     if (e.getExitStatus() == 0) {

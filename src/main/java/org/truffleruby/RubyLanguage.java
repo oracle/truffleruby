@@ -417,8 +417,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         if (contextIfSingleContext == null) { // before first context created
             this.singleContext = false;
         } else {
-            throw CompilerDirectives.shouldNotReachHere("RubyLanguage#initializeMultipleContexts() called after" +
-                    " context created and areOptionsCompatible() returned false");
+            throw CompilerDirectives
+                    .shouldNotReachHere("#initializeMultipleContexts() called after a context was created");
         }
     }
 
@@ -450,7 +450,6 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
         LOGGER.fine("createContext()");
         Metrics.printTime("before-create-context");
-        // TODO CS 3-Dec-16 need to parse RUBYOPT here if it hasn't been already?
         final RubyContext context = new RubyContext(this, env);
         Metrics.printTime("after-create-context");
         if (singleContext) {
@@ -462,7 +461,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     @Override
-    protected void initializeContext(RubyContext context) throws Exception {
+    protected void initializeContext(RubyContext context) {
         LOGGER.fine("initializeContext()");
 
         try {
@@ -776,11 +775,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     private boolean checkAreOptionsCompatible(OptionValues firstOptions, OptionValues newOptions) {
-        if (singleContext) {
-            return false;
-        }
-
-        if (options.RUN_TWICE || options.EXPERIMENTAL_ENGINE_CACHING) {
+        if (firstOptions.get(OptionsCatalog.RUN_TWICE_KEY) ||
+                firstOptions.get(OptionsCatalog.EXPERIMENTAL_ENGINE_CACHING_KEY)) {
             return LanguageOptions.areOptionsCompatible(firstOptions, newOptions);
         } else {
             return false;
