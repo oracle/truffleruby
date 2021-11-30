@@ -10,12 +10,14 @@
 package org.truffleruby.launcher;
 
 import java.io.PrintStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.lang.ProcessBuilder.Redirect;
 
 import org.graalvm.launcher.AbstractLanguageLauncher;
 import org.graalvm.nativeimage.ProcessProperties;
@@ -33,6 +35,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     private CommandLineOptions config;
     private String implementationName = null;
+    private boolean helpOptionUsed;
 
     public static void main(String[] args) {
         new RubyLauncher().launch(args);
@@ -163,7 +166,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     @Override
     protected void printHelp(OptionCategory maxCategory) {
-        printHelp(System.out);
+        printHelp(getOutput());
     }
 
     @Override
@@ -171,6 +174,47 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         throw abortInvalidArgument(
                 argument,
                 "truffleruby: invalid option " + argument + "  (Use --help for usage instructions.)");
+    }
+
+    @Override
+    protected boolean parseCommonOption(String defaultOptionPrefix, Map<String, String> polyglotOptions,
+            boolean experimentalOptions, String arg) {
+        if (arg.startsWith("--help")) {
+            helpOptionUsed = true;
+        }
+
+        return super.parseCommonOption(defaultOptionPrefix, polyglotOptions, experimentalOptions, arg);
+    }
+
+    @Override
+    protected boolean runLauncherAction() {
+        if (!helpOptionUsed || System.console() == null) {
+            return super.runLauncherAction();
+        }
+
+        String pager = getPagerFromEnv();
+        if (pager == null || pager.length() == 0) {
+            return super.runLauncherAction();
+        }
+
+        try {
+            Process process = new ProcessBuilder(pager)
+                    .redirectOutput(Redirect.INHERIT)
+                    .redirectErrorStream(true)
+                    .start();
+            PrintStream out = new PrintStream(process.getOutputStream());
+
+            setOutput(out);
+            boolean code = super.runLauncherAction();
+
+            out.flush();
+            out.close();
+            process.waitFor();
+
+            return code;
+        } catch (IOException | InterruptedException e) {
+            throw abort(e);
+        }
     }
 
     private int runRubyMain(Context.Builder contextBuilder, CommandLineOptions config) {
@@ -297,6 +341,20 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             return new ArrayList<>(Arrays.asList(value.split(":")));
         }
         return Collections.emptyList();
+    }
+
+    private static String getPagerFromEnv() {
+        String pager = System.getenv("RUBY_PAGER");
+        if (pager != null) {
+            return pager.strip();
+        }
+
+        pager = System.getenv("PAGER");
+        if (pager != null) {
+            return pager.strip();
+        }
+
+        return null;
     }
 
     private void printPreRunInformation(CommandLineOptions config) {
