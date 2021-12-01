@@ -15,9 +15,14 @@ import shutil
 
 import mx
 import mx_gate
-import mx_sdk
+import mx_sdk_vm
 import mx_subst
 import mx_spotbugs
+
+# Fail early and clearly when trying to build with a too old JDK
+jdk = mx.get_jdk(mx.JavaCompliance('11+'), 'building TruffleRuby which requires JDK 11 or newer')
+if mx_sdk_vm.base_jdk_version() < 11:
+    mx.abort('Building TruffleRuby requires JDK 11 or newer')
 
 if 'RUBY_BENCHMARKS' in os.environ:
     import mx_truffleruby_benchmark  # pylint: disable=unused-import
@@ -98,7 +103,6 @@ class TruffleRubyBootstrapLauncherBuildTask(mx.BuildTask):
             mx.rmtree(self.subject.get_output_root())
 
     def contents(self, result):
-        java = mx.get_jdk().java
         classpath_deps = [dep for dep in self.subject.buildDependencies if isinstance(dep, mx.ClasspathDependency)]
         jvm_args = [pipes.quote(arg) for arg in mx.get_runtime_jvm_args(classpath_deps)]
         jvm_args.append('-Dorg.graalvm.language.ruby.home=' + root)
@@ -111,7 +115,7 @@ class TruffleRubyBootstrapLauncherBuildTask(mx.BuildTask):
             '--disable-gems',
             '--disable-rubyopt',
         ]
-        command = [java] + jvm_args + [main_class] + ruby_options + ['"$@"']
+        command = [jdk.java] + jvm_args + [main_class] + ruby_options + ['"$@"']
         return "#!/usr/bin/env bash\n" + "exec " + " ".join(command) + "\n"
 
 # Commands
@@ -131,7 +135,6 @@ def ruby_check_heap_dump(input_args, out=None):
     dists = ['TRUFFLERUBY', 'TRUFFLE_NFI', 'SULONG_NATIVE', 'TRUFFLERUBY-TEST']
     vm_args, truffleruby_args = mx.extract_VM_args(args, useDoubleDash=True, defaultAllVMArgs=False)
     vm_args += mx.get_runtime_jvm_args(dists)
-    jdk = mx.get_jdk()
     # vm_args.append("-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y")
     vm_args.append("org.truffleruby.LeakTest")
     out = mx.OutputCapture() if out is None else out
@@ -215,10 +218,7 @@ def verify_ci(args):
     mx.verify_ci(args, mx.suite('truffle'), _suite, 'common.json')
 
 
-# Fail early and clearly when trying to build with a too old JDK
-mx.get_jdk(mx.JavaCompliance('11+'), 'building TruffleRuby which requires JDK 11 or newer')
-
-mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
+mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
     suite=_suite,
     name='TruffleRuby license files',
     short_name='rbyl',
@@ -234,7 +234,7 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
     stability="experimental",
 ))
 
-mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
+mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
     suite=_suite,
     name='TruffleRuby',
     short_name='rby',
@@ -274,7 +274,7 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
         'bin/typeprof',
     ],
     launcher_configs=[
-        mx_sdk.LanguageLauncherConfig(
+        mx_sdk_vm.LanguageLauncherConfig(
             destination='bin/<exe:truffleruby>',
             jar_distributions=['truffleruby:TRUFFLERUBY-LAUNCHER'],
             main_class='org.truffleruby.launcher.RubyLauncher',
