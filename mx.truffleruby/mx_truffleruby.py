@@ -15,7 +15,7 @@ import shutil
 
 import mx
 import mx_gate
-import mx_sdk
+import mx_sdk_vm
 import mx_subst
 import mx_spotbugs
 
@@ -217,8 +217,10 @@ def verify_ci(args):
 
 # Fail early and clearly when trying to build with a too old JDK
 mx.get_jdk(mx.JavaCompliance('11+'), 'building TruffleRuby which requires JDK 11 or newer')
+if mx_sdk_vm.base_jdk_version() < 11:
+    mx.abort('Building TruffleRuby requires JDK 11 or newer')
 
-mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
+mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
     suite=_suite,
     name='TruffleRuby license files',
     short_name='rbyl',
@@ -234,7 +236,7 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
     stability="experimental",
 ))
 
-mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
+mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
     suite=_suite,
     name='TruffleRuby',
     short_name='rby',
@@ -274,7 +276,7 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
         'bin/typeprof',
     ],
     launcher_configs=[
-        mx_sdk.LanguageLauncherConfig(
+        mx_sdk_vm.LanguageLauncherConfig(
             destination='bin/<exe:truffleruby>',
             jar_distributions=['truffleruby:TRUFFLERUBY-LAUNCHER'],
             main_class='org.truffleruby.launcher.RubyLauncher',
