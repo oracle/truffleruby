@@ -141,18 +141,18 @@ class IO
 
       count = Primitive.min(unused, max)
 
-      buffer = Truffle::POSIX.read_string_at_least_one_byte(io, count)
-      bytes_read = buffer ? buffer.bytesize : 0
-      if bytes_read > 0
+      total_read = 0
+      Truffle::POSIX.read_to_buffer_at_least_one_byte(io, count) do |buffer, bytes_read|
         # Detect if another thread has updated the buffer
         # and now there isn't enough room for this data.
         if bytes_read > unused
           raise RuntimeError, 'internal implementation error - IO buffer overrun'
         end
-        @storage.fill(@used, buffer, 0, bytes_read)
+        Primitive.pointer_read_bytes_to_byte_array(@storage, @used, buffer.address, bytes_read)
         @used += bytes_read
+        total_read += bytes_read
       end
-      bytes_read
+      total_read
     end
 
     # A request to the buffer to have data. The buffer decides whether
@@ -1265,9 +1265,14 @@ class IO
     # Method G
     def read_all
       str = +''
-      until @buffer.exhausted?
-        @buffer.fill_from @io
-        str << @buffer.shift
+      unless @buffer.exhausted?
+        if !(tmp_str = @buffer.shift).empty?
+          str << tmp_str
+        end
+      end
+
+      while (tmp_str = Truffle::POSIX.read_string_at_least_one_byte(@io, InternalBuffer::DEFAULT_READ_SIZE))
+        str << tmp_str
       end
 
       yield_string(str) { |s| yield s }
@@ -1787,9 +1792,14 @@ class IO
   # If the buffer is already exhausted, returns +""+.
   private def read_all
     str = +''
-    until @ibuffer.exhausted?
-      @ibuffer.fill_from self
-      str << @ibuffer.shift
+    unless @ibuffer.exhausted?
+      if !(tmp_str = @ibuffer.shift).empty?
+        str << tmp_str
+      end
+    end
+
+    while (tmp_str = Truffle::POSIX.read_string_at_least_one_byte(self, InternalBuffer::DEFAULT_READ_SIZE))
+      str << tmp_str
     end
 
     str

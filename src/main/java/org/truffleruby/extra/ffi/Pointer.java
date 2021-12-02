@@ -185,6 +185,24 @@ public final class Pointer implements AutoCloseable {
         UNSAFE.copyMemory(null, address + offset, buffer, Unsafe.ARRAY_BYTE_BASE_OFFSET + bufferPos, length);
     }
 
+    @TruffleBoundary
+    public boolean readBytesCheck8Bit(byte[] buffer, int length) {
+        assert address != 0 || length == 0;
+        assert buffer != null;
+        assert length >= 0;
+
+        long base = address;
+        boolean highBitUsed = false;
+        for (int i = 0; i < length; i++) {
+            byte aByte = UNSAFE.getByte(null, base + i);
+            if (aByte < 0) {
+                highBitUsed = true;
+            }
+            buffer[i] = aByte;
+        }
+        return highBitUsed;
+    }
+
     public short readShort(long offset) {
         assert address + offset != 0;
         return UNSAFE.getShort(address + offset);

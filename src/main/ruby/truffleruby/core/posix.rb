@@ -362,6 +362,19 @@ module Truffle::POSIX
     end
   end
 
+  def self.read_to_buffer_at_least_one_byte(io, count, &block)
+    while true
+      # must call #read_to_buffer in order to properly support polyglot STDIO
+      bytes_read, errno = read_to_buffer(io, count, &block)
+      return bytes_read if errno == 0
+      if errno == EAGAIN_ERRNO
+        IO.select([io])
+      else
+        Errno.handle_errno(errno)
+      end
+    end
+  end
+
   # Used in IO#read_nonblock
 
   def self.read_string_nonblock(io, count, exception)
@@ -403,6 +416,36 @@ module Truffle::POSIX
     ensure
       Primitive.io_thread_buffer_free(buffer)
     end
+  end
+
+  def self.read_to_buffer_native(io, length)
+    fd = io.fileno
+    buffer = Primitive.io_thread_buffer_allocate(length)
+    begin
+      bytes_read = Truffle::POSIX.read(fd, buffer, length)
+      if bytes_read < 0
+        bytes_read, errno = bytes_read, Errno.errno
+      elsif bytes_read == 0 # EOF
+        bytes_read, errno = 0, 0
+      else
+        bytes_read, errno = bytes_read, 0
+      end
+
+      if bytes_read < 0
+        [-1, errno]
+      elsif bytes_read == 0 # EOF
+        [0, 0]
+      else
+        yield buffer, bytes_read
+        [bytes_read, 0]
+      end
+    ensure
+      Primitive.io_thread_buffer_free(buffer)
+    end
+  end
+
+  def self.read_to_buffer_polyglot(io, count)
+    raise RuntimeError, 'Not supported yet.'
   end
 
   def self.read_string_polyglot(io, length)
@@ -513,12 +556,14 @@ module Truffle::POSIX
     if Truffle::Boot.get_option('polyglot-stdio')
       class << self
         alias_method :read_string, :read_string_polyglot
+        alias_method :read_to_buffer, :read_to_buffer_polyglot
         alias_method :write_string, :write_string_polyglot
         alias_method :write_string_nonblock, :write_string_nonblock_polyglot
       end
     else
       class << self
         alias_method :read_string, :read_string_native
+        alias_method :read_to_buffer, :read_to_buffer_native
         alias_method :write_string, :write_string_native
         alias_method :write_string_nonblock, :write_string_nonblock_native
       end

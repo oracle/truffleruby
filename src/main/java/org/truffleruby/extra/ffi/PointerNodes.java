@@ -31,6 +31,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.support.RubyByteArray;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
@@ -316,6 +317,27 @@ public abstract class PointerNodes {
 
     }
 
+    @Primitive(name = "pointer_read_bytes_to_byte_array", lowerFixnum = { 1, 3 })
+    public abstract static class PointerReadBytesToArrayNode extends PointerPrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected Object readBytes(RubyByteArray array, int arrayOffset, long address, int length,
+                @Cached ConditionProfile zeroProfile,
+                @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode) {
+            final Pointer ptr = new Pointer(address);
+            if (zeroProfile.profile(length == 0)) {
+                // No need to check the pointer address if we read nothing
+                return nil;
+            } else {
+                checkNull(ptr);
+                final byte[] bytes = array.bytes;
+                ptr.readBytes(0, bytes, arrayOffset, length);
+                return nil;
+            }
+        }
+
+    }
+
     @Primitive(name = "pointer_read_bytes", lowerFixnum = 1)
     public abstract static class PointerReadBytesNode extends PointerPrimitiveArrayArgumentsNode {
 
@@ -337,9 +359,10 @@ public abstract class PointerNodes {
             } else {
                 checkNull(ptr);
                 final byte[] bytes = new byte[length];
-                ptr.readBytes(0, bytes, 0, length);
+                final boolean is8Bit = ptr.readBytesCheck8Bit(bytes, length);
                 final Rope rope = makeLeafRopeNode
-                        .executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
+                        .executeMake(bytes, ASCIIEncoding.INSTANCE, is8Bit ? CodeRange.CR_VALID : CodeRange.CR_7BIT,
+                                length);
                 final RubyString instance = new RubyString(
                         coreLibrary().stringClass,
                         getLanguage().stringShape,
