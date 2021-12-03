@@ -383,18 +383,6 @@ public abstract class TypeNodes {
         }
     }
 
-    @Primitive(name = "double_to_float")
-    public abstract static class DoubleToFloatNode extends PrimitiveArrayArgumentsNode {
-        @Specialization
-        protected double doubleToFloat(double value) { // must return double so Ruby nodes can deal with it
-            // Cast to float to ensure com.oracle.truffle.api.interop.DefaultDoubleExports#fitsInFloat,
-            // and back to double because Ruby nodes cannot deal with float
-            final float floatValue = (float) value;
-            final double forRubyNodes = floatValue;
-            return forRubyNodes;
-        }
-    }
-
     @Primitive(name = "check_frozen")
     @NodeChild(value = "value", type = RubyNode.class)
     public abstract static class CheckFrozenNode extends PrimitiveNode {
