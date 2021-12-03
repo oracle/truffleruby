@@ -175,8 +175,8 @@ module FFI
         else
           FFI::Pointer.new(Truffle::Interop.as_pointer(value)).read_string_to_null
         end
-      elsif FFI::Type::Builtin === type and type.unsigned?
-        # TODO: NFI workaround
+      elsif FFI::Type::UINT64 == type or FFI::Type::ULONG == type
+        # GR-15358: No uint64 in interop yet
         type.signed2unsigned(value)
       elsif FFI::FunctionType === type
         ptr = FFI::Pointer.new(Truffle::Interop.as_pointer(value))
