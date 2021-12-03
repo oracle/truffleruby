@@ -16,3 +16,16 @@ runs:
       run: jt mx sforceimports
       shell: bash
       working-directory: ${{ github.action_path }}
+
+    # GR-35354: workaround issue when building libcxx for Sulong with cmake 3.22
+    - name: Downgrade to CMake 3.21.4
+      run: |
+        wget --no-verbose https://github.com/Kitware/CMake/releases/download/v3.21.4/cmake-3.21.4-linux-x86_64.tar.gz
+        tar -xzf cmake-3.21.4-linux-x86_64.tar.gz
+        echo "$PWD/cmake-3.21.4-linux-x86_64/bin" >> $GITHUB_PATH
+      shell: bash
+      working-directory: ${{ github.action_path }}
+
+    - run: cmake --version
+      shell: bash
+      working-directory: ${{ github.action_path }}
