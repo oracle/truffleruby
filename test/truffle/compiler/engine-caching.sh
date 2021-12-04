@@ -13,6 +13,7 @@ fi
 jt ruby --experimental-options --engine.TraceCache --engine.CacheCompile=executed --engine.CacheStore=core.image test/truffle/compiler/engine_caching/engine_caching.rb
 
 # Load the image
+set +x
 load_output=$(jt ruby --experimental-options --engine.TraceCache --engine.CacheLoad=core.image test/truffle/compiler/engine_caching/engine_caching.rb 2>&1)
 echo "$load_output"
 
