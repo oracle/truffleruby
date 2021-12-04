@@ -1,5 +1,5 @@
 DYNAMIC_IMPORTS=/substratevm-enterprise,/tools
 COMPONENTS=TruffleRuby,SubstrateVM Enterprise,suite:tools
 NATIVE_IMAGES=true
-EXTRA_IMAGE_BUILDER_ARGUMENTS=truffleruby:-H:+AuxiliaryEngineCache truffleruby:-H:ReservedAuxiliaryImageBytes=1073741824
+EXTRA_IMAGE_BUILDER_ARGUMENTS=rubyvm:-H:+AuxiliaryEngineCache rubyvm:-H:ReservedAuxiliaryImageBytes=1073741824
 DISABLE_INSTALLABLES=false
