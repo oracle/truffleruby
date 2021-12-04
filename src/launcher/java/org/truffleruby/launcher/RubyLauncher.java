@@ -259,11 +259,13 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             final Source source = Source.newBuilder(
                     TruffleRuby.LANGUAGE_ID,
                     // language=ruby
-                    "-> kind, to_execute { Truffle::Boot.main(kind, to_execute) }",
+                    "-> argc, argv, kind, to_execute { Truffle::Boot.main(argc, argv, kind, to_execute) }",
                     TruffleRuby.BOOT_SOURCE_NAME).internal(true).buildLiteral();
 
+            final int argc = getNativeArgc();
+            final long argv = getNativeArgv();
             final String kind = config.executionAction.name();
-            final int exitCode = context.eval(source).execute(kind, config.toExecute).asInt();
+            final int exitCode = context.eval(source).execute(argc, argv, kind, config.toExecute).asInt();
             Metrics.printTime("after-run");
             return exitCode;
         } catch (PolyglotException e) {

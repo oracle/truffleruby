@@ -54,7 +54,7 @@ RUBOCOP_INCLUDE_LIST = %w[
 
 RUBOCOP_VERSION = '1.22.1'
 
-DLEXT = RbConfig::CONFIG['DLEXT']
+DLEXT = RbConfig::CONFIG.fetch('DLEXT')
 
 JT_PROFILE_SUBCOMMANDS = ENV['JT_PROFILE_SUBCOMMANDS'] == 'true'
 JT_SPECS_COMPILATION = ENV['JT_SPECS_COMPILATION'] == 'false' ? false : true
@@ -133,6 +133,11 @@ module Utilities
 
   def ci?
     ENV.key?('BUILD_URL')
+  end
+
+  def soext
+    # RbConfig::CONFIG["SOEXT"] is not set for system ruby 2.3 in macOS CI
+    RbConfig::CONFIG.fetch('SOEXT') { darwin? ? 'dylib' : 'so' }
   end
 
   def bold(text)
@@ -266,11 +271,13 @@ module Utilities
     @truffleruby = File.executable?(truffleruby_launcher_path)
   end
 
+  def language_lib_path
+    "#{ruby_home}/lib/librubyvm.#{soext}"
+  end
+
   def truffleruby_native_built?
     return @truffleruby_native_built if defined?(@truffleruby_native_built)
-    # the truffleruby executable is bigger than 10MB if it is a native executable
-    # the executable delegator for mac has less than 1MB
-    @truffleruby_native_built = truffleruby? && File.size(truffleruby_launcher_path) > 10*1024*1024
+    @truffleruby_native_built = truffleruby? && File.exist?(language_lib_path)
   end
 
   def truffleruby_native?
@@ -2323,7 +2330,6 @@ module Commands
 
     dest = "#{TRUFFLERUBY_DIR}/mxbuild/#{name}"
     dest_ruby = "#{dest}/languages/ruby"
-    dest_bin = "#{dest_ruby}/bin"
     FileUtils.rm_rf dest
     if @ruby_name != @mx_env
       # if `--name NAME` is passed, we want to copy so we don't end up with two symlinks
@@ -2331,13 +2337,6 @@ module Commands
       FileUtils.cp_r(build_dir, dest)
     else
       File.symlink(build_dir, dest)
-    end
-
-    # Insert native wrapper around the bash launcher
-    # since nested shebang does not work on macOS when fish shell is used.
-    if darwin? && File.binread(truffleruby_launcher_path)[2] == '#!'
-      FileUtils.mv "#{dest_bin}/truffleruby", "#{dest_bin}/truffleruby.sh"
-      FileUtils.cp "#{TRUFFLERUBY_DIR}/tool/native_launcher_darwin", "#{dest_bin}/truffleruby"
     end
 
     # Symlink builds into version manager
@@ -2400,11 +2399,6 @@ module Commands
   def next(*args)
     puts `cat spec/tags/core/**/**.txt | grep 'fails:'`.lines.sample
   end
-
-  def native_launcher
-    sh 'cc', '-o', 'tool/native_launcher_darwin', 'tool/native_launcher_darwin.c'
-  end
-  alias :'native-launcher' :native_launcher
 
   def rubocop(*args)
     if args.empty? or args.all? { |arg| arg.start_with?('-') }

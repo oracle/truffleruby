@@ -7,7 +7,7 @@ suite = {
             {
                 "name": "regex",
                 "subdir": True,
-                "version": "9340ad3351db79723da3af1e941f023fefb591af",
+                "version": "f7efdf055a3291831757d3987e2e300c505d3c70",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -16,7 +16,7 @@ suite = {
             {
                 "name": "sulong",
                 "subdir": True,
-                "version": "9340ad3351db79723da3af1e941f023fefb591af",
+                "version": "f7efdf055a3291831757d3987e2e300c505d3c70",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -191,7 +191,8 @@ suite = {
                 "org.truffleruby", # for the generated JNI header file
             ],
             "use_jdk_headers": True, # the generated JNI header includes jni.h
-            "cflags": ["-g", "-Wall", "-Werror"],
+            "cflags": ["-g", "-Wall", "-Werror", "-pthread"],
+            "ldflags": ["-pthread"],
         },
 
         "org.truffleruby": {

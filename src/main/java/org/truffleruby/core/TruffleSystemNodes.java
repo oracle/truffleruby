@@ -44,7 +44,6 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import com.oracle.truffle.api.library.CachedLibrary;
-import org.graalvm.nativeimage.ProcessProperties;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -66,10 +65,8 @@ import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.shared.BasicPlatform;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleFile;
-import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -257,24 +254,6 @@ public abstract class TruffleSystemNodes {
         @TruffleBoundary
         public static void log(Level level, String message) {
             RubyLanguage.LOGGER.log(level, message);
-        }
-
-    }
-
-    @CoreMethod(names = "native_set_process_title", onSingleton = true, required = 1)
-    public abstract static class SetProcessTitleNode extends PrimitiveArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = "libString.isRubyString(name)")
-        protected Object setProcessTitle(Object name,
-                @CachedLibrary(limit = "2") RubyStringLibrary libString) {
-            if (TruffleOptions.AOT) {
-                ProcessProperties.setArgumentVectorProgramName(libString.getJavaString(name));
-            } else {
-                // already checked in the caller
-                throw CompilerDirectives.shouldNotReachHere();
-            }
-            return name;
         }
 
     }
