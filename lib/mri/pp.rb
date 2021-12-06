@@ -237,7 +237,11 @@ class PP < PrettyPrint
         else
           sep.call
         end
-        yield(*v, **{})
+        if defined?(::TruffleRuby)
+          yield(*v)
+        else
+          yield(*v, **{})
+        end
       }
     end
 
