@@ -315,6 +315,10 @@ module Truffle::POSIX
   end
 
   # Platform-specific
+  if Truffle::Platform.darwin?
+    attach_function :_NSGetArgv, [], :pointer
+  end
+
   unless Truffle::Platform.darwin?
     attach_function :dup3, [:int, :int, :int], :int
   end
