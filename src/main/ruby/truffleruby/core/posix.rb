@@ -444,8 +444,26 @@ module Truffle::POSIX
     end
   end
 
-  def self.read_to_buffer_polyglot(io, count)
-    raise RuntimeError, 'Not supported yet.'
+  def self.read_to_buffer_polyglot(io, length, &block)
+    fd = io.fileno
+    if fd == 0
+      buffer = Primitive.io_thread_buffer_allocate(length)
+      begin
+        read = Primitive.io_read_polyglot length
+        if read
+          bytes_read = read.bytesize
+          buffer.write_string_length(read, bytes_read)
+          yield buffer, bytes_read
+          [bytes_read, 0]
+        else
+          [0, 0]
+        end
+      ensure
+        Primitive.io_thread_buffer_free(buffer)
+      end
+    else
+      read_to_buffer_native(io, length, &block)
+    end
   end
 
   def self.read_string_polyglot(io, length)
