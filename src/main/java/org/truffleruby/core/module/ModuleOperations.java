@@ -577,6 +577,9 @@ public abstract class ModuleOperations {
 
             if (!foundDeclaringModule.get()) {
                 if (ancestor == declaringModule) {
+                    // The declaring module's assumption needs to appended for cases where a newly included module
+                    // should invalidate previous super lookups.
+                    ancestor.fields.getMethodAndAssumption(name, assumptions);
                     foundDeclaringModule.set(true);
                 }
             } else {
