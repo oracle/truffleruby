@@ -85,6 +85,7 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.keywords.EmptyKeywordDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.constants.GetConstantNode;
@@ -977,7 +978,8 @@ public class CExtNodes {
     @CoreMethod(names = "rb_call_super_splatted", onSingleton = true, rest = true)
     public abstract static class CallSuperNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallSuperMethodNode callSuperMethodNode = CallSuperMethodNode.create();
+        @Child private CallSuperMethodNode callSuperMethodNode = CallSuperMethodNode
+                .create(EmptyKeywordDescriptor.EMPTY);
         @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
         @Specialization

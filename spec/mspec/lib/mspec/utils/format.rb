@@ -11,6 +11,12 @@ rescue LoadError
   end
 end
 
+module Kernel
+  def pretty_inspect
+    inspect
+  end
+end
+
 module MSpec
   def self.format(obj)
     if String === obj and obj.include?("\n")

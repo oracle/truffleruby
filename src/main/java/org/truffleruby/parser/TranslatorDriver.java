@@ -269,7 +269,7 @@ public class TranslatorDriver {
                 final RubyNode readNode = Translator
                         .profileArgument(
                                 language,
-                                new ReadPreArgumentNode(n, MissingArgumentBehavior.NIL));
+                                ReadPreArgumentNode.create(n, MissingArgumentBehavior.NIL));
                 final FrameSlot slot = environment.getFrameDescriptor().findFrameSlot(name);
                 sequence.add(new WriteLocalVariableNode(slot, readNode));
             }
@@ -313,7 +313,7 @@ public class TranslatorDriver {
         }
 
 
-        final RubyNode writeSelfNode = Translator.loadSelf(language, environment);
+        final WriteLocalVariableNode writeSelfNode = Translator.loadSelf(language, environment);
         truffleNode = Translator.sequence(sourceIndexLength, Arrays.asList(writeSelfNode, truffleNode));
 
         if (!rubyWarnings.warnings.isEmpty()) {

@@ -37,17 +37,23 @@
  */
 package org.truffleruby.core;
 
+import java.util.Arrays;
 import java.util.Map.Entry;
+import java.util.stream.Stream;
 
 import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.NodeUtil;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToRubyIntegerNode;
@@ -68,6 +74,11 @@ import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.SafepointAction;
+import org.truffleruby.language.arguments.keywords.EmptyKeywordDescriptor;
+import org.truffleruby.language.arguments.keywords.KeywordDescriptor;
+import org.truffleruby.language.arguments.keywords.NonEmptyKeywordDescriptor;
+import org.truffleruby.language.arguments.ReadArgumentsNode;
+import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
@@ -566,6 +577,73 @@ public abstract class VMPrimitiveNodes {
             return JAVA_SPECIFICATION_VERSION;
         }
 
+    }
+
+    @Primitive(name = "original_arguments")
+    public abstract static class OriginalArgumentsNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected RubyArray originalArguments(VirtualFrame frame) {
+            KeywordDescriptor descriptor = RubyArguments.getKeywordArgumentsDescriptorUnsafe(frame);
+            return ArrayHelpers.createArray(getContext(), getLanguage(), RubyArguments.getArguments(frame, descriptor));
+        }
+
+    }
+
+    /* Returns an array of the keyword arguments in the Descriptor followed by the `alsoSplat` field if it's
+     * KeywordArgumentsDescriptor.NonEmpty; returns empty array if KeywordArgumentsDescriptor.Empty */
+    @Primitive(name = "keyword_descriptor")
+    public abstract static class KeywordDescriptorNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected RubyArray keywordDescriptor(VirtualFrame frame) {
+            return descriptorToArray(RubyArguments.getKeywordArgumentsDescriptorUnsafe(frame));
+        }
+
+        @TruffleBoundary
+        private RubyArray descriptorToArray(KeywordDescriptor descriptor) {
+            if (descriptor instanceof EmptyKeywordDescriptor) {
+                return ArrayHelpers.createEmptyArray(getContext(), getLanguage());
+            } else if (descriptor instanceof NonEmptyKeywordDescriptor) {
+                final NonEmptyKeywordDescriptor nonEmpty = (NonEmptyKeywordDescriptor) descriptor;
+                Stream<RubySymbol> keywordArguments = Arrays
+                        .stream(nonEmpty.getKeywords())
+                        .map(getLanguage()::getSymbol);
+                return ArrayHelpers.createArray(
+                        getContext(),
+                        getLanguage(),
+                        Stream.concat(Stream.concat(keywordArguments, Stream.of(nonEmpty.isAlsoSplat())),
+                                Stream.of(nonEmpty.getHashIndex())).toArray());
+            } else {
+                throw new UnsupportedOperationException();
+            }
+        }
+
+    }
+
+    @Primitive(name = "keyword_arguments")
+    public abstract static class KeywordArgumentsNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected RubyArray keywordArguments(VirtualFrame frame) {
+            final KeywordDescriptor descriptor = RubyArguments.getKeywordArgumentsDescriptorUnsafe(frame);
+            final Object[] arguments = frame.getArguments();
+            final Object[] keywordArguments = ArrayUtils
+                    .extractRange(arguments, arguments.length - descriptor.getLength(), arguments.length);
+            return ArrayHelpers.createArray(getContext(), getLanguage(), keywordArguments);
+        }
+
+    }
+
+    @Primitive(name = "needs_expanded_hash?")
+    public abstract static class NeedsExpandedHashNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        @TruffleBoundary
+        protected boolean needsExpandedHash() {
+            return NodeUtil
+                    .findFirstNodeInstance(getRootNode(), ReadArgumentsNode.class)
+                    .needsExpandedHash();
+        }
     }
 
     @Primitive(name = "vm_native_argv")

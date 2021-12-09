@@ -23,6 +23,7 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyLambdaRootNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.arguments.keywords.EmptyKeywordDescriptor;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
@@ -111,6 +112,7 @@ public abstract class TruffleGraalNodes {
                             null,
                             nil,
                             nil,
+                            EmptyKeywordDescriptor.EMPTY,
                             EMPTY_ARGUMENTS);
 
             // The Proc no longer needs the original declaration frame. However, all procs must have a

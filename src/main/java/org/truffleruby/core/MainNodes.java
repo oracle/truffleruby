@@ -34,9 +34,10 @@ public abstract class MainNodes {
     @CoreMethod(names = "public", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
     public abstract static class PublicNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected Object forward(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
+        protected Object forward(
+                Frame callerFrame, Object self, Object[] args, Object kwd, Object block, RootCallTarget target,
                 @Cached ModuleNodes.PublicNode publicNode) {
-            return publicNode.execute(callerFrame, coreLibrary().objectClass, args, block, target);
+            return publicNode.execute(callerFrame, coreLibrary().objectClass, args, kwd, block, target);
         }
     }
 
@@ -44,9 +45,10 @@ public abstract class MainNodes {
     @CoreMethod(names = "private", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
     public abstract static class PrivateNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected Object forward(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
+        protected Object forward(
+                Frame callerFrame, Object self, Object[] args, Object kwd, Object block, RootCallTarget target,
                 @Cached ModuleNodes.PrivateNode privateNode) {
-            return privateNode.execute(callerFrame, coreLibrary().objectClass, args, block, target);
+            return privateNode.execute(callerFrame, coreLibrary().objectClass, args, kwd, block, target);
         }
     }
 
@@ -54,7 +56,8 @@ public abstract class MainNodes {
     @CoreMethod(names = "using", required = 1, alwaysInlined = true)
     public abstract static class MainUsingNode extends UsingNode {
         @Specialization
-        protected Object mainUsing(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
+        protected Object mainUsing(
+                Frame callerFrame, Object self, Object[] args, Object kwd, Object block, RootCallTarget target,
                 @Cached BranchProfile errorProfile) {
             needCallerFrame(callerFrame, target);
             final Object refinementModule = args[0];

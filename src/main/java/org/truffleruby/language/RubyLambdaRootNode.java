@@ -81,8 +81,6 @@ public class RubyLambdaRootNode extends RubyCheckArityRootNode {
     public Object execute(VirtualFrame frame) {
         TruffleSafepoint.poll(this);
 
-        checkArity(frame);
-
         try {
             while (true) {
                 try {

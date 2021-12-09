@@ -9,29 +9,54 @@
  */
 package org.truffleruby.language.arguments;
 
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.language.arguments.keywords.EmptyKeywordDescriptor;
+import org.truffleruby.language.arguments.keywords.KeywordDescriptor;
+import org.truffleruby.language.arguments.keywords.NonEmptyKeywordDescriptor;
+import org.truffleruby.language.arguments.keywords.ReadKeywordDescriptorNode;
 import org.truffleruby.language.dispatch.InternalRespondToNode;
 
-public class ShouldDestructureNode extends RubyContextSourceNode {
+@NodeChild("descriptor")
+public abstract class ShouldDestructureNode extends RubyContextSourceNode {
 
     @Child private InternalRespondToNode respondToToAry;
 
     private final BranchProfile checkIsArrayProfile = BranchProfile.create();
 
-    @Override
-    public Object execute(VirtualFrame frame) {
-        if (RubyArguments.getArgumentsCount(frame) != 1) {
+    protected ShouldDestructureNode() {
+    };
+
+    public static ShouldDestructureNode create() {
+        return ShouldDestructureNodeGen.create(new ReadKeywordDescriptorNode());
+    }
+
+    public abstract Object execute(VirtualFrame frame, KeywordDescriptor descriptor);
+
+    @Specialization
+    protected Object empty(VirtualFrame frame, EmptyKeywordDescriptor descriptor) {
+        return shouldDestructureNode(frame, descriptor);
+    }
+
+    @Specialization
+    protected Object nonEmpty(VirtualFrame frame, NonEmptyKeywordDescriptor descriptor) {
+        return shouldDestructureNode(frame, descriptor);
+    }
+
+    public Object shouldDestructureNode(VirtualFrame frame, KeywordDescriptor descriptor) {
+        if (RubyArguments.getArgumentsCount(frame, descriptor) != 1) {
             return false;
         }
 
         checkIsArrayProfile.enter();
 
-        final Object firstArgument = RubyArguments.getArgument(frame, 0);
+        final Object firstArgument = RubyArguments.getArgument(frame, 0, descriptor);
 
         if (RubyGuards.isRubyArray(firstArgument)) {
             return true;

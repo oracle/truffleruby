@@ -40,6 +40,7 @@ import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.keywords.EmptyKeywordDescriptor;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -121,7 +122,8 @@ public abstract class BindingNodes {
                         null,
                         RubyArguments.getSelf(parent),
                         RubyArguments.getBlock(parent),
-                        RubyArguments.getArguments(parent)),
+                        EmptyKeywordDescriptor.EMPTY,
+                        RubyArguments.getArguments(parent, EmptyKeywordDescriptor.EMPTY)),
                 descriptor).materialize();
     }
 

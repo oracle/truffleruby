@@ -15,6 +15,7 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.arguments.keywords.EmptyKeywordDescriptor;
 import org.truffleruby.language.methods.CallBoundMethodNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.ObjectGraph;
@@ -68,7 +69,8 @@ public class RubyMethod extends RubyDynamicObject implements ObjectGraphNode {
             @Cached CallBoundMethodNode callBoundMethodNode,
             @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode) {
         return callBoundMethodNode
-                .execute(null, this, foreignToRubyArgumentsNode.executeConvert(arguments), Nil.INSTANCE);
+                .execute(null, this, foreignToRubyArgumentsNode.executeConvert(arguments), Nil.INSTANCE,
+                        EmptyKeywordDescriptor.EMPTY);
     }
     // endregion
 

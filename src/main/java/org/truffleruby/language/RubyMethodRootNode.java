@@ -52,8 +52,6 @@ public class RubyMethodRootNode extends RubyCheckArityRootNode {
     public Object execute(VirtualFrame frame) {
         TruffleSafepoint.poll(this);
 
-        checkArity(frame);
-
         try {
             return body.execute(frame);
         } catch (LocalReturnException e) {

@@ -16,6 +16,8 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class SaveMethodBlockNode extends RubyContextSourceNode {
 
+    /* todo this should be handled by the ReadDescriptorArgumentNode */
+
     private final FrameSlot slot;
 
     public SaveMethodBlockNode(FrameSlot slot) {

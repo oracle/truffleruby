@@ -2253,10 +2253,12 @@ states[270] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[271] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    ((HashParseNode)yyVals[-1+yyTop]).keywordArguments = true;
     yyVal = support.arg_append(((ParseNode)yyVals[-3+yyTop]), support.remove_duplicate_keys(((HashParseNode)yyVals[-1+yyTop])));
     return yyVal;
 };
 states[272] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    ((HashParseNode)yyVals[-1+yyTop]).keywordArguments = true;
     yyVal = support.newArrayNode(((HashParseNode)yyVals[-1+yyTop]).getPosition(), support.remove_duplicate_keys(((HashParseNode)yyVals[-1+yyTop])));
     return yyVal;
 };
@@ -2279,8 +2281,11 @@ states[276] = (support, lexer, yyVal, yyVals, yyTop) -> {
     SourceIndexLength position = support.getPosition(null);
     /* NOTE(norswap, 02 Jun 2021): location (0) arg is unused*/
     SplatParseNode splat = support.newSplatNode(position, new LocalVarParseNode(position, 0, ParserSupport.FORWARD_ARGS_REST_VAR));
+    HashParseNode kwrest = new HashParseNode(position, support.createKeyValue(null, new LocalVarParseNode(position, 0, ParserSupport.FORWARD_ARGS_KWREST_VAR)));
+    kwrest.keywordArguments = true;
     BlockPassParseNode block = new BlockPassParseNode(position, new LocalVarParseNode(position, 0, ParserSupport.FORWARD_ARGS_BLOCK_VAR));
     yyVal = support.arg_concat(support.getPosition(((ParseNode)yyVals[-3+yyTop])), ((ParseNode)yyVals[-3+yyTop]), splat);
+    yyVal = support.arg_append((ParseNode) yyVal, kwrest);
     yyVal = support.arg_blk_pass((ParseNode) yyVal, block);
     return yyVal;
 };
@@ -2288,8 +2293,11 @@ states[277] = (support, lexer, yyVal, yyVals, yyTop) -> {
     SourceIndexLength position = support.getPosition(null);
     /* NOTE(norswap, 06 Nov 2020): location (0) arg is unused*/
     SplatParseNode splat = support.newSplatNode(position, new LocalVarParseNode(position, 0, ParserSupport.FORWARD_ARGS_REST_VAR));
+    HashParseNode kwrest = new HashParseNode(position, support.createKeyValue(null, new LocalVarParseNode(position, 0, ParserSupport.FORWARD_ARGS_KWREST_VAR)));
+    kwrest.keywordArguments = true;
     BlockPassParseNode block = new BlockPassParseNode(position, new LocalVarParseNode(position, 0, ParserSupport.FORWARD_ARGS_BLOCK_VAR));
-    yyVal = support.arg_blk_pass(splat, block);
+    yyVal = support.arg_append(splat, kwrest);
+    yyVal = support.arg_blk_pass((ParseNode) yyVal, block);
     return yyVal;
 };
 states[282] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -2297,10 +2305,12 @@ states[282] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[283] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    ((HashParseNode)yyVals[-1+yyTop]).keywordArguments = true;
     yyVal = support.arg_append(((ParseNode)yyVals[-3+yyTop]), support.remove_duplicate_keys(((HashParseNode)yyVals[-1+yyTop])));
     return yyVal;
 };
 states[284] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    ((HashParseNode)yyVals[-1+yyTop]).keywordArguments = true;
     yyVal = support.newArrayNode(((HashParseNode)yyVals[-1+yyTop]).getPosition(), support.remove_duplicate_keys(((HashParseNode)yyVals[-1+yyTop])));
     return yyVal;
 };
@@ -2314,11 +2324,13 @@ states[286] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[287] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    ((HashParseNode)yyVals[-1+yyTop]).keywordArguments = true;
     yyVal = support.newArrayNode(((HashParseNode)yyVals[-1+yyTop]).getPosition(), support.remove_duplicate_keys(((HashParseNode)yyVals[-1+yyTop])));
     yyVal = support.arg_blk_pass((ParseNode)yyVal, ((BlockPassParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
 states[288] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    ((HashParseNode)yyVals[-1+yyTop]).keywordArguments = true;
     yyVal = support.arg_append(((ParseNode)yyVals[-3+yyTop]), support.remove_duplicate_keys(((HashParseNode)yyVals[-1+yyTop])));
     yyVal = support.arg_blk_pass((ParseNode)yyVal, ((BlockPassParseNode)yyVals[0+yyTop]));
     return yyVal;
@@ -3634,7 +3646,7 @@ states[587] = (support, lexer, yyVal, yyVals, yyTop) -> {
     SourceIndexLength position = support.getPosition(null);
     RestArgParseNode splat = new RestArgParseNode(position, ParserSupport.FORWARD_ARGS_REST_VAR, 0);
     BlockArgParseNode block = new BlockArgParseNode(position, 1, ParserSupport.FORWARD_ARGS_BLOCK_VAR);
-    ArgsTailHolder argsTail = support.new_args_tail(position, null, null, block);
+    ArgsTailHolder argsTail = support.new_args_tail(position, null, ParserSupport.FORWARD_ARGS_KWREST_VAR_ROPE, block);
     yyVal = support.new_args(position, ((ListParseNode)yyVals[-2+yyTop]), null, splat, null, argsTail);
     return yyVal;
 };
@@ -3642,7 +3654,7 @@ states[588] = (support, lexer, yyVal, yyVals, yyTop) -> {
     SourceIndexLength position = support.getPosition(null);
     RestArgParseNode splat = new RestArgParseNode(position, ParserSupport.FORWARD_ARGS_REST_VAR, 0);
     BlockArgParseNode block = new BlockArgParseNode(position, 1, ParserSupport.FORWARD_ARGS_BLOCK_VAR);
-    ArgsTailHolder argsTail = support.new_args_tail(position, null, null, block);
+    ArgsTailHolder argsTail = support.new_args_tail(position, null, ParserSupport.FORWARD_ARGS_KWREST_VAR_ROPE, block);
     yyVal = support.new_args(position, null, null, splat, null, argsTail);
     return yyVal;
 };
@@ -3970,7 +3982,7 @@ states[671] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 }
-// line 2819 "RubyParser.y"
+// line 2831 "RubyParser.y"
 
     /** The parse method use an lexer stream and parse it to an AST node 
      * structure
@@ -3987,4 +3999,4 @@ states[671] = (support, lexer, yyVal, yyVals, yyTop) -> {
 }
 // CheckStyle: stop generated
 // @formatter:on
-// line 10872 "-"
+// line 10884 "-"

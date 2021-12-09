@@ -15,11 +15,16 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.arguments.keywords.EmptyKeywordDescriptor;
+import org.truffleruby.language.arguments.ExpandArgumentsNode;
+import org.truffleruby.language.arguments.ExpandArgumentsNodeGen;
+import org.truffleruby.language.arguments.keywords.KeywordDescriptor;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 
 public class InlinedCallNode extends InlinedReplaceableNode {
     private final String methodName;
+    private final KeywordDescriptor keywordDescriptor;
 
     @Child private RubyNode receiver;
     @Child private RubyNode block;
@@ -29,13 +34,17 @@ public class InlinedCallNode extends InlinedReplaceableNode {
 
     @Child private InlinedMethodNode inlinedMethod;
 
+    @Child private ExpandArgumentsNode expandArgumentsNode = ExpandArgumentsNodeGen.create();
+
     public InlinedCallNode(
             RubyLanguage language,
             InlinedMethodNode inlinedMethod,
+            KeywordDescriptor keywordDescriptor,
             RubyCallNodeParameters parameters,
             Assumption... assumptions) {
         super(language, parameters, assumptions);
 
+        this.keywordDescriptor = keywordDescriptor;
         this.methodName = parameters.getMethodName();
         this.receiver = parameters.getReceiver();
         this.arguments = parameters.getArguments();
@@ -61,13 +70,18 @@ public class InlinedCallNode extends InlinedReplaceableNode {
                 !Assumption.isValidAssumption(assumptions)) {
             return rewriteAndCallWithBlock(frame, receiverObject, blockObject, executedArguments);
         } else {
-            return executeWithArgumentsEvaluated(frame, receiverObject, blockObject, executedArguments);
+            return executeWithArgumentsEvaluated(
+                    frame,
+                    receiverObject,
+                    blockObject,
+                    expandArgumentsNode.execute(executedArguments, keywordDescriptor));
         }
     }
 
     public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object receiverObject, Object blockObject,
             Object[] argumentsObjects) {
-        return inlinedMethod.inlineExecute(frame, receiverObject, argumentsObjects, blockObject);
+        return inlinedMethod.inlineExecute(frame, receiverObject, argumentsObjects, EmptyKeywordDescriptor.EMPTY,
+                blockObject);
     }
 
     private Object executeBlock(VirtualFrame frame) {

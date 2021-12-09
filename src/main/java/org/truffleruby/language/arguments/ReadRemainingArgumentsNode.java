@@ -13,6 +13,7 @@ import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.language.arguments.keywords.KeywordDescriptor;
 
 public class ReadRemainingArgumentsNode extends RubyContextSourceNode {
 
@@ -25,10 +26,15 @@ public class ReadRemainingArgumentsNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final int count = RubyArguments.getArgumentsCount(frame);
+        // TODO: Because we aren't specialising on the class of keywordArgumentsDescriptor - we aren't getting the magic
+        // where if a method has only ever seen an empty descriptor this whole read goes way. We should try to put
+        // that optimisation here as well.
+        final KeywordDescriptor descriptor = RubyArguments.getKeywordArgumentsDescriptorUnsafe(frame);
+
+        final int count = RubyArguments.getArgumentsCount(frame, descriptor);
 
         if (remainingArguments.profile(start < count)) {
-            return RubyArguments.getArguments(frame, start);
+            return RubyArguments.getArguments(frame, start, descriptor);
         } else {
             return EMPTY_ARGUMENTS;
         }

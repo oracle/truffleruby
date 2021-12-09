@@ -33,6 +33,7 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
+import org.truffleruby.language.arguments.keywords.KeywordDescriptor;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -196,14 +197,21 @@ public abstract class ProcNodes {
     public abstract static class CallNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected Object call(Frame callerFrame, RubyProc proc, Object[] args, Object block, RootCallTarget target,
+        protected Object call(
+                Frame callerFrame,
+                RubyProc proc,
+                Object[] args,
+                KeywordDescriptor keywordDescriptor,
+                Object block,
+                RootCallTarget target,
                 @Cached CallBlockNode callBlockNode) {
             return callBlockNode.executeCallBlock(
                     proc.declarationContext,
                     proc,
                     ProcOperations.getSelf(proc),
                     block,
-                    args);
+                    args,
+                    keywordDescriptor);
         }
 
     }
@@ -338,13 +346,16 @@ public abstract class ProcNodes {
                 @Cached ConditionProfile emptyArgsProfile,
                 @Cached ConditionProfile singleArgProfile) {
 
+            final KeywordDescriptor keywordDescriptor = RubyArguments
+                    .getKeywordArgumentsDescriptorUnsafe(frame);
+
             /* In Rubinius, this method inspects the values yielded to the block, regardless of whether the block
              * captures the values, and returns the first value in the list of values yielded to the block.
              *
              * NB: In our case the arguments have already been destructured by the time this node is encountered. Thus,
              * we don't need to do the destructuring work that Rubinius would do and in the case that we receive
              * multiple arguments we need to reverse the destructuring by collecting the values into an array. */
-            int userArgumentCount = RubyArguments.getArgumentsCount(frame);
+            int userArgumentCount = RubyArguments.getArgumentsCount(frame, keywordDescriptor);
 
             if (emptyArgsProfile.profile(userArgumentCount == 0)) {
                 return nil;
@@ -352,7 +363,7 @@ public abstract class ProcNodes {
                 if (singleArgProfile.profile(userArgumentCount == 1)) {
                     return RubyArguments.getArgument(frame, 0);
                 } else {
-                    Object[] extractedArguments = RubyArguments.getArguments(frame);
+                    Object[] extractedArguments = RubyArguments.getArguments(frame, keywordDescriptor);
                     return createArray(extractedArguments, userArgumentCount);
                 }
             }

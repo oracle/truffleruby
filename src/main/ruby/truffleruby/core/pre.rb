@@ -52,9 +52,10 @@ class Module
         warn "Skipping set of ruby2_keywords flag for #{name} (method does not accept argument splat)", uplevel: 1
       elsif kinds.include?(:key) or kinds.include?(:keyreq) or kinds.include?(:keyrest)
         warn "Skipping set of ruby2_keywords flag for #{name} (method accepts keywords)", uplevel: 1
+      else
+        Primitive.ruby2_keywords method
       end
     end
-    warn "ruby2_keywords(#{methods.join(', ')}) was ignored", uplevel: 1 if $DEBUG
     nil
   end
 end
@@ -66,8 +67,9 @@ class Proc
       warn 'Skipping set of ruby2_keywords flag for proc (proc does not accept argument splat)', uplevel: 1
     elsif kinds.include?(:key) or kinds.include?(:keyreq) or kinds.include?(:keyrest)
       warn 'Skipping set of ruby2_keywords flag for proc (proc accepts keywords)', uplevel: 1
+    else
+      Primitive.ruby2_keywords self
     end
-    warn 'Proc#ruby2_keywords was ignored', uplevel: 1 if $DEBUG
     self
   end
 end

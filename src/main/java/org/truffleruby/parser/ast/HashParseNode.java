@@ -43,6 +43,7 @@ import org.truffleruby.parser.parser.ParseNodeTuple;
  * method call (foo(k: value), foo(**kw) or a mix of both). */
 public class HashParseNode extends ParseNode implements ILiteralNode {
     private final List<ParseNodeTuple> pairs;
+    public boolean keywordArguments = false;
 
     public HashParseNode(SourceIndexLength position) {
         super(position);

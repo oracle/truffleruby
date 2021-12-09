@@ -11,6 +11,7 @@ package org.truffleruby.language;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.arguments.keywords.EmptyKeywordDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
@@ -82,6 +83,7 @@ public class RubyInlineParsingRequestNode extends ExecutableNode {
                 null,
                 RubyArguments.getSelf(frame),
                 RubyArguments.getBlock(frame),
+                EmptyKeywordDescriptor.EMPTY,
                 RubyBaseNode.EMPTY_ARGUMENTS);
 
         // No need to share the returned value here, InlineParsingRequest is not exposed to the Context API

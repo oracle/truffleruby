@@ -14,6 +14,7 @@ import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNodeGen;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
@@ -68,6 +69,15 @@ public class ReadZSuperArgumentsNode extends RubyContextSourceNode {
                     after);
             ArrayUtils.arraycopy(restArgs, 0, splattedArguments, restArgIndex, restArgs.length);
             superArguments = splattedArguments;
+        }
+
+        // If there is an empty hash, remove it, because no keywords were passed
+        if (superArguments.length > 0 &&
+                (superArguments[superArguments.length-1] instanceof RubyHash) &&
+                ((RubyHash) superArguments[superArguments.length-1]).size == 0) {
+            Object[] splattedArgsWithoutEmptyHash = new Object[superArguments.length-1];
+            ArrayUtils.arraycopy(superArguments, 0, splattedArgsWithoutEmptyHash, 0, superArguments.length-1);
+            superArguments = splattedArgsWithoutEmptyHash;
         }
 
         return superArguments;

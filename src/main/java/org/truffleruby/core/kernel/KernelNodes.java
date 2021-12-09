@@ -109,6 +109,7 @@ import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.WarningNode;
+import org.truffleruby.language.arguments.keywords.EmptyKeywordDescriptor;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Backtrace;
@@ -366,7 +367,12 @@ public abstract class KernelNodes {
     public abstract static class BindingNode extends AlwaysInlinedMethodNode {
         @Specialization
         protected RubyBinding binding(
-                Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
+                Frame callerFrame,
+                Object self,
+                Object[] args,
+                Object keywordDescriptor,
+                Object block,
+                RootCallTarget target,
                 @Cached(
                         value = "getNode().getEncapsulatingSourceSection()",
                         allowUncached = true) SourceSection sourceSection) {
@@ -379,7 +385,13 @@ public abstract class KernelNodes {
     @CoreMethod(names = { "block_given?", "iterator?" }, isModuleFunction = true, alwaysInlined = true)
     public abstract static class BlockGivenNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected boolean blockGiven(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
+        protected boolean blockGiven(
+                Frame callerFrame,
+                Object self,
+                Object[] args,
+                Object keywordDescriptor,
+                Object block,
+                RootCallTarget target,
                 @Cached FindAndReadDeclarationVariableNode readNode,
                 @Cached ConditionProfile blockProfile) {
             needCallerFrame(callerFrame, target);
@@ -714,7 +726,8 @@ public abstract class KernelNodes {
         }
 
         @Override
-        public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object block) {
+        public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object keywordDescriptor,
+                Object block) {
             return execute(self);
         }
 
@@ -739,7 +752,13 @@ public abstract class KernelNodes {
     @CoreMethod(names = "eval", isModuleFunction = true, required = 1, optional = 3, alwaysInlined = true)
     public abstract static class EvalPrepareArgsNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected Object eval(Frame callerFrame, Object callerSelf, Object[] args, Object block, RootCallTarget target,
+        protected Object eval(
+                Frame callerFrame,
+                Object callerSelf,
+                Object[] args,
+                Object keywordDescriptor,
+                Object block,
+                RootCallTarget target,
                 @Cached ToStrNode toStrNode,
                 @Cached ToIntNode toIntNode,
                 @Cached BranchProfile errorProfile,
@@ -885,6 +904,7 @@ public abstract class KernelNodes {
                     null,
                     self,
                     nil,
+                    EmptyKeywordDescriptor.EMPTY,
                     EMPTY_ARGUMENTS));
         }
 
@@ -1114,7 +1134,8 @@ public abstract class KernelNodes {
         }
 
         @Override
-        public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object block) {
+        public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object keywordDescriptor,
+                Object block) {
             assert args.length == 1;
             return execute(self, args[0]);
         }
@@ -1140,7 +1161,8 @@ public abstract class KernelNodes {
         }
 
         @Override
-        public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object block) {
+        public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object keywordDescriptor,
+                Object block) {
             return initializeDup((RubyDynamicObject) self, args[0]);
         }
 
@@ -1370,7 +1392,12 @@ public abstract class KernelNodes {
     public abstract static class KernelLocalVariablesNode extends AlwaysInlinedMethodNode {
         @Specialization
         protected Object localVariables(
-                Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
+                Frame callerFrame,
+                Object self,
+                Object[] args,
+                Object keywordDescriptor,
+                Object block,
+                RootCallTarget target,
                 @Cached DispatchNode callLocalVariables) {
             needCallerFrame(callerFrame, target);
             final RubyBinding binding = BindingNodes
@@ -1396,7 +1423,13 @@ public abstract class KernelNodes {
     public abstract static class MethodNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected RubyMethod method(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
+        protected RubyMethod method(
+                Frame callerFrame,
+                Object self,
+                Object[] args,
+                Object keywordDescriptor,
+                Object block,
+                RootCallTarget target,
                 @Cached ToStringOrSymbolNode toStringOrSymbolNode,
                 @Cached GetMethodObjectNode getMethodObjectNode) {
             Object name = toStringOrSymbolNode.execute(args[0]);
@@ -1530,7 +1563,13 @@ public abstract class KernelNodes {
     public abstract static class PublicMethodNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected RubyMethod method(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
+        protected RubyMethod method(
+                Frame callerFrame,
+                Object self,
+                Object[] args,
+                Object keywordDescriptor,
+                Object block,
+                RootCallTarget target,
                 @Cached ToStringOrSymbolNode toStringOrSymbolNode,
                 @Cached GetMethodObjectNode getMethodObjectNode) {
             Object name = toStringOrSymbolNode.execute(args[0]);
@@ -1569,7 +1608,13 @@ public abstract class KernelNodes {
     public abstract static class PublicSendNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected Object send(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
+        protected Object send(
+                Frame callerFrame,
+                Object self,
+                Object[] args,
+                Object keywordDescriptor,
+                Object block,
+                RootCallTarget target,
                 @Cached(parameters = "PUBLIC") DispatchNode dispatchNode,
                 @Cached NameToJavaStringNode nameToJavaString) {
             Object name = args[0];

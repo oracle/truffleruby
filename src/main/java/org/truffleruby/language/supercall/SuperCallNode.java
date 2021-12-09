@@ -14,6 +14,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.arguments.keywords.KeywordDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.InternalMethod;
 
@@ -22,14 +23,17 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class SuperCallNode extends RubyContextSourceNode {
 
+    private final KeywordDescriptor keywordDescriptor;
+
     @Child private RubyNode arguments;
     @Child private RubyNode block;
     @Child private LookupSuperMethodNode lookupSuperMethodNode;
     @Child private CallSuperMethodNode callSuperMethodNode;
 
-    public SuperCallNode(RubyNode arguments, RubyNode block) {
+    public SuperCallNode(RubyNode arguments, RubyNode block, KeywordDescriptor keywordDescriptor) {
         this.arguments = arguments;
         this.block = block;
+        this.keywordDescriptor = keywordDescriptor;
     }
 
     @Override
@@ -46,7 +50,7 @@ public class SuperCallNode extends RubyContextSourceNode {
 
         if (callSuperMethodNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callSuperMethodNode = insert(CallSuperMethodNode.create());
+            callSuperMethodNode = insert(CallSuperMethodNode.create(keywordDescriptor));
         }
         return callSuperMethodNode.execute(frame, self, superMethod, superArguments, blockObject);
     }

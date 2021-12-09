@@ -13,11 +13,13 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNodeGen;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.WarnNode;
+import org.truffleruby.language.arguments.keywords.KeywordDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 
@@ -30,6 +32,7 @@ public class YieldExpressionNode extends RubyContextSourceNode {
 
     private final boolean unsplat;
     private final boolean warnInModuleBody;
+    private final KeywordDescriptor descriptor;
 
     @Children private final RubyNode[] arguments;
     @Child private CallBlockNode yieldNode;
@@ -44,11 +47,13 @@ public class YieldExpressionNode extends RubyContextSourceNode {
             boolean unsplat,
             RubyNode[] arguments,
             RubyNode readBlockNode,
-            boolean warnInModuleBody) {
+            boolean warnInModuleBody,
+            KeywordDescriptor descriptor) {
         this.unsplat = unsplat;
         this.arguments = arguments;
         this.readBlockNode = readBlockNode;
         this.warnInModuleBody = warnInModuleBody;
+        this.descriptor = descriptor;
     }
 
     @ExplodeLoop
@@ -71,11 +76,19 @@ public class YieldExpressionNode extends RubyContextSourceNode {
             throw new RaiseException(getContext(), coreExceptions().noBlockToYieldTo(this));
         }
 
-        if (unsplat) {
-            argumentsObjects = unsplat(argumentsObjects);
+        if (unsplat && argumentsObjects[0] instanceof RubyArray) {
+            Object[] objectArray = new Object[1];
+            objectArray[0] = argumentsObjects[0];
+            Object[] unsplattedObjects = unsplat(objectArray);
+
+            Object[] newArguments = new Object[unsplattedObjects.length + argumentsObjects.length - 1];
+            System.arraycopy(unsplattedObjects, 0, newArguments, 0, unsplattedObjects.length);
+            System.arraycopy(argumentsObjects, 1, newArguments, unsplattedObjects.length, argumentsObjects.length - 1);
+
+            argumentsObjects = newArguments;
         }
 
-        return getYieldNode().yield((RubyProc) block, argumentsObjects);
+        return getYieldNode().yield((RubyProc) block, argumentsObjects, descriptor);
     }
 
     private Object readBlock(VirtualFrame frame) {

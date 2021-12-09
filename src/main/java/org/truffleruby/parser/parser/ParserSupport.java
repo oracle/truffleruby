@@ -58,6 +58,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.RopeWithEncoding;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.RaiseException;
@@ -157,6 +158,9 @@ public class ParserSupport {
     public static final String UNNAMED_REST_VAR = prefixName("unnamed_rest");
     public static final String ANONYMOUS_REST_VAR = prefixName("anon_rest");
     public static final String FORWARD_ARGS_REST_VAR = prefixName("forward_rest");
+    public static final String FORWARD_ARGS_KWREST_VAR = prefixName("forward_kwrest");
+    public static final Rope FORWARD_ARGS_KWREST_VAR_ROPE = StringOperations.encodeRope(FORWARD_ARGS_KWREST_VAR,
+            USASCIIEncoding.INSTANCE);
     public static final String FORWARD_ARGS_BLOCK_VAR = prefixName("forward_block");
 
     private static String prefixName(String name) {

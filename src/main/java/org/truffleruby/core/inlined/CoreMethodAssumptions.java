@@ -165,6 +165,7 @@ public class CoreMethodAssumptions {
             return new InlinedCallNode(
                     language,
                     NewNode.create(),
+                    callParameters.getKeywordArgumentsDescriptor(),
                     callParameters);
         }
 
@@ -172,6 +173,7 @@ public class CoreMethodAssumptions {
             return new InlinedCallNode(
                     language,
                     DupNode.create(),
+                    callParameters.getKeywordArgumentsDescriptor(),
                     callParameters);
         }
 

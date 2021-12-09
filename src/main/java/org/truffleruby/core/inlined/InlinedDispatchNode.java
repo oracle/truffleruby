@@ -17,6 +17,7 @@ import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.arguments.keywords.EmptyKeywordDescriptor;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.DispatchingNode;
 import org.truffleruby.language.methods.LookupMethodOnSelfNode;
@@ -59,7 +60,7 @@ public class InlinedDispatchNode extends RubyBaseNode implements DispatchingNode
             return rewriteAndCallWithBlock(frame, receiver, methodName, block, arguments);
         } else {
             try {
-                return inlinedMethod.inlineExecute(frame, receiver, arguments, block);
+                return inlinedMethod.inlineExecute(frame, receiver, arguments, EmptyKeywordDescriptor.EMPTY, block);
             } catch (InlinedMethodNode.RewriteException e) {
                 return rewriteAndCallWithBlock(frame, receiver, methodName, block, arguments);
             }

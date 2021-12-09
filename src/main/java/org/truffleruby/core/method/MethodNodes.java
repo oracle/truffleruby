@@ -39,6 +39,8 @@ import org.truffleruby.language.RubyLambdaRootNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
+import org.truffleruby.language.arguments.keywords.EmptyKeywordDescriptor;
+import org.truffleruby.language.arguments.keywords.KeywordDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.RaiseException;
@@ -134,9 +136,15 @@ public abstract class MethodNodes {
     public abstract static class CallNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected Object call(Frame callerFrame, RubyMethod method, Object[] args, Object block, RootCallTarget target,
+        protected Object call(
+                Frame callerFrame,
+                RubyMethod method,
+                Object[] args,
+                Object keywordDescriptor,
+                Object block,
+                RootCallTarget target,
                 @Cached CallBoundMethodNode callBoundMethodNode) {
-            return callBoundMethodNode.execute(callerFrame, method, args, block);
+            return callBoundMethodNode.execute(callerFrame, method, args, block, (KeywordDescriptor) keywordDescriptor);
         }
 
     }
@@ -299,7 +307,7 @@ public abstract class MethodNodes {
 
         private RubyProc createProc(RootCallTarget callTarget, InternalMethod method, Object receiver) {
             final Object[] packedArgs = RubyArguments
-                    .pack(null, null, method, null, receiver, nil, EMPTY_ARGUMENTS);
+                    .pack(null, null, method, null, receiver, nil, EmptyKeywordDescriptor.EMPTY, EMPTY_ARGUMENTS);
             final MaterializedFrame declarationFrame = Truffle
                     .getRuntime()
                     .createMaterializedFrame(packedArgs, getLanguage().emptyDeclarationDescriptor);
@@ -366,7 +374,8 @@ public abstract class MethodNodes {
                     method,
                     originalBoundMethodReceiver,
                     RubyArguments.getBlock(frame),
-                    RubyArguments.getArguments(frame));
+                    RubyArguments.getArguments(frame, EmptyKeywordDescriptor.EMPTY),
+                    EmptyKeywordDescriptor.EMPTY);
         }
     }
 

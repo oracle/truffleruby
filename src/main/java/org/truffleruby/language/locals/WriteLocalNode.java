@@ -26,7 +26,7 @@ public abstract class WriteLocalNode extends RubyContextSourceNode implements As
 
     protected final FrameSlot frameSlot;
 
-    @Child protected RubyNode valueNode;
+    @Child public RubyNode valueNode;
 
     public WriteLocalNode(FrameSlot frameSlot, RubyNode valueNode) {
         this.frameSlot = frameSlot;

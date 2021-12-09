@@ -9,8 +9,15 @@
  */
 package org.truffleruby.language.methods;
 
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.language.RubyCheckArityRootNode;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.arguments.ReadArgumentsNode;
+import org.truffleruby.language.arguments.keywords.EmptyKeywordDescriptor;
+import org.truffleruby.language.arguments.keywords.KeywordDescriptor;
+import org.truffleruby.language.arguments.keywords.NonEmptyKeywordDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.dispatch.DispatchNode;
 
@@ -19,23 +26,42 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 
 import static org.truffleruby.language.dispatch.DispatchNode.PUBLIC;
 
-public class SymbolProcNode extends RubyContextSourceNode {
+@NodeChild("descriptor")
+public abstract class SymbolProcNode extends RubyContextSourceNode {
 
     private final String symbol;
 
     @Child private DispatchNode callNode;
 
-    public SymbolProcNode(String symbol) {
+    protected SymbolProcNode(String symbol) {
         this.symbol = symbol;
     }
 
-    @Override
-    public Object execute(VirtualFrame frame) {
-        final int given = RubyArguments.getArgumentsCount(frame);
+    public abstract Object execute(VirtualFrame frame);
+
+    @Specialization
+    protected Object empty(VirtualFrame frame, EmptyKeywordDescriptor descriptor) {
+        return checkArityAndDispatch(frame, descriptor);
+    }
+
+    @Specialization
+    protected Object nonEmpty(VirtualFrame frame, NonEmptyKeywordDescriptor descriptor) {
+        return checkArityAndDispatch(frame, descriptor);
+    }
+
+    private Object checkArityAndDispatch(VirtualFrame frame, KeywordDescriptor descriptor) {
+        final int given = RubyArguments.getArgumentsCount(frame, descriptor);
+
+        final Arity dynamicArity = ((RubyCheckArityRootNode) getRootNode()).arityForCheck;
+        if (!dynamicArity.check(given)) {
+            ReadArgumentsNode.checkArityError(dynamicArity, given, this);
+        }
+
         assert given >= 1 : "guaranteed from arity check";
 
-        final Object receiver = RubyArguments.getArgument(frame, 0);
-        final Object[] arguments = ArrayUtils.extractRange(RubyArguments.getArguments(frame), 1, given);
+        final Object receiver = RubyArguments.getArgument(frame, 0, descriptor);
+        final Object[] arguments = ArrayUtils
+                .extractRange(RubyArguments.getArguments(frame, descriptor), 1, given);
         final Object block = RubyArguments.getBlock(frame);
 
         return getCallNode().dispatch(frame, receiver, symbol, block, arguments);

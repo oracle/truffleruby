@@ -10,6 +10,7 @@
 package org.truffleruby.language.dispatch;
 
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.arguments.keywords.KeywordDescriptor;
 
 public class RubyCallNodeParameters {
 
@@ -17,6 +18,7 @@ public class RubyCallNodeParameters {
     private final String methodName;
     private final RubyNode block;
     private final RubyNode[] arguments;
+    private final KeywordDescriptor keywordDescriptor;
     private final boolean isSplatted;
     private final boolean ignoreVisibility;
     private final boolean isVCall;
@@ -28,9 +30,20 @@ public class RubyCallNodeParameters {
             String methodName,
             RubyNode block,
             RubyNode[] arguments,
+            KeywordDescriptor keywordDescriptor,
             boolean isSplatted,
             boolean ignoreVisibility) {
-        this(receiver, methodName, block, arguments, isSplatted, ignoreVisibility, false, false, false);
+        this(
+                receiver,
+                methodName,
+                block,
+                arguments,
+                keywordDescriptor,
+                isSplatted,
+                ignoreVisibility,
+                false,
+                false,
+                false);
     }
 
     public RubyCallNodeParameters(
@@ -38,6 +51,7 @@ public class RubyCallNodeParameters {
             String methodName,
             RubyNode block,
             RubyNode[] arguments,
+            KeywordDescriptor keywordDescriptor,
             boolean isSplatted,
             boolean ignoreVisibility,
             boolean isVCall,
@@ -47,6 +61,7 @@ public class RubyCallNodeParameters {
         this.methodName = methodName;
         this.block = block;
         this.arguments = arguments;
+        this.keywordDescriptor = keywordDescriptor;
         this.isSplatted = isSplatted;
         this.ignoreVisibility = ignoreVisibility;
         this.isVCall = isVCall;
@@ -54,12 +69,14 @@ public class RubyCallNodeParameters {
         this.isAttrAssign = isAttrAssign;
     }
 
-    public RubyCallNodeParameters withReceiverAndArguments(RubyNode receiver, RubyNode[] arguments, RubyNode block) {
+    public RubyCallNodeParameters withReceiverAndArguments(RubyNode receiver, RubyNode[] arguments,
+            KeywordDescriptor keywordDescriptor, RubyNode block) {
         return new RubyCallNodeParameters(
                 receiver,
                 methodName,
                 block,
                 arguments,
+                keywordDescriptor,
                 isSplatted,
                 ignoreVisibility,
                 isVCall,
@@ -68,7 +85,7 @@ public class RubyCallNodeParameters {
     }
 
     public RubyCallNodeParameters withBlock(RubyNode block) {
-        return withReceiverAndArguments(receiver, arguments, block);
+        return withReceiverAndArguments(receiver, arguments, keywordDescriptor, block);
     }
 
     public RubyNode getReceiver() {
@@ -85,6 +102,10 @@ public class RubyCallNodeParameters {
 
     public RubyNode[] getArguments() {
         return arguments;
+    }
+
+    public KeywordDescriptor getKeywordArgumentsDescriptor() {
+        return keywordDescriptor;
     }
 
     public boolean isSplatted() {

@@ -1,0 +1,54 @@
+#!/usr/bin/env ruby
+
+# Gives a general idea of the shape of a graph.
+
+require 'set'
+
+require 'seafoam'
+
+file, graph_index, * = ARGV
+graph_index = graph_index.to_i
+
+parser = Seafoam::BGV::BGVParser.new(file)
+parser.read_file_header
+parser.skip_document_props
+
+loop do
+  index, = parser.read_graph_preheader
+  break unless index
+
+  parser.skip_graph_header
+
+  if index != graph_index
+    parser.skip_graph
+    next
+  end
+
+  graph = parser.read_graph
+
+  branches = false
+  loops = false
+
+  notes = Set.new
+
+  graph.nodes.each_value do |node|
+    node_class = node.props.dig(:node_class, :node_class)
+    case node_class
+    when 'org.graalvm.compiler.nodes.IfNode'
+      notes.add 'branches'
+    when 'org.graalvm.compiler.nodes.LoopBeginNode'
+      notes.add 'loops'
+    when 'org.graalvm.compiler.nodes.InvokeNode', 'org.graalvm.compiler.nodes.InvokeWithExceptionNode'
+      notes.add 'calls'
+    end
+  end
+
+  notes.add 'deopts' if graph.nodes[0].outputs.map(&:to)
+    .all? { |t| t.props.dig(:node_class, :node_class) == 'org.graalvm.compiler.nodes.DeoptimizeNode' }
+
+  notes.add 'linear' unless notes.include?('branches') || notes.include?('loops')
+  
+  puts ["#{graph.nodes.size} nodes", *notes].join(', ')
+
+  break
+end

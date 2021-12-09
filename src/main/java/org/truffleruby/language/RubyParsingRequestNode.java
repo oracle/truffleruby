@@ -11,6 +11,7 @@ package org.truffleruby.language;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.arguments.keywords.EmptyKeywordDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.InternalRootNode;
 import org.truffleruby.language.methods.DeclarationContext;
@@ -82,6 +83,7 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
                     null,
                     context.getCoreLibrary().mainObject,
                     Nil.INSTANCE,
+                    EmptyKeywordDescriptor.EMPTY,
                     frame.getArguments()));
 
             // The return value will be leaked to Java, so share it if the Context API is used.

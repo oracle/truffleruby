@@ -9,10 +9,12 @@
  */
 package org.truffleruby.builtins;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.frame.FrameSlot;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.CachedSupplier;
@@ -32,7 +34,10 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyCoreMethodRootNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.arguments.CheckKeywordArgumentNode;
+import org.truffleruby.language.arguments.ReadArgumentsNode;
 import org.truffleruby.language.control.ReturnID;
+import org.truffleruby.language.control.SequenceNode;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
@@ -52,6 +57,9 @@ import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.NodeFactory;
 
 public class CoreMethodNodeManager {
+
+    public static final FrameSlot[] EMPTY_FRAME_SLOT_ARRAY = new FrameSlot[0];
+    private static final CheckKeywordArgumentNode[] EMPTY_CHECK_KEYWORD_ARGUMENT_NODE_ARRAY = new CheckKeywordArgumentNode[0];
 
     private final RubyContext context;
     private final RubyLanguage language;
@@ -343,7 +351,7 @@ public class CoreMethodNodeManager {
 
         for (int n = 0; n < nArgs; n++) {
             RubyNode readArgumentNode = Translator
-                    .profileArgument(language, new ReadPreArgumentNode(n, MissingArgumentBehavior.NOT_PROVIDED));
+                    .profileArgument(language, ReadPreArgumentNode.create(n, MissingArgumentBehavior.NOT_PROVIDED));
             argumentsNodes[i++] = transformArgument(method, readArgumentNode, n + 1);
         }
 
@@ -356,14 +364,32 @@ public class CoreMethodNodeManager {
         }
 
         RubyNode node = (RubyNode) createNodeFromFactory(nodeFactory, argumentsNodes);
-        RubyNode methodNode = transformResult(method, node);
+        node = transformResult(method, node);
+        node = new SequenceNode(ReadArgumentsNode.create(
+                null,
+                RubyNode.EMPTY_ARRAY,
+                RubyNode.EMPTY_ARRAY,
+                null,
+                null,
+                null,
+                null,
+                Collections.emptyMap(),
+                true, /* todo why? */
+                sharedMethodInfo.getArity(),
+                EMPTY_FRAME_SLOT_ARRAY,
+                EMPTY_CHECK_KEYWORD_ARGUMENT_NODE_ARRAY,
+                null,
+                null,
+                null,
+                null,
+                null), node);
 
         final RubyCoreMethodRootNode rootNode = new RubyCoreMethodRootNode(
                 language,
                 sharedMethodInfo.getSourceSection(),
                 null,
                 sharedMethodInfo,
-                methodNode,
+                node,
                 split,
                 ReturnID.INVALID,
                 sharedMethodInfo.getArity());

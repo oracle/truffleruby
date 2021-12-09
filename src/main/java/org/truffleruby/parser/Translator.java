@@ -94,7 +94,9 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
             final boolean lastNode = n == sequence.size() - 1;
             final RubyNode node = sequence.get(n);
 
-            if (node instanceof NilLiteralNode && ((NilLiteralNode) node).isImplicit()) {
+            if (node == null) {
+                // We sometimes chose not to generate a node
+            } else if (node instanceof NilLiteralNode && ((NilLiteralNode) node).isImplicit()) {
                 if (allowTrailingNil && lastNode) {
                     flattened.add(node);
                 }
@@ -136,7 +138,7 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
         }
     }
 
-    public static RubyNode loadSelf(RubyLanguage language, TranslatorEnvironment environment) {
+    public static WriteLocalVariableNode loadSelf(RubyLanguage language, TranslatorEnvironment environment) {
         final FrameSlot slot = environment.getFrameDescriptor().findOrAddFrameSlot(SelfNode.SELF_IDENTIFIER);
         return new WriteLocalVariableNode(slot, profileArgument(language, new ReadSelfNode()));
     }

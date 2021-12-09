@@ -13,6 +13,7 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.arguments.keywords.KeywordDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.dispatch.DispatchNode;
 
@@ -49,7 +50,8 @@ public class ReturnEnumeratorIfNoBlockNode extends RubyContextSourceNode {
                 methodSymbol = getSymbol(methodName);
             }
 
-            final Object[] arguments = ArrayUtils.unshift(RubyArguments.getArguments(frame), methodSymbol);
+            final KeywordDescriptor descriptor = RubyArguments.getKeywordArgumentsDescriptorUnsafe(frame);
+            final Object[] arguments = ArrayUtils.unshift(RubyArguments.getArguments(frame, descriptor), methodSymbol);
             return toEnumNode.call(RubyArguments.getSelf(frame), "to_enum", arguments);
         } else {
             return method.execute(frame);

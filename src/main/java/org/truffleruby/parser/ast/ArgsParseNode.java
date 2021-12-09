@@ -125,12 +125,13 @@ public class ArgsParseNode extends ParseNode {
 
     private Arity createArity() {
         final String[] keywordArguments;
+        boolean[] keywordArgumentsOptional = null;
         boolean allKeywordsOptional = true;
-
         if (getKeywordCount() > 0) {
             final ParseNode[] keywordNodes = getKeywords().children();
             final int keywordsCount = keywordNodes.length;
             keywordArguments = new String[keywordsCount];
+            keywordArgumentsOptional = new boolean[keywordsCount];
 
             for (int i = 0; i < keywordsCount; i++) {
                 final KeywordArgParseNode kwarg = (KeywordArgParseNode) keywordNodes[i];
@@ -139,7 +140,9 @@ public class ArgsParseNode extends ParseNode {
                     throw new UnsupportedOperationException("unsupported keyword arg " + kwarg);
                 }
                 keywordArguments[i] = ((INameNode) assignableNode).getName();
-                allKeywordsOptional &= !Helpers.isRequiredKeywordArgumentValueNode(assignableNode);
+                boolean isRequired = Helpers.isRequiredKeywordArgumentValueNode(assignableNode);
+                keywordArgumentsOptional[i] = !isRequired;
+                allKeywordsOptional &= !isRequired;
             }
         } else {
             keywordArguments = Arity.NO_KEYWORDS;
@@ -152,7 +155,8 @@ public class ArgsParseNode extends ParseNode {
                 getPostCount(),
                 keywordArguments,
                 allKeywordsOptional,
-                hasKeyRest());
+                hasKeyRest(),
+                keywordArgumentsOptional);
     }
 
     @Override

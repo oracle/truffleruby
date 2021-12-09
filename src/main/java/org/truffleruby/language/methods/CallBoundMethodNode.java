@@ -15,6 +15,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.arguments.keywords.KeywordDescriptor;
 
 @GenerateUncached
 public abstract class CallBoundMethodNode extends RubyBaseNode {
@@ -23,13 +24,16 @@ public abstract class CallBoundMethodNode extends RubyBaseNode {
         return CallBoundMethodNodeGen.create();
     }
 
-    public abstract Object execute(Frame frame, RubyMethod method, Object[] arguments, Object block);
+    public abstract Object execute(Frame frame, RubyMethod method, Object[] arguments, Object block,
+            KeywordDescriptor keywordDescriptor);
 
     @Specialization
-    protected Object call(Frame frame, RubyMethod method, Object[] arguments, Object block,
+    protected Object call(
+            Frame frame, RubyMethod method, Object[] arguments, Object block, KeywordDescriptor keywordDescriptor,
             @Cached CallInternalMethodNode callInternalMethodNode) {
         final InternalMethod internalMethod = method.method;
-        return callInternalMethodNode.execute(frame, null, internalMethod, method.receiver, block, arguments);
+        return callInternalMethodNode
+                .execute(frame, null, internalMethod, method.receiver, block, arguments, keywordDescriptor);
     }
 
 }

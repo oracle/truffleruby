@@ -25,10 +25,8 @@ import org.truffleruby.language.objects.AllocationTracing;
 
 @CoreModule(value = "NoMethodError", isClass = true)
 public abstract class NoMethodErrorNodes {
-
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
-
         @Specialization
         protected RubyNoMethodError allocateNoMethodError(RubyClass rubyClass) {
             final Shape shape = getLanguage().noMethodErrorShape;
@@ -36,30 +34,23 @@ public abstract class NoMethodErrorNodes {
             AllocationTracing.trace(instance, this);
             return instance;
         }
-
     }
 
     @CoreMethod(names = "args")
     public abstract static class ArgsNode extends CoreMethodArrayArgumentsNode {
-
         @Specialization
         protected Object args(RubyNoMethodError self) {
             return self.args;
         }
-
     }
 
     @Primitive(name = "no_method_error_set_args")
     public abstract static class ArgsSetNode extends PrimitiveArrayArgumentsNode {
-
         @Specialization
         protected Object setArgs(RubyNoMethodError error, Object args) {
-            assert args == Nil.INSTANCE || args instanceof RubyArray;
+            assert args == Nil.INSTANCE || args instanceof RubyArray : args;
             error.args = args;
             return args;
         }
-
     }
-
-
 }

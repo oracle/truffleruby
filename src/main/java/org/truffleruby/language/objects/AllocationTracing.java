@@ -54,10 +54,10 @@ public abstract class AllocationTracing {
         truffleTracing(language, instance);
 
         if (context.getObjectSpaceManager().isTracing(language)) {
-            if (!(node.getParent() instanceof InlinedDispatchNode)) {
-                traceBoundary(context, instance, node);
-            } else {
+            if (node.getParent() instanceof InlinedDispatchNode) {
                 traceInlineBoundary(context, instance, className, allocatingMethod, node);
+            } else {
+                traceBoundary(context, instance, node);
             }
         }
     }

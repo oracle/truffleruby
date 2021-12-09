@@ -151,19 +151,23 @@ public abstract class HashNodes {
 
     @CoreMethod(names = "ruby2_keywords_hash?", onSingleton = true, required = 1)
     public abstract static class IsRuby2KeywordsHashNode extends CoreMethodArrayArgumentsNode {
+
         @Specialization
         protected boolean isRuby2KeywordsHash(RubyHash hash) {
             return hash.ruby2_keywords;
         }
+
     }
 
     @Primitive(name = "hash_mark_ruby2_keywords")
     public abstract static class HashMarkRuby2KeywordsNode extends CoreMethodArrayArgumentsNode {
+
         @Specialization
         protected RubyHash markRuby2Keywords(RubyHash hash) {
             hash.ruby2_keywords = true;
             return hash;
         }
+
     }
 
     @CoreMethod(names = "[]", required = 1)

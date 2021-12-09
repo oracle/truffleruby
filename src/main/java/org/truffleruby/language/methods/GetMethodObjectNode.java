@@ -30,6 +30,7 @@ import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.keywords.KeywordDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ReturnID;
@@ -131,7 +132,8 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
 
         @Override
         public Object execute(VirtualFrame frame) {
-            final Object[] originalUserArguments = RubyArguments.getArguments(frame);
+            final KeywordDescriptor descriptor = RubyArguments.getKeywordArgumentsDescriptorUnsafe(frame);
+            final Object[] originalUserArguments = RubyArguments.getArguments(frame, descriptor);
             final Object[] newUserArguments = ArrayUtils.unshift(originalUserArguments, methodName);
             return methodMissing.callWithBlock(
                     RubyArguments.getSelf(frame),

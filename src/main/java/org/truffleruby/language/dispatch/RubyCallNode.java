@@ -24,6 +24,7 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.arguments.keywords.KeywordDescriptor;
 import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.methods.BlockDefinitionNode;
 import org.truffleruby.language.methods.InternalMethod;
@@ -49,6 +50,7 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
     @Child private RubyNode block;
     private final boolean hasLiteralBlock;
     @Children private final RubyNode[] arguments;
+    private final KeywordDescriptor keywordDescriptor;
 
     private final boolean isSplatted;
     private final DispatchConfiguration dispatchConfig;
@@ -66,6 +68,7 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         this.methodName = parameters.getMethodName();
         this.receiver = parameters.getReceiver();
         this.arguments = parameters.getArguments();
+        this.keywordDescriptor = parameters.getKeywordArgumentsDescriptor();
 
         final RubyNode block = parameters.getBlock();
         this.block = parameters.getBlock();
@@ -87,6 +90,8 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
     @Override
     public Object execute(VirtualFrame frame) {
         final Object receiverObject = receiver.execute(frame);
+        assert receiverObject != null;
+
         if (isSafeNavigation && nilProfile.profile(receiverObject == nil)) {
             return nil;
         }
@@ -137,7 +142,8 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
             dispatch = insert(DispatchNode.create(dispatchConfig));
         }
 
-        final Object returnValue = dispatch.dispatch(frame, receiverObject, methodName, blockObject, argumentsObjects);
+        final Object returnValue = dispatch
+                .dispatch(frame, receiverObject, methodName, blockObject, argumentsObjects, keywordDescriptor);
         if (isAttrAssign) {
             final Object value = argumentsObjects[argumentsObjects.length - 1];
             assert RubyGuards.assertIsValidRubyValue(value);

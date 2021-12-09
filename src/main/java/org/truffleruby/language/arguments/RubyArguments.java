@@ -10,12 +10,16 @@
 package org.truffleruby.language.arguments;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.FrameAndVariables;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.arguments.keywords.EmptyKeywordDescriptor;
+import org.truffleruby.language.arguments.keywords.KeywordDescriptor;
+import org.truffleruby.language.arguments.keywords.NonEmptyKeywordDescriptor;
 import org.truffleruby.language.control.FrameOnStackMarker;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
@@ -27,17 +31,18 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 
 public final class RubyArguments {
 
-    private enum ArgumentIndicies {
+    public enum ArgumentIndicies {
         DECLARATION_FRAME, // 0
         CALLER_FRAME_OR_VARIABLES, // 1
         METHOD, // 2
         DECLARATION_CONTEXT, // 3
         FRAME_ON_STACK_MARKER, // 4
         SELF, // 5
-        BLOCK // 6
+        BLOCK, // 6
+        KEYWORD_ARGUMENTS_DESCRIPTOR // 7
     }
 
-    private static final int RUNTIME_ARGUMENT_COUNT = ArgumentIndicies.values().length;
+    public static final int RUNTIME_ARGUMENT_COUNT = ArgumentIndicies.values().length;
 
     /** In most cases the DeclarationContext is the one of the InternalMethod. */
     public static Object[] pack(
@@ -47,6 +52,7 @@ public final class RubyArguments {
             FrameOnStackMarker frameOnStackMarker,
             Object self,
             Object block,
+            KeywordDescriptor keywordDescriptor,
             Object[] arguments) {
         return pack(
                 declarationFrame,
@@ -56,6 +62,7 @@ public final class RubyArguments {
                 frameOnStackMarker,
                 self,
                 block,
+                keywordDescriptor,
                 arguments);
     }
 
@@ -67,11 +74,18 @@ public final class RubyArguments {
             FrameOnStackMarker frameOnStackMarker,
             Object self,
             Object block,
+            KeywordDescriptor keywordDescriptor,
             Object[] arguments) {
-        assert assertValues(callerFrameOrVariables, method, declarationContext, self, block, arguments);
+        assert assertValues(
+                callerFrameOrVariables,
+                method,
+                declarationContext,
+                self,
+                block,
+                keywordDescriptor,
+                arguments);
 
         final Object[] packed = new Object[RUNTIME_ARGUMENT_COUNT + arguments.length];
-
         packed[ArgumentIndicies.DECLARATION_FRAME.ordinal()] = declarationFrame;
         packed[ArgumentIndicies.CALLER_FRAME_OR_VARIABLES.ordinal()] = callerFrameOrVariables;
         packed[ArgumentIndicies.METHOD.ordinal()] = method;
@@ -79,7 +93,7 @@ public final class RubyArguments {
         packed[ArgumentIndicies.FRAME_ON_STACK_MARKER.ordinal()] = frameOnStackMarker;
         packed[ArgumentIndicies.SELF.ordinal()] = self;
         packed[ArgumentIndicies.BLOCK.ordinal()] = block;
-
+        packed[ArgumentIndicies.KEYWORD_ARGUMENTS_DESCRIPTOR.ordinal()] = keywordDescriptor;
         ArrayUtils.arraycopy(arguments, 0, packed, RUNTIME_ARGUMENT_COUNT, arguments.length);
 
         return packed;
@@ -91,6 +105,7 @@ public final class RubyArguments {
             DeclarationContext declarationContext,
             Object self,
             Object block,
+            KeywordDescriptor keywordDescriptor,
             Object[] arguments) {
         assert method != null;
         assert declarationContext != null;
@@ -109,6 +124,8 @@ public final class RubyArguments {
          *
          * When you read the block back out in the callee, you'll therefore get a Nil or RubyProc. */
         assert block instanceof Nil || block instanceof RubyProc : block;
+
+        assert keywordDescriptor != null;
 
         return true;
     }
@@ -168,23 +185,86 @@ public final class RubyArguments {
         return block;
     }
 
-    public static int getArgumentsCount(Frame frame) {
-        return frame.getArguments().length - RUNTIME_ARGUMENT_COUNT;
+    public static Object getKeywordArgumentsDescriptor(Frame frame) {
+        final Object keywordArgumentsDescriptor = frame.getArguments()[ArgumentIndicies.KEYWORD_ARGUMENTS_DESCRIPTOR
+                .ordinal()];
+        assert keywordArgumentsDescriptor != null;
+        return keywordArgumentsDescriptor;
+    }
+
+    public static KeywordDescriptor getKeywordArgumentsDescriptorUnsafe(Frame frame) {
+        final KeywordDescriptor keywordDescriptor = (KeywordDescriptor) frame
+                .getArguments()[ArgumentIndicies.KEYWORD_ARGUMENTS_DESCRIPTOR.ordinal()];
+        assert keywordDescriptor != null;
+        return keywordDescriptor;
+    }
+
+    public static Object getKeywordArgumentsValue(VirtualFrame frame, int n, KeywordDescriptor descriptor) {
+        final Object[] arguments = frame.getArguments();
+        return arguments[arguments.length - descriptor.getLength() + n];
+    }
+
+    public static int getPositionalArgumentsCount(Frame frame, KeywordDescriptor descriptor,
+            boolean methodAcceptsKeywords) {
+        Object[] arguments = frame.getArguments();
+        CompilerAsserts.partialEvaluationConstant(methodAcceptsKeywords);
+        // TODO: ideally the descriptor would always be PE constant, but it's not for ReadArgumentsNode#uncached,
+        // hence we'll need to profile for that case, or simplify this logic to avoid branching on the descriptor.
+        if (methodAcceptsKeywords) {
+            if (descriptor instanceof EmptyKeywordDescriptor) {
+                return arguments.length - RUNTIME_ARGUMENT_COUNT;
+            } else {
+                // kwargs do not go into any positional arg if the method parameters contain any kwarg
+                return arguments.length - RUNTIME_ARGUMENT_COUNT - descriptor.getLength() - 1;
+            }
+        } else {
+            if (descriptor instanceof NonEmptyKeywordDescriptor && descriptor.getLength() == 0) {
+                // empty kwargs passed -> as if they were not passed
+                return arguments.length - RUNTIME_ARGUMENT_COUNT - 1;
+            } else {
+                // include kwargs Hash as a positional arg since the method does not accept kwargs
+                return arguments.length - RUNTIME_ARGUMENT_COUNT - descriptor.getLength();
+            }
+        }
+    }
+
+    // Return the count of positional args + 1 if any kwargs. Should use getPositionalArgumentsCount instead,
+    // because this is only correct if the method does not have keyword parameters, and broken otherwise.
+    public static int getArgumentsCount(Frame frame, KeywordDescriptor descriptor) {
+        CompilerAsserts.partialEvaluationConstant(descriptor);
+        Object[] arguments = frame.getArguments();
+        if (descriptor instanceof NonEmptyKeywordDescriptor && descriptor.getLength() == 0) {
+            // empty kwargs passed -> as if they were not passed
+            return arguments.length - RUNTIME_ARGUMENT_COUNT - 1;
+        } else {
+            return arguments.length - RUNTIME_ARGUMENT_COUNT - descriptor.getLength();
+        }
     }
 
     public static Object getArgument(Frame frame, int index) {
-        assert index >= 0 && index < (frame.getArguments().length - RUNTIME_ARGUMENT_COUNT);
+        assert index >= 0 && index < (frame.getArguments().length - RUNTIME_ARGUMENT_COUNT -
+                getKeywordArgumentsDescriptorUnsafe(frame).getLength());
         return frame.getArguments()[RUNTIME_ARGUMENT_COUNT + index];
     }
 
-    public static Object[] getArguments(Frame frame) {
-        Object[] arguments = frame.getArguments();
-        return ArrayUtils.extractRange(arguments, RUNTIME_ARGUMENT_COUNT, arguments.length);
+    public static Object getArgument(Frame frame, int index, KeywordDescriptor descriptor) {
+        assert index >= 0 && index < (frame.getArguments().length - RUNTIME_ARGUMENT_COUNT - descriptor.getLength());
+        return frame.getArguments()[RUNTIME_ARGUMENT_COUNT + index];
     }
 
-    public static Object[] getArguments(Frame frame, int start) {
+    public static Object[] getArguments(Frame frame, KeywordDescriptor descriptor) {
         Object[] arguments = frame.getArguments();
-        return ArrayUtils.extractRange(arguments, RUNTIME_ARGUMENT_COUNT + start, arguments.length);
+        return ArrayUtils.extractRange(arguments, RUNTIME_ARGUMENT_COUNT, arguments.length - descriptor.getLength());
+    }
+
+    public static Object[] getArguments(Frame frame, int start, KeywordDescriptor descriptor) { // here
+        Object[] arguments = frame.getArguments();
+        return ArrayUtils
+                .extractRange(arguments, RUNTIME_ARGUMENT_COUNT + start, arguments.length - descriptor.getLength());
+    }
+
+    public static Object getLastArgument(Frame frame) {
+        return frame.getArguments()[frame.getArguments().length - 1];
     }
 
     // Getters for the declaration frame that let you reach up several levels

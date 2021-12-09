@@ -1291,9 +1291,11 @@ aref_args       : none
                     $$ = $1;
                 }
                 | args ',' assocs trailer {
+                    $3.keywordArguments = true;
                     $$ = support.arg_append($1, support.remove_duplicate_keys($3));
                 }
                 | assocs trailer {
+                    $1.keywordArguments = true;
                     $$ = support.newArrayNode($1.getPosition(), support.remove_duplicate_keys($1));
                 }
 
@@ -1314,16 +1316,22 @@ paren_args      : tLPAREN2 opt_call_args rparen {
                     SourceIndexLength position = support.getPosition(null);
                     // NOTE(norswap, 02 Jun 2021): location (0) arg is unused
                     SplatParseNode splat = support.newSplatNode(position, new LocalVarParseNode(position, 0, ParserSupport.FORWARD_ARGS_REST_VAR));
+                    HashParseNode kwrest = new HashParseNode(position, support.createKeyValue(null, new LocalVarParseNode(position, 0, ParserSupport.FORWARD_ARGS_KWREST_VAR)));
+                    kwrest.keywordArguments = true;
                     BlockPassParseNode block = new BlockPassParseNode(position, new LocalVarParseNode(position, 0, ParserSupport.FORWARD_ARGS_BLOCK_VAR));
                     $$ = support.arg_concat(support.getPosition($2), $2, splat);
+                    $$ = support.arg_append((ParseNode) $$, kwrest);
                     $$ = support.arg_blk_pass((ParseNode) $$, block);
                 }
                 | tLPAREN2 args_forward rparen {
                     SourceIndexLength position = support.getPosition(null);
                     // NOTE(norswap, 06 Nov 2020): location (0) arg is unused
                     SplatParseNode splat = support.newSplatNode(position, new LocalVarParseNode(position, 0, ParserSupport.FORWARD_ARGS_REST_VAR));
+                    HashParseNode kwrest = new HashParseNode(position, support.createKeyValue(null, new LocalVarParseNode(position, 0, ParserSupport.FORWARD_ARGS_KWREST_VAR)));
+                    kwrest.keywordArguments = true;
                     BlockPassParseNode block = new BlockPassParseNode(position, new LocalVarParseNode(position, 0, ParserSupport.FORWARD_ARGS_BLOCK_VAR));
-                    $$ = support.arg_blk_pass(splat, block);
+                    $$ = support.arg_append(splat, kwrest);
+                    $$ = support.arg_blk_pass((ParseNode) $$, block);
                 }
 
 opt_paren_args  : none | paren_args
@@ -1334,9 +1342,11 @@ opt_call_args   : none
                     $$ = $1;
                 }
                 | args ',' assocs ',' {
+                    $3.keywordArguments = true;
                     $$ = support.arg_append($1, support.remove_duplicate_keys($3));
                 }
                 | assocs ',' {
+                    $1.keywordArguments = true;
                     $$ = support.newArrayNode($1.getPosition(), support.remove_duplicate_keys($1));
                 }
    
@@ -1350,10 +1360,12 @@ call_args       : command {
                     $$ = support.arg_blk_pass($1, $2);
                 }
                 | assocs opt_block_arg {
+                    $1.keywordArguments = true;
                     $$ = support.newArrayNode($1.getPosition(), support.remove_duplicate_keys($1));
                     $$ = support.arg_blk_pass((ParseNode)$$, $2);
                 }
                 | args ',' assocs opt_block_arg {
+                    $3.keywordArguments = true;
                     $$ = support.arg_append($1, support.remove_duplicate_keys($3));
                     $$ = support.arg_blk_pass((ParseNode)$$, $4);
                 }
@@ -2494,14 +2506,14 @@ f_args_any      : f_arg ',' f_optarg ',' f_rest_arg opt_args_tail {
                     SourceIndexLength position = support.getPosition(null);
                     RestArgParseNode splat = new RestArgParseNode(position, ParserSupport.FORWARD_ARGS_REST_VAR, 0);
                     BlockArgParseNode block = new BlockArgParseNode(position, 1, ParserSupport.FORWARD_ARGS_BLOCK_VAR);
-                    ArgsTailHolder argsTail = support.new_args_tail(position, null, null, block);
+                    ArgsTailHolder argsTail = support.new_args_tail(position, null, ParserSupport.FORWARD_ARGS_KWREST_VAR_ROPE, block);
                     $$ = support.new_args(position, $1, null, splat, null, argsTail);
                 }
                 | args_forward {
                     SourceIndexLength position = support.getPosition(null);
                     RestArgParseNode splat = new RestArgParseNode(position, ParserSupport.FORWARD_ARGS_REST_VAR, 0);
                     BlockArgParseNode block = new BlockArgParseNode(position, 1, ParserSupport.FORWARD_ARGS_BLOCK_VAR);
-                    ArgsTailHolder argsTail = support.new_args_tail(position, null, null, block);
+                    ArgsTailHolder argsTail = support.new_args_tail(position, null, ParserSupport.FORWARD_ARGS_KWREST_VAR_ROPE, block);
                     $$ = support.new_args(position, null, null, splat, null, argsTail);
                 }
 

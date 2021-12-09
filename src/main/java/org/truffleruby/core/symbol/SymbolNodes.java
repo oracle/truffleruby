@@ -35,7 +35,9 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyLambdaRootNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.keywords.EmptyKeywordDescriptor;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
+import org.truffleruby.language.arguments.keywords.ReadKeywordDescriptorNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.RaiseException;
@@ -45,7 +47,7 @@ import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.Split;
-import org.truffleruby.language.methods.SymbolProcNode;
+import org.truffleruby.language.methods.SymbolProcNodeGen;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 import org.truffleruby.parser.ArgumentDescriptor;
 
@@ -197,7 +199,16 @@ public abstract class SymbolNodes {
                     : new DeclarationContext(Visibility.PUBLIC, null, refinements);
 
             final Object[] args = RubyArguments
-                    .pack(null, null, method, declarationContext, null, nil, nil, EMPTY_ARGUMENTS);
+                    .pack(
+                            null,
+                            null,
+                            method,
+                            declarationContext,
+                            null,
+                            nil,
+                            nil,
+                            EmptyKeywordDescriptor.EMPTY,
+                            EMPTY_ARGUMENTS);
             // MRI raises an error on Proc#binding if you attempt to access the binding of a Proc generated
             // by Symbol#to_proc. We generate a declaration frame here so that all procedures will have a
             // binding as this simplifies the logic elsewhere in the runtime.
@@ -244,7 +255,7 @@ public abstract class SymbolNodes {
                     sourceSection,
                     new FrameDescriptor(nil),
                     sharedMethodInfo,
-                    new SymbolProcNode(symbol.getString()),
+                    SymbolProcNodeGen.create(symbol.getString(), new ReadKeywordDescriptorNode()),
                     Split.HEURISTIC,
                     ReturnID.INVALID,
                     BreakID.INVALID,

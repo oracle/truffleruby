@@ -9,9 +9,14 @@
  */
 package org.truffleruby.parser;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
+import org.graalvm.collections.Pair;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.CachedSupplier;
 import org.truffleruby.core.IsNilNode;
@@ -20,12 +25,16 @@ import org.truffleruby.core.cast.SplatCastNode.NilBehavior;
 import org.truffleruby.core.cast.SplatCastNodeGen;
 import org.truffleruby.core.proc.ProcCallTargets;
 import org.truffleruby.core.proc.ProcType;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyLambdaRootNode;
 import org.truffleruby.language.RubyMethodRootNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyProcRootNode;
 import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.language.arguments.CheckKeywordArgumentNode;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
+import org.truffleruby.language.arguments.NewReadPreArgumentNode;
+import org.truffleruby.language.arguments.ReadArgumentsNode;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.ShouldDestructureNode;
 import org.truffleruby.language.control.AndNode;
@@ -38,6 +47,8 @@ import org.truffleruby.language.control.SequenceNode;
 import org.truffleruby.language.locals.FlipFlopStateNode;
 import org.truffleruby.language.locals.LocalVariableType;
 import org.truffleruby.language.locals.ReadLocalVariableNode;
+import org.truffleruby.language.locals.WriteFrameSlotNode;
+import org.truffleruby.language.locals.WriteFrameSlotNodeGen;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.BlockDefinitionNode;
@@ -113,7 +124,7 @@ public class MethodTranslator extends BodyTranslator {
             arityForCheck = arity;
         }
 
-        final RubyNode loadArguments = new LoadArgumentsTranslator(
+        final RubyNode loadArguments = loadArguments(sourceSection, new LoadArgumentsTranslator(
                 currentNode,
                 argsNode,
                 language,
@@ -121,7 +132,7 @@ public class MethodTranslator extends BodyTranslator {
                 parserContext,
                 !isStabbyLambda,
                 false,
-                this).translate();
+                this));
 
         final RubyNode preludeProc = !isStabbyLambda
                 ? preludeProc(sourceSection, isStabbyLambda, arity, loadArguments)
@@ -201,7 +212,7 @@ public class MethodTranslator extends BodyTranslator {
         if (shouldConsiderDestructuringArrayArg(arity)) {
             final RubyNode readArrayNode = profileArgument(
                     language,
-                    new ReadPreArgumentNode(0, MissingArgumentBehavior.RUNTIME_ERROR));
+                    ReadPreArgumentNode.create(0, MissingArgumentBehavior.RUNTIME_ERROR));
             final SplatCastNode castArrayNode = SplatCastNodeGen
                     .create(language, NilBehavior.NIL, true, readArrayNode);
             castArrayNode.doNotCopy();
@@ -219,7 +230,8 @@ public class MethodTranslator extends BodyTranslator {
                     false,
                     this);
             destructureArgumentsTranslator.pushArraySlot(arraySlot);
-            final RubyNode newDestructureArguments = destructureArgumentsTranslator.translate();
+
+            final RubyNode allDestructureArguments = loadArguments(sourceSection, destructureArgumentsTranslator);
 
             final RubyNode arrayWasNotNil = sequence(
                     sourceSection,
@@ -230,12 +242,12 @@ public class MethodTranslator extends BodyTranslator {
                                             new ReadLocalVariableNode(LocalVariableType.FRAME_LOCAL, arraySlot)))));
 
             final RubyNode shouldDestructureAndArrayWasNotNil = new AndNode(
-                    new ShouldDestructureNode(),
+                    ShouldDestructureNode.create(),
                     arrayWasNotNil);
 
             preludeProc = new IfElseNode(
                     shouldDestructureAndArrayWasNotNil,
-                    newDestructureArguments,
+                    allDestructureArguments,
                     loadArguments);
         } else {
             preludeProc = loadArguments;
@@ -374,10 +386,11 @@ public class MethodTranslator extends BodyTranslator {
         return body;
     }
 
+    // This is the root of all the argument unload - including keyword arguments
     public RubyNode compileMethodBody(SourceIndexLength sourceSection, ParseNode bodyNode) {
         declareArguments();
 
-        final RubyNode loadArguments = new LoadArgumentsTranslator(
+        final LoadArgumentsTranslator translator = new LoadArgumentsTranslator(
                 currentNode,
                 argsNode,
                 language,
@@ -385,7 +398,9 @@ public class MethodTranslator extends BodyTranslator {
                 parserContext,
                 false,
                 true,
-                this).translate();
+                this);
+
+        RubyNode loadArguments = loadArguments(sourceSection, translator);
 
         RubyNode body = translateNodeOrNil(sourceSection, bodyNode).simplifyAsTailExpression();
 
@@ -396,6 +411,73 @@ public class MethodTranslator extends BodyTranslator {
         }
 
         return body;
+    }
+
+    RubyNode loadArguments(SourceIndexLength sourceSection, LoadArgumentsTranslator translator) {
+        translator.acceptKeywordArguments();
+
+        // Set keyword argument to :missing_default_keyword_argument
+        final Map<String, WriteFrameSlotNode> expectedKeywords = new HashMap<>();
+        final FrameSlot[] keywordParameterFrameSlots = new FrameSlot[translator.defaults.size()];
+        final List<CheckKeywordArgumentNode> assignDefaultNodes = new ArrayList<>();
+        List<Pair<FrameSlot, RubyNode>> defaults = translator.defaults;
+        for (int i = 0, defaultsSize = defaults.size(); i < defaultsSize; i++) {
+            Pair<FrameSlot, RubyNode> defaultPair = defaults.get(i);
+            WriteFrameSlotNode writeFrameSlot = WriteFrameSlotNodeGen.create(defaultPair.getLeft());
+            expectedKeywords.put((String) defaultPair.getLeft().getIdentifier(), writeFrameSlot);
+            keywordParameterFrameSlots[i] = defaultPair.getLeft();
+            final RubySymbol symbol = language.getSymbol((String) defaultPair.getLeft().getIdentifier());
+            assignDefaultNodes.add(
+                    new CheckKeywordArgumentNode(
+                            defaultPair.getLeft(),
+                            translator.getRequired(),
+                            defaultPair.getRight(),
+                            symbol));
+        }
+
+        // Load positional keyword arguments
+        final RubyNode loadArguments = translator.translateNonKeywordArguments();
+
+        final Arity arity = argsNode.getArity();
+        final boolean needsExpandedHash = arity.hasRest() || arity.hasKeywordsRest() || arity.hasOptional() ||
+                !arity.hasKeywords(); /* unfortunate that this is set by optionals? can we do better? todo */
+
+        final WriteFrameSlotNode[] writePreArgumentNode = new WriteFrameSlotNode[translator.preArgumentFrameSlots
+                .size()];
+        for (int n = 0; n < writePreArgumentNode.length; n++) {
+            writePreArgumentNode[n] = WriteFrameSlotNodeGen.create(translator.preArgumentFrameSlots.get(n));
+        }
+
+        final WriteFrameSlotNode[] writeLocalAssignmentNode = new WriteFrameSlotNode[translator.localAssignmentFrameSlot
+                .size()];
+        for (int n = 0; n < writeLocalAssignmentNode.length; n++) {
+            writeLocalAssignmentNode[n] = WriteFrameSlotNodeGen.create(translator.localAssignmentFrameSlot.get(n));
+        }
+
+        final RubyNode newLoadKeywordArguments = ReadArgumentsNode
+                .create(
+                        translator.selfIdentifier,
+                        translator.runBlockKWArgs,
+                        translator.requiredPositionalArgs,
+                        translator.keyRestArg,
+                        translator.restArg,
+                        translator.readPostArgument,
+                        translator.optionalArg,
+                        expectedKeywords,
+                        needsExpandedHash,
+                        arity,
+                        keywordParameterFrameSlots,
+                        assignDefaultNodes.toArray(CheckKeywordArgumentNode.EMPTY_ARRAY),
+                        translator.localAssignmentReadNodes.toArray(RubyNode.EMPTY_ARRAY),
+                        writePreArgumentNode,
+                        translator.readPreArgumentNodes.toArray(NewReadPreArgumentNode.EMPTY_ARRAY),
+                        writeLocalAssignmentNode,
+                        translator.preOptNodes);
+
+        final List<RubyNode> nodes = new ArrayList<>();
+        nodes.add(newLoadKeywordArguments); // do the new-style load of keyword arguments
+        nodes.add(loadArguments); // load positional arguments
+        return sequence(sourceSection, nodes);
     }
 
     private RubyMethodRootNode translateMethodNode(SourceIndexLength sourceSection, MethodDefParseNode defNode,
@@ -450,7 +532,7 @@ public class MethodTranslator extends BodyTranslator {
                 argumentsAndBlock.isSplatted());
         final RubyNode block = executeOrInheritBlock(argumentsAndBlock.getBlock(), node);
 
-        RubyNode callNode = new SuperCallNode(arguments, block);
+        RubyNode callNode = new SuperCallNode(arguments, block, argumentsAndBlock.getKeywordArgumentsDescriptor());
         callNode = wrapCallWithLiteralBlock(argumentsAndBlock, callNode);
 
         return withSourceSection(sourceSection, callNode);
@@ -495,7 +577,7 @@ public class MethodTranslator extends BodyTranslator {
                 reloadSequence.getSequence());
         final RubyNode block = executeOrInheritBlock(argumentsAndBlock.getBlock(), node);
 
-        RubyNode callNode = new SuperCallNode(arguments, block);
+        RubyNode callNode = new SuperCallNode(arguments, block, argumentsAndBlock.getKeywordArgumentsDescriptor());
         callNode = wrapCallWithLiteralBlock(argumentsAndBlock, callNode);
 
         return withSourceSection(sourceSection, callNode);

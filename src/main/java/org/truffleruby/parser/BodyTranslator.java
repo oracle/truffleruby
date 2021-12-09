@@ -44,6 +44,8 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.hash.ConcatHashLiteralNode;
 import org.truffleruby.core.hash.HashLiteralNode;
+import org.truffleruby.core.hash.HashOperations;
+import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.module.ModuleNodesFactory;
 import org.truffleruby.core.numeric.BignumOperations;
@@ -59,6 +61,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.core.string.InterpolatedStringNode;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.LexicalScope;
@@ -67,6 +70,10 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.language.arguments.keywords.EmptyKeywordDescriptor;
+import org.truffleruby.language.arguments.keywords.KeywordDescriptor;
+import org.truffleruby.language.arguments.keywords.KeywordDescriptorManager;
+import org.truffleruby.language.arguments.keywords.NonEmptyKeywordDescriptor;
 import org.truffleruby.language.constants.OrAssignConstantNode;
 import org.truffleruby.language.constants.ReadConstantNode;
 import org.truffleruby.language.constants.ReadConstantWithDynamicScopeNode;
@@ -126,6 +133,7 @@ import org.truffleruby.language.locals.InitFlipFlopSlotNode;
 import org.truffleruby.language.locals.LocalFlipFlopStateNode;
 import org.truffleruby.language.locals.ReadLocalNode;
 import org.truffleruby.language.locals.WriteLocalNode;
+import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.BlockDefinitionNode;
 import org.truffleruby.language.methods.CatchBreakNode;
@@ -599,6 +607,7 @@ public class BodyTranslator extends Translator {
                 methodName,
                 argumentsAndBlock.getBlock(),
                 argumentsAndBlock.getArguments(),
+                argumentsAndBlock.getKeywordArgumentsDescriptor(),
                 argumentsAndBlock.isSplatted(),
                 ignoreVisibility,
                 isVCall,
@@ -627,6 +636,7 @@ public class BodyTranslator extends Translator {
 
         private final RubyNode block;
         private final RubyNode[] arguments;
+        private final KeywordDescriptor keywordDescriptor;
         private final boolean isSplatted;
         private final FrameSlot frameOnStackMarkerSlot;
 
@@ -634,10 +644,12 @@ public class BodyTranslator extends Translator {
                 RubyNode block,
                 RubyNode[] arguments,
                 boolean isSplatted,
+                KeywordDescriptor keywordDescriptor,
                 FrameSlot frameOnStackMarkerSlot) {
             super();
             this.block = block;
             this.arguments = arguments;
+            this.keywordDescriptor = keywordDescriptor;
             this.isSplatted = isSplatted;
             this.frameOnStackMarkerSlot = frameOnStackMarkerSlot;
         }
@@ -656,6 +668,10 @@ public class BodyTranslator extends Translator {
 
         public FrameSlot getFrameOnStackMarkerSlot() {
             return frameOnStackMarkerSlot;
+        }
+
+        public KeywordDescriptor getKeywordArgumentsDescriptor() {
+            return keywordDescriptor;
         }
     }
 
@@ -685,18 +701,51 @@ public class BodyTranslator extends Translator {
             throw new UnsupportedOperationException("Unknown argument node type: " + argsNode.getClass());
         }
 
-        final RubyNode[] argumentsTranslated = createArray(arguments.length);
+        KeywordDescriptor keywordDescriptor = getKeywordArgumentsDescriptor(language, arguments);
+
+        final List<RubyNode> argumentsTranslated = new ArrayList<>();
+        final List<RubyNode> trailing = new ArrayList<>();
+        List<RubyNode> stringKeyValues = new ArrayList<>();
+
         for (int i = 0; i < arguments.length; i++) {
-            argumentsTranslated[i] = arguments[i].accept(this);
+            if (keywordDescriptor instanceof NonEmptyKeywordDescriptor &&
+                    i == ((NonEmptyKeywordDescriptor) keywordDescriptor).getHashIndex()) {
+                assert arguments[i] instanceof HashParseNode;
+                final HashParseNode hpn = (HashParseNode) arguments[i];
+
+                for (ParseNodeTuple pair : hpn.getPairs()) {
+                    final RubyNode translated = pair.getValue().accept(this);
+                    if (pair.getKey() instanceof StrParseNode) {
+                        stringKeyValues.add(pair.getKey().accept(this));
+                        stringKeyValues.add(translated);
+                    } else if (pair.getKey() == null) {
+                        argumentsTranslated.add(translated);
+                    } else {
+                        trailing.add(translated);
+                    }
+                }
+
+                if (stringKeyValues.size() > 0) {
+                    HashLiteralNode stringKeyHash = HashLiteralNode.create(stringKeyValues.toArray(new RubyNode[0]));
+                    argumentsTranslated.add(stringKeyHash);
+                } else if (hpn.getPairs().get(hpn.getPairs().size() - 1).getKey() != null) {
+                    argumentsTranslated
+                            .add(new ObjectLiteralNode(language.symbolTable.getSymbol("empty arguments hash")));
+                }
+            } else {
+                argumentsTranslated.add(arguments[i].accept(this));
+            }
         }
 
         // If the last argument is a splat, do not copy the array, to support m(*args, &args.pop)
         if (isSplatted) {
-            final RubyNode last = argumentsTranslated[argumentsTranslated.length - 1];
+            final RubyNode last = argumentsTranslated.get(arguments.length - 1);
             if (last instanceof SplatCastNode) {
                 ((SplatCastNode) last).doNotCopy();
             }
         }
+
+        argumentsTranslated.addAll(trailing);
 
         ParseNode blockPassNode = null;
         if (iterNode instanceof BlockPassParseNode) {
@@ -736,8 +785,9 @@ public class BodyTranslator extends Translator {
 
         return new ArgumentsAndBlockTranslation(
                 blockTranslated,
-                argumentsTranslated,
+                argumentsTranslated.toArray(RubyNode.EMPTY_ARRAY),
                 isSplatted,
+                keywordDescriptor,
                 frameOnStackMarkerSlot);
     }
 
@@ -783,11 +833,13 @@ public class BodyTranslator extends Translator {
                     method = "when_splat";
                     arguments = new RubyNode[]{ rubyExpression, NodeUtil.cloneNode(readTemp) };
                 }
+
                 final RubyCallNodeParameters callParameters = new RubyCallNodeParameters(
                         receiver,
                         method,
                         null,
                         arguments,
+                        EmptyKeywordDescriptor.EMPTY,
                         false,
                         true);
                 final RubyNode conditionNode = language.coreMethodAssumptions
@@ -928,6 +980,7 @@ public class BodyTranslator extends Translator {
                         "deconstruct",
                         null,
                         RubyNode.EMPTY_ARRAY,
+                        EmptyKeywordDescriptor.EMPTY,
                         false,
                         true);
                 deconstructed = language.coreMethodAssumptions
@@ -941,6 +994,7 @@ public class BodyTranslator extends Translator {
                         "array_pattern_matches?",
                         null,
                         new RubyNode[]{ patternNode.accept(this), NodeUtil.cloneNode(deconstructed) },
+                        EmptyKeywordDescriptor.EMPTY,
                         false,
                         true);
                 return language.coreMethodAssumptions
@@ -951,6 +1005,7 @@ public class BodyTranslator extends Translator {
                         "deconstruct_keys",
                         null,
                         new RubyNode[]{ new NilLiteralNode(true) },
+                        EmptyKeywordDescriptor.EMPTY,
                         false,
                         true);
                 deconstructed = language.coreMethodAssumptions
@@ -964,6 +1019,7 @@ public class BodyTranslator extends Translator {
                         "hash_pattern_matches?",
                         null,
                         new RubyNode[]{ patternNode.accept(this), NodeUtil.cloneNode(deconstructed) },
+                        EmptyKeywordDescriptor.EMPTY,
                         false,
                         true);
                 return language.coreMethodAssumptions
@@ -983,6 +1039,7 @@ public class BodyTranslator extends Translator {
                         "===",
                         null,
                         new RubyNode[]{ NodeUtil.cloneNode(expressionValue) },
+                        EmptyKeywordDescriptor.EMPTY,
                         false,
                         true);
                 return language.coreMethodAssumptions
@@ -1061,7 +1118,7 @@ public class BodyTranslator extends Translator {
             body = sequence(sourceSection, Arrays.asList(initFlipFlopStates(environment, sourceSection), body));
         }
 
-        final RubyNode writeSelfNode = loadSelf(language, environment);
+        final WriteLocalVariableNode writeSelfNode = loadSelf(language, environment);
         body = sequence(sourceSection, Arrays.asList(writeSelfNode, body));
 
         final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
@@ -2328,6 +2385,7 @@ public class BodyTranslator extends Translator {
                         node.getOperator(),
                         null,
                         new RubyNode[]{ rhs },
+                        EmptyKeywordDescriptor.EMPTY, // TODO
                         false,
                         true);
                 final RubyNode opNode = language.coreMethodAssumptions.createCallNode(callParameters, environment);
@@ -2626,6 +2684,7 @@ public class BodyTranslator extends Translator {
                 "convert",
                 null,
                 arguments,
+                EmptyKeywordDescriptor.EMPTY, // TODO
                 false,
                 true);
         return withSourceSection(sourceSection, new RubyCallNode(parameters));
@@ -2984,7 +3043,7 @@ public class BodyTranslator extends Translator {
         final ParseNode argsNode = node.getArgsNode();
         boolean unsplat = false;
 
-        final ParseNode[] arguments;
+        ParseNode[] arguments;
         if (argsNode == null) {
             // No arguments
             arguments = EMPTY_ARGUMENTS;
@@ -2999,20 +3058,51 @@ public class BodyTranslator extends Translator {
             arguments = new ParseNode[]{ node.getArgsNode() };
         }
 
-        final RubyNode[] argumentsTranslated = createArray(arguments.length);
+        final List<RubyNode> argumentsTranslated = new ArrayList<>();
+        final List<RubyNode> trailing = new ArrayList<>();
+
+        KeywordDescriptor keywordDescriptor = getKeywordArgumentsDescriptor(language, arguments);
+
+        // we need to massage `arguments` to get the proper arguments
+        // because it's nested differently
+        if (arguments.length > 0 && arguments[0] instanceof ArgsPushParseNode) {
+            arguments = arguments[0].childNodes().toArray(ParseNode.EMPTY_ARRAY);
+        }
 
         for (int i = 0; i < arguments.length; i++) {
-            argumentsTranslated[i] = arguments[i].accept(this);
+
+            if (keywordDescriptor instanceof NonEmptyKeywordDescriptor &&
+                    i == ((NonEmptyKeywordDescriptor) keywordDescriptor).getHashIndex()) {
+                assert arguments[i] instanceof HashParseNode;
+                final HashParseNode hpn = (HashParseNode) arguments[i];
+                for (ParseNodeTuple pair : hpn.getPairs()) {
+                    final RubyNode translated = pair.getValue().accept(this);
+                    if (pair.getKey() == null) {
+                        argumentsTranslated.add(translated);
+                    } else {
+                        trailing.add(translated);
+                    }
+                }
+                if (hpn.getPairs().get(hpn.getPairs().size() - 1).getKey() != null) {
+                    argumentsTranslated
+                            .add(new ObjectLiteralNode(language.symbolTable.getSymbol("empty arguments hash")));
+                }
+            } else {
+                argumentsTranslated.add(arguments[i].accept(this));
+            }
         }
+
+        argumentsTranslated.addAll(trailing);
 
         RubyNode readBlock = environment
                 .findLocalVarOrNilNode(TranslatorEnvironment.METHOD_BLOCK_NAME, node.getPosition());
 
         final RubyNode ret = new YieldExpressionNode(
                 unsplat,
-                argumentsTranslated,
+                argumentsTranslated.toArray(RubyNode.EMPTY_ARRAY),
                 readBlock,
-                environment.shouldWarnYieldInModuleBody());
+                environment.shouldWarnYieldInModuleBody(),
+                keywordDescriptor);
 
         ret.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, ret);
@@ -3091,6 +3181,72 @@ public class BodyTranslator extends Translator {
         }
 
         return node;
+    }
+
+    private static KeywordDescriptor getKeywordArgumentsDescriptor(RubyLanguage language, ParseNode[] arguments) {
+        KeywordDescriptor keywordDescriptor = EmptyKeywordDescriptor.EMPTY;
+        boolean alsoSplat = false;
+        if ((arguments.length > 0)) {
+
+            // First, check for an implicit `HashParseNode` in the argument
+            Object hashIndex = null;
+            HashParseNode keywordArgHash = null;
+
+            if (arguments[0] instanceof ArgsPushParseNode) {
+                ArgsPushParseNode argsPushParseNode = (ArgsPushParseNode) arguments[0];
+
+                if (argsPushParseNode.getFirstNode() instanceof HashParseNode) {
+                    hashIndex = 0;
+                    keywordArgHash = (HashParseNode) argsPushParseNode.getFirstNode();
+                } else if (argsPushParseNode.getSecondNode() instanceof HashParseNode) {
+                    if (argsPushParseNode.getFirstNode().childNodes().get(0) != null &&
+                            argsPushParseNode.getFirstNode().childNodes().get(0) instanceof ArrayParseNode) {
+                        ArrayParseNode firstNodeArray = (ArrayParseNode) argsPushParseNode.getFirstNode().childNodes()
+                                .get(0);
+                        hashIndex = firstNodeArray.size();
+                    } else if (argsPushParseNode.getFirstNode().childNodes().get(0) != null &&
+                            argsPushParseNode.getFirstNode().childNodes().get(0) instanceof ParseNode) {
+                        hashIndex = 1;
+                    }
+                    keywordArgHash = (HashParseNode) argsPushParseNode.getSecondNode();
+                }
+            } else {
+                // assert not args push parse
+                // TODO: can we just check the last argument instead of looping?
+                for (int i = 0; i < arguments.length; i++) {
+                    if (arguments[i] instanceof HashParseNode) {
+                        hashIndex = i;
+                        keywordArgHash = (HashParseNode) arguments[i];
+                    }
+                }
+            }
+
+            if (keywordArgHash != null) {
+                assert hashIndex != null;
+
+                List<String> keywords = new ArrayList<>();
+                for (ParseNodeTuple pair : keywordArgHash.getPairs()) {
+                    if (pair instanceof ParseNodeTuple) {
+                        if ((pair.getKey() instanceof SymbolParseNode) &&
+                                ((SymbolParseNode) pair.getKey()).getName() != null) {
+                            if (keywordArgHash.keywordArguments) {
+                                keywords.add(((SymbolParseNode) pair.getKey()).getName());
+                            }
+                        } else if ((pair.getKey() == null) && (pair.getValue() != null)) { // Indicates a splat kw hash
+                            alsoSplat = true;
+                        } else {
+                            // For non-symbol keys
+                            alsoSplat = true;
+                        }
+                    }
+                }
+                if (keywords.size() > 0 || alsoSplat) {
+                    keywordDescriptor = KeywordDescriptorManager.INSTANCE.get(language,
+                            keywords.toArray(StringUtils.EMPTY_STRING_ARRAY), alsoSplat, (int) hashIndex);
+                }
+            }
+        }
+        return keywordDescriptor;
     }
 
     @Override

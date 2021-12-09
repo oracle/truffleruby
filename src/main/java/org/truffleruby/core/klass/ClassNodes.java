@@ -296,7 +296,7 @@ public abstract class ClassNodes {
         }
 
         @Override
-        public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object block) {
+        public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object kwd, Object block) {
             return execute(self, args, block);
         }
 

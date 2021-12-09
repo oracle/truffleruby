@@ -47,8 +47,11 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.keywords.EmptyKeywordDescriptor;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.arguments.keywords.KeywordDescriptorManager;
+import org.truffleruby.language.arguments.keywords.NonEmptyKeywordDescriptor;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
@@ -329,7 +332,7 @@ public abstract class BasicObjectNodes {
         }
 
         @Override
-        public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object block) {
+        public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object kwd, Object block) {
             if (args.length > 0) {
                 throw new InlinedMethodNode.RewriteException();
             }
@@ -466,7 +469,7 @@ public abstract class BasicObjectNodes {
                     new SingletonClassOfSelfDefaultDefinee(receiver),
                     block.declarationContext.getRefinements());
             return callBlockNode
-                    .executeCallBlock(declarationContext, block, receiver, block.block, arguments);
+                    .yield(declarationContext, block, receiver, block.block, arguments);
         }
 
         @Specialization
@@ -604,12 +607,44 @@ public abstract class BasicObjectNodes {
     public abstract static class SendNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected Object send(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
+        protected Object send(
+                Frame callerFrame,
+                Object self,
+                Object[] args,
+                EmptyKeywordDescriptor keywordDescriptor,
+                Object block,
+                RootCallTarget target,
                 @Cached DispatchNode dispatchNode,
                 @Cached NameToJavaStringNode nameToJavaString) {
             Object name = args[0];
             Object[] callArgs = ArrayUtils.extractRange(args, 1, args.length);
-            return dispatchNode.dispatch(callerFrame, self, nameToJavaString.execute(name), block, callArgs);
+            return dispatchNode.dispatch(callerFrame, self, nameToJavaString.execute(name), block, callArgs,
+                    keywordDescriptor);
+        }
+
+        @Specialization(guards = "keywordDescriptor == cachedKeywordDescriptor")
+        protected Object send(
+                Frame callerFrame,
+                Object self,
+                Object[] args,
+                NonEmptyKeywordDescriptor keywordDescriptor,
+                Object block,
+                RootCallTarget target,
+                @Cached("keywordDescriptor") NonEmptyKeywordDescriptor cachedKeywordDescriptor,
+                @Cached(value = "offset(keywordDescriptor)",
+                        allowUncached = true) NonEmptyKeywordDescriptor offsetKeywordDescriptor,
+                @Cached DispatchNode dispatchNode,
+                @Cached NameToJavaStringNode nameToJavaString) {
+            Object name = args[0];
+            Object[] callArgs = ArrayUtils.extractRange(args, 1, args.length);
+            return dispatchNode.dispatch(callerFrame, self, nameToJavaString.execute(name), block, callArgs,
+                    offsetKeywordDescriptor);
+        }
+
+        @TruffleBoundary
+        protected NonEmptyKeywordDescriptor offset(NonEmptyKeywordDescriptor descriptor) {
+            return KeywordDescriptorManager.INSTANCE.get(getLanguage(), descriptor.getKeywords(),
+                    descriptor.isAlsoSplat(), descriptor.getHashIndex() - 1);
         }
 
     }
@@ -641,7 +676,8 @@ public abstract class BasicObjectNodes {
         }
 
         @Override
-        public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object block) {
+        public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object keywordDescriptor,
+                Object block) {
             return execute(self);
         }
 

@@ -9,30 +9,71 @@
  */
 package org.truffleruby.language.arguments;
 
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.NotProvided;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.language.arguments.keywords.EmptyKeywordDescriptor;
+import org.truffleruby.language.arguments.keywords.KeywordDescriptor;
+import org.truffleruby.language.arguments.keywords.NonEmptyKeywordDescriptor;
+import org.truffleruby.language.arguments.keywords.ReadKeywordDescriptorNode;
 import org.truffleruby.utils.Utils;
 
-public class ReadPreArgumentNode extends RubyContextSourceNode {
+@NodeChild("descriptor")
+public abstract class ReadPreArgumentNode extends RubyContextSourceNode {
 
     private final int index;
 
     private final BranchProfile outOfRangeProfile = BranchProfile.create();
     private final MissingArgumentBehavior missingArgumentBehavior;
 
-    public ReadPreArgumentNode(
+    protected ReadPreArgumentNode(
             int index,
             MissingArgumentBehavior missingArgumentBehavior) {
         this.index = index;
         this.missingArgumentBehavior = missingArgumentBehavior;
     }
 
-    @Override
-    public Object execute(VirtualFrame frame) {
-        if (index < RubyArguments.getArgumentsCount(frame)) {
+    public static ReadPreArgumentNode create(
+            int index,
+            MissingArgumentBehavior missingArgumentBehavior) {
+        return ReadPreArgumentNodeGen.create(
+                index,
+                missingArgumentBehavior,
+                new ReadKeywordDescriptorNode());
+    }
+
+    public abstract Object execute(VirtualFrame frame, KeywordDescriptor descriptor);
+
+    @Specialization
+    protected Object nonEmpty(VirtualFrame frame, NonEmptyKeywordDescriptor descriptor) {
+        if (index < RubyArguments.getArgumentsCount(frame, descriptor)) {
+            return RubyArguments.getArgument(frame, index);
+        }
+
+        outOfRangeProfile.enter();
+
+        switch (missingArgumentBehavior) {
+            case RUNTIME_ERROR:
+                throw new IndexOutOfBoundsException();
+
+            case NOT_PROVIDED:
+                return NotProvided.INSTANCE;
+
+            case NIL:
+                return nil;
+
+            default:
+                throw Utils.unsupportedOperation("unknown missing argument behaviour");
+        }
+    }
+
+    @Specialization
+    protected Object empty(VirtualFrame frame, EmptyKeywordDescriptor descriptor) {
+        if (index < RubyArguments.getArgumentsCount(frame, descriptor)) {
             return RubyArguments.getArgument(frame, index);
         }
 

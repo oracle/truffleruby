@@ -11,6 +11,7 @@ package org.truffleruby.language.supercall;
 
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
+import org.truffleruby.language.arguments.keywords.KeywordDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.methods.CallInternalMethodNode;
@@ -22,16 +23,19 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class CallSuperMethodNode extends FrameAndVariablesSendingNode {
 
+    private final KeywordDescriptor keywordDescriptor;
+
     private final ConditionProfile missingProfile = ConditionProfile.create();
 
     @Child private CallInternalMethodNode callMethodNode;
     @Child private DispatchNode callMethodMissingNode;
 
-    public static CallSuperMethodNode create() {
-        return new CallSuperMethodNode();
+    public static CallSuperMethodNode create(KeywordDescriptor keywordDescriptor) {
+        return new CallSuperMethodNode(keywordDescriptor);
     }
 
-    private CallSuperMethodNode() {
+    private CallSuperMethodNode(KeywordDescriptor keywordDescriptor) {
+        this.keywordDescriptor = keywordDescriptor;
     }
 
     public Object execute(
@@ -49,7 +53,15 @@ public class CallSuperMethodNode extends FrameAndVariablesSendingNode {
         }
 
         final Object callerFrameOrVariables = getFrameOrStorageIfRequired(frame);
-        return getCallMethodNode().execute(frame, callerFrameOrVariables, superMethod, self, block, arguments);
+
+        return getCallMethodNode().execute(
+                frame,
+                callerFrameOrVariables,
+                superMethod,
+                self,
+                block,
+                arguments,
+                keywordDescriptor);
     }
 
     private CallInternalMethodNode getCallMethodNode() {

@@ -14,6 +14,7 @@ import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.language.arguments.keywords.EmptyKeywordDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.FrameOnStackMarker;
 import org.truffleruby.language.methods.DeclarationContext;
@@ -34,6 +35,7 @@ public abstract class ProcOperations {
                 proc.frameOnStackMarker,
                 getSelf(proc),
                 proc.block,
+                EmptyKeywordDescriptor.EMPTY,
                 args);
     }
 

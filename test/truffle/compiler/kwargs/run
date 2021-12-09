@@ -1,0 +1,22 @@
+#!/usr/bin/env ruby
+
+def test(program, extra='', expected)
+  got = `tool/jt.rb graph --describe #{program} #{extra} 2>&1`.lines.last.strip
+  if got == expected
+    puts "#{program}: ✓"
+  else
+    puts "#{program}: expected #{expected}, got #{got}"
+  end
+end
+
+test 'test/truffle/compiler/kwargs/none.rb', '38 nodes, linear'
+test 'test/truffle/compiler/kwargs/opt-set.rb', '38 nodes, linear'
+test 'test/truffle/compiler/kwargs/opt-unset.rb', '34 nodes, linear'
+test 'test/truffle/compiler/kwargs/rest.rb', '38 nodes, linear'
+test 'test/truffle/compiler/kwargs/required.rb', '44 nodes, linear'
+test 'test/truffle/compiler/kwargs/mixed.rb', '44 nodes, linear'
+test 'test/truffle/compiler/kwargs/kwopt-set.rb', '44 nodes, linear'
+test 'test/truffle/compiler/kwargs/kwopt-unset.rb', '40 nodes, linear'
+test 'test/truffle/compiler/kwargs/kwrest.rb', '44 nodes, linear'
+test 'test/truffle/compiler/kwargs/kwcall.rb', '--engine.InlineOnly=~bar', '87 nodes, calls, linear'
+test 'test/truffle/compiler/kwargs/send.rb', '40 nodes, linear'
