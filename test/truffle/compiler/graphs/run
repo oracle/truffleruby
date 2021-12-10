@@ -1,9 +1,12 @@
 #!/usr/bin/env ruby
 
+NATIVE = `tool/jt.rb ruby --version` =~ /Native/
+
 $tests = 0
 $failures = 0
 
-def test(program, extra='', nodes_expected, shape_expected)
+def test(program, extra='', jvm_nodes_expected, native_nodes_expected, shape_expected)
+  nodes_expected = NATIVE ? native_nodes_expected : jvm_nodes_expected
   $tests += 1
   got = `tool/jt.rb graph --describe #{program} #{extra} 2>&1`.lines.last.strip
   unless got =~ /(\d+) nodes, (.*)/
@@ -21,10 +24,10 @@ def test(program, extra='', nodes_expected, shape_expected)
   end
 end
 
-test 'test/truffle/compiler/graphs/args-req.rb', 36, 'linear'
-test 'test/truffle/compiler/graphs/args-opt-set.rb', 36, 'linear'
-test 'test/truffle/compiler/graphs/args-opt-unset.rb', 32, 'linear'
-test 'test/truffle/compiler/graphs/args-rest.rb', 36, 'linear'
+test 'test/truffle/compiler/graphs/args-req.rb', 36, 34, 'linear'
+test 'test/truffle/compiler/graphs/args-opt-set.rb', 36, 34, 'linear'
+test 'test/truffle/compiler/graphs/args-opt-unset.rb', 32, 31, 'linear'
+test 'test/truffle/compiler/graphs/args-rest.rb', 36, 34, 'linear'
 
 puts "#$tests tests, #$failures failures"
 exit 1 if $failures > 0
