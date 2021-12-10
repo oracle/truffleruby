@@ -14,6 +14,7 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.dispatch.DispatchNode;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -44,6 +45,7 @@ public abstract class ToDoubleNode extends FormatNode {
     }
 
     @Specialization
+    @TruffleBoundary
     protected double toDouble(RubyBignum bignum) {
         return bignum.value.doubleValue();
     }
