@@ -2058,8 +2058,9 @@ module Commands
     raise unless test_file
     env = ruby_running_jt_env
 
-    if Gem::Specification.find_all_by_name('seafoam').empty?
-      sh env, 'gem', 'install', 'seafoam'
+    seafoam_version = '0.10'
+    unless Gem::Specification.find_all_by_name('seafoam').any? { |g| g.version == Gem::Version.new(seafoam_version) }
+      sh env, 'gem', 'install', 'seafoam', '-v', seafoam_version
     end
 
     base_vm_args = [
@@ -2113,12 +2114,12 @@ module Commands
       graph = graphs.last
       raise "Could not find graph in #{dumps}" unless graph
 
-      list = raw_sh(env, 'seafoam', graph, 'list', capture: :out, no_print_cmd: true)
+      list = raw_sh(env, 'seafoam', "_#{seafoam_version}_", graph, 'list', capture: :out, no_print_cmd: true)
       n = list.each_line.with_index do |line, index|
         break index if line.include? 'Before phase org.graalvm.compiler.phases.common.LoweringPhase'
       end
 
-      raw_sh env, 'seafoam', "#{graph}:#{n}", describe ? 'describe' : 'render'
+      raw_sh env, 'seafoam', "_#{seafoam_version}_", "#{graph}:#{n}", describe ? 'describe' : 'render'
 
       break unless watch
       puts # newline between runs

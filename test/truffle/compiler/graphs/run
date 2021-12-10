@@ -1,0 +1,30 @@
+#!/usr/bin/env ruby
+
+$tests = 0
+$failures = 0
+
+def test(program, extra='', nodes_expected, shape_expected)
+  $tests += 1
+  got = `tool/jt.rb graph --describe #{program} #{extra} 2>&1`.lines.last.strip
+  unless got =~ /(\d+) nodes, (.*)/
+    puts "#{program}: error #{got.inspect}"
+    $failures += 1
+  end
+  nodes_got = $1.to_i
+  shape_got = $2
+  # We could be fuzzy about the number of nodes if we wanted to
+  if nodes_got == nodes_expected && shape_got == shape_expected
+    puts "#{program}: ✓"
+  else
+    puts "#{program}: expected #{nodes_expected} #{shape_expected}, got #{nodes_got} #{shape_got}"
+    $failures += 1
+  end
+end
+
+test 'test/truffle/compiler/graphs/args-req.rb', 36, 'linear'
+test 'test/truffle/compiler/graphs/args-opt-set.rb', 36, 'linear'
+test 'test/truffle/compiler/graphs/args-opt-unset.rb', 32, 'linear'
+test 'test/truffle/compiler/graphs/args-rest.rb', 36, 'linear'
+
+puts "#$tests tests, #$failures failures"
+exit 1 if $failures > 0
