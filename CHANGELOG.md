@@ -60,6 +60,7 @@ Compatibility:
 * Implement `GC.{measure_total_time, total_time}` and update `GC.stat` to update provided hash (#2535, @bjfish).
 * Implement `Array#slice` with `ArithmeticSequence` (#2526, @ccocchi).
 * Update `Hash#each` to consistently yield a 2-element array (#2453).
+* Remove `Hash#{__store__, index}` methods for compatibility (#2546).
 
 Performance:
 
