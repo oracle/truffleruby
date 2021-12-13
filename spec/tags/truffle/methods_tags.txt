@@ -6,7 +6,6 @@ fails:Public methods on Float should include negative?
 fails:Public methods on Float should include positive?
 fails:Public methods on Float should include zero?
 fails:Public methods on Hash should include any?
-fails:Public methods on Hash should not include __store__
 fails:Public methods on Hash should not include sort
 fails:Public methods on IO should include fdatasync
 fails:Public methods on IO should include pread
@@ -67,7 +66,6 @@ fails:Public methods on ENV.singleton_class should not include index
 fails:Public methods on Fiber should include backtrace
 fails:Public methods on Fiber should include backtrace_locations
 fails:Public methods on Fiber should include blocking?
-fails:Public methods on Hash should not include index
 fails:Public methods on IO should not include bytes
 fails:Public methods on IO should not include chars
 fails:Public methods on IO should not include codepoints

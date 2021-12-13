@@ -109,9 +109,6 @@ class Hash
 
   alias_method :store, :[]=
 
-  # Used internally to get around subclasses redefining #[]=
-  alias_method :__store__, :[]=
-
   def <(other)
     other = Truffle::Type.coerce_to(other, Hash, :to_hash)
     return false if self.size >= other.size
@@ -295,14 +292,14 @@ class Hash
       if block_given?
         other.each_pair do |key,value|
           if key? key
-            __store__ key, yield(key, self[key], value)
+            Primitive.hash_store(self, key, yield(key, self[key], value))
           else
-            __store__ key, value
+            Primitive.hash_store(self, key, value)
           end
         end
       else
         other.each_pair do |key,value|
-          __store__ key, value
+          Primitive.hash_store(self, key, value)
         end
       end
     end
@@ -412,13 +409,12 @@ class Hash
     self
   end
 
-  def index(value)
+  def key(value)
     each_pair do |k,v|
       return k if v == value
     end
     nil
   end
-  alias_method :key, :index
 
   def inspect
     out = []
