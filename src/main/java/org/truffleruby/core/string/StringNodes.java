@@ -5168,7 +5168,7 @@ public abstract class StringNodes {
                 joinedRight = rightConcatNode.executeConcat(joinedLeft, splitRight, encoding);
             }
 
-            string.setRope(joinedRight, string.encoding);
+            string.setRope(joinedRight, rubyEncoding);
             return string;
         }
 

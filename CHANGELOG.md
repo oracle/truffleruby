@@ -12,6 +12,7 @@ Bug fixes:
 * Fixed `-0.0 <=> 0.0` and `-0.0 <=> 0` to return `0` like on CRuby (#1391).
 * Fixed `Range#step` to return correct class with begin-less range (@ccocchi, #2516).
 * Fixed exception creation when an `Errno` is sub-classed (@bjfish, #2521).
+* Fixed `String#[]=` to use the negotiated encoding (@bjfish, #2545).
 
 Compatibility:
 
