@@ -27,6 +27,7 @@ import org.truffleruby.language.FrameAndVariablesSendingNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.CallForeignMethodNode;
 import org.truffleruby.language.methods.CallInternalMethodNode;
@@ -114,9 +115,8 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
         return dispatch(null, receiver, method, block, arguments);
     }
 
-    public final Object dispatch(Frame frame, Object receiver, String methodName, Object block, Object[] arguments) {
-        assert block instanceof Nil || block instanceof RubyProc : block;
-
+    public final Object dispatch(Frame frame, String methodName, Object[] rubyArgs) {
+        Object receiver = RubyArguments.getSelf(rubyArgs);
         final RubyClass metaclass = metaclassNode.execute(receiver);
         final InternalMethod method = methodLookup.execute(frame, metaclass, methodName, config);
 
@@ -126,6 +126,8 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
                     return MISSING;
                 case CALL_METHOD_MISSING:
                     // Both branches implicitly profile through lazy node creation
+                    final Object block = RubyArguments.getBlock(rubyArgs);
+                    final Object[] arguments = RubyArguments.getArguments(rubyArgs);
                     if (RubyGuards.isForeignObject(receiver)) { // TODO (eregon, 16 Aug 2021) maybe use a final boolean on the class to know if foreign
                         return callForeign(receiver, methodName, block, arguments);
                     } else {
@@ -134,8 +136,13 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
             }
         }
 
-        final Object callerFrameOrVariables = getFrameOrStorageIfRequired(frame);
-        return callNode.execute(frame, callerFrameOrVariables, method, receiver, block, arguments);
+        RubyArguments.setMethod(rubyArgs, method);
+        RubyArguments.setCallerData(rubyArgs, getFrameOrStorageIfRequired(frame));
+        return callNode.execute(frame, rubyArgs);
+    }
+
+    public final Object dispatch(Frame frame, Object receiver, String methodName, Object block, Object[] arguments) {
+        return dispatch(frame, methodName, RubyArguments.pack(null, null, null, null, null, receiver, block, arguments));
     }
 
     private Object callMethodMissing(
