@@ -37,7 +37,7 @@ public final class RubyArguments {
         BLOCK // 6
     }
 
-    private static final int RUNTIME_ARGUMENT_COUNT = ArgumentIndicies.values().length;
+    public static final int RUNTIME_ARGUMENT_COUNT = ArgumentIndicies.values().length;
 
     /** In most cases the DeclarationContext is the one of the InternalMethod. */
     public static Object[] pack(
@@ -176,6 +176,10 @@ public final class RubyArguments {
         return args[ArgumentIndicies.SELF.ordinal()];
     }
 
+    public static void setSelf(Object[] args, Object self) {
+        args[ArgumentIndicies.SELF.ordinal()] = self;
+    }
+
     public static Object getSelf(Frame frame) {
         return frame.getArguments()[ArgumentIndicies.SELF.ordinal()];
     }
@@ -185,6 +189,12 @@ public final class RubyArguments {
         /* We put into the arguments array either a Nil or RubyProc, so that's all we'll get out at this point. */
         assert block instanceof Nil || block instanceof RubyProc : StringUtils.toString(block);
         return block;
+    }
+
+    public static void setBlock(Object[] args, Object block) {
+        // We put into the arguments array either a Nil or RubyProc.
+        assert block instanceof Nil || block instanceof RubyProc : StringUtils.toString(block);
+        args[ArgumentIndicies.BLOCK.ordinal()] = block;
     }
 
     public static Object getBlock(Frame frame) {
