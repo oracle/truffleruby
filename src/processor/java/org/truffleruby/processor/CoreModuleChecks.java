@@ -148,7 +148,7 @@ public class CoreModuleChecks {
             n--;
         }
 
-        if (coreMethod.needsBlock()) {
+        if (coreMethod.needsBlock() && !coreMethod.alwaysInlined()) {
             if (n < 0) {
                 processor.error("invalid block method parameter position for", specializationMethod);
                 return;

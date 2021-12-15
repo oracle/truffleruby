@@ -125,6 +125,7 @@ import org.truffleruby.parser.RubySource;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.CreateCast;
@@ -394,11 +395,14 @@ public abstract class ModuleNodes {
     }
 
     @GenerateUncached
+    @ImportStatic(RubyArguments.class)
     public abstract static class GeneratedReaderNode extends AlwaysInlinedMethodNode {
 
-        @Specialization(limit = "getDynamicObjectCacheLimit()")
+        @Specialization(guards = "isRubyDynamicObject(getSelf(rubyArgs))",
+                        limit = "getDynamicObjectCacheLimit()")
         protected Object reader(
-                Frame callerFrame, RubyDynamicObject self, Object[] args, Object block, RootCallTarget target,
+                Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+                @Bind("getReceiver(rubyArgs)") RubyDynamicObject self,
                 @CachedLibrary("self") DynamicObjectLibrary objectLibrary) {
             // Or a subclass of RubyRootNode with an extra field?
             final String ivarName = RubyRootNode.of(target).getSharedMethodInfo().getNotes();
@@ -408,29 +412,37 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "!isRubyDynamicObject(self)")
-        protected Object notObject(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target) {
+        protected Object notObject(Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+                @Bind("getSelf(rubyArgs)") Object self) {
             return nil;
+        }
+
+        protected static RubyDynamicObject getReceiver(Object[] rubyArgs) {
+            return (RubyDynamicObject) RubyArguments.getSelf(rubyArgs);
         }
     }
 
     @GenerateUncached
+    @ImportStatic(RubyArguments.class)
     public abstract static class GeneratedWriterNode extends AlwaysInlinedMethodNode {
 
         @Specialization(guards = "!rubyLibrary.isFrozen(self)")
         protected Object writer(
-                Frame callerFrame, RubyDynamicObject self, Object[] args, Object block, RootCallTarget target,
+                Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+                @Bind("getSelf(rubyArgs)") Object self,
                 @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary,
                 @Cached WriteObjectFieldNode writeObjectFieldNode) {
             final String ivarName = RubyRootNode.of(target).getSharedMethodInfo().getNotes();
             CompilerAsserts.partialEvaluationConstant(ivarName);
 
-            final Object value = args[0];
-            writeObjectFieldNode.execute(self, ivarName, value);
+            final Object value = RubyArguments.getArgument(rubyArgs, 0);
+            writeObjectFieldNode.execute((RubyDynamicObject) self, ivarName, value);
             return value;
         }
 
         @Specialization(guards = "rubyLibrary.isFrozen(self)")
-        protected Object frozen(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
+        protected Object frozen(Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+                @Bind("getSelf(rubyArgs)") Object self,
                 @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary) {
             throw new RaiseException(getContext(), coreExceptions().frozenError(self, this));
         }
@@ -533,8 +545,10 @@ public abstract class ModuleNodes {
     public abstract static class AttrNode extends GenerateAccessorNode {
         @Specialization
         protected Object attr(
-                Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
+                Frame callerFrame, Object[] rubyArgs,  RootCallTarget target) {
             final boolean setter;
+            final RubyModule module = (RubyModule) RubyArguments.getSelf(rubyArgs);
+            Object[] names = RubyArguments.getArguments(rubyArgs);
             if (names.length == 2 && names[1] instanceof Boolean) {
                 warnObsoletedBooleanArgument();
                 setter = (boolean) names[1];
@@ -561,7 +575,9 @@ public abstract class ModuleNodes {
     public abstract static class AttrAccessorNode extends GenerateAccessorNode {
         @Specialization
         protected Object attrAccessor(
-                Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
+                Frame callerFrame, Object[] rubyArgs, RootCallTarget target) {
+            final RubyModule module = (RubyModule) RubyArguments.getSelf(rubyArgs);
+            Object[] names = RubyArguments.getArguments(rubyArgs);
             return createArray(generateAccessors(callerFrame, module, names, BOTH, target));
         }
     }
@@ -571,7 +587,9 @@ public abstract class ModuleNodes {
     public abstract static class AttrReaderNode extends GenerateAccessorNode {
         @Specialization
         protected Object attrReader(
-                Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
+                Frame callerFrame, Object[] rubyArgs, RootCallTarget target) {
+            final RubyModule module = (RubyModule) RubyArguments.getSelf(rubyArgs);
+            Object[] names = RubyArguments.getArguments(rubyArgs);
             return createArray(generateAccessors(callerFrame, module, names, READER, target));
         }
     }
@@ -581,7 +599,9 @@ public abstract class ModuleNodes {
     public abstract static class AttrWriterNode extends GenerateAccessorNode {
         @Specialization
         protected Object attrWriter(
-                Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
+                Frame callerFrame, Object[] rubyArgs, RootCallTarget target) {
+            final RubyModule module = (RubyModule) RubyArguments.getSelf(rubyArgs);
+            Object[] names = RubyArguments.getArguments(rubyArgs);
             return createArray(generateAccessors(callerFrame, module, names, WRITER, target));
         }
     }
@@ -1536,11 +1556,14 @@ public abstract class ModuleNodes {
     }
 
     @GenerateUncached
+    @ImportStatic(RubyArguments.class)
     @CoreMethod(names = "module_function", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
     public abstract static class ModuleFunctionNode extends AlwaysInlinedMethodNode {
         @Specialization(guards = "names.length == 0")
         protected RubyModule frame(
-                Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target,
+                Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+                @Bind("getModule(rubyArgs)") RubyModule module,
+                @Bind("getArguments(rubyArgs)") Object[] names,
                 @Cached BranchProfile errorProfile) {
             checkNotClass(module, errorProfile);
             needCallerFrame(callerFrame, "Module#module_function with no arguments");
@@ -1550,7 +1573,9 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = "names.length > 0")
         protected RubyModule methods(
-                Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target,
+                Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+                @Bind("getModule(rubyArgs)") RubyModule module,
+                @Bind("getArguments(rubyArgs)") Object[] names,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode,
                 @Cached BranchProfile errorProfile,
                 @Cached LoopConditionProfile loopProfile) {
@@ -1574,6 +1599,10 @@ public abstract class ModuleNodes {
                         getContext(),
                         coreExceptions().typeError("module_function must be called for modules", this));
             }
+        }
+
+        protected static RubyModule getModule(Object[] rubyArgs) {
+            return (RubyModule) RubyArguments.getSelf(rubyArgs);
         }
     }
 
@@ -1622,11 +1651,14 @@ public abstract class ModuleNodes {
     }
 
     @GenerateUncached
+    @ImportStatic(RubyArguments.class)
     @CoreMethod(names = "public", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
     public abstract static class PublicNode extends AlwaysInlinedMethodNode {
         @Specialization(guards = "names.length == 0")
         protected RubyModule frame(
-                Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
+                Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+                @Bind("getModule(rubyArgs)") RubyModule module,
+                @Bind("getArguments(rubyArgs)") Object[] names) {
             needCallerFrame(callerFrame, "Module#public with no arguments");
             DeclarationContext.setCurrentVisibility(callerFrame, Visibility.PUBLIC);
             return module;
@@ -1634,12 +1666,18 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = "names.length > 0")
         protected RubyModule methods(
-                Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target,
+                Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+                @Bind("getModule(rubyArgs)") RubyModule module,
+                @Bind("getArguments(rubyArgs)") Object[] names,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode) {
             for (Object name : names) {
                 setMethodVisibilityNode.execute(module, name, Visibility.PUBLIC);
             }
             return module;
+        }
+
+        protected static RubyModule getModule(Object[] rubyArgs) {
+            return (RubyModule) RubyArguments.getSelf(rubyArgs);
         }
     }
 
@@ -1662,11 +1700,14 @@ public abstract class ModuleNodes {
     }
 
     @GenerateUncached
+    @ImportStatic(RubyArguments.class)
     @CoreMethod(names = "private", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
     public abstract static class PrivateNode extends AlwaysInlinedMethodNode {
         @Specialization(guards = "names.length == 0")
         protected RubyModule frame(
-                Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
+                Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+                @Bind("getModule(rubyArgs)") RubyModule module,
+                @Bind("getArguments(rubyArgs)") Object[] names) {
             needCallerFrame(callerFrame, "Module#private with no arguments");
             DeclarationContext.setCurrentVisibility(callerFrame, Visibility.PRIVATE);
             return module;
@@ -1674,12 +1715,18 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = "names.length > 0")
         protected RubyModule methods(
-                Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target,
+                Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+                @Bind("getModule(rubyArgs)") RubyModule module,
+                @Bind("getArguments(rubyArgs)") Object[] names,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode) {
             for (Object name : names) {
                 setMethodVisibilityNode.execute(module, name, Visibility.PRIVATE);
             }
             return module;
+        }
+
+        protected static RubyModule getModule(Object[] rubyArgs) {
+            return (RubyModule) RubyArguments.getSelf(rubyArgs);
         }
     }
 
@@ -1969,11 +2016,14 @@ public abstract class ModuleNodes {
     }
 
     @GenerateUncached
+    @ImportStatic(RubyArguments.class)
     @CoreMethod(names = "protected", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
     public abstract static class ProtectedNode extends AlwaysInlinedMethodNode {
         @Specialization(guards = "names.length == 0")
         protected RubyModule frame(
-                Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
+                Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+                @Bind("getModule(rubyArgs)") RubyModule module,
+                @Bind("getArguments(rubyArgs)") Object[] names) {
             needCallerFrame(callerFrame, "Module#protected with no arguments");
             DeclarationContext.setCurrentVisibility(callerFrame, Visibility.PROTECTED);
             return module;
@@ -1981,12 +2031,18 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = "names.length > 0")
         protected RubyModule methods(
-                Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target,
+                Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+                @Bind("getModule(rubyArgs)") RubyModule module,
+                @Bind("getArguments(rubyArgs)") Object[] names,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode) {
             for (Object name : names) {
                 setMethodVisibilityNode.execute(module, name, Visibility.PROTECTED);
             }
             return module;
+        }
+
+        protected static RubyModule getModule(Object[] rubyArgs) {
+            return (RubyModule) RubyArguments.getSelf(rubyArgs);
         }
     }
 
@@ -2277,10 +2333,11 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "using", required = 1, visibility = Visibility.PRIVATE, alwaysInlined = true)
     public abstract static class ModuleUsingNode extends UsingNode {
         @Specialization
-        protected Object moduleUsing(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
+        protected Object moduleUsing(Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
                 @Cached BranchProfile errorProfile) {
             needCallerFrame(callerFrame, target);
-            final Object refinementModule = args[0];
+            final Object self = RubyArguments.getSelf(rubyArgs);
+            final Object refinementModule = RubyArguments.getArgument(rubyArgs, 0);
             if (self != RubyArguments.getSelf(callerFrame)) {
                 errorProfile.enter();
                 throw new RaiseException(

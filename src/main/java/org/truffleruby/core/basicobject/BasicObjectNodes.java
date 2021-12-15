@@ -604,12 +604,13 @@ public abstract class BasicObjectNodes {
     public abstract static class SendNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected Object send(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
+        protected Object send(Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
                 @Cached DispatchNode dispatchNode,
                 @Cached NameToJavaStringNode nameToJavaString) {
-            Object name = args[0];
-            Object[] callArgs = ArrayUtils.extractRange(args, 1, args.length);
-            return dispatchNode.dispatch(callerFrame, self, nameToJavaString.execute(name), block, callArgs);
+            Object name = RubyArguments.getArgument(rubyArgs, 0);
+            Object self = RubyArguments.getSelf(rubyArgs);
+            int count = RubyArguments.getArgumentsCount(rubyArgs) - 1;
+            return dispatchNode.dispatch(callerFrame, nameToJavaString.execute(name), RubyArguments.repack(rubyArgs, self, 1, count));
         }
 
     }

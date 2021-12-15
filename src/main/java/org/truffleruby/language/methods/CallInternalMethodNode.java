@@ -82,8 +82,6 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
             Frame frame, Object[] rubyArgs,
             @Bind("getCallerData(rubyArgs)") Object callerData,
             @Bind("getMethod(rubyArgs)") InternalMethod method,
-            @Bind("getSelf(rubyArgs)") Object self,
-            @Bind("getBlock(rubyArgs)") Object block,
             @Cached(value = "method.getCallTarget()") RootCallTarget cachedCallTarget,
             @Cached("method") InternalMethod cachedMethod,
             @Cached("createAlwaysInlinedMethodNode(cachedMethod)") AlwaysInlinedMethodNode alwaysInlinedNode,
@@ -93,7 +91,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
         try {
             RubyCheckArityRootNode.checkArity(cachedArity, RubyArguments.getArgumentsCount(rubyArgs), checkArityProfile, alwaysInlinedNode);
 
-            return alwaysInlinedNode.execute(frame, self, RubyArguments.getArguments(rubyArgs), block, cachedCallTarget);
+            return alwaysInlinedNode.execute(frame, rubyArgs, cachedCallTarget);
         } catch (RaiseException e) {
             exceptionProfile.enter();
             final Node location = e.getLocation();
@@ -137,8 +135,6 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
                     rubyArgs,
                     callerData,
                     method,
-                    self,
-                    block,
                     method.getCallTarget(),
                     method,
                     getUncachedAlwaysInlinedMethodNode(method),

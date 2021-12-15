@@ -33,7 +33,7 @@ import org.truffleruby.language.control.RaiseException;
 @GenerateNodeFactory
 public abstract class AlwaysInlinedMethodNode extends RubyBaseNode {
 
-    public abstract Object execute(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target);
+    public abstract Object execute(Frame callerFrame, Object[] rubyArgs, RootCallTarget target);
 
     protected void needCallerFrame(Frame callerFrame, RootCallTarget target) {
         if (callerFrame == null) {

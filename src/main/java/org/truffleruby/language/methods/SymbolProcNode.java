@@ -35,10 +35,8 @@ public class SymbolProcNode extends RubyContextSourceNode {
         assert given >= 1 : "guaranteed from arity check";
 
         final Object receiver = RubyArguments.getArgument(frame, 0);
-        final Object[] arguments = ArrayUtils.extractRange(RubyArguments.getArguments(frame), 1, given);
-        final Object block = RubyArguments.getBlock(frame);
 
-        return getCallNode().dispatch(frame, receiver, symbol, block, arguments);
+        return getCallNode().dispatch(frame, symbol, RubyArguments.repack(frame, receiver, 1, given - 1));
     }
 
     private DispatchNode getCallNode() {

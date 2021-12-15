@@ -196,14 +196,15 @@ public abstract class ProcNodes {
     public abstract static class CallNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected Object call(Frame callerFrame, RubyProc proc, Object[] args, Object block, RootCallTarget target,
+        protected Object call(Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
                 @Cached CallBlockNode callBlockNode) {
+            final RubyProc proc = (RubyProc) RubyArguments.getSelf(rubyArgs);
             return callBlockNode.executeCallBlock(
                     proc.declarationContext,
                     proc,
                     ProcOperations.getSelf(proc),
-                    block,
-                    args);
+                    RubyArguments.getBlock(rubyArgs),
+                    RubyArguments.getArguments(rubyArgs));
         }
 
     }

@@ -83,6 +83,24 @@ public final class RubyArguments {
         return packed;
     }
 
+    public static Object[] repack(Frame frame, Object receiver, int from, int count) {
+        final Object[] newArgs = new Object[RUNTIME_ARGUMENT_COUNT + count];
+        final Object[] args = frame.getArguments();
+        newArgs[ArgumentIndicies.SELF.ordinal()] = receiver;
+        newArgs[ArgumentIndicies.BLOCK.ordinal()] = getBlock(args);
+        System.arraycopy(args, RUNTIME_ARGUMENT_COUNT + from, newArgs, RUNTIME_ARGUMENT_COUNT, count);
+        return newArgs;
+    }
+
+    public static Object[] repack(Object[] args, Object receiver, int from, int count) {
+        final Object[] newArgs = new Object[RUNTIME_ARGUMENT_COUNT + count];
+        newArgs[ArgumentIndicies.SELF.ordinal()] = receiver;
+        newArgs[ArgumentIndicies.BLOCK.ordinal()] = getBlock(args);
+        // System.err.printf("Repacking args from array[%d] to array[%d], from %d, count %d.\n", args.length, newArgs.length, from, count);
+        System.arraycopy(args, RUNTIME_ARGUMENT_COUNT +from, newArgs, RUNTIME_ARGUMENT_COUNT, count);
+        return newArgs;
+    }
+
     public static boolean assertValues(
             Object callerFrameOrVariables,
             InternalMethod method,
@@ -215,6 +233,11 @@ public final class RubyArguments {
     public static Object getArgument(Frame frame, int index) {
         assert index >= 0 && index < (frame.getArguments().length - RUNTIME_ARGUMENT_COUNT);
         return frame.getArguments()[RUNTIME_ARGUMENT_COUNT + index];
+    }
+
+    public static Object getArgument(Object[] rubyArgs, int index) {
+        assert index >= 0 && index < (rubyArgs.length - RUNTIME_ARGUMENT_COUNT);
+        return rubyArgs[RUNTIME_ARGUMENT_COUNT + index];
     }
 
     public static Object[] getArguments(Object[] arguments) {
