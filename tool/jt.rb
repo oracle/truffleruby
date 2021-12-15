@@ -1656,19 +1656,23 @@ module Commands
 
   private def build_stats_native_binary_size(*args)
     truffleruby_native!
-    File.size(ruby_launcher) / 1024.0 / 1024.0
+    File.size(language_lib_path) / 1024.0 / 1024.0
   end
 
   private def build_stats_native_build_time(*args)
     log = File.read('aot-build.log')
-    build_time = log[/\[truffleruby.*\].*\[total\]:\s*([0-9,.]+)\s*ms/, 1]
-    Float(build_time.gsub(',', '')) / 1000.0
+    unless log =~ /\[librubyvm:\d+\] Finished generating 'librubyvm' in (\d+)m (\d+)s\./
+      raise 'Could not find line with build time for librubyvm'
+    end
+    Integer($1) * 60 + Integer($2)
   end
 
   private def build_stats_native_runtime_compilable_methods(*args)
     log = File.read('aot-build.log')
-    log =~ /(?<method_count>\d+) method\(s\) included for runtime compilation/m
-    Integer($~[:method_count])
+    unless log =~ /\[librubyvm:\d+\]\s*(?<method_count>[\d,]+).* of .* methods included for runtime compilation/
+      raise 'Could not find line with runtime methods for librubyvm'
+    end
+    Integer($~[:method_count].gsub(',', ''))
   end
 
   def metrics(command, *args)

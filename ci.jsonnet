@@ -10,7 +10,7 @@
 # https://github.com/google/jsonnet/releases and compiled.
 
 # CONFIGURATION
-local overlay = "ef7900003d566aa9dad40cfcf771bc4be2b4ca12";
+local overlay = "ffb092a26e86b0b4c2ac33bdbc329d938b527942";
 
 # For debugging: generated builds will be restricted to those listed in
 # the array. No restriction is applied when it is empty.
@@ -20,7 +20,7 @@ local restrict_builds_to = [];
 # and it would still work.
 local utils = import "utils.libsonnet";
 
-local common = (import "common.json");
+local common = import "common.json";
 
 # All builds are composed **directly** from **independent disjunct composable**
 # jsonnet objects defined in here. Use `+:` to make the objects or arrays
