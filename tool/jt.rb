@@ -1656,7 +1656,7 @@ module Commands
 
   private def build_stats_native_binary_size(*args)
     truffleruby_native!
-    File.size(ruby_launcher) / 1024.0 / 1024.0
+    File.size(language_lib_path) / 1024.0 / 1024.0
   end
 
   private def build_stats_native_build_time(*args)
