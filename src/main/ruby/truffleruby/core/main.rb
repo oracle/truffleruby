@@ -55,13 +55,6 @@ class << self
   alias_method :inspect, :to_s
 end
 
-show_backtraces = -> {
-  $stderr.puts 'All Thread and Fiber backtraces:'
-  Primitive.all_fibers_backtraces.each do |fiber, backtrace|
-    $stderr.puts "#{fiber} of #{Primitive.fiber_thread(fiber)}", backtrace, nil
-  end
-}
-
 Truffle::Boot.delay do
   # Use vm_watch_signal directly as those should be the default Ruby handlers
 
@@ -69,7 +62,7 @@ Truffle::Boot.delay do
     Primitive.vm_watch_signal 'INT', true, -> _signo do
       if Truffle::Boot.get_option('backtraces-on-interrupt')
         $stderr.puts 'Interrupting...'
-        show_backtraces.call
+        Truffle::Debug.show_backtraces
       end
 
       raise Interrupt
@@ -78,7 +71,7 @@ Truffle::Boot.delay do
 
   if Truffle::Boot.get_option('backtraces-sigalrm')
     Primitive.vm_watch_signal 'ALRM', true, -> _signo do
-      show_backtraces.call
+      Truffle::Debug.show_backtraces
     end
   end
 end

@@ -9,9 +9,15 @@
 # GNU Lesser General Public License version 2.1.
 
 module Truffle::Debug
+  # Note: used by MSpec
+  def self.show_backtraces
+    $stderr.puts 'All Thread and Fiber backtraces:'
+    Primitive.all_fibers_backtraces.each do |fiber, backtrace|
+      $stderr.puts "#{fiber} of #{Primitive.fiber_thread(fiber)}", backtrace, nil
+    end
+  end
 
   class Breakpoint
-
     def initialize(handle)
       @handle = handle
     end
@@ -25,5 +31,4 @@ module Truffle::Debug
   def self.break(file, line, &block)
     Breakpoint.new(break_handle(File.expand_path(file), line, &block))
   end
-
 end
