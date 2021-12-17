@@ -37,7 +37,7 @@ public final class RubyArguments {
         BLOCK // 6
     }
 
-    public static final int RUNTIME_ARGUMENT_COUNT = ArgumentIndicies.values().length;
+    private static final int RUNTIME_ARGUMENT_COUNT = ArgumentIndicies.values().length;
 
     /** In most cases the DeclarationContext is the one of the InternalMethod. */
     public static Object[] pack(
@@ -81,6 +81,10 @@ public final class RubyArguments {
         ArrayUtils.arraycopy(arguments, 0, packed, RUNTIME_ARGUMENT_COUNT, arguments.length);
 
         return packed;
+    }
+
+    public static Object[] allocate(int count) {
+        return new Object[RUNTIME_ARGUMENT_COUNT + count];
     }
 
     public static Object[] repack(Frame frame, Object receiver, int from, int count) {
@@ -238,6 +242,11 @@ public final class RubyArguments {
     public static Object getArgument(Object[] rubyArgs, int index) {
         assert index >= 0 && index < (rubyArgs.length - RUNTIME_ARGUMENT_COUNT);
         return rubyArgs[RUNTIME_ARGUMENT_COUNT + index];
+    }
+
+    public static void setArgument(Object[] rubyArgs, int index, Object value) {
+        assert index >= 0 && index < (rubyArgs.length - RUNTIME_ARGUMENT_COUNT);
+        rubyArgs[RUNTIME_ARGUMENT_COUNT + index] = value;
     }
 
     public static Object[] getArguments(Object[] arguments) {

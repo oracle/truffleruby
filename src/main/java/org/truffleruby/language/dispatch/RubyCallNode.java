@@ -92,7 +92,7 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
             return nil;
         }
         if (!isSplatted) {
-            final Object[] rubyArgs = new Object[RubyArguments.RUNTIME_ARGUMENT_COUNT + arguments.length];
+            final Object[] rubyArgs = RubyArguments.allocate(arguments.length);
             RubyArguments.setSelf(rubyArgs, receiverObject);
 
             executeArguments(frame, rubyArgs);
@@ -190,7 +190,7 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
     @ExplodeLoop
     private Object[] executeArguments(VirtualFrame frame, Object[] rubyArgs) {
         for (int i = 0; i < arguments.length; i++) {
-            rubyArgs[RubyArguments.RUNTIME_ARGUMENT_COUNT + i] = arguments[i].execute(frame);
+            RubyArguments.setArgument(rubyArgs, i, arguments[i].execute(frame));
         }
 
         return rubyArgs;
