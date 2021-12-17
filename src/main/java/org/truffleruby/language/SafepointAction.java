@@ -18,6 +18,7 @@ import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.core.thread.RubyThread;
 
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /** A action to run in a guest-language safepoint. Actions with side-effects should usually be asynchronous. */
 public abstract class SafepointAction extends ThreadLocalAction {
@@ -26,6 +27,7 @@ public abstract class SafepointAction extends ThreadLocalAction {
     private final String reason;
     private final SafepointPredicate filter;
     private final RubyThread targetThread;
+    private final AtomicBoolean executed;
 
     public SafepointAction(String reason, RubyThread targetThread, boolean hasSideEffects, boolean synchronous) {
         this(reason, SafepointPredicate.CURRENT_FIBER_OF_THREAD, hasSideEffects, synchronous, targetThread);
@@ -46,6 +48,7 @@ public abstract class SafepointAction extends ThreadLocalAction {
         this.reason = reason;
         this.filter = filter;
         this.targetThread = targetThread;
+        this.executed = targetThread != null ? new AtomicBoolean(false) : null;
     }
 
     public abstract void run(RubyThread rubyThread, Node currentNode);
@@ -64,7 +67,12 @@ public abstract class SafepointAction extends ThreadLocalAction {
         final RubyThread rubyThread = language.getCurrentThread();
         final Node node = access.getLocation();
         if (filter.test(context, rubyThread, this)) {
-            run(rubyThread, node);
+            // actions which need to run on the current Fiber of a Ruby Thread might execute multiple times, because
+            // they can be scheduled at different times and the current fiber of that thread might change in between.
+            // So ensure we only execute the action once.
+            if (executed == null || executed.compareAndSet(false, true)) {
+                run(rubyThread, node);
+            }
 
             if (filter == SafepointPredicate.ALL_THREADS_AND_FIBERS) {
                 final RubyFiber currentFiber = rubyThread.getCurrentFiber();
