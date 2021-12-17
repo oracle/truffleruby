@@ -364,6 +364,10 @@ public class FiberManager {
 
     @TruffleBoundary
     public void killOtherFibers(RubyThread thread) {
+        if (thread.runningFibers.size() <= 1) {
+            return; // Avoid leaveAndEnter() if there are no other Fibers
+        }
+
         // All Fibers except the current one are in waitForResume(),
         // so sending a FiberShutdownMessage is enough to finish them.
         // This also avoids the performance cost of a safepoint.
