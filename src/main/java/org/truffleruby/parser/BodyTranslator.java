@@ -1100,7 +1100,7 @@ public class BodyTranslator extends Translator {
                 name,
                 node.getBodyNode(),
                 OpenModule.CLASS,
-                environment.isDynamicConstantLookup());
+                shouldUseDynamicConstantLookupForModuleBody(sourceSection));
         return addNewlineIfNeeded(node, ret);
     }
 
@@ -2192,7 +2192,7 @@ public class BodyTranslator extends Translator {
                 name,
                 node.getBodyNode(),
                 OpenModule.MODULE,
-                environment.isDynamicConstantLookup());
+                shouldUseDynamicConstantLookupForModuleBody(sourceSection));
         return addNewlineIfNeeded(node, ret);
     }
 
@@ -2785,6 +2785,27 @@ public class BodyTranslator extends Translator {
         return addNewlineIfNeeded(node, ret);
     }
 
+    private boolean shouldUseDynamicConstantLookupForModuleBody(SourceIndexLength sourceSection) {
+        if (environment.isDynamicConstantLookup()) {
+            return true;
+        }
+
+        if (environment.isModuleBody()) { // A new class/module under another class/module
+            return false;
+        } else if (environment.isTopLevelScope()) {
+            // At the top-level of a file, executing the module/class body only once
+            return false;
+        } else {
+            // Switch to dynamic constant lookup
+            if (language.options.LOG_DYNAMIC_CONSTANT_LOOKUP) {
+                RubyLanguage.LOGGER.info(
+                        () -> "start dynamic constant lookup at " +
+                                RubyLanguage.fileLine(sourceSection.toSourceSection(source)));
+            }
+            return true;
+        }
+    }
+
     @Override
     public RubyNode visitSClassNode(SClassParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
@@ -2798,8 +2819,8 @@ public class BodyTranslator extends Translator {
         if (!dynamicConstantLookup) {
             if (environment.isModuleBody() && node.getReceiverNode() instanceof SelfParseNode) {
                 // Common case of class << self in a module body, the constant lookup scope is still static.
-                // Special pattern recognized by #modulePathAndMethodName:
                 if (environment.isTopLevelObjectScope()) {
+                    // Special pattern recognized by #modulePathAndMethodName:
                     modulePath = "main::<singleton class>";
                 } else {
                     modulePath = TranslatorEnvironment.composeModulePath(environment.modulePath, "<singleton class>");
