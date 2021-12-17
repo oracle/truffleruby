@@ -23,6 +23,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /** A action to run in a guest-language safepoint. Actions with side-effects should usually be asynchronous. */
 public abstract class SafepointAction extends ThreadLocalAction {
 
+    private static final SafepointPredicate CURRENT_FIBER_OF_THREAD = //
+            (context, thread, action) -> thread == action.getTargetThread() && context.getThreadManager()
+                    .getRubyFiberFromCurrentJavaThread() == action.getTargetThread().getCurrentFiber();
+
     private final boolean publicSynchronous;
     private final String reason;
     private final SafepointPredicate filter;
@@ -30,7 +34,7 @@ public abstract class SafepointAction extends ThreadLocalAction {
     private final AtomicBoolean executed;
 
     public SafepointAction(String reason, RubyThread targetThread, boolean hasSideEffects, boolean synchronous) {
-        this(reason, SafepointPredicate.CURRENT_FIBER_OF_THREAD, hasSideEffects, synchronous, targetThread);
+        this(reason, CURRENT_FIBER_OF_THREAD, hasSideEffects, synchronous, targetThread);
     }
 
     public SafepointAction(String reason, SafepointPredicate filter, boolean hasSideEffects, boolean synchronous) {
