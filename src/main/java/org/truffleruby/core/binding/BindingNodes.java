@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2020 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2021 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -328,7 +328,8 @@ public abstract class BindingNodes {
                 @Cached("createWriteNode(cachedFrameSlot)") WriteFrameSlotNode writeLocalVariableNode) {
             final MaterializedFrame frame = RubyArguments
                     .getDeclarationFrame(binding.getFrame(), cachedFrameSlot.depth);
-            return writeLocalVariableNode.executeWrite(frame, value);
+            writeLocalVariableNode.executeWrite(frame, value);
+            return value;
         }
 
         @Specialization(
@@ -347,7 +348,8 @@ public abstract class BindingNodes {
                 @Cached("findFrameSlot(name, newDescriptor)") FrameSlotAndDepth newFrameSlot,
                 @Cached("createWriteNode(newFrameSlot)") WriteFrameSlotNode writeLocalVariableNode) {
             final MaterializedFrame frame = newFrame(binding, newDescriptor);
-            return writeLocalVariableNode.executeWrite(frame, value);
+            writeLocalVariableNode.executeWrite(frame, value);
+            return value;
         }
 
         @TruffleBoundary
