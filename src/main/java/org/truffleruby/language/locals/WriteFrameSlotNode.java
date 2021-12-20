@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2020 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2021 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.locals;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
@@ -17,10 +16,12 @@ import org.truffleruby.language.RubyGuards;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.frame.VirtualFrame;
 
-@ImportStatic(RubyGuards.class)
+@ImportStatic({ FrameSlotKind.class, RubyGuards.class })
 public abstract class WriteFrameSlotNode extends RubyBaseNode implements AssignableNode {
 
     private final FrameSlot frameSlot;
@@ -29,80 +30,50 @@ public abstract class WriteFrameSlotNode extends RubyBaseNode implements Assigna
         this.frameSlot = frameSlot;
     }
 
-    public abstract Object executeWrite(Frame frame, Object value);
+    public abstract void executeWrite(Frame frame, Object value);
 
     @Override
     public void assign(VirtualFrame frame, Object value) {
         executeWrite(frame, value);
     }
 
-    @Specialization(guards = "checkBooleanKind(frame)")
-    protected boolean writeBoolean(Frame frame, boolean value) {
+    @Specialization(guards = "isExpectedOrIllegal(frame, Boolean)")
+    protected void writeBoolean(Frame frame, boolean value) {
         frame.setBoolean(frameSlot, value);
-        return value;
     }
 
-    @Specialization(guards = "checkIntegerKind(frame)")
-    protected int writeInteger(Frame frame, int value) {
+    @Specialization(guards = "isExpectedOrIllegal(frame, Int)")
+    protected void writeInt(Frame frame, int value) {
         frame.setInt(frameSlot, value);
-        return value;
     }
 
-    @Specialization(guards = "checkLongKind(frame)")
-    protected long writeLong(Frame frame, long value) {
+    @Specialization(guards = "isExpectedOrIllegal(frame, Long)")
+    protected void writeLong(Frame frame, long value) {
         frame.setLong(frameSlot, value);
-        return value;
     }
 
-    @Specialization(guards = "checkDoubleKind(frame)")
-    protected double writeDouble(Frame frame, double value) {
+    @Specialization(guards = "isExpectedOrIllegal(frame, Double)")
+    protected void writeDouble(Frame frame, double value) {
         frame.setDouble(frameSlot, value);
-        return value;
     }
 
-    @Specialization(
-            guards = "checkObjectKind(frame)",
-            replaces = { "writeBoolean", "writeInteger", "writeLong", "writeDouble" })
-    protected Object writeObject(Frame frame, Object value) {
-        frame.setObject(frameSlot, value);
-        return value;
-    }
-
-    protected boolean checkBooleanKind(Frame frame) {
-        return checkKind(frame, FrameSlotKind.Boolean);
-    }
-
-    protected boolean checkIntegerKind(Frame frame) {
-        return checkKind(frame, FrameSlotKind.Int);
-    }
-
-    protected boolean checkLongKind(Frame frame) {
-        return checkKind(frame, FrameSlotKind.Long);
-    }
-
-    protected boolean checkDoubleKind(Frame frame) {
-        return checkKind(frame, FrameSlotKind.Double);
-    }
-
-    protected boolean checkObjectKind(Frame frame) {
+    @Specialization(replaces = { "writeBoolean", "writeInt", "writeLong", "writeDouble" })
+    protected void writeObject(Frame frame, Object value) {
+        /* No-op if kind is already Object. */
         frame.getFrameDescriptor().setFrameSlotKind(frameSlot, FrameSlotKind.Object);
-        return true;
+
+        frame.setObject(frameSlot, value);
     }
 
-    private boolean checkKind(Frame frame, FrameSlotKind kind) {
-        if (frame.getFrameDescriptor().getFrameSlotKind(frameSlot) == kind) {
+    protected boolean isExpectedOrIllegal(Frame frame, FrameSlotKind expectedKind) {
+        final FrameDescriptor descriptor = frame.getFrameDescriptor();
+        final FrameSlotKind kind = descriptor.getFrameSlotKind(frameSlot);
+        if (kind == expectedKind) {
             return true;
-        } else {
-            return initialSetKind(frame, kind);
-        }
-    }
-
-    private boolean initialSetKind(Frame frame, FrameSlotKind kind) {
-        if (frame.getFrameDescriptor().getFrameSlotKind(frameSlot) == FrameSlotKind.Illegal) {
-            frame.getFrameDescriptor().setFrameSlotKind(frameSlot, kind);
+        } else if (kind == FrameSlotKind.Illegal) {
+            descriptor.setFrameSlotKind(frameSlot, expectedKind);
             return true;
         }
-
         return false;
     }
 
