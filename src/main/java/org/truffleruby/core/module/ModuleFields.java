@@ -123,6 +123,10 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
      * {@code module A; end; module B; end; class C; end; C.include A; A.include B; C.ancestors.include?(B) => false} */
     private final Set<RubyModule> includedBy;
 
+    /** The set of modules/classes which transitively or directly include/prepend this module. */
+    private final Set<RubyModule> includes;
+    private final Set<RubyModule> prepends;
+
     @TruffleBoundary
     public ModuleFields(
             RubyLanguage language,
@@ -140,6 +144,12 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         classVariables = new ClassVariableStorage(language);
         start = new PrependMarker(this);
         this.includedBy = rubyModule instanceof RubyClass
+                ? null
+                : Collections.newSetFromMap(Collections.synchronizedMap(new WeakHashMap<>()));
+        this.includes = rubyModule instanceof RubyClass
+                ? null
+                : Collections.newSetFromMap(Collections.synchronizedMap(new WeakHashMap<>()));
+        this.prepends = rubyModule instanceof RubyClass
                 ? null
                 : Collections.newSetFromMap(Collections.synchronizedMap(new WeakHashMap<>()));
     }
@@ -304,6 +314,16 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
 
         performIncludes(inclusionPoint, modulesToInclude);
+        module.fields.includes.add(rubyModule);
+
+        if (!RubyGuards.isRubyClass(rubyModule)) {
+            for (RubyModule m : prepends) {
+                m.fields.prepend(context, currentNode, rubyModule);
+            }
+            for (RubyModule m : includes) {
+                m.fields.include(context, currentNode, rubyModule);
+            }
+        }
 
         newHierarchyVersion();
     }
@@ -317,10 +337,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
             // the current class/module is enough as all affected lookups would go through the current class/module.
             toInclude.fields.includedBy.add(rubyModule);
             newConstantsVersion(toInclude.fields.getConstantNames());
-            if (rubyModule instanceof RubyClass) {
-                // M.include(N) just registers N but does nothing for methods until C.include/prepend(M)
-                newMethodsVersion(toInclude.fields.getMethodNames());
-            }
+            newMethodsVersion(toInclude.fields.getMethodNames());
         }
     }
 
@@ -355,13 +372,18 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         ModuleChain mod = module.fields.start;
         ModuleChain cur = start;
+
+        // Iterate the module chain of the module being prepended, stop when you've reached a class
         while (mod != null &&
                 !(mod instanceof ModuleFields && ((ModuleFields) mod).rubyModule instanceof RubyClass)) {
+            // Skip the prepend module's prepend marker
             if (!(mod instanceof PrependMarker)) {
                 final RubyModule toPrepend = mod.getActualModule();
                 if (!ModuleOperations.includesModule(rubyModule, toPrepend)) {
+                    // If the module is not already included in the module, insert it
                     cur.insertAfter(toPrepend);
 
+                    // Perform necessary invalidations and state updates
                     final List<String> constantsToInvalidate = toPrepend.fields.getConstantNames();
                     final boolean isClass = rubyModule instanceof RubyClass;
                     final List<String> methodsToInvalidate = isClass ? toPrepend.fields.getMethodNames() : null;
@@ -374,10 +396,25 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
                         }
                     }
 
+                    // Updated the current insertion point which is now the current ancestor
+                    cur = cur.getParentModule();
+                } else {
+                    // Skip this insertion point since it's already included
                     cur = cur.getParentModule();
                 }
             }
             mod = mod.getParentModule();
+        }
+
+        module.fields.prepends.add(rubyModule);
+
+        if (!RubyGuards.isRubyClass(rubyModule)) {
+            for (RubyModule m : prepends) {
+                m.fields.prepend(context, currentNode, rubyModule);
+            }
+            for (RubyModule m : includes) {
+                m.fields.include(context, currentNode, rubyModule);
+            }
         }
 
         // If there were already prepended modules, invalidate the first of them
