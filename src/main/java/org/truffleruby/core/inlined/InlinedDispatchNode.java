@@ -47,14 +47,78 @@ public class InlinedDispatchNode extends RubyBaseNode implements DispatchingNode
     }
 
     public Object call(Object receiver, String method) {
-        return dispatch(null, method, RubyArguments.pack(null, null, null, null, null, receiver, nil, EMPTY_ARGUMENTS));
+        final Object[] rubyArgs = RubyArguments.allocate(0);
+        RubyArguments.setSelf(rubyArgs, receiver);
+        RubyArguments.setBlock(rubyArgs, nil);
+        return dispatch(null, method, rubyArgs);
     }
 
-    public Object call(Object receiver, String method, Object... arguments) {
+    public Object call(Object receiver, String method, Object arg0) {
+        final Object[] rubyArgs = RubyArguments.allocate(1);
+        RubyArguments.setSelf(rubyArgs, receiver);
+        RubyArguments.setBlock(rubyArgs, nil);
+        RubyArguments.setArgument(rubyArgs, 0, arg0);
+        return dispatch(null, method, rubyArgs);
+    }
+
+    public Object call(Object receiver, String method, Object arg0, Object arg1) {
+        final Object[] rubyArgs = RubyArguments.allocate(2);
+        RubyArguments.setSelf(rubyArgs, receiver);
+        RubyArguments.setBlock(rubyArgs, nil);
+        RubyArguments.setArgument(rubyArgs, 0, arg0);
+        RubyArguments.setArgument(rubyArgs, 1, arg1);
+        return dispatch(null, method, rubyArgs);
+    }
+
+    public Object call(Object receiver, String method, Object arg0, Object arg1, Object arg2) {
+        final Object[] rubyArgs = RubyArguments.allocate(3);
+        RubyArguments.setSelf(rubyArgs, receiver);
+        RubyArguments.setBlock(rubyArgs, nil);
+        RubyArguments.setArgument(rubyArgs, 0, arg0);
+        RubyArguments.setArgument(rubyArgs, 1, arg1);
+        RubyArguments.setArgument(rubyArgs, 2, arg2);
+        return dispatch(null, method, rubyArgs);
+    }
+
+    public Object call(Object receiver, String method, Object[] arguments) {
         return dispatch(null, method, RubyArguments.pack(null, null, null, null, null, receiver, nil, arguments));
     }
 
-    public Object callWithBlock(Object receiver, String method, Object block, Object... arguments) {
+    public Object callWithBlock(Object receiver, String method, Object block) {
+        final Object[] rubyArgs = RubyArguments.allocate(0);
+        RubyArguments.setSelf(rubyArgs, receiver);
+        RubyArguments.setBlock(rubyArgs, block);
+        return dispatch(null, method, rubyArgs);
+    }
+
+    public Object callWithBlock(Object receiver, String method, Object block, Object arg0) {
+        final Object[] rubyArgs = RubyArguments.allocate(1);
+        RubyArguments.setSelf(rubyArgs, receiver);
+        RubyArguments.setBlock(rubyArgs, block);
+        RubyArguments.setArgument(rubyArgs, 0, arg0);
+        return dispatch(null, method, rubyArgs);
+    }
+
+    public Object callWithBlock(Object receiver, String method, Object block, Object arg0, Object arg1) {
+        final Object[] rubyArgs = RubyArguments.allocate(2);
+        RubyArguments.setSelf(rubyArgs, receiver);
+        RubyArguments.setBlock(rubyArgs, block);
+        RubyArguments.setArgument(rubyArgs, 0, arg0);
+        RubyArguments.setArgument(rubyArgs, 1, arg1);
+        return dispatch(null, method, rubyArgs);
+    }
+
+    public Object callWithBlock(Object receiver, String method, Object block, Object arg0, Object arg1, Object arg2) {
+        final Object[] rubyArgs = RubyArguments.allocate(3);
+        RubyArguments.setSelf(rubyArgs, receiver);
+        RubyArguments.setBlock(rubyArgs, block);
+        RubyArguments.setArgument(rubyArgs, 0, arg0);
+        RubyArguments.setArgument(rubyArgs, 1, arg1);
+        RubyArguments.setArgument(rubyArgs, 2, arg2);
+        return dispatch(null, method, rubyArgs);
+    }
+
+    public Object callWithBlock(Object receiver, String method, Object block, Object[] arguments) {
         return dispatch(null, method, RubyArguments.pack(null, null, null, null, null, receiver, block, arguments));
     }
 
