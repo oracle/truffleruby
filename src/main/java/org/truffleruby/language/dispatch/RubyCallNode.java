@@ -87,7 +87,7 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
 
     @Override
     public Object execute(VirtualFrame frame) {
-         final Object receiverObject = receiver.execute(frame);
+        final Object receiverObject = receiver.execute(frame);
         if (isSafeNavigation && nilProfile.profile(receiverObject == nil)) {
             return nil;
         }

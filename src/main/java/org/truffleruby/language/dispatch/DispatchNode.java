@@ -21,10 +21,8 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.exception.ExceptionOperations.ExceptionFormatter;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -105,6 +103,10 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
                 CallInternalMethodNode.create(),
                 ConditionProfile.create(),
                 BranchProfile.create());
+    }
+
+    public Object call(Object receiver, String method) {
+        return dispatch(null, receiver, method, nil, EMPTY_ARGUMENTS);
     }
 
     public Object call(Object receiver, String method, Object... arguments) {

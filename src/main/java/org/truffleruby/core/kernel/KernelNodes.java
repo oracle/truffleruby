@@ -714,8 +714,8 @@ public abstract class KernelNodes {
         }
 
         @Override
-        public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object block) {
-            return execute(self);
+        public Object inlineExecute(Frame callerFrame, Object[] rubyArgs) {
+            return execute(RubyArguments.getSelf(rubyArgs));
         }
 
         @Override
@@ -1116,9 +1116,9 @@ public abstract class KernelNodes {
         }
 
         @Override
-        public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object block) {
-            assert args.length == 1;
-            return execute(self, args[0]);
+        public Object inlineExecute(Frame callerFrame, Object[] rubyArgs) {
+            assert RubyArguments.getArgumentsCount(rubyArgs) == 1;
+            return execute(RubyArguments.getSelf(rubyArgs), RubyArguments.getArgument(rubyArgs, 0));
         }
 
         @Override
@@ -1142,8 +1142,8 @@ public abstract class KernelNodes {
         }
 
         @Override
-        public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object block) {
-            return initializeDup((RubyDynamicObject) self, args[0]);
+        public Object inlineExecute(Frame callerFrame, Object[] rubyArgs) {
+            return initializeDup((RubyDynamicObject) RubyArguments.getSelf(rubyArgs), RubyArguments.getArgument(rubyArgs, 0));
         }
 
         @Override

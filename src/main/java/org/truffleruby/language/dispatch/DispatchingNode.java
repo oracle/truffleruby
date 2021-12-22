@@ -14,10 +14,12 @@ import com.oracle.truffle.api.nodes.NodeInterface;
 
 public interface DispatchingNode extends NodeInterface {
 
+    public Object call(Object receiver, String method);
+
     public Object call(Object receiver, String method, Object... arguments);
 
     public Object callWithBlock(Object receiver, String method, Object block, Object... arguments);
 
-    public Object dispatch(Frame frame, Object receiver, String methodName, Object block, Object[] arguments);
+    public Object dispatch(Frame frame, String methodName, Object[] rubyArgs);
 
 }

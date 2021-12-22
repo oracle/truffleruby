@@ -17,6 +17,7 @@ import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.DispatchingNode;
 import org.truffleruby.language.methods.LookupMethodOnSelfNode;
@@ -45,23 +46,28 @@ public class InlinedDispatchNode extends RubyBaseNode implements DispatchingNode
         this.inlinedMethod = inlinedMethod;
     }
 
+    public Object call(Object receiver, String method) {
+        return dispatch(null, method, RubyArguments.pack(null, null, null, null, null, receiver, nil, EMPTY_ARGUMENTS));
+    }
+
     public Object call(Object receiver, String method, Object... arguments) {
-        return dispatch(null, receiver, method, nil, arguments);
+        return dispatch(null, method, RubyArguments.pack(null, null, null, null, null, receiver, nil, arguments));
     }
 
     public Object callWithBlock(Object receiver, String method, Object block, Object... arguments) {
-        return dispatch(null, receiver, method, block, arguments);
+        return dispatch(null, method, RubyArguments.pack(null, null, null, null, null, receiver, block, arguments));
     }
 
-    public Object dispatch(Frame frame, Object receiver, String methodName, Object block, Object[] arguments) {
+    public Object dispatch(Frame frame, String methodName, Object[] rubyArgs) {
+        Object receiver = RubyArguments.getSelf(rubyArgs);
         if ((lookupNode.lookupIgnoringVisibility(frame, receiver, methodName) != inlinedMethod.getMethod()) ||
                 !Assumption.isValidAssumption(assumptions)) {
-            return rewriteAndCallWithBlock(frame, receiver, methodName, block, arguments);
+            return rewriteAndCallWithBlock(frame, methodName, rubyArgs);
         } else {
             try {
-                return inlinedMethod.inlineExecute(frame, receiver, arguments, block);
+                return inlinedMethod.inlineExecute(frame, rubyArgs);
             } catch (InlinedMethodNode.RewriteException e) {
-                return rewriteAndCallWithBlock(frame, receiver, methodName, block, arguments);
+                return rewriteAndCallWithBlock(frame, methodName, rubyArgs);
             }
         }
     }
@@ -79,9 +85,8 @@ public class InlinedDispatchNode extends RubyBaseNode implements DispatchingNode
         }
     }
 
-    protected Object rewriteAndCallWithBlock(Frame frame, Object receiver, String methodName, Object block,
-            Object... arguments) {
-        return rewriteToDispatchNode().dispatch(frame, receiver, methodName, block, arguments);
+    protected Object rewriteAndCallWithBlock(Frame frame, String methodName, Object[] rubyArgs) {
+        return rewriteToDispatchNode().dispatch(frame, methodName, rubyArgs);
     }
 
 }

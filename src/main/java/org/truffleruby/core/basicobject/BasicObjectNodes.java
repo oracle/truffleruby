@@ -107,7 +107,11 @@ public abstract class BasicObjectNodes {
 
         @Specialization
         protected boolean equal(VirtualFrame frame, Object a, Object b) {
-            return !booleanCastNode.executeToBoolean(equalNode.call(a, "==", b));
+            final Object[] rubyArgs = RubyArguments.allocate(1);
+            RubyArguments.setSelf(rubyArgs, a);
+            RubyArguments.setBlock(rubyArgs, nil);
+            RubyArguments.setArgument(rubyArgs, 0, b);
+            return !booleanCastNode.executeToBoolean(equalNode.dispatch(null, "==", rubyArgs));
         }
 
     }
@@ -329,8 +333,8 @@ public abstract class BasicObjectNodes {
         }
 
         @Override
-        public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object block) {
-            if (args.length > 0) {
+        public Object inlineExecute(Frame callerFrame, Object[] rubyArgs) {
+            if (RubyArguments.getArgumentsCount(rubyArgs) > 0) {
                 throw new InlinedMethodNode.RewriteException();
             }
             return execute();
@@ -642,8 +646,8 @@ public abstract class BasicObjectNodes {
         }
 
         @Override
-        public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object block) {
-            return execute(self);
+        public Object inlineExecute(Frame callerFrame, Object[] rubyArgs) {
+            return execute(RubyArguments.getSelf(rubyArgs));
         }
 
         @Override

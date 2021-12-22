@@ -88,20 +88,25 @@ public final class RubyArguments {
     }
 
     public static Object[] repack(Frame frame, Object receiver, int from, int count) {
-        final Object[] newArgs = new Object[RUNTIME_ARGUMENT_COUNT + count];
         final Object[] args = frame.getArguments();
-        newArgs[ArgumentIndicies.SELF.ordinal()] = receiver;
-        newArgs[ArgumentIndicies.BLOCK.ordinal()] = getBlock(args);
-        System.arraycopy(args, RUNTIME_ARGUMENT_COUNT + from, newArgs, RUNTIME_ARGUMENT_COUNT, count);
-        return newArgs;
+        return repack(args, receiver, from, 0, count);
+    }
+
+    public static Object[] repack(Frame frame, Object receiver, int from, int to, int count) {
+        final Object[] args = frame.getArguments();
+        return repack(args, receiver, from, to, count);
     }
 
     public static Object[] repack(Object[] args, Object receiver, int from, int count) {
-        final Object[] newArgs = new Object[RUNTIME_ARGUMENT_COUNT + count];
+        return repack(args, receiver, from, 0, count);
+    }
+
+    public static Object[] repack(Object[] args, Object receiver, int from, int to, int count) {
+        final Object[] newArgs = new Object[RUNTIME_ARGUMENT_COUNT + to + count];
         newArgs[ArgumentIndicies.SELF.ordinal()] = receiver;
         newArgs[ArgumentIndicies.BLOCK.ordinal()] = getBlock(args);
         // System.err.printf("Repacking args from array[%d] to array[%d], from %d, count %d.\n", args.length, newArgs.length, from, count);
-        System.arraycopy(args, RUNTIME_ARGUMENT_COUNT +from, newArgs, RUNTIME_ARGUMENT_COUNT, count);
+        System.arraycopy(args, RUNTIME_ARGUMENT_COUNT +from, newArgs, RUNTIME_ARGUMENT_COUNT + to, count);
         return newArgs;
     }
 
@@ -256,6 +261,10 @@ public final class RubyArguments {
     public static Object[] getArguments(Frame frame) {
         Object[] arguments = frame.getArguments();
         return ArrayUtils.extractRange(arguments, RUNTIME_ARGUMENT_COUNT, arguments.length);
+    }
+
+    public static void setArguments(Object[] rubyArgs, Object[] args) {
+        System.arraycopy(args, 0, rubyArgs, RUNTIME_ARGUMENT_COUNT, args.length);
     }
 
     public static Object[] getArguments(Frame frame, int start) {
