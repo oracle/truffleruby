@@ -25,7 +25,7 @@ public class KernelGetsNode extends RubyContextSourceNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callGetsNode = insert(DispatchNode.create());
         }
-        return callGetsNode.dispatch(frame, coreLibrary().kernelModule, "gets", nil, EMPTY_ARGUMENTS);
+        return callGetsNode.dispatch(frame, coreLibrary().kernelModule, "gets", nil);
     }
 
 }
