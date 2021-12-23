@@ -140,7 +140,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
     }
 
     public Object call(Object receiver, String method, Object[] arguments) {
-        return dispatch(null, receiver, method, nil, arguments);
+        return dispatch(null, method, RubyArguments.pack(null, null, null, null, null, receiver, nil, arguments));
     }
 
     public Object callWithBlock(Object receiver, String method, Object block) {
@@ -178,7 +178,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
     }
 
     public Object callWithBlock(Object receiver, String method, Object block, Object[] arguments) {
-        return dispatch(null, receiver, method, block, arguments);
+        return dispatch(null, method, RubyArguments.pack(null, null, null, null, null, receiver, block, arguments));
     }
 
     public final Object dispatch(Frame frame, String methodName, Object[] rubyArgs) {
@@ -197,7 +197,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
                     if (RubyGuards.isForeignObject(receiver)) { // TODO (eregon, 16 Aug 2021) maybe use a final boolean on the class to know if foreign
                         return callForeign(receiver, methodName, block, arguments);
                     } else {
-                        return callMethodMissing(frame, receiver, methodName, block, arguments);
+                        return callMethodMissing(frame, methodName, rubyArgs);
                     }
             }
         }
@@ -218,22 +218,22 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
         return dispatch(frame, methodName, RubyArguments.pack(null, null, null, null, null, receiver, block, arguments));
     }
 
-    private Object callMethodMissing(
-            Frame frame, Object receiver, String methodName, Object block,
-            Object[] arguments) {
+    private Object callMethodMissing(Frame frame, String methodName, Object[] rubyArgs) {
 
         final RubySymbol symbolName = nameToSymbol(methodName);
-        final Object[] newArguments = ArrayUtils.unshift(arguments, symbolName);
+        final Object[] newArgs = RubyArguments.repack(rubyArgs, RubyArguments.getSelf(rubyArgs), 0, 1,
+                RubyArguments.getArgumentsCount(rubyArgs));
 
-        final Object result = callMethodMissingNode(frame, receiver, block, newArguments);
+        RubyArguments.setArgument(newArgs, 0, symbolName);
+        final Object result = callMethodMissingNode(frame, newArgs);
 
         if (result == MISSING) {
             methodMissingMissing.enter();
             throw new RaiseException(getContext(), coreExceptions().noMethodErrorFromMethodMissing(
                     ExceptionFormatter.NO_METHOD_ERROR,
-                    receiver,
+                    RubyArguments.getSelf(rubyArgs),
                     methodName,
-                    arguments,
+                    RubyArguments.getArguments(rubyArgs),
                     this));
         }
 
@@ -248,14 +248,14 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
         return callForeign.execute(receiver, methodName, block, arguments);
     }
 
-    protected Object callMethodMissingNode(Frame frame, Object receiver, Object block, Object[] arguments) {
+    protected Object callMethodMissingNode(Frame frame, Object[] rubyArgs) {
         if (callMethodMissing == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             // #method_missing ignores refinements on CRuby: https://bugs.ruby-lang.org/issues/13129
             callMethodMissing = insert(
                     DispatchNode.create(DispatchConfiguration.PRIVATE_RETURN_MISSING_IGNORE_REFINEMENTS));
         }
-        return callMethodMissing.dispatch(frame, receiver, "method_missing", block, arguments);
+        return callMethodMissing.dispatch(frame, "method_missing", rubyArgs);
     }
 
     protected RubySymbol nameToSymbol(String methodName) {
@@ -323,14 +323,14 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
 
         @Override
         protected Object callMethodMissingNode(
-                Frame frame, Object receiver, Object block, Object[] arguments) {
+                Frame frame, Object[] rubyArgs) {
             if (callMethodMissing == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 callMethodMissing = insert(
                         DispatchNode.getUncached(DispatchConfiguration.PRIVATE_RETURN_MISSING_IGNORE_REFINEMENTS));
             }
 
-            return callMethodMissing.dispatch(frame, receiver, "method_missing", block, arguments);
+            return callMethodMissing.dispatch(frame, "method_missing", rubyArgs);
         }
 
         @Override

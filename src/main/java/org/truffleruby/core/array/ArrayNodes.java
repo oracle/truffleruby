@@ -80,6 +80,7 @@ import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -1451,8 +1452,11 @@ public abstract class ArrayNodes {
             int n = start;
             try {
                 for (; loopProfile.inject(n < array.size); n++) {
-                    accumulator = dispatch
-                            .dispatch(frame, accumulator, symbol, nil, new Object[]{ stores.read(store, n) });
+                    final Object[] rubyArgs = RubyArguments.allocate(1);
+                    RubyArguments.setSelf(rubyArgs, accumulator);
+                    RubyArguments.setBlock(rubyArgs, nil);
+                    RubyArguments.setArgument(rubyArgs, 0, stores.read(store, n));
+                    accumulator = dispatch.dispatch(frame, symbol, rubyArgs);
                     TruffleSafepoint.poll(this);
                 }
             } finally {
