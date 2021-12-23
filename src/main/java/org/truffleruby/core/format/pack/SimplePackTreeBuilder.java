@@ -365,7 +365,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
                 takeAll,
                 appendNull,
                 ReadStringNodeGen.create(
-                        true,
+                        false,
                         "to_str",
                         false,
                         Nil.INSTANCE,
@@ -381,7 +381,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
                 starLength.isStar(),
                 starLength.getLength(),
                 ReadStringNodeGen.create(
-                        true,
+                        false,
                         "to_str",
                         false,
                         Nil.INSTANCE,
@@ -403,7 +403,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
                 byteOrder,
                 length,
                 ReadStringNodeGen.create(
-                        true,
+                        false,
                         "to_str",
                         false,
                         Nil.INSTANCE,

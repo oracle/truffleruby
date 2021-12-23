@@ -8,6 +8,7 @@ Bug fixes:
 
 Compatibility:
 
+* Implement more correct conversion of array elements by `Array#pack`(#2503, #2504, @aardvakr179).
 
 Performance:
 
