@@ -62,6 +62,7 @@ Compatibility:
 * Implement `Array#slice` with `ArithmeticSequence` (#2526, @ccocchi).
 * Update `Hash#each` to consistently yield a 2-element array (#2453).
 * Remove `Hash#{__store__, index}` methods for compatibility (#2546).
+* Implement more correct conversion of array elements by `Array#pack` (#2503, #2504, @aardvark179).
 
 Performance:
 
