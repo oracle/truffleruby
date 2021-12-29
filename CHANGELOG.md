@@ -60,6 +60,7 @@ Performance:
 * Reduce conversion of `VALUE`s to native handle during common operations in C extensions (@aardvark179).
 * Improved performance of regex boolean matches (e.g., `Regexp#match?`) by avoiding match data allocation in TRegex (#2558, @nirvdrum).
 * Remove overhead when getting using `RDATA_PTR` (@aardvark179).
+* Additional copy operations have been reduced when performing IO (#2536, @aardvark179).
 
 Changes:
 
