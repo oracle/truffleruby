@@ -49,7 +49,8 @@ public class CallSuperMethodNode extends FrameAndVariablesSendingNode {
         }
 
         final Object callerFrameOrVariables = getFrameOrStorageIfRequired(frame);
-        return getCallMethodNode().execute(frame, RubyArguments.pack(null, callerFrameOrVariables, superMethod, null, self, block, arguments));
+        return getCallMethodNode().execute(frame,
+                RubyArguments.pack(null, callerFrameOrVariables, superMethod, null, self, block, arguments));
     }
 
     private CallInternalMethodNode getCallMethodNode() {

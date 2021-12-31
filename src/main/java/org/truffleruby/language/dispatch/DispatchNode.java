@@ -17,7 +17,6 @@ import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.exception.ExceptionOperations.ExceptionFormatter;
 import org.truffleruby.core.klass.RubyClass;
@@ -215,7 +214,8 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
     }
 
     public final Object dispatch(Frame frame, Object receiver, String methodName, Object block, Object[] arguments) {
-        return dispatch(frame, methodName, RubyArguments.pack(null, null, null, null, null, receiver, block, arguments));
+        return dispatch(frame, methodName,
+                RubyArguments.pack(null, null, null, null, null, receiver, block, arguments));
     }
 
     private Object callMethodMissing(Frame frame, String methodName, Object[] rubyArgs) {

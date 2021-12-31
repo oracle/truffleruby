@@ -78,8 +78,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
                     "cachedMethod.alwaysInlined()" },
             assumptions = "getMethodAssumption(cachedMethod)", // to remove the inline cache entry when the method is redefined or removed
             limit = "getCacheLimit()")
-    protected Object alwaysInlined(
-            Frame frame, Object[] rubyArgs,
+    protected Object alwaysInlined(Frame frame, Object[] rubyArgs,
             @Bind("getCallerData(rubyArgs)") Object callerData,
             @Bind("getMethod(rubyArgs)") InternalMethod method,
             @Cached(value = "method.getCallTarget()") RootCallTarget cachedCallTarget,
@@ -89,7 +88,8 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
             @Cached BranchProfile checkArityProfile,
             @Cached BranchProfile exceptionProfile) {
         try {
-            RubyCheckArityRootNode.checkArity(cachedArity, RubyArguments.getArgumentsCount(rubyArgs), checkArityProfile, alwaysInlinedNode);
+            RubyCheckArityRootNode.checkArity(cachedArity, RubyArguments.getArgumentsCount(rubyArgs), checkArityProfile,
+                    alwaysInlinedNode);
 
             return alwaysInlinedNode.execute(frame, rubyArgs, cachedCallTarget);
         } catch (RaiseException e) {
@@ -105,8 +105,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "method.alwaysInlined()", replaces = "alwaysInlined")
-    protected Object alwaysInlinedUncached(
-            Frame frame, Object[] rubyArgs,
+    protected Object alwaysInlinedUncached(Frame frame, Object[] rubyArgs,
             @Bind("getMethod(rubyArgs)") InternalMethod method) {
         return alwaysInlinedBoundary(
                 frame == null ? null : frame.materialize(),

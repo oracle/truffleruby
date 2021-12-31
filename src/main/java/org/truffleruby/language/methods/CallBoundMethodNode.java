@@ -30,7 +30,8 @@ public abstract class CallBoundMethodNode extends RubyBaseNode {
     protected Object call(Frame frame, RubyMethod method, Object[] arguments, Object block,
             @Cached CallInternalMethodNode callInternalMethodNode) {
         final InternalMethod internalMethod = method.method;
-        return callInternalMethodNode.execute(frame, RubyArguments.pack(null, null, internalMethod, null, method.receiver, block, arguments));
+        return callInternalMethodNode.execute(frame,
+                RubyArguments.pack(null, null, internalMethod, null, method.receiver, block, arguments));
     }
 
 }

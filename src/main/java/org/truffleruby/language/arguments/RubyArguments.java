@@ -106,7 +106,7 @@ public final class RubyArguments {
         newArgs[ArgumentIndicies.SELF.ordinal()] = receiver;
         newArgs[ArgumentIndicies.BLOCK.ordinal()] = getBlock(args);
         // System.err.printf("Repacking args from array[%d] to array[%d], from %d, count %d.\n", args.length, newArgs.length, from, count);
-        System.arraycopy(args, RUNTIME_ARGUMENT_COUNT +from, newArgs, RUNTIME_ARGUMENT_COUNT + to, count);
+        System.arraycopy(args, RUNTIME_ARGUMENT_COUNT + from, newArgs, RUNTIME_ARGUMENT_COUNT + to, count);
         return newArgs;
     }
 

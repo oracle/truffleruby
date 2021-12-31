@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.methods;
 
-import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.dispatch.DispatchNode;

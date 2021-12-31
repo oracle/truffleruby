@@ -298,7 +298,8 @@ public abstract class ClassNodes {
 
         @Override
         public Object inlineExecute(Frame callerFrame, Object[] rubyArgs) {
-            return execute(RubyArguments.getSelf(rubyArgs), RubyArguments.getArguments(rubyArgs), RubyArguments.getBlock(rubyArgs));
+            return execute(RubyArguments.getSelf(rubyArgs), RubyArguments.getArguments(rubyArgs),
+                    RubyArguments.getBlock(rubyArgs));
         }
 
         private DispatchingNode allocateNode() {

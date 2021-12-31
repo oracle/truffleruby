@@ -18,7 +18,6 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
-import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.AllocateNodeFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InitializeNodeFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InstanceExecNodeFactory;
@@ -614,7 +613,8 @@ public abstract class BasicObjectNodes {
             Object name = RubyArguments.getArgument(rubyArgs, 0);
             Object self = RubyArguments.getSelf(rubyArgs);
             int count = RubyArguments.getArgumentsCount(rubyArgs) - 1;
-            return dispatchNode.dispatch(callerFrame, nameToJavaString.execute(name), RubyArguments.repack(rubyArgs, self, 1, count));
+            return dispatchNode.dispatch(callerFrame, nameToJavaString.execute(name),
+                    RubyArguments.repack(rubyArgs, self, 1, count));
         }
 
     }

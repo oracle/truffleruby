@@ -399,9 +399,8 @@ public abstract class ModuleNodes {
     public abstract static class GeneratedReaderNode extends AlwaysInlinedMethodNode {
 
         @Specialization(guards = "isRubyDynamicObject(getSelf(rubyArgs))",
-                        limit = "getDynamicObjectCacheLimit()")
-        protected Object reader(
-                Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+                limit = "getDynamicObjectCacheLimit()")
+        protected Object reader(Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getReceiver(rubyArgs)") RubyDynamicObject self,
                 @CachedLibrary("self") DynamicObjectLibrary objectLibrary) {
             // Or a subclass of RubyRootNode with an extra field?
@@ -427,8 +426,7 @@ public abstract class ModuleNodes {
     public abstract static class GeneratedWriterNode extends AlwaysInlinedMethodNode {
 
         @Specialization(guards = "!rubyLibrary.isFrozen(self)")
-        protected Object writer(
-                Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+        protected Object writer(Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getSelf(rubyArgs)") Object self,
                 @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary,
                 @Cached WriteObjectFieldNode writeObjectFieldNode) {
@@ -544,8 +542,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "attr", rest = true, alwaysInlined = true)
     public abstract static class AttrNode extends GenerateAccessorNode {
         @Specialization
-        protected Object attr(
-                Frame callerFrame, Object[] rubyArgs,  RootCallTarget target) {
+        protected Object attr(Frame callerFrame, Object[] rubyArgs, RootCallTarget target) {
             final boolean setter;
             final RubyModule module = (RubyModule) RubyArguments.getSelf(rubyArgs);
             Object[] names = RubyArguments.getArguments(rubyArgs);
@@ -574,8 +571,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "attr_accessor", rest = true, alwaysInlined = true)
     public abstract static class AttrAccessorNode extends GenerateAccessorNode {
         @Specialization
-        protected Object attrAccessor(
-                Frame callerFrame, Object[] rubyArgs, RootCallTarget target) {
+        protected Object attrAccessor(Frame callerFrame, Object[] rubyArgs, RootCallTarget target) {
             final RubyModule module = (RubyModule) RubyArguments.getSelf(rubyArgs);
             Object[] names = RubyArguments.getArguments(rubyArgs);
             return createArray(generateAccessors(callerFrame, module, names, BOTH, target));
@@ -586,8 +582,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "attr_reader", rest = true, alwaysInlined = true)
     public abstract static class AttrReaderNode extends GenerateAccessorNode {
         @Specialization
-        protected Object attrReader(
-                Frame callerFrame, Object[] rubyArgs, RootCallTarget target) {
+        protected Object attrReader(Frame callerFrame, Object[] rubyArgs, RootCallTarget target) {
             final RubyModule module = (RubyModule) RubyArguments.getSelf(rubyArgs);
             Object[] names = RubyArguments.getArguments(rubyArgs);
             return createArray(generateAccessors(callerFrame, module, names, READER, target));
@@ -598,8 +593,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "attr_writer", rest = true, alwaysInlined = true)
     public abstract static class AttrWriterNode extends GenerateAccessorNode {
         @Specialization
-        protected Object attrWriter(
-                Frame callerFrame, Object[] rubyArgs, RootCallTarget target) {
+        protected Object attrWriter(Frame callerFrame, Object[] rubyArgs, RootCallTarget target) {
             final RubyModule module = (RubyModule) RubyArguments.getSelf(rubyArgs);
             Object[] names = RubyArguments.getArguments(rubyArgs);
             return createArray(generateAccessors(callerFrame, module, names, WRITER, target));
@@ -1560,8 +1554,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "module_function", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
     public abstract static class ModuleFunctionNode extends AlwaysInlinedMethodNode {
         @Specialization(guards = "names.length == 0")
-        protected RubyModule frame(
-                Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+        protected RubyModule frame(Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getModule(rubyArgs)") RubyModule module,
                 @Bind("getArguments(rubyArgs)") Object[] names,
                 @Cached BranchProfile errorProfile) {
@@ -1572,8 +1565,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "names.length > 0")
-        protected RubyModule methods(
-                Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+        protected RubyModule methods(Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getModule(rubyArgs)") RubyModule module,
                 @Bind("getArguments(rubyArgs)") Object[] names,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode,
@@ -1655,8 +1647,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "public", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
     public abstract static class PublicNode extends AlwaysInlinedMethodNode {
         @Specialization(guards = "names.length == 0")
-        protected RubyModule frame(
-                Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+        protected RubyModule frame(Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getModule(rubyArgs)") RubyModule module,
                 @Bind("getArguments(rubyArgs)") Object[] names) {
             needCallerFrame(callerFrame, "Module#public with no arguments");
@@ -1665,8 +1656,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "names.length > 0")
-        protected RubyModule methods(
-                Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+        protected RubyModule methods(Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getModule(rubyArgs)") RubyModule module,
                 @Bind("getArguments(rubyArgs)") Object[] names,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode) {
@@ -1704,8 +1694,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "private", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
     public abstract static class PrivateNode extends AlwaysInlinedMethodNode {
         @Specialization(guards = "names.length == 0")
-        protected RubyModule frame(
-                Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+        protected RubyModule frame(Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getModule(rubyArgs)") RubyModule module,
                 @Bind("getArguments(rubyArgs)") Object[] names) {
             needCallerFrame(callerFrame, "Module#private with no arguments");
@@ -1714,8 +1703,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "names.length > 0")
-        protected RubyModule methods(
-                Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+        protected RubyModule methods(Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getModule(rubyArgs)") RubyModule module,
                 @Bind("getArguments(rubyArgs)") Object[] names,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode) {
@@ -2020,8 +2008,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "protected", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
     public abstract static class ProtectedNode extends AlwaysInlinedMethodNode {
         @Specialization(guards = "names.length == 0")
-        protected RubyModule frame(
-                Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+        protected RubyModule frame(Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getModule(rubyArgs)") RubyModule module,
                 @Bind("getArguments(rubyArgs)") Object[] names) {
             needCallerFrame(callerFrame, "Module#protected with no arguments");
@@ -2030,8 +2017,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "names.length > 0")
-        protected RubyModule methods(
-                Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+        protected RubyModule methods(Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getModule(rubyArgs)") RubyModule module,
                 @Bind("getArguments(rubyArgs)") Object[] names,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode) {

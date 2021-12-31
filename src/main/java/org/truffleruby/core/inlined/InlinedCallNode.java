@@ -59,7 +59,8 @@ public class InlinedCallNode extends InlinedReplaceableNode {
 
         // The expansion of the splat is done after executing the block, for m(*args, &args.pop)
 
-        if ((lookupNode.lookupProtected(frame, RubyArguments.getSelf(rubyArgs), methodName) != inlinedMethod.getMethod()) ||
+        if ((lookupNode.lookupProtected(frame, RubyArguments.getSelf(rubyArgs), methodName) != inlinedMethod
+                .getMethod()) ||
                 !Assumption.isValidAssumption(assumptions)) {
             return rewriteAndCallWithBlock(frame, rubyArgs);
         } else {

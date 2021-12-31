@@ -182,11 +182,12 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
                             // Usage of needsSelf is quite rare for singleton methods (except constructors).
                             boolean needsSelf = !coreMethod.alwaysInlined() && (coreMethod.constructor() ||
                                     (!coreMethod.isModuleFunction() && !coreMethod.onSingleton() &&
-                                     coreMethod.needsSelf()));
+                                            coreMethod.needsSelf()));
 
-                            CoreMethod checkAmbiguous = !coreMethod.alwaysInlined() && (coreMethod.optional() > 0 || coreMethod.needsBlock())
-                                    ? coreMethod
-                                    : null;
+                            CoreMethod checkAmbiguous = !coreMethod.alwaysInlined() &&
+                                    (coreMethod.optional() > 0 || coreMethod.needsBlock())
+                                            ? coreMethod
+                                            : null;
                             coreModuleChecks.checks(coreMethod.lowerFixnum(), checkAmbiguous, klass, needsSelf);
                             processCoreMethod(stream, rubyStream, coreModuleElement, coreModule, klass, coreMethod,
                                     needsSelf);
@@ -291,7 +292,8 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
 
         int numberOfArguments = getNumberOfArguments(coreMethod);
         String[] argumentNamesFromAnnotation = coreMethod.argumentNames();
-        final List<String> argumentNames = getArgumentNames(klass, argumentNamesFromAnnotation, needsSelf, coreMethod.alwaysInlined(),
+        final List<String> argumentNames = getArgumentNames(klass, argumentNamesFromAnnotation, needsSelf,
+                coreMethod.alwaysInlined(),
                 numberOfArguments);
 
         if (argumentNames.isEmpty() && numberOfArguments > 0) {
@@ -353,7 +355,8 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
         rubyStream.println();
     }
 
-    private List<String> getArgumentNames(TypeElement klass, String[] argumentNamesFromAnnotation, boolean hasSelfArgument, boolean isAlwaysInlinedMethod, int numberOfArguments) {
+    private List<String> getArgumentNames(TypeElement klass, String[] argumentNamesFromAnnotation,
+            boolean hasSelfArgument, boolean isAlwaysInlinedMethod, int numberOfArguments) {
 
         List<String> argumentNames;
         if (argumentNamesFromAnnotation.length == 0) {

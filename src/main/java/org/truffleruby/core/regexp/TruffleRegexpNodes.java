@@ -989,12 +989,13 @@ public class TruffleRegexpNodes {
                 warnOnFallbackNode.call(
                         getContext().getCoreLibrary().truffleRegexpOperationsModule,
                         "warn_fallback",
-                        new Object[]{regexp,
-                        string,
-                        encoding,
-                        fromPos,
-                        toPos,
-                        atStart,
+                        new Object[]{
+                                regexp,
+                                string,
+                                encoding,
+                                fromPos,
+                                toPos,
+                                atStart,
                                 startPos });
             }
 

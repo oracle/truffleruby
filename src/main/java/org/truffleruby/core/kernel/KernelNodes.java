@@ -365,8 +365,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "binding", isModuleFunction = true, alwaysInlined = true)
     public abstract static class BindingNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected RubyBinding binding(
-                Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+        protected RubyBinding binding(Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
                 @Cached(
                         value = "getNode().getEncapsulatingSourceSection()",
                         allowUncached = true) SourceSection sourceSection) {
@@ -1143,7 +1142,8 @@ public abstract class KernelNodes {
 
         @Override
         public Object inlineExecute(Frame callerFrame, Object[] rubyArgs) {
-            return initializeDup((RubyDynamicObject) RubyArguments.getSelf(rubyArgs), RubyArguments.getArgument(rubyArgs, 0));
+            return initializeDup((RubyDynamicObject) RubyArguments.getSelf(rubyArgs),
+                    RubyArguments.getArgument(rubyArgs, 0));
         }
 
         @Override
@@ -1362,8 +1362,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "local_variables", isModuleFunction = true, alwaysInlined = true)
     public abstract static class KernelLocalVariablesNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected Object localVariables(
-                Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+        protected Object localVariables(Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
                 @Cached DispatchNode callLocalVariables) {
             needCallerFrame(callerFrame, target);
             final RubyBinding binding = BindingNodes
@@ -1393,7 +1392,8 @@ public abstract class KernelNodes {
                 @Cached ToStringOrSymbolNode toStringOrSymbolNode,
                 @Cached GetMethodObjectNode getMethodObjectNode) {
             Object name = toStringOrSymbolNode.execute(RubyArguments.getArgument(rubyArgs, 0));
-            return getMethodObjectNode.execute(callerFrame, RubyArguments.getSelf(rubyArgs), name, DispatchConfiguration.PRIVATE);
+            return getMethodObjectNode.execute(callerFrame, RubyArguments.getSelf(rubyArgs), name,
+                    DispatchConfiguration.PRIVATE);
         }
 
     }
@@ -1527,7 +1527,8 @@ public abstract class KernelNodes {
                 @Cached ToStringOrSymbolNode toStringOrSymbolNode,
                 @Cached GetMethodObjectNode getMethodObjectNode) {
             Object name = toStringOrSymbolNode.execute(RubyArguments.getArgument(rubyArgs, 0));
-            return getMethodObjectNode.execute(callerFrame, RubyArguments.getSelf(rubyArgs), name, DispatchConfiguration.PUBLIC);
+            return getMethodObjectNode.execute(callerFrame, RubyArguments.getSelf(rubyArgs), name,
+                    DispatchConfiguration.PUBLIC);
         }
 
     }
