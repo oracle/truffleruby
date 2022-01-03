@@ -63,6 +63,7 @@ Compatibility:
 * Update `Hash#each` to consistently yield a 2-element array (#2453).
 * Remove `Hash#{__store__, index}` methods for compatibility (#2546).
 * Implement more correct conversion of array elements by `Array#pack` (#2503, #2504, @aardvark179).
+* Update `String#split` to raise a `RangeError` when `limit` is larger than `int` (@bjfish).
 
 Performance:
 
