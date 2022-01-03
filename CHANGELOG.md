@@ -80,6 +80,7 @@ Compatibility:
 * Implement `Array#slice` with `ArithmeticSequence` (#2526, @ccocchi).
 * Update `Hash#each` to consistently yield a 2-element array (#2453).
 * Remove `Hash#{__store__, index}` methods for compatibility (#2546).
+* Update `String#split` to raise a `RangeError` when `limit` is larger than `int` (@bjfish).
 
 Performance:
 

@@ -51,7 +51,7 @@ module Truffle
         if Primitive.undefined?(limit)
           limit = 0
         else
-          limit = Primitive.rb_to_int limit
+          limit = Primitive.rb_num2int(limit)
         end
 
         if limit == 1

@@ -1019,15 +1019,12 @@ class IO
     raise IOError, 'stream is closed' if closed?
     raise TypeError, 'advice must be a Symbol' unless Primitive.object_kind_of?(advice, Symbol)
 
-    Truffle::Type.check_long(offset)
-    Truffle::Type.check_long(len)
-
     unless [:normal, :sequential, :random, :noreuse, :dontneed, :willneed].include? advice
       raise NotImplementedError, "Unsupported advice: #{advice}"
     end
 
-    _offset = Primitive.rb_to_int offset
-    _len = Primitive.rb_to_int len
+    _offset = Primitive.rb_num2long offset
+    _len = Primitive.rb_num2long len
 
     # Primitive.io_advise self, advice, offset, len
     raise 'IO#advise not implemented'
