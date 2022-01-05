@@ -32,9 +32,8 @@ describe "Identifying features such as" do
     RUBY_PATCHLEVEL.should == 0
   end
 
-  it "RUBY_RELEASE_DATE is the current year" do
-    year = Time.now.year
-    ((year-1..year) === RUBY_RELEASE_DATE.to_i).should be_true
+  it "RUBY_RELEASE_DATE is the date of the truffleruby commit used to build" do
+    RUBY_RELEASE_DATE.should =~ /\A\d{4}-\d{2}-\d{2}\z/
   end
 
   guard -> { !TruffleRuby.native? } do
