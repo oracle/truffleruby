@@ -38,6 +38,10 @@ void rb_thread_check_ints(void) {
   RUBY_CEXT_INVOKE_NO_WRAP("rb_thread_check_ints");
 }
 
+int rb_thread_check_trap_pending(void) {
+  return 0;
+}
+
 VALUE rb_thread_wakeup(VALUE thread) {
   return RUBY_INVOKE(thread, "wakeup");
 }
