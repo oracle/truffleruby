@@ -20,7 +20,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 import org.truffleruby.language.objects.IsANode;
 
-public abstract class InlinedCaseEqualNode extends BinaryInlinedOperationNode {
+public abstract class InlinedCaseEqualNode extends BinaryInlinedBooleanNode {
 
     protected static final String METHOD = "===";
 

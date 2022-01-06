@@ -15,7 +15,7 @@ import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public abstract class InlinedLessThanNode extends BinaryInlinedOperationNode {
+public abstract class InlinedLessThanNode extends BinaryInlinedBooleanNode {
 
     public InlinedLessThanNode(RubyLanguage language, RubyCallNodeParameters callNodeParameters) {
         super(

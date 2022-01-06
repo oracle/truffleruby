@@ -18,7 +18,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 
-public abstract class InlinedNotNode extends UnaryInlinedOperationNode {
+public abstract class InlinedNotNode extends UnaryInlinedBooleanNode {
 
     protected static final String METHOD = "!";
 

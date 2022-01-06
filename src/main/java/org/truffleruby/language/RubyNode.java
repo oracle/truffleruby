@@ -317,4 +317,7 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
                 method);
     }
 
+    public boolean needsBooleanCastNode() {
+        return true;
+    }
 }

@@ -19,7 +19,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 import org.truffleruby.language.objects.IsANode;
 
-public abstract class InlinedIsANode extends BinaryInlinedOperationNode {
+public abstract class InlinedIsANode extends BinaryInlinedBooleanNode {
 
     protected static final String METHOD = "is_a?";
 

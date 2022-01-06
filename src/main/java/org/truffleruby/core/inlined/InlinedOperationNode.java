@@ -15,6 +15,9 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.cast.BooleanExecute;
+import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.methods.TranslateExceptionNode;
 
@@ -39,7 +42,14 @@ public abstract class InlinedOperationNode extends InlinedReplaceableNode {
                     "Rewrite " + this + " with arguments" + TranslateExceptionNode
                             .argumentsToString(new StringBuilder(), ArrayUtils.unshift(arguments, receiver)));
         }
-        return rewriteToCallNode().executeWithArgumentsEvaluated(frame, receiver, block, arguments);
+
+        RubyCallNode call = rewriteToCallNode();
+        Object result = call.executeWithArgumentsEvaluated(frame, receiver, block, arguments);
+        if (!needsBooleanCastNode() && ((BooleanExecute) this).didAvoidCast()) {
+            BooleanCastNode cast = (BooleanCastNode) call.getParent();
+            return cast.executeToBoolean(result);
+        }
+        return result;
     }
 
     protected CoreMethods coreMethods() {

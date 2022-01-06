@@ -10,7 +10,7 @@
 package org.truffleruby.language.control;
 
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.BooleanCastNodeGen;
+import org.truffleruby.core.cast.BooleanExecute;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
@@ -19,19 +19,19 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class IfElseNode extends RubyContextSourceNode {
 
-    @Child private BooleanCastNode condition;
+    @Child private BooleanExecute condition;
     @Child private RubyNode thenBody;
     @Child private RubyNode elseBody;
 
     private final ConditionProfile conditionProfile = ConditionProfile.createCountingProfile();
 
     public IfElseNode(RubyNode condition, RubyNode thenBody, RubyNode elseBody) {
-        this.condition = BooleanCastNodeGen.create(condition);
+        this.condition = BooleanCastNode.createIfNeeded(condition);
         this.thenBody = thenBody;
         this.elseBody = elseBody;
     }
 
-    IfElseNode(BooleanCastNode condition, RubyNode thenBody, RubyNode elseBody) {
+    IfElseNode(BooleanExecute condition, RubyNode thenBody, RubyNode elseBody) {
         this.condition = condition;
         this.thenBody = thenBody;
         this.elseBody = elseBody;

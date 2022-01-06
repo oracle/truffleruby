@@ -29,10 +29,20 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 /** Casts a value into a boolean. */
 @GenerateUncached
 @NodeChild(value = "value", type = RubyNode.class)
-public abstract class BooleanCastNode extends RubyBaseNode {
+public abstract class BooleanCastNode extends RubyBaseNode implements BooleanExecute {
 
     public static BooleanCastNode create() {
         return BooleanCastNodeGen.create(null);
+    }
+
+    public static BooleanExecute createIfNeeded(RubyNode possibleBoolean) {
+        if (possibleBoolean.needsBooleanCastNode()) {
+            return BooleanCastNodeGen.create(possibleBoolean);
+        }
+
+        BooleanExecute node = (BooleanExecute) possibleBoolean;
+        node.markAvoidedCast();
+        return node;
     }
 
     /** Execute with child node */
@@ -102,5 +112,14 @@ public abstract class BooleanCastNode extends RubyBaseNode {
 
     protected int getCacheLimit() {
         return getLanguage().options.METHOD_LOOKUP_CACHE;
+    }
+
+    @Override
+    public void markAvoidedCast() {
+    }
+
+    @Override
+    public boolean didAvoidCast() {
+        return false;
     }
 }

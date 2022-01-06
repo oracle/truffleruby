@@ -18,6 +18,9 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.cast.BooleanCastNodeGen;
+import org.truffleruby.core.cast.BooleanExecute;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
@@ -57,6 +60,15 @@ public abstract class InlinedReplaceableNode extends RubyContextSourceNode {
                         getBlockNode()));
                 callNode.unsafeSetSourceSection(getSourceIndexLength());
                 replacedBy = callNode;
+
+                if (!needsBooleanCastNode() && ((BooleanExecute) this).didAvoidCast()) {
+                    BooleanCastNode cast = BooleanCastNodeGen.create(callNode);
+                    replace(cast, this + " could not be executed inline");
+                    // TODO: this isn't good enough, because we don't cast the result of the
+                    // first invocation to a bool...
+                    return callNode;
+                }
+
                 return replace(callNode, this + " could not be executed inline");
             } else {
                 return replacedBy;

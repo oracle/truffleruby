@@ -21,7 +21,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 
-public abstract class InlinedEqualNode extends BinaryInlinedOperationNode {
+public abstract class InlinedEqualNode extends BinaryInlinedBooleanNode {
 
     protected static final String METHOD = "==";
 
