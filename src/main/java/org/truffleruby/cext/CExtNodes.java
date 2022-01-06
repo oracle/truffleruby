@@ -73,6 +73,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.extra.ffi.RubyPointer;
 import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.ToJavaStringNode;
@@ -1859,6 +1860,17 @@ public class CExtNodes {
             } catch (InvalidFormatException e) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }
+        }
+    }
+
+    @CoreMethod(names = "ruby_native_thread_p", onSingleton = true)
+    public abstract static class RubyThreadNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected boolean isRubyThread(VirtualFrame frame) {
+            ThreadManager threadManager = getContext().getThreadManager();
+            return Thread.currentThread() == threadManager.getRootJavaThread() ||
+                    threadManager.isRubyManagedThread(Thread.currentThread());
         }
     }
 }

@@ -69,3 +69,7 @@ void rb_nativethread_lock_lock(rb_nativethread_lock_t *lock) {
 void rb_nativethread_lock_unlock(rb_nativethread_lock_t *lock) {
   RUBY_INVOKE_NO_WRAP(*lock, "unlock");
 }
+
+int ruby_native_thread_p(void) {
+  return polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("ruby_native_thread_p"));
+}
