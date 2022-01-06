@@ -970,14 +970,14 @@ module Truffle::CExt
   end
 
   def rb_proc_new(function, value)
-    Proc.new do |*args|
+    Proc.new do |*args, &block|
       Primitive.cext_unwrap(
           Primitive.call_with_c_mutex(function, [
               Primitive.cext_wrap(args.first), # yieldarg
-              nil, # procarg,
-              0, # argc
-              nil, # argv
-              nil, # blockarg
+              Primitive.cext_wrap(value), # procarg,
+              args.size, # argc
+              Truffle::CExt.RARRAY_PTR(args), # argv
+              Primitive.cext_wrap(block), # blockarg
           ]))
     end
   end
@@ -1174,7 +1174,9 @@ module Truffle::CExt
   end
 
   def rb_class_new_instance(klass, args)
-    klass.new(*args)
+    obj = klass.send(:__allocate__)
+    obj.send(:initialize, *args)
+    obj
   end
 
   def rb_f_sprintf(args)
@@ -1497,7 +1499,7 @@ module Truffle::CExt
 
   def rb_block_call(object, method, args, func, data)
     object.__send__(method, *args) do |*block_args|
-      Primitive.cext_unwrap(Primitive.call_with_c_mutex(func, [
+      Primitive.cext_unwrap(Primitive.call_with_c_mutex(func, [ # Probably need to save the frame here for blocks.
           Primitive.cext_wrap(block_args.first),
           data,
           block_args.size, # argc

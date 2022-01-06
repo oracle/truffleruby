@@ -6,6 +6,7 @@ New features:
 Bug fixes:
 
 * Guard against unterminated ranges in file matching patterns (#2556, @aardvark179).
+* Fixed `rb_proc_new` to return a proc that will pass all required arguments to C (#2556, @aardvark179).
 
 Compatibility:
 
