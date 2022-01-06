@@ -5,11 +5,13 @@ New features:
 
 Bug fixes:
 
+* Guard against unterminated ranges in file matching patterns (#2556, @aardvark179).
 
 Compatibility:
 
 * Implement more correct conversion of array elements by `Array#pack`(#2503, #2504, @aardvakr179).
 * Implement `ruby_native_thread_p` for compatibility (#2556, @aardvark179).
+* Implement more correct conversion of array elements by `Array#pack`(#2503, #2504, @aardvark179).
 
 Performance:
 

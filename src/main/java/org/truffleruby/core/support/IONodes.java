@@ -380,7 +380,7 @@ public abstract class IONodes {
                     return -1;
                 }
                 cstart = cend = (char) (_pat[pat++] & 0xFF);
-                if (_pat[pat] == '-' && _pat[pat + 1] != ']') {
+                if (pat < (pend - 1) && _pat[pat] == '-' && _pat[pat + 1] != ']') {
                     pat++;
                     if (escape && _pat[pat] == '\\') {
                         pat++;
@@ -400,6 +400,9 @@ public abstract class IONodes {
                     if (cstart <= test && test <= cend) {
                         ok = true;
                     }
+                }
+                if (pat >= pend) {
+                    return -1;
                 }
             }
 
