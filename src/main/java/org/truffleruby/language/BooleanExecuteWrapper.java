@@ -12,15 +12,15 @@ import com.oracle.truffle.api.nodes.NodeCost;
 
 public final class BooleanExecuteWrapper extends RubyNode implements BooleanExecute, WrapperNode {
 
-    @Child private RubyNode delegateNode;
+    @Child private RubyBaseNode delegateNode;
     @Child private ProbeNode probeNode;
 
-    public BooleanExecuteWrapper(RubyNode delegateNode, ProbeNode probeNode) {
+    public BooleanExecuteWrapper(RubyBaseNode delegateNode, ProbeNode probeNode) {
         this.delegateNode = delegateNode;
         this.probeNode = probeNode;
     }
 
-    public RubyNode getDelegateNode() {
+    public RubyBaseNode getDelegateNode() {
         return delegateNode;
     }
 
@@ -40,7 +40,7 @@ public final class BooleanExecuteWrapper extends RubyNode implements BooleanExec
             boolean wasOnReturnExecuted = false;
             try {
                 probeNode.onEnter(frame);
-                returnValue = delegateNode.execute(frame);
+                returnValue = ((RubyNode) delegateNode).execute(frame);
                 wasOnReturnExecuted = true;
                 probeNode.onReturnValue(frame, returnValue);
                 break;
@@ -60,37 +60,37 @@ public final class BooleanExecuteWrapper extends RubyNode implements BooleanExec
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
-        return this.delegateNode.isDefined(frame, language, context);
+        return ((RubyNode) delegateNode).isDefined(frame, language, context);
     }
 
     @Override
     protected int getSourceCharIndex() {
-        return this.delegateNode.getSourceCharIndex();
+        return ((RubyNode) delegateNode).getSourceCharIndex();
     }
 
     @Override
     protected void setSourceCharIndex(int sourceCharIndex) {
-        this.delegateNode.setSourceCharIndex(sourceCharIndex);
+        ((RubyNode) delegateNode).setSourceCharIndex(sourceCharIndex);
     }
 
     @Override
     protected int getSourceLength() {
-        return this.delegateNode.getSourceLength();
+        return ((RubyNode) delegateNode).getSourceLength();
     }
 
     @Override
     protected void setSourceLength(int sourceLength) {
-        this.delegateNode.setSourceLength(sourceLength);
+        ((RubyNode) delegateNode).setSourceLength(sourceLength);
     }
 
     @Override
     protected byte getFlags() {
-        return this.delegateNode.getFlags();
+        return ((RubyNode) delegateNode).getFlags();
     }
 
     @Override
     protected void setFlags(byte flags) {
-        this.delegateNode.setFlags(flags);
+        ((RubyNode) delegateNode).setFlags(flags);
     }
 
     @Override
