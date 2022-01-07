@@ -3,6 +3,7 @@ package org.truffleruby.language;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanExecute;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -58,39 +59,46 @@ public final class BooleanExecuteWrapper extends RubyNode implements BooleanExec
         return returnValue;
     }
 
+    private RubyNode skipCastNode() {
+        if (delegateNode instanceof BooleanCastNode) {
+            return ((BooleanCastNode) delegateNode).getValue();
+        }
+        return (RubyNode) delegateNode;
+    }
+
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
-        return ((RubyNode) delegateNode).isDefined(frame, language, context);
+        return skipCastNode().isDefined(frame, language, context);
     }
 
     @Override
     protected int getSourceCharIndex() {
-        return ((RubyNode) delegateNode).getSourceCharIndex();
+        return skipCastNode().getSourceCharIndex();
     }
 
     @Override
     protected void setSourceCharIndex(int sourceCharIndex) {
-        ((RubyNode) delegateNode).setSourceCharIndex(sourceCharIndex);
+        skipCastNode().setSourceCharIndex(sourceCharIndex);
     }
 
     @Override
     protected int getSourceLength() {
-        return ((RubyNode) delegateNode).getSourceLength();
+        return skipCastNode().getSourceLength();
     }
 
     @Override
     protected void setSourceLength(int sourceLength) {
-        ((RubyNode) delegateNode).setSourceLength(sourceLength);
+        skipCastNode().setSourceLength(sourceLength);
     }
 
     @Override
     protected byte getFlags() {
-        return ((RubyNode) delegateNode).getFlags();
+        return skipCastNode().getFlags();
     }
 
     @Override
     protected void setFlags(byte flags) {
-        ((RubyNode) delegateNode).setFlags(flags);
+        skipCastNode().setFlags(flags);
     }
 
     @Override
