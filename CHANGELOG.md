@@ -12,6 +12,7 @@ Compatibility:
 * Implement more correct conversion of array elements by `Array#pack`(#2503, #2504, @aardvakr179).
 * Implement `ruby_native_thread_p` for compatibility (#2556, @aardvark179).
 * Implement more correct conversion of array elements by `Array#pack`(#2503, #2504, @aardvark179).
+* Implement `Pathname#{empty?, glob}` (#2559, @bjfish)
 
 Performance:
 
