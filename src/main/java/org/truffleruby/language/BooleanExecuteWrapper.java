@@ -8,7 +8,6 @@ import org.truffleruby.core.cast.BooleanExecute;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.InstrumentableNode.WrapperNode;
 import com.oracle.truffle.api.instrumentation.ProbeNode;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeCost;
 
 public final class BooleanExecuteWrapper extends RubyNode implements BooleanExecute, WrapperNode {
