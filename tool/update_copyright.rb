@@ -84,7 +84,9 @@ excludes = %w[
   lib/truffle/securerandom
   src/main/c/bigdecimal
   src/main/c/cext/st.c
+  src/main/c/date
   src/main/c/etc
+  src/main/c/io-console
   src/main/c/nkf
   src/main/c/openssl
   src/main/c/psych
