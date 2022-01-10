@@ -3607,7 +3607,7 @@ public abstract class StringNodes {
                 }
             }
 
-            if (trailingSubstringProfile.profile(substringStart != SUBSTRING_CREATED)) {
+            if (trailingSubstringProfile.profile(findingSubstringEnd)) {
                 final RubyString substring = substringNode
                         .executeSubstring(string, substringStart, bytes.length - substringStart);
                 ret = addSubstring(ret, storeIndex++, substring, block, executeBlockProfile, growArrayProfile);
@@ -3655,7 +3655,7 @@ public abstract class StringNodes {
                 p += StringSupport.characterLength(enc, cr, bytes, p, end, true);
 
                 if (skip) {
-                    if (StringSupport.isSpace(enc, c)) {
+                    if (StringSupport.isAsciiSpace(c)) {
                         b = p - ptr;
                     } else {
                         e = p - ptr;
@@ -3665,7 +3665,7 @@ public abstract class StringNodes {
                         }
                     }
                 } else {
-                    if (StringSupport.isSpace(enc, c)) {
+                    if (StringSupport.isAsciiSpace(c)) {
                         final RubyString substring = substringNode.executeSubstring(string, b, e - b);
                         ret = addSubstring(
                                 ret,
