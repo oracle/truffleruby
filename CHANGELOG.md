@@ -12,6 +12,7 @@ Compatibility:
 
 * Implement `ruby_native_thread_p` for compatibility (#2556, @aardvark179).
 * Add `rb_argv0` for the `tk` gem. (#2556, @aardvark179).
+* Fixed `Rational('')` to raise error like MRI (#2566, @aardvark179).
 
 Performance:
 
