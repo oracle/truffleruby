@@ -267,7 +267,7 @@ public abstract class KernelNodes {
         protected Object findFile(Object featureString,
                 @Cached BranchProfile notFoundProfile,
                 @Cached MakeStringNode makeStringNode,
-                @CachedLibrary(limit = "2") RubyStringLibrary libFeatureString) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFeatureString) {
             String feature = libFeatureString.getJavaString(featureString);
             return findFileString(feature, notFoundProfile, makeStringNode);
         }
@@ -293,7 +293,7 @@ public abstract class KernelNodes {
         @Specialization(guards = "libFeature.isRubyString(feature)")
         @TruffleBoundary
         protected RubyString getCallerPath(Object feature,
-                @CachedLibrary(limit = "2") RubyStringLibrary libFeature,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFeature,
                 @Cached MakeStringNode makeStringNode) {
             final String featureString = libFeature.getJavaString(feature);
             final String featurePath;
@@ -337,7 +337,7 @@ public abstract class KernelNodes {
 
         @Specialization(guards = "libFeatureString.isRubyString(featureString)")
         protected boolean loadFeature(Object featureString, Object expandedPathString,
-                @CachedLibrary(limit = "2") RubyStringLibrary libFeatureString) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFeatureString) {
             return requireNode.executeRequire(
                     libFeatureString.getJavaString(featureString),
                     expandedPathString);
@@ -404,7 +404,7 @@ public abstract class KernelNodes {
         @Specialization(guards = "strings.isRubyString(string)")
         @TruffleBoundary
         protected RubyString canonicalPath(Object string,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final String expandedPath = getContext()
                     .getFeatureLoader()
@@ -808,8 +808,8 @@ public abstract class KernelNodes {
                 limit = "getCacheLimit()")
         protected Object evalBindingNoAddsVarsCached(
                 Object self, Object source, RubyBinding binding, Object file, int line,
-                @CachedLibrary(limit = "2") RubyStringLibrary libSource,
-                @CachedLibrary(limit = "2") RubyStringLibrary libFile,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSource,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFile,
                 @Cached("libSource.getRope(source)") Rope cachedSource,
                 @Cached("libFile.getRope(file)") Rope cachedFile,
                 @Cached("line") int cachedLine,
@@ -834,8 +834,8 @@ public abstract class KernelNodes {
                 limit = "getCacheLimit()")
         protected Object evalBindingAddsVarsCached(
                 Object self, Object source, RubyBinding binding, Object file, int line,
-                @CachedLibrary(limit = "2") RubyStringLibrary libSource,
-                @CachedLibrary(limit = "2") RubyStringLibrary libFile,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSource,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFile,
                 @Cached("libSource.getRope(source)") Rope cachedSource,
                 @Cached("libFile.getRope(file)") Rope cachedFile,
                 @Cached("line") int cachedLine,
@@ -854,8 +854,8 @@ public abstract class KernelNodes {
                 replaces = { "evalBindingNoAddsVarsCached", "evalBindingAddsVarsCached" })
         protected Object evalBindingUncached(Object self, Object source, RubyBinding binding, Object file, int line,
                 @Cached IndirectCallNode callNode,
-                @CachedLibrary(limit = "2") RubyStringLibrary libFile,
-                @CachedLibrary(limit = "2") RubyStringLibrary libSource) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFile,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSource) {
             final CodeLoader.DeferredCall deferredCall = doEvalX(
                     self,
                     libSource.getRope(source),
@@ -1855,7 +1855,7 @@ public abstract class KernelNodes {
                         "equalNode.execute(libFormat.getRope(format), cachedFormatRope)",
                         "isDebug(frame) == cachedIsDebug" })
         protected RubyString formatCached(VirtualFrame frame, Object format, Object[] arguments,
-                @CachedLibrary(limit = "2") RubyStringLibrary libFormat,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
                 @Cached("isDebug(frame)") boolean cachedIsDebug,
                 @Cached("libFormat.getRope(format)") Rope cachedFormatRope,
                 @Cached("cachedFormatRope.byteLength()") int cachedFormatLength,
@@ -1878,7 +1878,7 @@ public abstract class KernelNodes {
                 replaces = "formatCached")
         protected RubyString formatUncached(VirtualFrame frame, Object format, Object[] arguments,
                 @Cached IndirectCallNode callPackNode,
-                @CachedLibrary(limit = "2") RubyStringLibrary libFormat) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat) {
             final BytesResult result;
             final boolean isDebug = readDebugGlobalNode.executeBoolean(frame);
             try {

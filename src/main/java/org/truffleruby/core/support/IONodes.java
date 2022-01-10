@@ -136,8 +136,8 @@ public abstract class IONodes {
         @TruffleBoundary
         @Specialization(guards = { "stringsPattern.isRubyString(pattern)", "stringsPath.isRubyString(path)" })
         protected boolean fnmatch(Object pattern, Object path, int flags,
-                @CachedLibrary(limit = "2") RubyStringLibrary stringsPattern,
-                @CachedLibrary(limit = "2") RubyStringLibrary stringsPath) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsPattern,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsPath) {
             final Rope patternRope = stringsPattern.getRope(pattern);
             final Rope pathRope = stringsPath.getRope(path);
 
@@ -469,7 +469,7 @@ public abstract class IONodes {
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(string)")
         protected int write(int fd, Object string,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             final OutputStream stream;
 
             switch (fd) {

@@ -58,8 +58,8 @@ public abstract class PolyglotNodes {
                         "codeEqualNode.execute(codeLib.getRope(code), cachedCode)" },
                 limit = "getCacheLimit()")
         protected Object evalCached(Object langId, Object code,
-                @CachedLibrary(limit = "2") RubyStringLibrary idLib,
-                @CachedLibrary(limit = "2") RubyStringLibrary codeLib,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary idLib,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary codeLib,
                 @Cached("idLib.getRope(langId)") Rope cachedLangId,
                 @Cached("codeLib.getRope(code)") Rope cachedCode,
                 @Cached("create(parse(idLib.getRope(langId), codeLib.getRope(code)))") DirectCallNode callNode,
@@ -72,8 +72,8 @@ public abstract class PolyglotNodes {
                 guards = { "stringsId.isRubyString(langId)", "stringsSource.isRubyString(code)" },
                 replaces = "evalCached")
         protected Object evalUncached(Object langId, Object code,
-                @CachedLibrary(limit = "2") RubyStringLibrary stringsId,
-                @CachedLibrary(limit = "2") RubyStringLibrary stringsSource,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsId,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsSource,
                 @Cached IndirectCallNode callNode) {
             return callNode.call(parse(stringsId.getRope(langId), stringsSource.getRope(code)), EMPTY_ARGUMENTS);
         }
@@ -109,7 +109,7 @@ public abstract class PolyglotNodes {
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(fileName)")
         protected Object evalFile(Object fileName, NotProvided id,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             final Source source;
             //intern() to improve footprint
             final String path = strings.getJavaString(fileName).intern();
@@ -137,8 +137,8 @@ public abstract class PolyglotNodes {
                         "stringsId.isRubyString(id)",
                         "stringsFileName.isRubyString(fileName)" })
         protected Object evalFile(Object id, Object fileName,
-                @CachedLibrary(limit = "2") RubyStringLibrary stringsId,
-                @CachedLibrary(limit = "2") RubyStringLibrary stringsFileName) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsId,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsFileName) {
             final String idString = stringsId.getJavaString(id);
             final Source source = getSource(idString, stringsFileName.getJavaString(fileName));
             return eval(source);
@@ -192,8 +192,8 @@ public abstract class PolyglotNodes {
                 "idEqualNode.execute(langIdRope, cachedLangId)",
                 "codeEqualNode.execute(codeRope, cachedCode)" }, limit = "getCacheLimit()")
         protected Object evalCached(RubyInnerContext rubyInnerContext, Object langId, Object code,
-                @CachedLibrary(limit = "2") RubyStringLibrary idLib,
-                @CachedLibrary(limit = "2") RubyStringLibrary codeLib,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary idLib,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary codeLib,
                 @Bind("idLib.getRope(langId)") Rope langIdRope,
                 @Bind("codeLib.getRope(code)") Rope codeRope,
                 @Cached("langIdRope") Rope cachedLangId,
@@ -210,8 +210,8 @@ public abstract class PolyglotNodes {
                 guards = { "idLib.isRubyString(langId)", "codeLib.isRubyString(code)" },
                 replaces = "evalCached")
         protected Object evalUncached(RubyInnerContext rubyInnerContext, Object langId, Object code,
-                @CachedLibrary(limit = "2") RubyStringLibrary idLib,
-                @CachedLibrary(limit = "2") RubyStringLibrary codeLib,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary idLib,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary codeLib,
                 @Cached ForeignToRubyNode foreignToRubyNode,
                 @Cached BranchProfile errorProfile) {
             final String idString = idLib.getJavaString(langId);

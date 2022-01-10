@@ -38,7 +38,7 @@ public abstract class ReadCStringNode extends FormatNode {
     protected Object read(VirtualFrame frame, Object pointer,
             @Cached UnwrapNode unwrapNode,
             @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
-            @CachedLibrary(limit = "2") RubyStringLibrary libString,
+            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
             @CachedLibrary("stringReader") InteropLibrary stringReaders) {
         Object string = unwrapNode.execute(InteropNodes.execute(
                 stringReader,

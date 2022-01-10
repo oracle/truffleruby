@@ -48,7 +48,7 @@ public abstract class ToStrNode extends RubyBaseNodeWithExecute {
     protected Object coerceObject(Object object,
             @Cached BranchProfile errorProfile,
             @Cached DispatchNode toStrNode,
-            @CachedLibrary(limit = "2") RubyStringLibrary libString) {
+            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
         final Object coerced;
         try {
             coerced = toStrNode.call(object, "to_str");

@@ -77,7 +77,7 @@ public abstract class ByteArrayNodes {
 
         @Specialization(guards = "strings.isRubyString(string)")
         protected RubyByteArray prepend(RubyByteArray byteArray, Object string,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached RopeNodes.BytesNode bytesNode) {
             final byte[] bytes = byteArray.bytes;
 
@@ -156,7 +156,7 @@ public abstract class ByteArrayNodes {
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached BranchProfile tooSmallStartProfile,
                 @Cached BranchProfile tooLargeStartProfile,
-                @CachedLibrary(limit = "2") RubyStringLibrary libPattern) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libPattern) {
 
             final byte[] bytes = byteArray.bytes;
             final Rope rope = libPattern.getRope(pattern);
@@ -183,7 +183,7 @@ public abstract class ByteArrayNodes {
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CharacterLengthNode characterLengthNode,
                 @Cached ConditionProfile notFoundProfile,
-                @CachedLibrary(limit = "2") RubyStringLibrary libPattern) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libPattern) {
             final Rope patternRope = libPattern.getRope(pattern);
             final int index = indexOf(
                     byteArray.bytes,

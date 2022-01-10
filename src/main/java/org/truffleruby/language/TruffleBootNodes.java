@@ -118,8 +118,8 @@ public abstract class TruffleBootNodes {
         @TruffleBoundary
         @Specialization(guards = { "stringsKind.isRubyString(kind)", "stringsToExecute.isRubyString(toExecute)" })
         protected int main(int argc, long argv, Object kind, Object toExecute,
-                @CachedLibrary(limit = "2") RubyStringLibrary stringsKind,
-                @CachedLibrary(limit = "2") RubyStringLibrary stringsToExecute) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsKind,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsToExecute) {
             return topLevelRaiseHandler.execute(() -> {
                 getContext().nativeArgc = argc;
                 getContext().nativeArgv = argv;
@@ -316,7 +316,7 @@ public abstract class TruffleBootNodes {
         @TruffleBoundary
         @Specialization(guards = "libOptionName.isRubyString(optionName)")
         protected Object getOption(Object optionName,
-                @CachedLibrary(limit = "2") RubyStringLibrary libOptionName) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libOptionName) {
             final String optionNameString = libOptionName.getJavaString(optionName);
             final OptionDescriptor descriptor = OptionsCatalog.fromName("ruby." + optionNameString);
             if (descriptor == null) {

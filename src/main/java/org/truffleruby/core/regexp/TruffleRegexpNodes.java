@@ -842,7 +842,7 @@ public class TruffleRegexpNodes {
                 @Cached PrepareRegexpEncodingNode prepareRegexpEncodingNode,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached MatchNode matchNode,
-                @CachedLibrary(limit = "2") RubyStringLibrary libString) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
             final Rope rope = libString.getRope(string);
             Regex regex = regexp.regex;
             final RubyEncoding negotiatedEncoding = prepareRegexpEncodingNode.executePrepare(regexp, string);
@@ -896,7 +896,7 @@ public class TruffleRegexpNodes {
                 @Cached PrepareRegexpEncodingNode prepareRegexpEncodingNode,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached TRegexCompileNode tRegexCompileNode,
-                @CachedLibrary(limit = "2") RubyStringLibrary libString,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @Cached("createIdentityProfile()") IntValueProfile groupCountProfile) {
             Rope rope = libString.getRope(string);
             final Object tRegex;

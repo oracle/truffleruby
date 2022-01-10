@@ -605,7 +605,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         @Specialization(guards = "libFilename.isRubyString(filename)")
         protected Object autoload(RubyModule module, String name, Object filename,
-                @CachedLibrary(limit = "2") RubyStringLibrary libFilename) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFilename) {
             if (!Identifiers.isValidConstantName(name)) {
                 throw new RaiseException(
                         getContext(),
@@ -671,7 +671,7 @@ public abstract class ModuleNodes {
         protected Object classEval(
                 VirtualFrame frame, RubyModule module, Object code, NotProvided file, NotProvided line, Nil block,
                 @Cached IndirectCallNode callNode,
-                @CachedLibrary(limit = "2") RubyStringLibrary libCode) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libCode) {
             return classEvalSource(frame, module, code, "(eval)", callNode);
         }
 
@@ -679,16 +679,16 @@ public abstract class ModuleNodes {
         protected Object classEval(
                 VirtualFrame frame, RubyModule module, Object code, Object file, NotProvided line, Nil block,
                 @Cached IndirectCallNode callNode,
-                @CachedLibrary(limit = "2") RubyStringLibrary libCode,
-                @CachedLibrary(limit = "2") RubyStringLibrary libFile) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libCode,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFile) {
             return classEvalSource(frame, module, code, libFile.getJavaString(file), callNode);
         }
 
         @Specialization(guards = { "libCode.isRubyString(code)", "wasProvided(file)" })
         protected Object classEval(VirtualFrame frame, RubyModule module, Object code, Object file, int line, Nil block,
                 @Cached IndirectCallNode callNode,
-                @CachedLibrary(limit = "2") RubyStringLibrary libCode,
-                @CachedLibrary(limit = "2") RubyStringLibrary libFile) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libCode,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFile) {
             final CodeLoader.DeferredCall deferredCall = classEvalSource(
                     frame,
                     module,
@@ -709,9 +709,9 @@ public abstract class ModuleNodes {
         @Specialization(guards = { "libCode.isRubyString(code)", "wasProvided(file)" })
         protected Object classEval(
                 VirtualFrame frame, RubyModule module, Object code, Object file, NotProvided line, Nil block,
-                @CachedLibrary(limit = "2") RubyStringLibrary stringLibrary,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringLibrary,
                 @Cached IndirectCallNode callNode,
-                @CachedLibrary(limit = "2") RubyStringLibrary libCode,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libCode,
                 @Cached ToStrNode toStrNode) {
             final String javaString = stringLibrary.getJavaString(toStrNode.execute(file));
             return classEvalSource(frame, module, code, javaString, callNode);
@@ -1009,7 +1009,7 @@ public abstract class ModuleNodes {
                         "checkName == cachedCheckName" },
                 limit = "getLimit()")
         protected Object getConstantStringCached(RubyModule module, Object name, boolean inherit, boolean checkName,
-                @CachedLibrary(limit = "2") RubyStringLibrary stringsName,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsName,
                 @Cached("stringsName.getRope(name)") Rope cachedRope,
                 @Cached("stringsName.getJavaString(name)") String cachedString,
                 @Cached("checkName") boolean cachedCheckName,
@@ -1022,21 +1022,21 @@ public abstract class ModuleNodes {
                 guards = { "stringsName.isRubyString(name)", "inherit", "!isScoped(stringsName.getRope(name))" },
                 replaces = "getConstantStringCached")
         protected Object getConstantString(RubyModule module, Object name, boolean inherit, boolean checkName,
-                @CachedLibrary(limit = "2") RubyStringLibrary stringsName) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsName) {
             return getConstant(module, stringsName.getJavaString(name), checkName);
         }
 
         @Specialization(
                 guards = { "stringsName.isRubyString(name)", "!inherit", "!isScoped(stringsName.getRope(name))" })
         protected Object getConstantNoInheritString(RubyModule module, Object name, boolean inherit, boolean checkName,
-                @CachedLibrary(limit = "2") RubyStringLibrary stringsName) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsName) {
             return getConstantNoInherit(module, stringsName.getJavaString(name), checkName);
         }
 
         // Scoped String
         @Specialization(guards = { "stringsName.isRubyString(name)", "isScoped(stringsName.getRope(name))" })
         protected Object getConstantScoped(RubyModule module, Object name, boolean inherit, boolean checkName,
-                @CachedLibrary(limit = "2") RubyStringLibrary stringsName) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsName) {
             return FAILURE;
         }
 
@@ -1112,7 +1112,7 @@ public abstract class ModuleNodes {
         @Specialization(guards = { "strings.isRubyString(name)" })
         @TruffleBoundary
         protected Object constSourceLocation(RubyModule module, Object name, boolean inherit,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             final ConstantLookupResult lookupResult = ModuleOperations
                     .lookupScopedConstant(getContext(), module, strings.getJavaString(name), inherit, this, true);
 

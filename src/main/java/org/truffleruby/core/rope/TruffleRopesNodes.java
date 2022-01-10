@@ -40,7 +40,7 @@ public abstract class TruffleRopesNodes {
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(string)")
         protected RubyString dumpString(Object string,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             final StringBuilder builder = new StringBuilder();
 
             final Rope rope = strings.getRope(string);
@@ -63,14 +63,14 @@ public abstract class TruffleRopesNodes {
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(string)")
         protected Object debugPrintDefault(Object string, NotProvided printString,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             return debugPrint(string, true, strings);
         }
 
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(string)")
         protected Object debugPrint(Object string, boolean printString,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             System.err.println("Legend: ");
             System.err.println("BN = Bytes Null? (byte[] not yet populated)");
             System.err.println("BL = Byte Length");
@@ -97,7 +97,7 @@ public abstract class TruffleRopesNodes {
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(string)")
         protected RubyString getStructure(Object string,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             Rope rope = strings.getRope(string);
             String result = getStructure(rope);
             byte[] bytes = StringOperations.encodeBytes(result, UTF8Encoding.INSTANCE);
@@ -150,7 +150,7 @@ public abstract class TruffleRopesNodes {
 
         @Specialization(guards = "strings.isRubyString(string)")
         protected boolean hasBytes(Object string,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             return strings.getRope(string).getRawBytes() != null;
         }
 
@@ -163,7 +163,7 @@ public abstract class TruffleRopesNodes {
         protected RubyString flattenRope(Object string,
                 @Cached RopeNodes.FlattenNode flattenNode,
                 @Cached StringNodes.MakeStringNode makeStringNode,
-                @CachedLibrary(limit = "2") RubyStringLibrary libString) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
             final LeafRope flattened = flattenNode.executeFlatten(libString.getRope(string));
             final RubyEncoding rubyEncoding = libString.getEncoding(string);
             return makeStringNode.fromRope(flattened, rubyEncoding);
@@ -177,7 +177,7 @@ public abstract class TruffleRopesNodes {
         @Specialization(guards = "strings.isRubyString(string)")
         protected Object nativeRope(Object string,
                 @Cached CExtNodes.StringToNativeNode toNativeNode,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             toNativeNode.executeToNative(string);
             return string;
         }

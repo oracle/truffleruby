@@ -553,7 +553,7 @@ public class CExtNodes {
 
         @Specialization(guards = "strings.isRubyString(string)")
         protected RubyArray rbEncCodePointLen(Object string, RubyEncoding encoding,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
@@ -1073,7 +1073,7 @@ public class CExtNodes {
 
         @Specialization(guards = "strings.isRubyString(string)")
         protected int size(Object string,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached RopeNodes.BytesNode getBytes) {
             final Rope rope = strings.getRope(string);
             final byte[] bytes = getBytes.execute(rope);
@@ -1190,7 +1190,7 @@ public class CExtNodes {
 
         @Specialization(guards = "libString.isRubyString(string)")
         protected Object read(Object string, int index,
-                @CachedLibrary(limit = "2") RubyStringLibrary libString,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @Cached ConditionProfile nativeRopeProfile,
                 @Cached ConditionProfile inBoundsProfile,
                 @Cached RopeNodes.GetByteNode getByteNode) {
@@ -1355,7 +1355,7 @@ public class CExtNodes {
 
         @Specialization(guards = "strings.isRubyString(string)", limit = "getCacheLimit()")
         protected Object rbTrEncMbcCaseFold(RubyEncoding enc, int flags, Object string, Object write_p, Object p,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @CachedLibrary("write_p") InteropLibrary receivers,
                 @Cached RopeNodes.BytesNode getBytes,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode) {
@@ -1427,7 +1427,7 @@ public class CExtNodes {
 
         @Specialization(guards = "strings.isRubyString(string)")
         protected Object rbEncMbLen(RubyEncoding enc, Object string, int p, int e,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached RopeNodes.BytesNode getBytes,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached ConditionProfile sameEncodingProfile) {
@@ -1454,7 +1454,7 @@ public class CExtNodes {
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(string)")
         protected Object rbEncLeftCharHead(RubyEncoding enc, Object string, int start, int p, int end,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             return enc.jcoding.leftAdjustCharHead(
                     strings.getRope(string).getBytes(),
                     start,
@@ -1468,7 +1468,7 @@ public class CExtNodes {
     public abstract static class RbEncMbcToCodepointNode extends CoreMethodArrayArgumentsNode {
         @Specialization(guards = "strings.isRubyString(string)")
         protected int rbEncMbcToCodepoint(RubyEncoding enc, Object string, int end,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             final Rope rope = strings.getRope(string);
             return StringSupport.mbcToCode(enc.jcoding, rope, 0, end);
         }
@@ -1481,7 +1481,7 @@ public class CExtNodes {
 
         @Specialization(guards = "strings.isRubyString(string)")
         protected int rbEncPreciseMbclen(RubyEncoding enc, Object string, int p, int end,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached RopeNodes.GetBytesObjectNode getBytesObject,
                 @Cached ConditionProfile sameEncodingProfile) {
@@ -1714,7 +1714,7 @@ public class CExtNodes {
     public abstract static class RbCheckSymbolCStrNode extends CoreMethodArrayArgumentsNode {
         @Specialization(guards = "strings.isRubyString(string)")
         protected Object checkSymbolCStr(Object string,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             final RubySymbol sym = getLanguage().symbolTable.getSymbolIfExists(
                     strings.getRope(string),
                     strings.getEncoding(string));
@@ -1743,7 +1743,7 @@ public class CExtNodes {
                         "equalNode.execute(libFormat.getRope(format), cachedFormatRope)" },
                 limit = "2")
         protected Object typesCached(VirtualFrame frame, Object format,
-                @CachedLibrary(limit = "2") RubyStringLibrary libFormat,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
                 @Cached("libFormat.getRope(format)") Rope cachedFormatRope,
                 @Cached("compileArgTypes(format, libFormat)") Object cachedTypes,
                 @Cached RopeNodes.EqualNode equalNode) {
@@ -1752,7 +1752,7 @@ public class CExtNodes {
 
         @Specialization(guards = "libFormat.isRubyString(format)")
         protected Object typesUncachd(VirtualFrame frame, Object format,
-                @CachedLibrary(limit = "2") RubyStringLibrary libFormat) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat) {
             return compileArgTypes(format, libFormat);
         }
 
@@ -1789,7 +1789,7 @@ public class CExtNodes {
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached WrapNode wrapNode,
                 @Cached UnwrapNode unwrapNode,
-                @CachedLibrary(limit = "2") RubyStringLibrary libFormat,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
                 @Cached("libFormat.getRope(format)") Rope cachedFormatRope,
                 @Cached("cachedFormatRope.byteLength()") int cachedFormatLength,
                 @Cached("create(compileFormat(format, libFormat, stringReader))") DirectCallNode formatNode,
@@ -1817,7 +1817,7 @@ public class CExtNodes {
                 @Cached UnwrapNode unwrapNode,
                 @Cached IndirectCallNode formatNode,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
-                @CachedLibrary(limit = "2") RubyStringLibrary libFormat) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat) {
             final BytesResult result;
             final Object[] arguments = arrayToObjectArrayNode.executeToObjectArray(argArray);
             try {

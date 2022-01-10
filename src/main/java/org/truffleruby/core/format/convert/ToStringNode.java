@@ -98,7 +98,7 @@ public abstract class ToStringNode extends FormatNode {
     @TruffleBoundary
     @Specialization(guards = "specialClassBehaviour")
     protected Rope toStringSpecialClass(RubyClass rubyClass,
-            @CachedLibrary(limit = "2") RubyStringLibrary libString) {
+            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
         if (rubyClass == getContext().getCoreLibrary().trueClass) {
             return RopeConstants.TRUE;
         } else if (rubyClass == getContext().getCoreLibrary().falseClass) {
@@ -112,8 +112,8 @@ public abstract class ToStringNode extends FormatNode {
 
     @Specialization(guards = "libString.isRubyString(string)")
     protected Rope toStringString(Object string,
-            @CachedLibrary(limit = "2") RubyStringLibrary libValue,
-            @CachedLibrary(limit = "2") RubyStringLibrary libString) {
+            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libValue,
+            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
         if ("inspect".equals(conversionMethod)) {
             final Object value = getToStrNode().call(string, conversionMethod);
 
@@ -128,7 +128,7 @@ public abstract class ToStringNode extends FormatNode {
 
     @Specialization
     protected Rope toString(RubyArray array,
-            @CachedLibrary(limit = "2") RubyStringLibrary libString) {
+            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
         if (toSNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             toSNode = insert(DispatchNode.create(PRIVATE_RETURN_MISSING));
@@ -146,7 +146,7 @@ public abstract class ToStringNode extends FormatNode {
     @Specialization(
             guards = { "isNotRubyString(object)", "!isRubyArray(object)", "!isForeignObject(object)" })
     protected Rope toString(Object object,
-            @CachedLibrary(limit = "2") RubyStringLibrary libString) {
+            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
         final Object value = getToStrNode().call(object, conversionMethod);
 
         if (libString.isRubyString(value)) {
