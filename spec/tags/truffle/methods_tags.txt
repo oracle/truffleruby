@@ -89,3 +89,4 @@ fails:Public methods on GC.singleton_class should include verify_internal_consis
 fails:Public methods on GC.singleton_class should include verify_transient_heap_internal_consistency
 fails:Public methods on GC.singleton_class should not include measure_total_time
 fails:Public methods on GC.singleton_class should not include total_time
+fails:Public methods on Pathname should include birthtime

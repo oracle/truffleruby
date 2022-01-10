@@ -1,4 +1,0 @@
-fails:Pathname#empty? returns true when file is not empty
-fails:Pathname#empty? returns false when the directory is not empty
-fails:Pathname#empty? return true when file is empty
-fails:Pathname#empty? returns true when directory is empty
