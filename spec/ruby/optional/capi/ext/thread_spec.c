@@ -162,7 +162,7 @@ static VALUE thread_spec_ruby_native_thread_p_new_thread(VALUE self) {
     pthread_join(t, (void **)&result);
     return *result;
 #else
-    return false;
+    return Qfalse;
 #endif
 }
 
