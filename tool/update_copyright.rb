@@ -66,7 +66,8 @@ OTHER_COPYRIGHTS = [
 ]
 
 truffle_paths = %w[
-  lib/cext
+  lib/cext/include/truffleruby
+  lib/cext/preprocess.rb
   lib/truffle
   src
   test/truffle
@@ -74,9 +75,6 @@ truffle_paths = %w[
 ] + [__FILE__]
 
 excludes = %w[
-  lib/cext/include/ccan
-  lib/cext/include/internal.h
-  lib/cext/include/ruby
   lib/cext/include/truffleruby/config_
   lib/cext/include/truffleruby/internal
   lib/truffle/date
