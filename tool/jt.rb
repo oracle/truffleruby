@@ -2392,7 +2392,7 @@ module Commands
   end
 
   def shared_path
-    Pathname.new("#{TRUFFLERUBY_DIR}/mxbuild/org.truffleruby.shared")
+    Pathname.new("#{TRUFFLERUBY_DIR}/mxbuild/jdk#{@jdk_version}/org.truffleruby.shared")
   end
 
   def build_information_path
