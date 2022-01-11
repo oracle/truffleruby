@@ -183,7 +183,7 @@ public abstract class TruffleGraalNodes {
 
         @Specialization(guards = "strings.isRubyString(message)")
         protected Object bailout(Object message,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             CompilerDirectives.bailout(strings.getJavaString(message));
             return nil;
         }

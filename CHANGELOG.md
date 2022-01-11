@@ -18,6 +18,7 @@ Compatibility:
 
 Performance:
 
+* Increase dispatch limit for string library to handle mutable, immutable and non-strings (@aardvark179)
 
 Changes:
 

@@ -40,7 +40,7 @@ public abstract class StringToPointerNode extends FormatNode {
     @Specialization(guards = "strings.isRubyString(string)")
     protected long toPointer(VirtualFrame frame, Object string,
             @Cached CExtNodes.StringToNativeNode stringToNativeNode,
-            @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
 
         final Pointer pointer = stringToNativeNode.executeToNative(string).getNativePointer();
 

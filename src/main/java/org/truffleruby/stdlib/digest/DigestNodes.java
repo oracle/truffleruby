@@ -107,7 +107,7 @@ public abstract class DigestNodes {
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(message)")
         protected RubyDigest update(RubyDigest digestObject, Object message,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             final MessageDigest digest = digestObject.digest;
             final Rope rope = strings.getRope(message);
 
@@ -186,7 +186,7 @@ public abstract class DigestNodes {
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(message)")
         protected RubyString bubblebabble(Object message,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             final Rope rope = strings.getRope(message);
             final byte[] bubblebabbleBytes = bubblebabble(rope.getBytes(), 0, rope.byteLength()).getBytes();
 

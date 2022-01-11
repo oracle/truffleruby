@@ -54,7 +54,7 @@ public abstract class ToStringOrSymbolNode extends RubyBaseNodeWithExecute {
     protected Object coerceObject(Object object,
             @Cached DispatchNode toStr,
             @Cached BranchProfile errorProfile,
-            @CachedLibrary(limit = "2") RubyStringLibrary libString) {
+            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
         final Object coerced;
         try {
             coerced = toStr.call(object, "to_str");

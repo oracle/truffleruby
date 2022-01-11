@@ -94,7 +94,7 @@ public abstract class PointerNodes {
         @TruffleBoundary
         @Specialization
         protected int findTypeSize(RubySymbol type,
-                @CachedLibrary(limit = "2") RubyStringLibrary stringLibrary) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringLibrary) {
             final String typeString = type.getString();
             final int size = typeSize(typeString);
             if (size > 0) {
@@ -359,7 +359,7 @@ public abstract class PointerNodes {
         @Specialization(guards = "libString.isRubyString(string)")
         protected Object writeBytes(long address, Object string, int index, int length,
                 @Cached RopeNodes.BytesNode bytesNode,
-                @CachedLibrary(limit = "2") RubyStringLibrary libString) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
             final Pointer ptr = new Pointer(address);
             final Rope rope = libString.getRope(string);
             assert index + length <= rope.byteLength();

@@ -107,7 +107,7 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization
         protected Object debugPrint(Object string,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             final String javaString;
             if (strings.isRubyString(string)) {
                 javaString = strings.getJavaString(string);
@@ -127,7 +127,7 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(file)")
         protected RubyHandle setBreak(Object file, int line, RubyProc block,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             final String fileString = strings.getJavaString(file);
 
             final SourceSectionFilter filter = SourceSectionFilter
@@ -399,7 +399,7 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(message)")
         protected Object throwJavaException(Object message,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             callingMethod(strings.getJavaString(message));
             return nil;
         }
@@ -422,7 +422,7 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(message)")
         protected Object throwJavaExceptionWithCause(Object message,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             throw new RuntimeException(
                     strings.getJavaString(message),
                     new RuntimeException("cause 1", new RuntimeException("cause 2")));
@@ -436,7 +436,7 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(message)")
         protected Object throwAssertionError(Object message,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             throw new AssertionError(strings.getJavaString(message));
         }
 
@@ -990,7 +990,7 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(string)")
         protected Object foreignString(Object string,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             return new ForeignString(strings.getJavaString(string));
         }
     }

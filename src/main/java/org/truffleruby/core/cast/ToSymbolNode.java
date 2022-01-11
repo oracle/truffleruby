@@ -68,7 +68,7 @@ public abstract class ToSymbolNode extends RubyBaseNodeWithExecute {
                     "strings.getEncoding(str) == cachedEncoding" },
             limit = "getCacheLimit()")
     protected RubySymbol rubyString(Object str,
-            @CachedLibrary(limit = "2") RubyStringLibrary strings,
+            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
             @Cached(value = "strings.getRope(str)") Rope cachedRope,
             @Cached(value = "strings.getEncoding(str)") RubyEncoding cachedEncoding,
             @Cached RopeNodes.EqualNode equals,
@@ -78,7 +78,7 @@ public abstract class ToSymbolNode extends RubyBaseNodeWithExecute {
 
     @Specialization(guards = "strings.isRubyString(str)", replaces = "rubyString")
     protected RubySymbol rubyStringUncached(Object str,
-            @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
         return getSymbol(strings.getRope(str), strings.getEncoding(str));
     }
 
@@ -86,7 +86,7 @@ public abstract class ToSymbolNode extends RubyBaseNodeWithExecute {
     protected RubySymbol toStr(Object object,
             @Cached BranchProfile errorProfile,
             @Cached DispatchNode toStr,
-            @CachedLibrary(limit = "2") RubyStringLibrary libString,
+            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
             @Cached ToSymbolNode toSymbolNode) {
         final Object coerced;
         try {

@@ -1536,7 +1536,7 @@ public abstract class ArrayNodes {
                         "equalNode.execute(libFormat.getRope(format), cachedFormat)" },
                 limit = "getCacheLimit()")
         protected RubyString packCached(RubyArray array, Object format,
-                @CachedLibrary(limit = "2") RubyStringLibrary libFormat,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
                 @Cached("libFormat.getRope(format)") Rope cachedFormat,
                 @Cached("cachedFormat.byteLength()") int cachedFormatLength,
                 @Cached("create(compileFormat(libFormat.getRope(format)))") DirectCallNode callPackNode,
@@ -1556,7 +1556,7 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "libFormat.isRubyString(format)" }, replaces = "packCached")
         protected RubyString packUncached(RubyArray array, Object format,
-                @CachedLibrary(limit = "2") RubyStringLibrary libFormat,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
                 @Cached IndirectCallNode callPackNode) {
             final BytesResult result;
 

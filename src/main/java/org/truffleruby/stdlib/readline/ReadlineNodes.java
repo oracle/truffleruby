@@ -84,7 +84,7 @@ public abstract class ReadlineNodes {
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(characters)")
         protected Object setBasicWordBreakCharacters(Object characters,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             final String delimiters = strings.getJavaString(characters);
             getContext().getConsoleHolder().getParser().setDelimiters(delimiters);
             return characters;
