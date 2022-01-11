@@ -14,6 +14,7 @@ Compatibility:
 * Add `rb_argv0` for the `tk` gem. (#2556, @aardvark179).
 * Implement more correct conversion of array elements by `Array#pack`(#2503, #2504, @aardvark179).
 * Implement `Pathname#{empty?, glob}` (#2559, @bjfish)
+* Fixed `Rational('')` to raise error like MRI (#2566, @aardvark179).
 
 Performance:
 

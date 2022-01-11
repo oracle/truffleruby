@@ -45,7 +45,7 @@ class String
       @value = value
     end
 
-    def convert
+    def internal_convert
       if m = PATTERN.match(@value)
         si = m[1]
         nu = m[2]
@@ -76,9 +76,15 @@ class String
         value = value.quo(de.to_i) if de
 
         value
-      else
-        Rational(0, 1)
       end
+    end
+
+    def convert
+      internal_convert() || Rational(0, 1)
+    end
+
+    def strict_convert
+      internal_convert() or raise ArgumentError, "invalid value for convert(): #{@value.inspect}"
     end
   end
 end
