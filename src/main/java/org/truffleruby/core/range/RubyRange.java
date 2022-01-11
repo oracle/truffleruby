@@ -9,17 +9,32 @@
  */
 package org.truffleruby.core.range;
 
+import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.library.RubyLibrary;
 
+@ExportLibrary(RubyLibrary.class)
 public abstract class RubyRange extends RubyDynamicObject {
 
     public boolean excludedEnd;
+    public boolean frozen;
 
-    public RubyRange(RubyClass rubyClass, Shape shape, boolean excludedEnd) {
+    public RubyRange(RubyClass rubyClass, Shape shape, boolean excludedEnd, boolean frozen) {
         super(rubyClass, shape);
         this.excludedEnd = excludedEnd;
+        this.frozen = frozen;
     }
 
+    @ExportMessage
+    protected void freeze() {
+        frozen = true;
+    }
+
+    @ExportMessage
+    protected boolean isFrozen() {
+        return frozen;
+    }
 }
