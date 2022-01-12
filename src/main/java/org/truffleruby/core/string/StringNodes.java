@@ -173,7 +173,6 @@ import org.truffleruby.core.string.StringNodesFactory.MakeStringNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.NormalizeIndexNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.StringAppendNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.StringAppendPrimitiveNodeFactory;
-import org.truffleruby.core.string.StringNodesFactory.StringAreComparableNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.StringByteCharacterIndexNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.StringByteSubstringPrimitiveNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.StringDupAsStringInstanceNodeFactory;
@@ -487,8 +486,9 @@ public abstract class StringNodes {
 
         @Specialization(guards = "libB.isRubyString(b)")
         protected boolean equalString(Object a, Object b,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libA,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libB) {
-            return stringEqualNode.executeStringEqual(a, b);
+            return stringEqualNode.executeStringEqual(libA.getRope(a), libB.getRope(b));
         }
 
         @Specialization(guards = "isNotRubyString(b)")
@@ -3850,56 +3850,37 @@ public abstract class StringNodes {
 
     }
 
-    @ImportStatic(StringGuards.class)
-    public abstract static class StringAreComparableNode extends RubyBaseNode {
-
-        @Child AreComparableRopesNode areComparableRopesNode = AreComparableRopesNode.create();
-
-        public abstract boolean executeAreComparable(Object first, Object second);
-
-        @Specialization
-        protected boolean areComparable(Object a, Object b,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libA,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libB) {
-            return areComparableRopesNode.execute(libA.getRope(a), libB.getRope(b));
-        }
-    }
-
     @ImportStatic({ StringGuards.class, StringOperations.class })
     public abstract static class StringEqualNode extends RubyBaseNode {
 
-        @Child private StringAreComparableNode areComparableNode;
+        @Child private AreComparableRopesNode areComparableNode;
 
-        public abstract boolean executeStringEqual(Object string, Object other);
+        public abstract boolean executeStringEqual(Rope string, Rope other);
 
         // Same Rope implies same Encoding and therefore comparable
-        @Specialization(guards = "libString.getRope(string) == libOther.getRope(other)")
-        protected boolean sameRope(Object string, Object other,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libOther) {
+        @Specialization(guards = "string == other")
+        protected boolean sameRope(Rope string, Rope other) {
             return true;
         }
 
         @Specialization(guards = "!areComparable(string, other)")
-        protected boolean notComparable(Object string, Object other) {
+        protected boolean notComparable(Rope string, Rope other) {
             return false;
         }
 
         @Specialization(
                 guards = "areComparable(string, other)")
-        protected boolean stringEquals(Object string, Object other,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libOther,
+        protected boolean stringEquals(Rope string, Rope other,
                 @Cached RopeNodes.BytesEqualNode bytesEqualNode) {
-            return bytesEqualNode.execute(libString.getRope(string), libOther.getRope(other));
+            return bytesEqualNode.execute(string, other);
         }
 
-        protected boolean areComparable(Object first, Object second) {
+        protected boolean areComparable(Rope string, Rope other) {
             if (areComparableNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                areComparableNode = insert(StringAreComparableNodeGen.create());
+                areComparableNode = insert(AreComparableRopesNode.create());
             }
-            return areComparableNode.executeAreComparable(first, second);
+            return areComparableNode.execute(string, other);
         }
 
     }
