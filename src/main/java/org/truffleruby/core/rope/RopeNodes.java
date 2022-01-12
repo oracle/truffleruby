@@ -1764,7 +1764,7 @@ public abstract class RopeNodes {
                     }
                 }
             } else {
-                ret = greaterThanProfile.profile(bytes[cmp] > otherBytes[cmp]) ? 1 : -1;
+                ret = greaterThanProfile.profile((bytes[cmp] & 0xFF) > (otherBytes[cmp] & 0xFF)) ? 1 : -1;
             }
 
             if (equalProfile.profile(ret == 0)) {
