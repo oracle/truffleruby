@@ -19,6 +19,7 @@ Compatibility:
 Performance:
 
 * Increase dispatch limit for string library to handle mutable, immutable and non-strings (@aardvark179)
+* Switch to `Arrays.mismatch()` in string comparison for better performance (@aardvark179).
 
 Changes:
 

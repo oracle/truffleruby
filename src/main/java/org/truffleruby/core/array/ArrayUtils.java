@@ -252,27 +252,6 @@ public abstract class ArrayUtils {
                 .regionEqualsWithOrMask(first, firstStart, second, secondStart, size, null);
     }
 
-    public static int memcmp(byte[] first, int firstStart, byte[] second, int secondStart, int size, Node node,
-            LoopConditionProfile loopProfile) {
-        assert firstStart + size <= first.length;
-        assert secondStart + size <= second.length;
-
-        int i = 0;
-        try {
-            for (; loopProfile.inject(i < size); i++) {
-                final int cmp = (first[firstStart + i] & 0xff) - (second[secondStart + i] & 0xff);
-                if (cmp != 0) {
-                    return cmp;
-                }
-                TruffleSafepoint.poll(node);
-            }
-        } finally {
-            RubyBaseNode.profileAndReportLoopCount(node, loopProfile, i);
-        }
-
-        return 0;
-    }
-
     public static int memchr(byte[] array, int start, int size, byte find) {
         return com.oracle.truffle.api.ArrayUtils.indexOf(array, start, start + size, find);
     }
