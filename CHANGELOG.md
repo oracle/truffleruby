@@ -17,6 +17,7 @@ Compatibility:
 
 Performance:
 
+* Switch to `Arrays.mismatch()` in string comparison for better performance (@aardvark179).
 
 Changes:
 

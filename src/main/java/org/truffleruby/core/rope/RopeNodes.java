@@ -31,7 +31,6 @@ import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.SuppressFBWarnings;
-import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.ConcatRope.ConcatState;
 import org.truffleruby.core.rope.RopeNodesFactory.AreComparableRopesNodeGen;
@@ -1752,8 +1751,9 @@ public abstract class RopeNodes {
             final byte[] otherBytes = secondBytesNode.execute(secondRope);
 
             final int ret;
-            final int cmp = ArrayUtils.memcmp(bytes, 0, otherBytes, 0, memcmpLength, this, loopProfile);
-            if (equalSubsequenceProfile.profile(cmp == 0)) {
+
+            final int cmp = mismatch(bytes, otherBytes, memcmpLength);
+            if (equalSubsequenceProfile.profile(cmp == -1)) {
                 if (equalLengthProfile.profile(firstRope.byteLength() == secondRope.byteLength())) {
                     ret = 0;
                 } else {
@@ -1764,7 +1764,7 @@ public abstract class RopeNodes {
                     }
                 }
             } else {
-                ret = greaterThanProfile.profile(cmp > 0) ? 1 : -1;
+                ret = greaterThanProfile.profile(bytes[cmp] > otherBytes[cmp]) ? 1 : -1;
             }
 
             if (equalProfile.profile(ret == 0)) {
@@ -1780,6 +1780,11 @@ public abstract class RopeNodes {
 
             return ret;
 
+        }
+
+        @TruffleBoundary
+        private static int mismatch(byte[] bytes, byte[] otherBytes, int memcmpLength) {
+            return Arrays.mismatch(bytes, 0, memcmpLength, otherBytes, 0, memcmpLength);
         }
     }
 
