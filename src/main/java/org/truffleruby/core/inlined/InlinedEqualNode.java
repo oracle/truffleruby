@@ -71,7 +71,7 @@ public abstract class InlinedEqualNode extends BinaryInlinedOperationNode {
             @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsB,
             @Cached LookupMethodOnSelfNode lookupNode,
             @Cached StringNodes.StringEqualNode stringEqualNode) {
-        return stringEqualNode.executeStringEqual(self, b);
+        return stringEqualNode.executeStringEqual(stringsSelf.getRope(self), stringsB.getRope(b));
     }
 
     @Specialization

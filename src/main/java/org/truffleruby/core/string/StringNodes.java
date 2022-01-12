@@ -486,8 +486,9 @@ public abstract class StringNodes {
 
         @Specialization(guards = "libB.isRubyString(b)")
         protected boolean equalString(Object a, Object b,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libA,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libB) {
-            return stringEqualNode.executeStringEqual(a, b);
+            return stringEqualNode.executeStringEqual(libA.getRope(a), libB.getRope(b));
         }
 
         @Specialization(guards = "isNotRubyString(b)")
@@ -3854,42 +3855,32 @@ public abstract class StringNodes {
 
         @Child private AreComparableRopesNode areComparableNode;
 
-        public abstract boolean executeStringEqual(Object string, Object other);
+        public abstract boolean executeStringEqual(Rope string, Rope other);
 
         // Same Rope implies same Encoding and therefore comparable
-        @Specialization(guards = "libString.getRope(string) == libOther.getRope(other)")
-        protected boolean sameRope(Object string, Object other,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libOther) {
+        @Specialization(guards = "string == other")
+        protected boolean sameRope(Rope string, Rope other) {
             return true;
         }
 
-        @Specialization(guards = "!areComparable(stringRope, otherRope)")
-        protected boolean notComparable(Object string, Object other,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libOther,
-                @Bind("libString.getRope(string)") Rope stringRope,
-                @Bind("libOther.getRope(other)") Rope otherRope) {
+        @Specialization(guards = "!areComparable(string, other)")
+        protected boolean notComparable(Rope string, Rope other) {
             return false;
         }
 
         @Specialization(
-                guards = "areComparable(stringRope, otherRope)")
-        protected boolean stringEquals(Object string, Object other,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libOther,
-                @Cached RopeNodes.BytesEqualNode bytesEqualNode,
-                @Bind("libString.getRope(string)") Rope stringRope,
-                @Bind("libOther.getRope(other)") Rope otherRope) {
-            return bytesEqualNode.execute(stringRope, otherRope);
+                guards = "areComparable(string, other)")
+        protected boolean stringEquals(Rope string, Rope other,
+                @Cached RopeNodes.BytesEqualNode bytesEqualNode) {
+            return bytesEqualNode.execute(string, other);
         }
 
-        protected boolean areComparable(Rope stringRope, Rope otherRope) {
+        protected boolean areComparable(Rope string, Rope other) {
             if (areComparableNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 areComparableNode = insert(AreComparableRopesNode.create());
             }
-            return areComparableNode.execute(stringRope, otherRope);
+            return areComparableNode.execute(string, other);
         }
 
     }
