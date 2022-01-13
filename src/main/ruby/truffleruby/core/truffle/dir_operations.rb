@@ -10,27 +10,37 @@
 
 module Truffle
   module DirOperations
-    # We don't do this using FFI structs because directory
-    # functionality is needed before them and we don't want to
-    # duplicate code from the FFI gem.
-    DIRENT_NAME_OFFSET = Truffle::Config['platform.dirent.d_name.offset']
-    DIRENT_TYPE_OFFSET = Truffle::Config['platform.dirent.d_type.offset']
 
     AT_SYMLINK_NOFOLLOW = Truffle::Config['platform.file.AT_SYMLINK_NOFOLLOW']
     DT_DIR = Truffle::Config['platform.file.DT_DIR']
     DT_UNKNOWN  = Truffle::Config['platform.file.DT_UNKNOWN']
 
-    def self.readdir(dir)
+    MULTIPLE_READS_BUFFER_SIZE = 16384
+
+    def self.readdir_multiple(dir, resolve_type, exclude_self_and_parent, entries)
       dir.__send__(:ensure_open)
       dirptr = Primitive.object_ivar_get(dir, :@ptr)
-      dirent = Truffle::POSIX.truffleposix_readdir(dirptr)
-      if !dirent.null?
-        str = fix_entry_encoding(dir, dirent.get_string(DIRENT_NAME_OFFSET))
-        type = (dirent + DIRENT_TYPE_OFFSET).read_uchar
-        [str, type]
-      else
+      dirents = Primitive.io_thread_buffer_allocate(MULTIPLE_READS_BUFFER_SIZE)
+      begin
+        res = Truffle::POSIX.truffleposix_readdir_multiple(dirptr, MULTIPLE_READS_BUFFER_SIZE, resolve_type, exclude_self_and_parent, dirents)
+        num_read = dirents.read_int
+        offset = 4
+        num_read.times do
+          str_len = dirents.get_int(offset)
+          offset += 4
+          str = fix_entry_encoding(dir, dirents.get_string(offset, str_len))
+          offset += str_len
+          type = dirents.get_uchar(offset);
+          offset += 1
+          alignment = (offset % 4)
+          offset += (4 - alignment) if alignment > 0
+          entries << [str, type]
+        end
+
         Errno.handle unless Errno.errno == 0
-        nil
+        res
+      ensure
+        Primitive.io_thread_buffer_free(dirents)
       end
     end
 

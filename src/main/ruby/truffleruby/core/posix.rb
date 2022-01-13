@@ -219,7 +219,7 @@ module Truffle::POSIX
   attach_function :read, [:int, :pointer, :size_t], :ssize_t, LIBC, true
   attach_function :readlink, [:string, :pointer, :size_t], :ssize_t
   attach_function :realpath, [:string, :pointer], :pointer
-  attach_function :truffleposix_readdir, [:pointer], :pointer, LIBTRUFFLEPOSIX
+  attach_function :truffleposix_readdir_multiple, [:pointer, :int, :int, :int, :pointer], :int, LIBTRUFFLEPOSIX
   attach_function :truffleposix_readdir_name, [:pointer], :string, LIBTRUFFLEPOSIX
   attach_function :rename, [:string, :string], :int
   attach_function :truffleposix_rewinddir, [:pointer], :void, LIBTRUFFLEPOSIX
