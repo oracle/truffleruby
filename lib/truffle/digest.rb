@@ -11,6 +11,8 @@
 # The part enclosed between START from MRI/END from MRI is licensed
 # under LICENSE.RUBY as it is derived from lib/ruby/stdlib/digest.rb.
 
+require_relative 'digest/version'
+
 module Digest
 
   # START from MRI
