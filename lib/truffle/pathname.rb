@@ -227,7 +227,29 @@ class Pathname
     self
   end
 
+  def empty?
+    path = to_path
+    if File.directory?(path)
+      Dir.empty?(path)
+    else
+      File.empty?(path)
+    end
+  end
+
   def freeze() super; @path.freeze; self end
+
+  def glob(pattern, flags = 0, &block)
+    path = self.to_path
+    if block_given?
+      Dir.glob(pattern, flags, base: path) do |p|
+        yield self + p
+      end
+    else
+      Dir.glob(pattern, flags, base: path).map do |p|
+        self + p
+      end
+    end
+  end
 
   def taint
     warn 'Pathname#taint is deprecated and will be removed in Ruby 3.2.', uplevel: 1 if $VERBOSE

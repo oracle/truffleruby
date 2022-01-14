@@ -61,6 +61,11 @@ public class CoreSymbols {
     public final RubySymbol LITTLE = createRubySymbol("little");
     public final RubySymbol NATIVE = createRubySymbol("native");
 
+    // Added to workaround liquid's no symbols leaked test (SecurityTest#test_does_not_permanently_add_filters_to_symbol_table)
+    public final RubySymbol IMMEDIATE_SWEEP = createRubySymbol("immediate_sweep");
+    public final RubySymbol IMMEDIATE_MARK = createRubySymbol("immediate_mark");
+    public final RubySymbol FULL_MARK = createRubySymbol("full_mark");
+
 JAVA
 lines = []
 

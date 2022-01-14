@@ -117,6 +117,8 @@ module Truffle
 
     # MRI conversion macros and functions
 
+    # See Primitive.rb_num2int, Primitive.rb_num2long, Primitive.rb_to_int which are not defined as methods for efficiency
+
     def self.rb_num2uint(val)
       num = Primitive.rb_num2long(val)
       check_uint(num)
@@ -201,12 +203,6 @@ module Truffle
     def self.check_uint(val)
       unless Primitive.integer_fits_into_uint(val)
         raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `uint'"
-      end
-    end
-
-    def self.check_long(val)
-      unless Primitive.integer_fits_into_long(val)
-        raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `long'"
       end
     end
 

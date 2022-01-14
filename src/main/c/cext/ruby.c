@@ -26,6 +26,8 @@ ID (*rb_tr_sym2id)(VALUE val);
 bool (*rb_tr_is_native_object)(VALUE value);
 void* (*rb_tr_force_native)(VALUE obj);
 
+VALUE rb_argv0;
+
 void rb_tr_init_exception(void);
 
 // Run when loading C-extension support
@@ -41,4 +43,5 @@ void rb_tr_init(void *ruby_cext) {
 
   rb_tr_init_exception();
   rb_tr_init_global_constants();
+  rb_argv0 = rb_gv_get("$0");
 }

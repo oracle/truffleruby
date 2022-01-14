@@ -220,6 +220,19 @@ public abstract class HashNodes {
         }
     }
 
+    @Primitive(name = "hash_store")
+    @ImportStatic(HashGuards.class)
+    public abstract static class StoreNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(limit = "hashStrategyLimit()")
+        protected Object set(RubyHash hash, Object key, Object value,
+                @CachedLibrary("hash.store") HashStoreLibrary hashes) {
+            hashes.set(hash.store, hash, key, value, hash.compareByIdentity);
+            return value;
+        }
+
+    }
+
     @CoreMethod(names = "clear", raiseIfFrozenSelf = true)
     @ImportStatic(HashGuards.class)
     public abstract static class ClearNode extends CoreMethodArrayArgumentsNode {

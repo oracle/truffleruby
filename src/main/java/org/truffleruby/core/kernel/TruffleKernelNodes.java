@@ -100,7 +100,7 @@ public abstract class TruffleKernelNodes {
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(file)")
         protected boolean load(Object file, boolean wrap,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached IndirectCallNode callNode) {
             final String feature = strings.getJavaString(file);
             final Pair<Source, Rope> sourceRopePair;
@@ -373,7 +373,7 @@ public abstract class TruffleKernelNodes {
         @TruffleBoundary
         @Specialization
         protected Object getOriginalRequire(Object string,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             final String originalRequire = getContext()
                     .getCoreLibrary()
                     .getOriginalRequires()

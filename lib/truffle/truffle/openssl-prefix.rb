@@ -27,7 +27,10 @@ if macOS && !ENV['OPENSSL_PREFIX']
 
     if homebrew and prefix = search_homebrew.call(homebrew)
       # found
-    elsif Dir.exist?('/opt/local/include/openssl') # MacPorts
+    elsif Dir.exist?('/opt/local/libexec/openssl11') # MacPorts, prefer OpenSSL 1.1 as known to be compatible
+      prefix = '/opt/local/libexec/openssl11'
+    # MacPorts, try the generic version, too, but might not be compatible
+    elsif Dir.exist?('/opt/local/include/openssl')
       prefix = '/opt/local'
     end
   end

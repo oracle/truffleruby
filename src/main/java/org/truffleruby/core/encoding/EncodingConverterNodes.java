@@ -198,7 +198,7 @@ public abstract class EncodingConverterNodes {
                 int offset,
                 int size,
                 RubyHash options,
-                @CachedLibrary(limit = "2") RubyStringLibrary stringsSource) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsSource) {
             throw new UnsupportedOperationException("not implemented");
         }
 
@@ -230,7 +230,7 @@ public abstract class EncodingConverterNodes {
                 int offset,
                 int size,
                 int options,
-                @CachedLibrary(limit = "2") RubyStringLibrary stringsSource,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsSource,
                 @Cached DispatchNode destinationEncodingNode) {
 
             // Taken from org.jruby.RubyConverter#primitive_convert.
@@ -530,7 +530,7 @@ public abstract class EncodingConverterNodes {
         protected Object setReplacement(RubyEncodingConverter encodingConverter, Object replacement,
                 @Cached BranchProfile errorProfile,
                 @Cached RopeNodes.BytesNode bytesNode,
-                @CachedLibrary(limit = "2") RubyStringLibrary libReplacement) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libReplacement) {
             final EConv ec = encodingConverter.econv;
             final Rope rope = libReplacement.getRope(replacement);
             final Encoding encoding = rope.getEncoding();

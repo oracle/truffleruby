@@ -62,6 +62,10 @@ describe "String#split with String" do
     ",".split(",", -1).should == ["", ""]
   end
 
+  it "raises a RangeError when the limit is larger than int" do
+    -> { "a,b".split(" ", 2147483649) }.should raise_error(RangeError)
+  end
+
   it "defaults to $; when string isn't given or nil" do
     suppress_warning do
       old_fs = $;
@@ -219,6 +223,17 @@ describe "String#split with String" do
         end
       end
     end
+  end
+
+  it "returns an empty array when whitespace is split on whitespace" do
+    " ".split(" ").should == []
+    " \n ".split(" ").should == []
+    "  ".split(" ").should == []
+    " \t ".split(" ").should == []
+  end
+
+  it "doesn't split on non-ascii whitespace" do
+    "a\u{2008}b".split(" ").should == ["a\u{2008}b"]
   end
 end
 

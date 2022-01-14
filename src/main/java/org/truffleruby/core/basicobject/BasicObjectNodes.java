@@ -346,8 +346,8 @@ public abstract class BasicObjectNodes {
         @Specialization(guards = { "strings.isRubyString(string)", "stringsFileName.isRubyString(fileName)" })
         protected Object instanceEval(
                 VirtualFrame frame, Object receiver, Object string, Object fileName, int line, Nil block,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings,
-                @CachedLibrary(limit = "2") RubyStringLibrary stringsFileName,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsFileName,
                 @Cached ReadCallerFrameNode callerFrameNode,
                 @Cached IndirectCallNode callNode) {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
@@ -364,8 +364,8 @@ public abstract class BasicObjectNodes {
         @Specialization(guards = { "strings.isRubyString(string)", "stringsFileName.isRubyString(fileName)" })
         protected Object instanceEval(
                 VirtualFrame frame, Object receiver, Object string, Object fileName, NotProvided line, Nil block,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings,
-                @CachedLibrary(limit = "2") RubyStringLibrary stringsFileName,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsFileName,
                 @Cached ReadCallerFrameNode callerFrameNode,
                 @Cached IndirectCallNode callNode) {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
@@ -382,7 +382,7 @@ public abstract class BasicObjectNodes {
         @Specialization(guards = "strings.isRubyString(string)")
         protected Object instanceEval(
                 VirtualFrame frame, Object receiver, Object string, NotProvided fileName, NotProvided line, Nil block,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached ReadCallerFrameNode callerFrameNode,
                 @Cached IndirectCallNode callNode) {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame);

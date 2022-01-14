@@ -67,11 +67,11 @@ public abstract class InlinedEqualNode extends BinaryInlinedOperationNode {
             },
             assumptions = "assumptions")
     protected boolean stringEqual(VirtualFrame frame, Object self, Object b,
-            @CachedLibrary(limit = "2") RubyStringLibrary stringsSelf,
-            @CachedLibrary(limit = "2") RubyStringLibrary stringsB,
+            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsSelf,
+            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsB,
             @Cached LookupMethodOnSelfNode lookupNode,
             @Cached StringNodes.StringEqualNode stringEqualNode) {
-        return stringEqualNode.executeStringEqual(self, b);
+        return stringEqualNode.executeStringEqual(stringsSelf.getRope(self), stringsB.getRope(b));
     }
 
     @Specialization

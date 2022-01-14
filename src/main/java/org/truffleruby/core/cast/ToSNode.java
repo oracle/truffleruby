@@ -41,7 +41,7 @@ public abstract class ToSNode extends RubyBaseNodeWithExecute {
     @Specialization(guards = "isNotRubyString(object)")
     protected Object toSFallback(VirtualFrame frame, Object object,
             @Cached DispatchNode callToSNode,
-            @CachedLibrary(limit = "2") RubyStringLibrary libString) {
+            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
         final Object value = callToSNode.dispatch(frame, object, "to_s", nil, EMPTY_ARGUMENTS);
 
         if (libString.isRubyString(value)) {

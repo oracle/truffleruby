@@ -375,7 +375,7 @@ public abstract class TimeNodes {
                 guards = { "equalNode.execute(libFormat.getRope(format), cachedFormat)" },
                 limit = "getLanguage().options.TIME_FORMAT_CACHE")
         protected RubyString timeStrftime(RubyTime time, Object format,
-                @CachedLibrary(limit = "2") RubyStringLibrary libFormat,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
                 @Cached("libFormat.getRope(format)") Rope cachedFormat,
                 @Cached(value = "compilePattern(cachedFormat)", dimensions = 1) Token[] pattern,
                 @Cached RopeNodes.EqualNode equalNode,
@@ -395,7 +395,7 @@ public abstract class TimeNodes {
         @TruffleBoundary
         @Specialization(guards = "libFormat.isRubyString(format)")
         protected RubyString timeStrftime(RubyTime time, Object format,
-                @CachedLibrary(limit = "2") RubyStringLibrary libFormat,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
                 @Cached RopeNodes.ConcatNode concatNode) {
             final Token[] pattern = compilePattern(libFormat.getRope(format));
             if (formatCanBeFast(pattern) && yearIsFast(time)) {

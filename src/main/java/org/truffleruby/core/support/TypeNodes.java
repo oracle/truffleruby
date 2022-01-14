@@ -368,7 +368,7 @@ public abstract class TypeNodes {
         @Child private ToIntNode toIntNode = ToIntNode.create();
 
         @Specialization
-        protected long numToInt(Object value) {
+        protected int numToInt(Object value) {
             return toIntNode.execute(value);
         }
     }

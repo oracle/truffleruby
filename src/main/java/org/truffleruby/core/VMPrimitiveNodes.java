@@ -260,8 +260,8 @@ public abstract class VMPrimitiveNodes {
         @TruffleBoundary
         @Specialization(guards = { "libSignalString.isRubyString(signalString)", "libAction.isRubyString(action)" })
         protected boolean watchSignalString(Object signalString, boolean isRubyDefaultHandler, Object action,
-                @CachedLibrary(limit = "2") RubyStringLibrary libSignalString,
-                @CachedLibrary(limit = "2") RubyStringLibrary libAction) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSignalString,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libAction) {
             final String actionString = libAction.getJavaString(action);
             final String signalName = libSignalString.getJavaString(signalString);
 
@@ -280,7 +280,7 @@ public abstract class VMPrimitiveNodes {
         @TruffleBoundary
         @Specialization(guards = "libSignalString.isRubyString(signalString)")
         protected boolean watchSignalProc(Object signalString, boolean isRubyDefaultHandler, RubyProc action,
-                @CachedLibrary(limit = "2") RubyStringLibrary libSignalString) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSignalString) {
             final RubyContext context = getContext();
 
             if (getLanguage().getCurrentThread() != context.getThreadManager().getRootThread()) {
@@ -374,7 +374,7 @@ public abstract class VMPrimitiveNodes {
         @TruffleBoundary
         @Specialization
         protected Object get(Object key,
-                @CachedLibrary(limit = "2") RubyStringLibrary library) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary library) {
             final String keyString = library.getJavaString(key);
             final Object value = getContext().getNativeConfiguration().get(keyString);
 
@@ -393,7 +393,7 @@ public abstract class VMPrimitiveNodes {
         @TruffleBoundary
         @Specialization
         protected Object getSection(Object section, RubyProc block,
-                @CachedLibrary(limit = "2") RubyStringLibrary libSection,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSection,
                 @Cached MakeStringNode makeStringNode,
                 @Cached CallBlockNode yieldNode) {
             for (Entry<String, Object> entry : getContext()
@@ -553,7 +553,7 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization(guards = "libString.isRubyString(message)")
         protected Object shouldNotReachHere(Object message,
-                @CachedLibrary(limit = "2") RubyStringLibrary libString) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
             throw CompilerDirectives.shouldNotReachHere(libString.getJavaString(message));
         }
 

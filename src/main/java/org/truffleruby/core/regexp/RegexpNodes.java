@@ -75,7 +75,7 @@ public abstract class RegexpNodes {
 
         @Specialization(guards = "libRaw.isRubyString(raw)")
         protected RubyString quoteString(Object raw,
-                @CachedLibrary(limit = "2") RubyStringLibrary libRaw) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libRaw) {
             final Rope rope = libRaw.getRope(raw);
             final RopeWithEncoding ropeQuotedResult = ClassicRegexp.quote19(rope, libRaw.getEncoding(raw));
             return getMakeStringNode().fromRope(ropeQuotedResult.getRope(), ropeQuotedResult.getEncoding());
@@ -225,7 +225,7 @@ public abstract class RegexpNodes {
         @Specialization(guards = "libPattern.isRubyString(pattern)")
         protected RubyRegexp initialize(Object pattern, int options,
                 @Cached BranchProfile errorProfile,
-                @CachedLibrary(limit = "2") RubyStringLibrary libPattern) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libPattern) {
             try {
                 return RubyRegexp.create(
                         getLanguage(),

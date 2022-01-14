@@ -1,0 +1,3 @@
+getwd
+glob
+pwd

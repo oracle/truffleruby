@@ -775,8 +775,8 @@ module Marshal
         val = construct
         @modules = original_modules
 
-        # Use __store__ (an alias for []=) to get around subclass overrides
-        obj.__store__ key, val
+        # Use Primitive.hash_store (an alias for []=) to get around subclass overrides
+        Primitive.hash_store(obj, key, val)
       end
 
       obj

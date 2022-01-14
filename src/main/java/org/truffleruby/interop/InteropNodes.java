@@ -198,7 +198,7 @@ public abstract class InteropNodes {
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(mimeType)")
         protected boolean isMimeTypeSupported(RubyString mimeType,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             return getContext().getEnv().isMimeTypeSupported(strings.getJavaString(mimeType));
         }
 
@@ -210,7 +210,7 @@ public abstract class InteropNodes {
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(fileName)")
         protected Object importFile(Object fileName,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             try {
                 //intern() to improve footprint
                 final TruffleFile file = getContext()
@@ -240,8 +240,8 @@ public abstract class InteropNodes {
                         "sourceEqualNode.execute(stringsSource.getRope(source), cachedSource)" },
                 limit = "getEvalCacheLimit()")
         protected Object evalCached(Object mimeType, Object source,
-                @CachedLibrary(limit = "2") RubyStringLibrary stringsMimeType,
-                @CachedLibrary(limit = "2") RubyStringLibrary stringsSource,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsMimeType,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsSource,
                 @Cached("stringsMimeType.getRope(mimeType)") Rope cachedMimeType,
                 @Cached("stringsSource.getRope(source)") Rope cachedSource,
                 @Cached("create(parse(stringsMimeType.getRope(mimeType), stringsSource.getRope(source)))") DirectCallNode callNode,
@@ -254,8 +254,8 @@ public abstract class InteropNodes {
                 guards = { "stringsMimeType.isRubyString(mimeType)", "stringsSource.isRubyString(source)" },
                 replaces = "evalCached")
         protected Object evalUncached(Object mimeType, RubyString source,
-                @CachedLibrary(limit = "2") RubyStringLibrary stringsMimeType,
-                @CachedLibrary(limit = "2") RubyStringLibrary stringsSource,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsMimeType,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsSource,
                 @Cached IndirectCallNode callNode) {
             return callNode
                     .call(parse(stringsMimeType.getRope(mimeType), stringsSource.getRope(source)), EMPTY_ARGUMENTS);
@@ -289,7 +289,7 @@ public abstract class InteropNodes {
 
         @Specialization(guards = "library.isRubyString(code)")
         protected Object evalNFI(Object code,
-                @CachedLibrary(limit = "2") RubyStringLibrary library,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary library,
                 @Cached IndirectCallNode callNode) {
             return callNode.call(parse(library.getRope(code)), EMPTY_ARGUMENTS);
         }
@@ -1813,7 +1813,7 @@ public abstract class InteropNodes {
 
         @Specialization(guards = "strings.isRubyString(name)")
         protected Object javaTypeString(Object name,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             return javaType(strings.getJavaString(name));
         }
 

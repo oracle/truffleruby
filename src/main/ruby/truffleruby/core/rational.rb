@@ -337,7 +337,9 @@ class Rational < Numeric
     case num
     when Integer
       # nothing
-    when Float, String, Complex
+    when String
+      num = String::Rationalizer.new(num).strict_convert
+    when Float, Complex
       num = num.to_r
     end
 

@@ -35,7 +35,7 @@ public abstract class ToStringObjectNode extends FormatNode {
 
     @Specialization(guards = "strings.isRubyString(string)")
     protected Object toStringString(Object string,
-            @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
         return string;
     }
 
