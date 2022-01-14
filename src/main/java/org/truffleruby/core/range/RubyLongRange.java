@@ -17,8 +17,8 @@ public final class RubyLongRange extends RubyRange {
     public final long begin;
     public final long end;
 
-    public RubyLongRange(RubyClass rubyClass, Shape shape, boolean excludedEnd, long begin, long end) {
-        super(rubyClass, shape, excludedEnd);
+    public RubyLongRange(RubyClass rubyClass, Shape shape, boolean excludedEnd, long begin, long end, boolean frozen) {
+        super(rubyClass, shape, excludedEnd, frozen);
         this.begin = begin;
         this.end = end;
     }

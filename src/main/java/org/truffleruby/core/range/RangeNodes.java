@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.range;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -196,7 +197,8 @@ public abstract class RangeNodes {
                     shape,
                     range.excludedEnd,
                     range.begin,
-                    range.end);
+                    range.end,
+                    false);
             AllocationTracing.trace(copy, this);
             return copy;
         }
@@ -210,7 +212,8 @@ public abstract class RangeNodes {
                     shape,
                     range.excludedEnd,
                     range.begin,
-                    range.end);
+                    range.end,
+                    false);
             AllocationTracing.trace(copy, this);
             return copy;
         }
@@ -223,7 +226,8 @@ public abstract class RangeNodes {
                     getLanguage().objectRangeShape,
                     range.excludedEnd,
                     range.begin,
-                    range.end);
+                    range.end,
+                    false);
             AllocationTracing.trace(copy, this);
             return copy;
         }
@@ -423,7 +427,8 @@ public abstract class RangeNodes {
                     getLanguage().intRangeShape,
                     range.excludedEnd,
                     begin,
-                    end);
+                    end,
+                    range.frozen);
         }
 
         @Specialization(guards = "range.isBounded()")
@@ -435,7 +440,8 @@ public abstract class RangeNodes {
                     getLanguage().intRangeShape,
                     range.excludedEnd,
                     begin,
-                    end);
+                    end,
+                    range.frozen);
         }
 
         @Specialization(guards = "range.isEndless()")
@@ -446,7 +452,8 @@ public abstract class RangeNodes {
                     getLanguage().intRangeShape,
                     true,
                     toInt(range.begin),
-                    end);
+                    end,
+                    range.frozen);
         }
 
         @Specialization(guards = "range.isBeginless()")
@@ -458,7 +465,8 @@ public abstract class RangeNodes {
                     getLanguage().intRangeShape,
                     range.excludedEnd,
                     begin,
-                    end);
+                    end,
+                    range.frozen);
         }
 
         @Specialization(guards = "range.isBoundless()")
@@ -470,7 +478,8 @@ public abstract class RangeNodes {
                     getLanguage().intRangeShape,
                     false,
                     begin,
-                    end);
+                    end,
+                    range.frozen);
         }
 
         private int toInt(Object indexObject) {
@@ -514,7 +523,8 @@ public abstract class RangeNodes {
                     getLanguage().intRangeShape,
                     excludeEnd,
                     begin,
-                    end);
+                    end,
+                    true);
             AllocationTracing.trace(range, this);
             return range;
         }
@@ -528,7 +538,8 @@ public abstract class RangeNodes {
                     shape,
                     excludeEnd,
                     (int) begin,
-                    (int) end);
+                    (int) end,
+                    true);
             AllocationTracing.trace(range, this);
             return range;
         }
@@ -541,21 +552,24 @@ public abstract class RangeNodes {
                     getLanguage().longRangeShape,
                     excludeEnd,
                     begin,
-                    end);
+                    end,
+                    true);
             AllocationTracing.trace(range, this);
             return range;
         }
 
-        @Specialization(guards = { "rubyClass != getRangeClass() || (!isImplicitLong(begin) || !isImplicitLong(end))" })
+        @Specialization(guards = { "!standardClass || (!isImplicitLong(begin) || !isImplicitLong(end))" })
         protected RubyObjectRange objectRange(RubyClass rubyClass, Object begin, Object end, boolean excludeEnd,
-                @Cached DispatchNode compare) {
+                @Cached DispatchNode compare,
+                @Bind("rubyClass == getRangeClass()") boolean standardClass) {
 
             if (compare.call(begin, "<=>", end) == nil && end != nil && begin != nil) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("bad value for range", this));
             }
 
             final Shape shape = getLanguage().objectRangeShape;
-            final RubyObjectRange range = new RubyObjectRange(rubyClass, shape, excludeEnd, begin, end);
+            final RubyObjectRange range = new RubyObjectRange(rubyClass, shape, excludeEnd, begin, end,
+                    standardClass);
             AllocationTracing.trace(range, this);
             return range;
         }
@@ -571,7 +585,7 @@ public abstract class RangeNodes {
         @Specialization
         protected RubyObjectRange allocate(RubyClass rubyClass) {
             final Shape shape = getLanguage().objectRangeShape;
-            final RubyObjectRange range = new RubyObjectRange(rubyClass, shape, false, nil, nil);
+            final RubyObjectRange range = new RubyObjectRange(rubyClass, shape, false, nil, nil, false);
             AllocationTracing.trace(range, this);
             return range;
         }

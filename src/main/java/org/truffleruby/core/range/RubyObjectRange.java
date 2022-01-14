@@ -23,8 +23,14 @@ public final class RubyObjectRange extends RubyRange implements ObjectGraphNode 
     public Object begin;
     public Object end;
 
-    public RubyObjectRange(RubyClass rubyClass, Shape shape, boolean excludedEnd, Object begin, Object end) {
-        super(rubyClass, shape, excludedEnd);
+    public RubyObjectRange(
+            RubyClass rubyClass,
+            Shape shape,
+            boolean excludedEnd,
+            Object begin,
+            Object end,
+            boolean frozen) {
+        super(rubyClass, shape, excludedEnd, frozen);
         this.begin = begin;
         this.end = end;
     }
