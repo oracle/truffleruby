@@ -29,6 +29,8 @@ public abstract class CheckIVarNameNode extends RubyBaseNode {
         return CheckIVarNameNodeGen.create();
     }
 
+    /** Pass both the j.l.String name and the original name, the original name can be faster to check and the j.l.String
+     * name is needed by all callers so it is better for footprint that callers convert to j.l.String */
     public abstract void execute(RubyDynamicObject object, String name, Object originalName);
 
     @Specialization
