@@ -13,9 +13,7 @@ public enum IdentifierType {
     LOCAL,
     INSTANCE,
     GLOBAL,
-    ATTRSET,
     CONST,
     CLASS,
-    JUNK,
-    INTERNAL
+    JUNK
 }

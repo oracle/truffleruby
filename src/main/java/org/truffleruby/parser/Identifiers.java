@@ -36,21 +36,16 @@ public final class Identifiers {
 
     @TruffleBoundary
     public static boolean isValidConstantName(String id) {
-        int c;
-        if (id.length() > 0 && (c = id.codePointAt(0)) <= 'Z' && c >= 'A') {
-            return isNameString(id, Character.charCount(c));
-        }
-        return false;
-    }
-
-    @TruffleBoundary
-    public static boolean isValidLocalVariableName(String id) {
         if (id.isEmpty()) {
             return false;
         }
         int first = id.codePointAt(0);
-        return Character.isLetter(first) && Character.isLowerCase(first) &&
-                isNameString(id, Character.charCount(first));
+        return isConstantFirstCodePoint(first) && isNameString(id, Character.charCount(first));
+    }
+
+    @TruffleBoundary
+    public static boolean isValidLocalVariableName(String id) {
+        return isValidIdentifier(id, 0);
     }
 
     @TruffleBoundary
@@ -59,22 +54,35 @@ public final class Identifiers {
     }
 
     @TruffleBoundary
+    public static boolean isValidInstanceVariableName(String id) {
+        return id.startsWith("@") && isValidIdentifier(id, 1); // OK due to startsWith
+    }
+
+    @TruffleBoundary
     public static boolean isValidGlobalVariableName(String id) {
         return id.startsWith("$") && isValidIdentifier(id, 1); // OK due to startsWith
     }
 
     @TruffleBoundary
-    public static boolean isValidInstanceVariableName(String id) {
-        return id.startsWith("@") && isValidIdentifier(id, 1);  // OK due to startsWith
-    }
-
-    @TruffleBoundary
     private static boolean isValidIdentifier(String id, int start) {
-        if (id.length() <= start) {
+        if (start >= id.length()) {
             return false;
         }
         int codePoint = id.codePointAt(start);
         return isInitialCharacter(codePoint) && isNameString(id, start + Character.charCount(codePoint));
+    }
+
+    @TruffleBoundary
+    private static boolean isNameString(String id, int start) {
+        final int length = id.length();
+        int codePoint;
+        for (int i = start; i < length; i += Character.charCount(codePoint)) {
+            codePoint = id.codePointAt(i);
+            if (!(Character.isLetterOrDigit(codePoint) || codePoint == '_')) {
+                return false;
+            }
+        }
+        return true;
     }
 
     // MRI: similar to is_identchar but does not allow numeric
@@ -83,17 +91,9 @@ public final class Identifiers {
         return Character.isAlphabetic(c) || c == '_' || c >= 128;
     }
 
-    @TruffleBoundary
-    private static boolean isNameString(String id, int start) {
-        final int length = id.length();
-        int c;
-        for (int i = start; i < length; i += Character.charCount(c)) {
-            c = id.codePointAt(i);
-            if (!(Character.isLetterOrDigit(c) || c == '_')) {
-                return false;
-            }
-        }
-        return true;
+    private static boolean isConstantFirstCodePoint(int first) {
+        return Character.isUpperCase(first) ||
+                (!Character.isLowerCase(first) && Character.isTitleCase(first));
     }
 
     public static IdentifierType stringToType(String id) {
@@ -101,26 +101,23 @@ public final class Identifiers {
             return IdentifierType.JUNK;
         } else {
             final int first = id.codePointAt(0);
-            final int nextCodePoint = Character.charCount(first);
             switch (first) {
                 case '\0':
                     return IdentifierType.JUNK;
                 case '$':
-                    return isValidIdentifier(id, nextCodePoint) ? IdentifierType.GLOBAL : IdentifierType.JUNK;
+                    return isValidIdentifier(id, 1) ? IdentifierType.GLOBAL : IdentifierType.JUNK;  // OK due to case '$'
                 case '@':
                     if (isValidClassVariableName(id)) {
                         return IdentifierType.CLASS;
-                    } else if (id.length() > nextCodePoint && isInitialCharacter(id.codePointAt(nextCodePoint))) {
+                    } else if (isValidIdentifier(id, 1)) { // OK due to case '@'
                         return IdentifierType.INSTANCE;
                     } else {
                         return IdentifierType.JUNK;
                     }
                 default:
-                    if (Character.isUpperCase(first) ||
-                            (!Character.isLowerCase(first) && Character.isTitleCase(first))) {
+                    if (isValidConstantName(id)) {
                         return IdentifierType.CONST;
-                    } else if (Character.isLetter(first) && Character.isLowerCase(first) &&
-                            isNameString(id, nextCodePoint)) {
+                    } else if (isValidLocalVariableName(id)) {
                         return IdentifierType.LOCAL;
                     } else {
                         return IdentifierType.JUNK;
