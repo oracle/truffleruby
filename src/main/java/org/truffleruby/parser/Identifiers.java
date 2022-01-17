@@ -31,13 +31,14 @@ package org.truffleruby.parser;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
+// No charAt() in this class or hardcoded char offsets, we want to treat surrogate characters properly
 public final class Identifiers {
 
     @TruffleBoundary
     public static boolean isValidConstantName(String id) {
-        char c;
-        if (id.length() > 0 && (c = id.charAt(0)) <= 'Z' && c >= 'A') {
-            return isNameString(id, 1);
+        int c;
+        if (id.length() > 0 && (c = id.codePointAt(0)) <= 'Z' && c >= 'A') {
+            return isNameString(id, Character.charCount(c));
         }
         return false;
     }
@@ -48,28 +49,34 @@ public final class Identifiers {
             return false;
         }
         int first = id.codePointAt(0);
-        return Character.isLetter(first) && Character.isLowerCase(first) && isNameString(id, 1);
+        return Character.isLetter(first) && Character.isLowerCase(first) &&
+                isNameString(id, Character.charCount(first));
     }
 
     @TruffleBoundary
     public static boolean isValidClassVariableName(String id) {
-        return id.startsWith("@@") && isValidIdentifier(id, 2);
+        return id.startsWith("@@") && isValidIdentifier(id, 2); // OK due to startsWith
     }
 
     @TruffleBoundary
     public static boolean isValidGlobalVariableName(String id) {
-        return id.startsWith("$") && isValidIdentifier(id, 1);
+        return id.startsWith("$") && isValidIdentifier(id, 1); // OK due to startsWith
     }
 
     /** check like Rubinius does for compatibility with their Struct Ruby implementation. */
     @TruffleBoundary
     public static boolean isValidInstanceVariableName(String id) {
-        return id.startsWith("@") && id.length() > 1 && Identifiers.isInitialCharacter(id.charAt(1));
+        return id.startsWith("@") && id.length() > 1 &&
+                Identifiers.isInitialCharacter(id.codePointAt(1));  // OK due to startsWith
     }
 
     @TruffleBoundary
     private static boolean isValidIdentifier(String id, int start) {
-        return id.length() > start && isInitialCharacter(id.codePointAt(start)) && isNameString(id, start + 1);
+        if (id.length() <= start) {
+            return false;
+        }
+        int codePoint = id.codePointAt(start);
+        return isInitialCharacter(codePoint) && isNameString(id, start + Character.charCount(codePoint));
     }
 
     // MRI: similar to is_identchar but does not allow numeric
@@ -95,17 +102,17 @@ public final class Identifiers {
         if (id.isEmpty()) {
             return IdentifierType.JUNK;
         } else {
-            var codepoints = id.codePoints().toArray();
-            final int first = codepoints[0];
+            final int first = id.codePointAt(0);
+            final int nextCodePoint = Character.charCount(first);
             switch (first) {
                 case '\0':
                     return IdentifierType.JUNK;
                 case '$':
-                    return isValidIdentifier(id, 1) ? IdentifierType.GLOBAL : IdentifierType.JUNK;
+                    return isValidIdentifier(id, nextCodePoint) ? IdentifierType.GLOBAL : IdentifierType.JUNK;
                 case '@':
                     if (isValidClassVariableName(id)) {
                         return IdentifierType.CLASS;
-                    } else if (id.length() > 1 && isInitialCharacter(codepoints[1])) {
+                    } else if (id.length() > nextCodePoint && isInitialCharacter(id.codePointAt(nextCodePoint))) {
                         return IdentifierType.INSTANCE;
                     } else {
                         return IdentifierType.JUNK;
@@ -114,7 +121,8 @@ public final class Identifiers {
                     if (Character.isUpperCase(first) ||
                             (!Character.isLowerCase(first) && Character.isTitleCase(first))) {
                         return IdentifierType.CONST;
-                    } else if (Character.isLetter(first) && Character.isLowerCase(first) && isNameString(id, 1)) {
+                    } else if (Character.isLetter(first) && Character.isLowerCase(first) &&
+                            isNameString(id, nextCodePoint)) {
                         return IdentifierType.LOCAL;
                     } else {
                         return IdentifierType.JUNK;
