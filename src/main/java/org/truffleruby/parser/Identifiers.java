@@ -63,11 +63,9 @@ public final class Identifiers {
         return id.startsWith("$") && isValidIdentifier(id, 1); // OK due to startsWith
     }
 
-    /** check like Rubinius does for compatibility with their Struct Ruby implementation. */
     @TruffleBoundary
     public static boolean isValidInstanceVariableName(String id) {
-        return id.startsWith("@") && id.length() > 1 &&
-                Identifiers.isInitialCharacter(id.codePointAt(1));  // OK due to startsWith
+        return id.startsWith("@") && isValidIdentifier(id, 1);  // OK due to startsWith
     }
 
     @TruffleBoundary
