@@ -250,6 +250,10 @@
       <property name="format" value='Double\.compare'/>
       <property name="message" value="Double.compare() does not match Ruby semantics, use FloatNodes.CompareNode.compareDoubles instead."/>
     </module>
+    <module name="RegexpSinglelineJava">
+      <property name="format" value='@CachedLibrary\(limit = "\d+"\) RubyStringLibrary'/>
+      <property name="message" value='Use @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary instead.'/>
+    </module>
     <module name="IllegalType">
       <!-- Use PrintStream instead of PrintWriter, PrintWriter does not consistently flush, even when writing \n.-->
       <property name="illegalClassNames" value="TruffleObject,DynamicObject,PrintWriter"/>
