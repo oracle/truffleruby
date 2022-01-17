@@ -28,6 +28,8 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import org.truffleruby.language.methods.DeclarationContext;
+import org.truffleruby.parser.IdentifierType;
+import org.truffleruby.parser.Identifiers;
 
 @ExportLibrary(InteropLibrary.class)
 public final class RubySymbol extends ImmutableRubyObject implements TruffleObject {
@@ -42,19 +44,21 @@ public final class RubySymbol extends ImmutableRubyObject implements TruffleObje
     private final int javaStringHashCode;
     private final long id;
     private ImmutableRubyString name;
+    private final IdentifierType type;
 
     private volatile RootCallTarget callTargetNoRefinements = null;
 
-    public RubySymbol(String string, LeafRope rope, RubyEncoding encoding, long id) {
+    RubySymbol(String string, LeafRope rope, RubyEncoding encoding, long id) {
         assert rope.encoding == encoding.jcoding;
         this.encoding = encoding;
         this.string = string;
         this.rope = rope;
         this.javaStringHashCode = string.hashCode();
         this.id = id;
+        this.type = Identifiers.stringToType(string);
     }
 
-    public RubySymbol(String string, LeafRope rope, RubyEncoding encoding) {
+    RubySymbol(String string, LeafRope rope, RubyEncoding encoding) {
         this(string, rope, encoding, UNASSIGNED_ID);
     }
 
@@ -68,6 +72,10 @@ public final class RubySymbol extends ImmutableRubyObject implements TruffleObje
 
     public LeafRope getRope() {
         return rope;
+    }
+
+    public IdentifierType getType() {
+        return this.type;
     }
 
     @TruffleBoundary

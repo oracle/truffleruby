@@ -31,62 +31,99 @@ package org.truffleruby.parser;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
+// No charAt() in this class or hardcoded char offsets, we want to treat surrogate characters properly
 public final class Identifiers {
 
     @TruffleBoundary
     public static boolean isValidConstantName(String id) {
-        char c;
-        if (id.length() > 0 && (c = id.charAt(0)) <= 'Z' && c >= 'A') {
-            return isNameString(id, 1);
-        }
-        return false;
-    }
-
-    @TruffleBoundary
-    public static boolean isValidLocalVariableName(String id) {
         if (id.isEmpty()) {
             return false;
         }
         int first = id.codePointAt(0);
-        return Character.isLetter(first) && Character.isLowerCase(first) && isNameString(id, 1);
+        return isConstantFirstCodePoint(first) && isNameString(id, Character.charCount(first));
+    }
+
+    @TruffleBoundary
+    public static boolean isValidLocalVariableName(String id) {
+        return isValidIdentifier(id, 0);
     }
 
     @TruffleBoundary
     public static boolean isValidClassVariableName(String id) {
-        return id.startsWith("@@") && isValidIdentifier(id, 2);
+        return id.startsWith("@@") && isValidIdentifier(id, 2); // OK due to startsWith
+    }
+
+    @TruffleBoundary
+    public static boolean isValidInstanceVariableName(String id) {
+        return id.startsWith("@") && isValidIdentifier(id, 1); // OK due to startsWith
     }
 
     @TruffleBoundary
     public static boolean isValidGlobalVariableName(String id) {
-        return id.startsWith("$") && isValidIdentifier(id, 1);
-    }
-
-    /** check like Rubinius does for compatibility with their Struct Ruby implementation. */
-    @TruffleBoundary
-    public static boolean isValidInstanceVariableName(String id) {
-        return id.startsWith("@") && id.length() > 1 && Identifiers.isInitialCharacter(id.charAt(1));
+        return id.startsWith("$") && isValidIdentifier(id, 1); // OK due to startsWith
     }
 
     @TruffleBoundary
     private static boolean isValidIdentifier(String id, int start) {
-        return id.length() > start && isInitialCharacter(id.charAt(start)) && isNameString(id, start + 1);
-    }
-
-    @TruffleBoundary
-    private static boolean isInitialCharacter(int c) {
-        return Character.isAlphabetic(c) || c == '_';
+        if (start >= id.length()) {
+            return false;
+        }
+        int codePoint = id.codePointAt(start);
+        return isInitialCharacter(codePoint) && isNameString(id, start + Character.charCount(codePoint));
     }
 
     @TruffleBoundary
     private static boolean isNameString(String id, int start) {
         final int length = id.length();
-        for (int i = start; i < length; i++) {
-            char c = id.charAt(i);
-            if (!(Character.isLetterOrDigit(c) || c == '_')) {
+        int codePoint;
+        for (int i = start; i < length; i += Character.charCount(codePoint)) {
+            codePoint = id.codePointAt(i);
+            if (!(Character.isLetterOrDigit(codePoint) || codePoint == '_')) {
                 return false;
             }
         }
         return true;
+    }
+
+    // MRI: similar to is_identchar but does not allow numeric
+    @TruffleBoundary
+    private static boolean isInitialCharacter(int c) {
+        return Character.isAlphabetic(c) || c == '_' || c >= 128;
+    }
+
+    private static boolean isConstantFirstCodePoint(int first) {
+        return Character.isUpperCase(first) ||
+                (!Character.isLowerCase(first) && Character.isTitleCase(first));
+    }
+
+    public static IdentifierType stringToType(String id) {
+        if (id.isEmpty()) {
+            return IdentifierType.JUNK;
+        } else {
+            final int first = id.codePointAt(0);
+            switch (first) {
+                case '\0':
+                    return IdentifierType.JUNK;
+                case '$':
+                    return isValidIdentifier(id, 1) ? IdentifierType.GLOBAL : IdentifierType.JUNK;  // OK due to case '$'
+                case '@':
+                    if (isValidClassVariableName(id)) {
+                        return IdentifierType.CLASS;
+                    } else if (isValidIdentifier(id, 1)) { // OK due to case '@'
+                        return IdentifierType.INSTANCE;
+                    } else {
+                        return IdentifierType.JUNK;
+                    }
+                default:
+                    if (isValidConstantName(id)) {
+                        return IdentifierType.CONST;
+                    } else if (isValidLocalVariableName(id)) {
+                        return IdentifierType.LOCAL;
+                    } else {
+                        return IdentifierType.JUNK;
+                    }
+            }
+        }
     }
 
 }
