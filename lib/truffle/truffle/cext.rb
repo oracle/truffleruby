@@ -965,6 +965,8 @@ module Truffle::CExt
   ST_CONTINUE = 0
   ST_STOP = 1
   ST_DELETE = 2
+  ST_CHECK = 3
+  ST_REPLACE = 4
 
   def rb_hash_foreach(hash, func, farg)
     hash.each do |key, value|
@@ -972,6 +974,7 @@ module Truffle::CExt
 
       case st_result
       when ST_CONTINUE
+      when ST_CHECK
       when ST_STOP then break
       when ST_DELETE then hash.delete(key)
       else raise ArgumentError, "Unknown 'func' return value: #{st_result}"
