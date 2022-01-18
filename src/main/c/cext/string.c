@@ -129,6 +129,11 @@ VALUE rb_str_cat(VALUE string, const char *to_concat, long length) {
   return string;
 }
 
+VALUE rb_str_buf_append(VALUE string, VALUE other) {
+  StringValue(other);
+  return RUBY_INVOKE(string, "<<", other);
+}
+
 VALUE rb_enc_str_buf_cat(VALUE str, const char *ptr, long len, rb_encoding *enc) {
   VALUE other = rb_enc_str_new(ptr, len, enc);
   return rb_str_concat(str, other);
