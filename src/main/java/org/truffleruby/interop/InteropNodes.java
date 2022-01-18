@@ -20,6 +20,8 @@ import java.util.Map;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.ExceptionType;
 import com.oracle.truffle.api.interop.NodeLibrary;
+import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -862,6 +864,51 @@ public abstract class InteropNodes {
 
             try {
                 return receivers.asString(receiver);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "as_truffle_string", onSingleton = true, required = 1)
+    public abstract static class AsTruffleStringNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
+        protected RubyString asTruffleString(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached TranslateInteropExceptionNode translateInteropException,
+                @Cached TruffleString.SwitchEncodingNode switchEncodingNode,
+                @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode,
+                @Cached ConditionProfile offsetZeroProfile,
+                @Cached StringNodes.MakeStringNode makeStringNode) {
+            final TruffleString truffleString;
+            try {
+                truffleString = receivers.asTruffleString(receiver);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+
+            var asUTF8 = switchEncodingNode.execute(truffleString, TruffleString.Encoding.UTF_8);
+            var bytes = getInternalByteArrayNode.execute(asUTF8, TruffleString.Encoding.UTF_8);
+            final byte[] utf8Bytes;
+            if (offsetZeroProfile.profile(bytes.getOffset() == 0 && bytes.getLength() == bytes.getArray().length)) {
+                utf8Bytes = bytes.getArray();
+            } else {
+                utf8Bytes = ArrayUtils.extractRange(bytes.getArray(), bytes.getOffset(), bytes.getEnd());
+            }
+
+            // TODO: should the resulting RubyString be marked as frozen?
+            return makeStringNode.executeMake(utf8Bytes, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+        }
+    }
+
+    @CoreMethod(names = "as_truffle_string_without_conversion", onSingleton = true, required = 1)
+    public abstract static class AsTruffleStringWithoutConversionNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
+        protected TruffleString asTruffleString(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return receivers.asTruffleString(receiver);
             } catch (InteropException e) {
                 throw translateInteropException.execute(e);
             }
