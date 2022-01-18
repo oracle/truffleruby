@@ -17,6 +17,7 @@ Compatibility:
 * Implement `Pathname#{empty?, glob}` (#2559, @bjfish)
 * Fixed `Rational('')` to raise error like MRI (#2566, @aardvark179).
 * Freeze instances of `Range` but not subclasses, like CRuby (#2570, @MattAlp).
+* Use `#to_a` for converting `list` in `rescue *list` (#2572, @eregon).
 
 Performance:
 
