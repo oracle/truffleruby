@@ -9,9 +9,13 @@
  */
 package org.truffleruby.language.objects;
 
+import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.parser.IdentifierType;
 import org.truffleruby.parser.Identifiers;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -25,17 +29,31 @@ public abstract class CheckIVarNameNode extends RubyBaseNode {
         return CheckIVarNameNodeGen.create();
     }
 
-    public abstract void execute(RubyDynamicObject object, String name);
+    /** Pass both the j.l.String name and the original name, the original name can be faster to check and the j.l.String
+     * name is needed by all callers so it is better for footprint that callers convert to j.l.String */
+    public abstract void execute(RubyDynamicObject object, String name, Object originalName);
+
+    @Specialization
+    protected void checkSymbol(RubyDynamicObject object, String name, RubySymbol originalName,
+            @Cached BranchProfile errorProfile) {
+        if (originalName.getType() != IdentifierType.INSTANCE) {
+            errorProfile.enter();
+            throw new RaiseException(getContext(), getContext().getCoreExceptions().nameErrorInstanceNameNotAllowable(
+                    name,
+                    object,
+                    this));
+        }
+    }
 
     @Specialization(
-            guards = { "name == cachedName", "isValidInstanceVariableName(cachedName)" },
+            guards = { "name == cachedName", "isValidInstanceVariableName(cachedName)", "!isRubySymbol(originalName)" },
             limit = "getCacheLimit()")
-    protected void cached(RubyDynamicObject object, String name,
+    protected void cached(RubyDynamicObject object, String name, Object originalName,
             @Cached("name") String cachedName) {
     }
 
-    @Specialization(replaces = "cached")
-    protected void uncached(RubyDynamicObject object, String name) {
+    @Specialization(replaces = "cached", guards = "!isRubySymbol(originalName)")
+    protected void uncached(RubyDynamicObject object, String name, Object originalName) {
         SymbolTable.checkInstanceVariableName(getContext(), name, object, this);
     }
 

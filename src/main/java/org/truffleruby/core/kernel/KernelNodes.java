@@ -1195,85 +1195,76 @@ public abstract class KernelNodes {
 
     @CoreMethod(names = "instance_variable_defined?", required = 1)
     @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class InstanceVariableDefinedNode extends CoreMethodNode {
 
-        @CreateCast("name")
-        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
-            return NameToJavaStringNode.create(name);
-        }
-
         @Specialization
-        protected boolean isInstanceVariableDefinedBoolean(boolean object, String name) {
+        protected boolean isInstanceVariableDefinedBoolean(boolean object, Object name) {
             return false;
         }
 
         @Specialization
-        protected boolean isInstanceVariableDefinedInt(int object, String name) {
+        protected boolean isInstanceVariableDefinedInt(int object, Object name) {
             return false;
         }
 
         @Specialization
-        protected boolean isInstanceVariableDefinedLong(long object, String name) {
+        protected boolean isInstanceVariableDefinedLong(long object, Object name) {
             return false;
         }
 
         @Specialization
-        protected boolean isInstanceVariableDefinedDouble(double object, String name) {
+        protected boolean isInstanceVariableDefinedDouble(double object, Object name) {
             return false;
         }
 
         @Specialization
-        protected boolean immutable(ImmutableRubyObject object, String name) {
+        protected boolean immutable(ImmutableRubyObject object, Object name) {
             return false;
         }
 
         @Specialization
-        protected boolean isInstanceVariableDefined(RubyDynamicObject object, String name,
+        protected boolean isInstanceVariableDefined(RubyDynamicObject object, Object name,
                 @Cached CheckIVarNameNode checkIVarNameNode,
-                @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary) {
-            checkIVarNameNode.execute(object, name);
-            return objectLibrary.containsKey(object, name);
+                @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary,
+                @Cached NameToJavaStringNode nameToJavaStringNode) {
+            final String nameString = nameToJavaStringNode.execute(name);
+            checkIVarNameNode.execute(object, nameString, name);
+            return objectLibrary.containsKey(object, nameString);
         }
 
     }
 
     @CoreMethod(names = "instance_variable_get", required = 1)
     @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class InstanceVariableGetNode extends CoreMethodNode {
 
-        @CreateCast("name")
-        protected RubyBaseNodeWithExecute coerceName(RubyBaseNodeWithExecute name) {
-            return NameToJavaStringNode.create(name);
-        }
-
         @Specialization
-        protected Object instanceVariableGetSymbol(RubyDynamicObject object, String name,
+        protected Object instanceVariableGetSymbol(RubyDynamicObject object, Object name,
                 @Cached CheckIVarNameNode checkIVarNameNode,
-                @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary) {
-            checkIVarNameNode.execute(object, name);
-            return objectLibrary.getOrDefault(object, name, nil);
+                @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary,
+                @Cached NameToJavaStringNode nameToJavaStringNode) {
+            final String nameString = nameToJavaStringNode.execute(name);
+            checkIVarNameNode.execute(object, nameString, name);
+            return objectLibrary.getOrDefault(object, nameString, nil);
         }
     }
 
     @CoreMethod(names = "instance_variable_set", raiseIfFrozenSelf = true, required = 2)
     @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "name", type = RubyNode.class)
     @NodeChild(value = "value", type = RubyNode.class)
     public abstract static class InstanceVariableSetNode extends CoreMethodNode {
 
-        @CreateCast("name")
-        protected RubyBaseNodeWithExecute coerceName(RubyBaseNodeWithExecute name) {
-            return NameToJavaStringNode.create(name);
-        }
-
         @Specialization
-        protected Object instanceVariableSet(RubyDynamicObject object, String name, Object value,
+        protected Object instanceVariableSet(RubyDynamicObject object, Object name, Object value,
                 @Cached CheckIVarNameNode checkIVarNameNode,
-                @Cached WriteObjectFieldNode writeNode) {
-            checkIVarNameNode.execute(object, name);
-            writeNode.execute(object, name, value);
+                @Cached WriteObjectFieldNode writeNode,
+                @Cached NameToJavaStringNode nameToJavaStringNode) {
+            final String nameString = nameToJavaStringNode.execute(name);
+            checkIVarNameNode.execute(object, nameString, name);
+            writeNode.execute(object, nameString, value);
             return value;
         }
     }

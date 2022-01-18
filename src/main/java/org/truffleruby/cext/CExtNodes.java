@@ -106,7 +106,7 @@ import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.supercall.CallSuperMethodNode;
 import org.truffleruby.language.yield.CallBlockNode;
-import org.truffleruby.parser.Identifiers;
+import org.truffleruby.parser.IdentifierType;
 import org.truffleruby.utils.Utils;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -951,7 +951,7 @@ public class CExtNodes {
 
         @Specialization
         protected boolean isInstanceId(RubySymbol symbol) {
-            return Identifiers.isValidInstanceVariableName(symbol.getString());
+            return symbol.getType() == IdentifierType.INSTANCE;
         }
 
     }
@@ -961,7 +961,7 @@ public class CExtNodes {
 
         @Specialization
         protected boolean isConstId(RubySymbol symbol) {
-            return Identifiers.isValidConstantName(symbol.getString());
+            return symbol.getType() == IdentifierType.CONST;
         }
 
     }
@@ -971,7 +971,7 @@ public class CExtNodes {
 
         @Specialization
         protected boolean isClassVariableId(RubySymbol symbol) {
-            return Identifiers.isValidClassVariableName(symbol.getString());
+            return symbol.getType() == IdentifierType.CLASS;
         }
 
     }

@@ -17,8 +17,8 @@ public final class RubyIntRange extends RubyRange {
     public final int begin;
     public final int end;
 
-    public RubyIntRange(RubyClass rubyClass, Shape shape, boolean excludedEnd, int begin, int end) {
-        super(rubyClass, shape, excludedEnd);
+    public RubyIntRange(RubyClass rubyClass, Shape shape, boolean excludedEnd, int begin, int end, boolean frozen) {
+        super(rubyClass, shape, excludedEnd, frozen);
         this.begin = begin;
         this.end = end;
     }
