@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+require 'json'
+
 NATIVE = `tool/jt.rb ruby --version` =~ /Native/
 
 $tests = 0
@@ -7,27 +9,51 @@ $failures = 0
 
 def test(program, extra='', jvm_nodes_expected, native_nodes_expected, shape_expected)
   nodes_expected = NATIVE ? native_nodes_expected : jvm_nodes_expected
+  node_count_range = nodes_expected.is_a?(Integer) ? nodes_expected..nodes_expected : nodes_expected
+
   $tests += 1
-  got = `tool/jt.rb graph --describe #{program} #{extra} 2>&1`.lines.last.strip
-  unless got =~ /(\d+) nodes, (.*)/
+  got = `tool/jt.rb graph --json --describe #{program} #{extra} 2>&1`.lines.last.strip
+
+  begin
+    decoded = JSON.parse(got, symbolize_names: true)
+  rescue JSON::ParseError
     puts "#{program}: error #{got.inspect}"
     $failures += 1
   end
-  nodes_got = $1.to_i
-  shape_got = $2
-  # We could be fuzzy about the number of nodes if we wanted to
-  if nodes_got == nodes_expected && shape_got == shape_expected
-    puts "#{program}: ✓"
+
+  nodes_got = decoded.delete(:node_count)
+  shape_got = decoded
+
+  if node_count_range.cover?(nodes_got)
+    mismatched_features = shape_expected.keys - shape_got.keys
+
+    mismatched_features += shape_got.keys.select do |actual_key|
+      actual_value = shape_got[actual_key]
+
+      if shape_expected.key?(actual_key)
+        actual_value == shape_expected[actual_key] ? nil : actual_key
+      else
+        # Verify the actual shape does not have features that the test did not expect.
+        actual_value == false ? nil : actual_key
+      end
+    end
+
+    if mismatched_features.empty?
+      puts "#{program}: ✓"
+    else
+      puts "#{program}: mismatched features: #{mismatched_features} differ; (expected #{shape_expected}, got #{shape_got})"
+      $failures += 1
+    end
   else
-    puts "#{program}: expected #{nodes_expected} #{shape_expected}, got #{nodes_got} #{shape_got}"
+    puts "#{program}: node count mismatch: expected #{nodes_expected}, got #{nodes_got} (other features: #{shape_got})"
     $failures += 1
   end
 end
 
-test 'test/truffle/compiler/graphs/args-req.rb', 36, 34, 'linear'
-test 'test/truffle/compiler/graphs/args-opt-set.rb', 36, 34, 'linear'
-test 'test/truffle/compiler/graphs/args-opt-unset.rb', 32, 31, 'linear'
-test 'test/truffle/compiler/graphs/args-rest.rb', 36, 34, 'linear'
+test 'test/truffle/compiler/graphs/args-req.rb', 36, 34, { linear: true }
+test 'test/truffle/compiler/graphs/args-opt-set.rb', 36, 34, { linear: true }
+test 'test/truffle/compiler/graphs/args-opt-unset.rb', 32, 31, { linear: true}
+test 'test/truffle/compiler/graphs/args-rest.rb', 36, 34, { linear: true }
 
 puts "#$tests tests, #$failures failures"
 exit 1 if $failures > 0

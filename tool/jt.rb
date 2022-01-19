@@ -2029,6 +2029,7 @@ module Commands
     watch = false
     simplify = true
     describe = false
+    json = false
 
     vm_args, remaining_args, _parsed_options = ruby_options({}, args)
     args = remaining_args
@@ -2036,6 +2037,8 @@ module Commands
     until args.empty?
       arg = args.shift
       case arg
+      when '--json'
+        json = true
       when '--method'
         raise if args.empty?
         method = args.shift
@@ -2058,7 +2061,7 @@ module Commands
     raise unless test_file
     env = ruby_running_jt_env
 
-    seafoam_version = '0.10'
+    seafoam_version = '0.11'
     unless Gem::Specification.find_all_by_name('seafoam').any? { |g| g.version == Gem::Version.new(seafoam_version) }
       sh env, 'gem', 'install', 'seafoam', '-v', seafoam_version
     end
@@ -2114,12 +2117,11 @@ module Commands
       graph = graphs.last
       raise "Could not find graph in #{dumps}" unless graph
 
-      list = raw_sh(env, 'seafoam', "_#{seafoam_version}_", graph, 'list', capture: :out, no_print_cmd: true)
-      n = list.each_line.with_index do |line, index|
-        break index if line.include? 'Before phase org.graalvm.compiler.phases.common.LoweringPhase'
-      end
+      list = raw_sh(env, 'seafoam', "_#{seafoam_version}_", '--json', graph, 'list', capture: :out, no_print_cmd: true)
+      decoded = JSON.parse(list)
+      n = decoded.find { |entry| entry['graph_name_components'].last == 'Before phase org.graalvm.compiler.phases.common.LoweringPhase' }['graph_index']
 
-      raw_sh env, 'seafoam', "_#{seafoam_version}_", "#{graph}:#{n}", describe ? 'describe' : 'render'
+      raw_sh env, 'seafoam', "_#{seafoam_version}_", *[json ? '--json' : nil, "#{graph}:#{n}", describe ? 'describe' : 'render'].compact
 
       break unless watch
       puts # newline between runs
