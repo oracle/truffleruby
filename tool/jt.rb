@@ -2064,7 +2064,6 @@ module Commands
 
     # As per https://github.com/Shopify/seafoam/blob/master/docs/getting-graphs.md
     simplify_vm_args = [
-      '--vm.Dgraal.FullUnroll=false',
       *('--vm.Dgraal.PartialUnroll=false' unless truffleruby_native?),
       *('--vm.Dgraal.LoopPeeling=false' unless truffleruby_native?),
       *('--vm.Dgraal.LoopUnswitch=false' unless truffleruby_native?),
