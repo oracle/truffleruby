@@ -92,7 +92,13 @@ import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.constants.LookupConstantNode;
 import org.truffleruby.language.control.BreakException;
 import org.truffleruby.language.control.BreakID;
+import org.truffleruby.language.control.DynamicReturnException;
+import org.truffleruby.language.control.LocalReturnException;
+import org.truffleruby.language.control.NextException;
+import org.truffleruby.language.control.RedoException;
+import org.truffleruby.language.control.RetryException;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.control.ThrowException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.LiteralCallNode;
 import org.truffleruby.language.library.RubyStringLibrary;
@@ -129,6 +135,18 @@ import com.oracle.truffle.api.source.SourceSection;
 
 @CoreModule("Truffle::CExt")
 public class CExtNodes {
+
+    /* These tag values are derived from MRI source and from the Tk gem and are used to represent different control flow
+     * states under which code may exit an `rb_protect` plock. The fatal tag is defined but I could not find a point
+     * where it is assigned, and am not sure it maps to anything we would use in TruffleRuby. */
+    public static int RUBY_TAG_RETURN = 0x1;
+    public static int RUBY_TAG_BREAK = 0x2;
+    public static int RUBY_TAG_NEXT = 0x3;
+    public static int RUBY_TAG_RETRY = 0x4;
+    public static int RUBY_TAG_REDO = 0x5;
+    public static int RUBY_TAG_RAISE = 0x6;
+    public static int RUBY_TAG_THROW = 0x7;
+    public static int RUBY_TAG_FATAL = 0x8;
 
     public static Pointer newNativeStringPointer(int capacity, RubyLanguage language) {
         // We need up to 4 \0 bytes for UTF-32. Always use 4 for speed rather than checking the encoding min length.
@@ -1355,6 +1373,31 @@ public class CExtNodes {
         }
     }
 
+    @CoreMethod(names = "store_exception", onSingleton = true, required = 1)
+    public abstract static class StoreException extends YieldingCoreMethodNode {
+
+        @Specialization
+        protected Object storeException(CapturedException captured) {
+            final ExtensionCallStack extensionStack = getLanguage()
+                    .getCurrentThread()
+                    .getCurrentFiber().extensionCallStack;
+            extensionStack.setException(captured);
+            return nil;
+        }
+    }
+
+    @CoreMethod(names = "retrieve_exception", onSingleton = true)
+    public abstract static class RetrieveException extends YieldingCoreMethodNode {
+
+        @Specialization
+        protected Object retrieveException() {
+            final ExtensionCallStack extensionStack = getLanguage()
+                    .getCurrentThread()
+                    .getCurrentFiber().extensionCallStack;
+            return extensionStack.getException();
+        }
+    }
+
     @CoreMethod(names = "extract_ruby_exception", onSingleton = true, required = 1)
     public abstract static class ExtractRubyException extends CoreMethodArrayArgumentsNode {
 
@@ -1370,6 +1413,41 @@ public class CExtNodes {
         }
     }
 
+    @CoreMethod(names = "extract_tag", onSingleton = true, required = 1)
+    public abstract static class ExtractRubyTag extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected int executeThrow(CapturedException captured,
+                @Cached ConditionProfile localReturnProfile,
+                @Cached ConditionProfile dynamicReturnProfile,
+                @Cached ConditionProfile breakProfile,
+                @Cached ConditionProfile nextProfile,
+                @Cached ConditionProfile retryProfile,
+                @Cached ConditionProfile redoProfile,
+                @Cached ConditionProfile raiseProfile,
+                @Cached ConditionProfile throwProfile) {
+            final Throwable e = captured.getException();
+            if (dynamicReturnProfile.profile(e instanceof DynamicReturnException)) {
+                return RUBY_TAG_RETURN;
+            } else if (localReturnProfile.profile(e instanceof LocalReturnException)) {
+                return RUBY_TAG_RETURN;
+            } else if (breakProfile.profile(e instanceof BreakException)) {
+                return RUBY_TAG_BREAK;
+            } else if (nextProfile.profile(e instanceof NextException)) {
+                return RUBY_TAG_NEXT;
+            } else if (retryProfile.profile(e instanceof RetryException)) {
+                return RUBY_TAG_RETRY;
+            } else if (redoProfile.profile(e instanceof RedoException)) {
+                return RUBY_TAG_REDO;
+            } else if (raiseProfile.profile(e instanceof RaiseException)) {
+                return RUBY_TAG_RAISE;
+            } else if (throwProfile.profile(e instanceof ThrowException)) {
+                return RUBY_TAG_THROW;
+            }
+            return 0;
+        }
+    }
+
     @CoreMethod(names = "raise_exception", onSingleton = true, required = 1)
     public abstract static class RaiseExceptionNode extends CoreMethodArrayArgumentsNode {
 
@@ -1382,6 +1460,7 @@ public class CExtNodes {
             if (runtimeExceptionProfile.profile(e instanceof RuntimeException)) {
                 throw (RuntimeException) e;
             } else if (errorProfile.profile(e instanceof Error)) {
+
                 throw (Error) e;
             } else {
                 throw CompilerDirectives.shouldNotReachHere("Checked Java Throwable rethrown", e);

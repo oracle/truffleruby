@@ -1041,8 +1041,8 @@ module Truffle::CExt
     end
 
     unless Primitive.object_equal(nil, e)
-      store = (Thread.current[:__stored_exceptions__] ||= [])
-      pos = store.push(e).size
+      store_exception(e)
+      pos = extract_tag(e)
       Primitive.thread_set_exception(extract_ruby_exception(e))
     end
 
@@ -1052,14 +1052,9 @@ module Truffle::CExt
 
   def rb_jump_tag(pos)
     if pos > 0
-      store = Thread.current[:__stored_exceptions__]
-      if pos == store.size
-        e = store.pop
-      else
-        # Can't disturb other positions or other rb_jump_tag calls might fail.
-        e = store[pos - 1]
-        store[pos - 1] = nil
-      end
+      e = retrieve_exception
+      tag = extract_tag(e)
+      raise RuntimeError, 'mismatch between jump tag and captured exception' unless pos == tag
       raise_exception(e)
     end
   end
