@@ -1953,6 +1953,7 @@ module Truffle::CExt
   end
 
   GC_REGISTERED_ADDRESSES = {}
+
   def rb_gc_register_address(address, obj)
     Truffle::Interop.to_native(address) unless Truffle::Interop.pointer?(address)
     GC_REGISTERED_ADDRESSES[address] = obj
@@ -1961,5 +1962,14 @@ module Truffle::CExt
   def rb_gc_unregister_address(address)
     Truffle::Interop.to_native(address) unless Truffle::Interop.pointer?(address)
     GC_REGISTERED_ADDRESSES.delete(address)
+  end
+
+  def rb_eval_cmd_kw(cmd, args, kw_splat)
+    case cmd
+    when String
+      eval(cmd)
+    else
+      cmd.call(*args)
+    end
   end
 end
