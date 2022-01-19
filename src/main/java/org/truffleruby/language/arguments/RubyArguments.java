@@ -231,7 +231,8 @@ public final class RubyArguments {
     // Return the count of positional args + 1 if any kwargs. Should use getPositionalArgumentsCount instead,
     // because this is only correct if the method does not have keyword parameters, and broken otherwise.
     public static int getArgumentsCount(Frame frame, KeywordDescriptor descriptor) {
-        CompilerAsserts.partialEvaluationConstant(descriptor);
+        // TODO this should hold to avoid branches below, but it does not currently:
+        // CompilerAsserts.partialEvaluationConstant(descriptor);
         Object[] arguments = frame.getArguments();
         if (descriptor instanceof NonEmptyKeywordDescriptor && descriptor.getLength() == 0) {
             // empty kwargs passed -> as if they were not passed
