@@ -1540,11 +1540,8 @@ class IO
   # operating system (note that this is Ruby internal
   # buffering only; the OS may buffer the data as well).
   #
-  #  $stdout.print "no newline"
-  #  $stdout.flush
-  # produces:
-  #
-  #  no newline
+  # This method does basically nothing since TruffleRuby does
+  # not use write buffers, it only checks if the IO is not closed.
   def flush
     ensure_open
     self
