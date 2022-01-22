@@ -195,6 +195,15 @@ module Utilities
     end
   end
 
+  def env_path(env)
+    "#{TRUFFLERUBY_DIR}/mx.truffleruby/#{env}"
+  end
+
+  def used_ruby_is_mx_env_name?
+    ruby_launcher # to set @ruby_name
+    File.file?(env_path(@ruby_name))
+  end
+
   def ruby_launcher
     return @ruby_launcher if defined? @ruby_launcher
 
@@ -991,7 +1000,7 @@ module Commands
       end
     end
 
-    if core_load_path and truffleruby_jvm?
+    if core_load_path and truffleruby_jvm? and used_ruby_is_mx_env_name?
       add_experimental_options.call
       vm_args << "--core-load-path=#{TRUFFLERUBY_DIR}/src/main/ruby/truffleruby"
     end
@@ -2319,7 +2328,7 @@ module Commands
         checkout_enterprise_revision(env) if !cloned
         # sforceimports for optional suites imported in vm-enterprise like substratevm-enterprise-gcs
         vm_enterprise = File.expand_path '../graal-enterprise/vm-enterprise', TRUFFLERUBY_DIR
-        mx('-p', vm_enterprise, '--env', "#{TRUFFLERUBY_DIR}/mx.truffleruby/#{env}", 'sforceimports')
+        mx('-p', vm_enterprise, '--env', env_path(env), 'sforceimports')
       end
     end
 
