@@ -126,8 +126,6 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
         try {
             Object callerData = RubyArguments.getCallerData(rubyArgs);
             InternalMethod method = RubyArguments.getMethod(rubyArgs);
-            Object self = RubyArguments.getSelf(rubyArgs);
-            Object block = RubyArguments.getBlock(rubyArgs);
 
             return alwaysInlined(
                     frame,

@@ -34,6 +34,16 @@ public interface DispatchingNode extends NodeInterface {
 
     public Object callWithBlock(Object receiver, String method, Object block, Object[] arguments);
 
+    public Object callWithFrame(Frame frame, Object receiver, String method);
+
+    public Object callWithFrame(Frame frame, Object receiver, String method, Object arg0);
+
+    public Object callWithFrame(Frame frame, Object receiver, String method, Object arg0, Object arg1);
+
+    public Object callWithFrame(Frame frame, Object receiver, String method, Object arg0, Object arg1, Object arg2);
+
+    public Object callWithFrame(Frame frame, Object receiver, String method, Object[] arguments);
+
     public Object dispatch(Frame frame, String methodName, Object[] rubyArgs);
 
 }

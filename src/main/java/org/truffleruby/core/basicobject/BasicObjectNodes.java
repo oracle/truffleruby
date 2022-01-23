@@ -107,10 +107,7 @@ public abstract class BasicObjectNodes {
         @Specialization
         protected boolean equal(VirtualFrame frame, Object a, Object b) {
             final Object[] rubyArgs = RubyArguments.allocate(1);
-            RubyArguments.setSelf(rubyArgs, a);
-            RubyArguments.setBlock(rubyArgs, nil);
-            RubyArguments.setArgument(rubyArgs, 0, b);
-            return !booleanCastNode.executeToBoolean(equalNode.dispatch(null, "==", rubyArgs));
+            return !booleanCastNode.executeToBoolean(equalNode.call(a, "==", b));
         }
 
     }
