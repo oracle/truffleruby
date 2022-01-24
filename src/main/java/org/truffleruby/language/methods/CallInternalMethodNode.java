@@ -91,7 +91,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
             RubyCheckArityRootNode.checkArity(cachedArity, RubyArguments.getArgumentsCount(rubyArgs), checkArityProfile,
                     alwaysInlinedNode);
 
-            return alwaysInlinedNode.execute(frame, rubyArgs, cachedCallTarget);
+            return alwaysInlinedNode.callMethod(frame, rubyArgs, cachedCallTarget);
         } catch (RaiseException e) {
             exceptionProfile.enter();
             final Node location = e.getLocation();

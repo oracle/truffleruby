@@ -34,10 +34,10 @@ public abstract class MainNodes {
     @CoreMethod(names = "public", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
     public abstract static class PublicNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected Object forward(Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+        protected Object forward(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached ModuleNodes.PublicNode publicNode) {
             RubyArguments.setSelf(rubyArgs, coreLibrary().objectClass);
-            return publicNode.execute(callerFrame, rubyArgs, target);
+            return publicNode.callMethod(callerFrame, rubyArgs, target);
         }
     }
 
@@ -45,10 +45,10 @@ public abstract class MainNodes {
     @CoreMethod(names = "private", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
     public abstract static class PrivateNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected Object forward(Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+        protected Object forward(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached ModuleNodes.PrivateNode privateNode) {
             RubyArguments.setSelf(rubyArgs, coreLibrary().objectClass);
-            return privateNode.execute(callerFrame, rubyArgs, target);
+            return privateNode.callMethod(callerFrame, rubyArgs, target);
         }
     }
 
@@ -56,7 +56,7 @@ public abstract class MainNodes {
     @CoreMethod(names = "using", required = 1, alwaysInlined = true)
     public abstract static class MainUsingNode extends UsingNode {
         @Specialization
-        protected Object mainUsing(Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+        protected Object mainUsing(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached BranchProfile errorProfile) {
             needCallerFrame(callerFrame, target);
             final Object refinementModule = RubyArguments.getArgument(rubyArgs, 0);

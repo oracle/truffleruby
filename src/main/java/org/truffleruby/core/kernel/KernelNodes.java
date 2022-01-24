@@ -365,7 +365,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "binding", isModuleFunction = true, alwaysInlined = true)
     public abstract static class BindingNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected RubyBinding binding(Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+        protected RubyBinding binding(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached(
                         value = "getNode().getEncapsulatingSourceSection()",
                         allowUncached = true) SourceSection sourceSection) {
@@ -378,7 +378,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = { "block_given?", "iterator?" }, isModuleFunction = true, alwaysInlined = true)
     public abstract static class BlockGivenNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected boolean blockGiven(Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+        protected boolean blockGiven(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached FindAndReadDeclarationVariableNode readNode,
                 @Cached ConditionProfile blockProfile) {
             needCallerFrame(callerFrame, target);
@@ -738,7 +738,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "eval", isModuleFunction = true, required = 1, optional = 3, alwaysInlined = true)
     public abstract static class EvalPrepareArgsNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected Object eval(Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+        protected Object eval(Frame callerFrame, Object callerSelf, Object[] rubyArgs, RootCallTarget target,
                 @Cached ToStrNode toStrNode,
                 @Cached ToIntNode toIntNode,
                 @Cached BranchProfile errorProfile,
@@ -747,7 +747,6 @@ public abstract class KernelNodes {
                 @Cached ConditionProfile fileAndLineProfile,
                 @Cached ConditionProfile fileNoLineProfile) {
 
-            final Object callerSelf = RubyArguments.getSelf(rubyArgs);
             final Object[] args = RubyArguments.getArguments(rubyArgs);
             final Object source = toStrNode.execute(args[0]);
 
@@ -1362,7 +1361,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "local_variables", isModuleFunction = true, alwaysInlined = true)
     public abstract static class KernelLocalVariablesNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected Object localVariables(Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+        protected Object localVariables(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached DispatchNode callLocalVariables) {
             needCallerFrame(callerFrame, target);
             final RubyBinding binding = BindingNodes
@@ -1388,7 +1387,7 @@ public abstract class KernelNodes {
     public abstract static class MethodNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected RubyMethod method(Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+        protected RubyMethod method(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached ToStringOrSymbolNode toStringOrSymbolNode,
                 @Cached GetMethodObjectNode getMethodObjectNode) {
             Object name = toStringOrSymbolNode.execute(RubyArguments.getArgument(rubyArgs, 0));
@@ -1523,7 +1522,7 @@ public abstract class KernelNodes {
     public abstract static class PublicMethodNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected RubyMethod method(Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+        protected RubyMethod method(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached ToStringOrSymbolNode toStringOrSymbolNode,
                 @Cached GetMethodObjectNode getMethodObjectNode) {
             Object name = toStringOrSymbolNode.execute(RubyArguments.getArgument(rubyArgs, 0));
@@ -1563,7 +1562,7 @@ public abstract class KernelNodes {
     public abstract static class PublicSendNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected Object send(Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+        protected Object send(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached(parameters = "PUBLIC") DispatchNode dispatchNode,
                 @Cached NameToJavaStringNode nameToJavaString) {
             Object name = RubyArguments.getArgument(rubyArgs, 0);

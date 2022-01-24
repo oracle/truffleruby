@@ -134,7 +134,7 @@ public abstract class MethodNodes {
     public abstract static class CallNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected Object call(Frame callerFrame, Object[] rubyArgs, RootCallTarget target,
+        protected Object call(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached CallBoundMethodNode callBoundMethodNode) {
             return callBoundMethodNode.execute(callerFrame, rubyArgs);
         }
