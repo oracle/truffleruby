@@ -35,9 +35,11 @@ class Gem::Platform
     match_gem?(spec.platform, spec.name)
   end
 
+  REUSE_AS_BINARY_ON_TRUFFLERUBY = %w[libv8 libv8-node sorbet-static]
+
   def self.match_gem?(platform, gem_name)
     raise unless String === gem_name
-    if gem_name == 'libv8' or gem_name == 'sorbet-static'
+    if REUSE_AS_BINARY_ON_TRUFFLERUBY.include?(gem_name)
       match_platforms?(platform, [Gem::Platform::RUBY, Gem::Platform.local])
     else
       match_platforms?(platform, Gem.platforms)
