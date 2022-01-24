@@ -23,6 +23,7 @@ import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.DispatchingNode;
@@ -296,8 +297,9 @@ public abstract class ClassNodes {
         }
 
         @Override
-        public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object block) {
-            return execute(self, args, block);
+        public Object inlineExecute(Frame callerFrame, Object[] rubyArgs) {
+            return execute(RubyArguments.getSelf(rubyArgs), RubyArguments.getArguments(rubyArgs),
+                    RubyArguments.getBlock(rubyArgs));
         }
 
         private DispatchingNode allocateNode() {

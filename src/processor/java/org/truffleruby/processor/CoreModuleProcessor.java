@@ -184,9 +184,10 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
                                     (!coreMethod.isModuleFunction() && !coreMethod.onSingleton() &&
                                             coreMethod.needsSelf());
 
-                            CoreMethod checkAmbiguous = coreMethod.optional() > 0 || coreMethod.needsBlock()
-                                    ? coreMethod
-                                    : null;
+                            CoreMethod checkAmbiguous = !coreMethod.alwaysInlined() &&
+                                    (coreMethod.optional() > 0 || coreMethod.needsBlock())
+                                            ? coreMethod
+                                            : null;
                             coreModuleChecks.checks(coreMethod.lowerFixnum(), checkAmbiguous, klass, needsSelf);
                             processCoreMethod(stream, rubyStream, coreModuleElement, coreModule, klass, coreMethod,
                                     needsSelf);
@@ -232,7 +233,7 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
             TypeElement element,
             TypeElement klass,
             Primitive primitive) {
-        List<String> argumentNames = getArgumentNames(klass, primitive.argumentNames(), false, -1);
+        List<String> argumentNames = getArgumentNames(klass, primitive.argumentNames(), false, false, -1);
 
         final String nodeFactory = nodeFactoryName(element, klass);
         stream.println("        primitiveManager.addLazyPrimitive(" +
@@ -292,6 +293,7 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
         int numberOfArguments = getNumberOfArguments(coreMethod);
         String[] argumentNamesFromAnnotation = coreMethod.argumentNames();
         final List<String> argumentNames = getArgumentNames(klass, argumentNamesFromAnnotation, needsSelf,
+                coreMethod.alwaysInlined(),
                 numberOfArguments);
 
         if (argumentNames.isEmpty() && numberOfArguments > 0) {
@@ -353,12 +355,16 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
         rubyStream.println();
     }
 
-    private List<String> getArgumentNames(
-            TypeElement klass, String[] argumentNamesFromAnnotation, boolean hasSelfArgument, int numberOfArguments) {
+    private List<String> getArgumentNames(TypeElement klass, String[] argumentNamesFromAnnotation,
+            boolean hasSelfArgument, boolean isAlwaysInlinedMethod, int numberOfArguments) {
 
         List<String> argumentNames;
         if (argumentNamesFromAnnotation.length == 0) {
-            argumentNames = getArgumentNamesFromSpecializations(klass, hasSelfArgument);
+            if (isAlwaysInlinedMethod) {
+                argumentNames = getArgumentNamesForAlwaysInlined(numberOfArguments);
+            } else {
+                argumentNames = getArgumentNamesFromSpecializations(klass, hasSelfArgument);
+            }
         } else {
             if (argumentNamesFromAnnotation.length != numberOfArguments && numberOfArguments >= 0) {
                 error("The size of argumentNames does not match declared number of arguments.", klass);
@@ -373,6 +379,14 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
     private int getNumberOfArguments(CoreMethod coreMethod) {
         return coreMethod.required() + coreMethod.optional() + (coreMethod.rest() ? 1 : 0) +
                 (coreMethod.needsBlock() ? 1 : 0);
+    }
+
+    private List<String> getArgumentNamesForAlwaysInlined(int argCount) {
+        List<String> argumentNames = new ArrayList<>();
+        for (int i = 0; i < argCount; i++) {
+            argumentNames.add(String.format("arg%d", i + 1));
+        }
+        return argumentNames;
     }
 
     private List<String> getArgumentNamesFromSpecializations(TypeElement klass, boolean hasSelfArgument) {

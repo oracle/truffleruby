@@ -68,8 +68,6 @@ public final class RubyArguments {
             Object self,
             Object block,
             Object[] arguments) {
-        assert assertValues(callerFrameOrVariables, method, declarationContext, self, block, arguments);
-
         final Object[] packed = new Object[RUNTIME_ARGUMENT_COUNT + arguments.length];
 
         packed[ArgumentIndicies.DECLARATION_FRAME.ordinal()] = declarationFrame;
@@ -83,6 +81,22 @@ public final class RubyArguments {
         ArrayUtils.arraycopy(arguments, 0, packed, RUNTIME_ARGUMENT_COUNT, arguments.length);
 
         return packed;
+    }
+
+    public static Object[] allocate(int count) {
+        return new Object[RUNTIME_ARGUMENT_COUNT + count];
+    }
+
+    public static Object[] repack(Object[] args, Object receiver, int from, int count) {
+        return repack(args, receiver, from, 0, count);
+    }
+
+    public static Object[] repack(Object[] args, Object receiver, int from, int to, int count) {
+        final Object[] newArgs = new Object[RUNTIME_ARGUMENT_COUNT + to + count];
+        newArgs[ArgumentIndicies.SELF.ordinal()] = receiver;
+        newArgs[ArgumentIndicies.BLOCK.ordinal()] = getBlock(args);
+        System.arraycopy(args, RUNTIME_ARGUMENT_COUNT + from, newArgs, RUNTIME_ARGUMENT_COUNT + to, count);
+        return newArgs;
     }
 
     public static boolean assertValues(
@@ -119,6 +133,14 @@ public final class RubyArguments {
         return (MaterializedFrame) frame.getArguments()[ArgumentIndicies.DECLARATION_FRAME.ordinal()];
     }
 
+    public static Object getCallerData(Object[] args) {
+        return args[ArgumentIndicies.CALLER_FRAME_OR_VARIABLES.ordinal()];
+    }
+
+    public static void setCallerData(Object[] args, Object callerData) {
+        args[ArgumentIndicies.CALLER_FRAME_OR_VARIABLES.ordinal()] = callerData;
+    }
+
     public static MaterializedFrame getCallerFrame(Frame frame) {
         Object frameOrVariables = frame.getArguments()[ArgumentIndicies.CALLER_FRAME_OR_VARIABLES.ordinal()];
         if (frameOrVariables == null) {
@@ -145,8 +167,17 @@ public final class RubyArguments {
         }
     }
 
+    public static InternalMethod getMethod(Object[] args) {
+        return (InternalMethod) args[ArgumentIndicies.METHOD.ordinal()];
+    }
+
     public static InternalMethod getMethod(Frame frame) {
         return (InternalMethod) frame.getArguments()[ArgumentIndicies.METHOD.ordinal()];
+    }
+
+    public static void setMethod(Object[] args, InternalMethod method) {
+        args[ArgumentIndicies.METHOD.ordinal()] = method;
+        args[ArgumentIndicies.DECLARATION_CONTEXT.ordinal()] = method.getDeclarationContext();
     }
 
     public static DeclarationContext getDeclarationContext(Frame frame) {
@@ -157,8 +188,29 @@ public final class RubyArguments {
         return (FrameOnStackMarker) frame.getArguments()[ArgumentIndicies.FRAME_ON_STACK_MARKER.ordinal()];
     }
 
+    public static Object getSelf(Object[] args) {
+        return args[ArgumentIndicies.SELF.ordinal()];
+    }
+
+    public static void setSelf(Object[] args, Object self) {
+        args[ArgumentIndicies.SELF.ordinal()] = self;
+    }
+
     public static Object getSelf(Frame frame) {
         return frame.getArguments()[ArgumentIndicies.SELF.ordinal()];
+    }
+
+    public static Object getBlock(Object[] args) {
+        final Object block = args[ArgumentIndicies.BLOCK.ordinal()];
+        /* We put into the arguments array either a Nil or RubyProc, so that's all we'll get out at this point. */
+        assert block instanceof Nil || block instanceof RubyProc : StringUtils.toString(block);
+        return block;
+    }
+
+    public static void setBlock(Object[] args, Object block) {
+        // We put into the arguments array either a Nil or RubyProc.
+        assert block instanceof Nil || block instanceof RubyProc : StringUtils.toString(block);
+        args[ArgumentIndicies.BLOCK.ordinal()] = block;
     }
 
     public static Object getBlock(Frame frame) {
@@ -166,6 +218,10 @@ public final class RubyArguments {
         /* We put into the arguments array either a Nil or RubyProc, so that's all we'll get out at this point. */
         assert block instanceof Nil || block instanceof RubyProc : StringUtils.toString(block);
         return block;
+    }
+
+    public static int getArgumentsCount(Object[] args) {
+        return args.length - RUNTIME_ARGUMENT_COUNT;
     }
 
     public static int getArgumentsCount(Frame frame) {
@@ -177,9 +233,27 @@ public final class RubyArguments {
         return frame.getArguments()[RUNTIME_ARGUMENT_COUNT + index];
     }
 
+    public static Object getArgument(Object[] rubyArgs, int index) {
+        assert index >= 0 && index < (rubyArgs.length - RUNTIME_ARGUMENT_COUNT);
+        return rubyArgs[RUNTIME_ARGUMENT_COUNT + index];
+    }
+
+    public static void setArgument(Object[] rubyArgs, int index, Object value) {
+        assert index >= 0 && index < (rubyArgs.length - RUNTIME_ARGUMENT_COUNT);
+        rubyArgs[RUNTIME_ARGUMENT_COUNT + index] = value;
+    }
+
+    public static Object[] getArguments(Object[] arguments) {
+        return ArrayUtils.extractRange(arguments, RUNTIME_ARGUMENT_COUNT, arguments.length);
+    }
+
     public static Object[] getArguments(Frame frame) {
         Object[] arguments = frame.getArguments();
         return ArrayUtils.extractRange(arguments, RUNTIME_ARGUMENT_COUNT, arguments.length);
+    }
+
+    public static void setArguments(Object[] rubyArgs, Object[] args) {
+        System.arraycopy(args, 0, rubyArgs, RUNTIME_ARGUMENT_COUNT, args.length);
     }
 
     public static Object[] getArguments(Frame frame, int start) {

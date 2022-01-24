@@ -17,16 +17,14 @@ import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.exception.ExceptionOperations.ExceptionFormatter;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.CallForeignMethodNode;
 import org.truffleruby.language.methods.CallInternalMethodNode;
@@ -106,17 +104,122 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
                 BranchProfile.create());
     }
 
-    public Object call(Object receiver, String method, Object... arguments) {
-        return dispatch(null, receiver, method, nil, arguments);
+    public Object call(Object receiver, String method) {
+        final Object[] rubyArgs = RubyArguments.allocate(0);
+        RubyArguments.setSelf(rubyArgs, receiver);
+        RubyArguments.setBlock(rubyArgs, nil);
+        return dispatch(null, method, rubyArgs);
     }
 
-    public Object callWithBlock(Object receiver, String method, Object block, Object... arguments) {
-        return dispatch(null, receiver, method, block, arguments);
+    public Object call(Object receiver, String method, Object arg0) {
+        final Object[] rubyArgs = RubyArguments.allocate(1);
+        RubyArguments.setSelf(rubyArgs, receiver);
+        RubyArguments.setBlock(rubyArgs, nil);
+        RubyArguments.setArgument(rubyArgs, 0, arg0);
+        return dispatch(null, method, rubyArgs);
     }
 
-    public final Object dispatch(Frame frame, Object receiver, String methodName, Object block, Object[] arguments) {
-        assert block instanceof Nil || block instanceof RubyProc : block;
+    public Object call(Object receiver, String method, Object arg0, Object arg1) {
+        final Object[] rubyArgs = RubyArguments.allocate(2);
+        RubyArguments.setSelf(rubyArgs, receiver);
+        RubyArguments.setBlock(rubyArgs, nil);
+        RubyArguments.setArgument(rubyArgs, 0, arg0);
+        RubyArguments.setArgument(rubyArgs, 1, arg1);
+        return dispatch(null, method, rubyArgs);
+    }
 
+    public Object call(Object receiver, String method, Object arg0, Object arg1, Object arg2) {
+        final Object[] rubyArgs = RubyArguments.allocate(3);
+        RubyArguments.setSelf(rubyArgs, receiver);
+        RubyArguments.setBlock(rubyArgs, nil);
+        RubyArguments.setArgument(rubyArgs, 0, arg0);
+        RubyArguments.setArgument(rubyArgs, 1, arg1);
+        RubyArguments.setArgument(rubyArgs, 2, arg2);
+        return dispatch(null, method, rubyArgs);
+    }
+
+    public Object call(Object receiver, String method, Object[] arguments) {
+        return dispatch(null, method, RubyArguments.pack(null, null, null, null, null, receiver, nil, arguments));
+    }
+
+    public Object callWithBlock(Object receiver, String method, Object block) {
+        final Object[] rubyArgs = RubyArguments.allocate(0);
+        RubyArguments.setSelf(rubyArgs, receiver);
+        RubyArguments.setBlock(rubyArgs, block);
+        return dispatch(null, method, rubyArgs);
+    }
+
+    public Object callWithBlock(Object receiver, String method, Object block, Object arg0) {
+        final Object[] rubyArgs = RubyArguments.allocate(1);
+        RubyArguments.setSelf(rubyArgs, receiver);
+        RubyArguments.setBlock(rubyArgs, block);
+        RubyArguments.setArgument(rubyArgs, 0, arg0);
+        return dispatch(null, method, rubyArgs);
+    }
+
+    public Object callWithBlock(Object receiver, String method, Object block, Object arg0, Object arg1) {
+        final Object[] rubyArgs = RubyArguments.allocate(2);
+        RubyArguments.setSelf(rubyArgs, receiver);
+        RubyArguments.setBlock(rubyArgs, block);
+        RubyArguments.setArgument(rubyArgs, 0, arg0);
+        RubyArguments.setArgument(rubyArgs, 1, arg1);
+        return dispatch(null, method, rubyArgs);
+    }
+
+    public Object callWithBlock(Object receiver, String method, Object block, Object arg0, Object arg1, Object arg2) {
+        final Object[] rubyArgs = RubyArguments.allocate(3);
+        RubyArguments.setSelf(rubyArgs, receiver);
+        RubyArguments.setBlock(rubyArgs, block);
+        RubyArguments.setArgument(rubyArgs, 0, arg0);
+        RubyArguments.setArgument(rubyArgs, 1, arg1);
+        RubyArguments.setArgument(rubyArgs, 2, arg2);
+        return dispatch(null, method, rubyArgs);
+    }
+
+    public Object callWithBlock(Object receiver, String method, Object block, Object[] arguments) {
+        return dispatch(null, method, RubyArguments.pack(null, null, null, null, null, receiver, block, arguments));
+    }
+
+    public Object callWithFrame(Frame frame, Object receiver, String method) {
+        final Object[] rubyArgs = RubyArguments.allocate(0);
+        RubyArguments.setSelf(rubyArgs, receiver);
+        RubyArguments.setBlock(rubyArgs, nil);
+        return dispatch(frame, method, rubyArgs);
+    }
+
+    public Object callWithFrame(Frame frame, Object receiver, String method, Object arg0) {
+        final Object[] rubyArgs = RubyArguments.allocate(1);
+        RubyArguments.setSelf(rubyArgs, receiver);
+        RubyArguments.setBlock(rubyArgs, nil);
+        RubyArguments.setArgument(rubyArgs, 0, arg0);
+        return dispatch(frame, method, rubyArgs);
+    }
+
+    public Object callWithFrame(Frame frame, Object receiver, String method, Object arg0, Object arg1) {
+        final Object[] rubyArgs = RubyArguments.allocate(2);
+        RubyArguments.setSelf(rubyArgs, receiver);
+        RubyArguments.setBlock(rubyArgs, nil);
+        RubyArguments.setArgument(rubyArgs, 0, arg0);
+        RubyArguments.setArgument(rubyArgs, 1, arg1);
+        return dispatch(frame, method, rubyArgs);
+    }
+
+    public Object callWithFrame(Frame frame, Object receiver, String method, Object arg0, Object arg1, Object arg2) {
+        final Object[] rubyArgs = RubyArguments.allocate(3);
+        RubyArguments.setSelf(rubyArgs, receiver);
+        RubyArguments.setBlock(rubyArgs, nil);
+        RubyArguments.setArgument(rubyArgs, 0, arg0);
+        RubyArguments.setArgument(rubyArgs, 1, arg1);
+        RubyArguments.setArgument(rubyArgs, 2, arg2);
+        return dispatch(frame, method, rubyArgs);
+    }
+
+    public Object callWithFrame(Frame frame, Object receiver, String method, Object[] arguments) {
+        return dispatch(frame, method, RubyArguments.pack(null, null, null, null, null, receiver, nil, arguments));
+    }
+
+    public final Object dispatch(Frame frame, String methodName, Object[] rubyArgs) {
+        Object receiver = RubyArguments.getSelf(rubyArgs);
         final RubyClass metaclass = metaclassNode.execute(receiver);
         final InternalMethod method = methodLookup.execute(frame, metaclass, methodName, config);
 
@@ -126,34 +229,49 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
                     return MISSING;
                 case CALL_METHOD_MISSING:
                     // Both branches implicitly profile through lazy node creation
+                    final Object block = RubyArguments.getBlock(rubyArgs);
+                    final Object[] arguments = RubyArguments.getArguments(rubyArgs);
                     if (RubyGuards.isForeignObject(receiver)) { // TODO (eregon, 16 Aug 2021) maybe use a final boolean on the class to know if foreign
                         return callForeign(receiver, methodName, block, arguments);
                     } else {
-                        return callMethodMissing(frame, receiver, methodName, block, arguments);
+                        return callMethodMissing(frame, methodName, rubyArgs);
                     }
             }
         }
 
-        final Object callerFrameOrVariables = getFrameOrStorageIfRequired(frame);
-        return callNode.execute(frame, callerFrameOrVariables, method, receiver, block, arguments);
+        RubyArguments.setMethod(rubyArgs, method);
+        RubyArguments.setCallerData(rubyArgs, getFrameOrStorageIfRequired(frame));
+        return callNode.execute(frame, rubyArgs);
     }
 
-    private Object callMethodMissing(
-            Frame frame, Object receiver, String methodName, Object block,
-            Object[] arguments) {
+    public final Object dispatch(Frame frame, Object receiver, String methodName, Object block) {
+        final Object[] rubyArgs = RubyArguments.allocate(0);
+        RubyArguments.setSelf(rubyArgs, receiver);
+        RubyArguments.setBlock(rubyArgs, nil);
+        return dispatch(frame, methodName, rubyArgs);
+    }
+
+    public final Object dispatch(Frame frame, Object receiver, String methodName, Object block, Object[] arguments) {
+        return dispatch(frame, methodName,
+                RubyArguments.pack(null, null, null, null, null, receiver, block, arguments));
+    }
+
+    private Object callMethodMissing(Frame frame, String methodName, Object[] rubyArgs) {
 
         final RubySymbol symbolName = nameToSymbol(methodName);
-        final Object[] newArguments = ArrayUtils.unshift(arguments, symbolName);
+        final Object[] newArgs = RubyArguments.repack(rubyArgs, RubyArguments.getSelf(rubyArgs), 0, 1,
+                RubyArguments.getArgumentsCount(rubyArgs));
 
-        final Object result = callMethodMissingNode(frame, receiver, block, newArguments);
+        RubyArguments.setArgument(newArgs, 0, symbolName);
+        final Object result = callMethodMissingNode(frame, newArgs);
 
         if (result == MISSING) {
             methodMissingMissing.enter();
             throw new RaiseException(getContext(), coreExceptions().noMethodErrorFromMethodMissing(
                     ExceptionFormatter.NO_METHOD_ERROR,
-                    receiver,
+                    RubyArguments.getSelf(rubyArgs),
                     methodName,
-                    arguments,
+                    RubyArguments.getArguments(rubyArgs),
                     this));
         }
 
@@ -168,14 +286,14 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
         return callForeign.execute(receiver, methodName, block, arguments);
     }
 
-    protected Object callMethodMissingNode(Frame frame, Object receiver, Object block, Object[] arguments) {
+    protected Object callMethodMissingNode(Frame frame, Object[] rubyArgs) {
         if (callMethodMissing == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             // #method_missing ignores refinements on CRuby: https://bugs.ruby-lang.org/issues/13129
             callMethodMissing = insert(
                     DispatchNode.create(DispatchConfiguration.PRIVATE_RETURN_MISSING_IGNORE_REFINEMENTS));
         }
-        return callMethodMissing.dispatch(frame, receiver, "method_missing", block, arguments);
+        return callMethodMissing.dispatch(frame, "method_missing", rubyArgs);
     }
 
     protected RubySymbol nameToSymbol(String methodName) {
@@ -243,14 +361,14 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
 
         @Override
         protected Object callMethodMissingNode(
-                Frame frame, Object receiver, Object block, Object[] arguments) {
+                Frame frame, Object[] rubyArgs) {
             if (callMethodMissing == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 callMethodMissing = insert(
                         DispatchNode.getUncached(DispatchConfiguration.PRIVATE_RETURN_MISSING_IGNORE_REFINEMENTS));
             }
 
-            return callMethodMissing.dispatch(frame, receiver, "method_missing", block, arguments);
+            return callMethodMissing.dispatch(frame, "method_missing", rubyArgs);
         }
 
         @Override

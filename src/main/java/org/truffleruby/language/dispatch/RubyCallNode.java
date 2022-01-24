@@ -24,6 +24,7 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.methods.BlockDefinitionNode;
 import org.truffleruby.language.methods.InternalMethod;
@@ -90,15 +91,25 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         if (isSafeNavigation && nilProfile.profile(receiverObject == nil)) {
             return nil;
         }
+        if (!isSplatted) {
+            final Object[] rubyArgs = RubyArguments.allocate(arguments.length);
+            RubyArguments.setSelf(rubyArgs, receiverObject);
 
-        final Object[] executedArguments = executeArguments(frame);
+            executeArguments(frame, rubyArgs);
 
-        final Object blockObject = executeBlock(frame);
+            RubyArguments.setBlock(rubyArgs, executeBlock(frame));
 
-        // The expansion of the splat is done after executing the block, for m(*args, &args.pop)
-        final Object[] argumentsObjects = isSplatted ? splat(executedArguments) : executedArguments;
+            return executeWithArgumentsEvaluated(frame, rubyArgs);
+        } else {
+            final Object[] executedArguments = executeArguments(frame);
 
-        return executeWithArgumentsEvaluated(frame, receiverObject, blockObject, argumentsObjects);
+            final Object blockObject = executeBlock(frame);
+
+            // The expansion of the splat is done after executing the block, for m(*args, &args.pop)
+            final Object[] argumentsObjects = splat(executedArguments);
+
+            return executeWithArgumentsEvaluated(frame, receiverObject, blockObject, argumentsObjects);
+        }
     }
 
     @Override
@@ -130,22 +141,27 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         executeWithArgumentsEvaluated(frame, receiverObject, blockObject, argumentsObjects);
     }
 
-    public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object receiverObject, Object blockObject,
-            Object[] argumentsObjects) {
+    public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object[] rubyArgs) {
         if (dispatch == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             dispatch = insert(DispatchNode.create(dispatchConfig));
         }
 
-        final Object returnValue = dispatch.dispatch(frame, receiverObject, methodName, blockObject, argumentsObjects);
+        final Object returnValue = dispatch.dispatch(frame, methodName, rubyArgs);
         if (isAttrAssign) {
-            final Object value = argumentsObjects[argumentsObjects.length - 1];
+            final Object value = rubyArgs[rubyArgs.length - 1];
             assert RubyGuards.assertIsValidRubyValue(value);
             return value;
         } else {
             assert RubyGuards.assertIsValidRubyValue(returnValue);
             return returnValue;
         }
+    }
+
+    public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object receiverObject, Object blockObject,
+            Object[] argumentsObjects) {
+        return executeWithArgumentsEvaluated(frame,
+                RubyArguments.pack(null, null, null, null, null, receiverObject, blockObject, argumentsObjects));
     }
 
     private Object executeBlock(VirtualFrame frame) {
@@ -165,6 +181,15 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         }
 
         return argumentsObjects;
+    }
+
+    @ExplodeLoop
+    private Object[] executeArguments(VirtualFrame frame, Object[] rubyArgs) {
+        for (int i = 0; i < arguments.length; i++) {
+            RubyArguments.setArgument(rubyArgs, i, arguments[i].execute(frame));
+        }
+
+        return rubyArgs;
     }
 
     private Object[] splat(Object[] arguments) {

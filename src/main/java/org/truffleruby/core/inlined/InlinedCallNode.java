@@ -15,6 +15,7 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 
@@ -49,48 +50,45 @@ public class InlinedCallNode extends InlinedReplaceableNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final Object receiverObject = receiver.execute(frame);
+        final Object[] rubyArgs = RubyArguments.allocate(arguments.length);
+        RubyArguments.setSelf(rubyArgs, receiver.execute(frame));
 
-        final Object[] executedArguments = executeArguments(frame);
+        executeArguments(frame, rubyArgs);
 
-        final Object blockObject = executeBlock(frame);
+        executeBlock(frame, rubyArgs);
 
         // The expansion of the splat is done after executing the block, for m(*args, &args.pop)
 
-        if ((lookupNode.lookupProtected(frame, receiverObject, methodName) != inlinedMethod.getMethod()) ||
+        if ((lookupNode.lookupProtected(frame, RubyArguments.getSelf(rubyArgs), methodName) != inlinedMethod
+                .getMethod()) ||
                 !Assumption.isValidAssumption(assumptions)) {
-            return rewriteAndCallWithBlock(frame, receiverObject, blockObject, executedArguments);
+            return rewriteAndCallWithBlock(frame, rubyArgs);
         } else {
-            return executeWithArgumentsEvaluated(frame, receiverObject, blockObject, executedArguments);
+            return executeWithArgumentsEvaluated(frame, rubyArgs);
         }
     }
 
-    public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object receiverObject, Object blockObject,
-            Object[] argumentsObjects) {
-        return inlinedMethod.inlineExecute(frame, receiverObject, argumentsObjects, blockObject);
+    public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object[] rubyArgs) {
+        return inlinedMethod.inlineExecute(frame, rubyArgs);
     }
 
-    private Object executeBlock(VirtualFrame frame) {
+    private void executeBlock(VirtualFrame frame, Object[] rubyArgs) {
         if (block != null) {
-            return block.execute(frame);
+            RubyArguments.setBlock(rubyArgs, block.execute(frame));
         } else {
-            return nil;
+            RubyArguments.setBlock(rubyArgs, nil);
         }
     }
 
     @ExplodeLoop
-    private Object[] executeArguments(VirtualFrame frame) {
-        final Object[] argumentsObjects = new Object[arguments.length];
-
+    private void executeArguments(VirtualFrame frame, Object[] rubyArgs) {
         for (int i = 0; i < arguments.length; i++) {
-            argumentsObjects[i] = arguments[i].execute(frame);
+            RubyArguments.setArgument(rubyArgs, i, arguments[i].execute(frame));
         }
-
-        return argumentsObjects;
     }
 
-    protected Object rewriteAndCallWithBlock(VirtualFrame frame, Object receiver, Object block, Object... arguments) {
-        return rewriteToCallNode().executeWithArgumentsEvaluated(frame, receiver, block, arguments);
+    protected Object rewriteAndCallWithBlock(VirtualFrame frame, Object[] rubyArgs) {
+        return rewriteToCallNode().executeWithArgumentsEvaluated(frame, rubyArgs);
     }
 
     @Override

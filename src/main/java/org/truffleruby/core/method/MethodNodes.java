@@ -134,9 +134,9 @@ public abstract class MethodNodes {
     public abstract static class CallNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected Object call(Frame callerFrame, RubyMethod method, Object[] args, Object block, RootCallTarget target,
+        protected Object call(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached CallBoundMethodNode callBoundMethodNode) {
-            return callBoundMethodNode.execute(callerFrame, method, args, block);
+            return callBoundMethodNode.execute(callerFrame, self, rubyArgs);
         }
 
     }
@@ -362,11 +362,8 @@ public abstract class MethodNodes {
             final Object originalBoundMethodReceiver = RubyArguments.getSelf(RubyArguments.getDeclarationFrame(frame));
             return callInternalMethodNode.execute(
                     frame,
-                    null,
-                    method,
-                    originalBoundMethodReceiver,
-                    RubyArguments.getBlock(frame),
-                    RubyArguments.getArguments(frame));
+                    RubyArguments.pack(null, null, method, null, originalBoundMethodReceiver,
+                            RubyArguments.getBlock(frame), RubyArguments.getArguments(frame)));
         }
     }
 

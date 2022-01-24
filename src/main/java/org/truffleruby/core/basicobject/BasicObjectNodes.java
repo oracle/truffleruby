@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.basicobject;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
@@ -18,7 +19,6 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
-import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.AllocateNodeFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InitializeNodeFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InstanceExecNodeFactory;
@@ -329,8 +329,9 @@ public abstract class BasicObjectNodes {
         }
 
         @Override
-        public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object block) {
-            if (args.length > 0) {
+        public Object inlineExecute(Frame callerFrame, Object[] rubyArgs) {
+            if (RubyArguments.getArgumentsCount(rubyArgs) > 0) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
                 throw new InlinedMethodNode.RewriteException();
             }
             return execute();
@@ -604,12 +605,13 @@ public abstract class BasicObjectNodes {
     public abstract static class SendNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected Object send(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
+        protected Object send(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached DispatchNode dispatchNode,
                 @Cached NameToJavaStringNode nameToJavaString) {
-            Object name = args[0];
-            Object[] callArgs = ArrayUtils.extractRange(args, 1, args.length);
-            return dispatchNode.dispatch(callerFrame, self, nameToJavaString.execute(name), block, callArgs);
+            Object name = RubyArguments.getArgument(rubyArgs, 0);
+            int count = RubyArguments.getArgumentsCount(rubyArgs) - 1;
+            return dispatchNode.dispatch(callerFrame, nameToJavaString.execute(name),
+                    RubyArguments.repack(rubyArgs, self, 1, count));
         }
 
     }
@@ -641,8 +643,8 @@ public abstract class BasicObjectNodes {
         }
 
         @Override
-        public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object block) {
-            return execute(self);
+        public Object inlineExecute(Frame callerFrame, Object[] rubyArgs) {
+            return execute(RubyArguments.getSelf(rubyArgs));
         }
 
         @Override
