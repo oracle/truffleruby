@@ -136,7 +136,7 @@ public abstract class MethodNodes {
         @Specialization
         protected Object call(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached CallBoundMethodNode callBoundMethodNode) {
-            return callBoundMethodNode.execute(callerFrame, rubyArgs);
+            return callBoundMethodNode.execute(callerFrame, self, rubyArgs);
         }
 
     }

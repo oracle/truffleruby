@@ -37,7 +37,8 @@ public abstract class MainNodes {
         protected Object forward(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached ModuleNodes.PublicNode publicNode) {
             RubyArguments.setSelf(rubyArgs, coreLibrary().objectClass);
-            return publicNode.callMethod(callerFrame, rubyArgs, target);
+            return publicNode.callMethod(callerFrame, RubyArguments.repack(rubyArgs, coreLibrary().objectClass, 0,
+                    RubyArguments.getArgumentsCount(rubyArgs)), target);
         }
     }
 

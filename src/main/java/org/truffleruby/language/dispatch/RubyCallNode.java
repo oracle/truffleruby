@@ -97,7 +97,7 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
 
             executeArguments(frame, rubyArgs);
 
-            executeBlock(frame, rubyArgs);
+            RubyArguments.setBlock(rubyArgs, executeBlock(frame));
 
             return executeWithArgumentsEvaluated(frame, rubyArgs);
         } else {
@@ -170,10 +170,6 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         } else {
             return nil;
         }
-    }
-
-    private void executeBlock(VirtualFrame frame, Object[] rubyArgs) {
-        RubyArguments.setBlock(rubyArgs, block != null ? block.execute(frame) : nil);
     }
 
     @ExplodeLoop

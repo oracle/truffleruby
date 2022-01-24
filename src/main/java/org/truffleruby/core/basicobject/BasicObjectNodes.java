@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.basicobject;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
@@ -106,7 +107,6 @@ public abstract class BasicObjectNodes {
 
         @Specialization
         protected boolean equal(VirtualFrame frame, Object a, Object b) {
-            final Object[] rubyArgs = RubyArguments.allocate(1);
             return !booleanCastNode.executeToBoolean(equalNode.call(a, "==", b));
         }
 
@@ -331,6 +331,7 @@ public abstract class BasicObjectNodes {
         @Override
         public Object inlineExecute(Frame callerFrame, Object[] rubyArgs) {
             if (RubyArguments.getArgumentsCount(rubyArgs) > 0) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
                 throw new InlinedMethodNode.RewriteException();
             }
             return execute();

@@ -411,14 +411,9 @@ public abstract class ModuleNodes {
         protected Object notObject(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target) {
             return nil;
         }
-
-        protected static RubyDynamicObject getReceiver(Object[] rubyArgs) {
-            return (RubyDynamicObject) RubyArguments.getSelf(rubyArgs);
-        }
     }
 
     @GenerateUncached
-    @ImportStatic(RubyArguments.class)
     public abstract static class GeneratedWriterNode extends AlwaysInlinedMethodNode {
 
         @Specialization(guards = "!rubyLibrary.isFrozen(self)")
@@ -536,9 +531,8 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "attr", rest = true, alwaysInlined = true)
     public abstract static class AttrNode extends GenerateAccessorNode {
         @Specialization
-        protected Object attr(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target) {
+        protected Object attr(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target) {
             final boolean setter;
-            final RubyModule module = (RubyModule) RubyArguments.getSelf(rubyArgs);
             Object[] names = RubyArguments.getArguments(rubyArgs);
             if (names.length == 2 && names[1] instanceof Boolean) {
                 warnObsoletedBooleanArgument();
@@ -565,8 +559,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "attr_accessor", rest = true, alwaysInlined = true)
     public abstract static class AttrAccessorNode extends GenerateAccessorNode {
         @Specialization
-        protected Object attrAccessor(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target) {
-            final RubyModule module = (RubyModule) RubyArguments.getSelf(rubyArgs);
+        protected Object attrAccessor(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target) {
             Object[] names = RubyArguments.getArguments(rubyArgs);
             return createArray(generateAccessors(callerFrame, module, names, BOTH, target));
         }
@@ -576,8 +569,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "attr_reader", rest = true, alwaysInlined = true)
     public abstract static class AttrReaderNode extends GenerateAccessorNode {
         @Specialization
-        protected Object attrReader(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target) {
-            final RubyModule module = (RubyModule) RubyArguments.getSelf(rubyArgs);
+        protected Object attrReader(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target) {
             Object[] names = RubyArguments.getArguments(rubyArgs);
             return createArray(generateAccessors(callerFrame, module, names, READER, target));
         }
@@ -587,8 +579,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "attr_writer", rest = true, alwaysInlined = true)
     public abstract static class AttrWriterNode extends GenerateAccessorNode {
         @Specialization
-        protected Object attrWriter(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target) {
-            final RubyModule module = (RubyModule) RubyArguments.getSelf(rubyArgs);
+        protected Object attrWriter(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target) {
             Object[] names = RubyArguments.getArguments(rubyArgs);
             return createArray(generateAccessors(callerFrame, module, names, WRITER, target));
         }

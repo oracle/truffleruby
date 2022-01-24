@@ -180,9 +180,9 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
                         if (coreMethod != null) {
                             // Do not use needsSelf=true in module functions, it is either the module/class or the instance.
                             // Usage of needsSelf is quite rare for singleton methods (except constructors).
-                            boolean needsSelf = !coreMethod.alwaysInlined() && (coreMethod.constructor() ||
+                            boolean needsSelf = coreMethod.constructor() ||
                                     (!coreMethod.isModuleFunction() && !coreMethod.onSingleton() &&
-                                            coreMethod.needsSelf()));
+                                            coreMethod.needsSelf());
 
                             CoreMethod checkAmbiguous = !coreMethod.alwaysInlined() &&
                                     (coreMethod.optional() > 0 || coreMethod.needsBlock())
@@ -384,7 +384,7 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
     private List<String> getArgumentNamesForAlwaysInlined(int argCount) {
         List<String> argumentNames = new ArrayList<>();
         for (int i = 0; i < argCount; i++) {
-            argumentNames.add(String.format("arg_%d", i));
+            argumentNames.add(String.format("arg%d", i + 1));
         }
         return argumentNames;
     }

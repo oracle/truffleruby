@@ -68,10 +68,9 @@ public class RubyMethod extends RubyDynamicObject implements ObjectGraphNode {
     public Object execute(Object[] arguments,
             @Cached CallBoundMethodNode callBoundMethodNode,
             @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode) {
-        final Object[] rubyarguments = RubyArguments.pack(null, null, null, null, null, this, Nil.INSTANCE,
+        final Object[] rubyArgs = RubyArguments.pack(null, null, null, null, null, this, Nil.INSTANCE,
                 foreignToRubyArgumentsNode.executeConvert(arguments));
-        return callBoundMethodNode
-                .execute(null, rubyarguments);
+        return callBoundMethodNode.execute(null, this, rubyArgs);
     }
     // endregion
 

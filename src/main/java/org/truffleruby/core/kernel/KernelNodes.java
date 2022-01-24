@@ -1391,7 +1391,7 @@ public abstract class KernelNodes {
                 @Cached ToStringOrSymbolNode toStringOrSymbolNode,
                 @Cached GetMethodObjectNode getMethodObjectNode) {
             Object name = toStringOrSymbolNode.execute(RubyArguments.getArgument(rubyArgs, 0));
-            return getMethodObjectNode.execute(callerFrame, RubyArguments.getSelf(rubyArgs), name,
+            return getMethodObjectNode.execute(callerFrame, self, name,
                     DispatchConfiguration.PRIVATE);
         }
 
@@ -1526,7 +1526,7 @@ public abstract class KernelNodes {
                 @Cached ToStringOrSymbolNode toStringOrSymbolNode,
                 @Cached GetMethodObjectNode getMethodObjectNode) {
             Object name = toStringOrSymbolNode.execute(RubyArguments.getArgument(rubyArgs, 0));
-            return getMethodObjectNode.execute(callerFrame, RubyArguments.getSelf(rubyArgs), name,
+            return getMethodObjectNode.execute(callerFrame, self, name,
                     DispatchConfiguration.PUBLIC);
         }
 
@@ -1566,7 +1566,7 @@ public abstract class KernelNodes {
                 @Cached(parameters = "PUBLIC") DispatchNode dispatchNode,
                 @Cached NameToJavaStringNode nameToJavaString) {
             Object name = RubyArguments.getArgument(rubyArgs, 0);
-            Object[] newArgs = RubyArguments.repack(rubyArgs, RubyArguments.getSelf(rubyArgs), 1,
+            Object[] newArgs = RubyArguments.repack(rubyArgs, self, 1,
                     RubyArguments.getArgumentsCount(rubyArgs) - 1);
             return dispatchNode.dispatch(callerFrame, nameToJavaString.execute(name), newArgs);
         }

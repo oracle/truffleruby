@@ -87,16 +87,6 @@ public final class RubyArguments {
         return new Object[RUNTIME_ARGUMENT_COUNT + count];
     }
 
-    public static Object[] repack(Frame frame, Object receiver, int from, int count) {
-        final Object[] args = frame.getArguments();
-        return repack(args, receiver, from, 0, count);
-    }
-
-    public static Object[] repack(Frame frame, Object receiver, int from, int to, int count) {
-        final Object[] args = frame.getArguments();
-        return repack(args, receiver, from, to, count);
-    }
-
     public static Object[] repack(Object[] args, Object receiver, int from, int count) {
         return repack(args, receiver, from, 0, count);
     }
@@ -105,7 +95,6 @@ public final class RubyArguments {
         final Object[] newArgs = new Object[RUNTIME_ARGUMENT_COUNT + to + count];
         newArgs[ArgumentIndicies.SELF.ordinal()] = receiver;
         newArgs[ArgumentIndicies.BLOCK.ordinal()] = getBlock(args);
-        // System.err.printf("Repacking args from array[%d] to array[%d], from %d, count %d.\n", args.length, newArgs.length, from, count);
         System.arraycopy(args, RUNTIME_ARGUMENT_COUNT + from, newArgs, RUNTIME_ARGUMENT_COUNT + to, count);
         return newArgs;
     }
