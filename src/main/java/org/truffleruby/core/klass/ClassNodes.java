@@ -268,6 +268,10 @@ public abstract class ClassNodes {
         }
     }
 
+    // Worth always splitting to have monomorphic #__allocate__ and #initialize,
+    // Worth always inlining as the field accesses and initializations are optimized when the allocation is visible,
+    // and a non-inlined call to #__allocate__ would allocate the arguments Object[] which is about the same number of
+    // nodes as the object allocation. Also avoids many frame and Object[] allocations when creating a new object.
     @GenerateUncached
     @CoreMethod(names = "new", rest = true, alwaysInlined = true)
     public abstract static class NewNode extends AlwaysInlinedMethodNode {
@@ -276,9 +280,7 @@ public abstract class ClassNodes {
                 @Cached DispatchNode allocateNode,
                 @Cached DispatchNode initializeNode) {
             final Object instance = allocateNode.call(rubyClass, "__allocate__");
-            final Object block = RubyArguments.getBlock(rubyArgs);
-            Object[] args = RubyArguments.getArguments(rubyArgs);
-            initializeNode.callWithBlock(instance, "initialize", block, args);
+            initializeNode.dispatch(null, "initialize", RubyArguments.repack(rubyArgs, instance));
             return instance;
         }
 

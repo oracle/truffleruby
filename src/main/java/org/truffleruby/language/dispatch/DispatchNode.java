@@ -230,9 +230,8 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
                 case CALL_METHOD_MISSING:
                     // Both branches implicitly profile through lazy node creation
                     final Object block = RubyArguments.getBlock(rubyArgs);
-                    final Object[] arguments = RubyArguments.getArguments(rubyArgs);
                     if (RubyGuards.isForeignObject(receiver)) { // TODO (eregon, 16 Aug 2021) maybe use a final boolean on the class to know if foreign
-                        return callForeign(receiver, methodName, block, arguments);
+                        return callForeign(receiver, methodName, block, rubyArgs);
                     } else {
                         return callMethodMissing(frame, methodName, rubyArgs);
                     }
@@ -257,7 +256,6 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
     }
 
     private Object callMethodMissing(Frame frame, String methodName, Object[] rubyArgs) {
-
         final RubySymbol symbolName = nameToSymbol(methodName);
         final Object[] newArgs = RubyArguments.repack(rubyArgs, RubyArguments.getSelf(rubyArgs), 0, 1,
                 RubyArguments.getArgumentsCount(rubyArgs));
@@ -278,11 +276,13 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         return result;
     }
 
-    protected Object callForeign(Object receiver, String methodName, Object block, Object[] arguments) {
+    protected Object callForeign(Object receiver, String methodName, Object block, Object[] rubyArgs) {
         if (callForeign == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callForeign = insert(CallForeignMethodNode.create());
         }
+
+        final Object[] arguments = RubyArguments.getArguments(rubyArgs);
         return callForeign.execute(receiver, methodName, block, arguments);
     }
 

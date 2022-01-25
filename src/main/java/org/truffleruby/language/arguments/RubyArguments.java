@@ -87,19 +87,21 @@ public final class RubyArguments {
         return new Object[RUNTIME_ARGUMENT_COUNT + count];
     }
 
-    public static Object[] repack(Object[] args, Object receiver) {
-        return repack(args, receiver, 0, 0, getArgumentsCount(args));
+    public static Object[] repack(Object[] rubyArgs, Object receiver) {
+        return repack(rubyArgs, receiver, 0, 0, getArgumentsCount(rubyArgs));
     }
 
-    public static Object[] repack(Object[] args, Object receiver, int from, int count) {
-        return repack(args, receiver, from, 0, count);
+    public static Object[] repack(Object[] rubyArgs, Object receiver, int from, int count) {
+        return repack(rubyArgs, receiver, from, 0, count);
     }
 
-    public static Object[] repack(Object[] args, Object receiver, int from, int to, int count) {
+    /** Same as {@code pack(null, null, null, null, receiver, getBlock(rubyArgs), getArguments(rubyArgs))} but without
+     * the intermediary Object[] allocation and arraycopy. */
+    public static Object[] repack(Object[] rubyArgs, Object receiver, int from, int to, int count) {
         final Object[] newArgs = new Object[RUNTIME_ARGUMENT_COUNT + to + count];
         newArgs[ArgumentIndicies.SELF.ordinal()] = receiver;
-        newArgs[ArgumentIndicies.BLOCK.ordinal()] = getBlock(args);
-        System.arraycopy(args, RUNTIME_ARGUMENT_COUNT + from, newArgs, RUNTIME_ARGUMENT_COUNT + to, count);
+        newArgs[ArgumentIndicies.BLOCK.ordinal()] = getBlock(rubyArgs);
+        System.arraycopy(rubyArgs, RUNTIME_ARGUMENT_COUNT + from, newArgs, RUNTIME_ARGUMENT_COUNT + to, count);
         return newArgs;
     }
 
@@ -196,6 +198,8 @@ public final class RubyArguments {
         return args[ArgumentIndicies.SELF.ordinal()];
     }
 
+    /** Should only be used when we just allocated the Object[] and we know nothing else is using it. Consider
+     * {@link #repack} instead. */
     public static void setSelf(Object[] args, Object self) {
         args[ArgumentIndicies.SELF.ordinal()] = self;
     }
@@ -247,6 +251,8 @@ public final class RubyArguments {
         rubyArgs[RUNTIME_ARGUMENT_COUNT + index] = value;
     }
 
+    /** Should only be used when strictly necessary, {@link #repack} or {@link #getArgument} avoid the extra
+     * allocation */
     public static Object[] getArguments(Object[] arguments) {
         return ArrayUtils.extractRange(arguments, RUNTIME_ARGUMENT_COUNT, arguments.length);
     }

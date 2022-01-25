@@ -668,6 +668,10 @@ public abstract class KernelNodes {
 
     }
 
+    // Worth always splitting to have monomorphic #__allocate__, Shape, #initialize_dup and #initialize_copy.
+    // OK to always inline as the graph is likely to be simplified a lot as the allocation is visible,
+    // and a non-inlined call to #__allocate__ would allocate the arguments Object[] which is about the same number of
+    // nodes as the object allocation. Also avoids many frame and Object[] allocations when dup'ing a new object.
     @GenerateUncached
     @CoreMethod(names = "dup", alwaysInlined = true)
     public abstract static class DupNode extends AlwaysInlinedMethodNode {

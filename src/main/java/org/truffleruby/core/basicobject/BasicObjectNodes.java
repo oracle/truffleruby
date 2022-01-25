@@ -306,7 +306,7 @@ public abstract class BasicObjectNodes {
     }
 
     @GenerateUncached
-    @CoreMethod(names = "initialize", needsSelf = false, alwaysInlined = true)
+    @CoreMethod(names = "initialize", alwaysInlined = true)
     public abstract static class InitializeNode extends AlwaysInlinedMethodNode {
         @Specialization
         protected Object initialize(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target) {
