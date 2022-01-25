@@ -36,9 +36,8 @@ public abstract class MainNodes {
         @Specialization
         protected Object forward(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached ModuleNodes.PublicNode publicNode) {
-            RubyArguments.setSelf(rubyArgs, coreLibrary().objectClass);
-            return publicNode.callMethod(callerFrame, RubyArguments.repack(rubyArgs, coreLibrary().objectClass, 0,
-                    RubyArguments.getArgumentsCount(rubyArgs)), target);
+            return publicNode.callMethod(callerFrame, RubyArguments.repack(rubyArgs, coreLibrary().objectClass),
+                    target);
         }
     }
 
@@ -48,8 +47,8 @@ public abstract class MainNodes {
         @Specialization
         protected Object forward(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached ModuleNodes.PrivateNode privateNode) {
-            RubyArguments.setSelf(rubyArgs, coreLibrary().objectClass);
-            return privateNode.callMethod(callerFrame, rubyArgs, target);
+            return privateNode.callMethod(callerFrame, RubyArguments.repack(rubyArgs, coreLibrary().objectClass),
+                    target);
         }
     }
 

@@ -87,6 +87,10 @@ public final class RubyArguments {
         return new Object[RUNTIME_ARGUMENT_COUNT + count];
     }
 
+    public static Object[] repack(Object[] args, Object receiver) {
+        return repack(args, receiver, 0, 0, getArgumentsCount(args));
+    }
+
     public static Object[] repack(Object[] args, Object receiver, int from, int count) {
         return repack(args, receiver, from, 0, count);
     }
