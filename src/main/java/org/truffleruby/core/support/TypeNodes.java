@@ -12,6 +12,8 @@ package org.truffleruby.core.support;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.dsl.GenerateNodeFactory;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -42,6 +44,7 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyLibrary;
@@ -383,9 +386,11 @@ public abstract class TypeNodes {
         }
     }
 
+    @GenerateUncached
+    @GenerateNodeFactory
     @Primitive(name = "check_frozen")
     @NodeChild(value = "value", type = RubyNode.class)
-    public abstract static class CheckFrozenNode extends PrimitiveNode {
+    public abstract static class CheckFrozenNode extends RubySourceNode {
 
         public static CheckFrozenNode create() {
             return create(null);

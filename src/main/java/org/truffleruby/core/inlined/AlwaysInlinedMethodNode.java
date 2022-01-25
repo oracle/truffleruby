@@ -34,10 +34,11 @@ import org.truffleruby.language.control.RaiseException;
 @GenerateNodeFactory
 public abstract class AlwaysInlinedMethodNode extends RubyBaseNode {
 
-    protected abstract Object executeMethod(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target);
+    /** Ensure that self == RubyArguments.getSelf(rubyArgs) if this is called instead of {@link #callMethod} */
+    public abstract Object execute(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target);
 
     public Object callMethod(Frame callerFrame, Object[] rubyArgs, RootCallTarget target) {
-        return executeMethod(callerFrame, RubyArguments.getSelf(rubyArgs), rubyArgs, target);
+        return execute(callerFrame, RubyArguments.getSelf(rubyArgs), rubyArgs, target);
     }
 
     protected void needCallerFrame(Frame callerFrame, RootCallTarget target) {

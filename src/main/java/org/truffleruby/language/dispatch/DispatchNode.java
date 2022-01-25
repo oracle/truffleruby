@@ -36,7 +36,7 @@ import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.MetaClassNodeGen;
 import org.truffleruby.options.Options;
 
-public class DispatchNode extends FrameAndVariablesSendingNode implements DispatchingNode {
+public class DispatchNode extends FrameAndVariablesSendingNode {
 
     private static final class Missing implements TruffleObject {
     }

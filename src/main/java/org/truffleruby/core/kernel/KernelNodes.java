@@ -29,10 +29,8 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
-import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.basicobject.BasicObjectNodes;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.binding.BindingNodes;
@@ -59,11 +57,6 @@ import org.truffleruby.core.hash.HashingNodes;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.PackedHashStoreLibrary;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
-import org.truffleruby.core.inlined.InlinedDispatchNode;
-import org.truffleruby.core.inlined.InlinedMethodNode;
-import org.truffleruby.core.kernel.KernelNodesFactory.CopyNodeFactory;
-import org.truffleruby.core.kernel.KernelNodesFactory.DupNodeFactory;
-import org.truffleruby.core.kernel.KernelNodesFactory.InitializeCopyNodeFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqualNodeFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.SingletonMethodsNodeFactory;
 import org.truffleruby.core.klass.RubyClass;
@@ -101,6 +94,7 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -116,7 +110,6 @@ import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchConfiguration;
 import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.dispatch.DispatchingNode;
 import org.truffleruby.language.dispatch.InternalRespondToNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.loader.EvalLoader;
@@ -447,15 +440,10 @@ public abstract class KernelNodes {
     }
 
     @ImportStatic(ShapeCachingGuards.class)
-    public abstract static class CopyNode extends UnaryCoreMethodNode {
+    @GenerateUncached
+    public abstract static class CopyNode extends RubyBaseNode {
 
         public static final Property[] EMPTY_PROPERTY_ARRAY = new Property[0];
-
-        public static CopyNode create() {
-            return CopyNodeFactory.create(null);
-        }
-
-        @Child private DispatchingNode allocateNode;
 
         public abstract RubyDynamicObject executeCopy(Object self);
 
@@ -465,10 +453,12 @@ public abstract class KernelNodes {
                 limit = "getCacheLimit()")
         protected RubyDynamicObject copyCached(RubyDynamicObject self,
                 @Cached("self.getShape()") Shape cachedShape,
+                // GR-25595: should probably be shared between specialization instances but Truffle does not support it yet
+                @Cached DispatchNode allocateNode,
                 @Cached(value = "getCopiedProperties(cachedShape)", dimensions = 1) Property[] properties,
                 @Cached("createWriteFieldNodes(properties)") DynamicObjectLibrary[] writeFieldNodes) {
-            final RubyDynamicObject newObject = (RubyDynamicObject) allocateNode()
-                    .call(self.getLogicalClass(), "__allocate__");
+            final RubyDynamicObject newObject = (RubyDynamicObject) allocateNode.call(self.getLogicalClass(),
+                    "__allocate__");
 
             for (int i = 0; i < properties.length; i++) {
                 final Property property = properties[i];
@@ -480,26 +470,29 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "updateShape(self)")
-        protected Object updateShapeAndCopy(RubyDynamicObject self) {
+        protected RubyDynamicObject updateShapeAndCopy(RubyDynamicObject self) {
             return executeCopy(self);
         }
 
         @Specialization(replaces = { "copyCached", "updateShapeAndCopy" })
-        protected RubyDynamicObject copyUncached(RubyDynamicObject self) {
+        protected RubyDynamicObject copyUncached(RubyDynamicObject self,
+                @Cached DispatchNode allocateNode) {
             final RubyClass rubyClass = self.getLogicalClass();
-            final RubyDynamicObject newObject = (RubyDynamicObject) allocateNode().call(rubyClass, "__allocate__");
+            final RubyDynamicObject newObject = (RubyDynamicObject) allocateNode.call(rubyClass, "__allocate__");
             copyInstanceVariables(self, newObject);
             return newObject;
         }
 
         @Specialization
-        protected RubyDynamicObject copyImmutableString(ImmutableRubyString string) {
-            return (RubyDynamicObject) allocateNode().call(coreLibrary().stringClass, "__allocate__");
+        protected RubyString copyImmutableString(ImmutableRubyString string,
+                @Cached DispatchNode allocateStringNode) {
+            return (RubyString) allocateStringNode.call(coreLibrary().stringClass, "__allocate__");
         }
 
         @Specialization
-        protected RubyEncoding copyRubyEncoding(RubyEncoding encoding) {
-            return (RubyEncoding) allocateNode().call(coreLibrary().encodingClass, "__allocate__");
+        protected RubyDynamicObject copyRubyEncoding(RubyEncoding encoding) {
+            throw new RaiseException(getContext(),
+                    coreExceptions().typeErrorAllocatorUndefinedFor(coreLibrary().encodingClass, this));
         }
 
         protected Property[] getCopiedProperties(Shape shape) {
@@ -537,15 +530,6 @@ public abstract class KernelNodes {
 
         protected int getCacheLimit() {
             return getLanguage().options.INSTANCE_VARIABLE_CACHE;
-        }
-
-        private DispatchingNode allocateNode() {
-            if (allocateNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                allocateNode = insert(
-                        new InlinedDispatchNode(getLanguage(), BasicObjectNodes.AllocateNode.create()));
-            }
-            return allocateNode;
         }
     }
 
@@ -684,22 +668,15 @@ public abstract class KernelNodes {
 
     }
 
-    @CoreMethod(names = "dup")
-    public abstract static class DupNode extends InlinedMethodNode {
-
-        public static InlinedMethodNode create() {
-            return DupNodeFactory.create(null);
-        }
-
-        @Child private DispatchingNode initializeDupNode;
-
-        public abstract Object execute(Object self);
-
+    @GenerateUncached
+    @CoreMethod(names = "dup", alwaysInlined = true)
+    public abstract static class DupNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected Object dup(Object self,
+        protected Object dup(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached IsImmutableObjectNode isImmutableObjectNode,
                 @Cached ConditionProfile immutableProfile,
-                @Cached CopyNode copyNode) {
+                @Cached CopyNode copyNode,
+                @Cached DispatchNode initializeDupNode) {
             if (immutableProfile
                     .profile(!(self instanceof ImmutableRubyString) && isImmutableObjectNode.execute(self))) {
                 return self;
@@ -707,30 +684,19 @@ public abstract class KernelNodes {
 
             final RubyDynamicObject newObject = copyNode.executeCopy(self);
 
-            initializeDupNode().call(newObject, "initialize_dup", self);
+            initializeDupNode.call(newObject, "initialize_dup", self);
 
             return newObject;
         }
+    }
 
-        @Override
-        public Object inlineExecute(Frame callerFrame, Object[] rubyArgs) {
-            return execute(RubyArguments.getSelf(rubyArgs));
-        }
-
-        @Override
-        public InternalMethod getMethod() {
-            return getContext().getCoreMethods().KERNEL_DUP;
-        }
-
-        protected DispatchingNode initializeDupNode() {
-            if (initializeDupNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                initializeDupNode = insert(
-                        new InlinedDispatchNode(
-                                getLanguage(),
-                                InitializeDupNode.create()));
-            }
-            return initializeDupNode;
+    @NodeChild(value = "self", type = RubyNode.class)
+    @GenerateNodeFactory
+    public abstract static class DupASTNode extends RubyContextSourceNode {
+        @Specialization
+        protected Object execute(VirtualFrame frame, Object self,
+                @Cached DupNode dupNode) {
+            return dupNode.execute(frame, self, ArrayUtils.EMPTY_ARRAY, null);
         }
     }
 
@@ -1080,29 +1046,27 @@ public abstract class KernelNodes {
         }
     }
 
-    @CoreMethod(names = "initialize_copy", required = 1)
-    public abstract static class InitializeCopyNode extends InlinedMethodNode {
-
-        public static InitializeCopyNode create() {
-            return InitializeCopyNodeFactory.create(null);
-        }
-
-        @Child protected ReferenceEqualNode equalNode = ReferenceEqualNode.create();
-
-        public abstract Object execute(Object self, Object from);
-
-        @Specialization(guards = "equalNode.executeReferenceEqual(self, from)")
-        protected Object initializeCopySame(Object self, Object from) {
-            return self;
-        }
-
-        @Specialization(guards = "!equalNode.executeReferenceEqual(self, from)")
-        protected Object initializeCopy(Object self, Object from,
+    @ImportStatic(RubyArguments.class)
+    @GenerateUncached
+    @CoreMethod(names = "initialize_copy", required = 1, alwaysInlined = true)
+    public abstract static class InitializeCopyNode extends AlwaysInlinedMethodNode {
+        @Specialization
+        protected Object initializeCopy(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
+                @Cached ReferenceEqualNode equalNode,
+                @Cached ConditionProfile sameProfile,
                 @Cached CheckFrozenNode checkFrozenNode,
                 @Cached LogicalClassNode lhsClassNode,
                 @Cached LogicalClassNode rhsClassNode,
                 @Cached BranchProfile errorProfile) {
+            Object from = RubyArguments.getArgument(rubyArgs, 0);
+
+            // GR-36575: should be separate specialization but Truffle does not support @Shared("equalNode") for this node
+            if (sameProfile.profile(equalNode.executeReferenceEqual(self, from))) {
+                return self;
+            }
+
             checkFrozenNode.execute(self);
+
             if (lhsClassNode.execute(self) != rhsClassNode.execute(from)) {
                 errorProfile.enter();
                 throw new RaiseException(
@@ -1112,51 +1076,17 @@ public abstract class KernelNodes {
 
             return self;
         }
-
-        @Override
-        public Object inlineExecute(Frame callerFrame, Object[] rubyArgs) {
-            assert RubyArguments.getArgumentsCount(rubyArgs) == 1;
-            return execute(RubyArguments.getSelf(rubyArgs), RubyArguments.getArgument(rubyArgs, 0));
-        }
-
-        @Override
-        public InternalMethod getMethod() {
-            return getContext().getCoreMethods().KERNEL_INITIALIZE_COPY;
-        }
     }
 
-    @CoreMethod(names = "initialize_dup", required = 1)
-    public abstract static class InitializeDupNode extends InlinedMethodNode {
-
-        public static InitializeDupNode create() {
-            return KernelNodesFactory.InitializeDupNodeFactory.create(null);
-        }
-
-        @Child private DispatchingNode initializeCopyNode;
-
+    @GenerateUncached
+    @CoreMethod(names = "initialize_dup", required = 1, alwaysInlined = true)
+    public abstract static class InitializeDupNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected Object initializeDup(RubyDynamicObject self, Object from) {
-            return initializeCopyNode().call(self, "initialize_copy", from);
-        }
-
-        @Override
-        public Object inlineExecute(Frame callerFrame, Object[] rubyArgs) {
-            return initializeDup((RubyDynamicObject) RubyArguments.getSelf(rubyArgs),
-                    RubyArguments.getArgument(rubyArgs, 0));
-        }
-
-        @Override
-        public InternalMethod getMethod() {
-            return getContext().getCoreMethods().KERNEL_INITIALIZE_DUP;
-        }
-
-        protected DispatchingNode initializeCopyNode() {
-            if (initializeCopyNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                initializeCopyNode = insert(
-                        new InlinedDispatchNode(getLanguage(), InitializeCopyNode.create()));
-            }
-            return initializeCopyNode;
+        protected Object initializeDup(
+                Frame callerFrame, RubyDynamicObject self, Object[] rubyArgs, RootCallTarget target,
+                @Cached DispatchNode initializeCopyNode) {
+            Object from = RubyArguments.getArgument(rubyArgs, 0);
+            return initializeCopyNode.call(self, "initialize_copy", from);
         }
     }
 

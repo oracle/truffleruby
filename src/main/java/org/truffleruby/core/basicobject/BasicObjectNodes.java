@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.basicobject;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
@@ -19,8 +18,6 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
-import org.truffleruby.core.basicobject.BasicObjectNodesFactory.AllocateNodeFactory;
-import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InitializeNodeFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InstanceExecNodeFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNodeFactory;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -28,7 +25,6 @@ import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.exception.ExceptionOperations.ExceptionFormatter;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
-import org.truffleruby.core.inlined.InlinedMethodNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.numeric.RubyBignum;
@@ -309,32 +305,12 @@ public abstract class BasicObjectNodes {
         }
     }
 
-    @CoreMethod(names = "initialize", needsSelf = false)
-    public abstract static class InitializeNode extends InlinedMethodNode {
-
-        public static InitializeNode create() {
-            return InitializeNodeFactory.create(null);
-        }
-
-        public abstract Object execute();
-
+    @GenerateUncached
+    @CoreMethod(names = "initialize", needsSelf = false, alwaysInlined = true)
+    public abstract static class InitializeNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected Object initialize() {
+        protected Object initialize(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target) {
             return nil;
-        }
-
-        @Override
-        public InternalMethod getMethod() {
-            return getContext().getCoreMethods().BASIC_OBJECT_INITIALIZE;
-        }
-
-        @Override
-        public Object inlineExecute(Frame callerFrame, Object[] rubyArgs) {
-            if (RubyArguments.getArgumentsCount(rubyArgs) > 0) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                throw new InlinedMethodNode.RewriteException();
-            }
-            return execute();
         }
     }
 
@@ -603,7 +579,6 @@ public abstract class BasicObjectNodes {
     @GenerateUncached
     @CoreMethod(names = "__send__", needsBlock = true, rest = true, required = 1, alwaysInlined = true)
     public abstract static class SendNode extends AlwaysInlinedMethodNode {
-
         @Specialization
         protected Object send(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached DispatchNode dispatchNode,
@@ -613,43 +588,29 @@ public abstract class BasicObjectNodes {
             return dispatchNode.dispatch(callerFrame, nameToJavaString.execute(name),
                     RubyArguments.repack(rubyArgs, self, 1, count));
         }
-
     }
 
     // MRI names it the "allocator function" and it's associated per class and follows the ancestor
-    // chain. We use a normal Ruby method, different that Class#allocate as Class#allocate
+    // chain. We use a normal Ruby method, different than Class#allocate as Class#allocate
     // must be able to instantiate any Ruby object and should not be overridden.
-    @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
-    public abstract static class AllocateNode extends InlinedMethodNode {
-
-        public static AllocateNode create() {
-            return AllocateNodeFactory.create(null);
-        }
-
-        public abstract Object execute(Object rubyClass);
-
+    @GenerateUncached
+    @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE,
+            alwaysInlined = true)
+    public abstract static class AllocateNode extends AlwaysInlinedMethodNode {
         @Specialization(guards = "!rubyClass.isSingleton")
-        protected RubyBasicObject allocate(RubyClass rubyClass) {
+        protected RubyBasicObject allocate(
+                Frame callerFrame, RubyClass rubyClass, Object[] rubyArgs, RootCallTarget target) {
             final RubyBasicObject instance = new RubyBasicObject(rubyClass, getLanguage().basicObjectShape);
             AllocationTracing.traceInlined(instance, "Class", "__allocate__", this);
             return instance;
         }
 
         @Specialization(guards = "rubyClass.isSingleton")
-        protected Shape allocateSingleton(RubyClass rubyClass) {
+        protected Shape allocateSingleton(
+                Frame callerFrame, RubyClass rubyClass, Object[] rubyArgs, RootCallTarget target) {
             throw new RaiseException(
                     getContext(),
                     getContext().getCoreExceptions().typeErrorCantCreateInstanceOfSingletonClass(this));
-        }
-
-        @Override
-        public Object inlineExecute(Frame callerFrame, Object[] rubyArgs) {
-            return execute(RubyArguments.getSelf(rubyArgs));
-        }
-
-        @Override
-        public InternalMethod getMethod() {
-            return getContext().getCoreMethods().BASIC_OBJECT_ALLOCATE;
         }
     }
 }

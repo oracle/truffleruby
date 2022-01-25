@@ -9,6 +9,8 @@
  */
 package org.truffleruby.core.klass;
 
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -16,9 +18,7 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.CoreLibrary;
-import org.truffleruby.core.basicobject.BasicObjectNodes;
-import org.truffleruby.core.inlined.InlinedDispatchNode;
-import org.truffleruby.core.inlined.InlinedMethodNode;
+import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
@@ -26,8 +26,6 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.dispatch.DispatchingNode;
-import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.InitializeClassNode;
 import org.truffleruby.language.objects.InitializeClassNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
@@ -270,61 +268,26 @@ public abstract class ClassNodes {
         }
     }
 
-    @CoreMethod(names = "new", needsBlock = true, rest = true)
-    public abstract static class NewNode extends InlinedMethodNode {
-
-        public static NewNode create() {
-            return ClassNodesFactory.NewNodeFactory.create(null);
-        }
-
-        @Child private DispatchingNode allocateNode;
-        @Child private DispatchingNode initialize;
-
-        public abstract Object execute(Object rubyClass, Object[] args, Object block);
-
+    @GenerateUncached
+    @CoreMethod(names = "new", rest = true, alwaysInlined = true)
+    public abstract static class NewNode extends AlwaysInlinedMethodNode {
         @Specialization(guards = "!rubyClass.isSingleton")
-        protected Object newInstance(RubyClass rubyClass, Object[] args, Object block) {
-            final Object instance = allocateNode().call(rubyClass, "__allocate__");
-            initialize().callWithBlock(instance, "initialize", block, args);
+        protected Object newInstance(Frame callerFrame, RubyClass rubyClass, Object[] rubyArgs, RootCallTarget target,
+                @Cached DispatchNode allocateNode,
+                @Cached DispatchNode initializeNode) {
+            final Object instance = allocateNode.call(rubyClass, "__allocate__");
+            final Object block = RubyArguments.getBlock(rubyArgs);
+            Object[] args = RubyArguments.getArguments(rubyArgs);
+            initializeNode.callWithBlock(instance, "initialize", block, args);
             return instance;
         }
 
         @Specialization(guards = "rubyClass.isSingleton")
-        protected RubyClass newSingletonInstance(RubyClass rubyClass, Object[] args, Object maybeBlock) {
+        protected RubyClass newSingletonInstance(
+                Frame callerFrame, RubyClass rubyClass, Object[] rubyArgs, RootCallTarget target) {
             throw new RaiseException(
                     getContext(),
                     getContext().getCoreExceptions().typeErrorCantCreateInstanceOfSingletonClass(this));
-        }
-
-        @Override
-        public Object inlineExecute(Frame callerFrame, Object[] rubyArgs) {
-            return execute(RubyArguments.getSelf(rubyArgs), RubyArguments.getArguments(rubyArgs),
-                    RubyArguments.getBlock(rubyArgs));
-        }
-
-        private DispatchingNode allocateNode() {
-            if (allocateNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                allocateNode = insert(new InlinedDispatchNode(
-                        getLanguage(),
-                        BasicObjectNodes.AllocateNode.create()));
-            }
-            return allocateNode;
-        }
-
-        private DispatchingNode initialize() {
-            if (initialize == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                initialize = insert(new InlinedDispatchNode(
-                        getLanguage(),
-                        BasicObjectNodes.InitializeNode.create()));
-            }
-            return initialize;
-        }
-
-        @Override
-        public InternalMethod getMethod() {
-            return getContext().getCoreMethods().CLASS_NEW;
         }
     }
 

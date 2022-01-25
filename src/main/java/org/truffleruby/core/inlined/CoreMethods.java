@@ -22,9 +22,6 @@ public class CoreMethods {
     public final InternalMethod LAMBDA;
     public final InternalMethod BINDING;
     public final InternalMethod NOT;
-    public final InternalMethod KERNEL_DUP;
-    public final InternalMethod KERNEL_INITIALIZE_DUP;
-    public final InternalMethod KERNEL_INITIALIZE_COPY;
     public final InternalMethod KERNEL_IS_NIL;
     public final InternalMethod KERNEL_IS_A;
     public final InternalMethod KERNEL_KIND_OF;
@@ -35,9 +32,6 @@ public class CoreMethods {
     public final InternalMethod ARRAY_AT;
     public final InternalMethod ARRAY_INDEX_GET;
     public final InternalMethod ARRAY_INDEX_SET;
-    public final InternalMethod CLASS_NEW;
-    public final InternalMethod BASIC_OBJECT_ALLOCATE;
-    public final InternalMethod BASIC_OBJECT_INITIALIZE;
 
     public CoreMethods(RubyLanguage language, RubyContext context) {
         final RubyClass basicObjectClass = context.getCoreLibrary().basicObjectClass;
@@ -54,9 +48,6 @@ public class CoreMethods {
         BINDING = getMethod(kernelModule, "binding");
         NOT = getMethod(basicObjectClass, "!");
         EXCEPTION_BACKTRACE = getMethod(exceptionClass, "backtrace");
-        KERNEL_DUP = getMethod(kernelModule, "dup");
-        KERNEL_INITIALIZE_DUP = getMethod(kernelModule, "initialize_dup");
-        KERNEL_INITIALIZE_COPY = getMethod(kernelModule, "initialize_copy");
         KERNEL_IS_NIL = getMethod(kernelModule, "nil?");
         STRING_BYTESIZE = getMethod(stringClass, "bytesize");
         KERNEL_IS_A = getMethod(kernelModule, "is_a?");
@@ -67,9 +58,6 @@ public class CoreMethods {
         ARRAY_AT = getMethod(arrayClass, "at");
         ARRAY_INDEX_GET = getMethod(arrayClass, "[]");
         ARRAY_INDEX_SET = getMethod(arrayClass, "[]=");
-        CLASS_NEW = getMethod(classClass, "new");
-        BASIC_OBJECT_ALLOCATE = getMethod(basicObjectClass.getMetaClass(), "__allocate__");
-        BASIC_OBJECT_INITIALIZE = getMethod(basicObjectClass, "initialize");
 
         language.coreMethodAssumptions.registerAssumptions(context.getCoreLibrary());
     }

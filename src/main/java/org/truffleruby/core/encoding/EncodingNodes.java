@@ -443,13 +443,10 @@ public abstract class EncodingNodes {
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends UnaryCoreMethodNode {
-
-        @TruffleBoundary
         @Specialization
         protected Object allocate(RubyClass rubyClass) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
-
     }
 
     @Primitive(name = "encoding_each_alias")
