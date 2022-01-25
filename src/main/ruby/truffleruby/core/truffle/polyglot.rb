@@ -34,14 +34,20 @@ module Polyglot
     # The return value, unless it is a Java primitive or a java.lang.String, is wrapped in a generic interop wrapper,
     # so the returned object behaves like a foreign object (even if language is 'ruby').
     # That wrapper automatically enters and leaves the inner context for any access to that object.
-    def eval(language, code)
-      Primitive.inner_context_eval(self, language, code)
+    def eval(language, code, filename = '(eval)')
+      Primitive.inner_context_eval(self, language, code, filename)
     end
 
     # Close the inner context and release the associated resources.
     # If the context is not closed explicitly, then it is automatically closed together with the parent context.
     def close
       Primitive.inner_context_close(self)
+    end
+
+    # Forcefully close the inner context and stops execution by throwing an exception.
+    # Polyglot::InnerContext#eval can no longer be used after this operation.
+    def stop
+      Primitive.inner_context_close_force(self)
     end
   end
 
