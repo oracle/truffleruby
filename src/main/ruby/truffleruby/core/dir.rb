@@ -49,7 +49,7 @@ class Dir
     @path = path
 
     if Primitive.undefined? options
-      enc = nil
+      enc = Encoding.filesystem
     else
       options = Truffle::Type.coerce_to options, Hash, :to_hash
       enc = options[:encoding]

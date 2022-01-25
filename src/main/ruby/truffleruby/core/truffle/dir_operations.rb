@@ -51,7 +51,11 @@ module Truffle
           str.force_encoding Encoding::ASCII_8BIT
         else
           enc = Encoding.default_internal
-          str = str.encode(enc) if enc
+          begin
+            str = str.encode(enc) if enc
+          rescue
+            # If the attempt to convert fails we'll return the string as is, just like MRI.
+          end
         end
       end
       str
