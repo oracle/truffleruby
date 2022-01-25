@@ -111,30 +111,30 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         return dispatch(null, method, rubyArgs);
     }
 
-    public Object call(Object receiver, String method, Object arg0) {
+    public Object call(Object receiver, String method, Object arg1) {
         final Object[] rubyArgs = RubyArguments.allocate(1);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
-        RubyArguments.setArgument(rubyArgs, 0, arg0);
+        RubyArguments.setArgument(rubyArgs, 0, arg1);
         return dispatch(null, method, rubyArgs);
     }
 
-    public Object call(Object receiver, String method, Object arg0, Object arg1) {
+    public Object call(Object receiver, String method, Object arg1, Object arg2) {
         final Object[] rubyArgs = RubyArguments.allocate(2);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
-        RubyArguments.setArgument(rubyArgs, 0, arg0);
-        RubyArguments.setArgument(rubyArgs, 1, arg1);
+        RubyArguments.setArgument(rubyArgs, 0, arg1);
+        RubyArguments.setArgument(rubyArgs, 1, arg2);
         return dispatch(null, method, rubyArgs);
     }
 
-    public Object call(Object receiver, String method, Object arg0, Object arg1, Object arg2) {
+    public Object call(Object receiver, String method, Object arg1, Object arg2, Object arg3) {
         final Object[] rubyArgs = RubyArguments.allocate(3);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
-        RubyArguments.setArgument(rubyArgs, 0, arg0);
-        RubyArguments.setArgument(rubyArgs, 1, arg1);
-        RubyArguments.setArgument(rubyArgs, 2, arg2);
+        RubyArguments.setArgument(rubyArgs, 0, arg1);
+        RubyArguments.setArgument(rubyArgs, 1, arg2);
+        RubyArguments.setArgument(rubyArgs, 2, arg3);
         return dispatch(null, method, rubyArgs);
     }
 
@@ -149,30 +149,30 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         return dispatch(null, method, rubyArgs);
     }
 
-    public Object callWithBlock(Object receiver, String method, Object block, Object arg0) {
+    public Object callWithBlock(Object receiver, String method, Object block, Object arg1) {
         final Object[] rubyArgs = RubyArguments.allocate(1);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, block);
-        RubyArguments.setArgument(rubyArgs, 0, arg0);
+        RubyArguments.setArgument(rubyArgs, 0, arg1);
         return dispatch(null, method, rubyArgs);
     }
 
-    public Object callWithBlock(Object receiver, String method, Object block, Object arg0, Object arg1) {
+    public Object callWithBlock(Object receiver, String method, Object block, Object arg1, Object arg2) {
         final Object[] rubyArgs = RubyArguments.allocate(2);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, block);
-        RubyArguments.setArgument(rubyArgs, 0, arg0);
-        RubyArguments.setArgument(rubyArgs, 1, arg1);
+        RubyArguments.setArgument(rubyArgs, 0, arg1);
+        RubyArguments.setArgument(rubyArgs, 1, arg2);
         return dispatch(null, method, rubyArgs);
     }
 
-    public Object callWithBlock(Object receiver, String method, Object block, Object arg0, Object arg1, Object arg2) {
+    public Object callWithBlock(Object receiver, String method, Object block, Object arg1, Object arg2, Object arg3) {
         final Object[] rubyArgs = RubyArguments.allocate(3);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, block);
-        RubyArguments.setArgument(rubyArgs, 0, arg0);
-        RubyArguments.setArgument(rubyArgs, 1, arg1);
-        RubyArguments.setArgument(rubyArgs, 2, arg2);
+        RubyArguments.setArgument(rubyArgs, 0, arg1);
+        RubyArguments.setArgument(rubyArgs, 1, arg2);
+        RubyArguments.setArgument(rubyArgs, 2, arg3);
         return dispatch(null, method, rubyArgs);
     }
 
@@ -187,30 +187,30 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         return dispatch(frame, method, rubyArgs);
     }
 
-    public Object callWithFrame(Frame frame, Object receiver, String method, Object arg0) {
+    public Object callWithFrame(Frame frame, Object receiver, String method, Object arg1) {
         final Object[] rubyArgs = RubyArguments.allocate(1);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
-        RubyArguments.setArgument(rubyArgs, 0, arg0);
+        RubyArguments.setArgument(rubyArgs, 0, arg1);
         return dispatch(frame, method, rubyArgs);
     }
 
-    public Object callWithFrame(Frame frame, Object receiver, String method, Object arg0, Object arg1) {
+    public Object callWithFrame(Frame frame, Object receiver, String method, Object arg1, Object arg2) {
         final Object[] rubyArgs = RubyArguments.allocate(2);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
-        RubyArguments.setArgument(rubyArgs, 0, arg0);
-        RubyArguments.setArgument(rubyArgs, 1, arg1);
+        RubyArguments.setArgument(rubyArgs, 0, arg1);
+        RubyArguments.setArgument(rubyArgs, 1, arg2);
         return dispatch(frame, method, rubyArgs);
     }
 
-    public Object callWithFrame(Frame frame, Object receiver, String method, Object arg0, Object arg1, Object arg2) {
+    public Object callWithFrame(Frame frame, Object receiver, String method, Object arg1, Object arg2, Object arg3) {
         final Object[] rubyArgs = RubyArguments.allocate(3);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
-        RubyArguments.setArgument(rubyArgs, 0, arg0);
-        RubyArguments.setArgument(rubyArgs, 1, arg1);
-        RubyArguments.setArgument(rubyArgs, 2, arg2);
+        RubyArguments.setArgument(rubyArgs, 0, arg1);
+        RubyArguments.setArgument(rubyArgs, 1, arg2);
+        RubyArguments.setArgument(rubyArgs, 2, arg3);
         return dispatch(frame, method, rubyArgs);
     }
 

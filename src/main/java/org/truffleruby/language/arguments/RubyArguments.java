@@ -380,10 +380,6 @@ public final class RubyArguments {
         frame.getArguments()[ArgumentIndicies.DECLARATION_CONTEXT.ordinal()] = declarationContext;
     }
 
-    public static void setSelf(Frame frame, Object self) {
-        frame.getArguments()[ArgumentIndicies.SELF.ordinal()] = self;
-    }
-
     public static void setArgument(Frame frame, int index, Object value) {
         frame.getArguments()[RUNTIME_ARGUMENT_COUNT + index] = value;
     }
