@@ -24,12 +24,11 @@ public abstract class CallBoundMethodNode extends RubyBaseNode {
         return CallBoundMethodNodeGen.create();
     }
 
-    public abstract Object execute(Frame frame, Object receiver, Object[] rubyArgs);
+    public abstract Object execute(Frame frame, RubyMethod method, Object[] rubyArgs);
 
     @Specialization
-    protected Object call(Frame frame, Object receiver, Object[] rubyArgs,
+    protected Object call(Frame frame, RubyMethod method, Object[] rubyArgs,
             @Cached CallInternalMethodNode callInternalMethodNode) {
-        final RubyMethod method = ((RubyMethod) receiver);
         final InternalMethod internalMethod = method.method;
         final Object[] newArgs = RubyArguments.repack(rubyArgs, method.receiver, 0,
                 RubyArguments.getArgumentsCount(rubyArgs));

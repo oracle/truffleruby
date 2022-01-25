@@ -132,13 +132,11 @@ public abstract class MethodNodes {
     @GenerateUncached
     @CoreMethod(names = { "call", "[]", "===" }, needsBlock = true, rest = true, alwaysInlined = true)
     public abstract static class CallNode extends AlwaysInlinedMethodNode {
-
         @Specialization
-        protected Object call(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
+        protected Object call(Frame callerFrame, RubyMethod method, Object[] rubyArgs, RootCallTarget target,
                 @Cached CallBoundMethodNode callBoundMethodNode) {
-            return callBoundMethodNode.execute(callerFrame, self, rubyArgs);
+            return callBoundMethodNode.execute(callerFrame, method, rubyArgs);
         }
-
     }
 
     @CoreMethod(names = "name")

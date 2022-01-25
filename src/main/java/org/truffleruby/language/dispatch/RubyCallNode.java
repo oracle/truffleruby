@@ -184,12 +184,10 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
     }
 
     @ExplodeLoop
-    private Object[] executeArguments(VirtualFrame frame, Object[] rubyArgs) {
+    private void executeArguments(VirtualFrame frame, Object[] rubyArgs) {
         for (int i = 0; i < arguments.length; i++) {
             RubyArguments.setArgument(rubyArgs, i, arguments[i].execute(frame));
         }
-
-        return rubyArgs;
     }
 
     private Object[] splat(Object[] arguments) {
