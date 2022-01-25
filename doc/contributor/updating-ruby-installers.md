@@ -77,10 +77,9 @@ cc `@havenwood, @pkuczynski` in the PR description.
 
 ## ruby/setup-ruby
 
-Trigger the builds on [ruby/ruby-builder](https://github.com/ruby/ruby-builder) and once done,
-add the version in [ruby-builder-versions.js](https://github.com/ruby/setup-ruby/blob/master/ruby-builder-versions.js),
-update the [README](https://github.com/ruby/setup-ruby/blob/master/README.md#supported-versions),
-and make a release.
+Almost everything is automatic as soon as the `rbenv/ruby-build` PR is merged.
+Either wait up to 1 day or manually trigger [this workflow](https://github.com/ruby/ruby-builder/actions/workflows/check-new-releases.yml).
+Just need to merge the automatic setup-ruby PR and create a release.
 
 ## flavorjones/docker-truffleruby
 
