@@ -11,7 +11,6 @@ package org.truffleruby;
 
 import com.oracle.truffle.api.object.HiddenKey;
 
-
 public abstract class Layouts {
 
     // Standard identifiers
