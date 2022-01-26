@@ -358,10 +358,9 @@ public abstract class MethodNodes {
         @Override
         public Object execute(VirtualFrame frame) {
             final Object originalBoundMethodReceiver = RubyArguments.getSelf(RubyArguments.getDeclarationFrame(frame));
-            return callInternalMethodNode.execute(
-                    frame,
-                    RubyArguments.pack(null, null, method, null, originalBoundMethodReceiver,
-                            RubyArguments.getBlock(frame), RubyArguments.getArguments(frame)));
+            Object[] rubyArgs = RubyArguments.pack(null, null, method, null, originalBoundMethodReceiver,
+                    RubyArguments.getBlock(frame), RubyArguments.getArguments(frame));
+            return callInternalMethodNode.execute(frame, rubyArgs);
         }
     }
 

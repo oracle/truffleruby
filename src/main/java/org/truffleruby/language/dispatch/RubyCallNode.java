@@ -160,8 +160,11 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
 
     public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object receiverObject, Object blockObject,
             Object[] argumentsObjects) {
-        return executeWithArgumentsEvaluated(frame,
-                RubyArguments.pack(null, null, null, null, null, receiverObject, blockObject, argumentsObjects));
+        Object[] rubyArgs = RubyArguments.allocate(argumentsObjects.length);
+        RubyArguments.setSelf(rubyArgs, receiverObject);
+        RubyArguments.setBlock(rubyArgs, blockObject);
+        RubyArguments.setArguments(rubyArgs, argumentsObjects);
+        return executeWithArgumentsEvaluated(frame, rubyArgs);
     }
 
     private Object executeBlock(VirtualFrame frame) {

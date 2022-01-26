@@ -83,6 +83,7 @@ public final class RubyArguments {
 
         ArrayUtils.arraycopy(arguments, 0, packed, RUNTIME_ARGUMENT_COUNT, arguments.length);
 
+        assert RubyArguments.assertFrameArguments(packed);
         return packed;
     }
 
@@ -108,23 +109,24 @@ public final class RubyArguments {
         return newArgs;
     }
 
-    public static boolean assertValues(
-            Object callerFrameOrVariables,
-            InternalMethod method,
-            DeclarationContext declarationContext,
-            Object self,
-            Object block,
-            Object[] arguments) {
+    public static boolean assertFrameArguments(Object[] frameArguments) {
+        Object callerData = getCallerData(frameArguments);
+        InternalMethod method = getMethod(frameArguments);
+        DeclarationContext declarationContext = getDeclarationContext(frameArguments);
+        Object self = getSelf(frameArguments);
+        Object block = getBlock(frameArguments);
+        Object[] arguments = getArguments(frameArguments);
+
         assert method != null;
         assert declarationContext != null;
         assert self != null;
         assert arguments != null;
         assert ArrayUtils.assertValidElements(arguments, arguments.length);
 
-        assert callerFrameOrVariables == null ||
-                callerFrameOrVariables instanceof MaterializedFrame ||
-                callerFrameOrVariables instanceof SpecialVariableStorage ||
-                callerFrameOrVariables instanceof FrameAndVariables;
+        assert callerData == null ||
+                callerData instanceof MaterializedFrame ||
+                callerData instanceof SpecialVariableStorage ||
+                callerData instanceof FrameAndVariables;
 
         /* The block in the frame arguments is always either a Nil or RubyProc. The provision of Nil if the caller
          * doesn't want to provide a block is done at the caller, because it will know the type of values within its
@@ -195,6 +197,10 @@ public final class RubyArguments {
 
     public static DeclarationContext getDeclarationContext(Frame frame) {
         return (DeclarationContext) frame.getArguments()[ArgumentIndicies.DECLARATION_CONTEXT.ordinal()];
+    }
+
+    public static DeclarationContext getDeclarationContext(Object[] rubyArgs) {
+        return (DeclarationContext) rubyArgs[ArgumentIndicies.DECLARATION_CONTEXT.ordinal()];
     }
 
     public static void setDeclarationContext(Frame frame, DeclarationContext declarationContext) {
@@ -289,6 +295,10 @@ public final class RubyArguments {
     public static Object[] getArguments(Frame frame, int start) {
         Object[] rubyArgs = frame.getArguments();
         return ArrayUtils.extractRange(rubyArgs, RUNTIME_ARGUMENT_COUNT + start, rubyArgs.length);
+    }
+
+    public static void setArguments(Object[] rubyArgs, Object[] arguments) {
+        ArrayUtils.arraycopy(arguments, 0, rubyArgs, RUNTIME_ARGUMENT_COUNT, arguments.length);
     }
 
     // Getters for the declaration frame that let you reach up several levels
