@@ -1166,4 +1166,27 @@ public abstract class TruffleDebugNodes {
         }
     }
 
+    @CoreMethod(names = "foreign_identity_function", onSingleton = true)
+    @ImportStatic(ArrayGuards.class)
+    public abstract static class ForeignIdentityFunctionNode extends CoreMethodArrayArgumentsNode {
+        @ExportLibrary(InteropLibrary.class)
+        public static class ForeignIdentityFunction implements TruffleObject {
+            @ExportMessage
+            protected final boolean isExecutable() {
+                return true;
+            }
+
+            @ExportMessage
+            protected final Object execute(Object[] args) {
+                return args[0];
+            }
+        }
+
+        @TruffleBoundary
+        @Specialization
+        protected Object foreignIdentityFunction() {
+            return new ForeignIdentityFunction();
+        }
+    }
+
 }
