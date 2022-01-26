@@ -2253,10 +2253,12 @@ states[270] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[271] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    ((HashParseNode)yyVals[-1+yyTop]).setKeywordArguments(true);
     yyVal = support.arg_append(((ParseNode)yyVals[-3+yyTop]), support.remove_duplicate_keys(((HashParseNode)yyVals[-1+yyTop])));
     return yyVal;
 };
 states[272] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    ((HashParseNode)yyVals[-1+yyTop]).setKeywordArguments(true);
     yyVal = support.newArrayNode(((HashParseNode)yyVals[-1+yyTop]).getPosition(), support.remove_duplicate_keys(((HashParseNode)yyVals[-1+yyTop])));
     return yyVal;
 };
@@ -2297,10 +2299,12 @@ states[282] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[283] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    ((HashParseNode)yyVals[-1+yyTop]).setKeywordArguments(true);
     yyVal = support.arg_append(((ParseNode)yyVals[-3+yyTop]), support.remove_duplicate_keys(((HashParseNode)yyVals[-1+yyTop])));
     return yyVal;
 };
 states[284] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    ((HashParseNode)yyVals[-1+yyTop]).setKeywordArguments(true);
     yyVal = support.newArrayNode(((HashParseNode)yyVals[-1+yyTop]).getPosition(), support.remove_duplicate_keys(((HashParseNode)yyVals[-1+yyTop])));
     return yyVal;
 };
@@ -2314,11 +2318,13 @@ states[286] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[287] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    ((HashParseNode)yyVals[-1+yyTop]).setKeywordArguments(true);
     yyVal = support.newArrayNode(((HashParseNode)yyVals[-1+yyTop]).getPosition(), support.remove_duplicate_keys(((HashParseNode)yyVals[-1+yyTop])));
     yyVal = support.arg_blk_pass((ParseNode)yyVal, ((BlockPassParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
 states[288] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    ((HashParseNode)yyVals[-1+yyTop]).setKeywordArguments(true);
     yyVal = support.arg_append(((ParseNode)yyVals[-3+yyTop]), support.remove_duplicate_keys(((HashParseNode)yyVals[-1+yyTop])));
     yyVal = support.arg_blk_pass((ParseNode)yyVal, ((BlockPassParseNode)yyVals[0+yyTop]));
     return yyVal;
@@ -3970,7 +3976,7 @@ states[671] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 }
-// line 2819 "RubyParser.y"
+// line 2825 "RubyParser.y"
 
     /** The parse method use an lexer stream and parse it to an AST node 
      * structure
@@ -3987,4 +3993,4 @@ states[671] = (support, lexer, yyVal, yyVals, yyTop) -> {
 }
 // CheckStyle: stop generated
 // @formatter:on
-// line 10872 "-"
+// line 10878 "-"

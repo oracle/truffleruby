@@ -1291,9 +1291,11 @@ aref_args       : none
                     $$ = $1;
                 }
                 | args ',' assocs trailer {
+                    $3.setKeywordArguments(true);
                     $$ = support.arg_append($1, support.remove_duplicate_keys($3));
                 }
                 | assocs trailer {
+                    $1.setKeywordArguments(true);
                     $$ = support.newArrayNode($1.getPosition(), support.remove_duplicate_keys($1));
                 }
 
@@ -1334,9 +1336,11 @@ opt_call_args   : none
                     $$ = $1;
                 }
                 | args ',' assocs ',' {
+                    $3.setKeywordArguments(true);
                     $$ = support.arg_append($1, support.remove_duplicate_keys($3));
                 }
                 | assocs ',' {
+                    $1.setKeywordArguments(true);
                     $$ = support.newArrayNode($1.getPosition(), support.remove_duplicate_keys($1));
                 }
    
@@ -1350,10 +1354,12 @@ call_args       : command {
                     $$ = support.arg_blk_pass($1, $2);
                 }
                 | assocs opt_block_arg {
+                    $1.setKeywordArguments(true);
                     $$ = support.newArrayNode($1.getPosition(), support.remove_duplicate_keys($1));
                     $$ = support.arg_blk_pass((ParseNode)$$, $2);
                 }
                 | args ',' assocs opt_block_arg {
+                    $3.setKeywordArguments(true);
                     $$ = support.arg_append($1, support.remove_duplicate_keys($3));
                     $$ = support.arg_blk_pass((ParseNode)$$, $4);
                 }
