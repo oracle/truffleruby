@@ -11,7 +11,6 @@ package org.truffleruby;
 
 import com.oracle.truffle.api.object.HiddenKey;
 
-import org.truffleruby.parser.TranslatorEnvironment;
 
 public abstract class Layouts {
 

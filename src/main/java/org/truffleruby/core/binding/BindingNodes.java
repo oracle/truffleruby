@@ -48,7 +48,6 @@ import org.truffleruby.language.locals.FindDeclarationVariableNodes.FindAndReadD
 import org.truffleruby.language.locals.FindDeclarationVariableNodes.FrameSlotAndDepth;
 import org.truffleruby.language.locals.WriteFrameSlotNode;
 import org.truffleruby.language.locals.WriteFrameSlotNodeGen;
-import org.truffleruby.parser.TranslatorEnvironment;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;

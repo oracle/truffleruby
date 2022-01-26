@@ -28,7 +28,6 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
-import org.truffleruby.parser.parser.ParserSupport;
 
 public class TranslatorEnvironment {
 

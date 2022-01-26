@@ -2828,7 +2828,7 @@ states[407] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[408] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    RestArgParseNode rest = new UnnamedRestArgParseNode(((ListParseNode)yyVals[-1+yyTop]).getPosition(), ParserSupport.ANONYMOUS_REST_VAR, support.getCurrentScope().addVariable("*"), false);
+    RestArgParseNode rest = new UnnamedRestArgParseNode(((ListParseNode)yyVals[-1+yyTop]).getPosition(), "%anonymous_rest", support.getCurrentScope().addVariable("*"), false);
     yyVal = support.new_args(((ListParseNode)yyVals[-1+yyTop]).getPosition(), ((ListParseNode)yyVals[-1+yyTop]), null, rest, null, (ArgsTailHolder) null);
     return yyVal;
 };
@@ -3805,7 +3805,7 @@ states[623] = (support, lexer, yyVal, yyVals, yyTop) -> {
 };
 states[624] = (support, lexer, yyVal, yyVals, yyTop) -> {
   /* FIXME: bytelist_love: somewhat silly to remake the empty bytelist over and over but this type should change (using null vs "" is a strange distinction).*/
-  yyVal = new UnnamedRestArgParseNode(lexer.getPosition(), ParserSupport.UNNAMED_REST_VAR, support.getCurrentScope().addVariable("*"), true);
+  yyVal = new UnnamedRestArgParseNode(lexer.getPosition(), "%unnamed_rest", support.getCurrentScope().addVariable("*"), true);
     return yyVal;
 };
 states[625] = (support, lexer, yyVal, yyVals, yyTop) -> {

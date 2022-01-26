@@ -152,8 +152,6 @@ import org.truffleruby.parser.scope.StaticScope;
 
 public class ParserSupport {
 
-    public static final String UNNAMED_REST_VAR = "%unnamed_rest";
-    public static final String ANONYMOUS_REST_VAR = "%anon_rest";
     public static final String FORWARD_ARGS_REST_VAR = "%forward_rest";
     public static final String FORWARD_ARGS_BLOCK_VAR = "%forward_block";
 
