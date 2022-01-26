@@ -152,7 +152,10 @@ import org.truffleruby.parser.scope.StaticScope;
 
 public class ParserSupport {
 
+    /** The local variable to store ... arguments in */
     public static final String FORWARD_ARGS_REST_VAR = "%forward_rest";
+
+    /** The local variable to store the block from ... in */
     public static final String FORWARD_ARGS_BLOCK_VAR = "%forward_block";
 
     // Parser states:
