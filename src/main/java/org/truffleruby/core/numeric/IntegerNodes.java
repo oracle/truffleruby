@@ -24,10 +24,8 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BigIntegerCastNode;
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToRubyIntegerNode;
 import org.truffleruby.core.encoding.Encodings;
-import org.truffleruby.core.numeric.IntegerNodesFactory.AbsNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodesFactory.DivNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodesFactory.LeftShiftNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodesFactory.MulNodeFactory;
@@ -1121,16 +1119,18 @@ public abstract class IntegerNodes {
     @CoreMethod(names = "<<", required = 1, lowerFixnum = 1)
     public abstract static class LeftShiftNode extends BignumCoreMethodNode {
 
-        @Child private AbsNode absNode;
+        @Child private NegNode negNode;
         @Child private RightShiftNode rightShiftNode;
-        @Child private DispatchNode fallbackCallNode;
 
-        public abstract Object executeLeftShift(Object a, Object b);
-
+        static final long MAX_INT = Integer.MAX_VALUE;
 
         public static LeftShiftNode create() {
             return LeftShiftNodeFactory.create(null);
         }
+
+        public abstract Object executeLeftShift(Object a, Object b);
+
+        // b >= 0
 
         @Specialization(guards = { "b >= 0", "canShiftIntoInt(a, b)" })
         protected int leftShift(int a, int b) {
@@ -1156,56 +1156,61 @@ public abstract class IntegerNodes {
             }
         }
 
-        @Specialization(guards = "b < 0")
-        protected Object leftShiftNeg(long a, int b) {
-            if (rightShiftNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                rightShiftNode = insert(RightShiftNodeFactory.create(null));
-            }
-            return rightShiftNode.executeRightShift(a, absoluteValue(b));
+        @Specialization(guards = "b >= 0")
+        protected Object leftShift(RubyBignum a, int b) {
+            return fixnumOrBignum(BigIntegerOps.shiftLeft(a.value, b));
         }
 
-        @Specialization(guards = "b < 0")
-        protected Object leftShiftNeg(int a, long b) {
-            if (rightShiftNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                rightShiftNode = insert(RightShiftNodeFactory.create(null));
-            }
-            return rightShiftNode.executeRightShift(a, absoluteValue(b));
-        }
-
-        @Specialization(guards = "b < 0")
-        protected Object leftShiftNeg(long a, long b) {
-            if (rightShiftNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                rightShiftNode = insert(RightShiftNodeFactory.create(null));
-            }
-            return rightShiftNode.executeRightShift(a, absoluteValue(b));
-        }
-
-        @Specialization
-        protected Object leftShift(RubyBignum a, int b,
-                @Cached ConditionProfile bPositive) {
-            if (bPositive.profile(b >= 0)) {
-                return fixnumOrBignum(BigIntegerOps.shiftLeft(a.value, b));
-            } else {
-                return fixnumOrBignum(BigIntegerOps.shiftRight(a.value, -b));
-            }
-        }
-
-        @Specialization
-        protected Object leftShift(RubyBignum a, RubyBignum b,
-                @Cached ToIntNode toIntNode) {
-            final BigInteger bBigInt = b.value;
-            if (bBigInt.signum() == -1) {
+        @Specialization(guards = "b > MAX_INT")
+        protected int leftShift(long a, long b,
+                @Cached ConditionProfile zeroProfile) {
+            if (zeroProfile.profile(a == 0L)) {
                 return 0;
             } else {
-                // We raise a RangeError.
-                // MRI would raise a NoMemoryError; JRuby would raise a coercion error.
-                toIntNode.execute(b);
-                throw CompilerDirectives.shouldNotReachHere();
+                throw new RaiseException(getContext(), coreExceptions().noMemoryError(this, null));
             }
         }
+
+        @Specialization(guards = "b > MAX_INT")
+        protected int leftShift(RubyBignum a, long b) {
+            // We raise a NoMemoryError like MRI; JRuby would raise a coercion error.
+            throw new RaiseException(getContext(), coreExceptions().noMemoryError(this, null));
+        }
+
+        @Specialization(guards = "isPositive(b)")
+        protected int leftShift(long a, RubyBignum b,
+                @Cached ConditionProfile zeroProfile) {
+            if (zeroProfile.profile(a == 0L)) {
+                return 0;
+            } else {
+                throw new RaiseException(getContext(), coreExceptions().noMemoryError(this, null));
+            }
+        }
+
+        @Specialization(guards = "isPositive(b)")
+        protected int leftShift(RubyBignum a, RubyBignum b) {
+            // We raise a NoMemoryError like MRI; JRuby would raise a coercion error.
+            throw new RaiseException(getContext(), coreExceptions().noMemoryError(this, null));
+        }
+
+        // b < 0, delegate to a >> -b
+
+        @Specialization(guards = "b < 0")
+        protected Object leftShiftNeg(Object a, int b) {
+            return negateAndRightShift(a, b);
+        }
+
+        @Specialization(guards = "b < 0")
+        protected Object leftShiftNeg(Object a, long b) {
+            return negateAndRightShift(a, b);
+        }
+
+        @Specialization(guards = "!isPositive(b)")
+        protected Object leftShiftNeg(Object a, RubyBignum b) {
+            return negateAndRightShift(a, b);
+        }
+
+        // Coercion
 
         @Specialization(guards = "!isRubyInteger(b)")
         protected Object leftShiftCoerced(Object a, Object b,
@@ -1214,12 +1219,19 @@ public abstract class IntegerNodes {
             return leftShiftNode.executeLeftShift(a, toRubyIntNode.execute(b));
         }
 
-        private Object absoluteValue(Object value) {
-            if (absNode == null) {
+        private Object negateAndRightShift(Object a, Object b) {
+            if (rightShiftNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                absNode = insert(AbsNodeFactory.create(null));
+                rightShiftNode = insert(RightShiftNodeFactory.create(null));
             }
-            return absNode.executeAbs(value);
+
+            if (negNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                negNode = insert(IntegerNodesFactory.NegNodeFactory.create(null));
+            }
+
+            final Object negated = negNode.executeNeg(b);
+            return rightShiftNode.executeRightShift(a, negated);
         }
 
         static boolean canShiftIntoInt(int a, int b) {
@@ -1234,19 +1246,26 @@ public abstract class IntegerNodes {
             return Long.numberOfLeadingZeros(a) - b > 0;
         }
 
+        static boolean isPositive(RubyBignum b) {
+            return b.value.signum() >= 0;
+        }
     }
 
     @CoreMethod(names = ">>", required = 1, lowerFixnum = 1)
     public abstract static class RightShiftNode extends BignumCoreMethodNode {
 
-        @Child private DispatchNode fallbackCallNode;
+        @Child private NegNode negNode;
         @Child private LeftShiftNode leftShiftNode;
 
-        public abstract Object executeRightShift(Object a, Object b);
+        static final long MAX_INT = Integer.MAX_VALUE;
 
         public static RightShiftNode create() {
             return RightShiftNodeFactory.create(null);
         }
+
+        public abstract Object executeRightShift(Object a, Object b);
+
+        // b >= 0
 
         @Specialization(guards = "b >= 0")
         protected int rightShift(int a, int b,
@@ -1268,65 +1287,49 @@ public abstract class IntegerNodes {
             }
         }
 
-        @Specialization(guards = "b < 0")
-        protected Object rightShiftNeg(long a, int b) {
-            if (leftShiftNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                leftShiftNode = insert(LeftShiftNodeFactory.create(null));
-            }
-            return leftShiftNode.executeLeftShift(a, -b);
-        }
-
-        @Specialization(guards = "b < 0")
-        protected Object rightShiftNeg(long a, long b) {
-            if (leftShiftNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                leftShiftNode = insert(LeftShiftNodeFactory.create(null));
-            }
-            return leftShiftNode.executeLeftShift(a, -b);
-        }
-
         @Specialization(guards = "b >= 0")
+        protected Object rightShift(RubyBignum a, int b) {
+            return fixnumOrBignum(BigIntegerOps.shiftRight(a.value, b));
+        }
+
+        @Specialization(guards = "b > MAX_INT")
         protected int rightShift(long a, long b) {
-            // b is not in int range due to lowerFixnumParameters
-            assert !CoreLibrary.fitsIntoInteger(b);
-            return 0;
+            return a < 0 ? -1 : 0;
         }
 
-        @Specialization(guards = { "isPositive(b)" })
+        @Specialization(guards = "b > MAX_INT")
+        protected int rightShift(RubyBignum a, long b) {
+            return a.value.signum() < 0 ? -1 : 0;
+        }
+
+        @Specialization(guards = "isPositive(b)")
         protected int rightShift(long a, RubyBignum b) {
-            return 0;
+            return a < 0 ? -1 : 0;
         }
 
-        @Specialization(guards = { "!isPositive(b)" })
-        protected Object rightShiftNeg(long a, RubyBignum b) {
-            if (leftShiftNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                leftShiftNode = insert(LeftShiftNodeFactory.create(null));
-            }
-            return leftShiftNode.executeLeftShift(a, BigIntegerOps.negate(b.value));
-        }
-
-        @Specialization
-        protected Object rightShift(RubyBignum a, int b,
-                @Cached ConditionProfile bPositive) {
-            if (bPositive.profile(b >= 0)) {
-                return fixnumOrBignum(BigIntegerOps.shiftRight(a.value, b));
-            } else {
-                return fixnumOrBignum(BigIntegerOps.shiftLeft(a.value, -b));
-            }
-        }
-
-        @Specialization
-        protected Object rightShift(RubyBignum a, long b) {
-            assert !CoreLibrary.fitsIntoInteger(b);
-            return 0;
-        }
-
-        @Specialization
+        @Specialization(guards = "isPositive(b)")
         protected int rightShift(RubyBignum a, RubyBignum b) {
-            return 0;
+            return a.value.signum() < 0 ? -1 : 0;
         }
+
+        // b < 0, delegate to a << -b
+
+        @Specialization(guards = "b < 0")
+        protected Object rightShiftNeg(Object a, int b) {
+            return negateAndLeftShift(a, b);
+        }
+
+        @Specialization(guards = "b < 0")
+        protected Object rightShiftNeg(Object a, long b) {
+            return negateAndLeftShift(a, b);
+        }
+
+        @Specialization(guards = "!isPositive(b)")
+        protected Object rightShiftNeg(Object a, RubyBignum b) {
+            return negateAndLeftShift(a, b);
+        }
+
+        // Coercion
 
         @Specialization(guards = "!isRubyInteger(b)")
         protected Object rightShiftCoerced(Object a, Object b,
@@ -1335,10 +1338,24 @@ public abstract class IntegerNodes {
             return rightShiftNode.executeRightShift(a, toRubyIntNode.execute(b));
         }
 
-        protected static boolean isPositive(RubyBignum b) {
-            return b.value.signum() >= 0;
+        private Object negateAndLeftShift(Object a, Object b) {
+            if (leftShiftNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                leftShiftNode = insert(LeftShiftNodeFactory.create(null));
+            }
+
+            if (negNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                negNode = insert(IntegerNodesFactory.NegNodeFactory.create(null));
+            }
+
+            final Object negated = negNode.executeNeg(b);
+            return leftShiftNode.executeLeftShift(a, negated);
         }
 
+        static boolean isPositive(RubyBignum b) {
+            return b.value.signum() >= 0;
+        }
     }
 
     @CoreMethod(names = { "abs", "magnitude" })
