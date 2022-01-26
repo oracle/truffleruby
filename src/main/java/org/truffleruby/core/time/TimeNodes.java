@@ -27,6 +27,7 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.ErrnoErrorNode;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
@@ -211,17 +212,26 @@ public abstract class TimeNodes {
             return instance;
         }
 
+        @Specialization
+        protected RubyTime timeAt(RubyClass timeClass, RubyBignum seconds, int nanoseconds) {
+            throw outOfRange(seconds);
+        }
+
         @TruffleBoundary
         private ZonedDateTime getDateTime(long seconds, int nanoseconds, ZoneId timeZone) {
             try {
                 return ZonedDateTime.ofInstant(Instant.ofEpochSecond(seconds, nanoseconds), timeZone);
             } catch (DateTimeException e) {
-                String message = StringUtils
-                        .format("UNIX epoch + %d seconds out of range for Time (java.time limitation)", seconds);
-                throw new RaiseException(getContext(), coreExceptions().rangeError(message, this));
+                throw outOfRange(seconds);
             }
         }
 
+        @TruffleBoundary
+        private RaiseException outOfRange(Object seconds) {
+            String message = StringUtils
+                    .format("UNIX epoch + %s seconds out of range for Time (java.time limitation)", seconds);
+            return new RaiseException(getContext(), coreExceptions().rangeError(message, this));
+        }
     }
 
     @CoreMethod(names = { "to_i", "tv_sec" })
