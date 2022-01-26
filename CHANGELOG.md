@@ -21,6 +21,7 @@ Compatibility:
 * Use `#to_a` for converting `list` in `rescue *list` (#2572, @eregon).
 * Implement 'rb_str_buf_append' (@bjfish).
 * Add patch for `digest` so that TruffleRuby implementation is not overridden (@bjfish).
+* Handle encoding conversion errors when reading directory entries (@aardvark179).
 
 Performance:
 
