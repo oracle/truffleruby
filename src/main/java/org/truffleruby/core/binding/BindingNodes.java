@@ -147,7 +147,7 @@ public abstract class BindingNodes {
     private static boolean isHiddenVariable(String name) {
         assert !name.isEmpty();
         return name.charAt(0) == '$' || // Frame-local global variable
-                name.charAt(0) == TranslatorEnvironment.TEMP_PREFIX;
+                name.charAt(0) == '%';
     }
 
     @CoreMethod(names = { "dup", "clone" })

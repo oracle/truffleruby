@@ -152,16 +152,10 @@ import org.truffleruby.parser.scope.StaticScope;
 
 public class ParserSupport {
 
-    public static final char TEMP_PREFIX = '%';
-
-    public static final String UNNAMED_REST_VAR = prefixName("unnamed_rest");
-    public static final String ANONYMOUS_REST_VAR = prefixName("anon_rest");
-    public static final String FORWARD_ARGS_REST_VAR = prefixName("forward_rest");
-    public static final String FORWARD_ARGS_BLOCK_VAR = prefixName("forward_block");
-
-    private static String prefixName(String name) {
-        return (TEMP_PREFIX + name).intern();
-    }
+    public static final String UNNAMED_REST_VAR = "%unnamed_rest";
+    public static final String ANONYMOUS_REST_VAR = "%anon_rest";
+    public static final String FORWARD_ARGS_REST_VAR = "%forward_rest";
+    public static final String FORWARD_ARGS_BLOCK_VAR = "%forward_block";
 
     // Parser states:
     protected StaticScope currentScope;
@@ -1443,7 +1437,7 @@ public class ParserSupport {
 
         final String restKwargsName;
         if (keywordRestArgNameRope.isEmpty()) {
-            restKwargsName = TEMP_PREFIX + "_kwrest";
+            restKwargsName = "%kwrest";
         } else {
             restKwargsName = keywordRestArgNameRope.getJavaString().intern();
         }

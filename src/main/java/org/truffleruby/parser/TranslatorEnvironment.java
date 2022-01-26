@@ -32,8 +32,7 @@ import org.truffleruby.parser.parser.ParserSupport;
 
 public class TranslatorEnvironment {
 
-    public static final char TEMP_PREFIX = ParserSupport.TEMP_PREFIX;
-    public static final String METHOD_BLOCK_NAME = TEMP_PREFIX + "__method_block_arg__";
+    public static final String METHOD_BLOCK_NAME = "%__method_block_arg__";
 
     private final ParseEnvironment parseEnvironment;
 
@@ -182,7 +181,7 @@ public class TranslatorEnvironment {
     }
 
     public String allocateLocalTemp(String indicator) {
-        final String name = TEMP_PREFIX + indicator + "_" + tempIndex.getAndIncrement();
+        final String name = "%" + indicator + "_" + tempIndex.getAndIncrement();
         declareVar(name);
         return name;
     }

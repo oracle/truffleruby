@@ -28,6 +28,6 @@ public abstract class Layouts {
 
     // Frame slot name for special variable storage.
 
-    public static final String SPECIAL_VARIABLES_STORAGE = TranslatorEnvironment.TEMP_PREFIX + "$~_";
+    public static final String SPECIAL_VARIABLES_STORAGE = "%$~_";
 
 }
