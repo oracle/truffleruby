@@ -15,7 +15,7 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.language.methods.CallBoundMethodNode;
+import org.truffleruby.language.methods.CallInternalMethodNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
@@ -67,14 +67,11 @@ public class RubyMethod extends RubyDynamicObject implements ObjectGraphNode {
 
     @ExportMessage
     public Object execute(Object[] arguments,
-            @Cached CallBoundMethodNode callBoundMethodNode,
-            @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode) {
+            @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
+            @Cached CallInternalMethodNode callInternalMethodNode) {
         final Object[] convertedArguments = foreignToRubyArgumentsNode.executeConvert(arguments);
-        final Object[] frameArgs = RubyArguments.allocate(convertedArguments.length);
-        RubyArguments.setSelf(frameArgs, this);
-        RubyArguments.setBlock(frameArgs, nil);
-        RubyArguments.setArguments(frameArgs, convertedArguments);
-        return callBoundMethodNode.execute(null, this, frameArgs);
+        final Object[] frameArgs = RubyArguments.pack(null, null, method, null, receiver, nil, convertedArguments);
+        return callInternalMethodNode.execute(null, frameArgs);
     }
     // endregion
 

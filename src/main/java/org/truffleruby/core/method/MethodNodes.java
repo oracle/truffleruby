@@ -42,7 +42,6 @@ import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.methods.CallBoundMethodNode;
 import org.truffleruby.language.methods.CallInternalMethodNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocationTracing;
@@ -134,8 +133,13 @@ public abstract class MethodNodes {
     public abstract static class CallNode extends AlwaysInlinedMethodNode {
         @Specialization
         protected Object call(Frame callerFrame, RubyMethod method, Object[] rubyArgs, RootCallTarget target,
-                @Cached CallBoundMethodNode callBoundMethodNode) {
-            return callBoundMethodNode.execute(callerFrame, method, rubyArgs);
+                @Cached CallInternalMethodNode callInternalMethodNode) {
+            final InternalMethod internalMethod = method.method;
+            final Object[] newArgs = RubyArguments.repack(rubyArgs, method.receiver);
+            RubyArguments.setMethod(newArgs, internalMethod);
+
+            assert RubyArguments.assertFrameArguments(newArgs);
+            return callInternalMethodNode.execute(callerFrame, newArgs);
         }
     }
 
