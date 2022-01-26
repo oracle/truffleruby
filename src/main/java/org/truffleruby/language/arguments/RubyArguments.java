@@ -92,7 +92,13 @@ public final class RubyArguments {
     }
 
     public static Object[] repack(Object[] rubyArgs, Object receiver) {
-        return repack(rubyArgs, receiver, 0, 0, getArgumentsCount(rubyArgs));
+        // Duplicate logic for this case since it is significantly simpler
+        final Object[] newArgs = new Object[rubyArgs.length];
+        newArgs[ArgumentIndicies.SELF.ordinal()] = receiver;
+        newArgs[ArgumentIndicies.BLOCK.ordinal()] = getBlock(rubyArgs);
+        int count = rubyArgs.length - RUNTIME_ARGUMENT_COUNT;
+        System.arraycopy(rubyArgs, RUNTIME_ARGUMENT_COUNT, newArgs, RUNTIME_ARGUMENT_COUNT, count);
+        return newArgs;
     }
 
     public static Object[] repack(Object[] rubyArgs, Object receiver, int from, int count) {
