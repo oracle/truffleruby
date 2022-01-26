@@ -12,6 +12,7 @@ package org.truffleruby.language.arguments;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.FrameAndVariables;
@@ -218,7 +219,12 @@ public final class RubyArguments {
                 return arguments.length - RUNTIME_ARGUMENT_COUNT - descriptor.getLength() - 1;
             }
         } else {
-            if (descriptor instanceof NonEmptyKeywordDescriptor && descriptor.getLength() == 0) {
+            // TODO this feels not so efficient, either do this in the caller and if we'd be passing an empty kwargs hash
+            // actually pass nothing, or maybe encode this in the descriptor (but also needs changing the caller side)
+            if (descriptor instanceof NonEmptyKeywordDescriptor && descriptor.getLength() == 0 &&
+                    ((NonEmptyKeywordDescriptor) descriptor).isAlsoSplat() &&
+                    ((RubyHash) getArgument(frame,
+                            ((NonEmptyKeywordDescriptor) descriptor).getHashIndex())).size == 0) {
                 // empty kwargs passed -> as if they were not passed
                 return arguments.length - RUNTIME_ARGUMENT_COUNT - 1;
             } else {
