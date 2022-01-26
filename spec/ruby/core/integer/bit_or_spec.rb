@@ -7,7 +7,7 @@ describe "Integer#|" do
       (5 | 4).should == 5
       (5 | 6).should == 7
       (248 | 4096).should == 4344
-      (0xffff | bignum_value + 0xf0f0).should == 0x8000_0000_0000_ffff
+      (0xffff | bignum_value + 0xf0f0).should == 0x1_0000_0000_0000_ffff
     end
 
     it "returns self bitwise OR a bignum" do
@@ -32,20 +32,20 @@ describe "Integer#|" do
     end
 
     it "returns self bitwise OR other" do
-      (@bignum | 2).should == 9223372036854775819
-      (@bignum | 9).should == 9223372036854775819
-      (@bignum | bignum_value).should == 9223372036854775819
+      (@bignum | 2).should == 18446744073709551627
+      (@bignum | 9).should == 18446744073709551627
+      (@bignum | bignum_value).should == 18446744073709551627
     end
 
     it "returns self bitwise OR other when one operand is negative" do
-      (@bignum | -0x40000000000000000).should == -64563604257983430645
+      (@bignum | -0x40000000000000000).should == -55340232221128654837
       (@bignum | -@bignum).should == -1
       (@bignum | -0x8000000000000000).should == -9223372036854775797
     end
 
     it "returns self bitwise OR other when both operands are negative" do
       (-@bignum | -0x4000000000000005).should == -1
-      (-@bignum | -@bignum).should == -9223372036854775819
+      (-@bignum | -@bignum).should == -18446744073709551627
       (-@bignum | -0x4000000000000000).should == -11
     end
 

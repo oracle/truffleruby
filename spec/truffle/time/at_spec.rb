@@ -14,6 +14,6 @@ describe "Time.at" do
     -> { Time.at(fixnum_min) }.should raise_error(RangeError)
 
     -> { Time.at(bignum_value) }.should raise_error(RangeError)
-    -> { Time.at(-bignum_value(1)) }.should raise_error(RangeError)
+    -> { Time.at(-bignum_value) }.should raise_error(RangeError)
   end
 end

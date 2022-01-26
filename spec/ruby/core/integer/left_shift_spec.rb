@@ -96,7 +96,7 @@ describe "Integer#<< (with n << m)" do
 
   context "bignum" do
     before :each do
-      @bignum = bignum_value * 16
+      @bignum = bignum_value * 8 # 2 ** 67
     end
 
     it "returns n shifted left m bits when n > 0, m > 0" do

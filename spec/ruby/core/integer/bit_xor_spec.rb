@@ -5,7 +5,7 @@ describe "Integer#^" do
     it "returns self bitwise EXCLUSIVE OR other" do
       (3 ^ 5).should == 6
       (-2 ^ -255).should == 255
-      (5 ^ bignum_value + 0xffff_ffff).should == 0x8000_0000_ffff_fffa
+      (5 ^ bignum_value + 0xffff_ffff).should == 0x1_0000_0000_ffff_fffa
     end
 
     it "returns self bitwise EXCLUSIVE OR a bignum" do
@@ -30,21 +30,21 @@ describe "Integer#^" do
     end
 
     it "returns self bitwise EXCLUSIVE OR other" do
-      (@bignum ^ 2).should == 9223372036854775824
+      (@bignum ^ 2).should == 18446744073709551632
       (@bignum ^ @bignum).should == 0
-      (@bignum ^ 14).should == 9223372036854775836
+      (@bignum ^ 14).should == 18446744073709551644
     end
 
     it "returns self bitwise EXCLUSIVE OR other when one operand is negative" do
-      (@bignum ^ -0x40000000000000000).should == -64563604257983430638
+      (@bignum ^ -0x40000000000000000).should == -55340232221128654830
       (@bignum ^ -@bignum).should == -4
-      (@bignum ^ -0x8000000000000000).should == -18446744073709551598
+      (@bignum ^ -0x8000000000000000).should == -27670116110564327406
     end
 
     it "returns self bitwise EXCLUSIVE OR other when both operands are negative" do
-      (-@bignum ^ -0x40000000000000000).should == 64563604257983430638
+      (-@bignum ^ -0x40000000000000000).should == 55340232221128654830
       (-@bignum ^ -@bignum).should == 0
-      (-@bignum ^ -0x4000000000000000).should == 13835058055282163694
+      (-@bignum ^ -0x4000000000000000).should == 23058430092136939502
     end
 
     it "returns self bitwise EXCLUSIVE OR other when all bits are 1 and other value is negative" do
