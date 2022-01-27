@@ -951,7 +951,7 @@ module Commands
         vm_args << arg
       when '--no-core-load-path'
         core_load_path = false
-      when '--reveal'
+      when '--reveal', '--ea'
         vm_args += %w[--vm.ea --vm.esa] if truffleruby_jvm?
       when '--check-compilation'
         add_experimental_options.call

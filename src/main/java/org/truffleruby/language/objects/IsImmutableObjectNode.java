@@ -9,7 +9,8 @@
  */
 package org.truffleruby.language.objects;
 
-import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.ImmutableRubyObject;
@@ -17,9 +18,8 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 
 /** Determines if an object is immutable for Kernel#clone, Kernel#dup, and rb_obj_clone. */
+@GenerateUncached
 public abstract class IsImmutableObjectNode extends RubyBaseNode {
-
-    @Child private LogicalClassNode logicalClassNode;
 
     public abstract boolean execute(Object object);
 
@@ -49,19 +49,10 @@ public abstract class IsImmutableObjectNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "!isRubyBignum(object)")
-    protected boolean isImmutableObject(RubyDynamicObject object) {
-        final RubyClass logicalClass = getLogicalClass(object);
+    protected boolean isImmutableObject(RubyDynamicObject object,
+            @Cached LogicalClassNode logicalClassNode) {
+        final RubyClass logicalClass = logicalClassNode.execute(object);
         return logicalClass == coreLibrary().rationalClass || logicalClass == coreLibrary().complexClass;
     }
-
-    private RubyClass getLogicalClass(Object object) {
-        if (logicalClassNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            logicalClassNode = insert(LogicalClassNode.create());
-        }
-
-        return logicalClassNode.execute(object);
-    }
-
 
 }

@@ -14,8 +14,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.inlined.InlinedDispatchNode;
-import org.truffleruby.core.inlined.InlinedMethodNode;
+import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.string.RubyString;
@@ -47,18 +46,14 @@ public abstract class AllocationTracing {
     }
 
     public static void traceInlined(RubyDynamicObject instance, String className, String allocatingMethod,
-            InlinedMethodNode node) {
+            AlwaysInlinedMethodNode node) {
         final RubyLanguage language = node.getLanguage();
         final RubyContext context = node.getContext();
 
         truffleTracing(language, instance);
 
         if (context.getObjectSpaceManager().isTracing(language)) {
-            if (!(node.getParent() instanceof InlinedDispatchNode)) {
-                traceBoundary(context, instance, node);
-            } else {
-                traceInlineBoundary(context, instance, className, allocatingMethod, node);
-            }
+            traceInlineBoundary(context, instance, className, allocatingMethod, node);
         }
     }
 

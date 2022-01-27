@@ -25,6 +25,9 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 
+/** Helper methods to build "frame arguments" from the various values which go into it. By convention, Object[] which
+ * are frame arguments are named {@code rubyArgs} or {@code frameArguments}. All other usages of "arguments" mean user
+ * arguments, i.e., the arguments to a method call like foo(*arguments). */
 public final class RubyArguments {
 
     private enum ArgumentIndicies {
@@ -80,6 +83,7 @@ public final class RubyArguments {
 
         ArrayUtils.arraycopy(arguments, 0, packed, RUNTIME_ARGUMENT_COUNT, arguments.length);
 
+        assert RubyArguments.assertFrameArguments(packed);
         return packed;
     }
 
@@ -87,37 +91,50 @@ public final class RubyArguments {
         return new Object[RUNTIME_ARGUMENT_COUNT + count];
     }
 
-    public static Object[] repack(Object[] args, Object receiver, int from, int count) {
-        return repack(args, receiver, from, 0, count);
-    }
-
-    public static Object[] repack(Object[] args, Object receiver, int from, int to, int count) {
-        final Object[] newArgs = new Object[RUNTIME_ARGUMENT_COUNT + to + count];
+    public static Object[] repack(Object[] rubyArgs, Object receiver) {
+        // Duplicate logic for this case since it is significantly simpler
+        final Object[] newArgs = new Object[rubyArgs.length];
         newArgs[ArgumentIndicies.SELF.ordinal()] = receiver;
-        newArgs[ArgumentIndicies.BLOCK.ordinal()] = getBlock(args);
-        System.arraycopy(args, RUNTIME_ARGUMENT_COUNT + from, newArgs, RUNTIME_ARGUMENT_COUNT + to, count);
+        newArgs[ArgumentIndicies.BLOCK.ordinal()] = getBlock(rubyArgs);
+        int count = rubyArgs.length - RUNTIME_ARGUMENT_COUNT;
+        System.arraycopy(rubyArgs, RUNTIME_ARGUMENT_COUNT, newArgs, RUNTIME_ARGUMENT_COUNT, count);
         return newArgs;
     }
 
-    public static boolean assertValues(
-            Object callerFrameOrVariables,
-            InternalMethod method,
-            DeclarationContext declarationContext,
-            Object self,
-            Object block,
-            Object[] arguments) {
+    public static Object[] repack(Object[] rubyArgs, Object receiver, int from, int count) {
+        return repack(rubyArgs, receiver, from, 0, count);
+    }
+
+    /** Same as {@code pack(null, null, null, null, receiver, getBlock(rubyArgs), getArguments(rubyArgs))} but without
+     * the intermediary Object[] allocation and arraycopy. */
+    public static Object[] repack(Object[] rubyArgs, Object receiver, int from, int to, int count) {
+        final Object[] newArgs = new Object[RUNTIME_ARGUMENT_COUNT + to + count];
+        newArgs[ArgumentIndicies.SELF.ordinal()] = receiver;
+        newArgs[ArgumentIndicies.BLOCK.ordinal()] = getBlock(rubyArgs);
+        System.arraycopy(rubyArgs, RUNTIME_ARGUMENT_COUNT + from, newArgs, RUNTIME_ARGUMENT_COUNT + to, count);
+        return newArgs;
+    }
+
+    public static boolean assertFrameArguments(Object[] frameArguments) {
+        Object callerData = getCallerData(frameArguments);
+        InternalMethod method = getMethod(frameArguments);
+        DeclarationContext declarationContext = getDeclarationContext(frameArguments);
+        Object self = getSelf(frameArguments);
+        Object block = getBlock(frameArguments);
+        Object[] arguments = getArguments(frameArguments);
+
         assert method != null;
         assert declarationContext != null;
         assert self != null;
         assert arguments != null;
         assert ArrayUtils.assertValidElements(arguments, arguments.length);
 
-        assert callerFrameOrVariables == null ||
-                callerFrameOrVariables instanceof MaterializedFrame ||
-                callerFrameOrVariables instanceof SpecialVariableStorage ||
-                callerFrameOrVariables instanceof FrameAndVariables;
+        assert callerData == null ||
+                callerData instanceof MaterializedFrame ||
+                callerData instanceof SpecialVariableStorage ||
+                callerData instanceof FrameAndVariables;
 
-        /* The block in the arguments array is always either a Nil or RubyProc. The provision of Nil if the caller
+        /* The block in the frame arguments is always either a Nil or RubyProc. The provision of Nil if the caller
          * doesn't want to provide a block is done at the caller, because it will know the type of values within its
          * compilation unit.
          *
@@ -131,6 +148,10 @@ public final class RubyArguments {
 
     public static MaterializedFrame getDeclarationFrame(Frame frame) {
         return (MaterializedFrame) frame.getArguments()[ArgumentIndicies.DECLARATION_FRAME.ordinal()];
+    }
+
+    public static void setDeclarationFrame(Frame frame, MaterializedFrame declarationFrame) {
+        frame.getArguments()[ArgumentIndicies.DECLARATION_FRAME.ordinal()] = declarationFrame;
     }
 
     public static Object getCallerData(Object[] args) {
@@ -184,6 +205,14 @@ public final class RubyArguments {
         return (DeclarationContext) frame.getArguments()[ArgumentIndicies.DECLARATION_CONTEXT.ordinal()];
     }
 
+    public static DeclarationContext getDeclarationContext(Object[] rubyArgs) {
+        return (DeclarationContext) rubyArgs[ArgumentIndicies.DECLARATION_CONTEXT.ordinal()];
+    }
+
+    public static void setDeclarationContext(Frame frame, DeclarationContext declarationContext) {
+        frame.getArguments()[ArgumentIndicies.DECLARATION_CONTEXT.ordinal()] = declarationContext;
+    }
+
     public static FrameOnStackMarker getFrameOnStackMarker(Frame frame) {
         return (FrameOnStackMarker) frame.getArguments()[ArgumentIndicies.FRAME_ON_STACK_MARKER.ordinal()];
     }
@@ -192,6 +221,8 @@ public final class RubyArguments {
         return args[ArgumentIndicies.SELF.ordinal()];
     }
 
+    /** Should only be used when we just allocated the Object[] and we know nothing else is using it. Consider
+     * {@link #repack} instead. */
     public static void setSelf(Object[] args, Object self) {
         args[ArgumentIndicies.SELF.ordinal()] = self;
     }
@@ -202,63 +233,78 @@ public final class RubyArguments {
 
     public static Object getBlock(Object[] args) {
         final Object block = args[ArgumentIndicies.BLOCK.ordinal()];
-        /* We put into the arguments array either a Nil or RubyProc, so that's all we'll get out at this point. */
+        /* We put into the frame arguments either a Nil or RubyProc, so that's all we'll get out at this point. */
         assert block instanceof Nil || block instanceof RubyProc : StringUtils.toString(block);
         return block;
     }
 
     public static void setBlock(Object[] args, Object block) {
-        // We put into the arguments array either a Nil or RubyProc.
+        // We put into the frame arguments either a Nil or RubyProc.
         assert block instanceof Nil || block instanceof RubyProc : StringUtils.toString(block);
         args[ArgumentIndicies.BLOCK.ordinal()] = block;
     }
 
     public static Object getBlock(Frame frame) {
         final Object block = frame.getArguments()[ArgumentIndicies.BLOCK.ordinal()];
-        /* We put into the arguments array either a Nil or RubyProc, so that's all we'll get out at this point. */
+        /* We put into the frame arguments either a Nil or RubyProc, so that's all we'll get out at this point. */
         assert block instanceof Nil || block instanceof RubyProc : StringUtils.toString(block);
         return block;
     }
 
-    public static int getArgumentsCount(Object[] args) {
-        return args.length - RUNTIME_ARGUMENT_COUNT;
-    }
-
+    /** Get the number of user argument inside the frame arguments */
     public static int getArgumentsCount(Frame frame) {
         return frame.getArguments().length - RUNTIME_ARGUMENT_COUNT;
     }
 
+    /** Get the number of user argument inside the frame arguments */
+    public static int getArgumentsCount(Object[] args) {
+        return args.length - RUNTIME_ARGUMENT_COUNT;
+    }
+
+    /** Get the user argument at given index out of frame arguments */
     public static Object getArgument(Frame frame, int index) {
-        assert index >= 0 && index < (frame.getArguments().length - RUNTIME_ARGUMENT_COUNT);
+        assert index >= 0 && index < getArgumentsCount(frame);
         return frame.getArguments()[RUNTIME_ARGUMENT_COUNT + index];
     }
 
+    /** Get the user argument at given index out of frame arguments */
     public static Object getArgument(Object[] rubyArgs, int index) {
-        assert index >= 0 && index < (rubyArgs.length - RUNTIME_ARGUMENT_COUNT);
+        assert index >= 0 && index < getArgumentsCount(rubyArgs);
         return rubyArgs[RUNTIME_ARGUMENT_COUNT + index];
     }
 
+    /** Set the user argument at given index inside frame arguments */
+    public static void setArgument(Frame frame, int index, Object value) {
+        assert index >= 0 && index < getArgumentsCount(frame);
+        frame.getArguments()[RUNTIME_ARGUMENT_COUNT + index] = value;
+    }
+
+    /** Set the user argument at given index inside frame arguments */
     public static void setArgument(Object[] rubyArgs, int index, Object value) {
-        assert index >= 0 && index < (rubyArgs.length - RUNTIME_ARGUMENT_COUNT);
+        assert index >= 0 && index < getArgumentsCount(rubyArgs);
         rubyArgs[RUNTIME_ARGUMENT_COUNT + index] = value;
     }
 
-    public static Object[] getArguments(Object[] arguments) {
-        return ArrayUtils.extractRange(arguments, RUNTIME_ARGUMENT_COUNT, arguments.length);
+    /** Get the user arguments out of frame arguments. Should only be used when strictly necessary, {@link #repack} or
+     * {@link #getArgument} avoid the extra allocation. */
+    public static Object[] getArguments(Object[] rubyArgs) {
+        return ArrayUtils.extractRange(rubyArgs, RUNTIME_ARGUMENT_COUNT, rubyArgs.length);
     }
 
+    /** Get the user arguments out of frame arguments. */
     public static Object[] getArguments(Frame frame) {
-        Object[] arguments = frame.getArguments();
-        return ArrayUtils.extractRange(arguments, RUNTIME_ARGUMENT_COUNT, arguments.length);
+        Object[] rubyArgs = frame.getArguments();
+        return ArrayUtils.extractRange(rubyArgs, RUNTIME_ARGUMENT_COUNT, rubyArgs.length);
     }
 
-    public static void setArguments(Object[] rubyArgs, Object[] args) {
-        System.arraycopy(args, 0, rubyArgs, RUNTIME_ARGUMENT_COUNT, args.length);
-    }
-
+    /** Get the user arguments out of frame arguments, skipping the first start arguments. */
     public static Object[] getArguments(Frame frame, int start) {
-        Object[] arguments = frame.getArguments();
-        return ArrayUtils.extractRange(arguments, RUNTIME_ARGUMENT_COUNT + start, arguments.length);
+        Object[] rubyArgs = frame.getArguments();
+        return ArrayUtils.extractRange(rubyArgs, RUNTIME_ARGUMENT_COUNT + start, rubyArgs.length);
+    }
+
+    public static void setArguments(Object[] rubyArgs, Object[] arguments) {
+        ArrayUtils.arraycopy(arguments, 0, rubyArgs, RUNTIME_ARGUMENT_COUNT, arguments.length);
     }
 
     // Getters for the declaration frame that let you reach up several levels
@@ -274,7 +320,6 @@ public final class RubyArguments {
             return getDeclarationFrame(RubyArguments.getDeclarationFrame(topFrame), level - 1);
         }
     }
-
 
     public static MaterializedFrame getDeclarationFrame(MaterializedFrame frame, int level) {
         assert frame != null;
@@ -364,24 +409,6 @@ public final class RubyArguments {
         }
 
         return null;
-    }
-
-    // Setters
-
-    public static void setDeclarationFrame(Frame frame, MaterializedFrame declarationFrame) {
-        frame.getArguments()[ArgumentIndicies.DECLARATION_FRAME.ordinal()] = declarationFrame;
-    }
-
-    public static void setDeclarationContext(Frame frame, DeclarationContext declarationContext) {
-        frame.getArguments()[ArgumentIndicies.DECLARATION_CONTEXT.ordinal()] = declarationContext;
-    }
-
-    public static void setSelf(Frame frame, Object self) {
-        frame.getArguments()[ArgumentIndicies.SELF.ordinal()] = self;
-    }
-
-    public static void setArgument(Frame frame, int index, Object value) {
-        frame.getArguments()[RUNTIME_ARGUMENT_COUNT + index] = value;
     }
 
 }

@@ -309,12 +309,27 @@ public class CoreMethodNodeManager {
     public RootCallTarget createCoreMethodRootNode(NodeFactory<? extends RubyBaseNode> nodeFactory,
             RubyLanguage language, SharedMethodInfo sharedMethodInfo, Split split, CoreMethod method) {
 
+        // It's fine to load the node class here, this is only called when resolving the lazy CallTarget
+        var nodeClass = nodeFactory.getNodeClass();
+
+        boolean alwaysInlinedSubclass = AlwaysInlinedMethodNode.class.isAssignableFrom(nodeClass);
+        if (method.alwaysInlined() != alwaysInlinedSubclass) {
+            throw new Error(
+                    nodeClass + " subclasses AlwaysInlinedMethodNode != using @CoreMethod(alwaysInlined = true)");
+        }
+
         if (method.alwaysInlined()) {
             // See CallInternalMethodNode#getUncachedAlwaysInlinedMethodNode()
-            assert nodeFactory.getUncachedInstance() != null : nodeFactory.getNodeClass() +
+            assert nodeFactory.getUncachedInstance() != null : nodeClass +
                     " must use @GenerateUncached";
-            assert nodeFactory.getUncachedInstance() instanceof AlwaysInlinedMethodNode : nodeFactory.getNodeClass() +
+            assert nodeFactory.getUncachedInstance() instanceof AlwaysInlinedMethodNode : nodeClass +
                     " must subclass AlwaysInlinedMethodNode";
+
+            if (method.lowerFixnum().length > 0 || method.raiseIfFrozenSelf() || method.raiseIfNotMutableSelf() ||
+                    method.returnsEnumeratorIfNoBlock() || !method.enumeratorSize().isEmpty() ||
+                    method.split() != Split.HEURISTIC) {
+                throw new Error("Always-inlined methods do not support all @CoreMethod attributes for " + nodeClass);
+            }
 
             RubyRootNode reRaiseRootNode = new RubyRootNode(
                     language,

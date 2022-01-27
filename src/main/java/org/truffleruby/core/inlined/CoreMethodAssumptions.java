@@ -18,8 +18,6 @@ import com.oracle.truffle.api.Truffle;
 
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.CoreLibrary;
-import org.truffleruby.core.kernel.KernelNodes.DupNode;
-import org.truffleruby.core.klass.ClassNodes.NewNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.language.RubyNode;
@@ -161,22 +159,7 @@ public class CoreMethodAssumptions {
         final RubyNode[] args = callParameters.getArguments();
         int n = 1 /* self */ + args.length;
 
-        if ("new".equals(callParameters.getMethodName())) {
-            return new InlinedCallNode(
-                    language,
-                    NewNode.create(),
-                    callParameters);
-        }
-
-        if ("dup".equals(callParameters.getMethodName())) {
-            return new InlinedCallNode(
-                    language,
-                    DupNode.create(),
-                    callParameters);
-        }
-
         if (callParameters.getBlock() != null) {
-
             if (callParameters.getMethodName().equals("lambda") &&
                     (callParameters.getBlock() instanceof BlockDefinitionNode)) {
 

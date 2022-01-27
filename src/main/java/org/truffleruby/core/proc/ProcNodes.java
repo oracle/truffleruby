@@ -194,7 +194,6 @@ public abstract class ProcNodes {
     @GenerateUncached
     @CoreMethod(names = { "call", "[]", "yield" }, rest = true, needsBlock = true, alwaysInlined = true)
     public abstract static class CallNode extends AlwaysInlinedMethodNode {
-
         @Specialization
         protected Object call(Frame callerFrame, RubyProc proc, Object[] rubyArgs, RootCallTarget target,
                 @Cached CallBlockNode callBlockNode) {
@@ -205,7 +204,6 @@ public abstract class ProcNodes {
                     RubyArguments.getBlock(rubyArgs),
                     RubyArguments.getArguments(rubyArgs));
         }
-
     }
 
     @CoreMethod(names = { "==", "eql?" }, required = 1)

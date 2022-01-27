@@ -47,6 +47,37 @@ describe "Always-inlined core methods" do
       }.should raise_error(ArgumentError) { |e| e.backtrace_locations[0].label.should == 'local_variables' }
     end
 
+    it "for Class#new" do
+      singleton_class = Object.new.singleton_class
+      -> {
+        singleton_class.new
+      }.should raise_error(TypeError) { |e| e.backtrace_locations[0].label.should == 'new' }
+    end
+
+    it "for BasicObject#initialize" do
+      -> {
+        Object.new(:wrong)
+      }.should raise_error(ArgumentError) { |e| e.backtrace_locations[0].label.should == 'initialize' }
+    end
+
+    it "for Kernel#dup" do
+      -> {
+        1.dup(:wrong)
+      }.should raise_error(ArgumentError) { |e| e.backtrace_locations[0].label.should == 'dup' }
+    end
+
+    it "for Kernel#initialize_dup" do
+      -> {
+        initialize_dup()
+      }.should raise_error(ArgumentError) { |e| e.backtrace_locations[0].label.should == 'initialize_dup' }
+    end
+
+    it "for Kernel#initialize_copy" do
+      -> {
+        initialize_copy()
+      }.should raise_error(ArgumentError) { |e| e.backtrace_locations[0].label.should == 'initialize_copy' }
+    end
+
     guard -> { RUBY_ENGINE != "ruby" } do
       it "for #send" do
         -> {
@@ -173,6 +204,48 @@ describe "Always-inlined core methods" do
           e.backtrace_locations[0].lineno.should == line - 2
           e.backtrace_locations[1].label.should.start_with?('block (5 levels)')
           e.backtrace_locations[1].lineno.should == line + 3
+        }
+      end
+
+      it "for Class#new" do
+        -> {
+          Object.new(:wrong)
+        }.should raise_error(ArgumentError) { |e|
+          e.backtrace_locations[0].label.should == 'initialize'
+          e.backtrace_locations[1].label.should != 'new'
+          e.backtrace_locations[1].label.should.start_with?('block (5 levels)')
+        }
+      end
+
+      it "for Kernel#dup" do
+        klass = Class.new do
+          def initialize_dup(from)
+            raise ArgumentError
+          end
+        end
+        obj = klass.new
+        -> {
+          obj.dup
+        }.should raise_error(ArgumentError) { |e|
+          e.backtrace_locations[0].label.should == 'initialize_dup'
+          e.backtrace_locations[1].label.should != 'dup'
+          e.backtrace_locations[1].label.should.start_with?('block (5 levels)')
+        }
+      end
+
+      it "for Kernel#initialize_dup" do
+        klass = Class.new do
+          def initialize_copy(from)
+            raise ArgumentError
+          end
+        end
+        obj = klass.new
+        -> {
+          obj.dup
+        }.should raise_error(ArgumentError) { |e|
+          e.backtrace_locations[0].label.should == 'initialize_copy'
+          e.backtrace_locations[1].label.should != 'initialize_dup'
+          e.backtrace_locations[1].label.should.start_with?('block (5 levels)')
         }
       end
     end

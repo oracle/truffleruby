@@ -42,7 +42,6 @@ import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.methods.CallBoundMethodNode;
 import org.truffleruby.language.methods.CallInternalMethodNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocationTracing;
@@ -132,13 +131,16 @@ public abstract class MethodNodes {
     @GenerateUncached
     @CoreMethod(names = { "call", "[]", "===" }, needsBlock = true, rest = true, alwaysInlined = true)
     public abstract static class CallNode extends AlwaysInlinedMethodNode {
-
         @Specialization
-        protected Object call(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
-                @Cached CallBoundMethodNode callBoundMethodNode) {
-            return callBoundMethodNode.execute(callerFrame, self, rubyArgs);
-        }
+        protected Object call(Frame callerFrame, RubyMethod method, Object[] rubyArgs, RootCallTarget target,
+                @Cached CallInternalMethodNode callInternalMethodNode) {
+            final InternalMethod internalMethod = method.method;
+            final Object[] newArgs = RubyArguments.repack(rubyArgs, method.receiver);
+            RubyArguments.setMethod(newArgs, internalMethod);
 
+            assert RubyArguments.assertFrameArguments(newArgs);
+            return callInternalMethodNode.execute(callerFrame, newArgs);
+        }
     }
 
     @CoreMethod(names = "name")
@@ -360,10 +362,9 @@ public abstract class MethodNodes {
         @Override
         public Object execute(VirtualFrame frame) {
             final Object originalBoundMethodReceiver = RubyArguments.getSelf(RubyArguments.getDeclarationFrame(frame));
-            return callInternalMethodNode.execute(
-                    frame,
-                    RubyArguments.pack(null, null, method, null, originalBoundMethodReceiver,
-                            RubyArguments.getBlock(frame), RubyArguments.getArguments(frame)));
+            Object[] rubyArgs = RubyArguments.pack(null, null, method, null, originalBoundMethodReceiver,
+                    RubyArguments.getBlock(frame), RubyArguments.getArguments(frame));
+            return callInternalMethodNode.execute(frame, rubyArgs);
         }
     }
 

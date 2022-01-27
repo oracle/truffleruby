@@ -13,10 +13,9 @@ import java.util.Set;
 
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.language.methods.CallBoundMethodNode;
+import org.truffleruby.language.methods.CallInternalMethodNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
@@ -27,6 +26,8 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.SourceSection;
+
+import static org.truffleruby.language.RubyBaseNode.nil;
 
 @ExportLibrary(InteropLibrary.class)
 public class RubyMethod extends RubyDynamicObject implements ObjectGraphNode {
@@ -66,11 +67,11 @@ public class RubyMethod extends RubyDynamicObject implements ObjectGraphNode {
 
     @ExportMessage
     public Object execute(Object[] arguments,
-            @Cached CallBoundMethodNode callBoundMethodNode,
-            @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode) {
-        final Object[] rubyArgs = RubyArguments.pack(null, null, null, null, null, this, Nil.INSTANCE,
-                foreignToRubyArgumentsNode.executeConvert(arguments));
-        return callBoundMethodNode.execute(null, this, rubyArgs);
+            @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
+            @Cached CallInternalMethodNode callInternalMethodNode) {
+        final Object[] convertedArguments = foreignToRubyArgumentsNode.executeConvert(arguments);
+        final Object[] frameArgs = RubyArguments.pack(null, null, method, null, receiver, nil, convertedArguments);
+        return callInternalMethodNode.execute(null, frameArgs);
     }
     // endregion
 
