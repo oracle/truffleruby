@@ -10,12 +10,12 @@
 package org.truffleruby.core.array;
 
 import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.profiles.IntValueProfile;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
@@ -42,36 +42,17 @@ public abstract class ArrayEachIteratorNode extends RubyBaseNode {
     public abstract RubyArray execute(RubyArray array, RubyProc block, int startAt,
             ArrayElementConsumerNode consumerNode);
 
-    @Specialization(
-            guards = { "array.size == 1", "startAt == 0" },
-            limit = "storageStrategyLimit()")
-    protected RubyArray iterateOne(RubyArray array, RubyProc block, int startAt, ArrayElementConsumerNode consumerNode,
-            @Bind("array.store") Object store,
-            @CachedLibrary("store") ArrayStoreLibrary stores) {
-
-        consumerNode.accept(array, block, stores.read(store, 0), 0);
-
-        if (array.size > 1) {
-            // Implicitly profiles through lazy node creation
-            return getRecurseNode().execute(array, block, 1, consumerNode);
-        }
-
-        return array;
-    }
-
-    @Specialization(
-            guards = { "array.size != 1" },
-            limit = "storageStrategyLimit()")
+    @Specialization(limit = "storageStrategyLimit()")
     protected RubyArray iterateMany(RubyArray array, RubyProc block, int startAt, ArrayElementConsumerNode consumerNode,
-            @Bind("array.store") Object store,
-            @CachedLibrary("store") ArrayStoreLibrary stores,
+            @CachedLibrary("array.store") ArrayStoreLibrary stores,
             @Cached LoopConditionProfile loopProfile,
+            @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
             @Cached ConditionProfile strategyMatchProfile) {
         int i = startAt;
         try {
-            for (; loopProfile.inject(i < array.size); i++) {
+            for (; loopProfile.inject(i < arraySizeProfile.profile(array.size)); i++) {
                 if (strategyMatchProfile.profile(stores.accepts(array.store))) {
-                    consumerNode.accept(array, block, stores.read(store, i), i);
+                    consumerNode.accept(array, block, stores.read(array.store, i), i);
                 } else {
                     return getRecurseNode().execute(array, block, i, consumerNode);
                 }
