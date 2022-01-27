@@ -397,7 +397,7 @@ public abstract class TruffleKernelNodes {
 
     @Primitive(name = "share_special_variables")
     @ImportStatic(TruffleKernelNodes.class)
-    public abstract static class ShareSpecialVariableStoage extends PrimitiveArrayArgumentsNode {
+    public abstract static class ShareSpecialVariableStorage extends PrimitiveArrayArgumentsNode {
 
         @Specialization(
                 guards = "frame.getFrameDescriptor() == descriptor",
