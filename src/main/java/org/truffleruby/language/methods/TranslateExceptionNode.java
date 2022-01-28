@@ -68,7 +68,6 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
         }
     }
 
-    @SuppressWarnings("deprecation")
     @Specialization
     protected RuntimeException translate(Throwable throwable,
             @Cached BranchProfile controlProfile,
@@ -109,11 +108,11 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
                 // GR-22071: rethrow host exceptions to get the interleaved host and guest stacktrace of PolyglotException
                 logJavaException(getContext(), this, exception);
                 throw ExceptionOperations.rethrow(exception);
-            } else if (exception instanceof com.oracle.truffle.api.TruffleException) {
+            } else if (exception instanceof AbstractTruffleException) {
                 // A foreign exception
                 return new RaiseException(
                         getContext(),
-                        translateForeignException(getContext(), getLanguage(), exception));
+                        translateForeignException(getContext(), getLanguage(), (AbstractTruffleException) exception));
             } else {
                 // An internal exception
                 CompilerDirectives.transferToInterpreter(/* internal exceptions are fatal */);
@@ -212,7 +211,8 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
     }
 
     @TruffleBoundary
-    private RubyException translateForeignException(RubyContext context, RubyLanguage language, Throwable exception) {
+    private RubyException translateForeignException(RubyContext context, RubyLanguage language,
+            AbstractTruffleException exception) {
         logJavaException(context, this, exception);
 
         // NOTE (eregon, 2 Feb. 2018): This could maybe be modeled as translating each exception to
