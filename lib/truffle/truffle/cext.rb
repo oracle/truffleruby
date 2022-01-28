@@ -426,8 +426,12 @@ module Truffle::CExt
     Primitive.vm_hash_start(h)
   end
 
+  def rb_obj_class(object)
+    Truffle::Type.object_class(object)
+  end
+
   def rb_obj_classname(object)
-    object.class.name
+    Truffle::Type.object_class(object).name
   end
 
   def rb_class_of(object)

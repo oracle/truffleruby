@@ -128,15 +128,6 @@ void rb_obj_call_init(VALUE object, int argc, const VALUE *argv) {
   RUBY_CEXT_INVOKE_NO_WRAP("rb_obj_call_init", object, rb_ary_new4(argc, argv));
 }
 
-const char *rb_obj_classname(VALUE object) {
-  VALUE str = RUBY_CEXT_INVOKE("rb_obj_classname", object);
-  if (str != Qnil) {
-    return RSTRING_PTR(str);
-  } else {
-    return NULL;
-  }
-}
-
 // taint status
 
 VALUE rb_obj_tainted(VALUE obj) {

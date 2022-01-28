@@ -31,15 +31,24 @@ VALUE rb_class_superclass(VALUE ruby_class) {
 }
 
 VALUE rb_obj_class(VALUE object) {
-  return rb_class_real(rb_class_of(object));
+  return RUBY_CEXT_INVOKE("rb_obj_class", object);
 }
 
-VALUE rb_singleton_class(VALUE object) {
-  return RUBY_INVOKE(object, "singleton_class");
+const char *rb_obj_classname(VALUE object) {
+  VALUE str = RUBY_CEXT_INVOKE("rb_obj_classname", object);
+  if (str != Qnil) {
+    return RSTRING_PTR(str);
+  } else {
+    return NULL;
+  }
 }
 
 VALUE rb_class_of(VALUE object) {
   return RUBY_CEXT_INVOKE("rb_class_of", object);
+}
+
+VALUE rb_singleton_class(VALUE object) {
+  return RUBY_INVOKE(object, "singleton_class");
 }
 
 VALUE rb_obj_alloc(VALUE ruby_class) {
