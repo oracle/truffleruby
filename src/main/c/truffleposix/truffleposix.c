@@ -92,14 +92,6 @@ struct truffleposix_stat {
 
 static void copy_stat(struct stat *stat, struct truffleposix_stat* buffer);
 
-/* Creates a native function handle for an executable TruffleObject,
-   such that it can be called from native code. The returned wrapper
-   is IS_POINTER and keeps the native part alive as long it is referenced. */
-TruffleObject create_native_wrapper(TruffleEnv *env, void *function) {
-  TruffleObject wrapper = (*env)->getClosureObject(env, function);
-  return (*env)->releaseAndReturn(env, wrapper);
-}
-
 static void init_fd_set(fd_set *set, int nfds, int *fds, int *maxfd) {
   FD_ZERO(set);
   for (int i = 0; i < nfds; i++) {

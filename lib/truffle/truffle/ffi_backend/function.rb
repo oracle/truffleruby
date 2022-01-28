@@ -202,9 +202,8 @@ module FFI
     end
 
     private def create_native_wrapper(function, function_info)
-      lib = Truffle::POSIX::LIBTRUFFLEPOSIX.resolve
-      create = lib['create_native_wrapper'].bind("(env,#{function_info.nfi_type}):object")
-      create.call(callback(function, function_info))
+      parsed_sig = Primitive.interop_eval_nfi function_info.nfi_type
+      parsed_sig.createClosure(callback(function, function_info))
     end
   end
 
