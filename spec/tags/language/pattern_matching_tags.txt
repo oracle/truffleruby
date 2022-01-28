@@ -66,3 +66,7 @@ fails:Pattern matching warning when one-line form warns about pattern matching i
 fails:Pattern matching alternative pattern can be used as a nested pattern
 fails:Pattern matching Array pattern can be used as a nested pattern
 fails:Pattern matching Hash pattern can be used as a nested pattern
+fails:Pattern matching find pattern can be nested
+fails:Pattern matching find pattern can be nested with an array pattern
+fails:Pattern matching find pattern can be nested within a hash pattern
+fails:Pattern matching find pattern can nest hash and array patterns
