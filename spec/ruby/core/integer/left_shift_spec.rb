@@ -181,7 +181,7 @@ describe "Integer#<< (with n << m)" do
       (bignum_value << -(2**40)).should == 0
     end
 
-    ruby_bug "#18517", ""..."3.3" do
+    ruby_bug "#18517", ""..."3.2" do
       it "returns 0 when m > 0 long and n == 0" do
         (0 << (2**40)).should == 0
       end
@@ -191,15 +191,15 @@ describe "Integer#<< (with n << m)" do
       (0 << bignum_value).should == 0
     end
 
-    ruby_bug "#18518", ""..."3.1" do
+    ruby_bug "#18518", ""..."3.3" do
       it "raises NoMemoryError when m > 0 and n != 0" do
         coerce_long = mock("long")
         coerce_long.stub!(:to_int).and_return(2**40)
         coerce_bignum = mock("bignum")
         coerce_bignum.stub!(:to_int).and_return(bignum_value)
-        exp = [2**40, bignum_value, coerce_long, coerce_bignum]
+        exps = [2**40, bignum_value, coerce_long, coerce_bignum]
 
-        exp.each { |exp|
+        exps.each { |exp|
           -> { (1 << exp) }.should raise_error(NoMemoryError)
           -> { (-1 << exp) }.should raise_error(NoMemoryError)
           -> { (bignum_value << exp) }.should raise_error(NoMemoryError)

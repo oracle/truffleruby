@@ -8,8 +8,29 @@ describe "Integer#^" do
       (5 ^ bignum_value + 0xffff_ffff).should == 0x1_0000_0000_ffff_fffa
     end
 
+    it "returns self bitwise XOR other when one operand is negative" do
+      ((1 << 33) ^ -1).should == -8589934593
+      (-1 ^ (1 << 33)).should == -8589934593
+
+      ((-(1<<33)-1) ^ 5).should == -8589934598
+      (5 ^ (-(1<<33)-1)).should == -8589934598
+    end
+
+    it "returns self bitwise XOR other when both operands are negative" do
+      (-5 ^ -1).should == 4
+      (-3 ^ -4).should == 1
+      (-12 ^ -13).should == 7
+      (-13 ^ -12).should == 7
+    end
+
     it "returns self bitwise EXCLUSIVE OR a bignum" do
       (-1 ^ 2**64).should == -18446744073709551617
+    end
+
+    it "coerces the rhs and calls #coerce" do
+      obj = mock("fixnum bit and")
+      obj.should_receive(:coerce).with(6).and_return([3, 6])
+      (6 ^ obj).should == 5
     end
 
     it "raises a TypeError when passed a Float" do
