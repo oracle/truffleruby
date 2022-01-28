@@ -44,7 +44,9 @@ public abstract class ArrayEachIteratorNode extends RubyBaseNode {
 
     @Specialization(limit = "storageStrategyLimit()")
     protected RubyArray iterateMany(RubyArray array, RubyProc block, int startAt, ArrayElementConsumerNode consumerNode,
+            // Checkstyle: stop -- Verified @Bind is not necessary here due to use of `accept`.
             @CachedLibrary("array.store") ArrayStoreLibrary stores,
+            // Checkstyle: resume
             @Cached LoopConditionProfile loopProfile,
             @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
             @Cached ConditionProfile strategyMatchProfile) {
