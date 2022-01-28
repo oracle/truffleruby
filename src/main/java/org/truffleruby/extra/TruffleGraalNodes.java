@@ -35,7 +35,6 @@ import org.truffleruby.language.locals.WriteDeclarationVariableNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.MaterializedFrame;
@@ -115,11 +114,7 @@ public abstract class TruffleGraalNodes {
 
             // The Proc no longer needs the original declaration frame. However, all procs must have a
             // declaration frame (to allow Proc#binding) so we shall create an empty one.
-            final MaterializedFrame newDeclarationFrame = Truffle
-                    .getRuntime()
-                    .createMaterializedFrame(args, getLanguage().emptyDeclarationDescriptor);
-
-            newDeclarationFrame.setObject(getLanguage().emptyDeclarationSpecialVariableSlot, variables);
+            final MaterializedFrame newDeclarationFrame = getLanguage().createEmptyDeclarationFrame(args, variables);
 
             return new RubyProc(
                     coreLibrary().procClass,

@@ -9,6 +9,8 @@
  */
 package org.truffleruby.language.locals;
 
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
@@ -17,16 +19,17 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 @ImportStatic({ FrameSlotKind.class, RubyGuards.class })
 public abstract class WriteFrameSlotNode extends RubyBaseNode implements AssignableNode {
 
-    private final FrameSlot frameSlot;
+    @CompilationFinal private FrameDescriptor descriptor;
+    private final int frameSlot;
 
-    public WriteFrameSlotNode(FrameSlot frameSlot) {
+    public WriteFrameSlotNode(int frameSlot) {
+        assert frameSlot >= 0;
         this.frameSlot = frameSlot;
     }
 
@@ -60,25 +63,28 @@ public abstract class WriteFrameSlotNode extends RubyBaseNode implements Assigna
     @Specialization(replaces = { "writeBoolean", "writeInt", "writeLong", "writeDouble" })
     protected void writeObject(Frame frame, Object value) {
         /* No-op if kind is already Object. */
-        frame.getFrameDescriptor().setFrameSlotKind(frameSlot, FrameSlotKind.Object);
+        frame.getFrameDescriptor().setSlotKind(frameSlot, FrameSlotKind.Object);
 
         frame.setObject(frameSlot, value);
     }
 
+    // Unused frame argument but needed to keep this as a dynamic check
     protected boolean isExpectedOrIllegal(Frame frame, FrameSlotKind expectedKind) {
-        final FrameDescriptor descriptor = frame.getFrameDescriptor();
-        final FrameSlotKind kind = descriptor.getFrameSlotKind(frameSlot);
+        if (descriptor == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            descriptor = frame.getFrameDescriptor();
+        }
+
+        assert frame.getFrameDescriptor() == descriptor;
+
+        final FrameSlotKind kind = descriptor.getSlotKind(frameSlot);
         if (kind == expectedKind) {
             return true;
         } else if (kind == FrameSlotKind.Illegal) {
-            descriptor.setFrameSlotKind(frameSlot, expectedKind);
+            descriptor.setSlotKind(frameSlot, expectedKind);
             return true;
         }
         return false;
-    }
-
-    public final FrameSlot getFrameSlot() {
-        return frameSlot;
     }
 
     @Override

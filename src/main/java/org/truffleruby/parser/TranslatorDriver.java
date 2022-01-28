@@ -42,6 +42,7 @@ import java.util.List;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.frame.FrameDescriptor;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -67,6 +68,7 @@ import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.WhileNode;
+import org.truffleruby.language.locals.FrameDescriptorNamesIterator;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.CatchNextNode;
@@ -85,7 +87,6 @@ import org.truffleruby.parser.parser.RubyParserResult;
 import org.truffleruby.parser.scope.StaticScope;
 import org.truffleruby.shared.Metrics;
 
-import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
@@ -124,21 +125,23 @@ public class TranslatorDriver {
 
         final TranslatorEnvironment parentEnvironment;
 
+        int blockDepth = 0;
         if (parentFrame != null) {
             MaterializedFrame frame = parentFrame;
 
             while (frame != null) {
-                for (FrameSlot slot : frame.getFrameDescriptor().getSlots()) {
-                    if (slot.getIdentifier() instanceof String) {
-                        final String name = (String) slot.getIdentifier();
+                for (Object identifier : FrameDescriptorNamesIterator.iterate(frame.getFrameDescriptor())) {
+                    if (!BindingNodes.isHiddenVariable(identifier)) {
+                        final String name = (String) identifier;
                         staticScope.addVariableThisScope(name.intern()); // StaticScope expects interned var names
                     }
                 }
 
                 frame = RubyArguments.getDeclarationFrame(frame);
+                blockDepth++;
             }
 
-            parentEnvironment = environmentForFrame(context, parentFrame);
+            parentEnvironment = environmentForFrame(context, parentFrame, blockDepth - 1);
         } else {
             parentEnvironment = null;
         }
@@ -214,13 +217,12 @@ public class TranslatorDriver {
                 parseEnvironment,
                 parseEnvironment.allocateReturnID(),
                 true,
-                false,
                 isModuleBody,
                 sharedMethodInfo,
                 sharedMethodInfo.getMethodNameForNotBlock(),
-                0,
+                blockDepth,
                 null,
-                TranslatorEnvironment.newFrameDescriptor(),
+                null,
                 modulePath);
 
         // Declare arguments as local variables in the top-level environment - we'll put the values there in a prelude
@@ -270,7 +272,7 @@ public class TranslatorDriver {
                         .profileArgument(
                                 language,
                                 new ReadPreArgumentNode(n, MissingArgumentBehavior.NIL));
-                final FrameSlot slot = environment.getFrameDescriptor().findFrameSlot(name);
+                final int slot = environment.findFrameSlot(name);
                 sequence.add(new WriteLocalVariableNode(slot, readNode));
             }
 
@@ -313,7 +315,7 @@ public class TranslatorDriver {
         }
 
 
-        final RubyNode writeSelfNode = Translator.loadSelf(language, environment);
+        final RubyNode writeSelfNode = Translator.loadSelf(language);
         truffleNode = Translator.sequence(sourceIndexLength, Arrays.asList(writeSelfNode, truffleNode));
 
         if (!rubyWarnings.warnings.isEmpty()) {
@@ -362,9 +364,11 @@ public class TranslatorDriver {
                     .sequence(sourceIndexLength, Arrays.asList(new MakeSpecialVariableStorageNode(), truffleNode));
         }
 
+        final FrameDescriptor frameDescriptor = environment.computeFrameDescriptor();
+
         if (parserContext == ParserContext.EVAL &&
-                BindingNodes.assignsNewUserVariables(environment.getFrameDescriptor())) {
-            truffleNode = new SetBindingFrameForEvalNode(environment.getFrameDescriptor(), truffleNode);
+                BindingNodes.assignsNewUserVariables(frameDescriptor)) {
+            truffleNode = new SetBindingFrameForEvalNode(frameDescriptor, truffleNode);
         }
 
         final RubyRootNode rootNode;
@@ -372,7 +376,7 @@ public class TranslatorDriver {
             rootNode = new RubyMethodRootNode(
                     language,
                     sourceIndexLength.toSourceSection(source),
-                    environment.getFrameDescriptor(),
+                    frameDescriptor,
                     sharedMethodInfo,
                     truffleNode,
                     Split.HEURISTIC,
@@ -382,7 +386,7 @@ public class TranslatorDriver {
             rootNode = new RubyRootNode(
                     language,
                     sourceIndexLength.toSourceSection(source),
-                    environment.getFrameDescriptor(),
+                    frameDescriptor,
                     sharedMethodInfo,
                     truffleNode,
                     Split.HEURISTIC,
@@ -458,7 +462,7 @@ public class TranslatorDriver {
         return (RootParseNode) result.getAST();
     }
 
-    private TranslatorEnvironment environmentForFrame(RubyContext context, MaterializedFrame frame) {
+    private TranslatorEnvironment environmentForFrame(RubyContext context, MaterializedFrame frame, int blockDepth) {
         if (frame == null) {
             return null;
         } else {
@@ -472,17 +476,17 @@ public class TranslatorDriver {
                     "external",
                     null);
             final MaterializedFrame parent = RubyArguments.getDeclarationFrame(frame);
-            // TODO(CS): how do we know if the frame is a block or not?
+            assert (blockDepth == 0) == (parent == null);
+
             return new TranslatorEnvironment(
-                    environmentForFrame(context, parent),
+                    environmentForFrame(context, parent, blockDepth - 1),
                     parseEnvironment,
                     parseEnvironment.allocateReturnID(),
                     true,
                     false,
-                    false,
                     sharedMethodInfo,
                     sharedMethodInfo.getMethodName(),
-                    0,
+                    blockDepth,
                     null,
                     frame.getFrameDescriptor(),
                     "<unused>");

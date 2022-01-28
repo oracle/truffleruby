@@ -9,21 +9,17 @@
  */
 package org.truffleruby.language.locals;
 
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.AssignableNode;
-import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class WriteLocalVariableNode extends WriteLocalNode {
 
     @Child private WriteFrameSlotNode writeFrameSlotNode;
 
-    public WriteLocalVariableNode(FrameSlot frameSlot, RubyNode valueNode) {
+    public WriteLocalVariableNode(int frameSlot, RubyNode valueNode) {
         super(frameSlot, valueNode);
     }
 
@@ -52,13 +48,13 @@ public class WriteLocalVariableNode extends WriteLocalNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
-        return FrozenStrings.ASSIGNMENT;
+    protected String getVariableName() {
+        return getRootNode().getFrameDescriptor().getSlotName(frameSlot).toString();
     }
 
     @Override
     public String toString() {
-        return super.toString() + " " + frameSlot.getIdentifier() + " = " + valueNode;
+        return super.toString() + " " + getVariableName() + " = " + valueNode;
     }
 
 }

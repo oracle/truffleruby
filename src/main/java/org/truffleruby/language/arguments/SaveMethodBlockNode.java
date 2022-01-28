@@ -9,16 +9,15 @@
  */
 package org.truffleruby.language.arguments;
 
-import com.oracle.truffle.api.frame.FrameSlot;
 import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class SaveMethodBlockNode extends RubyContextSourceNode {
 
-    private final FrameSlot slot;
+    private final int slot;
 
-    public SaveMethodBlockNode(FrameSlot slot) {
+    public SaveMethodBlockNode(int slot) {
         this.slot = slot;
     }
 

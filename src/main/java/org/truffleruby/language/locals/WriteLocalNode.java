@@ -17,21 +17,22 @@ import org.truffleruby.debug.SingleMemberDescriptor;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
-import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.StandardTags.WriteVariableTag;
 import com.oracle.truffle.api.instrumentation.Tag;
 
 public abstract class WriteLocalNode extends RubyContextSourceNode implements AssignableNode {
 
-    protected final FrameSlot frameSlot;
+    protected final int frameSlot;
 
     @Child protected RubyNode valueNode;
 
-    public WriteLocalNode(FrameSlot frameSlot, RubyNode valueNode) {
+    public WriteLocalNode(int frameSlot, RubyNode valueNode) {
         this.frameSlot = frameSlot;
         this.valueNode = valueNode;
     }
+
+    protected abstract String getVariableName();
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
@@ -45,7 +46,8 @@ public abstract class WriteLocalNode extends RubyContextSourceNode implements As
 
     @Override
     public Object getNodeObject() {
-        return new SingleMemberDescriptor(WriteVariableTag.NAME, frameSlot.getIdentifier().toString());
+        String name = getVariableName();
+        return new SingleMemberDescriptor(WriteVariableTag.NAME, name);
     }
 
 }

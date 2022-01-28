@@ -51,7 +51,6 @@ import org.truffleruby.parser.ArgumentDescriptor;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameDescriptor;
@@ -201,12 +200,8 @@ public abstract class SymbolNodes {
             // MRI raises an error on Proc#binding if you attempt to access the binding of a Proc generated
             // by Symbol#to_proc. We generate a declaration frame here so that all procedures will have a
             // binding as this simplifies the logic elsewhere in the runtime.
-            final MaterializedFrame declarationFrame = Truffle
-                    .getRuntime()
-                    .createVirtualFrame(args, language.emptyDeclarationDescriptor)
-                    .materialize();
-            SpecialVariableStorage variables = new SpecialVariableStorage();
-            declarationFrame.setObject(language.emptyDeclarationSpecialVariableSlot, variables);
+            final var variables = new SpecialVariableStorage();
+            final MaterializedFrame declarationFrame = language.createEmptyDeclarationFrame(args, variables);
 
             return ProcOperations.createRubyProc(
                     context.getCoreLibrary().procClass,

@@ -24,7 +24,6 @@ import org.truffleruby.language.library.RubyLibrary;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.FrameUtil;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -52,7 +51,7 @@ public abstract class ReadStringPointerNode extends FormatNode {
             @CachedLibrary(limit = "1") InteropLibrary interop) {
         final Pointer pointer = new Pointer(address);
         checkAssociated(
-                (Pointer[]) FrameUtil.getObjectSafe(frame, FormatFrameDescriptor.SOURCE_ASSOCIATED_SLOT),
+                (Pointer[]) frame.getObject(FormatFrameDescriptor.SOURCE_ASSOCIATED_SLOT),
                 pointer);
 
         final byte[] bytes = pointer.readZeroTerminatedByteArray(

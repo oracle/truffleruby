@@ -35,6 +35,7 @@ public interface ValueFromNode {
         private final BodyTranslator translator;
         private final ParseNode node;
         private final String temp;
+        private final int slot;
 
         private boolean sequenced = false;
 
@@ -42,6 +43,7 @@ public interface ValueFromNode {
             this.translator = translator;
             this.node = node;
             temp = translator.getEnvironment().allocateLocalTemp("value");
+            slot = translator.getEnvironment().declareVar(temp);
         }
 
         @Override
@@ -53,9 +55,7 @@ public interface ValueFromNode {
             return Translator.sequence(
                     sourceSection,
                     Arrays.asList(
-                            new WriteLocalVariableNode(
-                                    translator.getEnvironment().getFrameDescriptor().findOrAddFrameSlot(temp),
-                                    node.accept(translator)),
+                            new WriteLocalVariableNode(slot, node.accept(translator)),
                             subsequent));
         }
 

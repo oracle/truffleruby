@@ -265,8 +265,6 @@ import org.truffleruby.parser.parser.ParserSupport;
 import org.truffleruby.parser.scope.StaticScope;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.source.Source;
@@ -628,13 +626,13 @@ public class BodyTranslator extends Translator {
         private final RubyNode block;
         private final RubyNode[] arguments;
         private final boolean isSplatted;
-        private final FrameSlot frameOnStackMarkerSlot;
+        private final int frameOnStackMarkerSlot;
 
         public ArgumentsAndBlockTranslation(
                 RubyNode block,
                 RubyNode[] arguments,
                 boolean isSplatted,
-                FrameSlot frameOnStackMarkerSlot) {
+                int frameOnStackMarkerSlot) {
             super();
             this.block = block;
             this.arguments = arguments;
@@ -654,15 +652,15 @@ public class BodyTranslator extends Translator {
             return isSplatted;
         }
 
-        public FrameSlot getFrameOnStackMarkerSlot() {
+        public int getFrameOnStackMarkerSlot() {
             return frameOnStackMarkerSlot;
         }
     }
 
-    public static final Object BAD_FRAME_SLOT = new Object();
+    public static final int NO_FRAME_ON_STACK_MARKER = -1;
     private static final ParseNode[] EMPTY_ARGUMENTS = ParseNode.EMPTY_ARRAY;
 
-    public Deque<Object> frameOnStackMarkerSlotStack = new ArrayDeque<>();
+    public Deque<Integer> frameOnStackMarkerSlotStack = new ArrayDeque<>();
 
     protected ArgumentsAndBlockTranslation translateArgumentsAndBlock(SourceIndexLength sourceSection,
             ParseNode iterNode, ParseNode argsNode, String nameToSetWhenTranslatingBlock) {
@@ -705,16 +703,15 @@ public class BodyTranslator extends Translator {
 
         currentCallMethodName = nameToSetWhenTranslatingBlock;
 
-        final FrameSlot frameOnStackMarkerSlot;
+        final int frameOnStackMarkerSlot;
         RubyNode blockTranslated;
 
         if (blockPassNode != null) {
             blockTranslated = ToProcNodeGen.create(blockPassNode.accept(this));
             blockTranslated.unsafeSetSourceSection(sourceSection);
-            frameOnStackMarkerSlot = null;
+            frameOnStackMarkerSlot = NO_FRAME_ON_STACK_MARKER;
         } else if (iterNode != null) {
-            frameOnStackMarkerSlot = environment.declareVar(environment.allocateLocalTemp("frame_on_stack_marker"));
-            environment.getFrameDescriptor().setFrameSlotKind(frameOnStackMarkerSlot, FrameSlotKind.Object);
+            frameOnStackMarkerSlot = environment.declareLocalTemp("frame_on_stack_marker");
 
             frameOnStackMarkerSlotStack.push(frameOnStackMarkerSlot);
             try {
@@ -729,7 +726,7 @@ public class BodyTranslator extends Translator {
             }
         } else {
             blockTranslated = null;
-            frameOnStackMarkerSlot = null;
+            frameOnStackMarkerSlot = NO_FRAME_ON_STACK_MARKER;
         }
 
         currentCallMethodName = null;
@@ -755,8 +752,8 @@ public class BodyTranslator extends Translator {
         if (node.getCaseNode() != null) {
             // Evaluate the case expression and store it in a local
 
-            final String tempName = environment.allocateLocalTemp("case");
-            final ReadLocalNode readTemp = environment.findLocalVarNode(tempName, sourceSection);
+            final int tempSlot = environment.declareLocalTemp("case");
+            final ReadLocalNode readTemp = environment.readNode(tempSlot, sourceSection);
             final RubyNode assignTemp = readTemp.makeWriteNode(node.getCaseNode().accept(this));
 
             /* Build an if expression from the whens and else. Work backwards because the first if contains all the
@@ -848,8 +845,8 @@ public class BodyTranslator extends Translator {
 
         // Evaluate the case expression and store it in a local
 
-        final String tempName = environment.allocateLocalTemp("case");
-        final ReadLocalNode readTemp = environment.findLocalVarNode(tempName, sourceSection);
+        final int tempSlot = environment.declareLocalTemp("case");
+        final ReadLocalNode readTemp = environment.readNode(tempSlot, sourceSection);
         final RubyNode assignTemp = readTemp.makeWriteNode(node.getCaseNode().accept(this));
 
         /* Build an if expression from the ins and else. Work backwards because the first if contains all the others in
@@ -902,8 +899,8 @@ public class BodyTranslator extends Translator {
                     // For each element of the case expression, evaluate and assign it, then run the pattern-matching
                     // on the element
                     for (int n = 0; n < size; n++) {
-                        final String tempName = environment.allocateLocalTemp("caseElem" + n);
-                        final ReadLocalNode readTemp = environment.findLocalVarNode(tempName, sourceSection);
+                        final int tempSlot = environment.declareLocalTemp("caseElem" + n);
+                        final ReadLocalNode readTemp = environment.readNode(tempSlot, sourceSection);
                         final RubyNode assignTemp = readTemp.makeWriteNode(expressionElements[n].accept(this));
                         matches[n] = sequence(sourceSection, Arrays.asList(
                                 assignTemp,
@@ -1021,12 +1018,11 @@ public class BodyTranslator extends Translator {
                 ReturnID.MODULE_BODY,
                 true,
                 true,
-                true,
                 sharedMethodInfo,
                 methodName,
                 0,
                 null,
-                TranslatorEnvironment.newFrameDescriptor(),
+                null,
                 modulePath);
 
         final BodyTranslator moduleTranslator = new BodyTranslator(
@@ -1061,7 +1057,7 @@ public class BodyTranslator extends Translator {
             body = sequence(sourceSection, Arrays.asList(initFlipFlopStates(environment, sourceSection), body));
         }
 
-        final RubyNode writeSelfNode = loadSelf(language, environment);
+        final RubyNode writeSelfNode = loadSelf(language);
         body = sequence(sourceSection, Arrays.asList(writeSelfNode, body));
 
         final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
@@ -1069,7 +1065,7 @@ public class BodyTranslator extends Translator {
         final RubyRootNode rootNode = new RubyRootNode(
                 language,
                 fullSourceSection,
-                environment.getFrameDescriptor(),
+                environment.computeFrameDescriptor(),
                 environment.getSharedMethodInfo(),
                 body,
                 Split.NEVER,
@@ -1462,13 +1458,12 @@ public class BodyTranslator extends Translator {
                 environment.getParseEnvironment(),
                 environment.getParseEnvironment().allocateReturnID(),
                 true,
-                true,
                 false,
                 sharedMethodInfo,
                 methodName,
                 0,
                 null,
-                TranslatorEnvironment.newFrameDescriptor(),
+                null,
                 environment.modulePath);
 
         // ownScopeForAssignments is the same for the defined method as the current one.
@@ -1592,7 +1587,7 @@ public class BodyTranslator extends Translator {
     }
 
     protected FlipFlopStateNode createFlipFlopState(SourceIndexLength sourceSection, int depth) {
-        final FrameSlot frameSlot = environment.declareVar(environment.allocateLocalTemp("flipflop"));
+        final int frameSlot = environment.declareLocalTemp("flipflop");
         environment.getFlipFlopStates().add(frameSlot);
 
         if (depth == 0) {
@@ -1674,6 +1669,7 @@ public class BodyTranslator extends Translator {
          * Here, JRuby calls the object being iterated over the 'iter'. */
 
         final String temp = environment.allocateLocalTemp("for");
+        environment.declareVar(temp);
 
         final ParseNode receiver = node.getIterNode();
 
@@ -1919,7 +1915,7 @@ public class BodyTranslator extends Translator {
             rhs = node.getValueNode().accept(this);
         }
 
-        final RubyNode self = new SelfNode(environment.getFrameDescriptor());
+        final RubyNode self = new SelfNode();
         final RubyNode ret = new WriteInstanceVariableNode(name, self, rhs);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
@@ -1931,7 +1927,7 @@ public class BodyTranslator extends Translator {
         final String name = node.getName();
 
         // About every case will use a SelfParseNode, just don't it use more than once.
-        final SelfNode self = new SelfNode(environment.getFrameDescriptor());
+        final SelfNode self = new SelfNode();
 
         final RubyNode ret = new ReadInstanceVariableNode(name, self);
         ret.unsafeSetSourceSection(sourceSection);
@@ -1985,12 +1981,11 @@ public class BodyTranslator extends Translator {
                 returnID,
                 hasOwnScope,
                 false,
-                false,
                 sharedMethodInfo,
                 environment.getMethodName(),
                 blockDepth,
                 parseEnvironment.allocateBreakID(),
-                TranslatorEnvironment.newFrameDescriptor(),
+                null,
                 environment.modulePath);
         final MethodTranslator methodCompiler = new MethodTranslator(
                 language,
@@ -2125,7 +2120,7 @@ public class BodyTranslator extends Translator {
             if (numberOfNames > 0) {
                 final RubyNode[] setters = new RubyNode[numberOfNames];
                 final RubyNode[] nilSetters = new RubyNode[numberOfNames];
-                final String tempVar = environment.allocateLocalTemp("match_data");
+                final int tempSlot = environment.declareLocalTemp("match_data");
                 int n = 0;
 
                 for (Iterator<NameEntry> i = regex.namedBackrefIterator(); i.hasNext(); n++) {
@@ -2140,10 +2135,10 @@ public class BodyTranslator extends Translator {
                     }
                     environmentToDeclareIn.declareVar(name);
                     nilSetters[n] = match2NilSetter(node, name);
-                    setters[n] = match2NonNilSetter(node, name, tempVar);
+                    setters[n] = match2NonNilSetter(node, name, tempSlot);
                 }
                 final RubyNode readNode = ReadGlobalVariableNodeGen.create("$~");
-                ReadLocalNode tempVarReadNode = environment.findLocalVarNode(tempVar, node.getPosition());
+                ReadLocalNode tempVarReadNode = environment.readNode(tempSlot, node.getPosition());
                 RubyNode readMatchNode = tempVarReadNode.makeWriteNode(readNode);
                 ret = new ReadMatchReferenceNodes.SetNamedVariablesMatchNode(ret, readMatchNode, setters, nilSetters);
             }
@@ -2156,9 +2151,9 @@ public class BodyTranslator extends Translator {
         return environment.findLocalVarNode(name, node.getPosition()).makeWriteNode(new NilLiteralNode(true));
     }
 
-    private RubyNode match2NonNilSetter(ParseNode node, String name, String tempVar) {
+    private RubyNode match2NonNilSetter(ParseNode node, String name, int tempSlot) {
         ReadLocalNode varNode = environment.findLocalVarNode(name, node.getPosition());
-        ReadLocalNode tempVarNode = environment.findLocalVarNode(tempVar, node.getPosition());
+        ReadLocalNode tempVarNode = environment.readNode(tempSlot, node.getPosition());
         ObjectLiteralNode symbolNode = new ObjectLiteralNode(language.getSymbol(name));
         GetIndexNode getIndexNode = GetIndexNode
                 .create(tempVarNode, symbolNode, new ObjectLiteralNode(NotProvided.INSTANCE));
@@ -2443,6 +2438,7 @@ public class BodyTranslator extends Translator {
         /* We're going to de-sugar a[b] += c into a[b] = a[b] + c. See discussion in visitOpAsgnNode. */
 
         final String tempName = environment.allocateLocalTemp("opelementassign");
+        environment.declareVar(tempName);
 
         final ParseNode value = node.getValueNode();
         final ParseNode readReceiverFromTemp = new LocalVarParseNode(node.getPosition(), 0, tempName);
@@ -2856,7 +2852,7 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitSelfNode(SelfParseNode node) {
-        final RubyNode ret = new SelfNode(environment.getFrameDescriptor());
+        final RubyNode ret = new SelfNode();
         return addNewlineIfNeeded(node, ret);
     }
 
@@ -2968,7 +2964,7 @@ public class BodyTranslator extends Translator {
         translatingWhile = true;
         BreakID oldBreakID = environment.getBreakID();
         environment.setBreakIDForWhile(whileBreakID);
-        frameOnStackMarkerSlotStack.push(BAD_FRAME_SLOT);
+        frameOnStackMarkerSlotStack.push(NO_FRAME_ON_STACK_MARKER);
         try {
             body = translateNodeOrNil(sourceSection, node.getBodyNode());
         } finally {

@@ -9,25 +9,19 @@
  */
 package org.truffleruby.language.locals;
 
-import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class LocalFlipFlopStateNode extends FlipFlopStateNode {
 
-    private final FrameSlot frameSlot;
+    private final int frameSlot;
 
-    public LocalFlipFlopStateNode(FrameSlot frameSlot) {
+    public LocalFlipFlopStateNode(int frameSlot) {
         this.frameSlot = frameSlot;
     }
 
     @Override
     public boolean getState(VirtualFrame frame) {
-        try {
-            return frame.getBoolean(frameSlot);
-        } catch (FrameSlotTypeException e) {
-            throw new IllegalStateException();
-        }
+        return frame.getBoolean(frameSlot);
     }
 
     @Override

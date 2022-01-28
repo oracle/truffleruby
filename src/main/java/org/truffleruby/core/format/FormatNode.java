@@ -12,7 +12,6 @@ package org.truffleruby.core.format;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import com.oracle.truffle.api.frame.FrameUtil;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.format.exceptions.TooFewArgumentsException;
 import org.truffleruby.core.rope.CodeRange;
@@ -22,7 +21,6 @@ import org.truffleruby.language.RubyBaseNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -39,11 +37,11 @@ public abstract class FormatNode extends RubyBaseNode {
     public abstract Object execute(VirtualFrame frame);
 
     public int getSourceLength(VirtualFrame frame) {
-        return FrameUtil.getIntSafe(frame, FormatFrameDescriptor.SOURCE_LENGTH_SLOT);
+        return frame.getInt(FormatFrameDescriptor.SOURCE_LENGTH_SLOT);
     }
 
     protected int getSourcePosition(VirtualFrame frame) {
-        return FrameUtil.getIntSafe(frame, FormatFrameDescriptor.SOURCE_POSITION_SLOT);
+        return frame.getInt(FormatFrameDescriptor.SOURCE_POSITION_SLOT);
     }
 
     protected void setSourcePosition(VirtualFrame frame, int position) {
@@ -89,11 +87,7 @@ public abstract class FormatNode extends RubyBaseNode {
     }
 
     protected Object getOutput(VirtualFrame frame) {
-        try {
-            return frame.getObject(FormatFrameDescriptor.OUTPUT_SLOT);
-        } catch (FrameSlotTypeException e) {
-            throw new IllegalStateException(e);
-        }
+        return frame.getObject(FormatFrameDescriptor.OUTPUT_SLOT);
     }
 
     protected void setOutput(VirtualFrame frame, Object output) {
@@ -101,11 +95,7 @@ public abstract class FormatNode extends RubyBaseNode {
     }
 
     protected int getOutputPosition(VirtualFrame frame) {
-        try {
-            return frame.getInt(FormatFrameDescriptor.OUTPUT_POSITION_SLOT);
-        } catch (FrameSlotTypeException e) {
-            throw new IllegalStateException(e);
-        }
+        return frame.getInt(FormatFrameDescriptor.OUTPUT_POSITION_SLOT);
     }
 
     protected void setOutputPosition(VirtualFrame frame, int position) {
@@ -113,11 +103,7 @@ public abstract class FormatNode extends RubyBaseNode {
     }
 
     protected int getStringLength(VirtualFrame frame) {
-        try {
-            return frame.getInt(FormatFrameDescriptor.STRING_LENGTH_SLOT);
-        } catch (FrameSlotTypeException e) {
-            throw new IllegalStateException(e);
-        }
+        return frame.getInt(FormatFrameDescriptor.STRING_LENGTH_SLOT);
     }
 
     protected void setStringLength(VirtualFrame frame, int length) {
@@ -129,14 +115,10 @@ public abstract class FormatNode extends RubyBaseNode {
     }
 
     protected void setStringCodeRange(VirtualFrame frame, CodeRange codeRange) {
-        try {
-            final int existingCodeRange = frame.getInt(FormatFrameDescriptor.STRING_CODE_RANGE_SLOT);
+        final int existingCodeRange = frame.getInt(FormatFrameDescriptor.STRING_CODE_RANGE_SLOT);
 
-            if (codeRangeIncreasedProfile.profile(codeRange.toInt() > existingCodeRange)) {
-                frame.setInt(FormatFrameDescriptor.STRING_CODE_RANGE_SLOT, codeRange.toInt());
-            }
-        } catch (FrameSlotTypeException e) {
-            throw new IllegalStateException(e);
+        if (codeRangeIncreasedProfile.profile(codeRange.toInt() > existingCodeRange)) {
+            frame.setInt(FormatFrameDescriptor.STRING_CODE_RANGE_SLOT, codeRange.toInt());
         }
     }
 
