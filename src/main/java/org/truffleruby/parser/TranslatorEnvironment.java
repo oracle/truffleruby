@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.truffleruby.Layouts;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyNode;
@@ -31,7 +32,7 @@ import com.oracle.truffle.api.frame.FrameSlot;
 
 public class TranslatorEnvironment {
 
-    public static final String METHOD_BLOCK_NAME = "%__method_block_arg__";
+    public static final String METHOD_BLOCK_NAME = Layouts.TEMP_PREFIX + "method_block_arg";
 
     private final ParseEnvironment parseEnvironment;
 
@@ -180,7 +181,7 @@ public class TranslatorEnvironment {
     }
 
     public String allocateLocalTemp(String indicator) {
-        final String name = "%" + indicator + "_" + tempIndex.getAndIncrement();
+        final String name = Layouts.TEMP_PREFIX + indicator + "_" + tempIndex.getAndIncrement();
         declareVar(name);
         return name;
     }

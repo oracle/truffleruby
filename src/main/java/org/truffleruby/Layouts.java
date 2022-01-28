@@ -13,6 +13,10 @@ import com.oracle.truffle.api.object.HiddenKey;
 
 public abstract class Layouts {
 
+    // Special variables
+
+    public static final String TEMP_PREFIX = "%";
+
     // Standard identifiers
 
     public static final HiddenKey OBJECT_ID_IDENTIFIER = new HiddenKey("object_id"); // long
@@ -26,6 +30,6 @@ public abstract class Layouts {
 
     // Frame slot name for special variable storage.
 
-    public static final String SPECIAL_VARIABLES_STORAGE = "%$~_";
+    public static final String SPECIAL_VARIABLES_STORAGE = TEMP_PREFIX + "$~_";
 
 }

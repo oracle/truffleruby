@@ -47,6 +47,7 @@ import org.jcodings.specific.EUCJPEncoding;
 import org.jcodings.specific.SJISEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.encoding.EncodingManager;
@@ -153,10 +154,10 @@ import org.truffleruby.parser.scope.StaticScope;
 public class ParserSupport {
 
     /** The local variable to store ... arguments in */
-    public static final String FORWARD_ARGS_REST_VAR = "%forward_rest";
+    public static final String FORWARD_ARGS_REST_VAR = Layouts.TEMP_PREFIX + "forward_rest";
 
     /** The local variable to store the block from ... in */
-    public static final String FORWARD_ARGS_BLOCK_VAR = "%forward_block";
+    public static final String FORWARD_ARGS_BLOCK_VAR = Layouts.TEMP_PREFIX + "forward_block";
 
     // Parser states:
     protected StaticScope currentScope;
@@ -1438,7 +1439,7 @@ public class ParserSupport {
 
         final String restKwargsName;
         if (keywordRestArgNameRope.isEmpty()) {
-            restKwargsName = "%kwrest";
+            restKwargsName = Layouts.TEMP_PREFIX + "kwrest";
         } else {
             restKwargsName = keywordRestArgNameRope.getJavaString().intern();
         }

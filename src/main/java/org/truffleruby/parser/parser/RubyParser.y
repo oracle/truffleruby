@@ -3,6 +3,7 @@ package org.truffleruby.parser.parser;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.Layouts;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
@@ -1799,7 +1800,7 @@ block_param     : f_arg ',' f_block_optarg ',' f_rest_arg opt_block_args_tail {
                     $$ = support.new_args($1.getPosition(), $1, null, $3, null, $4);
                 }
                 | f_arg ',' {
-                    RestArgParseNode rest = new UnnamedRestArgParseNode($1.getPosition(), "%anonymous_rest", support.getCurrentScope().addVariable("*"), false);
+                    RestArgParseNode rest = new UnnamedRestArgParseNode($1.getPosition(), Layouts.TEMP_PREFIX + "anonymous_rest", support.getCurrentScope().addVariable("*"), false);
                     $$ = support.new_args($1.getPosition(), $1, null, rest, null, (ArgsTailHolder) null);
                 }
                 | f_arg ',' f_rest_arg ',' f_arg opt_block_args_tail {
@@ -2663,7 +2664,7 @@ f_rest_arg      : restarg_mark tIDENTIFIER {
                 }
                 | restarg_mark {
   // FIXME: bytelist_love: somewhat silly to remake the empty bytelist over and over but this type should change (using null vs "" is a strange distinction).
-  $$ = new UnnamedRestArgParseNode(lexer.getPosition(), "%unnamed_rest", support.getCurrentScope().addVariable("*"), true);
+  $$ = new UnnamedRestArgParseNode(lexer.getPosition(), Layouts.TEMP_PREFIX + "unnamed_rest", support.getCurrentScope().addVariable("*"), true);
                 }
 
 // [!null]
