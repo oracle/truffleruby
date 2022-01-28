@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-test/truffle/compiler/graphs/run
+$SYSTEM_RUBY test/truffle/compiler/graphs/run.rb

@@ -1,8 +1,4 @@
-#!/usr/bin/env ruby
-
 require 'json'
-
-NATIVE = `tool/jt.rb ruby --version` =~ /Native/
 
 $tests = 0
 $failures = 0
@@ -47,5 +43,5 @@ test 'test/truffle/compiler/graphs/args-opt-set.rb', { linear: true }
 test 'test/truffle/compiler/graphs/args-opt-unset.rb', { linear: true}
 test 'test/truffle/compiler/graphs/args-rest.rb', { linear: true }
 
-puts "#$tests tests, #$failures failures"
+puts "#{$tests} tests, #{$failures} failures"
 exit 1 if $failures > 0

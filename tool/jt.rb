@@ -810,7 +810,7 @@ module Commands
       jt profile                                     profiles an application, including the TruffleRuby runtime, and generates a flamegraph
       jt graph [ruby options] [--method Object#foo] [--watch] [--no-simplify] file.rb
                                                      render a graph of Object#foo within file.rb
-                              --describe             describe the shape of the graph (deopts, linear, branches, loops, calls)
+                              --describe             describe the shape of the graph (linear, branches, loops, calls, deopts)
       jt igv                                         launches IdealGraphVisualizer
       jt next                                        tell you what to work on next (give you a random core library spec)
       jt install [jvmci|eclipse]                     install [the right JVMCI JDK | Eclipse] in the parent directory
@@ -2121,7 +2121,8 @@ module Commands
       decoded = JSON.parse(list)
       n = decoded.find { |entry| entry['graph_name_components'].last == 'Before phase org.graalvm.compiler.phases.common.LoweringPhase' }['graph_index']
 
-      raw_sh env, 'seafoam', "_#{seafoam_version}_", *[json ? '--json' : nil, "#{graph}:#{n}", describe ? 'describe' : 'render'].compact
+      json_args = json ? %w[--json] : []
+      raw_sh env, 'seafoam', "_#{seafoam_version}_", *json_args, "#{graph}:#{n}", describe ? 'describe' : 'render'
 
       break unless watch
       puts # newline between runs
