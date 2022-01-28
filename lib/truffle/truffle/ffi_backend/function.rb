@@ -47,7 +47,7 @@ module FFI
       end
 
       if FFI::DynamicLibrary::Symbol === function
-        @function = function.handle.bind(@function_info.nfi_type)
+        @function = Truffle::POSIX.nfi_function_from_pointer(function.handle, @function_info.nfi_type)
         @native_wrapper = nil
         super(@function)
       elsif FFI::Pointer === function
