@@ -44,6 +44,10 @@ class Dir
 
       attr_writer :separator
 
+      def sorted?
+        (@flags & File::FNM_GLOB_NOSORT) == 0
+      end
+
       def separator
         @separator || '/'
       end
@@ -69,6 +73,43 @@ class Dir
         # entries from a directory stream and so should not be checked
         # here by the node.
         raise 'invalid call to Node base method'
+      end
+
+      def dir_entries(dir, resolve_type, exclude_self_and_parent)
+        # Internal method used by nodes to retrieve the entries for a
+        # directory, sorting them if required. The dir argument should
+        # be an already open directory object, while resolve_type and
+        # exclude_self_and_parent indicate whether the file type
+        # should be resolved while scanning the directory, and the '.'
+        # and '..' entries should be returned.
+        res = []
+        if dir
+          begin
+            begin
+              read_res = Truffle::DirOperations.readdir_multiple(dir, resolve_type, exclude_self_and_parent, res)
+            end until read_res == 0;
+            res.sort! if sorted?
+          ensure
+            dir.close
+          end
+        end
+        res
+      end
+
+      def subdir_entries(glob_base_dir, path)
+        # This method will return the set of directory entries for a
+        # sub directory (path) relative to glob_base_dir, which can be
+        # nil.
+        full = if path
+                 path_join(glob_base_dir, path)
+               elsif glob_base_dir
+                 glob_base_dir
+               else
+                 '.'
+               end
+        dir = Dir.allocate.send(:initialize_internal, full)
+        res = dir_entries(dir, true, true)
+        res
       end
     end
 
@@ -136,32 +177,30 @@ class Dir
           matched.process_entry(entry, true, matches, parent, glob_base_dir)
         end
 
-        stack = [[start, @separator || '/']]
+        stack = [[matched, start, separator, subdir_entries(glob_base_dir, start)]]
 
         allow_dots = ((@flags & File::FNM_DOTMATCH) != 0)
 
         until stack.empty?
-          path, sep = *stack.pop
-          matched = @next.dup
-          matched.separator = sep
-          dir = Dir.allocate.send(:initialize_internal, Dir::Glob.path_join(glob_base_dir, path, sep))
-          next unless dir
-
-          while dirent = Truffle::DirOperations.readdir(dir)
-            ent = dirent[0]
-            type = dirent[1]
-            next if ent == '.' || ent == '..'
+          matched, path, sep, dir_entries = *stack.pop
+          while entry = dir_entries.shift
+            ent = entry.name
+            type = entry.type
             is_dir = type == Truffle::DirOperations::DT_DIR
 
             full = Dir::Glob.path_join(path, ent, sep)
             if is_dir and (allow_dots or ent.getbyte(0) != 46) # ?.
-              stack << [full, '/']
               matched.process_entry ent, true, matches, path, glob_base_dir
+              stack << [matched, path, sep, dir_entries]
+              path = full
+              sep = '/'
+              matched = @next.dup
+              matched.separator = sep
+              dir_entries = subdir_entries(glob_base_dir, full)
             elsif (allow_dots or ent.getbyte(0) != 46) # ?.
               matched.process_entry ent, is_dir, matches, path, glob_base_dir
             end
           end
-          dir.close
         end
       end
 
@@ -178,44 +217,33 @@ class Dir
         # in this case, its left separator is still the
         # dominant one, so we fix things up to use it.
         if @separator
-          switched = @next.dup
-          switched.separator = @separator
         else
           @next.process_entry '', true, matches, parent, glob_base_dir if glob_base_dir
         end
 
-        stack = [nil]
+        stack = [[nil, subdir_entries(glob_base_dir, nil)]]
 
         allow_dots = ((@flags & File::FNM_DOTMATCH) != 0)
 
-
         until stack.empty?
-          path = stack.pop
-          full = if path
-                   path_join(glob_base_dir, path)
-                 elsif glob_base_dir
-                   glob_base_dir
-                 else
-                   '.'
-                 end
-          dir = Dir.allocate.send(:initialize_internal, full)
-          next unless dir
+          path, dir_entries = *stack.pop
 
-          while dirent = Truffle::DirOperations.readdir(dir)
-            ent = dirent[0]
-            type = dirent[1]
-            next if ent == '.' || ent == '..'
+          while entry = dir_entries.shift
+            ent = entry.name
+            type = entry.type
             is_dir = type == Truffle::DirOperations::DT_DIR
 
             full = path_join(path, ent)
             if is_dir and (allow_dots or ent.getbyte(0) != 46) # ?.
-              stack << full
               @next.process_entry ent, true, matches, path, glob_base_dir
+
+              stack << [path, dir_entries]
+              path = full
+              dir_entries = subdir_entries(glob_base_dir, full)
             elsif (allow_dots or ent.getbyte(0) != 46) # ?.
               @next.process_entry ent, is_dir, matches, path, glob_base_dir
             end
           end
-          dir.close
         end
       end
 
@@ -247,14 +275,13 @@ class Dir
         return if path and !Truffle::FileOperations.exist?(path_join(glob_base_dir, "#{path}/."))
 
         dir = Dir.allocate.send(:initialize_internal, path_join(glob_base_dir, path ? path : '.'))
-        while ent = dir.read
-          if match? ent
-            if File.directory? path_join(glob_base_dir, path_join(path, ent))
-              @next.process_directory matches, path, ent, glob_base_dir
+        dir_entries(dir, false, false).each do |e|
+          if match? e.name
+            if File.directory? path_join(glob_base_dir, path_join(path, e.name))
+              @next.process_directory matches, path, e.name, glob_base_dir
             end
           end
         end
-        dir.close
       end
 
       def process_entry(entry, is_dir, matches, parent, glob_base_dir)
@@ -269,15 +296,9 @@ class Dir
 
         dir_path = path_join(glob_base_dir, path ? path : '.')
         dir = Dir.allocate.send(:initialize_internal, dir_path)
-        if dir
-          begin
-            while ent = dir.read
-              if match? ent
-                matches << path_join(path, ent)
-              end
-            end
-          ensure
-            dir.close
+        dir_entries(dir, false, false).each do |e|
+          if match? e.name
+            matches << path_join(path, e.name)
           end
         end
       end
@@ -411,7 +432,6 @@ class Dir
       else
         matches = []
         node.process_directory matches, nil, nil, glob_base_dir
-        matches.sort! if (flags & File::FNM_GLOB_NOSORT) == 0
 
         all_matches.concat(matches)
       end

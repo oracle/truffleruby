@@ -228,33 +228,77 @@ void truffleposix_free(void *pointer) {
   free(pointer);
 }
 
-struct dirent *truffleposix_readdir(DIR *dirp) {
-  errno = 0;
-  struct dirent *entry = readdir(dirp);
-  if (entry) {
-    if (entry->d_type == DT_UNKNOWN) {
-      struct stat native_stat;
-      int result = fstatat(dirfd(dirp), entry->d_name, &native_stat, AT_SYMLINK_NOFOLLOW);
-      if (result == 0) {
-        if (S_ISREG(native_stat.st_mode)) {
-          entry->d_type = DT_REG;
-        } else if(S_ISDIR(native_stat.st_mode)) {
-          entry->d_type = DT_DIR;
-        } else if (S_ISCHR(native_stat.st_mode)) {
-          entry->d_type = DT_CHR;;
-        } else if (S_ISBLK(native_stat.st_mode)) {
-          entry->d_type = DT_BLK;
-        } else if (S_ISFIFO(native_stat.st_mode)) {
-          entry->d_type = DT_FIFO;
-        } else if (S_ISLNK(native_stat.st_mode)) {
-          entry->d_type = DT_LNK;
-        } else if (S_ISSOCK(native_stat.st_mode)) {
-          entry->d_type = DT_SOCK;
-        }
+static unsigned char dirent_type(DIR *dirp, const struct dirent *entry, int resolve_type) {
+  if (resolve_type && entry->d_type == DT_UNKNOWN) {
+    struct stat native_stat;
+    int result = fstatat(dirfd(dirp), entry->d_name, &native_stat, AT_SYMLINK_NOFOLLOW);
+    if (result == 0) {
+      if (S_ISREG(native_stat.st_mode)) {
+        return DT_REG;
+      } else if(S_ISDIR(native_stat.st_mode)) {
+        return DT_DIR;
+      } else if (S_ISCHR(native_stat.st_mode)) {
+        return DT_CHR;;
+      } else if (S_ISBLK(native_stat.st_mode)) {
+        return DT_BLK;
+      } else if (S_ISFIFO(native_stat.st_mode)) {
+        return DT_FIFO;
+      } else if (S_ISLNK(native_stat.st_mode)) {
+        return DT_LNK;
+      } else if (S_ISSOCK(native_stat.st_mode)) {
+        return DT_SOCK;
       }
     }
   }
-  return entry;
+  return entry->d_type;
+}
+
+int truffleposix_readdir_multiple(DIR *dirp, int buffer_size, int resolve_type, int exclude_self_and_parent, char *buffer) {
+  errno = 0;
+  int offset = sizeof(int); /* The start of the buffer will contain the total number of entries, so leave space for that. */
+  int entcount = 0;
+  while (1) {
+    long pos = telldir(dirp);
+    struct dirent *entry = readdir(dirp);
+    if (entry) {
+      if (exclude_self_and_parent) {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+          continue;
+        }
+      }
+      int name_len = strlen(entry->d_name) + 1;
+      int ent_len = name_len + sizeof(int) + 1; /* Name length + null byte + int for length + int */
+      int alignment = ent_len % sizeof(int);
+      if (alignment > 0) {
+        alignment = sizeof(int) - alignment;
+      }
+      ent_len += alignment;
+      if ((offset + ent_len) > buffer_size) {
+        /* We can't fit this directory entry into the buffer, so we
+           need to seek back to our previous position, record the
+           number of entries that we've written to the buffer, and
+           tell the caller there are more entries to be read. */
+        seekdir(dirp, pos);
+        *((int *)(buffer)) = entcount;
+        return 1;
+      }
+      entcount++;
+      *((int *)(buffer + offset)) = name_len;
+      offset += sizeof(int);
+      memcpy(buffer + offset, entry->d_name, name_len);
+      offset += name_len;
+      *(buffer + offset++) = dirent_type(dirp, entry, resolve_type);
+      offset += alignment;
+    } else {
+      /* End of stream, or an error occurred.
+         Record the number of entries read, and return a zero so the
+         caller knows there are no more to be read. If an error
+         occurred then this will have been recorded in errno, and the
+         caller will check and handle that.*/
+      *((int *)(buffer)) = entcount;
+      return 0;
+    }
+  }
 }
 
 char *truffleposix_readdir_name(DIR *dirp) {
