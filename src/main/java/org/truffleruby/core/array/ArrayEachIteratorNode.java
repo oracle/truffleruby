@@ -51,8 +51,9 @@ public abstract class ArrayEachIteratorNode extends RubyBaseNode {
         int i = startAt;
         try {
             for (; loopProfile.inject(i < arraySizeProfile.profile(array.size)); i++) {
-                if (strategyMatchProfile.profile(stores.accepts(array.store))) {
-                    consumerNode.accept(array, block, stores.read(array.store, i), i);
+                Object store = array.store;
+                if (strategyMatchProfile.profile(stores.accepts(store))) {
+                    consumerNode.accept(array, block, stores.read(store, i), i);
                 } else {
                     return getRecurseNode().execute(array, block, i, consumerNode);
                 }
