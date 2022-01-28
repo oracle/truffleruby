@@ -69,7 +69,7 @@ module Truffle
     end
 
     def self.class_name(receiver)
-      Truffle::Type.object_class(receiver).name
+      Primitive.object_class(receiver).name
     end
 
     # MRI: name_err_mesg_to_str
@@ -83,7 +83,7 @@ module Truffle
       rescue Exception # rubocop:disable Lint/RescueException
         nil
       end
-      ret = Truffle::Type.rb_any_to_s(receiver) unless ret && ret.bytesize <= 65
+      ret = Primitive.rb_any_to_s(receiver) unless ret && ret.bytesize <= 65
       if ret.start_with?('#')
         ret
       else
@@ -175,7 +175,7 @@ module Truffle
       when false
         'false'
       else
-        Truffle::Type.object_class(val).name
+        Primitive.object_class(val).name
       end
     end
 

@@ -96,7 +96,7 @@ module Kernel
       return hash
     end
 
-    raise TypeError, "can't convert #{Truffle::Type.object_class(obj)} into Hash"
+    raise TypeError, "can't convert #{Primitive.object_class(obj)} into Hash"
   end
   module_function :Hash
 
@@ -348,7 +348,7 @@ module Kernel
   module_function :gets
 
   def inspect
-    prefix = "#<#{Truffle::Type.object_class(self)}:0x#{self.__id__.to_s(16)}"
+    prefix = "#<#{Primitive.object_class(self)}:0x#{self.__id__.to_s(16)}"
 
     ivars = Primitive.object_ivars self
 

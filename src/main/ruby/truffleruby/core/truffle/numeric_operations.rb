@@ -180,7 +180,7 @@ module Truffle
 
       unless Numeric === step
         coerced = Truffle::Type.check_funcall(step, :>, [0])
-        raise TypeError, "0 can't be coerced into #{Truffle::Type.object_class(step)}" if Primitive.undefined?(coerced)
+        raise TypeError, "0 can't be coerced into #{Primitive.object_class(step)}" if Primitive.undefined?(coerced)
         step = coerced
       end
 

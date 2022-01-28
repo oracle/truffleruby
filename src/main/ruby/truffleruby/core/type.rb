@@ -109,10 +109,8 @@ module Truffle
     end
 
     def self.coerce_to_type_error(original, converted, method, klass)
-      oc = object_class original
-      cc = object_class converted
-      msg = "failed to convert #{oc} to #{klass}: #{oc}\##{method} returned #{cc}"
-      raise TypeError, msg
+      oc = Primitive.object_class original
+      raise TypeError, "failed to convert #{oc} to #{klass}: #{oc}\##{method} returned #{Primitive.object_class converted}"
     end
 
     # MRI conversion macros and functions
@@ -188,8 +186,9 @@ module Truffle
       res
     end
 
-    def self.conversion_mismatch(val, cls, meth, res)
-      raise TypeError, "can't convert #{object_class(val)} to #{cls} (#{object_class(val)}##{meth} gives #{object_class(res)})"
+    def self.conversion_mismatch(obj, cls, meth, res)
+      oc = Primitive.object_class(obj)
+      raise TypeError, "can't convert #{oc} to #{cls} (#{oc}##{meth} gives #{Primitive.object_class(res)})"
     end
 
     def self.fits_into_int?(val)
@@ -249,7 +248,7 @@ module Truffle
         if Primitive.nil? v
           nil
         elsif !Primitive.object_kind_of?(v, cls)
-          raise TypeError, "can't convert #{object_class(obj)} to #{cls} (#{object_class(obj)}##{meth} gives #{object_class(v)})"
+          conversion_mismatch(obj, cls, meth, v)
         else
           v
         end
@@ -261,9 +260,7 @@ module Truffle
         obj
       else
         v = convert_type(obj, cls, meth, true)
-        unless Primitive.object_kind_of?(v, cls)
-          raise TypeError, "can't convert #{object_class(obj)} to #{cls} (#{object_class(obj)}##{meth} gives #{object_class(v)})"
-        end
+        conversion_mismatch(obj, cls, meth, v) unless Primitive.object_kind_of?(v, cls)
         v
       end
     end
@@ -271,7 +268,7 @@ module Truffle
     # MRI: Check_Type / rb_check_type
     def self.rb_check_type(obj, cls)
       unless Primitive.object_kind_of?(obj, cls)
-        raise TypeError, "wrong argument type #{object_class(obj)} (expected #{cls})"
+        raise TypeError, "wrong argument type #{Primitive.object_class(obj)} (expected #{cls})"
       end
       obj
     end
@@ -374,7 +371,7 @@ module Truffle
       if Primitive.nil?(ret) || Primitive.object_kind_of?(ret, cls)
         ret
       else
-        raise TypeError, "Coercion error: obj.#{meth} did NOT return a #{cls} (was #{object_class(ret)})"
+        raise TypeError, "Coercion error: obj.#{meth} did NOT return a #{cls} (was #{Primitive.object_class(ret)})"
       end
     end
 
@@ -400,7 +397,7 @@ module Truffle
       when nil, true, false
         raise TypeError, "can't convert #{obj.inspect} into Float"
       else
-        raise TypeError, "can't convert #{object_class(obj)} into Float"
+        raise TypeError, "can't convert #{Primitive.object_class(obj)} into Float"
       end
     end
 
@@ -536,7 +533,7 @@ module Truffle
         if Primitive.object_kind_of?(str, String)
           str
         else
-          Truffle::Type.rb_any_to_s(obj)
+          Primitive.rb_any_to_s(obj)
         end
       end
     end

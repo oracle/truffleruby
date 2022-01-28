@@ -44,7 +44,7 @@ module Truffle
             end
           else
             str = arg.to_s
-            str = Truffle::Type.rb_any_to_s(arg) unless Primitive.object_kind_of?(str, String)
+            str = Primitive.rb_any_to_s(arg) unless Primitive.object_kind_of?(str, String)
           end
 
           if str

@@ -314,7 +314,7 @@ class Struct
   end
 
   def hash
-    val = Primitive.vm_hash_start(Truffle::Type.object_class(self).hash)
+    val = Primitive.vm_hash_start(Primitive.object_class(self).hash)
     val = Primitive.vm_hash_update(val, size)
     return val if Truffle::ThreadOperations.detect_outermost_recursion self do
       _attrs.each do |var|
@@ -349,7 +349,7 @@ class Struct
 
   def deconstruct_keys(keys)
     return to_h if Primitive.nil?(keys)
-    raise TypeError, "wrong argument type #{Truffle::Type.object_class(keys)} (expected Array or nil)" unless Primitive.object_kind_of?(keys, Array)
+    raise TypeError, "wrong argument type #{Primitive.object_class(keys)} (expected Array or nil)" unless Primitive.object_kind_of?(keys, Array)
     return {} if self.length < keys.length
 
     h = {}
@@ -446,7 +446,7 @@ class Struct
       end
 
       def hash
-        hash = Primitive.vm_hash_start(Truffle::Type.object_class(self).hash)
+        hash = Primitive.vm_hash_start(Primitive.object_class(self).hash)
         hash = Primitive.vm_hash_update hash, #{hashes.size}
 
         return hash if Truffle::ThreadOperations.detect_outermost_recursion(self) do

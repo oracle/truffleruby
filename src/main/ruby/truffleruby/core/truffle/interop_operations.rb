@@ -134,7 +134,7 @@ module Truffle
     end
 
     def self.ruby_class_and_language(object)
-      klass = Truffle::Type.object_class(object)
+      klass = Primitive.object_class(object)
       language = Truffle::Interop.language(object)
       language ? "#{klass}[#{language}]" : klass
     end
