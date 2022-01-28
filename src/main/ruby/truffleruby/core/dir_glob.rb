@@ -88,11 +88,7 @@ class Dir
             begin
               read_res = Truffle::DirOperations.readdir_multiple(dir, resolve_type, exclude_self_and_parent, res)
             end until read_res == 0;
-            if sorted?
-              res.sort! do |a, b|
-                a[0] <=> b[0]
-              end
-            end
+            res.sort! if sorted?
           ensure
             dir.close
           end
@@ -188,7 +184,8 @@ class Dir
         until stack.empty?
           matched, path, sep, dir_entries = *stack.pop
           while entry = dir_entries.shift
-            ent, type = entry
+            ent = entry.name
+            type = entry.type
             is_dir = type == Truffle::DirOperations::DT_DIR
 
             full = Dir::Glob.path_join(path, ent, sep)
@@ -232,7 +229,8 @@ class Dir
           path, dir_entries = *stack.pop
 
           while entry = dir_entries.shift
-            ent, type = entry
+            ent = entry.name
+            type = entry.type
             is_dir = type == Truffle::DirOperations::DT_DIR
 
             full = path_join(path, ent)
@@ -277,10 +275,10 @@ class Dir
         return if path and !Truffle::FileOperations.exist?(path_join(glob_base_dir, "#{path}/."))
 
         dir = Dir.allocate.send(:initialize_internal, path_join(glob_base_dir, path ? path : '.'))
-        dir_entries(dir, false, false).each do |ent, _type|
-          if match? ent
-            if File.directory? path_join(glob_base_dir, path_join(path, ent))
-              @next.process_directory matches, path, ent, glob_base_dir
+        dir_entries(dir, false, false).each do |e|
+          if match? e.name
+            if File.directory? path_join(glob_base_dir, path_join(path, e.name))
+              @next.process_directory matches, path, e.name, glob_base_dir
             end
           end
         end
@@ -298,9 +296,9 @@ class Dir
 
         dir_path = path_join(glob_base_dir, path ? path : '.')
         dir = Dir.allocate.send(:initialize_internal, dir_path)
-        dir_entries(dir, false, false).each do |ent, _type|
-          if match? ent
-            matches << path_join(path, ent)
+        dir_entries(dir, false, false).each do |e|
+          if match? e.name
+            matches << path_join(path, e.name)
           end
         end
       end

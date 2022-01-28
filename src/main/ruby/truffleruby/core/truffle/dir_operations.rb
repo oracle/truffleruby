@@ -17,6 +17,20 @@ module Truffle
 
     MULTIPLE_READS_BUFFER_SIZE = 16384
 
+    class Entry
+      def initialize(name, type)
+        @name = name
+        @type = type
+      end
+
+      attr_reader :name
+      attr_reader :type
+
+      def <=>(other)
+        name <=> other.name
+      end
+    end
+
     def self.readdir_multiple(dir, resolve_type, exclude_self_and_parent, entries)
       dir.__send__(:ensure_open)
       dirptr = Primitive.object_ivar_get(dir, :@ptr)
@@ -34,7 +48,7 @@ module Truffle
           offset += 1
           alignment = (offset % 4)
           offset += (4 - alignment) if alignment > 0
-          entries << [str, type]
+          entries << Entry.new(str, type)
         end
 
         Errno.handle unless Errno.errno == 0
