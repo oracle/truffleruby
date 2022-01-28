@@ -49,3 +49,9 @@ bundle exec rspec spec/ffi
 ```
 
 Note that `bundle exec rake compile` is unnecessary on TruffleRuby.
+
+## Running FFI Tests in the TruffleRuby Repository
+
+```bash
+jt test gems ffi
+```
