@@ -36,7 +36,7 @@ JDKS_CACHE_DIR = File.expand_path('~/.mx/jdks')
 CACHE_EXTRA_DIR = File.expand_path('~/.mx/cache/truffleruby')
 FileUtils.mkdir_p(CACHE_EXTRA_DIR)
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = 'ba90ba6237bffec6368eaf6d3da5a8cb21894c99'
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = '8c90537ec152b48eef6b278a3d6bdc9e6f9bcc57'
 
 JDEBUG = '--vm.agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y'
 METRICS_REPS = Integer(ENV['TRUFFLERUBY_METRICS_REPS'] || 10)
@@ -53,6 +53,7 @@ RUBOCOP_INCLUDE_LIST = %w[
 ]
 
 RUBOCOP_VERSION = '1.22.1'
+SEAFOAM_VERSION = '0.11'
 
 DLEXT = RbConfig::CONFIG.fetch('DLEXT')
 
@@ -647,7 +648,7 @@ module Utilities
   def run_gem_test_pack_gem_or_install(name, version, *args)
     if gem_test_pack?
       gem_home = "#{gem_test_pack}/#{name}-gems"
-      env = { 'GEM_HOME' => gem_home, 'GEM_PATH' => nil }
+      env = { 'GEM_HOME' => gem_home, 'GEM_PATH' => "#{gem_home}:" }
       sh env, RbConfig.ruby, "#{gem_home}/bin/#{name}", *args
     else
       env = ruby_running_jt_env
@@ -657,6 +658,7 @@ module Utilities
       sh env, name, "_#{version}_", *args
     end
   end
+  ruby2_keywords :run_gem_test_pack_gem_or_install if respond_to?(:ruby2_keywords, true)
 
   def args_split(args)
     delimiter_index = args.index('--')
@@ -2073,12 +2075,6 @@ module Commands
     end
 
     raise unless test_file
-    env = ruby_running_jt_env
-
-    seafoam_version = '0.11'
-    unless Gem::Specification.find_all_by_name('seafoam').any? { |g| g.version == Gem::Version.new(seafoam_version) }
-      sh env, 'gem', 'install', 'seafoam', '-v', seafoam_version
-    end
 
     base_vm_args = [
       '--experimental-options',
@@ -2131,12 +2127,13 @@ module Commands
       graph = graphs.last
       raise "Could not find graph in #{dumps}" unless graph
 
-      list = raw_sh(env, 'seafoam', "_#{seafoam_version}_", '--json', graph, 'list', capture: :out, no_print_cmd: true)
+      list = run_gem_test_pack_gem_or_install('seafoam', SEAFOAM_VERSION, '--json', graph, 'list', capture: :out, no_print_cmd: true)
       decoded = JSON.parse(list)
       n = decoded.find { |entry| entry['graph_name_components'].last == 'Before phase org.graalvm.compiler.phases.common.LoweringPhase' }['graph_index']
 
       json_args = json ? %w[--json] : []
-      raw_sh env, 'seafoam', "_#{seafoam_version}_", *json_args, "#{graph}:#{n}", describe ? 'describe' : 'render'
+      action = describe ? 'describe' : 'render'
+      run_gem_test_pack_gem_or_install('seafoam', SEAFOAM_VERSION, *json_args, "#{graph}:#{n}", action)
 
       break unless watch
       puts # newline between runs
