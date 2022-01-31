@@ -3,7 +3,7 @@ require 'json'
 $tests = 0
 $failures = 0
 
-def test(program, extra='', shape_expected)
+def test(program, extra = '', shape_expected)
   $tests += 1
   got = `tool/jt.rb graph --json --describe #{program} #{extra} 2>&1`.lines.last.strip
 
@@ -14,7 +14,6 @@ def test(program, extra='', shape_expected)
     $failures += 1
   end
 
-  nodes_got = decoded.delete(:node_count)
   shape_got = decoded
 
   mismatched_features = shape_expected.keys - shape_got.keys
