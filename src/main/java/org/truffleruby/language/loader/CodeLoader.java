@@ -23,6 +23,7 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.ParsingParameters;
 import org.truffleruby.parser.RubySource;
@@ -91,11 +92,32 @@ public class CodeLoader {
             MaterializedFrame parentFrame,
             Object self,
             LexicalScope lexicalScope) {
+        return prepareExecute(callTarget, parserContext, declarationContext, parentFrame, self, lexicalScope,
+                RubyNode.EMPTY_ARGUMENTS);
+    }
+
+    @TruffleBoundary
+    public DeferredCall prepareExecute(RootCallTarget callTarget,
+            ParserContext parserContext,
+            DeclarationContext declarationContext,
+            MaterializedFrame parentFrame,
+            Object self,
+            LexicalScope lexicalScope,
+            Object[] arguments) {
+        Object[] frameArguments = prepareArgs(callTarget, parserContext, declarationContext, parentFrame, self,
+                lexicalScope, arguments);
+        return new DeferredCall(callTarget, frameArguments);
+    }
+
+    public Object[] prepareArgs(RootCallTarget callTarget, ParserContext parserContext,
+            DeclarationContext declarationContext, MaterializedFrame parentFrame, Object self,
+            LexicalScope lexicalScope, Object[] arguments) {
         final RubyRootNode rootNode = RubyRootNode.of(callTarget);
         final InternalMethod parentMethod = parentFrame == null ? null : RubyArguments.getMethod(parentFrame);
 
         final RubyModule declaringModule;
-        if (parserContext == ParserContext.EVAL && parentFrame != null) {
+        if ((parserContext == ParserContext.EVAL || parserContext == ParserContext.INSTANCE_EVAL) &&
+                parentFrame != null) {
             declaringModule = parentMethod.getDeclaringModule();
         } else if (parserContext == ParserContext.MODULE) {
             declaringModule = (RubyModule) self;
@@ -103,24 +125,26 @@ public class CodeLoader {
             declaringModule = context.getCoreLibrary().objectClass;
         }
 
+        final SharedMethodInfo sharedMethodInfo = rootNode.getSharedMethodInfo();
+
         final InternalMethod method = new InternalMethod(
                 context,
-                rootNode.getSharedMethodInfo(),
+                sharedMethodInfo,
                 lexicalScope,
                 declarationContext,
-                rootNode.getSharedMethodInfo().getMethodNameForNotBlock(),
+                sharedMethodInfo.getMethodNameForNotBlock(),
                 declaringModule,
                 Visibility.PUBLIC,
                 callTarget);
 
-        return new DeferredCall(callTarget, RubyArguments.pack(
+        return RubyArguments.pack(
                 parentFrame,
                 null,
                 method,
                 null,
                 self,
                 Nil.INSTANCE,
-                RubyNode.EMPTY_ARGUMENTS));
+                arguments);
     }
 
     public static class DeferredCall {

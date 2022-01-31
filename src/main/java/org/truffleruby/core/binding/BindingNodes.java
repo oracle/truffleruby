@@ -106,11 +106,6 @@ public abstract class BindingNodes {
         return newFrame;
     }
 
-    public static MaterializedFrame newFrame(MaterializedFrame parent) {
-        final FrameDescriptor descriptor = newFrameDescriptor();
-        return newFrame(parent, descriptor);
-    }
-
     public static MaterializedFrame newFrame(MaterializedFrame parent, FrameDescriptor descriptor) {
         return Truffle.getRuntime().createVirtualFrame(
                 RubyArguments.pack(
@@ -134,6 +129,16 @@ public abstract class BindingNodes {
 
         // We need to invalidate caches depending on the top frame, so create a new empty frame
         newFrame(binding, newFrameDescriptor());
+    }
+
+    @TruffleBoundary
+    public static boolean assignsNewUserVariables(FrameDescriptor descriptor) {
+        for (FrameSlot slot : descriptor.getSlots()) {
+            if (!BindingNodes.isHiddenVariable(slot.getIdentifier())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static boolean isHiddenVariable(Object name) {
