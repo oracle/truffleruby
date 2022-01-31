@@ -52,7 +52,6 @@ public class RubyInlineParsingRequestNode extends ExecutableNode {
                 null,
                 currentFrame,
                 RubyArguments.getMethod(currentFrame).getLexicalScope(),
-                false,
                 null);
 
         callNode = insert(Truffle.getRuntime().createDirectCallNode(callTarget));

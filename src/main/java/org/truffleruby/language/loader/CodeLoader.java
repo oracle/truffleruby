@@ -62,7 +62,7 @@ public class CodeLoader {
              * there the static lexical scope and its module are constants and need no checks in single context (e.g.,
              * in LookupConstantWithLexicalScopeNode). */
             final RubySource rubySource = new RubySource(source, path, rope);
-            return parse(rubySource, ParserContext.TOP_LEVEL, null, context.getRootLexicalScope(), true, currentNode);
+            return parse(rubySource, ParserContext.TOP_LEVEL, null, context.getRootLexicalScope(), currentNode);
         }
 
         language.parsingRequestParams.set(new ParsingParameters(currentNode, rope, source));
@@ -78,11 +78,10 @@ public class CodeLoader {
             ParserContext parserContext,
             MaterializedFrame parentFrame,
             LexicalScope lexicalScope,
-            boolean ownScopeForAssignments,
             Node currentNode) {
         final TranslatorDriver translator = new TranslatorDriver(context, source);
         return translator
-                .parse(source, parserContext, null, parentFrame, lexicalScope, ownScopeForAssignments, currentNode);
+                .parse(source, parserContext, null, parentFrame, lexicalScope, currentNode);
     }
 
     @TruffleBoundary

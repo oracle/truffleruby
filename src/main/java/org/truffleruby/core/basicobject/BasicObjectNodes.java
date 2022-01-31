@@ -404,7 +404,6 @@ public abstract class BasicObjectNodes {
                     ParserContext.INSTANCE_EVAL,
                     callerFrame,
                     lexicalScope,
-                    true,
                     this);
 
             final DeclarationContext declarationContext = new DeclarationContext(

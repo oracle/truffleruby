@@ -552,7 +552,6 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
                     parserContext,
                     null,
                     lexicalScope,
-                    true,
                     parsingParameters.getCurrentNode());
         }
 

@@ -776,7 +776,7 @@ public abstract class KernelNodes {
                 @Cached("libFile.getRope(file)") Rope cachedFile,
                 @Cached("line") int cachedLine,
                 @Cached("getBindingDescriptor(binding)") FrameDescriptor bindingDescriptor,
-                @Cached("parse(cachedSource, binding.getFrame(), cachedFile, cachedLine, true)") RootCallTarget callTarget,
+                @Cached("parse(cachedSource, binding.getFrame(), cachedFile, cachedLine)") RootCallTarget callTarget,
                 @Cached("assignsNewUserVariables(getDescriptor(callTarget))") boolean assignsNewUserVariables,
                 @Cached("create(callTarget)") DirectCallNode callNode,
                 @Cached RopeNodes.EqualNode equalNode) {
@@ -792,7 +792,7 @@ public abstract class KernelNodes {
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFile,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSource) {
 
-            var callTarget = parse(libSource.getRope(source), binding.getFrame(), libFile.getRope(file), line, true);
+            var callTarget = parse(libSource.getRope(source), binding.getFrame(), libFile.getRope(file), line);
             boolean assignsNewUserVariables = assignsNewUserVariables(getDescriptor(callTarget));
 
             Object[] rubyArgs = prepareEvalArgs(callTarget, assignsNewUserVariables, self, binding);
@@ -815,8 +815,7 @@ public abstract class KernelNodes {
         }
 
         @TruffleBoundary
-        protected RootCallTarget parse(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line,
-                boolean ownScopeForAssignments) {
+        protected RootCallTarget parse(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line) {
             //intern() to improve footprint
             final String sourceFile = RopeOperations.decodeRope(file).intern();
             final RubySource source = EvalLoader
@@ -824,7 +823,7 @@ public abstract class KernelNodes {
             final LexicalScope lexicalScope = RubyArguments.getMethod(parentFrame).getLexicalScope();
             return getContext()
                     .getCodeLoader()
-                    .parse(source, ParserContext.EVAL, parentFrame, lexicalScope, ownScopeForAssignments, this);
+                    .parse(source, ParserContext.EVAL, parentFrame, lexicalScope, this);
         }
 
         protected FrameDescriptor getBindingDescriptor(RubyBinding binding) {

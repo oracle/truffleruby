@@ -76,7 +76,7 @@ public abstract class DebugHelpers {
 
         final RootCallTarget callTarget = context
                 .getCodeLoader()
-                .parse(new RubySource(source, "debug-eval"), ParserContext.INLINE, evalFrame, lexicalScope, true, null);
+                .parse(new RubySource(source, "debug-eval"), ParserContext.INLINE, evalFrame, lexicalScope, null);
 
         final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
                 callTarget,

@@ -133,7 +133,7 @@ public abstract class TruffleKernelNodes {
                         sourceRopePair.getRight());
                 callTarget = getContext()
                         .getCodeLoader()
-                        .parse(rubySource, ParserContext.TOP_LEVEL, null, lexicalScope, true, this);
+                        .parse(rubySource, ParserContext.TOP_LEVEL, null, lexicalScope, this);
 
                 declarationContext = DeclarationContext.topLevel(wrapModule);
                 self = DispatchNode.getUncached().call(mainObject, "clone");

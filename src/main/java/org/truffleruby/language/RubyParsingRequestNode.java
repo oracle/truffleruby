@@ -47,7 +47,6 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
                 argumentNames,
                 null,
                 context.getRootLexicalScope(), // This is a top-level parse, so the lexical scope is always the root one
-                true,
                 null);
 
         callNode = insert(Truffle.getRuntime().createDirectCallNode(callTarget));
