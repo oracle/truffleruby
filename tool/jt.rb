@@ -644,6 +644,20 @@ module Utilities
     end
   end
 
+  def run_gem_test_pack_gem_or_install(name, version, *args)
+    if gem_test_pack?
+      gem_home = "#{gem_test_pack}/#{name}-gems"
+      env = { 'GEM_HOME' => gem_home, 'GEM_PATH' => nil }
+      sh env, RbConfig.ruby, "#{gem_home}/bin/#{name}", *args
+    else
+      env = ruby_running_jt_env
+      if Gem::Specification.find_all_by_name(name, version).empty?
+        sh env, 'gem', 'install', name, '-v', version
+      end
+      sh env, name, "_#{version}_", *args
+    end
+  end
+
   def args_split(args)
     delimiter_index = args.index('--')
     return [args, []] unless delimiter_index
@@ -2425,17 +2439,7 @@ module Commands
       args += RUBOCOP_INCLUDE_LIST
     end
 
-    if gem_test_pack?
-      gem_home = "#{gem_test_pack}/rubocop-gems"
-      env = { 'GEM_HOME' => gem_home, 'GEM_PATH' => nil }
-      sh env, RbConfig.ruby, "#{gem_home}/bin/rubocop", *args
-    else
-      env = ruby_running_jt_env
-      if Gem::Specification.find_all_by_name('rubocop', "#{RUBOCOP_VERSION}").empty?
-        sh env, 'gem', 'install', 'rubocop', '-v', RUBOCOP_VERSION
-      end
-      sh env, 'rubocop', "_#{RUBOCOP_VERSION}_", *args
-    end
+    run_gem_test_pack_gem_or_install('rubocop', RUBOCOP_VERSION, *args)
   end
 
   def idea(*args)
