@@ -24,6 +24,7 @@ Compatibility:
 * Implement 'rb_str_buf_append' (@bjfish).
 * Add patch for `digest` so that TruffleRuby implementation is not overridden (@bjfish).
 * Handle encoding conversion errors when reading directory entries (@aardvark179).
+* Follow symlinks when processing `*/` directory glob patterns. (#2589, @aardvark179).
 
 Performance:
 
