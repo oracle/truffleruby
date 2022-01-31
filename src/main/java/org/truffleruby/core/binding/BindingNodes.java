@@ -18,6 +18,7 @@ import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -146,7 +147,7 @@ public abstract class BindingNodes {
     private static boolean isHiddenVariable(String name) {
         assert !name.isEmpty();
         return name.charAt(0) == '$' || // Frame-local global variable
-                name.charAt(0) == '%';
+                name.charAt(0) == Layouts.TEMP_PREFIX_CHAR;
     }
 
     @CoreMethod(names = { "dup", "clone" })

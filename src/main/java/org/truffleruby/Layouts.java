@@ -16,6 +16,7 @@ public abstract class Layouts {
     // Special variables
 
     public static final String TEMP_PREFIX = "%";
+    public static final char TEMP_PREFIX_CHAR = TEMP_PREFIX.charAt(0);
 
     // Standard identifiers
 
