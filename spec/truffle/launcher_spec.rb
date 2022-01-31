@@ -80,7 +80,7 @@ describe "The launcher" do
     known = @launchers.keys.map(&:to_s).sort
     actual = Dir.children(File.dirname(RbConfig.ruby)).sort
     actual.delete('truffleruby.sh')
-    actual.intersection(known).should == known
+    actual.should == known
   end
 
   @launchers.each do |launcher, test|
