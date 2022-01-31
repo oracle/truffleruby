@@ -23,9 +23,13 @@ def test(program, extra = '', shape_expected)
 
     if shape_expected.key?(actual_key)
       actual_value == shape_expected[actual_key] ? nil : actual_key
+    elsif actual_value == false or actual_value.is_a?(Integer)
+      # false means the feature is not present, which is expected.
+      # integer values are ignored unless set in the shape_expected.
+      nil
     else
-      # Verify the actual shape does not have features that the test did not expect.
-      actual_value == false ? nil : actual_key
+      # The actual shape has features that the test did not expect.
+      actual_key
     end
   end
 
