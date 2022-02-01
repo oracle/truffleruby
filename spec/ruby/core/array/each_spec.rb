@@ -37,6 +37,13 @@ describe "Array#each" do
     iterated.should == [0, 2, 4]
   end
 
+  it "yields the same element multiple times if inserting while iterating" do
+    a = [1, 2]
+    iterated = []
+    a.each { |x| iterated << x; a.unshift(0) if a.size == 2 }
+    iterated.should == [1, 1, 2]
+  end
+
   it "yields each element to a block that takes multiple arguments" do
     a = [[1, 2], :a, [3, 4]]
     b = []
