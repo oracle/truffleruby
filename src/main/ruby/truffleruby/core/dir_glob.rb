@@ -116,8 +116,8 @@ class Dir
         if entry_type == Truffle::DirOperations::DT_DIR
           true
         elsif entry_type == Truffle::DirOperations::DT_LNK
-          full = path_join(path_join(glob_base_dir, parent), "#{entry}/.")
-          Truffle::FileOperations.exist?(full)
+          full = path_join(path_join(glob_base_dir, parent), entry)
+          File.directory?(full)
         else
           false
         end
@@ -281,7 +281,7 @@ class Dir
 
       def process_directory(matches, parent, entry, glob_base_dir)
         path = path_join(parent, entry)
-        return if path and !Truffle::FileOperations.exist?(path_join(glob_base_dir, "#{path}/."))
+        return if path and !File.directory?(path_join(glob_base_dir, path))
 
         dir = Dir.allocate.send(:initialize_internal, path_join(glob_base_dir, path ? path : '.'))
         dir_entries(dir, false, false).each do |e|
