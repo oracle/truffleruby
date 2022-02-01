@@ -189,18 +189,24 @@ public abstract class PolyglotNodes {
         @Specialization(guards = {
                 "idLib.isRubyString(langId)",
                 "codeLib.isRubyString(code)",
+                "filenameLib.isRubyString(filename)",
                 "idEqualNode.execute(langIdRope, cachedLangId)",
-                "codeEqualNode.execute(codeRope, cachedCode)" }, limit = "getCacheLimit()")
-        protected Object evalCached(RubyInnerContext rubyInnerContext, Object langId, Object code,
+                "codeEqualNode.execute(codeRope, cachedCode)",
+                "filenameEqualNode.execute(filenameRope, cachedFilename)" }, limit = "getCacheLimit()")
+        protected Object evalCached(RubyInnerContext rubyInnerContext, Object langId, Object code, Object filename,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary idLib,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary codeLib,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary filenameLib,
                 @Bind("idLib.getRope(langId)") Rope langIdRope,
                 @Bind("codeLib.getRope(code)") Rope codeRope,
+                @Bind("filenameLib.getRope(filename)") Rope filenameRope,
                 @Cached("langIdRope") Rope cachedLangId,
                 @Cached("codeRope") Rope cachedCode,
-                @Cached("createSource(idLib.getJavaString(langId), codeLib.getJavaString(code))") Source cachedSource,
+                @Cached("filenameRope") Rope cachedFilename,
+                @Cached("createSource(idLib.getJavaString(langId), codeLib.getJavaString(code), filenameLib.getJavaString(filename))") Source cachedSource,
                 @Cached RopeNodes.EqualNode idEqualNode,
                 @Cached RopeNodes.EqualNode codeEqualNode,
+                @Cached RopeNodes.EqualNode filenameEqualNode,
                 @Cached ForeignToRubyNode foreignToRubyNode,
                 @Cached BranchProfile errorProfile) {
             return eval(rubyInnerContext, cachedSource, foreignToRubyNode, errorProfile);
@@ -209,15 +215,17 @@ public abstract class PolyglotNodes {
         @Specialization(
                 guards = { "idLib.isRubyString(langId)", "codeLib.isRubyString(code)" },
                 replaces = "evalCached")
-        protected Object evalUncached(RubyInnerContext rubyInnerContext, Object langId, Object code,
+        protected Object evalUncached(RubyInnerContext rubyInnerContext, Object langId, Object code, Object filename,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary idLib,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary codeLib,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary filenameLib,
                 @Cached ForeignToRubyNode foreignToRubyNode,
                 @Cached BranchProfile errorProfile) {
             final String idString = idLib.getJavaString(langId);
             final String codeString = codeLib.getJavaString(code);
+            final String filenameString = filenameLib.getJavaString(filename);
 
-            final Source source = createSource(idString, codeString);
+            final Source source = createSource(idString, codeString, filenameString);
 
             return eval(rubyInnerContext, source, foreignToRubyNode, errorProfile);
         }
@@ -232,19 +240,23 @@ public abstract class PolyglotNodes {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().runtimeError("This Polyglot::InnerContext is closed", this));
+            } catch (ThreadDeath closed) {
+                errorProfile.enter();
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().runtimeError("Polyglot::InnerContext was terminated forcefully", this));
             } catch (IllegalArgumentException unknownLanguage) {
                 errorProfile.enter();
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().argumentError(Utils.concat("Unknown language: ", source.getLanguage()), this));
             }
-
             return foreignToRubyNode.executeConvert(result);
         }
 
         @TruffleBoundary
-        protected Source createSource(String idString, String codeString) {
-            return Source.newBuilder(idString, codeString, "(eval)").build();
+        protected Source createSource(String idString, String codeString, String filename) {
+            return Source.newBuilder(idString, codeString, filename).build();
         }
 
         protected int getCacheLimit() {
@@ -257,6 +269,15 @@ public abstract class PolyglotNodes {
         @Specialization
         protected Object close(RubyInnerContext rubyInnerContext) {
             rubyInnerContext.innerContext.close();
+            return nil;
+        }
+    }
+
+    @Primitive(name = "inner_context_close_force")
+    public abstract static class InnerContextCloseExitedNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected Object closeExited(RubyInnerContext rubyInnerContext) {
+            rubyInnerContext.innerContext.closeCancelled(this, "force terminate");
             return nil;
         }
     }
