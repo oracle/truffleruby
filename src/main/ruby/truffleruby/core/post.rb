@@ -59,20 +59,6 @@ end
 # stderr is always unbuffered, see setvbuf(3)
 STDERR.sync = true
 
-# Always flush standard streams on exit
-Truffle::KernelOperations.at_exit(true) do
-  STDOUT.flush
-rescue Errno::EPIPE
-  # Could not write to STDOUT, the calling process closed the pipe
-  nil
-end
-Truffle::KernelOperations.at_exit(true) do
-  STDERR.flush
-rescue Errno::EPIPE
-  # Could not write to STDERR, the calling process closed the pipe
-  nil
-end
-
 module Truffle
   module Type
     def self.const_get(mod, name, inherit=true, resolve=true)

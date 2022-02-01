@@ -20,6 +20,7 @@ Compatibility:
 * When writing to STDOUT redirected to a closed pipe, no broken pipe error message will be shown now. (#2532, @gogainda).
 * Use `#to_a` for converting `list` in `rescue *list` (#2572, @eregon).
 * Implement 'rb_str_buf_append' (@bjfish).
+* Add patch for `digest` so that TruffleRuby implementation is not overridden (@bjfish).
 
 Performance:
 

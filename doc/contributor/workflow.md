@@ -93,7 +93,9 @@ You can create a new build configuration by creating an [mx env file] in `mx.tru
 
 Builds are created in the `mxbuild/truffleruby-${BUILD_NAME}` directory. By default, the *build name* is the
 name of the build configuration, but you can specify a different name with `--name BUILD_NAME`. This enables
-you to store multiple builds that use the same configuration.
+you to store multiple builds that use the same configuration. Note that if you want to compare multiple builds using
+the same `--env` then you need to use `--name` for all of them.
+Without `--name`, `mxbuild/truffleruby-${env}` is just a symlink and will be reused by any build of the same `--env`.
 
 Note that build information such as the date and Git revision hash will not be
 updated when you build for a second time. Releases should always be built from
