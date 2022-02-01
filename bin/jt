@@ -10,7 +10,7 @@ done
 root=$(dirname "$(dirname "$SELF_PATH")")
 
 if [ -z "$SYSTEM_RUBY" ]; then
-  SYSTEM_RUBY="ruby"
+  export SYSTEM_RUBY="ruby"
 fi
 
 exec "$SYSTEM_RUBY" "$root/tool/jt.rb" "$@"
