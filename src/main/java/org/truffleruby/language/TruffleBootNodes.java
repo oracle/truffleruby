@@ -297,7 +297,7 @@ public abstract class TruffleBootNodes {
             RubyContext context = getContext();
             RootCallTarget callTarget = context
                     .getCodeLoader()
-                    .parse(source, ParserContext.TOP_LEVEL, null, context.getRootLexicalScope(), true, null);
+                    .parse(source, ParserContext.TOP_LEVEL, null, context.getRootLexicalScope(), null);
             RubyRootNode rubyRootNode = RubyRootNode.of(callTarget);
             EmitWarningsNode emitWarningsNode = NodeUtil.findFirstNodeInstance(rubyRootNode, EmitWarningsNode.class);
             if (emitWarningsNode != null) {

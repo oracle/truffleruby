@@ -87,7 +87,7 @@ public class MethodTranslator extends BodyTranslator {
         this.argsNode = argsNode;
         this.methodNameForBlock = methodNameForBlock;
 
-        if (parserContext == ParserContext.EVAL || environment.getParseEnvironment().isCoverageEnabled()) {
+        if (parserContext.isEval() || environment.getParseEnvironment().isCoverageEnabled()) {
             shouldLazyTranslate = false;
         } else if (language.getSourcePath(source).startsWith(language.coreLoadPath)) {
             shouldLazyTranslate = language.options.LAZY_TRANSLATION_CORE;

@@ -401,10 +401,9 @@ public abstract class BasicObjectNodes {
 
             final RootCallTarget callTarget = getContext().getCodeLoader().parse(
                     source,
-                    ParserContext.EVAL,
+                    ParserContext.INSTANCE_EVAL,
                     callerFrame,
                     lexicalScope,
-                    true,
                     this);
 
             final DeclarationContext declarationContext = new DeclarationContext(
@@ -414,7 +413,7 @@ public abstract class BasicObjectNodes {
 
             final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
                     callTarget,
-                    ParserContext.EVAL,
+                    ParserContext.INSTANCE_EVAL,
                     declarationContext,
                     callerFrame,
                     receiver,

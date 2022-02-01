@@ -749,7 +749,6 @@ public abstract class ModuleNodes {
                     ParserContext.MODULE,
                     callerFrame,
                     lexicalScope,
-                    true,
                     this);
 
             return getContext().getCodeLoader().prepareExecute(

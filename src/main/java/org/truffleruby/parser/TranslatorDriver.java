@@ -48,6 +48,8 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.aot.ParserCache;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.core.binding.SetBindingFrameForEvalNode;
 import org.truffleruby.core.kernel.AutoSplitNode;
 import org.truffleruby.core.kernel.ChompLoopNode;
 import org.truffleruby.core.kernel.KernelGetsNode;
@@ -103,8 +105,7 @@ public class TranslatorDriver {
     }
 
     public RootCallTarget parse(RubySource rubySource, ParserContext parserContext, String[] argumentNames,
-            MaterializedFrame parentFrame, LexicalScope staticLexicalScope, boolean ownScopeForAssignments,
-            Node currentNode) {
+            MaterializedFrame parentFrame, LexicalScope staticLexicalScope, Node currentNode) {
         if (rubySource.getSource() != parseEnvironment.source) {
             throw CompilerDirectives.shouldNotReachHere("TranslatorDriver used with a different Source");
         }
@@ -149,8 +150,7 @@ public class TranslatorDriver {
         }
 
         boolean isInlineSource = rubySource.getSourcePath().equals("-e");
-        boolean isEvalParse = parserContext == ParserContext.EVAL || parserContext == ParserContext.INLINE ||
-                parserContext == ParserContext.MODULE;
+        boolean isEvalParse = parserContext.isEval();
         final ParserConfiguration parserConfiguration = new ParserConfiguration(
                 context,
                 isInlineSource,
@@ -213,7 +213,7 @@ public class TranslatorDriver {
                 parentEnvironment,
                 parseEnvironment,
                 parseEnvironment.allocateReturnID(),
-                ownScopeForAssignments,
+                true,
                 false,
                 isModuleBody,
                 sharedMethodInfo,
@@ -360,6 +360,11 @@ public class TranslatorDriver {
         if (parserContext.isTopLevel()) {
             truffleNode = Translator
                     .sequence(sourceIndexLength, Arrays.asList(new MakeSpecialVariableStorageNode(), truffleNode));
+        }
+
+        if (parserContext == ParserContext.EVAL &&
+                BindingNodes.assignsNewUserVariables(environment.getFrameDescriptor())) {
+            truffleNode = new SetBindingFrameForEvalNode(environment.getFrameDescriptor(), truffleNode);
         }
 
         final RubyRootNode rootNode;

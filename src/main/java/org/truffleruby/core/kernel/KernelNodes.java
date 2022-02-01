@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import com.oracle.truffle.api.frame.Frame;
@@ -100,7 +101,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.RubySourceNode;
-import org.truffleruby.language.Visibility;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.WarningNode;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
@@ -116,14 +116,12 @@ import org.truffleruby.language.loader.EvalLoader;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.library.RubyStringLibrary;
-import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.RequireNode;
 import org.truffleruby.language.loader.RequireNodeGen;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.GetMethodObjectNode;
 import org.truffleruby.language.methods.InternalMethod;
-import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.CheckIVarNameNode;
 import org.truffleruby.language.objects.IsANode;
@@ -151,7 +149,6 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -763,9 +760,6 @@ public abstract class KernelNodes {
 
         public abstract Object execute(Object self, Object source, RubyBinding binding, Object file, int line);
 
-        // If the source defines new local variables, those should be set in the Binding.
-        // So we have 2 specializations for whether or not the code defines new local variables.
-
         @Specialization(
                 guards = {
                         "libSource.isRubyString(source)",
@@ -773,112 +767,55 @@ public abstract class KernelNodes {
                         "equalNode.execute(libSource.getRope(source), cachedSource)",
                         "equalNode.execute(libFile.getRope(file), cachedFile)",
                         "line == cachedLine",
-                        "!assignsNewUserVariables(getDescriptor(cachedCallTarget))",
                         "bindingDescriptor == getBindingDescriptor(binding)" },
                 limit = "getCacheLimit()")
-        protected Object evalBindingNoAddsVarsCached(
-                Object self, Object source, RubyBinding binding, Object file, int line,
+        protected Object evalCached(Object self, Object source, RubyBinding binding, Object file, int line,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSource,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFile,
                 @Cached("libSource.getRope(source)") Rope cachedSource,
                 @Cached("libFile.getRope(file)") Rope cachedFile,
                 @Cached("line") int cachedLine,
                 @Cached("getBindingDescriptor(binding)") FrameDescriptor bindingDescriptor,
-                @Cached("compileSource(cachedSource, getBindingFrame(binding), cachedFile, cachedLine)") RootCallTarget cachedCallTarget,
-                @Cached("create(cachedCallTarget)") DirectCallNode callNode,
+                @Cached("parse(cachedSource, binding.getFrame(), cachedFile, cachedLine)") RootCallTarget callTarget,
+                @Cached("assignsNewUserVariables(getDescriptor(callTarget))") boolean assignsNewUserVariables,
+                @Cached("create(callTarget)") DirectCallNode callNode,
                 @Cached RopeNodes.EqualNode equalNode) {
-            final MaterializedFrame parentFrame = binding.getFrame();
-            return eval(self, cachedCallTarget, callNode, parentFrame);
-        }
-
-        @Specialization(
-                guards = {
-                        "libSource.isRubyString(source)",
-                        "libFile.isRubyString(file)",
-                        "equalNode.execute(libSource.getRope(source), cachedSource)",
-                        "equalNode.execute(libFile.getRope(file), cachedFile)",
-                        "line == cachedLine",
-                        "assignsNewUserVariables(getDescriptor(firstCallTarget))",
-                        "!assignsNewUserVariables(getDescriptor(cachedCallTarget))",
-                        "bindingDescriptor == getBindingDescriptor(binding)" },
-                limit = "getCacheLimit()")
-        protected Object evalBindingAddsVarsCached(
-                Object self, Object source, RubyBinding binding, Object file, int line,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSource,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFile,
-                @Cached("libSource.getRope(source)") Rope cachedSource,
-                @Cached("libFile.getRope(file)") Rope cachedFile,
-                @Cached("line") int cachedLine,
-                @Cached("getBindingDescriptor(binding)") FrameDescriptor bindingDescriptor,
-                @Cached("compileSource(cachedSource, getBindingFrame(binding), cachedFile, cachedLine)") RootCallTarget firstCallTarget,
-                @Cached("getDescriptor(firstCallTarget).copy()") FrameDescriptor newBindingDescriptor,
-                @Cached("compileSource(cachedSource, getBindingFrame(binding), newBindingDescriptor, cachedFile, cachedLine)") RootCallTarget cachedCallTarget,
-                @Cached("create(cachedCallTarget)") DirectCallNode callNode,
-                @Cached RopeNodes.EqualNode equalNode) {
-            final MaterializedFrame parentFrame = BindingNodes.newFrame(binding, newBindingDescriptor);
-            return eval(self, cachedCallTarget, callNode, parentFrame);
+            Object[] rubyArgs = prepareEvalArgs(callTarget, assignsNewUserVariables, self, binding);
+            return callNode.call(rubyArgs);
         }
 
         @Specialization(
                 guards = { "libSource.isRubyString(source)", "libFile.isRubyString(file)" },
-                replaces = { "evalBindingNoAddsVarsCached", "evalBindingAddsVarsCached" })
+                replaces = "evalCached")
         protected Object evalBindingUncached(Object self, Object source, RubyBinding binding, Object file, int line,
                 @Cached IndirectCallNode callNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFile,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSource) {
-            final CodeLoader.DeferredCall deferredCall = doEvalX(
-                    self,
-                    libSource.getRope(source),
-                    binding,
-                    libFile.getRope(file),
-                    line);
-            return deferredCall.call(callNode);
+
+            var callTarget = parse(libSource.getRope(source), binding.getFrame(), libFile.getRope(file), line);
+            boolean assignsNewUserVariables = assignsNewUserVariables(getDescriptor(callTarget));
+
+            Object[] rubyArgs = prepareEvalArgs(callTarget, assignsNewUserVariables, self, binding);
+            return callNode.call(callTarget, rubyArgs);
         }
 
-        private Object eval(Object self, RootCallTarget callTarget, DirectCallNode callNode,
-                MaterializedFrame parentFrame) {
-            final SharedMethodInfo sharedMethodInfo = RubyRootNode.of(callTarget).getSharedMethodInfo();
-            final InternalMethod method = new InternalMethod(
-                    getContext(),
-                    sharedMethodInfo,
-                    RubyArguments.getMethod(parentFrame).getLexicalScope(),
-                    RubyArguments.getDeclarationContext(parentFrame),
-                    sharedMethodInfo.getMethodNameForNotBlock(),
-                    RubyArguments.getMethod(parentFrame).getDeclaringModule(),
-                    Visibility.PUBLIC,
-                    callTarget);
+        private Object[] prepareEvalArgs(RootCallTarget callTarget, boolean assignsNewUserVariables, Object self,
+                RubyBinding binding) {
+            final MaterializedFrame parentFrame = Objects.requireNonNull(binding.getFrame());
 
-            return callNode.call(RubyArguments.pack(
+            Object[] args = assignsNewUserVariables ? new Object[]{ binding } : RubyNode.EMPTY_ARGUMENTS;
+
+            return getContext().getCodeLoader().prepareArgs(callTarget,
+                    ParserContext.EVAL,
+                    RubyArguments.getDeclarationContext(parentFrame),
                     parentFrame,
-                    null,
-                    method,
-                    null,
                     self,
-                    nil,
-                    EMPTY_ARGUMENTS));
+                    RubyArguments.getMethod(parentFrame).getLexicalScope(),
+                    args);
         }
 
         @TruffleBoundary
-        private CodeLoader.DeferredCall doEvalX(Object self, Rope source, RubyBinding binding, Rope file, int line) {
-            final MaterializedFrame frame = BindingNodes.newFrame(binding.getFrame());
-            final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
-            final FrameDescriptor descriptor = frame.getFrameDescriptor();
-            RootCallTarget callTarget = parse(source, frame, file, line, false);
-            if (assignsNewUserVariables(descriptor)) {
-                binding.setFrame(frame);
-            }
-            final LexicalScope lexicalScope = RubyArguments.getMethod(frame).getLexicalScope();
-            return getContext().getCodeLoader().prepareExecute(
-                    callTarget,
-                    ParserContext.EVAL,
-                    declarationContext,
-                    frame,
-                    self,
-                    lexicalScope);
-        }
-
-        protected RootCallTarget parse(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line,
-                boolean ownScopeForAssignments) {
+        protected RootCallTarget parse(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line) {
             //intern() to improve footprint
             final String sourceFile = RopeOperations.decodeRope(file).intern();
             final RubySource source = EvalLoader
@@ -886,20 +823,7 @@ public abstract class KernelNodes {
             final LexicalScope lexicalScope = RubyArguments.getMethod(parentFrame).getLexicalScope();
             return getContext()
                     .getCodeLoader()
-                    .parse(source, ParserContext.EVAL, parentFrame, lexicalScope, ownScopeForAssignments, this);
-        }
-
-        protected RootCallTarget compileSource(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line) {
-            return parse(sourceText, parentFrame, file, line, true);
-        }
-
-        protected RootCallTarget compileSource(Rope sourceText, MaterializedFrame parentFrame,
-                FrameDescriptor additionalVariables, Rope file, int line) {
-            return compileSource(
-                    sourceText,
-                    BindingNodes.newFrame(parentFrame, additionalVariables),
-                    file,
-                    line);
+                    .parse(source, ParserContext.EVAL, parentFrame, lexicalScope, this);
         }
 
         protected FrameDescriptor getBindingDescriptor(RubyBinding binding) {
@@ -910,17 +834,8 @@ public abstract class KernelNodes {
             return RubyRootNode.of(callTarget).getFrameDescriptor();
         }
 
-        protected MaterializedFrame getBindingFrame(RubyBinding binding) {
-            return binding.getFrame();
-        }
-
-        protected static boolean assignsNewUserVariables(FrameDescriptor descriptor) {
-            for (FrameSlot slot : descriptor.getSlots()) {
-                if (!BindingNodes.isHiddenVariable(slot.getIdentifier())) {
-                    return true;
-                }
-            }
-            return false;
+        public static boolean assignsNewUserVariables(FrameDescriptor descriptor) {
+            return BindingNodes.assignsNewUserVariables(descriptor);
         }
 
         protected int getCacheLimit() {
