@@ -5,7 +5,7 @@ require_relative '../enumerable/shared/enumeratorized'
 
 # Mutating the array while it is being iterated is discouraged as it can result in confusing behavior.
 # Yet a Ruby implementation must not crash in such a case, and following the simple CRuby behavior makes sense.
-# CRuby simply reads the array storage and check the size for every iteration;
+# CRuby simply reads the array storage and checks the size for every iteration;
 # like `i = 0; while i < size; yield self[i]; end`
 
 describe "Array#each" do
@@ -18,23 +18,23 @@ describe "Array#each" do
 
   it "yields each element to the block even if the array is changed during iteration" do
     a = [1, 2, 3, 4, 5]
-    b = []
-    a.each {|x| b << x; a << x+5 if (x%2).zero? }
-    b.should == [1, 2, 3, 4, 5, 7, 9]
+    iterated = []
+    a.each { |x| iterated << x; a << x+5 if x.even? }
+    iterated.should == [1, 2, 3, 4, 5, 7, 9]
   end
 
   it "yields only elements that are still in the array" do
     a = [0, 1, 2, 3, 4]
-    b = []
-    a.each {|x| b << x; a.pop if (x%2).zero? }
-    b.should == [0, 1, 2]
+    iterated = []
+    a.each { |x| iterated << x; a.pop if x.even? }
+    iterated.should == [0, 1, 2]
   end
 
   it "yields elements based on an internal index" do
     a = [0, 1, 2, 3, 4]
-    b = []
-    a.each {|x| b << x; a.shift if (x%2).zero? }
-    b.should == [0, 2, 4]
+    iterated = []
+    a.each { |x| iterated << x; a.shift if x.even? }
+    iterated.should == [0, 2, 4]
   end
 
   it "yields each element to a block that takes multiple arguments" do
