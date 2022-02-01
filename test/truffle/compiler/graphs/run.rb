@@ -5,13 +5,13 @@ $failures = 0
 
 def test(program, extra = '', shape_expected)
   $tests += 1
-  got = `tool/jt.rb graph --json --describe #{program} #{extra} 2>&1`.lines.last.strip
+  output = `bin/jt -q graph --json --describe #{program} #{extra} 2>&1`
+  last_line = output.lines.last.strip
 
   begin
-    decoded = JSON.parse(got, symbolize_names: true)
+    decoded = JSON.parse(last_line, symbolize_names: true)
   rescue JSON::ParserError => e
-    $stderr.puts "#{program}: could not parse JSON (#{e}): #{got.inspect}"
-    $failures += 1
+    abort "#{program}: could not parse JSON (#{e}):\n#{output}"
   end
 
   shape_got = decoded
