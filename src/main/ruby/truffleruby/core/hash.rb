@@ -52,7 +52,7 @@ class Hash
     hash = new
     associate_array.each_with_index do |array, i|
       unless array.respond_to? :to_ary
-        warn "wrong element type #{Truffle::Type.object_class(array)} at #{i} (expected array)"
+        warn "wrong element type #{Primitive.object_class(array)} at #{i} (expected array)"
         warn 'ignoring wrong elements is deprecated, remove them explicitly'
         warn 'this causes ArgumentError in the next release'
         next

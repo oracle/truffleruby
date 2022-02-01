@@ -138,7 +138,7 @@ module Truffle
 
         val = yield ret, match
         val = val.to_s unless Primitive.object_kind_of?(val, String)
-        val = Truffle::Type.rb_any_to_s(val) unless Primitive.object_kind_of?(val, String)
+        val = Primitive.rb_any_to_s(val) unless Primitive.object_kind_of?(val, String)
 
         Primitive.string_append(ret, val)
         last_end = Primitive.match_data_byte_end(match, 0)

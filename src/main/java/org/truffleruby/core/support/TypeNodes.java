@@ -15,8 +15,6 @@ import java.util.List;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.builtins.CoreMethod;
-import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
@@ -64,6 +62,7 @@ import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.HiddenKey;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
+/** All nodes in this class should be Primitive for efficiency (avoiding an extra call and constant lookup) */
 @CoreModule("Truffle::Type")
 public abstract class TypeNodes {
 
@@ -90,8 +89,8 @@ public abstract class TypeNodes {
 
     }
 
-    @CoreMethod(names = "object_class", onSingleton = true, required = 1)
-    public abstract static class ObjectClassNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "object_class")
+    public abstract static class ObjectClassNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         protected RubyClass objectClass(Object object,
                 @Cached LogicalClassNode logicalClassNode) {
@@ -332,19 +331,17 @@ public abstract class TypeNodes {
 
     }
 
-    @CoreMethod(names = "rb_any_to_s", onSingleton = true, required = 1)
-    public abstract static class ObjectToSNode extends CoreMethodArrayArgumentsNode {
-
+    @Primitive(name = "rb_any_to_s")
+    public abstract static class ObjectToSNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         protected RubyString toS(Object obj,
                 @Cached ToSNode kernelToSNode) {
             return kernelToSNode.executeToS(obj);
         }
-
     }
 
-    @CoreMethod(names = "module_name", onSingleton = true, required = 1)
-    public abstract static class ModuleNameNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "module_name")
+    public abstract static class ModuleNameNode extends PrimitiveArrayArgumentsNode {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 

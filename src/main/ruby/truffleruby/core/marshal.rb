@@ -38,8 +38,8 @@ class BasicObject
   private def __marshal__(ms)
     out = ms.serialize_extended_object self
     out << 'o'
-    cls = ::Truffle::Type.object_class self
-    name = ::Truffle::Type.module_name cls
+    cls = Primitive.object_class self
+    name = Primitive.module_name cls
     out << ms.serialize(name.to_sym)
     out << ms.serialize_instance_variables_suffix(self, true)
   end
@@ -105,8 +105,8 @@ class Exception
   private def __marshal__(ms)
     out = ms.serialize_extended_object self
     out << 'o'
-    cls = Truffle::Type.object_class self
-    name = Truffle::Type.module_name cls
+    cls = Primitive.object_class self
+    name = Primitive.module_name cls
     out << ms.serialize(name.to_sym)
 
     ivars = Primitive.object_ivars(self)
@@ -263,8 +263,8 @@ class Range
   private def __marshal__(ms)
     out = ms.serialize_extended_object self
     out << 'o'
-    cls = Truffle::Type.object_class self
-    name = Truffle::Type.module_name cls
+    cls = Primitive.object_class self
+    name = Primitive.module_name cls
     out << ms.serialize(name.to_sym)
 
     ivars = self.instance_variables
@@ -1153,8 +1153,8 @@ module Marshal
 
       add_non_immediate_object val
 
-      cls = Truffle::Type.object_class obj
-      name = Truffle::Type.module_name cls
+      cls = Primitive.object_class obj
+      name = Primitive.module_name cls
       name = serialize(name.to_sym)
       marshaled = val.__send__ :__marshal__, self
       Truffle::Type.binary_string("U#{name}#{marshaled}")

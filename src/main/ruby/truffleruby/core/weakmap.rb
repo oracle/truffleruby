@@ -23,7 +23,7 @@ module ObjectSpace
       str += ': ' if entries.length > 0
       entries.each do |k, v|
         str += ', ' unless str[-2] == ':'
-        str += "#{Truffle::Type.rb_any_to_s(k)} => #{Truffle::Type.rb_any_to_s(v)}"
+        str += "#{Primitive.rb_any_to_s(k)} => #{Primitive.rb_any_to_s(v)}"
       end
       str + '>'
     end

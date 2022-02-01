@@ -36,7 +36,7 @@
 
 class Exception
   def ==(other)
-    other.instance_of?(Truffle::Type.object_class(self)) &&
+    other.instance_of?(Primitive.object_class(self)) &&
       message == other.message &&
       backtrace == other.backtrace
   end
