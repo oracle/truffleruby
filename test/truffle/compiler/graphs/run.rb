@@ -9,8 +9,8 @@ def test(program, extra = '', shape_expected)
 
   begin
     decoded = JSON.parse(got, symbolize_names: true)
-  rescue JSON::ParseError
-    puts "#{program}: error #{got.inspect}"
+  rescue JSON::ParserError => e
+    $stderr.puts "#{program}: could not parse JSON (#{e}): #{got.inspect}"
     $failures += 1
   end
 
