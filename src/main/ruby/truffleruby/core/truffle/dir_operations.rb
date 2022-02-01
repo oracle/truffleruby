@@ -13,6 +13,7 @@ module Truffle
 
     AT_SYMLINK_NOFOLLOW = Truffle::Config['platform.file.AT_SYMLINK_NOFOLLOW']
     DT_DIR = Truffle::Config['platform.file.DT_DIR']
+    DT_LNK  = Truffle::Config['platform.file.DT_LNK']
     DT_UNKNOWN  = Truffle::Config['platform.file.DT_UNKNOWN']
 
     MULTIPLE_READS_BUFFER_SIZE = 16384
