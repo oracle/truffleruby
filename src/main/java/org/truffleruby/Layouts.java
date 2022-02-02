@@ -11,9 +11,12 @@ package org.truffleruby;
 
 import com.oracle.truffle.api.object.HiddenKey;
 
-import org.truffleruby.parser.TranslatorEnvironment;
-
 public abstract class Layouts {
+
+    // Special variables
+
+    public static final String TEMP_PREFIX = "%";
+    public static final char TEMP_PREFIX_CHAR = TEMP_PREFIX.charAt(0);
 
     // Standard identifiers
 
@@ -28,6 +31,6 @@ public abstract class Layouts {
 
     // Frame slot name for special variable storage.
 
-    public static final String SPECIAL_VARIABLES_STORAGE = TranslatorEnvironment.TEMP_PREFIX + "$~_";
+    public static final String SPECIAL_VARIABLES_STORAGE = TEMP_PREFIX + "$~_";
 
 }

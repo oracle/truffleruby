@@ -47,6 +47,7 @@ import org.jcodings.specific.EUCJPEncoding;
 import org.jcodings.specific.SJISEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.encoding.EncodingManager;
@@ -152,16 +153,11 @@ import org.truffleruby.parser.scope.StaticScope;
 
 public class ParserSupport {
 
-    public static final char TEMP_PREFIX = '%';
+    /** The local variable to store ... arguments in */
+    public static final String FORWARD_ARGS_REST_VAR = Layouts.TEMP_PREFIX + "forward_rest";
 
-    public static final String UNNAMED_REST_VAR = prefixName("unnamed_rest");
-    public static final String ANONYMOUS_REST_VAR = prefixName("anon_rest");
-    public static final String FORWARD_ARGS_REST_VAR = prefixName("forward_rest");
-    public static final String FORWARD_ARGS_BLOCK_VAR = prefixName("forward_block");
-
-    private static String prefixName(String name) {
-        return (TEMP_PREFIX + name).intern();
-    }
+    /** The local variable to store the block from ... in */
+    public static final String FORWARD_ARGS_BLOCK_VAR = Layouts.TEMP_PREFIX + "forward_block";
 
     // Parser states:
     protected StaticScope currentScope;
@@ -1443,7 +1439,7 @@ public class ParserSupport {
 
         final String restKwargsName;
         if (keywordRestArgNameRope.isEmpty()) {
-            restKwargsName = TEMP_PREFIX + "_kwrest";
+            restKwargsName = Layouts.TEMP_PREFIX + "kwrest";
         } else {
             restKwargsName = keywordRestArgNameRope.getJavaString().intern();
         }

@@ -42,6 +42,7 @@ package org.truffleruby.parser.parser;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.Layouts;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
@@ -158,7 +159,7 @@ public class RubyParser {
         this.lexer = new RubyLexer(support, source, warnings);
         support.setLexer(lexer);
     }
-// line 126 "-"
+// line 127 "-"
   // %token constants
   public static final int keyword_class = 257;
   public static final int keyword_module = 258;
@@ -2253,10 +2254,12 @@ states[270] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[271] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    ((HashParseNode)yyVals[-1+yyTop]).setKeywordArguments(true);
     yyVal = support.arg_append(((ParseNode)yyVals[-3+yyTop]), support.remove_duplicate_keys(((HashParseNode)yyVals[-1+yyTop])));
     return yyVal;
 };
 states[272] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    ((HashParseNode)yyVals[-1+yyTop]).setKeywordArguments(true);
     yyVal = support.newArrayNode(((HashParseNode)yyVals[-1+yyTop]).getPosition(), support.remove_duplicate_keys(((HashParseNode)yyVals[-1+yyTop])));
     return yyVal;
 };
@@ -2297,10 +2300,12 @@ states[282] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[283] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    ((HashParseNode)yyVals[-1+yyTop]).setKeywordArguments(true);
     yyVal = support.arg_append(((ParseNode)yyVals[-3+yyTop]), support.remove_duplicate_keys(((HashParseNode)yyVals[-1+yyTop])));
     return yyVal;
 };
 states[284] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    ((HashParseNode)yyVals[-1+yyTop]).setKeywordArguments(true);
     yyVal = support.newArrayNode(((HashParseNode)yyVals[-1+yyTop]).getPosition(), support.remove_duplicate_keys(((HashParseNode)yyVals[-1+yyTop])));
     return yyVal;
 };
@@ -2314,11 +2319,13 @@ states[286] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[287] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    ((HashParseNode)yyVals[-1+yyTop]).setKeywordArguments(true);
     yyVal = support.newArrayNode(((HashParseNode)yyVals[-1+yyTop]).getPosition(), support.remove_duplicate_keys(((HashParseNode)yyVals[-1+yyTop])));
     yyVal = support.arg_blk_pass((ParseNode)yyVal, ((BlockPassParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
 states[288] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    ((HashParseNode)yyVals[-1+yyTop]).setKeywordArguments(true);
     yyVal = support.arg_append(((ParseNode)yyVals[-3+yyTop]), support.remove_duplicate_keys(((HashParseNode)yyVals[-1+yyTop])));
     yyVal = support.arg_blk_pass((ParseNode)yyVal, ((BlockPassParseNode)yyVals[0+yyTop]));
     return yyVal;
@@ -2828,7 +2835,7 @@ states[407] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[408] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    RestArgParseNode rest = new UnnamedRestArgParseNode(((ListParseNode)yyVals[-1+yyTop]).getPosition(), ParserSupport.ANONYMOUS_REST_VAR, support.getCurrentScope().addVariable("*"), false);
+    RestArgParseNode rest = new UnnamedRestArgParseNode(((ListParseNode)yyVals[-1+yyTop]).getPosition(), Layouts.TEMP_PREFIX + "anonymous_rest", support.getCurrentScope().addVariable("*"), false);
     yyVal = support.new_args(((ListParseNode)yyVals[-1+yyTop]).getPosition(), ((ListParseNode)yyVals[-1+yyTop]), null, rest, null, (ArgsTailHolder) null);
     return yyVal;
 };
@@ -3805,7 +3812,7 @@ states[623] = (support, lexer, yyVal, yyVals, yyTop) -> {
 };
 states[624] = (support, lexer, yyVal, yyVals, yyTop) -> {
   /* FIXME: bytelist_love: somewhat silly to remake the empty bytelist over and over but this type should change (using null vs "" is a strange distinction).*/
-  yyVal = new UnnamedRestArgParseNode(lexer.getPosition(), ParserSupport.UNNAMED_REST_VAR, support.getCurrentScope().addVariable("*"), true);
+  yyVal = new UnnamedRestArgParseNode(lexer.getPosition(), Layouts.TEMP_PREFIX + "unnamed_rest", support.getCurrentScope().addVariable("*"), true);
     return yyVal;
 };
 states[625] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -3970,7 +3977,7 @@ states[671] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 }
-// line 2819 "RubyParser.y"
+// line 2826 "RubyParser.y"
 
     /** The parse method use an lexer stream and parse it to an AST node 
      * structure
@@ -3987,4 +3994,4 @@ states[671] = (support, lexer, yyVal, yyVals, yyTop) -> {
 }
 // CheckStyle: stop generated
 // @formatter:on
-// line 10872 "-"
+// line 10879 "-"

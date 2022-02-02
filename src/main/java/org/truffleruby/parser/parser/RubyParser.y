@@ -3,6 +3,7 @@ package org.truffleruby.parser.parser;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.Layouts;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
@@ -1291,9 +1292,11 @@ aref_args       : none
                     $$ = $1;
                 }
                 | args ',' assocs trailer {
+                    $3.setKeywordArguments(true);
                     $$ = support.arg_append($1, support.remove_duplicate_keys($3));
                 }
                 | assocs trailer {
+                    $1.setKeywordArguments(true);
                     $$ = support.newArrayNode($1.getPosition(), support.remove_duplicate_keys($1));
                 }
 
@@ -1334,9 +1337,11 @@ opt_call_args   : none
                     $$ = $1;
                 }
                 | args ',' assocs ',' {
+                    $3.setKeywordArguments(true);
                     $$ = support.arg_append($1, support.remove_duplicate_keys($3));
                 }
                 | assocs ',' {
+                    $1.setKeywordArguments(true);
                     $$ = support.newArrayNode($1.getPosition(), support.remove_duplicate_keys($1));
                 }
    
@@ -1350,10 +1355,12 @@ call_args       : command {
                     $$ = support.arg_blk_pass($1, $2);
                 }
                 | assocs opt_block_arg {
+                    $1.setKeywordArguments(true);
                     $$ = support.newArrayNode($1.getPosition(), support.remove_duplicate_keys($1));
                     $$ = support.arg_blk_pass((ParseNode)$$, $2);
                 }
                 | args ',' assocs opt_block_arg {
+                    $3.setKeywordArguments(true);
                     $$ = support.arg_append($1, support.remove_duplicate_keys($3));
                     $$ = support.arg_blk_pass((ParseNode)$$, $4);
                 }
@@ -1793,7 +1800,7 @@ block_param     : f_arg ',' f_block_optarg ',' f_rest_arg opt_block_args_tail {
                     $$ = support.new_args($1.getPosition(), $1, null, $3, null, $4);
                 }
                 | f_arg ',' {
-                    RestArgParseNode rest = new UnnamedRestArgParseNode($1.getPosition(), ParserSupport.ANONYMOUS_REST_VAR, support.getCurrentScope().addVariable("*"), false);
+                    RestArgParseNode rest = new UnnamedRestArgParseNode($1.getPosition(), Layouts.TEMP_PREFIX + "anonymous_rest", support.getCurrentScope().addVariable("*"), false);
                     $$ = support.new_args($1.getPosition(), $1, null, rest, null, (ArgsTailHolder) null);
                 }
                 | f_arg ',' f_rest_arg ',' f_arg opt_block_args_tail {
@@ -2657,7 +2664,7 @@ f_rest_arg      : restarg_mark tIDENTIFIER {
                 }
                 | restarg_mark {
   // FIXME: bytelist_love: somewhat silly to remake the empty bytelist over and over but this type should change (using null vs "" is a strange distinction).
-  $$ = new UnnamedRestArgParseNode(lexer.getPosition(), ParserSupport.UNNAMED_REST_VAR, support.getCurrentScope().addVariable("*"), true);
+  $$ = new UnnamedRestArgParseNode(lexer.getPosition(), Layouts.TEMP_PREFIX + "unnamed_rest", support.getCurrentScope().addVariable("*"), true);
                 }
 
 // [!null]

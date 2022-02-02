@@ -44,6 +44,9 @@ import org.truffleruby.parser.parser.ParseNodeTuple;
 public class HashParseNode extends ParseNode implements ILiteralNode {
     private final List<ParseNodeTuple> pairs;
 
+    /** Does this hash parse node represent keyword arguments? */
+    private boolean keywordArguments = false;
+
     public HashParseNode(SourceIndexLength position) {
         super(position);
 
@@ -93,5 +96,13 @@ public class HashParseNode extends ParseNode implements ILiteralNode {
         }
 
         return children;
+    }
+
+    public boolean isKeywordArguments() {
+        return keywordArguments;
+    }
+
+    public void setKeywordArguments(boolean keywordArguments) {
+        this.keywordArguments = keywordArguments;
     }
 }
