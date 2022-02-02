@@ -269,7 +269,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         RubyArguments.setCallerData(rubyArgs, getFrameOrStorageIfRequired(frame));
 
         assert RubyArguments.assertFrameArguments(rubyArgs);
-        return callNode.execute(frame, method, rubyArgs);
+        return callNode.execute(frame, method, receiver, rubyArgs);
     }
 
     private Object callMethodMissing(Frame frame, String methodName, Object[] rubyArgs) {
