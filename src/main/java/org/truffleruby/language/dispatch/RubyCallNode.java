@@ -99,7 +99,7 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
 
             RubyArguments.setBlock(rubyArgs, executeBlock(frame));
 
-            return executeWithArgumentsEvaluated(frame, rubyArgs);
+            return executeWithArgumentsEvaluated(frame, receiverObject, rubyArgs);
         } else {
             final Object[] executedArguments = executeArguments(frame);
 
@@ -141,13 +141,13 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         executeWithArgumentsEvaluated(frame, receiverObject, blockObject, argumentsObjects);
     }
 
-    public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object[] rubyArgs) {
+    public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object receiverObject, Object[] rubyArgs) {
         if (dispatch == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             dispatch = insert(DispatchNode.create(dispatchConfig));
         }
 
-        final Object returnValue = dispatch.dispatch(frame, methodName, rubyArgs);
+        final Object returnValue = dispatch.dispatch(frame, methodName, receiverObject, rubyArgs);
         if (isAttrAssign) {
             final Object value = rubyArgs[rubyArgs.length - 1];
             assert RubyGuards.assertIsValidRubyValue(value);
@@ -164,7 +164,7 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         RubyArguments.setSelf(rubyArgs, receiverObject);
         RubyArguments.setBlock(rubyArgs, blockObject);
         RubyArguments.setArguments(rubyArgs, argumentsObjects);
-        return executeWithArgumentsEvaluated(frame, rubyArgs);
+        return executeWithArgumentsEvaluated(frame, receiverObject, rubyArgs);
     }
 
     private Object executeBlock(VirtualFrame frame) {
