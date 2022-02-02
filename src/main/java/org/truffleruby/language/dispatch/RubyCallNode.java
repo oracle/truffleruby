@@ -182,9 +182,7 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
 
         RubyArray args = (RubyArray) RubyArguments.getArgument(rubyArgs, 0);
         Object store = args.store;
-        Object[] newArgs = RubyArguments.allocate(args.size);
-        RubyArguments.setSelf(newArgs, RubyArguments.getSelf(rubyArgs));
-        RubyArguments.setBlock(newArgs, RubyArguments.getBlock(rubyArgs));
+        Object[] newArgs = RubyArguments.repack(rubyArgs, RubyArguments.getSelf(rubyArgs), 0, args.size, 0);
         stores.copyContents(store, 0, newArgs, RubyArguments.RUNTIME_ARGUMENT_COUNT, args.size);
         return newArgs;
     }
