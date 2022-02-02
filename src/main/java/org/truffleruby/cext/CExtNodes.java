@@ -203,14 +203,14 @@ public class CExtNodes {
                     MutexOperations.unlockInternal(lock);
                 }
                 try {
-                    return dispatchNode.dispatch(frame, receiver, method.getString(), block, args);
+                    return dispatchNode.dispatchUnpacked(frame, receiver, method.getString(), block, args);
                 } finally {
                     if (owned) {
                         MutexOperations.internalLockEvenWithException(getContext(), lock, this);
                     }
                 }
             } else {
-                return dispatchNode.dispatch(frame, receiver, method.getString(), block, args);
+                return dispatchNode.dispatchUnpacked(frame, receiver, method.getString(), block, args);
             }
         }
     }
