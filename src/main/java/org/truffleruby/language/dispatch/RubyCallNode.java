@@ -130,7 +130,7 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         assert RubyArguments.getArgument(rubyArgs, argCount - 1) == nil;
         RubyArguments.setArgument(rubyArgs, argCount - 1, value);
 
-        executeWithArgumentsEvaluated(frame, rubyArgs);
+        executeWithArgumentsEvaluated(frame, receiverObject, rubyArgs);
     }
 
     public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object receiverObject, Object[] rubyArgs) {
