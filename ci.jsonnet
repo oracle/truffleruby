@@ -244,6 +244,12 @@ local part_definitions = {
       },
     },
 
+    local darwin_deps = common.sulong.deps.darwin + {
+      packages+: {
+        ruby: "==3.0.2",
+      },
+    },
+
     linux: linux_deps + {
       platform_name:: "LinuxAMD64",
       platform: "linux",
@@ -261,7 +267,7 @@ local part_definitions = {
         normal_machine: ["linux", "aarch64"],
       },
     },
-    darwin: common.sulong.deps.darwin + {
+    darwin: darwin_deps + {
       platform_name:: "DarwinAMD64",
       platform: "darwin",
       arch:: "amd64",
