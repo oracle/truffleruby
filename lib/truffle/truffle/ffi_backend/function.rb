@@ -47,11 +47,11 @@ module FFI
       end
 
       if FFI::DynamicLibrary::Symbol === function
-        @function = Primitive.interop_eval_nfi(@function_info.nfi_type).bind(function.handle)
+        @function = @function_info.nfi_signature.bind(function.handle)
         @native_wrapper = nil
         super(@function)
       elsif FFI::Pointer === function
-        @function = Primitive.interop_eval_nfi(@function_info.nfi_type).bind(function)
+        @function = @function_info.nfi_signature.bind(function)
         @native_wrapper = nil
         super(@function)
       elsif Proc === function || Method === function
@@ -202,8 +202,7 @@ module FFI
     end
 
     private def create_native_wrapper(function, function_info)
-      parsed_sig = Primitive.interop_eval_nfi function_info.nfi_type
-      parsed_sig.createClosure(callback(function, function_info))
+      function_info.nfi_signature.createClosure(callback(function, function_info))
     end
   end
 

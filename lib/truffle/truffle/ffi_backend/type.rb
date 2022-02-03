@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 #
 # Copyright (C) 2008-2010 Wayne Meissner
 #
@@ -198,6 +200,7 @@ module FFI
     attr_reader :return_type, :param_types, :enums, :blocking, :function_index
 
     def initialize(return_type, param_types, options = {})
+      # note: @nfi_type is updated below
       super(FFI::Type::POINTER.size, FFI::Type::POINTER.alignment, FFI::Type::POINTER.nfi_type)
 
       varargs = options[:varargs]
@@ -215,14 +218,14 @@ module FFI
       @function_index = param_types.index { |type| FFI::FunctionType === type }
 
       if varargs
-        @signature = nfi_varags_signature(@return_type, varargs, @param_types)
+        @nfi_type = nfi_varags_signature(@return_type, varargs, @param_types)
       else
-        @signature = nfi_signature(@return_type, @param_types)
+        @nfi_type = nfi_fixed_signature(@return_type, @param_types)
       end
     end
 
-    def nfi_type
-      @signature
+    def nfi_signature
+      @nfi_signature ||= Primitive.interop_eval_nfi(@nfi_type)
     end
 
     private def nfi_varags_signature(return_type, fixed, param_types)
@@ -234,7 +237,7 @@ module FFI
       "(#{fixed_args_types.join(',')},...#{var_args_types.join(',')}):#{nfi_return_type}"
     end
 
-    private def nfi_signature(return_type, param_types)
+    private def nfi_fixed_signature(return_type, param_types)
       nfi_return_type = return_type.nfi_type
       nfi_args_types = param_types.map(&:nfi_type)
       "(#{nfi_args_types.join(',')}):#{nfi_return_type}"
