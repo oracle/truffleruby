@@ -156,10 +156,6 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
         return (AlwaysInlinedMethodNode) method.alwaysInlinedNodeFactory.getUncachedInstance();
     }
 
-    static Object[] packArguments(Object callerData, InternalMethod method, Object self, Object block, Object[] args) {
-        return RubyArguments.pack(null, callerData, method, null, self, block, args);
-    }
-
     protected Assumption getMethodAssumption(InternalMethod method) {
         return isSingleContext()
                 ? method.getDeclaringModule().fields.getOrCreateMethodAssumption(method.getName())

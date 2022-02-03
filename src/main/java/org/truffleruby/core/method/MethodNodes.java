@@ -137,7 +137,6 @@ public abstract class MethodNodes {
             final InternalMethod internalMethod = method.method;
             final Object[] newArgs = RubyArguments.repack(rubyArgs, method.receiver);
             RubyArguments.setMethod(newArgs, internalMethod);
-
             assert RubyArguments.assertFrameArguments(newArgs);
             return callInternalMethodNode.execute(callerFrame, newArgs);
         }
