@@ -18,6 +18,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.arguments.RubyArguments;
 
 public class MakeSpecialVariableStorageNode extends RubyContextSourceNode {
 
@@ -31,6 +32,7 @@ public class MakeSpecialVariableStorageNode extends RubyContextSourceNode {
             final FrameDescriptor descriptor = frame.getFrameDescriptor();
             frameAssumption = descriptor.getVersion();
             variablesSlot = descriptor.findFrameSlot(Layouts.SPECIAL_VARIABLES_STORAGE);
+            assert RubyArguments.getDeclarationFrame(frame) == null;
         }
 
         if (variablesSlot != null) {
