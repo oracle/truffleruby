@@ -2415,7 +2415,7 @@ class IO
     return nil if closed?
 
     begin
-      flush
+      ensure_open # IO#flush but inlined, to not call user-defined #flush
     ensure
       fd = Primitive.io_fd(self)
       if fd >= 0
