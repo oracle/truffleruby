@@ -36,7 +36,7 @@ JDKS_CACHE_DIR = File.expand_path('~/.mx/jdks')
 CACHE_EXTRA_DIR = File.expand_path('~/.mx/cache/truffleruby')
 FileUtils.mkdir_p(CACHE_EXTRA_DIR)
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = 'ba90ba6237bffec6368eaf6d3da5a8cb21894c99'
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = 'bad12dd52a553ba728ce0bfbc55406d1d60fe708'
 
 JDEBUG = '--vm.agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y'
 METRICS_REPS = Integer(ENV['TRUFFLERUBY_METRICS_REPS'] || 10)
@@ -53,6 +53,7 @@ RUBOCOP_INCLUDE_LIST = %w[
 ]
 
 RUBOCOP_VERSION = '1.22.1'
+SEAFOAM_VERSION = '0.12'
 
 DLEXT = RbConfig::CONFIG.fetch('DLEXT')
 
@@ -644,6 +645,21 @@ module Utilities
     end
   end
 
+  def run_gem_test_pack_gem_or_install(name, version, *args)
+    if gem_test_pack?
+      gem_home = "#{gem_test_pack}/#{name}-gems"
+      env = { 'GEM_HOME' => gem_home, 'GEM_PATH' => "#{gem_home}:" }
+      sh env, RbConfig.ruby, "#{gem_home}/bin/#{name}", *args
+    else
+      env = ruby_running_jt_env
+      if Gem::Specification.find_all_by_name(name, version).empty?
+        sh env, 'gem', 'install', name, '-v', version
+      end
+      sh env, name, "_#{version}_", *args
+    end
+  end
+  ruby2_keywords :run_gem_test_pack_gem_or_install if respond_to?(:ruby2_keywords, true)
+
   def args_split(args)
     delimiter_index = args.index('--')
     return [args, []] unless delimiter_index
@@ -810,6 +826,7 @@ module Commands
       jt profile                                     profiles an application, including the TruffleRuby runtime, and generates a flamegraph
       jt graph [ruby options] [--method Object#foo] [--watch] [--no-simplify] file.rb
                                                      render a graph of Object#foo within file.rb
+                              --describe             describe the shape of the graph (linear, branches, loops, calls, deopts)
       jt igv                                         launches IdealGraphVisualizer
       jt next                                        tell you what to work on next (give you a random core library spec)
       jt install [jvmci|eclipse]                     install [the right JVMCI JDK | Eclipse] in the parent directory
@@ -2027,6 +2044,8 @@ module Commands
     method = 'Object#foo'
     watch = false
     simplify = true
+    describe = false
+    json = false
 
     vm_args, remaining_args, _parsed_options = ruby_options({}, args)
     args = remaining_args
@@ -2034,6 +2053,8 @@ module Commands
     until args.empty?
       arg = args.shift
       case arg
+      when '--json'
+        json = true
       when '--method'
         raise if args.empty?
         method = args.shift
@@ -2041,6 +2062,8 @@ module Commands
         watch = true
       when '--no-simplify'
         simplify = false
+      when '--describe'
+        describe = true
       when '--'
         raise
       when /^-/
@@ -2052,11 +2075,6 @@ module Commands
     end
 
     raise unless test_file
-    env = ruby_running_jt_env
-
-    if Gem::Specification.find_all_by_name('seafoam').empty?
-      sh env, 'gem', 'install', 'seafoam'
-    end
 
     base_vm_args = [
       '--experimental-options',
@@ -2109,12 +2127,13 @@ module Commands
       graph = graphs.last
       raise "Could not find graph in #{dumps}" unless graph
 
-      list = raw_sh(env, 'seafoam', graph, 'list', capture: :out, no_print_cmd: true)
-      n = list.each_line.with_index do |line, index|
-        break index if line.include? 'Before phase org.graalvm.compiler.phases.common.LoweringPhase'
-      end
+      list = run_gem_test_pack_gem_or_install('seafoam', SEAFOAM_VERSION, '--json', graph, 'list', capture: :out, no_print_cmd: true)
+      decoded = JSON.parse(list)
+      n = decoded.find { |entry| entry['graph_name_components'].last == 'Before phase org.graalvm.compiler.phases.common.LoweringPhase' }['graph_index']
 
-      raw_sh env, 'seafoam', "#{graph}:#{n}", 'render'
+      json_args = json ? %w[--json] : []
+      action = describe ? 'describe' : 'render'
+      run_gem_test_pack_gem_or_install('seafoam', SEAFOAM_VERSION, *json_args, "#{graph}:#{n}", action)
 
       break unless watch
       puts # newline between runs
@@ -2417,17 +2436,7 @@ module Commands
       args += RUBOCOP_INCLUDE_LIST
     end
 
-    if gem_test_pack?
-      gem_home = "#{gem_test_pack}/rubocop-gems"
-      env = { 'GEM_HOME' => gem_home, 'GEM_PATH' => nil }
-      sh env, RbConfig.ruby, "#{gem_home}/bin/rubocop", *args
-    else
-      env = ruby_running_jt_env
-      if Gem::Specification.find_all_by_name('rubocop', "#{RUBOCOP_VERSION}").empty?
-        sh env, 'gem', 'install', 'rubocop', '-v', RUBOCOP_VERSION
-      end
-      sh env, 'rubocop', "_#{RUBOCOP_VERSION}_", *args
-    end
+    run_gem_test_pack_gem_or_install('rubocop', RUBOCOP_VERSION, *args)
   end
 
   def idea(*args)

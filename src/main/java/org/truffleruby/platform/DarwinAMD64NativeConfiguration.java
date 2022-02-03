@@ -42,7 +42,7 @@ import org.truffleruby.RubyContext;
 public class DarwinAMD64NativeConfiguration extends DefaultNativeConfiguration {
 
     public static void load(NativeConfiguration configuration, RubyContext context) {
-        // Generated from tool/generate-native-config.rb on universal.x86_64-darwin18
+        // Generated from tool/generate-native-config.rb on x86_64-darwin18
         configuration.config("platform.sigaction.sizeof", 16);
         configuration.config("platform.sigaction.sa_handler.offset", 0);
         configuration.config("platform.sigaction.sa_handler.size", 8);
