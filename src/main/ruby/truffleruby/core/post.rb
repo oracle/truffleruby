@@ -102,6 +102,8 @@ yield_self do # Avoid capturing ruby_home in the at_exit and delay blocks
     $LOAD_PATH.push "#{ruby_home}/lib/truffle"
     $LOAD_PATH.push "#{ruby_home}/lib/mri"
     $LOAD_PATH.push "#{ruby_home}/lib/json/lib"
+
+    $LOAD_PATH.each { |p| p.instance_variable_set(:@gem_prelude_index, p) }
   end
 end
 
