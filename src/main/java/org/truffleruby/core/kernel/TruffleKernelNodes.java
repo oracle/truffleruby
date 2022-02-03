@@ -51,6 +51,7 @@ import org.truffleruby.language.globals.WriteSimpleGlobalVariableNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.FileLoader;
+import org.truffleruby.language.locals.FindDeclarationVariableNodes;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 import org.truffleruby.parser.ParserContext;
@@ -201,22 +202,14 @@ public abstract class TruffleKernelNodes {
 
     public static int declarationDepth(Frame topFrame) {
         MaterializedFrame frame = topFrame.materialize();
+        MaterializedFrame nextFrame;
         int count = 0;
 
-        while (true) {
-            final FrameSlot slot = getVariableSlot(frame);
-            if (slot != null) {
-                return count;
-            }
-
-            final MaterializedFrame nextFrame = RubyArguments.getDeclarationFrame(frame);
-            if (nextFrame != null) {
-                frame = nextFrame;
-                count++;
-            } else {
-                return count;
-            }
+        while ((nextFrame = RubyArguments.getDeclarationFrame(frame)) != null) {
+            frame = nextFrame;
+            count++;
         }
+        return count;
     }
 
     public static FrameDescriptor declarationDescriptor(Frame topFrame, int depth) {
@@ -226,10 +219,6 @@ public abstract class TruffleKernelNodes {
     @TruffleBoundary
     public static FrameSlot declarationSlot(FrameDescriptor descriptor) {
         return descriptor.findOrAddFrameSlot(Layouts.SPECIAL_VARIABLES_STORAGE, FrameSlotKind.Object);
-    }
-
-    private static FrameSlot getVariableSlot(MaterializedFrame frame) {
-        return frame.getFrameDescriptor().findFrameSlot(Layouts.SPECIAL_VARIABLES_STORAGE);
     }
 
     @ImportStatic({ Layouts.class, TruffleKernelNodes.class })
@@ -275,6 +264,8 @@ public abstract class TruffleKernelNodes {
                     throw CompilerDirectives.shouldNotReachHere(message);
                 }
 
+                assert RubyArguments.getDeclarationFrame(storageFrame) == null;
+
                 variables = FrameUtil.getObjectSafe(storageFrame, declarationFrameSlot);
                 if (variables == nil) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -292,31 +283,14 @@ public abstract class TruffleKernelNodes {
 
         @TruffleBoundary
         public static SpecialVariableStorage getSlow(MaterializedFrame aFrame) {
-            MaterializedFrame frame = aFrame;
-
-            while (true) {
-                final FrameSlot slot = getVariableSlot(frame);
-                if (slot != null) {
-                    Object variables = FrameUtil.getObjectSafe(frame, slot);
-                    if (variables == Nil.INSTANCE) {
-                        variables = new SpecialVariableStorage();
-                        frame.setObject(slot, variables);
-                    }
-                    return (SpecialVariableStorage) variables;
-                }
-
-                final MaterializedFrame nextFrame = RubyArguments.getDeclarationFrame(frame);
-                if (nextFrame != null) {
-                    frame = nextFrame;
-                } else {
-                    FrameSlot newSlot = frame
-                            .getFrameDescriptor()
-                            .findOrAddFrameSlot(Layouts.SPECIAL_VARIABLES_STORAGE);
-                    SpecialVariableStorage variables = new SpecialVariableStorage();
-                    frame.setObject(newSlot, variables);
-                    return variables;
-                }
+            MaterializedFrame frame = FindDeclarationVariableNodes.getOuterDeclarationFrame(aFrame);
+            FrameSlot slot = frame.getFrameDescriptor().findOrAddFrameSlot(Layouts.SPECIAL_VARIABLES_STORAGE);
+            Object variables = FrameUtil.getObjectSafe(frame, slot);
+            if (variables == Nil.INSTANCE) {
+                variables = new SpecialVariableStorage();
+                frame.setObject(slot, variables);
             }
+            return (SpecialVariableStorage) variables;
         }
 
         public static GetSpecialVariableStorage create() {
@@ -421,26 +395,10 @@ public abstract class TruffleKernelNodes {
 
         @TruffleBoundary
         public Object shareSlow(MaterializedFrame aFrame, SpecialVariableStorage storage) {
-            MaterializedFrame frame = aFrame;
-
-            while (true) {
-                final FrameSlot slot = getVariableSlot(frame);
-                if (slot != null) {
-                    frame.setObject(slot, storage);
-                    return nil;
-                }
-
-                final MaterializedFrame nextFrame = RubyArguments.getDeclarationFrame(frame);
-                if (nextFrame != null) {
-                    frame = nextFrame;
-                } else {
-                    FrameSlot newSlot = frame
-                            .getFrameDescriptor()
-                            .findOrAddFrameSlot(Layouts.SPECIAL_VARIABLES_STORAGE);
-                    frame.setObject(newSlot, storage);
-                    return nil;
-                }
-            }
+            MaterializedFrame frame = FindDeclarationVariableNodes.getOuterDeclarationFrame(aFrame);
+            FrameSlot slot = frame.getFrameDescriptor().findOrAddFrameSlot(Layouts.SPECIAL_VARIABLES_STORAGE);
+            frame.setObject(slot, storage);
+            return nil;
         }
 
         public static GetSpecialVariableStorage create() {

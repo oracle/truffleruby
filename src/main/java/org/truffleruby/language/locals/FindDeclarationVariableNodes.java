@@ -12,6 +12,7 @@ package org.truffleruby.language.locals;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.frame.MaterializedFrame;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.locals.FindDeclarationVariableNodesFactory.FindAndReadDeclarationVariableNodeGen;
@@ -37,6 +38,17 @@ public class FindDeclarationVariableNodes {
         public FrameSlot getSlot() {
             return slot;
         }
+    }
+
+    public static MaterializedFrame getOuterDeclarationFrame(MaterializedFrame topFrame) {
+        MaterializedFrame frame = topFrame;
+        MaterializedFrame nextFrame;
+
+        while ((nextFrame = RubyArguments.getDeclarationFrame(frame)) != null) {
+            frame = nextFrame;
+        }
+
+        return frame;
     }
 
     public static FrameSlotAndDepth findFrameSlotOrNull(String identifier, Frame frame) {
