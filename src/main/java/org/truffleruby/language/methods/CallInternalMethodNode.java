@@ -60,13 +60,13 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
             @Cached("method.getCallTarget()") RootCallTarget cachedCallTarget,
             @Cached("method") InternalMethod cachedMethod,
             @Cached("createCall(cachedMethod.getName(), cachedCallTarget)") DirectCallNode callNode) {
-        return callNode.call(rubyArgs);
+        return callNode.call(RubyArguments.repackForCall(rubyArgs));
     }
 
     @Specialization(guards = "!method.alwaysInlined()", replaces = "callCached")
     protected Object callUncached(InternalMethod method, Object receiver, Object[] rubyArgs,
             @Cached IndirectCallNode indirectCallNode) {
-        return indirectCallNode.call(method.getCallTarget(), rubyArgs);
+        return indirectCallNode.call(method.getCallTarget(), RubyArguments.repackForCall(rubyArgs));
     }
 
     @Specialization(
@@ -87,7 +87,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
             RubyCheckArityRootNode.checkArity(cachedArity, RubyArguments.getArgumentsCount(rubyArgs), checkArityProfile,
                     alwaysInlinedNode);
 
-            return alwaysInlinedNode.execute(frame, receiver, rubyArgs, cachedCallTarget);
+            return alwaysInlinedNode.execute(frame, receiver, RubyArguments.repackForCall(rubyArgs), cachedCallTarget);
         } catch (RaiseException e) {
             exceptionProfile.enter();
             final Node location = e.getLocation();

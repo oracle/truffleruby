@@ -10,6 +10,7 @@
 package org.truffleruby.language.arguments;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.StringUtils;
@@ -147,6 +148,13 @@ public final class RubyArguments {
         newArgs[ArgumentIndicies.BLOCK.ordinal()] = getBlock(rubyArgs);
         System.arraycopy(rubyArgs, RUNTIME_ARGUMENT_COUNT + from, newArgs, RUNTIME_ARGUMENT_COUNT + to, count);
         return newArgs;
+    }
+
+    /** Clone the argument array before making a call. This is done to handle the case where two methods might be called
+     * but Truffle has only inlined one. Copy the arguments allows these two uses of the arguments to have different
+     * lifetimes, and hence be escape analysed, */
+    public static Object[] repackForCall(Object[] rubyArgs) {
+        return CompilerDirectives.inInterpreter() ? rubyArgs : rubyArgs.clone();
     }
 
     // Getters
