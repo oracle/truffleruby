@@ -47,11 +47,11 @@ module FFI
       end
 
       if FFI::DynamicLibrary::Symbol === function
-        @function = Truffle::POSIX.nfi_function_from_pointer(function.handle, @function_info.nfi_type)
+        @function = Primitive.interop_eval_nfi(@function_info.nfi_type).bind(function.handle)
         @native_wrapper = nil
         super(@function)
       elsif FFI::Pointer === function
-        @function = Truffle::POSIX.nfi_function_from_pointer(function, @function_info.nfi_type)
+        @function = Primitive.interop_eval_nfi(@function_info.nfi_type).bind(function)
         @native_wrapper = nil
         super(@function)
       elsif Proc === function || Method === function

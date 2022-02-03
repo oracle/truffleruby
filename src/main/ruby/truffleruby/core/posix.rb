@@ -84,11 +84,6 @@ module Truffle::POSIX
     end
   end
 
-  def self.nfi_function_from_pointer(pointer, signature)
-    parsed_sig = Primitive.interop_eval_nfi signature
-    parsed_sig.bind(pointer)
-  end
-
   # the actual function is looked up and attached on its first call
   def self.attach_function(native_name, argument_types, return_type,
                            library = LIBC, blocking = false, method_name = native_name, on = self)

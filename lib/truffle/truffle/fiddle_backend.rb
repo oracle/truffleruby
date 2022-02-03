@@ -214,7 +214,7 @@ module Fiddle
         @function = ptr.method(:call)
       else
         ptr = Truffle::FFI::Pointer.new(ptr)
-        @function = Truffle::POSIX.nfi_function_from_pointer(ptr, signature)
+        @function = Primitive.interop_eval_nfi(signature).bind(ptr)
       end
     end
 
