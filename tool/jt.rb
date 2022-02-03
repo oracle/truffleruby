@@ -742,14 +742,14 @@ module Commands
           --silent                  Does not print the command and which Ruby is used
           --jdk                     Specifies which version of the JDK should be used: 11 (default) or 17
 
-      jt build [graalvm|parser|options] ...   by default it builds graalvm
-        jt build [parser|options] [options]
+      jt build [graalvm|parser|options|core-symbols] ...   by default it builds graalvm
+        jt build parser|options|core-symbols
             parser                            build the parser
             options                           build the options
             core-symbols                      build the core symbols
-        jt build graalvm [options] [mx options] [-- mx build options]
-            graalvm                           build a GraalVM based on the given env file, the default is a minimal
-                                              GraalVM with JVM and Truffleruby only available in mxbuild/truffleruby-jvm,
+        jt build [options] [mx options] [-- mx build options]
+                                              build a GraalVM based on the given env file, the default is a minimal
+                                              GraalVM with JVM and Truffleruby available in mxbuild/truffleruby-jvm,
                                               the Ruby is symlinked into rbenv or chruby if available
             options:
               --sforceimports                 run `mx sforceimports` before building (default: false)
@@ -758,7 +758,8 @@ module Commands
                                               it is also linked in your ruby manager (if found) under the same name,
                                               by default it is the name of the mx env file,
                                               the named build stays until it is rebuilt or deleted manually
-            mx options                        options passed directly to mx
+            mx options:                       options passed directly to mx
+              -d                              start the Java debugger and enables assertions when running truffleruby to configure C extensions
             mx build options                  options passed to the 'build' command of mx
 
       jt build_stats [--json] <attribute>            prints attribute's value from build process (e.g., binary size)
@@ -775,7 +776,7 @@ module Commands
           --infopoints    show source location for each node in IGV
           --fg            disable background compilation
           --trace         show compilation information on stdout
-          --jdebug        run a JDWP debug server on port 8000
+          --jdebug        start the Java debugger server on port 8000
           --jexception[s] print java exceptions
           --exec          use exec rather than system
       jt gem                                         shortcut for `jt ruby -S gem`, to install Ruby gems, etc
