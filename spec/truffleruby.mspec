@@ -43,6 +43,18 @@ class MSpecScript
 
   set :prefix, 'spec/ruby'
 
+  # Run separately as they trigger instrumentation and are particularly slow (they instrument all loaded code)
+  set :tracepoint, [
+    "spec/ruby/core/tracepoint",
+    "spec/ruby/optional/capi/tracepoint_spec.rb",
+  ]
+
+  set :core, [
+    "spec/ruby/core",
+    # See :tracepoint
+    "^spec/ruby/core/tracepoint",
+  ]
+
   # Specs that need Sulong and should be tested in the Sulong gate
   library_cext_specs = %w[
     spec/ruby/library/bigdecimal
@@ -78,7 +90,9 @@ class MSpecScript
   set :library_cext, library_cext_specs
 
   set :capi, [
-    "spec/ruby/optional/capi"
+    "spec/ruby/optional/capi",
+    # See :tracepoint
+    "^spec/ruby/optional/capi/tracepoint_spec.rb",
   ]
 
   set :truffle, [
@@ -129,14 +143,15 @@ class MSpecScript
     excludes << 'arm64'
   end
 
-  # All specs, excluding specs needing C-extensions support.
+  # All specs, excluding specs needing C-extensions support, and TracePoint specs.
   set :files, get(:command_line) + get(:language) + get(:core) + get(:library) + get(:truffle) + get(:security)
 
   # Specs needing C-extensions support.
   set :cext, get(:capi) + get(:truffle_capi) + get(:library_cext)
 
   # All specs, including specs needing C-extensions support.
-  # Next version specs are not included as they need to run in a separate process.
+  # :next specs are not included as they need to run in a separate process.
+  # :tracepoint specs are not included as they need should run in a separate process.
   set :all, get(:files) + get(:cext)
 end
 

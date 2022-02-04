@@ -145,7 +145,7 @@ jobs:
         specs:
         - :truffle # ~12min
         - :language :core # ~3min + ~9min
-        - :library :cext :security :command_line # command_line ~5min, others < 2min
+        - :library :cext :security :command_line :tracepoint # command_line ~5min, others < 2min
     steps:
       - name: Clone TruffleRuby
         uses: actions/checkout@v2
