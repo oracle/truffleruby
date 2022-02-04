@@ -154,7 +154,9 @@ public final class RubyArguments {
      * but Truffle has only inlined one. Copy the arguments allows these two uses of the arguments to have different
      * lifetimes, and hence be escape analysed, */
     public static Object[] repackForCall(Object[] rubyArgs) {
-        return CompilerDirectives.inInterpreter() ? rubyArgs : rubyArgs.clone();
+        return (!CompilerDirectives.inInterpreter() && CompilerDirectives.isPartialEvaluationConstant(rubyArgs.length))
+                ? rubyArgs.clone()
+                : rubyArgs;
     }
 
     // Getters
