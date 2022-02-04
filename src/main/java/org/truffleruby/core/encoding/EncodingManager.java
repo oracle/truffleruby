@@ -184,11 +184,6 @@ public class EncodingManager {
         localeEncoding = rubyEncoding;
     }
 
-
-    public static Encoding getEncoding(String name) {
-        return getEncoding(RopeOperations.encodeAscii(name, USASCIIEncoding.INSTANCE));
-    }
-
     @TruffleBoundary
     public static Encoding getEncoding(Rope name) {
         EncodingDB.Entry entry = EncodingDB.getEncodings().get(name.getBytes());

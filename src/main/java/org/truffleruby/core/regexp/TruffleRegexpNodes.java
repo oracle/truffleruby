@@ -134,7 +134,6 @@ public class TruffleRegexpNodes {
                 @Cached BranchProfile fixedRegexpEncodingProfile,
                 @Cached BranchProfile returnMatchStringEncodingProfile,
                 @Cached BranchProfile sameEncodingProfile,
-                @Cached BranchProfile uninitializedRegexpProfile,
                 @Cached BranchProfile validBinaryMatchStringProfile,
                 @Cached BranchProfile validUtf8MatchStringProfile) {
             final RubyEncoding regexpEncoding = regexp.encoding;
@@ -148,14 +147,6 @@ public class TruffleRegexpNodes {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().argumentErrorInvalidByteSequence(matchStringEncoding, this));
-            }
-
-            if (!RegexpGuards.isInitialized(regexp)) {
-                uninitializedRegexpProfile.enter();
-
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().typeErrorUninitializedRegexp(this));
             }
 
             // This set of checks optimizes for the very common case where the regexp uses the default encoding and
@@ -787,15 +778,6 @@ public class TruffleRegexpNodes {
                     getLanguage().getSymbol(keyName),
                     distributionHash,
                     true);
-        }
-    }
-
-    @Primitive(name = "regexp_initialized?")
-    public abstract static class InitializedNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected boolean initialized(RubyRegexp regexp) {
-            return RegexpGuards.isInitialized(regexp);
         }
     }
 

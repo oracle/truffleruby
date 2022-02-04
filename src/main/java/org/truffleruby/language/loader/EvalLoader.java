@@ -29,7 +29,7 @@ public abstract class EvalLoader {
     @TruffleBoundary
     public static RubySource createEvalSource(RubyContext context, Rope code, String method, String file, int line,
             Node currentNode) {
-        final Rope sourceRope = createEvalRope(code, method, file, line);
+        final Rope sourceRope = createEvalRope(code);
 
         final String sourceString;
         try {
@@ -56,7 +56,7 @@ public abstract class EvalLoader {
         return rubySource;
     }
 
-    private static Rope createEvalRope(Rope source, String method, String file, int line) {
+    private static Rope createEvalRope(Rope source) {
         final Encoding[] encoding = { source.getEncoding() };
 
         RubyLexer.parseMagicComment(source, (name, value) -> {

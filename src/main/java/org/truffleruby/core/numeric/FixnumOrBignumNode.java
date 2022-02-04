@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.numeric;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import org.truffleruby.core.CoreLibrary;
@@ -35,11 +34,6 @@ public class FixnumOrBignumNode extends RubyBaseNode {
 
     private final ConditionProfile integerFromDoubleProfile = ConditionProfile.create();
     private final ConditionProfile longFromDoubleProfile = ConditionProfile.create();
-
-    @TruffleBoundary
-    public Object fixnumOrBignum(BigDecimal value) {
-        return fixnumOrBignum(value.toBigInteger());
-    }
 
     public Object fixnumOrBignum(BigInteger value) {
         if (lowerProfile.profile(fitsIntoLong(value))) {
