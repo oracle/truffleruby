@@ -238,7 +238,7 @@ class JT
         configs.each do |c|
           excludes = %w[fails slow]
 
-          %w[:command_line :security :language :core :library :capi :library_cext :truffle :truffle_capi].each do |set|
+          %w[:command_line :security :language :core :tracepoint :library :capi :library_cext :truffle :truffle_capi].each do |set|
             t_config = c.empty? ? '' : '-T' + c
             t_config << ' -T--experimental-options -T--pattern-matching'
             t_excludes = excludes.map { |e| '--excl-tag ' + e }.join(' ')
