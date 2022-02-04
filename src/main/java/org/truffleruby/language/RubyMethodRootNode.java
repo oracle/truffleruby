@@ -10,9 +10,8 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.TruffleSafepoint;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.control.DynamicReturnException;
 import org.truffleruby.language.control.LocalReturnException;
@@ -32,9 +31,7 @@ public class RubyMethodRootNode extends RubyCheckArityRootNode {
 
     @Child private TranslateExceptionNode translateExceptionNode;
 
-    private final BranchProfile localReturnProfile = BranchProfile.create();
-    private final ConditionProfile matchingReturnProfile = ConditionProfile.create();
-    private final BranchProfile retryProfile = BranchProfile.create();
+    @CompilationFinal private boolean localReturnProfile, retryProfile, matchingReturnProfile, nonMatchingReturnProfile;
 
     public RubyMethodRootNode(
             RubyLanguage language,
@@ -57,16 +54,32 @@ public class RubyMethodRootNode extends RubyCheckArityRootNode {
         try {
             return body.execute(frame);
         } catch (LocalReturnException e) {
-            localReturnProfile.enter();
+            if (!localReturnProfile) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                localReturnProfile = true;
+            }
+
             return e.getValue();
         } catch (DynamicReturnException e) {
-            if (matchingReturnProfile.profile(returnID != ReturnID.INVALID && e.getReturnID() == returnID)) {
+            if (returnID != ReturnID.INVALID && e.getReturnID() == returnID) {
+                if (!matchingReturnProfile) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    matchingReturnProfile = true;
+                }
                 return e.getValue();
             } else {
+                if (!nonMatchingReturnProfile) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    nonMatchingReturnProfile = true;
+                }
                 throw e;
             }
         } catch (RetryException e) {
-            retryProfile.enter();
+            if (!retryProfile) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                retryProfile = true;
+            }
+
             throw new RaiseException(getContext(), getContext().getCoreExceptions().syntaxErrorInvalidRetry(this));
         } catch (Throwable t) {
             if (translateExceptionNode == null) {

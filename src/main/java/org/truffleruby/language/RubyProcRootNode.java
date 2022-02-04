@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.TruffleSafepoint;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.control.NextException;
@@ -23,16 +24,13 @@ import org.truffleruby.language.methods.TranslateExceptionNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
 public class RubyProcRootNode extends RubyRootNode {
 
     @Child private TranslateExceptionNode translateExceptionNode;
 
-    private final BranchProfile redoProfile = BranchProfile.create();
-    private final BranchProfile nextProfile = BranchProfile.create();
-    private final BranchProfile retryProfile = BranchProfile.create();
+    @CompilationFinal private boolean redoProfile, nextProfile, retryProfile;
 
     public RubyProcRootNode(
             RubyLanguage language,
@@ -54,17 +52,29 @@ public class RubyProcRootNode extends RubyRootNode {
                 try {
                     return body.execute(frame);
                 } catch (RedoException e) {
-                    redoProfile.enter();
+                    if (!redoProfile) {
+                        CompilerDirectives.transferToInterpreterAndInvalidate();
+                        redoProfile = true;
+                    }
+
                     TruffleSafepoint.poll(this);
                     continue;
                 }
             }
-        } catch (NextException e) {
-            nextProfile.enter();
-            return e.getResult();
         } catch (RetryException e) {
-            retryProfile.enter();
+            if (!retryProfile) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                retryProfile = true;
+            }
+
             throw new RaiseException(getContext(), getContext().getCoreExceptions().syntaxErrorInvalidRetry(this));
+        } catch (NextException e) {
+            if (!nextProfile) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                nextProfile = true;
+            }
+
+            return e.getResult();
         } catch (Throwable t) {
             if (translateExceptionNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
