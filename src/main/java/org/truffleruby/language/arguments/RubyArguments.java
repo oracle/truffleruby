@@ -44,6 +44,41 @@ public final class RubyArguments {
 
     private static final int RUNTIME_ARGUMENT_COUNT = ArgumentIndicies.values().length;
 
+    public static boolean assertFrameArguments(Object[] arguments) {
+        assert arguments != null;
+        assert arguments.length >= RUNTIME_ARGUMENT_COUNT;
+
+        final Object declarationFrame = arguments[ArgumentIndicies.DECLARATION_FRAME.ordinal()];
+        assert declarationFrame == null || declarationFrame instanceof MaterializedFrame : declarationFrame.getClass();
+
+        final Object callerFrameOrVariables = arguments[ArgumentIndicies.CALLER_FRAME_OR_VARIABLES.ordinal()];
+        assert callerFrameOrVariables == null || callerFrameOrVariables instanceof MaterializedFrame ||
+                callerFrameOrVariables instanceof FrameAndVariables ||
+                callerFrameOrVariables instanceof SpecialVariableStorage : callerFrameOrVariables.getClass();
+
+        final Object internalMethod = arguments[ArgumentIndicies.METHOD.ordinal()];
+        assert internalMethod == null || internalMethod instanceof InternalMethod : internalMethod.getClass();
+
+        final Object declarationContext = arguments[ArgumentIndicies.DECLARATION_CONTEXT.ordinal()];
+        assert declarationContext == null || declarationContext instanceof DeclarationContext : declarationContext
+                .getClass();
+
+        final Object frameOnStackMarker = arguments[ArgumentIndicies.FRAME_ON_STACK_MARKER.ordinal()];
+        assert frameOnStackMarker == null || frameOnStackMarker instanceof FrameOnStackMarker : frameOnStackMarker
+                .getClass();
+
+        assert RubyGuards.assertIsValidRubyValue(arguments[ArgumentIndicies.SELF.ordinal()]);
+
+        final Object block = arguments[ArgumentIndicies.BLOCK.ordinal()];
+        assert block != null;
+        assert block instanceof RubyProc || block == Nil.INSTANCE : block.getClass();
+
+        final int userArgumentsCount = arguments.length - RUNTIME_ARGUMENT_COUNT;
+        assert ArrayUtils.assertValidElements(arguments, RUNTIME_ARGUMENT_COUNT, userArgumentsCount);
+
+        return true;
+    }
+
     /** In most cases the DeclarationContext is the one of the InternalMethod. */
     public static Object[] pack(
             MaterializedFrame declarationFrame,
@@ -116,41 +151,6 @@ public final class RubyArguments {
         newArgs[ArgumentIndicies.BLOCK.ordinal()] = getBlock(rubyArgs);
         System.arraycopy(rubyArgs, RUNTIME_ARGUMENT_COUNT + from, newArgs, RUNTIME_ARGUMENT_COUNT + to, count);
         return newArgs;
-    }
-
-    public static boolean assertFrameArguments(Object[] arguments) {
-        assert arguments != null;
-        assert arguments.length >= RUNTIME_ARGUMENT_COUNT;
-
-        final Object declarationFrame = arguments[ArgumentIndicies.DECLARATION_FRAME.ordinal()];
-        assert declarationFrame == null || declarationFrame instanceof MaterializedFrame : declarationFrame.getClass();
-
-        final Object callerFrameOrVariables = arguments[ArgumentIndicies.CALLER_FRAME_OR_VARIABLES.ordinal()];
-        assert callerFrameOrVariables == null || callerFrameOrVariables instanceof MaterializedFrame ||
-                callerFrameOrVariables instanceof FrameAndVariables ||
-                callerFrameOrVariables instanceof SpecialVariableStorage : callerFrameOrVariables.getClass();
-
-        final Object internalMethod = arguments[ArgumentIndicies.METHOD.ordinal()];
-        assert internalMethod == null || internalMethod instanceof InternalMethod : internalMethod.getClass();
-
-        final Object declarationContext = arguments[ArgumentIndicies.DECLARATION_CONTEXT.ordinal()];
-        assert declarationContext == null || declarationContext instanceof DeclarationContext : declarationContext
-                .getClass();
-
-        final Object frameOnStackMarker = arguments[ArgumentIndicies.FRAME_ON_STACK_MARKER.ordinal()];
-        assert frameOnStackMarker == null || frameOnStackMarker instanceof FrameOnStackMarker : frameOnStackMarker
-                .getClass();
-
-        assert RubyGuards.assertIsValidRubyValue(arguments[ArgumentIndicies.SELF.ordinal()]);
-
-        final Object block = arguments[ArgumentIndicies.BLOCK.ordinal()];
-        assert block != null;
-        assert block instanceof RubyProc || block == Nil.INSTANCE : block.getClass();
-
-        final int userArgumentsCount = arguments.length - RUNTIME_ARGUMENT_COUNT;
-        assert ArrayUtils.assertValidElements(arguments, RUNTIME_ARGUMENT_COUNT, userArgumentsCount);
-
-        return true;
     }
 
     // Getters
