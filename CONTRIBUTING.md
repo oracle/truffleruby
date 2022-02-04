@@ -42,3 +42,11 @@ When opening a Pull Request, please add a ChangeLog entry with the format:
 ```
 
 See the [the ChangeLog](CHANGELOG.md) for examples.
+
+GitHub might show on the Pull Request:
+```
+Conflicting files
+CHANGELOG.md
+```
+This is a bug in GitHub's UI, there is never any conflict as `CHANGELOG.md` uses union merge.
+Please do not use the `Resolve conflicts` button as that will create a redundant merge commit.

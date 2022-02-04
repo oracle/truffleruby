@@ -26,6 +26,7 @@ Compatibility:
 * Handle encoding conversion errors when reading directory entries (@aardvark179).
 * Follow symlinks when processing `*/` directory glob patterns. (#2589, @aardvark179).
 * Set `@gem_prelude_index` variable on the default load paths (#2586 , @bjfish)
+* Do not call `IO#flush` dynamically from `IO#close` (#2594, @gogainda).
 
 Performance:
 
