@@ -16,6 +16,7 @@ import shutil
 import mx
 import mx_gate
 import mx_sdk_vm
+import mx_sdk_vm_impl
 import mx_subst
 import mx_spotbugs
 
@@ -162,10 +163,10 @@ def ruby_check_heap_dump(input_args, out=None):
         raise Exception("heap dump check failed")
 
 def ruby_run_ruby(args):
-    """run TruffleRuby (through bin/jt)"""
-
-    jt = join(root, 'bin/jt')
-    os.execlp(jt, jt, "ruby", *args)
+    """run TruffleRuby in $(mx graalvm-home), use bin/jt for more control and shortcuts"""
+    graalvm_home = mx_sdk_vm_impl.graalvm_home(fatalIfMissing=True)
+    ruby = join(graalvm_home, 'languages/ruby/bin/ruby')
+    os.execlp(ruby, ruby, *args)
 
 def ruby_run_specs(ruby, args):
     with VerboseMx():
