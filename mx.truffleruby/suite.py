@@ -208,6 +208,7 @@ suite = {
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "truffleruby:TRUFFLERUBY-SHARED",
                 "truffle:TRUFFLE_API",
+                "truffle:TRUFFLE_NFI",
                 "sdk:JLINE3",
                 "regex:TREGEX",
                 "sulong:SULONG_API",

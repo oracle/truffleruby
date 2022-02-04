@@ -146,7 +146,7 @@ public class EncodingManager {
 
             // char *nl_langinfo(nl_item item);
             // nl_item is int on at least Linux and macOS
-            final Object nl_langinfo = nfi.getFunction("nl_langinfo", "(sint32):string");
+            final Object nl_langinfo = nfi.getFunction(context, "nl_langinfo", "(sint32):string");
 
             final long address;
             try {

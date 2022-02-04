@@ -213,8 +213,8 @@ module Fiddle
       if ptr.is_a?(Closure)
         @function = ptr.method(:call)
       else
-        ptr = Truffle::POSIX.nfi_function_from_pointer(ptr, signature)
-        @function = ptr.bind(signature)
+        ptr = Truffle::FFI::Pointer.new(ptr)
+        @function = Primitive.interop_eval_nfi(signature).bind(ptr)
       end
     end
 

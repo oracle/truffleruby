@@ -47,11 +47,11 @@ module FFI
       end
 
       if FFI::DynamicLibrary::Symbol === function
-        @function = function.handle.bind(@function_info.nfi_type)
+        @function = @function_info.nfi_signature.bind(function.handle)
         @native_wrapper = nil
         super(@function)
       elsif FFI::Pointer === function
-        @function = Truffle::POSIX.nfi_function_from_pointer(function, @function_info.nfi_type)
+        @function = @function_info.nfi_signature.bind(function)
         @native_wrapper = nil
         super(@function)
       elsif Proc === function || Method === function
@@ -202,9 +202,7 @@ module FFI
     end
 
     private def create_native_wrapper(function, function_info)
-      lib = Truffle::POSIX::LIBTRUFFLEPOSIX.resolve
-      create = lib['create_native_wrapper'].bind("(env,#{function_info.nfi_type}):object")
-      create.call(callback(function, function_info))
+      function_info.nfi_signature.createClosure(callback(function, function_info))
     end
   end
 

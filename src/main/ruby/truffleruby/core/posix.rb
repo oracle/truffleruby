@@ -84,12 +84,6 @@ module Truffle::POSIX
     end
   end
 
-  def self.nfi_function_from_pointer(pointer, signature)
-    lib = LIBTRUFFLEPOSIX.resolve
-    # We have to bind each time as the signature changes - should be an offline operation
-    lib['identity_pointer'].bind("(pointer):#{signature}").call(pointer)
-  end
-
   # the actual function is looked up and attached on its first call
   def self.attach_function(native_name, argument_types, return_type,
                            library = LIBC, blocking = false, method_name = native_name, on = self)
@@ -129,7 +123,8 @@ module Truffle::POSIX
         unsigned_return_type = 1 << nfi_return_type.to_s[-2..-1].to_i
       end
 
-      bound_func = func.bind("(#{nfi_args_types.join(',')}):#{nfi_return_type}")
+      parsed_sig = Primitive.interop_eval_nfi "(#{nfi_args_types.join(',')}):#{nfi_return_type}"
+      bound_func = parsed_sig.bind(func)
 
       on.define_singleton_method method_name, -> *args do
         string_args.each do |i|
