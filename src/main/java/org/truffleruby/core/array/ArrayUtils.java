@@ -25,9 +25,10 @@ public abstract class ArrayUtils {
 
     public static final Object[] EMPTY_ARRAY = new Object[0];
 
-    public static boolean assertValidElements(Object[] array, int size) {
-        assert size <= array.length;
-        for (int i = 0; i < size; i++) {
+    public static boolean assertValidElements(Object[] array, int start, int count) {
+        assert start <= array.length;
+        assert start + count <= array.length;
+        for (int i = start; i < start + count; i++) {
             final Object element = array[i];
             assert element != null : nullElementAt(array, i);
             assert RubyGuards.assertIsValidRubyValue(element);

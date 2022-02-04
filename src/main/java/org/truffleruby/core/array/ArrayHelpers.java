@@ -30,7 +30,7 @@ public abstract class ArrayHelpers {
     }
 
     private static boolean assertValidElements(Object store, int size) {
-        return !(store instanceof Object[]) || ArrayUtils.assertValidElements((Object[]) store, size);
+        return !(store instanceof Object[]) || ArrayUtils.assertValidElements((Object[]) store, 0, size);
     }
 
     public static RubyArray createArray(RubyContext context, RubyLanguage language, Object store, int size) {

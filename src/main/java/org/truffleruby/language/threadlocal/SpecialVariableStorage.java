@@ -66,7 +66,7 @@ public final class SpecialVariableStorage implements TruffleObject {
     protected String toDisplayString(boolean allowSideEffects) {
         final InteropLibrary interop = InteropLibrary.getUncached();
         final ConditionProfile profile = ConditionProfile.getUncached();
-        String result = "$~: ";
+        String result = "SpecialVariableStorage($~: ";
         if (lastMatch != null) {
             try {
                 result += interop.asString(interop.toDisplayString(lastMatch.get(profile), allowSideEffects));
@@ -87,7 +87,7 @@ public final class SpecialVariableStorage implements TruffleObject {
         } else {
             result += "nil";
         }
-        return result;
+        return result + ")";
     }
 
     @Override

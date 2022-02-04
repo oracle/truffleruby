@@ -16,6 +16,7 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.FrameAndVariables;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.FrameOnStackMarker;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
@@ -31,16 +32,48 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 public final class RubyArguments {
 
     private enum ArgumentIndicies {
-        DECLARATION_FRAME, // 0
-        CALLER_FRAME_OR_VARIABLES, // 1
-        METHOD, // 2
-        DECLARATION_CONTEXT, // 3
-        FRAME_ON_STACK_MARKER, // 4
-        SELF, // 5
-        BLOCK // 6
+        DECLARATION_FRAME,          // 0 MaterializedFrame or null
+        CALLER_FRAME_OR_VARIABLES,  // 1 MaterializedFrame or FrameAndVariables or SpecialVariableStorage or null
+        METHOD,                     // 2 InternalMethod
+        DECLARATION_CONTEXT,        // 3 DeclarationContext
+        FRAME_ON_STACK_MARKER,      // 4 FrameOnStackMarker or null
+        SELF,                       // 5 RubyGuards.assertIsValidRubyValue
+        BLOCK                       // 6 RubyProc or Nil
+        // user arguments follow, each RubyGuards.assertIsValidRubyValue
     }
 
     private static final int RUNTIME_ARGUMENT_COUNT = ArgumentIndicies.values().length;
+
+    public static boolean assertFrameArguments(Object[] arguments) {
+        assert arguments.length >= RUNTIME_ARGUMENT_COUNT;
+
+        final Object declarationFrame = arguments[ArgumentIndicies.DECLARATION_FRAME.ordinal()];
+        assert declarationFrame == null || declarationFrame instanceof MaterializedFrame : declarationFrame;
+
+        final Object callerFrameOrVariables = arguments[ArgumentIndicies.CALLER_FRAME_OR_VARIABLES.ordinal()];
+        assert callerFrameOrVariables == null || callerFrameOrVariables instanceof MaterializedFrame ||
+                callerFrameOrVariables instanceof FrameAndVariables ||
+                callerFrameOrVariables instanceof SpecialVariableStorage : callerFrameOrVariables;
+
+        final Object internalMethod = arguments[ArgumentIndicies.METHOD.ordinal()];
+        assert internalMethod instanceof InternalMethod : internalMethod;
+
+        final Object declarationContext = arguments[ArgumentIndicies.DECLARATION_CONTEXT.ordinal()];
+        assert declarationContext instanceof DeclarationContext : declarationContext;
+
+        final Object frameOnStackMarker = arguments[ArgumentIndicies.FRAME_ON_STACK_MARKER.ordinal()];
+        assert frameOnStackMarker == null || frameOnStackMarker instanceof FrameOnStackMarker : frameOnStackMarker;
+
+        assert RubyGuards.assertIsValidRubyValue(arguments[ArgumentIndicies.SELF.ordinal()]);
+
+        final Object block = arguments[ArgumentIndicies.BLOCK.ordinal()];
+        assert block instanceof RubyProc || block == Nil.INSTANCE : block;
+
+        final int userArgumentsCount = arguments.length - RUNTIME_ARGUMENT_COUNT;
+        assert ArrayUtils.assertValidElements(arguments, RUNTIME_ARGUMENT_COUNT, userArgumentsCount);
+
+        return true;
+    }
 
     /** In most cases the DeclarationContext is the one of the InternalMethod. */
     public static Object[] pack(
@@ -83,7 +116,8 @@ public final class RubyArguments {
 
         ArrayUtils.arraycopy(arguments, 0, packed, RUNTIME_ARGUMENT_COUNT, arguments.length);
 
-        assert RubyArguments.assertFrameArguments(packed);
+        assert assertFrameArguments(packed);
+
         return packed;
     }
 
@@ -113,35 +147,6 @@ public final class RubyArguments {
         newArgs[ArgumentIndicies.BLOCK.ordinal()] = getBlock(rubyArgs);
         System.arraycopy(rubyArgs, RUNTIME_ARGUMENT_COUNT + from, newArgs, RUNTIME_ARGUMENT_COUNT + to, count);
         return newArgs;
-    }
-
-    public static boolean assertFrameArguments(Object[] frameArguments) {
-        Object callerData = getCallerData(frameArguments);
-        InternalMethod method = getMethod(frameArguments);
-        DeclarationContext declarationContext = getDeclarationContext(frameArguments);
-        Object self = getSelf(frameArguments);
-        Object block = getBlock(frameArguments);
-        Object[] arguments = getArguments(frameArguments);
-
-        assert method != null;
-        assert declarationContext != null;
-        assert self != null;
-        assert arguments != null;
-        assert ArrayUtils.assertValidElements(arguments, arguments.length);
-
-        assert callerData == null ||
-                callerData instanceof MaterializedFrame ||
-                callerData instanceof SpecialVariableStorage ||
-                callerData instanceof FrameAndVariables;
-
-        /* The block in the frame arguments is always either a Nil or RubyProc. The provision of Nil if the caller
-         * doesn't want to provide a block is done at the caller, because it will know the type of values within its
-         * compilation unit.
-         *
-         * When you read the block back out in the callee, you'll therefore get a Nil or RubyProc. */
-        assert block instanceof Nil || block instanceof RubyProc : block;
-
-        return true;
     }
 
     // Getters
