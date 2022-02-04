@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.parser.ArgumentDescriptor;
@@ -87,6 +88,7 @@ public final class Arity {
 
     public boolean check(int given) {
         assert !acceptsKeywords();
+        CompilerAsserts.partialEvaluationConstant(this);
 
         int required = getRequired();
         return given >= required && (hasRest || given <= required + optional);
@@ -94,6 +96,8 @@ public final class Arity {
 
     /** Same as above but without the assert for CheckKeywordArityNode */
     public boolean basicCheck(int given) {
+        CompilerAsserts.partialEvaluationConstant(this);
+
         int required = getRequired();
         return given >= required && (hasRest || given <= required + optional);
     }

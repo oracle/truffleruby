@@ -32,14 +32,13 @@ public class CheckKeywordArityNode extends RubyBaseNode {
     @Child private CheckKeywordArgumentsNode checkKeywordArgumentsNode;
     @Child private HashStoreLibrary hashes;
 
-    private final BranchProfile receivedKeywordsProfile = BranchProfile.create();
+    @CompilationFinal private boolean receivedKeywordsProfile, basicArityCheckFailedProfile;
 
     public CheckKeywordArityNode(Arity arity) {
         this.readUserKeywordsHashNode = new ReadUserKeywordsHashNode(arity.getRequired());
     }
 
-    public void checkArity(VirtualFrame frame, Arity arity,
-            BranchProfile basicArityCheckFailedProfile) {
+    public void checkArity(VirtualFrame frame, Arity arity) {
         CompilerAsserts.partialEvaluationConstant(arity);
 
         final RubyHash keywordArguments = readUserKeywordsHashNode.execute(frame);
@@ -48,12 +47,20 @@ public class CheckKeywordArityNode extends RubyBaseNode {
         int given = argumentsCount;
 
         if (keywordArguments != null) {
-            receivedKeywordsProfile.enter();
+            if (!receivedKeywordsProfile) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                receivedKeywordsProfile = true;
+            }
+
             given -= 1;
         }
 
         if (!arity.basicCheck(given)) {
-            basicArityCheckFailedProfile.enter();
+            if (!basicArityCheckFailedProfile) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                basicArityCheckFailedProfile = true;
+            }
+
             throw new RaiseException(getContext(), coreExceptions().argumentError(given, arity.getRequired(), this));
         }
 
