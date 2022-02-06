@@ -12,10 +12,8 @@ package org.truffleruby.language.dispatch;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayAppendOneNode;
-import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.inlined.LambdaToProcNode;
@@ -26,6 +24,8 @@ import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.arguments.SplatToArgsNode;
+import org.truffleruby.language.arguments.SplatToArgsNodeGen;
 import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.methods.BlockDefinitionNode;
 import org.truffleruby.language.methods.InternalMethod;
@@ -63,7 +63,7 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
 
     private final ConditionProfile nilProfile;
 
-    @Child private ArrayStoreLibrary stores;
+    @Child private SplatToArgsNode splatToArgs;
 
     public RubyCallNode(RubyCallNodeParameters parameters) {
         this.methodName = parameters.getMethodName();
@@ -175,16 +175,12 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
     }
 
     private Object[] splatArgs(Object[] rubyArgs) {
-        if (stores == null) {
+        if (splatToArgs == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            stores = insert(ArrayStoreLibrary.getFactory().createDispatched(ArrayGuards.storageStrategyLimit()));
+            splatToArgs = insert(SplatToArgsNodeGen.create());
         }
 
-        RubyArray args = (RubyArray) RubyArguments.getArgument(rubyArgs, 0);
-        Object store = args.store;
-        Object[] newArgs = RubyArguments.repack(rubyArgs, RubyArguments.getSelf(rubyArgs), 0, args.size, 0);
-        stores.copyContents(store, 0, newArgs, RubyArguments.RUNTIME_ARGUMENT_COUNT, args.size);
-        return newArgs;
+        return splatToArgs.execute(rubyArgs, (RubyArray) RubyArguments.getArgument(rubyArgs, 0));
     }
 
     @Override
