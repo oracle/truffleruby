@@ -584,7 +584,7 @@ public abstract class BasicObjectNodes {
                 @Cached NameToJavaStringNode nameToJavaString) {
             Object name = RubyArguments.getArgument(rubyArgs, 0);
             int count = RubyArguments.getArgumentsCount(rubyArgs) - 1;
-            return dispatchNode.dispatch(callerFrame, nameToJavaString.execute(name),
+            return dispatchNode.dispatch(callerFrame, self, nameToJavaString.execute(name),
                     RubyArguments.repack(rubyArgs, self, 1, count));
         }
     }

@@ -1417,7 +1417,7 @@ public abstract class KernelNodes {
             Object name = RubyArguments.getArgument(rubyArgs, 0);
             Object[] newArgs = RubyArguments.repack(rubyArgs, self, 1,
                     RubyArguments.getArgumentsCount(rubyArgs) - 1);
-            return dispatchNode.dispatch(callerFrame, nameToJavaString.execute(name), newArgs);
+            return dispatchNode.dispatch(callerFrame, self, nameToJavaString.execute(name), newArgs);
         }
 
     }

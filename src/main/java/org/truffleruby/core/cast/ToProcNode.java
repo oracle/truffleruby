@@ -79,7 +79,7 @@ public abstract class ToProcNode extends RubyContextSourceNode {
         // The semantics are to call #method_missing here
         final Object coerced;
         try {
-            coerced = toProc.dispatch(frame, object, "to_proc", nil);
+            coerced = toProc.callWithFrame(frame, object, "to_proc");
         } catch (RaiseException e) {
             errorProfile.enter();
             if (e.getException().getLogicalClass() == coreLibrary().noMethodErrorClass) {

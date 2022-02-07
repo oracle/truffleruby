@@ -108,7 +108,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         final Object[] rubyArgs = RubyArguments.allocate(0);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
-        return dispatch(null, method, rubyArgs);
+        return dispatch(null, receiver, method, rubyArgs);
     }
 
     public Object call(Object receiver, String method, Object arg1) {
@@ -116,7 +116,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
         RubyArguments.setArgument(rubyArgs, 0, arg1);
-        return dispatch(null, method, rubyArgs);
+        return dispatch(null, receiver, method, rubyArgs);
     }
 
     public Object call(Object receiver, String method, Object arg1, Object arg2) {
@@ -125,7 +125,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         RubyArguments.setBlock(rubyArgs, nil);
         RubyArguments.setArgument(rubyArgs, 0, arg1);
         RubyArguments.setArgument(rubyArgs, 1, arg2);
-        return dispatch(null, method, rubyArgs);
+        return dispatch(null, receiver, method, rubyArgs);
     }
 
     public Object call(Object receiver, String method, Object arg1, Object arg2, Object arg3) {
@@ -135,7 +135,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         RubyArguments.setArgument(rubyArgs, 0, arg1);
         RubyArguments.setArgument(rubyArgs, 1, arg2);
         RubyArguments.setArgument(rubyArgs, 2, arg3);
-        return dispatch(null, method, rubyArgs);
+        return dispatch(null, receiver, method, rubyArgs);
     }
 
     public Object call(Object receiver, String method, Object[] arguments) {
@@ -143,14 +143,14 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
         RubyArguments.setArguments(rubyArgs, arguments);
-        return dispatch(null, method, rubyArgs);
+        return dispatch(null, receiver, method, rubyArgs);
     }
 
     public Object callWithBlock(Object receiver, String method, Object block) {
         final Object[] rubyArgs = RubyArguments.allocate(0);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, block);
-        return dispatch(null, method, rubyArgs);
+        return dispatch(null, receiver, method, rubyArgs);
     }
 
     public Object callWithBlock(Object receiver, String method, Object block, Object arg1) {
@@ -158,7 +158,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, block);
         RubyArguments.setArgument(rubyArgs, 0, arg1);
-        return dispatch(null, method, rubyArgs);
+        return dispatch(null, receiver, method, rubyArgs);
     }
 
     public Object callWithBlock(Object receiver, String method, Object block, Object arg1, Object arg2) {
@@ -167,7 +167,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         RubyArguments.setBlock(rubyArgs, block);
         RubyArguments.setArgument(rubyArgs, 0, arg1);
         RubyArguments.setArgument(rubyArgs, 1, arg2);
-        return dispatch(null, method, rubyArgs);
+        return dispatch(null, receiver, method, rubyArgs);
     }
 
     public Object callWithBlock(Object receiver, String method, Object block, Object arg1, Object arg2, Object arg3) {
@@ -177,7 +177,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         RubyArguments.setArgument(rubyArgs, 0, arg1);
         RubyArguments.setArgument(rubyArgs, 1, arg2);
         RubyArguments.setArgument(rubyArgs, 2, arg3);
-        return dispatch(null, method, rubyArgs);
+        return dispatch(null, receiver, method, rubyArgs);
     }
 
     public Object callWithBlock(Object receiver, String method, Object block, Object[] arguments) {
@@ -185,14 +185,14 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, block);
         RubyArguments.setArguments(rubyArgs, arguments);
-        return dispatch(null, method, rubyArgs);
+        return dispatch(null, receiver, method, rubyArgs);
     }
 
     public Object callWithFrame(Frame frame, Object receiver, String method) {
         final Object[] rubyArgs = RubyArguments.allocate(0);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
-        return dispatch(frame, method, rubyArgs);
+        return dispatch(frame, receiver, method, rubyArgs);
     }
 
     public Object callWithFrame(Frame frame, Object receiver, String method, Object arg1) {
@@ -200,7 +200,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
         RubyArguments.setArgument(rubyArgs, 0, arg1);
-        return dispatch(frame, method, rubyArgs);
+        return dispatch(frame, receiver, method, rubyArgs);
     }
 
     public Object callWithFrame(Frame frame, Object receiver, String method, Object arg1, Object arg2) {
@@ -209,7 +209,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         RubyArguments.setBlock(rubyArgs, nil);
         RubyArguments.setArgument(rubyArgs, 0, arg1);
         RubyArguments.setArgument(rubyArgs, 1, arg2);
-        return dispatch(frame, method, rubyArgs);
+        return dispatch(frame, receiver, method, rubyArgs);
     }
 
     public Object callWithFrame(Frame frame, Object receiver, String method, Object arg1, Object arg2, Object arg3) {
@@ -219,7 +219,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         RubyArguments.setArgument(rubyArgs, 0, arg1);
         RubyArguments.setArgument(rubyArgs, 1, arg2);
         RubyArguments.setArgument(rubyArgs, 2, arg3);
-        return dispatch(frame, method, rubyArgs);
+        return dispatch(frame, receiver, method, rubyArgs);
     }
 
     public Object callWithFrame(Frame frame, Object receiver, String method, Object[] arguments) {
@@ -227,26 +227,21 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
         RubyArguments.setArguments(rubyArgs, arguments);
-        return dispatch(frame, method, rubyArgs);
+        return dispatch(frame, receiver, method, rubyArgs);
     }
 
-    public final Object dispatch(Frame frame, Object receiver, String methodName, Object block) {
-        final Object[] rubyArgs = RubyArguments.allocate(0);
-        RubyArguments.setSelf(rubyArgs, receiver);
-        RubyArguments.setBlock(rubyArgs, block);
-        return dispatch(frame, methodName, rubyArgs);
-    }
-
-    public final Object dispatch(Frame frame, Object receiver, String methodName, Object block, Object[] arguments) {
+    public final Object callWithFrameAndBlock(Frame frame, Object receiver, String methodName, Object block,
+            Object[] arguments) {
         final Object[] rubyArgs = RubyArguments.allocate(arguments.length);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, block);
         RubyArguments.setArguments(rubyArgs, arguments);
-        return dispatch(frame, methodName, rubyArgs);
+        return dispatch(frame, receiver, methodName, rubyArgs);
     }
 
-    public final Object dispatch(Frame frame, String methodName, Object[] rubyArgs) {
-        Object receiver = RubyArguments.getSelf(rubyArgs);
+    public final Object dispatch(Frame frame, Object receiver, String methodName, Object[] rubyArgs) {
+        assert RubyArguments.getSelf(rubyArgs) == receiver;
+
         final RubyClass metaclass = metaclassNode.execute(receiver);
         final InternalMethod method = methodLookup.execute(frame, metaclass, methodName, config);
 
@@ -256,11 +251,10 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
                     return MISSING;
                 case CALL_METHOD_MISSING:
                     // Both branches implicitly profile through lazy node creation
-                    final Object block = RubyArguments.getBlock(rubyArgs);
                     if (RubyGuards.isForeignObject(receiver)) { // TODO (eregon, 16 Aug 2021) maybe use a final boolean on the class to know if foreign
-                        return callForeign(receiver, methodName, block, rubyArgs);
+                        return callForeign(receiver, methodName, rubyArgs);
                     } else {
-                        return callMethodMissing(frame, methodName, rubyArgs);
+                        return callMethodMissing(frame, receiver, methodName, rubyArgs);
                     }
             }
         }
@@ -269,22 +263,22 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         RubyArguments.setCallerData(rubyArgs, getFrameOrStorageIfRequired(frame));
 
         assert RubyArguments.assertFrameArguments(rubyArgs);
-        return callNode.execute(frame, rubyArgs);
+        return callNode.execute(frame, method, receiver, rubyArgs);
     }
 
-    private Object callMethodMissing(Frame frame, String methodName, Object[] rubyArgs) {
+    private Object callMethodMissing(Frame frame, Object receiver, String methodName, Object[] rubyArgs) {
         final RubySymbol symbolName = nameToSymbol(methodName);
-        final Object[] newArgs = RubyArguments.repack(rubyArgs, RubyArguments.getSelf(rubyArgs), 0, 1,
+        final Object[] newArgs = RubyArguments.repack(rubyArgs, receiver, 0, 1,
                 RubyArguments.getArgumentsCount(rubyArgs));
 
         RubyArguments.setArgument(newArgs, 0, symbolName);
-        final Object result = callMethodMissingNode(frame, newArgs);
+        final Object result = callMethodMissingNode(frame, receiver, newArgs);
 
         if (result == MISSING) {
             methodMissingMissing.enter();
             throw new RaiseException(getContext(), coreExceptions().noMethodErrorFromMethodMissing(
                     ExceptionFormatter.NO_METHOD_ERROR,
-                    RubyArguments.getSelf(rubyArgs),
+                    receiver,
                     methodName,
                     RubyArguments.getArguments(rubyArgs),
                     this));
@@ -293,24 +287,25 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         return result;
     }
 
-    protected Object callForeign(Object receiver, String methodName, Object block, Object[] rubyArgs) {
+    protected Object callForeign(Object receiver, String methodName, Object[] rubyArgs) {
         if (callForeign == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callForeign = insert(CallForeignMethodNode.create());
         }
 
+        final Object block = RubyArguments.getBlock(rubyArgs);
         final Object[] arguments = RubyArguments.getArguments(rubyArgs);
         return callForeign.execute(receiver, methodName, block, arguments);
     }
 
-    protected Object callMethodMissingNode(Frame frame, Object[] rubyArgs) {
+    protected Object callMethodMissingNode(Frame frame, Object receiver, Object[] rubyArgs) {
         if (callMethodMissing == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             // #method_missing ignores refinements on CRuby: https://bugs.ruby-lang.org/issues/13129
             callMethodMissing = insert(
                     DispatchNode.create(DispatchConfiguration.PRIVATE_RETURN_MISSING_IGNORE_REFINEMENTS));
         }
-        return callMethodMissing.dispatch(frame, "method_missing", rubyArgs);
+        return callMethodMissing.dispatch(frame, receiver, "method_missing", rubyArgs);
     }
 
     protected RubySymbol nameToSymbol(String methodName) {
@@ -367,25 +362,26 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         }
 
         @Override
-        protected Object callForeign(Object receiver, String methodName, Object block, Object[] arguments) {
+        protected Object callForeign(Object receiver, String methodName, Object[] rubyArgs) {
             if (callForeign == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 callForeign = insert(CallForeignMethodNode.getUncached());
             }
 
+            final Object block = RubyArguments.getBlock(rubyArgs);
+            final Object[] arguments = RubyArguments.getArguments(rubyArgs);
             return callForeign.execute(receiver, methodName, block, arguments);
         }
 
         @Override
-        protected Object callMethodMissingNode(
-                Frame frame, Object[] rubyArgs) {
+        protected Object callMethodMissingNode(Frame frame, Object receiver, Object[] rubyArgs) {
             if (callMethodMissing == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 callMethodMissing = insert(
                         DispatchNode.getUncached(DispatchConfiguration.PRIVATE_RETURN_MISSING_IGNORE_REFINEMENTS));
             }
 
-            return callMethodMissing.dispatch(frame, "method_missing", rubyArgs);
+            return callMethodMissing.dispatch(frame, receiver, "method_missing", rubyArgs);
         }
 
         @Override

@@ -10,6 +10,7 @@
 package org.truffleruby.language.arguments;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.StringUtils;
@@ -147,6 +148,18 @@ public final class RubyArguments {
         newArgs[ArgumentIndicies.BLOCK.ordinal()] = getBlock(rubyArgs);
         System.arraycopy(rubyArgs, RUNTIME_ARGUMENT_COUNT + from, newArgs, RUNTIME_ARGUMENT_COUNT + to, count);
         return newArgs;
+    }
+
+    /** Clone the argument array before making a call in PE code, if its length is PE constant. This is done to handle
+     * the case where two methods might be called from a single call site (a polymorphic call site) but Truffle has only
+     * inlined one of the callees. Cloning the arguments allows these two uses of the arguments to have different
+     * lifetimes, and hence be escape analysed separately (otherwise the array would always escape, even for the inlined
+     * callee). For the case none of the callees are inlined, this has a separate allocation for each callee which might
+     * not look optimal in the graph but is still only one allocation per call at that call site. */
+    public static Object[] repackForCall(Object[] rubyArgs) {
+        return (CompilerDirectives.inCompiledCode() && CompilerDirectives.isPartialEvaluationConstant(rubyArgs.length))
+                ? rubyArgs.clone()
+                : rubyArgs;
     }
 
     // Getters

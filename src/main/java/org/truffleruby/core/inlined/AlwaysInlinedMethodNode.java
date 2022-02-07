@@ -16,7 +16,6 @@ import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.language.CallStackManager;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 
 /** A core method that should always be executed inline, without going through a CallTarget. That enables accessing the
@@ -34,12 +33,8 @@ import org.truffleruby.language.control.RaiseException;
 @GenerateNodeFactory
 public abstract class AlwaysInlinedMethodNode extends RubyBaseNode {
 
-    /** Ensure that self == RubyArguments.getSelf(rubyArgs) if this is called instead of {@link #callMethod} */
+    /** Ensure that self == RubyArguments.getSelf(rubyArgs) */
     public abstract Object execute(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target);
-
-    public Object callMethod(Frame callerFrame, Object[] rubyArgs, RootCallTarget target) {
-        return execute(callerFrame, RubyArguments.getSelf(rubyArgs), rubyArgs, target);
-    }
 
     protected void needCallerFrame(Frame callerFrame, RootCallTarget target) {
         if (callerFrame == null) {
