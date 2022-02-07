@@ -5,7 +5,7 @@ $failures = 0
 
 def test(program, extra = '', shape_expected)
   $tests += 1
-  output = `bin/jt -q graph --json --describe #{program} #{extra} 2>&1`
+  output = `bin/jt -q graph --json --describe #{program} #{extra}`
   last_line = output.lines.last.strip
 
   begin

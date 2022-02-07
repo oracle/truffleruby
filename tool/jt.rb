@@ -428,8 +428,9 @@ module Utilities
     use_exec = options.delete :use_exec
     timeout = options.delete :timeout
     capture = options.delete :capture
+    no_print_cmd = options.delete(:no_print_cmd) || @silent
 
-    unless options.delete :no_print_cmd
+    unless no_print_cmd
       STDERR.puts bold "$ #{printable_cmd(args)}"
     end
 
@@ -1034,8 +1035,6 @@ module Commands
     options = args.last.is_a?(Hash) ? args.pop : {}
 
     vm_args, ruby_args, options = ruby_options(options, args)
-
-    options[:no_print_cmd] = true if @silent
 
     raw_sh env_vars, ruby_launcher, *(vm_args if truffleruby?), *ruby_args, options
   end
@@ -2084,16 +2083,16 @@ module Commands
       '--engine.MultiTier=false',
       '--engine.NodeSourcePositions',
       '--vm.Dgraal.PrintGraphWithSchedule=true',
-      *('--vm.Dgraal.PrintBackendCFG=true' unless truffleruby_native?),
       '--vm.Dgraal.Dump=Truffle:1',
       '--log.file=/dev/stderr', # suppress the Truffle log output help message
     ]
 
     # As per https://github.com/Shopify/seafoam/blob/master/docs/getting-graphs.md
+    # GR-36849: needs #truffleruby_native_built? instead of #truffleruby_native?
     simplify_vm_args = [
-      *('--vm.Dgraal.PartialUnroll=false' unless truffleruby_native?),
-      *('--vm.Dgraal.LoopPeeling=false' unless truffleruby_native?),
-      *('--vm.Dgraal.LoopUnswitch=false' unless truffleruby_native?),
+      *('--vm.Dgraal.PartialUnroll=false' unless truffleruby_native_built?),
+      *('--vm.Dgraal.LoopPeeling=false' unless truffleruby_native_built?),
+      *('--vm.Dgraal.LoopUnswitch=false' unless truffleruby_native_built?),
       '--vm.Dgraal.OptScheduleOutOfLoops=false',
     ]
 
