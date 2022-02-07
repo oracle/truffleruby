@@ -240,6 +240,8 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
     }
 
     public final Object dispatch(Frame frame, Object receiver, String methodName, Object[] rubyArgs) {
+        assert RubyArguments.getSelf(rubyArgs) == receiver;
+
         final RubyClass metaclass = metaclassNode.execute(receiver);
         final InternalMethod method = methodLookup.execute(frame, metaclass, methodName, config);
 
