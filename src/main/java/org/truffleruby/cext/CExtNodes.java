@@ -35,8 +35,6 @@ import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.core.MarkingServiceNodes;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.ErrnoErrorNode;
@@ -94,7 +92,6 @@ import org.truffleruby.language.control.BreakException;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
@@ -1773,8 +1770,6 @@ public class CExtNodes {
     public abstract static class RBSprintfNode extends CoreMethodArrayArgumentsNode {
 
         @Child private StringNodes.MakeStringNode makeStringNode;
-        @Child private BooleanCastNode readDebugGlobalNode = BooleanCastNodeGen
-                .create(ReadGlobalVariableNodeGen.create("$DEBUG"));
 
         private final BranchProfile exceptionProfile = BranchProfile.create();
         private final ConditionProfile resizeProfile = ConditionProfile.create();

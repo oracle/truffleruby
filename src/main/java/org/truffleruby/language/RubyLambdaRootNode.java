@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.TruffleSafepoint;
 import org.truffleruby.RubyLanguage;
@@ -29,8 +30,6 @@ import org.truffleruby.language.methods.TranslateExceptionNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
 public class RubyLambdaRootNode extends RubyCheckArityRootNode {
@@ -43,12 +42,8 @@ public class RubyLambdaRootNode extends RubyCheckArityRootNode {
 
     @Child private TranslateExceptionNode translateExceptionNode;
 
-    private final BranchProfile localReturnProfile = BranchProfile.create();
-    private final ConditionProfile matchingReturnProfile = ConditionProfile.create();
-    private final ConditionProfile matchingBreakProfile = ConditionProfile.create();
-    private final BranchProfile retryProfile = BranchProfile.create();
-    private final BranchProfile redoProfile = BranchProfile.create();
-    private final BranchProfile nextProfile = BranchProfile.create();
+    @CompilationFinal private boolean localReturnProfile, retryProfile, matchingReturnProfile, nonMatchingReturnProfile,
+            matchingBreakProfile, nonMatchingBreakProfile, redoProfile, nextProfile;
 
     public RubyLambdaRootNode(
             RubyLanguage language,
@@ -88,30 +83,62 @@ public class RubyLambdaRootNode extends RubyCheckArityRootNode {
                 try {
                     return body.execute(frame);
                 } catch (RedoException e) {
-                    redoProfile.enter();
+                    if (!redoProfile) {
+                        CompilerDirectives.transferToInterpreterAndInvalidate();
+                        redoProfile = true;
+                    }
+
                     TruffleSafepoint.poll(this);
                     continue;
                 }
             }
         } catch (LocalReturnException e) {
-            localReturnProfile.enter();
+            if (!localReturnProfile) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                localReturnProfile = true;
+            }
+
             return e.getValue();
         } catch (DynamicReturnException e) {
-            if (matchingReturnProfile.profile(returnID != ReturnID.INVALID && e.getReturnID() == returnID)) {
+            if (returnID != ReturnID.INVALID && e.getReturnID() == returnID) {
+                if (!matchingReturnProfile) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    matchingReturnProfile = true;
+                }
                 return e.getValue();
             } else {
+                if (!nonMatchingReturnProfile) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    nonMatchingReturnProfile = true;
+                }
                 throw e;
             }
         } catch (RetryException e) {
-            retryProfile.enter();
+            if (!retryProfile) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                retryProfile = true;
+            }
+
             throw new RaiseException(getContext(), getContext().getCoreExceptions().syntaxErrorInvalidRetry(this));
         } catch (NextException e) {
-            nextProfile.enter();
+            if (!nextProfile) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                nextProfile = true;
+            }
+
             return e.getResult();
         } catch (BreakException e) {
-            if (matchingBreakProfile.profile(breakID != BreakID.INVALID && e.getBreakID() == breakID)) {
+            if (breakID != BreakID.INVALID && e.getBreakID() == breakID) {
+                if (!matchingBreakProfile) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    matchingBreakProfile = true;
+                }
                 return e.getResult();
             } else {
+                if (!nonMatchingBreakProfile) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    nonMatchingBreakProfile = true;
+                }
                 throw e;
             }
         } catch (Throwable t) {

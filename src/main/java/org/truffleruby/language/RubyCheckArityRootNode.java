@@ -9,7 +9,8 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -23,7 +24,6 @@ import org.truffleruby.language.methods.Split;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class RubyCheckArityRootNode extends RubyRootNode {
@@ -31,7 +31,8 @@ public abstract class RubyCheckArityRootNode extends RubyRootNode {
     @Child private CheckKeywordArityNode checkKeywordArityNode;
 
     public final Arity arityForCheck;
-    private final BranchProfile checkArityProfile = BranchProfile.create();
+
+    @CompilationFinal private boolean checkArityProfile;
 
     public RubyCheckArityRootNode(
             RubyLanguage language,
@@ -51,27 +52,21 @@ public abstract class RubyCheckArityRootNode extends RubyRootNode {
 
     protected void checkArity(VirtualFrame frame) {
         if (checkKeywordArityNode == null) {
-            checkArity(
-                    arityForCheck,
-                    RubyArguments.getArgumentsCount(frame),
-                    checkArityProfile,
-                    this);
+            int given = RubyArguments.getArgumentsCount(frame);
+            if (!arityForCheck.check(given)) {
+                if (!checkArityProfile) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    checkArityProfile = true;
+                }
+
+                checkArityError(arityForCheck, given, this);
+            }
         } else {
-            checkKeywordArityNode.checkArity(frame, arityForCheck, checkArityProfile);
+            checkKeywordArityNode.checkArity(frame, arityForCheck);
         }
     }
 
-    public static void checkArity(Arity arity, int given,
-            BranchProfile checkFailedProfile,
-            Node currentNode) {
-        CompilerAsserts.partialEvaluationConstant(arity);
-        if (!arity.check(given)) {
-            checkFailedProfile.enter();
-            checkArityError(arity, given, currentNode);
-        }
-    }
-
-    private static void checkArityError(Arity arity, int given, Node currentNode) {
+    public static void checkArityError(Arity arity, int given, Node currentNode) {
         final RubyContext context = RubyContext.get(currentNode);
         if (arity.hasRest()) {
             throw new RaiseException(

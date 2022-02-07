@@ -89,8 +89,11 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
             @Cached BranchProfile checkArityProfile,
             @Cached BranchProfile exceptionProfile) {
         try {
-            RubyCheckArityRootNode.checkArity(cachedArity, RubyArguments.getArgumentsCount(rubyArgs), checkArityProfile,
-                    alwaysInlinedNode);
+            int given = RubyArguments.getArgumentsCount(rubyArgs);
+            if (!cachedArity.check(given)) {
+                checkArityProfile.enter();
+                RubyCheckArityRootNode.checkArityError(cachedArity, given, alwaysInlinedNode);
+            }
 
             return alwaysInlinedNode.callMethod(frame, rubyArgs, cachedCallTarget);
         } catch (RaiseException e) {

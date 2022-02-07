@@ -42,7 +42,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 
 @CoreModule(value = "Regexp", isClass = true)
@@ -128,7 +127,6 @@ public abstract class RegexpNodes {
     }
 
     @CoreMethod(names = "to_s")
-    @ImportStatic(RegexpGuards.class)
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
@@ -139,7 +137,7 @@ public abstract class RegexpNodes {
 
         public abstract RubyString execute(RubyRegexp regexp);
 
-        @Specialization(guards = "isSameRegexp(regexp, cachedRegexp)")
+        @Specialization(guards = "regexp.regex == cachedRegexp.regex")
         protected RubyString toSCached(RubyRegexp regexp,
                 @Cached("regexp") RubyRegexp cachedRegexp,
                 @Cached("createRope(cachedRegexp)") Rope rope) {
@@ -219,7 +217,6 @@ public abstract class RegexpNodes {
     }
 
     @Primitive(name = "regexp_compile", lowerFixnum = 1)
-    @ImportStatic(RegexpGuards.class)
     public abstract static class RegexpCompileNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "libPattern.isRubyString(pattern)")
@@ -241,18 +238,10 @@ public abstract class RegexpNodes {
     }
 
     @CoreMethod(names = "options")
-    @ImportStatic(RegexpGuards.class)
     public abstract static class RegexpOptionsNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization(guards = "isInitialized(regexp)")
+        @Specialization
         protected int options(RubyRegexp regexp) {
             return regexp.options.toOptions();
         }
-
-        @Specialization(guards = "!isInitialized(regexp)")
-        protected int optionsNotInitialized(RubyRegexp regexp) {
-            throw new RaiseException(getContext(), coreExceptions().typeError("uninitialized Regexp", this));
-        }
-
     }
 }
