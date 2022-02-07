@@ -428,8 +428,9 @@ module Utilities
     use_exec = options.delete :use_exec
     timeout = options.delete :timeout
     capture = options.delete :capture
+    no_print_cmd = options.delete(:no_print_cmd) || @silent
 
-    unless options.delete :no_print_cmd
+    unless no_print_cmd
       STDERR.puts bold "$ #{printable_cmd(args)}"
     end
 
@@ -1034,8 +1035,6 @@ module Commands
     options = args.last.is_a?(Hash) ? args.pop : {}
 
     vm_args, ruby_args, options = ruby_options(options, args)
-
-    options[:no_print_cmd] = true if @silent
 
     raw_sh env_vars, ruby_launcher, *(vm_args if truffleruby?), *ruby_args, options
   end
