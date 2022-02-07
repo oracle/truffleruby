@@ -2084,7 +2084,6 @@ module Commands
       '--engine.MultiTier=false',
       '--engine.NodeSourcePositions',
       '--vm.Dgraal.PrintGraphWithSchedule=true',
-      *('--vm.Dgraal.PrintBackendCFG=true' unless truffleruby_native?),
       '--vm.Dgraal.Dump=Truffle:1',
       '--log.file=/dev/stderr', # suppress the Truffle log output help message
     ]
