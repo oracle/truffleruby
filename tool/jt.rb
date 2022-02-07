@@ -2090,10 +2090,11 @@ module Commands
     ]
 
     # As per https://github.com/Shopify/seafoam/blob/master/docs/getting-graphs.md
+    # GR-36849: needs #truffleruby_native_built? instead of #truffleruby_native?
     simplify_vm_args = [
-      *('--vm.Dgraal.PartialUnroll=false' unless truffleruby_native?),
-      *('--vm.Dgraal.LoopPeeling=false' unless truffleruby_native?),
-      *('--vm.Dgraal.LoopUnswitch=false' unless truffleruby_native?),
+      *('--vm.Dgraal.PartialUnroll=false' unless truffleruby_native_built?),
+      *('--vm.Dgraal.LoopPeeling=false' unless truffleruby_native_built?),
+      *('--vm.Dgraal.LoopUnswitch=false' unless truffleruby_native_built?),
       '--vm.Dgraal.OptScheduleOutOfLoops=false',
     ]
 
