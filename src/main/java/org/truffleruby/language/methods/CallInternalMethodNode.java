@@ -83,6 +83,8 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
             @Cached(value = "cachedMethod.getSharedMethodInfo().getArity()") Arity cachedArity,
             @Cached BranchProfile checkArityProfile,
             @Cached BranchProfile exceptionProfile) {
+        assert RubyArguments.getSelf(rubyArgs) == receiver;
+
         try {
             RubyCheckArityRootNode.checkArity(cachedArity, RubyArguments.getArgumentsCount(rubyArgs), checkArityProfile,
                     alwaysInlinedNode);
