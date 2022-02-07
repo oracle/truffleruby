@@ -10,6 +10,7 @@
 package org.truffleruby.language.arguments;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 public class NonEmptyArgumentsDescriptor extends ArgumentsDescriptor {
 
@@ -40,20 +41,23 @@ public class NonEmptyArgumentsDescriptor extends ArgumentsDescriptor {
         return keywordHashElidable;
     }
 
-    public boolean equals(Object other) {
-        if (other instanceof NonEmptyArgumentsDescriptor) {
-            final NonEmptyArgumentsDescriptor nonEmpty = (NonEmptyArgumentsDescriptor) other;
-            return Arrays.equals(keywordArgumentNames, nonEmpty.keywordArgumentNames) &&
-                    keywordHashIndex == nonEmpty.keywordHashIndex &&
-                    keywordHashElidable == nonEmpty.keywordHashElidable;
-        } else {
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
+        NonEmptyArgumentsDescriptor that = (NonEmptyArgumentsDescriptor) o;
+        return keywordHashIndex == that.keywordHashIndex && keywordHashElidable == that.keywordHashElidable &&
+                Arrays.equals(keywordArgumentNames, that.keywordArgumentNames);
     }
 
+    @Override
     public int hashCode() {
-        return Arrays.hashCode(keywordArgumentNames) ^ (keywordHashIndex << 32) ^
-                (keywordHashElidable ? (1 << 24) : (1 << 12));
+        int result = Objects.hash(keywordHashIndex, keywordHashElidable);
+        result = 31 * result + Arrays.hashCode(keywordArgumentNames);
+        return result;
     }
-
 }
