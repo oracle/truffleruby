@@ -251,9 +251,8 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
                     return MISSING;
                 case CALL_METHOD_MISSING:
                     // Both branches implicitly profile through lazy node creation
-                    final Object block = RubyArguments.getBlock(rubyArgs);
                     if (RubyGuards.isForeignObject(receiver)) { // TODO (eregon, 16 Aug 2021) maybe use a final boolean on the class to know if foreign
-                        return callForeign(receiver, methodName, block, rubyArgs);
+                        return callForeign(receiver, methodName, rubyArgs);
                     } else {
                         return callMethodMissing(frame, receiver, methodName, rubyArgs);
                     }
@@ -288,12 +287,13 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         return result;
     }
 
-    protected Object callForeign(Object receiver, String methodName, Object block, Object[] rubyArgs) {
+    protected Object callForeign(Object receiver, String methodName, Object[] rubyArgs) {
         if (callForeign == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callForeign = insert(CallForeignMethodNode.create());
         }
 
+        final Object block = RubyArguments.getBlock(rubyArgs);
         final Object[] arguments = RubyArguments.getArguments(rubyArgs);
         return callForeign.execute(receiver, methodName, block, arguments);
     }
@@ -362,18 +362,19 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         }
 
         @Override
-        protected Object callForeign(Object receiver, String methodName, Object block, Object[] arguments) {
+        protected Object callForeign(Object receiver, String methodName, Object[] rubyArgs) {
             if (callForeign == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 callForeign = insert(CallForeignMethodNode.getUncached());
             }
 
+            final Object block = RubyArguments.getBlock(rubyArgs);
+            final Object[] arguments = RubyArguments.getArguments(rubyArgs);
             return callForeign.execute(receiver, methodName, block, arguments);
         }
 
         @Override
-        protected Object callMethodMissingNode(
-                Frame frame, Object receiver, Object[] rubyArgs) {
+        protected Object callMethodMissingNode(Frame frame, Object receiver, Object[] rubyArgs) {
             if (callMethodMissing == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 callMethodMissing = insert(
