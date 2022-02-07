@@ -43,7 +43,7 @@ public final class RubyArguments {
         // user arguments follow, each RubyGuards.assertIsValidRubyValue
     }
 
-    public static final int RUNTIME_ARGUMENT_COUNT = ArgumentIndicies.values().length;
+    static final int RUNTIME_ARGUMENT_COUNT = ArgumentIndicies.values().length;
 
     public static boolean assertFrameArguments(Object[] arguments) {
         assert arguments.length >= RUNTIME_ARGUMENT_COUNT;
