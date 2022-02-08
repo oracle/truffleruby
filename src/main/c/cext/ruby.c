@@ -41,7 +41,9 @@ void rb_tr_init(void *ruby_cext) {
   rb_tr_longwrap = polyglot_invoke(rb_tr_cext, "rb_tr_wrap_function");
   rb_tr_force_native = polyglot_invoke(rb_tr_cext, "rb_tr_force_native_function");
 
+  polyglot_invoke(rb_tr_cext, "cext_start_new_handle_block");
   rb_tr_init_exception();
   rb_tr_init_global_constants();
   rb_argv0 = rb_gv_get("$0");
+  polyglot_invoke(rb_tr_cext, "cext_start_new_handle_block");
 }
