@@ -100,8 +100,9 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
 
         RubyArguments.setBlock(rubyArgs, executeBlock(frame));
 
+        // The expansion of the splat is done after executing the block, for m(*args, &args.pop)
         if (isSplatted) {
-            rubyArgs = splatArgs(rubyArgs);
+            rubyArgs = splatArgs(receiverObject, rubyArgs);
         }
         return executeWithArgumentsEvaluated(frame, receiverObject, rubyArgs);
     }
@@ -123,7 +124,7 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         RubyArguments.setBlock(rubyArgs, executeBlock(frame));
 
         if (isSplatted) {
-            rubyArgs = splatArgs(rubyArgs);
+            rubyArgs = splatArgs(receiverObject, rubyArgs);
         }
 
         int argCount = RubyArguments.getArgumentsCount(rubyArgs);
@@ -174,13 +175,13 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         }
     }
 
-    private Object[] splatArgs(Object[] rubyArgs) {
+    private Object[] splatArgs(Object receiverObject, Object[] rubyArgs) {
         if (splatToArgs == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             splatToArgs = insert(SplatToArgsNodeGen.create());
         }
 
-        return splatToArgs.execute(rubyArgs, (RubyArray) RubyArguments.getArgument(rubyArgs, 0));
+        return splatToArgs.execute(receiverObject, rubyArgs, (RubyArray) RubyArguments.getArgument(rubyArgs, 0));
     }
 
     @Override

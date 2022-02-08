@@ -26,21 +26,21 @@ public abstract class SplatToArgsNode extends RubyBaseNode {
         stores = ArrayStoreLibrary.getFactory().createDispatched(ArrayGuards.storageStrategyLimit());
     }
 
-    public abstract Object[] execute(Object[] rubyArgs, RubyArray splatted);
+    public abstract Object[] execute(Object receiver, Object[] rubyArgs, RubyArray splatted);
 
     @Specialization(limit = "2", guards = "splatted.size == size")
-    protected Object[] smallSplatted(Object[] rubyArgs, RubyArray splatted,
+    protected Object[] smallSplatted(Object receiver, Object[] rubyArgs, RubyArray splatted,
             @Cached("splatted.size") int size) {
         Object store = splatted.store;
-        Object[] newArgs = RubyArguments.repack(rubyArgs, RubyArguments.getSelf(rubyArgs), 0, size, 0);
+        Object[] newArgs = RubyArguments.repack(rubyArgs, receiver, 0, size, 0);
         stores.copyContents(store, 0, newArgs, RubyArguments.RUNTIME_ARGUMENT_COUNT, size);
         return newArgs;
     }
 
     @Specialization
-    protected Object[] smallSplatted(Object[] rubyArgs, RubyArray splatted) {
+    protected Object[] smallSplatted(Object receiver, Object[] rubyArgs, RubyArray splatted) {
         Object store = splatted.store;
-        Object[] newArgs = RubyArguments.repack(rubyArgs, RubyArguments.getSelf(rubyArgs), 0, splatted.size, 0);
+        Object[] newArgs = RubyArguments.repack(rubyArgs, receiver, 0, splatted.size, 0);
         stores.copyContents(store, 0, newArgs, RubyArguments.RUNTIME_ARGUMENT_COUNT, splatted.size);
         return newArgs;
     }
