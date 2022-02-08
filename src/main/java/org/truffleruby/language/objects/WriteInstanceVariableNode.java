@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects;
 
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.AssignableNode;
@@ -30,6 +31,8 @@ public class WriteInstanceVariableNode extends RubyContextSourceNode implements 
     @Child private RubyLibrary rubyLibrary;
     @Child private RubyNode rhs;
     @Child private WriteObjectFieldNode writeNode;
+
+    @CompilationFinal private boolean frozenProfile;
 
     public WriteInstanceVariableNode(String name, RubyNode receiver, RubyNode rhs) {
         this.name = name;
@@ -53,6 +56,10 @@ public class WriteInstanceVariableNode extends RubyContextSourceNode implements 
 
     private void write(Object object, Object value) {
         if (getRubyLibrary().isFrozen(object)) {
+            if (!frozenProfile) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                frozenProfile = true;
+            }
             throw new RaiseException(getContext(), coreExceptions().frozenError(object, this));
         }
 

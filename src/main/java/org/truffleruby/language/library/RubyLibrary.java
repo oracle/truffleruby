@@ -34,6 +34,8 @@ public abstract class RubyLibrary extends Library {
 
     public abstract void freeze(Object object);
 
+    /** The result is not always a PE constant, specifically for RubyString and RubyRange. For RubyDynamicObject it's
+     * only constant if not frozen. */
     public abstract boolean isFrozen(Object object);
 
 }
