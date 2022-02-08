@@ -374,7 +374,7 @@ public class CoreMethodNodeManager {
                 null,
                 null,
                 Collections.emptyMap(),
-                true, /* todo why? */
+                true, /* because core methods have no support for un-expanded keyword arguments */
                 sharedMethodInfo.getArity(),
                 EMPTY_FRAME_SLOT_ARRAY,
                 EMPTY_CHECK_KEYWORD_ARGUMENT_NODE_ARRAY,
