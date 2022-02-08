@@ -23,6 +23,8 @@ import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.keywords.EmptyKeywordDescriptor;
+import org.truffleruby.language.arguments.keywords.KeywordDescriptor;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.DispatchingNode;
@@ -278,13 +280,14 @@ public abstract class ClassNodes {
 
         @Child private DispatchingNode allocateNode;
         @Child private DispatchingNode initialize;
+        private static KeywordDescriptor kwd = EmptyKeywordDescriptor.EMPTY;
 
         public abstract Object execute(Object rubyClass, Object[] args, Object block);
 
         @Specialization(guards = "!rubyClass.isSingleton")
         protected Object newInstance(RubyClass rubyClass, Object[] args, Object block) {
             final Object instance = allocateNode().call(rubyClass, "__allocate__");
-            initialize().callWithBlock(instance, "initialize", block, args);
+            initialize().callWithBlockUsingKwd(instance, "initialize", kwd, block, args);
             return instance;
         }
 
@@ -297,6 +300,7 @@ public abstract class ClassNodes {
 
         @Override
         public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object kwd, Object block) {
+            this.kwd = (KeywordDescriptor) kwd;
             return execute(self, args, block);
         }
 

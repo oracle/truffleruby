@@ -18,6 +18,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.arguments.keywords.EmptyKeywordDescriptor;
+import org.truffleruby.language.arguments.keywords.KeywordDescriptor;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.DispatchingNode;
 import org.truffleruby.language.methods.LookupMethodOnSelfNode;
@@ -54,15 +55,25 @@ public class InlinedDispatchNode extends RubyBaseNode implements DispatchingNode
         return dispatch(null, receiver, method, block, arguments);
     }
 
+    public Object callWithBlockUsingKwd(Object receiver, String method, KeywordDescriptor kwd, Object block, Object... arguments) {
+        return dispatch(null, receiver, method, kwd, block, arguments);
+    }
+
     public Object dispatch(Frame frame, Object receiver, String methodName, Object block, Object[] arguments) {
+        KeywordDescriptor kwd = EmptyKeywordDescriptor.EMPTY;
+        return dispatch(frame, receiver, methodName, kwd, block, arguments);
+    }
+
+    public Object dispatch(Frame frame, Object receiver, String methodName, KeywordDescriptor kwd,
+                           Object block, Object[] arguments) {
         if ((lookupNode.lookupIgnoringVisibility(frame, receiver, methodName) != inlinedMethod.getMethod()) ||
                 !Assumption.isValidAssumption(assumptions)) {
-            return rewriteAndCallWithBlock(frame, receiver, methodName, block, arguments);
+            return rewriteAndCallWithBlock(frame, receiver, methodName, kwd, block, arguments);
         } else {
             try {
-                return inlinedMethod.inlineExecute(frame, receiver, arguments, EmptyKeywordDescriptor.EMPTY, block);
+                return inlinedMethod.inlineExecute(frame, receiver, arguments, kwd, block);
             } catch (InlinedMethodNode.RewriteException e) {
-                return rewriteAndCallWithBlock(frame, receiver, methodName, block, arguments);
+                return rewriteAndCallWithBlock(frame, receiver, methodName, kwd, block, arguments);
             }
         }
     }
@@ -80,9 +91,9 @@ public class InlinedDispatchNode extends RubyBaseNode implements DispatchingNode
         }
     }
 
-    protected Object rewriteAndCallWithBlock(Frame frame, Object receiver, String methodName, Object block,
-            Object... arguments) {
-        return rewriteToDispatchNode().dispatch(frame, receiver, methodName, block, arguments);
+    protected Object rewriteAndCallWithBlock(Frame frame, Object receiver, String methodName, KeywordDescriptor kwd,
+                                             Object block, Object... arguments) {
+        return rewriteToDispatchNode().dispatch(frame, receiver, methodName, block, arguments, kwd);
     }
 
 }

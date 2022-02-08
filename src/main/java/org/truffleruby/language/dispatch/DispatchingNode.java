@@ -11,12 +11,15 @@ package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.nodes.NodeInterface;
+import org.truffleruby.language.arguments.keywords.KeywordDescriptor;
 
 public interface DispatchingNode extends NodeInterface {
 
     public Object call(Object receiver, String method, Object... arguments);
 
     public Object callWithBlock(Object receiver, String method, Object block, Object... arguments);
+
+    public Object callWithBlockUsingKwd(Object instance, String initialize, KeywordDescriptor kwd, Object block, Object[] args);
 
     public Object dispatch(Frame frame, Object receiver, String methodName, Object block, Object[] arguments);
 

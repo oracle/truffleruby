@@ -74,13 +74,13 @@ public class InlinedCallNode extends InlinedReplaceableNode {
                     frame,
                     receiverObject,
                     blockObject,
-                    expandArgumentsNode.execute(executedArguments, keywordDescriptor));
+                    executedArguments);
         }
     }
 
     public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object receiverObject, Object blockObject,
             Object[] argumentsObjects) {
-        return inlinedMethod.inlineExecute(frame, receiverObject, argumentsObjects, EmptyKeywordDescriptor.EMPTY,
+        return inlinedMethod.inlineExecute(frame, receiverObject, argumentsObjects, keywordDescriptor,
                 blockObject);
     }
 

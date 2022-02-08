@@ -116,6 +116,10 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
         return dispatch(null, receiver, method, block, arguments);
     }
 
+    public Object callWithBlockUsingKwd(Object receiver, String method, KeywordDescriptor kwd, Object block, Object... arguments) {
+        return dispatch(null, receiver, method, block, arguments, kwd);
+    }
+
     // TODO: We have this temporarily to adhere to the DispatchingNode interface
     @Override
     public Object dispatch(Frame frame, Object receiver, String methodName, Object block, Object[] arguments) {
