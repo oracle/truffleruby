@@ -25,7 +25,6 @@ import com.oracle.truffle.api.object.Shape;
 @NodeField(name = "depth", type = int.class)
 public abstract class WriteBarrierNode extends RubyBaseNode {
 
-    protected static final int CACHE_LIMIT = 8;
     protected static final int MAX_DEPTH = 3;
 
     protected abstract int getDepth();
@@ -36,17 +35,31 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
 
     public abstract void executeWriteBarrier(Object value);
 
+    @Specialization(guards = "!isRubyDynamicObject(value)")
+    protected void noWriteBarrier(Object value) {
+    }
+
     @Specialization(
-            guards = { "value.getShape() == cachedShape", "getDepth() < MAX_DEPTH" },
+            guards = { "value.getShape() == cachedShape", "cachedShape.isShared()" },
+            limit = "1") // limit of 1 as the next specialization is cheap
+    protected void alreadySharedCached(RubyDynamicObject value,
+            @Cached("value.getShape()") Shape cachedShape) {
+    }
+
+    @Specialization(guards = "value.getShape().isShared()", replaces = "alreadySharedCached")
+    protected void alreadySharedUncached(RubyDynamicObject value) {
+    }
+
+    @Specialization(
+            guards = { "getDepth() < MAX_DEPTH", "value.getShape() == cachedShape", "!cachedShape.isShared()" },
             assumptions = "cachedShape.getValidAssumption()",
-            limit = "CACHE_LIMIT")
+            // limit of 1 to avoid creating many nodes if the value's Shape is polymorphic.
+            // GR-36904: Not simply using "1" so the cached nodes are cleared when writeBarrierUncached() is activated.
+            limit = "getIdentityCacheLimit()")
     protected void writeBarrierCached(RubyDynamicObject value,
             @Cached("value.getShape()") Shape cachedShape,
-            @Cached("cachedShape.isShared()") boolean alreadyShared,
-            @Cached("createShareObjectNode(alreadyShared)") ShareObjectNode shareObjectNode) {
-        if (!alreadyShared) {
-            shareObjectNode.executeShare(value);
-        }
+            @Cached("createShareObjectNode()") ShareObjectNode shareObjectNode) {
+        shareObjectNode.executeShare(value);
     }
 
     @Specialization(guards = "updateShape(value)")
@@ -54,21 +67,14 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
         executeWriteBarrier(value);
     }
 
-    @Specialization(replaces = { "writeBarrierCached", "updateShapeAndWriteBarrier" })
+    @Specialization(guards = "!value.getShape().isShared()",
+            replaces = { "writeBarrierCached", "updateShapeAndWriteBarrier" })
     protected void writeBarrierUncached(RubyDynamicObject value) {
         SharedObjects.writeBarrier(getLanguage(), value);
     }
 
-    @Specialization(guards = "!isRubyDynamicObject(value)")
-    protected void noWriteBarrier(Object value) {
-    }
-
-    protected ShareObjectNode createShareObjectNode(boolean alreadyShared) {
-        if (!alreadyShared) {
-            return ShareObjectNodeGen.create(getDepth() + 1);
-        } else {
-            return null;
-        }
+    protected ShareObjectNode createShareObjectNode() {
+        return ShareObjectNodeGen.create(getDepth() + 1);
     }
 
 }
