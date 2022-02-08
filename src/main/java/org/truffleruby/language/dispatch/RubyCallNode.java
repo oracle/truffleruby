@@ -25,7 +25,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.arguments.SplatToArgsNode;
-import org.truffleruby.language.arguments.SplatToArgsNodeGen;
 import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.methods.BlockDefinitionNode;
 import org.truffleruby.language.methods.InternalMethod;
@@ -178,7 +177,7 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
     private Object[] splatArgs(Object receiverObject, Object[] rubyArgs) {
         if (splatToArgs == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            splatToArgs = insert(SplatToArgsNodeGen.create());
+            splatToArgs = insert(new SplatToArgsNode());
         }
 
         return splatToArgs.execute(receiverObject, rubyArgs, (RubyArray) RubyArguments.getArgument(rubyArgs, 0));

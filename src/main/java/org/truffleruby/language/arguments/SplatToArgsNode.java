@@ -9,39 +9,29 @@
  */
 package org.truffleruby.language.arguments;
 
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.Node.Child;
+import com.oracle.truffle.api.profiles.IntValueProfile;
 
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyBaseNode;
 
-public abstract class SplatToArgsNode extends RubyBaseNode {
+public class SplatToArgsNode extends RubyBaseNode {
 
     @Child protected ArrayStoreLibrary stores;
+
+    final IntValueProfile splatSizeProfile = IntValueProfile.createIdentityProfile();
 
     public SplatToArgsNode() {
         stores = ArrayStoreLibrary.getFactory().createDispatched(ArrayGuards.storageStrategyLimit());
     }
 
-    public abstract Object[] execute(Object receiver, Object[] rubyArgs, RubyArray splatted);
-
-    @Specialization(limit = "2", guards = "splatted.size == size")
-    protected Object[] smallSplatted(Object receiver, Object[] rubyArgs, RubyArray splatted,
-            @Cached("splatted.size") int size) {
+    public Object[] execute(Object receiver, Object[] rubyArgs, RubyArray splatted) {
+        int size = splatSizeProfile.profile(splatted.size);
         Object store = splatted.store;
         Object[] newArgs = RubyArguments.repack(rubyArgs, receiver, 0, size, 0);
         stores.copyContents(store, 0, newArgs, RubyArguments.RUNTIME_ARGUMENT_COUNT, size);
-        return newArgs;
-    }
-
-    @Specialization
-    protected Object[] smallSplatted(Object receiver, Object[] rubyArgs, RubyArray splatted) {
-        Object store = splatted.store;
-        Object[] newArgs = RubyArguments.repack(rubyArgs, receiver, 0, splatted.size, 0);
-        stores.copyContents(store, 0, newArgs, RubyArguments.RUNTIME_ARGUMENT_COUNT, splatted.size);
         return newArgs;
     }
 }
