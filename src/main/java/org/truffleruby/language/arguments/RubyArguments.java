@@ -241,6 +241,9 @@ public final class RubyArguments {
         // CompilerAsserts.partialEvaluationConstant(descriptor);
         Object[] arguments = frame.getArguments();
         if (descriptor instanceof NonEmptyKeywordDescriptor && descriptor.getLength() == 0) {
+            if (((NonEmptyKeywordDescriptor) descriptor).isAlsoSplat()) {
+                return frame.getArguments().length - RUNTIME_ARGUMENT_COUNT;
+            }
             // empty kwargs passed -> as if they were not passed
             return arguments.length - RUNTIME_ARGUMENT_COUNT - 1;
         } else {

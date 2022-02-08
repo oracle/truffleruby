@@ -705,32 +705,48 @@ public class BodyTranslator extends Translator {
 
         final List<RubyNode> argumentsTranslated = new ArrayList<>();
         final List<RubyNode> trailing = new ArrayList<>();
-        List<RubyNode> stringKeyValues = new ArrayList<>();
 
         for (int i = 0; i < arguments.length; i++) {
             if (keywordDescriptor instanceof NonEmptyKeywordDescriptor &&
                     i == ((NonEmptyKeywordDescriptor) keywordDescriptor).getHashIndex()) {
                 assert arguments[i] instanceof HashParseNode;
                 final HashParseNode hpn = (HashParseNode) arguments[i];
+                boolean nonSymbolKeysPresent = false;
 
+                // Check if there are String or Int keys present
+                // TODO: Check for other types of keys?
                 for (ParseNodeTuple pair : hpn.getPairs()) {
-                    final RubyNode translated = pair.getValue().accept(this);
-                    if (pair.getKey() instanceof StrParseNode) {
-                        stringKeyValues.add(pair.getKey().accept(this));
-                        stringKeyValues.add(translated);
-                    } else if (pair.getKey() == null) {
-                        argumentsTranslated.add(translated);
-                    } else {
-                        trailing.add(translated);
+                    if  ((pair.getKey() instanceof StrParseNode) || (pair.getKey() instanceof FixnumParseNode)) {
+                        nonSymbolKeysPresent = true;
+                        break;
                     }
                 }
 
-                if (stringKeyValues.size() > 0) {
-                    HashLiteralNode stringKeyHash = HashLiteralNode.create(stringKeyValues.toArray(new RubyNode[0]));
+                // If non-symbol keys present, just keep them in the hash
+                if (nonSymbolKeysPresent) {
+                    List<RubyNode> nonSymbolKeyValues = new ArrayList<>();
+                    for (ParseNodeTuple pair : hpn.getPairs()) {
+                        final RubyNode translated = pair.getValue().accept(this);
+                        nonSymbolKeyValues.add(pair.getKey().accept(this));
+                        nonSymbolKeyValues.add(translated);
+                    }
+                    HashLiteralNode stringKeyHash = HashLiteralNode.create(nonSymbolKeyValues.toArray(new RubyNode[0]));
                     argumentsTranslated.add(stringKeyHash);
-                } else if (hpn.getPairs().get(hpn.getPairs().size() - 1).getKey() != null) {
-                    argumentsTranslated
-                            .add(new ObjectLiteralNode(language.symbolTable.getSymbol("empty arguments hash")));
+
+                } else {
+                    for (ParseNodeTuple pair : hpn.getPairs()) {
+                        final RubyNode translated = pair.getValue().accept(this);
+                        if (pair.getKey() == null) {
+                            argumentsTranslated.add(translated);
+                        } else {
+                            trailing.add(translated);
+                        }
+                    }
+
+                    if (hpn.getPairs().get(hpn.getPairs().size() - 1).getKey() != null) {
+                        argumentsTranslated
+                                .add(new ObjectLiteralNode(language.symbolTable.getSymbol("empty arguments hash")));
+                    }
                 }
             } else {
                 argumentsTranslated.add(arguments[i].accept(this));
