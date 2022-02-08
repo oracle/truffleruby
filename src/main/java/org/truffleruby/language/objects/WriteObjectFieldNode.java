@@ -19,7 +19,6 @@ import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
 import java.lang.invoke.VarHandle;
 
@@ -39,11 +38,10 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
         objectLibrary.put(object, name, value);
     }
 
-    @Specialization(guards = "objectLibrary.isShared(object)", limit = "getCacheLimit()")
+    @Specialization(guards = "objectLibrary.isShared(object)")
     protected void writeShared(RubyDynamicObject object, Object name, Object value,
-            @CachedLibrary("object") DynamicObjectLibrary objectLibrary,
-            @Cached WriteBarrierNode writeBarrierNode,
-            @Cached BranchProfile shapeRaceProfile) {
+            @CachedLibrary(limit = "getCacheLimit()") DynamicObjectLibrary objectLibrary,
+            @Cached WriteBarrierNode writeBarrierNode) {
 
         // Share `value` before it becomes reachable through `object`
         writeBarrierNode.executeWriteBarrier(value);
@@ -55,14 +53,6 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
         VarHandle.storeStoreFence();
 
         synchronized (object) {
-            // Re-check the shape under the monitor as another thread might have changed it
-            // by adding a field or upgrading an existing field to Object storage
-            // (need to use the new storage)
-            if (!objectLibrary.accepts(object)) {
-                shapeRaceProfile.enter();
-                DynamicObjectLibrary.getUncached().put(object, name, value);
-                return;
-            }
             objectLibrary.put(object, name, value);
         }
     }
