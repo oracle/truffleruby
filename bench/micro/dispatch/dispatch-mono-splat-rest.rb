@@ -4,12 +4,10 @@ class Callee
   end
 end
 
-r = Random.new
-
 callees = Array.new(1000) { Callee.new }
-args = Array.new(1000) { Array.new(r.rand(4)) { 1 } }
+args = Array.new(1000) { |i| Array.new(i % 4, 1) }
 
-benchmark 'dispatch-mono-splat' do
+benchmark 'dispatch-mono-splat-rest' do
   i = 0
   while i < 1000
     callees[i].call(*args[i])
