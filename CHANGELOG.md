@@ -34,6 +34,7 @@ Performance:
 * Switch to `Arrays.mismatch()` in string comparison for better performance (@aardvark179).
 * Removed extra array allocations for method calls in the interpreter to improve warmup performance (@aardvark179).
 * Optimize `Dir[]` by sorting entries as they are found and grouping syscalls (#2092, @aardvark179).
+* Reduce memory footprint by tracking `VALUE`s created during C extension init separately (@aardvark179).
 
 Changes:
 

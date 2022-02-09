@@ -346,6 +346,19 @@ public class ValueWrapperManager {
         }
     }
 
+    public static HandleBlock allocateNewBlock(RubyContext context, RubyLanguage language) {
+        HandleBlockHolder holder = getBlockHolder(context, language);
+        HandleBlock block = holder.handleBlock;
+
+        if (block != null) {
+            context.getMarkingService().queueForMarking(block);
+        }
+        block = (holder.handleBlock = new HandleBlock(context, language.handleBlockAllocator));
+        context.getValueWrapperManager().addToBlockMap(block, context, language);
+
+        return block;
+    }
+
     public static boolean isTaggedLong(long handle) {
         return (handle & LONG_TAG) == LONG_TAG;
     }

@@ -23,6 +23,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.source.Source;
 import org.graalvm.collections.Pair;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.rope.Rope;
@@ -282,6 +283,7 @@ public abstract class RequireNode extends RubyBaseNode {
 
         requireMetric("before-execute-" + feature);
         try {
+            ValueWrapperManager.allocateNewBlock(getContext(), getLanguage());
             InteropNodes
                     .execute(
                             initFunction,
@@ -289,6 +291,7 @@ public abstract class RequireNode extends RubyBaseNode {
                             initFunctionInteropLibrary,
                             TranslateInteropExceptionNode.getUncached());
         } finally {
+            ValueWrapperManager.allocateNewBlock(getContext(), getLanguage());
             requireMetric("after-execute-" + feature);
         }
     }
