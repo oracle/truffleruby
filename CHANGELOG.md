@@ -28,6 +28,7 @@ Compatibility:
 * Set `@gem_prelude_index` variable on the default load paths (#2586 , @bjfish)
 * Do not call `IO#flush` dynamically from `IO#close` (#2594, @gogainda).
 * Implement `rb_str_new_static` for C extensions that use it (@aardvark179).
+* Rewrote `ArrayEachIteratorNode` and re-introduced `each` specs for MRI parity when mutating arrays whilst iterating, rather than crashing (#2587, @MattAlp)
 
 Performance:
 
@@ -36,6 +37,7 @@ Performance:
 * Removed extra array allocations for method calls in the interpreter to improve warmup performance (@aardvark179).
 * Optimize `Dir[]` by sorting entries as they are found and grouping syscalls (#2092, @aardvark179).
 * Reduce memory footprint by tracking `VALUE`s created during C extension init separately (@aardvark179).
+* Rewrote `ArrayEachIteratorNode` to optimize performance for a constant-sized array and reduce specializations to 1 general case (#2587, @MattAlp)
 
 Changes:
 
