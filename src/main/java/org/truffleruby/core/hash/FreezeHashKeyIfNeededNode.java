@@ -15,10 +15,8 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.library.RubyLibrary;
 
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.library.CachedLibrary;
 
 @GenerateUncached
 public abstract class FreezeHashKeyIfNeededNode extends RubyBaseNode {
@@ -30,31 +28,21 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyBaseNode {
         return string;
     }
 
-    @Specialization(
-            guards = "rubyLibrary.isFrozen(string)",
-            limit = "getRubyLibraryCacheLimit()")
-    protected Object alreadyFrozen(RubyString string, boolean compareByIdentity,
-            @CachedLibrary("string") RubyLibrary rubyLibrary) {
+    @Specialization(guards = "string.isFrozen()")
+    protected Object alreadyFrozen(RubyString string, boolean compareByIdentity) {
         return string;
     }
 
-    @Specialization(
-            guards = { "!rubyLibrary.isFrozen(string)", "!compareByIdentity" },
-            limit = "getRubyLibraryCacheLimit()")
+    @Specialization(guards = { "!string.isFrozen()", "!compareByIdentity" })
     protected Object dupAndFreeze(RubyString string, boolean compareByIdentity,
-            @CachedLibrary("string") RubyLibrary rubyLibrary,
-            @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibraryObject,
             @Cached DispatchNode dupNode) {
-        final Object object = dupNode.call(string, "dup");
-        rubyLibraryObject.freeze(object);
-        return object;
+        final RubyString copy = (RubyString) dupNode.call(string, "dup");
+        copy.freeze();
+        return copy;
     }
 
-    @Specialization(
-            guards = { "!rubyLibrary.isFrozen(string)", "compareByIdentity" },
-            limit = "getRubyLibraryCacheLimit()")
-    protected Object compareByIdentity(RubyString string, boolean compareByIdentity,
-            @CachedLibrary("string") RubyLibrary rubyLibrary) {
+    @Specialization(guards = { "!string.isFrozen()", "compareByIdentity" })
+    protected Object compareByIdentity(RubyString string, boolean compareByIdentity) {
         return string;
     }
 

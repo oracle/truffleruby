@@ -567,7 +567,7 @@ public abstract class KernelNodes {
             }
 
             // Default behavior - is just to copy the frozen state of the original object
-            if (forceFrozen(freeze) || (copyFrozen && rubyLibrary.isFrozen(object))) {
+            if (forceFrozen(freeze) || (copyFrozen && rubyLibrary.isFrozen(object))) { // Profiled through lazy usage of rubyLibraryFreeze
                 rubyLibraryFreeze.freeze(newObject);
             }
 
@@ -857,14 +857,13 @@ public abstract class KernelNodes {
         protected Object freezeDynamicObject(Object self,
                 @CachedLibrary("self") RubyLibrary rubyLibrary,
                 @CachedLibrary(limit = "1") RubyLibrary rubyLibraryMetaClass,
-                @Cached ConditionProfile singletonProfile,
+                @Cached ConditionProfile singletonClassUnfrozenProfile,
                 @Cached MetaClassNode metaClassNode) {
             final RubyClass metaClass = metaClassNode.execute(self);
-            if (singletonProfile.profile(metaClass.isSingleton &&
-                    !(RubyGuards.isRubyClass(self) && ((RubyClass) self).isSingleton))) {
-                if (!rubyLibraryMetaClass.isFrozen(metaClass)) {
-                    rubyLibraryMetaClass.freeze(metaClass);
-                }
+            if (singletonClassUnfrozenProfile.profile(metaClass.isSingleton &&
+                    !(RubyGuards.isRubyClass(self) && ((RubyClass) self).isSingleton) &&
+                    !rubyLibraryMetaClass.isFrozen(metaClass))) {
+                rubyLibraryMetaClass.freeze(metaClass);
             }
             rubyLibrary.freeze(self);
             return self;

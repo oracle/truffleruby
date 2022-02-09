@@ -90,12 +90,12 @@ public class RubyString extends RubyDynamicObject {
 
     // region RubyLibrary messages
     @ExportMessage
-    protected void freeze() {
+    public void freeze() {
         frozen = true;
     }
 
     @ExportMessage
-    protected boolean isFrozen() {
+    public boolean isFrozen() {
         return frozen;
     }
     // endregion
