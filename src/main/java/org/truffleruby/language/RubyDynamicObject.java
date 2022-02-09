@@ -11,7 +11,6 @@ package org.truffleruby.language;
 
 import com.oracle.truffle.api.interop.StopIterationException;
 import com.oracle.truffle.api.interop.UnknownKeyException;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
@@ -62,6 +61,8 @@ import org.truffleruby.language.objects.shared.SharedObjects;
 @ExportLibrary(InteropLibrary.class)
 public abstract class RubyDynamicObject extends DynamicObject {
 
+    private static final int FROZEN = 1;
+
     private RubyClass metaClass;
 
     public RubyDynamicObject(RubyClass metaClass, Shape shape) {
@@ -98,14 +99,14 @@ public abstract class RubyDynamicObject extends DynamicObject {
     // region RubyLibrary messages
     @ExportMessage
     public void freeze(
-            @Exclusive @Cached WriteObjectFieldNode writeFrozenNode) {
-        writeFrozenNode.execute(this, Layouts.FROZEN_IDENTIFIER, true);
+            @CachedLibrary("this") DynamicObjectLibrary objLib) {
+        objLib.setShapeFlags(this, objLib.getShapeFlags(this) | FROZEN);
     }
 
     @ExportMessage
     public boolean isFrozen(
-            @CachedLibrary("this") DynamicObjectLibrary readFrozenNode) {
-        return (boolean) readFrozenNode.getOrDefault(this, Layouts.FROZEN_IDENTIFIER, false);
+            @CachedLibrary("this") DynamicObjectLibrary objLib) {
+        return (objLib.getShapeFlags(this) & FROZEN) != 0;
     }
     // endregion
 
