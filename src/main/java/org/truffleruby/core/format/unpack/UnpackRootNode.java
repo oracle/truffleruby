@@ -18,7 +18,6 @@ import org.truffleruby.language.backtrace.InternalRootNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -50,26 +49,14 @@ public class UnpackRootNode extends RubyBaseRootNode implements InternalRootNode
 
         child.execute(frame);
 
-        final int outputLength;
-
-        try {
-            outputLength = frame.getInt(FormatFrameDescriptor.OUTPUT_POSITION_SLOT);
-        } catch (FrameSlotTypeException e) {
-            throw new IllegalStateException(e);
-        }
+        final int outputLength = frame.getInt(FormatFrameDescriptor.OUTPUT_POSITION_SLOT);
 
         if (outputLength > expectedLength) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             expectedLength = ArrayUtils.capacity(language, expectedLength, outputLength);
         }
 
-        final Object[] output;
-
-        try {
-            output = (Object[]) frame.getObject(FormatFrameDescriptor.OUTPUT_SLOT);
-        } catch (FrameSlotTypeException e) {
-            throw new IllegalStateException(e);
-        }
+        final Object[] output = (Object[]) frame.getObject(FormatFrameDescriptor.OUTPUT_SLOT);
 
         return new ArrayResult(output, outputLength);
     }

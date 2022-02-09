@@ -12,17 +12,10 @@ package org.truffleruby.core.format.write;
 import org.truffleruby.core.format.FormatFrameDescriptor;
 import org.truffleruby.language.RubyBaseNode;
 
-import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class OutputNode extends RubyBaseNode {
-
     public Object execute(VirtualFrame frame) {
-        try {
-            return frame.getObject(FormatFrameDescriptor.OUTPUT_SLOT);
-        } catch (FrameSlotTypeException e) {
-            throw new IllegalStateException(e);
-        }
+        return frame.getObject(FormatFrameDescriptor.OUTPUT_SLOT);
     }
-
 }

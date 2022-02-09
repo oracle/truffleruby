@@ -10,18 +10,16 @@
 package org.truffleruby.language.locals;
 
 import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.frame.FrameUtil;
 import org.truffleruby.language.arguments.RubyArguments;
 
-import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class DeclarationFlipFlopStateNode extends FlipFlopStateNode {
 
     private final int frameLevel;
-    private final FrameSlot frameSlot;
+    private final int frameSlot;
 
-    public DeclarationFlipFlopStateNode(int frameLevel, FrameSlot frameSlot) {
+    public DeclarationFlipFlopStateNode(int frameLevel, int frameSlot) {
         this.frameLevel = frameLevel;
         this.frameSlot = frameSlot;
     }
@@ -29,7 +27,7 @@ public class DeclarationFlipFlopStateNode extends FlipFlopStateNode {
     @Override
     public boolean getState(VirtualFrame frame) {
         final Frame declarationFrame = RubyArguments.getDeclarationFrame(frame, frameLevel);
-        return FrameUtil.getBooleanSafe(declarationFrame, frameSlot);
+        return declarationFrame.getBoolean(frameSlot);
     }
 
     @Override

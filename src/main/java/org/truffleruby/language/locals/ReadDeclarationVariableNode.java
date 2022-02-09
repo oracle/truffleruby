@@ -14,14 +14,14 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.parser.ParentFrameDescriptor;
 
 public class ReadDeclarationVariableNode extends ReadLocalNode {
 
     private final int frameDepth;
 
-    public ReadDeclarationVariableNode(LocalVariableType type, int frameDepth, FrameSlot frameSlot) {
+    public ReadDeclarationVariableNode(LocalVariableType type, int frameDepth, int frameSlot) {
         super(frameSlot, type);
         this.frameDepth = frameDepth;
     }
@@ -30,7 +30,7 @@ public class ReadDeclarationVariableNode extends ReadLocalNode {
         return frameDepth;
     }
 
-    public FrameSlot getFrameSlot() {
+    public int getFrameSlot() {
         return frameSlot;
     }
 
@@ -53,6 +53,13 @@ public class ReadDeclarationVariableNode extends ReadLocalNode {
     @Override
     public WriteLocalNode makeWriteNode(RubyNode rhs) {
         return new WriteDeclarationVariableNode(frameSlot, frameDepth, rhs);
+    }
+
+    @Override
+    protected String getVariableName() {
+        var descriptor = ParentFrameDescriptor.getDeclarationFrameDescriptor(
+                getRootNode().getFrameDescriptor(), frameDepth);
+        return descriptor.getSlotName(frameSlot).toString();
     }
 
 }

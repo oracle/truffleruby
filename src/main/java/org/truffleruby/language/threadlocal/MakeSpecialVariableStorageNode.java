@@ -12,31 +12,25 @@ package org.truffleruby.language.threadlocal;
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.arguments.RubyArguments;
 
 public class MakeSpecialVariableStorageNode extends RubyContextSourceNode {
 
-    @CompilationFinal protected FrameSlot variablesSlot;
-    @CompilationFinal protected Assumption frameAssumption;
+    @CompilationFinal protected Assumption assumption;
 
     @Override
     public Object execute(VirtualFrame frame) {
-        if (frameAssumption == null || !frameAssumption.isValid()) {
+        assert SpecialVariableStorage.hasSpecialVariableStorageSlot(frame);
+
+        if (assumption == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            final FrameDescriptor descriptor = frame.getFrameDescriptor();
-            frameAssumption = descriptor.getVersion();
-            variablesSlot = descriptor.findFrameSlot(Layouts.SPECIAL_VARIABLES_STORAGE);
-            assert RubyArguments.getDeclarationFrame(frame) == null;
+            assumption = SpecialVariableStorage.getAssumption(frame.getFrameDescriptor());
         }
 
-        if (variablesSlot != null) {
-            frame.setObject(variablesSlot, new SpecialVariableStorage());
+        if (!assumption.isValid()) {
+            SpecialVariableStorage.set(frame, new SpecialVariableStorage());
         }
 
         return nil;

@@ -29,8 +29,4 @@ public abstract class Layouts {
     public static final HiddenKey VALUE_WRAPPER_IDENTIFIER = new HiddenKey("value_wrapper"); // ValueWrapper
     public static final HiddenKey ALLOCATION_TRACE_IDENTIFIER = new HiddenKey("allocation_trace"); // AllocationTrace
 
-    // Frame slot name for special variable storage.
-
-    public static final String SPECIAL_VARIABLES_STORAGE = TEMP_PREFIX + "$~_";
-
 }

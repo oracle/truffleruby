@@ -27,7 +27,6 @@ import org.truffleruby.parser.ast.NilImplicitParseNode;
 import org.truffleruby.parser.ast.ParseNode;
 import org.truffleruby.parser.ast.visitor.AbstractNodeVisitor;
 
-import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
@@ -136,9 +135,8 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
         }
     }
 
-    public static RubyNode loadSelf(RubyLanguage language, TranslatorEnvironment environment) {
-        final FrameSlot slot = environment.getFrameDescriptor().findOrAddFrameSlot(SelfNode.SELF_IDENTIFIER);
-        return new WriteLocalVariableNode(slot, profileArgument(language, new ReadSelfNode()));
+    public static RubyNode loadSelf(RubyLanguage language) {
+        return new WriteLocalVariableNode(SelfNode.SELF_INDEX, profileArgument(language, new ReadSelfNode()));
     }
 
     public static RubyNode profileArgument(RubyLanguage language, RubyNode argumentNode) {

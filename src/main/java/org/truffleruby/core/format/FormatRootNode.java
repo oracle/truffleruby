@@ -20,7 +20,6 @@ import org.truffleruby.language.backtrace.InternalRootNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -59,13 +58,7 @@ public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode
 
         child.execute(frame);
 
-        final int outputLength;
-
-        try {
-            outputLength = frame.getInt(FormatFrameDescriptor.OUTPUT_POSITION_SLOT);
-        } catch (FrameSlotTypeException e) {
-            throw new IllegalStateException(e);
-        }
+        final int outputLength = frame.getInt(FormatFrameDescriptor.OUTPUT_POSITION_SLOT);
 
         if (outputLength > expectedLength) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -77,41 +70,19 @@ public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode
             expectedLength = outputLength;
         }
 
-        final byte[] output;
-
-        try {
-            output = (byte[]) frame.getObject(FormatFrameDescriptor.OUTPUT_SLOT);
-        } catch (FrameSlotTypeException e) {
-            throw new IllegalStateException(e);
-        }
-
+        final byte[] output = (byte[]) frame.getObject(FormatFrameDescriptor.OUTPUT_SLOT);
         final int stringLength;
-
         if (encoding == FormatEncoding.UTF_8) {
-            try {
-                stringLength = frame.getInt(FormatFrameDescriptor.STRING_LENGTH_SLOT);
-            } catch (FrameSlotTypeException e) {
-                throw new IllegalStateException(e);
-            }
+            stringLength = frame.getInt(FormatFrameDescriptor.STRING_LENGTH_SLOT);
         } else {
             stringLength = outputLength;
         }
 
-        final CodeRange stringCodeRange;
-
-        try {
-            stringCodeRange = CodeRange.fromInt(frame.getInt(FormatFrameDescriptor.STRING_CODE_RANGE_SLOT));
-        } catch (FrameSlotTypeException e) {
-            throw new IllegalStateException(e);
-        }
+        final CodeRange stringCodeRange = CodeRange.fromInt(frame.getInt(FormatFrameDescriptor.STRING_CODE_RANGE_SLOT));
 
         final List<Pointer> associated;
 
-        try {
-            associated = (List<Pointer>) frame.getObject(FormatFrameDescriptor.ASSOCIATED_SLOT);
-        } catch (FrameSlotTypeException e) {
-            throw new IllegalStateException(e);
-        }
+        associated = (List<Pointer>) frame.getObject(FormatFrameDescriptor.ASSOCIATED_SLOT);
 
         final Pointer[] associatedArray;
 

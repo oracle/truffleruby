@@ -15,7 +15,6 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 
-import com.oracle.truffle.api.frame.FrameSlotKind;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.IsNilNode;
 import org.truffleruby.core.array.ArrayIndexNodes;
@@ -62,7 +61,6 @@ import org.truffleruby.parser.ast.StarParseNode;
 import org.truffleruby.parser.ast.VCallParseNode;
 import org.truffleruby.parser.ast.types.INameNode;
 
-import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
 
@@ -70,15 +68,15 @@ public class LoadArgumentsTranslator extends Translator {
 
     private static class ArraySlot {
 
-        private FrameSlot arraySlot;
+        private int arraySlot;
         private int previousIndex;
 
-        public ArraySlot(FrameSlot arraySlot, int previousIndex) {
+        public ArraySlot(int arraySlot, int previousIndex) {
             this.arraySlot = arraySlot;
             this.previousIndex = previousIndex;
         }
 
-        public FrameSlot getArraySlot() {
+        public int getArraySlot() {
             return arraySlot;
         }
 
@@ -130,7 +128,7 @@ public class LoadArgumentsTranslator extends Translator {
         final List<RubyNode> sequence = new ArrayList<>();
 
         //if (!arraySlotStack.isEmpty()) {
-        sequence.add(loadSelf(language, methodBodyTranslator.getEnvironment()));
+        sequence.add(loadSelf(language));
         //}
 
         final ParseNode[] args = argsNode.getArgs();
@@ -278,7 +276,7 @@ public class LoadArgumentsTranslator extends Translator {
     @Override
     public RubyNode visitKeywordRestArgNode(KeywordRestArgParseNode node) {
         final RubyNode readNode = new ReadKeywordRestArgumentNode(language, required, argsNode.getArity());
-        final FrameSlot slot = methodBodyTranslator.getEnvironment().declareVar(node.getName());
+        final int slot = methodBodyTranslator.getEnvironment().declareVar(node.getName());
 
         return new WriteLocalVariableNode(slot, readNode);
     }
@@ -289,7 +287,7 @@ public class LoadArgumentsTranslator extends Translator {
 
         final AssignableParseNode asgnNode = node.getAssignable();
         final String name = ((INameNode) asgnNode).getName();
-        final FrameSlot slot = methodBodyTranslator.getEnvironment().declareVar(name);
+        final int slot = methodBodyTranslator.getEnvironment().declareVar(name);
 
         final RubyNode defaultValue;
         if (asgnNode.getValueNode() instanceof RequiredKeywordArgumentValueParseNode) {
@@ -310,7 +308,7 @@ public class LoadArgumentsTranslator extends Translator {
         final SourceIndexLength sourceSection = node.getPosition();
 
         final RubyNode readNode = readArgument(sourceSection);
-        final FrameSlot slot = methodBodyTranslator.getEnvironment().getFrameDescriptor().findFrameSlot(node.getName());
+        final int slot = methodBodyTranslator.getEnvironment().findFrameSlot(node.getName());
         return new WriteLocalVariableNode(slot, readNode);
     }
 
@@ -350,20 +348,18 @@ public class LoadArgumentsTranslator extends Translator {
             readNode = new ReadRestArgumentNode(from, -to, hasKeywordArguments, considerRejectedKWArgs(), required);
         }
 
-        final FrameSlot slot = methodBodyTranslator.getEnvironment().getFrameDescriptor().findFrameSlot(node.getName());
+        final int slot = methodBodyTranslator.getEnvironment().findFrameSlot(node.getName());
         return new WriteLocalVariableNode(slot, readNode);
     }
 
     public RubyNode saveMethodBlockArg() {
-        final FrameSlot slot = methodBodyTranslator.getEnvironment().getFrameDescriptor().findOrAddFrameSlot(
-                TranslatorEnvironment.METHOD_BLOCK_NAME,
-                FrameSlotKind.Object);
+        final int slot = methodBodyTranslator.getEnvironment().declareVar(TranslatorEnvironment.METHOD_BLOCK_NAME);
         return new SaveMethodBlockNode(slot);
     }
 
     @Override
     public RubyNode visitBlockArgNode(BlockArgParseNode node) {
-        final FrameSlot slot = methodBodyTranslator.getEnvironment().getFrameDescriptor().findFrameSlot(node.getName());
+        final int slot = methodBodyTranslator.getEnvironment().findFrameSlot(node.getName());
         return new SaveMethodBlockNode(slot);
     }
 
@@ -386,7 +382,7 @@ public class LoadArgumentsTranslator extends Translator {
     private RubyNode translateLocalAssignment(SourceIndexLength sourcePosition, String name, ParseNode valueNode) {
         final SourceIndexLength sourceSection = sourcePosition;
 
-        final FrameSlot slot = methodBodyTranslator.getEnvironment().declareVar(name);
+        final int slot = methodBodyTranslator.getEnvironment().declareVar(name);
 
         final RubyNode readNode;
 
@@ -471,8 +467,7 @@ public class LoadArgumentsTranslator extends Translator {
 
         final int arrayIndex = index;
 
-        final String arrayName = methodBodyTranslator.getEnvironment().allocateLocalTemp("destructure");
-        final FrameSlot arraySlot = methodBodyTranslator.getEnvironment().declareVar(arrayName);
+        final int arraySlot = methodBodyTranslator.getEnvironment().declareLocalTemp("destructure");
 
         pushArraySlot(arraySlot);
 
@@ -619,11 +614,11 @@ public class LoadArgumentsTranslator extends Translator {
         return node.accept(methodBodyTranslator);
     }
 
-    public void pushArraySlot(FrameSlot slot) {
+    public void pushArraySlot(int slot) {
         arraySlotStack.push(new ArraySlot(slot, index));
     }
 
-    public void popArraySlot(FrameSlot slot) {
+    public void popArraySlot(int slot) {
         index = arraySlotStack.pop().getPreviousIndex();
     }
 

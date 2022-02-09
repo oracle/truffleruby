@@ -16,6 +16,7 @@ import java.util.Deque;
 import java.util.IdentityHashMap;
 import java.util.Set;
 
+import com.oracle.truffle.api.frame.FrameDescriptor;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.proc.RubyProc;
@@ -29,7 +30,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
-import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Property;
 
@@ -180,9 +180,11 @@ public abstract class ObjectGraph {
 
         // Other frame arguments are either only internal or user arguments which appear in slots.
 
-        for (FrameSlot slot : frame.getFrameDescriptor().getSlots()) {
+        FrameDescriptor descriptor = frame.getFrameDescriptor();
+        assert descriptor.getNumberOfAuxiliarySlots() == 0;
+        int slots = descriptor.getNumberOfSlots();
+        for (int slot = 0; slot < slots; slot++) {
             final Object slotValue = frame.getValue(slot);
-
             if (isRubyObject(slotValue)) {
                 reachable.add(slotValue);
             }

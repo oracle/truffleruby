@@ -55,7 +55,6 @@ import org.truffleruby.parser.ast.UnnamedRestArgParseNode;
 import org.truffleruby.parser.ast.ZSuperParseNode;
 
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.source.Source;
@@ -159,16 +158,12 @@ public class MethodTranslator extends BodyTranslator {
                 language,
                 environment);
 
-        Object frameOnStackMarkerSlot;
+        int frameOnStackMarkerSlot;
 
         if (emitLambda || frameOnStackMarkerSlotStack.isEmpty()) {
-            frameOnStackMarkerSlot = null;
+            frameOnStackMarkerSlot = -1;
         } else {
             frameOnStackMarkerSlot = frameOnStackMarkerSlotStack.peek();
-
-            if (frameOnStackMarkerSlot == BAD_FRAME_SLOT) {
-                frameOnStackMarkerSlot = null;
-            }
         }
 
         final ProcCallTargets callTargets;
@@ -186,7 +181,7 @@ public class MethodTranslator extends BodyTranslator {
                 environment.getSharedMethodInfo(),
                 callTargets,
                 environment.getBreakID(),
-                (FrameSlot) frameOnStackMarkerSlot);
+                frameOnStackMarkerSlot);
         ret.unsafeSetSourceSection(sourceSection);
         return ret;
     }
@@ -206,7 +201,7 @@ public class MethodTranslator extends BodyTranslator {
                     .create(language, NilBehavior.NIL, true, readArrayNode);
             castArrayNode.doNotCopy();
 
-            final FrameSlot arraySlot = environment.declareVar(environment.allocateLocalTemp("destructure"));
+            final int arraySlot = environment.declareLocalTemp("destructure");
             final RubyNode writeArrayNode = new WriteLocalVariableNode(arraySlot, castArrayNode);
 
             final LoadArgumentsTranslator destructureArgumentsTranslator = new LoadArgumentsTranslator(
@@ -265,7 +260,7 @@ public class MethodTranslator extends BodyTranslator {
             final RubyProcRootNode newRootNodeForProcs = new RubyProcRootNode(
                     language,
                     translateSourceSection(source, sourceSection),
-                    environment.getFrameDescriptor(),
+                    environment.computeFrameDescriptor(),
                     environment.getSharedMethodInfo(),
                     bodyProc,
                     Split.HEURISTIC,
@@ -323,7 +318,7 @@ public class MethodTranslator extends BodyTranslator {
             final RubyLambdaRootNode newRootNodeForLambdas = new RubyLambdaRootNode(
                     language,
                     translateSourceSection(source, sourceSection),
-                    environment.getFrameDescriptor(),
+                    environment.computeFrameDescriptor(),
                     environment.getSharedMethodInfo(),
                     bodyLambda,
                     Split.HEURISTIC,
@@ -402,12 +397,13 @@ public class MethodTranslator extends BodyTranslator {
             ParseNode bodyNode) {
         final SourceIndexLength sourceIndexLength = defNode.getPosition();
         final SourceSection fullMethodSourceSection = sourceIndexLength.toSourceSection(source);
+        var body = compileMethodBody(sourceSection, bodyNode);
         return new RubyMethodRootNode(
                 language,
                 fullMethodSourceSection,
-                environment.getFrameDescriptor(),
+                environment.computeFrameDescriptor(),
                 environment.getSharedMethodInfo(),
-                compileMethodBody(sourceSection, bodyNode),
+                body,
                 Split.HEURISTIC,
                 environment.getReturnID(),
                 argsNode.getArity());

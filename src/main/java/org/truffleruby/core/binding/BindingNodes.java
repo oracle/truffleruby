@@ -14,9 +14,11 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
+import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -35,7 +37,6 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.language.CallStackManager;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyNode;
@@ -47,6 +48,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes.FrameSlotAndDepth;
+import org.truffleruby.language.locals.FrameDescriptorNamesIterator;
 import org.truffleruby.language.locals.WriteFrameSlotNode;
 import org.truffleruby.language.locals.WriteFrameSlotNodeGen;
 
@@ -60,10 +62,11 @@ import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.parser.ParentFrameDescriptor;
+import org.truffleruby.parser.TranslatorEnvironment;
 
 @CoreModule(value = "Binding", isClass = true)
 public abstract class BindingNodes {
@@ -83,16 +86,25 @@ public abstract class BindingNodes {
     }
 
     @TruffleBoundary
-    public static FrameDescriptor newFrameDescriptor() {
-        return new FrameDescriptor(Nil.INSTANCE);
+    public static FrameDescriptor newFrameDescriptor(RubyBinding binding) {
+        FrameDescriptor parentDescriptor = binding.getFrame().getFrameDescriptor();
+        var ref = new ParentFrameDescriptor(parentDescriptor);
+        return TranslatorEnvironment.newFrameDescriptorBuilder(ref, false).build();
     }
 
+    static final int NEW_VAR_INDEX = 1;
+
     @TruffleBoundary
-    public static FrameDescriptor newFrameDescriptor(String name) {
-        final FrameDescriptor frameDescriptor = new FrameDescriptor(Nil.INSTANCE);
+    public static FrameDescriptor newFrameDescriptor(FrameDescriptor parentDescriptor, String name) {
         assert name != null && !name.isEmpty();
-        frameDescriptor.addFrameSlot(name);
-        return frameDescriptor;
+
+        var ref = new ParentFrameDescriptor(parentDescriptor);
+        var builder = TranslatorEnvironment.newFrameDescriptorBuilder(ref, false);
+        int index = builder.addSlot(FrameSlotKind.Illegal, name, null);
+        if (index != NEW_VAR_INDEX) {
+            throw CompilerDirectives.shouldNotReachHere("new binding variable not at index 1");
+        }
+        return builder.build();
     }
 
     public static FrameDescriptor getFrameDescriptor(RubyBinding binding) {
@@ -100,8 +112,8 @@ public abstract class BindingNodes {
     }
 
     public static MaterializedFrame newFrame(RubyBinding binding, FrameDescriptor frameDescriptor) {
-        final MaterializedFrame frame = binding.getFrame();
-        final MaterializedFrame newFrame = newFrame(frame, frameDescriptor);
+        final MaterializedFrame parentFrame = binding.getFrame();
+        final MaterializedFrame newFrame = newFrame(parentFrame, frameDescriptor);
         binding.setFrame(newFrame);
         return newFrame;
     }
@@ -121,20 +133,17 @@ public abstract class BindingNodes {
     }
 
     public static void insertAncestorFrame(RubyBinding binding, MaterializedFrame ancestorFrame) {
-        MaterializedFrame frame = binding.getFrame();
-        while (RubyArguments.getDeclarationFrame(frame) != null) {
-            frame = RubyArguments.getDeclarationFrame(frame);
-        }
+        MaterializedFrame frame = FindDeclarationVariableNodes.getOuterDeclarationFrame(binding.getFrame());
         RubyArguments.setDeclarationFrame(frame, ancestorFrame);
 
         // We need to invalidate caches depending on the top frame, so create a new empty frame
-        newFrame(binding, newFrameDescriptor());
+        newFrame(binding, newFrameDescriptor(binding));
     }
 
     @TruffleBoundary
     public static boolean assignsNewUserVariables(FrameDescriptor descriptor) {
-        for (FrameSlot slot : descriptor.getSlots()) {
-            if (!BindingNodes.isHiddenVariable(slot.getIdentifier())) {
+        for (Object identifier : FrameDescriptorNamesIterator.iterate(descriptor)) {
+            if (!BindingNodes.isHiddenVariable(identifier)) {
                 return true;
             }
         }
@@ -151,8 +160,9 @@ public abstract class BindingNodes {
 
     private static boolean isHiddenVariable(String name) {
         assert !name.isEmpty();
-        return name.charAt(0) == '$' || // Frame-local global variable
-                name.charAt(0) == Layouts.TEMP_PREFIX_CHAR;
+        final char first = name.charAt(0);
+        return first == '$' || // Frame-local global variable
+                first == Layouts.TEMP_PREFIX_CHAR;
     }
 
     @CoreMethod(names = { "dup", "clone" })
@@ -324,13 +334,12 @@ public abstract class BindingNodes {
                         "!isHiddenVariable(cachedName)",
                         "getFrameDescriptor(binding) == cachedFrameDescriptor",
                         "cachedFrameSlot != null" },
-                assumptions = "cachedFrameDescriptor.getVersion()",
                 limit = "getCacheLimit()")
         protected Object localVariableSetCached(RubyBinding binding, String name, Object value,
                 @Cached("name") String cachedName,
                 @Cached("getFrameDescriptor(binding)") FrameDescriptor cachedFrameDescriptor,
                 @Cached("findFrameSlotOrNull(name, binding.getFrame())") FrameSlotAndDepth cachedFrameSlot,
-                @Cached("createWriteNode(cachedFrameSlot)") WriteFrameSlotNode writeLocalVariableNode) {
+                @Cached("createWriteNode(cachedFrameSlot.slot)") WriteFrameSlotNode writeLocalVariableNode) {
             final MaterializedFrame frame = RubyArguments
                     .getDeclarationFrame(binding.getFrame(), cachedFrameSlot.depth);
             writeLocalVariableNode.executeWrite(frame, value);
@@ -343,15 +352,13 @@ public abstract class BindingNodes {
                         "!isHiddenVariable(cachedName)",
                         "getFrameDescriptor(binding) == cachedFrameDescriptor",
                         "cachedFrameSlot == null" },
-                assumptions = "cachedFrameDescriptor.getVersion()",
                 limit = "getCacheLimit()")
         protected Object localVariableSetNewCached(RubyBinding binding, String name, Object value,
                 @Cached("name") String cachedName,
                 @Cached("getFrameDescriptor(binding)") FrameDescriptor cachedFrameDescriptor,
                 @Cached("findFrameSlotOrNull(name, binding.getFrame())") FrameSlotAndDepth cachedFrameSlot,
-                @Cached("newFrameDescriptor(name)") FrameDescriptor newDescriptor,
-                @Cached("findFrameSlot(name, newDescriptor)") FrameSlotAndDepth newFrameSlot,
-                @Cached("createWriteNode(newFrameSlot)") WriteFrameSlotNode writeLocalVariableNode) {
+                @Cached("newFrameDescriptor(cachedFrameDescriptor, name)") FrameDescriptor newDescriptor,
+                @Cached("createWriteNode(NEW_VAR_INDEX)") WriteFrameSlotNode writeLocalVariableNode) {
             final MaterializedFrame frame = newFrame(binding, newDescriptor);
             writeLocalVariableNode.executeWrite(frame, value);
             return value;
@@ -364,13 +371,15 @@ public abstract class BindingNodes {
         protected Object localVariableSetUncached(RubyBinding binding, String name, Object value) {
             MaterializedFrame frame = binding.getFrame();
             final FrameSlotAndDepth frameSlot = FindDeclarationVariableNodes.findFrameSlotOrNull(name, frame);
-            final FrameSlot slot;
+            final int slot;
             if (frameSlot != null) {
                 frame = RubyArguments.getDeclarationFrame(frame, frameSlot.depth);
                 slot = frameSlot.slot;
             } else {
-                frame = newFrame(binding, newFrameDescriptor(name));
-                slot = frame.getFrameDescriptor().findFrameSlot(name);
+                var newDescriptor = newFrameDescriptor(getFrameDescriptor(binding), name);
+                frame = newFrame(binding, newDescriptor);
+                assert newDescriptor.getSlotName(NEW_VAR_INDEX) == name;
+                slot = NEW_VAR_INDEX;
             }
             frame.setObject(slot, value);
             return value;
@@ -384,8 +393,8 @@ public abstract class BindingNodes {
                     coreExceptions().nameError("Bad local variable name", binding, name, this));
         }
 
-        protected WriteFrameSlotNode createWriteNode(FrameSlotAndDepth frameSlot) {
-            return WriteFrameSlotNodeGen.create(frameSlot.slot);
+        protected WriteFrameSlotNode createWriteNode(int frameSlot) {
+            return WriteFrameSlotNodeGen.create(frameSlot);
         }
 
         protected int getCacheLimit() {
@@ -397,10 +406,7 @@ public abstract class BindingNodes {
     @ImportStatic(BindingNodes.class)
     public abstract static class LocalVariablesNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(
-                guards = "getFrameDescriptor(binding) == cachedFrameDescriptor",
-                assumptions = "cachedFrameDescriptor.getVersion()",
-                limit = "getCacheLimit()")
+        @Specialization(guards = "getFrameDescriptor(binding) == cachedFrameDescriptor", limit = "getCacheLimit()")
         protected RubyArray localVariablesCached(RubyBinding binding,
                 @Cached("getFrameDescriptor(binding)") FrameDescriptor cachedFrameDescriptor,
                 @Cached("listLocalVariablesAsSymbols(getContext(), binding.getFrame())") RubyArray names) {
@@ -423,9 +429,9 @@ public abstract class BindingNodes {
         }
 
         private void addNamesFromFrame(Frame frame, Set<Object> names) {
-            for (FrameSlot slot : frame.getFrameDescriptor().getSlots()) {
-                if (!isHiddenVariable(slot.getIdentifier())) {
-                    names.add(getSymbol((String) slot.getIdentifier()));
+            for (Object identifier : FrameDescriptorNamesIterator.iterate(frame.getFrameDescriptor())) {
+                if (!isHiddenVariable(identifier)) {
+                    names.add(getSymbol((String) identifier));
                 }
             }
         }
@@ -436,9 +442,9 @@ public abstract class BindingNodes {
             Frame currentFrame = frame;
             while (currentFrame != null) {
                 final FrameDescriptor frameDescriptor = currentFrame.getFrameDescriptor();
-                for (FrameSlot slot : frameDescriptor.getSlots()) {
-                    if (!isHiddenVariable(slot.getIdentifier())) {
-                        members.add(slot.getIdentifier().toString());
+                for (Object identifier : FrameDescriptorNamesIterator.iterate(frameDescriptor)) {
+                    if (!isHiddenVariable(identifier)) {
+                        members.add((String) identifier);
                     }
                 }
                 if (receiverName != null) {
@@ -524,7 +530,8 @@ public abstract class BindingNodes {
             // Use the current frame to initialize the arguments, etc, correctly
             final RubyBinding binding = BindingNodes
                     .createBinding(getContext(), getLanguage(), frame.materialize(), getEncapsulatingSourceSection());
-            final MaterializedFrame newFrame = newFrame(binding, newFrameDescriptor());
+
+            final MaterializedFrame newFrame = newFrame(binding, getLanguage().emptyDeclarationDescriptor);
             RubyArguments.setDeclarationFrame(newFrame, null); // detach from the current frame
             return binding;
         }

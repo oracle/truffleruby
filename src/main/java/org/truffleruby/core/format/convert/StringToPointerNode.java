@@ -12,7 +12,6 @@ package org.truffleruby.core.format.convert;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.cext.CExtNodes;
@@ -24,7 +23,6 @@ import org.truffleruby.language.Nil;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.library.RubyStringLibrary;
 
@@ -44,12 +42,7 @@ public abstract class StringToPointerNode extends FormatNode {
 
         final Pointer pointer = stringToNativeNode.executeToNative(string).getNativePointer();
 
-        List<Pointer> associated;
-        try {
-            associated = (List<Pointer>) frame.getObject(FormatFrameDescriptor.ASSOCIATED_SLOT);
-        } catch (FrameSlotTypeException e) {
-            throw CompilerDirectives.shouldNotReachHere(e);
-        }
+        List<Pointer> associated = (List<Pointer>) frame.getObject(FormatFrameDescriptor.ASSOCIATED_SLOT);
 
         if (associated == null) {
             associated = new ArrayList<>();

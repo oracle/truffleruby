@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects;
 
+import com.oracle.truffle.api.object.HiddenKey;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.FrozenStrings;
@@ -17,28 +18,25 @@ import org.truffleruby.language.locals.ReadFrameSlotNode;
 import org.truffleruby.language.locals.ReadFrameSlotNodeGen;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.HiddenKey;
 
 public class SelfNode extends RubyContextSourceNode {
 
+    public static final int SELF_INDEX = 0;
     public static final HiddenKey SELF_IDENTIFIER = new HiddenKey("(self)");
-
-    private final FrameSlot selfSlot;
 
     @Child private ReadFrameSlotNode readSelfSlotNode;
 
-    public SelfNode(FrameDescriptor frameDescriptor) {
-        this.selfSlot = frameDescriptor.findOrAddFrameSlot(SelfNode.SELF_IDENTIFIER);
+    public SelfNode() {
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
+        assert frame.getFrameDescriptor().getSlotName(SELF_INDEX) == SELF_IDENTIFIER;
+
         if (readSelfSlotNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            readSelfSlotNode = insert(ReadFrameSlotNodeGen.create(selfSlot));
+            readSelfSlotNode = insert(ReadFrameSlotNodeGen.create(SELF_INDEX));
         }
 
         return readSelfSlotNode.executeRead(frame);

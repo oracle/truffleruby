@@ -23,20 +23,16 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlot;
 
 public class FindDeclarationVariableNodes {
     public static class FrameSlotAndDepth {
-        public final FrameSlot slot;
+        public final int slot;
         public final int depth;
 
-        public FrameSlotAndDepth(FrameSlot slot, int depth) {
+        public FrameSlotAndDepth(int slot, int depth) {
+            assert slot >= 0;
             this.slot = slot;
             this.depth = depth;
-        }
-
-        public FrameSlot getSlot() {
-            return slot;
         }
     }
 
@@ -51,13 +47,25 @@ public class FindDeclarationVariableNodes {
         return frame;
     }
 
+    private static int findSlot(FrameDescriptor descriptor, String name) {
+        assert descriptor.getNumberOfAuxiliarySlots() == 0;
+        int slots = descriptor.getNumberOfSlots();
+        for (int slot = 0; slot < slots; slot++) {
+            if (name.equals(descriptor.getSlotName(slot))) {
+                return slot;
+            }
+        }
+
+        return -1;
+    }
+
     public static FrameSlotAndDepth findFrameSlotOrNull(String identifier, Frame frame) {
         CompilerAsserts.neverPartOfCompilation("Must not be called in PE code as the frame would escape");
         int depth = 0;
         while (frame != null) {
-            final FrameSlot frameSlot = frame.getFrameDescriptor().findFrameSlot(identifier);
-            if (frameSlot != null) {
-                return new FrameSlotAndDepth(frameSlot, depth);
+            int slot = findSlot(frame.getFrameDescriptor(), identifier);
+            if (slot != -1) {
+                return new FrameSlotAndDepth(slot, depth);
             }
 
             frame = RubyArguments.getDeclarationFrame(frame);
@@ -66,9 +74,9 @@ public class FindDeclarationVariableNodes {
         return null;
     }
 
-    public static FrameSlotAndDepth findFrameSlot(String identifier, FrameDescriptor framedescriptor) {
-        final FrameSlot frameSlot = framedescriptor.findFrameSlot(identifier);
-        assert frameSlot != null;
+    public static FrameSlotAndDepth findFrameSlot(String identifier, FrameDescriptor descriptor) {
+        int frameSlot = findSlot(descriptor, identifier);
+        assert frameSlot != -1;
 
         return new FrameSlotAndDepth(frameSlot, 0);
     }
@@ -85,30 +93,22 @@ public class FindDeclarationVariableNodes {
         }
 
         @Specialization(
-                guards = { "name == cachedName", "frame.getFrameDescriptor() == cachedDescriptor", "readNode != null" },
-                assumptions = "cachedDescriptor.getVersion()")
+                guards = { "name == cachedName", "frame.getFrameDescriptor() == cachedDescriptor" })
         protected Object getVariable(Frame frame, String name, Object defaultValue,
                 @Cached("name") String cachedName,
                 @Cached("frame.getFrameDescriptor()") FrameDescriptor cachedDescriptor,
                 @Cached("findFrameSlotOrNull(name, frame)") FrameSlotAndDepth slotAndDepth,
                 @Cached("createReadNode(slotAndDepth)") ReadFrameSlotNode readNode) {
-            final Frame storageFrame = RubyArguments.getDeclarationFrame(frame, slotAndDepth.depth);
-            return readNode.executeRead(storageFrame);
-        }
-
-        @Specialization(
-                guards = { "name == cachedName", "frame.getFrameDescriptor() == cachedDescriptor", "readNode == null" },
-                assumptions = "cachedDescriptor.getVersion()")
-        protected Object getVariableDefaultValue(Frame frame, String name, Object defaultValue,
-                @Cached("name") String cachedName,
-                @Cached("frame.getFrameDescriptor()") FrameDescriptor cachedDescriptor,
-                @Cached("findFrameSlotOrNull(name, frame)") FrameSlotAndDepth slotAndDepth,
-                @Cached("createReadNode(slotAndDepth)") ReadFrameSlotNode readNode) {
-            return defaultValue;
+            if (readNode != null) {
+                final Frame storageFrame = RubyArguments.getDeclarationFrame(frame, slotAndDepth.depth);
+                return readNode.executeRead(storageFrame);
+            } else {
+                return defaultValue;
+            }
         }
 
         @TruffleBoundary
-        @Specialization(replaces = { "getVariable", "getVariableDefaultValue" })
+        @Specialization(replaces = "getVariable")
         protected Object getVariableSlow(Frame frame, String name, Object defaultValue) {
             FrameSlotAndDepth slotAndDepth = findFrameSlotOrNull(name, frame);
             if (slotAndDepth == null) {
@@ -126,7 +126,5 @@ public class FindDeclarationVariableNodes {
                 return ReadFrameSlotNodeGen.create(frameSlot.slot);
             }
         }
-
-
     }
 }

@@ -11,9 +11,16 @@ package org.truffleruby.parser;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.oracle.truffle.api.Assumption;
+import com.oracle.truffle.api.Truffle;
 import org.truffleruby.Layouts;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.frame.FrameSlotKind;
+import org.graalvm.collections.EconomicMap;
+import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyNode;
@@ -28,7 +35,8 @@ import org.truffleruby.language.locals.ReadLocalVariableNode;
 import org.truffleruby.language.methods.SharedMethodInfo;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlot;
+import org.truffleruby.language.objects.SelfNode;
+import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 
 public class TranslatorEnvironment {
 
@@ -36,17 +44,18 @@ public class TranslatorEnvironment {
 
     private final ParseEnvironment parseEnvironment;
 
-    private final FrameDescriptor frameDescriptor;
+    private EconomicMap<Object, Integer> nameToIndex = EconomicMap.create();
+    private FrameDescriptor.Builder frameDescriptorBuilder;
+    private FrameDescriptor frameDescriptor;
+    private final ParentFrameDescriptor parentFrameDescriptor;
 
-    private final List<FrameSlot> flipFlopStates = new ArrayList<>();
+    private final List<Integer> flipFlopStates = new ArrayList<>();
 
     private final ReturnID returnID;
     private final int blockDepth;
     private BreakID breakID;
 
     private final boolean ownScopeForAssignments;
-    /** Whether this is a lexical scope barrier (def, module, class) */
-    private final boolean neverAssignInParentScope;
     private final boolean isModuleBody;
 
     protected final TranslatorEnvironment parent;
@@ -63,30 +72,44 @@ public class TranslatorEnvironment {
             ParseEnvironment parseEnvironment,
             ReturnID returnID,
             boolean ownScopeForAssignments,
-            boolean neverAssignInParentScope,
             boolean isModuleBody,
             SharedMethodInfo sharedMethodInfo,
             String methodName,
             int blockDepth,
             BreakID breakID,
-            FrameDescriptor frameDescriptor,
+            FrameDescriptor descriptor,
             String modulePath) {
         this.parent = parent;
-        this.frameDescriptor = frameDescriptor;
+
+        if (descriptor == null) {
+            ParentFrameDescriptor parentDescriptor = blockDepth > 0
+                    ? Objects.requireNonNull(parent.parentFrameDescriptor)
+                    : null;
+            this.frameDescriptorBuilder = newFrameDescriptorBuilder(parentDescriptor, blockDepth == 0);
+            this.parentFrameDescriptor = new ParentFrameDescriptor();
+        } else {
+            this.frameDescriptor = descriptor;
+            this.parentFrameDescriptor = new ParentFrameDescriptor(descriptor);
+
+            assert descriptor.getNumberOfAuxiliarySlots() == 0;
+            int slots = descriptor.getNumberOfSlots();
+            for (int slot = 0; slot < slots; slot++) {
+                Object identifier = descriptor.getSlotName(slot);
+                if (!BindingNodes.isHiddenVariable(identifier)) {
+                    nameToIndex.put(identifier, slot);
+                }
+            }
+        }
+
         this.parseEnvironment = parseEnvironment;
         this.returnID = returnID;
         this.ownScopeForAssignments = ownScopeForAssignments;
-        this.neverAssignInParentScope = neverAssignInParentScope;
         this.isModuleBody = isModuleBody;
         this.sharedMethodInfo = sharedMethodInfo;
         this.methodName = methodName;
         this.blockDepth = blockDepth;
         this.breakID = breakID;
         this.modulePath = modulePath;
-    }
-
-    public static FrameDescriptor newFrameDescriptor() {
-        return new FrameDescriptor(Nil.INSTANCE);
     }
 
     public static String composeModulePath(String modulePath, String name) {
@@ -120,9 +143,79 @@ public class TranslatorEnvironment {
         return isTopLevelScope() && modulePath == null;
     }
 
-    public FrameSlot declareVar(String name) {
-        assert name != null && !name.isEmpty();
-        return getFrameDescriptor().findOrAddFrameSlot(name);
+    // region frame descriptor
+    public static FrameDescriptor.Builder newFrameDescriptorBuilder(ParentFrameDescriptor parentDescriptor,
+            boolean canHaveSpecialVariables) {
+        if ((parentDescriptor != null) == canHaveSpecialVariables) {
+            throw CompilerDirectives.shouldNotReachHere(
+                    "A descriptor should either be a method and have special variables, or be a block and have no special variables");
+        }
+
+        var builder = FrameDescriptor.newBuilder().defaultValue(Nil.INSTANCE);
+
+        if (parentDescriptor != null) {
+            builder.info(parentDescriptor);
+        } else if (canHaveSpecialVariables) {
+            // We need to access this Assumption from the FrameDescriptor,
+            // and there is no way to get a RootNode from a FrameDescriptor, so we store it in the descriptor info.
+            // We do not store it as slot info for footprint, to avoid needing an info array per FrameDescriptor.
+            final Assumption doesNotNeedSpecialVariableStorageAssumption = Truffle.getRuntime()
+                    .createAssumption(SpecialVariableStorage.ASSUMPTION_NAME);
+            builder.info(doesNotNeedSpecialVariableStorageAssumption);
+        }
+
+        int selfIndex = builder.addSlot(FrameSlotKind.Illegal, SelfNode.SELF_IDENTIFIER, null);
+        if (selfIndex != SelfNode.SELF_INDEX) {
+            throw CompilerDirectives.shouldNotReachHere("(self) should be at index 0");
+        }
+
+        if (canHaveSpecialVariables) {
+            int svarsSlot = builder.addSlot(FrameSlotKind.Illegal, SpecialVariableStorage.SLOT_NAME, null);
+            if (svarsSlot != SpecialVariableStorage.SLOT_INDEX) {
+                throw CompilerDirectives.shouldNotReachHere("svars should be at index 1");
+            }
+        }
+
+        return builder;
+    }
+
+    public int declareVar(Object name) {
+        assert name != null && !(name instanceof String && ((String) name).isEmpty());
+
+        Integer existingSlot = nameToIndex.get(name);
+        if (existingSlot != null) {
+            return existingSlot;
+        } else {
+            int index = addSlot(name);
+            nameToIndex.put(name, index);
+            return index;
+        }
+    }
+
+    private int addSlot(Object name) {
+        return frameDescriptorBuilder.addSlot(FrameSlotKind.Illegal, name, null);
+    }
+
+    public String allocateLocalTemp(String indicator) {
+        return Layouts.TEMP_PREFIX + indicator + "_" + tempIndex.getAndIncrement();
+    }
+
+    public int declareLocalTemp(String indicator) {
+        final String name = allocateLocalTemp(indicator);
+        // TODO: might not need to add to nameToIndex for temp vars
+        return declareVar(name);
+    }
+
+    public Integer findFrameSlotOrNull(Object name) {
+        return nameToIndex.get(name);
+    }
+
+    public int findFrameSlot(Object name) {
+        Integer index = nameToIndex.get(name);
+        if (index == null) {
+            throw CompilerDirectives.shouldNotReachHere("Could not find slot " + name);
+        }
+        return index;
     }
 
     public ReadLocalNode findOrAddLocalVarNodeDangerous(String name, SourceIndexLength sourceSection) {
@@ -134,6 +227,12 @@ public class TranslatorEnvironment {
         }
 
         return localVar;
+    }
+
+    public ReadLocalVariableNode readNode(int slot, SourceIndexLength sourceSection) {
+        var node = new ReadLocalVariableNode(LocalVariableType.FRAME_LOCAL, slot);
+        node.unsafeSetSourceSection(sourceSection);
+        return node;
     }
 
     public RubyNode findLocalVarOrNilNode(String name, SourceIndexLength sourceSection) {
@@ -150,7 +249,7 @@ public class TranslatorEnvironment {
         int level = 0;
 
         while (current != null) {
-            final FrameSlot slot = current.getFrameDescriptor().findFrameSlot(name);
+            final Integer slot = current.findFrameSlotOrNull(name);
 
             if (slot != null) {
                 final ReadLocalNode node;
@@ -164,7 +263,7 @@ public class TranslatorEnvironment {
                 return node;
             }
 
-            if (current.neverAssignInParentScope) {
+            if (current.getNeverAssignInParentScope()) {
                 // Do not try to look above scope barriers (def, module)
                 return null;
             }
@@ -176,15 +275,18 @@ public class TranslatorEnvironment {
         return null;
     }
 
-    public FrameDescriptor getFrameDescriptor() {
+    public FrameDescriptor computeFrameDescriptor() {
+        if (frameDescriptor != null) {
+            return frameDescriptor;
+        }
+
+        frameDescriptor = frameDescriptorBuilder.build();
+        parentFrameDescriptor.set(frameDescriptor);
+        frameDescriptorBuilder = null;
+        nameToIndex = null;
         return frameDescriptor;
     }
-
-    public String allocateLocalTemp(String indicator) {
-        final String name = Layouts.TEMP_PREFIX + indicator + "_" + tempIndex.getAndIncrement();
-        declareVar(name);
-        return name;
-    }
+    // endregion
 
     public ReturnID getReturnID() {
         return returnID;
@@ -198,8 +300,9 @@ public class TranslatorEnvironment {
         return ownScopeForAssignments;
     }
 
+    /** Whether this is a lexical scope barrier (def, module, class) */
     public boolean getNeverAssignInParentScope() {
-        return neverAssignInParentScope;
+        return !isBlock();
     }
 
     public boolean isModuleBody() {
@@ -210,7 +313,7 @@ public class TranslatorEnvironment {
         return sharedMethodInfo;
     }
 
-    public List<FrameSlot> getFlipFlopStates() {
+    public List<Integer> getFlipFlopStates() {
         return flipFlopStates;
     }
 

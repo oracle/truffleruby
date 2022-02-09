@@ -12,12 +12,11 @@ package org.truffleruby.language.locals;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class ReadLocalVariableNode extends ReadLocalNode {
 
-    public ReadLocalVariableNode(LocalVariableType type, FrameSlot frameSlot) {
+    public ReadLocalVariableNode(LocalVariableType type, int frameSlot) {
         super(frameSlot, type);
     }
 
@@ -39,6 +38,11 @@ public class ReadLocalVariableNode extends ReadLocalNode {
     @Override
     public WriteLocalNode makeWriteNode(RubyNode rhs) {
         return new WriteLocalVariableNode(frameSlot, rhs);
+    }
+
+    @Override
+    protected String getVariableName() {
+        return getRootNode().getFrameDescriptor().getSlotName(frameSlot).toString();
     }
 
 }

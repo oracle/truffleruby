@@ -9,17 +9,22 @@
  */
 package org.truffleruby.debug;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.frame.FrameSlotKind;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.CallStackManager;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
+import org.truffleruby.parser.ParentFrameDescriptor;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
+import org.truffleruby.parser.TranslatorEnvironment;
 import org.truffleruby.shared.TruffleRuby;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -27,20 +32,24 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
-import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.source.Source;
 
 public abstract class DebugHelpers {
 
-    @Deprecated
     public static Object eval(String code, Object... arguments) {
         return eval(RubyLanguage.getCurrentContext(), code, arguments);
     }
 
-    @Deprecated
     @TruffleBoundary
     public static Object eval(RubyContext context, String code, Object... arguments) {
         final Frame currentFrame = context.getCallStack().getCurrentFrame(FrameAccess.MATERIALIZE);
+        final FrameDescriptor currentFrameDescriptor = currentFrame.getFrameDescriptor();
+        assert CallStackManager.isRubyFrame(currentFrame);
+
+        if (arguments.length % 2 == 1) {
+            throw CompilerDirectives.shouldNotReachHere("odd number of name-value pairs for arguments");
+        }
+        final int nArgs = arguments.length / 2;
 
         final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(currentFrame);
 
@@ -55,21 +64,22 @@ public abstract class DebugHelpers {
                 Nil.INSTANCE,
                 RubyNode.EMPTY_ARGUMENTS);
 
-        final FrameDescriptor frameDescriptor = new FrameDescriptor(
-                currentFrame.getFrameDescriptor().getDefaultValue());
 
-        final MaterializedFrame evalFrame = Truffle.getRuntime().createMaterializedFrame(
-                packedArguments,
-                frameDescriptor);
+        var builder = TranslatorEnvironment.newFrameDescriptorBuilder(new ParentFrameDescriptor(currentFrameDescriptor),
+                false);
 
-        if (arguments.length % 2 == 1) {
-            throw new UnsupportedOperationException("odd number of name-value pairs for arguments");
+        for (int i = 0; i < nArgs; i++) {
+            final Object identifier = arguments[i * 2];
+            assert !(identifier == null || (identifier instanceof String && ((String) identifier).isEmpty()));
+            int slot = builder.addSlot(FrameSlotKind.Object, identifier, null);
+            assert slot == i;
         }
 
-        for (int n = 0; n < arguments.length; n += 2) {
-            final Object identifier = arguments[n];
-            assert !(identifier == null || (identifier instanceof String && ((String) identifier).isEmpty()));
-            evalFrame.setObject(evalFrame.getFrameDescriptor().findOrAddFrameSlot(identifier), arguments[n + 1]);
+        final FrameDescriptor frameDescriptor = builder.build();
+
+        var evalFrame = Truffle.getRuntime().createMaterializedFrame(packedArguments, frameDescriptor);
+        for (int i = 0; i < nArgs; i++) {
+            evalFrame.setObject(i, arguments[i * 2 + 1]);
         }
 
         final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, code, "debug-eval").build();

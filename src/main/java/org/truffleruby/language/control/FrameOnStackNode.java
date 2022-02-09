@@ -12,15 +12,14 @@ package org.truffleruby.language.control;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
-import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class FrameOnStackNode extends RubyContextSourceNode {
 
     @Child private RubyNode child;
-    private final FrameSlot frameOnStackMarkerSlot;
+    private final int frameOnStackMarkerSlot;
 
-    public FrameOnStackNode(RubyNode child, FrameSlot frameOnStackMarkerSlot) {
+    public FrameOnStackNode(RubyNode child, int frameOnStackMarkerSlot) {
         this.child = child;
         this.frameOnStackMarkerSlot = frameOnStackMarkerSlot;
     }

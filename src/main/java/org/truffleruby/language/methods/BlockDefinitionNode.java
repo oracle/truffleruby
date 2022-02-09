@@ -20,9 +20,8 @@ import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.FrameOnStackMarker;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.frame.FrameUtil;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.parser.BodyTranslator;
 
 /** Create a Ruby Proc to pass as a block to the called method. The literal block is represented as call targets and a
  * SharedMethodInfo. This is executed at the call site just before dispatch. */
@@ -32,7 +31,7 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
     private final SharedMethodInfo sharedMethodInfo;
     private final ProcCallTargets callTargets;
     private final BreakID breakID;
-    private final FrameSlot frameOnStackMarkerSlot;
+    private final int frameOnStackMarkerSlot;
 
     @Child private GetSpecialVariableStorage readSpecialVariableStorageNode;
     @Child private WithoutVisibilityNode withoutVisibilityNode;
@@ -42,8 +41,8 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
             SharedMethodInfo sharedMethodInfo,
             ProcCallTargets callTargets,
             BreakID breakID,
-            FrameSlot frameOnStackMarkerSlot) {
-        assert (type == ProcType.PROC) == (frameOnStackMarkerSlot != null);
+            int frameOnStackMarkerSlot) {
+        assert (type == ProcType.PROC) == (frameOnStackMarkerSlot != BodyTranslator.NO_FRAME_ON_STACK_MARKER);
         this.type = type;
         this.sharedMethodInfo = sharedMethodInfo;
         this.callTargets = callTargets;
@@ -60,8 +59,8 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
     @Override
     public RubyProc execute(VirtualFrame frame) {
         final FrameOnStackMarker frameOnStackMarker;
-        if (frameOnStackMarkerSlot != null) {
-            frameOnStackMarker = (FrameOnStackMarker) FrameUtil.getObjectSafe(frame, frameOnStackMarkerSlot);
+        if (frameOnStackMarkerSlot != BodyTranslator.NO_FRAME_ON_STACK_MARKER) {
+            frameOnStackMarker = (FrameOnStackMarker) frame.getObject(frameOnStackMarkerSlot);
             assert frameOnStackMarker != null;
         } else {
             frameOnStackMarker = null;
