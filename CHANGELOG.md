@@ -27,6 +27,7 @@ Compatibility:
 * Follow symlinks when processing `*/` directory glob patterns. (#2589, @aardvark179).
 * Set `@gem_prelude_index` variable on the default load paths (#2586 , @bjfish)
 * Do not call `IO#flush` dynamically from `IO#close` (#2594, @gogainda).
+* Implement `rb_str_new_static` for C extensions that use it (@aardvark179).
 
 Performance:
 

@@ -60,6 +60,11 @@ VALUE rb_str_new(const char *string, long length) {
   }
 }
 
+VALUE rb_str_new_static(const char *string, long length) {
+  /* The string will be copied immediately anyway, so no real difference to rb_str_new. */
+  return rb_str_new(string, length);
+}
+
 VALUE rb_tainted_str_new(const char *ptr, long len) {
     rb_warning("rb_tainted_str_new is deprecated and will be removed in Ruby 3.2.");
     return rb_str_new(ptr, len);
