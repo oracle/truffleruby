@@ -185,13 +185,13 @@ static inline VALUE rb_tr_string_value(VALUE *value_pointer) {
 
 ALWAYS_INLINE(static char *rb_tr_string_value_ptr(VALUE *value_pointer));
 static inline char *rb_tr_string_value_ptr(VALUE *value_pointer) {
-  VALUE string = rb_string_value(value_pointer);
+  VALUE string = rb_tr_string_value(value_pointer);
   return RSTRING_PTR(string);
 }
 
 ALWAYS_INLINE(static char *rb_tr_string_value_cstr(VALUE *value_pointer));
 static inline char *rb_tr_string_value_cstr(VALUE *value_pointer) {
-  VALUE string = rb_string_value(value_pointer);
+  VALUE string = rb_tr_string_value(value_pointer);
   RUBY_CEXT_INVOKE("rb_string_value_cstr_check", string);
   return RSTRING_PTR(string);
 }

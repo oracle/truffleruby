@@ -38,6 +38,7 @@ Performance:
 * Optimize `Dir[]` by sorting entries as they are found and grouping syscalls (#2092, @aardvark179).
 * Reduce memory footprint by tracking `VALUE`s created during C extension init separately (@aardvark179).
 * Rewrote `ArrayEachIteratorNode` to optimize performance for a constant-sized array and reduce specializations to 1 general case (#2587, @MattAlp)
+* Reduce conversion of `VALUE`s to native handle during common operations in C extensions (@aardvark179).
 
 Changes:
 
