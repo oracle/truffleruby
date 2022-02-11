@@ -101,7 +101,7 @@ doc/user/README.md
 /*.rb
 
 # Ignore Seafoam generated illustrations
-graph.pdf
+/*.pdf
 
 # Jacoco
 jacoco.exec
