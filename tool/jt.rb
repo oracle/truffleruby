@@ -740,7 +740,8 @@ module Commands
                                     * 'ruby' which uses the current Ruby executable in the PATH
                                     Default value is --use jvm, therefore all commands run on truffleruby-jvm by default.
                                     The default can be changed with `export RUBY_BIN=RUBY_SELECTOR`
-          --silent                  Does not print the command and which Ruby is used
+          --silent|-q               Does not print the command and which Ruby is used
+          --verbose|-v              Print more details and commands
           --jdk                     Specifies which version of the JDK should be used: 11 (default) or 17
 
       jt build [graalvm|parser|options|core-symbols] ...   by default it builds graalvm
@@ -2104,7 +2105,7 @@ module Commands
     loop do # for --watch
       compiled = false
       command = [ruby_launcher, *vm_args, test_file]
-      # STDERR.puts bold "$ #{printable_cmd(command)}"
+      STDERR.puts bold "$ #{printable_cmd(command)}" if @verbose
       IO.popen(command, err: [:child, :out]) do |pipe|
         pipe.each_line do |line|
           puts line
@@ -2962,6 +2963,7 @@ class JT
     needs_build = false
     needs_rebuild = false
     @silent = false
+    @verbose = false
     @jdk_version = Integer(ENV['JT_JDK'] || 11)
 
     until args.empty?
@@ -2975,6 +2977,8 @@ class JT
         @ruby_name = args.shift
       when '-q', '--silent'
         @silent = true
+      when '-v', '--verbose'
+        @verbose = true
       when '--jdk'
         @jdk_version = Integer(args.shift)
       when '-h', '-help', '--help'
