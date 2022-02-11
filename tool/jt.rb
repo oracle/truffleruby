@@ -1216,7 +1216,7 @@ module Commands
 
     truffle_args = []
     if truffleruby?
-      vm_args, ruby_args, _parsed_options = ruby_options({}, %w[--vm.Xmx2G --reveal --experimental-options --testing-rubygems])
+      vm_args, ruby_args, _parsed_options = ruby_options({}, %w[--reveal --experimental-options --testing-rubygems])
       truffle_args = vm_args + ruby_args
     end
 
@@ -1590,7 +1590,6 @@ module Commands
     end
 
 
-    vm_args << (truffleruby_native? ? '--vm.Xmx3G' : '--vm.Xmx2G')
     vm_args << '--polyglot' if truffleruby_jvm?
     # Until pattern matching is complete, we enable it in specs but not globally
     vm_args << '--experimental-options' << '--pattern-matching'
