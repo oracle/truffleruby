@@ -145,9 +145,11 @@ public abstract class ArrayNodes {
                 @Bind("a.store") Object aStore,
                 @Bind("b.store") Object bStore,
                 @CachedLibrary("aStore") ArrayStoreLibrary as,
-                @CachedLibrary("bStore") ArrayStoreLibrary bs) {
-            final int aSize = a.size;
-            final int bSize = b.size;
+                @CachedLibrary("bStore") ArrayStoreLibrary bs,
+                @Cached("createIdentityProfile()") IntValueProfile aSizeProfile,
+                @Cached("createIdentityProfile()") IntValueProfile bSizeProfile) {
+            final int aSize = aSizeProfile.profile(a.size);
+            final int bSize = bSizeProfile.profile(b.size);
             final int combinedSize = aSize + bSize;
             Object newStore = as.allocateForNewStore(aStore, bStore, combinedSize);
             as.copyContents(aStore, 0, newStore, 0, aSize);
@@ -173,9 +175,10 @@ public abstract class ArrayNodes {
         protected RubyArray mulOther(RubyArray array, int count,
                 @Bind("array.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary arrays,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loopProfile) {
 
-            final int size = array.size;
+            final int size = arraySizeProfile.profile(array.size);
             final int newSize;
             try {
                 newSize = Math.multiplyExact(size, count);
@@ -503,16 +506,16 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = "!stores.isPrimitive(store)", limit = "storageStrategyLimit()")
-        protected Object compactObjectsNonMutable(RubyArray array,
+        protected Object compactObjects(RubyArray array,
                 @Bind("array.store") Object store,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached ArrayBuilderNode arrayBuilder,
                 @Cached LoopConditionProfile loopProfile) {
-            final int size = array.size;
+            final int size = arraySizeProfile.profile(array.size);
             BuilderState state = arrayBuilder.start(size);
 
             int m = 0;
-
             int n = 0;
             try {
                 for (; loopProfile.inject(n < size); n++) {
@@ -549,8 +552,9 @@ public abstract class ArrayNodes {
                 @Bind("array.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary mutableStores,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loopProfile) {
-            final int size = array.size;
+            final int size = arraySizeProfile.profile(array.size);
             final Object oldStore = store;
             final Object newStore;
             if (!stores.isMutable(oldStore)) {
@@ -678,9 +682,10 @@ public abstract class ArrayNodes {
         protected Object delete(RubyArray array, Object value, Object maybeBlock,
                 @Bind("array.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loopProfile) {
 
-            return delete(array, value, maybeBlock, true, store, store, stores, stores, loopProfile);
+            return delete(array, value, maybeBlock, true, store, store, stores, stores, arraySizeProfile, loopProfile);
         }
 
         @Specialization(
@@ -690,18 +695,11 @@ public abstract class ArrayNodes {
                 @Bind("array.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary newStores,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loopProfile) {
 
-            final Object newStore = stores.allocator(store).allocate(array.size);
-            return delete(
-                    array,
-                    value,
-                    maybeBlock,
-                    false,
-                    store,
-                    newStore,
-                    stores,
-                    newStores,
+            final Object newStore = stores.allocator(store).allocate(arraySizeProfile.profile(array.size));
+            return delete(array, value, maybeBlock, false, store, newStore, stores, newStores, arraySizeProfile,
                     loopProfile);
         }
 
@@ -711,11 +709,12 @@ public abstract class ArrayNodes {
                 Object newStore,
                 ArrayStoreLibrary oldStores,
                 ArrayStoreLibrary newStores,
+                IntValueProfile arraySizeProfile,
                 LoopConditionProfile loopProfile) {
 
             assert !sameStores || (oldStore == newStore && oldStores == newStores);
 
-            final int size = array.size;
+            final int size = arraySizeProfile.profile(array.size);
             Object found = nil;
 
             int i = 0;
@@ -783,9 +782,10 @@ public abstract class ArrayNodes {
         protected Object deleteAt(RubyArray array, int index,
                 @Bind("array.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
                 @Cached ConditionProfile negativeIndexProfile,
                 @Cached ConditionProfile notInBoundsProfile) {
-            final int size = array.size;
+            final int size = arraySizeProfile.profile(array.size);
             int i = index;
             if (negativeIndexProfile.profile(index < 0)) {
                 i += size;
@@ -809,9 +809,10 @@ public abstract class ArrayNodes {
         protected Object deleteAtCopying(RubyArray array, int index,
                 @Bind("array.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
                 @Cached ConditionProfile negativeIndexProfile,
                 @Cached ConditionProfile notInBoundsProfile) {
-            final int size = array.size;
+            final int size = arraySizeProfile.profile(array.size);
             int i = index;
             if (negativeIndexProfile.profile(index < 0)) {
                 i += size;
@@ -884,7 +885,7 @@ public abstract class ArrayNodes {
                 @Bind("b.store") Object bStore,
                 @CachedLibrary("aStore") ArrayStoreLibrary stores,
                 @Cached ConditionProfile sameProfile,
-                @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
                 @Cached ConditionProfile sameSizeProfile,
                 @Cached BranchProfile trueProfile,
                 @Cached BranchProfile falseProfile,
@@ -894,16 +895,15 @@ public abstract class ArrayNodes {
                 return true;
             }
 
-            final int aSize = sizeProfile.profile(a.size);
-            final int bSize = b.size;
+            final int size = arraySizeProfile.profile(a.size);
 
-            if (!sameSizeProfile.profile(aSize == bSize)) {
+            if (!sameSizeProfile.profile(size == b.size)) {
                 return false;
             }
 
             int i = 0;
             try {
-                for (; loopProfile.inject(i < aSize); i++) {
+                for (; loopProfile.inject(i < size); i++) {
                     if (!sameOrEqualNode.executeSameOrEqual(stores.read(aStore, i), stores.read(bStore, i))) {
                         falseProfile.enter();
                         return false;
@@ -958,7 +958,7 @@ public abstract class ArrayNodes {
                 @Bind("b.store") Object bStore,
                 @CachedLibrary("aStore") ArrayStoreLibrary stores,
                 @Cached ConditionProfile sameProfile,
-                @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
                 @Cached ConditionProfile sameSizeProfile,
                 @Cached BranchProfile trueProfile,
                 @Cached BranchProfile falseProfile,
@@ -968,16 +968,15 @@ public abstract class ArrayNodes {
                 return true;
             }
 
-            final int aSize = sizeProfile.profile(a.size);
-            final int bSize = b.size;
+            final int size = arraySizeProfile.profile(a.size);
 
-            if (!sameSizeProfile.profile(aSize == bSize)) {
+            if (!sameSizeProfile.profile(size == b.size)) {
                 return false;
             }
 
             int i = 0;
             try {
-                for (; loopProfile.inject(i < aSize); i++) {
+                for (; loopProfile.inject(i < size); i++) {
                     if (!eqlNode.execute(stores.read(aStore, i), stores.read(bStore, i))) {
                         falseProfile.enter();
                         return false;
@@ -1029,11 +1028,12 @@ public abstract class ArrayNodes {
                 @Bind("array.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached PropagateSharingNode propagateSharingNode,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loopProfile) {
             final Object value = args[0];
             propagateSharingNode.executePropagate(array, value);
 
-            final int size = array.size;
+            final int size = arraySizeProfile.profile(array.size);
 
             int i = 0;
             try {
@@ -1077,8 +1077,9 @@ public abstract class ArrayNodes {
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached DispatchNode toHashNode,
                 @Cached ToLongNode toLongNode,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loopProfile) {
-            final int size = array.size;
+            final int size = arraySizeProfile.profile(array.size);
             long h = getContext().getHashing(this).start(size);
             h = Hashing.update(h, CLASS_SALT);
 
@@ -1109,11 +1110,12 @@ public abstract class ArrayNodes {
         protected boolean include(RubyArray array, Object value,
                 @Bind("array.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loopProfile) {
 
             int n = 0;
             try {
-                for (; loopProfile.inject(n < array.size); n++) {
+                for (; loopProfile.inject(n < arraySizeProfile.profile(array.size)); n++) {
                     final Object stored = stores.read(store, n);
 
                     if (sameOrEqualNode.executeSameOrEqual(stored, value)) {
@@ -1355,8 +1357,9 @@ public abstract class ArrayNodes {
         protected Object injectWithInitial(RubyArray array, Object initialOrSymbol, NotProvided symbol, RubyProc block,
                 @Bind("array.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loopProfile) {
-            return injectBlockHelper(stores, array, block, store, initialOrSymbol, 0, loopProfile);
+            return injectBlockHelper(stores, array, block, store, initialOrSymbol, 0, arraySizeProfile, loopProfile);
         }
 
         @Specialization(
@@ -1366,17 +1369,19 @@ public abstract class ArrayNodes {
                 RubyArray array, NotProvided initialOrSymbol, NotProvided symbol, RubyProc block,
                 @Bind("array.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loopProfile) {
-            return injectBlockHelper(stores, array, block, store, stores.read(store, 0), 1, loopProfile);
+            return injectBlockHelper(stores, array, block, store, stores.read(store, 0), 1, arraySizeProfile,
+                    loopProfile);
         }
 
         public Object injectBlockHelper(ArrayStoreLibrary stores, RubyArray array,
                 RubyProc block, Object store, Object initial, int start,
-                LoopConditionProfile loopProfile) {
+                IntValueProfile arraySizeProfile, LoopConditionProfile loopProfile) {
             Object accumulator = initial;
             int n = start;
             try {
-                for (; loopProfile.inject(n < array.size); n++) {
+                for (; loopProfile.inject(n < arraySizeProfile.profile(array.size)); n++) {
                     accumulator = callBlock(block, accumulator, stores.read(store, n));
                 }
             } finally {
@@ -1411,6 +1416,7 @@ public abstract class ArrayNodes {
                 VirtualFrame frame, RubyArray array, Object initialOrSymbol, RubySymbol symbol, Nil block,
                 @Bind("array.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loopProfile,
                 @Cached ToJavaStringNode toJavaString) {
             return injectSymbolHelper(
@@ -1421,6 +1427,7 @@ public abstract class ArrayNodes {
                     store,
                     initialOrSymbol,
                     0,
+                    arraySizeProfile,
                     loopProfile);
         }
 
@@ -1431,6 +1438,7 @@ public abstract class ArrayNodes {
                 VirtualFrame frame, RubyArray array, RubySymbol initialOrSymbol, NotProvided symbol, Nil block,
                 @Bind("array.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loopProfile,
                 @Cached ToJavaStringNode toJavaString) {
             return injectSymbolHelper(
@@ -1441,16 +1449,17 @@ public abstract class ArrayNodes {
                     store,
                     stores.read(store, 0),
                     1,
+                    arraySizeProfile,
                     loopProfile);
         }
 
         public Object injectSymbolHelper(VirtualFrame frame, RubyArray array, String symbol,
                 ArrayStoreLibrary stores, Object store, Object initial, int start,
-                LoopConditionProfile loopProfile) {
+                IntValueProfile arraySizeProfile, LoopConditionProfile loopProfile) {
             Object accumulator = initial;
             int n = start;
             try {
-                for (; loopProfile.inject(n < array.size); n++) {
+                for (; loopProfile.inject(n < arraySizeProfile.profile(array.size)); n++) {
                     accumulator = dispatch.callWithFrame(frame, accumulator, symbol, stores.read(store, n));
                     TruffleSafepoint.poll(this);
                 }
@@ -1472,13 +1481,13 @@ public abstract class ArrayNodes {
                 @Bind("array.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached ArrayBuilderNode arrayBuilder,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loopProfile) {
-            final int size = array.size;
-            BuilderState state = arrayBuilder.start(size);
+            BuilderState state = arrayBuilder.start(arraySizeProfile.profile(array.size));
 
             int n = 0;
             try {
-                for (; loopProfile.inject(n < array.size); n++) {
+                for (; loopProfile.inject(n < arraySizeProfile.profile(array.size)); n++) {
                     final Object mappedValue = callBlock(block, stores.read(store, n));
                     arrayBuilder.appendValue(state, n, mappedValue);
                 }
@@ -1486,7 +1495,7 @@ public abstract class ArrayNodes {
                 profileAndReportLoopCount(loopProfile, n);
             }
 
-            return createArray(arrayBuilder.finish(state, size), size);
+            return createArray(arrayBuilder.finish(state, n), n);
         }
 
     }
@@ -1663,8 +1672,9 @@ public abstract class ArrayNodes {
         protected RubyArray popNotEmptySharedStorage(RubyArray array, int n,
                 @Bind("array.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
                 @Cached ConditionProfile minProfile) {
-            final int size = array.size;
+            final int size = arraySizeProfile.profile(array.size);
             final int numPop = minProfile.profile(size < n) ? size : n;
 
             final Object popped = stores.extractRange(store, size - numPop, size); // copy on write
@@ -1681,8 +1691,9 @@ public abstract class ArrayNodes {
         protected RubyArray popNotEmptyUnsharedStorage(RubyArray array, int n,
                 @Bind("array.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
                 @Cached ConditionProfile minProfile) {
-            final int size = array.size;
+            final int size = arraySizeProfile.profile(array.size);
             final int numPop = minProfile.profile(size < n) ? size : n;
 
             // Extract values in a new array
@@ -1756,20 +1767,19 @@ public abstract class ArrayNodes {
     public abstract static class RejectNode extends YieldingCoreMethodNode {
 
         @Specialization(limit = "storageStrategyLimit()")
-        protected Object rejectOther(RubyArray array, RubyProc block,
+        protected Object reject(RubyArray array, RubyProc block,
                 @Bind("array.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached ArrayBuilderNode arrayBuilder,
                 @Cached BooleanCastNode booleanCastNode,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loopProfile) {
-            final int size = array.size;
-
-            BuilderState state = arrayBuilder.start(size);
+            BuilderState state = arrayBuilder.start(arraySizeProfile.profile(array.size));
             int selectedSize = 0;
 
             int n = 0;
             try {
-                for (; loopProfile.inject(n < size); n++) {
+                for (; loopProfile.inject(n < arraySizeProfile.profile(array.size)); n++) {
                     final Object value = stores.read(store, n);
 
                     if (!booleanCastNode.executeToBoolean(callBlock(block, value))) {
@@ -1805,9 +1815,11 @@ public abstract class ArrayNodes {
                 @Bind("array.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary mutablestores,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loop1Profile,
                 @Cached LoopConditionProfile loop2Profile) {
-            return rejectInPlaceInternal(array, block, mutablestores, store, loop1Profile, loop2Profile);
+            return rejectInPlaceInternal(array, block, mutablestores, store, arraySizeProfile, loop1Profile,
+                    loop2Profile);
         }
 
         @Specialization(
@@ -1817,20 +1829,24 @@ public abstract class ArrayNodes {
                 @Bind("array.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary mutablestores,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loop1Profile,
                 @Cached LoopConditionProfile loop2Profile) {
-            final Object mutableStore = stores.allocator(store).allocate(array.size);
-            stores.copyContents(store, 0, mutableStore, 0, array.size);
+            final int size = arraySizeProfile.profile(array.size);
+            final Object mutableStore = stores.allocator(store).allocate(size);
+            stores.copyContents(store, 0, mutableStore, 0, size);
             array.store = mutableStore;
-            return rejectInPlaceInternal(array, block, mutablestores, mutableStore, loop1Profile, loop2Profile);
+            return rejectInPlaceInternal(array, block, mutablestores, mutableStore, arraySizeProfile, loop1Profile,
+                    loop2Profile);
         }
 
-        private Object rejectInPlaceInternal(RubyArray array, RubyProc block, ArrayStoreLibrary stores,
-                Object store, LoopConditionProfile loop1Profile, LoopConditionProfile loop2Profile) {
+        private Object rejectInPlaceInternal(RubyArray array, RubyProc block, ArrayStoreLibrary stores, Object store,
+                IntValueProfile arraySizeProfile, LoopConditionProfile loop1Profile,
+                LoopConditionProfile loop2Profile) {
             int i = 0;
             int n = 0;
             try {
-                for (; loop1Profile.inject(n < array.size); n++) {
+                for (; loop1Profile.inject(n < arraySizeProfile.profile(array.size)); n++) {
                     final Object value = stores.read(store, n);
                     if (booleanCastNode.executeToBoolean(callBlock(block, value))) {
                         continue;
@@ -1846,13 +1862,14 @@ public abstract class ArrayNodes {
                 profileAndReportLoopCount(loop1Profile, n);
 
                 // Ensure we've iterated to the end of the array.
-                for (; loop2Profile.inject(n < array.size); n++) {
+                final int size = arraySizeProfile.profile(array.size);
+                for (; loop2Profile.inject(n < size); n++) {
                     if (i != n) {
                         stores.write(store, i, stores.read(store, n));
                     }
                     i++;
                 }
-                profileAndReportLoopCount(loop2Profile, array.size - n);
+                profileAndReportLoopCount(loop2Profile, size - n);
 
                 // Null out the elements behind the size
                 stores.clear(store, i, n - i);
@@ -1910,9 +1927,9 @@ public abstract class ArrayNodes {
         protected RubyArray rotate(RubyArray array, int rotation,
                 @Bind("array.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
                 @Cached("createIdentityProfile()") IntValueProfile rotationProfile) {
-            final int size = sizeProfile.profile(array.size);
+            final int size = arraySizeProfile.profile(array.size);
             rotation = rotationProfile.profile(rotation);
             assert 0 < rotation && rotation < size;
 
@@ -1939,12 +1956,12 @@ public abstract class ArrayNodes {
         protected RubyArray rotate(RubyArray array, int rotation,
                 @Bind("array.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
                 @Cached("createIdentityProfile()") IntValueProfile rotationProfile,
                 @Cached LoopConditionProfile loop1Profile,
                 @Cached LoopConditionProfile loop2Profile,
                 @Cached LoopConditionProfile loop3Profile) {
-            final int size = sizeProfile.profile(array.size);
+            final int size = arraySizeProfile.profile(array.size);
             rotation = rotationProfile.profile(rotation);
             assert 0 < rotation && rotation < size;
 
@@ -1972,9 +1989,9 @@ public abstract class ArrayNodes {
         protected RubyArray rotateStorageNotMutable(RubyArray array, int rotation,
                 @Bind("array.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
                 @Cached("createIdentityProfile()") IntValueProfile rotationProfile) {
-            final int size = sizeProfile.profile(array.size);
+            final int size = arraySizeProfile.profile(array.size);
             rotation = rotationProfile.profile(rotation);
             assert 0 < rotation && rotation < size;
 
@@ -2043,15 +2060,16 @@ public abstract class ArrayNodes {
         protected Object select(RubyArray array, RubyProc block,
                 @Bind("array.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loopProfile,
                 @Cached ArrayBuilderNode arrayBuilder,
                 @Cached BooleanCastNode booleanCastNode) {
-            BuilderState state = arrayBuilder.start(array.size);
+            BuilderState state = arrayBuilder.start(arraySizeProfile.profile(array.size));
             int selectedSize = 0;
 
             int n = 0;
             try {
-                for (; loopProfile.inject(n < array.size); n++) {
+                for (; loopProfile.inject(n < arraySizeProfile.profile(array.size)); n++) {
                     final Object value = stores.read(store, n);
 
                     if (booleanCastNode.executeToBoolean(callBlock(block, value))) {
@@ -2074,8 +2092,6 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
     public abstract static class ShiftNode extends CoreMethodNode {
-
-        @Child private ToIntNode toIntNode;
 
         public abstract Object executeShift(RubyArray array, Object n);
 
@@ -2140,13 +2156,11 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = { "size", "length" })
     public abstract static class SizeNode extends ArrayCoreMethodNode {
-
         @Specialization
         protected int size(RubyArray array,
-                @Cached("createIdentityProfile()") IntValueProfile profile) {
-            return profile.profile(array.size);
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile) {
+            return arraySizeProfile.profile(array.size);
         }
-
     }
 
     @CoreMethod(names = "sort", needsBlock = true)
@@ -2168,12 +2182,13 @@ public abstract class ArrayNodes {
                 @Bind("array.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary newStores,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
                 @Cached DispatchNode compareDispatchNode,
                 @Cached CmpIntNode cmpIntNode) {
             final Object newStore = stores
                     .allocator(store)
                     .allocate(getContext().getOptions().ARRAY_SMALL);
-            final int size = array.size;
+            final int size = arraySizeProfile.profile(array.size);
 
             // Copy with a exploded loop for PE
 
@@ -2216,8 +2231,9 @@ public abstract class ArrayNodes {
         protected Object sortPrimitiveArrayNoBlock(RubyArray array, Nil block,
                 @Bind("array.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
-                @CachedLibrary(limit = "1") ArrayStoreLibrary mutableStores) {
-            final int size = array.size;
+                @CachedLibrary(limit = "1") ArrayStoreLibrary mutableStores,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile) {
+            final int size = arraySizeProfile.profile(array.size);
             Object newStore = stores.allocator(store).allocate(size);
             stores.copyContents(store, 0, newStore, 0, size);
             mutableStores.sort(newStore, size);
@@ -2300,10 +2316,11 @@ public abstract class ArrayNodes {
                 @CachedLibrary("b") ArrayStoreLibrary bStores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary pairs,
                 @Cached ConditionProfile bNotSmallerProfile,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loopProfile) {
 
+            final int zippedLength = arraySizeProfile.profile(array.size);
             final int bSize = other.size;
-            final int zippedLength = array.size;
 
             final Object[] zipped = new Object[zippedLength];
 
@@ -2336,8 +2353,9 @@ public abstract class ArrayNodes {
         @Specialization(guards = "!stores.isNative(store)", limit = "storageStrategyLimit()")
         protected RubyArray storeToNative(RubyArray array,
                 @Bind("array.store") Object store,
-                @CachedLibrary("store") ArrayStoreLibrary stores) {
-            int size = array.size;
+                @CachedLibrary("store") ArrayStoreLibrary stores,
+                @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile) {
+            final int size = arraySizeProfile.profile(array.size);
             Pointer pointer = Pointer.malloc(size * Pointer.SIZE);
             pointer.enableAutorelease(getContext());
             NativeArrayStorage newStore = new NativeArrayStorage(pointer, size);
