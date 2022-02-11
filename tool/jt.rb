@@ -740,7 +740,8 @@ module Commands
                                     * 'ruby' which uses the current Ruby executable in the PATH
                                     Default value is --use jvm, therefore all commands run on truffleruby-jvm by default.
                                     The default can be changed with `export RUBY_BIN=RUBY_SELECTOR`
-          --silent                  Does not print the command and which Ruby is used
+          --silent|-q               Does not print the command and which Ruby is used
+          --verbose|-v              Print more details and commands
           --jdk                     Specifies which version of the JDK should be used: 11 (default) or 17
 
       jt build [graalvm|parser|options|core-symbols] ...   by default it builds graalvm
@@ -826,7 +827,7 @@ module Commands
                                        Ruby and cache the result, such as benchmark bench/mri/bm_vm1_not.rb --cache
                                        jt benchmark bench/mri/bm_vm1_not.rb --use-cache
       jt profile                                     profiles an application, including the TruffleRuby runtime, and generates a flamegraph
-      jt graph [ruby options] [--method Object#foo] [--watch] [--no-simplify] file.rb
+      jt graph [ruby options] [--method Object#foo] [--watch] [--no-simplify] file.rb [-- seafoam options]
                                                      render a graph of Object#foo within file.rb
                               --describe             describe the shape of the graph (linear, branches, loops, calls, deopts)
       jt igv                                         launches IdealGraphVisualizer
@@ -2045,6 +2046,7 @@ module Commands
     simplify = true
     describe = false
     json = false
+    seafoam_args = []
 
     vm_args, remaining_args, _parsed_options = ruby_options({}, args)
     args = remaining_args
@@ -2064,7 +2066,8 @@ module Commands
       when '--describe'
         describe = true
       when '--'
-        raise
+        seafoam_args = args.dup
+        args.clear
       when /^-/
         vm_args << arg
       else
@@ -2102,7 +2105,7 @@ module Commands
     loop do # for --watch
       compiled = false
       command = [ruby_launcher, *vm_args, test_file]
-      # STDERR.puts bold "$ #{printable_cmd(command)}"
+      STDERR.puts bold "$ #{printable_cmd(command)}" if @verbose
       IO.popen(command, err: [:child, :out]) do |pipe|
         pipe.each_line do |line|
           puts line
@@ -2132,7 +2135,7 @@ module Commands
 
       json_args = json ? %w[--json] : []
       action = describe ? 'describe' : 'render'
-      run_gem_test_pack_gem_or_install('seafoam', SEAFOAM_VERSION, *json_args, "#{graph}:#{n}", action)
+      run_gem_test_pack_gem_or_install('seafoam', SEAFOAM_VERSION, *json_args, "#{graph}:#{n}", action, *seafoam_args)
 
       break unless watch
       puts # newline between runs
@@ -2960,6 +2963,7 @@ class JT
     needs_build = false
     needs_rebuild = false
     @silent = false
+    @verbose = false
     @jdk_version = Integer(ENV['JT_JDK'] || 11)
 
     until args.empty?
@@ -2973,6 +2977,8 @@ class JT
         @ruby_name = args.shift
       when '-q', '--silent'
         @silent = true
+      when '-v', '--verbose'
+        @verbose = true
       when '--jdk'
         @jdk_version = Integer(args.shift)
       when '-h', '-help', '--help'
