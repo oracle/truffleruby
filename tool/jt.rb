@@ -826,7 +826,7 @@ module Commands
                                        Ruby and cache the result, such as benchmark bench/mri/bm_vm1_not.rb --cache
                                        jt benchmark bench/mri/bm_vm1_not.rb --use-cache
       jt profile                                     profiles an application, including the TruffleRuby runtime, and generates a flamegraph
-      jt graph [ruby options] [--method Object#foo] [--watch] [--no-simplify] file.rb
+      jt graph [ruby options] [--method Object#foo] [--watch] [--no-simplify] file.rb [-- seafoam options]
                                                      render a graph of Object#foo within file.rb
                               --describe             describe the shape of the graph (linear, branches, loops, calls, deopts)
       jt igv                                         launches IdealGraphVisualizer
@@ -2045,6 +2045,7 @@ module Commands
     simplify = true
     describe = false
     json = false
+    seafoam_args = []
 
     vm_args, remaining_args, _parsed_options = ruby_options({}, args)
     args = remaining_args
@@ -2064,7 +2065,8 @@ module Commands
       when '--describe'
         describe = true
       when '--'
-        raise
+        seafoam_args = args.dup
+        args.clear
       when /^-/
         vm_args << arg
       else
@@ -2132,7 +2134,7 @@ module Commands
 
       json_args = json ? %w[--json] : []
       action = describe ? 'describe' : 'render'
-      run_gem_test_pack_gem_or_install('seafoam', SEAFOAM_VERSION, *json_args, "#{graph}:#{n}", action)
+      run_gem_test_pack_gem_or_install('seafoam', SEAFOAM_VERSION, *json_args, "#{graph}:#{n}", action, *seafoam_args)
 
       break unless watch
       puts # newline between runs
