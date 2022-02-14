@@ -62,6 +62,7 @@ Compatibility:
 * Use `$PAGER` for `--help` and `--help*`, similar to CRuby (#2542, @Strech).
 * Ensure all headers are warnings-free (#2662, @eregon).
 * All `IO` instances should have `T_FILE` as their `rb_type()`, not only `File` instances (#2662, @eregon).
+* Make `rb_fd_select` retry on `EINTR` (#1584, @aardvark179).
 
 Performance:
 
