@@ -135,6 +135,7 @@ import org.truffleruby.stdlib.digest.RubyDigest;
 
 @TruffleLanguage.Registration(
         name = "Ruby",
+        website = "https://www.graalvm.org/ruby/",
         contextPolicy = ContextPolicy.SHARED,
         id = TruffleRuby.LANGUAGE_ID,
         implementationName = TruffleRuby.FORMAL_NAME,

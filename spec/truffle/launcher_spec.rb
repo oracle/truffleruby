@@ -344,22 +344,13 @@ describe "The launcher" do
     end
   end
 
-  it "prints help:languages containing ruby language options" do
-    out = ruby_exe(nil, options: "--help:languages", args: @redirect)
+  it "prints help:ruby containing ruby language options" do
+    out = ruby_exe(nil, options: "--help:ruby", args: @redirect)
     check_status_and_empty_stderr
-    out.should =~ /language options/i
-    out.should include("Ruby:")
-    out.should include("--ruby.load-paths=")
-  end
-
-  guard -> { defined?(::TruffleRuby) &&TruffleRuby.cexts? } do
-    it "prints help:languages containing llvm language options" do
-      out = ruby_exe(nil, options: "--help:languages", args: @redirect)
-      check_status_and_empty_stderr
-      out.should =~ /language options/i
-      out.should include("LLVM:")
-      out.should include("--llvm.libraryPath=")
-    end
+    out.should =~ /Language options/i
+    out.should =~ /\bRuby\b/
+    out.should.include?('https://www.graalvm.org/ruby/')
+    out.should.include?("--ruby.load-paths=")
   end
 
   it "prints the version with --version" do
