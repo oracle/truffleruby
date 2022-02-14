@@ -201,18 +201,6 @@ module Process
     title = Truffle::Type.coerce_to(title, String, :to_str)
     argv = Primitive.vm_native_argv
 
-    # GR-35555: Workaround when librubyvm is built and --jvm is used
-    if argv == 0 and !TruffleRuby.native?
-      if Truffle::Platform.linux? && File.readable?('/proc/self/maps')
-        setproctitle_linux_from_proc_maps(title)
-      elsif Truffle::Platform.darwin?
-        setproctitle_darwin(title)
-      else
-        # Silently don't set the process title if we can't do it
-      end
-      return title
-    end
-
     # Not run from ruby launcher, we cannot set process title
     return title if argv == 0
 
@@ -230,72 +218,6 @@ module Process
 
     title
   end
-
-  def self.setproctitle_darwin(title)
-    argv0_address = Truffle::POSIX._NSGetArgv.read_pointer.read_pointer
-
-    @_argv0_max_length ||= argv0_address.read_string.bytesize
-    argv0_address = argv0_address.slice(0, @_argv0_max_length)
-
-    new_title = setproctitle_truncate_title(title, @_argv0_max_length)
-    argv0_address.write_bytes new_title
-  end
-  private_class_method :setproctitle_darwin
-
-  # Very hacky implementation to pass the specs, since the JVM doesn't give us argv[0]
-  # Overwrite *argv inplace because finding the argv pointer itself is harder.
-  # Truncates title if title is longer than the orginal command line.
-  def self.setproctitle_linux_from_proc_maps(title)
-    @_argv0_address ||= begin
-      command = File.binread('/proc/self/cmdline')
-
-      stack = File.readlines('/proc/self/maps').grep(/\[stack\]/)
-      raise stack.to_s unless stack.size == 1
-
-      from, to = stack[0].split[0].split('-').map { |addr| Integer(addr, 16) }
-      raise unless from < to
-
-      args_length = 0
-      Truffle::Boot.original_argv.each do |arg|
-        args_length += 1 + arg.bytesize
-      end
-
-      env_length = 0
-      ENV.each_pair do |key, val|
-        env_length += key.bytesize + 1 + val.bytesize + 1
-      end
-
-      size = 2 * 4096 + args_length + env_length
-      base = to - size
-      base_ptr = FFI::Pointer.new(:char, base)
-      haystack = base_ptr.read_string(size)
-
-      i = haystack.index("\x00#{command}")
-      raise 'argv[0] not found' unless i
-      i += 1
-
-      @_argv0_max_length = command.bytesize
-      base + i
-    end
-
-    new_title = setproctitle_truncate_title(title, @_argv0_max_length)
-
-    argv0_ptr = FFI::Pointer.new(:char, @_argv0_address).slice(0, @_argv0_max_length)
-    argv0_ptr.write_bytes(new_title)
-
-    new_command = File.binread('/proc/self/cmdline')
-    raise 'failed' unless new_command.start_with?(new_title)
-  end
-  private_class_method :setproctitle_linux_from_proc_maps
-
-  def self.setproctitle_truncate_title(title, size)
-    if title.bytesize > size
-      title.byteslice(0, size)
-    else
-      title + "\x00" * (size - title.bytesize)
-    end
-  end
-  private_class_method :setproctitle_truncate_title
 
   def self.setrlimit(resource, cur_limit, max_limit=undefined)
     resource =  coerce_rlimit_resource(resource)
