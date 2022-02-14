@@ -100,7 +100,13 @@ public abstract class RubyDynamicObject extends DynamicObject {
     @ExportMessage
     public void freeze(
             @CachedLibrary("this") DynamicObjectLibrary objLib) {
-        objLib.setShapeFlags(this, objLib.getShapeFlags(this) | FROZEN);
+        if (objLib.isShared(this)) {
+            synchronized (this) {
+                objLib.setShapeFlags(this, objLib.getShapeFlags(this) | FROZEN);
+            }
+        } else {
+            objLib.setShapeFlags(this, objLib.getShapeFlags(this) | FROZEN);
+        }
     }
 
     @ExportMessage
