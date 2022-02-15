@@ -831,7 +831,7 @@ module Commands
       jt graph [ruby options] [graph options] [--method Object#foo] file.rb [-- seafoam options]
                                                      render a graph of Object#foo within file.rb
                               --watch                repeat whenever the file changes
-                              --no-simplify          keep all optimizations and do not try to simplify the graph
+                              --simplify             simplify the graph by disabling some optimizations which tend to duplicate parts of the graph
                               --igv                  send the graphs to IGV over the network instead of using seafoam
                               --describe             describe the shape of the graph (linear, branches, loops, calls, deopts)
       jt igv                                         launches IdealGraphVisualizer
@@ -2050,7 +2050,7 @@ module Commands
     test_file = nil
     method = 'Object#foo'
     watch = false
-    simplify = true
+    simplify = false
     describe = false
     json = false
     seafoam_args = []
@@ -2071,8 +2071,8 @@ module Commands
         method = args.shift
       when '--watch'
         watch = true
-      when '--no-simplify'
-        simplify = false
+      when '-simplify'
+        simplify = true
       when '--describe'
         describe = true
       when '--'
