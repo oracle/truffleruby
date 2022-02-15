@@ -18,6 +18,7 @@ module Truffle::CExt
   DATA_TYPE = Primitive.object_hidden_var_create :data_type
   DATA_HOLDER = Primitive.object_hidden_var_create :data_holder
   DATA_MEMSIZER = Primitive.object_hidden_var_create :data_memsizer
+  DATA_MARKER = Primitive.object_hidden_var_create :data_marker
   RB_TYPE = Primitive.object_hidden_var_create :rb_type
   ALLOCATOR_FUNC = Primitive.object_hidden_var_create :allocator_func
   RB_IO_STRUCT = Primitive.object_hidden_var_create :rb_io_struct
@@ -1456,6 +1457,11 @@ module Truffle::CExt
     at_exit { Primitive.call_with_c_mutex_and_frame(func, [data], Primitive.caller_special_variables_if_available, nil) }
   end
 
+  def define_marker(object, marker)
+    Primitive.object_hidden_var_set object, DATA_MARKER, marker
+    Primitive.cext_mark_object_on_call_exit(object) unless Truffle::Interop.null?(marker)
+  end
+
   def rb_data_object_wrap(ruby_class, data, mark, free)
     ruby_class = Object unless ruby_class
     object = ruby_class.__send__(:__layout_allocate__)
@@ -1464,7 +1470,7 @@ module Truffle::CExt
 
     Primitive.object_space_define_data_finalizer object, free, data_holder unless Truffle::Interop.null?(free)
 
-    define_marker object, data_marker(mark, data_holder) unless Truffle::Interop.null?(mark)
+    define_marker object, mark
 
     object
   end
@@ -1479,19 +1485,21 @@ module Truffle::CExt
 
     Primitive.object_space_define_data_finalizer object, free, data_holder unless Truffle::Interop.null?(free)
 
-    define_marker object, data_marker(mark, data_holder) unless Truffle::Interop.null?(mark)
+    define_marker object, mark
+
     object
   end
 
-  def data_marker(mark, data_holder)
-    raise unless mark.respond_to?(:call)
-    proc { |obj|
+  def run_marker(obj)
+    mark = Primitive.object_hidden_var_get obj, DATA_MARKER
+    unless Truffle::Interop.null?(mark)
       create_mark_list(obj)
+      data_holder = Primitive.object_hidden_var_get obj, DATA_HOLDER
       data = Primitive.data_holder_get_data(data_holder)
       # This call is done without pushing a new frame as the marking service manages frames itself.
       Primitive.call_with_c_mutex(mark, [data]) unless Truffle::Interop.null?(data)
       set_mark_list_on_object(obj)
-    }
+    end
   end
 
   def data_sizer(sizer, data_holder)

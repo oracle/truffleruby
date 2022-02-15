@@ -108,7 +108,6 @@ import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.supercall.CallSuperMethodNode;
-import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.IdentifierType;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -167,6 +166,8 @@ public class CExtNodes {
     public abstract static class CallWithCExtLockAndFrameNode extends PrimitiveArrayArgumentsNode {
 
         @Child protected CallWithCExtLockNode callCextNode = CallWithCExtLockNodeFactory.create(RubyNode.EMPTY_ARRAY);
+        @Child protected MarkingServiceNodes.RunMarkOnExitNode runMarksNode = MarkingServiceNodes.RunMarkOnExitNode
+                .create();
 
         @Specialization
         protected Object callWithCExtLockAndFrame(
@@ -175,7 +176,11 @@ public class CExtNodes {
             final boolean keywordsGiven = RubyArguments.getDescriptor(frame) instanceof KeywordArgumentsDescriptor;
             extensionStack.push(keywordsGiven, specialVariables, block);
             try {
-                return callCextNode.execute(receiver, argsArray);
+                try {
+                    return callCextNode.execute(receiver, argsArray);
+                } finally {
+                    runMarksNode.execute(extensionStack);
+                }
             } finally {
                 extensionStack.pop();
             }
@@ -185,6 +190,9 @@ public class CExtNodes {
     @Primitive(name = "call_with_c_mutex_and_frame_and_unwrap")
     public abstract static class CallWithCExtLockAndFrameAndUnwrapNode extends PrimitiveArrayArgumentsNode {
 
+        @Child protected MarkingServiceNodes.RunMarkOnExitNode runMarksNode = MarkingServiceNodes.RunMarkOnExitNode
+                .create();
+
         @Specialization(limit = "getCacheLimit()")
         protected Object callWithCExtLockAndFrame(
                 VirtualFrame frame, Object receiver, RubyArray argsArray, Object specialVariables, Object block,
@@ -192,6 +200,7 @@ public class CExtNodes {
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
                 @Cached ConditionProfile ownedProfile,
+                @Cached MarkingServiceNodes.RunMarkOnExitNode runMarksNode,
                 @Cached UnwrapNode unwrapNode) {
             final ExtensionCallStack extensionStack = getLanguage().getCurrentFiber().extensionCallStack;
             final boolean keywordsGiven = RubyArguments.getDescriptor(frame) instanceof KeywordArgumentsDescriptor;
@@ -210,13 +219,18 @@ public class CExtNodes {
                         return unwrapNode.execute(
                                 InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode));
                     } finally {
+                        runMarksNode.execute(extensionStack);
                         if (!owned) {
                             MutexOperations.unlockInternal(lock);
                         }
                     }
                 } else {
-                    return unwrapNode
-                            .execute(InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode));
+                    try {
+                        return unwrapNode.execute(
+                                InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode));
+                    } finally {
+                        runMarksNode.execute(extensionStack);
+                    }
                 }
 
             } finally {
@@ -358,6 +372,18 @@ public class CExtNodes {
             final Object[] args = unwrapCArrayNode.execute(argv);
             return sendWithoutCExtLock(frame, receiver, method, block, EmptyArgumentsDescriptor.INSTANCE, args,
                     dispatchNode, ownedProfile);
+        }
+    }
+
+    @Primitive(name = "cext_mark_object_on_call_exit")
+    public abstract static class MarkObjectOnCallExit extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected Object markOnCallExit(Object object,
+                @Cached WrapNode wrapNode,
+                @Cached MarkingServiceNodes.QueueForMarkOnExitNode markOnExitNode) {
+            markOnExitNode.execute(wrapNode.execute(object));
+            return nil;
         }
     }
 
@@ -1677,6 +1703,7 @@ public class CExtNodes {
         protected Object createNewMarkList(RubyDynamicObject object,
                 @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
             getContext().getMarkingService().startMarking(
+                    getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack,
                     (Object[]) objectLibrary.getOrDefault(object, Layouts.MARKED_OBJECTS_IDENTIFIER, null));
             return nil;
         }
@@ -1692,7 +1719,8 @@ public class CExtNodes {
             ValueWrapper wrappedValue = toWrapperNode.execute(markedObject);
             if (wrappedValue != null) {
                 noExceptionProfile.enter();
-                getContext().getMarkingService().addMark(wrappedValue);
+                getContext().getMarkingService()
+                        .addMark(getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack, wrappedValue);
             }
             // We do nothing here if the handle cannot be resolved. If we are marking an object
             // which is only reachable via weak refs then the handles of objects it is itself
@@ -1729,27 +1757,10 @@ public class CExtNodes {
             writeMarkedNode.execute(
                     structOwner,
                     Layouts.MARKED_OBJECTS_IDENTIFIER,
-                    getContext().getMarkingService().finishMarking());
+                    getContext().getMarkingService()
+                            .finishMarking(getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack));
             return nil;
         }
-    }
-
-    @CoreMethod(names = "define_marker", onSingleton = true, required = 2)
-    public abstract static class CreateMarkerNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        protected Object createMarker(RubyDynamicObject object, RubyProc marker) {
-            /* The code here has to be a little subtle. The marker must be associated with the object it will act on,
-             * but the lambda must not capture the object (and prevent garbage collection). So the marking function is a
-             * lambda that will take the object as an argument 'o' which will be provided when the marking function is
-             * called by the marking service. */
-            getContext()
-                    .getMarkingService()
-                    .addMarker(object, (o) -> CallBlockNode.getUncached().yield(marker, o));
-            return nil;
-        }
-
     }
 
     @CoreMethod(names = "rb_thread_check_ints", onSingleton = true, required = 0)

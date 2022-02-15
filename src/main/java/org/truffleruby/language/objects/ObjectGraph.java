@@ -44,7 +44,6 @@ public abstract class ObjectGraph {
 
     @TruffleBoundary
     public static Set<Object> stopAndGetAllObjects(String reason, RubyContext context, Node currentNode) {
-        context.getMarkingService().queueMarking();
         final Set<Object> visited = newObjectSet();
 
         final Thread initiatingJavaThread = Thread.currentThread();

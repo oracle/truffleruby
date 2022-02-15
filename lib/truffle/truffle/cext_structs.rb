@@ -68,6 +68,7 @@ class Truffle::CExt::RData
   def polyglot_read_member(name)
     case name
     when 'data'
+      Primitive.cext_mark_object_on_call_exit(@object) unless Primitive.object_hidden_var_get(@object, Truffle::CExt::DATA_MARKER).nil?
       Primitive.data_holder_get_data(@data_holder)
     when 'type'
       type

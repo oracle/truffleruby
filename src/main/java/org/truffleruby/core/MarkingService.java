@@ -9,15 +9,11 @@
  */
 package org.truffleruby.core;
 
-import java.lang.ref.ReferenceQueue;
 import java.util.ArrayList;
 
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.CapturedException;
-import org.truffleruby.cext.ValueWrapperManager;
+import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.queue.UnsizedQueue;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
@@ -37,89 +33,23 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
  *
  * Marker references only keep a week reference to their owning object to ensure they don't themselves stop the object
  * from being garbage collected. */
-public class MarkingService extends ReferenceProcessingService<MarkerReference> {
+public class MarkingService {
 
     public static interface MarkerAction {
         public abstract void mark(Object owner);
     }
 
-    public static class MarkRunnerReference extends WeakProcessingReference<MarkRunnerReference, Object> {
-
-        public MarkRunnerReference(Object object, ReferenceQueue<? super Object> queue, MarkRunnerService service) {
-            super(object, queue, service);
-        }
-    }
-
-    /** This service handles actually running the mark functions when this is needed. It's done this way so that mark
-     * functions and finalizers are run on the same thread, and so that we can avoid the use of any additional locks in
-     * this process (as these may cause deadlocks). */
-    public static class MarkRunnerService extends ReferenceProcessingService<MarkingService.MarkRunnerReference> {
-
-        private final MarkingService markingService;
-
-        public MarkRunnerService(
-                ReferenceQueue<Object> processingQueue,
-                MarkingService markingService) {
-            super(processingQueue);
-            this.markingService = markingService;
-        }
-
-        @Override
-        protected void processReference(RubyContext context, RubyLanguage language, ProcessingReference<?> reference) {
-            /* We need to keep all the objects that might be marked alive during the marking process itself, so we add
-             * the arrays to a list to achieve this. */
-            super.processReference(context, language, reference);
-            ArrayList<ValueWrapperManager.HandleBlock> keptObjectLists = new ArrayList<>();
-            ValueWrapperManager.HandleBlock block;
-            while (true) {
-                block = (ValueWrapperManager.HandleBlock) markingService.keptObjectQueue.poll();
-                if (block == null) {
-                    break;
-                } else {
-                    keptObjectLists.add(block);
-                }
-            }
-            if (!keptObjectLists.isEmpty()) {
-                runAllMarkers(context, language);
-            }
-            keptObjectLists.clear();
-        }
-
-        @TruffleBoundary
-        public void runAllMarkers(RubyContext context, RubyLanguage language) {
-            final ExtensionCallStack stack = language.getCurrentFiber().extensionCallStack;
-            stack.push(stack.areKeywordsGiven(), stack.getSpecialVariables(), stack.getBlock());
-            try {
-                // TODO (eregon, 15 Sept 2020): there seems to be no synchronization here while walking the list of
-                // markingService, and concurrent mutations seem to be possible.
-                MarkerReference currentMarker = markingService.getFirst();
-                MarkerReference nextMarker;
-                while (currentMarker != null) {
-                    nextMarker = currentMarker.getNext();
-                    markingService.runMarker(context, language, currentMarker);
-                    if (nextMarker == currentMarker) {
-                        throw new Error("The MarkerReference linked list structure has become broken.");
-                    }
-                    currentMarker = nextMarker;
-                }
-            } finally {
-                stack.pop();
-            }
-        }
-    }
-
-    private final MarkRunnerService runnerService;
-
-    private final UnsizedQueue keptObjectQueue = new UnsizedQueue();
-
     protected static class ExtensionCallStackEntry {
 
         protected final ExtensionCallStackEntry previous;
-        protected final ArrayList<Object> preservedObjects = new ArrayList<>();
+        protected ArrayList<ValueWrapper> preservedObjects;
         protected final boolean keywordsGiven;
         protected Object specialVariables;
         protected final Object block;
         protected CapturedException capturedException;
+        protected ArrayList<ValueWrapper> forMarking;
+        protected Object[] marks;
+        protected int marksIndex = 0;
 
         protected ExtensionCallStackEntry(
                 ExtensionCallStackEntry previous,
@@ -142,10 +72,30 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
             current = new ExtensionCallStackEntry(null, false, specialVariables, block);
         }
 
-        public ArrayList<Object> getKeptObjects() {
+        public boolean hasKeptObjects() {
+            return current.preservedObjects != null;
+        }
+
+        public ArrayList<ValueWrapper> getKeptObjects() {
             assert current.previous != null;
 
+            if (current.preservedObjects == null) {
+                current.preservedObjects = new ArrayList<>();
+            }
             return current.preservedObjects;
+        }
+
+        public ArrayList<ValueWrapper> getMarkOnExitObjects() {
+            assert current.previous != null;
+
+            if (current.forMarking == null) {
+                current.forMarking = new ArrayList<>();
+            }
+            return current.forMarking;
+        }
+
+        public boolean hasMarkObjects() {
+            return current.forMarking != null;
         }
 
         public void pop() {
@@ -181,81 +131,35 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         }
     }
 
-    public MarkingService(ReferenceProcessor referenceprocessor) {
-        this(referenceprocessor.processingQueue);
-    }
-
-    public MarkingService(ReferenceQueue<Object> processingQueue) {
-        super(processingQueue);
-        runnerService = new MarkRunnerService(processingQueue, this);
-    }
-
-    @TruffleBoundary
-    public void queueForMarking(ValueWrapperManager.HandleBlock objects) {
-        if (objects != null) {
-            keptObjectQueue.add(objects);
-            runnerService.add(new MarkRunnerReference(new Object(), processingQueue, runnerService));
-        }
-    }
-
-    /* Convenience method to schedule marking now. Puts an empty array on the queue. */
-    public void queueMarking() {
-        queueForMarking(ValueWrapperManager.HandleBlock.DUMMY_BLOCK);
-    }
-
-    @TruffleBoundary
-    public void addMarker(Object object, MarkerAction action) {
-        add(new MarkerReference(object, processingQueue, action, this));
-    }
-
-    private void runMarker(RubyContext context, RubyLanguage language, MarkerReference markerReference) {
-        runCatchingErrors(context, language, this::runMarkerInternal, markerReference);
-    }
-
-    private void runMarkerInternal(RubyContext context, RubyLanguage language, MarkerReference markerReference) {
-        if (!context.isFinalizing()) {
-            Object owner = markerReference.get();
-            if (owner != null) {
-                final MarkerAction action = markerReference.action;
-                action.mark(owner);
-            } else {
-                remove(markerReference);
-            }
-        }
-    }
-
-    private Object[] marks;
-    private int index;
-
-    public void startMarking(Object[] oldMarks) {
+    public void startMarking(ExtensionCallStack stack, Object[] oldMarks) {
         if (oldMarks == null) {
-            marks = ArrayUtils.EMPTY_ARRAY;
+            stack.current.marks = ArrayUtils.EMPTY_ARRAY;
         } else {
-            marks = new Object[oldMarks.length];
+            stack.current.marks = new Object[oldMarks.length];
         }
-        index = 0;
+        stack.current.marksIndex = 0;
     }
 
     @TruffleBoundary
-    public void addMark(Object obj) {
-        if (marks.length == index) {
-            Object[] oldMarks = marks;
-            marks = new Object[Integer.max(oldMarks.length * 2, 1)];
-            System.arraycopy(oldMarks, 0, marks, 0, oldMarks.length);
+    public void addMark(ExtensionCallStack stack, Object obj) {
+        if (stack.current.marks.length == stack.current.marksIndex) {
+            Object[] oldMarks = stack.current.marks;
+            stack.current.marks = new Object[Integer.max(oldMarks.length * 2, 1)];
+            System.arraycopy(oldMarks, 0, stack.current.marks, 0, oldMarks.length);
         }
-        marks[index] = obj;
-        index++;
+        stack.current.marks[stack.current.marksIndex] = obj;
+        stack.current.marksIndex++;
     }
 
     @TruffleBoundary
-    public Object[] finishMarking() {
-        if (index != marks.length) {
-            for (int i = index; i < marks.length; i++) {
-                marks[i] = null;
+    public Object[] finishMarking(ExtensionCallStack stack) {
+        if (stack.current.marksIndex != stack.current.marks.length) {
+            for (int i = stack.current.marksIndex; i < stack.current.marks.length; i++) {
+                stack.current.marks[i] = null;
             }
         }
-        Object[] result = marks;
-        marks = null;
+        Object[] result = stack.current.marks;
+        stack.current.marks = null;
         return result;
     }
 

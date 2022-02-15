@@ -154,7 +154,6 @@ public class ValueWrapperManager {
     }
 
     public void cleanup(RubyContext context, HandleBlockHolder holder) {
-        context.getMarkingService().queueForMarking(holder.handleBlock);
         holder.handleBlock = null;
     }
 
@@ -214,7 +213,7 @@ public class ValueWrapperManager {
         private static final Set<HandleBlock> keepAlive = ConcurrentHashMap.newKeySet();
 
         private final long base;
-        @SuppressWarnings("rawtypes") private final ValueWrapper[] wrappers;
+        private final ValueWrapperWeakReference[] wrappers;
         private int count;
 
         @SuppressWarnings("unused") private Cleanable cleanable;
@@ -232,7 +231,7 @@ public class ValueWrapperManager {
                 keepAlive(this);
             }
             this.base = base;
-            this.wrappers = new ValueWrapper[BLOCK_SIZE];
+            this.wrappers = new ValueWrapperWeakReference[BLOCK_SIZE];
             this.count = 0;
             this.cleanable = language.cleaner.register(this, HandleBlock.makeCleaner(manager, base, allocator));
         }
@@ -259,7 +258,7 @@ public class ValueWrapperManager {
 
         public ValueWrapper getWrapper(long handle) {
             int offset = (int) (handle & OFFSET_MASK) >> TAG_BITS;
-            return wrappers[offset];
+            return wrappers[offset].get();
         }
 
         public boolean isFull() {
@@ -269,7 +268,7 @@ public class ValueWrapperManager {
         public long setHandleOnWrapper(ValueWrapper wrapper) {
             long handle = getBase() + count * Pointer.SIZE;
             wrapper.setHandle(handle, this);
-            wrappers[count] = wrapper;
+            wrappers[count] = new ValueWrapperWeakReference(wrapper);
             count++;
             return handle;
         }
@@ -281,6 +280,12 @@ public class ValueWrapperManager {
 
     public static final class HandleBlockWeakReference extends WeakReference<HandleBlock> {
         HandleBlockWeakReference(HandleBlock referent) {
+            super(referent);
+        }
+    }
+
+    public static final class ValueWrapperWeakReference extends WeakReference<ValueWrapper> {
+        ValueWrapperWeakReference(ValueWrapper referent) {
             super(referent);
         }
     }
@@ -333,9 +338,6 @@ public class ValueWrapperManager {
             }
 
             if (block == null || block.isFull()) {
-                if (block != null) {
-                    context.getMarkingService().queueForMarking(block);
-                }
                 if (shared) {
                     block = context.getValueWrapperManager().addToSharedBlockMap(context, language);
                     holder.sharedHandleBlock = block;
@@ -361,9 +363,6 @@ public class ValueWrapperManager {
         HandleBlockHolder holder = getBlockHolder(context, language);
         HandleBlock block = holder.handleBlock;
 
-        if (block != null) {
-            context.getMarkingService().queueForMarking(block);
-        }
         block = context.getValueWrapperManager().addToBlockMap(context, language);
 
         holder.handleBlock = block;

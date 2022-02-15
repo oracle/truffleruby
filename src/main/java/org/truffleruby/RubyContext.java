@@ -189,7 +189,7 @@ public class RubyContext {
         featureLoader = new FeatureLoader(this, language);
         referenceProcessor = new ReferenceProcessor(this);
         finalizationService = new FinalizationService(referenceProcessor);
-        markingService = new MarkingService(referenceProcessor);
+        markingService = new MarkingService();
         dataObjectFinalizationService = new DataObjectFinalizationService(language, referenceProcessor);
 
         // We need to construct this at runtime

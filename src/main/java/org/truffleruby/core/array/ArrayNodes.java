@@ -2328,14 +2328,6 @@ public abstract class ArrayNodes {
             Pointer pointer = Pointer.mallocAutoRelease(size * Pointer.SIZE, getLanguage());
             Object newStore = new NativeArrayStorage(pointer, size);
             stores.copyContents(store, 0, newStore, 0, size);
-            getContext().getMarkingService().addMarker(
-                    newStore,
-                    (aStore) -> ((NativeArrayStorage) aStore).preserveMembers());
-            /* The array elements here are already shared, because they came from an existing `SharedArrayStorage`
-             * object, so we only need to wrap the native storage in a new `SharedArrayStorage` object. */
-            if (sharedProfile.profile(isSharedNode.executeIsShared(array))) {
-                newStore = new SharedArrayStorage(newStore);
-            }
             array.setStore(newStore);
             return array;
         }
