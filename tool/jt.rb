@@ -775,6 +775,7 @@ module Commands
           --asm           show assembly
           --igv           dump select Graal graphs to graal_dumps/ (-Dgraal.Dump=Truffle:1)
           --igv-full      dump all Graal graphs to graal_dumps/ (-Dgraal.Dump=Truffle:2)
+          --igv-network   dump to IGV directly through the network (-Dgraal.PrintGraph=Network)
           --infopoints    show source location for each node in IGV
           --fg            disable background compilation
           --trace         show compilation information on stdout
@@ -827,8 +828,11 @@ module Commands
                                        Ruby and cache the result, such as benchmark bench/mri/bm_vm1_not.rb --cache
                                        jt benchmark bench/mri/bm_vm1_not.rb --use-cache
       jt profile                                     profiles an application, including the TruffleRuby runtime, and generates a flamegraph
-      jt graph [ruby options] [--method Object#foo] [--watch] [--no-simplify] file.rb [-- seafoam options]
+      jt graph [ruby options] [graph options] [--method Object#foo] file.rb [-- seafoam options]
                                                      render a graph of Object#foo within file.rb
+                              --watch                repeat whenever the file changes
+                              --no-simplify          keep all optimizations and do not try to simplify the graph
+                              --igv                  send the graphs to IGV over the network instead of using seafoam
                               --describe             describe the shape of the graph (linear, branches, loops, calls, deopts)
       jt igv                                         launches IdealGraphVisualizer
       jt next                                        tell you what to work on next (give you a random core library spec)
@@ -1006,6 +1010,9 @@ module Commands
         truffleruby_compiler!
         vm_args << (arg == '--igv-full' ? '--vm.Dgraal.Dump=Truffle:2' : '--vm.Dgraal.Dump=Truffle:1')
         vm_args << '--vm.Dgraal.PrintBackendCFG=false'
+      when '--igv-network'
+        truffleruby_compiler!
+        vm_args << '--vm.Dgraal.PrintGraph=Network'
       when '--exec'
         options[:use_exec] = true
       when /^--vm\./
@@ -2047,6 +2054,9 @@ module Commands
     describe = false
     json = false
     seafoam_args = []
+    igv = args.delete('--igv')
+
+    args.unshift '--igv-network' if igv
 
     vm_args, remaining_args, _parsed_options = ruby_options({}, args)
     args = remaining_args
@@ -2117,25 +2127,27 @@ module Commands
       end
       raise "The process did not compile #{method}" unless compiled
 
-      # See org.graalvm.compiler.debug.StandardPathUtilitiesProvider#sanitizeFileName
-      method_glob_pattern = method.gsub(/[ \/\p{Cntrl}]/, '_')
-      if truffleruby_native?
-        method_glob_pattern = "Isolated:_#{method_glob_pattern}"
+      unless igv
+        # See org.graalvm.compiler.debug.StandardPathUtilitiesProvider#sanitizeFileName
+        method_glob_pattern = method.gsub(/[ \/\p{Cntrl}]/, '_')
+        if truffleruby_native?
+          method_glob_pattern = "Isolated:_#{method_glob_pattern}"
+        end
+
+        dumps = Dir.glob('graal_dumps/*').sort.last
+        raise 'Could not dump directory under graal_dumps/' unless dumps
+        graphs = Dir.glob("#{dumps}/*\\[#{method_glob_pattern}*\\].bgv").sort
+        graph = graphs.last
+        raise "Could not find graph in #{dumps}" unless graph
+
+        list = run_gem_test_pack_gem_or_install('seafoam', SEAFOAM_VERSION, '--json', graph, 'list', capture: :out, no_print_cmd: true)
+        decoded = JSON.parse(list)
+        n = decoded.find { |entry| entry['graph_name_components'].last == 'Before phase org.graalvm.compiler.phases.common.LoweringPhase' }['graph_index']
+
+        json_args = json ? %w[--json] : []
+        action = describe ? 'describe' : 'render'
+        run_gem_test_pack_gem_or_install('seafoam', SEAFOAM_VERSION, *json_args, "#{graph}:#{n}", action, *seafoam_args)
       end
-
-      dumps = Dir.glob('graal_dumps/*').sort.last
-      raise 'Could not dump directory under graal_dumps/' unless dumps
-      graphs = Dir.glob("#{dumps}/*\\[#{method_glob_pattern}*\\].bgv").sort
-      graph = graphs.last
-      raise "Could not find graph in #{dumps}" unless graph
-
-      list = run_gem_test_pack_gem_or_install('seafoam', SEAFOAM_VERSION, '--json', graph, 'list', capture: :out, no_print_cmd: true)
-      decoded = JSON.parse(list)
-      n = decoded.find { |entry| entry['graph_name_components'].last == 'Before phase org.graalvm.compiler.phases.common.LoweringPhase' }['graph_index']
-
-      json_args = json ? %w[--json] : []
-      action = describe ? 'describe' : 'render'
-      run_gem_test_pack_gem_or_install('seafoam', SEAFOAM_VERSION, *json_args, "#{graph}:#{n}", action, *seafoam_args)
 
       break unless watch
       puts # newline between runs
