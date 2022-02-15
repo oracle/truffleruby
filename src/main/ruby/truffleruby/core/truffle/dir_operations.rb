@@ -78,7 +78,7 @@ module Truffle
           enc = Encoding.default_internal
           begin
             str = str.encode(enc) if enc
-          rescue
+          rescue EncodingError
             # If the attempt to convert fails we'll return the string as is, just like MRI.
           end
         end
