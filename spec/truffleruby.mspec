@@ -9,11 +9,6 @@ load "#{__dir__}/ruby/default.mspec"
 raise 'ruby/spec is not designed to be run as root on TruffleRuby' if Process.uid == 0
 
 class MSpecScript
-
-  def self.child_process?
-    ENV.key? "MSPEC_RUNNER"
-  end
-
   def self.windows?
     ENV.key?('WINDIR') || ENV.key?('windir')
   end
