@@ -105,8 +105,8 @@ def mandelbrot(size)
   sum
 end
 
-start = Time.now
+start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
-while Time.now - start < 30
+while Process.clock_gettime(Process::CLOCK_MONOTONIC) - start < 30
   mandelbrot(25)
 end
