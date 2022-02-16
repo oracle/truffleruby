@@ -270,7 +270,7 @@ public abstract class VMPrimitiveNodes {
                 case "IGNORE":
                     return registerIgnoreHandler(signalName);
                 default:
-                    throw new UnsupportedOperationException(actionString);
+                    throw CompilerDirectives.shouldNotReachHere(actionString);
             }
         }
 
@@ -616,7 +616,7 @@ public abstract class VMPrimitiveNodes {
                         getLanguage(),
                         Stream.concat(keywordArguments, other).toArray());
             } else {
-                throw new UnsupportedOperationException();
+                throw CompilerDirectives.shouldNotReachHere();
             }
         }
 
