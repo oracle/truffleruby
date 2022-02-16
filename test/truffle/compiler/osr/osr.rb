@@ -10,10 +10,10 @@
 
 abort 'not running the GraalVM Compiler' unless TruffleRuby.jit?
 
-timeout = Time.now + 30
+timeout = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 60
 
 begin
-  while Time.now < timeout
+  while Process.clock_gettime(Process::CLOCK_MONOTONIC) < timeout
     Primitive.assert_not_compiled
   end
 
