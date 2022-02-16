@@ -79,7 +79,7 @@ public class YieldExpressionNode extends RubyContextSourceNode {
             argumentsObjects = unsplat(argumentsObjects);
         }
 
-        return getYieldNode().yield((RubyProc) block, argumentsObjects);
+        return getYieldNode().yield((RubyProc) block, descriptor, argumentsObjects);
     }
 
     private Object readBlock(VirtualFrame frame) {

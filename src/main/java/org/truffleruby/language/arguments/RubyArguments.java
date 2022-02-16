@@ -97,8 +97,9 @@ public final class RubyArguments {
                 frameOnStackMarker,
                 self,
                 block,
+                EmptyArgumentsDescriptor.INSTANCE,
                 arguments);
-    }
+    };
 
     public static Object[] pack(
             MaterializedFrame declarationFrame,
@@ -109,6 +110,28 @@ public final class RubyArguments {
             Object self,
             Object block,
             Object[] arguments) {
+        return pack(
+                declarationFrame,
+                callerFrameOrVariables,
+                method,
+                declarationContext,
+                frameOnStackMarker,
+                self,
+                block,
+                EmptyArgumentsDescriptor.INSTANCE,
+                arguments);
+    };
+
+    public static Object[] pack(
+            MaterializedFrame declarationFrame,
+            Object callerFrameOrVariables,
+            InternalMethod method,
+            DeclarationContext declarationContext,
+            FrameOnStackMarker frameOnStackMarker,
+            Object self,
+            Object block,
+            ArgumentsDescriptor descriptor,
+            Object[] arguments) {
         final Object[] packed = new Object[RUNTIME_ARGUMENT_COUNT + arguments.length];
 
         packed[ArgumentIndicies.DECLARATION_FRAME.ordinal()] = declarationFrame;
@@ -118,7 +141,7 @@ public final class RubyArguments {
         packed[ArgumentIndicies.FRAME_ON_STACK_MARKER.ordinal()] = frameOnStackMarker;
         packed[ArgumentIndicies.SELF.ordinal()] = self;
         packed[ArgumentIndicies.BLOCK.ordinal()] = block;
-        packed[ArgumentIndicies.DESCRIPTOR.ordinal()] = EmptyArgumentsDescriptor.INSTANCE;
+        packed[ArgumentIndicies.DESCRIPTOR.ordinal()] = descriptor;
 
         ArrayUtils.arraycopy(arguments, 0, packed, RUNTIME_ARGUMENT_COUNT, arguments.length);
 

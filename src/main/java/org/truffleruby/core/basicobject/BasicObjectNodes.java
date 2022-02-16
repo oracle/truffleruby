@@ -43,6 +43,7 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -442,7 +443,8 @@ public abstract class BasicObjectNodes {
                     new SingletonClassOfSelfDefaultDefinee(receiver),
                     block.declarationContext.getRefinements());
             return callBlockNode
-                    .executeCallBlock(declarationContext, block, receiver, block.block, arguments);
+                    .executeCallBlock(declarationContext, block, receiver, block.block,
+                            EmptyArgumentsDescriptor.INSTANCE, arguments);
         }
 
         @Specialization

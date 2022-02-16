@@ -82,6 +82,37 @@ module ArgumentsDescriptorSpecs
       [a, Primitive.arguments_descriptor, Primitive.arguments]
     end
   end
+
+  class A
+    def implicit_super(a:, b:)
+      [a, b, Primitive.arguments_descriptor, Primitive.arguments]
+
+    end
+
+    def explicit_super(a:, b:)
+      [a, b, Primitive.arguments_descriptor, Primitive.arguments]
+    end
+  end
+
+  class B < A
+    def implicit_super(a:, b:)
+      super
+    end
+
+    def explicit_super(a:, b:)
+      super(a: a, b: b)
+    end
+  end
+
+  def self.yielder(a, b)
+    yield(a: a, b: b)
+  end
+
+  def self.use_yielder(x, y)
+    yielder(x, y) do |a:, b:|
+      [a, b, Primitive.arguments_descriptor, Primitive.arguments]
+    end
+  end
 end
 
 describe "Arguments descriptors" do
@@ -193,5 +224,17 @@ describe "Arguments descriptors" do
 
   it "work through custom new with rest" do
     ArgumentsDescriptorSpecs::NewRest.new(a: 1, b: 2).should == [[{a: 1, b: 2}], ArgumentsDescriptorSpecs.tr? ? [:a, :b, 0, true] : [], ArgumentsDescriptorSpecs.tr? ? [{a: 1, b: 2}] : []]
+  end
+
+  it "work through implicit super" do
+    ArgumentsDescriptorSpecs::A.new.implicit_super(a: 1, b: 2).should == [1, 2, ArgumentsDescriptorSpecs.tr? ? [:a, :b, 0, true] : [], ArgumentsDescriptorSpecs.tr? ? [{a: 1, b: 2}] : []]
+  end
+
+  it "work through explicit super" do
+    ArgumentsDescriptorSpecs::A.new.explicit_super(a: 1, b: 2).should == [1, 2, ArgumentsDescriptorSpecs.tr? ? [:a, :b, 0, true] : [], ArgumentsDescriptorSpecs.tr? ? [{a: 1, b: 2}] : []]
+  end
+
+  it "work through yield" do
+    ArgumentsDescriptorSpecs.use_yielder(1, 2).should == [1, 2, ArgumentsDescriptorSpecs.tr? ? [:a, :b, 0, true] : [], ArgumentsDescriptorSpecs.tr? ? [{a: 1, b: 2}] : []]
   end
 end
