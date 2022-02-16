@@ -50,7 +50,6 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
@@ -581,10 +580,7 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization
         protected RubyArray arguments(VirtualFrame frame) {
-            return ArrayHelpers.createArray(
-                    getContext(),
-                    getLanguage(),
-                    RubyArguments.getArguments(frame));
+            return createArray(RubyArguments.getArguments(frame));
         }
 
     }
@@ -600,7 +596,7 @@ public abstract class VMPrimitiveNodes {
         @TruffleBoundary
         private RubyArray descriptorToArray(ArgumentsDescriptor descriptor) {
             if (descriptor == EmptyArgumentsDescriptor.INSTANCE) {
-                return ArrayHelpers.createEmptyArray(getContext(), getLanguage());
+                return createEmptyArray();
             } else if (descriptor instanceof NonEmptyArgumentsDescriptor) {
                 final NonEmptyArgumentsDescriptor nonEmpty = (NonEmptyArgumentsDescriptor) descriptor;
 
@@ -611,10 +607,7 @@ public abstract class VMPrimitiveNodes {
                 final Stream<Object> other = Stream.of(nonEmpty.getKeywordHashIndex(),
                         nonEmpty.isKeywordHashElidable());
 
-                return ArrayHelpers.createArray(
-                        getContext(),
-                        getLanguage(),
-                        Stream.concat(keywordArguments, other).toArray());
+                return createArray(Stream.concat(keywordArguments, other).toArray());
             } else {
                 throw CompilerDirectives.shouldNotReachHere();
             }
