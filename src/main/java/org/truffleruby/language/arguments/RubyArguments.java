@@ -39,7 +39,8 @@ public final class RubyArguments {
         DECLARATION_CONTEXT,        // 3 DeclarationContext
         FRAME_ON_STACK_MARKER,      // 4 FrameOnStackMarker or null
         SELF,                       // 5 RubyGuards.assertIsValidRubyValue
-        BLOCK                       // 6 RubyProc or Nil
+        BLOCK,                      // 6 RubyProc or Nil
+        DESCRIPTOR                  // 7 ArgumentDescriptor
         // user arguments follow, each RubyGuards.assertIsValidRubyValue
     }
 
@@ -69,6 +70,8 @@ public final class RubyArguments {
 
         final Object block = arguments[ArgumentIndicies.BLOCK.ordinal()];
         assert block instanceof RubyProc || block == Nil.INSTANCE : block;
+
+        assert arguments[ArgumentIndicies.DESCRIPTOR.ordinal()] instanceof ArgumentsDescriptor;
 
         final int userArgumentsCount = arguments.length - RUNTIME_ARGUMENT_COUNT;
         assert ArrayUtils.assertValidElements(arguments, RUNTIME_ARGUMENT_COUNT, userArgumentsCount);
@@ -114,6 +117,7 @@ public final class RubyArguments {
         packed[ArgumentIndicies.FRAME_ON_STACK_MARKER.ordinal()] = frameOnStackMarker;
         packed[ArgumentIndicies.SELF.ordinal()] = self;
         packed[ArgumentIndicies.BLOCK.ordinal()] = block;
+        packed[ArgumentIndicies.DESCRIPTOR.ordinal()] = EmptyArgumentsDescriptor.INSTANCE;
 
         ArrayUtils.arraycopy(arguments, 0, packed, RUNTIME_ARGUMENT_COUNT, arguments.length);
 
@@ -131,6 +135,7 @@ public final class RubyArguments {
         final Object[] newArgs = new Object[rubyArgs.length];
         newArgs[ArgumentIndicies.SELF.ordinal()] = receiver;
         newArgs[ArgumentIndicies.BLOCK.ordinal()] = getBlock(rubyArgs);
+        newArgs[ArgumentIndicies.DESCRIPTOR.ordinal()] = getDescriptor(rubyArgs);
         int count = rubyArgs.length - RUNTIME_ARGUMENT_COUNT;
         System.arraycopy(rubyArgs, RUNTIME_ARGUMENT_COUNT, newArgs, RUNTIME_ARGUMENT_COUNT, count);
         return newArgs;
@@ -146,6 +151,7 @@ public final class RubyArguments {
         final Object[] newArgs = new Object[RUNTIME_ARGUMENT_COUNT + to + count];
         newArgs[ArgumentIndicies.SELF.ordinal()] = receiver;
         newArgs[ArgumentIndicies.BLOCK.ordinal()] = getBlock(rubyArgs);
+        newArgs[ArgumentIndicies.DESCRIPTOR.ordinal()] = getDescriptor(rubyArgs);
         System.arraycopy(rubyArgs, RUNTIME_ARGUMENT_COUNT + from, newArgs, RUNTIME_ARGUMENT_COUNT + to, count);
         return newArgs;
     }
@@ -267,6 +273,15 @@ public final class RubyArguments {
         /* We put into the frame arguments either a Nil or RubyProc, so that's all we'll get out at this point. */
         assert block instanceof Nil || block instanceof RubyProc : StringUtils.toString(block);
         return block;
+    }
+
+    public static void setDescriptor(Object[] args, ArgumentsDescriptor descriptor) {
+        assert descriptor != null;
+        args[ArgumentIndicies.DESCRIPTOR.ordinal()] = descriptor;
+    }
+
+    public static ArgumentsDescriptor getDescriptor(Object[] args) {
+        return (ArgumentsDescriptor) args[ArgumentIndicies.DESCRIPTOR.ordinal()];
     }
 
     /** Get the number of user argument inside the frame arguments */
