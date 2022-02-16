@@ -132,6 +132,8 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         }
 
         public ArrayList<Object> getKeptObjects() {
+            assert current.previous != null;
+
             return current.preservedObjects;
         }
 

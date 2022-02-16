@@ -645,7 +645,7 @@ module Truffle::CExt
 
   def rb_tracepoint_new(events, func, data)
     TracePoint.new(*events_to_events_array(events)) do |tp|
-      Primitive.call_with_c_mutex(func, [tp, data])
+      Primitive.call_with_c_mutex_and_frame(func, [tp, data], Primitive.caller_special_variables_if_available, nil)
     end
   end
 
@@ -976,13 +976,13 @@ module Truffle::CExt
   def rb_proc_new(function, value)
     Proc.new do |*args, &block|
       Primitive.cext_unwrap(
-          Primitive.call_with_c_mutex(function, [
+          Primitive.call_with_c_mutex_and_frame(function, [
               Primitive.cext_wrap(args.first), # yieldarg
               Primitive.cext_wrap(value), # procarg,
               args.size, # argc
               Truffle::CExt.RARRAY_PTR(args), # argv
               Primitive.cext_wrap(block), # blockarg
-          ]))
+          ], Primitive.caller_special_variables_if_available, nil))
     end
   end
 
@@ -1218,7 +1218,7 @@ module Truffle::CExt
   def rb_enumeratorize_with_size(obj, meth, args, size_fn)
     return rb_enumeratorize(obj, meth, args) if size_fn.nil?
     enum = obj.to_enum(meth, *args) do
-      Primitive.cext_unwrap(Primitive.call_with_c_mutex(size_fn, [Primitive.cext_wrap(obj), Primitive.cext_wrap(args), Primitive.cext_wrap(enum)]))
+      Primitive.cext_unwrap(Primitive.call_with_c_mutex_and_frame(size_fn, [Primitive.cext_wrap(obj), Primitive.cext_wrap(args), Primitive.cext_wrap(enum)], Primitive.caller_special_variables_if_available, nil))
     end
     enum
   end
@@ -1233,7 +1233,7 @@ module Truffle::CExt
 
   def rb_define_alloc_func(ruby_class, function)
     ruby_class.singleton_class.define_method(:__allocate__) do
-      Primitive.cext_unwrap(Primitive.call_with_c_mutex(function, [Primitive.cext_wrap(self)]))
+      Primitive.cext_unwrap(Primitive.call_with_c_mutex_and_frame(function, [Primitive.cext_wrap(self)], Primitive.caller_special_variables_if_available, nil))
     end
     class << ruby_class
       private :__allocate__
@@ -1418,7 +1418,7 @@ module Truffle::CExt
   end
 
   def rb_set_end_proc(func, data)
-    at_exit { Primitive.call_with_c_mutex(func, [data]) }
+    at_exit { Primitive.call_with_c_mutex_and_frame(func, [data], Primitive.caller_special_variables_if_available, nil) }
   end
 
   def rb_data_object_wrap(ruby_class, data, mark, free)
@@ -1452,6 +1452,7 @@ module Truffle::CExt
     raise unless free.respond_to?(:call)
     proc {
       data = data_holder.data
+      # This call does not require a frame as the finalisation processor will push one.
       Primitive.call_with_c_mutex(free, [data]) unless Truffle::Interop.null?(data)
     }
   end
@@ -1461,6 +1462,7 @@ module Truffle::CExt
     proc { |obj|
       create_mark_list(obj)
       data = data_holder.data
+      # This call is done without pushing a new frame as the marking service manages frames itself.
       Primitive.call_with_c_mutex(mark, [data]) unless Truffle::Interop.null?(data)
       set_mark_list_on_object(obj)
     }
@@ -1469,7 +1471,7 @@ module Truffle::CExt
   def data_sizer(sizer, data_holder)
     raise unless sizer.respond_to?(:call)
     proc {
-      Primitive.call_with_c_mutex(sizer, [data_holder.data])
+      Primitive.call_with_c_mutex_and_frame(sizer, [data_holder.data], Primitive.caller_special_variables_if_available, nil)
     }
   end
 
@@ -1637,7 +1639,7 @@ module Truffle::CExt
 
   def rb_thread_create(fn, args)
     Thread.new do
-      Primitive.call_with_c_mutex(fn, [args])
+      Primitive.call_with_c_mutex_and_frame(fn, [args], Primitive.caller_special_variables_if_available, nil)
     end
   end
 
@@ -1774,11 +1776,11 @@ module Truffle::CExt
     id = name.to_sym
 
     getter_proc = -> {
-      Primitive.cext_unwrap(Primitive.call_with_c_mutex(getter, [Primitive.cext_wrap(id), gvar, Primitive.cext_wrap(nil)]))
+      Primitive.cext_unwrap(Primitive.call_with_c_mutex_and_frame(getter, [Primitive.cext_wrap(id), gvar, Primitive.cext_wrap(nil)], Primitive.caller_special_variables_if_available, nil))
     }
 
     setter_proc = -> value {
-      Primitive.call_with_c_mutex(setter, [Primitive.cext_wrap(value), Primitive.cext_wrap(id), gvar, Primitive.cext_wrap(nil)])
+      Primitive.call_with_c_mutex_and_frame(setter, [Primitive.cext_wrap(value), Primitive.cext_wrap(id), gvar, Primitive.cext_wrap(nil)], Primitive.caller_special_variables_if_available, nil)
     }
 
     Truffle::KernelOperations.define_hooked_variable id, getter_proc, setter_proc
@@ -1900,13 +1902,13 @@ module Truffle::CExt
   def rb_fiber_new(function, value)
     Fiber.new do |*args|
       Primitive.cext_unwrap(
-        Primitive.call_with_c_mutex(function, [
+        Primitive.call_with_c_mutex_and_frame(function, [
           Primitive.cext_wrap(args.first), # yieldarg
           nil, # procarg,
           0, # argc
           nil, # argv
           nil, # blockarg
-        ]))
+        ], nil, nil))
     end
   end
 
