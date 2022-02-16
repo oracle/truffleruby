@@ -50,6 +50,8 @@ when /x86_64-linux/
   EXTRA_CFLAGS << ' -D_GNU_SOURCE'
 when /x86_64-darwin/
   PLATFORM_FILE = 'org/truffleruby/platform/DarwinAMD64NativeConfiguration.java'
+when /arm64.*-darwin/
+  PLATFORM_FILE = 'org/truffleruby/platform/DarwinARM64NativeConfiguration.java'
 else
   raise "Unsupported platform #{RUBY_PLATFORM}"
 end
