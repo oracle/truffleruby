@@ -104,6 +104,7 @@ import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyEvalInteractiveRootNode;
 import org.truffleruby.language.RubyInlineParsingRequestNode;
 import org.truffleruby.language.RubyParsingRequestNode;
+import org.truffleruby.language.arguments.ArgumentsDescriptorManager;
 import org.truffleruby.language.objects.RubyObjectType;
 import org.truffleruby.language.objects.classvariables.ClassVariableStorage;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
@@ -207,6 +208,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final RopeCache ropeCache;
     public final RegexpTable regexpTable;
     public final SymbolTable symbolTable;
+    public final ArgumentsDescriptorManager argumentsDescriptorManager = new ArgumentsDescriptorManager();
     public final FrozenStringLiterals frozenStringLiterals;
 
     public final ReferenceQueue<Object> sharedReferenceQueue = new ReferenceQueue<>();

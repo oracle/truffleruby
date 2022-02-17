@@ -281,6 +281,10 @@ public final class RubyArguments {
         args[ArgumentIndicies.DESCRIPTOR.ordinal()] = descriptor;
     }
 
+    public static ArgumentsDescriptor getDescriptor(Frame frame) {
+        return getDescriptor(frame.getArguments());
+    }
+
     public static ArgumentsDescriptor getDescriptor(Object[] args) {
         return (ArgumentsDescriptor) args[ArgumentIndicies.DESCRIPTOR.ordinal()];
     }

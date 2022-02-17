@@ -1,0 +1,2 @@
+fails:Arguments descriptors work for a mixture of arguments
+fails:Arguments descriptors work for a call like our Struct.new
