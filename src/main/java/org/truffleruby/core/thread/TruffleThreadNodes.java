@@ -66,7 +66,7 @@ public class TruffleThreadNodes {
             } else {
                 CallerDataReadingNode.notifyCallerToSendData(getContext(), data.callNode, this);
                 Object variables = storageNode.execute(data.frame.materialize());
-                getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack.setVariables(variables);
+                getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack.setSpecialVariables(variables);
                 return variables;
             }
         }

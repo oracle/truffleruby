@@ -449,7 +449,7 @@ public class FeatureLoader {
                 final Object initFunction = findFunctionInLibrary(library, "rb_tr_init", rubyLibPath);
 
                 final InteropLibrary interop = InteropLibrary.getFactory().getUncached();
-                language.getCurrentThread().getCurrentFiber().extensionCallStack.push(null, Nil.INSTANCE);
+                language.getCurrentThread().getCurrentFiber().extensionCallStack.push(Nil.INSTANCE, Nil.INSTANCE);
                 try {
                     // rb_tr_init(Truffle::CExt)
                     interop.execute(initFunction, truffleCExt);

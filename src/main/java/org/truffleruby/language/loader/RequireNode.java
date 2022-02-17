@@ -282,9 +282,9 @@ public abstract class RequireNode extends RubyBaseNode {
         }
 
         requireMetric("before-execute-" + feature);
-        getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack.push(null, nil);
+        ValueWrapperManager.allocateNewBlock(getContext(), getLanguage());
+        getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack.push(nil, nil);
         try {
-            ValueWrapperManager.allocateNewBlock(getContext(), getLanguage());
             InteropNodes
                     .execute(
                             initFunction,
@@ -292,8 +292,8 @@ public abstract class RequireNode extends RubyBaseNode {
                             initFunctionInteropLibrary,
                             TranslateInteropExceptionNode.getUncached());
         } finally {
-            ValueWrapperManager.allocateNewBlock(getContext(), getLanguage());
             getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack.pop();
+            ValueWrapperManager.allocateNewBlock(getContext(), getLanguage());
             requireMetric("after-execute-" + feature);
         }
     }

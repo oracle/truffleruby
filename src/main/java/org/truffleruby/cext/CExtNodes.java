@@ -726,7 +726,7 @@ public class CExtNodes {
 
         @Specialization
         protected Object variables() {
-            return getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack.getVariables();
+            return getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack.getSpecialVariables();
         }
     }
 
