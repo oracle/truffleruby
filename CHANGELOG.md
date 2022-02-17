@@ -10,6 +10,7 @@ Bug fixes:
 * Fixed `String#split` to return empty array when splitting all whitespace on whitespace (#2565, @bjfish).
 * Raise `RangeError` for `Time.at(bignum)` (#2580, @eregon).
 * Fix `Integer#{<<,>>}` with RHS bignum and long (@eregon).
+* Fix a resource leak from allocators defined in C extensions (@aardvark179).
 
 Compatibility:
 

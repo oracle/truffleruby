@@ -87,7 +87,7 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         @TruffleBoundary
         public void runAllMarkers(RubyContext context, RubyLanguage language) {
             final ExtensionCallStack stack = language.getCurrentThread().getCurrentFiber().extensionCallStack;
-            stack.push(stack.getVariables(), stack.getBlock());
+            stack.push(stack.getSpecialVariables(), stack.getBlock());
             try {
                 // TODO (eregon, 15 Sept 2020): there seems to be no synchronization here while walking the list of
                 // markingService, and concurrent mutations seem to be possible.
@@ -115,23 +115,25 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         protected final ExtensionCallStackEntry previous;
         protected final ArrayList<Object> preservedObjects = new ArrayList<>();
         protected final Object block;
-        protected Object variables;
+        protected Object specialVariables;
 
-        protected ExtensionCallStackEntry(ExtensionCallStackEntry previous, Object variables, Object block) {
+        protected ExtensionCallStackEntry(ExtensionCallStackEntry previous, Object specialVariables, Object block) {
             this.previous = previous;
             this.block = block;
-            this.variables = variables;
+            this.specialVariables = specialVariables;
         }
     }
 
     public static class ExtensionCallStack {
         protected ExtensionCallStackEntry current;
 
-        public ExtensionCallStack(Object variables, Object block) {
-            current = new ExtensionCallStackEntry(null, variables, block);
+        public ExtensionCallStack(Object specialVariables, Object block) {
+            current = new ExtensionCallStackEntry(null, specialVariables, block);
         }
 
         public ArrayList<Object> getKeptObjects() {
+            assert current.previous != null;
+
             return current.preservedObjects;
         }
 
@@ -139,16 +141,16 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
             current = current.previous;
         }
 
-        public void push(Object variable, Object block) {
-            current = new ExtensionCallStackEntry(current, variable, block);
+        public void push(Object specialVariables, Object block) {
+            current = new ExtensionCallStackEntry(current, specialVariables, block);
         }
 
-        public Object getVariables() {
-            return current.variables;
+        public Object getSpecialVariables() {
+            return current.specialVariables;
         }
 
-        public void setVariables(Object variables) {
-            current.variables = variables;
+        public void setSpecialVariables(Object specialVariables) {
+            current.specialVariables = specialVariables;
         }
 
         public Object getBlock() {
