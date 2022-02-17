@@ -12,11 +12,11 @@ module ArgumentsDescriptorSpecs
   unless tr?
     module Primitive
       def self.arguments_descriptor
-        []
+        nil
       end
 
       def self.arguments
-        []
+        nil
       end
     end
   end
@@ -123,7 +123,6 @@ describe "Arguments descriptors" do
     info.values.should == [1, 2]
     info.descriptor.should == [] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == [1, 2] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new([1, 2], [], ArgumentsDescriptorSpecs.tr? ? [1, 2]: [])
   end
 
   it "contain keyword arguments" do
@@ -131,7 +130,6 @@ describe "Arguments descriptors" do
     info.values.should == [1, 2]
     info.descriptor.should == [:a, :b, 0, true] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == [{a: 1, b: 2}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new([1, 2], ArgumentsDescriptorSpecs.tr? ? [:a, :b, 0, true] : [], ArgumentsDescriptorSpecs.tr? ? [{a: 1, b: 2}] : [])
   end
 
   it "contain optional keyword arguments" do
@@ -139,13 +137,11 @@ describe "Arguments descriptors" do
     info.values.should == [1, 2]
     info.descriptor.should == [:a, :b, 0, true] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == [{a: 1, b: 2}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new([1, 2], ArgumentsDescriptorSpecs.tr? ? [:a, :b, 0, true] : [], ArgumentsDescriptorSpecs.tr? ? [{a: 1, b: 2}] : [])
-    
+
     info = ArgumentsDescriptorSpecs.only_kws_and_opt(a: 1)
     info.values.should == [1, 101]
     info.descriptor.should == [:a, 0, true] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == [{a: 1}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new([1, 101], ArgumentsDescriptorSpecs.tr? ? [:a, 0, true] : [], ArgumentsDescriptorSpecs.tr? ? [{a: 1}] : [])
   end
 
   it "contain keyword arguments with positional arguments" do
@@ -153,7 +149,6 @@ describe "Arguments descriptors" do
     info.values.should == [1, 2]
     info.descriptor.should == [:b, 1, true] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == [1, {b: 2}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new([1, 2], ArgumentsDescriptorSpecs.tr? ? [:b, 1, true] : [], ArgumentsDescriptorSpecs.tr? ? [1, {b: 2}] : [])
   end
 
   it "contain optional keyword arguments with positional arguments" do
@@ -161,7 +156,6 @@ describe "Arguments descriptors" do
     info.values.should == [1, 2, 3]
     info.descriptor.should == [:b, :c, 1, true] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == [1, {b: 2, c: 3}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new([1, 2, 3], ArgumentsDescriptorSpecs.tr? ? [:b, :c, 1, true] : [], ArgumentsDescriptorSpecs.tr? ? [1, {b: 2, c: 3}] : [])
   end
 
   it "do not contain missing optional keyword arguments" do
@@ -169,13 +163,11 @@ describe "Arguments descriptors" do
     info.values.should == [1, 2, 102]
     info.descriptor.should == [:b, 1, true] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == [1, {b: 2}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new([1, 2, 102], ArgumentsDescriptorSpecs.tr? ? [:b, 1, true] : [], ArgumentsDescriptorSpecs.tr? ? [1, {b: 2}] : [])
-    
+
     info = ArgumentsDescriptorSpecs.posn_kws_defaults(1, c: 3)
     info.values.should == [1, 101, 3]
     info.descriptor.should == [:c, 1, true] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == [1, {c: 3}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new([1, 101, 3], ArgumentsDescriptorSpecs.tr? ? [:c, 1, true] : [], ArgumentsDescriptorSpecs.tr? ? [1, {c: 3}] : [])
   end
 
   it "do not contain the name of distant explicitly splatted keyword arguments" do
@@ -184,7 +176,6 @@ describe "Arguments descriptors" do
     info.values.should == [1, 2]
     info.descriptor.should == [:a, 0, false] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == [{a: 1, b: 2}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new([1, 2], ArgumentsDescriptorSpecs.tr? ? [:a, 0, false] : [], ArgumentsDescriptorSpecs.tr? ? [{a: 1, b: 2}] : [])
   end
 
   it "do not contain the name of near explicitly splatted keyword arguments" do
@@ -192,7 +183,6 @@ describe "Arguments descriptors" do
     info.values.should == [1, 2]
     info.descriptor.should == [:a, 0, false] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == [{a: 1, b: 2}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new([1, 2], ArgumentsDescriptorSpecs.tr? ? [:a, 0, false] : [], ArgumentsDescriptorSpecs.tr? ? [{a: 1, b: 2}] : [])
   end
 
   it "contain the name of present optional keyword arguments without the optional positional" do
@@ -200,7 +190,6 @@ describe "Arguments descriptors" do
     info.values.should == [1, 2, 3]
     info.descriptor.should == [:c, 1, true] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == [1, {c: 3}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new([1, 2, 3], ArgumentsDescriptorSpecs.tr? ? [:c, 1, true] : [], ArgumentsDescriptorSpecs.tr? ? [1, {c: 3}] : [])
   end
 
   it "work for a call like our Struct.new" do
@@ -208,37 +197,32 @@ describe "Arguments descriptors" do
     info.values.should == ['A', [:a, :b], 101]
     info.descriptor.should == [] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == ['A', :a, :b] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new(['A', [:a, :b], 101], [], ArgumentsDescriptorSpecs.tr? ? ['A', :a, :b] : [])
-    
+
     info = ArgumentsDescriptorSpecs.struct_new_like('A', :a, :b, c: 1)
     info.values.should == ['A', [:a, :b], 1]
     info.descriptor.should == [:c, 3, true] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == ['A', :a, :b, {c: 1}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new(['A', [:a, :b], 1], ArgumentsDescriptorSpecs.tr? ? [:c, 3, true] : [], ArgumentsDescriptorSpecs.tr? ? ['A', :a, :b, {c: 1}] : [])
-    
+
     info = ArgumentsDescriptorSpecs.struct_new_like('A', :a, :b, {c: 1})
     info.values.should == ['A', [:a, :b, {c: 1}], 101]
     info.descriptor.should == [] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == ['A', :a, :b, {c: 1}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new(['A', [:a, :b, {c: 1}], 101], [], ArgumentsDescriptorSpecs.tr? ? ['A', :a, :b, {c: 1}] : [])
-    
+
     info = ArgumentsDescriptorSpecs.struct_new_like('A', :a, :b, **{c: 1})
     info.values.should == ['A', [:a, :b], 1]
     info.descriptor.should == [] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == ['A', :a, :b, {c: 1}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new(['A', [:a, :b], 1], [], ArgumentsDescriptorSpecs.tr? ? ['A', :a, :b, {c: 1}] : [])
-    
+
     distant = {c: 1}
     info = ArgumentsDescriptorSpecs.struct_new_like('A', :a, :b, **distant)
     info.values.should == ['A', [:a, :b], 1]
     info.descriptor.should == [] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == ['A', :a, :b, {c: 1}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new(['A', [:a, :b], 1], [], ArgumentsDescriptorSpecs.tr? ? ['A', :a, :b, {c: 1}] : [])
-    
+
     -> { ArgumentsDescriptorSpecs.struct_new_like('A', :a, :b, d: 1) }.should raise_error(ArgumentError)
 
     -> { ArgumentsDescriptorSpecs.struct_new_like('A', :a, :b, **{d: 1}) }.should raise_error(ArgumentError)
-    
+
     distant = {d: 1}
     -> { ArgumentsDescriptorSpecs.struct_new_like('A', :a, :b, **distant) }.should raise_error(ArgumentError)
   end
@@ -257,7 +241,6 @@ describe "Arguments descriptors" do
     info.values.should == [1, {b: 2}]
     info.descriptor.should == [:b, 1, true] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == [1, {b: 2}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new([1, {b: 2}], ArgumentsDescriptorSpecs.tr? ? [:b, 1, true] : [], ArgumentsDescriptorSpecs.tr? ? [1, {b: 2}] : [])
   end
 
   it "expand a hash not used for keyword arguments" do
@@ -265,7 +248,6 @@ describe "Arguments descriptors" do
     info.values.should == [{a: 1, b: 2}]
     info.descriptor.should == [] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == [{a: 1, b: 2}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new([{a: 1, b: 2}], [], ArgumentsDescriptorSpecs.tr? ? [{a: 1, b: 2}] : [])
   end
 
   it "contain keyword argument names passed to a rest" do
@@ -273,7 +255,6 @@ describe "Arguments descriptors" do
     info.values.should == [[{a: 1, b: 2}]]
     info.descriptor.should == [:a, :b, 0, true] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == [{a: 1, b: 2}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new([[{a: 1, b: 2}]], ArgumentsDescriptorSpecs.tr? ? [:a, :b, 0, true] : [], ArgumentsDescriptorSpecs.tr? ? [{a: 1, b: 2}] : [])
   end
 
   it "contain keyword argument names passed to a keyword rest" do
@@ -281,7 +262,6 @@ describe "Arguments descriptors" do
     info.values.should == [{a: 1, b: 2}]
     info.descriptor.should == [:a, :b, 0, true] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == [{a: 1, b: 2}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new([{a: 1, b: 2}], ArgumentsDescriptorSpecs.tr? ? [:a, :b, 0, true] : [], ArgumentsDescriptorSpecs.tr? ? [{a: 1, b: 2}] : [])
   end
 
   it "contain keyword argument names passed to a combined keyword rest" do
@@ -289,19 +269,16 @@ describe "Arguments descriptors" do
     info.values.should == [1, {}]
     info.descriptor.should == [:a, 0, true] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == [{a: 1}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new([1, {}], ArgumentsDescriptorSpecs.tr? ? [:a, 0, true] : [], ArgumentsDescriptorSpecs.tr? ? [{a: 1}] : [])
-    
+
     info = ArgumentsDescriptorSpecs.kw_and_kw_rest(a: 1, b: 2, c: 3)
     info.values.should == [1, {b: 2, c: 3}]
     info.descriptor.should == [:a, :b, :c, 0, true] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == [{a: 1, b: 2, c: 3}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new([1, {b: 2, c: 3}], ArgumentsDescriptorSpecs.tr? ? [:a, :b, :c, 0, true] : [], ArgumentsDescriptorSpecs.tr? ? [{a: 1, b: 2, c: 3}] : [])
-    
+
     info = ArgumentsDescriptorSpecs.kw_and_kw_rest("abc" => 123, a: 1, b: 2)
     info.values.should == [1, {"abc" => 123, b: 2}]
     info.descriptor.should == [:a, :b, 0, false] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == [{"abc" => 123, a: 1, b: 2}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new([1, {"abc" => 123, b: 2}], ArgumentsDescriptorSpecs.tr? ? [:a, :b, 0, false] : [], ArgumentsDescriptorSpecs.tr? ? [{"abc" => 123, a: 1, b: 2}] : [])
   end
 
   it "work for a mixture of arguments" do
@@ -309,25 +286,21 @@ describe "Arguments descriptors" do
     info.values.should == [1, nil, nil, 2, nil, {}]
     info.descriptor.should == []  if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == [1, 2] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new([1, nil, nil, 2, nil, {}], ArgumentsDescriptorSpecs.tr? ? [] : [], ArgumentsDescriptorSpecs.tr? ? [1, 2] : [])
-    
+
     info = ArgumentsDescriptorSpecs.mixture(1, 2, e: 3)
     info.values.should == [1, nil, nil, 2, 3, {}]
     info.descriptor.should == [:e, 2, true] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == [1, 2, {e: 3}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new([1, nil, nil, 2, 3, {}], ArgumentsDescriptorSpecs.tr? ? [:e, 2, true] : [], ArgumentsDescriptorSpecs.tr? ? [1, 2, {e: 3}] : [])
-    
+
     info = ArgumentsDescriptorSpecs.mixture(1, 2, {foo: :bar})
     info.values.should == [1, 2, nil, {:foo=>:bar}, nil, {}]
     info.descriptor.should == [] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == [1, 2, {foo: :bar}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new([1, 2, nil, {:foo=>:bar}, nil, {}], ArgumentsDescriptorSpecs.tr? ? [] : [], ArgumentsDescriptorSpecs.tr? ? [1, 2, {foo: :bar}] : [])
-    
+
     info = ArgumentsDescriptorSpecs.mixture(1, {foo: :bar})
     info.values.should == [1, nil, nil, {foo: :bar}, nil, {}]
     info.descriptor.should == [-1] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == [1, {foo: :bar}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new([1, nil, nil, {foo: :bar}, nil, {}], ArgumentsDescriptorSpecs.tr? ? [-1] : [], ArgumentsDescriptorSpecs.tr? ? [1, {foo: :bar}] : [])
   end
 
   it "work through an inlined call abstraction" do
@@ -347,7 +320,6 @@ describe "Arguments descriptors" do
     info.values.should == [1, 2]
     info.descriptor.should == [:a, :b, 0, true] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == [{a: 1, b: 2}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new([1, 2], ArgumentsDescriptorSpecs.tr? ? [:a, :b, 0, true] : [], ArgumentsDescriptorSpecs.tr? ? [{a: 1, b: 2}] : [])
   end
 
   it "work through custom new with rest" do
@@ -355,7 +327,6 @@ describe "Arguments descriptors" do
     info.values.should == [[{a: 1, b: 2}]]
     info.descriptor.should == [:a, :b, 0, true] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == [{a: 1, b: 2}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new([[{a: 1, b: 2}]], ArgumentsDescriptorSpecs.tr? ? [:a, :b, 0, true] : [], ArgumentsDescriptorSpecs.tr? ? [{a: 1, b: 2}] : [])
   end
 
   it "work through implicit super" do
@@ -363,7 +334,6 @@ describe "Arguments descriptors" do
     info.values.should == [1, 2]
     info.descriptor.should == [:a, :b, 0, true] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == [{a: 1, b: 2}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new([1, 2], ArgumentsDescriptorSpecs.tr? ? [:a, :b, 0, true] : [], ArgumentsDescriptorSpecs.tr? ? [{a: 1, b: 2}] : [])
   end
 
   it "work through explicit super" do
@@ -371,7 +341,6 @@ describe "Arguments descriptors" do
     info.values.should == [1, 2]
     info.descriptor.should == [:a, :b, 0, true] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == [{a: 1, b: 2}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new([1, 2], ArgumentsDescriptorSpecs.tr? ? [:a, :b, 0, true] : [], ArgumentsDescriptorSpecs.tr? ? [{a: 1, b: 2}] : [])
   end
 
   it "work through yield" do
@@ -379,6 +348,5 @@ describe "Arguments descriptors" do
     info.values.should == [1, 2]
     info.descriptor.should == [:a, :b, 0, true] if ArgumentsDescriptorSpecs.tr?
     info.arguments.should == [{a: 1, b: 2}] if ArgumentsDescriptorSpecs.tr?
-    info.should == ArgumentsDescriptorSpecs::Info.new([1, 2], ArgumentsDescriptorSpecs.tr? ? [:a, :b, 0, true] : [], ArgumentsDescriptorSpecs.tr? ? [{a: 1, b: 2}] : [])
   end
 end
