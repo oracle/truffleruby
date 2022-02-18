@@ -40,7 +40,7 @@ public final class RubyArguments {
         FRAME_ON_STACK_MARKER,      // 4 FrameOnStackMarker or null
         SELF,                       // 5 RubyGuards.assertIsValidRubyValue
         BLOCK,                      // 6 RubyProc or Nil
-        DESCRIPTOR                  // 7 ArgumentDescriptor
+        DESCRIPTOR                  // 7 ArgumentsDescriptor
         // user arguments follow, each RubyGuards.assertIsValidRubyValue
     }
 
@@ -71,7 +71,8 @@ public final class RubyArguments {
         final Object block = arguments[ArgumentIndicies.BLOCK.ordinal()];
         assert block instanceof RubyProc || block == Nil.INSTANCE : block;
 
-        assert arguments[ArgumentIndicies.DESCRIPTOR.ordinal()] instanceof ArgumentsDescriptor;
+        Object descriptor = arguments[ArgumentIndicies.DESCRIPTOR.ordinal()];
+        assert descriptor instanceof ArgumentsDescriptor : descriptor;
 
         final int userArgumentsCount = arguments.length - RUNTIME_ARGUMENT_COUNT;
         assert ArrayUtils.assertValidElements(arguments, RUNTIME_ARGUMENT_COUNT, userArgumentsCount);
