@@ -937,6 +937,7 @@ public class TruffleRegexpNodes {
                 assert startPos == 0 : "Simple Boolean match not supported with non-zero startPos";
 
                 final byte[] bytes = bytesNode.execute(rope);
+                // TODO: remove HostAccess in ContextPermissionsTest#testRequireGem when migrated to TruffleString
                 interopByteArray = getContext().getEnv().asGuestValue(bytes);
                 execMethod = "execBoolean";
             }

@@ -10,6 +10,7 @@
 package org.truffleruby;
 
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Value;
 import org.junit.Assert;
 import org.junit.Test;
@@ -42,7 +43,9 @@ public class ContextPermissionsTest {
 
     @Test
     public void testRequireGem() {
-        try (Context context = Context.newBuilder("ruby").allowIO(true).allowNativeAccess(true).build()) {
+        HostAccess arrayAccess = HostAccess.newBuilder().allowArrayAccess(true).build();
+        try (Context context = Context.newBuilder("ruby").allowIO(true).allowNativeAccess(true)
+                .allowHostAccess(arrayAccess).build()) {
             // NOTE: rake is a bundled gem, so it needs RubyGems to be required
             Assert.assertEquals("Rake", context.eval("ruby", "require 'rake'; Rake.to_s").asString());
         }
