@@ -119,6 +119,7 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         }
         Object[] rubyArgs = RubyArguments.allocate(arguments.length);
         RubyArguments.setSelf(rubyArgs, receiverObject);
+        RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
 
         executeArguments(frame, rubyArgs);
 
