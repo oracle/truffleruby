@@ -913,29 +913,40 @@ public class TruffleRegexpNodes {
             int fromIndex = fromPos;
             final Object interopByteArray;
             final String execMethod;
-            if (startPosNotZeroProfile.profile(startPos > 0)) {
-                // GR-32765: When adopting TruffleString, use a TruffleString substring here instead
-                // If startPos != 0, then fromPos == startPos.
-                assert fromPos == startPos;
-                fromIndex = 0;
 
-                if (getBytesObjectNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    getBytesObjectNode = insert(RopeNodes.GetBytesObjectNode.create());
+            if (createMatchDataProfile.profile(createMatchData)) {
+                if (startPosNotZeroProfile.profile(startPos > 0)) {
+                    // GR-32765: When adopting TruffleString, use a TruffleString substring here instead
+                    // If startPos != 0, then fromPos == startPos.
+                    assert fromPos == startPos;
+                    fromIndex = 0;
+
+                    if (getBytesObjectNode == null) {
+                        CompilerDirectives.transferToInterpreterAndInvalidate();
+                        getBytesObjectNode = insert(RopeNodes.GetBytesObjectNode.create());
+                    }
+                    interopByteArray = getBytesObjectNode.getRange(rope, startPos, toPos);
+                    execMethod = "exec";
+                } else {
+                    final byte[] bytes = bytesNode.execute(rope);
+                    interopByteArray = getContext().getEnv().asGuestValue(bytes);
+                    execMethod = "execBytes";
                 }
-                interopByteArray = getBytesObjectNode.getRange(rope, startPos, toPos);
-                execMethod = "exec";
             } else {
+                // Only strscan ever passes a non-zero startPos and that never uses `match?`.
+                assert startPos == 0 : "Simple Boolean match not supported with non-zero startPos";
+
                 final byte[] bytes = bytesNode.execute(rope);
+                // TODO: remove HostAccess in ContextPermissionsTest#testRequireGem when migrated to TruffleString
                 interopByteArray = getContext().getEnv().asGuestValue(bytes);
-                execMethod = "execBytes";
+                execMethod = "execBoolean";
             }
 
             final Object result = invoke(regexInterop, tRegex, execMethod, interopByteArray, fromIndex);
 
-            final boolean isMatch = (boolean) readMember(resultInterop, result, "isMatch");
-
             if (createMatchDataProfile.profile(createMatchData)) {
+                final boolean isMatch = (boolean) readMember(resultInterop, result, "isMatch");
+
                 if (matchFoundProfile.profile(isMatch)) {
                     final int groupCount = groupCountProfile
                             .profile((int) readMember(regexInterop, tRegex, "groupCount"));
@@ -956,7 +967,7 @@ public class TruffleRegexpNodes {
                     return nil;
                 }
             } else {
-                return isMatch;
+                return result;
             }
         }
 
