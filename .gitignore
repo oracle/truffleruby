@@ -100,6 +100,9 @@ doc/user/README.md
 # Ignore .rb files at the root, it's temporary files to debug some issue
 /*.rb
 
+# Ignore Seafoam generated illustrations
+/*.pdf
+
 # Jacoco
 jacoco.exec
 /coverage/
