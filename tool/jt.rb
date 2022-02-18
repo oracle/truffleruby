@@ -2071,7 +2071,7 @@ module Commands
         method = args.shift
       when '--watch'
         watch = true
-      when '-simplify'
+      when '--simplify'
         simplify = true
       when '--describe'
         describe = true
