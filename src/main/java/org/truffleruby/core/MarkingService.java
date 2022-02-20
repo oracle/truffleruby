@@ -42,12 +42,14 @@ public class MarkingService {
     protected static class ExtensionCallStackEntry {
 
         protected final ExtensionCallStackEntry previous;
+        protected ValueWrapper preservedObject;
         protected ArrayList<ValueWrapper> preservedObjects;
         protected final boolean keywordsGiven;
         protected Object specialVariables;
         protected final Object block;
         protected CapturedException capturedException;
-        protected ArrayList<ValueWrapper> forMarking;
+        protected ValueWrapper markOnExitObject;
+        protected ArrayList<ValueWrapper> markOnExitObjects;
         protected Object[] marks;
         protected int marksIndex = 0;
 
@@ -73,7 +75,24 @@ public class MarkingService {
         }
 
         public boolean hasKeptObjects() {
-            return current.preservedObjects != null;
+            return current.preservedObject != null;
+        }
+
+        public void keepObject(ValueWrapper value) {
+            if (current.preservedObject == null) {
+                current.preservedObject = value;
+            } else {
+                keepObjectOnList(value);
+            }
+        }
+
+        @TruffleBoundary
+        private void keepObjectOnList(ValueWrapper value) {
+            if (current.preservedObjects == null) {
+                current.preservedObjects = new ArrayList<>();
+                current.preservedObjects.add(current.preservedObject);
+            }
+            current.preservedObjects.add(value);
         }
 
         public ArrayList<ValueWrapper> getKeptObjects() {
@@ -85,17 +104,42 @@ public class MarkingService {
             return current.preservedObjects;
         }
 
+        public void markOnExitObject(ValueWrapper value) {
+            if (current.markOnExitObject == null) {
+                current.markOnExitObject = value;
+            } else {
+                markOnExitObjectOnList(value);
+            }
+        }
+
+        @TruffleBoundary
+        private void markOnExitObjectOnList(ValueWrapper value) {
+            if (current.markOnExitObjects == null) {
+                current.markOnExitObjects = new ArrayList<>();
+                current.markOnExitObjects.add(current.markOnExitObject);
+            }
+            current.markOnExitObjects.add(value);
+        }
+
         public ArrayList<ValueWrapper> getMarkOnExitObjects() {
             assert current.previous != null;
 
-            if (current.forMarking == null) {
-                current.forMarking = new ArrayList<>();
+            if (current.markOnExitObjects == null) {
+                current.markOnExitObjects = new ArrayList<>();
             }
-            return current.forMarking;
+            return current.markOnExitObjects;
         }
 
         public boolean hasMarkObjects() {
-            return current.forMarking != null;
+            return current.markOnExitObject != null;
+        }
+
+        public boolean hasSingleMarkObject() {
+            return current.markOnExitObject != null && current.markOnExitObjects == null;
+        }
+
+        public ValueWrapper getSingleMarkObject() {
+            return current.markOnExitObject;
         }
 
         public void pop() {
@@ -135,7 +179,7 @@ public class MarkingService {
         if (oldMarks == null) {
             stack.current.marks = ArrayUtils.EMPTY_ARRAY;
         } else {
-            stack.current.marks = new Object[oldMarks.length];
+            stack.current.marks = oldMarks;
         }
         stack.current.marksIndex = 0;
     }

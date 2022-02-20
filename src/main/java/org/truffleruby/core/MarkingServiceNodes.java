@@ -26,9 +26,8 @@ public class MarkingServiceNodes {
             addToList(getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack, object);
         }
 
-        @TruffleBoundary
         protected void addToList(ExtensionCallStack stack, ValueWrapper object) {
-            stack.getKeptObjects().add(object);
+            stack.keepObject(object);
         }
 
         public static KeepAliveNode create() {
@@ -46,9 +45,8 @@ public class MarkingServiceNodes {
             addToList(getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack, object);
         }
 
-        @TruffleBoundary
         protected void addToList(ExtensionCallStack stack, ValueWrapper object) {
-            stack.getMarkOnExitObjects().add(object);
+            stack.markOnExitObject(object);
         }
 
         public static QueueForMarkOnExitNode create() {
@@ -65,8 +63,15 @@ public class MarkingServiceNodes {
             // Do nothing.
         }
 
+        @Specialization(guards = "stack.hasSingleMarkObject()")
+        protected void markSingleObject(ExtensionCallStack stack,
+                @Cached DispatchNode callNode) {
+            ValueWrapper value = stack.getSingleMarkObject();
+            callNode.call(getContext().getCoreLibrary().truffleCExtModule, "run_marker", value.getObject());
+        }
+
         @TruffleBoundary
-        @Specialization(guards = "stack.hasMarkObjects()")
+        @Specialization(guards = { "stack.hasMarkObjects()", "!stack.hasSingleMarkObject()" })
         protected void marksToRun(ExtensionCallStack stack,
                 @Cached DispatchNode callNode) {
             // Run the markers...
