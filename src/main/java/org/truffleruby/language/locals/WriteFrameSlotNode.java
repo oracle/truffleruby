@@ -25,7 +25,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 @ImportStatic({ FrameSlotKind.class, RubyGuards.class })
 public abstract class WriteFrameSlotNode extends RubyBaseNode implements AssignableNode {
 
-    @CompilationFinal private FrameDescriptor descriptor;
+    @CompilationFinal private FrameDescriptor cachedDescriptor;
     private final int frameSlot;
 
     public WriteFrameSlotNode(int frameSlot) {
@@ -63,19 +63,15 @@ public abstract class WriteFrameSlotNode extends RubyBaseNode implements Assigna
     @Specialization(replaces = { "writeBoolean", "writeInt", "writeLong", "writeDouble" })
     protected void writeObject(Frame frame, Object value) {
         /* No-op if kind is already Object. */
-        frame.getFrameDescriptor().setSlotKind(frameSlot, FrameSlotKind.Object);
+        final FrameDescriptor descriptor = getFrameDescriptor(frame);
+        descriptor.setSlotKind(frameSlot, FrameSlotKind.Object);
 
         frame.setObject(frameSlot, value);
     }
 
     // Unused frame argument but needed to keep this as a dynamic check
     protected boolean isExpectedOrIllegal(Frame frame, FrameSlotKind expectedKind) {
-        if (descriptor == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            descriptor = frame.getFrameDescriptor();
-        }
-
-        assert frame.getFrameDescriptor() == descriptor;
+        final FrameDescriptor descriptor = getFrameDescriptor(frame);
 
         final FrameSlotKind kind = descriptor.getSlotKind(frameSlot);
         if (kind == expectedKind) {
@@ -85,6 +81,16 @@ public abstract class WriteFrameSlotNode extends RubyBaseNode implements Assigna
             return true;
         }
         return false;
+    }
+
+    private FrameDescriptor getFrameDescriptor(Frame frame) {
+        if (cachedDescriptor == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            cachedDescriptor = frame.getFrameDescriptor();
+        }
+
+        assert frame.getFrameDescriptor() == cachedDescriptor;
+        return cachedDescriptor;
     }
 
     @Override
