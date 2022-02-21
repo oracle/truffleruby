@@ -13,9 +13,11 @@ import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.profiles.IntValueProfile;
 
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayToObjectArrayNode extends RubyBaseNode {
@@ -34,8 +36,9 @@ public abstract class ArrayToObjectArrayNode extends RubyBaseNode {
     @Specialization(limit = "storageStrategyLimit()")
     protected Object[] toObjectArrayOther(RubyArray array,
             @Bind("array.getStore()") Object store,
+            @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
             @CachedLibrary("store") ArrayStoreLibrary stores) {
-        final int size = array.size;
+        final int size = sizeProfile.profile(array.size);
         return stores.boxedCopyOfRange(store, 0, size);
     }
 

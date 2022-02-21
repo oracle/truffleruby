@@ -30,7 +30,6 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
-import org.truffleruby.cext.CExtNodesFactory.CallWithCExtLockNodeFactory;
 import org.truffleruby.cext.CExtNodesFactory.StringToNativeNodeGen;
 import org.truffleruby.cext.UnwrapNode.UnwrapCArrayNode;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
@@ -165,25 +164,55 @@ public class CExtNodes {
     @Primitive(name = "call_with_c_mutex_and_frame")
     public abstract static class CallWithCExtLockAndFrameNode extends PrimitiveArrayArgumentsNode {
 
-        @Child protected CallWithCExtLockNode callCextNode = CallWithCExtLockNodeFactory.create(RubyNode.EMPTY_ARRAY);
         @Child protected MarkingServiceNodes.RunMarkOnExitNode runMarksNode = MarkingServiceNodes.RunMarkOnExitNode
                 .create();
 
-        @Specialization
+        @Specialization(limit = "getCacheLimit()")
         protected Object callWithCExtLockAndFrame(
-                VirtualFrame frame, Object receiver, RubyArray argsArray, Object specialVariables, Object block) {
-            final ExtensionCallStack extensionStack = getLanguage().getCurrentFiber().extensionCallStack;
+                VirtualFrame frame, Object receiver, RubyArray argsArray, Object specialVariables, Object block,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
+                @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
+                @Cached ConditionProfile ownedProfile,
+                @Cached MarkingServiceNodes.RunMarkOnExitNode runMarksNode) {
+            final ExtensionCallStack extensionStack = getLanguage()
+                    .getCurrentThread()
+                    .getCurrentFiber().extensionCallStack;
             final boolean keywordsGiven = RubyArguments.getDescriptor(frame) instanceof KeywordArgumentsDescriptor;
             extensionStack.push(keywordsGiven, specialVariables, block);
             try {
-                try {
-                    return callCextNode.execute(receiver, argsArray);
-                } finally {
-                    runMarksNode.execute(extensionStack);
+                final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
+
+                if (getContext().getOptions().CEXT_LOCK) {
+                    final ReentrantLock lock = getContext().getCExtensionsLock();
+                    boolean owned = ownedProfile.profile(lock.isHeldByCurrentThread());
+
+                    if (!owned) {
+                        MutexOperations.lockInternal(getContext(), lock, this);
+                    }
+                    try {
+                        return InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode);
+                    } finally {
+                        runMarksNode.execute(extensionStack);
+                        if (!owned) {
+                            MutexOperations.unlockInternal(lock);
+                        }
+                    }
+                } else {
+                    try {
+                        return InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode);
+                    } finally {
+                        runMarksNode.execute(extensionStack);
+                    }
                 }
+
             } finally {
                 extensionStack.pop();
             }
+        }
+
+        protected int getCacheLimit() {
+            return getLanguage().options.DISPATCH_CACHE;
         }
     }
 

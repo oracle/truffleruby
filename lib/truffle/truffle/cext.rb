@@ -1501,7 +1501,7 @@ module Truffle::CExt
       data_holder = Primitive.object_hidden_var_get obj, DATA_HOLDER
       data = Primitive.data_holder_get_data(data_holder)
       # This call is done without pushing a new frame as the marking service manages frames itself.
-      Primitive.call_with_c_mutex(mark, [data]) unless Truffle::Interop.null?(data)
+      mark.call(data) unless Truffle::Interop.null?(data)
       set_mark_list_on_object(obj)
     end
   end
