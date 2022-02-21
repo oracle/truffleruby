@@ -1434,8 +1434,11 @@ module Truffle::CExt
     object = ruby_class.__send__(:__layout_allocate__)
     data_holder = DataHolder.new(data)
     Primitive.object_hidden_var_set object, DATA_HOLDER, data_holder
-    ObjectSpace.define_finalizer object, data_finalizer(free, data_holder) unless free.nil?
+
+    Primitive.object_space_define_data_finalizer object, free, data_holder unless free.nil?
+
     define_marker object, data_marker(mark, data_holder) unless mark.nil?
+
     object
   end
 
@@ -1447,7 +1450,7 @@ module Truffle::CExt
     Primitive.object_hidden_var_set object, DATA_HOLDER, data_holder
     Primitive.object_hidden_var_set object, DATA_MEMSIZER, data_sizer(size, data_holder) unless size.nil?
 
-    ObjectSpace.define_finalizer object, data_finalizer(free, data_holder) unless free.nil?
+    Primitive.object_space_define_data_finalizer object, free, data_holder unless free.nil?
 
     define_marker object, data_marker(mark, data_holder) unless mark.nil?
     object
