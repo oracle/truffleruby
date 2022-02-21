@@ -78,10 +78,14 @@ public class MarkingService {
             return current.preservedObject != null;
         }
 
+        public boolean hasSingleKeptObject() {
+            return current.preservedObject != null && current.preservedObjects == null;
+        }
+
         public void keepObject(ValueWrapper value) {
             if (current.preservedObject == null) {
                 current.preservedObject = value;
-            } else {
+            } else if (current.preservedObject != value) {
                 keepObjectOnList(value);
             }
         }
@@ -107,7 +111,7 @@ public class MarkingService {
         public void markOnExitObject(ValueWrapper value) {
             if (current.markOnExitObject == null) {
                 current.markOnExitObject = value;
-            } else {
+            } else if (current.markOnExitObject != value) {
                 markOnExitObjectOnList(value);
             }
         }
