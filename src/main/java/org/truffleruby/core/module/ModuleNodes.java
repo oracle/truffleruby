@@ -79,7 +79,6 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyConstant;
-import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyLambdaRootNode;
@@ -106,6 +105,7 @@ import org.truffleruby.language.methods.CanBindMethodToModuleNode;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.DeclarationContext.FixedDefaultDefinee;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.methods.SetDeclarationFrameNode;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.methods.UsingNode;
@@ -1314,7 +1314,7 @@ public abstract class ModuleNodes {
             final RubyLambdaRootNode rootNode = RubyLambdaRootNode.of(callTargetForLambda);
             final SharedMethodInfo info = proc.sharedMethodInfo.forDefineMethod(module, name);
             final RubyNode body = rootNode.copyBody();
-            final RubyNode newBody = new CallMethodWithLambdaBody(proc.declarationFrame, body);
+            final RubyNode newBody = new SetDeclarationFrameNode(proc.declarationFrame, body);
 
             final RubyLambdaRootNode newRootNode = rootNode.copyRootNode(info, newBody);
             final RootCallTarget newCallTarget = newRootNode.getCallTarget();
@@ -1329,24 +1329,6 @@ public abstract class ModuleNodes {
                     proc,
                     newCallTarget);
             return addMethod(module, name, method, callerFrame);
-        }
-
-        private static class CallMethodWithLambdaBody extends RubyContextSourceNode {
-
-            private final MaterializedFrame declarationFrame;
-            @Child private RubyNode lambdaBody;
-
-            public CallMethodWithLambdaBody(MaterializedFrame declarationFrame, RubyNode lambdaBody) {
-                this.declarationFrame = declarationFrame;
-                this.lambdaBody = lambdaBody;
-            }
-
-            @Override
-            public Object execute(VirtualFrame frame) {
-                RubyArguments.setDeclarationFrame(frame, declarationFrame);
-                return lambdaBody.execute(frame);
-            }
-
         }
 
         @TruffleBoundary
@@ -2331,4 +2313,5 @@ public abstract class ModuleNodes {
             return rubyClass.isSingleton;
         }
     }
+
 }

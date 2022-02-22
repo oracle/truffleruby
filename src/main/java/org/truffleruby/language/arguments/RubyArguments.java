@@ -131,6 +131,18 @@ public final class RubyArguments {
         return new Object[RUNTIME_ARGUMENT_COUNT + count];
     }
 
+    public static Object[] repack(Object[] rubyArgs, InternalMethod method, Object receiver) {
+        // Duplicate logic for this case since it is significantly simpler
+        final Object[] newArgs = new Object[rubyArgs.length];
+        newArgs[ArgumentIndicies.METHOD.ordinal()] = method;
+        newArgs[ArgumentIndicies.SELF.ordinal()] = receiver;
+        newArgs[ArgumentIndicies.BLOCK.ordinal()] = getBlock(rubyArgs);
+        newArgs[ArgumentIndicies.DESCRIPTOR.ordinal()] = getDescriptor(rubyArgs);
+        int count = rubyArgs.length - RUNTIME_ARGUMENT_COUNT;
+        System.arraycopy(rubyArgs, RUNTIME_ARGUMENT_COUNT, newArgs, RUNTIME_ARGUMENT_COUNT, count);
+        return newArgs;
+    }
+
     public static Object[] repack(Object[] rubyArgs, Object receiver) {
         // Duplicate logic for this case since it is significantly simpler
         final Object[] newArgs = new Object[rubyArgs.length];

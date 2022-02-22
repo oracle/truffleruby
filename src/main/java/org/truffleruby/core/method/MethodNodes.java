@@ -34,7 +34,6 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyLambdaRootNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
@@ -44,6 +43,7 @@ import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.CallInternalMethodNode;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.methods.CallMethodWithDeclaredReceiverNode;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
@@ -54,7 +54,6 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
 
 @CoreModule(value = "Method", isClass = true)
@@ -326,17 +325,19 @@ public abstract class MethodNodes {
             final SourceSection sourceSection = method.getSharedMethodInfo().getSourceSection();
             final RubyRootNode methodRootNode = RubyRootNode.of(method.getCallTarget());
 
-            final SetReceiverNode setReceiverNode = new SetReceiverNode(method);
+            final CallMethodWithDeclaredReceiverNode callMethodNode = new CallMethodWithDeclaredReceiverNode(method);
+
             final RubyLambdaRootNode wrapRootNode = new RubyLambdaRootNode(
                     getLanguage(),
                     sourceSection,
                     methodRootNode.getFrameDescriptor(),
                     method.getSharedMethodInfo(),
-                    setReceiverNode,
+                    callMethodNode,
                     methodRootNode.getSplit(),
                     methodRootNode.returnID,
                     BreakID.INVALID,
                     method.getSharedMethodInfo().getArity());
+
             return wrapRootNode.getCallTarget();
         }
 
@@ -344,23 +345,6 @@ public abstract class MethodNodes {
             return getLanguage().options.METHOD_TO_PROC_CACHE;
         }
 
-    }
-
-    private static class SetReceiverNode extends RubyContextSourceNode {
-        private final InternalMethod method;
-        @Child private CallInternalMethodNode callInternalMethodNode = CallInternalMethodNode.create();
-
-        public SetReceiverNode(InternalMethod method) {
-            this.method = method;
-        }
-
-        @Override
-        public Object execute(VirtualFrame frame) {
-            final Object originalBoundMethodReceiver = RubyArguments.getSelf(RubyArguments.getDeclarationFrame(frame));
-            Object[] rubyArgs = RubyArguments.pack(null, null, method, null, originalBoundMethodReceiver,
-                    RubyArguments.getBlock(frame), RubyArguments.getArguments(frame));
-            return callInternalMethodNode.execute(frame, method, originalBoundMethodReceiver, rubyArgs);
-        }
     }
 
     @Primitive(name = "method_unimplement")
