@@ -2371,6 +2371,25 @@ public abstract class ArrayNodes {
                 @CachedLibrary("store") ArrayStoreLibrary stores) {
             return stores.isNative(store);
         }
+
+        @Specialization(guards = "!isRubyArray(array)")
+        protected boolean isStoreNativeNonArray(Object array) {
+            return false;
+        }
+    }
+
+    @Primitive(name = "array_mark_store")
+    @ImportStatic(ArrayGuards.class)
+    public abstract static class MarkNativeStoreNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected Object markNativeStore(RubyArray array) {
+            Object store = array.getStore();
+            if (store instanceof NativeArrayStorage) {
+                ((NativeArrayStorage) store).preserveMembers();
+            }
+            return nil;
+        }
     }
 
     @Primitive(name = "array_flatten_helper", lowerFixnum = 2)

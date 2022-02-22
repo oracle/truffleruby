@@ -1495,6 +1495,8 @@ module Truffle::CExt
   end
 
   def run_marker(obj)
+    Primitive.array_mark_store(obj) if Primitive.array_store_native?(obj)
+
     mark = Primitive.object_hidden_var_get obj, DATA_MARKER
     unless Truffle::Interop.null?(mark)
       create_mark_list(obj)

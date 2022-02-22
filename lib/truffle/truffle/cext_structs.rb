@@ -295,6 +295,7 @@ class Truffle::CExt::RArrayPtr
   end
 
   def polyglot_as_pointer
+    Primitive.cext_mark_object_on_call_exit(@array)
     Primitive.array_store_address(@array)
   end
 
