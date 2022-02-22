@@ -58,6 +58,7 @@ import org.truffleruby.core.kernel.KernelPrintLastLineNode;
 import org.truffleruby.language.DataNode;
 import org.truffleruby.language.EmitWarningsNode;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.RubyEvalRootNode;
 import org.truffleruby.language.RubyMethodRootNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -72,9 +73,6 @@ import org.truffleruby.language.locals.FrameDescriptorNamesIterator;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.CatchNextNode;
-import org.truffleruby.language.methods.CatchRetryAsErrorNode;
-import org.truffleruby.language.methods.CatchReturnAsErrorNode;
-import org.truffleruby.language.methods.ExceptionTranslatingNode;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.threadlocal.MakeSpecialVariableStorageNode;
@@ -326,18 +324,8 @@ public class TranslatorDriver {
 
         // Catch next
 
-        truffleNode = new CatchNextNode(truffleNode);
-
-        // Catch return
-
-        if (!parserContext.isTopLevel() && parserContext != ParserContext.INLINE) {
-            truffleNode = new CatchReturnAsErrorNode(truffleNode);
-        }
-
-        // Catch retry
-
-        if (!parserContext.isTopLevel()) { // Already done by RubyMethodRootNode
-            truffleNode = new CatchRetryAsErrorNode(truffleNode);
+        if (parserContext.isTopLevel()) {
+            truffleNode = new CatchNextNode(truffleNode);
         }
 
         // Top-level exception handling
@@ -353,10 +341,6 @@ public class TranslatorDriver {
                         new DataNode(node.getEndPosition()),
                         truffleNode));
             }
-        }
-
-        if (!parserContext.isTopLevel()) { // Already done by RubyMethodRootNode
-            truffleNode = new ExceptionTranslatingNode(truffleNode);
         }
 
         if (parserContext.isTopLevel()) {
@@ -383,7 +367,7 @@ public class TranslatorDriver {
                     environment.getReturnID(),
                     Arity.ANY_ARGUMENTS);
         } else {
-            rootNode = new RubyRootNode(
+            rootNode = new RubyEvalRootNode(
                     language,
                     sourceIndexLength.toSourceSection(source),
                     frameDescriptor,
