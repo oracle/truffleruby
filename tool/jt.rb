@@ -2362,6 +2362,8 @@ module Commands
         # sforceimports for optional suites imported in vm-enterprise like substratevm-enterprise-gcs
         vm_enterprise = File.expand_path '../graal-enterprise/vm-enterprise', TRUFFLERUBY_DIR
         mx('-p', vm_enterprise, '--env', env_path(env), 'sforceimports')
+        # And still make sure we import the graal revision as in mx.truffleruby/suite.py
+        mx('-p', TRUFFLERUBY_DIR, 'sforceimports')
       end
     end
 
