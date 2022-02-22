@@ -2060,6 +2060,7 @@ module Commands
 
     vm_args, remaining_args, _parsed_options = ruby_options({}, args)
     args = remaining_args
+    app_args = []
 
     until args.empty?
       arg = args.shift
@@ -2081,8 +2082,14 @@ module Commands
       when /^-/
         vm_args << arg
       else
-        raise if test_file
         test_file = arg
+        if dash = args.index('--')
+          app_args = [arg, *args[0...dash]]
+          args = args[dash..-1]
+        else
+          app_args = [arg, *args]
+          args.clear
+        end
       end
     end
 
@@ -2114,7 +2121,7 @@ module Commands
 
     loop do # for --watch
       compiled = false
-      command = [ruby_launcher, *vm_args, test_file]
+      command = [ruby_launcher, *vm_args, *app_args]
       STDERR.puts bold "$ #{printable_cmd(command)}" if @verbose
       IO.popen(command, err: [:child, :out]) do |pipe|
         pipe.each_line do |line|
