@@ -20,7 +20,7 @@ public enum ParserContext {
     INSTANCE_EVAL(false, true),
     /** Kernel#eval which is special because it sets new variables in the source in the Binding */
     EVAL(false, true),
-    /** DebugHelpers.eval() or InlineParsingRequest */
+    /** DebugHelpers.eval() or InlineParsingRequest, like EVAL but without the new variables handling */
     INLINE(false, true);
 
     private final boolean topLevel;

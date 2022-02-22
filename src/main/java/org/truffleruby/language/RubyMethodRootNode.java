@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.TruffleSafepoint;
@@ -26,6 +27,7 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.language.methods.TranslateExceptionNode;
+import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 
 public class RubyMethodRootNode extends RubyCheckArityRootNode {
 
@@ -50,6 +52,14 @@ public class RubyMethodRootNode extends RubyCheckArityRootNode {
         TruffleSafepoint.poll(this);
 
         checkArity(frame);
+
+        // Set the special variables slot eagerly if it was ever needed
+        assert SpecialVariableStorage.hasSpecialVariableStorageSlot(frame);
+        var specialVariablesAssumption = SpecialVariableStorage.getAssumption(frame.getFrameDescriptor());
+        CompilerAsserts.partialEvaluationConstant(specialVariablesAssumption);
+        if (!specialVariablesAssumption.isValid()) {
+            SpecialVariableStorage.set(frame, new SpecialVariableStorage());
+        }
 
         try {
             return body.execute(frame);
