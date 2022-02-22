@@ -46,7 +46,6 @@ import org.truffleruby.language.supercall.ReadSuperArgumentsNode;
 import org.truffleruby.language.supercall.ReadZSuperArgumentsNode;
 import org.truffleruby.language.supercall.SuperCallNode;
 import org.truffleruby.language.supercall.ZSuperOutsideMethodNode;
-import org.truffleruby.language.threadlocal.MakeSpecialVariableStorageNode;
 import org.truffleruby.parser.ast.ArgsParseNode;
 import org.truffleruby.parser.ast.MethodDefParseNode;
 import org.truffleruby.parser.ast.ParseNode;
@@ -384,7 +383,7 @@ public class MethodTranslator extends BodyTranslator {
 
         RubyNode body = translateNodeOrNil(sourceSection, bodyNode).simplifyAsTailExpression();
 
-        body = sequence(sourceSection, Arrays.asList(new MakeSpecialVariableStorageNode(), loadArguments, body));
+        body = sequence(sourceSection, Arrays.asList(loadArguments, body));
 
         if (environment.getFlipFlopStates().size() > 0) {
             body = sequence(sourceSection, Arrays.asList(initFlipFlopStates(environment, sourceSection), body));

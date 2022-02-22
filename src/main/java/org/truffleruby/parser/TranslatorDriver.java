@@ -75,7 +75,6 @@ import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.CatchNextNode;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.Split;
-import org.truffleruby.language.threadlocal.MakeSpecialVariableStorageNode;
 import org.truffleruby.parser.ast.RootParseNode;
 import org.truffleruby.parser.lexer.LexerSource;
 import org.truffleruby.parser.lexer.SyntaxException;
@@ -341,11 +340,6 @@ public class TranslatorDriver {
                         new DataNode(node.getEndPosition()),
                         truffleNode));
             }
-        }
-
-        if (parserContext.isTopLevel()) {
-            truffleNode = Translator
-                    .sequence(sourceIndexLength, Arrays.asList(new MakeSpecialVariableStorageNode(), truffleNode));
         }
 
         final FrameDescriptor frameDescriptor = environment.computeFrameDescriptor();
