@@ -2563,7 +2563,7 @@ public abstract class StringNodes {
         }
     }
 
-    @CoreMethod(names = { "to_sym", "intern" })
+    @Primitive(name = "string_to_symbol")
     @ImportStatic(StringGuards.class)
     public abstract static class ToSymNode extends CoreMethodArrayArgumentsNode {
 
@@ -2574,11 +2574,12 @@ public abstract class StringNodes {
                         "!isBrokenCodeRange(tstring, encoding, codeRangeNode)",
                         "equalNode.execute(tstring, encoding, cachedTString, cachedEncoding)" },
                 limit = "getDefaultCacheLimit()")
-        protected RubySymbol toSymCached(Object string,
+        protected RubySymbol toSymCached(Object string, boolean preserveSymbol,
                 @Cached RubyStringLibrary strings,
                 @Cached("asTruffleStringUncached(string)") TruffleString cachedTString,
                 @Cached("strings.getEncoding(string)") RubyEncoding cachedEncoding,
-                @Cached("getSymbol(cachedTString, cachedEncoding)") RubySymbol cachedSymbol,
+                @Cached("preserveSymbol") boolean cachedPreserveSymbol,
+                @Cached("getSymbol(cachedTString, cachedEncoding, cachedPreserveSymbol)") RubySymbol cachedSymbol,
                 @Cached StringHelperNodes.EqualSameEncodingNode equalNode,
                 @Bind("strings.getTString(string)") AbstractTruffleString tstring,
                 @Bind("strings.getEncoding(string)") RubyEncoding encoding) {
@@ -2586,15 +2587,15 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "!isBrokenCodeRange(tstring, encoding, codeRangeNode)", replaces = "toSymCached")
-        protected RubySymbol toSym(Object string,
+        protected RubySymbol toSym(Object string, boolean preserveSymbol,
                 @Cached RubyStringLibrary strings,
                 @Bind("strings.getTString(string)") AbstractTruffleString tstring,
                 @Bind("strings.getEncoding(string)") RubyEncoding encoding) {
-            return getSymbol(strings.getTString(string), strings.getEncoding(string));
+            return getSymbol(strings.getTString(string), strings.getEncoding(string), preserveSymbol);
         }
 
         @Specialization(guards = "isBrokenCodeRange(tstring, encoding, codeRangeNode)")
-        protected RubySymbol toSymBroken(Object string,
+        protected RubySymbol toSymBroken(Object string, boolean preserveSymbol,
                 @Cached RubyStringLibrary strings,
                 @Bind("strings.getTString(string)") AbstractTruffleString tstring,
                 @Bind("strings.getEncoding(string)") RubyEncoding encoding) {

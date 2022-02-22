@@ -723,6 +723,10 @@ module Truffle::CExt
     Thread.list.count == 1 ? 1 : 0
   end
 
+  def rb_intern(str)
+    Primitive.string_to_symbol(str, true)
+  end
+
   def rb_int_positive_pow(a, b)
     a ** b
   end
