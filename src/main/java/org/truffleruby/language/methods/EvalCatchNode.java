@@ -13,19 +13,28 @@ import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.DynamicReturnException;
 import org.truffleruby.language.control.LocalReturnException;
+import org.truffleruby.language.control.NextException;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.language.control.RetryException;
 
-public class CatchReturnAsErrorNode extends RubyContextSourceNode {
+public class EvalCatchNode extends RubyContextSourceNode {
 
     @Child private RubyNode body;
 
-    private final BranchProfile retryProfile = BranchProfile.create();
+    private final boolean catchReturn;
+    private final boolean catchRetry;
 
-    public CatchReturnAsErrorNode(RubyNode body) {
+    private final BranchProfile returnProfile = BranchProfile.create();
+    private final BranchProfile retryProfile = BranchProfile.create();
+    private final BranchProfile nextProfile = BranchProfile.create();
+
+    public EvalCatchNode(RubyNode body, boolean catchReturn, boolean catchRetry) {
         this.body = body;
+        this.catchReturn = catchReturn;
+        this.catchRetry = catchRetry;
     }
 
     @Override
@@ -33,8 +42,22 @@ public class CatchReturnAsErrorNode extends RubyContextSourceNode {
         try {
             return body.execute(frame);
         } catch (LocalReturnException | DynamicReturnException e) {
+            returnProfile.enter();
+            if (catchReturn) {
+                throw new RaiseException(getContext(), coreExceptions().unexpectedReturn(this));
+            } else {
+                throw e;
+            }
+        } catch (RetryException e) {
             retryProfile.enter();
-            throw new RaiseException(getContext(), coreExceptions().unexpectedReturn(this));
+            if (catchRetry) {
+                throw new RaiseException(getContext(), coreExceptions().syntaxErrorInvalidRetry(this));
+            } else {
+                throw e;
+            }
+        } catch (NextException e) {
+            nextProfile.enter();
+            return e.getResult();
         }
     }
 

@@ -71,10 +71,8 @@ import org.truffleruby.language.control.WhileNode;
 import org.truffleruby.language.locals.FrameDescriptorNamesIterator;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
-import org.truffleruby.language.methods.CatchNextNode;
-import org.truffleruby.language.methods.CatchRetryAsErrorNode;
-import org.truffleruby.language.methods.CatchReturnAsErrorNode;
 import org.truffleruby.language.methods.ExceptionTranslatingNode;
+import org.truffleruby.language.methods.EvalCatchNode;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.threadlocal.MakeSpecialVariableStorageNode;
@@ -324,21 +322,8 @@ public class TranslatorDriver {
                     Arrays.asList(new EmitWarningsNode(rubyWarnings), truffleNode));
         }
 
-        // Catch next
-
-        truffleNode = new CatchNextNode(truffleNode);
-
-        // Catch return
-
-        if (!parserContext.isTopLevel() && parserContext != ParserContext.INLINE) {
-            truffleNode = new CatchReturnAsErrorNode(truffleNode);
-        }
-
-        // Catch retry
-
-        if (!parserContext.isTopLevel()) { // Already done by RubyMethodRootNode
-            truffleNode = new CatchRetryAsErrorNode(truffleNode);
-        }
+        truffleNode = new EvalCatchNode(truffleNode,
+                !parserContext.isTopLevel() && parserContext != ParserContext.INLINE, !parserContext.isTopLevel());
 
         // Top-level exception handling
 
