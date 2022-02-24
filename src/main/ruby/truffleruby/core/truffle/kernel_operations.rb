@@ -39,8 +39,9 @@ module Truffle
       define_hooked_variable(name, getter, setter)
     end
 
-    LOAD_PATH = Truffle::SynchronizedArray.new
-    LOADED_FEATURES = Truffle::SynchronizedArray.new
+    FEATURE_LOADING_LOCK = Object.new
+    LOAD_PATH = Truffle::VersionedArray.new(FEATURE_LOADING_LOCK)
+    LOADED_FEATURES = Truffle::VersionedArray.new(FEATURE_LOADING_LOCK)
 
     # Always provided features: ruby --disable-gems -e 'puts $"'
     LOADED_FEATURES << 'ruby2_keywords.rb'
