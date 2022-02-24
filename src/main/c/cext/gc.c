@@ -47,3 +47,10 @@ VALUE rb_gc_latest_gc_info(VALUE key) {
 void rb_gc_register_mark_object(VALUE obj) {
   RUBY_CEXT_INVOKE_NO_WRAP("rb_gc_register_mark_object", obj);
 }
+
+void rb_global_variable(VALUE *obj) {
+  /* TODO: This should guard the address of the pointer, not the
+     object pointed to, but we haven't yet found a good way to implement
+     that, or a real world use case where it is required. */
+  RUBY_CEXT_INVOKE_NO_WRAP("rb_global_variable", *obj);
+}

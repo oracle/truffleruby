@@ -106,6 +106,8 @@ module Truffle::CExt
   RUBY_ECONV_PARTIAL_INPUT = Encoding::Converter::PARTIAL_INPUT
   RUBY_ECONV_AFTER_OUTPUT = Encoding::Converter::AFTER_OUTPUT
 
+  GLOBALLY_PRESERVED_VALUES = []
+
   SET_LIBTRUFFLERUBY = -> libtruffleruby do
     LIBTRUFFLERUBY = libtruffleruby
   end
@@ -1918,5 +1920,9 @@ module Truffle::CExt
 
   def rb_exception_set_message(e, mesg)
     Primitive.exception_set_message(e, mesg)
+  end
+
+  def rb_global_variable(obj)
+    GLOBALLY_PRESERVED_VALUES << obj
   end
 end
