@@ -13,7 +13,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
-import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -45,14 +44,14 @@ public abstract class RescueNode extends RubyContextSourceNode {
         this.rescueBody = null;
     }
 
-    public abstract boolean canHandle(VirtualFrame frame, RubyException exception);
+    public abstract boolean canHandle(VirtualFrame frame, Object exceptionObject);
 
     @Override
     public Object execute(VirtualFrame frame) {
         return rescueBody.execute(frame);
     }
 
-    protected boolean matches(RubyException exception, Object handlingClass) {
+    protected boolean matches(Object exceptionObject, Object handlingClass) {
         if (!(handlingClass instanceof RubyModule)) {
             errorProfile.enter();
             throw new RaiseException(getContext(), coreExceptions().typeErrorRescueInvalidClause(this));
@@ -67,7 +66,7 @@ public abstract class RescueNode extends RubyContextSourceNode {
             booleanCastNode = insert(BooleanCastNodeGen.create(null));
         }
 
-        final Object matches = callTripleEqualsNode.call(handlingClass, "===", exception);
+        final Object matches = callTripleEqualsNode.call(handlingClass, "===", exceptionObject);
         return booleanCastNode.executeToBoolean(matches);
     }
 

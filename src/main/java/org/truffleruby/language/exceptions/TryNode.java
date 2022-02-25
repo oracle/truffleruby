@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.exceptions;
 
+import com.oracle.truffle.api.exception.AbstractTruffleException;
 import org.truffleruby.RubyLanguage;
 import com.oracle.truffle.api.TruffleSafepoint;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -37,6 +38,7 @@ public class TryNode extends RubyContextSourceNode {
     private final BranchProfile elseProfile = BranchProfile.create();
     private final BranchProfile controlFlowProfile = BranchProfile.create();
     private final BranchProfile raiseExceptionProfile = BranchProfile.create();
+    private final BranchProfile foreignExceptionProfile = BranchProfile.create();
 
     public TryNode(
             ExceptionTranslatingNode tryPart,
@@ -60,7 +62,16 @@ public class TryNode extends RubyContextSourceNode {
                 raiseExceptionProfile.enter();
 
                 try {
-                    return handleException(frame, exception);
+                    return handleException(frame, exception, exception.getException());
+                } catch (RetryException e) {
+                    TruffleSafepoint.poll(this);
+                    continue;
+                }
+            } catch (AbstractTruffleException exception) {
+                foreignExceptionProfile.enter();
+
+                try {
+                    return handleException(frame, exception, exception);
                 } catch (RetryException e) {
                     TruffleSafepoint.poll(this);
                     continue;
@@ -81,11 +92,11 @@ public class TryNode extends RubyContextSourceNode {
     }
 
     @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL_UNTIL_RETURN)
-    private Object handleException(VirtualFrame frame, RaiseException exception) {
+    private Object handleException(VirtualFrame frame, AbstractTruffleException exception, Object exceptionObject) {
         for (RescueNode rescue : rescueParts) {
-            if (rescue.canHandle(frame, exception.getException())) {
+            if (rescue.canHandle(frame, exceptionObject)) {
                 if (getContext().getOptions().BACKTRACE_ON_RESCUE) {
-                    printBacktraceOnRescue(rescue, exception);
+                    printBacktraceOnRescue(rescue, exception, exceptionObject);
                 }
 
                 if (canOmitBacktrace) {
@@ -98,7 +109,7 @@ public class TryNode extends RubyContextSourceNode {
                      * exception is no longer being thrown on the exception path and the lazy stacktrace is no longer
                      * filled. */
                     TruffleStackTrace.fillIn(exception);
-                    return setLastExceptionAndRunRescue(frame, exception, rescue);
+                    return setLastExceptionAndRunRescue(frame, exceptionObject, rescue);
                 }
             }
         }
@@ -106,10 +117,10 @@ public class TryNode extends RubyContextSourceNode {
         throw exception;
     }
 
-    private Object setLastExceptionAndRunRescue(VirtualFrame frame, RaiseException exception, RescueNode rescue) {
+    private Object setLastExceptionAndRunRescue(VirtualFrame frame, Object exceptionObject, RescueNode rescue) {
         final ThreadLocalGlobals threadLocalGlobals = getLanguage().getCurrentThread().threadLocalGlobals;
         final Object previousException = threadLocalGlobals.exception;
-        threadLocalGlobals.exception = exception.getException();
+        threadLocalGlobals.exception = exceptionObject;
         try {
             CompilerAsserts.partialEvaluationConstant(rescue);
             return rescue.execute(frame);
@@ -119,11 +130,11 @@ public class TryNode extends RubyContextSourceNode {
     }
 
     @TruffleBoundary
-    private void printBacktraceOnRescue(RescueNode rescue, RaiseException exception) {
+    private void printBacktraceOnRescue(RescueNode rescue, AbstractTruffleException exception, Object exceptionObject) {
         String info = "rescued at " + RubyLanguage.fileLine(
                 getContext().getCallStack().getTopMostUserSourceSection(rescue.getEncapsulatingSourceSection())) +
                 ":\n";
-        getContext().getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(info, exception.getException());
+        getContext().getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(info, exception, exceptionObject);
     }
 
 }
