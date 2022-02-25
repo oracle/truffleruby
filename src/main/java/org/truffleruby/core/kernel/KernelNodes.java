@@ -447,7 +447,7 @@ public abstract class KernelNodes {
         @ExplodeLoop
         @Specialization(
                 guards = { "self.getShape() == cachedShape", "properties.length <= MAX_EXPLODE_SIZE" },
-                limit = "getCacheLimit()")
+                limit = "getDynamicObjectCacheLimit()")
         protected RubyDynamicObject copyCached(RubyDynamicObject self,
                 @Cached("self.getShape()") Shape cachedShape,
                 // GR-25595: should probably be shared between specialization instances but Truffle does not support it yet
@@ -523,10 +523,6 @@ public abstract class KernelNodes {
                         property.get(from, from.getShape()),
                         property.getFlags());
             }
-        }
-
-        protected int getCacheLimit() {
-            return getLanguage().options.INSTANCE_VARIABLE_CACHE;
         }
     }
 

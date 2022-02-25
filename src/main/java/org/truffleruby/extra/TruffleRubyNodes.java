@@ -10,7 +10,9 @@
 package org.truffleruby.extra;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -109,9 +111,13 @@ public abstract class TruffleRubyNodes {
         /** We must not allow to synchronize on boxed primitives as that would be misleading. We use a ReentrantLock and
          * not simply Java's {@code synchronized} here as we need to be able to interrupt for guest safepoints and it is
          * not possible to interrupt Java's {@code synchronized (object) {}}. */
-        @Specialization
-        protected Object synchronize(RubyDynamicObject object, RubyProc block) {
-            final ReentrantLock lock = getLockAndLock(object);
+        @Specialization(limit = "getDynamicObjectCacheLimit()")
+        protected Object synchronize(RubyDynamicObject object, RubyProc block,
+                @CachedLibrary("object") DynamicObjectLibrary objectLibrary,
+                @Cached BranchProfile initializeLockProfile) {
+            final ReentrantLock lock = getLock(object, objectLibrary, initializeLockProfile);
+
+            MutexOperations.lockInternal(getContext(), lock, this);
             try {
                 return callBlock(block);
             } finally {
@@ -119,19 +125,16 @@ public abstract class TruffleRubyNodes {
             }
         }
 
-        @TruffleBoundary
-        private ReentrantLock getLockAndLock(RubyDynamicObject object) {
-            final ReentrantLock lock = getLock(object);
-            MutexOperations.lockInternal(getContext(), lock, this);
-            return lock;
-        }
+        private ReentrantLock getLock(RubyDynamicObject object, DynamicObjectLibrary objectLibrary,
+                BranchProfile initializeLockProfile) {
+            ReentrantLock lock = (ReentrantLock) objectLibrary.getOrDefault(object, Layouts.OBJECT_LOCK, null);
+            if (lock != null) {
+                return lock;
+            }
 
-        @TruffleBoundary
-        private ReentrantLock getLock(RubyDynamicObject object) {
-            final DynamicObjectLibrary objectLibrary = DynamicObjectLibrary.getUncached();
-
+            initializeLockProfile.enter();
             synchronized (object) {
-                ReentrantLock lock = (ReentrantLock) objectLibrary.getOrDefault(object, Layouts.OBJECT_LOCK, null);
+                lock = (ReentrantLock) objectLibrary.getOrDefault(object, Layouts.OBJECT_LOCK, null);
                 if (lock != null) {
                     return lock;
                 } else {

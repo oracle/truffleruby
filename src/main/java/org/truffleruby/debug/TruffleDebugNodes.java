@@ -319,7 +319,7 @@ public abstract class TruffleDebugNodes {
         @Specialization(
                 guards = "object.getShape() == cachedShape",
                 assumptions = "cachedShape.getValidAssumption()",
-                limit = "getCacheLimit()")
+                limit = "getDynamicObjectCacheLimit()")
         protected boolean isSharedCached(RubyDynamicObject object,
                 @Cached("object.getShape()") Shape cachedShape,
                 @Cached("cachedShape.isShared()") boolean shared) {
@@ -335,11 +335,6 @@ public abstract class TruffleDebugNodes {
         protected boolean isSharedImmutable(ImmutableRubyObject object) {
             return true;
         }
-
-        protected int getCacheLimit() {
-            return getLanguage().options.INSTANCE_VARIABLE_CACHE;
-        }
-
     }
 
     @CoreMethod(names = "log_warning", onSingleton = true, required = 1)
