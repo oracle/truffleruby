@@ -15,7 +15,7 @@ class RaiseErrorMatcher
   def matches?(proc)
     @result = proc.call
     return false
-  rescue Exception => actual
+  rescue Object => actual
     @actual = actual
 
     if matching_exception?(actual)
