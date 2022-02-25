@@ -171,7 +171,11 @@ public abstract class BasicObjectNodes {
         protected boolean equalForeign(Object a, Object b,
                 @CachedLibrary("a") InteropLibrary lhsInterop,
                 @CachedLibrary("b") InteropLibrary rhsInterop) {
-            return lhsInterop.isIdentical(a, b, rhsInterop);
+            if (lhsInterop.hasIdentity(a)) {
+                return lhsInterop.isIdentical(a, b, rhsInterop);
+            } else {
+                return a == b;
+            }
         }
 
         protected static boolean isNonPrimitiveRubyObject(Object object) {

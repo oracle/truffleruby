@@ -396,6 +396,8 @@ module Polyglot
   end
 
   class ForeignObject < Object
+    # Methods #__id__, #equal? are implemented for foreign objects directly in their BasicObject definition
+
     def inspect
       recursive_string_for(self) if Truffle::ThreadOperations.detect_recursion self do
         return Truffle::InteropOperations.foreign_inspect_nonrecursive(self)
