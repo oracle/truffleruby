@@ -432,6 +432,19 @@ module Polyglot
     end
     alias_method :kind_of?, :is_a?
 
+    def instance_variable_get(member)
+      Truffle::Interop.read_member(self, member)
+    end
+
+    def instance_variable_set(member, value)
+      begin
+        Truffle::Interop.write_member(self, member, value)
+      rescue Polyglot::UnsupportedMessageError
+        # the receiver does not support writing at all, e.g. it is immutable
+        raise FrozenError.new("can't modify frozen #{self.class}", receiver: self)
+      end
+    end
+
     def instance_variables
       return [] unless Truffle::Interop.has_members?(self)
       Truffle::Interop.members_without_conversion(self).filter_map do |member|
