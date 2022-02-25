@@ -37,7 +37,11 @@ module Truffle
           name_traits[name_traits.index(:Array)] = :ArrayNotIterable
         end
       end
+
       name = "Foreign#{name_traits.join}"
+
+      # Avoid conflict with Polyglot::ForeignException, which is a module (and an alias of Polyglot::ExceptionTrait)
+      name = 'ForeignExceptionClass' if name == 'ForeignException'
 
       RESOLVE_POLYGLOT_CLASS_MUTEX.synchronize do
         if Polyglot.const_defined?(name, false)

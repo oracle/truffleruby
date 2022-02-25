@@ -247,6 +247,54 @@ module Polyglot
     alias_method :to_a, :to_ary
   end
 
+  # This would normally be named ExceptionTrait for consistency, but this module
+  # is also the right one to rescue foreign exceptions with `rescue Polyglot::ForeignException`.
+  # Hence we make ForeignException the original name and ExceptionTrait the alias,
+  # to let users discover `rescue Polyglot::ForeignException` through `p exc.class.ancestors`
+  module ForeignException
+    def message
+      if Truffle::Interop.has_exception_message?(self)
+        Truffle::Interop.exception_message(self)
+      else
+        nil
+      end
+    end
+
+    def cause
+      if Truffle::Interop.has_exception_cause?(self)
+        Truffle::Interop.exception_cause(self)
+      else
+        nil
+      end
+    end
+
+    def exception(message = nil)
+      unless Primitive.nil?(message)
+        raise "ForeignException#exception currently only handles no or nil message (given #{message.inspect})"
+      end
+      self
+    end
+
+    def to_s
+      msg = message
+      if Primitive.nil?(msg)
+        self.class.to_s
+      else
+        msg.to_s
+      end
+    end
+
+    def inspect
+      s = self.to_s
+      if s.empty?
+        self.class.name
+      else
+        "#<#{self.class.name}: #{s}>"
+      end
+    end
+  end
+  ExceptionTrait = ForeignException
+
   module ExecutableTrait
     def call(*args)
       Truffle::Interop.execute(self, *args)
