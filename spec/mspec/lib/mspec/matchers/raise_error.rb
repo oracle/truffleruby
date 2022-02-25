@@ -1,4 +1,6 @@
 class RaiseErrorMatcher
+  FAILURE_MESSAGE_FOR_EXCEPTION = {}.compare_by_identity
+
   attr_writer :block
 
   def initialize(exception, message, &block)
@@ -23,7 +25,7 @@ class RaiseErrorMatcher
       @block[actual] if @block
       return true
     else
-      actual.instance_variable_set(:@mspec_raise_error_message, failure_message)
+      FAILURE_MESSAGE_FOR_EXCEPTION[actual] = failure_message
       raise actual
     end
   end
