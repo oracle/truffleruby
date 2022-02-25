@@ -9,6 +9,8 @@
  */
 package org.truffleruby.core.exception;
 
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
@@ -20,10 +22,12 @@ import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -209,6 +213,11 @@ public abstract class ExceptionNodes {
             return FAILURE;
         }
 
+        @Specialization(guards = "!isRubyException(exception)", limit = "getInteropCacheLimit()")
+        protected boolean foreignException(Object exception,
+                @CachedLibrary("exception") InteropLibrary interopLibrary) {
+            return interopLibrary.hasExceptionStackTrace(exception);
+        }
     }
 
     @Primitive(name = "exception_capture_backtrace", lowerFixnum = 1)
@@ -293,6 +302,17 @@ public abstract class ExceptionNodes {
             return exception;
         }
 
+        @Specialization(guards = "!isRubyException(exception)")
+        protected Object foreignExceptionNoCause(Object exception, Nil cause) {
+            return exception;
+        }
+
+        @Specialization(guards = { "!isRubyException(exception)", "!isNil(cause)" })
+        protected Object foreignExceptionWithCause(Object exception, Object cause) {
+            RubyException exc = coreExceptions().runtimeError("Cannot set the cause of a foreign exception", this);
+            exc.cause = cause;
+            throw new RaiseException(getContext(), exc);
+        }
     }
 
     @Primitive(name = "exception_errno_error", lowerFixnum = 2)
