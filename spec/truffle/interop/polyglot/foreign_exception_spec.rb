@@ -58,4 +58,21 @@ describe "Polyglot::ForeignException" do
       e.should.equal?(@foreign)
     }
   end
+
+  it "supports #backtrace" do
+    @foreign.backtrace.should.is_a?(Array)
+    @foreign.backtrace.should_not.empty?
+    @foreign.backtrace.each { |entry| entry.should.is_a?(String) }
+  end
+
+  it "supports #backtrace_locations" do
+    @foreign.backtrace_locations.should.is_a?(Array)
+    @foreign.backtrace_locations.should_not.empty?
+    @foreign.backtrace_locations.each do |entry|
+      entry.should.respond_to?(:absolute_path)
+      entry.path.should.is_a?(String)
+      entry.lineno.should.is_a?(Integer)
+      entry.label.should.is_a?(String)
+    end
+  end
 end

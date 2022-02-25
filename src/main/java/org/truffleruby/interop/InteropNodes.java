@@ -21,6 +21,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.ExceptionType;
 import com.oracle.truffle.api.interop.NodeLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreMethod;
@@ -815,14 +816,19 @@ public abstract class InteropNodes {
     @CoreMethod(names = "source_location", onSingleton = true, required = 1)
     public abstract static class GetSourceLocationNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
-        protected Object getSourceLocation(Object receiver,
+        protected RubySourceLocation getSourceLocation(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
+            final SourceSection sourceLocation;
             try {
-                return getContext().getEnv().asGuestValue(receivers.getSourceLocation(receiver));
+                sourceLocation = receivers.getSourceLocation(receiver);
             } catch (UnsupportedMessageException e) {
                 throw translateInteropException.execute(e);
             }
+            return new RubySourceLocation(
+                    coreLibrary().sourceLocationClass,
+                    getLanguage().sourceLocationShape,
+                    sourceLocation);
         }
     }
     // endregion

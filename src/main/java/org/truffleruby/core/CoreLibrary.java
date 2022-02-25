@@ -90,7 +90,7 @@ import com.oracle.truffle.api.source.SourceSection;
  * <li>Create a CoreLibrary field for the class ({@code myClassClass}) and initialize it using {@link #defineClass}. See
  * examples in this file.
  *
- * <li>If the class has Java-defined nodes ({@code MyClassNodes}), edit the two lists in {@link BuiltinsClasses} (follow
+ * <li>If the class has Java-defined nodes ({@code MyClassNodes}), edit all the lists in {@link BuiltinsClasses} (follow
  * the existing pattern).
  *
  * <li>If the Ruby class uses a specific Java class to represent it, you also need to create the Shape in
@@ -199,6 +199,7 @@ public class CoreLibrary {
     public final RubyClass unsupportedTypeExceptionClass;
     public final RubyClass arityExceptionClass;
     public final RubyClass unknownKeyExceptionClass;
+    public final RubyClass sourceLocationClass;
     public final RubyModule truffleFeatureLoaderModule;
     public final RubyModule truffleKernelOperationsModule;
     public final RubyModule truffleInteropOperationsModule;
@@ -496,6 +497,7 @@ public class CoreLibrary {
                 truffleInteropModule,
                 interopExceptionClass,
                 "UnknownKeyException");
+        sourceLocationClass = defineClass(truffleInteropModule, objectClass, "SourceLocation");
         truffleCExtModule = defineModule(truffleModule, "CExt");
         defineModule(truffleModule, "Debug");
         defineModule(truffleModule, "ObjSpace");

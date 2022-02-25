@@ -30,6 +30,52 @@ module Truffle
       end
     end
 
+    class SourceLocation
+      def user?
+        available? and !internal?
+      end
+
+      def to_s
+        "#{path}:#{lineno}"
+      end
+
+      def inspect
+        "#{super[0...-1]} #{self}>"
+      end
+    end
+
+    # Like Thread::Backtrace::Location but based on a SourceLocation
+    class BacktraceLocation
+      attr_reader :source_location, :label
+      alias_method :base_label, :label
+
+      def initialize(source_location, label)
+        @source_location = source_location
+        @label = label
+      end
+
+      def path
+        @source_location.path
+      end
+
+      def absolute_path
+        @source_location.absolute_path
+      end
+
+      def lineno
+        @source_location.lineno
+      end
+
+      def to_s
+        label = @label || '<unknown>'
+        "#{@source_location}:in `#{label}'"
+      end
+
+      def inspect
+        to_s.inspect
+      end
+    end
+
     def self.import_method(name)
       method = import(name.to_s)
 

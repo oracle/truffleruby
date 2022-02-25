@@ -245,6 +245,10 @@ module Polyglot
       Truffle::Interop.to_array(self)
     end
     alias_method :to_a, :to_ary
+
+    def reverse
+      to_a.reverse
+    end
   end
 
   # This would normally be named ExceptionTrait for consistency, but this module
@@ -291,6 +295,32 @@ module Polyglot
       else
         "#<#{self.class.name}: #{s}>"
       end
+    end
+
+    def backtrace_locations
+      if Truffle::Interop.has_exception_stack_trace?(self)
+        last_user_location = nil
+        Truffle::Interop.exception_stack_trace(self).reverse.filter_map do |entry|
+          method_name = Truffle::Interop.has_executable_name?(entry) ? Truffle::Interop.executable_name(entry) : '<unknown>'
+
+          source_location = Truffle::Interop.has_source_location?(entry) && Truffle::Interop.source_location(entry)
+          if source_location && source_location.user?
+            last_user_location = source_location
+          elsif last_user_location
+            source_location = last_user_location
+          else # no source location, (unknown) or internal with no last_user_location
+            source_location = nil
+          end
+
+          Truffle::Interop::BacktraceLocation.new(source_location, method_name) if source_location
+        end.reverse
+      else
+        nil
+      end
+    end
+
+    def backtrace
+      backtrace_locations&.map(&:to_s)
     end
   end
   ExceptionTrait = ForeignException

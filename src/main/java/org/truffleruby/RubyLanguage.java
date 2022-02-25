@@ -99,6 +99,7 @@ import org.truffleruby.extra.RubyConcurrentMap;
 import org.truffleruby.extra.ffi.RubyPointer;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.interop.RubyInnerContext;
+import org.truffleruby.interop.RubySourceLocation;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyEvalInteractiveRootNode;
@@ -265,6 +266,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final Shape prngRandomizerShape = createShape(RubyPRNGRandomizer.class);
     public final Shape secureRandomizerShape = createShape(RubySecureRandomizer.class);
     public final Shape sizedQueueShape = createShape(RubySizedQueue.class);
+    public final Shape sourceLocationShape = createShape(RubySourceLocation.class);
     public final Shape stringShape = createShape(RubyString.class);
     public final Shape syntaxErrorShape = createShape(RubySyntaxError.class);
     public final Shape systemCallErrorShape = createShape(RubySystemCallError.class);
