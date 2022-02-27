@@ -18,6 +18,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.core.DataObjectFinalizerReference;
 import org.truffleruby.core.FinalizerReference;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.klass.RubyClass;
@@ -194,30 +195,6 @@ public abstract class ObjectSpaceNodes {
 
     }
 
-    private static class DataObjectFinalizer implements Runnable {
-
-        private final Object callable;
-        private final Object dataHolder;
-
-        public DataObjectFinalizer(Object callable, Object dataHolder) {
-            this.callable = callable;
-            this.dataHolder = dataHolder;
-        }
-
-        public void run() {
-            Object data = RubyContext.send(dataHolder, "data");
-            if (!InteropLibrary.getUncached().isNull(data)) {
-                RubyContext.send(callable, "call", data);
-            }
-        }
-
-        @Override
-        public String toString() {
-            return callable.toString() + " - " + dataHolder.toString();
-        }
-
-    }
-
     @CoreMethod(names = "define_finalizer", isModuleFunction = true, required = 2)
     public abstract static class DefineFinalizerNode extends CoreMethodArrayArgumentsNode {
 
@@ -275,7 +252,7 @@ public abstract class ObjectSpaceNodes {
     public abstract static class DefineDataObjectFinalizerNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected RubyArray defineFinalizer(
+        protected Object defineFinalizer(
                 VirtualFrame frame, RubyDynamicObject object, Object finalizer, Object dataHolder,
                 @Cached WriteBarrierNode writeBarrierNode,
                 @CachedLibrary(limit = "1") DynamicObjectLibrary objectLibrary) {
@@ -284,37 +261,13 @@ public abstract class ObjectSpaceNodes {
                 writeBarrierNode.executeWriteBarrier(finalizer);
             }
 
-            FinalizerReference ref = (FinalizerReference) objectLibrary
-                    .getOrDefault(object, Layouts.FINALIZER_REF_IDENTIFIER, null);
+            DataObjectFinalizerReference newRef = getContext()
+                .getDataObjectFinalizationService()
+                .addFinalizer(object, finalizer, dataHolder);
 
-            FinalizerReference newRef = defineFinalizer(object, finalizer, dataHolder, ref);
+            objectLibrary.put(object, Layouts.DATA_OBJECT_FINALIZER_REF_IDENTIFIER, newRef);
 
-            if (ref != newRef) {
-                objectLibrary.put(object, Layouts.FINALIZER_REF_IDENTIFIER, newRef);
-            }
-
-            return createArray(new Object[]{ 0, finalizer });
-        }
-
-        @TruffleBoundary
-        private FinalizerReference defineFinalizer(RubyDynamicObject object, Object finalizer, Object dataHolder,
-                FinalizerReference ref) {
-            final RubyDynamicObject root = (finalizer instanceof RubyDynamicObject)
-                    ? (RubyDynamicObject) finalizer
-                    : null;
-            final DataObjectFinalizer action = new DataObjectFinalizer(finalizer, dataHolder);
-
-            if (ref == null) {
-                final FinalizerReference newRef = getContext()
-                        .getFinalizationService()
-                        .addFinalizer(getContext(), object, ObjectSpaceManager.class, action, root);
-                return newRef;
-            } else {
-                getContext()
-                        .getFinalizationService()
-                        .addAdditionalFinalizer(getContext(), ref, object, ObjectSpaceManager.class, action, root);
-                return ref;
-            }
+            return nil;
         }
 
     }

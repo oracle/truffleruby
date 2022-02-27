@@ -38,6 +38,7 @@ import org.graalvm.options.OptionDescriptor;
 import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.collections.SharedIndicesMap.ContextArray;
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.DataObjectFinalizationService;
 import org.truffleruby.core.FinalizationService;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.MarkingService;
@@ -112,6 +113,7 @@ public class RubyContext {
     private final TraceManager traceManager;
     private final ReferenceProcessor referenceProcessor;
     private final FinalizationService finalizationService;
+    private final DataObjectFinalizationService dataObjectFinalizationService;
     private final MarkingService markingService;
     private final ObjectSpaceManager objectSpaceManager = new ObjectSpaceManager();
     private final SharedObjects sharedObjects = new SharedObjects(this);
@@ -190,6 +192,7 @@ public class RubyContext {
         referenceProcessor = new ReferenceProcessor(this);
         finalizationService = new FinalizationService(referenceProcessor);
         markingService = new MarkingService(referenceProcessor);
+        dataObjectFinalizationService = new DataObjectFinalizationService(referenceProcessor);
 
         // We need to construct this at runtime
         random = createRandomInstance();
@@ -596,6 +599,10 @@ public class RubyContext {
 
     public FinalizationService getFinalizationService() {
         return finalizationService;
+    }
+
+    public DataObjectFinalizationService getDataObjectFinalizationService() {
+        return dataObjectFinalizationService;
     }
 
     public MarkingService getMarkingService() {
