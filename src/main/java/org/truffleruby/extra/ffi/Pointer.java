@@ -16,7 +16,7 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.FinalizationService;
-import org.truffleruby.core.FinalizerReference;
+import org.truffleruby.core.PointerFinalizerReference;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -61,7 +61,7 @@ public final class Pointer implements AutoCloseable {
     private final long address;
     private final long size;
     /** Non-null iff autorelease */
-    private FinalizerReference finalizerRef = null;
+    private PointerFinalizerReference finalizerRef = null;
 
     public Pointer(long address) {
         this(address, UNBOUNDED);
@@ -295,9 +295,9 @@ public final class Pointer implements AutoCloseable {
     }
 
     @TruffleBoundary
-    public synchronized void free(FinalizationService finalizationService) {
+    public synchronized void free() {
         if (finalizerRef != null) {
-            disableAutorelease(finalizationService);
+            finalizerRef.markFreed();
         }
         UNSAFE.freeMemory(address);
     }
@@ -331,31 +331,7 @@ public final class Pointer implements AutoCloseable {
     private void enableAutoreleaseUnsynchronized(RubyContext context) {
         // We must be careful here that the finalizer does not capture the Pointer itself that we'd
         // like to finalize.
-        finalizerRef = context.getFinalizationService().addFinalizer(
-                context,
-                this,
-                Pointer.class,
-                new FreeAddressFinalizer(address),
-                null);
-    }
-
-    private static class FreeAddressFinalizer implements Runnable {
-
-        private final long address;
-
-        public FreeAddressFinalizer(long address) {
-            this.address = address;
-        }
-
-        public void run() {
-            UNSAFE.freeMemory(address);
-        }
-
-        @Override
-        public String toString() {
-            return "free(0x" + Long.toHexString(address) + ")";
-        }
-
+        finalizerRef = context.getPointerFinalizationService().addFinalizer(this, address);
     }
 
     @TruffleBoundary
@@ -364,9 +340,7 @@ public final class Pointer implements AutoCloseable {
             return;
         }
 
-        FinalizerReference left = finalizationService.removeFinalizers(this, finalizerRef, Pointer.class);
-        assert left == null;
-        finalizerRef = null;
+        finalizerRef.markFreed();
     }
 
     @Override

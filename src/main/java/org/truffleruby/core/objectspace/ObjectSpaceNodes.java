@@ -44,7 +44,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
@@ -262,8 +261,8 @@ public abstract class ObjectSpaceNodes {
             }
 
             DataObjectFinalizerReference newRef = getContext()
-                .getDataObjectFinalizationService()
-                .addFinalizer(object, finalizer, dataHolder);
+                    .getDataObjectFinalizationService()
+                    .addFinalizer(object, finalizer, dataHolder);
 
             objectLibrary.put(object, Layouts.DATA_OBJECT_FINALIZER_REF_IDENTIFIER, newRef);
 

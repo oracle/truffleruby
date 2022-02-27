@@ -11,21 +11,22 @@ package org.truffleruby.core;
 
 import java.lang.ref.ReferenceQueue;
 
-public class DataObjectFinalizerReference
+public class PointerFinalizerReference
         extends
-        ReferenceProcessingService.PhantomProcessingReference<DataObjectFinalizerReference, Object> {
+        ReferenceProcessingService.PhantomProcessingReference<PointerFinalizerReference, Object> {
 
-    final Object callable;
-    final Object dataHolder;
+    long address;
 
-    DataObjectFinalizerReference(
+    PointerFinalizerReference(
             Object object,
             ReferenceQueue<? super Object> queue,
-            DataObjectFinalizationService service,
-            Object callable,
-            Object dataHolder) {
+            PointerFinalizationService service,
+            long address) {
         super(object, queue, service);
-        this.callable = callable;
-        this.dataHolder = dataHolder;
+        this.address = address;
+    }
+
+    public void markFreed() {
+        address = 0;
     }
 }

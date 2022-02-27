@@ -42,6 +42,7 @@ import org.truffleruby.core.DataObjectFinalizationService;
 import org.truffleruby.core.FinalizationService;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.MarkingService;
+import org.truffleruby.core.PointerFinalizationService;
 import org.truffleruby.core.ReferenceProcessingService.ReferenceProcessor;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.RubyArray;
@@ -114,6 +115,7 @@ public class RubyContext {
     private final ReferenceProcessor referenceProcessor;
     private final FinalizationService finalizationService;
     private final DataObjectFinalizationService dataObjectFinalizationService;
+    private final PointerFinalizationService pointerFinalizationService;
     private final MarkingService markingService;
     private final ObjectSpaceManager objectSpaceManager = new ObjectSpaceManager();
     private final SharedObjects sharedObjects = new SharedObjects(this);
@@ -193,6 +195,7 @@ public class RubyContext {
         finalizationService = new FinalizationService(referenceProcessor);
         markingService = new MarkingService(referenceProcessor);
         dataObjectFinalizationService = new DataObjectFinalizationService(referenceProcessor);
+        pointerFinalizationService = new PointerFinalizationService(referenceProcessor);
 
         // We need to construct this at runtime
         random = createRandomInstance();
@@ -603,6 +606,10 @@ public class RubyContext {
 
     public DataObjectFinalizationService getDataObjectFinalizationService() {
         return dataObjectFinalizationService;
+    }
+
+    public PointerFinalizationService getPointerFinalizationService() {
+        return pointerFinalizationService;
     }
 
     public MarkingService getMarkingService() {

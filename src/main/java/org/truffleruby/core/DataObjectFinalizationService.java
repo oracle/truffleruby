@@ -36,7 +36,8 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
 
     @TruffleBoundary
     public DataObjectFinalizerReference addFinalizer(Object object, Object callable, Object dataHolder) {
-        final DataObjectFinalizerReference newRef = new DataObjectFinalizerReference(object, processingQueue, this, callable, dataHolder);
+        final DataObjectFinalizerReference newRef = new DataObjectFinalizerReference(object, processingQueue, this,
+                callable, dataHolder);
 
         add(newRef);
 
@@ -52,7 +53,8 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
             ProcessingReference<?> finalizerReference) {
         super.processReference(context, language, finalizerReference);
 
-        runCatchingErrors(context, language, this::processReferenceInternal, (DataObjectFinalizerReference) finalizerReference);
+        runCatchingErrors(context, language, this::processReferenceInternal,
+                (DataObjectFinalizerReference) finalizerReference);
     }
 
     protected void processReferenceInternal(RubyContext context, RubyLanguage language,

@@ -226,7 +226,7 @@ public abstract class PointerNodes {
 
         @Specialization
         protected RubyPointer free(RubyPointer pointer) {
-            pointer.pointer.free(getContext().getFinalizationService());
+            pointer.pointer.free();
             return pointer;
         }
 
