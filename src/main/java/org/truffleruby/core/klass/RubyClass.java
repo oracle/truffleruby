@@ -16,17 +16,11 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyDynamicObject;
-import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.library.ExportLibrary;
-import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
 
-@ExportLibrary(InteropLibrary.class)
 public final class RubyClass extends RubyModule implements ObjectGraphNode {
 
     private static final RubyClass[] EMPTY_CLASS_ARRAY = new RubyClass[0];
@@ -115,28 +109,5 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
         ObjectGraph.addProperty(reachable, attached);
         ObjectGraph.addProperty(reachable, superclass);
     }
-
-    // region MetaObject
-    @ExportMessage
-    public boolean isMetaObject() {
-        return true;
-    }
-
-    @ExportMessage
-    public String getMetaQualifiedName() {
-        return fields.getName();
-    }
-
-    @ExportMessage
-    public String getMetaSimpleName() {
-        return fields.getSimpleName();
-    }
-
-    @ExportMessage
-    public boolean isMetaInstance(Object instance,
-            @Cached IsANode isANode) {
-        return isANode.executeIsA(instance, this);
-    }
-    // endregion
 
 }
