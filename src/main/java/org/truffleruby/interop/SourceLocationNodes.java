@@ -67,6 +67,33 @@ public class SourceLocationNodes {
         }
     }
 
+    @CoreMethod(names = "last_lineno")
+    public abstract static class LastLinenoNode extends UnaryCoreMethodNode {
+        @TruffleBoundary
+        @Specialization
+        protected int lastLine(RubySourceLocation location) {
+            return location.sourceSection.getEndLine();
+        }
+    }
+
+    @CoreMethod(names = "first_column")
+    public abstract static class FirstColumnNode extends UnaryCoreMethodNode {
+        @TruffleBoundary
+        @Specialization
+        protected int firstCol(RubySourceLocation location) {
+            return location.sourceSection.getStartColumn();
+        }
+    }
+
+    @CoreMethod(names = "last_column")
+    public abstract static class LastColumnNode extends UnaryCoreMethodNode {
+        @TruffleBoundary
+        @Specialization
+        protected int lastCol(RubySourceLocation location) {
+            return location.sourceSection.getEndColumn();
+        }
+    }
+
     @CoreMethod(names = "available?")
     public abstract static class IsAvailableNode extends UnaryCoreMethodNode {
         @TruffleBoundary
