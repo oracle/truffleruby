@@ -279,22 +279,8 @@ module Polyglot
       self
     end
 
-    def to_s
-      msg = message
-      if Primitive.nil?(msg)
-        self.class.to_s
-      else
-        msg.to_s
-      end
-    end
-
     def inspect
-      s = self.to_s
-      if s.empty?
-        self.class.name
-      else
-        "#<#{self.class.name}: #{s}>"
-      end
+      "#{super[0...-1]}: #{message}>"
     end
 
     def backtrace_locations
