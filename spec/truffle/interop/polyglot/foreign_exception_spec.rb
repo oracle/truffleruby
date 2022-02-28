@@ -21,14 +21,6 @@ describe "Polyglot::ForeignException" do
     @foreign.cause.should == nil
   end
 
-  it "supports #to_s" do
-    @foreign.to_s.should == "exception message"
-  end
-
-  it "supports #inspect" do
-    @foreign.inspect.should == "#<Polyglot::ForeignExceptionClass: exception message>"
-  end
-
   it "supports rescue Polyglot::ForeignException" do
     begin
       raise @foreign

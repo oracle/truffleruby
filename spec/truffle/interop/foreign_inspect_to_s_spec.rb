@@ -138,6 +138,14 @@ describe "#inspect and #to_s on a foreign" do
     end
   end
 
+  describe "exception" do
+    it "gives a similar representation to Ruby" do
+      exc = Truffle::Debug.foreign_exception("foo")
+      exc.inspect.should =~ /\A#<Polyglot::ForeignExceptionClass:0x\h+: foo>\z/
+      exc.to_s.should == '#<Polyglot::ForeignExceptionClass [foreign exception]>'
+    end
+  end
+
   describe "object without members" do
     it "gives a similar representation to Ruby" do
       foreign = Truffle::Debug.foreign_object
