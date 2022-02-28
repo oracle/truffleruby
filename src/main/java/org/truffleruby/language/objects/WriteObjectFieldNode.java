@@ -32,7 +32,7 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
 
     public abstract void execute(RubyDynamicObject object, Object name, Object value);
 
-    @Specialization(guards = "!objectLibrary.isShared(object)", limit = "getCacheLimit()")
+    @Specialization(guards = "!objectLibrary.isShared(object)", limit = "getDynamicObjectCacheLimit()")
     protected void writeLocal(RubyDynamicObject object, Object name, Object value,
             @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
         objectLibrary.put(object, name, value);
@@ -40,7 +40,7 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
 
     @Specialization(guards = "objectLibrary.isShared(object)")
     protected void writeShared(RubyDynamicObject object, Object name, Object value,
-            @CachedLibrary(limit = "getCacheLimit()") DynamicObjectLibrary objectLibrary,
+            @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary,
             @Cached WriteBarrierNode writeBarrierNode) {
 
         // Share `value` before it becomes reachable through `object`
@@ -55,9 +55,5 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
         synchronized (object) {
             objectLibrary.put(object, name, value);
         }
-    }
-
-    protected int getCacheLimit() {
-        return getLanguage().options.INSTANCE_VARIABLE_CACHE;
     }
 }

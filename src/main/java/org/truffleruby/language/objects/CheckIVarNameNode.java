@@ -47,7 +47,7 @@ public abstract class CheckIVarNameNode extends RubyBaseNode {
 
     @Specialization(
             guards = { "name == cachedName", "isValidInstanceVariableName(cachedName)", "!isRubySymbol(originalName)" },
-            limit = "getCacheLimit()")
+            limit = "getDynamicObjectCacheLimit()")
     protected void cached(RubyDynamicObject object, String name, Object originalName,
             @Cached("name") String cachedName) {
     }
@@ -56,9 +56,4 @@ public abstract class CheckIVarNameNode extends RubyBaseNode {
     protected void uncached(RubyDynamicObject object, String name, Object originalName) {
         SymbolTable.checkInstanceVariableName(getContext(), name, object, this);
     }
-
-    protected int getCacheLimit() {
-        return getLanguage().options.INSTANCE_VARIABLE_CACHE;
-    }
-
 }

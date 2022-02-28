@@ -256,7 +256,7 @@ public abstract class BasicObjectNodes {
             return id;
         }
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getDynamicObjectCacheLimit()")
         protected long objectID(RubyDynamicObject object,
                 @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
             // Using the context here has the desirable effect that it checks the context is entered on this thread,
@@ -298,10 +298,6 @@ public abstract class BasicObjectNodes {
             } else {
                 return System.identityHashCode(value);
             }
-        }
-
-        protected int getCacheLimit() {
-            return getLanguage().options.INSTANCE_VARIABLE_CACHE;
         }
     }
 
