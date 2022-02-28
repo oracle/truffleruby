@@ -355,6 +355,16 @@ module Polyglot
     end
   end
 
+  module MetaObjectTrait
+    def name
+      Truffle::Interop.meta_qualified_name(self)
+    end
+
+    def ===(instance)
+      Truffle::Interop.meta_instance?(self, instance)
+    end
+  end
+
   module NullTrait
     def nil?
       true

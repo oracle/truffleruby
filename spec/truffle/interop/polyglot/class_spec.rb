@@ -16,7 +16,7 @@ describe "Polyglot" do
     Truffle::Debug.foreign_array.class.should == Polyglot::ForeignArray
     Truffle::Debug.foreign_exception("").class.should == Polyglot::ForeignExceptionClass
     Truffle::Debug.foreign_executable(14).class.should == Polyglot::ForeignExecutable
-    # ForeignInstantiable
+    # ForeignClass, ForeignMetaObject
     Truffle::Debug.foreign_iterable.class.should == Polyglot::ForeignIterable
     Truffle::Debug.foreign_iterator.class.should == Polyglot::ForeignIterator
     Truffle::Debug.java_null.class.should == Polyglot::ForeignNull
@@ -33,7 +33,8 @@ describe "Polyglot" do
     Truffle::Interop.proxy_foreign_object([1, 2, 3]).class.should == Polyglot::ForeignArray
     Truffle::Interop.proxy_foreign_object(Exception.new("")).class.should == Polyglot::ForeignExceptionClass
     Truffle::Interop.proxy_foreign_object(-> { nil }).class.should == Polyglot::ForeignExecutable
-    Truffle::Interop.proxy_foreign_object(String).class.should == Polyglot::ForeignInstantiable
+    Truffle::Interop.proxy_foreign_object(String).class.should == Polyglot::ForeignClass
+    Truffle::Interop.proxy_foreign_object(Enumerable).class.should == Polyglot::ForeignMetaObject
     Truffle::Interop.proxy_foreign_object((1..3)).class.should == Polyglot::ForeignIterable
     Truffle::Interop.proxy_foreign_object((1..3).each).class.should == Polyglot::ForeignIterableIterator
     Truffle::Interop.proxy_foreign_object(nil).class.should == Polyglot::ForeignNull
@@ -51,8 +52,10 @@ describe "Polyglot" do
       Truffle::Interop.to_java_array([1, 2, 3]).class.should == Polyglot::ForeignArray
       Truffle::Interop.to_java_list([1, 2, 3]).class.should == Polyglot::ForeignArray
       Java.type('java.lang.RuntimeException').new.class.should == Polyglot::ForeignExceptionClass
-      Java.type('java.math.BigInteger').class.should == Polyglot::ForeignInstantiable
-      Java.type('java.math.BigInteger')[:class].class.should == Polyglot::ForeignInstantiable
+      # ForeignExecutable
+      Java.type('java.math.BigInteger').class.should == Polyglot::ForeignClass
+      Java.type('java.math.BigInteger')[:class].class.should == Polyglot::ForeignClass
+      Java.type('int').class.should == Polyglot::ForeignMetaObject
       # ForeignIterable
       Truffle::Interop.to_java_list([1, 2, 3]).iterator.class.should == Polyglot::ForeignIterator
       Truffle::Debug.java_null.class.should == Polyglot::ForeignNull

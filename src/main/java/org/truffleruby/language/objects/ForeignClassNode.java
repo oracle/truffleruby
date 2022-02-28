@@ -43,6 +43,7 @@ public abstract class ForeignClassNode extends RubyBaseNode {
         INSTANTIABLE("Instantiable"),
         ITERABLE("Iterable"),
         ITERATOR("Iterator"),
+        META_OBJECT("MetaObject"),
         NULL("Null"),
         NUMBER("Number"),
         POINTER("Pointer"),
@@ -90,6 +91,7 @@ public abstract class ForeignClassNode extends RubyBaseNode {
                 (interop.isInstantiable(object) ? Trait.INSTANTIABLE.bit : 0) +
                 (interop.hasIterator(object) ? Trait.ITERABLE.bit : 0) +
                 (interop.isIterator(object) ? Trait.ITERATOR.bit : 0) +
+                (interop.isMetaObject(object) ? Trait.META_OBJECT.bit : 0) +
                 (interop.isNull(object) ? Trait.NULL.bit : 0) +
                 (interop.isNumber(object) ? Trait.NUMBER.bit : 0) +
                 (interop.isPointer(object) ? Trait.POINTER.bit : 0) +

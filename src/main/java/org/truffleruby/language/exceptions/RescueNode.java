@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.exceptions;
 
+import com.oracle.truffle.api.interop.InteropLibrary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -32,6 +33,7 @@ public abstract class RescueNode extends RubyContextSourceNode {
 
     @Child private DispatchNode callTripleEqualsNode;
     @Child private BooleanCastNode booleanCastNode;
+    @Child private InteropLibrary interopLibrary;
 
     private final BranchProfile errorProfile = BranchProfile.create();
 
@@ -53,8 +55,15 @@ public abstract class RescueNode extends RubyContextSourceNode {
 
     protected boolean matches(Object exceptionObject, Object handlingClass) {
         if (!(handlingClass instanceof RubyModule)) {
-            errorProfile.enter();
-            throw new RaiseException(getContext(), coreExceptions().typeErrorRescueInvalidClause(this));
+            if (interopLibrary == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                interopLibrary = insert(InteropLibrary.getFactory().createDispatched(getInteropCacheLimit()));
+            }
+
+            if (!interopLibrary.isMetaObject(handlingClass)) {
+                errorProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().typeErrorRescueInvalidClause(this));
+            }
         }
 
         if (callTripleEqualsNode == null) {
