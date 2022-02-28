@@ -137,7 +137,7 @@ EXPERT:
     LOG_LOAD: [log-load, boolean, false, Log loading files]
     LOG_AUTOLOAD: [log-autoload, boolean, false, Log autoloading]
     LOG_FEATURE_LOCATION: [log-feature-location, boolean, false, Log the process of finding features]
-    METRICS_PROFILE_REQUIRE: [metrics-profile-require, enum/profile, none, 'Measure time for searching, parsing, translating and loading files. Valid values are: summary, detail, or none.']
+    METRICS_PROFILE_REQUIRE: [metrics-profile-require, enum/profile, none, 'Measure time for searching, parsing, translating and loading files.']
     CEXTS_LOG_LOAD: [cexts-log-load, boolean, false, Log loading of cexts]
     CEXTS_LOG_WARNINGS: [cexts-log-warnings, boolean, false, Log cexts warnings]
 

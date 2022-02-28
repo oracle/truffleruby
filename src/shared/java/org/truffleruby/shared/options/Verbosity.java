@@ -9,8 +9,15 @@
  */
 package org.truffleruby.shared.options;
 
+import java.util.Locale;
+
 public enum Verbosity {
     NIL,
     FALSE,
-    TRUE
+    TRUE;
+
+    @Override
+    public String toString() {
+        return name().toLowerCase(Locale.ENGLISH);
+    }
 }

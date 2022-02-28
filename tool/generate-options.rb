@@ -58,7 +58,6 @@ options_data.each do |category, stabilities|
         boxed_type  = type
         default     = "#{type}.#{default.to_s.upcase}"
         raise if parse_reference_defaults(default)
-        option_type = "EnumOptionType.optionTypeFor(#{boxed_type}.class)"
       when 'string'
         type       = 'String'
         boxed_type = type

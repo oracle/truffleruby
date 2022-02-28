@@ -24,7 +24,7 @@ public class OptionsCatalog {
     public static final OptionKey<String[]> REQUIRED_LIBRARIES_KEY = new OptionKey<>(StringArrayOptionType.EMPTY_STRING_ARRAY, StringArrayOptionType.INSTANCE);
     public static final OptionKey<String> WORKING_DIRECTORY_KEY = new OptionKey<>("");
     public static final OptionKey<Boolean> DEBUG_KEY = new OptionKey<>(false);
-    public static final OptionKey<Verbosity> VERBOSITY_KEY = new OptionKey<>(Verbosity.FALSE, EnumOptionType.optionTypeFor(Verbosity.class));
+    public static final OptionKey<Verbosity> VERBOSITY_KEY = new OptionKey<>(Verbosity.FALSE);
     public static final OptionKey<String> SOURCE_ENCODING_KEY = new OptionKey<>("");
     public static final OptionKey<String> INTERNAL_ENCODING_KEY = new OptionKey<>("");
     public static final OptionKey<String> EXTERNAL_ENCODING_KEY = new OptionKey<>("");
@@ -78,7 +78,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> LOG_LOAD_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LOG_AUTOLOAD_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LOG_FEATURE_LOCATION_KEY = new OptionKey<>(false);
-    public static final OptionKey<Profile> METRICS_PROFILE_REQUIRE_KEY = new OptionKey<>(Profile.NONE, EnumOptionType.optionTypeFor(Profile.class));
+    public static final OptionKey<Profile> METRICS_PROFILE_REQUIRE_KEY = new OptionKey<>(Profile.NONE);
     public static final OptionKey<Boolean> CEXTS_LOG_LOAD_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> CEXTS_LOG_WARNINGS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> WARN_DEPRECATED_KEY = new OptionKey<>(false);

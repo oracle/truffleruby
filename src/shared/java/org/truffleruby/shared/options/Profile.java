@@ -9,8 +9,15 @@
  */
 package org.truffleruby.shared.options;
 
+import java.util.Locale;
+
 public enum Profile {
     NONE,
     SUMMARY,
-    DETAIL
+    DETAIL;
+
+    @Override
+    public String toString() {
+        return name().toLowerCase(Locale.ENGLISH);
+    }
 }
