@@ -262,7 +262,7 @@ public abstract class ObjectSpaceNodes {
 
             DataObjectFinalizerReference newRef = getContext()
                     .getDataObjectFinalizationService()
-                    .addFinalizer(object, finalizer, dataHolder);
+                    .addFinalizer(getContext(), object, finalizer, dataHolder);
 
             objectLibrary.put(object, Layouts.DATA_OBJECT_FINALIZER_REF_IDENTIFIER, newRef);
 

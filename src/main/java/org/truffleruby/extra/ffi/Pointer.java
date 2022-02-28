@@ -331,7 +331,7 @@ public final class Pointer implements AutoCloseable {
     private void enableAutoreleaseUnsynchronized(RubyContext context) {
         // We must be careful here that the finalizer does not capture the Pointer itself that we'd
         // like to finalize.
-        finalizerRef = context.getPointerFinalizationService().addFinalizer(this, address);
+        finalizerRef = context.getPointerFinalizationService().addFinalizer(context, this, address);
     }
 
     @TruffleBoundary

@@ -30,13 +30,18 @@ public class PointerFinalizationService extends ReferenceProcessingService<Point
         this(referenceProcessor.processingQueue);
     }
 
-    @TruffleBoundary
-    public PointerFinalizerReference addFinalizer(Object object, long address) {
-        final PointerFinalizerReference newRef = new PointerFinalizerReference(object, processingQueue, this, address);
+    public PointerFinalizerReference addFinalizer(RubyContext context, Object object, long address) {
+        final PointerFinalizerReference newRef = createRef(object, address);
 
         add(newRef);
+        context.getReferenceProcessor().processReferenceQueue();
 
         return newRef;
+    }
+
+    @TruffleBoundary
+    public PointerFinalizerReference createRef(Object object, long address) {
+        return new PointerFinalizerReference(object, processingQueue, this, address);
     }
 
     public final void drainFinalizationQueue(RubyContext context) {

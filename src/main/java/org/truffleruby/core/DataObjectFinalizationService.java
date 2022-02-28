@@ -16,15 +16,17 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.language.dispatch.DispatchNode;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.interop.UnsupportedTypeException;
 
 /** Finalizers are implemented with phantom references and reference queues, and are run in a dedicated Ruby thread. */
 public class DataObjectFinalizationService extends ReferenceProcessingService<DataObjectFinalizerReference> {
 
     private final InteropLibrary nullNode = InteropLibrary.getFactory().createDispatched(2);
     private final DispatchNode dataNode = DispatchNode.create();
-    private final DispatchNode callNode = DispatchNode.create();
+    private final InteropLibrary callNode = InteropLibrary.getFactory().createDispatched(2);
 
     public DataObjectFinalizationService(ReferenceQueue<Object> processingQueue) {
         super(processingQueue);
@@ -34,14 +36,18 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
         this(referenceProcessor.processingQueue);
     }
 
-    @TruffleBoundary
-    public DataObjectFinalizerReference addFinalizer(Object object, Object callable, Object dataHolder) {
-        final DataObjectFinalizerReference newRef = new DataObjectFinalizerReference(object, processingQueue, this,
-                callable, dataHolder);
+    public DataObjectFinalizerReference addFinalizer(RubyContext context, Object object, Object callable,
+            Object dataHolder) {
+        final DataObjectFinalizerReference newRef = createRef(object, callable, dataHolder);
 
         add(newRef);
+        context.getReferenceProcessor().processReferenceQueue();
 
         return newRef;
+    }
+
+    public DataObjectFinalizerReference createRef(Object object, Object callable, Object dataHolder) {
+        return new DataObjectFinalizerReference(object, processingQueue, this, callable, dataHolder);
     }
 
     public final void drainFinalizationQueue(RubyContext context) {
@@ -65,9 +71,11 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
             if (!context.isFinalizing()) {
                 Object data = dataNode.call(ref.dataHolder, "data");
                 if (!nullNode.isNull(data)) {
-                    callNode.call(ref.callable, "call", data);
+                    callNode.execute(ref.callable, data);
                 }
             }
+        } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
+            throw new Error(e);
         } finally {
             stack.pop();
         }

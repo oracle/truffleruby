@@ -149,8 +149,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
             this.sharedQueue = context.getLanguageSlow().sharedReferenceQueue;
         }
 
-        @TruffleBoundary
-        protected void processReferenceQueue(Class<?> owner) {
+        protected void processReferenceQueue() {
             if (context.getOptions().SINGLE_THREADED || context.hasOtherPublicLanguages()) {
                 drainReferenceQueues();
             } else {
@@ -162,14 +161,15 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
                  * assumption and a low risk of leaking a tiny number of bytes if it doesn't hold. */
                 if (processingThread == null && !context.isPreInitializing() && context.isInitialized() &&
                         !context.isFinalizing()) {
-                    createProcessingThread(owner);
+                    createProcessingThread();
                 }
             }
         }
 
         private static final String THREAD_NAME = "Ruby-reference-processor";
 
-        protected void createProcessingThread(Class<?> owner) {
+        @TruffleBoundary
+        protected void createProcessingThread() {
             final ThreadManager threadManager = context.getThreadManager();
             final RubyLanguage language = context.getLanguageSlow();
             RubyThread newThread;
@@ -180,7 +180,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
                 newThread = threadManager.createBootThread(THREAD_NAME);
                 processingThread = newThread;
             }
-            final String sharingReason = "creating " + THREAD_NAME + " thread for " + owner.getSimpleName();
+            final String sharingReason = "creating " + THREAD_NAME + " thread";
 
             threadManager.initialize(newThread, DummyNode.INSTANCE, THREAD_NAME, sharingReason, () -> {
                 while (true) {
@@ -227,6 +227,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
             return processingThread;
         }
 
+        @TruffleBoundary
         protected final void drainReferenceQueues() {
             final ReferenceQueue<Object> sharedReferenceQueue = context.getLanguageSlow().sharedReferenceQueue;
             final RubyLanguage language = context.getLanguageSlow();
