@@ -11,6 +11,7 @@ Bug fixes:
 * Raise `RangeError` for `Time.at(bignum)` (#2580, @eregon).
 * Fix `Integer#{<<,>>}` with RHS bignum and long (@eregon).
 * Fix a resource leak from allocators defined in C extensions (@aardvark179).
+* Update patch feature finding to prefer the longest matching load path (#2605, @bjfish).
 
 Compatibility:
 
