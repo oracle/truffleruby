@@ -695,15 +695,13 @@ public class CExtNodes {
 
         @Specialization
         protected RubyString trStrCapaResize(RubyString string, int newCapacity,
-                @Cached StringToNativeNode stringToNativeNode,
-                @Cached ConditionProfile asciiOnlyProfile) {
+                @Cached StringToNativeNode stringToNativeNode) {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
 
             if (nativeRope.getCapacity() == newCapacity) {
                 return string;
             } else {
-                final NativeRope newRope = nativeRope
-                        .expandCapacity(getContext(), newCapacity);
+                final NativeRope newRope = nativeRope.expandCapacity(getContext(), newCapacity);
                 string.setRope(newRope);
                 return string;
             }
