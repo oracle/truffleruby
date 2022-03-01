@@ -19,6 +19,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import com.oracle.truffle.api.CompilerAsserts;
@@ -373,11 +374,18 @@ public class ThreadManager {
             final boolean isSystemExit = exception instanceof RubySystemExit;
 
             if (!isSystemExit && thread.reportOnException) {
-                RubyContext.send(
-                        context.getCoreLibrary().truffleThreadOperationsModule,
-                        "report_exception",
-                        thread,
-                        exception);
+                final TruffleSafepoint safepoint = TruffleSafepoint.getCurrent();
+
+                boolean sideEffects = safepoint.setAllowSideEffects(false);
+                try {
+                    RubyContext.send(
+                            context.getCoreLibrary().truffleThreadOperationsModule,
+                            "report_exception",
+                            thread,
+                            exception);
+                } finally {
+                    safepoint.setAllowSideEffects(sideEffects);
+                }
             }
 
             if (isSystemExit || thread.abortOnException) {
@@ -509,7 +517,7 @@ public class ThreadManager {
         final TruffleSafepoint safepoint = TruffleSafepoint.getCurrent();
 
         final BlockingCallInterruptible.State state = new BlockingCallInterruptible.State(thread, executable, args);
-        safepoint.setBlocked(currentNode, interrupter, blockingCallInterruptible, state, null, null);
+        safepoint.setBlockedWithException(currentNode, interrupter, blockingCallInterruptible, state, null, null);
         return state.result;
     }
 
@@ -573,7 +581,7 @@ public class ThreadManager {
 
     @TruffleBoundary
     public <T> T runUntilResult(Node currentNode, BlockingAction<T> action, Runnable beforeInterrupt,
-            Runnable afterInterrupt) {
+            Consumer<Throwable> afterInterrupt) {
         final TruffleSafepoint safepoint = TruffleSafepoint.getCurrent();
         final RubyThread runningThread = RubyLanguage.get(currentNode).getCurrentThread();
 
@@ -589,7 +597,7 @@ public class ThreadManager {
             sideEffects = safepoint.setAllowSideEffects(true);
         }
         try {
-            safepoint.setBlocked(currentNode, Interrupter.THREAD_INTERRUPT, arg -> {
+            safepoint.setBlockedWithException(currentNode, Interrupter.THREAD_INTERRUPT, arg -> {
                 runningThread.status = ThreadStatus.SLEEP;
                 try {
                     result.set(action.block());

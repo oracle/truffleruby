@@ -17,6 +17,7 @@ import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
+import org.truffleruby.language.objects.IsANode;
 
 public class TopLevelRaiseHandler extends RubyBaseNode {
 
@@ -85,8 +86,9 @@ public class TopLevelRaiseHandler extends RubyBaseNode {
         }
     }
 
+    /** See rb_ec_cleanup() in CRuby, which calls ruby_default_signal(), which uses raise(3). */
     private void handleSignalException(RubyException exception) {
-        if (exception.getLogicalClass() == coreLibrary().signalExceptionClass) {
+        if (IsANode.getUncached().executeIsA(exception, coreLibrary().signalExceptionClass)) {
             // Calls raise(3) or no-op
             DispatchNode.getUncached().call(exception, "reached_top_level");
         }
