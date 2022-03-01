@@ -11,7 +11,6 @@ package org.truffleruby.language.exceptions;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -23,8 +22,8 @@ public class RescueStandardErrorNode extends RescueNode {
     }
 
     @Override
-    public boolean canHandle(VirtualFrame frame, RubyException exception) {
-        return matches(exception, coreLibrary().standardErrorClass);
+    public boolean canHandle(VirtualFrame frame, Object exceptionObject) {
+        return matches(exceptionObject, coreLibrary().standardErrorClass);
     }
 
     @Override

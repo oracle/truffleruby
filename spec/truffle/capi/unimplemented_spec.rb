@@ -18,6 +18,6 @@ describe "Unimplemented functions in the C-API" do
   it "raise a useful RuntimeError including the function name" do
     -> {
       @s.not_implemented_function("foo")
-    }.should raise_error(RuntimeError, /rb_str_shared_replace cannot be found/)
+    }.should raise_error(Polyglot::ForeignException, /rb_str_shared_replace cannot be found/)
   end
 end

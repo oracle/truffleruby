@@ -245,7 +245,71 @@ module Polyglot
       Truffle::Interop.to_array(self)
     end
     alias_method :to_a, :to_ary
+
+    def reverse
+      to_a.reverse
+    end
   end
+
+  # This would normally be named ExceptionTrait for consistency, but this module
+  # is also the right one to rescue foreign exceptions with `rescue Polyglot::ForeignException`.
+  # Hence we make ForeignException the original name and ExceptionTrait the alias,
+  # to let users discover `rescue Polyglot::ForeignException` through `p exc.class.ancestors`
+  module ForeignException
+    def message
+      if Truffle::Interop.has_exception_message?(self)
+        Truffle::Interop.exception_message(self)
+      else
+        nil
+      end
+    end
+
+    def cause
+      if Truffle::Interop.has_exception_cause?(self)
+        Truffle::Interop.exception_cause(self)
+      else
+        nil
+      end
+    end
+
+    def exception(message = nil)
+      unless Primitive.nil?(message)
+        raise "ForeignException#exception currently only handles no or nil message (given #{message.inspect})"
+      end
+      self
+    end
+
+    def inspect
+      "#{super[0...-1]}: #{message}>"
+    end
+
+    def backtrace_locations
+      if Truffle::Interop.has_exception_stack_trace?(self)
+        last_user_location = nil
+        Truffle::Interop.exception_stack_trace(self).reverse.filter_map do |entry|
+          method_name = Truffle::Interop.has_executable_name?(entry) ? Truffle::Interop.executable_name(entry) : '<unknown>'
+
+          source_location = Truffle::Interop.has_source_location?(entry) && Truffle::Interop.source_location(entry)
+          if source_location && source_location.user?
+            last_user_location = source_location
+          elsif last_user_location
+            source_location = last_user_location
+          else # no source location, (unknown) or internal with no last_user_location
+            source_location = nil
+          end
+
+          Truffle::Interop::BacktraceLocation.new(source_location, method_name) if source_location
+        end.reverse
+      else
+        nil
+      end
+    end
+
+    def backtrace
+      backtrace_locations&.map(&:to_s)
+    end
+  end
+  ExceptionTrait = ForeignException
 
   module ExecutableTrait
     def call(*args)
@@ -288,6 +352,16 @@ module Polyglot
       end
 
       self
+    end
+  end
+
+  module MetaObjectTrait
+    def name
+      Truffle::Interop.meta_qualified_name(self)
+    end
+
+    def ===(instance)
+      Truffle::Interop.meta_instance?(self, instance)
     end
   end
 
@@ -348,6 +422,8 @@ module Polyglot
   end
 
   class ForeignObject < Object
+    # Methods #__id__, #equal? are implemented for foreign objects directly in their BasicObject definition
+
     def inspect
       recursive_string_for(self) if Truffle::ThreadOperations.detect_recursion self do
         return Truffle::InteropOperations.foreign_inspect_nonrecursive(self)
@@ -383,6 +459,19 @@ module Polyglot
       end
     end
     alias_method :kind_of?, :is_a?
+
+    def instance_variable_get(member)
+      Truffle::Interop.read_member(self, member)
+    end
+
+    def instance_variable_set(member, value)
+      begin
+        Truffle::Interop.write_member(self, member, value)
+      rescue Polyglot::UnsupportedMessageError
+        # the receiver does not support writing at all, e.g. it is immutable
+        raise FrozenError.new("can't modify frozen #{self.class}", receiver: self)
+      end
+    end
 
     def instance_variables
       return [] unless Truffle::Interop.has_members?(self)

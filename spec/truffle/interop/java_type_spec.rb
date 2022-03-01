@@ -29,7 +29,7 @@ guard -> { !TruffleRuby.native? } do
     end
 
     it "throws RuntimeError for unknown class names" do
-      -> { Truffle::Interop.java_type("does.not.Exist") }.should raise_error(RuntimeError)
+      -> { Truffle::Interop.java_type("does.not.Exist") }.should raise_error(Polyglot::ForeignException)
     end
 
     it "works with symbols" do

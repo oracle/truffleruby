@@ -31,13 +31,24 @@ module Truffle
       return Polyglot::ForeignObject if traits.empty?
 
       name_traits = traits.dup
+
       if name_traits.include?(:Array)
         # foreign Array are Iterable by default, so it seems redundant in the name
         unless name_traits.delete(:Iterable)
           name_traits[name_traits.index(:Array)] = :ArrayNotIterable
         end
       end
+
+      # MetaObject + Instantiable => Class
+      if i = name_traits.index(:MetaObject) and name_traits.include?(:Instantiable)
+        name_traits[i] = :Class
+        name_traits.delete :Instantiable
+      end
+
       name = "Foreign#{name_traits.join}"
+
+      # Avoid conflict with Polyglot::ForeignException, which is a module (and an alias of Polyglot::ExceptionTrait)
+      name = 'ForeignExceptionClass' if name == 'ForeignException'
 
       RESOLVE_POLYGLOT_CLASS_MUTEX.synchronize do
         if Polyglot.const_defined?(name, false)

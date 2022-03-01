@@ -11,6 +11,7 @@ package org.truffleruby.core.module;
 
 import java.util.Set;
 
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -19,6 +20,7 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
@@ -104,6 +106,29 @@ public class RubyModule extends RubyDynamicObject implements ObjectGraphNode {
     public void getAdjacentObjects(Set<Object> reachable) {
         ObjectGraph.addProperty(reachable, fields);
     }
+
+    // region MetaObject
+    @ExportMessage
+    public boolean isMetaObject() {
+        return true;
+    }
+
+    @ExportMessage
+    public String getMetaQualifiedName() {
+        return fields.getName();
+    }
+
+    @ExportMessage
+    public String getMetaSimpleName() {
+        return fields.getSimpleName();
+    }
+
+    @ExportMessage
+    public boolean isMetaInstance(Object instance,
+            @Cached IsANode isANode) {
+        return isANode.executeIsA(instance, this);
+    }
+    // endregion
 
     // region SourceLocation
     @ExportMessage

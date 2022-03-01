@@ -10,10 +10,21 @@ require_relative '../../ruby/spec_helper'
 
 describe "Calling #equal? on a foreign object" do
 
-  it "tests reference equality" do
+  it "tests reference equality for an object which has an identity" do
     a = Truffle::Debug.foreign_object
+    Truffle::Interop.should.has_identity?(a)
     a.equal?(a).should be_true
+
     b = Truffle::Debug.foreign_object
+    a.equal?(b).should be_false
+  end
+
+  it "tests reference equality for an object which has no identity" do
+    a = Truffle::Debug.foreign_object_with_members
+    Truffle::Interop.should_not.has_identity?(a)
+    a.equal?(a).should be_true
+
+    b = Truffle::Debug.foreign_object_with_members
     a.equal?(b).should be_false
   end
 

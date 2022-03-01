@@ -12,6 +12,7 @@ package org.truffleruby.language;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
@@ -147,6 +148,10 @@ public abstract class RubyGuards {
 
     public static boolean isRubyEncoding(Object object) {
         return object instanceof RubyEncoding;
+    }
+
+    public static boolean isRubyException(Object object) {
+        return object instanceof RubyException;
     }
 
     public static boolean isRubyMethod(Object value) {

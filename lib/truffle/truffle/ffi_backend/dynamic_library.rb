@@ -53,7 +53,13 @@ module FFI
 
     def self.open(libname, flags)
       code = libname ? "load '#{libname}'" : 'default'
-      handle = Primitive.interop_eval_nfi code
+      begin
+        handle = Primitive.interop_eval_nfi code
+      rescue Polyglot::ForeignException => e
+        # Translate to a Ruby exception as it needs to be rescue'd by
+        # `rescue Exception` in FFI::Library#ffi_lib (which is part of the ffi gem)
+        raise RuntimeError, e.message
+      end
       DynamicLibrary.new(libname, handle)
     end
 

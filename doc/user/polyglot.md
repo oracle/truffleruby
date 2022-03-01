@@ -114,6 +114,19 @@ If you want to pass a Ruby object to another language for fields to be read and 
 
 Where boolean value is expected (e.g., in `if` conditions) the foreign value is converted to boolean if possible or considered to be true.
 
+### Rescuing Foreign Exceptions
+
+Foreign exceptions can be caught by `rescue Polyglot::ForeignException => e` or by `rescue foreign_meta_object`.
+It is possible to rescue any exception (Ruby or foreign) with `rescue Object => e`.
+
+This naturally stems from the ancestors of a foreign exception:
+```ruby
+Java.type("java.lang.RuntimeException").new.class.ancestors
+# => [Polyglot::ForeignExceptionClass, Polyglot::ForeignException, Polyglot::ForeignObject, Object, Kernel, BasicObject]
+```
+
+Note `Polyglot::ForeignException` is a module and not class, so to ensure it's included for all foreign exceptions.
+
 ## Accessing Java Objects
 
 TruffleRuby's Java interoperability interface is similar to the interface from the Nashorn JavaScript implementation, as also implemented by GraalVM's JavaScript implementation.

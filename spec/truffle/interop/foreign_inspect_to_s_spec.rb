@@ -45,19 +45,35 @@ describe "#inspect and #to_s on a foreign" do
       end
     end
 
+    describe "Java exception" do
+      it "gives a similar representation to Ruby" do
+        integer_class = Truffle::Interop.java_type("java.lang.Integer")
+        -> {
+          integer_class.valueOf("abc")
+        }.should raise_error(Polyglot::ForeignException) { |exc|
+          exc.inspect.should =~ /\A#<Polyglot::ForeignExceptionClass\[Java\] java\.lang\.NumberFormatException:0x\h+: For input string: "abc">\z/
+          exc.to_s.should == '#<Polyglot::ForeignExceptionClass[Java] java.lang.NumberFormatException: For input string: "abc">'
+        }
+      end
+    end
+
     describe "Java type" do
       it "gives a similar representation to Ruby" do
         foreign = Truffle::Interop.java_type("java.math.BigInteger")
-        foreign.inspect.should == "#<Polyglot::ForeignInstantiable[Java] type java.math.BigInteger>"
-        foreign.to_s.should == "#<Polyglot::ForeignInstantiable[Java] type java.math.BigInteger>"
+        foreign.inspect.should == "#<Polyglot::ForeignClass[Java] type java.math.BigInteger>"
+        foreign.to_s.should == "#<Polyglot::ForeignClass[Java] type java.math.BigInteger>"
+
+        foreign = Truffle::Interop.java_type("int")
+        foreign.inspect.should == "#<Polyglot::ForeignMetaObject[Java] type int>"
+        foreign.to_s.should == "#<Polyglot::ForeignMetaObject[Java] type int>"
       end
     end
 
     describe "Java java.lang.Class instance" do
       it "gives a similar representation to Ruby" do
         foreign = Truffle::Interop.java_type("java.math.BigInteger")[:class]
-        foreign.inspect.should =~ /\A#<Polyglot::ForeignInstantiable\[Java\] java.lang.Class:0x\h+ java.math.BigInteger static={...}>\z/
-        foreign.to_s.should == "#<Polyglot::ForeignInstantiable[Java] java.math.BigInteger>"
+        foreign.inspect.should =~ /\A#<Polyglot::ForeignClass\[Java\] java\.lang\.Class:0x\h+ java\.math\.BigInteger static={\.\.\.}>\z/
+        foreign.to_s.should == "#<Polyglot::ForeignClass[Java] java.math.BigInteger>"
       end
     end
 
@@ -123,6 +139,14 @@ describe "#inspect and #to_s on a foreign" do
       { a: 1, b: 2 }.inspect.should == "{:a=>1, :b=>2}"
       foreign.inspect.should =~ /\A#<Polyglot::ForeignHash:0x\h+ {:a=>1, :b=>2}>\z/
       foreign.to_s.should == "#<Polyglot::ForeignHash [foreign hash]>"
+    end
+  end
+
+  describe "exception" do
+    it "gives a similar representation to Ruby" do
+      exc = Truffle::Debug.foreign_exception("foo")
+      exc.inspect.should =~ /\A#<Polyglot::ForeignExceptionClass:0x\h+: foo>\z/
+      exc.to_s.should == '#<Polyglot::ForeignExceptionClass [foreign exception]>'
     end
   end
 

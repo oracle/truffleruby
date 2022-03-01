@@ -9,11 +9,8 @@
  */
 package org.truffleruby.language.methods;
 
-import java.util.EnumSet;
-
 import com.oracle.truffle.api.exception.AbstractTruffleException;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.VMPrimitiveNodes.InitStackOverflowClassesEagerlyNode;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.exception.RubyException;
@@ -22,14 +19,11 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
-import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -73,6 +67,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
             @Cached BranchProfile controlProfile,
             @Cached BranchProfile raiseProfile,
             @Cached BranchProfile terminationProfile,
+            @Cached BranchProfile foreignProfile,
             @Cached BranchProfile unsupportedProfile,
             @Cached BranchProfile errorProfile) {
         try {
@@ -86,6 +81,10 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
             return exception;
         } catch (TerminationException exception) {
             terminationProfile.enter();
+            return exception;
+        } catch (AbstractTruffleException exception) { // A foreign exception
+            foreignProfile.enter();
+            logJavaException(getContext(), this, exception);
             return exception;
         } catch (UnsupportedSpecializationException exception) {
             unsupportedProfile.enter();
@@ -103,22 +102,10 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
             // it cannot be returned and we want to propagate it always anyway
             throw exception;
         } catch (Throwable exception) {
-            errorProfile.enter();
-            if (getContext().getEnv().isHostException(exception)) {
-                // GR-22071: rethrow host exceptions to get the interleaved host and guest stacktrace of PolyglotException
-                logJavaException(getContext(), this, exception);
-                throw ExceptionOperations.rethrow(exception);
-            } else if (exception instanceof AbstractTruffleException) {
-                // A foreign exception
-                return new RaiseException(
-                        getContext(),
-                        translateForeignException(getContext(), getLanguage(), (AbstractTruffleException) exception));
-            } else {
-                // An internal exception
-                CompilerDirectives.transferToInterpreter(/* internal exceptions are fatal */);
-                logUncaughtJavaException(getContext(), this, exception);
-                throw ExceptionOperations.rethrow(exception);
-            }
+            // An internal exception
+            CompilerDirectives.transferToInterpreter(/* internal exceptions are fatal */);
+            logUncaughtJavaException(getContext(), this, exception);
+            throw ExceptionOperations.rethrow(exception);
         }
     }
 
@@ -208,87 +195,6 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
             }
         }
         return builder;
-    }
-
-    @TruffleBoundary
-    private RubyException translateForeignException(RubyContext context, RubyLanguage language,
-            AbstractTruffleException exception) {
-        logJavaException(context, this, exception);
-
-        // NOTE (eregon, 2 Feb. 2018): This could maybe be modeled as translating each exception to
-        // a Ruby one and linking them with Ruby Exception#cause.
-        // But currently we and MRI do not display the cause message or backtrace by default.
-
-        final StringBuilder builder = new StringBuilder();
-        boolean firstException = true;
-        Backtrace lastBacktrace = null;
-        Throwable t = exception;
-
-        while (t != null) {
-            if (t.getClass().getSimpleName().equals("LazyStackTrace")) {
-                // Truffle's lazy stracktrace support, not a real exception
-                break;
-            }
-
-            if (lastBacktrace != null) {
-                appendTruffleStackTrace(context, language, builder, lastBacktrace);
-                lastBacktrace = null;
-            }
-
-            if (!firstException) {
-                builder.append("Caused by:\n");
-            }
-
-            if (t instanceof RaiseException) {
-                // A Ruby exception as a cause of a Java or C-ext exception
-                final RubyException rubyException = ((RaiseException) t).getException();
-
-                // Add the backtrace in the message as otherwise we would only see the
-                // internalError() backtrace.
-                final BacktraceFormatter formatter = new BacktraceFormatter(
-                        context,
-                        language,
-                        EnumSet.noneOf(FormattingFlags.class));
-                final String formattedBacktrace = formatter
-                        .formatBacktrace(rubyException, rubyException.backtrace);
-                builder.append(formattedBacktrace).append('\n');
-            } else {
-                // Java exception, print it formatted like a Ruby exception
-                builder.append(BacktraceFormatter.formatJavaThrowableMessage(t)).append('\n');
-
-                if (t instanceof AbstractTruffleException) {
-                    lastBacktrace = new Backtrace((AbstractTruffleException) t);
-                } else {
-                    BacktraceFormatter.appendJavaStackTrace(t, builder);
-
-                    if (TruffleStackTrace.getStackTrace(t) != null) {
-                        lastBacktrace = new Backtrace(t);
-                    }
-                }
-            }
-
-            t = t.getCause();
-            firstException = false;
-        }
-
-        // When printing the backtrace of the exception, make it clear it's not a cause
-        builder.append("Translated to internal error");
-
-        if (lastBacktrace != null) {
-            return context.getCoreExceptions().runtimeError(builder.toString(), lastBacktrace);
-        } else {
-            return context.getCoreExceptions().runtimeError(builder.toString(), this, exception);
-        }
-    }
-
-    private void appendTruffleStackTrace(RubyContext context, RubyLanguage language, StringBuilder builder,
-            Backtrace backtrace) {
-        final BacktraceFormatter formatter = new BacktraceFormatter(
-                context,
-                language,
-                EnumSet.noneOf(FormattingFlags.class));
-        final String formattedBacktrace = formatter.formatBacktrace(null, backtrace);
-        builder.append(formattedBacktrace).append('\n');
     }
 
     @TruffleBoundary

@@ -32,6 +32,7 @@ public class ProxyForeignObject implements TruffleObject {
     private static final Message EXECUTABLE = Message.resolve(InteropLibrary.class, "execute");
     private static final Message INVOKE = Message.resolve(InteropLibrary.class, "invokeMember");
     private static final Message INSTANTIATE = Message.resolve(InteropLibrary.class, "instantiate");
+    private static final Message IS_META_INSTANCE = Message.resolve(InteropLibrary.class, "isMetaInstance");
 
     public ProxyForeignObject(Object delegate) {
         this(delegate, null);
@@ -49,6 +50,14 @@ public class ProxyForeignObject implements TruffleObject {
             @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
             @CachedLibrary("this.delegate") ReflectionLibrary reflections,
             @CachedLibrary("this") ReflectionLibrary node) throws Exception {
+
+        if (message == IS_META_INSTANCE) { // Workaround StackOverflowError in asserts (GR-37197)
+            rawArgs = rawArgs.clone();
+            for (int i = 0; i < rawArgs.length; i++) {
+                rawArgs[i] = unwrap(rawArgs[i]);
+            }
+        }
+
         if (logger != null) {
             final Object[] args;
             if (message == EXECUTABLE || message == INSTANTIATE) {
@@ -71,5 +80,13 @@ public class ProxyForeignObject implements TruffleObject {
         }
 
         return reflections.send(delegate, message, rawArgs);
+    }
+
+    private static Object unwrap(Object value) {
+        if (value instanceof ProxyForeignObject) {
+            return ((ProxyForeignObject) value).delegate;
+        } else {
+            return value;
+        }
     }
 }

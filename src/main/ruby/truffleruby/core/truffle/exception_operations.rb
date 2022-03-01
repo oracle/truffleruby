@@ -20,7 +20,9 @@ module Truffle
           exc = exc.exception msg
         end
 
-        exception_class_object_expected! unless Primitive.object_kind_of?(exc, ::Exception)
+        unless Primitive.object_kind_of?(exc, ::Exception) or Primitive.object_kind_of?(exc, Polyglot::ForeignException)
+          exception_class_object_expected!
+        end
         exc
       elsif Primitive.object_kind_of?(exc, ::String)
         ::RuntimeError.exception exc

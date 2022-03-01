@@ -110,17 +110,22 @@ public class BacktraceFormatter {
         }
     }
 
+    public void printRubyExceptionOnEnvStderr(String info, RubyException rubyException) {
+        final Backtrace backtrace = rubyException.backtrace;
+        final RaiseException raiseException = backtrace != null ? backtrace.getRaiseException() : null;
+        printRubyExceptionOnEnvStderr(info, raiseException, rubyException);
+    }
+
     @SuppressFBWarnings("OS")
     @TruffleBoundary
-    public void printRubyExceptionOnEnvStderr(String info, RubyException rubyException) {
-        if (InitStackOverflowClassesEagerlyNode.ignore(rubyException)) {
+    public void printRubyExceptionOnEnvStderr(String info, AbstractTruffleException exception, Object exceptionObject) {
+        if (InitStackOverflowClassesEagerlyNode.ignore(exceptionObject)) {
             return;
         }
 
         // Ensure the backtrace is materialized here, before calling Ruby methods.
-        final Backtrace backtrace = rubyException.backtrace;
-        if (backtrace != null && backtrace.getRaiseException() != null) {
-            TruffleStackTrace.fillIn(backtrace.getRaiseException());
+        if (exception != null) {
+            TruffleStackTrace.fillIn(exception);
         }
 
         final PrintStream printer = context.getEnvErrStream();
@@ -132,7 +137,7 @@ public class BacktraceFormatter {
             final Object fullMessage = RubyContext.send(
                     context.getCoreLibrary().truffleExceptionOperationsModule,
                     "get_formatted_backtrace",
-                    rubyException);
+                    exceptionObject);
             final String formatted = fullMessage != null
                     ? RubyStringLibrary.getUncached().getJavaString(fullMessage)
                     : "<no message>";
@@ -149,8 +154,15 @@ public class BacktraceFormatter {
             } else {
                 error.printStackTrace(printer);
             }
-            printer.println("Original Ruby exception:");
-            printer.println(formatBacktrace(rubyException, rubyException.backtrace));
+
+            if (exceptionObject instanceof RubyException) {
+                RubyException rubyException = (RubyException) exceptionObject;
+                printer.println("Original Ruby exception:");
+                printer.println(formatBacktrace(rubyException, rubyException.backtrace));
+            } else {
+                printer.println("Original foreign exception:");
+                exception.printStackTrace(printer);
+            }
             printer.println(); // To make it easier to spot the end of both error + original
         }
     }

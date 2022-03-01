@@ -156,6 +156,8 @@ import org.truffleruby.interop.InteropNodesBuiltins;
 import org.truffleruby.interop.InteropNodesFactory;
 import org.truffleruby.interop.PolyglotNodesBuiltins;
 import org.truffleruby.interop.PolyglotNodesFactory;
+import org.truffleruby.interop.SourceLocationNodesBuiltins;
+import org.truffleruby.interop.SourceLocationNodesFactory;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.TruffleBootNodesBuiltins;
 import org.truffleruby.language.TruffleBootNodesFactory;
@@ -228,6 +230,7 @@ public abstract class BuiltinsClasses {
         RegexpNodesBuiltins.setup(coreManager);
         SecureRandomizerNodesBuiltins.setup(coreManager);
         SizedQueueNodesBuiltins.setup(coreManager);
+        SourceLocationNodesBuiltins.setup(coreManager);
         StringNodesBuiltins.setup(coreManager);
         SymbolNodesBuiltins.setup(coreManager);
         SyntaxErrorNodesBuiltins.setup(coreManager);
@@ -310,6 +313,7 @@ public abstract class BuiltinsClasses {
         RegexpNodesBuiltins.setupPrimitives(primitiveManager);
         SecureRandomizerNodesBuiltins.setupPrimitives(primitiveManager);
         SizedQueueNodesBuiltins.setupPrimitives(primitiveManager);
+        SourceLocationNodesBuiltins.setupPrimitives(primitiveManager);
         StringNodesBuiltins.setupPrimitives(primitiveManager);
         SymbolNodesBuiltins.setupPrimitives(primitiveManager);
         SyntaxErrorNodesBuiltins.setupPrimitives(primitiveManager);
@@ -393,6 +397,7 @@ public abstract class BuiltinsClasses {
                 RegexpNodesFactory.getFactories(),
                 SecureRandomizerNodesFactory.getFactories(),
                 SizedQueueNodesFactory.getFactories(),
+                SourceLocationNodesFactory.getFactories(),
                 StringNodesFactory.getFactories(),
                 SymbolNodesFactory.getFactories(),
                 SyntaxErrorNodesFactory.getFactories(),

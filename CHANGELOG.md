@@ -2,6 +2,8 @@
 
 New features:
 
+* Foreign exceptions are now fully integrated and have most methods of `Exception` (@eregon).
+* Foreign exceptions can now be rescued with `rescue Polyglot::ForeignException` or `rescue foreign_meta_object` (#2544, @eregon).
 
 Bug fixes:
 

@@ -18,8 +18,9 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.backtrace.Backtrace;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -50,23 +51,32 @@ public class ThreadBacktraceLocationNodes {
         @TruffleBoundary
         @Specialization
         protected Object absolutePath(RubyBacktraceLocation threadBacktraceLocation,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached MakeStringNode makeStringNode) {
             final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
+            return getAbsolutePath(sourceSection, makeStringNode, this);
+        }
+
+        @TruffleBoundary
+        public static Object getAbsolutePath(SourceSection sourceSection, MakeStringNode makeStringNode,
+                RubyBaseNode node) {
+            var context = node.getContext();
+            var language = node.getLanguage();
+
             if (sourceSection == null) {
-                return coreStrings().UNKNOWN.createInstance(getContext());
+                return language.coreStrings.UNKNOWN.createInstance(context);
             } else {
                 final Source source = sourceSection.getSource();
-                if (BacktraceFormatter.isRubyCore(getLanguage(), source)) {
+                if (BacktraceFormatter.isRubyCore(language, source)) {
                     return nil;
                 } else if (source.getPath() != null) { // A normal file
-                    final String path = getLanguage().getSourcePath(source);
-                    final String canonicalPath = getContext().getFeatureLoader().canonicalize(path);
-                    final Rope cachedRope = getLanguage().ropeCache
+                    final String path = language.getSourcePath(source);
+                    final String canonicalPath = context.getFeatureLoader().canonicalize(path);
+                    final Rope cachedRope = language.ropeCache
                             .getRope(StringOperations.encodeRope(canonicalPath, UTF8Encoding.INSTANCE));
                     return makeStringNode.fromRope(cachedRope, Encodings.UTF_8);
                 } else { // eval()
-                    final Rope cachedPath = getLanguage().getPathToRopeCache().getCachedPath(source);
+                    final Rope cachedPath = language.getPathToRopeCache().getCachedPath(source);
                     return makeStringNode.fromRope(cachedPath, Encodings.UTF_8);
                 }
             }
@@ -80,7 +90,7 @@ public class ThreadBacktraceLocationNodes {
         @TruffleBoundary
         @Specialization
         protected RubyString path(RubyBacktraceLocation threadBacktraceLocation,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached MakeStringNode makeStringNode) {
             final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
             if (sourceSection == null) {
@@ -98,7 +108,7 @@ public class ThreadBacktraceLocationNodes {
 
         @Specialization
         protected RubyString label(RubyBacktraceLocation threadBacktraceLocation,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached MakeStringNode makeStringNode) {
             final Backtrace backtrace = threadBacktraceLocation.backtrace;
             final int index = threadBacktraceLocation.activationIndex;
             final TruffleStackTraceElement element = backtrace.getStackTrace()[index];
@@ -112,7 +122,7 @@ public class ThreadBacktraceLocationNodes {
     public abstract static class BaseLabelNode extends UnaryCoreMethodNode {
         @Specialization
         protected RubyString label(RubyBacktraceLocation threadBacktraceLocation,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached MakeStringNode makeStringNode) {
             final Backtrace backtrace = threadBacktraceLocation.backtrace;
             final int index = threadBacktraceLocation.activationIndex;
             final TruffleStackTraceElement element = backtrace.getStackTrace()[index];
@@ -138,7 +148,7 @@ public class ThreadBacktraceLocationNodes {
     @CoreMethod(names = "to_s")
     public abstract static class ToSNode extends UnaryCoreMethodNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private MakeStringNode makeStringNode = MakeStringNode.create();
 
         @Specialization
         protected RubyString toS(RubyBacktraceLocation threadBacktraceLocation) {

@@ -13,12 +13,10 @@ describe "Truffle::Interop source messages" do
   it "returns correct source location" do
     method = Array.instance_method(:each_index)
     Truffle::Interop.has_source_location?(method).should == true
-    Truffle::Interop.to_display_string(Truffle::Interop.source_location(method)).should include("array.rb")
+    Truffle::Interop.source_location(method).path.should.end_with?("/array.rb")
 
     Truffle::Interop.has_source_location?(Array).should == true
-    Truffle::Interop.to_display_string(Truffle::Interop.source_location(Array)).should include("(unavailable)")
-
-    Truffle::Interop.has_source_location?(ObjectSpace).should == true
-    Truffle::Interop.to_display_string(Truffle::Interop.source_location(ObjectSpace)).should include("(unavailable)")
+    Truffle::Interop.source_location(Array).should_not.available?
+    Truffle::Interop.source_location(Array).path.should == "(unknown)"
   end
 end

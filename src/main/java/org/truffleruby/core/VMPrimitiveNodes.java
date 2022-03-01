@@ -41,6 +41,7 @@ import java.util.Map.Entry;
 
 import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
@@ -66,6 +67,7 @@ import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.SafepointAction;
 import org.truffleruby.language.backtrace.Backtrace;
@@ -220,6 +222,17 @@ public abstract class VMPrimitiveNodes {
             }
         }
 
+        @Specialization(guards = "!isRubyException(exception)", limit = "getInteropCacheLimit()")
+        protected Object foreignException(Object exception,
+                @CachedLibrary("exception") InteropLibrary interopLibrary,
+                @Cached TranslateInteropExceptionNode translateInteropExceptionNode) {
+            try {
+                throw interopLibrary.throwException(exception);
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropExceptionNode.execute(e);
+            }
+        }
+
         public static RaiseException reRaiseException(RubyContext context, RubyException exception) {
             final Backtrace backtrace = exception.backtrace;
             if (backtrace != null && backtrace.getRaiseException() != null) {
@@ -230,7 +243,6 @@ public abstract class VMPrimitiveNodes {
                 throw new RaiseException(context, exception);
             }
         }
-
     }
 
     @Primitive(name = "vm_throw")
@@ -523,7 +535,11 @@ public abstract class VMPrimitiveNodes {
             return e.getMessage() == MESSAGE;
         }
 
-        public static boolean ignore(RubyException rubyException) {
+        public static boolean ignore(Object exceptionObject) {
+            if (!(exceptionObject instanceof RubyException)) {
+                return false;
+            }
+            RubyException rubyException = (RubyException) exceptionObject;
             final Backtrace backtrace = rubyException.backtrace;
             final Throwable throwable = backtrace == null ? null : backtrace.getJavaThrowable();
             return throwable instanceof StackOverflowError && ignore((StackOverflowError) throwable);

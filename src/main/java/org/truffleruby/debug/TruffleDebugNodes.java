@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.oracle.truffle.api.TruffleStackTraceElement;
+import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.MaterializedFrame;
@@ -1009,6 +1010,40 @@ public abstract class TruffleDebugNodes {
         protected Object foreignString(Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             return new ForeignString(strings.getJavaString(string));
+        }
+    }
+
+    @CoreMethod(names = "foreign_exception", required = 1, onSingleton = true)
+    public abstract static class ForeignExceptionNode extends CoreMethodArrayArgumentsNode {
+        @SuppressWarnings("serial")
+        @ExportLibrary(InteropLibrary.class)
+        public static class ForeignException extends AbstractTruffleException {
+
+            public ForeignException(String message) {
+                super(message);
+            }
+
+            @ExportMessage
+            protected boolean isException() {
+                return true;
+            }
+
+            @ExportMessage
+            public RuntimeException throwException() {
+                throw this;
+            }
+
+            @ExportMessage
+            protected String toDisplayString(boolean allowSideEffects) {
+                return "[foreign exception]";
+            }
+        }
+
+        @TruffleBoundary
+        @Specialization(guards = "strings.isRubyString(message)")
+        protected Object foreignException(Object message,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
+            return new ForeignException(strings.getJavaString(message));
         }
     }
 
