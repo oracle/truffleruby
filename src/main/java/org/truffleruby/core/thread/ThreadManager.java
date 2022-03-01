@@ -374,11 +374,18 @@ public class ThreadManager {
             final boolean isSystemExit = exception instanceof RubySystemExit;
 
             if (!isSystemExit && thread.reportOnException) {
-                RubyContext.send(
-                        context.getCoreLibrary().truffleThreadOperationsModule,
-                        "report_exception",
-                        thread,
-                        exception);
+                final TruffleSafepoint safepoint = TruffleSafepoint.getCurrent();
+
+                boolean sideEffects = safepoint.setAllowSideEffects(false);
+                try {
+                    RubyContext.send(
+                            context.getCoreLibrary().truffleThreadOperationsModule,
+                            "report_exception",
+                            thread,
+                            exception);
+                } finally {
+                    safepoint.setAllowSideEffects(sideEffects);
+                }
             }
 
             if (isSystemExit || thread.abortOnException) {
