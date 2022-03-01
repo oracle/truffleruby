@@ -1,0 +1,1 @@
+slow:Truffle::VersionedArray redefines all Array and Enumerable methods

@@ -16,19 +16,19 @@ module Truffle
     # FeatureEntry => [*index_inside_$LOADED_FEATURES]
     @loaded_features_index = {}
     # A snapshot of $LOADED_FEATURES, to check if the @loaded_features_index cache is up to date.
-    @loaded_features_copy = []
+    @loaded_features_version = -1
 
     @expanded_load_path = []
     # A snapshot of $LOAD_PATH, to check if the @expanded_load_path cache is up to date.
-    @load_path_copy = []
+    @load_path_version = -1
     # nil if there is no relative path in $LOAD_PATH, a copy of the cwd to check if the cwd changed otherwise.
     @working_directory_copy = nil
 
     def self.clear_cache
       @loaded_features_index.clear
-      @loaded_features_copy.clear
+      @loaded_features_version = -1
       @expanded_load_path.clear
-      @load_path_copy.clear
+      @load_path_version = -1
       @working_directory_copy = nil
     end
 
@@ -214,7 +214,7 @@ module Truffle
         get_loaded_features_index
         $LOADED_FEATURES << feature
         features_index_add(feature, $LOADED_FEATURES.size - 1)
-        @loaded_features_copy = $LOADED_FEATURES.dup
+        @loaded_features_version = $LOADED_FEATURES.version
       end
     end
 
@@ -271,7 +271,7 @@ module Truffle
     end
 
     def self.with_synchronized_features
-      TruffleRuby.synchronized($LOADED_FEATURES) do
+      TruffleRuby.synchronized(KernelOperations::FEATURE_LOADING_LOCK) do
         yield
       end
     end
@@ -279,7 +279,7 @@ module Truffle
     # MRI: get_loaded_features_index
     # always called inside #with_synchronized_features
     def self.get_loaded_features_index
-      unless Primitive.array_storage_equal?(@loaded_features_copy, $LOADED_FEATURES)
+      unless @loaded_features_version == $LOADED_FEATURES.version
         @loaded_features_index.clear
         $LOADED_FEATURES.map! do |val|
           val = StringValue(val)
@@ -289,7 +289,7 @@ module Truffle
         $LOADED_FEATURES.each_with_index do |val, idx|
           features_index_add(val, idx)
         end
-        @loaded_features_copy = $LOADED_FEATURES.dup
+        @loaded_features_version = $LOADED_FEATURES.version
       end
       @loaded_features_index
     end
@@ -308,7 +308,7 @@ module Truffle
 
     def self.get_expanded_load_path
       with_synchronized_features do
-        unless Primitive.array_storage_equal?(@load_path_copy, $LOAD_PATH) && same_working_directory_for_load_path?
+        unless @load_path_version == $LOAD_PATH.version && same_working_directory_for_load_path?
           @expanded_load_path = $LOAD_PATH.map do |path|
             path = Truffle::Type.coerce_to_path(path)
             unless @working_directory_copy
@@ -318,7 +318,7 @@ module Truffle
             end
             Primitive.canonicalize_path(path)
           end
-          @load_path_copy = $LOAD_PATH.dup
+          @load_path_version = $LOAD_PATH.version
         end
         @expanded_load_path
       end

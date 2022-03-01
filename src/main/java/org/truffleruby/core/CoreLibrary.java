@@ -970,7 +970,7 @@ public class CoreLibrary {
             "/core/string.rb",
             "/core/truffle/random_operations.rb",
             "/core/random.rb",
-            "/core/truffle/synchronized_array.rb",
+            "/core/truffle/versioned_array.rb",
             "/core/truffle/kernel_operations.rb",
             "/core/truffle/exception_operations.rb",
             "/core/truffle/feature_loader.rb",

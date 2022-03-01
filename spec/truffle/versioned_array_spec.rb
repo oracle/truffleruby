@@ -10,20 +10,21 @@
 
 require_relative '../ruby/spec_helper'
 
-describe "Truffle::SynchronizedArray" do
+describe "Truffle::VersionedArray" do
   it "redefines all Array and Enumerable methods" do
     expected_methods = ruby_exe("puts Array.public_instance_methods(false) + Enumerable.public_instance_methods(false)")
     expected_methods = expected_methods.lines(chomp: true).map { |line| line.to_sym }.uniq!.sort!
-    synchronized_methods = Truffle::SynchronizedArray.public_instance_methods(false).sort!
+    versioned_methods = Truffle::VersionedArray.public_instance_methods(false).sort!
+    versioned_methods.delete(:version)
 
-    if synchronized_methods == expected_methods
-      synchronized_methods.should == synchronized_methods
+    if versioned_methods == expected_methods
+      versioned_methods.should == versioned_methods
     else
       # if the fast check fails, do a slower check to determine why
       expected_methods.each do |m|
-        synchronized_methods.should include(m)
+        versioned_methods.should include(m)
       end
-      synchronized_methods.each do |m|
+      versioned_methods.each do |m|
         expected_methods.should include(m)
       end
     end

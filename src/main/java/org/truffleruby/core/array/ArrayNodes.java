@@ -38,7 +38,6 @@ import org.truffleruby.core.array.ArrayIndexNodes.ReadNormalizedNode;
 import org.truffleruby.core.array.ArrayIndexNodes.ReadSliceNormalizedNode;
 import org.truffleruby.core.array.ArrayNodesFactory.ReplaceNodeFactory;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
-import org.truffleruby.core.array.library.DelegatedArrayStorage;
 import org.truffleruby.core.array.library.NativeArrayStorage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.CmpIntNode;
@@ -2284,21 +2283,6 @@ public abstract class ArrayNodes {
             other.size = 0;
 
             return array;
-        }
-
-    }
-
-    @Primitive(name = "array_storage_equal?")
-    public abstract static class ArrayStorageEqualNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        protected boolean storageEqual(RubyArray array, RubyArray other) {
-            final Object arrayStore = array.store;
-            final Object otherStore = other.store;
-            // Array#shift and #pop do not modify the underlying storage but still mutate the Array
-            return arrayStore instanceof DelegatedArrayStorage && otherStore instanceof DelegatedArrayStorage &&
-                    ((DelegatedArrayStorage) arrayStore).isEquivalentTo((DelegatedArrayStorage) otherStore) &&
-                    array.size == other.size;
         }
 
     }
