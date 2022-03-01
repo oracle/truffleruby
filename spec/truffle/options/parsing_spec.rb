@@ -41,15 +41,15 @@ describe "Options" do
 
   describe "handles parsing errors with" do
     it "booleans" do
-      ruby_exe("14", options: "--frozen-string-literals=foo", args: "2>&1", exit_status: 1).should include("Invalid boolean option value 'foo'")
+      ruby_exe("14", options: "--frozen-string-literals=foo", args: "2>&1", exit_status: 1).should.include?("Invalid boolean option value 'foo'")
     end
 
     it "integers" do
-      ruby_exe("14", options: "--default-cache=foo", args: "2>&1", exit_status: 1).should include("Invalid argument --default-cache=foo specified")
+      ruby_exe("14", options: "--default-cache=foo", args: "2>&1", exit_status: 1).should.include?("Invalid argument --default-cache=foo specified")
     end
 
     it "enum values" do
-      ruby_exe("14", options: "--verbose=foo", args: "2>&1", exit_status: 1).should include("Invalid argument --verbose=foo specified. No enum constant org.truffleruby.shared.options.Verbosity.FOO'")
+      ruby_exe("14", options: "--verbose=foo", args: "2>&1", exit_status: 1).should.include?("Invalid argument --verbose=foo specified. No enum constant org.truffleruby.shared.options.Verbosity.FOO")
     end
   end
 end
