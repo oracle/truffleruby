@@ -11,6 +11,7 @@ Bug fixes:
 * Raise `RangeError` for `Time.at(bignum)` (#2580, @eregon).
 * Fix `Integer#{<<,>>}` with RHS bignum and long (@eregon).
 * Fix a resource leak from allocators defined in C extensions (@aardvark179).
+* `SIGINT`/`Interrupt`/`Ctrl+C` now shows the backtrace and exits as signaled, like CRuby (@eregon).
 
 Compatibility:
 

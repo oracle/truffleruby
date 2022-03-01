@@ -24,7 +24,6 @@ import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import org.truffleruby.language.objects.IsANode;
 
 public class AtExitManager {
 
@@ -84,8 +83,10 @@ public class AtExitManager {
     }
 
     public static boolean isSilentException(RubyContext context, RubyException rubyException) {
+        // The checks are kind_of?(SystemExit) || instance_of?(SignalException),
+        // see error_handle() in eval_error.c in CRuby. So Interrupt is not silent.
         return rubyException instanceof RubySystemExit ||
-                IsANode.getUncached().executeIsA(rubyException, context.getCoreLibrary().signalExceptionClass);
+                rubyException.getLogicalClass() == context.getCoreLibrary().signalExceptionClass;
     }
 
     private static void handleAtExitException(RubyContext context, RubyException rubyException) {
