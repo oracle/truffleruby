@@ -46,6 +46,7 @@ Performance:
 
 Changes:
 
+* Foreign exceptions are no longer translated to `RuntimeError` but instead remain as foreign exceptions, see the [documentation](doc/user/polyglot.md) for how to rescue them (@eregon).
 
 # 22.0.0
 
