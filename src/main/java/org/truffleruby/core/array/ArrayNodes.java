@@ -2340,8 +2340,7 @@ public abstract class ArrayNodes {
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile) {
             final int size = arraySizeProfile.profile(array.size);
-            Pointer pointer = Pointer.malloc(size * Pointer.SIZE);
-            pointer.enableAutorelease(getContext());
+            Pointer pointer = Pointer.malloc(size * Pointer.SIZE, getContext());
             NativeArrayStorage newStore = new NativeArrayStorage(pointer, size);
             stores.copyContents(store, 0, newStore, 0, size);
             getContext().getMarkingService().addMarker(

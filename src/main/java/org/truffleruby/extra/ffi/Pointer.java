@@ -38,10 +38,22 @@ public final class Pointer implements AutoCloseable {
         return new Pointer(UNSAFE.allocateMemory(size), size);
     }
 
+    /** Includes {@link #enableAutorelease(RubyContext)} and avoids locking for it */
+    public static Pointer malloc(long size, RubyContext context) {
+        return new Pointer(UNSAFE.allocateMemory(size), size, context);
+    }
+
     /** Allocates memory and produces a pointer to it. Clears the memory before returning it. Use {@link #malloc} if you
      * do not need the memory to be cleared. */
     public static Pointer calloc(long size) {
         final Pointer pointer = malloc(size);
+        pointer.writeBytes(0, size, (byte) 0);
+        return pointer;
+    }
+
+    /** Includes {@link #enableAutorelease(RubyContext)} and avoids locking for it */
+    public static Pointer calloc(long size, RubyContext context) {
+        final Pointer pointer = malloc(size, context);
         pointer.writeBytes(0, size, (byte) 0);
         return pointer;
     }
@@ -58,6 +70,12 @@ public final class Pointer implements AutoCloseable {
     public Pointer(long address, long size) {
         this.address = address;
         this.size = size;
+    }
+
+    public Pointer(long address, long size, RubyContext context) {
+        this.address = address;
+        this.size = size;
+        enableAutoreleaseUnsynchronized(context);
     }
 
     public boolean isNull() {
@@ -289,6 +307,10 @@ public final class Pointer implements AutoCloseable {
             return;
         }
 
+        enableAutoreleaseUnsynchronized(context);
+    }
+
+    private void enableAutoreleaseUnsynchronized(RubyContext context) {
         // We must be careful here that the finalizer does not capture the Pointer itself that we'd
         // like to finalize.
         finalizerRef = context.getFinalizationService().addFinalizer(

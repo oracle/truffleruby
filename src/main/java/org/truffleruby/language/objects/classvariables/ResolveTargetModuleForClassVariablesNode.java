@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.objects.classvariables;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.core.module.RubyModule;
@@ -32,7 +31,6 @@ public abstract class ResolveTargetModuleForClassVariablesNode extends RubyBaseN
         return cachedModule;
     }
 
-    @TruffleBoundary
     @Specialization(replaces = "cached")
     protected RubyModule uncached(LexicalScope lexicalScope) {
         LexicalScope scope = lexicalScope;

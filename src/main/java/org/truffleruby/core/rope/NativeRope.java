@@ -46,16 +46,14 @@ public class NativeRope extends Rope {
     }
 
     private static Pointer allocateNativePointer(RubyContext context, byte[] bytes) {
-        final Pointer pointer = Pointer.malloc(bytes.length + 1);
-        pointer.enableAutorelease(context);
+        final Pointer pointer = Pointer.malloc(bytes.length + 1, context);
         pointer.writeBytes(0, bytes, 0, bytes.length);
         pointer.writeByte(bytes.length, (byte) 0);
         return pointer;
     }
 
     private static Pointer copyNativePointer(RubyContext context, Pointer existing) {
-        final Pointer pointer = Pointer.malloc(existing.getSize());
-        pointer.enableAutorelease(context);
+        final Pointer pointer = Pointer.malloc(existing.getSize(), context);
         pointer.writeBytes(0, existing, 0, existing.getSize());
         return pointer;
     }
@@ -63,8 +61,7 @@ public class NativeRope extends Rope {
     public static NativeRope newBuffer(RubyContext context, int byteCapacity, int byteLength) {
         assert byteCapacity >= byteLength;
 
-        final Pointer pointer = Pointer.calloc(byteCapacity + 1);
-        pointer.enableAutorelease(context);
+        final Pointer pointer = Pointer.calloc(byteCapacity + 1, context);
 
         return new NativeRope(
                 pointer,
@@ -87,10 +84,9 @@ public class NativeRope extends Rope {
     public NativeRope resize(RubyContext context, int newByteLength) {
         assert byteLength() != newByteLength;
 
-        final Pointer pointer = Pointer.malloc(newByteLength + 1);
+        final Pointer pointer = Pointer.malloc(newByteLength + 1, context);
         pointer.writeBytes(0, this.pointer, 0, Math.min(getNativePointer().getSize(), newByteLength));
         pointer.writeByte(newByteLength, (byte) 0); // Like MRI
-        pointer.enableAutorelease(context);
         return new NativeRope(pointer, newByteLength, getEncoding(), UNKNOWN_CHARACTER_LENGTH, CodeRange.CR_UNKNOWN);
     }
 
@@ -101,10 +97,9 @@ public class NativeRope extends Rope {
      * @return the new NativeRope */
     public NativeRope expandCapacity(RubyContext context, int newCapacity) {
         assert getCapacity() != newCapacity;
-        final Pointer pointer = Pointer.malloc(newCapacity + 1);
+        final Pointer pointer = Pointer.malloc(newCapacity + 1, context);
         pointer.writeBytes(0, this.pointer, 0, Math.min(getNativePointer().getSize(), newCapacity));
         pointer.writeByte(newCapacity, (byte) 0); // Like MRI
-        pointer.enableAutorelease(context);
         return new NativeRope(
                 pointer,
                 byteLength(),
