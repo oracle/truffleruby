@@ -1,1 +1,2 @@
 slow:Interrupt is raised on the main Thread by the default SIGINT handler
+slow:Interrupt shows the backtrace and has a signaled exit status
