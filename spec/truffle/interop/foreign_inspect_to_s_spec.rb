@@ -51,8 +51,8 @@ describe "#inspect and #to_s on a foreign" do
         -> {
           integer_class.valueOf("abc")
         }.should raise_error(Polyglot::ForeignException) { |exc|
-          exc.inspect.should =~ /\A#<Polyglot::ForeignExceptionClass\[Java\] java\.lang\.NumberFormatException:0x\h+: For input string: "abc">\z/
-          exc.to_s.should == '#<Polyglot::ForeignExceptionClass[Java] java.lang.NumberFormatException: For input string: "abc">'
+          exc.inspect.should =~ /\A#<Polyglot::ForeignException\[Java\] java\.lang\.NumberFormatException:0x\h+: For input string: "abc">\z/
+          exc.to_s.should == '#<Polyglot::ForeignException[Java] java.lang.NumberFormatException: For input string: "abc">'
         }
       end
     end
@@ -145,8 +145,8 @@ describe "#inspect and #to_s on a foreign" do
   describe "exception" do
     it "gives a similar representation to Ruby" do
       exc = Truffle::Debug.foreign_exception("foo")
-      exc.inspect.should =~ /\A#<Polyglot::ForeignExceptionClass:0x\h+: foo>\z/
-      exc.to_s.should == '#<Polyglot::ForeignExceptionClass [foreign exception]>'
+      exc.inspect.should =~ /\A#<Polyglot::ForeignException:0x\h+: foo>\z/
+      exc.to_s.should == '#<Polyglot::ForeignException [foreign exception]>'
     end
   end
 

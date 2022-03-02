@@ -14,7 +14,7 @@ describe "Polyglot" do
 
     Truffle::Debug.foreign_hash.class.should == Polyglot::ForeignHash
     Truffle::Debug.foreign_array.class.should == Polyglot::ForeignArray
-    Truffle::Debug.foreign_exception("").class.should == Polyglot::ForeignExceptionClass
+    Truffle::Debug.foreign_exception("").class.should == Polyglot::ForeignException
     Truffle::Debug.foreign_executable(14).class.should == Polyglot::ForeignExecutable
     # ForeignClass, ForeignMetaObject
     Truffle::Debug.foreign_iterable.class.should == Polyglot::ForeignIterable
@@ -31,7 +31,7 @@ describe "Polyglot" do
   it "gives a Ruby Class to Ruby objects behind a foreign proxy" do
     Truffle::Interop.proxy_foreign_object({}).class.should == Polyglot::ForeignHashIterable
     Truffle::Interop.proxy_foreign_object([1, 2, 3]).class.should == Polyglot::ForeignArray
-    Truffle::Interop.proxy_foreign_object(Exception.new("")).class.should == Polyglot::ForeignExceptionClass
+    Truffle::Interop.proxy_foreign_object(Exception.new("")).class.should == Polyglot::ForeignException
     Truffle::Interop.proxy_foreign_object(-> { nil }).class.should == Polyglot::ForeignExecutable
     Truffle::Interop.proxy_foreign_object(String).class.should == Polyglot::ForeignClass
     Truffle::Interop.proxy_foreign_object(Enumerable).class.should == Polyglot::ForeignMetaObject
@@ -51,7 +51,7 @@ describe "Polyglot" do
       Truffle::Interop.to_java_map({ a: 1 }).class.should == Polyglot::ForeignHash
       Truffle::Interop.to_java_array([1, 2, 3]).class.should == Polyglot::ForeignArray
       Truffle::Interop.to_java_list([1, 2, 3]).class.should == Polyglot::ForeignArray
-      Java.type('java.lang.RuntimeException').new.class.should == Polyglot::ForeignExceptionClass
+      Java.type('java.lang.RuntimeException').new.class.should == Polyglot::ForeignException
       # ForeignExecutable
       Java.type('java.math.BigInteger').class.should == Polyglot::ForeignClass
       Java.type('java.math.BigInteger')[:class].class.should == Polyglot::ForeignClass
