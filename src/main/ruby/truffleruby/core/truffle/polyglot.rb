@@ -264,6 +264,10 @@ module Polyglot
       end
     end
 
+    def full_message(highlight: nil, order: undefined)
+      Truffle::ExceptionOperations.full_message(self, highlight, order)
+    end
+
     def cause
       if Truffle::Interop.has_exception_cause?(self)
         Truffle::Interop.exception_cause(self)
