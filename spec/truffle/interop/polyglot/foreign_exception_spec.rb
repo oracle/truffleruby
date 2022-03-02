@@ -13,6 +13,11 @@ describe "Polyglot::ForeignException" do
     @foreign = Truffle::Debug.foreign_exception("exception message")
   end
 
+  it "subclasses Exception" do
+    @foreign.class.should == Polyglot::ForeignException
+    @foreign.class.superclass.should == Exception
+  end
+
   it "supports #message" do
     @foreign.message.should == "exception message"
   end
@@ -21,10 +26,27 @@ describe "Polyglot::ForeignException" do
     @foreign.cause.should == nil
   end
 
+  it "supports #full_message" do
+    -> {
+      raise @foreign
+    }.should raise_error(Polyglot::ForeignException) {
+      full_message = @foreign.full_message(highlight: false, order: :top).lines
+      full_message[0].should == "#{__FILE__}:#{__LINE__-3}:in `Kernel#raise': exception message (Polyglot::ForeignException)\n"
+    }
+  end
+
   it "supports rescue Polyglot::ForeignException" do
     begin
       raise @foreign
     rescue Polyglot::ForeignException => e
+      e.should.equal?(@foreign)
+    end
+  end
+
+  it "supports rescue Exception" do
+    begin
+      raise @foreign
+    rescue Exception => e # rubocop:disable Lint/RescueException
       e.should.equal?(@foreign)
     end
   end
