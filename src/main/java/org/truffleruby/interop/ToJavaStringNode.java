@@ -11,6 +11,7 @@ package org.truffleruby.interop;
 
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
@@ -94,6 +95,12 @@ public abstract class ToJavaStringNode extends RubySourceNode {
     @Specialization(replaces = "javaStringCached")
     protected String javaStringUncached(String value) {
         return value;
+    }
+
+    @Specialization
+    protected String truffleString(TruffleString string,
+            @Cached TruffleString.ToJavaStringNode toJavaStringNode) {
+        return toJavaStringNode.execute(string);
     }
 
     @Fallback
