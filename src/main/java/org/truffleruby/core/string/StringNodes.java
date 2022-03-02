@@ -568,7 +568,26 @@ public abstract class StringNodes {
 
     }
 
-    @CoreMethod(names = { "<<", "concat" }, optional = 1, rest = true, raiseIfNotMutableSelf = true)
+    @CoreMethod(names = "<<", required = 1, raiseIfNotMutableSelf = true)
+    @ImportStatic(StringGuards.class)
+    public abstract static class StringConcatOneNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "libFirst.isRubyString(first)")
+        protected RubyString concat(RubyString string, Object first,
+                @Cached StringAppendPrimitiveNode stringAppendNode,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFirst) {
+            return stringAppendNode.executeStringAppend(string, first);
+        }
+
+        @Specialization(guards = "isNotRubyString(first)")
+        protected Object concatGeneric(RubyString string, Object first,
+                @Cached DispatchNode callNode) {
+            return callNode.call(coreLibrary().truffleStringOperationsModule, "concat_internal", string, first);
+        }
+
+    }
+
+    @CoreMethod(names = "concat", optional = 1, rest = true, raiseIfNotMutableSelf = true)
     @ImportStatic(StringGuards.class)
     public abstract static class StringConcatNode extends CoreMethodArrayArgumentsNode {
 
