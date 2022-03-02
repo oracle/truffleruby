@@ -9,10 +9,12 @@
  */
 package org.truffleruby.language.exceptions;
 
+import com.oracle.truffle.api.exception.AbstractTruffleException;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.control.TerminationException;
 import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -23,8 +25,10 @@ public class EnsureNode extends RubyContextSourceNode {
     @Child private RubyNode tryPart;
     @Child private RubyNode ensurePart;
 
-    private final BranchProfile rubyExceptionPath = BranchProfile.create();
-    private final BranchProfile javaExceptionPath = BranchProfile.create();
+    private final BranchProfile terminationProfile = BranchProfile.create();
+    private final BranchProfile guestExceptionProfile = BranchProfile.create();
+    private final BranchProfile javaExceptionProfile = BranchProfile.create();
+    private final ConditionProfile raiseExceptionProfile = ConditionProfile.create();
 
     public EnsureNode(RubyNode tryPart, RubyNode ensurePart) {
         this.tryPart = tryPart;
@@ -45,7 +49,7 @@ public class EnsureNode extends RubyContextSourceNode {
      * which execution paths are taken (GR-25608). */
     public Object executeCommon(VirtualFrame frame, boolean executeVoid) {
         Object value = nil;
-        RaiseException raiseException = null;
+        AbstractTruffleException guestException = null;
         Throwable javaException = null;
 
         try {
@@ -54,31 +58,35 @@ public class EnsureNode extends RubyContextSourceNode {
             } else {
                 value = tryPart.execute(frame);
             }
-        } catch (RaiseException exception) {
-            rubyExceptionPath.enter();
-            raiseException = exception;
+        } catch (TerminationException e) {
+            terminationProfile.enter();
+            javaException = e;
+        } catch (AbstractTruffleException e) {
+            guestExceptionProfile.enter();
+            guestException = e;
         } catch (Throwable throwable) {
-            javaExceptionPath.enter();
+            javaExceptionProfile.enter();
             javaException = throwable;
         }
 
         ThreadLocalGlobals threadLocalGlobals = null;
         Object previousException = null;
-        if (raiseException != null) {
+        if (guestException != null) {
             threadLocalGlobals = getLanguage().getCurrentThread().threadLocalGlobals;
-            previousException = threadLocalGlobals.exception;
-            threadLocalGlobals.exception = raiseException.getException();
+            previousException = threadLocalGlobals.getLastException();
+            threadLocalGlobals.setLastException(ExceptionOperations.getExceptionObject(guestException,
+                    raiseExceptionProfile));
         }
         try {
             ensurePart.doExecuteVoid(frame);
         } finally {
-            if (raiseException != null) {
-                threadLocalGlobals.exception = previousException;
+            if (guestException != null) {
+                threadLocalGlobals.setLastException(previousException);
             }
         }
 
-        if (raiseException != null) {
-            throw raiseException;
+        if (guestException != null) {
+            throw guestException;
         } else if (javaException != null) {
             throw ExceptionOperations.rethrow(javaException);
         } else {

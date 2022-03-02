@@ -29,6 +29,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import com.oracle.truffle.api.TruffleLogger;
+import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.utilities.AssumedValue;
@@ -66,7 +67,6 @@ import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
-import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.globals.GlobalVariableStorage;
 import org.truffleruby.language.loader.CodeLoader;
@@ -334,9 +334,9 @@ public class RubyContext {
     protected boolean patchContext(Env newEnv) {
         try {
             return patch(newEnv);
-        } catch (RaiseException e) {
+        } catch (AbstractTruffleException e) {
             getDefaultBacktraceFormatter()
-                    .printRubyExceptionOnEnvStderr("Exception during RubyContext.patch():\n", e.getException());
+                    .printRubyExceptionOnEnvStderr("Exception during RubyContext.patch():\n", e);
             throw e;
         } catch (Throwable e) {
             System.err.println("Exception during RubyContext.patch():");

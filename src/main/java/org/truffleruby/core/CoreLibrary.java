@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.exception.AbstractTruffleException;
 import org.graalvm.collections.Pair;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.transcode.EConvFlags;
@@ -54,7 +55,6 @@ import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.globals.GlobalVariableReader;
 import org.truffleruby.language.globals.GlobalVariables;
 import org.truffleruby.language.loader.CodeLoader;
@@ -786,10 +786,9 @@ public class CoreLibrary {
             }
         } catch (IOException e) {
             throw CompilerDirectives.shouldNotReachHere(e);
-        } catch (RaiseException e) {
-            context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(
-                    "Exception while loading core library:\n",
-                    e.getException());
+        } catch (AbstractTruffleException e) {
+            context.getDefaultBacktraceFormatter()
+                    .printRubyExceptionOnEnvStderr("Exception while loading core library:\n", e);
             throw CompilerDirectives.shouldNotReachHere("couldn't load the core library", e);
         }
     }

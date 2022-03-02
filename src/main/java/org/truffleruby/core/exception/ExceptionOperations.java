@@ -10,6 +10,8 @@
 package org.truffleruby.core.exception;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.exception.AbstractTruffleException;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.kernel.KernelNodes;
@@ -25,6 +27,7 @@ import org.truffleruby.language.backtrace.Backtrace;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
 
 public abstract class ExceptionOperations {
@@ -66,6 +69,23 @@ public abstract class ExceptionOperations {
         private String getFallbackMessage(String methodName, Object receiver) {
             return String.format(fallbackFormat, methodName, KernelNodes.ToSNode.uncachedBasicToS(receiver)) +
                     " (could not find formatter " + name() + ")";
+        }
+    }
+
+    public static Object getExceptionObject(AbstractTruffleException exception) {
+        if (exception instanceof RaiseException) {
+            return ((RaiseException) exception).getException();
+        } else {
+            return exception;
+        }
+    }
+
+    public static Object getExceptionObject(AbstractTruffleException exception,
+            ConditionProfile raiseExceptionProfile) {
+        if (raiseExceptionProfile.profile(exception instanceof RaiseException)) {
+            return ((RaiseException) exception).getException();
+        } else {
+            return exception;
         }
     }
 
