@@ -61,7 +61,9 @@ module Truffle
           return orig_block ? dup_string : result
         end
 
-        pattern ||= ($; || DEFAULT_PATTERN)
+        if Primitive.nil?(pattern)
+          pattern = ($; || DEFAULT_PATTERN)
+        end
 
         if pattern == DEFAULT_PATTERN
           awk_limit = limit < 0 ? -1 : limit
