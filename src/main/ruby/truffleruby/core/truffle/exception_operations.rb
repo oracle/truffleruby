@@ -94,12 +94,24 @@ module Truffle
     end
 
     def self.message_and_class(exception, highlight)
-      message = exception.message.to_s
+      message = StringValue exception.message.to_s
+
       if highlight
-        if i = message.index("\n")
-          "\e[1m#{message[0...i]} (\e[1;4m#{exception.class}\e[m\e[1m)\e[0m#{message[i..-1]}"
+        highlighted_class = " (\e[1;4m#{exception.class}\e[m\e[1m)"
+        if message.include?("\n")
+          first = true
+          result = +''
+          message.each_line do |line|
+            if first
+              first = false
+              result << "\e[1m#{line.chomp}#{highlighted_class}\e[m"
+            else
+              result << "\n\e[1m#{line.chomp}\e[m"
+            end
+          end
+          result
         else
-          "\e[1m#{message} (\e[1;4m#{exception.class}\e[m\e[1m)\e[0m"
+          "\e[1m#{message}#{highlighted_class}\e[m"
         end
       else
         if i = message.index("\n")
