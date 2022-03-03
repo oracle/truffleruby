@@ -49,10 +49,12 @@ describe "Interrupt" do
     out.should == "Interrupt: #{Signal.list["INT"]}\n"
   end
 
-  it "shows the backtrace and has a signaled exit status" do
-    err = IO.popen([*ruby_exe, '-e', 'Process.kill :INT, Process.pid; sleep'], err: [:child, :out], &:read)
-    $?.termsig.should == Signal.list.fetch('INT')
-    err.should.include? ': Interrupt'
-    err.should.include? "from -e:1:in `<main>'"
+  platform_is_not :windows do
+    it "shows the backtrace and has a signaled exit status" do
+      err = IO.popen([*ruby_exe, '-e', 'Process.kill :INT, Process.pid; sleep'], err: [:child, :out], &:read)
+      $?.termsig.should == Signal.list.fetch('INT')
+      err.should.include? ': Interrupt'
+      err.should.include? "from -e:1:in `<main>'"
+    end
   end
 end
