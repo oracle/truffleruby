@@ -14,22 +14,64 @@ import java.lang.ref.ReferenceQueue;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
+import org.truffleruby.language.RubyBaseRootNode;
+import org.truffleruby.language.backtrace.InternalRootNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 
+import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.VirtualFrame;
 
 /** Finalizers are implemented with phantom references and reference queues, and are run in a dedicated Ruby thread. */
 public class DataObjectFinalizationService extends ReferenceProcessingService<DataObjectFinalizerReference> {
 
-    private final InteropLibrary nullNode = InteropLibrary.getFactory().createDispatched(2);
-    private final DispatchNode dataNode = DispatchNode.create();
-    private final InteropLibrary callNode = InteropLibrary.getFactory().createDispatched(2);
+    // We need a base node here, it shoudl extend ruby base root node and implement internal root node.
+    public static class DataObjectFinalizerRootNode extends RubyBaseRootNode implements InternalRootNode {
+
+        private static final FrameDescriptor FINALIZER_FRAME = FrameDescriptor.newBuilder().build();
+
+        @Child private InteropLibrary nullNode;
+        @Child private DispatchNode dataNode;
+        @Child private InteropLibrary callNode;
+
+        public DataObjectFinalizerRootNode(
+                TruffleLanguage<?> language) {
+            super(language, FINALIZER_FRAME, null);
+
+            nullNode = insert(InteropLibrary.getFactory().createDispatched(2));
+            dataNode = insert(DispatchNode.create());
+            callNode = insert(InteropLibrary.getFactory().createDispatched(2));
+        }
+
+        @Override
+        public Object execute(VirtualFrame frame) {
+            return null;
+        }
+
+        public Object execute(DataObjectFinalizerReference ref) {
+            try {
+                if (!getContext().isFinalizing()) {
+                    Object data = dataNode.call(ref.dataHolder, "data");
+                    if (!nullNode.isNull(data)) {
+                        callNode.execute(ref.callable, data);
+                    }
+                }
+            } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
+                throw new Error(e);
+            }
+            return null;
+        }
+    }
+
+    private final DataObjectFinalizerRootNode rootNode;
 
     public DataObjectFinalizationService(ReferenceQueue<Object> processingQueue) {
         super(processingQueue);
+        rootNode = new DataObjectFinalizerRootNode(RubyLanguage.getCurrentLanguage());
     }
 
     public DataObjectFinalizationService(ReferenceProcessor referenceProcessor) {
@@ -68,14 +110,7 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
         final ExtensionCallStack stack = language.getCurrentThread().getCurrentFiber().extensionCallStack;
         stack.push(stack.getSpecialVariables(), stack.getBlock());
         try {
-            if (!context.isFinalizing()) {
-                Object data = dataNode.call(ref.dataHolder, "data");
-                if (!nullNode.isNull(data)) {
-                    callNode.execute(ref.callable, data);
-                }
-            }
-        } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
-            throw new Error(e);
+            rootNode.execute(ref);
         } finally {
             stack.pop();
         }

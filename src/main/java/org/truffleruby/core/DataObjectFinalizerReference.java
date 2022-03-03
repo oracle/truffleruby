@@ -15,8 +15,8 @@ public class DataObjectFinalizerReference
         extends
         ReferenceProcessingService.PhantomProcessingReference<DataObjectFinalizerReference, Object> {
 
-    final Object callable;
-    final Object dataHolder;
+    public final Object callable;
+    public final Object dataHolder;
 
     DataObjectFinalizerReference(
             Object object,

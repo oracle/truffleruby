@@ -206,7 +206,7 @@ public abstract class ObjectSpaceNodes {
                 @Cached BranchProfile errorProfile,
                 @Cached WriteBarrierNode writeBarrierNode) {
             if (respondToCallNode.execute(frame, finalizer, "call")) {
-                if (getContext().getSharedObjects().isSharing()) {
+                if (!getContext().getReferenceProcessor().processOnMainThread()) {
                     // Share the finalizer, as it might run on a different Thread
                     writeBarrierNode.executeWriteBarrier(finalizer);
                 }
@@ -255,9 +255,10 @@ public abstract class ObjectSpaceNodes {
                 VirtualFrame frame, RubyDynamicObject object, Object finalizer, Object dataHolder,
                 @Cached WriteBarrierNode writeBarrierNode,
                 @CachedLibrary(limit = "1") DynamicObjectLibrary objectLibrary) {
-            if (getContext().getSharedObjects().isSharing()) {
+            if (!getContext().getReferenceProcessor().processOnMainThread()) {
                 // Share the finalizer, as it might run on a different Thread
                 writeBarrierNode.executeWriteBarrier(finalizer);
+                writeBarrierNode.executeWriteBarrier(dataHolder);
             }
 
             DataObjectFinalizerReference newRef = getContext()

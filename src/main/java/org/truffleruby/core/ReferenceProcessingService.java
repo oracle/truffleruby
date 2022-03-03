@@ -150,7 +150,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
         }
 
         protected void processReferenceQueue() {
-            if (context.getOptions().SINGLE_THREADED || context.hasOtherPublicLanguages()) {
+            if (processOnMainThread()) {
                 drainReferenceQueues();
             } else {
                 /* We can't create a new thread while the context is initializing or finalizing, as the polyglot API
@@ -164,6 +164,10 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
                     createProcessingThread();
                 }
             }
+        }
+
+        public boolean processOnMainThread() {
+            return context.getOptions().SINGLE_THREADED || context.hasOtherPublicLanguages();
         }
 
         private static final String THREAD_NAME = "Ruby-reference-processor";
