@@ -14,6 +14,7 @@ Bug fixes:
 * Fix `Integer#{<<,>>}` with RHS bignum and long (@eregon).
 * Fix a resource leak from allocators defined in C extensions (@aardvark179).
 * `SIGINT`/`Interrupt`/`Ctrl+C` now shows the backtrace and exits as signaled, like CRuby (@eregon).
+* Update patch feature finding to prefer the longest matching load path (#2605, @bjfish).
 
 Compatibility:
 

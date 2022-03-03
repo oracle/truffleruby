@@ -219,10 +219,11 @@ module Truffle
     end
 
     def self.relative_feature(expanded_path)
-      load_path_entry = get_expanded_load_path.find do |load_dir|
+      load_path_entries = get_expanded_load_path.select do |load_dir|
         expanded_path.start_with?(load_dir) and expanded_path[load_dir.size] == '/'
       end
-      if load_path_entry
+      if !load_path_entries.empty?
+        load_path_entry = load_path_entries.max_by(&:length)
         before_dot_rb = expanded_path.end_with?('.rb') ? -4 : -1
         expanded_path[load_path_entry.size+1..before_dot_rb]
       else
