@@ -56,9 +56,9 @@ describe "Dir#read" do
       Encoding.default_external = Encoding::SHIFT_JIS
       shift_jis_entries = []
       begin
-        Dir.open(File.join(DirSpecs.mock_dir, 'special')) do |dir|
+        Dir.open(File.join(DirSpecs.mock_dir, 'special')) do |d|
           -> {
-            while entry = dir.read
+            while entry = d.read
               shift_jis_entries << entry
             end
           }.should_not raise_error
