@@ -34,6 +34,7 @@ Compatibility:
 * Implement `rb_str_new_static` for C extensions that use it (@aardvark179).
 * Rewrote `ArrayEachIteratorNode` and re-introduced `each` specs for MRI parity when mutating arrays whilst iterating, rather than crashing (#2587, @MattAlp)
 * Update `String#rindex` to only accept `Regexp` or objects convertable to `String` as the first parameter (#2608, @bjfish).
+* Update `String#<<` to require one argument (#2609, @bjfish).
 
 Performance:
 
