@@ -13,10 +13,10 @@ import java.lang.ref.ReferenceQueue;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.cext.DataHolder;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.language.RubyBaseRootNode;
 import org.truffleruby.language.backtrace.InternalRootNode;
-import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.interop.ArityException;
@@ -35,7 +35,6 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
         private static final FrameDescriptor FINALIZER_FRAME = FrameDescriptor.newBuilder().build();
 
         @Child private InteropLibrary nullNode;
-        @Child private DispatchNode dataNode;
         @Child private InteropLibrary callNode;
 
         public DataObjectFinalizerRootNode(
@@ -43,7 +42,6 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
             super(language, FINALIZER_FRAME, null);
 
             nullNode = insert(InteropLibrary.getFactory().createDispatched(2));
-            dataNode = insert(DispatchNode.create());
             callNode = insert(InteropLibrary.getFactory().createDispatched(2));
         }
 
@@ -55,7 +53,7 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
         public Object execute(DataObjectFinalizerReference ref) {
             try {
                 if (!getContext().isFinalizing()) {
-                    Object data = dataNode.call(ref.dataHolder, "data");
+                    Object data = ref.dataHolder.getAddress();
                     if (!nullNode.isNull(data)) {
                         callNode.execute(ref.callable, data);
                     }
@@ -79,7 +77,7 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
     }
 
     public DataObjectFinalizerReference addFinalizer(RubyContext context, Object object, Object callable,
-            Object dataHolder) {
+            DataHolder dataHolder) {
         final DataObjectFinalizerReference newRef = createRef(object, callable, dataHolder);
 
         add(newRef);
@@ -88,7 +86,7 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
         return newRef;
     }
 
-    public DataObjectFinalizerReference createRef(Object object, Object callable, Object dataHolder) {
+    public DataObjectFinalizerReference createRef(Object object, Object callable, DataHolder dataHolder) {
         return new DataObjectFinalizerReference(object, processingQueue, this, callable, dataHolder);
     }
 

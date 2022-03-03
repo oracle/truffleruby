@@ -18,6 +18,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.cext.DataHolder;
 import org.truffleruby.core.DataObjectFinalizerReference;
 import org.truffleruby.core.FinalizerReference;
 import org.truffleruby.core.array.RubyArray;
@@ -252,7 +253,7 @@ public abstract class ObjectSpaceNodes {
 
         @Specialization
         protected Object defineFinalizer(
-                VirtualFrame frame, RubyDynamicObject object, Object finalizer, Object dataHolder,
+                VirtualFrame frame, RubyDynamicObject object, Object finalizer, DataHolder dataHolder,
                 @Cached WriteBarrierNode writeBarrierNode,
                 @CachedLibrary(limit = "1") DynamicObjectLibrary objectLibrary) {
             if (!getContext().getReferenceProcessor().processOnMainThread()) {

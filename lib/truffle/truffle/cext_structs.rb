@@ -29,7 +29,7 @@ module Truffle::CExt
       raise TypeError, "wrong argument type #{object.class} (expected T_DATA)"
     end
 
-    data_holder.data
+    Primitive.data_holder_get_data(data_holder)
   end
 
   def RBASIC(object)
@@ -45,15 +45,6 @@ module Truffle::CExt
 
   def RFILE(file)
     RFile.new(RBASIC(file), GetOpenFile(file))
-  end
-end
-
-# Used by RData.
-class Truffle::CExt::DataHolder
-  attr_accessor :data
-
-  def initialize(data)
-    @data = data
   end
 end
 
@@ -77,7 +68,7 @@ class Truffle::CExt::RData
   def polyglot_read_member(name)
     case name
     when 'data'
-      @data_holder.data
+      Primitive.data_holder_get_data(@data_holder)
     when 'type'
       type
     when 'typed_flag'
@@ -91,7 +82,7 @@ class Truffle::CExt::RData
 
   def polyglot_write_member(name, value)
     raise Truffle::Interop::UnknownIdentifierException unless name == 'data'
-    @data_holder.data = value
+    Primitive.data_holder_set_data(@data_holder, value)
   end
 
   def polyglot_remove_member(name)

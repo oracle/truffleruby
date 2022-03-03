@@ -1962,4 +1962,41 @@ public class CExtNodes {
             return createArray(ZLibCRCTable.TABLE.clone());
         }
     }
+
+    @Primitive(name = "data_holder_create")
+    public abstract static class DataHolderCreate extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected DataHolder create(Object address) {
+            return new DataHolder(address);
+        }
+    }
+
+    @Primitive(name = "data_holder_get_data")
+    public abstract static class DataHolderGetData extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected Object getData(DataHolder data) {
+            return data.getAddress();
+        }
+    }
+
+    @Primitive(name = "data_holder_set_data")
+    public abstract static class DataHolderSetData extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected Object setData(DataHolder data, Object address) {
+            data.setAddress(address);
+            return nil;
+        }
+    }
+
+    @Primitive(name = "data_holder_is_holder?")
+    public abstract static class DataHolderIsHolder extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected boolean setData(Object dataHolder) {
+            return dataHolder instanceof DataHolder;
+        }
+    }
 }
