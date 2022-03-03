@@ -1087,23 +1087,7 @@ class String
 
     byte_finish = Primitive.string_byte_index_from_char_index(self, finish)
 
-    case sub
-    when Integer
-      if finish == size
-        return nil if finish == 0
-      end
-
-      begin
-        str = sub.chr
-      rescue RangeError
-        return nil
-      end
-
-      if byte_index = Primitive.find_string_reverse(self, str, byte_finish)
-        return Primitive.string_byte_character_index(self, byte_index)
-      end
-
-    when Regexp
+    if Primitive.object_kind_of?(sub, Regexp)
       Primitive.encoding_ensure_compatible self, sub
 
       match_data = Truffle::RegexpOperations.search_region(sub, self, 0, byte_finish, false, true)
