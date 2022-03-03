@@ -89,8 +89,8 @@ module Truffle
         end
 
         if max > 0.0
+          r = randomizer.random_float
           if scale > 1
-            r = randomizer.random_float
             r *= 1.0000000000000002 unless exclude_end
             return +(+(+(r - 0.5) * max) * scale) + mid
           end
