@@ -89,4 +89,16 @@ describe "Polyglot::ForeignException" do
       entry.label.should.is_a?(String)
     end
   end
+
+  describe "when reaching the top-level" do
+    it "is printed like a Ruby exception" do
+      out = ruby_exe('raise Truffle::Debug.foreign_exception "main"', args: "2>&1", exit_status: 1, escape: false)
+      out.should == "-e:1:in `Kernel#raise': main (Polyglot::ForeignException)\n" \
+        "\tfrom -e:1:in `<main>'\n"
+
+      out = ruby_exe('at_exit { raise Truffle::Debug.foreign_exception "at exit" }', args: "2>&1", exit_status: 1, escape: false)
+      out.should == "-e:1:in `Kernel#raise': at exit (Polyglot::ForeignException)\n" \
+        "\tfrom -e:1:in `block in <main>'\n"
+    end
+  end
 end
