@@ -1050,7 +1050,10 @@ class Array
       rng = Kernel
     end
 
-    return at rng.rand(size) unless count
+    size = self.size
+    unless count
+      return at(size < 2 ? 0 : rng.rand(size))
+    end
 
     count = size if count > size
 

@@ -15,6 +15,7 @@ Bug fixes:
 * Fix a resource leak from allocators defined in C extensions (@aardvark179).
 * `SIGINT`/`Interrupt`/`Ctrl+C` now shows the backtrace and exits as signaled, like CRuby (@eregon).
 * Update patch feature finding to prefer the longest matching load path (#2605, @bjfish).
+* Fix `Array#sample` for `[]` when called without `n` and a `Random` is given (#2612, @bjfish).
 
 Compatibility:
 
