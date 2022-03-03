@@ -36,6 +36,7 @@ Compatibility:
 * Rewrote `ArrayEachIteratorNode` and re-introduced `each` specs for MRI parity when mutating arrays whilst iterating, rather than crashing (#2587, @MattAlp)
 * Update `String#rindex` to only accept `Regexp` or objects convertable to `String` as the first parameter (#2608, @bjfish).
 * Update `String#<<` to require one argument (#2609, @bjfish).
+* Update `String#lstrip!` to remove leading null characters (#2607, @bjfish).
 
 Performance:
 
