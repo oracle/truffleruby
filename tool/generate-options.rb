@@ -28,9 +28,18 @@ end
 options_data = YAML.load_file('src/options.yml')
 
 options = []
+options_map = {}
 
 language_options_keys = options_data.delete('LANGUAGE_OPTIONS').to_h { |name| [name, true] }
 options_data.delete('LANGUAGE_OPTIONS')
+
+generate_usage_syntax = -> default {
+  if refs = parse_reference_defaults(default)
+    refs.map { |ref| options_map[ref].default }.join(' || ')
+  else
+    default
+  end
+}
 
 options_data.each do |category, stabilities|
   stabilities.each do |stability, category_options|
@@ -40,39 +49,48 @@ options_data.each do |category, stabilities|
 
       case type
       when 'boolean'
-        type       = 'boolean'
+        type = 'boolean'
         boxed_type = 'Boolean'
         if default.is_a?(Array)
           env_condition, default = default
         end
-        default    = default.to_s
+        default = default.to_s
+        usage_syntax = "" # handled by Truffle
       when 'integer'
-        type       = 'int'
+        type = 'int'
         boxed_type = 'Integer'
         if default.is_a?(Array)
           env_condition, default = default
         end
-        default    = default.to_s
+        default = default.to_s
+        usage_syntax = generate_usage_syntax[default]
       when /^enum\/(\w*)/
-        type       = camelize $1
-        boxed_type  = type
-        default     = "#{type}.#{default.to_s.upcase}"
-        raise if parse_reference_defaults(default)
-      when 'string'
-        type       = 'String'
+        type = camelize $1
         boxed_type = type
-        default    = default.nil? ? 'null' : "\"#{default.to_s}\""
+        default = "#{type}.#{default.to_s.upcase}"
+        raise if parse_reference_defaults(default)
+        usage_syntax = "" # handled by Truffle
+      when 'string'
+        type = 'String'
+        boxed_type = type
+        default = default.nil? ? 'null' : "\"#{default.to_s}\""
+        usage_syntax = generate_usage_syntax[default]
       when 'string-array'
         raise unless default.empty?
-        type             = 'String[]'
-        boxed_type       = type
-        default          = "StringArrayOptionType.EMPTY_STRING_ARRAY"
-        option_type      = 'StringArrayOptionType.INSTANCE'
+        type = 'String[]'
+        boxed_type = type
+        default = "StringArrayOptionType.EMPTY_STRING_ARRAY"
+        option_type = 'StringArrayOptionType.INSTANCE'
+        usage_syntax = '<path>,<path>,...'
       else
         raise type.to_s
       end
 
-      options.push OpenStruct.new(
+      unless mri_names.empty?
+        description += " (configured by the #{mri_names.join(', ')} Ruby option#{'s' if mri_names.size > 1})"
+      end
+
+      option = OpenStruct.new(
           category:          category,
           stability:         stability,
           constant:          constant,
@@ -82,20 +100,19 @@ options_data.each do |category, stabilities|
           boxed_type:        boxed_type,
           default:           default,
           reference_default: parse_reference_defaults(default),
+          usage_syntax:      usage_syntax,
           env_condition:     env_condition,
-          description:       description + (mri_names.empty? ?
-                                                '' : " (configured by the #{mri_names.join(', ')} Ruby option#{'s' if mri_names.size > 1})"),
+          description:       description,
           option_type:       option_type,
-          language_option:   language_options_keys.has_key?(constant),
-      )
+          language_option:   language_options_keys.has_key?(constant))
+
+      options << option
+      options_map[option.constant] = option
     end
   end
 end
 
-options_map = {}
-
 options.each do |option|
-  options_map[option.constant] = option
   if option.reference_default
     option.default_value = option.reference_default.map { |r|
       raise r unless r =~ /^(!?)(.+)$/
@@ -132,6 +149,7 @@ import org.truffleruby.shared.options.OptionsCatalog;
 <% if class_prefix == '' -%>
 import org.truffleruby.shared.options.Verbosity;
 import org.truffleruby.shared.options.Profile;
+import org.truffleruby.shared.options.OutputFormat;
 <% else -%>
 import com.oracle.truffle.api.TruffleLogger;
 <% end -%>
@@ -218,9 +236,10 @@ public class OptionsCatalog {
 <% options.each do |o| %>
     public static final OptionDescriptor <%= o.constant %> = OptionDescriptor
             .newBuilder(<%= o.key_constant %>, "ruby.<%= o.name %>")
-            .help("<%= o.description %>")
+            .help(<%= o.description.inspect %>)
             .category(OptionCategory.<%= o.category %>)
             .stability(OptionStability.<%= o.stability %>)
+            .usageSyntax(<%= o.usage_syntax.inspect %>)
             .build();
 <% end %>
     public static OptionDescriptor fromName(String name) {

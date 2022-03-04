@@ -17,6 +17,7 @@ import org.graalvm.options.OptionValues;
 import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.shared.options.Verbosity;
 import org.truffleruby.shared.options.Profile;
+import org.truffleruby.shared.options.OutputFormat;
 
 import com.oracle.truffle.api.TruffleLanguage.Env;
 
@@ -195,8 +196,8 @@ public class Options {
     public final boolean REGEXP_INSTRUMENT_MATCH;
     /** --regexp-instrument-match-detailed=false */
     public final boolean REGEXP_INSTRUMENT_MATCH_DETAILED;
-    /** --regexp-instrumentation-output-format="text" */
-    public final String REGEXP_INSTRUMENT_OUTPUT_FORMAT;
+    /** --regexp-instrumentation-output-format=OutputFormat.TEXT */
+    public final OutputFormat REGEXP_INSTRUMENT_OUTPUT_FORMAT;
     /** --metrics-time-parsing-file=false */
     public final boolean METRICS_TIME_PARSING_FILE;
     /** --metrics-time-require=false */

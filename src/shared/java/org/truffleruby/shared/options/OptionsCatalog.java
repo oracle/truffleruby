@@ -152,7 +152,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> REGEXP_INSTRUMENT_CREATION_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> REGEXP_INSTRUMENT_MATCH_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> REGEXP_INSTRUMENT_MATCH_DETAILED_KEY = new OptionKey<>(false);
-    public static final OptionKey<String> REGEXP_INSTRUMENT_OUTPUT_FORMAT_KEY = new OptionKey<>("text");
+    public static final OptionKey<OutputFormat> REGEXP_INSTRUMENT_OUTPUT_FORMAT_KEY = new OptionKey<>(OutputFormat.TEXT);
     public static final OptionKey<Boolean> METRICS_TIME_PARSING_FILE_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> METRICS_TIME_REQUIRE_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> SHARED_OBJECTS_ENABLED_KEY = new OptionKey<>(true);
@@ -168,6 +168,7 @@ public class OptionsCatalog {
             .help("Load paths (configured by the -I Ruby option)")
             .category(OptionCategory.USER)
             .stability(OptionStability.STABLE)
+            .usageSyntax("<path>,<path>,...")
             .build();
 
     public static final OptionDescriptor REQUIRED_LIBRARIES = OptionDescriptor
@@ -175,6 +176,7 @@ public class OptionsCatalog {
             .help("Required libraries (configured by the -r Ruby option)")
             .category(OptionCategory.USER)
             .stability(OptionStability.STABLE)
+            .usageSyntax("<path>,<path>,...")
             .build();
 
     public static final OptionDescriptor WORKING_DIRECTORY = OptionDescriptor
@@ -182,6 +184,7 @@ public class OptionsCatalog {
             .help("Interpreter will switch to this directory (configured by the -C Ruby option)")
             .category(OptionCategory.USER)
             .stability(OptionStability.STABLE)
+            .usageSyntax("\"\"")
             .build();
 
     public static final OptionDescriptor DEBUG = OptionDescriptor
@@ -189,6 +192,7 @@ public class OptionsCatalog {
             .help("Sets $DEBUG to this value (configured by the -d Ruby option)")
             .category(OptionCategory.USER)
             .stability(OptionStability.STABLE)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor VERBOSITY = OptionDescriptor
@@ -196,6 +200,7 @@ public class OptionsCatalog {
             .help("Sets $VERBOSE to this value (configured by the -v, -w, -W Ruby options)")
             .category(OptionCategory.USER)
             .stability(OptionStability.STABLE)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor SOURCE_ENCODING = OptionDescriptor
@@ -203,6 +208,7 @@ public class OptionsCatalog {
             .help("Source encoding (configured by the -K Ruby option)")
             .category(OptionCategory.USER)
             .stability(OptionStability.STABLE)
+            .usageSyntax("\"\"")
             .build();
 
     public static final OptionDescriptor INTERNAL_ENCODING = OptionDescriptor
@@ -210,6 +216,7 @@ public class OptionsCatalog {
             .help("Internal encoding (configured by the -E, -U Ruby options)")
             .category(OptionCategory.USER)
             .stability(OptionStability.STABLE)
+            .usageSyntax("\"\"")
             .build();
 
     public static final OptionDescriptor EXTERNAL_ENCODING = OptionDescriptor
@@ -217,6 +224,7 @@ public class OptionsCatalog {
             .help("External encoding (configured by the -E Ruby option)")
             .category(OptionCategory.USER)
             .stability(OptionStability.STABLE)
+            .usageSyntax("\"\"")
             .build();
 
     public static final OptionDescriptor BACKTRACE_LIMIT = OptionDescriptor
@@ -224,6 +232,7 @@ public class OptionsCatalog {
             .help("limit the maximum length of backtrace displayed")
             .category(OptionCategory.USER)
             .stability(OptionStability.STABLE)
+            .usageSyntax("-1")
             .build();
 
     public static final OptionDescriptor NO_HOME_PROVIDED = OptionDescriptor
@@ -231,6 +240,7 @@ public class OptionsCatalog {
             .help("set to true to explicitly state that no home is provided (silences the warnings)")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor LAUNCHER = OptionDescriptor
@@ -238,6 +248,7 @@ public class OptionsCatalog {
             .help("The location of the TruffleRuby launcher program")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("\"\"")
             .build();
 
     public static final OptionDescriptor CORE_LOAD_PATH = OptionDescriptor
@@ -245,6 +256,7 @@ public class OptionsCatalog {
             .help("Location to load the Truffle core library from")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("\"resource:/truffleruby\"")
             .build();
 
     public static final OptionDescriptor FROZEN_STRING_LITERALS = OptionDescriptor
@@ -252,6 +264,7 @@ public class OptionsCatalog {
             .help("Use frozen string literals")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor RUBYGEMS = OptionDescriptor
@@ -259,6 +272,7 @@ public class OptionsCatalog {
             .help("Use RubyGems")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor DID_YOU_MEAN = OptionDescriptor
@@ -266,6 +280,7 @@ public class OptionsCatalog {
             .help("Use did_you_mean")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor DEFAULT_LAZY = OptionDescriptor
@@ -273,6 +288,7 @@ public class OptionsCatalog {
             .help("Enable default lazy options")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor LAZY_CALLTARGETS = OptionDescriptor
@@ -280,6 +296,7 @@ public class OptionsCatalog {
             .help("Create CallTargets lazily when possible")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor LAZY_RUBYGEMS = OptionDescriptor
@@ -287,6 +304,7 @@ public class OptionsCatalog {
             .help("Load RubyGems lazily on first failing require")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor EMBEDDED = OptionDescriptor
@@ -294,6 +312,7 @@ public class OptionsCatalog {
             .help("Set default options for an embedded use of TruffleRuby, rather than top-level use")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor NATIVE_PLATFORM = OptionDescriptor
@@ -301,6 +320,7 @@ public class OptionsCatalog {
             .help("Enables native calls via Truffle NFI for internal functionality")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor NATIVE_INTERRUPT = OptionDescriptor
@@ -308,6 +328,7 @@ public class OptionsCatalog {
             .help("Use the SIGVTALRM signal to interrupt native blocking calls")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor HANDLE_INTERRUPT = OptionDescriptor
@@ -315,6 +336,7 @@ public class OptionsCatalog {
             .help("Handle the interrupt signal and raise an Interrupt exception")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor SINGLE_THREADED = OptionDescriptor
@@ -322,6 +344,7 @@ public class OptionsCatalog {
             .help("Use only a single thread to be compatible with languages not supporting multithreading")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor POLYGLOT_STDIO = OptionDescriptor
@@ -329,6 +352,7 @@ public class OptionsCatalog {
             .help("Use standard IO streams from the Graal-SDK polyglot API configuration")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor HOST_INTEROP = OptionDescriptor
@@ -336,6 +360,7 @@ public class OptionsCatalog {
             .help("Allow interoperability with the host language (Java)")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor TRACE_CALLS = OptionDescriptor
@@ -343,6 +368,7 @@ public class OptionsCatalog {
             .help("Support tracing (set_trace_func, TracePoint) of method calls")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor COVERAGE_GLOBAL = OptionDescriptor
@@ -350,6 +376,7 @@ public class OptionsCatalog {
             .help("Run coverage for all code and print results on exit")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor PATTERN_MATCHING = OptionDescriptor
@@ -357,6 +384,7 @@ public class OptionsCatalog {
             .help("Enable pattern matching syntax")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor CORE_AS_INTERNAL = OptionDescriptor
@@ -364,6 +392,7 @@ public class OptionsCatalog {
             .help("Mark core library sources as internal")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor STDLIB_AS_INTERNAL = OptionDescriptor
@@ -371,6 +400,7 @@ public class OptionsCatalog {
             .help("Mark stdlib sources as internal")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor LAZY_TRANSLATION_USER = OptionDescriptor
@@ -378,6 +408,7 @@ public class OptionsCatalog {
             .help("Lazily translation of stdlib, gem and user source files")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor PATCHING = OptionDescriptor
@@ -385,6 +416,7 @@ public class OptionsCatalog {
             .help("Use patching")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor HASHING_DETERMINISTIC = OptionDescriptor
@@ -392,6 +424,7 @@ public class OptionsCatalog {
             .help("Produce deterministic hash values")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor FIBER_POOL = OptionDescriptor
@@ -399,6 +432,7 @@ public class OptionsCatalog {
             .help("Use a thread pool to speed up creating Fibers")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor LOG_SUBPROCESS = OptionDescriptor
@@ -406,6 +440,7 @@ public class OptionsCatalog {
             .help("Log whenever a subprocess is created")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor WARN_LOCALE = OptionDescriptor
@@ -413,6 +448,7 @@ public class OptionsCatalog {
             .help("Warn when the system locale is not set properly")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor EXCEPTIONS_STORE_JAVA = OptionDescriptor
@@ -420,6 +456,7 @@ public class OptionsCatalog {
             .help("Store the Java exception with the Ruby backtrace")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor EXCEPTIONS_PRINT_JAVA = OptionDescriptor
@@ -427,6 +464,7 @@ public class OptionsCatalog {
             .help("Print Java exceptions at the point of translating them to Ruby exceptions")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor EXCEPTIONS_PRINT_UNCAUGHT_JAVA = OptionDescriptor
@@ -434,6 +472,7 @@ public class OptionsCatalog {
             .help("Print uncaught Java exceptions at the point of translating them to Ruby exceptions")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor EXCEPTIONS_PRINT_RUBY_FOR_JAVA = OptionDescriptor
@@ -441,6 +480,7 @@ public class OptionsCatalog {
             .help("When printing a Java backtrace, also print the Ruby backtrace at that point")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor EXCEPTIONS_WARN_STACKOVERFLOW = OptionDescriptor
@@ -448,6 +488,7 @@ public class OptionsCatalog {
             .help("Warn when a stack overflow error is thrown")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor EXCEPTIONS_WARN_OUT_OF_MEMORY = OptionDescriptor
@@ -455,6 +496,7 @@ public class OptionsCatalog {
             .help("Warn when an out-of-memory error is thrown")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor BACKTRACES_INTERLEAVE_JAVA = OptionDescriptor
@@ -462,6 +504,7 @@ public class OptionsCatalog {
             .help("Interleave Java stacktraces into the Ruby backtrace")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor BACKTRACES_OMIT_UNUSED = OptionDescriptor
@@ -469,6 +512,7 @@ public class OptionsCatalog {
             .help("Omit backtraces that should be unused as they have pure rescue expressions")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor BACKTRACE_ON_INTERRUPT = OptionDescriptor
@@ -476,6 +520,7 @@ public class OptionsCatalog {
             .help("Show the backtraces of all Threads on Ctrl+C")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor BACKTRACE_ON_SIGALRM = OptionDescriptor
@@ -483,6 +528,7 @@ public class OptionsCatalog {
             .help("Show the backtraces of all Threads on SIGALRM")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor BACKTRACE_ON_RAISE = OptionDescriptor
@@ -490,6 +536,7 @@ public class OptionsCatalog {
             .help("Show the backtraces of exceptions at the point of them being raised")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor BACKTRACE_ON_RESCUE = OptionDescriptor
@@ -497,6 +544,7 @@ public class OptionsCatalog {
             .help("Show the backtraces of exceptions at the point of them being rescued")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor BACKTRACE_ON_NEW_THREAD = OptionDescriptor
@@ -504,6 +552,7 @@ public class OptionsCatalog {
             .help("Show a backtrace when new threads are created")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor BACKTRACE_ON_NEW_FIBER = OptionDescriptor
@@ -511,6 +560,7 @@ public class OptionsCatalog {
             .help("Show a backtrace when new fibers are created")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor CEXTS = OptionDescriptor
@@ -518,6 +568,7 @@ public class OptionsCatalog {
             .help("Enable use of C extensions")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor CEXT_LOCK = OptionDescriptor
@@ -525,6 +576,7 @@ public class OptionsCatalog {
             .help("Use a Global Lock when running C extensions")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor CEXTS_PREPEND_TOOLCHAIN_TO_PATH = OptionDescriptor
@@ -532,6 +584,7 @@ public class OptionsCatalog {
             .help("Prepend the GraalVM LLVM Toolchain to PATH when installing gems")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor CEXTS_KEEP_HANDLES_ALIVE = OptionDescriptor
@@ -539,6 +592,7 @@ public class OptionsCatalog {
             .help("Keep handles for value wrappers alive forever")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor OPTIONS_LOG = OptionDescriptor
@@ -546,6 +600,7 @@ public class OptionsCatalog {
             .help("Log the final value of all options")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor LOG_LOAD = OptionDescriptor
@@ -553,6 +608,7 @@ public class OptionsCatalog {
             .help("Log loading files")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor LOG_AUTOLOAD = OptionDescriptor
@@ -560,6 +616,7 @@ public class OptionsCatalog {
             .help("Log autoloading")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor LOG_FEATURE_LOCATION = OptionDescriptor
@@ -567,13 +624,15 @@ public class OptionsCatalog {
             .help("Log the process of finding features")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor METRICS_PROFILE_REQUIRE = OptionDescriptor
             .newBuilder(METRICS_PROFILE_REQUIRE_KEY, "ruby.metrics-profile-require")
-            .help("Measure time for searching, parsing, translating and loading files. Valid values are: summary, detail, or none.")
+            .help("Measure time for searching, parsing, translating and loading files.")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor CEXTS_LOG_LOAD = OptionDescriptor
@@ -581,6 +640,7 @@ public class OptionsCatalog {
             .help("Log loading of cexts")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor CEXTS_LOG_WARNINGS = OptionDescriptor
@@ -588,6 +648,7 @@ public class OptionsCatalog {
             .help("Log cexts warnings")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor WARN_DEPRECATED = OptionDescriptor
@@ -595,6 +656,7 @@ public class OptionsCatalog {
             .help("Sets deprecated Warning category (configured by the -W Ruby option)")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor WARN_EXPERIMENTAL = OptionDescriptor
@@ -602,6 +664,7 @@ public class OptionsCatalog {
             .help("Sets experimental Warning category (configured by the -W Ruby option)")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor USE_TRUFFLE_REGEX = OptionDescriptor
@@ -609,6 +672,7 @@ public class OptionsCatalog {
             .help("Use the Truffle regular expression engine when possible and fallback to Joni otherwise")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor WARN_TRUFFLE_REGEX_COMPILE_FALLBACK = OptionDescriptor
@@ -616,6 +680,7 @@ public class OptionsCatalog {
             .help("Warn when a Ruby Regexp could not be compiled to a Truffle Regex and Joni is used instead")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor WARN_TRUFFLE_REGEX_MATCH_FALLBACK = OptionDescriptor
@@ -623,6 +688,7 @@ public class OptionsCatalog {
             .help("Warn every time Truffle Regex cannot be used for a Regexp match (and instead Joni is used)")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor ARGV_GLOBALS = OptionDescriptor
@@ -630,6 +696,7 @@ public class OptionsCatalog {
             .help("Parse options in script argv into global variables (configured by the -s Ruby option)")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor CHOMP_LOOP = OptionDescriptor
@@ -637,6 +704,7 @@ public class OptionsCatalog {
             .help("enable line ending processing (configured by the -l Ruby option)")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor GETS_LOOP = OptionDescriptor
@@ -644,6 +712,7 @@ public class OptionsCatalog {
             .help("assume while gets(); ... end loop around your script (configured by the -n Ruby option)")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor PRINT_LOOP = OptionDescriptor
@@ -651,6 +720,7 @@ public class OptionsCatalog {
             .help("assume loop like -n but print line also like sed (configured by the -p Ruby option)")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor SPLIT_LOOP = OptionDescriptor
@@ -658,6 +728,7 @@ public class OptionsCatalog {
             .help("autosplit mode with -n or -p (splits $_ into $F) (configured by the -a Ruby option)")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor IGNORE_LINES_BEFORE_RUBY_SHEBANG = OptionDescriptor
@@ -665,6 +736,7 @@ public class OptionsCatalog {
             .help("strip off text before #!ruby line (configured by the -x Ruby option)")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor SYNTAX_CHECK = OptionDescriptor
@@ -672,6 +744,7 @@ public class OptionsCatalog {
             .help("Do not execute just check syntax (configured by the -c Ruby option)")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor ARGV_GLOBAL_VALUES = OptionDescriptor
@@ -679,6 +752,7 @@ public class OptionsCatalog {
             .help("Parsed options from script argv with a value")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("<path>,<path>,...")
             .build();
 
     public static final OptionDescriptor ARGV_GLOBAL_FLAGS = OptionDescriptor
@@ -686,6 +760,7 @@ public class OptionsCatalog {
             .help("Parsed options from script argv acting as flags (no value)")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("<path>,<path>,...")
             .build();
 
     public static final OptionDescriptor BUILDING_CORE_CEXTS = OptionDescriptor
@@ -693,6 +768,7 @@ public class OptionsCatalog {
             .help("Used while building TruffleRuby to build core C extensions")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor LAZY_TRANSLATION_LOG = OptionDescriptor
@@ -700,6 +776,7 @@ public class OptionsCatalog {
             .help("Log lazy translations from the parser AST to the Truffle AST")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor LOG_DYNAMIC_CONSTANT_LOOKUP = OptionDescriptor
@@ -707,6 +784,7 @@ public class OptionsCatalog {
             .help("Log source code positions where dynamic constant lookup is performed")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor LOG_PENDING_INTERRUPTS = OptionDescriptor
@@ -714,6 +792,7 @@ public class OptionsCatalog {
             .help("Log when executing pending interrupts")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor ROPE_PRINT_INTERN_STATS = OptionDescriptor
@@ -721,6 +800,7 @@ public class OptionsCatalog {
             .help("Print interned rope stats at application exit")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor CEXTS_TO_NATIVE_STATS = OptionDescriptor
@@ -728,6 +808,7 @@ public class OptionsCatalog {
             .help("Track the number of conversions of VALUEs to native and print the stats at application exit")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor LAZY_BUILTINS = OptionDescriptor
@@ -735,6 +816,7 @@ public class OptionsCatalog {
             .help("Load builtin classes (core methods & primitives) lazily on first use")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor LAZY_TRANSLATION_CORE = OptionDescriptor
@@ -742,6 +824,7 @@ public class OptionsCatalog {
             .help("Lazily translation of core source files")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor CHAOS_DATA = OptionDescriptor
@@ -749,6 +832,7 @@ public class OptionsCatalog {
             .help("Randomize data representations to stress specialization code paths")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor BASICOPS_INLINE = OptionDescriptor
@@ -756,6 +840,7 @@ public class OptionsCatalog {
             .help("Inline basic operations (like Fixnum operators) in the AST without a call")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor BASICOPS_LOG_REWRITE = OptionDescriptor
@@ -763,6 +848,7 @@ public class OptionsCatalog {
             .help("Log the receiver and arguments when basic operations like Fixnum operators cannot be handled inline")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor PROFILE_ARGUMENTS = OptionDescriptor
@@ -770,6 +856,7 @@ public class OptionsCatalog {
             .help("Profile the value and class of the receiver and arguments")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor DEFAULT_CACHE = OptionDescriptor
@@ -777,6 +864,7 @@ public class OptionsCatalog {
             .help("Default size for caches")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("8")
             .build();
 
     public static final OptionDescriptor METHOD_LOOKUP_CACHE = OptionDescriptor
@@ -784,6 +872,7 @@ public class OptionsCatalog {
             .help("Method lookup cache size")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("8")
             .build();
 
     public static final OptionDescriptor DISPATCH_CACHE = OptionDescriptor
@@ -791,6 +880,7 @@ public class OptionsCatalog {
             .help("Dispatch (various forms of method call) cache size")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("8")
             .build();
 
     public static final OptionDescriptor YIELD_CACHE = OptionDescriptor
@@ -798,6 +888,7 @@ public class OptionsCatalog {
             .help("Yield cache size")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("8")
             .build();
 
     public static final OptionDescriptor METHOD_TO_PROC_CACHE = OptionDescriptor
@@ -805,6 +896,7 @@ public class OptionsCatalog {
             .help("Method#to_proc cache size")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("8")
             .build();
 
     public static final OptionDescriptor IS_A_CACHE = OptionDescriptor
@@ -812,6 +904,7 @@ public class OptionsCatalog {
             .help("Kernel#is_a? and #kind_of? cache size")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("8")
             .build();
 
     public static final OptionDescriptor BIND_CACHE = OptionDescriptor
@@ -819,6 +912,7 @@ public class OptionsCatalog {
             .help("Cache size of test for being able to bind a method to a module")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("8")
             .build();
 
     public static final OptionDescriptor CONSTANT_CACHE = OptionDescriptor
@@ -826,6 +920,7 @@ public class OptionsCatalog {
             .help("Constant cache size")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("8")
             .build();
 
     public static final OptionDescriptor INSTANCE_VARIABLE_CACHE = OptionDescriptor
@@ -833,6 +928,7 @@ public class OptionsCatalog {
             .help("Instance variable cache size")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("8")
             .build();
 
     public static final OptionDescriptor BINDING_LOCAL_VARIABLE_CACHE = OptionDescriptor
@@ -840,6 +936,7 @@ public class OptionsCatalog {
             .help("Binding#local_variable_get/set cache size")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("8")
             .build();
 
     public static final OptionDescriptor SYMBOL_TO_PROC_CACHE = OptionDescriptor
@@ -847,6 +944,7 @@ public class OptionsCatalog {
             .help("Symbol#to_proc cache size")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("8")
             .build();
 
     public static final OptionDescriptor PACK_CACHE = OptionDescriptor
@@ -854,6 +952,7 @@ public class OptionsCatalog {
             .help("Array#pack cache size")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("8")
             .build();
 
     public static final OptionDescriptor UNPACK_CACHE = OptionDescriptor
@@ -861,6 +960,7 @@ public class OptionsCatalog {
             .help("String#unpack cache size")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("8")
             .build();
 
     public static final OptionDescriptor EVAL_CACHE = OptionDescriptor
@@ -868,6 +968,7 @@ public class OptionsCatalog {
             .help("eval cache size")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("8")
             .build();
 
     public static final OptionDescriptor ENCODING_COMPATIBLE_QUERY_CACHE = OptionDescriptor
@@ -875,6 +976,7 @@ public class OptionsCatalog {
             .help("Encoding.compatible? cache size")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("8")
             .build();
 
     public static final OptionDescriptor ENCODING_LOADED_CLASSES_CACHE = OptionDescriptor
@@ -882,6 +984,7 @@ public class OptionsCatalog {
             .help("Cache size of encoding operations based on anticipated number of total active encodings")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("8")
             .build();
 
     public static final OptionDescriptor INTEROP_CONVERT_CACHE = OptionDescriptor
@@ -889,6 +992,7 @@ public class OptionsCatalog {
             .help("Cache size for converting values for interop")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("8")
             .build();
 
     public static final OptionDescriptor TIME_FORMAT_CACHE = OptionDescriptor
@@ -896,6 +1000,7 @@ public class OptionsCatalog {
             .help("Cache size for parsed time format specifiers")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("8")
             .build();
 
     public static final OptionDescriptor POW_CACHE = OptionDescriptor
@@ -903,6 +1008,7 @@ public class OptionsCatalog {
             .help("Cache size for Integer#** with a constant exponent")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("8")
             .build();
 
     public static final OptionDescriptor RUBY_LIBRARY_CACHE = OptionDescriptor
@@ -910,6 +1016,7 @@ public class OptionsCatalog {
             .help("Ruby Library cache size")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("8")
             .build();
 
     public static final OptionDescriptor IDENTITY_CACHE = OptionDescriptor
@@ -917,6 +1024,7 @@ public class OptionsCatalog {
             .help("Cache size for inline caches comparing by identity for context-independent objects")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("1")
             .build();
 
     public static final OptionDescriptor CONTEXT_SPECIFIC_IDENTITY_CACHE = OptionDescriptor
@@ -924,6 +1032,7 @@ public class OptionsCatalog {
             .help("Cache size for inline caches comparing by identity for context-specific objects")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("1")
             .build();
 
     public static final OptionDescriptor CLASS_CACHE = OptionDescriptor
@@ -931,6 +1040,7 @@ public class OptionsCatalog {
             .help(".class and .metaclass cache size")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("3")
             .build();
 
     public static final OptionDescriptor ARRAY_DUP_CACHE = OptionDescriptor
@@ -938,6 +1048,7 @@ public class OptionsCatalog {
             .help("Cache size for copying small arrays")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("3")
             .build();
 
     public static final OptionDescriptor ARRAY_STRATEGY_CACHE = OptionDescriptor
@@ -945,6 +1056,7 @@ public class OptionsCatalog {
             .help("Cache size for array strategies")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("4")
             .build();
 
     public static final OptionDescriptor ARRAY_UNINITIALIZED_SIZE = OptionDescriptor
@@ -952,6 +1064,7 @@ public class OptionsCatalog {
             .help("How large an Array to allocate when we have no other information to go on")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("16")
             .build();
 
     public static final OptionDescriptor ARRAY_SMALL = OptionDescriptor
@@ -959,6 +1072,7 @@ public class OptionsCatalog {
             .help("Maximum size of an Array to consider small for optimisations")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("3")
             .build();
 
     public static final OptionDescriptor PACK_UNROLL_LIMIT = OptionDescriptor
@@ -966,6 +1080,7 @@ public class OptionsCatalog {
             .help("If a pack or unpack expression has a loop less than this many iterations, unroll it")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("4")
             .build();
 
     public static final OptionDescriptor PACK_RECOVER_LOOP_MIN = OptionDescriptor
@@ -973,6 +1088,7 @@ public class OptionsCatalog {
             .help("If a pack or unpack expression is longer than this, attempt to recover loops")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("32")
             .build();
 
     public static final OptionDescriptor CEXTS_MARKING_CACHE = OptionDescriptor
@@ -980,6 +1096,7 @@ public class OptionsCatalog {
             .help("Number of objects converted to native handles before the marking service is run")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("100")
             .build();
 
     public static final OptionDescriptor GLOBAL_VARIABLE_MAX_INVALIDATIONS = OptionDescriptor
@@ -987,6 +1104,7 @@ public class OptionsCatalog {
             .help("Maximum number of times a global variable can be changed to be considered constant")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("1")
             .build();
 
     public static final OptionDescriptor REFERENCE_PROCESSOR_QUEUE_TIMEOUT = OptionDescriptor
@@ -994,6 +1112,7 @@ public class OptionsCatalog {
             .help("Time to wait on the reference processing queue (in milliseconds) before checking the shared queue")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("1000")
             .build();
 
     public static final OptionDescriptor CLONE_DEFAULT = OptionDescriptor
@@ -1001,6 +1120,7 @@ public class OptionsCatalog {
             .help("Default option for cloning")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor INLINE_DEFAULT = OptionDescriptor
@@ -1008,6 +1128,7 @@ public class OptionsCatalog {
             .help("Default option for inlining")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor CORE_ALWAYS_CLONE = OptionDescriptor
@@ -1015,6 +1136,7 @@ public class OptionsCatalog {
             .help("Always clone built-in core methods")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor ALWAYS_SPLIT_HONOR = OptionDescriptor
@@ -1022,6 +1144,7 @@ public class OptionsCatalog {
             .help("Honor Truffle::Graal.always_split annotations")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor NEVER_SPLIT_HONOR = OptionDescriptor
@@ -1029,6 +1152,7 @@ public class OptionsCatalog {
             .help("Honor Truffle::Graal.never_split annotations")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor INLINE_NEEDS_CALLER_FRAME = OptionDescriptor
@@ -1036,6 +1160,7 @@ public class OptionsCatalog {
             .help("Inline methods that need their caller frame")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor YIELD_ALWAYS_CLONE = OptionDescriptor
@@ -1043,6 +1168,7 @@ public class OptionsCatalog {
             .help("Always clone yields")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor YIELD_ALWAYS_INLINE = OptionDescriptor
@@ -1050,6 +1176,7 @@ public class OptionsCatalog {
             .help("Always inline yields")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor METHODMISSING_ALWAYS_CLONE = OptionDescriptor
@@ -1057,6 +1184,7 @@ public class OptionsCatalog {
             .help("Always clone #method_missing")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor METHODMISSING_ALWAYS_INLINE = OptionDescriptor
@@ -1064,6 +1192,7 @@ public class OptionsCatalog {
             .help("Always inline #method_missing")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor REGEXP_INSTRUMENT_CREATION = OptionDescriptor
@@ -1071,6 +1200,7 @@ public class OptionsCatalog {
             .help("Enable instrumentation to gather stats on regexp creation")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor REGEXP_INSTRUMENT_MATCH = OptionDescriptor
@@ -1078,6 +1208,7 @@ public class OptionsCatalog {
             .help("Enable instrumentation to gather stats on regexp matching")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor REGEXP_INSTRUMENT_MATCH_DETAILED = OptionDescriptor
@@ -1085,13 +1216,15 @@ public class OptionsCatalog {
             .help("Enable instrumentation to gather detailed stats on strings matched against a regexp")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor REGEXP_INSTRUMENT_OUTPUT_FORMAT = OptionDescriptor
             .newBuilder(REGEXP_INSTRUMENT_OUTPUT_FORMAT_KEY, "ruby.regexp-instrumentation-output-format")
-            .help("Output format for regexp instrumentation (\\\"text\\\" or \\\"json\\\")")
+            .help("Output format for regexp instrumentation")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor METRICS_TIME_PARSING_FILE = OptionDescriptor
@@ -1099,6 +1232,7 @@ public class OptionsCatalog {
             .help("Measure time for parsing, translating and executing files, per file")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor METRICS_TIME_REQUIRE = OptionDescriptor
@@ -1106,6 +1240,7 @@ public class OptionsCatalog {
             .help("Measure time for #require and executing the required file")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor SHARED_OBJECTS_ENABLED = OptionDescriptor
@@ -1113,6 +1248,7 @@ public class OptionsCatalog {
             .help("Enable thread-safe objects")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor SHARED_OBJECTS_DEBUG = OptionDescriptor
@@ -1120,6 +1256,7 @@ public class OptionsCatalog {
             .help("Print information about shared objects")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor SHARED_OBJECTS_FORCE = OptionDescriptor
@@ -1127,6 +1264,7 @@ public class OptionsCatalog {
             .help("Force sharing of objects roots at startup")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor TESTING_RUBYGEMS = OptionDescriptor
@@ -1134,6 +1272,7 @@ public class OptionsCatalog {
             .help("Indicates rubygems is being tested")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor RUN_TWICE = OptionDescriptor
@@ -1141,6 +1280,7 @@ public class OptionsCatalog {
             .help("Run a workload twice using a shared engine in the same process")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor EXPERIMENTAL_ENGINE_CACHING = OptionDescriptor
@@ -1148,6 +1288,7 @@ public class OptionsCatalog {
             .help("Enables experimental support for engine caching for TruffleRuby")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor COMPARE_REGEX_ENGINES = OptionDescriptor
@@ -1155,6 +1296,7 @@ public class OptionsCatalog {
             .help("Uses both Joni and the TRegex engine and compares their results")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
             .build();
 
     public static OptionDescriptor fromName(String name) {
