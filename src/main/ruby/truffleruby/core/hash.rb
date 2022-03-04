@@ -420,10 +420,7 @@ class Hash
     out = []
     return +'{...}' if Truffle::ThreadOperations.detect_recursion self do
       each_pair do |key,value|
-        str =  Truffle::Type.rb_inspect(key)
-        str << '=>'
-        str << Truffle::Type.rb_inspect(value)
-        out << str
+        out << "#{Truffle::Type.rb_inspect(key)}=>#{Truffle::Type.rb_inspect(value)}"
       end
     end
 
