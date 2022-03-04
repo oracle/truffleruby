@@ -50,11 +50,8 @@ public abstract class ReadCallerDataNode extends RubyBaseNode implements CallerD
             getNotOptimizedNode().warn("Unoptimized reading of caller data.");
         }
 
-        final MaterializedFrame callerFrame = Truffle
-                .getRuntime()
-                .getCallerFrame()
-                .getFrame(FrameAccess.MATERIALIZE)
-                .materialize();
+        final MaterializedFrame callerFrame = Truffle.getRuntime()
+                .iterateFrames(f -> f.getFrame(FrameAccess.MATERIALIZE).materialize(), 1);
         if (!CallStackManager.isRubyFrame(callerFrame)) {
             throw new RaiseException(
                     getContext(),

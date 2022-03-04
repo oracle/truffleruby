@@ -68,7 +68,7 @@ end
 
 Truffle::Boot.delay do
   wd = Truffle::Boot.get_option('working-directory')
-  Dir.chdir(wd) unless wd.empty?
+  Dir.chdir(wd) unless wd.empty? || wd == '.'
 end
 
 if Truffle::Boot.ruby_home

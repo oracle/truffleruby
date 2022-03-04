@@ -134,11 +134,11 @@ module Truffle
     Truffle::Boot.redo do
       $DEBUG = Truffle::Boot.get_option_or_default('debug', false)
       $VERBOSE = case Truffle::Boot.get_option_or_default('verbose', false)
-                 when :TRUE
+                 when :true
                    true
-                 when :FALSE
+                 when :false
                    false
-                 when :NIL
+                 when :nil
                    nil
                  end
     end

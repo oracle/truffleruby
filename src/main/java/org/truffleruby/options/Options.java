@@ -17,6 +17,7 @@ import org.graalvm.options.OptionValues;
 import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.shared.options.Verbosity;
 import org.truffleruby.shared.options.Profile;
+import org.truffleruby.shared.options.OutputFormat;
 
 import com.oracle.truffle.api.TruffleLanguage.Env;
 
@@ -27,13 +28,13 @@ public class Options {
     public final String[] LOAD_PATHS;
     /** --required-libraries=StringArrayOptionType.EMPTY_STRING_ARRAY */
     public final String[] REQUIRED_LIBRARIES;
-    /** --working-directory="" */
+    /** --working-directory="." */
     public final String WORKING_DIRECTORY;
     /** --debug=false */
     public final boolean DEBUG;
     /** --verbose=Verbosity.FALSE */
     public final Verbosity VERBOSITY;
-    /** --source-encoding="" */
+    /** --source-encoding="UTF-8" */
     public final String SOURCE_ENCODING;
     /** --internal-encoding="" */
     public final String INTERNAL_ENCODING;
@@ -195,8 +196,8 @@ public class Options {
     public final boolean REGEXP_INSTRUMENT_MATCH;
     /** --regexp-instrument-match-detailed=false */
     public final boolean REGEXP_INSTRUMENT_MATCH_DETAILED;
-    /** --regexp-instrumentation-output-format="text" */
-    public final String REGEXP_INSTRUMENT_OUTPUT_FORMAT;
+    /** --regexp-instrumentation-output-format=OutputFormat.TEXT */
+    public final OutputFormat REGEXP_INSTRUMENT_OUTPUT_FORMAT;
     /** --metrics-time-parsing-file=false */
     public final boolean METRICS_TIME_PARSING_FILE;
     /** --metrics-time-require=false */

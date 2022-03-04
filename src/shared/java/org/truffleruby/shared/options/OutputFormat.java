@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, 2019 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2022 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -11,12 +11,12 @@ package org.truffleruby.shared.options;
 
 import java.util.Locale;
 
-import org.graalvm.options.OptionType;
+public enum OutputFormat {
+    TEXT,
+    JSON;
 
-public class EnumOptionType {
-
-    public static <T extends Enum<T>> OptionType<T> optionTypeFor(Class<T> type) {
-        return new OptionType<>(type.getName(), v -> Enum.valueOf(type, v.toUpperCase(Locale.ENGLISH)));
+    @Override
+    public String toString() {
+        return name().toLowerCase(Locale.ENGLISH);
     }
-
 }
