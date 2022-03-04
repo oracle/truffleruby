@@ -22,9 +22,9 @@ describe "Options" do
     end
 
     it "enum values" do
-      ruby_exe("p Truffle::Boot.get_option('verbose')").should_not == ":NIL\n"
-      ruby_exe("p Truffle::Boot.get_option('verbose')", options: "--verbose=NIL").should == ":NIL\n"
-      ruby_exe("p Truffle::Boot.get_option('verbose')", options: "--verbose").should == ":TRUE\n"
+      ruby_exe("p Truffle::Boot.get_option('verbose')").should_not == ":nil\n"
+      ruby_exe("p Truffle::Boot.get_option('verbose')", options: "--verbose=nil").should == ":nil\n" # TODO
+      ruby_exe("p Truffle::Boot.get_option('verbose')", options: "--verbose").should == ":true\n"
     end
 
     it "strings" do
@@ -49,7 +49,7 @@ describe "Options" do
     end
 
     it "enum values" do
-      ruby_exe("14", options: "--verbose=foo", args: "2>&1", exit_status: 1).should.include?("Invalid argument --verbose=foo specified. No enum constant org.truffleruby.shared.options.Verbosity.FOO")
+      ruby_exe("14", options: "--verbose=foo", args: "2>&1", exit_status: 1).should.include?("ERROR: Invalid argument --verbose=foo specified. Invalid option value 'foo'. Valid options values are: 'nil', 'false', 'true'")
     end
   end
 end
