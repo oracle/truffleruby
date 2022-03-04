@@ -251,11 +251,7 @@ module Polyglot
     end
   end
 
-  # This would normally be named ExceptionTrait for consistency, but this module
-  # is also the right one to rescue foreign exceptions with `rescue Polyglot::ForeignException`.
-  # Hence we make ForeignException the original name and ExceptionTrait the alias,
-  # to let users discover `rescue Polyglot::ForeignException` through `p exc.class.ancestors`
-  module ForeignException
+  module ExceptionTrait
     def message
       if Truffle::Interop.has_exception_message?(self)
         Truffle::Interop.exception_message(self)
@@ -309,7 +305,6 @@ module Polyglot
       backtrace_locations&.map(&:to_s)
     end
   end
-  ExceptionTrait = ForeignException
 
   module ExecutableTrait
     def call(*args)
@@ -421,7 +416,7 @@ module Polyglot
     end
   end
 
-  class ForeignObject < Object
+  module ObjectTrait
     # Methods #__id__, #equal? are implemented for foreign objects directly in their BasicObject definition
 
     def inspect
@@ -505,6 +500,15 @@ module Polyglot
     def delete(member)
       Truffle::Interop.remove_member(self, member)
     end
+  end
+
+  class ForeignObject < Object
+    include ObjectTrait
+  end
+
+  class ForeignException < Exception # rubocop:disable Lint/InheritException
+    include ObjectTrait
+    include ExceptionTrait
   end
   # endregion
 end

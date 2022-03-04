@@ -22,7 +22,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 /** A ControlFlowException holding a Ruby exception. */
 @ExportLibrary(value = InteropLibrary.class, delegateTo = "exception")
-public class RaiseException extends AbstractTruffleException {
+public final class RaiseException extends AbstractTruffleException {
 
     private static final long serialVersionUID = -4128190563044417424L;
 
@@ -42,7 +42,7 @@ public class RaiseException extends AbstractTruffleException {
         }
 
         if (context.getOptions().BACKTRACE_ON_RAISE) {
-            context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr("raise: ", exception);
+            context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr("raise: ", this);
         }
     }
 

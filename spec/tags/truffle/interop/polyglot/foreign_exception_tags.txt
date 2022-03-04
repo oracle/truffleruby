@@ -1,0 +1,1 @@
+slow:Polyglot::ForeignException when reaching the top-level is printed like a Ruby exception

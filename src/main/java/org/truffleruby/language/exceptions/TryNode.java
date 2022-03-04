@@ -10,12 +10,14 @@
 package org.truffleruby.language.exceptions;
 
 import com.oracle.truffle.api.exception.AbstractTruffleException;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyLanguage;
 import com.oracle.truffle.api.TruffleSafepoint;
+import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.RetryException;
+import org.truffleruby.language.control.TerminationException;
 import org.truffleruby.language.methods.ExceptionTranslatingNode;
 
 import com.oracle.truffle.api.CompilerAsserts;
@@ -35,10 +37,11 @@ public class TryNode extends RubyContextSourceNode {
     @Child private RubyNode elsePart;
     private final boolean canOmitBacktrace;
 
-    private final BranchProfile elseProfile = BranchProfile.create();
+    private final BranchProfile terminationProfile = BranchProfile.create();
+    private final BranchProfile guestExceptionProfile = BranchProfile.create();
     private final BranchProfile controlFlowProfile = BranchProfile.create();
-    private final BranchProfile raiseExceptionProfile = BranchProfile.create();
-    private final BranchProfile foreignExceptionProfile = BranchProfile.create();
+    private final BranchProfile elseProfile;
+    private final ConditionProfile raiseExceptionProfile = ConditionProfile.create();
 
     public TryNode(
             ExceptionTranslatingNode tryPart,
@@ -49,6 +52,7 @@ public class TryNode extends RubyContextSourceNode {
         this.rescueParts = rescueParts;
         this.elsePart = elsePart;
         this.canOmitBacktrace = canOmitBacktrace;
+        this.elseProfile = elsePart != null ? BranchProfile.create() : null;
     }
 
     @Override
@@ -58,20 +62,13 @@ public class TryNode extends RubyContextSourceNode {
 
             try {
                 result = tryPart.execute(frame);
-            } catch (RaiseException exception) {
-                raiseExceptionProfile.enter();
-
-                try {
-                    return handleException(frame, exception, exception.getException());
-                } catch (RetryException e) {
-                    TruffleSafepoint.poll(this);
-                    continue;
-                }
+            } catch (TerminationException exception) {
+                terminationProfile.enter();
+                throw exception;
             } catch (AbstractTruffleException exception) {
-                foreignExceptionProfile.enter();
-
+                guestExceptionProfile.enter();
                 try {
-                    return handleException(frame, exception, exception);
+                    return handleException(frame, exception);
                 } catch (RetryException e) {
                     TruffleSafepoint.poll(this);
                     continue;
@@ -81,9 +78,8 @@ public class TryNode extends RubyContextSourceNode {
                 throw exception;
             }
 
-            elseProfile.enter();
-
             if (elsePart != null) {
+                elseProfile.enter();
                 result = elsePart.execute(frame);
             }
 
@@ -92,11 +88,13 @@ public class TryNode extends RubyContextSourceNode {
     }
 
     @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL_UNTIL_RETURN)
-    private Object handleException(VirtualFrame frame, AbstractTruffleException exception, Object exceptionObject) {
+    private Object handleException(VirtualFrame frame, AbstractTruffleException exception) {
+        final Object exceptionObject = ExceptionOperations.getExceptionObject(exception, raiseExceptionProfile);
+
         for (RescueNode rescue : rescueParts) {
             if (rescue.canHandle(frame, exceptionObject)) {
                 if (getContext().getOptions().BACKTRACE_ON_RESCUE) {
-                    printBacktraceOnRescue(rescue, exception, exceptionObject);
+                    printBacktraceOnRescue(rescue, exception);
                 }
 
                 if (canOmitBacktrace) {
@@ -119,22 +117,22 @@ public class TryNode extends RubyContextSourceNode {
 
     private Object setLastExceptionAndRunRescue(VirtualFrame frame, Object exceptionObject, RescueNode rescue) {
         final ThreadLocalGlobals threadLocalGlobals = getLanguage().getCurrentThread().threadLocalGlobals;
-        final Object previousException = threadLocalGlobals.exception;
-        threadLocalGlobals.exception = exceptionObject;
+        final Object previousException = threadLocalGlobals.getLastException();
+        threadLocalGlobals.setLastException(exceptionObject);
         try {
             CompilerAsserts.partialEvaluationConstant(rescue);
             return rescue.execute(frame);
         } finally {
-            threadLocalGlobals.exception = previousException;
+            threadLocalGlobals.setLastException(previousException);
         }
     }
 
     @TruffleBoundary
-    private void printBacktraceOnRescue(RescueNode rescue, AbstractTruffleException exception, Object exceptionObject) {
+    private void printBacktraceOnRescue(RescueNode rescue, AbstractTruffleException exception) {
         String info = "rescued at " + RubyLanguage.fileLine(
                 getContext().getCallStack().getTopMostUserSourceSection(rescue.getEncapsulatingSourceSection())) +
                 ":\n";
-        getContext().getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(info, exception, exceptionObject);
+        getContext().getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(info, exception);
     }
 
 }

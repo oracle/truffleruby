@@ -946,7 +946,7 @@ public abstract class ThreadNodes {
         }
 
         private static Object getLastException(RubyThread currentThread) {
-            return currentThread.threadLocalGlobals.exception;
+            return currentThread.threadLocalGlobals.getLastException();
         }
 
         public static Object getLastException(RubyLanguage language) {
@@ -969,7 +969,8 @@ public abstract class ThreadNodes {
 
         @Specialization
         protected Object setException(Object exception) {
-            return getLanguage().getCurrentThread().threadLocalGlobals.exception = exception;
+            getLanguage().getCurrentThread().threadLocalGlobals.setLastException(exception);
+            return exception;
         }
     }
 

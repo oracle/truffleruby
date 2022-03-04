@@ -100,25 +100,24 @@ public class BacktraceFormatter {
     }
 
     @TruffleBoundary
-    public void printTopLevelRubyExceptionOnEnvStderr(RubyException rubyException) {
-        final Backtrace backtrace = rubyException.backtrace;
+    public void printTopLevelRubyExceptionOnEnvStderr(AbstractTruffleException exception) {
+        final RubyException rubyException = exception instanceof RaiseException
+                ? ((RaiseException) exception).getException()
+                : null;
+        final Backtrace backtrace = rubyException != null ? rubyException.backtrace : null;
         if (backtrace != null && backtrace.getStackTrace().length == 0) {
             // An Exception with a non-null empty stacktrace, so an Exception from Truffle::Boot.main
-            printRubyExceptionOnEnvStderr("truffleruby: ", rubyException);
+            printRubyExceptionOnEnvStderr("truffleruby: ", exception);
         } else {
-            printRubyExceptionOnEnvStderr("", rubyException);
+            printRubyExceptionOnEnvStderr("", exception);
         }
-    }
-
-    public void printRubyExceptionOnEnvStderr(String info, RubyException rubyException) {
-        final Backtrace backtrace = rubyException.backtrace;
-        final RaiseException raiseException = backtrace != null ? backtrace.getRaiseException() : null;
-        printRubyExceptionOnEnvStderr(info, raiseException, rubyException);
     }
 
     @SuppressFBWarnings("OS")
     @TruffleBoundary
-    public void printRubyExceptionOnEnvStderr(String info, AbstractTruffleException exception, Object exceptionObject) {
+    public void printRubyExceptionOnEnvStderr(String info, AbstractTruffleException exception) {
+        final Object exceptionObject = ExceptionOperations.getExceptionObject(exception);
+
         if (InitStackOverflowClassesEagerlyNode.ignore(exceptionObject)) {
             return;
         }

@@ -14,6 +14,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
+import com.oracle.truffle.api.exception.AbstractTruffleException;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.exception.RubySystemExit;
@@ -44,7 +45,7 @@ public class AtExitManager {
         }
     }
 
-    public RubyException runAtExitHooks() {
+    public AbstractTruffleException runAtExitHooks() {
         return runExitHooks(atExitHooks, "at_exit");
     }
 
@@ -53,8 +54,8 @@ public class AtExitManager {
     }
 
     @TruffleBoundary
-    private RubyException runExitHooks(Deque<RubyProc> stack, String name) {
-        RubyException lastException = null;
+    private AbstractTruffleException runExitHooks(Deque<RubyProc> stack, String name) {
+        AbstractTruffleException lastException = null;
 
         while (true) {
             RubyProc block = stack.poll();
@@ -64,11 +65,11 @@ public class AtExitManager {
 
             try {
                 ProcOperations.rootCall(block);
-            } catch (RaiseException e) {
-                handleAtExitException(context, e.getException());
-                lastException = e.getException();
             } catch (ExitException | ThreadDeath e) {
                 throw e;
+            } catch (AbstractTruffleException e) {
+                handleAtExitException(context, e);
+                lastException = e;
             } catch (RuntimeException | Error e) {
                 BacktraceFormatter.printInternalError(context, e, "Unexpected internal exception in " + name);
             }
@@ -82,16 +83,21 @@ public class AtExitManager {
         return handlers;
     }
 
-    public static boolean isSilentException(RubyContext context, RubyException rubyException) {
+    public static boolean isSilentException(RubyContext context, AbstractTruffleException exception) {
+        if (!(exception instanceof RaiseException)) {
+            return false;
+        }
+
+        final RubyException rubyException = ((RaiseException) exception).getException();
         // The checks are kind_of?(SystemExit) || instance_of?(SignalException),
         // see error_handle() in eval_error.c in CRuby. So Interrupt is not silent.
         return rubyException instanceof RubySystemExit ||
                 rubyException.getLogicalClass() == context.getCoreLibrary().signalExceptionClass;
     }
 
-    private static void handleAtExitException(RubyContext context, RubyException rubyException) {
-        if (!isSilentException(context, rubyException)) {
-            context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr("", rubyException);
+    private static void handleAtExitException(RubyContext context, AbstractTruffleException exception) {
+        if (!isSilentException(context, exception)) {
+            context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr("", exception);
         }
     }
 }

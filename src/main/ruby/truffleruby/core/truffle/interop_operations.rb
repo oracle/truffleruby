@@ -47,14 +47,12 @@ module Truffle
 
       name = "Foreign#{name_traits.join}"
 
-      # Avoid conflict with Polyglot::ForeignException, which is a module (and an alias of Polyglot::ExceptionTrait)
-      name = 'ForeignExceptionClass' if name == 'ForeignException'
-
       RESOLVE_POLYGLOT_CLASS_MUTEX.synchronize do
         if Polyglot.const_defined?(name, false)
           Polyglot.const_get(name, false)
         else
-          foreign_class = Class.new(Polyglot::ForeignObject)
+          superclass = traits.include?(:Exception) ? Polyglot::ForeignException : Polyglot::ForeignObject
+          foreign_class = Class.new(superclass)
           traits.reverse_each do |trait|
             foreign_class.include Polyglot.const_get("#{trait}Trait", false)
           end

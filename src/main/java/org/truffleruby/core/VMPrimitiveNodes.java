@@ -208,15 +208,17 @@ public abstract class VMPrimitiveNodes {
         protected Object vmRaiseException(RubyException exception,
                 @Cached ConditionProfile reRaiseProfile) {
             final Backtrace backtrace = exception.backtrace;
-            if (reRaiseProfile.profile(backtrace != null && backtrace.getRaiseException() != null)) {
+            RaiseException raiseException = null;
+            if (reRaiseProfile.profile(backtrace != null && (raiseException = backtrace.getRaiseException()) != null)) {
                 // We need to rethrow the existing RaiseException, otherwise we would lose the
                 // TruffleStackTrace stored in it.
-                assert backtrace.getRaiseException().getException() == exception;
+                assert raiseException.getException() == exception;
 
                 if (getContext().getOptions().BACKTRACE_ON_RAISE) {
-                    getContext().getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr("raise: ", exception);
+                    getContext().getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr("raise: ",
+                            raiseException);
                 }
-                throw backtrace.getRaiseException();
+                throw raiseException;
             } else {
                 throw new RaiseException(getContext(), exception);
             }

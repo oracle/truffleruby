@@ -10,19 +10,22 @@
 package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
@@ -101,9 +104,35 @@ public class ImmutableRubyString extends ImmutableRubyObject implements TruffleO
     }
 
     @ExportMessage
-    protected String asString(
-            @Cached ToJavaStringNode toJavaStringNode) {
-        return toJavaStringNode.executeToJavaString(this);
+    public static class AsString {
+        @Specialization(
+                guards = "equalsNode.execute(string.rope, cachedRope)",
+                limit = "getLimit()")
+        protected static String asStringCached(ImmutableRubyString string,
+                @Cached("string.rope") Rope cachedRope,
+                @Cached("string.getJavaString()") String javaString,
+                @Cached RopeNodes.EqualNode equalsNode) {
+            return javaString;
+        }
+
+        @Specialization(replaces = "asStringCached")
+        protected static String asStringUncached(ImmutableRubyString string,
+                @Cached ConditionProfile asciiOnlyProfile,
+                @Cached RopeNodes.AsciiOnlyNode asciiOnlyNode,
+                @Cached RopeNodes.BytesNode bytesNode) {
+            final Rope rope = string.rope;
+            final byte[] bytes = bytesNode.execute(rope);
+
+            if (asciiOnlyProfile.profile(asciiOnlyNode.execute(rope))) {
+                return RopeOperations.decodeAscii(bytes);
+            } else {
+                return RopeOperations.decodeNonAscii(rope.getEncoding(), bytes, 0, bytes.length);
+            }
+        }
+
+        protected static int getLimit() {
+            return RubyLanguage.getCurrentLanguage().options.INTEROP_CONVERT_CACHE;
+        }
     }
     // endregion
 

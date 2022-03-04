@@ -13,6 +13,11 @@ describe "Polyglot::ForeignException" do
     @foreign = Truffle::Debug.foreign_exception("exception message")
   end
 
+  it "subclasses Exception" do
+    @foreign.class.should == Polyglot::ForeignException
+    @foreign.class.superclass.should == Exception
+  end
+
   it "supports #message" do
     @foreign.message.should == "exception message"
   end
@@ -21,10 +26,27 @@ describe "Polyglot::ForeignException" do
     @foreign.cause.should == nil
   end
 
+  it "supports #full_message" do
+    -> {
+      raise @foreign
+    }.should raise_error(Polyglot::ForeignException) {
+      full_message = @foreign.full_message(highlight: false, order: :top).lines
+      full_message[0].should == "#{__FILE__}:#{__LINE__-3}:in `Kernel#raise': exception message (Polyglot::ForeignException)\n"
+    }
+  end
+
   it "supports rescue Polyglot::ForeignException" do
     begin
       raise @foreign
     rescue Polyglot::ForeignException => e
+      e.should.equal?(@foreign)
+    end
+  end
+
+  it "supports rescue Exception" do
+    begin
+      raise @foreign
+    rescue Exception => e # rubocop:disable Lint/RescueException
       e.should.equal?(@foreign)
     end
   end
@@ -65,6 +87,18 @@ describe "Polyglot::ForeignException" do
       entry.path.should.is_a?(String)
       entry.lineno.should.is_a?(Integer)
       entry.label.should.is_a?(String)
+    end
+  end
+
+  describe "when reaching the top-level" do
+    it "is printed like a Ruby exception" do
+      out = ruby_exe('raise Truffle::Debug.foreign_exception "main"', args: "2>&1", exit_status: 1, escape: false)
+      out.should == "-e:1:in `Kernel#raise': main (Polyglot::ForeignException)\n" \
+        "\tfrom -e:1:in `<main>'\n"
+
+      out = ruby_exe('at_exit { raise Truffle::Debug.foreign_exception "at exit" }', args: "2>&1", exit_status: 1, escape: false)
+      out.should == "-e:1:in `Kernel#raise': at exit (Polyglot::ForeignException)\n" \
+        "\tfrom -e:1:in `block in <main>'\n"
     end
   end
 end

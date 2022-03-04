@@ -135,21 +135,20 @@ public final class RubySymbol extends ImmutableRubyObject implements TruffleObje
 
     @ExportMessage
     public static class AsString {
-
-        @Specialization(guards = "symbol == cachedSymbol", limit = "getLimit()")
-        protected static String asString(RubySymbol symbol,
+        @Specialization(guards = "symbol == cachedSymbol", limit = "getIdentityCacheLimit()")
+        protected static String asStringCached(RubySymbol symbol,
                 @Cached("symbol") RubySymbol cachedSymbol,
                 @Cached("cachedSymbol.getString()") String cachedString) {
             return cachedString;
         }
 
-        @Specialization(replaces = "asString")
-        protected static String uncachedAsString(RubySymbol symbol) {
+        @Specialization(replaces = "asStringCached")
+        protected static String asStringUncached(RubySymbol symbol) {
             return symbol.getString();
         }
 
-        protected static int getLimit() {
-            return RubyLanguage.getCurrentLanguage().options.INTEROP_CONVERT_CACHE;
+        protected static int getIdentityCacheLimit() {
+            return RubyLanguage.getCurrentLanguage().options.IDENTITY_CACHE;
         }
     }
     // endregion

@@ -88,45 +88,7 @@ class Exception
   end
 
   def full_message(highlight: nil, order: undefined)
-    highlight = if highlight.equal?(nil)
-                  Exception.to_tty?
-                else
-                  raise ArgumentError, "expected true of false as highlight: #{highlight}" unless highlight.equal?(true) || highlight.equal?(false)
-                  !highlight.equal?(false)
-                end
-    reverse = if Primitive.undefined?(order)
-                Exception.to_tty?
-              else
-                raise ArgumentError, "expected :top or :bottom as order: #{order}" unless order.equal?(:top) || order.equal?(:bottom)
-                !order.equal?(:top)
-              end
-
-    result = ''.b
-    bt = backtrace || caller(1)
-    if reverse
-      traceback_msg = if highlight
-                        "\e[1mTraceback\e[m (most recent call last):\n"
-                      else
-                        "Traceback (most recent call last):\n"
-                      end
-      result << traceback_msg
-      Truffle::ExceptionOperations.append_causes(result, self, {}.compare_by_identity, reverse, highlight)
-      backtrace_message = Truffle::ExceptionOperations.backtrace_message(highlight, reverse, bt, self)
-      if backtrace_message.empty?
-        result << Truffle::ExceptionOperations.message_and_class(self, highlight)
-      else
-        result << backtrace_message
-      end
-    else
-      backtrace_message = Truffle::ExceptionOperations.backtrace_message(highlight, reverse, bt, self)
-      if backtrace_message.empty?
-        result << Truffle::ExceptionOperations.message_and_class(self, highlight)
-      else
-        result << backtrace_message
-      end
-      Truffle::ExceptionOperations.append_causes(result, self, {}.compare_by_identity, reverse, highlight)
-    end
-    result
+    Truffle::ExceptionOperations.full_message(self, highlight, order)
   end
 
   class << self
