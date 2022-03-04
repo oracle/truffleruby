@@ -16,6 +16,7 @@ Bug fixes:
 * `SIGINT`/`Interrupt`/`Ctrl+C` now shows the backtrace and exits as signaled, like CRuby (@eregon).
 * Update patch feature finding to prefer the longest matching load path (#2605, @bjfish).
 * Fix `Hash#{to_s,inspect}` for keys whose `#inspect` return a frozen String (#2613, @eregon).
+* Fix `Array#pack` with `x*` to not output null characters (#2614, @bjfish).
 
 Compatibility:
 
