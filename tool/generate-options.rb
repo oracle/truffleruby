@@ -73,15 +73,19 @@ options_data.each do |category, stabilities|
       when 'string'
         type = 'String'
         boxed_type = type
-        default = default.nil? ? 'null' : "\"#{default.to_s}\""
-        usage_syntax = generate_usage_syntax[default]
+        if default.is_a?(Array)
+          default, usage_syntax = default
+        else
+          usage_syntax = generate_usage_syntax[default]
+        end
+        default = default.inspect
       when 'string-array'
-        raise unless default.empty?
+        raise unless default.end_with?(',...')
         type = 'String[]'
         boxed_type = type
+        usage_syntax = default
         default = "StringArrayOptionType.EMPTY_STRING_ARRAY"
         option_type = 'StringArrayOptionType.INSTANCE'
-        usage_syntax = '<path>,<path>,...'
       else
         raise type.to_s
       end

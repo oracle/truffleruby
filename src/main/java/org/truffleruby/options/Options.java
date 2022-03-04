@@ -28,13 +28,13 @@ public class Options {
     public final String[] LOAD_PATHS;
     /** --required-libraries=StringArrayOptionType.EMPTY_STRING_ARRAY */
     public final String[] REQUIRED_LIBRARIES;
-    /** --working-directory="" */
+    /** --working-directory="." */
     public final String WORKING_DIRECTORY;
     /** --debug=false */
     public final boolean DEBUG;
     /** --verbose=Verbosity.FALSE */
     public final Verbosity VERBOSITY;
-    /** --source-encoding="" */
+    /** --source-encoding="UTF-8" */
     public final String SOURCE_ENCODING;
     /** --internal-encoding="" */
     public final String INTERNAL_ENCODING;

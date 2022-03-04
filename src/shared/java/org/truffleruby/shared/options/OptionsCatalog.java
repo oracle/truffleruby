@@ -22,10 +22,10 @@ public class OptionsCatalog {
 
     public static final OptionKey<String[]> LOAD_PATHS_KEY = new OptionKey<>(StringArrayOptionType.EMPTY_STRING_ARRAY, StringArrayOptionType.INSTANCE);
     public static final OptionKey<String[]> REQUIRED_LIBRARIES_KEY = new OptionKey<>(StringArrayOptionType.EMPTY_STRING_ARRAY, StringArrayOptionType.INSTANCE);
-    public static final OptionKey<String> WORKING_DIRECTORY_KEY = new OptionKey<>("");
+    public static final OptionKey<String> WORKING_DIRECTORY_KEY = new OptionKey<>(".");
     public static final OptionKey<Boolean> DEBUG_KEY = new OptionKey<>(false);
     public static final OptionKey<Verbosity> VERBOSITY_KEY = new OptionKey<>(Verbosity.FALSE);
-    public static final OptionKey<String> SOURCE_ENCODING_KEY = new OptionKey<>("");
+    public static final OptionKey<String> SOURCE_ENCODING_KEY = new OptionKey<>("UTF-8");
     public static final OptionKey<String> INTERNAL_ENCODING_KEY = new OptionKey<>("");
     public static final OptionKey<String> EXTERNAL_ENCODING_KEY = new OptionKey<>("");
     public static final OptionKey<Integer> BACKTRACE_LIMIT_KEY = new OptionKey<>(-1);
@@ -184,7 +184,7 @@ public class OptionsCatalog {
             .help("Interpreter will switch to this directory (configured by the -C Ruby option)")
             .category(OptionCategory.USER)
             .stability(OptionStability.STABLE)
-            .usageSyntax("\"\"")
+            .usageSyntax(".")
             .build();
 
     public static final OptionDescriptor DEBUG = OptionDescriptor
@@ -208,7 +208,7 @@ public class OptionsCatalog {
             .help("Source encoding (configured by the -K Ruby option)")
             .category(OptionCategory.USER)
             .stability(OptionStability.STABLE)
-            .usageSyntax("\"\"")
+            .usageSyntax("UTF-8")
             .build();
 
     public static final OptionDescriptor INTERNAL_ENCODING = OptionDescriptor
@@ -216,7 +216,7 @@ public class OptionsCatalog {
             .help("Internal encoding (configured by the -E, -U Ruby options)")
             .category(OptionCategory.USER)
             .stability(OptionStability.STABLE)
-            .usageSyntax("\"\"")
+            .usageSyntax("<nil>")
             .build();
 
     public static final OptionDescriptor EXTERNAL_ENCODING = OptionDescriptor
@@ -224,7 +224,7 @@ public class OptionsCatalog {
             .help("External encoding (configured by the -E Ruby option)")
             .category(OptionCategory.USER)
             .stability(OptionStability.STABLE)
-            .usageSyntax("\"\"")
+            .usageSyntax("<locale>")
             .build();
 
     public static final OptionDescriptor BACKTRACE_LIMIT = OptionDescriptor
@@ -248,7 +248,7 @@ public class OptionsCatalog {
             .help("The location of the TruffleRuby launcher program")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
-            .usageSyntax("\"\"")
+            .usageSyntax("<set by launcher>")
             .build();
 
     public static final OptionDescriptor CORE_LOAD_PATH = OptionDescriptor
@@ -256,7 +256,7 @@ public class OptionsCatalog {
             .help("Location to load the Truffle core library from")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
-            .usageSyntax("\"resource:/truffleruby\"")
+            .usageSyntax("<path, default is from cache>")
             .build();
 
     public static final OptionDescriptor FROZEN_STRING_LITERALS = OptionDescriptor
@@ -752,7 +752,7 @@ public class OptionsCatalog {
             .help("Parsed options from script argv with a value")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
-            .usageSyntax("<path>,<path>,...")
+            .usageSyntax("<key>,<value>,...")
             .build();
 
     public static final OptionDescriptor ARGV_GLOBAL_FLAGS = OptionDescriptor
@@ -760,7 +760,7 @@ public class OptionsCatalog {
             .help("Parsed options from script argv acting as flags (no value)")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
-            .usageSyntax("<path>,<path>,...")
+            .usageSyntax("<flag>,<flag>,...")
             .build();
 
     public static final OptionDescriptor BUILDING_CORE_CEXTS = OptionDescriptor

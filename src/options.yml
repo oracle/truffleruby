@@ -55,22 +55,22 @@ LANGUAGE_OPTIONS:
 USER:
   STABLE:
     # Options corresponding to MRI options, which are also useful outside the TruffleRuby launcher
-    LOAD_PATHS: [[load-paths, -I], string-array, [], Load paths]
-    REQUIRED_LIBRARIES: [[required-libraries, -r], string-array, [], Required libraries]
-    WORKING_DIRECTORY: [[working-directory, -C], string, '', Interpreter will switch to this directory]
+    LOAD_PATHS: [[load-paths, -I], string-array, '<path>,<path>,...', Load paths]
+    REQUIRED_LIBRARIES: [[required-libraries, -r], string-array, '<path>,<path>,...', Required libraries]
+    WORKING_DIRECTORY: [[working-directory, -C], string, '.', Interpreter will switch to this directory]
     DEBUG: [[debug, -d], boolean, false, 'Sets $DEBUG to this value']
     VERBOSITY: [[verbose, -v, -w, -W], enum/verbosity, false, 'Sets $VERBOSE to this value']
-    SOURCE_ENCODING: [[source-encoding, -K], string, '', Source encoding]
-    INTERNAL_ENCODING: [[internal-encoding, -E, -U], string, '', Internal encoding]
-    EXTERNAL_ENCODING: [[external-encoding, -E], string, '', External encoding]
+    SOURCE_ENCODING: [[source-encoding, -K], string, 'UTF-8', Source encoding]
+    INTERNAL_ENCODING: [[internal-encoding, -E, -U], string, ['', '<nil>'], Internal encoding]
+    EXTERNAL_ENCODING: [[external-encoding, -E], string, ['', '<locale>'], External encoding]
     BACKTRACE_LIMIT: [[backtrace-limit], integer, -1, limit the maximum length of backtrace displayed]
 
 EXPERT:
   EXPERIMENTAL:
     # Setting home and launcher, useful for embedding
     NO_HOME_PROVIDED: [no-home-provided, boolean, false, set to true to explicitly state that no home is provided (silences the warnings)]
-    LAUNCHER: [launcher, string, '', The location of the TruffleRuby launcher program]
-    CORE_LOAD_PATH: [core-load-path, string, 'resource:/truffleruby', Location to load the Truffle core library from]
+    LAUNCHER: [launcher, string, ['', '<set by launcher>'], The location of the TruffleRuby launcher program]
+    CORE_LOAD_PATH: [core-load-path, string, ['resource:/truffleruby', '<path, default is from cache>'], Location to load the Truffle core library from]
 
     # CRuby features (--enable/disable-FEATURE), also exposed as options so they can be used outside the Ruby launcher
     FROZEN_STRING_LITERALS: [frozen-string-literals, boolean, false, Use frozen string literals]
@@ -161,8 +161,8 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     SYNTAX_CHECK: [[syntax-check, -c], boolean, false, Do not execute just check syntax]
 
     # Used internally for the launcher to communicate with the RubyContext
-    ARGV_GLOBAL_VALUES: [argv-global-values, string-array, [], Parsed options from script argv with a value]
-    ARGV_GLOBAL_FLAGS: [argv-global-flags, string-array, [], Parsed options from script argv acting as flags (no value)]
+    ARGV_GLOBAL_VALUES: [argv-global-values, string-array, '<key>,<value>,...', Parsed options from script argv with a value]
+    ARGV_GLOBAL_FLAGS: [argv-global-flags, string-array, '<flag>,<flag>,...', Parsed options from script argv acting as flags (no value)]
     BUILDING_CORE_CEXTS: [building-core-cexts, boolean, false, 'Used while building TruffleRuby to build core C extensions']
 
     # Low-level logging of implementation details
