@@ -792,7 +792,7 @@ public class CExtNodes {
     @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class RbConstGetNode extends CoreMethodNode {
 
-        @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, false, true);
+        @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, true);
         @Child private GetConstantNode getConstantNode = GetConstantNode.create();
 
         @CreateCast("name")
@@ -813,7 +813,7 @@ public class CExtNodes {
     @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class RbConstGetFromNode extends CoreMethodNode {
 
-        @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, false, false);
+        @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, false);
         @Child private GetConstantNode getConstantNode = GetConstantNode.create();
 
         @CreateCast("name")

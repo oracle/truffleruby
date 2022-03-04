@@ -15,6 +15,7 @@ Bug fixes:
 * Fix a resource leak from allocators defined in C extensions (@aardvark179).
 * `SIGINT`/`Interrupt`/`Ctrl+C` now shows the backtrace and exits as signaled, like CRuby (@eregon).
 * Update patch feature finding to prefer the longest matching load path (#2605, @bjfish).
+* Fix `Module#const_get` to raise a `NameError` when nested modules do not exist (#2610, @bjfish).
 
 Compatibility:
 

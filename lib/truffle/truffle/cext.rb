@@ -1160,7 +1160,7 @@ module Truffle::CExt
 
   def rb_define_module_under(mod, name)
     if Primitive.module_const_defined?(mod, name, false, false)
-      val = Primitive.module_const_get(mod, name, false, false)
+      val = Primitive.module_const_get(mod, name, false, false, false)
       unless val.class == Module
         raise TypeError, "#{mod}::#{name} is not a module"
       end

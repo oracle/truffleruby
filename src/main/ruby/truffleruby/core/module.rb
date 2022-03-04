@@ -104,20 +104,36 @@ class Module
   end
 
   def const_get(name, inherit = true)
-    value = Primitive.module_const_get self, name, inherit, true
+    inherit = Primitive.as_boolean(inherit)
+    value = Primitive.module_const_get self, name, inherit, true, true
     unless Primitive.undefined?(value)
       return value
     end
 
     names = name.split('::') # name is always String
-    unless names.empty?
-      names.shift if '' == names.first
-    end
+    top_level = if !names.empty? && '' == names.first
+                  names.shift
+                  true
+                else
+                  false
+                end
     raise NameError, "wrong constant name #{name}" if names.empty? || names.include?('')
-    res = self
-    names.each do |s|
+
+    res = if top_level
+            Object
+          else
+            self
+          end
+
+    names.each_with_index do |s, i|
       if Primitive.object_kind_of?(res, Module)
-        res = res.const_get(s, inherit)
+        res = if !inherit
+                Primitive.module_const_get res, s, false, false, true
+              elsif i == 0
+                Primitive.module_const_get res, s, true, true, true
+              else
+                Primitive.module_const_get res, s, true, false, true
+              end
       else
         raise TypeError, "#{name} does not refer to a class/module"
       end
