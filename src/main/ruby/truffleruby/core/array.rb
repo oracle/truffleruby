@@ -602,15 +602,14 @@ class Array
   Truffle::Graal.always_split instance_method(:insert)
 
   def inspect
-    return '[]'.encode(Encoding::US_ASCII) if size == 0
-    comma = ', '
+    return '[]'.encode(Encoding::US_ASCII) if empty?
     result = +'['
 
     return +'[...]' if Truffle::ThreadOperations.detect_recursion self do
       each_with_index do |element, index|
         temp = Truffle::Type.rb_inspect(element)
         result.force_encoding(temp.encoding) if index == 0
-        result << temp << comma
+        result << temp << ', '
       end
     end
 
