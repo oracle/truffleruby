@@ -175,7 +175,7 @@ module Truffle
     def self.print_stats
       output_format = Truffle::Boot.get_option('regexp-instrumentation-output-format')
 
-      if output_format == 'text'
+      if output_format == :TEXT
         puts '--------------------'
         puts 'Regular expression statistics'
         puts '--------------------'
@@ -204,7 +204,7 @@ module Truffle
 
           puts '--------------------'
         end
-      elsif output_format == 'json'
+      elsif output_format == :JSON
         ret = {}
 
         if Truffle::Boot.get_option('regexp-instrument-creation')
