@@ -40,6 +40,7 @@ Compatibility:
 * Update `String#<<` to require one argument (#2609, @bjfish).
 * Update `String#split` to raise `TypeError` when false is given (#2606, @bjfish).
 * Update `String#lstrip!` to remove leading null characters (#2607, @bjfish).
+* Update `File.utime` to return the number of file names in the arguments (#2616, @bjfish).
 
 Performance:
 
