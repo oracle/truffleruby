@@ -235,10 +235,12 @@ public class SimplePackTreeBuilder implements SimplePackListener {
 
     @Override
     public void nullByte(int count) {
-        appendNode((sharedTreeBuilder.applyCount(
-                count,
-                WriteByteNodeGen.create(
-                        new LiteralFormatNode((byte) 0)))));
+        if (count != SimplePackParser.COUNT_STAR) {
+            appendNode((sharedTreeBuilder.applyCount(
+                    count,
+                    WriteByteNodeGen.create(
+                            new LiteralFormatNode((byte) 0)))));
+        }
     }
 
     @Override
