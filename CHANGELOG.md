@@ -38,6 +38,7 @@ Compatibility:
 * Update `String#rindex` to only accept `Regexp` or objects convertable to `String` as the first parameter (#2608, @bjfish).
 * Update `String#<<` to require one argument (#2609, @bjfish).
 * Update `String#split` to raise `TypeError` when false is given (#2606, @bjfish).
+* Update `File.utime` to return the number of file names in the arguments (#2616, @bjfish).
 
 Performance:
 

@@ -1116,6 +1116,7 @@ class File < IO
                                           mtime.to_i, mtime.nsec)
       Errno.handle unless n == 0
     end
+    paths.size
   end
 
   def self.world_readable?(path)
