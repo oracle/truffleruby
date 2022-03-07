@@ -129,7 +129,6 @@ import org.truffleruby.language.locals.WriteLocalNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.BlockDefinitionNode;
 import org.truffleruby.language.methods.CatchBreakNode;
-import org.truffleruby.language.methods.ExceptionTranslatingNode;
 import org.truffleruby.language.methods.GetDefaultDefineeNode;
 import org.truffleruby.language.methods.LiteralMethodDefinitionNode;
 import org.truffleruby.language.methods.ModuleBodyDefinitionNode;
@@ -2726,7 +2725,7 @@ public class BodyTranslator extends Translator {
         }
 
         final RubyNode ret = new TryNode(
-                new ExceptionTranslatingNode(tryPart),
+                tryPart,
                 rescueNodes.toArray(EMPTY_RESCUE_NODE_ARRAY),
                 elsePart,
                 canOmitBacktrace);

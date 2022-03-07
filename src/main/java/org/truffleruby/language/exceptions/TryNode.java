@@ -11,6 +11,7 @@ package org.truffleruby.language.exceptions;
 
 import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyLanguage;
 import com.oracle.truffle.api.TruffleSafepoint;
 import org.truffleruby.core.exception.ExceptionOperations;
@@ -18,7 +19,6 @@ import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RetryException;
 import org.truffleruby.language.control.TerminationException;
-import org.truffleruby.language.methods.ExceptionTranslatingNode;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -28,13 +28,15 @@ import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.language.methods.TranslateExceptionNode;
 import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 
 public class TryNode extends RubyContextSourceNode {
 
-    @Child private ExceptionTranslatingNode tryPart;
+    @Child private RubyNode tryPart;
     @Children private final RescueNode[] rescueParts;
     @Child private RubyNode elsePart;
+    @Child private TranslateExceptionNode translateExceptionNode;
     private final boolean canOmitBacktrace;
 
     private final BranchProfile terminationProfile = BranchProfile.create();
@@ -44,7 +46,7 @@ public class TryNode extends RubyContextSourceNode {
     private final ConditionProfile raiseExceptionProfile = ConditionProfile.create();
 
     public TryNode(
-            ExceptionTranslatingNode tryPart,
+            RubyNode tryPart,
             RescueNode[] rescueParts,
             RubyNode elsePart,
             boolean canOmitBacktrace) {
@@ -76,6 +78,12 @@ public class TryNode extends RubyContextSourceNode {
             } catch (ControlFlowException exception) {
                 controlFlowProfile.enter();
                 throw exception;
+            } catch (Throwable t) {
+                if (translateExceptionNode == null) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    translateExceptionNode = insert(TranslateExceptionNode.create());
+                }
+                throw translateExceptionNode.executeTranslation(t);
             }
 
             if (elsePart != null) {
