@@ -38,6 +38,7 @@ Compatibility:
 * Update `String#rindex` to only accept `Regexp` or objects convertable to `String` as the first parameter (#2608, @bjfish).
 * Update `String#<<` to require one argument (#2609, @bjfish).
 * Update `String#split` to raise `TypeError` when false is given (#2606, @bjfish).
+* Update `String#lstrip!` to remove leading null characters (#2607, @bjfish).
 
 Performance:
 

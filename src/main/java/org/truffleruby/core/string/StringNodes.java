@@ -1804,7 +1804,7 @@ public abstract class StringNodes {
             // Check the first code point to see if it's a space. In the case of strings without leading spaces,
             // this check can avoid having to materialize the entire byte[] (a potentially expensive operation
             // for ropes) and can avoid having to compile the while loop.
-            if (noopProfile.profile(!StringSupport.isAsciiSpace(firstCodePoint))) {
+            if (noopProfile.profile(!isSpace(firstCodePoint))) {
                 return nil;
             }
 
@@ -1812,7 +1812,7 @@ public abstract class StringNodes {
             final byte[] bytes = bytesNode.execute(rope);
 
             int p = 0;
-            while (p < end && StringSupport.isAsciiSpace(bytes[p])) {
+            while (p < end && isSpace(bytes[p])) {
                 p++;
             }
 
@@ -1838,7 +1838,7 @@ public abstract class StringNodes {
             int p = s;
             while (p < end) {
                 int c = getCodePointNode.executeGetCodePoint(enc, rope, p);
-                if (!ASCIIEncoding.INSTANCE.isSpace(c)) {
+                if (!(c == 0 || ASCIIEncoding.INSTANCE.isSpace(c))) {
                     break;
                 }
                 p += StringSupport.codeLength(enc.jcoding, c);
@@ -1851,6 +1851,10 @@ public abstract class StringNodes {
             }
 
             return nil;
+        }
+
+        private boolean isSpace(int c) {
+            return c == 0 || StringSupport.isAsciiSpace(c);
         }
     }
 
