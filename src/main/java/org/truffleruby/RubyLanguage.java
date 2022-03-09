@@ -109,6 +109,7 @@ import org.truffleruby.language.objects.RubyObjectType;
 import org.truffleruby.language.objects.classvariables.ClassVariableStorage;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 import org.truffleruby.options.LanguageOptions;
+import org.truffleruby.parser.NativeParser;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.ParsingParameters;
 import org.truffleruby.parser.RubySource;
@@ -476,6 +477,9 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     private void applicationStarts() {
+        final NativeParser parser = new NativeParser(getCurrentContext());
+        parser.runParseAndPack("1 + 2");
+
         // Set breakpoints on this line to break when user code is about to be loaded
         return;
     }

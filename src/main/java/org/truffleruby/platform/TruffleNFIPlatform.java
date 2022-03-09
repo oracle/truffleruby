@@ -51,7 +51,7 @@ public class TruffleNFIPlatform {
         }
     }
 
-    private static Object bind(RubyContext context, Object function, String signature) {
+    public static Object bind(RubyContext context, Object function, String signature) {
         Object parsedSignature = context
                 .getEnv()
                 .parseInternal(Source.newBuilder("nfi", signature, "native").build())
