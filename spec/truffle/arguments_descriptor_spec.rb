@@ -27,6 +27,25 @@ describe "Arguments descriptors" do
     ArgumentsDescriptorSpecs::Info.new(*args)
   end
 
+  guard -> { truffleruby? } do
+    it "reflect if the caller passes keywords arguments, regardless of the callee" do
+      def descriptor(*)
+        Primitive.arguments_descriptor
+      end
+
+      descriptor().should == []
+      descriptor(1).should == []
+      splat = [1, 2]
+      descriptor(*splat).should == []
+
+      descriptor(a: 1).should == [:keywords]
+      kw = { b: 2 }
+      descriptor(**kw).should == [:keywords]
+      empty_kw = {}
+      descriptor(**empty_kw).should == [:keywords]
+    end
+  end
+
   def only_kws(a:, b:)
     info([a, b], Primitive.arguments_descriptor, Primitive.arguments)
   end
