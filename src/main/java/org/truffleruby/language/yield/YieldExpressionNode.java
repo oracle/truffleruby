@@ -18,6 +18,7 @@ import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.WarnNode;
+import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 
@@ -30,6 +31,7 @@ public class YieldExpressionNode extends RubyContextSourceNode {
 
     private final boolean unsplat;
     private final boolean warnInModuleBody;
+    private final ArgumentsDescriptor descriptor;
 
     @Children private final RubyNode[] arguments;
     @Child private CallBlockNode yieldNode;
@@ -42,10 +44,12 @@ public class YieldExpressionNode extends RubyContextSourceNode {
 
     public YieldExpressionNode(
             boolean unsplat,
+            ArgumentsDescriptor descriptor,
             RubyNode[] arguments,
             RubyNode readBlockNode,
             boolean warnInModuleBody) {
         this.unsplat = unsplat;
+        this.descriptor = descriptor;
         this.arguments = arguments;
         this.readBlockNode = readBlockNode;
         this.warnInModuleBody = warnInModuleBody;
@@ -75,7 +79,7 @@ public class YieldExpressionNode extends RubyContextSourceNode {
             argumentsObjects = unsplat(argumentsObjects);
         }
 
-        return getYieldNode().yield((RubyProc) block, argumentsObjects);
+        return getYieldNode().yield((RubyProc) block, descriptor, argumentsObjects);
     }
 
     private Object readBlock(VirtualFrame frame) {

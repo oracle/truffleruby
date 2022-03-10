@@ -87,6 +87,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.WarningNode.UncachedWarningNode;
+import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
@@ -800,7 +801,8 @@ public abstract class ModuleNodes {
                     new FixedDefaultDefinee(self),
                     block.declarationContext.getRefinements());
 
-            return callBlockNode.executeCallBlock(declarationContext, block, self, block.block, args);
+            return callBlockNode.executeCallBlock(declarationContext, block, self, block.block,
+                    EmptyArgumentsDescriptor.INSTANCE, args);
         }
 
         @Specialization
@@ -2256,6 +2258,7 @@ public abstract class ModuleNodes {
                     block,
                     refinement,
                     block.block,
+                    EmptyArgumentsDescriptor.INSTANCE,
                     EMPTY_ARGUMENTS);
             return refinement;
         }

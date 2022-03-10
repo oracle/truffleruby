@@ -84,6 +84,7 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.constants.GetConstantNode;
@@ -994,7 +995,8 @@ public class CExtNodes {
             final MethodLookupResult superMethodLookup = ModuleOperations
                     .lookupSuperMethod(callingMethod, callingMetaclass);
             final InternalMethod superMethod = superMethodLookup.getMethod();
-            return callSuperMethodNode.execute(frame, callingSelf, superMethod, args, nil);
+            return callSuperMethodNode.execute(frame, callingSelf, superMethod, EmptyArgumentsDescriptor.INSTANCE, args,
+                    nil);
         }
 
         @TruffleBoundary

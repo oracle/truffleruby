@@ -49,6 +49,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToRubyIntegerNode;
@@ -70,6 +71,10 @@ import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.SafepointAction;
+import org.truffleruby.language.arguments.ArgumentsDescriptor;
+import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
+import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
@@ -276,7 +281,7 @@ public abstract class VMPrimitiveNodes {
                 case "IGNORE":
                     return registerIgnoreHandler(signalName);
                 default:
-                    throw new UnsupportedOperationException(actionString);
+                    throw CompilerDirectives.shouldNotReachHere(actionString);
             }
         }
 
@@ -582,6 +587,37 @@ public abstract class VMPrimitiveNodes {
         @Specialization
         protected int javaVersion() {
             return JAVA_SPECIFICATION_VERSION;
+        }
+
+    }
+
+    @Primitive(name = "arguments")
+    public abstract static class ArgumentsNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected RubyArray arguments(VirtualFrame frame) {
+            return createArray(RubyArguments.getArguments(frame));
+        }
+
+    }
+
+    @Primitive(name = "arguments_descriptor")
+    public abstract static class ArgumentsDescriptorNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected RubyArray argumentsDescriptor(VirtualFrame frame) {
+            return descriptorToArray(RubyArguments.getDescriptor(frame));
+        }
+
+        @TruffleBoundary
+        private RubyArray descriptorToArray(ArgumentsDescriptor descriptor) {
+            if (descriptor == EmptyArgumentsDescriptor.INSTANCE) {
+                return createEmptyArray();
+            } else if (descriptor instanceof KeywordArgumentsDescriptor) {
+                return createArray(new Object[]{ getLanguage().getSymbol("keywords") });
+            } else {
+                throw CompilerDirectives.shouldNotReachHere();
+            }
         }
 
     }

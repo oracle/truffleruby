@@ -9,12 +9,12 @@
  */
 package org.truffleruby.language.arguments;
 
-/** An arguments descriptor that says that it is not know if there are keyword arguments. */
-public class EmptyArgumentsDescriptor extends ArgumentsDescriptor {
+/** An arguments descriptor that says that keyword arguments are present. */
+public class KeywordArgumentsDescriptor extends ArgumentsDescriptor {
 
-    public static final EmptyArgumentsDescriptor INSTANCE = new EmptyArgumentsDescriptor();
+    public static final KeywordArgumentsDescriptor INSTANCE = new KeywordArgumentsDescriptor();
 
-    private EmptyArgumentsDescriptor() {
+    private KeywordArgumentsDescriptor() {
     }
 
 }

@@ -11,6 +11,7 @@ package org.truffleruby.language.supercall;
 
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
+import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.methods.CallInternalMethodNode;
@@ -38,6 +39,7 @@ public class CallSuperMethodNode extends FrameAndVariablesSendingNode {
             VirtualFrame frame,
             Object self,
             InternalMethod superMethod,
+            ArgumentsDescriptor descriptor,
             Object[] arguments,
             Object block) {
 
@@ -49,7 +51,8 @@ public class CallSuperMethodNode extends FrameAndVariablesSendingNode {
         }
 
         final Object callerFrameOrVariables = getFrameOrStorageIfRequired(frame);
-        Object[] rubyArgs = RubyArguments.pack(null, callerFrameOrVariables, superMethod, null, self, block, arguments);
+        Object[] rubyArgs = RubyArguments.pack(null, callerFrameOrVariables, superMethod, null, self, block, descriptor,
+                arguments);
         return getCallMethodNode().execute(frame, superMethod, self, rubyArgs);
     }
 
