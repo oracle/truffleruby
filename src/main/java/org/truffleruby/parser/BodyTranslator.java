@@ -3129,30 +3129,23 @@ public class BodyTranslator extends Translator {
             return EmptyArgumentsDescriptor.INSTANCE;
         }
 
-        final List<String> keywords = new ArrayList<>();
-        boolean alsoSplat = false;
-
         for (ParseNodeTuple pair : keywordHashArgumentNode.getPairs()) {
             final ParseNode key = pair.getKey();
             final ParseNode value = pair.getValue();
 
             if (key instanceof SymbolParseNode &&
                     ((SymbolParseNode) key).getName() != null) {
-                keywords.add(((SymbolParseNode) key).getName());
+                return KeywordArgumentsDescriptor.INSTANCE;
             } else if (key == null && value != null) {
                 // A splat keyword hash
-                alsoSplat = true;
+                return KeywordArgumentsDescriptor.INSTANCE;
             } else {
                 // For non-symbol keys
-                alsoSplat = true;
+                return KeywordArgumentsDescriptor.INSTANCE;
             }
         }
 
-        if (!keywords.isEmpty() || alsoSplat) {
-            return KeywordArgumentsDescriptor.INSTANCE;
-        } else {
-            return EmptyArgumentsDescriptor.INSTANCE;
-        }
+        return EmptyArgumentsDescriptor.INSTANCE;
     }
 
     private static HashParseNode findLastHashParseNode(ParseNode node) {
