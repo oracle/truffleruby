@@ -141,6 +141,7 @@ public class CoreLibrary {
     public final RubyClass loadErrorClass;
     public final RubyClass localJumpErrorClass;
     public final RubyClass matchDataClass;
+    public final RubyClass mathDomainErrorClass;
     public final RubyClass moduleClass;
     public final RubyClass nameErrorClass;
     public final RubyClass nilClass;
@@ -444,7 +445,8 @@ public class CoreLibrary {
         enumerableModule = defineModule("Enumerable");
         defineModule("GC");
         kernelModule = defineModule("Kernel");
-        defineModule("Math");
+        var mathModule = defineModule("Math");
+        mathDomainErrorClass = defineClass(mathModule, standardErrorClass, "DomainError");
         objectSpaceModule = defineModule("ObjectSpace");
 
         weakMapClass = defineClass(objectSpaceModule, objectClass, "WeakMap");

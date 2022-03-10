@@ -43,6 +43,7 @@ Compatibility:
 * Update `String#split` to raise `TypeError` when false is given (#2606, @bjfish).
 * Update `String#lstrip!` to remove leading null characters (#2607, @bjfish).
 * Update `File.utime` to return the number of file names in the arguments (#2616, @bjfish).
+* Update `Math.sqrt` to raise a `Math::DomainError` for negative numbers (#2621, @bjfish).
 
 Performance:
 
