@@ -3117,34 +3117,15 @@ public class BodyTranslator extends Translator {
 
     private static ArgumentsDescriptor getKeywordArgumentsDescriptor(RubyLanguage language, ParseNode[] arguments) {
         // A simple empty set of arguments is always an empty descriptor
-
         if (arguments.length == 0) {
             return EmptyArgumentsDescriptor.INSTANCE;
         }
 
         // Find the keyword argument hash parse node
+        var lastArgument = arguments[arguments.length - 1];
+        final HashParseNode keywordHashArgumentNode = findLastHashParseNode(lastArgument);
 
-        int keywordHashArgumentIndex = 0;
-        HashParseNode keywordHashArgumentNode = null;
-
-        if (arguments[0] instanceof ArgsPushParseNode) {
-            final ArgsPushParseNode argsPushParseNode = (ArgsPushParseNode) arguments[0];
-
-            if (argsPushParseNode.getFirstNode() instanceof HashParseNode) {
-                keywordHashArgumentNode = (HashParseNode) argsPushParseNode.getFirstNode();
-            } else if (argsPushParseNode.getSecondNode() instanceof HashParseNode) {
-                keywordHashArgumentNode = (HashParseNode) argsPushParseNode.getSecondNode();
-            }
-        } else {
-            if (arguments[arguments.length - 1] instanceof HashParseNode) {
-                keywordHashArgumentIndex = arguments.length - 1;
-                keywordHashArgumentNode = (HashParseNode) arguments[keywordHashArgumentIndex];
-            }
-        }
-
-        // If there's no hash parse node of any kind, then there are no keyword arguments
-
-        if (keywordHashArgumentNode == null) {
+        if (keywordHashArgumentNode == null || !keywordHashArgumentNode.isKeywordArguments()) {
             return EmptyArgumentsDescriptor.INSTANCE;
         }
 
@@ -3152,30 +3133,38 @@ public class BodyTranslator extends Translator {
         boolean alsoSplat = false;
 
         for (ParseNodeTuple pair : keywordHashArgumentNode.getPairs()) {
-            if (pair instanceof ParseNodeTuple) {
-                final ParseNode key = pair.getKey();
-                final ParseNode value = pair.getValue();
+            final ParseNode key = pair.getKey();
+            final ParseNode value = pair.getValue();
 
-                if (key instanceof SymbolParseNode &&
-                        ((SymbolParseNode) key).getName() != null) {
-                    if (keywordHashArgumentNode.isKeywordArguments()) {
-                        keywords.add(((SymbolParseNode) key).getName());
-                    }
-                } else if (key == null && value != null) {
-                    // A splat keyword hash
-                    alsoSplat = true;
-                } else {
-                    // For non-symbol keys
-                    alsoSplat = true;
-                }
+            if (key instanceof SymbolParseNode &&
+                    ((SymbolParseNode) key).getName() != null) {
+                keywords.add(((SymbolParseNode) key).getName());
+            } else if (key == null && value != null) {
+                // A splat keyword hash
+                alsoSplat = true;
+            } else {
+                // For non-symbol keys
+                alsoSplat = true;
             }
         }
 
-        if (keywords.isEmpty() && !alsoSplat) {
+        if (!keywords.isEmpty() || alsoSplat) {
+            return KeywordArgumentsDescriptor.INSTANCE;
+        } else {
             return EmptyArgumentsDescriptor.INSTANCE;
         }
+    }
 
-        return KeywordArgumentsDescriptor.INSTANCE;
+    private static HashParseNode findLastHashParseNode(ParseNode node) {
+        if (node instanceof HashParseNode) {
+            return (HashParseNode) node;
+        } else if (node instanceof ArgsPushParseNode) {
+            return findLastHashParseNode(((ArgsPushParseNode) node).getSecondNode());
+        } else {
+            // SplatParseNode: cannot contain kwargs (*array)
+            // ArgsCatParseNode: cannot contain kwargs (RHS is *array)
+            return null;
+        }
     }
 
     @Override
