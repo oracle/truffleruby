@@ -47,6 +47,7 @@ import java.util.concurrent.TimeUnit;
 import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.TruffleSafepoint.Interrupter;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.graalvm.collections.Pair;
 import org.truffleruby.RubyContext;
@@ -92,6 +93,8 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.SafepointAction;
 import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.ArgumentsDescriptor;
+import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.control.RaiseException;
@@ -412,15 +415,19 @@ public abstract class ThreadNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class ThreadInitializeNode extends PrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary
         @Specialization(limit = "storageStrategyLimit()")
-        protected Object initialize(RubyThread thread, RubyArray arguments, RubyProc block,
+        protected Object initialize(VirtualFrame frame, RubyThread thread, RubyArray arguments, RubyProc block,
                 @Bind("arguments.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores) {
+            final ArgumentsDescriptor descriptor = RubyArguments.getDescriptor(frame);
+            final Object[] args = stores.boxedCopyOfRange(store, 0, arguments.size);
+            return init(thread, block, descriptor, args);
+        }
+
+        @TruffleBoundary
+        private Object init(RubyThread thread, RubyProc block, ArgumentsDescriptor descriptor, Object[] args) {
             final SourceSection sourceSection = block.sharedMethodInfo.getSourceSection();
             final String info = RubyLanguage.fileLine(sourceSection);
-            final int argSize = arguments.size;
-            final Object[] args = stores.boxedCopyOfRange(store, 0, argSize);
             final String sharingReason = "creating Ruby Thread " + info;
 
             if (getLanguage().options.SHARED_OBJECTS_ENABLED) {
@@ -433,10 +440,9 @@ public abstract class ThreadNodes {
                     this,
                     info,
                     sharingReason,
-                    () -> ProcOperations.rootCall(block, args));
+                    () -> ProcOperations.rootCall(block, descriptor, args));
             return nil;
         }
-
     }
 
     @CoreMethod(names = "join", optional = 1, lowerFixnum = 1)

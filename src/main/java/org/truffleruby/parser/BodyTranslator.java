@@ -938,6 +938,7 @@ public class BodyTranslator extends Translator {
                         expressionValue,
                         "deconstruct",
                         null,
+                        EmptyArgumentsDescriptor.INSTANCE,
                         RubyNode.EMPTY_ARRAY,
                         false,
                         true);
@@ -951,6 +952,7 @@ public class BodyTranslator extends Translator {
                         receiver,
                         "array_pattern_matches?",
                         null,
+                        EmptyArgumentsDescriptor.INSTANCE,
                         new RubyNode[]{ patternNode.accept(this), NodeUtil.cloneNode(deconstructed) },
                         false,
                         true);
@@ -961,6 +963,7 @@ public class BodyTranslator extends Translator {
                         expressionValue,
                         "deconstruct_keys",
                         null,
+                        EmptyArgumentsDescriptor.INSTANCE,
                         new RubyNode[]{ new NilLiteralNode(true) },
                         false,
                         true);
@@ -974,6 +977,7 @@ public class BodyTranslator extends Translator {
                         receiver,
                         "hash_pattern_matches?",
                         null,
+                        EmptyArgumentsDescriptor.INSTANCE,
                         new RubyNode[]{ patternNode.accept(this), NodeUtil.cloneNode(deconstructed) },
                         false,
                         true);
@@ -993,6 +997,7 @@ public class BodyTranslator extends Translator {
                         patternNode.accept(this),
                         "===",
                         null,
+                        EmptyArgumentsDescriptor.INSTANCE,
                         new RubyNode[]{ NodeUtil.cloneNode(expressionValue) },
                         false,
                         true);
@@ -2336,6 +2341,7 @@ public class BodyTranslator extends Translator {
                         lhs,
                         node.getOperator(),
                         null,
+                        EmptyArgumentsDescriptor.INSTANCE,
                         new RubyNode[]{ rhs },
                         false,
                         true);
@@ -2635,6 +2641,7 @@ public class BodyTranslator extends Translator {
                 receiver,
                 "convert",
                 null,
+                EmptyArgumentsDescriptor.INSTANCE,
                 arguments,
                 false,
                 true);

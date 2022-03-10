@@ -33,7 +33,6 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
-import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -203,7 +202,7 @@ public abstract class ProcNodes {
                     proc,
                     ProcOperations.getSelf(proc),
                     RubyArguments.getBlock(rubyArgs),
-                    EmptyArgumentsDescriptor.INSTANCE,
+                    RubyArguments.getDescriptor(rubyArgs),
                     RubyArguments.getArguments(rubyArgs));
         }
     }

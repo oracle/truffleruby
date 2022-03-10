@@ -11,7 +11,6 @@ package org.truffleruby.language.arguments;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.StringUtils;
@@ -89,50 +88,11 @@ public final class RubyArguments {
             FrameOnStackMarker frameOnStackMarker,
             Object self,
             Object block,
-            Object[] arguments) {
-        return pack(
-                declarationFrame,
-                callerFrameOrVariables,
-                method,
-                method.getDeclarationContext(),
-                frameOnStackMarker,
-                self,
-                block,
-                arguments);
-    }
-
-    public static Object[] pack(
-            MaterializedFrame declarationFrame,
-            Object callerFrameOrVariables,
-            InternalMethod method,
-            FrameOnStackMarker frameOnStackMarker,
-            Object self,
-            Object block,
             ArgumentsDescriptor descriptor,
             Object[] arguments) {
-        return pack(
-                declarationFrame,
-                callerFrameOrVariables,
-                method,
-                method.getDeclarationContext(),
-                frameOnStackMarker,
-                self,
-                block,
-                descriptor,
-                arguments);
-    }
-
-    public static Object[] pack(
-            MaterializedFrame declarationFrame,
-            Object callerFrameOrVariables,
-            InternalMethod method,
-            DeclarationContext declarationContext,
-            FrameOnStackMarker frameOnStackMarker,
-            Object self,
-            Object block,
-            Object[] arguments) {
+        final DeclarationContext declarationContext = method.getDeclarationContext();
         return pack(declarationFrame, callerFrameOrVariables, method, declarationContext, frameOnStackMarker, self,
-                block, EmptyArgumentsDescriptor.INSTANCE, arguments);
+                block, descriptor, arguments);
     }
 
     public static Object[] pack(
@@ -317,7 +277,7 @@ public final class RubyArguments {
         args[ArgumentIndicies.DESCRIPTOR.ordinal()] = descriptor;
     }
 
-    public static ArgumentsDescriptor getDescriptor(VirtualFrame frame) {
+    public static ArgumentsDescriptor getDescriptor(Frame frame) {
         return getDescriptor(frame.getArguments());
     }
 

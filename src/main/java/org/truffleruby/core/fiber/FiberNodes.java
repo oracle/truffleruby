@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.fiber;
 
+import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -31,6 +32,9 @@ import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.ArgumentsDescriptor;
+import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -61,7 +65,7 @@ public abstract class FiberNodes {
         }
 
         public abstract Object executeTransferControlTo(RubyThread currentThread, RubyFiber currentFiber,
-                RubyFiber fiber, FiberOperation operation, Object[] args);
+                RubyFiber fiber, FiberOperation operation, ArgumentsDescriptor descriptor, Object[] args);
 
         @Specialization
         protected Object transfer(
@@ -69,6 +73,7 @@ public abstract class FiberNodes {
                 RubyFiber currentFiber,
                 RubyFiber fiber,
                 FiberOperation operation,
+                ArgumentsDescriptor descriptor,
                 Object[] args,
                 @Cached BranchProfile errorProfile) {
 
@@ -84,7 +89,10 @@ public abstract class FiberNodes {
                         coreExceptions().fiberError("fiber called across threads", this));
             }
 
-            return singleValue(getContext().fiberManager.transferControlTo(currentFiber, fiber, operation, args, this));
+            var descriptorAndArgs = getContext().fiberManager.transferControlTo(currentFiber, fiber, operation,
+                    descriptor, args, this);
+            // Ignore the descriptor like CRuby here, see https://bugs.ruby-lang.org/issues/18621
+            return singleValue(descriptorAndArgs.args);
         }
 
     }
@@ -135,7 +143,7 @@ public abstract class FiberNodes {
         @Child private FiberTransferNode fiberTransferNode = FiberTransferNodeFactory.create(null);
 
         @Specialization
-        protected Object transfer(RubyFiber toFiber, Object[] args,
+        protected Object transfer(VirtualFrame frame, RubyFiber toFiber, Object[] args,
                 @Cached ConditionProfile sameFiberProfile,
                 @Cached BranchProfile errorProfile) {
 
@@ -160,7 +168,8 @@ public abstract class FiberNodes {
             }
 
             return fiberTransferNode
-                    .executeTransferControlTo(currentThread, currentFiber, toFiber, FiberOperation.TRANSFER, args);
+                    .executeTransferControlTo(currentThread, currentFiber, toFiber, FiberOperation.TRANSFER,
+                            RubyArguments.getDescriptor(frame), args);
         }
 
     }
@@ -172,12 +181,14 @@ public abstract class FiberNodes {
             return FiberNodesFactory.FiberResumeNodeFactory.create(null);
         }
 
-        public abstract Object executeResume(FiberOperation operation, RubyFiber fiber, Object[] args);
+        public abstract Object executeResume(FiberOperation operation, RubyFiber fiber, ArgumentsDescriptor descriptor,
+                Object[] args);
 
         @Child private FiberTransferNode fiberTransferNode = FiberTransferNodeFactory.create(null);
 
         @Specialization
-        protected Object resume(FiberOperation operation, RubyFiber toFiber, Object[] args,
+        protected Object resume(
+                FiberOperation operation, RubyFiber toFiber, ArgumentsDescriptor descriptor, Object[] args,
                 @Cached BranchProfile errorProfile) {
 
             final RubyThread currentThread = getLanguage().getCurrentThread();
@@ -212,7 +223,7 @@ public abstract class FiberNodes {
             }
 
             return fiberTransferNode
-                    .executeTransferControlTo(currentThread, currentFiber, toFiber, operation, args);
+                    .executeTransferControlTo(currentThread, currentFiber, toFiber, operation, descriptor, args);
         }
 
     }
@@ -247,9 +258,11 @@ public abstract class FiberNodes {
                         currentFiber,
                         fiber,
                         FiberOperation.RAISE,
+                        EmptyArgumentsDescriptor.INSTANCE,
                         new Object[]{ exception });
             } else {
-                return getResumeNode().executeResume(FiberOperation.RAISE, fiber, new Object[]{ exception });
+                return getResumeNode().executeResume(FiberOperation.RAISE, fiber, EmptyArgumentsDescriptor.INSTANCE,
+                        new Object[]{ exception });
             }
         }
 
@@ -277,8 +290,9 @@ public abstract class FiberNodes {
         @Child private FiberResumeNode fiberResumeNode = FiberResumeNode.create();
 
         @Specialization
-        protected Object resume(RubyFiber fiber, Object[] args) {
-            return fiberResumeNode.executeResume(FiberOperation.RESUME, fiber, args);
+        protected Object resume(VirtualFrame frame, RubyFiber fiber, Object[] args) {
+            return fiberResumeNode.executeResume(FiberOperation.RESUME, fiber,
+                    RubyArguments.getDescriptor(frame), args);
         }
 
     }
@@ -289,7 +303,7 @@ public abstract class FiberNodes {
         @Child private FiberTransferNode fiberTransferNode = FiberTransferNodeFactory.create(null);
 
         @Specialization
-        protected Object fiberYield(Object[] args,
+        protected Object fiberYield(VirtualFrame frame, Object[] args,
                 @Cached BranchProfile errorProfile) {
 
             final RubyThread currentThread = getLanguage().getCurrentThread();
@@ -303,6 +317,7 @@ public abstract class FiberNodes {
                     currentFiber,
                     fiberYieldedTo,
                     FiberOperation.YIELD,
+                    RubyArguments.getDescriptor(frame),
                     args);
         }
 

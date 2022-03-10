@@ -14,6 +14,7 @@ import java.util.Set;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.CallInternalMethodNode;
 import org.truffleruby.language.methods.InternalMethod;
@@ -70,7 +71,8 @@ public class RubyMethod extends RubyDynamicObject implements ObjectGraphNode {
             @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
             @Cached CallInternalMethodNode callInternalMethodNode) {
         final Object[] convertedArguments = foreignToRubyArgumentsNode.executeConvert(arguments);
-        final Object[] frameArgs = RubyArguments.pack(null, null, method, null, receiver, nil, convertedArguments);
+        final Object[] frameArgs = RubyArguments.pack(null, null, method, null, receiver, nil,
+                EmptyArgumentsDescriptor.INSTANCE, convertedArguments);
         return callInternalMethodNode.execute(null, method, receiver, frameArgs);
     }
     // endregion

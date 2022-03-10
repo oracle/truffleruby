@@ -305,7 +305,7 @@ public abstract class VMPrimitiveNodes {
                         new SafepointAction("Handling of signal " + signal, rootThread, true, false) {
                             @Override
                             public void run(RubyThread rubyThread, Node currentNode) {
-                                ProcOperations.rootCall(action, signal.getNumber());
+                                ProcOperations.rootCall(action, EmptyArgumentsDescriptor.INSTANCE, signal.getNumber());
                             }
                         });
             }, isRubyDefaultHandler);
@@ -593,17 +593,14 @@ public abstract class VMPrimitiveNodes {
 
     @Primitive(name = "arguments")
     public abstract static class ArgumentsNode extends PrimitiveArrayArgumentsNode {
-
         @Specialization
         protected RubyArray arguments(VirtualFrame frame) {
             return createArray(RubyArguments.getArguments(frame));
         }
-
     }
 
     @Primitive(name = "arguments_descriptor")
     public abstract static class ArgumentsDescriptorNode extends PrimitiveArrayArgumentsNode {
-
         @Specialization
         protected RubyArray argumentsDescriptor(VirtualFrame frame) {
             return descriptorToArray(RubyArguments.getDescriptor(frame));
@@ -619,7 +616,6 @@ public abstract class VMPrimitiveNodes {
                 throw CompilerDirectives.shouldNotReachHere();
             }
         }
-
     }
 
     @Primitive(name = "vm_native_argv")

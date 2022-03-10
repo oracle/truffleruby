@@ -43,7 +43,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.Visibility;
-import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -373,9 +372,14 @@ public abstract class BasicObjectNodes {
 
         @Specialization
         protected Object instanceEval(
-                Object receiver, NotProvided string, NotProvided fileName, NotProvided line, RubyProc block,
+                VirtualFrame frame,
+                Object receiver,
+                NotProvided string,
+                NotProvided fileName,
+                NotProvided line,
+                RubyProc block,
                 @Cached InstanceExecNode instanceExecNode) {
-            return instanceExecNode.executeInstanceExec(receiver, new Object[]{ receiver }, block);
+            return instanceExecNode.executeInstanceExec(frame, receiver, new Object[]{ receiver }, block);
         }
 
         @Specialization
@@ -434,17 +438,17 @@ public abstract class BasicObjectNodes {
 
         @Child private CallBlockNode callBlockNode = CallBlockNode.create();
 
-        abstract Object executeInstanceExec(Object self, Object[] args, RubyProc block);
+        abstract Object executeInstanceExec(VirtualFrame frame, Object self, Object[] args, RubyProc block);
 
         @Specialization
-        protected Object instanceExec(Object receiver, Object[] arguments, RubyProc block) {
+        protected Object instanceExec(VirtualFrame frame, Object receiver, Object[] arguments, RubyProc block) {
             final DeclarationContext declarationContext = new DeclarationContext(
                     Visibility.PUBLIC,
                     new SingletonClassOfSelfDefaultDefinee(receiver),
                     block.declarationContext.getRefinements());
-            return callBlockNode
-                    .executeCallBlock(declarationContext, block, receiver, block.block,
-                            EmptyArgumentsDescriptor.INSTANCE, arguments);
+            var descriptor = RubyArguments.getDescriptor(frame);
+            return callBlockNode.executeCallBlock(
+                    declarationContext, block, receiver, block.block, descriptor, arguments);
         }
 
         @Specialization

@@ -12,6 +12,7 @@ package org.truffleruby.language.objects;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.ModuleBodyDefinitionNode;
@@ -43,6 +44,7 @@ public class RunModuleDefinitionNode extends RubyContextSourceNode {
                 null,
                 module,
                 nil,
+                EmptyArgumentsDescriptor.INSTANCE,
                 EMPTY_ARGUMENTS));
     }
 

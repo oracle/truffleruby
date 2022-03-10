@@ -160,7 +160,11 @@ describe "Arguments descriptors" do
     info.arguments.should == ['A', :a, :b, {c: 1}] if truffleruby?
 
     info = struct_new_like('A', :a, :b, {c: 1})
-    info.values.should == ['A', [:a, :b], 1]
+    if truffleruby? # TO FIX
+      info.values.should == ['A', [:a, :b], 1]
+    else
+      info.values.should == ['A', [:a, :b, {c: 1}], 101]
+    end
     info.descriptor.should == [] if truffleruby?
     info.arguments.should == ['A', :a, :b, {c: 1}] if truffleruby?
 
@@ -273,7 +277,11 @@ describe "Arguments descriptors" do
     info.arguments.should == [1, 2, {e: 3}] if truffleruby?
 
     info = mixture(1, 2, {foo: :bar})
-    info.values.should == [1, nil, nil, 2, nil, {:foo=>:bar}]
+    if truffleruby? # TO FIX
+      info.values.should == [1, nil, nil, 2, nil, {:foo=>:bar}]
+    else
+      info.values.should == [1, 2, nil, {foo: :bar}, nil, {}]
+    end
     info.descriptor.should == [] if truffleruby?
     info.arguments.should == [1, 2, {foo: :bar}] if truffleruby?
 
@@ -374,5 +382,62 @@ describe "Arguments descriptors" do
     info.values.should == [1, 2]
     info.descriptor.should == [:keywords] if truffleruby?
     info.arguments.should == [{a: 1, b: 2}] if truffleruby?
+  end
+
+  it "work through instance_exec" do
+    info = instance_exec(a: 1) do |*args, **kwargs|
+      info([args, kwargs], Primitive.arguments_descriptor, Primitive.arguments)
+    end
+    info.values.should == [[], {a: 1}]
+    info.descriptor.should == [:keywords] if truffleruby?
+    info.arguments.should == [{a: 1}] if truffleruby?
+  end
+
+  it "work through module_exec" do
+    info = Module.new.module_exec(a: 1) do |*args, **kwargs|
+      ArgumentsDescriptorSpecs::Info.new([args, kwargs], Primitive.arguments_descriptor, Primitive.arguments)
+    end
+    info.values.should == [[], {a: 1}]
+    info.descriptor.should == [:keywords] if truffleruby?
+    info.arguments.should == [{a: 1}] if truffleruby?
+  end
+
+  it "work through Proc#call" do
+    info = -> (*args, **kwargs) do
+      ArgumentsDescriptorSpecs::Info.new([args, kwargs], Primitive.arguments_descriptor, Primitive.arguments)
+    end.call(a: 1)
+    info.values.should == [[], {a: 1}]
+    info.descriptor.should == [:keywords] if truffleruby?
+    info.arguments.should == [{a: 1}] if truffleruby?
+  end
+
+  it "work through Thread#new" do
+    info = Thread.new(a: 1) do |*args, **kwargs|
+      ArgumentsDescriptorSpecs::Info.new([args, kwargs], Primitive.arguments_descriptor, Primitive.arguments)
+    end.value
+    info.values.should == [[], {a: 1}]
+    # TODO: info.descriptor.should == [:keywords] if truffleruby?
+    info.arguments.should == [{a: 1}] if truffleruby?
+  end
+
+  it "work through Fiber#resume" do
+    info = Fiber.new do |*args, **kwargs|
+      ArgumentsDescriptorSpecs::Info.new([args, kwargs], Primitive.arguments_descriptor, Primitive.arguments)
+    end.resume(a: 1)
+    info.values.should == [[], {a: 1}]
+    info.descriptor.should == [:keywords] if truffleruby?
+    info.arguments.should == [{a: 1}] if truffleruby?
+  end
+
+  # CRuby behavior, but probably a bug: https://bugs.ruby-lang.org/issues/18621
+  it "Fiber.yield loses the fact it was kwargs from Fiber#resume" do
+    f = Fiber.new do
+      args = Fiber.yield
+      args
+    end
+    f.resume
+    args = f.resume(a: 1)
+    Hash.ruby2_keywords_hash?(args).should == false
+    args.should == {a: 1}
   end
 end

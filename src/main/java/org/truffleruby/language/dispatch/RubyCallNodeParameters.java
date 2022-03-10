@@ -11,7 +11,6 @@ package org.truffleruby.language.dispatch;
 
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
-import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 
 public class RubyCallNodeParameters {
 
@@ -25,26 +24,6 @@ public class RubyCallNodeParameters {
     private final boolean isVCall;
     private final boolean isSafeNavigation;
     private final boolean isAttrAssign;
-
-    public RubyCallNodeParameters(
-            RubyNode receiver,
-            String methodName,
-            RubyNode block,
-            RubyNode[] arguments,
-            boolean isSplatted,
-            boolean ignoreVisibility) {
-        this(
-                receiver,
-                methodName,
-                block,
-                EmptyArgumentsDescriptor.INSTANCE,
-                arguments,
-                isSplatted,
-                ignoreVisibility,
-                false,
-                false,
-                false);
-    }
 
     public RubyCallNodeParameters(
             RubyNode receiver,

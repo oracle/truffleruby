@@ -126,7 +126,6 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         executeArguments(frame, rubyArgs);
 
         RubyArguments.setBlock(rubyArgs, executeBlock(frame));
-        RubyArguments.setDescriptor(rubyArgs, descriptor);
 
         if (isSplatted) {
             rubyArgs = splatArgs(receiverObject, rubyArgs);
