@@ -690,7 +690,7 @@ public class BodyTranslator extends Translator {
             isSplatted = true;
             arguments = new ParseNode[]{ argsNode };
         } else {
-            throw new UnsupportedOperationException("Unknown argument node type: " + argsNode.getClass());
+            throw CompilerDirectives.shouldNotReachHere("Unknown argument node type: " + argsNode.getClass());
         }
 
         ArgumentsDescriptor keywordDescriptor = getKeywordArgumentsDescriptor(language, arguments);
@@ -3020,37 +3020,18 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitYieldNode(YieldParseNode node) {
         final ParseNode argsNode = node.getArgsNode();
-        boolean unsplat = false;
 
-        final ParseNode[] arguments;
-        if (argsNode == null) {
-            // No arguments
-            arguments = EMPTY_ARGUMENTS;
-        } else if (argsNode instanceof ArrayParseNode) {
-            // Multiple arguments
-            arguments = ((ArrayParseNode) argsNode).children();
-        } else if (argsNode instanceof SplatParseNode || argsNode instanceof ArgsCatParseNode ||
-                argsNode instanceof ArgsPushParseNode) {
-            unsplat = true;
-            arguments = new ParseNode[]{ argsNode };
-        } else {
-            arguments = new ParseNode[]{ node.getArgsNode() };
-        }
+        final ArgumentsAndBlockTranslation argumentsAndBlock = translateArgumentsAndBlock(
+                node.getPosition(), null, argsNode, "<yield>");
 
-        ArgumentsDescriptor keywordDescriptor = getKeywordArgumentsDescriptor(language, arguments);
-
-        final RubyNode[] argumentsTranslated = createArray(arguments.length);
-
-        for (int i = 0; i < arguments.length; i++) {
-            argumentsTranslated[i] = arguments[i].accept(this);
-        }
+        final RubyNode[] argumentsTranslated = argumentsAndBlock.getArguments();
 
         RubyNode readBlock = environment
                 .findLocalVarOrNilNode(TranslatorEnvironment.METHOD_BLOCK_NAME, node.getPosition());
 
         final RubyNode ret = new YieldExpressionNode(
-                unsplat,
-                keywordDescriptor,
+                argumentsAndBlock.isSplatted(),
+                argumentsAndBlock.getArgumentsDescriptor(),
                 argumentsTranslated,
                 readBlock,
                 environment.shouldWarnYieldInModuleBody());
