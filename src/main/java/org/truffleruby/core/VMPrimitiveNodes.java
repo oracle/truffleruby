@@ -37,7 +37,9 @@
  */
 package org.truffleruby.core;
 
+import java.util.Arrays;
 import java.util.Map.Entry;
+import java.util.stream.Stream;
 
 import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -49,6 +51,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToRubyIntegerNode;
@@ -70,6 +73,10 @@ import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.SafepointAction;
+import org.truffleruby.language.arguments.ArgumentsDescriptor;
+import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.NonEmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
@@ -276,7 +283,7 @@ public abstract class VMPrimitiveNodes {
                 case "IGNORE":
                     return registerIgnoreHandler(signalName);
                 default:
-                    throw new UnsupportedOperationException(actionString);
+                    throw CompilerDirectives.shouldNotReachHere(actionString);
             }
         }
 
@@ -582,6 +589,46 @@ public abstract class VMPrimitiveNodes {
         @Specialization
         protected int javaVersion() {
             return JAVA_SPECIFICATION_VERSION;
+        }
+
+    }
+
+    @Primitive(name = "arguments")
+    public abstract static class ArgumentsNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected RubyArray arguments(VirtualFrame frame) {
+            return createArray(RubyArguments.getArguments(frame));
+        }
+
+    }
+
+    @Primitive(name = "arguments_descriptor")
+    public abstract static class ArgumentsDescriptorNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected RubyArray argumentsDescriptor(VirtualFrame frame) {
+            return descriptorToArray(RubyArguments.getDescriptor(frame));
+        }
+
+        @TruffleBoundary
+        private RubyArray descriptorToArray(ArgumentsDescriptor descriptor) {
+            if (descriptor == EmptyArgumentsDescriptor.INSTANCE) {
+                return createEmptyArray();
+            } else if (descriptor instanceof NonEmptyArgumentsDescriptor) {
+                final NonEmptyArgumentsDescriptor nonEmpty = (NonEmptyArgumentsDescriptor) descriptor;
+
+                final Stream<RubySymbol> keywordArguments = Arrays
+                        .stream(nonEmpty.getKeywordArgumentNames())
+                        .map(getLanguage()::getSymbol);
+
+                final Stream<Object> other = Stream.of(nonEmpty.getKeywordHashIndex(),
+                        nonEmpty.isKeywordHashElidable());
+
+                return createArray(Stream.concat(keywordArguments, other).toArray());
+            } else {
+                throw CompilerDirectives.shouldNotReachHere();
+            }
         }
 
     }

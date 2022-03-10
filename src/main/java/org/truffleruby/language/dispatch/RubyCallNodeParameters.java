@@ -10,12 +10,15 @@
 package org.truffleruby.language.dispatch;
 
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.arguments.ArgumentsDescriptor;
+import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 
 public class RubyCallNodeParameters {
 
     private final RubyNode receiver;
     private final String methodName;
     private final RubyNode block;
+    private final ArgumentsDescriptor descriptor;
     private final RubyNode[] arguments;
     private final boolean isSplatted;
     private final boolean ignoreVisibility;
@@ -30,13 +33,35 @@ public class RubyCallNodeParameters {
             RubyNode[] arguments,
             boolean isSplatted,
             boolean ignoreVisibility) {
-        this(receiver, methodName, block, arguments, isSplatted, ignoreVisibility, false, false, false);
+        this(
+                receiver,
+                methodName,
+                block,
+                EmptyArgumentsDescriptor.INSTANCE,
+                arguments,
+                isSplatted,
+                ignoreVisibility,
+                false,
+                false,
+                false);
     }
 
     public RubyCallNodeParameters(
             RubyNode receiver,
             String methodName,
             RubyNode block,
+            ArgumentsDescriptor descriptor,
+            RubyNode[] arguments,
+            boolean isSplatted,
+            boolean ignoreVisibility) {
+        this(receiver, methodName, block, descriptor, arguments, isSplatted, ignoreVisibility, false, false, false);
+    }
+
+    public RubyCallNodeParameters(
+            RubyNode receiver,
+            String methodName,
+            RubyNode block,
+            ArgumentsDescriptor descriptor,
             RubyNode[] arguments,
             boolean isSplatted,
             boolean ignoreVisibility,
@@ -46,6 +71,7 @@ public class RubyCallNodeParameters {
         this.receiver = receiver;
         this.methodName = methodName;
         this.block = block;
+        this.descriptor = descriptor;
         this.arguments = arguments;
         this.isSplatted = isSplatted;
         this.ignoreVisibility = ignoreVisibility;
@@ -59,6 +85,7 @@ public class RubyCallNodeParameters {
                 receiver,
                 methodName,
                 block,
+                descriptor,
                 arguments,
                 isSplatted,
                 ignoreVisibility,
@@ -81,6 +108,10 @@ public class RubyCallNodeParameters {
 
     public RubyNode getBlock() {
         return block;
+    }
+
+    public ArgumentsDescriptor getDescriptor() {
+        return descriptor;
     }
 
     public RubyNode[] getArguments() {

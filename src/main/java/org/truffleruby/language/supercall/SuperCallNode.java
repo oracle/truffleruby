@@ -14,6 +14,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.InternalMethod;
 
@@ -24,12 +25,14 @@ public class SuperCallNode extends RubyContextSourceNode {
 
     @Child private RubyNode arguments;
     @Child private RubyNode block;
+    private final ArgumentsDescriptor descriptor;
     @Child private LookupSuperMethodNode lookupSuperMethodNode;
     @Child private CallSuperMethodNode callSuperMethodNode;
 
-    public SuperCallNode(RubyNode arguments, RubyNode block) {
+    public SuperCallNode(RubyNode arguments, RubyNode block, ArgumentsDescriptor descriptor) {
         this.arguments = arguments;
         this.block = block;
+        this.descriptor = descriptor;
     }
 
     @Override

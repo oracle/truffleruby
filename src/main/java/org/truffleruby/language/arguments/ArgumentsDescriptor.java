@@ -9,8 +9,9 @@
  */
 package org.truffleruby.language.arguments;
 
-/** An arguments descriptor is an object that describes something about the arguments being passed. Argument descriptors
- * are stable, immutable objects, suitable to be cached and guarded by identity. They'd normally convey some kind of
- * static information from call site to callee. */
+/** An arguments descriptor is an object that describes something about the arguments being passed, regardless of what
+ * the callee expects or accepts. Argument descriptors are stable, immutable objects, suitable to be cached and guarded
+ * by identity. They'd normally convey some kind of static information from call site to callee. TruffleRuby uses
+ * arguments descriptors to describe passed keyword arguments. */
 public abstract class ArgumentsDescriptor {
 }
