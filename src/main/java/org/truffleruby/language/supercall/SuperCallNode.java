@@ -52,15 +52,7 @@ public class SuperCallNode extends RubyContextSourceNode {
             callSuperMethodNode = insert(CallSuperMethodNode.create());
         }
 
-        final ArgumentsDescriptor actualDescriptor;
-
-        if (descriptor == null) {
-            actualDescriptor = RubyArguments.getDescriptor(frame);
-        } else {
-            actualDescriptor = descriptor;
-        }
-
-        return callSuperMethodNode.execute(frame, self, superMethod, actualDescriptor, superArguments, blockObject);
+        return callSuperMethodNode.execute(frame, self, superMethod, descriptor, superArguments, blockObject);
     }
 
     @Override
