@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language.arguments;
 
-/** An arguments descriptor which conveys no information. */
+/** An argument descriptor that says no keyword arguments were passed (only positional arguments). */
 public class EmptyArgumentsDescriptor extends ArgumentsDescriptor {
 
     public static final EmptyArgumentsDescriptor INSTANCE = new EmptyArgumentsDescriptor();

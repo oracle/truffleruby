@@ -87,6 +87,8 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.WarningNode.UncachedWarningNode;
+import org.truffleruby.language.arguments.ArgumentsDescriptor;
+import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
@@ -767,7 +769,7 @@ public abstract class ModuleNodes {
         protected Object classEval(
                 RubyModule self, NotProvided code, NotProvided file, NotProvided line, RubyProc block,
                 @Cached ClassExecNode classExecNode) {
-            return classExecNode.executeClassExec(self, new Object[]{ self }, block);
+            return classExecNode.classExec(EmptyArgumentsDescriptor.INSTANCE, self, new Object[]{ self }, block);
         }
 
         @Specialization
@@ -791,23 +793,24 @@ public abstract class ModuleNodes {
 
         @Child private CallBlockNode callBlockNode = CallBlockNode.create();
 
-        abstract Object executeClassExec(RubyModule self, Object[] args, RubyProc block);
+        @Specialization
+        protected Object withBlock(VirtualFrame frame, RubyModule self, Object[] args, RubyProc block) {
+            return classExec(RubyArguments.getDescriptor(frame), self, args, block);
+        }
 
         @Specialization
-        protected Object classExec(RubyModule self, Object[] args, RubyProc block) {
+        protected Object noBlock(RubyModule self, Object[] args, Nil block) {
+            throw new RaiseException(getContext(), coreExceptions().noBlockGiven(this));
+        }
+
+        public Object classExec(ArgumentsDescriptor descriptor, RubyModule self, Object[] args, RubyProc block) {
             final DeclarationContext declarationContext = new DeclarationContext(
                     Visibility.PUBLIC,
                     new FixedDefaultDefinee(self),
                     block.declarationContext.getRefinements());
 
-            return callBlockNode.executeCallBlock(declarationContext, block, self, block.block, args);
+            return callBlockNode.executeCallBlock(declarationContext, block, self, block.block, descriptor, args);
         }
-
-        @Specialization
-        protected Object classExec(RubyModule self, Object[] args, Nil block) {
-            throw new RaiseException(getContext(), coreExceptions().noBlockGiven(this));
-        }
-
     }
 
     @CoreMethod(names = "class_variable_defined?", required = 1)
@@ -1407,7 +1410,7 @@ public abstract class ModuleNodes {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 classExecNode = insert(ClassExecNode.create());
             }
-            classExecNode.executeClassExec(module, new Object[]{ module }, block);
+            classExecNode.classExec(EmptyArgumentsDescriptor.INSTANCE, module, new Object[]{ module }, block);
         }
 
         @Specialization
@@ -2256,6 +2259,7 @@ public abstract class ModuleNodes {
                     block,
                     refinement,
                     block.block,
+                    EmptyArgumentsDescriptor.INSTANCE,
                     EMPTY_ARGUMENTS);
             return refinement;
         }

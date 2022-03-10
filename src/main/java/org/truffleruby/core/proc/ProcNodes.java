@@ -202,6 +202,7 @@ public abstract class ProcNodes {
                     proc,
                     ProcOperations.getSelf(proc),
                     RubyArguments.getBlock(rubyArgs),
+                    RubyArguments.getDescriptor(rubyArgs),
                     RubyArguments.getArguments(rubyArgs));
         }
     }

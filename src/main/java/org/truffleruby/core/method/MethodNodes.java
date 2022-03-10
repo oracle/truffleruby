@@ -39,6 +39,7 @@ import org.truffleruby.language.RubyLambdaRootNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
+import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.RaiseException;
@@ -299,7 +300,7 @@ public abstract class MethodNodes {
 
         private RubyProc createProc(RootCallTarget callTarget, InternalMethod method, Object receiver) {
             final Object[] packedArgs = RubyArguments
-                    .pack(null, null, method, null, receiver, nil, EMPTY_ARGUMENTS);
+                    .pack(null, null, method, null, receiver, nil, EmptyArgumentsDescriptor.INSTANCE, EMPTY_ARGUMENTS);
             final var variables = new SpecialVariableStorage();
             final MaterializedFrame declarationFrame = getLanguage().createEmptyDeclarationFrame(packedArgs, variables);
             return ProcOperations.createRubyProc(
@@ -357,8 +358,8 @@ public abstract class MethodNodes {
         @Override
         public Object execute(VirtualFrame frame) {
             final Object originalBoundMethodReceiver = RubyArguments.getSelf(RubyArguments.getDeclarationFrame(frame));
-            Object[] rubyArgs = RubyArguments.pack(null, null, method, null, originalBoundMethodReceiver,
-                    RubyArguments.getBlock(frame), RubyArguments.getArguments(frame));
+            Object[] rubyArgs = RubyArguments.repack(frame.getArguments(), originalBoundMethodReceiver);
+            RubyArguments.setMethod(rubyArgs, method);
             return callInternalMethodNode.execute(frame, method, originalBoundMethodReceiver, rubyArgs);
         }
     }

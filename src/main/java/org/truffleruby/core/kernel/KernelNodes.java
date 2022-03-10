@@ -559,7 +559,7 @@ public abstract class KernelNodes {
             } else {
                 // pass :freeze keyword argument to #initialize_clone
                 final RubyHash keywordArguments = createFreezeBooleanHash((boolean) freeze, hashNode);
-                initializeCloneNode.call(newObject, "initialize_clone", object, keywordArguments);
+                initializeCloneNode.callWithKeywords(newObject, "initialize_clone", object, keywordArguments);
             }
 
             // Default behavior - is just to copy the frozen state of the original object

@@ -23,7 +23,7 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.arguments.SplatToArgsNode;
 import org.truffleruby.language.literal.NilLiteralNode;
@@ -50,6 +50,7 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
     @Child private RubyNode receiver;
     @Child private RubyNode block;
     private final boolean hasLiteralBlock;
+    private final ArgumentsDescriptor descriptor;
     @Children private final RubyNode[] arguments;
 
     private final boolean isSplatted;
@@ -73,6 +74,7 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         final RubyNode block = parameters.getBlock();
         this.block = parameters.getBlock();
         this.hasLiteralBlock = block instanceof BlockDefinitionNode || block instanceof LambdaToProcNode;
+        this.descriptor = parameters.getDescriptor();
 
         this.isSplatted = parameters.isSplatted();
         this.dispatchConfig = parameters.isIgnoreVisibility() ? PRIVATE : PROTECTED;
@@ -95,7 +97,7 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         }
         Object[] rubyArgs = RubyArguments.allocate(arguments.length);
         RubyArguments.setSelf(rubyArgs, receiverObject);
-        RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
+        RubyArguments.setDescriptor(rubyArgs, descriptor);
 
         executeArguments(frame, rubyArgs);
 
@@ -119,7 +121,7 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         }
         Object[] rubyArgs = RubyArguments.allocate(arguments.length);
         RubyArguments.setSelf(rubyArgs, receiverObject);
-        RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
+        RubyArguments.setDescriptor(rubyArgs, descriptor);
 
         executeArguments(frame, rubyArgs);
 
@@ -158,7 +160,7 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         Object[] rubyArgs = RubyArguments.allocate(argumentsObjects.length);
         RubyArguments.setSelf(rubyArgs, receiverObject);
         RubyArguments.setBlock(rubyArgs, blockObject);
-        RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
+        RubyArguments.setDescriptor(rubyArgs, descriptor);
         RubyArguments.setArguments(rubyArgs, argumentsObjects);
         return executeWithArgumentsEvaluated(frame, receiverObject, rubyArgs);
     }

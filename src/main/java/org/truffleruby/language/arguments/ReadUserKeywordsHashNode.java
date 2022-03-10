@@ -39,12 +39,14 @@ public final class ReadUserKeywordsHashNode extends RubyBaseNode {
         final int argumentCount = RubyArguments.getArgumentsCount(frame);
 
         if (notEnoughArgumentsProfile.profile(argumentCount <= minArgumentCount)) {
+            // assert RubyArguments.getDescriptor(frame) instanceof EmptyArgumentsDescriptor;
             return null;
         }
 
         final Object lastArgument = RubyArguments.getArgument(frame, argumentCount - 1);
 
         if (lastArgumentIsHashProfile.profile(RubyGuards.isRubyHash(lastArgument))) {
+            // assert RubyArguments.getDescriptor(frame) instanceof KeywordArgumentsDescriptor;
             return (RubyHash) lastArgument;
         } else {
             return tryConvertToHash(frame, argumentCount, lastArgument);
@@ -57,10 +59,12 @@ public final class ReadUserKeywordsHashNode extends RubyBaseNode {
 
             if (convertedIsHashProfile.profile(RubyGuards.isRubyHash(converted))) {
                 RubyArguments.setArgument(frame, argumentCount - 1, converted);
+                // assert RubyArguments.getDescriptor(frame) instanceof KeywordArgumentsDescriptor;
                 return (RubyHash) converted;
             }
         }
 
+        assert RubyArguments.getDescriptor(frame) instanceof EmptyArgumentsDescriptor;
         return null;
     }
 

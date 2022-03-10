@@ -106,9 +106,9 @@ class Thread
   class << self
     attr_accessor :abort_on_exception, :report_on_exception, :ignore_deadlock
 
-    def new(*args, &block)
+    def new(...)
       thread = Primitive.thread_allocate(self)
-      thread.send(:initialize, *args, &block)
+      thread.send(:initialize, ...)
       unless Primitive.thread_initialized?(thread)
         Kernel.raise ThreadError, "uninitialized thread - check `#{thread.class}#initialize'"
       end

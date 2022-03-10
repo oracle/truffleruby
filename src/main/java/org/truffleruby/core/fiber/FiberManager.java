@@ -27,6 +27,8 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.SafepointAction;
+import org.truffleruby.language.arguments.ArgumentsDescriptor;
+import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.control.BreakException;
 import org.truffleruby.language.control.DynamicReturnException;
 import org.truffleruby.language.control.ExitException;
@@ -120,11 +122,12 @@ public class FiberManager {
 
         FiberMessage lastMessage = null;
         try {
-            final Object[] args = handleMessage(fiber, message, currentNode);
+            var descriptorAndArgs = handleMessage(fiber, message, currentNode);
             fiber.status = FiberStatus.RESUMED;
-            final Object result = ProcOperations.rootCall(block, args);
+            final Object result = ProcOperations.rootCall(block, descriptorAndArgs.descriptor, descriptorAndArgs.args);
 
-            lastMessage = new FiberResumeMessage(FiberOperation.YIELD, fiber, new Object[]{ result });
+            lastMessage = new FiberResumeMessage(FiberOperation.YIELD, fiber,
+                    EmptyArgumentsDescriptor.INSTANCE, new Object[]{ result });
 
             // Handlers in the same order as in ThreadManager
         } catch (KillException | ExitException | RaiseException e) {
@@ -220,13 +223,14 @@ public class FiberManager {
     }
 
     @TruffleBoundary
-    private Object[] handleMessage(RubyFiber fiber, FiberMessage message, Node currentNode) {
+    private DescriptorAndArgs handleMessage(RubyFiber fiber, FiberMessage message, Node currentNode) {
         // Written as a loop to not grow the stack when processing guest safepoints
         while (message instanceof FiberSafepointMessage) {
             final FiberSafepointMessage safepointMessage = (FiberSafepointMessage) message;
             safepointMessage.action.run(fiber.rubyThread, currentNode);
             final RubyFiber sendingFiber = safepointMessage.sendingFiber;
-            message = resumeAndWait(fiber, sendingFiber, FiberOperation.TRANSFER, SAFEPOINT_ARGS, currentNode);
+            message = resumeAndWait(fiber, sendingFiber, FiberOperation.TRANSFER,
+                    EmptyArgumentsDescriptor.INSTANCE, SAFEPOINT_ARGS, currentNode);
         }
 
         if (message instanceof FiberShutdownMessage) {
@@ -252,7 +256,7 @@ public class FiberManager {
                 throw new RaiseException(context, (RubyException) resumeMessage.getArgs()[0]);
             }
 
-            return resumeMessage.getArgs();
+            return resumeMessage.getDescriptorAndArgs();
         } else {
             throw CompilerDirectives.shouldNotReachHere();
         }
@@ -260,13 +264,14 @@ public class FiberManager {
 
     /** Send a resume message to a fiber by posting into its message queue. Doesn't explicitly notify the Java thread
      * (although the queue implementation may) and doesn't wait for the message to be received. */
-    private void resume(RubyFiber fromFiber, RubyFiber fiber, FiberOperation operation, Object... args) {
-        addToMessageQueue(fiber, new FiberResumeMessage(operation, fromFiber, args));
+    private void resume(RubyFiber fromFiber, RubyFiber fiber, FiberOperation operation,
+            ArgumentsDescriptor descriptor, Object... args) {
+        addToMessageQueue(fiber, new FiberResumeMessage(operation, fromFiber, descriptor, args));
     }
 
     @TruffleBoundary
-    public Object[] transferControlTo(RubyFiber fromFiber, RubyFiber toFiber, FiberOperation operation, Object[] args,
-            Node currentNode) {
+    public DescriptorAndArgs transferControlTo(RubyFiber fromFiber, RubyFiber toFiber, FiberOperation operation,
+            ArgumentsDescriptor descriptor, Object[] args, Node currentNode) {
         assert fromFiber.resumingFiber == null;
         if (operation == FiberOperation.RESUME) {
             fromFiber.resumingFiber = toFiber;
@@ -280,7 +285,7 @@ public class FiberManager {
         if (fromFiber.status == FiberStatus.RESUMED) {
             fromFiber.status = FiberStatus.SUSPENDED;
         }
-        final FiberMessage message = resumeAndWait(fromFiber, toFiber, operation, args, currentNode);
+        final FiberMessage message = resumeAndWait(fromFiber, toFiber, operation, descriptor, args, currentNode);
         return handleMessage(fromFiber, message, currentNode);
     }
 
@@ -294,13 +299,13 @@ public class FiberManager {
      * @param fromFiber the current fiber which will soon be suspended
      * @param toFiber the fiber we resume or transfer to */
     @TruffleBoundary
-    private FiberMessage resumeAndWait(RubyFiber fromFiber, RubyFiber toFiber, FiberOperation operation, Object[] args,
-            Node currentNode) {
+    private FiberMessage resumeAndWait(RubyFiber fromFiber, RubyFiber toFiber, FiberOperation operation,
+            ArgumentsDescriptor descriptor, Object[] args, Node currentNode) {
         final TruffleContext truffleContext = context.getEnv().getContext();
         final FiberMessage message = context
                 .getThreadManager()
                 .leaveAndEnter(truffleContext, currentNode, () -> {
-                    resume(fromFiber, toFiber, operation, args);
+                    resume(fromFiber, toFiber, operation, descriptor, args);
                     return waitMessage(fromFiber, currentNode);
                 });
         fromFiber.rubyThread.setCurrentFiber(fromFiber);
@@ -441,6 +446,16 @@ public class FiberManager {
         }
     }
 
+    public static final class DescriptorAndArgs {
+        public final ArgumentsDescriptor descriptor;
+        public final Object[] args;
+
+        public DescriptorAndArgs(ArgumentsDescriptor descriptor, Object[] args) {
+            this.descriptor = descriptor;
+            this.args = args;
+        }
+    }
+
     public interface FiberMessage {
     }
 
@@ -448,11 +463,17 @@ public class FiberManager {
 
         private final FiberOperation operation;
         private final RubyFiber sendingFiber;
+        private final ArgumentsDescriptor descriptor;
         private final Object[] args;
 
-        public FiberResumeMessage(FiberOperation operation, RubyFiber sendingFiber, Object[] args) {
+        public FiberResumeMessage(
+                FiberOperation operation,
+                RubyFiber sendingFiber,
+                ArgumentsDescriptor descriptor,
+                Object[] args) {
             this.operation = operation;
             this.sendingFiber = sendingFiber;
+            this.descriptor = descriptor;
             this.args = args;
         }
 
@@ -464,10 +485,17 @@ public class FiberManager {
             return sendingFiber;
         }
 
+        public ArgumentsDescriptor getDescriptor() {
+            return descriptor;
+        }
+
         public Object[] getArgs() {
             return args;
         }
 
+        public DescriptorAndArgs getDescriptorAndArgs() {
+            return new DescriptorAndArgs(descriptor, args);
+        }
     }
 
     private static class FiberSafepointMessage implements FiberMessage {

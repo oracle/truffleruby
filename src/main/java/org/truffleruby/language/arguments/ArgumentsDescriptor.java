@@ -9,8 +9,9 @@
  */
 package org.truffleruby.language.arguments;
 
-/** An arguments descriptor is an object that describes something about the arguments being passed. Argument descriptors
- * are stable, immutable objects, suitable to be cached and guarded by identity. They'd normally convey some kind of
- * static information from call site to callee. */
+/** An arguments descriptor describes what kind of arguments are passed at a given call site. Most importantly they
+ * describe whether some keywords arguments are passed or none. Argument descriptors are stable, immutable objects,
+ * suitable to be cached and guarded by identity. They'd normally convey some kind of static information from call site
+ * to callee. */
 public abstract class ArgumentsDescriptor {
 }

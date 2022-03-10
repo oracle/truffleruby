@@ -25,6 +25,9 @@ import org.truffleruby.language.RubyMethodRootNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyProcRootNode;
 import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.language.arguments.ArgumentsDescriptor;
+import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.ShouldDestructureNode;
@@ -445,7 +448,7 @@ public class MethodTranslator extends BodyTranslator {
                 argumentsAndBlock.isSplatted());
         final RubyNode block = executeOrInheritBlock(argumentsAndBlock.getBlock(), node);
 
-        RubyNode callNode = new SuperCallNode(arguments, block);
+        RubyNode callNode = new SuperCallNode(arguments, block, argumentsAndBlock.getArgumentsDescriptor());
         callNode = wrapCallWithLiteralBlock(argumentsAndBlock, callNode);
 
         return withSourceSection(sourceSection, callNode);
@@ -485,12 +488,15 @@ public class MethodTranslator extends BodyTranslator {
         final ArgsParseNode argsNode = methodArgumentsTranslator.argsNode;
         final SequenceNode reloadSequence = (SequenceNode) reloadTranslator.visitArgsNode(argsNode);
 
+        final ArgumentsDescriptor descriptor = argsNode.hasKwargs()
+                ? KeywordArgumentsDescriptor.INSTANCE
+                : EmptyArgumentsDescriptor.INSTANCE;
         final RubyNode arguments = new ReadZSuperArgumentsNode(
                 reloadTranslator.getRestParameterIndex(),
                 reloadSequence.getSequence());
         final RubyNode block = executeOrInheritBlock(argumentsAndBlock.getBlock(), node);
 
-        RubyNode callNode = new SuperCallNode(arguments, block);
+        RubyNode callNode = new SuperCallNode(arguments, block, descriptor);
         callNode = wrapCallWithLiteralBlock(argumentsAndBlock, callNode);
 
         return withSourceSection(sourceSection, callNode);

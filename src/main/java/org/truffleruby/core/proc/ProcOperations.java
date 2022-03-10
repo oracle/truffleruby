@@ -14,6 +14,7 @@ import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.FrameOnStackMarker;
 import org.truffleruby.language.methods.DeclarationContext;
@@ -26,7 +27,7 @@ import com.oracle.truffle.api.frame.MaterializedFrame;
 
 public abstract class ProcOperations {
 
-    private static Object[] packArguments(RubyProc proc, Object... args) {
+    private static Object[] packArguments(RubyProc proc, ArgumentsDescriptor descriptor, Object... args) {
         return RubyArguments.pack(
                 proc.declarationFrame,
                 null,
@@ -34,11 +35,12 @@ public abstract class ProcOperations {
                 proc.frameOnStackMarker,
                 getSelf(proc),
                 proc.block,
+                descriptor,
                 args);
     }
 
     /** Only use for Proc called with no Truffle frame above, i.e. a root call. */
-    public static Object rootCall(RubyProc proc, Object... args) {
+    public static Object rootCall(RubyProc proc, ArgumentsDescriptor descriptor, Object... args) {
         // We cannot break out of a block without a frame above. This is particularly important for
         // Thread.new as otherwise the flag could be set too late (after returning from Thread.new
         // and not when the new Thread starts executing).
@@ -47,7 +49,7 @@ public abstract class ProcOperations {
             frameOnStackMarker.setNoLongerOnStack();
         }
 
-        return proc.callTarget.call(packArguments(proc, args));
+        return proc.callTarget.call(packArguments(proc, descriptor, args));
     }
 
     public static RubyProc createRubyProc(

@@ -88,16 +88,11 @@ public final class RubyArguments {
             FrameOnStackMarker frameOnStackMarker,
             Object self,
             Object block,
+            ArgumentsDescriptor descriptor,
             Object[] arguments) {
-        return pack(
-                declarationFrame,
-                callerFrameOrVariables,
-                method,
-                method.getDeclarationContext(),
-                frameOnStackMarker,
-                self,
-                block,
-                arguments);
+        final DeclarationContext declarationContext = method.getDeclarationContext();
+        return pack(declarationFrame, callerFrameOrVariables, method, declarationContext, frameOnStackMarker, self,
+                block, descriptor, arguments);
     }
 
     public static Object[] pack(
@@ -108,6 +103,7 @@ public final class RubyArguments {
             FrameOnStackMarker frameOnStackMarker,
             Object self,
             Object block,
+            ArgumentsDescriptor descriptor,
             Object[] arguments) {
         final Object[] packed = new Object[RUNTIME_ARGUMENT_COUNT + arguments.length];
 
@@ -118,7 +114,7 @@ public final class RubyArguments {
         packed[ArgumentIndicies.FRAME_ON_STACK_MARKER.ordinal()] = frameOnStackMarker;
         packed[ArgumentIndicies.SELF.ordinal()] = self;
         packed[ArgumentIndicies.BLOCK.ordinal()] = block;
-        packed[ArgumentIndicies.DESCRIPTOR.ordinal()] = EmptyArgumentsDescriptor.INSTANCE;
+        packed[ArgumentIndicies.DESCRIPTOR.ordinal()] = descriptor;
 
         ArrayUtils.arraycopy(arguments, 0, packed, RUNTIME_ARGUMENT_COUNT, arguments.length);
 
@@ -279,6 +275,10 @@ public final class RubyArguments {
     public static void setDescriptor(Object[] args, ArgumentsDescriptor descriptor) {
         assert descriptor != null;
         args[ArgumentIndicies.DESCRIPTOR.ordinal()] = descriptor;
+    }
+
+    public static ArgumentsDescriptor getDescriptor(Frame frame) {
+        return getDescriptor(frame.getArguments());
     }
 
     public static ArgumentsDescriptor getDescriptor(Object[] args) {

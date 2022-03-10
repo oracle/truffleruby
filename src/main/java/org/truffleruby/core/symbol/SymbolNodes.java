@@ -35,6 +35,7 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyLambdaRootNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.BreakID;
@@ -196,7 +197,8 @@ public abstract class SymbolNodes {
                     : new DeclarationContext(Visibility.PUBLIC, null, refinements);
 
             final Object[] args = RubyArguments
-                    .pack(null, null, method, declarationContext, null, nil, nil, EMPTY_ARGUMENTS);
+                    .pack(null, null, method, declarationContext, null, nil, nil,
+                            EmptyArgumentsDescriptor.INSTANCE, EMPTY_ARGUMENTS);
             // MRI raises an error on Proc#binding if you attempt to access the binding of a Proc generated
             // by Symbol#to_proc. We generate a declaration frame here so that all procedures will have a
             // binding as this simplifies the logic elsewhere in the runtime.
