@@ -9,7 +9,9 @@
  */
 package org.truffleruby.language.arguments;
 
-/** An arguments descriptor that says that keyword arguments are present. */
+/** An arguments descriptor that says that keyword arguments were passed (either foo(a: 1) or foo(**kw)). Note that
+ * currently, if kw is empty, then this descriptor is used even though it is semantically the same as if no keyword
+ * arguments were passed. The callee must handle that for now. */
 public class KeywordArgumentsDescriptor extends ArgumentsDescriptor {
 
     public static final KeywordArgumentsDescriptor INSTANCE = new KeywordArgumentsDescriptor();
