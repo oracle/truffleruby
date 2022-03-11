@@ -25,7 +25,7 @@ public class ShouldDestructureNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        if (RubyArguments.getArgumentsCount(frame) != 1) {
+        if (RubyArguments.getRawArgumentsCount(frame) != 1) { // TODO check correct if kwargs given
             return false;
         }
 

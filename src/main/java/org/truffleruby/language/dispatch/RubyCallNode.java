@@ -16,6 +16,8 @@ import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
+import org.truffleruby.core.hash.HashNodes.CopyHashAndSetRuby2KeywordsNode;
+import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.inlined.LambdaToProcNode;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -24,6 +26,8 @@ import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
+import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.arguments.SplatToArgsNode;
 import org.truffleruby.language.literal.NilLiteralNode;
@@ -64,6 +68,9 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
 
     private final ConditionProfile nilProfile;
 
+    private final ConditionProfile ruby2KeywordsProfile;
+    @Child private CopyHashAndSetRuby2KeywordsNode copyHashAndSetRuby2KeywordsNode;
+
     @Child private SplatToArgsNode splatToArgs;
 
     public RubyCallNode(RubyCallNodeParameters parameters) {
@@ -87,6 +94,35 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         } else {
             nilProfile = null;
         }
+
+        if (isSplatted && descriptor == EmptyArgumentsDescriptor.INSTANCE) {
+            // *rest and no kwargs passed explicitly (k: v/k => v/**kw)
+            ruby2KeywordsProfile = ConditionProfile.create();
+        } else {
+            ruby2KeywordsProfile = null;
+        }
+    }
+
+    private ArgumentsDescriptor getArgumentsDescriptor(Object[] rubyArgs) {
+        if (ruby2KeywordsProfile != null) {
+            if (RubyArguments.getRawArgumentsCount(rubyArgs) > 0) {
+                Object lastArgument = RubyArguments.getLastArgument(rubyArgs);
+                assert lastArgument != null;
+                if (ruby2KeywordsProfile.profile(
+                        lastArgument instanceof RubyHash && ((RubyHash) lastArgument).ruby2_keywords)) {
+                    if (copyHashAndSetRuby2KeywordsNode == null) {
+                        CompilerDirectives.transferToInterpreterAndInvalidate();
+                        copyHashAndSetRuby2KeywordsNode = insert(CopyHashAndSetRuby2KeywordsNode.create());
+                    }
+
+                    RubyHash unmarked = copyHashAndSetRuby2KeywordsNode.execute((RubyHash) lastArgument, false);
+                    RubyArguments.setLastArgument(rubyArgs, unmarked);
+                    return KeywordArgumentsDescriptor.INSTANCE;
+                }
+            }
+        }
+
+        return descriptor;
     }
 
     @Override
@@ -97,7 +133,6 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         }
         Object[] rubyArgs = RubyArguments.allocate(arguments.length);
         RubyArguments.setSelf(rubyArgs, receiverObject);
-        RubyArguments.setDescriptor(rubyArgs, descriptor);
 
         executeArguments(frame, rubyArgs);
 
@@ -106,7 +141,11 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         // The expansion of the splat is done after executing the block, for m(*args, &args.pop)
         if (isSplatted) {
             rubyArgs = splatArgs(receiverObject, rubyArgs);
+            RubyArguments.setDescriptor(rubyArgs, getArgumentsDescriptor(rubyArgs));
+        } else {
+            RubyArguments.setDescriptor(rubyArgs, descriptor);
         }
+
         return executeWithArgumentsEvaluated(frame, receiverObject, rubyArgs);
     }
 
@@ -121,7 +160,6 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         }
         Object[] rubyArgs = RubyArguments.allocate(arguments.length);
         RubyArguments.setSelf(rubyArgs, receiverObject);
-        RubyArguments.setDescriptor(rubyArgs, descriptor);
 
         executeArguments(frame, rubyArgs);
 
@@ -131,9 +169,9 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
             rubyArgs = splatArgs(receiverObject, rubyArgs);
         }
 
-        int argCount = RubyArguments.getArgumentsCount(rubyArgs);
-        assert RubyArguments.getArgument(rubyArgs, argCount - 1) == nil;
-        RubyArguments.setArgument(rubyArgs, argCount - 1, value);
+        assert RubyArguments.getLastArgument(rubyArgs) == nil;
+        RubyArguments.setLastArgument(rubyArgs, value);
+        RubyArguments.setDescriptor(rubyArgs, descriptor); // no ruby2_keywords behavior for assign
 
         executeWithArgumentsEvaluated(frame, receiverObject, rubyArgs);
     }
@@ -160,8 +198,8 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         Object[] rubyArgs = RubyArguments.allocate(argumentsObjects.length);
         RubyArguments.setSelf(rubyArgs, receiverObject);
         RubyArguments.setBlock(rubyArgs, blockObject);
-        RubyArguments.setDescriptor(rubyArgs, descriptor);
         RubyArguments.setArguments(rubyArgs, argumentsObjects);
+        RubyArguments.setDescriptor(rubyArgs, getArgumentsDescriptor(rubyArgs));
         return executeWithArgumentsEvaluated(frame, receiverObject, rubyArgs);
     }
 

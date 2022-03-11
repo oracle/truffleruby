@@ -62,8 +62,11 @@ describe "Struct.new" do
     -> { Struct.new(:animal, ['chris', 'evan'])    }.should raise_error(TypeError)
   end
 
-  it "raises a ArgumentError if passed a Hash with an unknown key" do
-    -> { Struct.new(:animal, { name: 'chris' }) }.should raise_error(ArgumentError)
+  it "raises a TypeError or ArgumentError if passed a Hash with an unknown key" do
+    # CRuby raises ArgumentError: unknown keyword: :name, but that seems a bug
+    -> { Struct.new(:animal, { name: 'chris' }) }.should raise_error(StandardError) { |e|
+      [ArgumentError, TypeError].should.include?(e.class)
+    }
   end
 
   it "raises ArgumentError when there is a duplicate member" do

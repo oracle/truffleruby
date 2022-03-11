@@ -11,7 +11,6 @@ package org.truffleruby.language.arguments;
 
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
@@ -30,17 +29,10 @@ public class ReadPostArgumentNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        int count = RubyArguments.getArgumentsCount(frame);
+        final int positionalArgumentsCount = RubyArguments.getPositionalArgumentsCount(frame, keywordArguments);
 
-        if (keywordArguments && count > required) {
-            final Object lastArgument = RubyArguments.getArgument(frame, count - 1);
-            if (RubyGuards.isRubyHash(lastArgument)) {
-                count--;
-            }
-        }
-
-        if (enoughArguments.profile(count >= required)) {
-            final int effectiveIndex = count - indexFromCount;
+        if (enoughArguments.profile(positionalArgumentsCount >= required)) {
+            final int effectiveIndex = positionalArgumentsCount - indexFromCount;
             return RubyArguments.getArgument(frame, effectiveIndex);
         } else {
             // CheckArityNode will prevent this case for methods & lambdas, but it is still possible for procs.

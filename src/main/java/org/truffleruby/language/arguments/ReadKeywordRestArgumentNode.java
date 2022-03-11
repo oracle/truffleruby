@@ -34,7 +34,7 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
 
     public ReadKeywordRestArgumentNode(RubyLanguage language, int minimum, Arity arity) {
         this.excludedKeywords = CheckKeywordArityNode.keywordsAsSymbols(language, arity);
-        this.readUserKeywordsHashNode = new ReadUserKeywordsHashNode(minimum);
+        this.readUserKeywordsHashNode = new ReadUserKeywordsHashNode();
     }
 
     @Override

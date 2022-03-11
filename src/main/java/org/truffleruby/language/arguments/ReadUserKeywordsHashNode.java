@@ -11,77 +11,29 @@ package org.truffleruby.language.arguments;
 
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.dispatch.DispatchNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.language.dispatch.InternalRespondToNode;
 
 public final class ReadUserKeywordsHashNode extends RubyBaseNode {
 
-    private final int minArgumentCount;
+    private final ConditionProfile keywordArgumentsProfile = ConditionProfile.create();
+    private final ConditionProfile emptyKeywordArgumentsProfile = ConditionProfile.create();
 
-    @Child private InternalRespondToNode respondToToHashNode;
-    @Child private DispatchNode callToHashNode;
-
-    private final ConditionProfile notEnoughArgumentsProfile = ConditionProfile.create();
-    private final ConditionProfile lastArgumentIsHashProfile = ConditionProfile.create();
-    private final ConditionProfile respondsToToHashProfile = ConditionProfile.create();
-    private final ConditionProfile convertedIsHashProfile = ConditionProfile.create();
-
-    public ReadUserKeywordsHashNode(int minArgumentCount) {
-        this.minArgumentCount = minArgumentCount;
+    public ReadUserKeywordsHashNode() {
     }
 
     public RubyHash execute(VirtualFrame frame) {
-        final int argumentCount = RubyArguments.getArgumentsCount(frame);
-
-        if (notEnoughArgumentsProfile.profile(argumentCount <= minArgumentCount)) {
-            // assert RubyArguments.getDescriptor(frame) instanceof EmptyArgumentsDescriptor;
+        final ArgumentsDescriptor descriptor = RubyArguments.getDescriptor(frame);
+        if (keywordArgumentsProfile.profile(descriptor instanceof KeywordArgumentsDescriptor)) {
+            final RubyHash keywordArguments = (RubyHash) RubyArguments.getLastArgument(frame);
+            if (emptyKeywordArgumentsProfile.profile(keywordArguments.size == 0)) {
+                return null; // empty kwargs -> treated the same as if it was not passed by the caller
+            } else {
+                return keywordArguments;
+            }
+        } else {
             return null;
         }
-
-        final Object lastArgument = RubyArguments.getArgument(frame, argumentCount - 1);
-
-        if (lastArgumentIsHashProfile.profile(RubyGuards.isRubyHash(lastArgument))) {
-            // assert RubyArguments.getDescriptor(frame) instanceof KeywordArgumentsDescriptor;
-            return (RubyHash) lastArgument;
-        } else {
-            return tryConvertToHash(frame, argumentCount, lastArgument);
-        }
     }
-
-    private RubyHash tryConvertToHash(VirtualFrame frame, int argumentCount, Object lastArgument) {
-        if (respondsToToHashProfile.profile(respondToToHash(frame, lastArgument))) {
-            final Object converted = callToHash(frame, lastArgument);
-
-            if (convertedIsHashProfile.profile(RubyGuards.isRubyHash(converted))) {
-                RubyArguments.setArgument(frame, argumentCount - 1, converted);
-                // assert RubyArguments.getDescriptor(frame) instanceof KeywordArgumentsDescriptor;
-                return (RubyHash) converted;
-            }
-        }
-
-        assert RubyArguments.getDescriptor(frame) instanceof EmptyArgumentsDescriptor;
-        return null;
-    }
-
-    private boolean respondToToHash(VirtualFrame frame, Object lastArgument) {
-        if (respondToToHashNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            respondToToHashNode = insert(InternalRespondToNode.create());
-        }
-        return respondToToHashNode.execute(frame, lastArgument, "to_hash");
-    }
-
-    private Object callToHash(VirtualFrame frame, Object lastArgument) {
-        if (callToHashNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            callToHashNode = insert(DispatchNode.create());
-        }
-        return callToHashNode.call(lastArgument, "to_hash");
-    }
-
 }

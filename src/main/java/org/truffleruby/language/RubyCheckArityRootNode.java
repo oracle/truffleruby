@@ -45,14 +45,14 @@ public abstract class RubyCheckArityRootNode extends RubyRootNode {
             Arity arityForCheck) {
         super(language, sourceSection, frameDescriptor, sharedMethodInfo, body, split, returnID);
 
-        final boolean acceptsKeywords = arityForCheck.acceptsKeywords();
         this.arityForCheck = arityForCheck;
-        this.checkKeywordArityNode = acceptsKeywords ? new CheckKeywordArityNode(arityForCheck) : null;
+        final boolean acceptsKeywords = arityForCheck.acceptsKeywords();
+        this.checkKeywordArityNode = acceptsKeywords ? new CheckKeywordArityNode() : null;
     }
 
     protected void checkArity(VirtualFrame frame) {
-        if (checkKeywordArityNode == null) {
-            int given = RubyArguments.getArgumentsCount(frame);
+        if (checkKeywordArityNode == null) { // acceptsKeywords=false
+            int given = RubyArguments.getPositionalArgumentsCount(frame, false);
             if (!arityForCheck.check(given)) {
                 if (!checkArityProfile) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -61,7 +61,7 @@ public abstract class RubyCheckArityRootNode extends RubyRootNode {
 
                 checkArityError(arityForCheck, given, this);
             }
-        } else {
+        } else { // acceptsKeywords=true
             checkKeywordArityNode.checkArity(frame, arityForCheck);
         }
     }

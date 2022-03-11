@@ -676,6 +676,8 @@ public class BodyTranslator extends Translator {
             ParseNode iterNode, ParseNode argsNode, String nameToSetWhenTranslatingBlock) {
         assert !(argsNode instanceof IterParseNode);
 
+        final ArgumentsDescriptor keywordDescriptor = getKeywordArgumentsDescriptor(language, argsNode);
+
         final ParseNode[] arguments;
         boolean isSplatted = false;
 
@@ -692,8 +694,6 @@ public class BodyTranslator extends Translator {
         } else {
             throw CompilerDirectives.shouldNotReachHere("Unknown argument node type: " + argsNode.getClass());
         }
-
-        ArgumentsDescriptor keywordDescriptor = getKeywordArgumentsDescriptor(language, arguments);
 
         final RubyNode[] argumentsTranslated = createArray(arguments.length);
         for (int i = 0; i < arguments.length; i++) {
@@ -3115,15 +3115,9 @@ public class BodyTranslator extends Translator {
         return node;
     }
 
-    private static ArgumentsDescriptor getKeywordArgumentsDescriptor(RubyLanguage language, ParseNode[] arguments) {
-        // A simple empty set of arguments is always an empty descriptor
-        if (arguments.length == 0) {
-            return EmptyArgumentsDescriptor.INSTANCE;
-        }
-
+    private static ArgumentsDescriptor getKeywordArgumentsDescriptor(RubyLanguage language, ParseNode argsNode) {
         // Find the keyword argument hash parse node
-        var lastArgument = arguments[arguments.length - 1];
-        final HashParseNode keywordHashArgumentNode = findLastHashParseNode(lastArgument);
+        final HashParseNode keywordHashArgumentNode = findLastHashParseNode(argsNode);
 
         if (keywordHashArgumentNode == null || !keywordHashArgumentNode.isKeywordArguments()) {
             return EmptyArgumentsDescriptor.INSTANCE;
@@ -3151,11 +3145,14 @@ public class BodyTranslator extends Translator {
     private static HashParseNode findLastHashParseNode(ParseNode node) {
         if (node instanceof HashParseNode) {
             return (HashParseNode) node;
+        } else if (node instanceof ArrayParseNode) {
+            return findLastHashParseNode(((ArrayParseNode) node).getLast());
         } else if (node instanceof ArgsPushParseNode) {
             return findLastHashParseNode(((ArgsPushParseNode) node).getSecondNode());
+        } else if (node instanceof ArgsCatParseNode) {
+            return findLastHashParseNode(((ArgsCatParseNode) node).getSecondNode());
         } else {
             // SplatParseNode: cannot contain kwargs (*array)
-            // ArgsCatParseNode: cannot contain kwargs (RHS is *array)
             return null;
         }
     }

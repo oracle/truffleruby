@@ -47,27 +47,25 @@ class Module
   private def ruby2_keywords(*methods)
     methods.each do |name|
       method = instance_method(name)
-      kinds = method.parameters.map(&:first)
-      if !kinds.include?(:rest)
+      result = Primitive.unbound_method_ruby2_keywords(method)
+      if Primitive.nil?(result)
         warn "Skipping set of ruby2_keywords flag for #{name} (method does not accept argument splat)", uplevel: 1
-      elsif kinds.include?(:key) or kinds.include?(:keyreq) or kinds.include?(:keyrest)
+      elsif result == false
         warn "Skipping set of ruby2_keywords flag for #{name} (method accepts keywords)", uplevel: 1
       end
     end
-    warn "ruby2_keywords(#{methods.join(', ')}) was ignored", uplevel: 1 if $DEBUG
     nil
   end
 end
 
 class Proc
   def ruby2_keywords
-    kinds = parameters.map(&:first)
-    if !kinds.include?(:rest)
+    result = Primitive.proc_ruby2_keywords(self)
+    if Primitive.nil?(result)
       warn 'Skipping set of ruby2_keywords flag for proc (proc does not accept argument splat)', uplevel: 1
-    elsif kinds.include?(:key) or kinds.include?(:keyreq) or kinds.include?(:keyrest)
+    elsif result == false
       warn 'Skipping set of ruby2_keywords flag for proc (proc accepts keywords)', uplevel: 1
     end
-    warn 'Proc#ruby2_keywords was ignored', uplevel: 1 if $DEBUG
     self
   end
 end

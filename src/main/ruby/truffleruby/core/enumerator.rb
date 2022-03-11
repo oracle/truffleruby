@@ -35,7 +35,7 @@ class Enumerator
   attr_writer :size
   private :size=
 
-  def initialize_enumerator(receiver, size, method_name, *method_args)
+  private def initialize_enumerator(receiver, size, method_name, *method_args)
     @object = receiver
     @size = size
     @iter = method_name
@@ -46,9 +46,9 @@ class Enumerator
 
     self
   end
-  private :initialize_enumerator
+  ruby2_keywords :initialize_enumerator
 
-  def initialize(receiver_or_size=undefined, method_name=:each, *method_args, &block)
+  private def initialize(receiver_or_size=undefined, method_name=:each, *method_args, &block)
     size = nil
 
     if block_given?
@@ -71,7 +71,7 @@ class Enumerator
 
     self
   end
-  private :initialize
+  ruby2_keywords :initialize
 
   def inspect
     args = @args.empty? ? '' : "(#{@args.map(&:inspect).join(', ')})"

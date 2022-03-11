@@ -9,9 +9,14 @@
  */
 package org.truffleruby.core.method;
 
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.nodes.NodeUtil;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.RubyArray;
@@ -27,9 +32,12 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
+import org.truffleruby.language.arguments.ReadRestArgumentNode;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.CanBindMethodToModuleNode;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.parser.ArgumentDescriptor;
@@ -215,6 +223,35 @@ public abstract class UnboundMethodNodes {
             }
         }
 
+    }
+
+    @Primitive(name = "unbound_method_ruby2_keywords")
+    public abstract static class MethodRuby2KeywordsNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected Object ruby2Keywords(RubyUnboundMethod unboundMethod) {
+            final InternalMethod method = unboundMethod.method;
+            return ruby2Keywords(method.getSharedMethodInfo(), method.getCallTarget());
+        }
+
+        public static Object ruby2Keywords(SharedMethodInfo sharedMethodInfo, RootCallTarget callTarget) {
+            final Arity arity = sharedMethodInfo.getArity();
+            if (!arity.hasRest()) {
+                return nil;
+            } else if (arity.acceptsKeywords()) {
+                return false;
+            }
+
+            ReadRestArgumentNode readRestArgumentNode = NodeUtil.findFirstNodeInstance(callTarget.getRootNode(),
+                    ReadRestArgumentNode.class);
+            if (readRestArgumentNode == null) {
+                throw CompilerDirectives
+                        .shouldNotReachHere("Could not find ReadRestArgumentNode for " + sharedMethodInfo);
+            }
+
+            readRestArgumentNode.markKeywordHashWithFlag();
+
+            return true;
+        }
     }
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)

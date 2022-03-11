@@ -198,7 +198,7 @@ public class MethodTranslator extends BodyTranslator {
         if (shouldConsiderDestructuringArrayArg(arity)) {
             final RubyNode readArrayNode = profileArgument(
                     language,
-                    new ReadPreArgumentNode(0, MissingArgumentBehavior.RUNTIME_ERROR));
+                    new ReadPreArgumentNode(0, argsNode.hasKwargs(), MissingArgumentBehavior.RUNTIME_ERROR));
             final SplatCastNode castArrayNode = SplatCastNodeGen
                     .create(language, NilBehavior.NIL, true, readArrayNode);
             castArrayNode.doNotCopy();
@@ -478,14 +478,15 @@ public class MethodTranslator extends BodyTranslator {
             methodArgumentsTranslator = (MethodTranslator) methodArgumentsTranslator.parent;
         }
 
+        final ArgsParseNode argsNode = methodArgumentsTranslator.argsNode;
         final ReloadArgumentsTranslator reloadTranslator = new ReloadArgumentsTranslator(
                 language,
                 source,
                 parserContext,
                 currentNode,
-                this);
+                this,
+                argsNode);
 
-        final ArgsParseNode argsNode = methodArgumentsTranslator.argsNode;
         final SequenceNode reloadSequence = (SequenceNode) reloadTranslator.visitArgsNode(argsNode);
 
         final ArgumentsDescriptor descriptor = argsNode.hasKwargs()

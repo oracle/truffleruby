@@ -24,7 +24,6 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class CheckKeywordArityNode extends RubyBaseNode {
 
@@ -32,44 +31,36 @@ public class CheckKeywordArityNode extends RubyBaseNode {
     @Child private CheckKeywordArgumentsNode checkKeywordArgumentsNode;
     @Child private HashStoreLibrary hashes;
 
-    @CompilationFinal private boolean receivedKeywordsProfile, basicArityCheckFailedProfile;
+    @CompilationFinal private boolean basicArityCheckFailedProfile;
 
-    public CheckKeywordArityNode(Arity arity) {
-        this.readUserKeywordsHashNode = new ReadUserKeywordsHashNode(arity.getRequired());
+    public CheckKeywordArityNode() {
+        this.readUserKeywordsHashNode = new ReadUserKeywordsHashNode();
     }
 
     public void checkArity(VirtualFrame frame, Arity arity) {
         CompilerAsserts.partialEvaluationConstant(arity);
 
-        final RubyHash keywordArguments = readUserKeywordsHashNode.execute(frame);
-
-        final int argumentsCount = RubyArguments.getArgumentsCount(frame);
-        int given = argumentsCount;
-
-        if (keywordArguments != null) {
-            if (!receivedKeywordsProfile) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                receivedKeywordsProfile = true;
-            }
-
-            given -= 1;
-        }
-
-        if (!arity.basicCheck(given)) {
+        final int positionalArgumentsCount = RubyArguments.getPositionalArgumentsCount(frame, true);
+        if (!arity.basicCheck(positionalArgumentsCount)) {
             if (!basicArityCheckFailedProfile) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 basicArityCheckFailedProfile = true;
             }
 
-            throw new RaiseException(getContext(), coreExceptions().argumentError(given, arity.getRequired(), this));
+            throw new RaiseException(getContext(),
+                    coreExceptions().argumentError(positionalArgumentsCount, arity.getRequired(), this));
         }
 
-        if (!arity.hasKeywordsRest() && keywordArguments != null) {
-            checkKeywordArguments(argumentsCount, keywordArguments, arity, getLanguage());
+
+        if (!arity.hasKeywordsRest()) {
+            final RubyHash keywordArguments = readUserKeywordsHashNode.execute(frame);
+            if (keywordArguments != null) {
+                checkKeywordArguments(keywordArguments, arity, getLanguage());
+            }
         }
     }
 
-    void checkKeywordArguments(int argumentsCount, RubyHash keywordArguments, Arity arity, RubyLanguage language) {
+    void checkKeywordArguments(RubyHash keywordArguments, Arity arity, RubyLanguage language) {
         if (hashes == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             hashes = insert(HashStoreLibrary.createDispatched());
@@ -78,51 +69,34 @@ public class CheckKeywordArityNode extends RubyBaseNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             checkKeywordArgumentsNode = insert(new CheckKeywordArgumentsNode(language, arity));
         }
-        hashes.eachEntry(keywordArguments.store, keywordArguments, checkKeywordArgumentsNode, argumentsCount);
+        hashes.eachEntry(keywordArguments.store, keywordArguments, checkKeywordArgumentsNode, null);
     }
 
     private static class CheckKeywordArgumentsNode extends RubyBaseNode implements EachEntryCallback {
 
-        private final boolean doesNotAcceptExtraArguments;
-        private final int required;
         @CompilationFinal(dimensions = 1) private final RubySymbol[] allowedKeywords;
 
-        private final ConditionProfile isSymbolProfile = ConditionProfile.create();
-        private final BranchProfile tooManyKeywordsProfile = BranchProfile.create();
         private final BranchProfile unknownKeywordProfile = BranchProfile.create();
 
         public CheckKeywordArgumentsNode(RubyLanguage language, Arity arity) {
             assert !arity.hasKeywordsRest();
-            doesNotAcceptExtraArguments = !arity.hasRest() && arity.getOptional() == 0;
-            required = arity.getRequired();
             allowedKeywords = keywordsAsSymbols(language, arity);
         }
 
         @Override
-        public void accept(int index, Object key, Object value, Object argumentsCount) {
-            if (isSymbolProfile.profile(key instanceof RubySymbol)) {
-                if (!keywordAllowed(key)) {
-                    unknownKeywordProfile.enter();
-                    throw new RaiseException(
-                            getContext(),
-                            coreExceptions().argumentErrorUnknownKeyword((RubySymbol) key, this));
-                }
-            } else {
-                // the Hash would be split and a reject Hash be created to hold non-Symbols when there is no **kwrest parameter,
-                // so we need to check if an extra argument is allowed
-                final int given = (int) argumentsCount; // -1 for keyword hash, +1 for reject Hash with non-Symbol keys
-                if (doesNotAcceptExtraArguments && given > required) {
-                    tooManyKeywordsProfile.enter();
-                    throw new RaiseException(getContext(), coreExceptions().argumentError(given, required, this));
-                }
+        public void accept(int index, Object key, Object value, Object state) {
+            if (!keywordAllowed(key)) {
+                unknownKeywordProfile.enter();
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().argumentErrorUnknownKeyword(key, this));
             }
-
         }
 
         @ExplodeLoop
         private boolean keywordAllowed(Object keyword) {
-            for (int i = 0; i < allowedKeywords.length; i++) {
-                if (allowedKeywords[i] == keyword) {
+            for (RubySymbol allowedKeyword : allowedKeywords) {
+                if (allowedKeyword == keyword) {
                     return true;
                 }
             }

@@ -110,16 +110,16 @@ class Thread
       thread = Primitive.thread_allocate(self)
       thread.send(:initialize, ...)
       unless Primitive.thread_initialized?(thread)
-        Kernel.raise ThreadError, "uninitialized thread - check `#{thread.class}#initialize'"
+        raise ThreadError, "uninitialized thread - check `#{thread.class}#initialize'"
       end
       thread
     end
 
-    def start(*args, &block)
-      Kernel.raise ArgumentError, 'tried to create Proc object without a block' unless block
+    def start(...)
+      raise ArgumentError, 'tried to create Proc object without a block' unless block_given?
 
       thread = Primitive.thread_allocate(self)
-      Primitive.thread_initialize(thread, args, block)
+      Primitive.thread_initialize(thread)
       thread
     end
     alias_method :fork, :start
@@ -127,12 +127,12 @@ class Thread
 
   # Instance methods
 
-  def initialize(*args, &block)
-    Kernel.raise ThreadError, 'must be called with a block' unless block
+  def initialize(...)
+    Kernel.raise ThreadError, 'must be called with a block' unless block_given?
     if Primitive.thread_initialized?(self)
       Kernel.raise ThreadError, 'already initialized thread'
     end
-    Primitive.thread_initialize(self, args, block)
+    Primitive.thread_initialize(self)
   end
 
   def freeze
@@ -143,7 +143,7 @@ class Thread
   def name=(val)
     unless Primitive.nil? val
       val = Truffle::Type.check_null_safe(StringValue(val))
-      raise ArgumentError, "ASCII incompatible encoding #{val.encoding.name}" unless val.encoding.ascii_compatible?
+      Kernel.raise ArgumentError, "ASCII incompatible encoding #{val.encoding.name}" unless val.encoding.ascii_compatible?
       # TODO BJF Aug 27, 2016 Need to rb_str_new_frozen the val here and SET_ANOTHER_THREAD_NAME
     end
     Primitive.thread_set_name self, val

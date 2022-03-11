@@ -131,7 +131,8 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
 
         @Override
         public Object execute(VirtualFrame frame) {
-            final Object[] originalUserArguments = RubyArguments.getArguments(frame);
+            // TODO: pass descriptor
+            final Object[] originalUserArguments = RubyArguments.getRawArguments(frame);
             final Object[] newUserArguments = ArrayUtils.unshift(originalUserArguments, methodName);
             return methodMissing.callWithBlock(
                     RubyArguments.getSelf(frame),

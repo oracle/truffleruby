@@ -66,7 +66,6 @@ import org.truffleruby.core.VMPrimitiveNodes.VMRaiseExceptionNode;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.exception.GetBacktraceException;
@@ -104,7 +103,6 @@ import org.truffleruby.language.yield.CallBlockNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -415,12 +413,11 @@ public abstract class ThreadNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class ThreadInitializeNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(limit = "storageStrategyLimit()")
-        protected Object initialize(VirtualFrame frame, RubyThread thread, RubyArray arguments, RubyProc block,
-                @Bind("arguments.store") Object store,
-                @CachedLibrary("store") ArrayStoreLibrary stores) {
+        @Specialization
+        protected Object initialize(VirtualFrame frame, RubyThread thread) {
             final ArgumentsDescriptor descriptor = RubyArguments.getDescriptor(frame);
-            final Object[] args = stores.boxedCopyOfRange(store, 0, arguments.size);
+            final Object[] args = RubyArguments.getRawArguments(frame);
+            final RubyProc block = (RubyProc) RubyArguments.getBlock(frame);
             return init(thread, block, descriptor, args);
         }
 

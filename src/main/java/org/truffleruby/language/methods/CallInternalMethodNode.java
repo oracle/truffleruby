@@ -82,10 +82,12 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
             @Cached(value = "cachedMethod.getSharedMethodInfo().getArity()") Arity cachedArity,
             @Cached BranchProfile checkArityProfile,
             @Cached BranchProfile exceptionProfile) {
+        assert !cachedArity
+                .acceptsKeywords() : "AlwaysInlinedMethodNodes are currently assumed to not use keyword arguments, the arity check depends on this";
         assert RubyArguments.getSelf(rubyArgs) == receiver;
 
         try {
-            int given = RubyArguments.getArgumentsCount(rubyArgs);
+            int given = RubyArguments.getPositionalArgumentsCount(rubyArgs, false);
             if (!cachedArity.check(given)) {
                 checkArityProfile.enter();
                 RubyCheckArityRootNode.checkArityError(cachedArity, given, alwaysInlinedNode);

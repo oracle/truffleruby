@@ -31,7 +31,7 @@ public class SetBindingFrameForEvalNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
         assert frame.getFrameDescriptor() == descriptor;
 
-        assert RubyArguments.getArgumentsCount(frame) == 1;
+        assert RubyArguments.getRawArgumentsCount(frame) == 1;
         RubyBinding binding = (RubyBinding) RubyArguments.getArgument(frame, 0);
 
         assert RubyArguments.getDeclarationFrame(frame) == binding.getFrame();

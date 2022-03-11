@@ -605,7 +605,8 @@ public class BucketsHashStore {
                     getLanguage().hashShape,
                     getContext(),
                     new BucketsHashStore(new Entry[bucketsCount], null, null),
-                    0);
+                    0,
+                    false);
 
             for (int n = 0; n < keyValues.length; n += 2) {
                 final Object key = keyValues[n].execute(frame);

@@ -42,6 +42,11 @@ public class RubyUnboundMethod extends RubyDynamicObject implements ObjectGraphN
         ObjectGraph.addProperty(reachable, method);
     }
 
+    @Override
+    public String toString() {
+        return "RubyUnboundMethod(" + method + ")";
+    }
+
     // region SourceLocation
     @ExportMessage
     public boolean hasSourceLocation() {

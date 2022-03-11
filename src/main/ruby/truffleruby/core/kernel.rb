@@ -48,8 +48,8 @@ module Kernel
   end
   module_function :Array
 
-  def Complex(*args)
-    Complex.__send__ :convert, *args
+  def Complex(...)
+    Complex.__send__(:convert, ...)
   end
   module_function :Complex
 
@@ -551,12 +551,13 @@ module Kernel
   end
   module_function :test
 
-  def to_enum(method=:each, *args, &block)
+  ruby2_keywords def to_enum(method=:each, *args, &block)
     Enumerator.new(self, method, *args).tap do |enum|
       enum.__send__ :size=, block if block_given?
     end
   end
   alias_method :enum_for, :to_enum
+
 
   def trap(sig, prc=nil, &block)
     Signal.trap(sig, prc, &block)
@@ -669,8 +670,7 @@ module Kernel
   end
   module_function :warn
 
-  def raise(*args)
-    exc, msg, ctx, cause = Truffle::KernelOperations.extract_raise_args(args)
+  def raise(exc = undefined, msg = undefined, ctx = nil, cause: undefined)
     cause_given = !Primitive.undefined?(cause)
     cause = cause_given ? cause : $!
 

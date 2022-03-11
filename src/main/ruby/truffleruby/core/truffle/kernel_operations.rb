@@ -211,26 +211,6 @@ module Truffle
       [omit, length]
     end
 
-    def self.extract_raise_args(args)
-      # exc = undefined, msg = undefined, ctx = nil, cause: undefined
-      cause = undefined
-      unless args.empty?
-        last_arg = args.last
-        if Primitive.object_kind_of?(last_arg, Hash) &&
-          last_arg.key?(:cause)
-          cause = last_arg.delete(:cause)
-          args.pop if last_arg.empty?
-        end
-      end
-      Truffle::Type.check_arity(args.size, 0, 3)
-      [
-        args.size >= 1 ? args[0] : undefined,
-        args.size >= 2 ? args[1] : undefined,
-        args[2],
-        cause
-      ]
-    end
-
     KERNEL_FROZEN = Kernel.instance_method(:frozen?)
     private_constant :KERNEL_FROZEN
 

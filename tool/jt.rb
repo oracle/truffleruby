@@ -2128,7 +2128,7 @@ module Commands
           puts line
           if line =~ /\[engine\] opt done\s+id=\d+\s+#{Regexp.escape(method)}/
             compiled = true
-            Process.kill 'INT', pipe.pid
+            Process.kill 'TERM', pipe.pid
           end
         end
       end

@@ -169,7 +169,7 @@ public abstract class FiberNodes {
 
             return fiberTransferNode
                     .executeTransferControlTo(currentThread, currentFiber, toFiber, FiberOperation.TRANSFER,
-                            RubyArguments.getDescriptor(frame), args);
+                            RubyArguments.getDescriptor(frame), RubyArguments.getRawArguments(frame));
         }
 
     }
@@ -261,8 +261,8 @@ public abstract class FiberNodes {
                         EmptyArgumentsDescriptor.INSTANCE,
                         new Object[]{ exception });
             } else {
-                return getResumeNode().executeResume(FiberOperation.RAISE, fiber, EmptyArgumentsDescriptor.INSTANCE,
-                        new Object[]{ exception });
+                return getResumeNode().executeResume(FiberOperation.RAISE, fiber,
+                        EmptyArgumentsDescriptor.INSTANCE, new Object[]{ exception });
             }
         }
 
@@ -292,7 +292,7 @@ public abstract class FiberNodes {
         @Specialization
         protected Object resume(VirtualFrame frame, RubyFiber fiber, Object[] args) {
             return fiberResumeNode.executeResume(FiberOperation.RESUME, fiber,
-                    RubyArguments.getDescriptor(frame), args);
+                    RubyArguments.getDescriptor(frame), RubyArguments.getRawArguments(frame));
         }
 
     }
@@ -318,7 +318,7 @@ public abstract class FiberNodes {
                     fiberYieldedTo,
                     FiberOperation.YIELD,
                     RubyArguments.getDescriptor(frame),
-                    args);
+                    RubyArguments.getRawArguments(frame));
         }
 
     }

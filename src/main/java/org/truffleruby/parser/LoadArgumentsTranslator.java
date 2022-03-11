@@ -298,7 +298,7 @@ public class LoadArgumentsTranslator extends Translator {
             defaultValue = translateNodeOrNil(sourceSection, asgnNode.getValueNode());
         }
 
-        final RubyNode readNode = ReadKeywordArgumentNode.create(required, language.getSymbol(name), defaultValue);
+        final RubyNode readNode = ReadKeywordArgumentNode.create(language.getSymbol(name), defaultValue);
 
         return new WriteLocalVariableNode(slot, readNode);
     }
@@ -321,6 +321,7 @@ public class LoadArgumentsTranslator extends Translator {
                         language,
                         new ReadPreArgumentNode(
                                 index,
+                                hasKeywordArguments,
                                 isProc ? MissingArgumentBehavior.NIL : MissingArgumentBehavior.RUNTIME_ERROR));
             } else if (state == State.POST) {
                 return new ReadPostArgumentNode(-index, hasKeywordArguments, required);
@@ -345,7 +346,7 @@ public class LoadArgumentsTranslator extends Translator {
         if (useArray()) {
             readNode = ArraySliceNodeGen.create(from, to, loadArray(sourceSection));
         } else {
-            readNode = new ReadRestArgumentNode(from, -to, hasKeywordArguments, considerRejectedKWArgs(), required);
+            readNode = new ReadRestArgumentNode(from, -to, hasKeywordArguments);
         }
 
         final int slot = methodBodyTranslator.getEnvironment().findFrameSlot(node.getName());
@@ -429,16 +430,10 @@ public class LoadArgumentsTranslator extends Translator {
                             ArrayIndexNodes.ReadConstantIndexNode.create(loadArray(sourceSection), index),
                             defaultValue);
                 } else {
-                    if (argsNode.hasKwargs()) {
-                        minimum += 1;
-                    }
-
                     readNode = new ReadOptionalArgumentNode(
                             index,
                             minimum,
-                            considerRejectedKWArgs(),
-                            argsNode.hasKwargs(),
-                            required,
+                            hasKeywordArguments,
                             defaultValue);
                 }
             }
@@ -632,11 +627,6 @@ public class LoadArgumentsTranslator extends Translator {
                 arraySlotStack.peek().getArraySlot());
         node.unsafeSetSourceSection(sourceSection);
         return node;
-    }
-
-    private boolean considerRejectedKWArgs() {
-        // If there is **kwrest, there never are rejected kwargs
-        return argsNode.getKeywordCount() > 0 && !argsNode.hasKeyRest();
     }
 
 }

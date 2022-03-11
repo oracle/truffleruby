@@ -76,8 +76,8 @@ class Struct
         define_method(:"#{a}=") { |value| Primitive.object_hidden_var_set(self, a, value) }
       end
 
-      def self.new(*args, &block)
-        subclass_new(*args, &block)
+      def self.new(...)
+        subclass_new(...)
       end
 
       def self.[](*args)

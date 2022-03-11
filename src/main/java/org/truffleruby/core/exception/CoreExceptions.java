@@ -37,7 +37,6 @@ import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.backtrace.Backtrace;
@@ -112,6 +111,13 @@ public class CoreExceptions {
         }
     }
 
+    @TruffleBoundary
+    public String inspect(Object value) {
+        Object rubyString = RubyContext.send(context.getCoreLibrary().truffleTypeModule, "rb_inspect", value);
+        return RubyStringLibrary.getUncached().getJavaString(rubyString);
+    }
+
+    @TruffleBoundary
     public String inspectReceiver(Object receiver) {
         Object rubyString = RubyContext.send(
                 context.getCoreLibrary().truffleExceptionOperationsModule,
@@ -177,8 +183,8 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public RubyException argumentErrorUnknownKeyword(RubySymbol name, Node currentNode) {
-        return argumentError("unknown keyword: " + name.getString(), currentNode);
+    public RubyException argumentErrorUnknownKeyword(Object key, Node currentNode) {
+        return argumentError("unknown keyword: " + inspect(key), currentNode);
     }
 
     @TruffleBoundary

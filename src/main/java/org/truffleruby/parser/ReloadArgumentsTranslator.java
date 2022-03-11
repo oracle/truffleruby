@@ -41,6 +41,7 @@ import com.oracle.truffle.api.source.Source;
 public class ReloadArgumentsTranslator extends Translator {
 
     private final BodyTranslator methodBodyTranslator;
+    private final boolean hasKeywordArguments;
 
     private int index = 0;
     private int restParameterIndex = -1;
@@ -50,9 +51,11 @@ public class ReloadArgumentsTranslator extends Translator {
             Source source,
             ParserContext parserContext,
             Node currentNode,
-            BodyTranslator methodBodyTranslator) {
+            BodyTranslator methodBodyTranslator,
+            ArgsParseNode argsNode) {
         super(language, source, parserContext, currentNode);
         this.methodBodyTranslator = methodBodyTranslator;
+        this.hasKeywordArguments = argsNode.hasKwargs();
     }
 
     public int getRestParameterIndex() {
@@ -146,7 +149,8 @@ public class ReloadArgumentsTranslator extends Translator {
 
     @Override
     public RubyNode visitMultipleAsgnNode(MultipleAsgnParseNode node) {
-        return profileArgument(language, new ReadPreArgumentNode(index, MissingArgumentBehavior.NIL));
+        return profileArgument(language,
+                new ReadPreArgumentNode(index, hasKeywordArguments, MissingArgumentBehavior.NIL));
     }
 
     @Override

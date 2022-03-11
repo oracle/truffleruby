@@ -25,6 +25,7 @@ import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.method.UnboundMethodNodes.MethodRuby2KeywordsNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
@@ -343,7 +344,7 @@ public abstract class ProcNodes {
              * NB: In our case the arguments have already been destructured by the time this node is encountered. Thus,
              * we don't need to do the destructuring work that Rubinius would do and in the case that we receive
              * multiple arguments we need to reverse the destructuring by collecting the values into an array. */
-            int userArgumentCount = RubyArguments.getArgumentsCount(frame);
+            int userArgumentCount = RubyArguments.getPositionalArgumentsCount(frame, false);
 
             if (emptyArgsProfile.profile(userArgumentCount == 0)) {
                 return nil;
@@ -355,6 +356,14 @@ public abstract class ProcNodes {
                     return createArray(extractedArguments, userArgumentCount);
                 }
             }
+        }
+    }
+
+    @Primitive(name = "proc_ruby2_keywords")
+    public abstract static class ProcRuby2KeywordsNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected Object ruby2Keywords(RubyProc proc) {
+            return MethodRuby2KeywordsNode.ruby2Keywords(proc.sharedMethodInfo, proc.callTarget);
         }
     }
 }
