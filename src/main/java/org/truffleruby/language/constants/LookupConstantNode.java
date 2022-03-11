@@ -31,7 +31,7 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
     private final boolean ignoreVisibility;
     private final boolean lookInObject;
 
-    public static LookupConstantNode create(boolean ignoreVisibility, boolean checkName, boolean lookInObject) {
+    public static LookupConstantNode create(boolean ignoreVisibility, boolean lookInObject) {
         return LookupConstantNodeGen.create(ignoreVisibility, lookInObject);
     }
 

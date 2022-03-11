@@ -968,12 +968,14 @@ public abstract class ModuleNodes {
     @Primitive(name = "module_const_get")
     @NodeChild(value = "module", type = RubyNode.class)
     @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "inherit", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "inherit", type = RubyNode.class)
+    @NodeChild(value = "look_in_object", type = RubyNode.class)
     @NodeChild(value = "check_name", type = RubyNode.class)
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     public abstract static class ConstGetNode extends PrimitiveNode {
 
-        @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, true, true);
+        @Child private LookupConstantNode lookupConstantLookInObjectNode = LookupConstantNode.create(true, true);
+        @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, false);
         @Child private GetConstantNode getConstantNode = GetConstantNode.create();
 
         @CreateCast("name")
@@ -982,20 +984,17 @@ public abstract class ModuleNodes {
             return ToStringOrSymbolNodeGen.create(name);
         }
 
-        @CreateCast("inherit")
-        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute inherit) {
-            return BooleanCastWithDefaultNode.create(true, inherit);
-        }
-
         // Symbol
 
         @Specialization(guards = "inherit")
-        protected Object getConstant(RubyModule module, RubySymbol name, boolean inherit, boolean checkName) {
-            return getConstant(module, name.getString(), checkName);
+        protected Object getConstant(
+                RubyModule module, RubySymbol name, boolean inherit, boolean lookInObject, boolean checkName) {
+            return getConstant(module, name.getString(), checkName, lookInObject);
         }
 
         @Specialization(guards = "!inherit")
-        protected Object getConstantNoInherit(RubyModule module, RubySymbol name, boolean inherit, boolean checkName) {
+        protected Object getConstantNoInherit(
+                RubyModule module, RubySymbol name, boolean inherit, boolean lookInObject, boolean checkName) {
             return getConstantNoInherit(module, name.getString(), checkName);
         }
 
@@ -1009,41 +1008,53 @@ public abstract class ModuleNodes {
                         "!scoped",
                         "checkName == cachedCheckName" },
                 limit = "getLimit()")
-        protected Object getConstantStringCached(RubyModule module, Object name, boolean inherit, boolean checkName,
+        protected Object getConstantStringCached(
+                RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsName,
                 @Cached("stringsName.getRope(name)") Rope cachedRope,
                 @Cached("stringsName.getJavaString(name)") String cachedString,
                 @Cached("checkName") boolean cachedCheckName,
                 @Cached RopeNodes.EqualNode equalNode,
                 @Cached("isScoped(cachedString)") boolean scoped) {
-            return getConstant(module, cachedString, checkName);
+            return getConstant(module, cachedString, checkName, lookInObject);
         }
 
         @Specialization(
                 guards = { "stringsName.isRubyString(name)", "inherit", "!isScoped(stringsName.getRope(name))" },
                 replaces = "getConstantStringCached")
-        protected Object getConstantString(RubyModule module, Object name, boolean inherit, boolean checkName,
+        protected Object getConstantString(
+                RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsName) {
-            return getConstant(module, stringsName.getJavaString(name), checkName);
+            return getConstant(module, stringsName.getJavaString(name), checkName, lookInObject);
         }
 
         @Specialization(
                 guards = { "stringsName.isRubyString(name)", "!inherit", "!isScoped(stringsName.getRope(name))" })
-        protected Object getConstantNoInheritString(RubyModule module, Object name, boolean inherit, boolean checkName,
+        protected Object getConstantNoInheritString(
+                RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsName) {
             return getConstantNoInherit(module, stringsName.getJavaString(name), checkName);
         }
 
         // Scoped String
         @Specialization(guards = { "stringsName.isRubyString(name)", "isScoped(stringsName.getRope(name))" })
-        protected Object getConstantScoped(RubyModule module, Object name, boolean inherit, boolean checkName,
+        protected Object getConstantScoped(
+                RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsName) {
             return FAILURE;
         }
 
-        private Object getConstant(RubyModule module, String name, boolean checkName) {
-            return getConstantNode
-                    .lookupAndResolveConstant(LexicalScope.IGNORE, module, name, checkName, lookupConstantNode);
+        private Object getConstant(RubyModule module, String name, boolean checkName, boolean lookInObject) {
+            CompilerAsserts.partialEvaluationConstant(lookInObject);
+            if (lookInObject) {
+                return getConstantNode
+                        .lookupAndResolveConstant(LexicalScope.IGNORE, module, name, checkName,
+                                lookupConstantLookInObjectNode);
+            } else {
+                return getConstantNode
+                        .lookupAndResolveConstant(LexicalScope.IGNORE, module, name, checkName,
+                                lookupConstantNode);
+            }
         }
 
         private Object getConstantNoInherit(RubyModule module, String name, boolean checkName) {
