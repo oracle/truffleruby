@@ -43,6 +43,7 @@ Compatibility:
 * Update `String#split` to raise `TypeError` when false is given (#2606, @bjfish).
 * Update `String#lstrip!` to remove leading null characters (#2607, @bjfish).
 * Update `File.utime` to return the number of file names in the arguments (#2616, @bjfish).
+* Update `IO.readlines` to ignore negative limit parameters (#2625 , @bjfish).
 
 Performance:
 
