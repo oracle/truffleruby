@@ -28,6 +28,7 @@ import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.ToJavaStringNode;
+import org.truffleruby.language.arguments.ArgumentsDescriptor;
 
 public abstract class RubyGuards {
 
@@ -80,6 +81,7 @@ public abstract class RubyGuards {
             assert false : "Invalid primitive flowing in Ruby nodes: " + value + " (" +
                     value.getClass().getSimpleName() + ")";
         }
+        assert !(value instanceof ArgumentsDescriptor) : value;
         return true;
     }
 

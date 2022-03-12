@@ -25,6 +25,7 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -202,11 +203,12 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         return dispatch(null, receiver, method, rubyArgs);
     }
 
-    public Object callWithBlock(Object receiver, String method, Object block, Object[] arguments) {
+    public Object callWithDescriptor(Object receiver, String method, Object block, ArgumentsDescriptor descriptor,
+            Object[] arguments) {
         final Object[] rubyArgs = RubyArguments.allocate(arguments.length);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, block);
-        RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
+        RubyArguments.setDescriptor(rubyArgs, descriptor);
         RubyArguments.setArguments(rubyArgs, arguments);
         return dispatch(null, receiver, method, rubyArgs);
     }

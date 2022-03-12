@@ -111,7 +111,7 @@ public abstract class ProcNodes {
         }
 
         @Specialization(guards = "procClass != metaClass(block)")
-        protected RubyProc procSpecial(RubyClass procClass, Object[] args, RubyProc block,
+        protected RubyProc procSpecial(VirtualFrame frame, RubyClass procClass, Object[] args, RubyProc block,
                 @Cached DispatchNode initialize) {
             // Instantiate a new instance of procClass as classes do not correspond
 
@@ -130,7 +130,7 @@ public abstract class ProcNodes {
                     block.declarationContext);
 
             AllocationTracing.trace(proc, this);
-            initialize.callWithBlock(proc, "initialize", block, args);
+            initialize.callWithDescriptor(proc, "initialize", block, RubyArguments.getDescriptor(frame), args);
             return proc;
         }
 
