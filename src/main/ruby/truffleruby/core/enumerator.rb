@@ -239,12 +239,12 @@ class Enumerator
     end
     private :initialize
 
-    def yield(*args)
-      @proc.call(*args)
+    def yield(*args, **kwargs)
+      @proc.call(*args, **kwargs)
     end
 
-    def <<(*args)
-      self.yield(*args)
+    def <<(*args, **kwargs)
+      self.yield(*args, **kwargs)
 
       self
     end
@@ -265,12 +265,12 @@ class Enumerator
     end
     private :initialize
 
-    def each(*args, &block)
+    def each(*args, **kwargs, &block)
       raise LocalJumpError unless block
       Primitive.share_special_variables(Primitive.proc_special_variables(block))
-      enclosed_yield = Proc.new { |*enclosed_args| yield(*enclosed_args) }
+      enclosed_yield = Proc.new { |*enclosed_args| yield(*enclosed_args) }.ruby2_keywords
 
-      @proc.call Yielder.new(&enclosed_yield), *args
+      @proc.call Yielder.new(&enclosed_yield), *args, **kwargs
     end
   end
 
