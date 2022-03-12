@@ -48,8 +48,8 @@ module Kernel
   end
   module_function :Array
 
-  def Complex(...)
-    Complex.__send__(:convert, ...)
+  def Complex(real, imag = undefined, exception: true)
+    Complex.__send__(:convert, real, imag, exception: exception)
   end
   module_function :Complex
 
