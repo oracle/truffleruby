@@ -9,22 +9,17 @@
  */
 package org.truffleruby.language.dispatch;
 
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayAppendOneNode;
-import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
-import org.truffleruby.core.hash.HashNodes.CopyHashAndSetRuby2KeywordsNode;
-import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.inlined.LambdaToProcNode;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
@@ -49,18 +44,15 @@ import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PROTECTED;
 
-public class RubyCallNode extends RubyContextSourceNode implements AssignableNode {
+public class RubyCallNode extends LiteralCallNode implements AssignableNode {
 
     private final String methodName;
 
     @Child private RubyNode receiver;
     @Child private RubyNode block;
     private final boolean hasLiteralBlock;
-    private final ArgumentsDescriptor descriptor;
-    @CompilationFinal private ConditionProfile emptyProfile;
     @Children private final RubyNode[] arguments;
 
-    private final boolean isSplatted;
     private final DispatchConfiguration dispatchConfig;
     private final boolean isVCall;
     private final boolean isSafeNavigation;
@@ -71,12 +63,10 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
 
     private final ConditionProfile nilProfile;
 
-    private final ConditionProfile ruby2KeywordsProfile;
-    @Child private CopyHashAndSetRuby2KeywordsNode copyHashAndSetRuby2KeywordsNode;
-
     @Child private SplatToArgsNode splatToArgs;
 
     public RubyCallNode(RubyCallNodeParameters parameters) {
+        super(parameters.isSplatted(), parameters.getDescriptor());
         this.methodName = parameters.getMethodName();
         this.receiver = parameters.getReceiver();
         this.arguments = parameters.getArguments();
@@ -84,9 +74,7 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         final RubyNode block = parameters.getBlock();
         this.block = parameters.getBlock();
         this.hasLiteralBlock = block instanceof BlockDefinitionNode || block instanceof LambdaToProcNode;
-        this.descriptor = parameters.getDescriptor();
 
-        this.isSplatted = parameters.isSplatted();
         this.dispatchConfig = parameters.isIgnoreVisibility() ? PRIVATE : PROTECTED;
         this.isVCall = parameters.isVCall();
         this.isSafeNavigation = parameters.isSafeNavigation();
@@ -97,35 +85,6 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         } else {
             nilProfile = null;
         }
-
-        if (isSplatted && descriptor == EmptyArgumentsDescriptor.INSTANCE) {
-            // *rest and no kwargs passed explicitly (k: v/k => v/**kw)
-            ruby2KeywordsProfile = ConditionProfile.create();
-        } else {
-            ruby2KeywordsProfile = null;
-        }
-    }
-
-    private ArgumentsDescriptor getArgumentsDescriptor(Object[] rubyArgs) {
-        if (ruby2KeywordsProfile != null) {
-            if (RubyArguments.getRawArgumentsCount(rubyArgs) > 0) {
-                Object lastArgument = RubyArguments.getLastArgument(rubyArgs);
-                assert lastArgument != null;
-                if (ruby2KeywordsProfile.profile(
-                        lastArgument instanceof RubyHash && ((RubyHash) lastArgument).ruby2_keywords)) {
-                    if (copyHashAndSetRuby2KeywordsNode == null) {
-                        CompilerDirectives.transferToInterpreterAndInvalidate();
-                        copyHashAndSetRuby2KeywordsNode = insert(CopyHashAndSetRuby2KeywordsNode.create());
-                    }
-
-                    RubyHash unmarked = copyHashAndSetRuby2KeywordsNode.execute((RubyHash) lastArgument, false);
-                    RubyArguments.setLastArgument(rubyArgs, unmarked);
-                    return KeywordArgumentsDescriptor.INSTANCE;
-                }
-            }
-        }
-
-        return descriptor;
     }
 
     @Override
@@ -145,7 +104,8 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         final ArgumentsDescriptor descriptor;
         if (isSplatted) {
             rubyArgs = splatArgs(receiverObject, rubyArgs);
-            descriptor = getArgumentsDescriptor(rubyArgs);
+            descriptor = getArgumentsDescriptorAndCheckRuby2KeywordsHash(rubyArgs,
+                    RubyArguments.getRawArgumentsCount(rubyArgs));
         } else {
             descriptor = this.descriptor;
         }
@@ -182,9 +142,8 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
 
     public Object doCall(VirtualFrame frame, Object receiverObject, ArgumentsDescriptor descriptor, Object[] rubyArgs) {
         // Remove empty kwargs in the caller, so the callee does not need to care about this special case
-        if (descriptor instanceof KeywordArgumentsDescriptor &&
-                profileEmptyHash(((RubyHash) RubyArguments.getLastArgument(rubyArgs)).empty())) {
-            rubyArgs = ArrayUtils.extractRange(rubyArgs, 0, rubyArgs.length - 1);
+        if (descriptor instanceof KeywordArgumentsDescriptor && emptyKeywordArguments(rubyArgs)) {
+            rubyArgs = removeEmptyKeywordArguments(rubyArgs);
             RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
         } else {
             RubyArguments.setDescriptor(rubyArgs, descriptor);
@@ -208,11 +167,12 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
 
     public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object receiverObject, Object blockObject,
             Object[] argumentsObjects) {
+        assert !isSplatted;
         Object[] rubyArgs = RubyArguments.allocate(argumentsObjects.length);
         RubyArguments.setSelf(rubyArgs, receiverObject);
         RubyArguments.setBlock(rubyArgs, blockObject);
         RubyArguments.setArguments(rubyArgs, argumentsObjects);
-        return doCall(frame, receiverObject, getArgumentsDescriptor(rubyArgs), rubyArgs);
+        return doCall(frame, receiverObject, descriptor, rubyArgs);
     }
 
     private Object executeBlock(VirtualFrame frame) {
@@ -237,15 +197,6 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         }
 
         return splatToArgs.execute(receiverObject, rubyArgs, (RubyArray) RubyArguments.getArgument(rubyArgs, 0));
-    }
-
-    private boolean profileEmptyHash(boolean condition) {
-        if (emptyProfile == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            emptyProfile = /* not a node, so no insert() */ ConditionProfile.create();
-        }
-
-        return emptyProfile.profile(condition);
     }
 
     @Override

@@ -9,37 +9,31 @@
  */
 package org.truffleruby.language.supercall;
 
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.string.FrozenStrings;
-import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.dispatch.LiteralCallNode;
 import org.truffleruby.language.methods.InternalMethod;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class SuperCallNode extends RubyContextSourceNode {
+public class SuperCallNode extends LiteralCallNode {
 
     @Child private RubyNode arguments;
     @Child private RubyNode block;
-    private final ArgumentsDescriptor descriptor;
-    @CompilationFinal private ConditionProfile emptyProfile;
     @Child private LookupSuperMethodNode lookupSuperMethodNode;
     @Child private CallSuperMethodNode callSuperMethodNode;
 
-    public SuperCallNode(RubyNode arguments, RubyNode block, ArgumentsDescriptor descriptor) {
+    public SuperCallNode(boolean isSplatted, RubyNode arguments, RubyNode block, ArgumentsDescriptor descriptor) {
+        super(isSplatted, descriptor);
         this.arguments = arguments;
         this.block = block;
-        this.descriptor = descriptor;
     }
 
     @Override
@@ -49,11 +43,15 @@ public class SuperCallNode extends RubyContextSourceNode {
         // Execute the arguments
         Object[] superArguments = (Object[]) arguments.execute(frame);
 
-        // Remove empty kwargs in the caller, so the callee does not need to care about this special case
         ArgumentsDescriptor descriptor = this.descriptor;
-        if (this.descriptor instanceof KeywordArgumentsDescriptor &&
-                profileEmptyHash(((RubyHash) ArrayUtils.getLast(superArguments)).empty())) {
-            superArguments = ArrayUtils.extractRange(superArguments, 0, superArguments.length - 1);
+        if (isSplatted) {
+            // superArguments already splatted
+            descriptor = getArgumentsDescriptorAndCheckRuby2KeywordsHash(superArguments, superArguments.length);
+        }
+
+        // Remove empty kwargs in the caller, so the callee does not need to care about this special case
+        if (descriptor instanceof KeywordArgumentsDescriptor && emptyKeywordArguments(superArguments)) {
+            superArguments = removeEmptyKeywordArguments(superArguments);
             descriptor = EmptyArgumentsDescriptor.INSTANCE;
         }
 
@@ -80,15 +78,6 @@ public class SuperCallNode extends RubyContextSourceNode {
         } else {
             return FrozenStrings.SUPER;
         }
-    }
-
-    private boolean profileEmptyHash(boolean condition) {
-        if (emptyProfile == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            emptyProfile = /* not a node, so no insert() */ ConditionProfile.create();
-        }
-
-        return emptyProfile.profile(condition);
     }
 
     private InternalMethod executeLookupSuperMethod(VirtualFrame frame, Object self) {

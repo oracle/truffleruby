@@ -448,7 +448,8 @@ public class MethodTranslator extends BodyTranslator {
                 argumentsAndBlock.isSplatted());
         final RubyNode block = executeOrInheritBlock(argumentsAndBlock.getBlock(), node);
 
-        RubyNode callNode = new SuperCallNode(arguments, block, argumentsAndBlock.getArgumentsDescriptor());
+        RubyNode callNode = new SuperCallNode(argumentsAndBlock.isSplatted(), arguments, block,
+                argumentsAndBlock.getArgumentsDescriptor());
         callNode = wrapCallWithLiteralBlock(argumentsAndBlock, callNode);
 
         return withSourceSection(sourceSection, callNode);
@@ -496,8 +497,9 @@ public class MethodTranslator extends BodyTranslator {
                 reloadTranslator.getRestParameterIndex(),
                 reloadSequence.getSequence());
         final RubyNode block = executeOrInheritBlock(argumentsAndBlock.getBlock(), node);
+        final boolean isSplatted = reloadTranslator.getRestParameterIndex() != -1;
 
-        RubyNode callNode = new SuperCallNode(arguments, block, descriptor);
+        RubyNode callNode = new SuperCallNode(isSplatted, arguments, block, descriptor);
         callNode = wrapCallWithLiteralBlock(argumentsAndBlock, callNode);
 
         return withSourceSection(sourceSection, callNode);

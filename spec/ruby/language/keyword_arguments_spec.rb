@@ -121,10 +121,117 @@ ruby_version_is "3.0" do
         m({a: 1}).should == [[{a: 1}], {}]
       end
 
-      it "works with a ruby2_keyword method (*args)" do
+      it "works with call(*ruby2_keyword_args)" do
         class << self
           ruby2_keywords def m(*args)
             target(*args)
+          end
+        end
+
+        empty = {}
+        m(**empty).should == [[], {}]
+        Hash.ruby2_keywords_hash?(empty).should == false
+        m(empty).should == [[{}], {}]
+        Hash.ruby2_keywords_hash?(empty).should == false
+
+        m(a: 1).should == [[], {a: 1}]
+        m({a: 1}).should == [[{a: 1}], {}]
+
+        kw = {a: 1}
+
+        m(**kw).should == [[], {a: 1}]
+        m(**kw)[1].should == kw
+        m(**kw)[1].should_not.equal?(kw)
+        Hash.ruby2_keywords_hash?(kw).should == false
+        Hash.ruby2_keywords_hash?(m(**kw)[1]).should == false
+
+        m(kw).should == [[{a: 1}], {}]
+        m(kw)[0][0].should.equal?(kw)
+        Hash.ruby2_keywords_hash?(kw).should == false
+      end
+
+      it "works with super(*ruby2_keyword_args)" do
+        parent = Class.new do
+          def m(*args, **kwargs)
+            [args, kwargs]
+          end
+        end
+
+        child = Class.new(parent) do
+          ruby2_keywords def m(*args)
+            super(*args)
+          end
+        end
+
+        obj = child.new
+
+        empty = {}
+        obj.m(**empty).should == [[], {}]
+        Hash.ruby2_keywords_hash?(empty).should == false
+        obj.m(empty).should == [[{}], {}]
+        Hash.ruby2_keywords_hash?(empty).should == false
+
+        obj.m(a: 1).should == [[], {a: 1}]
+        obj.m({a: 1}).should == [[{a: 1}], {}]
+
+        kw = {a: 1}
+
+        obj.m(**kw).should == [[], {a: 1}]
+        obj.m(**kw)[1].should == kw
+        obj.m(**kw)[1].should_not.equal?(kw)
+        Hash.ruby2_keywords_hash?(kw).should == false
+        Hash.ruby2_keywords_hash?(obj.m(**kw)[1]).should == false
+
+        obj.m(kw).should == [[{a: 1}], {}]
+        obj.m(kw)[0][0].should.equal?(kw)
+        Hash.ruby2_keywords_hash?(kw).should == false
+      end
+
+      it "works with zsuper" do
+        parent = Class.new do
+          def m(*args, **kwargs)
+            [args, kwargs]
+          end
+        end
+
+        child = Class.new(parent) do
+          ruby2_keywords def m(*args)
+            super
+          end
+        end
+
+        obj = child.new
+
+        empty = {}
+        obj.m(**empty).should == [[], {}]
+        Hash.ruby2_keywords_hash?(empty).should == false
+        obj.m(empty).should == [[{}], {}]
+        Hash.ruby2_keywords_hash?(empty).should == false
+
+        obj.m(a: 1).should == [[], {a: 1}]
+        obj.m({a: 1}).should == [[{a: 1}], {}]
+
+        kw = {a: 1}
+
+        obj.m(**kw).should == [[], {a: 1}]
+        obj.m(**kw)[1].should == kw
+        obj.m(**kw)[1].should_not.equal?(kw)
+        Hash.ruby2_keywords_hash?(kw).should == false
+        Hash.ruby2_keywords_hash?(obj.m(**kw)[1]).should == false
+
+        obj.m(kw).should == [[{a: 1}], {}]
+        obj.m(kw)[0][0].should.equal?(kw)
+        Hash.ruby2_keywords_hash?(kw).should == false
+      end
+
+      it "works with yield(*ruby2_keyword_args)" do
+        class << self
+          def y(args)
+            yield(*args)
+          end
+
+          ruby2_keywords def m(*args)
+            y(args, &-> (*args, **kwargs) { target(*args, **kwargs) })
           end
         end
 

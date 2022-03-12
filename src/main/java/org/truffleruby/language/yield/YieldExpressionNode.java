@@ -9,17 +9,12 @@
  */
 package org.truffleruby.language.yield;
 
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNodeGen;
-import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.FrozenStrings;
-import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
@@ -32,13 +27,11 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.language.dispatch.LiteralCallNode;
 
-public class YieldExpressionNode extends RubyContextSourceNode {
+public class YieldExpressionNode extends LiteralCallNode {
 
-    private final boolean unsplat;
     private final boolean warnInModuleBody;
-    private final ArgumentsDescriptor descriptor;
-    @CompilationFinal private ConditionProfile emptyProfile;
 
     @Children private final RubyNode[] arguments;
     @Child private CallBlockNode yieldNode;
@@ -50,13 +43,12 @@ public class YieldExpressionNode extends RubyContextSourceNode {
     private final BranchProfile noCapturedBlock = BranchProfile.create();
 
     public YieldExpressionNode(
-            boolean unsplat,
+            boolean isSplatted,
             ArgumentsDescriptor descriptor,
             RubyNode[] arguments,
             RubyNode readBlockNode,
             boolean warnInModuleBody) {
-        this.unsplat = unsplat;
-        this.descriptor = descriptor;
+        super(isSplatted, descriptor);
         this.arguments = arguments;
         this.readBlockNode = readBlockNode;
         this.warnInModuleBody = warnInModuleBody;
@@ -82,15 +74,15 @@ public class YieldExpressionNode extends RubyContextSourceNode {
             throw new RaiseException(getContext(), coreExceptions().noBlockToYieldTo(this));
         }
 
-        if (unsplat) {
+        ArgumentsDescriptor descriptor = this.descriptor;
+        if (isSplatted) {
             argumentsObjects = unsplat(argumentsObjects);
+            descriptor = getArgumentsDescriptorAndCheckRuby2KeywordsHash(argumentsObjects, argumentsObjects.length);
         }
 
         // Remove empty kwargs in the caller, so the callee does not need to care about this special case
-        ArgumentsDescriptor descriptor = this.descriptor;
-        if (this.descriptor instanceof KeywordArgumentsDescriptor &&
-                profileEmptyHash(((RubyHash) ArrayUtils.getLast(argumentsObjects)).empty())) {
-            argumentsObjects = ArrayUtils.extractRange(argumentsObjects, 0, argumentsObjects.length - 1);
+        if (descriptor instanceof KeywordArgumentsDescriptor && emptyKeywordArguments(argumentsObjects)) {
+            argumentsObjects = removeEmptyKeywordArguments(argumentsObjects);
             descriptor = EmptyArgumentsDescriptor.INSTANCE;
         }
 
@@ -124,15 +116,6 @@ public class YieldExpressionNode extends RubyContextSourceNode {
         } else {
             return FrozenStrings.YIELD;
         }
-    }
-
-    private boolean profileEmptyHash(boolean condition) {
-        if (emptyProfile == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            emptyProfile = /* not a node, so no insert() */ ConditionProfile.create();
-        }
-
-        return emptyProfile.profile(condition);
     }
 
     private CallBlockNode getYieldNode() {
