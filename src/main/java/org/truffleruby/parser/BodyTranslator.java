@@ -3117,7 +3117,7 @@ public class BodyTranslator extends Translator {
 
     private static ArgumentsDescriptor getKeywordArgumentsDescriptor(RubyLanguage language, ParseNode argsNode) {
         // Find the keyword argument hash parse node
-        final HashParseNode keywordHashArgumentNode = findLastHashParseNode(argsNode);
+        final HashParseNode keywordHashArgumentNode = findLastHashParseNode(lastArrayNodeElementOrSelf(argsNode));
 
         if (keywordHashArgumentNode == null || !keywordHashArgumentNode.isKeywordArguments()) {
             return EmptyArgumentsDescriptor.INSTANCE;
@@ -3145,15 +3145,21 @@ public class BodyTranslator extends Translator {
     private static HashParseNode findLastHashParseNode(ParseNode node) {
         if (node instanceof HashParseNode) {
             return (HashParseNode) node;
-        } else if (node instanceof ArrayParseNode) {
-            return findLastHashParseNode(((ArrayParseNode) node).getLast());
         } else if (node instanceof ArgsPushParseNode) {
             return findLastHashParseNode(((ArgsPushParseNode) node).getSecondNode());
         } else if (node instanceof ArgsCatParseNode) {
-            return findLastHashParseNode(((ArgsCatParseNode) node).getSecondNode());
+            return findLastHashParseNode(lastArrayNodeElementOrSelf(((ArgsCatParseNode) node).getSecondNode()));
         } else {
             // SplatParseNode: cannot contain kwargs (*array)
             return null;
+        }
+    }
+
+    private static ParseNode lastArrayNodeElementOrSelf(ParseNode node) {
+        if (node instanceof ArrayParseNode && !((ArrayParseNode) node).isEmpty()) {
+            return ((ArrayParseNode) node).getLast();
+        } else {
+            return node;
         }
     }
 

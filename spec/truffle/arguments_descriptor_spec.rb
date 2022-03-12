@@ -162,6 +162,22 @@ describe "Arguments descriptors" do
     info.arguments.should == [42] if truffleruby?
   end
 
+  it "do not consider kwargs inside an array element" do
+    def nested_kwargs(*a)
+      info(a, Primitive.arguments_descriptor, Primitive.arguments)
+    end
+
+    info = nested_kwargs(["a" => 1])
+    info.values.should == [[{"a" => 1}]]
+    info.descriptor.should == [] if truffleruby?
+    info.arguments.should == [[{"a" => 1}]] if truffleruby?
+
+    info = nested_kwargs([a: 1])
+    info.values.should == [[{a: 1}]]
+    info.descriptor.should == [] if truffleruby?
+    info.arguments.should == [[{a: 1}]] if truffleruby?
+  end
+
   it "work for a call like our Struct.new" do
     def struct_new_like(a, *b, c: 101)
       info([a, b, c], Primitive.arguments_descriptor, Primitive.arguments)
