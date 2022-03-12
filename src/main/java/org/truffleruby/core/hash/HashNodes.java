@@ -358,7 +358,7 @@ public abstract class HashNodes {
 
         @Specialization
         protected boolean isEmpty(RubyHash hash) {
-            return hash.size == 0;
+            return hash.empty();
         }
     }
 
@@ -505,13 +505,13 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class ShiftNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isEmptyHash(hash)")
+        @Specialization(guards = "hash.empty()")
         protected Object shiftEmpty(RubyHash hash,
                 @Cached DispatchNode callDefault) {
             return callDefault.call(hash, "default", nil);
         }
 
-        @Specialization(guards = "!isEmptyHash(hash)", limit = "hashStrategyLimit()")
+        @Specialization(guards = "!hash.empty()", limit = "hashStrategyLimit()")
         protected RubyArray shift(RubyHash hash,
                 @CachedLibrary("hash.store") HashStoreLibrary hashes) {
             return hashes.shift(hash.store, hash);

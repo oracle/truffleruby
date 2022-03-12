@@ -42,7 +42,7 @@ describe "Arguments descriptors" do
       kw = { b: 2 }
       descriptor(**kw).should == [:keywords]
       empty_kw = {}
-      descriptor(**empty_kw).should == [:keywords]
+      descriptor(**empty_kw).should == []
     end
   end
 
@@ -153,13 +153,13 @@ describe "Arguments descriptors" do
     empty = {}
     info = rest_kwrest(*a, **empty)
     info.values.should == []
-    info.descriptor.should == [:keywords] if truffleruby?
-    info.arguments.should == [{}] if truffleruby?
+    info.descriptor.should == [] if truffleruby?
+    info.arguments.should == [] if truffleruby?
 
     info = rest_kwrest(*a, 42, **empty)
     info.values.should == [42]
-    info.descriptor.should == [:keywords] if truffleruby?
-    info.arguments.should == [42, {}] if truffleruby?
+    info.descriptor.should == [] if truffleruby?
+    info.arguments.should == [42] if truffleruby?
   end
 
   it "work for a call like our Struct.new" do

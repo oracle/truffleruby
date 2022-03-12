@@ -70,6 +70,16 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
         }
     }
 
+    // Not named isEmpty() has that's deprecated on DynamicObject
+    public boolean empty() {
+        return size == 0;
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() + "(size=" + size + ")";
+    }
+
     @TruffleBoundary
     public void getAdjacentObjects(Set<Object> reachable) {
         if (store instanceof BucketsHashStore) {

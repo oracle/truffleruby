@@ -28,14 +28,26 @@ ruby_version_is "3.0" do
       m({a: 1}).should == [{a: 1}]
     end
 
-    it "empty kwargs are treated as if they were not passed" do
-      def m(*a)
-        a
+    context "empty kwargs are treated as if they were not passed" do
+      it "when calling a method" do
+        def m(*a)
+          a
+        end
+
+        empty = {}
+        m(**empty).should == []
+        m(empty).should == [{}]
       end
 
-      empty = {}
-      m(**empty).should == []
-      m(empty).should == [{}]
+      it "when yielding to a block" do
+        def y(*args, **kwargs)
+          yield(*args, **kwargs)
+        end
+
+        empty = {}
+        y(**empty) { |*a| a }.should == []
+        y(empty) { |*a| a }.should == [{}]
+      end
     end
 
     it "extra keywords are not allowed without **kwrest" do

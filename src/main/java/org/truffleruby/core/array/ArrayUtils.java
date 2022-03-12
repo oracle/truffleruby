@@ -233,6 +233,11 @@ public abstract class ArrayUtils {
         return newArray;
     }
 
+    public static Object getLast(Object[] array) {
+        assert array.length >= 1;
+        return array[array.length - 1];
+    }
+
     /** Like {@link java.util.Arrays#fill(Object[], int, int, Object)} but includes profiling. */
     public static void fill(Object[] array, int from, int to, Object value, Node node,
             LoopConditionProfile loopProfile) {

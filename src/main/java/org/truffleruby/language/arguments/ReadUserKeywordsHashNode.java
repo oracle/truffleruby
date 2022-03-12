@@ -18,7 +18,6 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 public final class ReadUserKeywordsHashNode extends RubyBaseNode {
 
     private final ConditionProfile keywordArgumentsProfile = ConditionProfile.create();
-    private final ConditionProfile emptyKeywordArgumentsProfile = ConditionProfile.create();
 
     public ReadUserKeywordsHashNode() {
     }
@@ -26,12 +25,7 @@ public final class ReadUserKeywordsHashNode extends RubyBaseNode {
     public RubyHash execute(VirtualFrame frame) {
         final ArgumentsDescriptor descriptor = RubyArguments.getDescriptor(frame);
         if (keywordArgumentsProfile.profile(descriptor instanceof KeywordArgumentsDescriptor)) {
-            final RubyHash keywordArguments = (RubyHash) RubyArguments.getLastArgument(frame);
-            if (emptyKeywordArgumentsProfile.profile(keywordArguments.size == 0)) {
-                return null; // empty kwargs -> treated the same as if it was not passed by the caller
-            } else {
-                return keywordArguments;
-            }
+            return (RubyHash) RubyArguments.getLastArgument(frame);
         } else {
             return null;
         }

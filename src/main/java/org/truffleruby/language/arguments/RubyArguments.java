@@ -76,7 +76,9 @@ public final class RubyArguments {
         assert descriptor instanceof ArgumentsDescriptor : descriptor;
 
         if (descriptor instanceof KeywordArgumentsDescriptor) {
-            assert getLastArgument(rubyArgs) instanceof RubyHash;
+            final Object lastArgument = getLastArgument(rubyArgs);
+            assert lastArgument instanceof RubyHash;
+            assert !((RubyHash) lastArgument).empty() : "empty kwargs should not have been passed";
         }
 
         final int userArgumentsCount = rubyArgs.length - RUNTIME_ARGUMENT_COUNT;
@@ -309,20 +311,11 @@ public final class RubyArguments {
     public static int getPositionalArgumentsCount(Object[] rubyArgs, boolean methodHasKeywordParameters) {
         CompilerAsserts.partialEvaluationConstant(methodHasKeywordParameters);
         final int argumentsCount = rubyArgs.length - RUNTIME_ARGUMENT_COUNT;
-        final ArgumentsDescriptor descriptor = getDescriptor(rubyArgs);
 
-        if (methodHasKeywordParameters) {
-            if (descriptor instanceof KeywordArgumentsDescriptor) {
-                return argumentsCount - 1; // the last argument is kwargs
-            } else {
-                return argumentsCount;
-            }
+        if (methodHasKeywordParameters && getDescriptor(rubyArgs) instanceof KeywordArgumentsDescriptor) {
+            return argumentsCount - 1; // the last argument is kwargs
         } else {
-            if (descriptor instanceof KeywordArgumentsDescriptor && ((RubyHash) getLastArgument(rubyArgs)).size == 0) {
-                return argumentsCount - 1; // empty kwargs -> treated the same as if it was not passed by the caller
-            } else {
-                return argumentsCount;
-            }
+            return argumentsCount;
         }
     }
 
@@ -354,12 +347,6 @@ public final class RubyArguments {
     public static void setLastArgument(Object[] rubyArgs, Object value) {
         assert getRawArgumentsCount(rubyArgs) > 0;
         rubyArgs[rubyArgs.length - 1] = value;
-    }
-
-    /** Set the user argument at given index inside frame arguments */
-    public static void setArgument(Frame frame, int index, Object value) {
-        assert index >= 0 && index < getRawArgumentsCount(frame);
-        frame.getArguments()[RUNTIME_ARGUMENT_COUNT + index] = value;
     }
 
     /** Set the user argument at given index inside frame arguments */

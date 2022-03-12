@@ -9,9 +9,11 @@
  */
 package org.truffleruby.language.dispatch;
 
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayAppendOneNode;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -55,6 +57,7 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
     @Child private RubyNode block;
     private final boolean hasLiteralBlock;
     private final ArgumentsDescriptor descriptor;
+    @CompilationFinal private ConditionProfile emptyProfile;
     @Children private final RubyNode[] arguments;
 
     private final boolean isSplatted;
@@ -139,14 +142,15 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         RubyArguments.setBlock(rubyArgs, executeBlock(frame));
 
         // The expansion of the splat is done after executing the block, for m(*args, &args.pop)
+        final ArgumentsDescriptor descriptor;
         if (isSplatted) {
             rubyArgs = splatArgs(receiverObject, rubyArgs);
-            RubyArguments.setDescriptor(rubyArgs, getArgumentsDescriptor(rubyArgs));
+            descriptor = getArgumentsDescriptor(rubyArgs);
         } else {
-            RubyArguments.setDescriptor(rubyArgs, descriptor);
+            descriptor = this.descriptor;
         }
 
-        return executeWithArgumentsEvaluated(frame, receiverObject, rubyArgs);
+        return doCall(frame, receiverObject, descriptor, rubyArgs);
     }
 
     @Override
@@ -171,12 +175,21 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
 
         assert RubyArguments.getLastArgument(rubyArgs) == nil;
         RubyArguments.setLastArgument(rubyArgs, value);
-        RubyArguments.setDescriptor(rubyArgs, descriptor); // no ruby2_keywords behavior for assign
 
-        executeWithArgumentsEvaluated(frame, receiverObject, rubyArgs);
+        // no ruby2_keywords behavior for assign
+        doCall(frame, receiverObject, descriptor, rubyArgs);
     }
 
-    public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object receiverObject, Object[] rubyArgs) {
+    public Object doCall(VirtualFrame frame, Object receiverObject, ArgumentsDescriptor descriptor, Object[] rubyArgs) {
+        // Remove empty kwargs in the caller, so the callee does not need to care about this special case
+        if (descriptor instanceof KeywordArgumentsDescriptor &&
+                profileEmptyHash(((RubyHash) RubyArguments.getLastArgument(rubyArgs)).empty())) {
+            rubyArgs = ArrayUtils.extractRange(rubyArgs, 0, rubyArgs.length - 1);
+            RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
+        } else {
+            RubyArguments.setDescriptor(rubyArgs, descriptor);
+        }
+
         if (dispatch == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             dispatch = insert(DispatchNode.create(dispatchConfig));
@@ -199,8 +212,7 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         RubyArguments.setSelf(rubyArgs, receiverObject);
         RubyArguments.setBlock(rubyArgs, blockObject);
         RubyArguments.setArguments(rubyArgs, argumentsObjects);
-        RubyArguments.setDescriptor(rubyArgs, getArgumentsDescriptor(rubyArgs));
-        return executeWithArgumentsEvaluated(frame, receiverObject, rubyArgs);
+        return doCall(frame, receiverObject, getArgumentsDescriptor(rubyArgs), rubyArgs);
     }
 
     private Object executeBlock(VirtualFrame frame) {
@@ -225,6 +237,15 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         }
 
         return splatToArgs.execute(receiverObject, rubyArgs, (RubyArray) RubyArguments.getArgument(rubyArgs, 0));
+    }
+
+    private boolean profileEmptyHash(boolean condition) {
+        if (emptyProfile == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            emptyProfile = /* not a node, so no insert() */ ConditionProfile.create();
+        }
+
+        return emptyProfile.profile(condition);
     }
 
     @Override
