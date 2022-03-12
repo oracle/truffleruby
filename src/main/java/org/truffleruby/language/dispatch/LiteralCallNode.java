@@ -25,6 +25,7 @@ public abstract class LiteralCallNode extends RubyContextSourceNode {
 
     protected final ArgumentsDescriptor descriptor;
     @Child private CopyHashAndSetRuby2KeywordsNode copyHashAndSetRuby2KeywordsNode;
+
     protected final boolean isSplatted;
     @CompilationFinal private boolean notRuby2KeywordsHashProfile, emptyKeywordsProfile, notEmptyKeywordsProfile;
 

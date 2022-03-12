@@ -50,7 +50,6 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
 
     @Child private RubyNode receiver;
     @Child private RubyNode block;
-    private final boolean hasLiteralBlock;
     @Children private final RubyNode[] arguments;
 
     private final DispatchConfiguration dispatchConfig;
@@ -70,10 +69,7 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
         this.methodName = parameters.getMethodName();
         this.receiver = parameters.getReceiver();
         this.arguments = parameters.getArguments();
-
-        final RubyNode block = parameters.getBlock();
         this.block = parameters.getBlock();
-        this.hasLiteralBlock = block instanceof BlockDefinitionNode || block instanceof LambdaToProcNode;
 
         this.dispatchConfig = parameters.isIgnoreVisibility() ? PRIVATE : PROTECTED;
         this.isVCall = parameters.isVCall();
@@ -218,7 +214,7 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
     }
 
     public boolean hasLiteralBlock() {
-        return hasLiteralBlock;
+        return block instanceof BlockDefinitionNode || block instanceof LambdaToProcNode;
     }
 
     private RubyNode getLastArgumentNode() {
