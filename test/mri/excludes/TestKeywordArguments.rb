@@ -1,6 +1,5 @@
 exclude :test_arity_error_message, "needs investigation"
 exclude :test_block_required_keyword, "needs investigation"
-exclude :test_enumerator_size_kwsplat, "needs investigation"
 exclude :test_f13, "needs investigation"
 exclude :test_kwrest_overwritten, "needs investigation"
 exclude :test_nonsymbol_key, "needs investigation"

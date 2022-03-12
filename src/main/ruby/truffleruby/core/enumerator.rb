@@ -186,7 +186,7 @@ class Enumerator
   end
 
   def size
-    @size.respond_to?(:call) ? @size.call : @size
+    @size.respond_to?(:call) ? @size.call(*@args) : @size
   end
 
   def with_index(offset=0)
