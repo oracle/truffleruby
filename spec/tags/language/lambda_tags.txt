@@ -1,4 +1,2 @@
 fails:A lambda literal -> () { } assigns variables from parameters with circular optional argument reference raises a SyntaxError if using an existing local with the same name as the argument
 fails:A lambda literal -> () { } assigns variables from parameters with circular optional argument reference raises a SyntaxError if there is an existing method with the same name as the argument
-fails:A lambda literal -> () { } assigns variables from parameters for definition '@a = -> (*, **k) { k }'
-fails:A lambda expression 'lambda { ... }' assigns variables from parameters for definition '@a = lambda { |*, **k| k }'
