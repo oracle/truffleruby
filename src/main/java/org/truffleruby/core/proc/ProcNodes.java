@@ -359,7 +359,7 @@ public abstract class ProcNodes {
         }
     }
 
-    @Primitive(name = "proc_ruby2_keywords")
+    @Primitive(name = "proc_ruby2_keywords", raiseIfFrozen = 0)
     public abstract static class ProcRuby2KeywordsNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         protected Object ruby2Keywords(RubyProc proc) {

@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.method;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import org.truffleruby.builtins.CoreMethod;
@@ -235,22 +234,18 @@ public abstract class UnboundMethodNodes {
 
         public static Object ruby2Keywords(SharedMethodInfo sharedMethodInfo, RootCallTarget callTarget) {
             final Arity arity = sharedMethodInfo.getArity();
-            if (!arity.hasRest()) {
+            if (!arity.hasRest() || arity.acceptsKeywords()) {
                 return nil;
-            } else if (arity.acceptsKeywords()) {
-                return false;
             }
 
             ReadRestArgumentNode readRestArgumentNode = NodeUtil.findFirstNodeInstance(callTarget.getRootNode(),
                     ReadRestArgumentNode.class);
-            if (readRestArgumentNode == null) {
-                throw CompilerDirectives
-                        .shouldNotReachHere("Could not find ReadRestArgumentNode for " + sharedMethodInfo);
+            if (readRestArgumentNode != null) {
+                readRestArgumentNode.markKeywordHashWithFlag();
+                return true;
+            } else {
+                return false;
             }
-
-            readRestArgumentNode.markKeywordHashWithFlag();
-
-            return true;
         }
     }
 

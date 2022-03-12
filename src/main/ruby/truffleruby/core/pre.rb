@@ -45,13 +45,21 @@ class Module
   end
 
   private def ruby2_keywords(*methods)
+    raise ArgumentError, 'wrong number of arguments (given 0, expected 1+)' if methods.empty?
+    Primitive.check_frozen(self)
+
     methods.each do |name|
       method = instance_method(name)
+      if method.owner != self
+        warn "Skipping set of ruby2_keywords flag for #{name} (can only set in method defining module)", uplevel: 1
+        next
+      end
+
       result = Primitive.unbound_method_ruby2_keywords(method)
       if Primitive.nil?(result)
-        warn "Skipping set of ruby2_keywords flag for #{name} (method does not accept argument splat)", uplevel: 1
+        warn "Skipping set of ruby2_keywords flag for #{name} (method accepts keywords or method does not accept argument splat)", uplevel: 1
       elsif result == false
-        warn "Skipping set of ruby2_keywords flag for #{name} (method accepts keywords)", uplevel: 1
+        warn "Skipping set of ruby2_keywords flag for #{name} (unknown reason)", uplevel: 1
       end
     end
     nil
@@ -62,9 +70,9 @@ class Proc
   def ruby2_keywords
     result = Primitive.proc_ruby2_keywords(self)
     if Primitive.nil?(result)
-      warn 'Skipping set of ruby2_keywords flag for proc (proc does not accept argument splat)', uplevel: 1
+      warn 'Skipping set of ruby2_keywords flag for proc (proc accepts keywords or proc does not accept argument splat)', uplevel: 1
     elsif result == false
-      warn 'Skipping set of ruby2_keywords flag for proc (proc accepts keywords)', uplevel: 1
+      warn 'Skipping set of ruby2_keywords flag for proc (unknown reason)', uplevel: 1
     end
     self
   end
