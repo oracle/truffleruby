@@ -266,8 +266,8 @@ class Enumerator
     private :initialize
 
     def each(*args, **kwargs, &block)
-      raise LocalJumpError unless block
-      Primitive.share_special_variables(Primitive.proc_special_variables(block))
+      Primitive.share_special_variables(Primitive.proc_special_variables(block)) if block
+
       enclosed_yield = Proc.new { |*enclosed_args| yield(*enclosed_args) }.ruby2_keywords
 
       @proc.call Yielder.new(&enclosed_yield), *args, **kwargs
