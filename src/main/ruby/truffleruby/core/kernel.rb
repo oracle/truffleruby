@@ -551,8 +551,8 @@ module Kernel
   end
   module_function :test
 
-  ruby2_keywords def to_enum(method=:each, *args, &block)
-    Enumerator.new(self, method, *args).tap do |enum|
+  def to_enum(method=:each, *args, **kwargs, &block)
+    Enumerator.new(self, method, *args, **kwargs).tap do |enum|
       enum.__send__ :size=, block if block_given?
     end
   end
