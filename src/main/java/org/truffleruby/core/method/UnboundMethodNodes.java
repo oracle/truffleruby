@@ -232,6 +232,7 @@ public abstract class UnboundMethodNodes {
             return ruby2Keywords(method.getSharedMethodInfo(), method.getCallTarget());
         }
 
+        @TruffleBoundary
         public static Object ruby2Keywords(SharedMethodInfo sharedMethodInfo, RootCallTarget callTarget) {
             final Arity arity = sharedMethodInfo.getArity();
             if (!arity.hasRest() || arity.acceptsKeywords()) {
