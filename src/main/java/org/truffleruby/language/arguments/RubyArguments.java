@@ -149,8 +149,9 @@ public final class RubyArguments {
         return repack(rubyArgs, receiver, from, 0);
     }
 
-    /** Same as {@code pack(null, null, null, null, receiver, getBlock(rubyArgs), getArguments(rubyArgs))} but without
-     * the intermediary Object[] allocation and arraycopy. */
+    /** Same as
+     * {@code pack(null, null, null, null, receiver, getBlock(rubyArgs), getDescriptor(rubyArgs), getRawArguments(rubyArgs))}
+     * but without the intermediary Object[] allocation and arraycopy. */
     public static Object[] repack(Object[] rubyArgs, Object receiver, int from, int to) {
         final int count = getRawArgumentsCount(rubyArgs) - from;
         final Object[] newArgs = new Object[RUNTIME_ARGUMENT_COUNT + to + count];
@@ -356,27 +357,28 @@ public final class RubyArguments {
         rubyArgs[RUNTIME_ARGUMENT_COUNT + index] = value;
     }
 
-    /** Get the user arguments out of frame arguments. Should only be used when strictly necessary, {@link #repack} or
-     * {@link #getArgument} avoid the extra allocation. */
+    /** Get the positional user arguments out of frame arguments. Should only be used when strictly necessary,
+     * {@link #repack} or {@link #getArgument} avoid the extra allocation. */
     public static Object[] getPositionalArguments(Object[] rubyArgs, boolean methodHasKeywordParameters) {
         int count = getPositionalArgumentsCount(rubyArgs, methodHasKeywordParameters);
         return ArrayUtils.extractRange(rubyArgs, RUNTIME_ARGUMENT_COUNT, RUNTIME_ARGUMENT_COUNT + count);
     }
 
-    /** Get the user arguments out of frame arguments. Should only be used when strictly necessary, {@link #repack} or
-     * {@link #getArgument} avoid the extra allocation. */
-    public static Object[] getArguments(Object[] rubyArgs) {
-        // TODO: should exclude empty kwargs hash, and rename to getPositionalArguments()
-        return ArrayUtils.extractRange(rubyArgs, RUNTIME_ARGUMENT_COUNT, rubyArgs.length);
-    }
-
     /** Get the user arguments out of frame arguments, from start to start+length. Only used by *rest arg nodes. */
-    public static Object[] getArguments(Frame frame, int start, int length) {
+    public static Object[] getRawArguments(Frame frame, int start, int length) {
         Object[] rubyArgs = frame.getArguments();
         return ArrayUtils.extractRange(rubyArgs, RUNTIME_ARGUMENT_COUNT + start,
                 RUNTIME_ARGUMENT_COUNT + start + length);
     }
 
+    /** Get the user arguments and also potentially the keyword Hash, this should only be used for delegation, and the
+     * descriptor should be preserved as well. */
+    public static Object[] getRawArguments(Object[] rubyArgs) {
+        return ArrayUtils.extractRange(rubyArgs, RUNTIME_ARGUMENT_COUNT, rubyArgs.length);
+    }
+
+    /** Get the user arguments and also potentially the keyword Hash, this should only be used for delegation, and the
+     * descriptor should be preserved as well. */
     public static Object[] getRawArguments(Frame frame) {
         Object[] rubyArgs = frame.getArguments();
         return ArrayUtils.extractRange(rubyArgs, RUNTIME_ARGUMENT_COUNT, rubyArgs.length);

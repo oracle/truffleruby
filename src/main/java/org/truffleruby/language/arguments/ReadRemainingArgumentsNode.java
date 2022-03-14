@@ -29,7 +29,7 @@ public class ReadRemainingArgumentsNode extends RubyContextSourceNode {
         final int count = RubyArguments.getPositionalArgumentsCount(frame, false);
 
         if (remainingArguments.profile(start < count)) {
-            return RubyArguments.getArguments(frame, start, count - start);
+            return RubyArguments.getRawArguments(frame, start, count - start);
         } else {
             return EMPTY_ARGUMENTS;
         }

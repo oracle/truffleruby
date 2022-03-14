@@ -204,7 +204,7 @@ public abstract class ProcNodes {
                     ProcOperations.getSelf(proc),
                     RubyArguments.getBlock(rubyArgs),
                     RubyArguments.getDescriptor(rubyArgs),
-                    RubyArguments.getArguments(rubyArgs));
+                    RubyArguments.getRawArguments(rubyArgs));
         }
     }
 
@@ -352,7 +352,7 @@ public abstract class ProcNodes {
                 if (singleArgProfile.profile(userArgumentCount == 1)) {
                     return RubyArguments.getArgument(frame, 0);
                 } else {
-                    Object[] extractedArguments = RubyArguments.getPositionalArguments(frame, false);
+                    Object[] extractedArguments = RubyArguments.getPositionalArguments(frame.getArguments(), false);
                     return createArray(extractedArguments, userArgumentCount);
                 }
             }

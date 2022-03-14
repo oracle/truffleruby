@@ -310,7 +310,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
                     ExceptionFormatter.NO_METHOD_ERROR,
                     receiver,
                     methodName,
-                    RubyArguments.getArguments(rubyArgs),
+                    RubyArguments.getPositionalArguments(rubyArgs, false),
                     this));
         }
 
@@ -324,7 +324,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         }
 
         final Object block = RubyArguments.getBlock(rubyArgs);
-        final Object[] arguments = RubyArguments.getArguments(rubyArgs);
+        final Object[] arguments = RubyArguments.getPositionalArguments(rubyArgs, false);
         return callForeign.execute(receiver, methodName, block, arguments);
     }
 
@@ -399,7 +399,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
             }
 
             final Object block = RubyArguments.getBlock(rubyArgs);
-            final Object[] arguments = RubyArguments.getArguments(rubyArgs);
+            final Object[] arguments = RubyArguments.getPositionalArguments(rubyArgs, false);
             return callForeign.execute(receiver, methodName, block, arguments);
         }
 

@@ -719,7 +719,7 @@ public abstract class KernelNodes {
                 @Cached ConditionProfile fileAndLineProfile,
                 @Cached ConditionProfile fileNoLineProfile) {
 
-            final Object[] args = RubyArguments.getArguments(rubyArgs);
+            final Object[] args = RubyArguments.getPositionalArguments(rubyArgs, false);
             final Object source = toStrNode.execute(args[0]);
 
             final RubyBinding binding;
