@@ -832,11 +832,7 @@ module Truffle::CExt
       opts[:invalid] = :replace
     end
 
-    if opts.empty?
-      str.encode(to)
-    else
-      str.encode(to, opts)
-    end
+    str.encode(to, **opts)
   end
 
   def rb_str_conv_enc_opts(str, from, to, ecflags, ecopts)
