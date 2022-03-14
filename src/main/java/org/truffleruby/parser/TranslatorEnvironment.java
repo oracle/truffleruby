@@ -15,7 +15,6 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.oracle.truffle.api.Assumption;
-import com.oracle.truffle.api.Truffle;
 import org.truffleruby.Layouts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameSlotKind;
@@ -159,8 +158,8 @@ public class TranslatorEnvironment {
             // We need to access this Assumption from the FrameDescriptor,
             // and there is no way to get a RootNode from a FrameDescriptor, so we store it in the descriptor info.
             // We do not store it as slot info for footprint, to avoid needing an info array per FrameDescriptor.
-            final Assumption doesNotNeedSpecialVariableStorageAssumption = Truffle.getRuntime()
-                    .createAssumption(SpecialVariableStorage.ASSUMPTION_NAME);
+            final Assumption doesNotNeedSpecialVariableStorageAssumption = Assumption
+                    .create(SpecialVariableStorage.ASSUMPTION_NAME);
             builder.info(doesNotNeedSpecialVariableStorageAssumption);
         }
 

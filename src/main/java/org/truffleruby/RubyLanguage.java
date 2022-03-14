@@ -230,7 +230,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     private final LanguageArray<Assumption> globalVariableNeverAliasedAssumptions = new LanguageArray<>(
             globalVariablesMap,
             Assumption[]::new,
-            () -> Truffle.getRuntime().createAssumption("global variable was never aliased: "));
+            () -> Assumption.create("global variable was never aliased: "));
 
     private static final RubyObjectType objectType = new RubyObjectType();
 

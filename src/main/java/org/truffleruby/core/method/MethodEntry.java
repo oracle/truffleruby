@@ -13,7 +13,6 @@ import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.methods.InternalMethod;
 
 import com.oracle.truffle.api.Assumption;
-import com.oracle.truffle.api.Truffle;
 import org.truffleruby.language.methods.SharedMethodInfo;
 
 public final class MethodEntry {
@@ -23,12 +22,12 @@ public final class MethodEntry {
 
     public MethodEntry(InternalMethod method) {
         assert method != null;
-        this.assumption = Truffle.getRuntime().createAssumption("method is not overridden:");
+        this.assumption = Assumption.create("method is not overridden:");
         this.method = method;
     }
 
     public MethodEntry() {
-        this.assumption = Truffle.getRuntime().createAssumption("method is not defined:");
+        this.assumption = Assumption.create("method is not defined:");
         this.method = null;
     }
 
