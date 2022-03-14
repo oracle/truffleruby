@@ -21,7 +21,7 @@ public class SplatToArgsNode extends RubyBaseNode {
 
     @Child protected ArrayStoreLibrary stores;
 
-    final IntValueProfile splatSizeProfile = IntValueProfile.createIdentityProfile();
+    final IntValueProfile splatSizeProfile = IntValueProfile.create();
 
     public SplatToArgsNode() {
         stores = ArrayStoreLibrary.getFactory().createDispatched(ArrayGuards.storageStrategyLimit());

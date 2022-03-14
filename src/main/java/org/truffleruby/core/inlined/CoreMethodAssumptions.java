@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.oracle.truffle.api.Assumption;
-import com.oracle.truffle.api.Truffle;
 
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.CoreLibrary;
@@ -139,7 +138,7 @@ public class CoreMethodAssumptions {
     }
 
     private Assumption registerAssumption(ContextGetClass classGetter, String className, String methodName) {
-        final Assumption assumption = Truffle.getRuntime().createAssumption("inlined " + className + "#" + methodName);
+        final Assumption assumption = Assumption.create("inlined " + className + "#" + methodName);
         classAssumptionsToRegister.add((cl) -> classGetter.apply(cl).fields.registerAssumption(methodName, assumption));
         return assumption;
     }
