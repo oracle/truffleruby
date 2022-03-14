@@ -163,7 +163,8 @@ describe "Arguments descriptors" do
   end
 
   it "do not consider kwargs inside an array element" do
-    def nested_kwargs(*a)
+    def nested_kwargs(*a, **kw)
+      kw.should.empty?
       info(a, Primitive.arguments_descriptor, Primitive.arguments)
     end
 
@@ -176,6 +177,12 @@ describe "Arguments descriptors" do
     info.values.should == [[{a: 1}]]
     info.descriptor.should == [] if truffleruby?
     info.arguments.should == [[{a: 1}]] if truffleruby?
+
+    array = [1]
+    info = nested_kwargs([*array, :in => "out"])
+    info.values.should == [[1, {:in=>"out"}]]
+    info.descriptor.should == [] if truffleruby?
+    info.arguments.should == [[1, {:in=>"out"}]] if truffleruby?
   end
 
   it "work for a call like our Struct.new" do

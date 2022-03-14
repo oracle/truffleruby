@@ -3109,7 +3109,12 @@ public class BodyTranslator extends Translator {
 
     private static ArgumentsDescriptor getKeywordArgumentsDescriptor(RubyLanguage language, ParseNode argsNode) {
         // Find the keyword argument hash parse node
-        final HashParseNode keywordHashArgumentNode = findLastHashParseNode(lastArrayNodeElementOrSelf(argsNode));
+
+        final ParseNode lastNode = findLastNode(argsNode);
+        HashParseNode keywordHashArgumentNode = null;
+        if (lastNode instanceof HashParseNode) {
+            keywordHashArgumentNode = (HashParseNode) lastNode;
+        }
 
         if (keywordHashArgumentNode == null || !keywordHashArgumentNode.isKeywordArguments()) {
             return EmptyArgumentsDescriptor.INSTANCE;
@@ -3134,22 +3139,27 @@ public class BodyTranslator extends Translator {
         return EmptyArgumentsDescriptor.INSTANCE;
     }
 
-    private static HashParseNode findLastHashParseNode(ParseNode node) {
-        if (node instanceof HashParseNode) {
-            return (HashParseNode) node;
-        } else if (node instanceof ArgsPushParseNode) {
-            return findLastHashParseNode(((ArgsPushParseNode) node).getSecondNode());
-        } else if (node instanceof ArgsCatParseNode) {
-            return findLastHashParseNode(lastArrayNodeElementOrSelf(((ArgsCatParseNode) node).getSecondNode()));
+    /* This is carefully written so ArrayParseNode is only considered if it is the argsNode itself, or as the RHS of an
+     * ArgsCatParseNode. For instance ArgsPushParseNode(..., ArrayParseNode(..., HashParseNode)) should not be
+     * considered as kwargs. */
+    private static ParseNode findLastNode(ParseNode argsNode) {
+        if (argsNode instanceof ArrayParseNode) {
+            return ((ArrayParseNode) argsNode).getLast();
         } else {
-            // SplatParseNode: cannot contain kwargs (*array)
-            return null;
+            return findLastNodeRecursive(argsNode);
         }
     }
 
-    private static ParseNode lastArrayNodeElementOrSelf(ParseNode node) {
-        if (node instanceof ArrayParseNode && !((ArrayParseNode) node).isEmpty()) {
-            return ((ArrayParseNode) node).getLast();
+    private static ParseNode findLastNodeRecursive(ParseNode node) {
+        if (node instanceof ArgsPushParseNode) {
+            return findLastNodeRecursive(((ArgsPushParseNode) node).getSecondNode());
+        } else if (node instanceof ArgsCatParseNode) {
+            final ParseNode rhs = ((ArgsCatParseNode) node).getSecondNode();
+            if (rhs instanceof ArrayParseNode && !((ArrayParseNode) rhs).isEmpty()) {
+                return findLastNodeRecursive(((ArrayParseNode) rhs).getLast());
+            } else {
+                return node;
+            }
         } else {
             return node;
         }
