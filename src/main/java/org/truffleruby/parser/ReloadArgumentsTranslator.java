@@ -27,6 +27,7 @@ import org.truffleruby.parser.ast.AssignableParseNode;
 import org.truffleruby.parser.ast.KeywordArgParseNode;
 import org.truffleruby.parser.ast.KeywordRestArgParseNode;
 import org.truffleruby.parser.ast.MultipleAsgnParseNode;
+import org.truffleruby.parser.ast.NoKeywordsArgParseNode;
 import org.truffleruby.parser.ast.OptArgParseNode;
 import org.truffleruby.parser.ast.ParseNode;
 import org.truffleruby.parser.ast.RestArgParseNode;
@@ -171,6 +172,11 @@ public class ReloadArgumentsTranslator extends Translator {
     public RubyNode visitKeywordRestArgNode(KeywordRestArgParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
         return methodBodyTranslator.getEnvironment().findLocalVarNode(node.getName(), sourceSection);
+    }
+
+    @Override
+    public RubyNode visitNoKeywordsArgNode(NoKeywordsArgParseNode node) {
+        return defaultVisit(node);
     }
 
     @Override

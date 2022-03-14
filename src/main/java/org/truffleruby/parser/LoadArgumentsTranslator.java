@@ -25,6 +25,7 @@ import org.truffleruby.core.cast.SplatCastNodeGen;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.ArrayIsAtLeastAsLargeAsNode;
+import org.truffleruby.language.arguments.CheckNoKeywordArgumentsNode;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.MissingKeywordArgumentNode;
 import org.truffleruby.language.arguments.ReadKeywordArgumentNode;
@@ -50,6 +51,7 @@ import org.truffleruby.parser.ast.KeywordRestArgParseNode;
 import org.truffleruby.parser.ast.LocalAsgnParseNode;
 import org.truffleruby.parser.ast.MultipleAsgnParseNode;
 import org.truffleruby.parser.ast.NilImplicitParseNode;
+import org.truffleruby.parser.ast.NoKeywordsArgParseNode;
 import org.truffleruby.parser.ast.OptArgParseNode;
 import org.truffleruby.parser.ast.ParseNode;
 import org.truffleruby.parser.ast.RequiredKeywordArgumentValueParseNode;
@@ -254,6 +256,11 @@ public class LoadArgumentsTranslator extends Translator {
         final int slot = methodBodyTranslator.getEnvironment().declareVar(node.getName());
 
         return new WriteLocalVariableNode(slot, readNode);
+    }
+
+    @Override
+    public RubyNode visitNoKeywordsArgNode(NoKeywordsArgParseNode node) {
+        return new CheckNoKeywordArgumentsNode();
     }
 
     @Override

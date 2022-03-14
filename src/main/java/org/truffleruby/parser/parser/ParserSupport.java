@@ -122,6 +122,7 @@ import org.truffleruby.parser.ast.MatchParseNode;
 import org.truffleruby.parser.ast.MultipleAsgnParseNode;
 import org.truffleruby.parser.ast.NilImplicitParseNode;
 import org.truffleruby.parser.ast.NilParseNode;
+import org.truffleruby.parser.ast.NoKeywordsArgParseNode;
 import org.truffleruby.parser.ast.NthRefParseNode;
 import org.truffleruby.parser.ast.NumericParseNode;
 import org.truffleruby.parser.ast.OpAsgnConstDeclParseNode;
@@ -1437,8 +1438,8 @@ public class ParserSupport {
         if (keywordRestArgNameRope == null) {
             return new ArgsTailHolder(position, keywordArg, null, blockArg);
         } else if (keywordRestArgNameRope == RubyLexer.Keyword.NIL.bytes) { // def m(**nil)
-            // TODO (eregon, 6 Nov 2020): actually implement **nil semantics
-            return new ArgsTailHolder(position, keywordArg, null, blockArg);
+            return new ArgsTailHolder(position, keywordArg,
+                    new NoKeywordsArgParseNode(position, Layouts.TEMP_PREFIX + "nil_kwrest"), blockArg);
         }
 
         final String restKwargsName;

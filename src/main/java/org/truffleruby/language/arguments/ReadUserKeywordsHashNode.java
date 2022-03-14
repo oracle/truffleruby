@@ -25,7 +25,9 @@ public final class ReadUserKeywordsHashNode extends RubyBaseNode {
     public RubyHash execute(VirtualFrame frame) {
         final ArgumentsDescriptor descriptor = RubyArguments.getDescriptor(frame);
         if (keywordArgumentsProfile.profile(descriptor instanceof KeywordArgumentsDescriptor)) {
-            return (RubyHash) RubyArguments.getLastArgument(frame);
+            final RubyHash keywords = (RubyHash) RubyArguments.getLastArgument(frame);
+            assert !keywords.empty();
+            return keywords;
         } else {
             return null;
         }
