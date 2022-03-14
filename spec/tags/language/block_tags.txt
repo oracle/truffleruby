@@ -1,3 +1,2 @@
-fails:A block yielded a single Array calls #to_hash on the argument but ignores result when optional argument and keyword argument accepted
 fails:Post-args with optional args with a circular argument reference raises a SyntaxError if using an existing local with the same name as the argument
 fails:Post-args with optional args with a circular argument reference raises a SyntaxError if there is an existing method with the same name as the argument
