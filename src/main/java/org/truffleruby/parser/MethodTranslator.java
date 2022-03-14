@@ -143,6 +143,7 @@ public class MethodTranslator extends BodyTranslator {
         final Supplier<RootCallTarget> procCompiler = procCompiler(
                 sourceSection,
                 source,
+                arityForCheck,
                 preludeProc,
                 body,
                 methodCalledLambda,
@@ -243,6 +244,7 @@ public class MethodTranslator extends BodyTranslator {
     private static Supplier<RootCallTarget> procCompiler(
             SourceIndexLength sourceSection,
             Source source,
+            Arity arityForCheck,
             RubyNode preludeProc,
             RubyNode body,
             boolean methodCalledLambda,
@@ -266,7 +268,8 @@ public class MethodTranslator extends BodyTranslator {
                     environment.getSharedMethodInfo(),
                     bodyProc,
                     Split.HEURISTIC,
-                    environment.getReturnID());
+                    environment.getReturnID(),
+                    arityForCheck);
 
             final RootCallTarget callTarget = newRootNodeForProcs.getCallTarget();
 

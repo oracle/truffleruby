@@ -12,11 +12,13 @@ package org.truffleruby.language;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.TruffleSafepoint;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.arguments.CheckKeywordArityNode;
 import org.truffleruby.language.control.NextException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.RedoException;
 import org.truffleruby.language.control.RetryException;
 import org.truffleruby.language.control.ReturnID;
+import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.methods.TranslateExceptionNode;
@@ -29,6 +31,7 @@ import com.oracle.truffle.api.source.SourceSection;
 public class RubyProcRootNode extends RubyRootNode {
 
     @Child private TranslateExceptionNode translateExceptionNode;
+    @Child private CheckKeywordArityNode checkKeywordArityNode;
 
     @CompilationFinal private boolean redoProfile, nextProfile, retryProfile;
 
@@ -39,13 +42,21 @@ public class RubyProcRootNode extends RubyRootNode {
             SharedMethodInfo sharedMethodInfo,
             RubyNode body,
             Split split,
-            ReturnID returnID) {
+            ReturnID returnID,
+            Arity arityForCheck) {
         super(language, sourceSection, frameDescriptor, sharedMethodInfo, body, split, returnID);
+        this.checkKeywordArityNode = arityForCheck.hasKeywords() && !arityForCheck.hasKeywordsRest()
+                ? new CheckKeywordArityNode(arityForCheck)
+                : null;
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
         TruffleSafepoint.poll(this);
+
+        if (checkKeywordArityNode != null) {
+            checkKeywordArityNode.checkArity(frame);
+        }
 
         try {
             while (true) {

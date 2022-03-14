@@ -31,6 +31,7 @@ public abstract class RubyCheckArityRootNode extends RubyRootNode {
     @Child private CheckKeywordArityNode checkKeywordArityNode;
 
     public final Arity arityForCheck;
+    private final boolean keywordArguments;
 
     @CompilationFinal private boolean checkArityProfile;
 
@@ -46,13 +47,16 @@ public abstract class RubyCheckArityRootNode extends RubyRootNode {
         super(language, sourceSection, frameDescriptor, sharedMethodInfo, body, split, returnID);
 
         this.arityForCheck = arityForCheck;
-        final boolean acceptsKeywords = arityForCheck.acceptsKeywords();
-        this.checkKeywordArityNode = acceptsKeywords ? new CheckKeywordArityNode() : null;
+        this.keywordArguments = arityForCheck.acceptsKeywords();
+        this.checkKeywordArityNode = keywordArguments && !arityForCheck.hasKeywordsRest()
+                ? new CheckKeywordArityNode(arityForCheck)
+                : null;
     }
 
     protected void checkArity(VirtualFrame frame) {
-        if (checkKeywordArityNode == null) { // acceptsKeywords=false
-            int given = RubyArguments.getPositionalArgumentsCount(frame, false);
+        int given = RubyArguments.getPositionalArgumentsCount(frame, keywordArguments);
+
+        if (!keywordArguments) {
             if (!arityForCheck.check(given)) {
                 if (!checkArityProfile) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -61,8 +65,19 @@ public abstract class RubyCheckArityRootNode extends RubyRootNode {
 
                 checkArityError(arityForCheck, given, this);
             }
-        } else { // acceptsKeywords=true
-            checkKeywordArityNode.checkArity(frame, arityForCheck);
+        } else {
+            if (!arityForCheck.basicCheck(given)) {
+                if (!checkArityProfile) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    checkArityProfile = true;
+                }
+
+                checkArityError(arityForCheck, given, this);
+            }
+
+            if (checkKeywordArityNode != null) {
+                checkKeywordArityNode.checkArity(frame);
+            }
         }
     }
 

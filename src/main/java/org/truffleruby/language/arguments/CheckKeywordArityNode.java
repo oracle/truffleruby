@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.arguments;
 
-import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.hash.RubyHash;
@@ -25,42 +24,28 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
+/** Check that no extra keyword arguments are given, when there is no **kwrest */
 public class CheckKeywordArityNode extends RubyBaseNode {
 
+    public final Arity arity;
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
     @Child private CheckKeywordArgumentsNode checkKeywordArgumentsNode;
     @Child private HashStoreLibrary hashes;
 
-    @CompilationFinal private boolean basicArityCheckFailedProfile;
-
-    public CheckKeywordArityNode() {
+    public CheckKeywordArityNode(Arity arity) {
+        assert !arity.hasKeywordsRest() : "no need to create this node";
+        this.arity = arity;
         this.readUserKeywordsHashNode = new ReadUserKeywordsHashNode();
     }
 
-    public void checkArity(VirtualFrame frame, Arity arity) {
-        CompilerAsserts.partialEvaluationConstant(arity);
-
-        final int positionalArgumentsCount = RubyArguments.getPositionalArgumentsCount(frame, true);
-        if (!arity.basicCheck(positionalArgumentsCount)) {
-            if (!basicArityCheckFailedProfile) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                basicArityCheckFailedProfile = true;
-            }
-
-            throw new RaiseException(getContext(),
-                    coreExceptions().argumentError(positionalArgumentsCount, arity.getRequired(), this));
-        }
-
-
-        if (!arity.hasKeywordsRest()) {
-            final RubyHash keywordArguments = readUserKeywordsHashNode.execute(frame);
-            if (keywordArguments != null) {
-                checkKeywordArguments(keywordArguments, arity, getLanguage());
-            }
+    public void checkArity(VirtualFrame frame) {
+        final RubyHash keywordArguments = readUserKeywordsHashNode.execute(frame);
+        if (keywordArguments != null) {
+            checkKeywordArguments(keywordArguments, getLanguage());
         }
     }
 
-    void checkKeywordArguments(RubyHash keywordArguments, Arity arity, RubyLanguage language) {
+    private void checkKeywordArguments(RubyHash keywordArguments, RubyLanguage language) {
         if (hashes == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             hashes = insert(HashStoreLibrary.createDispatched());
