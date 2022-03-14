@@ -358,19 +358,19 @@ public final class RubyArguments {
 
     /** Get the user arguments out of frame arguments. Should only be used when strictly necessary, {@link #repack} or
      * {@link #getArgument} avoid the extra allocation. */
+    public static Object[] getPositionalArguments(Object[] rubyArgs, boolean methodHasKeywordParameters) {
+        int count = getPositionalArgumentsCount(rubyArgs, methodHasKeywordParameters);
+        return ArrayUtils.extractRange(rubyArgs, RUNTIME_ARGUMENT_COUNT, RUNTIME_ARGUMENT_COUNT + count);
+    }
+
+    /** Get the user arguments out of frame arguments. Should only be used when strictly necessary, {@link #repack} or
+     * {@link #getArgument} avoid the extra allocation. */
     public static Object[] getArguments(Object[] rubyArgs) {
         // TODO: should exclude empty kwargs hash, and rename to getPositionalArguments()
         return ArrayUtils.extractRange(rubyArgs, RUNTIME_ARGUMENT_COUNT, rubyArgs.length);
     }
 
-    /** Get the user arguments out of frame arguments. */
-    public static Object[] getArguments(Frame frame) {
-        // TODO: should exclude empty kwargs hash
-        Object[] rubyArgs = frame.getArguments();
-        return ArrayUtils.extractRange(rubyArgs, RUNTIME_ARGUMENT_COUNT, rubyArgs.length);
-    }
-
-    /** Get the user arguments out of frame arguments, from start to start+length. */
+    /** Get the user arguments out of frame arguments, from start to start+length. Only used by *rest arg nodes. */
     public static Object[] getArguments(Frame frame, int start, int length) {
         Object[] rubyArgs = frame.getArguments();
         return ArrayUtils.extractRange(rubyArgs, RUNTIME_ARGUMENT_COUNT + start,
