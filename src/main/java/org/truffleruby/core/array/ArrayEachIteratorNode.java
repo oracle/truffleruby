@@ -48,7 +48,7 @@ public abstract class ArrayEachIteratorNode extends RubyBaseNode {
             @CachedLibrary("array.store") ArrayStoreLibrary stores,
             // Checkstyle: resume
             @Cached LoopConditionProfile loopProfile,
-            @Cached("createIdentityProfile()") IntValueProfile arraySizeProfile,
+            @Cached IntValueProfile arraySizeProfile,
             @Cached ConditionProfile strategyMatchProfile) {
         int i = startAt;
         try {
