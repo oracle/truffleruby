@@ -36,7 +36,6 @@ import org.truffleruby.parser.Identifiers;
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.utilities.NeverValidAssumption;
 
 public abstract class ModuleOperations {
 
@@ -127,7 +126,7 @@ public abstract class ModuleOperations {
             if (constant.isAutoload() && constant.getAutoloadConstant().isAutoloading()) {
                 if (assumptions != null) {
                     // Cannot cache the lookup of an autoloading constant as the result depends on the calling thread
-                    assumptions.add(NeverValidAssumption.INSTANCE);
+                    assumptions.add(Assumption.NEVER_VALID);
                 }
                 return !constant.getAutoloadConstant().isAutoloadingThread();
             } else {
