@@ -108,6 +108,35 @@ ruby_version_is "3.0" do
         m({a: 1}).should == [[{a: 1}], {}]
       end
 
+      it "works with proc { |*args, **kwargs| }" do
+        m = proc do |*args, **kwargs|
+          target(*args, **kwargs)
+        end
+
+        empty = {}
+        m.(**empty).should == [[], {}]
+        m.(empty).should == [[{}], {}]
+
+        m.(a: 1).should == [[], {a: 1}]
+        m.({a: 1}).should == [[{a: 1}], {}]
+
+        # no autosplatting for |*args, **kwargs|
+        m.([1, 2]).should == [[[1, 2]], {}]
+      end
+
+      it "works with -> (*args, **kwargs) {}" do
+        m = -> (*args, **kwargs) do
+          target(*args, **kwargs)
+        end
+
+        empty = {}
+        m.(**empty).should == [[], {}]
+        m.(empty).should == [[{}], {}]
+
+        m.(a: 1).should == [[], {a: 1}]
+        m.({a: 1}).should == [[{a: 1}], {}]
+      end
+
       it "works with (...)" do
         def m(...)
           target(...)
