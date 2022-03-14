@@ -227,7 +227,7 @@ public class MethodTranslator extends BodyTranslator {
                                             new ReadLocalVariableNode(LocalVariableType.FRAME_LOCAL, arraySlot)))));
 
             final RubyNode shouldDestructureAndArrayWasNotNil = new AndNode(
-                    new ShouldDestructureNode(),
+                    new ShouldDestructureNode(arity.acceptsKeywords()),
                     arrayWasNotNil);
 
             preludeProc = new IfElseNode(
@@ -345,16 +345,21 @@ public class MethodTranslator extends BodyTranslator {
     }
 
     private boolean shouldConsiderDestructuringArrayArg(Arity arity) {
-        if (arity.hasKeywordsRest()) {
+        if (arity.getRequired() == 1 && arity.getOptional() == 0 && !arity.hasRest() && arity.hasKeywordsRest()) {
+            // Special case for: proc { |a, **kw| a }.call([1, 2]) => 1
+            // Seems inconsistent: https://bugs.ruby-lang.org/issues/16166#note-14
             return true;
         }
-        // If we do not accept any arguments or only one required, there's never any need to destructure
-        if (!arity.hasRest() && arity.getOptional() == 0 && arity.getRequired() <= 1) {
+
+        if (!arity.hasRest() && arity.getRequired() + arity.getOptional() <= 1) {
+            // If we accept at most 0 or 1 arguments, there's never any need to destructure
             return false;
+        } else if (arity.hasRest() && arity.getRequired() == 0) {
             // If there are only a rest argument and optional arguments, there is no need to destructure.
             // Because the first optional argument (or the rest if no optional) will take the whole array.
+            return false;
         } else {
-            return !arity.hasRest() || arity.getRequired() != 0;
+            return true;
         }
     }
 

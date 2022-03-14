@@ -21,11 +21,20 @@ public class ShouldDestructureNode extends RubyContextSourceNode {
 
     @Child private InternalRespondToNode respondToToAry;
 
+    private final boolean keywordArguments;
     private final BranchProfile checkIsArrayProfile = BranchProfile.create();
+
+    public ShouldDestructureNode(boolean keywordArguments) {
+        this.keywordArguments = keywordArguments;
+    }
 
     @Override
     public Object execute(VirtualFrame frame) {
-        if (RubyArguments.getRawArgumentsCount(frame) != 1) { // TODO check correct if kwargs given
+        if (RubyArguments.getDescriptor(frame) instanceof KeywordArgumentsDescriptor) {
+            return false;
+        }
+
+        if (RubyArguments.getPositionalArgumentsCount(frame, keywordArguments) != 1) {
             return false;
         }
 

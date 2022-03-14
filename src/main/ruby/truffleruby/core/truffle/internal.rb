@@ -51,36 +51,6 @@ module Truffle::Internal
     file
   end
 
-  def self.load_arguments_from_array_kw_helper(array, kwrest_name, binding)
-    array = array.dup
-
-    last_arg = array.pop
-
-    if last_arg.respond_to?(:to_hash)
-      kwargs = last_arg.to_hash
-
-      if Primitive.nil? kwargs
-        array.push last_arg
-        return array
-      end
-
-      raise TypeError, "can't convert #{last_arg.class} to Hash (#{last_arg.class}#to_hash gives #{kwargs.class})" unless Primitive.object_kind_of?(kwargs, Hash)
-
-      return array + [kwargs] unless kwargs.keys.any? { |k| Primitive.object_kind_of?(k, Symbol) }
-
-      kwargs.select! do |key, value|
-        symbol = Primitive.object_kind_of?(key, Symbol)
-        array.push({key => value}) unless symbol
-        symbol
-      end
-    else
-      kwargs = {}
-    end
-
-    binding.local_variable_set(kwrest_name, kwargs) if kwrest_name
-    array
-  end
-
   def self.when_splat(cases, expression)
     cases.any? do |c|
       c === expression

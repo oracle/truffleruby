@@ -22,7 +22,6 @@ import org.truffleruby.core.array.ArrayLiteralNode;
 import org.truffleruby.core.array.ArraySliceNodeGen;
 import org.truffleruby.core.cast.SplatCastNode;
 import org.truffleruby.core.cast.SplatCastNodeGen;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.ArrayIsAtLeastAsLargeAsNode;
@@ -34,10 +33,8 @@ import org.truffleruby.language.arguments.ReadOptionalArgumentNode;
 import org.truffleruby.language.arguments.ReadPostArgumentNode;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.ReadRestArgumentNode;
-import org.truffleruby.language.arguments.RunBlockKWArgsHelperNode;
 import org.truffleruby.language.arguments.SaveMethodBlockNode;
 import org.truffleruby.language.control.IfElseNode;
-import org.truffleruby.language.control.IfNode;
 import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.locals.LocalVariableType;
 import org.truffleruby.language.locals.ReadLocalVariableNode;
@@ -132,26 +129,6 @@ public class LoadArgumentsTranslator extends Translator {
         //}
 
         final ParseNode[] args = argsNode.getArgs();
-
-        final boolean useHelper = useArray() && argsNode.hasKeyRest();
-
-        if (useHelper) {
-            sequence.add(argsNode.getKeyRest().accept(this));
-
-            final Object keyRestNameOrNil;
-
-            if (argsNode.hasKeyRest()) {
-                final String name = argsNode.getKeyRest().getName();
-                methodBodyTranslator.getEnvironment().declareVar(name);
-                keyRestNameOrNil = language.getSymbol(name);
-            } else {
-                keyRestNameOrNil = Nil.INSTANCE;
-            }
-
-            sequence.add(new IfNode(
-                    new ArrayIsAtLeastAsLargeAsNode(required, loadArray(sourceSection)),
-                    new RunBlockKWArgsHelperNode(arraySlotStack.peek().getArraySlot(), keyRestNameOrNil)));
-        }
 
         final int preCount = argsNode.getPreCount();
 
@@ -261,9 +238,7 @@ public class LoadArgumentsTranslator extends Translator {
         }
 
         if (argsNode.getKeyRest() != null) {
-            if (!useHelper) {
-                sequence.add(argsNode.getKeyRest().accept(this));
-            }
+            sequence.add(argsNode.getKeyRest().accept(this));
         }
 
         if (argsNode.getBlock() != null) {
