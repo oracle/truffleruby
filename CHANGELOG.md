@@ -19,6 +19,7 @@ Bug fixes:
 * Fix `Array#pack` with `x*` to not output null characters (#2614, @bjfish).
 * Fix `Random#rand` not returning random floats when given float ranges (#2612, @bjfish).
 * Fix `Array#sample` for `[]` when called without `n` and a `Random` is given (#2612, @bjfish).
+* Fix `Enumerator::Lazy#with_index` to start with new index for multiple enumerations (@bjfish).
 
 Compatibility:
 

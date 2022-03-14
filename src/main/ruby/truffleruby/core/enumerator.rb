@@ -230,10 +230,13 @@ class Enumerator
   end
 
   class Yielder
+    attr_accessor :memo
+
     def initialize(&block)
       raise LocalJumpError, 'Expected a block to be given' unless block_given?
 
       @proc = block
+      @memo = nil
 
       self
     end
@@ -505,16 +508,17 @@ class Enumerator
       offset = if Primitive.nil?(offset)
                  0
                else
-                 Truffle::Type.coerce_to offset, Integer, :to_int
+                 offset
                end
 
       Lazy.new(self, enumerator_size) do |yielder, *args|
+        memo = yielder.memo || offset
         if block
-          yielder.yield yield(*args, offset)
+          yielder.yield yield(*args, memo)
         else
-          yielder.yield(*args, offset)
+          yielder.yield(*args, memo)
         end
-        offset += 1
+        yielder.memo = Primitive.rb_num2long(memo) + 1
       end
     end
 
