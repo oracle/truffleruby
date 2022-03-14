@@ -28,7 +28,9 @@ ruby_version_is "2.7" do
       end
 
       h = {a: 1}
-      obj.regular(**h).should.equal?(h)
+      ruby_version_is "3.0" do
+        obj.regular(**h).should.equal?(h)
+      end
 
       last = obj.foo(**h)
       Hash.ruby2_keywords_hash?(last).should == true
