@@ -92,12 +92,8 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
         Object[] rubyArgs = RubyArguments.allocate(arguments.length);
         RubyArguments.setSelf(rubyArgs, receiverObject);
 
-        executeArguments(frame, rubyArgs);
-
-        RubyArguments.setBlock(rubyArgs, executeBlock(frame));
-
-        // The expansion of the splat is done after executing the block, for m(*args, &args.pop)
         final ArgumentsDescriptor descriptor;
+        executeArguments(frame, rubyArgs);
         if (isSplatted) {
             rubyArgs = splatArgs(receiverObject, rubyArgs);
             descriptor = getArgumentsDescriptorAndCheckRuby2KeywordsHash(rubyArgs,
@@ -105,6 +101,8 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
         } else {
             descriptor = this.descriptor;
         }
+
+        RubyArguments.setBlock(rubyArgs, executeBlock(frame));
 
         return doCall(frame, receiverObject, descriptor, rubyArgs);
     }
@@ -122,15 +120,14 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
         RubyArguments.setSelf(rubyArgs, receiverObject);
 
         executeArguments(frame, rubyArgs);
-
-        RubyArguments.setBlock(rubyArgs, executeBlock(frame));
-
         if (isSplatted) {
             rubyArgs = splatArgs(receiverObject, rubyArgs);
         }
 
         assert RubyArguments.getLastArgument(rubyArgs) == nil;
         RubyArguments.setLastArgument(rubyArgs, value);
+
+        RubyArguments.setBlock(rubyArgs, executeBlock(frame));
 
         // no ruby2_keywords behavior for assign
         doCall(frame, receiverObject, descriptor, rubyArgs);

@@ -146,12 +146,13 @@ public final class RubyArguments {
     }
 
     public static Object[] repack(Object[] rubyArgs, Object receiver, int from) {
-        return repack(rubyArgs, receiver, from, 0, getRawArgumentsCount(rubyArgs) - from);
+        return repack(rubyArgs, receiver, from, 0);
     }
 
     /** Same as {@code pack(null, null, null, null, receiver, getBlock(rubyArgs), getArguments(rubyArgs))} but without
      * the intermediary Object[] allocation and arraycopy. */
-    public static Object[] repack(Object[] rubyArgs, Object receiver, int from, int to, int count) {
+    public static Object[] repack(Object[] rubyArgs, Object receiver, int from, int to) {
+        final int count = getRawArgumentsCount(rubyArgs) - from;
         final Object[] newArgs = new Object[RUNTIME_ARGUMENT_COUNT + to + count];
         newArgs[ArgumentIndicies.SELF.ordinal()] = receiver;
         newArgs[ArgumentIndicies.BLOCK.ordinal()] = getBlock(rubyArgs);

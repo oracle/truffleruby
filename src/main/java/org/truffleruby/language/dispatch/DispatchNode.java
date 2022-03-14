@@ -299,8 +299,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
 
     private Object callMethodMissing(Frame frame, Object receiver, String methodName, Object[] rubyArgs) {
         final RubySymbol symbolName = nameToSymbol(methodName);
-        final Object[] newArgs = RubyArguments.repack(rubyArgs, receiver, 0, 1,
-                RubyArguments.getRawArgumentsCount(rubyArgs));
+        final Object[] newArgs = RubyArguments.repack(rubyArgs, receiver, 0, 1);
 
         RubyArguments.setArgument(newArgs, 0, symbolName);
         final Object result = callMethodMissingNode(frame, receiver, newArgs);
