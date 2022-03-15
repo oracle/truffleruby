@@ -670,7 +670,7 @@ module Kernel
   end
   module_function :warn
 
-  def raise(exc = undefined, msg = undefined, ctx = nil, cause: undefined)
+  def raise(exc = undefined, msg = undefined, ctx = nil, cause: undefined, **kwargs)
     cause_given = !Primitive.undefined?(cause)
     cause = cause_given ? cause : $!
 
@@ -678,6 +678,14 @@ module Kernel
       raise ArgumentError, 'only cause is given with no arguments' if cause_given
       exc = cause
     else
+      unless kwargs.empty?
+        if Primitive.undefined?(msg)
+          msg = kwargs
+        else
+          raise ArgumentError, 'cannot give both message and extra keyword arguments'
+        end
+      end
+
       exc = Truffle::ExceptionOperations.build_exception_for_raise(exc, msg)
 
       exc.set_backtrace(ctx) if ctx
