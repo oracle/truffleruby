@@ -1183,6 +1183,15 @@ module Truffle::CExt
     obj
   end
 
+  def rb_class_new_instance_kw(klass, args)
+    *args, kwargs = args
+    kwargs = Truffle::Type.rb_convert_type kwargs, Hash, :to_hash
+
+    obj = klass.send(:__allocate__)
+    obj.send(:initialize, *args, **kwargs)
+    obj
+  end
+
   def rb_f_sprintf(args)
     sprintf(*args)
   end

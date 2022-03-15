@@ -86,8 +86,11 @@ VALUE rb_class_new_instance(int argc, const VALUE *argv, VALUE klass) {
 }
 
 VALUE rb_class_new_instance_kw(int argc, const VALUE *argv, VALUE klass, int kw_splat) {
-  // Ignoring kw_splat for now
-  return rb_class_new_instance(argc, argv, klass);
+  if (kw_splat && argc > 0) {
+    return RUBY_CEXT_INVOKE("rb_class_new_instance_kw", klass, rb_ary_new4(argc, argv));
+  } else {
+    return rb_class_new_instance(argc, argv, klass);
+  }
 }
 
 VALUE rb_cvar_defined(VALUE klass, ID id) {
