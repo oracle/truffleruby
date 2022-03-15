@@ -1,1 +1,0 @@
-fails:Dir.foreach accepts an encoding keyword for the encoding of the entries

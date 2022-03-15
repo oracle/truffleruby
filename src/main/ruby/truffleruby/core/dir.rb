@@ -265,10 +265,10 @@ class Dir
       end
     end
 
-    def foreach(path)
-      return to_enum(:foreach, path) unless block_given?
+    def foreach(path, **options)
+      return to_enum(:foreach, path, **options) unless block_given?
 
-      open(path) do |dir|
+      open(path, **options) do |dir|
         while s = dir.read
           yield s
         end
