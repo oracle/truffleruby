@@ -22,6 +22,16 @@ module Truffle::CExt
     RData.new(object, data_holder)
   end
 
+  def RDATA_PTR(object)
+    # A specialized version of rb_check_type(object, T_DATA)
+    data_holder = Primitive.object_hidden_var_get(object, DATA_HOLDER)
+    unless data_holder
+      raise TypeError, "wrong argument type #{object.class} (expected T_DATA)"
+    end
+
+    data_holder.data
+  end
+
   def RBASIC(object)
     if Primitive.immediate_value?(object)
       raise TypeError, "immediate values don't include the RBasic struct"
