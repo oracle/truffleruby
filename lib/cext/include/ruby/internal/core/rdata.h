@@ -138,7 +138,7 @@ static inline void *
 rb_data_object_get(VALUE obj)
 {
 #ifdef TRUFFLERUBY
-    return DATA_PTR(obj);
+    return polyglot_invoke(RUBY_CEXT, "RDATA_PTR", rb_tr_unwrap(obj));
 #else
     Check_Type(obj, RUBY_T_DATA);
     return DATA_PTR(obj);
