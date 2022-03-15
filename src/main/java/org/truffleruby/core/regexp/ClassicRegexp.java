@@ -45,7 +45,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 import org.jcodings.Encoding;
-import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.joni.NameEntry;
 import org.joni.Option;
@@ -281,7 +280,7 @@ public class ClassicRegexp implements ReOptions {
 
     private static int unescapeUnicodeList(RopeBuilder to, byte[] bytes, int p, int end,
             RubyEncoding[] encp, Rope str, RegexpSupport.ErrorMode mode) throws DeferredRaiseException {
-        while (p < end && ASCIIEncoding.INSTANCE.isSpace(bytes[p] & 0xff)) {
+        while (p < end && StringSupport.isAsciiSpace(bytes[p] & 0xff)) {
             p++;
         }
 
@@ -300,7 +299,7 @@ public class ClassicRegexp implements ReOptions {
                 appendUtf8(to, code, encp, str, mode);
             }
             hasUnicode = true;
-            while (p < end && ASCIIEncoding.INSTANCE.isSpace(bytes[p] & 0xff)) {
+            while (p < end && StringSupport.isAsciiSpace(bytes[p] & 0xff)) {
                 p++;
             }
         }
