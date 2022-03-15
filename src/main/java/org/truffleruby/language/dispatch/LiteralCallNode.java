@@ -85,7 +85,7 @@ public abstract class LiteralCallNode extends RubyContextSourceNode {
     }
 
     // NOTE: args is either frame args or user args
-    protected Object[] removeEmptyKeywordArguments(Object[] args) {
+    public static Object[] removeEmptyKeywordArguments(Object[] args) {
         return ArrayUtils.extractRange(args, 0, args.length - 1);
     }
 

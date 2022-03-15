@@ -77,7 +77,7 @@ public final class RubyArguments {
 
         if (descriptor instanceof KeywordArgumentsDescriptor) {
             final Object lastArgument = getLastArgument(rubyArgs);
-            assert lastArgument instanceof RubyHash;
+            assert lastArgument instanceof RubyHash : "the last frame argument must be a Hash with a kwargs descriptor";
             assert !((RubyHash) lastArgument).empty() : "empty kwargs should not have been passed";
         }
 

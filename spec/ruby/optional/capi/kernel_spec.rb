@@ -567,6 +567,46 @@ describe "C-API Kernel function" do
     end
   end
 
+  describe "rb_funcallv" do
+    def empty
+      42
+    end
+
+    def sum(a, b)
+      a + b
+    end
+
+    it "calls a method" do
+      @s.rb_funcallv(self, :empty, []).should == 42
+      @s.rb_funcallv(self, :sum, [1, 2]).should == 3
+    end
+  end
+
+  ruby_version_is "3.0" do
+    describe "rb_funcallv_kw" do
+      it "passes keyword arguments to the callee" do
+        def m(*args, **kwargs)
+          [args, kwargs]
+        end
+
+        @s.rb_funcallv_kw(self, :m, [{}]).should == [[], {}]
+        @s.rb_funcallv_kw(self, :m, [{a: 1}]).should == [[], {a: 1}]
+        @s.rb_funcallv_kw(self, :m, [{b: 2}, {a: 1}]).should == [[{b: 2}], {a: 1}]
+        @s.rb_funcallv_kw(self, :m, [{b: 2}, {}]).should == [[{b: 2}], {}]
+      end
+
+      it "raises TypeError if the last argument is not a Hash" do
+        def m(*args, **kwargs)
+          [args, kwargs]
+        end
+
+        -> {
+          @s.rb_funcallv_kw(self, :m, [42])
+        }.should raise_error(TypeError, 'no implicit conversion of Integer into Hash')
+      end
+    end
+  end
+
   describe "rb_funcallv_public" do
     before :each do
       @obj = Object.new
@@ -580,6 +620,7 @@ describe "C-API Kernel function" do
     it "calls a public method" do
       @s.rb_funcallv_public(@obj, :method_public).should == :method_public
     end
+
     it "does not call a private method" do
       -> { @s.rb_funcallv_public(@obj, :method_private) }.should raise_error(NoMethodError, /private/)
     end
@@ -599,6 +640,7 @@ describe "C-API Kernel function" do
       @s.rb_funcall_many_args(@obj, :many_args).should == 15.downto(1).to_a
     end
   end
+
   describe 'rb_funcall_with_block' do
     before :each do
       @obj = Object.new

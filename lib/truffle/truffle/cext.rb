@@ -875,6 +875,10 @@ module Truffle::CExt
     Primitive.send_argv_without_cext_lock(recv, meth, argv, nil)
   end
 
+  def rb_funcallv_keywords(recv, meth, argv)
+    Primitive.send_argv_keywords_without_cext_lock(recv, meth, argv, nil)
+  end
+
   def rb_funcall(recv, meth, n, *args)
     Primitive.send_without_cext_lock(recv, meth, args, nil)
   end

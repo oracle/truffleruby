@@ -34,7 +34,9 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.core.MarkingServiceNodes;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.cast.HashCastNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.ErrnoErrorNode;
@@ -45,6 +47,7 @@ import org.truffleruby.core.format.exceptions.FormatException;
 import org.truffleruby.core.format.exceptions.InvalidFormatException;
 import org.truffleruby.core.format.rbsprintf.RBSprintfCompiler;
 import org.truffleruby.core.hash.HashingNodes;
+import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleNodes.ConstSetUncheckedNode;
@@ -84,7 +87,9 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.constants.GetConstantNode;
@@ -93,6 +98,7 @@ import org.truffleruby.language.control.BreakException;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
+import org.truffleruby.language.dispatch.LiteralCallNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
@@ -192,7 +198,8 @@ public class CExtNodes {
 
     public abstract static class SendWithoutCExtLockBaseNode extends PrimitiveArrayArgumentsNode {
         public Object sendWithoutCExtLock(VirtualFrame frame, Object receiver, RubySymbol method, Object block,
-                DispatchNode dispatchNode, ConditionProfile ownedProfile, Object[] args) {
+                ArgumentsDescriptor descriptor, Object[] args,
+                DispatchNode dispatchNode, ConditionProfile ownedProfile) {
             if (getContext().getOptions().CEXT_LOCK) {
                 final ReentrantLock lock = getContext().getCExtensionsLock();
                 boolean owned = ownedProfile.profile(lock.isHeldByCurrentThread());
@@ -201,14 +208,15 @@ public class CExtNodes {
                     MutexOperations.unlockInternal(lock);
                 }
                 try {
-                    return dispatchNode.callWithFrameAndBlock(frame, receiver, method.getString(), block, args);
+                    return dispatchNode.callWithFrameAndBlock(frame, receiver, method.getString(), block,
+                            descriptor, args);
                 } finally {
                     if (owned) {
                         MutexOperations.internalLockEvenWithException(getContext(), lock, this);
                     }
                 }
             } else {
-                return dispatchNode.callWithFrameAndBlock(frame, receiver, method.getString(), block, args);
+                return dispatchNode.callWithFrameAndBlock(frame, receiver, method.getString(), block, descriptor, args);
             }
         }
     }
@@ -222,7 +230,8 @@ public class CExtNodes {
                 @Cached DispatchNode dispatchNode,
                 @Cached ConditionProfile ownedProfile) {
             final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
-            return sendWithoutCExtLock(frame, receiver, method, block, dispatchNode, ownedProfile, args);
+            return sendWithoutCExtLock(frame, receiver, method, block, EmptyArgumentsDescriptor.INSTANCE, args,
+                    dispatchNode, ownedProfile);
         }
 
     }
@@ -236,7 +245,33 @@ public class CExtNodes {
                 @Cached DispatchNode dispatchNode,
                 @Cached ConditionProfile ownedProfile) {
             final Object[] args = unwrapCArrayNode.execute(argv);
-            return sendWithoutCExtLock(frame, receiver, method, block, dispatchNode, ownedProfile, args);
+            return sendWithoutCExtLock(frame, receiver, method, block, EmptyArgumentsDescriptor.INSTANCE, args,
+                    dispatchNode, ownedProfile);
+        }
+    }
+
+    @Primitive(name = "send_argv_keywords_without_cext_lock")
+    public abstract static class SendARGVKeywordsWithoutCExtLockNode extends SendWithoutCExtLockBaseNode {
+        @Specialization
+        protected Object sendWithoutCExtLock(
+                VirtualFrame frame, Object receiver, RubySymbol method, Object argv, Object block,
+                @Cached UnwrapCArrayNode unwrapCArrayNode,
+                @Cached HashCastNode hashCastNode,
+                @Cached ConditionProfile emptyProfile,
+                @Cached DispatchNode dispatchNode,
+                @Cached ConditionProfile ownedProfile) {
+            Object[] args = unwrapCArrayNode.execute(argv);
+
+            // Remove empty kwargs in the caller, so the callee does not need to care about this special case
+            final RubyHash keywords = hashCastNode.execute(ArrayUtils.getLast(args));
+            if (emptyProfile.profile(keywords.empty())) {
+                args = LiteralCallNode.removeEmptyKeywordArguments(args);
+                return sendWithoutCExtLock(frame, receiver, method, block, EmptyArgumentsDescriptor.INSTANCE, args,
+                        dispatchNode, ownedProfile);
+            } else {
+                return sendWithoutCExtLock(frame, receiver, method, block, KeywordArgumentsDescriptor.INSTANCE, args,
+                        dispatchNode, ownedProfile);
+            }
         }
     }
 
@@ -249,7 +284,8 @@ public class CExtNodes {
                 @Cached(parameters = "PUBLIC") DispatchNode dispatchNode,
                 @Cached ConditionProfile ownedProfile) {
             final Object[] args = unwrapCArrayNode.execute(argv);
-            return sendWithoutCExtLock(frame, receiver, method, block, dispatchNode, ownedProfile, args);
+            return sendWithoutCExtLock(frame, receiver, method, block, EmptyArgumentsDescriptor.INSTANCE, args,
+                    dispatchNode, ownedProfile);
         }
     }
 

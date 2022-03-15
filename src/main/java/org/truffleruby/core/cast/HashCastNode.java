@@ -25,7 +25,13 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class HashCastNode extends RubyContextSourceNode {
 
+    public static HashCastNode create() {
+        return HashCastNodeGen.create(null);
+    }
+
     protected abstract RubyNode getChild();
+
+    public abstract RubyHash execute(Object value);
 
     @Specialization
     protected RubyHash castHash(RubyHash hash) {

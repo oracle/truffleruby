@@ -261,11 +261,11 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
     }
 
     public final Object callWithFrameAndBlock(Frame frame, Object receiver, String methodName, Object block,
-            Object[] arguments) {
+            ArgumentsDescriptor descriptor, Object[] arguments) {
         final Object[] rubyArgs = RubyArguments.allocate(arguments.length);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, block);
-        RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
+        RubyArguments.setDescriptor(rubyArgs, descriptor);
         RubyArguments.setArguments(rubyArgs, arguments);
         return dispatch(frame, receiver, methodName, rubyArgs);
     }
