@@ -41,6 +41,9 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.nodes.NodeUtil;
 
+import java.lang.management.CompilationMXBean;
+import java.lang.management.ManagementFactory;
+
 @CoreModule("Truffle::Graal")
 public abstract class TruffleGraalNodes {
 
@@ -222,4 +225,18 @@ public abstract class TruffleGraalNodes {
 
     }
 
+    @CoreMethod(names = "total_compilation_time", onSingleton = true)
+    public abstract static class TotalCompilationTimeNode extends CoreMethodArrayArgumentsNode {
+        private static CompilationMXBean bean;
+
+        @TruffleBoundary
+        @Specialization
+        protected final long totalCompilationTime() {
+            if (bean == null) {
+                bean = ManagementFactory.getCompilationMXBean();
+            }
+
+            return bean.getTotalCompilationTime();
+        }
+    }
 }
