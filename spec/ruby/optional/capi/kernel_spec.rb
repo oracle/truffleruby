@@ -605,6 +605,23 @@ describe "C-API Kernel function" do
         }.should raise_error(TypeError, 'no implicit conversion of Integer into Hash')
       end
     end
+
+    describe "rb_keyword_given_p" do
+      it "returns whether keywords were given to the C extension method" do
+        h = {a: 1}
+        empty = {}
+        @s.rb_keyword_given_p(a: 1).should == true
+        @s.rb_keyword_given_p("foo" => "bar").should == true
+        @s.rb_keyword_given_p(**h).should == true
+
+        @s.rb_keyword_given_p(h).should == false
+        @s.rb_keyword_given_p().should == false
+        @s.rb_keyword_given_p(**empty).should == false
+
+        @s.rb_funcallv_kw(@s, :rb_keyword_given_p, [{a: 1}]).should == true
+        @s.rb_funcallv_kw(@s, :rb_keyword_given_p, [{}]).should == false
+      end
+    end
   end
 
   describe "rb_funcallv_public" do
