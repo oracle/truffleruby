@@ -44,6 +44,7 @@ Compatibility:
 * Update `String#split` to raise `TypeError` when false is given (#2606, @bjfish).
 * Update `String#lstrip!` to remove leading null characters (#2607, @bjfish).
 * Update `File.utime` to return the number of file names in the arguments (#2616, @bjfish).
+* Update `Enumerable#inject` to raise a `LocalJumpError` if no block or symbol are given (#2626, @bjfish).
 
 Performance:
 
