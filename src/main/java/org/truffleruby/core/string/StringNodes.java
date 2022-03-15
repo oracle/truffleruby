@@ -1804,7 +1804,7 @@ public abstract class StringNodes {
             // Check the first code point to see if it's a space. In the case of strings without leading spaces,
             // this check can avoid having to materialize the entire byte[] (a potentially expensive operation
             // for ropes) and can avoid having to compile the while loop.
-            if (noopProfile.profile(!isSpace(firstCodePoint))) {
+            if (noopProfile.profile(!StringSupport.isAsciiSpaceOrNull(firstCodePoint))) {
                 return nil;
             }
 
@@ -1812,7 +1812,7 @@ public abstract class StringNodes {
             final byte[] bytes = bytesNode.execute(rope);
 
             int p = 0;
-            while (p < end && isSpace(bytes[p])) {
+            while (p < end && StringSupport.isAsciiSpaceOrNull(bytes[p])) {
                 p++;
             }
 
@@ -1838,7 +1838,7 @@ public abstract class StringNodes {
             int p = s;
             while (p < end) {
                 int c = getCodePointNode.executeGetCodePoint(enc, rope, p);
-                if (!(c == 0 || ASCIIEncoding.INSTANCE.isSpace(c))) {
+                if (!StringSupport.isAsciiSpaceOrNull(c)) {
                     break;
                 }
                 p += StringSupport.codeLength(enc.jcoding, c);
@@ -1853,9 +1853,6 @@ public abstract class StringNodes {
             return nil;
         }
 
-        private boolean isSpace(int c) {
-            return c == 0 || StringSupport.isAsciiSpace(c);
-        }
     }
 
     @CoreMethod(names = "ord")
@@ -1935,7 +1932,7 @@ public abstract class StringNodes {
             // Check the last code point to see if it's a space or NULL. In the case of strings without leading spaces,
             // this check can avoid having to materialize the entire byte[] (a potentially expensive operation
             // for ropes) and can avoid having to compile the while loop.
-            final boolean willStrip = lastCodePoint == 0x00 || StringSupport.isAsciiSpace(lastCodePoint);
+            final boolean willStrip = StringSupport.isAsciiSpaceOrNull(lastCodePoint);
             if (noopProfile.profile(!willStrip)) {
                 return nil;
             }
@@ -1944,7 +1941,7 @@ public abstract class StringNodes {
             final byte[] bytes = bytesNode.execute(rope);
 
             int endp = end - 1;
-            while (endp >= 0 && (bytes[endp] == 0 || StringSupport.isAsciiSpace(bytes[endp]))) {
+            while (endp >= 0 && StringSupport.isAsciiSpaceOrNull(bytes[endp])) {
                 endp--;
             }
 
@@ -1979,7 +1976,7 @@ public abstract class StringNodes {
             int prev;
             while ((prev = prevCharHead(enc.jcoding, bytes, start, endp, end)) != -1) {
                 int point = getCodePointNode.executeGetCodePoint(enc, rope, prev);
-                if (point != 0 && !ASCIIEncoding.INSTANCE.isSpace(point)) {
+                if (!StringSupport.isAsciiSpaceOrNull(point)) {
                     break;
                 }
                 endp = prev;

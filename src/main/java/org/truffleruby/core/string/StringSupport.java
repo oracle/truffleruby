@@ -1670,6 +1670,10 @@ public final class StringSupport {
         return c == ' ' || ('\t' <= c && c <= '\r');
     }
 
+    static boolean isAsciiSpaceOrNull(int c) {
+        return c == 0 || isAsciiSpace(c);
+    }
+
     public static boolean isAsciiPrintable(int c) {
         return c == ' ' || (c >= '!' && c <= '~');
     }
