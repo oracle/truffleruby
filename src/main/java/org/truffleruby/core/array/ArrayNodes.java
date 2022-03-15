@@ -1454,6 +1454,12 @@ public abstract class ArrayNodes {
                     loopProfile);
         }
 
+        @Specialization
+        protected Object injectNoSymbolNonEmptyArrayNoInitial(
+                RubyArray array, NotProvided initialOrSymbol, NotProvided symbol, Nil block) {
+            throw new RaiseException(getContext(), coreExceptions().argumentError("no block or symbol given", this));
+        }
+
         public Object injectSymbolHelper(VirtualFrame frame, RubyArray array, String symbol,
                 ArrayStoreLibrary stores, Object store, Object initial, int start,
                 IntValueProfile arraySizeProfile, LoopConditionProfile loopProfile) {
