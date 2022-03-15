@@ -2854,7 +2854,7 @@ module Commands
   end
 
   def format_specializations_check
-    abort 'Some Specializations do not use the protected visibility.' if format_specializations_visibility
+    abort 'Some Specializations did not use the protected visibility.' if format_specializations_visibility
     abort 'Some Specializations were not properly formatted.' if format_specializations_arguments
     abort 'There were extra blank lines around imports.' if Formatting.format_imports
   end
