@@ -138,9 +138,11 @@ ruby_version_is "3.0" do
       end
 
       it "works with (...)" do
+        instance_eval <<~DEF
         def m(...)
           target(...)
         end
+        DEF
 
         empty = {}
         m(**empty).should == [[], {}]
