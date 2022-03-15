@@ -567,7 +567,7 @@ describe "C-API Kernel function" do
     end
   end
 
-  describe "rb_funcall3" do
+  describe "rb_funcallv_public" do
     before :each do
       @obj = Object.new
       class << @obj
@@ -578,10 +578,10 @@ describe "C-API Kernel function" do
     end
 
     it "calls a public method" do
-      @s.rb_funcall3(@obj, :method_public).should == :method_public
+      @s.rb_funcallv_public(@obj, :method_public).should == :method_public
     end
     it "does not call a private method" do
-      -> { @s.rb_funcall3(@obj, :method_private) }.should raise_error(NoMethodError, /private/)
+      -> { @s.rb_funcallv_public(@obj, :method_private) }.should raise_error(NoMethodError, /private/)
     end
   end
 
