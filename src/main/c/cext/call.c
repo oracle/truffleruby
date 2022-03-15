@@ -75,7 +75,7 @@ VALUE rb_call_super(int args_count, const VALUE *args) {
 }
 
 int rb_keyword_given_p(void) {
-  return 0; // TODO
+  return polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("rb_keyword_given_p")) ? RB_PASS_KEYWORDS : RB_NO_KEYWORDS;
 }
 
 int rb_block_given_p(void) {

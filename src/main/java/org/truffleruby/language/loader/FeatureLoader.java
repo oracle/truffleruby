@@ -61,6 +61,8 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
+import static org.truffleruby.language.RubyBaseNode.nil;
+
 public class FeatureLoader {
 
     private final RubyContext context;
@@ -449,7 +451,7 @@ public class FeatureLoader {
                 final Object initFunction = findFunctionInLibrary(library, "rb_tr_init", rubyLibPath);
 
                 final InteropLibrary interop = InteropLibrary.getFactory().getUncached();
-                language.getCurrentThread().getCurrentFiber().extensionCallStack.push(Nil.INSTANCE, Nil.INSTANCE);
+                language.getCurrentThread().getCurrentFiber().extensionCallStack.push(false, nil, nil);
                 try {
                     // rb_tr_init(Truffle::CExt)
                     interop.execute(initFunction, truffleCExt);

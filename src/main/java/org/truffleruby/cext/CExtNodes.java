@@ -145,11 +145,12 @@ public class CExtNodes {
 
         @Specialization
         protected Object callWithCExtLockAndFrame(
-                Object receiver, RubyArray argsArray, Object specialVariables, Object block) {
+                VirtualFrame frame, Object receiver, RubyArray argsArray, Object specialVariables, Object block) {
             final ExtensionCallStack extensionStack = getLanguage()
                     .getCurrentThread()
                     .getCurrentFiber().extensionCallStack;
-            extensionStack.push(specialVariables, block);
+            final boolean keywordsGiven = RubyArguments.getDescriptor(frame) instanceof KeywordArgumentsDescriptor;
+            extensionStack.push(keywordsGiven, specialVariables, block);
             try {
                 return callCextNode.execute(receiver, argsArray);
             } finally {
@@ -746,6 +747,14 @@ public class CExtNodes {
 
     }
 
+    @CoreMethod(names = "rb_keyword_given_p", onSingleton = true)
+    public abstract static class RbKeywordGivenNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected boolean keywordGiven() {
+            return getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack.areKeywordsGiven();
+        }
+    }
 
     @CoreMethod(names = "rb_block_proc", onSingleton = true)
     public abstract static class BlockProcNode extends CoreMethodArrayArgumentsNode {
@@ -1667,26 +1676,6 @@ public class CExtNodes {
             return nil;
         }
 
-    }
-
-    @CoreMethod(names = "push_extension_call_frame", onSingleton = true, required = 1)
-    public abstract static class PushPreservingFrame extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected Object pushFrame(Object variables, RubyProc block) {
-            getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack.push(variables, block);
-            return nil;
-        }
-    }
-
-    @CoreMethod(names = "pop_extension_call_frame", onSingleton = true, required = 0)
-    public abstract static class PopPreservingFrame extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected Object popFrame() {
-            getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack.pop();
-            return nil;
-        }
     }
 
     @CoreMethod(names = "rb_thread_check_ints", onSingleton = true, required = 0)
