@@ -732,8 +732,7 @@ class File < IO
 
     return false if Primitive.nil?(st_o) || Primitive.nil?(st_c)
 
-    st_o.dev == st_c.dev and st_o.ino == st_c.ino and st_o.ftype == st_c.ftype and
-      POSIX.access(orig, Constants::R_OK) && Primitive.as_boolean(POSIX.access(copy, Constants::R_OK))
+    st_o.dev == st_c.dev and st_o.ino == st_c.ino and st_o.ftype == st_c.ftype
   end
 
   ##
