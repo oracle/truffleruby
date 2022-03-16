@@ -10,10 +10,10 @@ require_relative '../../ruby/spec_helper'
 
 describe "The --warn-truffle-regex-compile-fallback option" do
   it "works" do
-    out = ruby_exe('2.times { /a*+/ =~ "a" }', options: "--experimental-options --warn-truffle-regex-compile-fallback", args: "2>&1")
+    out = ruby_exe('2.times { /(?<loop>a\g<loop>|)/ =~ "aaa" }', options: "--experimental-options --warn-truffle-regex-compile-fallback", args: "2>&1")
     out = out.gsub(/^.+: warning/, 'warning')
     out.should == <<~OUT
-      warning: Regexp /a*+/ at_start=false encoding=US-ASCII cannot be compiled to a Truffle regexp and fell back to Joni
+      warning: Regexp /(?<loop>a\\g<loop>|)/ at_start=false encoding=US-ASCII cannot be compiled to a Truffle regexp and fell back to Joni
     OUT
   end
 end
