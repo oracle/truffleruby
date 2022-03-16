@@ -174,7 +174,12 @@ public final class TRegexCache {
             return null;
         }
 
-        String regex = "Flavor=Ruby,Encoding=" + tRegexEncoding + "/" + processedRegexpSource + "/" + flags;
+        String ignoreAtomicGroups = context.getOptions().TRUFFLE_REGEX_IGNORE_ATOMIC_GROUPS
+                ? ",IgnoreAtomicGroups=true"
+                : "";
+
+        String regex = "Flavor=Ruby,Encoding=" + tRegexEncoding + ignoreAtomicGroups + "/" + processedRegexpSource +
+                "/" + flags;
         Source regexSource = Source
                 .newBuilder("regex", regex, "Regexp")
                 .mimeType("application/tregex")

@@ -86,6 +86,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> USE_TRUFFLE_REGEX_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> WARN_TRUFFLE_REGEX_COMPILE_FALLBACK_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> WARN_TRUFFLE_REGEX_MATCH_FALLBACK_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> TRUFFLE_REGEX_IGNORE_ATOMIC_GROUPS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> ARGV_GLOBALS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> CHOMP_LOOP_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> GETS_LOOP_KEY = new OptionKey<>(false);
@@ -686,6 +687,14 @@ public class OptionsCatalog {
     public static final OptionDescriptor WARN_TRUFFLE_REGEX_MATCH_FALLBACK = OptionDescriptor
             .newBuilder(WARN_TRUFFLE_REGEX_MATCH_FALLBACK_KEY, "ruby.warn-truffle-regex-match-fallback")
             .help("Warn every time Truffle Regex cannot be used for a Regexp match (and instead Joni is used)")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
+            .build();
+
+    public static final OptionDescriptor TRUFFLE_REGEX_IGNORE_ATOMIC_GROUPS = OptionDescriptor
+            .newBuilder(TRUFFLE_REGEX_IGNORE_ATOMIC_GROUPS_KEY, "ruby.truffle-regex-ignore-atomic-groups")
+            .help("Treat atomic groups (?>...) as ordinary groups (?:...) with Truffle Regex.")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .usageSyntax("")
@@ -1433,6 +1442,8 @@ public class OptionsCatalog {
                 return WARN_TRUFFLE_REGEX_COMPILE_FALLBACK;
             case "ruby.warn-truffle-regex-match-fallback":
                 return WARN_TRUFFLE_REGEX_MATCH_FALLBACK;
+            case "ruby.truffle-regex-ignore-atomic-groups":
+                return TRUFFLE_REGEX_IGNORE_ATOMIC_GROUPS;
             case "ruby.argv-globals":
                 return ARGV_GLOBALS;
             case "ruby.chomp-loop":
@@ -1658,6 +1669,7 @@ public class OptionsCatalog {
             USE_TRUFFLE_REGEX,
             WARN_TRUFFLE_REGEX_COMPILE_FALLBACK,
             WARN_TRUFFLE_REGEX_MATCH_FALLBACK,
+            TRUFFLE_REGEX_IGNORE_ATOMIC_GROUPS,
             ARGV_GLOBALS,
             CHOMP_LOOP,
             GETS_LOOP,
