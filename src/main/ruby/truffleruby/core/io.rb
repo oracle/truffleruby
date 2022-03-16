@@ -464,6 +464,7 @@ class IO
         options = Truffle::Type.coerce_to value, Hash, :to_hash
       end
     end
+    limit = nil if limit && limit < 0
 
     options = {} if Primitive.undefined?(options)
     case options

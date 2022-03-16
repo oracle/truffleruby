@@ -45,6 +45,7 @@ Compatibility:
 * Update `String#lstrip!` to remove leading null characters (#2607, @bjfish).
 * Update `File.utime` to return the number of file names in the arguments (#2616, @bjfish).
 * Update `Dir.foreach` to accept an `encoding` parameter (#2627, @bjfish).
+* Update `IO.readlines` to ignore negative limit parameters (#2625 , @bjfish).
 
 Performance:
 
