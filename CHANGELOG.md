@@ -18,12 +18,14 @@ Compatibility:
 * `Exception#full_message` now defaults the order to `:top` like CRuby 3+ (@eregon).
 * Fix `Process.wait2` to return `nil` when the `WNOHANG` flag is given and the child process is still running (@bjfish).
 * Disable most `nokogiri` C extension patches when system libraries are not being used (#2693, @aardvark179).
+* Implement `rb_gc_mark_maybe` and `rb_global_variable` to ensure `VALUE` stay live in C extensions (@aardvark179).
 
 Performance:
 
 * Reimplement `Float#to_s` for better performance (#1584, @aardvark179).
 * Improve reference processing by making C object free functions and other finalizers more lightweight (@aardvark179).
 * Improve performance of `RSTRING_PTR` for interned strings (@aardvark179).
+* Cache constant argument formats used with `rb_scan_args_kw` (@aardvark179).
 
 Changes:
 
