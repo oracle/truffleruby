@@ -29,6 +29,7 @@ module Truffle::CExt
       raise TypeError, "wrong argument type #{object.class} (expected T_DATA)"
     end
 
+    Primitive.cext_mark_object_on_call_exit(object) unless Primitive.nil?(Primitive.object_hidden_var_get(object, Truffle::CExt::DATA_MARKER))
     Primitive.data_holder_get_data(data_holder)
   end
 
@@ -68,7 +69,7 @@ class Truffle::CExt::RData
   def polyglot_read_member(name)
     case name
     when 'data'
-      Primitive.cext_mark_object_on_call_exit(@object) unless Primitive.object_hidden_var_get(@object, Truffle::CExt::DATA_MARKER).nil?
+      Primitive.cext_mark_object_on_call_exit(@object) unless Primitive.nil?(Primitive.object_hidden_var_get(@object, Truffle::CExt::DATA_MARKER))
       Primitive.data_holder_get_data(@data_holder)
     when 'type'
       type
