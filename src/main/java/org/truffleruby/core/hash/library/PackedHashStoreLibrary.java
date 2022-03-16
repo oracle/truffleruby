@@ -523,7 +523,8 @@ public class PackedHashStoreLibrary {
                     getLanguage().hashShape,
                     getContext(),
                     store,
-                    size);
+                    size,
+                    false);
         }
 
         private int hash(Object key) {

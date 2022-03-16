@@ -283,9 +283,9 @@ module Enumerable
     h
   end
 
-  def to_a(*arg)
+  def to_a(*args, **kwargs)
     ary = []
-    each(*arg) do
+    each(*args, **kwargs) do
       o = Primitive.single_block_arg
       ary << o
       nil

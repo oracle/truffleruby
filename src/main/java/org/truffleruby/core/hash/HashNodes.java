@@ -23,15 +23,18 @@ import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.hash.HashNodesFactory.CopyHashAndSetRuby2KeywordsNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.InitializeCopyNodeFactory;
 import org.truffleruby.core.hash.library.EmptyHashStore;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.hash.library.HashStoreLibrary.EachEntryCallback;
 import org.truffleruby.core.hash.library.PackedHashStoreLibrary;
+import org.truffleruby.core.kernel.KernelNodes.CopyInstanceVariablesNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -58,7 +61,7 @@ public abstract class HashNodes {
         protected RubyHash allocate(RubyClass rubyClass) {
             final Shape shape = getLanguage().hashShape;
             final EmptyHashStore store = EmptyHashStore.NULL_HASH_STORE;
-            final RubyHash hash = new RubyHash(rubyClass, shape, getContext(), store, 0);
+            final RubyHash hash = new RubyHash(rubyClass, shape, getContext(), store, 0, false);
             AllocationTracing.trace(hash, this);
             return hash;
         }
@@ -109,7 +112,7 @@ public abstract class HashNodes {
             }
 
             final Shape shape = getLanguage().hashShape;
-            return new RubyHash(hashClass, shape, getContext(), newStore, size);
+            return new RubyHash(hashClass, shape, getContext(), newStore, size, false);
         }
 
         @Specialization(guards = "!isSmallArrayOfPairs(args, getLanguage())")
@@ -157,12 +160,33 @@ public abstract class HashNodes {
         }
     }
 
-    @Primitive(name = "hash_mark_ruby2_keywords")
-    public abstract static class HashMarkRuby2KeywordsNode extends CoreMethodArrayArgumentsNode {
+    /** Like {@link KernelNodes.DupNode} but allocating the hash directly with the right value for ruby2_keywords. */
+    public abstract static class CopyHashAndSetRuby2KeywordsNode extends RubyBaseNode {
+
+        public static CopyHashAndSetRuby2KeywordsNode create() {
+            return CopyHashAndSetRuby2KeywordsNodeGen.create();
+        }
+
+        public abstract RubyHash execute(RubyHash self, boolean ruby2_keywords);
+
         @Specialization
-        protected RubyHash markRuby2Keywords(RubyHash hash) {
-            hash.ruby2_keywords = true;
-            return hash;
+        protected RubyHash copyAndSetRuby2Keywords(RubyHash self, boolean ruby2_keywords,
+                @Cached CopyInstanceVariablesNode copyInstanceVariablesNode,
+                @Cached DispatchNode initializeDupNode) {
+            final RubyHash newObject = new RubyHash(self.getLogicalClass(), getLanguage().hashShape, getContext(),
+                    EmptyHashStore.NULL_HASH_STORE, 0, ruby2_keywords);
+            copyInstanceVariablesNode.execute(newObject, self);
+            initializeDupNode.call(newObject, "initialize_dup", self);
+            return newObject;
+        }
+    }
+
+    @Primitive(name = "hash_copy_and_mark_as_ruby2_keywords")
+    public abstract static class HashCopyAndMarkAsRuby2KeywordsNode extends CoreMethodArrayArgumentsNode {
+        @Specialization
+        protected RubyHash copyAndMarkAsRuby2Keywords(RubyHash hash,
+                @Cached CopyHashAndSetRuby2KeywordsNode copyHashAndSetRuby2KeywordsNode) {
+            return copyHashAndSetRuby2KeywordsNode.execute(hash, true);
         }
     }
 
@@ -334,7 +358,7 @@ public abstract class HashNodes {
 
         @Specialization
         protected boolean isEmpty(RubyHash hash) {
-            return hash.size == 0;
+            return hash.empty();
         }
     }
 
@@ -481,13 +505,13 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class ShiftNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isEmptyHash(hash)")
+        @Specialization(guards = "hash.empty()")
         protected Object shiftEmpty(RubyHash hash,
                 @Cached DispatchNode callDefault) {
             return callDefault.call(hash, "default", nil);
         }
 
-        @Specialization(guards = "!isEmptyHash(hash)", limit = "hashStrategyLimit()")
+        @Specialization(guards = "!hash.empty()", limit = "hashStrategyLimit()")
         protected RubyArray shift(RubyHash hash,
                 @CachedLibrary("hash.store") HashStoreLibrary hashes) {
             return hashes.shift(hash.store, hash);

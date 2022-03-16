@@ -25,6 +25,7 @@ import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.method.UnboundMethodNodes.MethodRuby2KeywordsNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
@@ -110,7 +111,7 @@ public abstract class ProcNodes {
         }
 
         @Specialization(guards = "procClass != metaClass(block)")
-        protected RubyProc procSpecial(RubyClass procClass, Object[] args, RubyProc block,
+        protected RubyProc procSpecial(VirtualFrame frame, RubyClass procClass, Object[] args, RubyProc block,
                 @Cached DispatchNode initialize) {
             // Instantiate a new instance of procClass as classes do not correspond
 
@@ -129,7 +130,7 @@ public abstract class ProcNodes {
                     block.declarationContext);
 
             AllocationTracing.trace(proc, this);
-            initialize.callWithBlock(proc, "initialize", block, args);
+            initialize.callWithDescriptor(proc, "initialize", block, RubyArguments.getDescriptor(frame), args);
             return proc;
         }
 
@@ -203,7 +204,7 @@ public abstract class ProcNodes {
                     ProcOperations.getSelf(proc),
                     RubyArguments.getBlock(rubyArgs),
                     RubyArguments.getDescriptor(rubyArgs),
-                    RubyArguments.getArguments(rubyArgs));
+                    RubyArguments.getRawArguments(rubyArgs));
         }
     }
 
@@ -343,7 +344,7 @@ public abstract class ProcNodes {
              * NB: In our case the arguments have already been destructured by the time this node is encountered. Thus,
              * we don't need to do the destructuring work that Rubinius would do and in the case that we receive
              * multiple arguments we need to reverse the destructuring by collecting the values into an array. */
-            int userArgumentCount = RubyArguments.getArgumentsCount(frame);
+            int userArgumentCount = RubyArguments.getPositionalArgumentsCount(frame, false);
 
             if (emptyArgsProfile.profile(userArgumentCount == 0)) {
                 return nil;
@@ -351,10 +352,18 @@ public abstract class ProcNodes {
                 if (singleArgProfile.profile(userArgumentCount == 1)) {
                     return RubyArguments.getArgument(frame, 0);
                 } else {
-                    Object[] extractedArguments = RubyArguments.getArguments(frame);
+                    Object[] extractedArguments = RubyArguments.getPositionalArguments(frame.getArguments(), false);
                     return createArray(extractedArguments, userArgumentCount);
                 }
             }
+        }
+    }
+
+    @Primitive(name = "proc_ruby2_keywords", raiseIfFrozen = 0)
+    public abstract static class ProcRuby2KeywordsNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected Object ruby2Keywords(RubyProc proc) {
+            return MethodRuby2KeywordsNode.ruby2Keywords(proc.sharedMethodInfo, proc.callTarget);
         }
     }
 }

@@ -104,7 +104,7 @@ class Hash
   private_class_method :_constructor_fallback
 
   def self.ruby2_keywords_hash(hash)
-    Primitive.hash_mark_ruby2_keywords(hash.dup)
+    Primitive.hash_copy_and_mark_as_ruby2_keywords(hash)
   end
 
   alias_method :store, :[]=

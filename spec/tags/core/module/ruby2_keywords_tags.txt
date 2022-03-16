@@ -1,3 +1,0 @@
-fails:Module#ruby2_keywords marks the final hash argument as keyword hash
-fails:Module#ruby2_keywords applies to the underlying method and applies across aliasing
-fails:Module#ruby2_keywords acceps String as well

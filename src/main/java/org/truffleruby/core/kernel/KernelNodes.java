@@ -438,58 +438,40 @@ public abstract class KernelNodes {
 
     @ImportStatic(ShapeCachingGuards.class)
     @GenerateUncached
-    public abstract static class CopyNode extends RubyBaseNode {
+    public abstract static class CopyInstanceVariablesNode extends RubyBaseNode {
 
         public static final Property[] EMPTY_PROPERTY_ARRAY = new Property[0];
 
-        public abstract RubyDynamicObject executeCopy(Object self);
+        public abstract RubyDynamicObject execute(RubyDynamicObject newObject, RubyDynamicObject from);
 
         @ExplodeLoop
         @Specialization(
-                guards = { "self.getShape() == cachedShape", "properties.length <= MAX_EXPLODE_SIZE" },
+                guards = { "from.getShape() == cachedShape", "properties.length <= MAX_EXPLODE_SIZE" },
                 limit = "getDynamicObjectCacheLimit()")
-        protected RubyDynamicObject copyCached(RubyDynamicObject self,
-                @Cached("self.getShape()") Shape cachedShape,
+        protected RubyDynamicObject copyCached(RubyDynamicObject newObject, RubyDynamicObject from,
+                @Cached("from.getShape()") Shape cachedShape,
                 // GR-25595: should probably be shared between specialization instances but Truffle does not support it yet
                 @Cached DispatchNode allocateNode,
                 @Cached(value = "getCopiedProperties(cachedShape)", dimensions = 1) Property[] properties,
                 @Cached("createWriteFieldNodes(properties)") DynamicObjectLibrary[] writeFieldNodes) {
-            final RubyDynamicObject newObject = (RubyDynamicObject) allocateNode.call(self.getLogicalClass(),
-                    "__allocate__");
-
             for (int i = 0; i < properties.length; i++) {
                 final Property property = properties[i];
-                final Object value = property.get(self, cachedShape);
+                final Object value = property.get(from, cachedShape);
                 writeFieldNodes[i].putWithFlags(newObject, property.getKey(), value, property.getFlags());
             }
 
             return newObject;
         }
 
-        @Specialization(guards = "updateShape(self)")
-        protected RubyDynamicObject updateShapeAndCopy(RubyDynamicObject self) {
-            return executeCopy(self);
+        @Specialization(guards = "updateShape(from)")
+        protected RubyDynamicObject updateShapeAndCopy(RubyDynamicObject newObject, RubyDynamicObject from) {
+            return execute(newObject, from);
         }
 
         @Specialization(replaces = { "copyCached", "updateShapeAndCopy" })
-        protected RubyDynamicObject copyUncached(RubyDynamicObject self,
-                @Cached DispatchNode allocateNode) {
-            final RubyClass rubyClass = self.getLogicalClass();
-            final RubyDynamicObject newObject = (RubyDynamicObject) allocateNode.call(rubyClass, "__allocate__");
-            copyInstanceVariables(self, newObject);
+        protected RubyDynamicObject copyUncached(RubyDynamicObject newObject, RubyDynamicObject from) {
+            copyInstanceVariables(from, newObject);
             return newObject;
-        }
-
-        @Specialization
-        protected RubyString copyImmutableString(ImmutableRubyString string,
-                @Cached DispatchNode allocateStringNode) {
-            return (RubyString) allocateStringNode.call(coreLibrary().stringClass, "__allocate__");
-        }
-
-        @Specialization
-        protected RubyDynamicObject copyRubyEncoding(RubyEncoding encoding) {
-            throw new RaiseException(getContext(),
-                    coreExceptions().typeErrorAllocatorUndefinedFor(coreLibrary().encodingClass, this));
         }
 
         protected Property[] getCopiedProperties(Shape shape) {
@@ -523,6 +505,33 @@ public abstract class KernelNodes {
                         property.get(from, from.getShape()),
                         property.getFlags());
             }
+        }
+    }
+
+    @GenerateUncached
+    public abstract static class CopyNode extends RubyBaseNode {
+
+        public abstract RubyDynamicObject executeCopy(Object self);
+
+        @Specialization
+        protected RubyDynamicObject copyRubyDynamicObject(RubyDynamicObject self,
+                @Cached DispatchNode allocateNode,
+                @Cached CopyInstanceVariablesNode copyInstanceVariablesNode) {
+            var newObject = (RubyDynamicObject) allocateNode.call(self.getLogicalClass(), "__allocate__");
+            copyInstanceVariablesNode.execute(newObject, self);
+            return newObject;
+        }
+
+        @Specialization
+        protected RubyString copyImmutableString(ImmutableRubyString string,
+                @Cached DispatchNode allocateStringNode) {
+            return (RubyString) allocateStringNode.call(coreLibrary().stringClass, "__allocate__");
+        }
+
+        @Specialization
+        protected RubyDynamicObject copyRubyEncoding(RubyEncoding encoding) {
+            throw new RaiseException(getContext(),
+                    coreExceptions().typeErrorAllocatorUndefinedFor(coreLibrary().encodingClass, this));
         }
     }
 
@@ -633,7 +642,7 @@ public abstract class KernelNodes {
             final int hashed = hashNode.execute(key);
             PackedHashStoreLibrary.setHashedKeyValue(newStore, 0, hashed, key, freeze);
 
-            return new RubyHash(coreLibrary().hashClass, getLanguage().hashShape, getContext(), newStore, 1);
+            return new RubyHash(coreLibrary().hashClass, getLanguage().hashShape, getContext(), newStore, 1, false);
         }
 
         private boolean forceFrozen(Object freeze) {
@@ -710,7 +719,7 @@ public abstract class KernelNodes {
                 @Cached ConditionProfile fileAndLineProfile,
                 @Cached ConditionProfile fileNoLineProfile) {
 
-            final Object[] args = RubyArguments.getArguments(rubyArgs);
+            final Object[] args = RubyArguments.getPositionalArguments(rubyArgs, false);
             final Object source = toStrNode.execute(args[0]);
 
             final RubyBinding binding;
@@ -1410,8 +1419,7 @@ public abstract class KernelNodes {
                 @Cached(parameters = "PUBLIC") DispatchNode dispatchNode,
                 @Cached NameToJavaStringNode nameToJavaString) {
             Object name = RubyArguments.getArgument(rubyArgs, 0);
-            Object[] newArgs = RubyArguments.repack(rubyArgs, self, 1,
-                    RubyArguments.getArgumentsCount(rubyArgs) - 1);
+            Object[] newArgs = RubyArguments.repack(rubyArgs, self, 1);
             return dispatchNode.dispatch(callerFrame, self, nameToJavaString.execute(name), newArgs);
         }
 

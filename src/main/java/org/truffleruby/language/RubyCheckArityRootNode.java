@@ -31,6 +31,7 @@ public abstract class RubyCheckArityRootNode extends RubyRootNode {
     @Child private CheckKeywordArityNode checkKeywordArityNode;
 
     public final Arity arityForCheck;
+    private final boolean keywordArguments;
 
     @CompilationFinal private boolean checkArityProfile;
 
@@ -45,14 +46,17 @@ public abstract class RubyCheckArityRootNode extends RubyRootNode {
             Arity arityForCheck) {
         super(language, sourceSection, frameDescriptor, sharedMethodInfo, body, split, returnID);
 
-        final boolean acceptsKeywords = arityForCheck.acceptsKeywords();
         this.arityForCheck = arityForCheck;
-        this.checkKeywordArityNode = acceptsKeywords ? new CheckKeywordArityNode(arityForCheck) : null;
+        this.keywordArguments = arityForCheck.acceptsKeywords();
+        this.checkKeywordArityNode = keywordArguments && !arityForCheck.hasKeywordsRest()
+                ? new CheckKeywordArityNode(arityForCheck)
+                : null;
     }
 
     protected void checkArity(VirtualFrame frame) {
-        if (checkKeywordArityNode == null) {
-            int given = RubyArguments.getArgumentsCount(frame);
+        int given = RubyArguments.getPositionalArgumentsCount(frame, keywordArguments);
+
+        if (!keywordArguments) {
             if (!arityForCheck.check(given)) {
                 if (!checkArityProfile) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -62,7 +66,18 @@ public abstract class RubyCheckArityRootNode extends RubyRootNode {
                 checkArityError(arityForCheck, given, this);
             }
         } else {
-            checkKeywordArityNode.checkArity(frame, arityForCheck);
+            if (!arityForCheck.basicCheck(given)) {
+                if (!checkArityProfile) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    checkArityProfile = true;
+                }
+
+                checkArityError(arityForCheck, given, this);
+            }
+
+            if (checkKeywordArityNode != null) {
+                checkKeywordArityNode.checkArity(frame);
+            }
         }
     }
 

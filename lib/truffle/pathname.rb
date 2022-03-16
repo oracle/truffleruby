@@ -991,11 +991,11 @@ end
 
 class Pathname    # * Dir *
   # See <tt>Dir.glob</tt>.  Returns or yields Pathname objects.
-  def Pathname.glob(*args) # :yield: pathname
+  def Pathname.glob(*args, **kwargs) # :yield: pathname
     if block_given?
-      Dir.glob(*args) { |f| yield self.new(f) }
+      Dir.glob(*args, **kwargs) { |f| yield self.new(f) }
     else
-      Dir.glob(*args).map { |f| self.new(f) }
+      Dir.glob(*args, **kwargs).map { |f| self.new(f) }
     end
   end
 

@@ -22,10 +22,10 @@ import org.truffleruby.core.array.ArrayLiteralNode;
 import org.truffleruby.core.array.ArraySliceNodeGen;
 import org.truffleruby.core.cast.SplatCastNode;
 import org.truffleruby.core.cast.SplatCastNodeGen;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.ArrayIsAtLeastAsLargeAsNode;
+import org.truffleruby.language.arguments.CheckNoKeywordArgumentsNode;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.MissingKeywordArgumentNode;
 import org.truffleruby.language.arguments.ReadKeywordArgumentNode;
@@ -34,10 +34,8 @@ import org.truffleruby.language.arguments.ReadOptionalArgumentNode;
 import org.truffleruby.language.arguments.ReadPostArgumentNode;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.ReadRestArgumentNode;
-import org.truffleruby.language.arguments.RunBlockKWArgsHelperNode;
 import org.truffleruby.language.arguments.SaveMethodBlockNode;
 import org.truffleruby.language.control.IfElseNode;
-import org.truffleruby.language.control.IfNode;
 import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.locals.LocalVariableType;
 import org.truffleruby.language.locals.ReadLocalVariableNode;
@@ -53,6 +51,7 @@ import org.truffleruby.parser.ast.KeywordRestArgParseNode;
 import org.truffleruby.parser.ast.LocalAsgnParseNode;
 import org.truffleruby.parser.ast.MultipleAsgnParseNode;
 import org.truffleruby.parser.ast.NilImplicitParseNode;
+import org.truffleruby.parser.ast.NoKeywordsArgParseNode;
 import org.truffleruby.parser.ast.OptArgParseNode;
 import org.truffleruby.parser.ast.ParseNode;
 import org.truffleruby.parser.ast.RequiredKeywordArgumentValueParseNode;
@@ -132,26 +131,6 @@ public class LoadArgumentsTranslator extends Translator {
         //}
 
         final ParseNode[] args = argsNode.getArgs();
-
-        final boolean useHelper = useArray() && argsNode.hasKeyRest();
-
-        if (useHelper) {
-            sequence.add(argsNode.getKeyRest().accept(this));
-
-            final Object keyRestNameOrNil;
-
-            if (argsNode.hasKeyRest()) {
-                final String name = argsNode.getKeyRest().getName();
-                methodBodyTranslator.getEnvironment().declareVar(name);
-                keyRestNameOrNil = language.getSymbol(name);
-            } else {
-                keyRestNameOrNil = Nil.INSTANCE;
-            }
-
-            sequence.add(new IfNode(
-                    new ArrayIsAtLeastAsLargeAsNode(required, loadArray(sourceSection)),
-                    new RunBlockKWArgsHelperNode(arraySlotStack.peek().getArraySlot(), keyRestNameOrNil)));
-        }
 
         final int preCount = argsNode.getPreCount();
 
@@ -261,9 +240,7 @@ public class LoadArgumentsTranslator extends Translator {
         }
 
         if (argsNode.getKeyRest() != null) {
-            if (!useHelper) {
-                sequence.add(argsNode.getKeyRest().accept(this));
-            }
+            sequence.add(argsNode.getKeyRest().accept(this));
         }
 
         if (argsNode.getBlock() != null) {
@@ -279,6 +256,11 @@ public class LoadArgumentsTranslator extends Translator {
         final int slot = methodBodyTranslator.getEnvironment().declareVar(node.getName());
 
         return new WriteLocalVariableNode(slot, readNode);
+    }
+
+    @Override
+    public RubyNode visitNoKeywordsArgNode(NoKeywordsArgParseNode node) {
+        return new CheckNoKeywordArgumentsNode();
     }
 
     @Override
@@ -298,7 +280,7 @@ public class LoadArgumentsTranslator extends Translator {
             defaultValue = translateNodeOrNil(sourceSection, asgnNode.getValueNode());
         }
 
-        final RubyNode readNode = ReadKeywordArgumentNode.create(required, language.getSymbol(name), defaultValue);
+        final RubyNode readNode = ReadKeywordArgumentNode.create(language.getSymbol(name), defaultValue);
 
         return new WriteLocalVariableNode(slot, readNode);
     }
@@ -321,6 +303,7 @@ public class LoadArgumentsTranslator extends Translator {
                         language,
                         new ReadPreArgumentNode(
                                 index,
+                                hasKeywordArguments,
                                 isProc ? MissingArgumentBehavior.NIL : MissingArgumentBehavior.RUNTIME_ERROR));
             } else if (state == State.POST) {
                 return new ReadPostArgumentNode(-index, hasKeywordArguments, required);
@@ -345,7 +328,7 @@ public class LoadArgumentsTranslator extends Translator {
         if (useArray()) {
             readNode = ArraySliceNodeGen.create(from, to, loadArray(sourceSection));
         } else {
-            readNode = new ReadRestArgumentNode(from, -to, hasKeywordArguments, considerRejectedKWArgs(), required);
+            readNode = new ReadRestArgumentNode(from, -to, hasKeywordArguments);
         }
 
         final int slot = methodBodyTranslator.getEnvironment().findFrameSlot(node.getName());
@@ -429,16 +412,10 @@ public class LoadArgumentsTranslator extends Translator {
                             ArrayIndexNodes.ReadConstantIndexNode.create(loadArray(sourceSection), index),
                             defaultValue);
                 } else {
-                    if (argsNode.hasKwargs()) {
-                        minimum += 1;
-                    }
-
                     readNode = new ReadOptionalArgumentNode(
                             index,
                             minimum,
-                            considerRejectedKWArgs(),
-                            argsNode.hasKwargs(),
-                            required,
+                            hasKeywordArguments,
                             defaultValue);
                 }
             }
@@ -632,11 +609,6 @@ public class LoadArgumentsTranslator extends Translator {
                 arraySlotStack.peek().getArraySlot());
         node.unsafeSetSourceSection(sourceSection);
         return node;
-    }
-
-    private boolean considerRejectedKWArgs() {
-        // If there is **kwrest, there never are rejected kwargs
-        return argsNode.getKeywordCount() > 0 && !argsNode.hasKeyRest();
     }
 
 }

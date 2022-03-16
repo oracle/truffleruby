@@ -42,7 +42,7 @@ describe "Arguments descriptors" do
       kw = { b: 2 }
       descriptor(**kw).should == [:keywords]
       empty_kw = {}
-      descriptor(**empty_kw).should == [:keywords]
+      descriptor(**empty_kw).should == []
     end
   end
 
@@ -144,6 +144,47 @@ describe "Arguments descriptors" do
     info.arguments.should == [1, {c: 3}] if truffleruby?
   end
 
+  it "handle * and ** at the same call site" do
+    def rest_kwrest(*a)
+      info(a, Primitive.arguments_descriptor, Primitive.arguments)
+    end
+
+    a = []
+    empty = {}
+    info = rest_kwrest(*a, **empty)
+    info.values.should == []
+    info.descriptor.should == [] if truffleruby?
+    info.arguments.should == [] if truffleruby?
+
+    info = rest_kwrest(*a, 42, **empty)
+    info.values.should == [42]
+    info.descriptor.should == [] if truffleruby?
+    info.arguments.should == [42] if truffleruby?
+  end
+
+  it "do not consider kwargs inside an array element" do
+    def nested_kwargs(*a, **kw)
+      kw.should.empty?
+      info(a, Primitive.arguments_descriptor, Primitive.arguments)
+    end
+
+    info = nested_kwargs(["a" => 1])
+    info.values.should == [[{"a" => 1}]]
+    info.descriptor.should == [] if truffleruby?
+    info.arguments.should == [[{"a" => 1}]] if truffleruby?
+
+    info = nested_kwargs([a: 1])
+    info.values.should == [[{a: 1}]]
+    info.descriptor.should == [] if truffleruby?
+    info.arguments.should == [[{a: 1}]] if truffleruby?
+
+    array = [1]
+    info = nested_kwargs([*array, :in => "out"])
+    info.values.should == [[1, {:in=>"out"}]]
+    info.descriptor.should == [] if truffleruby?
+    info.arguments.should == [[1, {:in=>"out"}]] if truffleruby?
+  end
+
   it "work for a call like our Struct.new" do
     def struct_new_like(a, *b, c: 101)
       info([a, b, c], Primitive.arguments_descriptor, Primitive.arguments)
@@ -160,11 +201,7 @@ describe "Arguments descriptors" do
     info.arguments.should == ['A', :a, :b, {c: 1}] if truffleruby?
 
     info = struct_new_like('A', :a, :b, {c: 1})
-    if truffleruby? # TO FIX
-      info.values.should == ['A', [:a, :b], 1]
-    else
-      info.values.should == ['A', [:a, :b, {c: 1}], 101]
-    end
+    info.values.should == ['A', [:a, :b, {c: 1}], 101]
     info.descriptor.should == [] if truffleruby?
     info.arguments.should == ['A', :a, :b, {c: 1}] if truffleruby?
 
@@ -277,11 +314,7 @@ describe "Arguments descriptors" do
     info.arguments.should == [1, 2, {e: 3}] if truffleruby?
 
     info = mixture(1, 2, {foo: :bar})
-    if truffleruby? # TO FIX
-      info.values.should == [1, nil, nil, 2, nil, {:foo=>:bar}]
-    else
-      info.values.should == [1, 2, nil, {foo: :bar}, nil, {}]
-    end
+    info.values.should == [1, 2, nil, {foo: :bar}, nil, {}]
     info.descriptor.should == [] if truffleruby?
     info.arguments.should == [1, 2, {foo: :bar}] if truffleruby?
 
@@ -416,7 +449,7 @@ describe "Arguments descriptors" do
       ArgumentsDescriptorSpecs::Info.new([args, kwargs], Primitive.arguments_descriptor, Primitive.arguments)
     end.value
     info.values.should == [[], {a: 1}]
-    # TODO: info.descriptor.should == [:keywords] if truffleruby?
+    info.descriptor.should == [:keywords] if truffleruby?
     info.arguments.should == [{a: 1}] if truffleruby?
   end
 
@@ -427,9 +460,11 @@ describe "Arguments descriptors" do
     info.values.should == [[], {a: 1}]
     info.descriptor.should == [:keywords] if truffleruby?
     info.arguments.should == [{a: 1}] if truffleruby?
+
+    Fiber.new(&-> { true }).resume(**{}).should == true
   end
 
-  # CRuby behavior, but probably a bug: https://bugs.ruby-lang.org/issues/18621
+  # CRuby behavior: https://bugs.ruby-lang.org/issues/18621
   it "Fiber.yield loses the fact it was kwargs from Fiber#resume" do
     f = Fiber.new do
       args = Fiber.yield

@@ -9,113 +9,71 @@
  */
 package org.truffleruby.language.arguments;
 
-import org.truffleruby.core.array.ArrayAppendOneNode;
-import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.array.library.ArrayStoreLibrary;
-import org.truffleruby.core.hash.RubyHash;
-import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyGuards;
-
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import org.truffleruby.core.hash.HashNodes.CopyHashAndSetRuby2KeywordsNode;
+import org.truffleruby.core.hash.RubyHash;
+import org.truffleruby.language.RubyContextSourceNode;
+
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class ReadRestArgumentNode extends RubyContextSourceNode {
 
     private final int startIndex;
-    private final int indexFromCount;
+    private final int postArgumentsCount;
     private final boolean keywordArguments;
-    private final boolean considerRejectedKWArgs;
+    @CompilationFinal boolean markKeywordHashWithFlag = false;
 
     private final BranchProfile noArgumentsLeftProfile = BranchProfile.create();
     private final BranchProfile subsetOfArgumentsProfile = BranchProfile.create();
-    private final ConditionProfile hasKeywordsProfile;
-    private final ConditionProfile hasRejectedKwargs;
 
-    @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
-    @Child private ReadRejectedKeywordArgumentsNode readRejectedKeywordArgumentsNode;
-    @Child private ArrayAppendOneNode arrayAppendOneNode;
+    @Child CopyHashAndSetRuby2KeywordsNode copyHashAndSetRuby2KeywordsNode;
 
     public ReadRestArgumentNode(
             int startIndex,
-            int indexFromCount,
-            boolean keywordArguments,
-            boolean considerRejectedKWArgs,
-            int minimumForKWargs) {
+            int postArgumentsCount,
+            boolean keywordArguments) {
         this.startIndex = startIndex;
-        this.indexFromCount = indexFromCount;
+        this.postArgumentsCount = postArgumentsCount;
         this.keywordArguments = keywordArguments;
-        this.considerRejectedKWArgs = considerRejectedKWArgs;
+    }
 
-        if (considerRejectedKWArgs) {
-            this.readUserKeywordsHashNode = new ReadUserKeywordsHashNode(minimumForKWargs);
-        }
-
-        this.hasKeywordsProfile = considerRejectedKWArgs ? ConditionProfile.create() : null;
-        this.hasRejectedKwargs = considerRejectedKWArgs ? ConditionProfile.create() : null;
+    public void markKeywordHashWithFlag() {
+        this.markKeywordHashWithFlag = true;
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
-        int endIndex = RubyArguments.getArgumentsCount(frame) - indexFromCount;
+        if (markKeywordHashWithFlag) {
+            final ArgumentsDescriptor descriptor = RubyArguments.getDescriptor(frame);
+            if (descriptor instanceof KeywordArgumentsDescriptor) {
+                if (copyHashAndSetRuby2KeywordsNode == null) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    copyHashAndSetRuby2KeywordsNode = insert(CopyHashAndSetRuby2KeywordsNode.create());
+                }
 
-        if (keywordArguments) {
-            final int argumentCount = RubyArguments.getArgumentsCount(frame);
-            final Object lastArgument = argumentCount > 0 ? RubyArguments.getArgument(frame, argumentCount - 1) : null;
-
-            if (RubyGuards.isRubyHash(lastArgument)) {
-                endIndex -= 1;
+                RubyHash keywordArguments = (RubyHash) RubyArguments.getLastArgument(frame);
+                RubyHash marked = copyHashAndSetRuby2KeywordsNode.execute(keywordArguments, true);
+                RubyArguments.setLastArgument(frame, marked);
             }
         }
+
+        final int positionalArgumentsCount = RubyArguments.getPositionalArgumentsCount(frame, keywordArguments);
+        int endIndex = positionalArgumentsCount - postArgumentsCount;
 
         final int length = endIndex - startIndex;
 
-        final Object resultStore;
-        final int resultLength;
-
         if (startIndex == 0) {
-            final Object[] arguments = RubyArguments.getArguments(frame);
-            resultStore = arguments;
-            resultLength = length;
+            return createArray(RubyArguments.getRawArguments(frame, startIndex, length), length);
         } else {
             if (startIndex >= endIndex) {
                 noArgumentsLeftProfile.enter();
-                resultStore = ArrayStoreLibrary.INITIAL_STORE;
-                resultLength = 0;
+                return createEmptyArray();
             } else {
                 subsetOfArgumentsProfile.enter();
-                final Object[] arguments = RubyArguments.getArguments(frame);
-                resultStore = ArrayUtils.extractRange(arguments, startIndex, endIndex);
-                resultLength = length;
+                return createArray(RubyArguments.getRawArguments(frame, startIndex, length), length);
             }
         }
-
-        final RubyArray rest = createArray(resultStore, resultLength);
-
-        if (considerRejectedKWArgs) {
-            final RubyHash kwargsHash = readUserKeywordsHashNode.execute(frame);
-
-            if (hasKeywordsProfile.profile(kwargsHash != null)) {
-                if (readRejectedKeywordArgumentsNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    readRejectedKeywordArgumentsNode = insert(new ReadRejectedKeywordArgumentsNode());
-                }
-
-                final RubyHash rejectedKwargs = readRejectedKeywordArgumentsNode.extractRejectedKwargs(kwargsHash);
-
-                if (hasRejectedKwargs.profile(rejectedKwargs.size > 0)) {
-                    if (arrayAppendOneNode == null) {
-                        CompilerDirectives.transferToInterpreterAndInvalidate();
-                        arrayAppendOneNode = insert(ArrayAppendOneNode.create());
-                    }
-
-                    arrayAppendOneNode.executeAppendOne(rest, rejectedKwargs);
-                }
-            }
-        }
-
-        return rest;
     }
 }

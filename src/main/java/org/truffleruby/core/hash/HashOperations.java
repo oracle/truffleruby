@@ -30,7 +30,8 @@ public abstract class HashOperations {
                 language.hashShape,
                 context,
                 EmptyHashStore.NULL_HASH_STORE,
-                0);
+                0,
+                false);
     }
 
     @TruffleBoundary

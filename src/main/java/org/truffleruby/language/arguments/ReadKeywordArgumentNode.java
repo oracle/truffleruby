@@ -24,6 +24,7 @@ import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
+/** Read a single keyword argument or execute its default value expression if missing */
 @ImportStatic(HashGuards.class)
 public abstract class ReadKeywordArgumentNode extends RubyContextSourceNode implements PEBiFunction {
 
@@ -32,8 +33,8 @@ public abstract class ReadKeywordArgumentNode extends RubyContextSourceNode impl
     @Child private RubyNode defaultValue;
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
 
-    public static ReadKeywordArgumentNode create(int minimum, RubySymbol name, RubyNode defaultValue) {
-        return ReadKeywordArgumentNodeGen.create(minimum, name, defaultValue);
+    public static ReadKeywordArgumentNode create(RubySymbol name, RubyNode defaultValue) {
+        return ReadKeywordArgumentNodeGen.create(name, defaultValue);
     }
 
     @Override
@@ -43,10 +44,10 @@ public abstract class ReadKeywordArgumentNode extends RubyContextSourceNode impl
 
     public abstract Object execute(VirtualFrame frame, RubyHash hash);
 
-    protected ReadKeywordArgumentNode(int minimum, RubySymbol name, RubyNode defaultValue) {
+    protected ReadKeywordArgumentNode(RubySymbol name, RubyNode defaultValue) {
         this.name = name;
         this.defaultValue = defaultValue;
-        readUserKeywordsHashNode = new ReadUserKeywordsHashNode(minimum);
+        readUserKeywordsHashNode = new ReadUserKeywordsHashNode();
     }
 
     @Specialization(guards = "hash == null")

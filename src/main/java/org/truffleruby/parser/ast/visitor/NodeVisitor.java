@@ -100,6 +100,7 @@ import org.truffleruby.parser.ast.ModuleParseNode;
 import org.truffleruby.parser.ast.MultipleAsgnParseNode;
 import org.truffleruby.parser.ast.NextParseNode;
 import org.truffleruby.parser.ast.NilParseNode;
+import org.truffleruby.parser.ast.NoKeywordsArgParseNode;
 import org.truffleruby.parser.ast.NthRefParseNode;
 import org.truffleruby.parser.ast.OpAsgnAndParseNode;
 import org.truffleruby.parser.ast.OpAsgnConstDeclParseNode;
@@ -280,6 +281,8 @@ public interface NodeVisitor<T> {
     T visitNextNode(NextParseNode iVisited);
 
     T visitNilNode(NilParseNode iVisited);
+
+    T visitNoKeywordsArgNode(NoKeywordsArgParseNode iVisited);
 
     T visitNthRefNode(NthRefParseNode iVisited);
 

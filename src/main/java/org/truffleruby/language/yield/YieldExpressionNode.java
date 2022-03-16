@@ -15,10 +15,11 @@ import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNodeGen;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.FrozenStrings;
-import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
+import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 
@@ -26,12 +27,11 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.language.dispatch.LiteralCallNode;
 
-public class YieldExpressionNode extends RubyContextSourceNode {
+public class YieldExpressionNode extends LiteralCallNode {
 
-    private final boolean unsplat;
     private final boolean warnInModuleBody;
-    private final ArgumentsDescriptor descriptor;
 
     @Children private final RubyNode[] arguments;
     @Child private CallBlockNode yieldNode;
@@ -43,13 +43,12 @@ public class YieldExpressionNode extends RubyContextSourceNode {
     private final BranchProfile noCapturedBlock = BranchProfile.create();
 
     public YieldExpressionNode(
-            boolean unsplat,
+            boolean isSplatted,
             ArgumentsDescriptor descriptor,
             RubyNode[] arguments,
             RubyNode readBlockNode,
             boolean warnInModuleBody) {
-        this.unsplat = unsplat;
-        this.descriptor = descriptor;
+        super(isSplatted, descriptor);
         this.arguments = arguments;
         this.readBlockNode = readBlockNode;
         this.warnInModuleBody = warnInModuleBody;
@@ -75,8 +74,16 @@ public class YieldExpressionNode extends RubyContextSourceNode {
             throw new RaiseException(getContext(), coreExceptions().noBlockToYieldTo(this));
         }
 
-        if (unsplat) {
+        ArgumentsDescriptor descriptor = this.descriptor;
+        if (isSplatted) {
             argumentsObjects = unsplat(argumentsObjects);
+            descriptor = getArgumentsDescriptorAndCheckRuby2KeywordsHash(argumentsObjects, argumentsObjects.length);
+        }
+
+        // Remove empty kwargs in the caller, so the callee does not need to care about this special case
+        if (descriptor instanceof KeywordArgumentsDescriptor && emptyKeywordArguments(argumentsObjects)) {
+            argumentsObjects = removeEmptyKeywordArguments(argumentsObjects);
+            descriptor = EmptyArgumentsDescriptor.INSTANCE;
         }
 
         return getYieldNode().yield((RubyProc) block, descriptor, argumentsObjects);

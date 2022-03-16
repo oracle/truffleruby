@@ -29,26 +29,23 @@
 class Enumerator
   include Enumerable
 
-  attr_writer :args
-  private :args=
+  attr_writer :args, :kwargs, :size
+  private :args=, :kwargs=, :size=
 
-  attr_writer :size
-  private :size=
-
-  def initialize_enumerator(receiver, size, method_name, *method_args)
+  private def initialize_enumerator(receiver, size, method_name, *method_args, **method_kwargs)
     @object = receiver
     @size = size
     @iter = method_name
     @args = method_args
+    @kwargs = method_kwargs
     @generator = nil
     @lookahead = []
     @feedvalue = nil
 
     self
   end
-  private :initialize_enumerator
 
-  def initialize(receiver_or_size=undefined, method_name=:each, *method_args, &block)
+  private def initialize(receiver_or_size=undefined, method_name=:each, *method_args, **method_kwargs, &block)
     size = nil
 
     if block_given?
@@ -67,27 +64,30 @@ class Enumerator
 
     method_name = Truffle::Type.coerce_to method_name, Symbol, :to_sym
 
-    initialize_enumerator receiver, size, method_name, *method_args
+    initialize_enumerator receiver, size, method_name, *method_args, **method_kwargs
 
     self
   end
-  private :initialize
 
   def inspect
-    args = @args.empty? ? '' : "(#{@args.map(&:inspect).join(', ')})"
+    args = @kwargs.empty? ? @args : [*@args, @kwargs]
+    args = args.empty? ? '' : "(#{args.map(&:inspect).join(', ')})"
     "#<#{self.class}: #{@object.inspect}:#{@iter}#{args}>"
   end
 
-  def each(*args, &block)
+  def each(*args, **kwargs, &block)
     enumerator = self
-    new_args = @args
-
     unless args.empty?
       enumerator = dup
       new_args = @args.empty? ? args : (@args + args)
+      enumerator.__send__ :args=, new_args
     end
 
-    enumerator.__send__ :args=, new_args
+    unless kwargs.empty?
+      enumerator = dup
+      new_kwargs = @kwargs.empty? ? kwargs : @kwargs.merge(kwargs)
+      enumerator.__send__ :kwargs=, new_kwargs
+    end
 
     if block
       Primitive.share_special_variables(Primitive.proc_special_variables(block))
@@ -100,7 +100,7 @@ class Enumerator
 
   def each_with_block(&block)
     Primitive.share_special_variables(Primitive.proc_special_variables(block))
-    @object.__send__ @iter, *@args do |*args|
+    @object.__send__(@iter, *@args, **@kwargs) do |*args|
       ret = yield(*args)
       unless Primitive.nil? @feedvalue
         ret = @feedvalue
@@ -186,7 +186,7 @@ class Enumerator
   end
 
   def size
-    @size.respond_to?(:call) ? @size.call : @size
+    @size.respond_to?(:call) ? @size.call(*@args, **@kwargs) : @size
   end
 
   def with_index(offset=0)
@@ -239,12 +239,12 @@ class Enumerator
     end
     private :initialize
 
-    def yield(*args)
-      @proc.call(*args)
+    def yield(*args, **kwargs)
+      @proc.call(*args, **kwargs)
     end
 
-    def <<(*args)
-      self.yield(*args)
+    def <<(*args, **kwargs)
+      self.yield(*args, **kwargs)
 
       self
     end
@@ -265,12 +265,14 @@ class Enumerator
     end
     private :initialize
 
-    def each(*args, &block)
-      raise LocalJumpError unless block
-      Primitive.share_special_variables(Primitive.proc_special_variables(block))
-      enclosed_yield = Proc.new { |*enclosed_args| yield(*enclosed_args) }
+    def each(*args, **kwargs, &block)
+      Primitive.share_special_variables(Primitive.proc_special_variables(block)) if block
 
-      @proc.call Yielder.new(&enclosed_yield), *args
+      yielder = Yielder.new do |*enclosed_args, **enclosed_kwargs|
+        yield(*enclosed_args, **enclosed_kwargs)
+      end
+
+      @proc.call yielder, *args, **kwargs
     end
   end
 
@@ -304,12 +306,12 @@ class Enumerator
     end
     private :initialize
 
-    def to_enum(method_name=:each, *method_args, &block)
+    def to_enum(method_name=:each, *method_args, **method_kwargs, &block)
       size = block_given? ? block : nil
       ret = Lazy.allocate
       method_name = Truffle::EnumeratorOperations.lazy_method(method_name)
 
-      ret.__send__ :initialize_enumerator, self, size, method_name, *method_args
+      ret.__send__ :initialize_enumerator, self, size, method_name, *method_args, **method_kwargs
 
       ret
     end

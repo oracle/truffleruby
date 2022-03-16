@@ -87,7 +87,7 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         @TruffleBoundary
         public void runAllMarkers(RubyContext context, RubyLanguage language) {
             final ExtensionCallStack stack = language.getCurrentThread().getCurrentFiber().extensionCallStack;
-            stack.push(stack.getSpecialVariables(), stack.getBlock());
+            stack.push(stack.areKeywordsGiven(), stack.getSpecialVariables(), stack.getBlock());
             try {
                 // TODO (eregon, 15 Sept 2020): there seems to be no synchronization here while walking the list of
                 // markingService, and concurrent mutations seem to be possible.
@@ -112,23 +112,31 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
     private final UnsizedQueue keptObjectQueue = new UnsizedQueue();
 
     protected static class ExtensionCallStackEntry {
+
         protected final ExtensionCallStackEntry previous;
         protected final ArrayList<Object> preservedObjects = new ArrayList<>();
-        protected final Object block;
+        protected final boolean keywordsGiven;
         protected Object specialVariables;
+        protected final Object block;
 
-        protected ExtensionCallStackEntry(ExtensionCallStackEntry previous, Object specialVariables, Object block) {
+        protected ExtensionCallStackEntry(
+                ExtensionCallStackEntry previous,
+                boolean keywordsGiven,
+                Object specialVariables,
+                Object block) {
             this.previous = previous;
-            this.block = block;
+            this.keywordsGiven = keywordsGiven;
             this.specialVariables = specialVariables;
+            this.block = block;
         }
     }
 
     public static class ExtensionCallStack {
+
         protected ExtensionCallStackEntry current;
 
         public ExtensionCallStack(Object specialVariables, Object block) {
-            current = new ExtensionCallStackEntry(null, specialVariables, block);
+            current = new ExtensionCallStackEntry(null, false, specialVariables, block);
         }
 
         public ArrayList<Object> getKeptObjects() {
@@ -141,8 +149,12 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
             current = current.previous;
         }
 
-        public void push(Object specialVariables, Object block) {
-            current = new ExtensionCallStackEntry(current, specialVariables, block);
+        public void push(boolean keywordsGiven, Object specialVariables, Object block) {
+            current = new ExtensionCallStackEntry(current, keywordsGiven, specialVariables, block);
+        }
+
+        public boolean areKeywordsGiven() {
+            return current.keywordsGiven;
         }
 
         public Object getSpecialVariables() {

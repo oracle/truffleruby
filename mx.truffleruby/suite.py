@@ -110,7 +110,6 @@ suite = {
                 "truffleruby-gem-test-pack",
                 "lib/json/java",
                 "lib/ruby",
-                "test/truffle/ecosystem/blog5",
                 "test/truffle/ecosystem/blog6",
                 "test/truffle/ecosystem/hello-world",
                 "test/truffle/ecosystem/rails-app",

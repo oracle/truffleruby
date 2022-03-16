@@ -143,7 +143,7 @@ public abstract class FiberNodes {
         @Child private FiberTransferNode fiberTransferNode = FiberTransferNodeFactory.create(null);
 
         @Specialization
-        protected Object transfer(VirtualFrame frame, RubyFiber toFiber, Object[] args,
+        protected Object transfer(VirtualFrame frame, RubyFiber toFiber, Object[] rawArgs,
                 @Cached ConditionProfile sameFiberProfile,
                 @Cached BranchProfile errorProfile) {
 
@@ -164,12 +164,12 @@ public abstract class FiberNodes {
 
             if (sameFiberProfile.profile(currentFiber == toFiber)) {
                 // A Fiber can transfer to itself
-                return fiberTransferNode.singleValue(args);
+                return fiberTransferNode.singleValue(rawArgs);
             }
 
             return fiberTransferNode
                     .executeTransferControlTo(currentThread, currentFiber, toFiber, FiberOperation.TRANSFER,
-                            RubyArguments.getDescriptor(frame), args);
+                            RubyArguments.getDescriptor(frame), rawArgs);
         }
 
     }
@@ -261,8 +261,8 @@ public abstract class FiberNodes {
                         EmptyArgumentsDescriptor.INSTANCE,
                         new Object[]{ exception });
             } else {
-                return getResumeNode().executeResume(FiberOperation.RAISE, fiber, EmptyArgumentsDescriptor.INSTANCE,
-                        new Object[]{ exception });
+                return getResumeNode().executeResume(FiberOperation.RAISE, fiber,
+                        EmptyArgumentsDescriptor.INSTANCE, new Object[]{ exception });
             }
         }
 
@@ -290,9 +290,9 @@ public abstract class FiberNodes {
         @Child private FiberResumeNode fiberResumeNode = FiberResumeNode.create();
 
         @Specialization
-        protected Object resume(VirtualFrame frame, RubyFiber fiber, Object[] args) {
+        protected Object resume(VirtualFrame frame, RubyFiber fiber, Object[] rawArgs) {
             return fiberResumeNode.executeResume(FiberOperation.RESUME, fiber,
-                    RubyArguments.getDescriptor(frame), args);
+                    RubyArguments.getDescriptor(frame), rawArgs);
         }
 
     }
@@ -303,7 +303,7 @@ public abstract class FiberNodes {
         @Child private FiberTransferNode fiberTransferNode = FiberTransferNodeFactory.create(null);
 
         @Specialization
-        protected Object fiberYield(VirtualFrame frame, Object[] args,
+        protected Object fiberYield(VirtualFrame frame, Object[] rawArgs,
                 @Cached BranchProfile errorProfile) {
 
             final RubyThread currentThread = getLanguage().getCurrentThread();
@@ -318,7 +318,7 @@ public abstract class FiberNodes {
                     fiberYieldedTo,
                     FiberOperation.YIELD,
                     RubyArguments.getDescriptor(frame),
-                    args);
+                    rawArgs);
         }
 
     }

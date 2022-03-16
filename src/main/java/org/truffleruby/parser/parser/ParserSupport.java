@@ -59,6 +59,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.RopeWithEncoding;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.RaiseException;
@@ -121,6 +122,7 @@ import org.truffleruby.parser.ast.MatchParseNode;
 import org.truffleruby.parser.ast.MultipleAsgnParseNode;
 import org.truffleruby.parser.ast.NilImplicitParseNode;
 import org.truffleruby.parser.ast.NilParseNode;
+import org.truffleruby.parser.ast.NoKeywordsArgParseNode;
 import org.truffleruby.parser.ast.NthRefParseNode;
 import org.truffleruby.parser.ast.NumericParseNode;
 import org.truffleruby.parser.ast.OpAsgnConstDeclParseNode;
@@ -153,9 +155,12 @@ import org.truffleruby.parser.scope.StaticScope;
 
 public class ParserSupport {
 
-    /** The local variable to store ... arguments in */
+    /** The local variable to store ... positional arguments in */
     public static final String FORWARD_ARGS_REST_VAR = Layouts.TEMP_PREFIX + "forward_rest";
-
+    /** The local variable to store ... keyword arguments in */
+    public static final String FORWARD_ARGS_KWREST_VAR = Layouts.TEMP_PREFIX + "forward_kwrest";
+    public static final Rope FORWARD_ARGS_KWREST_VAR_ROPE = StringOperations.encodeRope(FORWARD_ARGS_KWREST_VAR,
+            USASCIIEncoding.INSTANCE);
     /** The local variable to store the block from ... in */
     public static final String FORWARD_ARGS_BLOCK_VAR = Layouts.TEMP_PREFIX + "forward_block";
 
@@ -1433,8 +1438,8 @@ public class ParserSupport {
         if (keywordRestArgNameRope == null) {
             return new ArgsTailHolder(position, keywordArg, null, blockArg);
         } else if (keywordRestArgNameRope == RubyLexer.Keyword.NIL.bytes) { // def m(**nil)
-            // TODO (eregon, 6 Nov 2020): actually implement **nil semantics
-            return new ArgsTailHolder(position, keywordArg, null, blockArg);
+            return new ArgsTailHolder(position, keywordArg,
+                    new NoKeywordsArgParseNode(position, Layouts.TEMP_PREFIX + "nil_kwrest"), blockArg);
         }
 
         final String restKwargsName;

@@ -595,7 +595,7 @@ public abstract class VMPrimitiveNodes {
     public abstract static class ArgumentsNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         protected RubyArray arguments(VirtualFrame frame) {
-            return createArray(RubyArguments.getArguments(frame));
+            return createArray(RubyArguments.getRawArguments(frame));
         }
     }
 

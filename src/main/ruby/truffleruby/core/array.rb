@@ -1022,38 +1022,21 @@ class Array
     end
   end
 
-  def sample(count=undefined, options=undefined)
-    return at Kernel.rand(size) if Primitive.undefined? count
-
-    if Primitive.undefined? options
-      if o = Truffle::Type.rb_check_convert_type(count, Hash, :to_hash)
-        options = o
-        count = nil
-      else
-        options = nil
-        count = Primitive.rb_num2int count
-      end
-    else
-      count = Primitive.rb_num2int count
-      options = Truffle::Type.coerce_to options, Hash, :to_hash
-    end
-
-    if count and count < 0
-      raise ArgumentError, 'count must be >= 0'
-    end
-
-    rng = options[:random] if options
-    if rng and rng.respond_to? :rand
-      rng = SampleRandom.new rng
+  def sample(count = undefined, random: nil)
+    if random and random.respond_to?(:rand)
+      rng = SampleRandom.new random
     else
       rng = Kernel
     end
 
-    size = self.size
-    unless count
+    if Primitive.undefined?(count)
       return at(size < 2 ? 0 : rng.rand(size))
     end
 
+    count = Primitive.rb_num2int count
+    raise ArgumentError, 'count must be >= 0' if count < 0
+
+    size = self.size
     count = size if count > size
 
     case count

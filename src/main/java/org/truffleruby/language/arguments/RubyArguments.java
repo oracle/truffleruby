@@ -12,6 +12,7 @@ package org.truffleruby.language.arguments;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.FrameAndVariables;
@@ -46,36 +47,42 @@ public final class RubyArguments {
 
     static final int RUNTIME_ARGUMENT_COUNT = ArgumentIndicies.values().length;
 
-    public static boolean assertFrameArguments(Object[] arguments) {
-        assert arguments.length >= RUNTIME_ARGUMENT_COUNT;
+    public static boolean assertFrameArguments(Object[] rubyArgs) {
+        assert rubyArgs.length >= RUNTIME_ARGUMENT_COUNT;
 
-        final Object declarationFrame = arguments[ArgumentIndicies.DECLARATION_FRAME.ordinal()];
+        final Object declarationFrame = rubyArgs[ArgumentIndicies.DECLARATION_FRAME.ordinal()];
         assert declarationFrame == null || declarationFrame instanceof MaterializedFrame : declarationFrame;
 
-        final Object callerFrameOrVariables = arguments[ArgumentIndicies.CALLER_FRAME_OR_VARIABLES.ordinal()];
+        final Object callerFrameOrVariables = rubyArgs[ArgumentIndicies.CALLER_FRAME_OR_VARIABLES.ordinal()];
         assert callerFrameOrVariables == null || callerFrameOrVariables instanceof MaterializedFrame ||
                 callerFrameOrVariables instanceof FrameAndVariables ||
                 callerFrameOrVariables instanceof SpecialVariableStorage : callerFrameOrVariables;
 
-        final Object internalMethod = arguments[ArgumentIndicies.METHOD.ordinal()];
+        final Object internalMethod = rubyArgs[ArgumentIndicies.METHOD.ordinal()];
         assert internalMethod instanceof InternalMethod : internalMethod;
 
-        final Object declarationContext = arguments[ArgumentIndicies.DECLARATION_CONTEXT.ordinal()];
+        final Object declarationContext = rubyArgs[ArgumentIndicies.DECLARATION_CONTEXT.ordinal()];
         assert declarationContext instanceof DeclarationContext : declarationContext;
 
-        final Object frameOnStackMarker = arguments[ArgumentIndicies.FRAME_ON_STACK_MARKER.ordinal()];
+        final Object frameOnStackMarker = rubyArgs[ArgumentIndicies.FRAME_ON_STACK_MARKER.ordinal()];
         assert frameOnStackMarker == null || frameOnStackMarker instanceof FrameOnStackMarker : frameOnStackMarker;
 
-        assert RubyGuards.assertIsValidRubyValue(arguments[ArgumentIndicies.SELF.ordinal()]);
+        assert RubyGuards.assertIsValidRubyValue(rubyArgs[ArgumentIndicies.SELF.ordinal()]);
 
-        final Object block = arguments[ArgumentIndicies.BLOCK.ordinal()];
+        final Object block = rubyArgs[ArgumentIndicies.BLOCK.ordinal()];
         assert block instanceof RubyProc || block == Nil.INSTANCE : block;
 
-        Object descriptor = arguments[ArgumentIndicies.DESCRIPTOR.ordinal()];
+        Object descriptor = rubyArgs[ArgumentIndicies.DESCRIPTOR.ordinal()];
         assert descriptor instanceof ArgumentsDescriptor : descriptor;
 
-        final int userArgumentsCount = arguments.length - RUNTIME_ARGUMENT_COUNT;
-        assert ArrayUtils.assertValidElements(arguments, RUNTIME_ARGUMENT_COUNT, userArgumentsCount);
+        if (descriptor instanceof KeywordArgumentsDescriptor) {
+            final Object lastArgument = getLastArgument(rubyArgs);
+            assert lastArgument instanceof RubyHash : "the last frame argument must be a Hash with a kwargs descriptor";
+            assert !((RubyHash) lastArgument).empty() : "empty kwargs should not have been passed";
+        }
+
+        final int userArgumentsCount = rubyArgs.length - RUNTIME_ARGUMENT_COUNT;
+        assert ArrayUtils.assertValidElements(rubyArgs, RUNTIME_ARGUMENT_COUNT, userArgumentsCount);
 
         return true;
     }
@@ -105,22 +112,22 @@ public final class RubyArguments {
             Object block,
             ArgumentsDescriptor descriptor,
             Object[] arguments) {
-        final Object[] packed = new Object[RUNTIME_ARGUMENT_COUNT + arguments.length];
+        final Object[] rubyArgs = new Object[RUNTIME_ARGUMENT_COUNT + arguments.length];
 
-        packed[ArgumentIndicies.DECLARATION_FRAME.ordinal()] = declarationFrame;
-        packed[ArgumentIndicies.CALLER_FRAME_OR_VARIABLES.ordinal()] = callerFrameOrVariables;
-        packed[ArgumentIndicies.METHOD.ordinal()] = method;
-        packed[ArgumentIndicies.DECLARATION_CONTEXT.ordinal()] = declarationContext;
-        packed[ArgumentIndicies.FRAME_ON_STACK_MARKER.ordinal()] = frameOnStackMarker;
-        packed[ArgumentIndicies.SELF.ordinal()] = self;
-        packed[ArgumentIndicies.BLOCK.ordinal()] = block;
-        packed[ArgumentIndicies.DESCRIPTOR.ordinal()] = descriptor;
+        rubyArgs[ArgumentIndicies.DECLARATION_FRAME.ordinal()] = declarationFrame;
+        rubyArgs[ArgumentIndicies.CALLER_FRAME_OR_VARIABLES.ordinal()] = callerFrameOrVariables;
+        rubyArgs[ArgumentIndicies.METHOD.ordinal()] = method;
+        rubyArgs[ArgumentIndicies.DECLARATION_CONTEXT.ordinal()] = declarationContext;
+        rubyArgs[ArgumentIndicies.FRAME_ON_STACK_MARKER.ordinal()] = frameOnStackMarker;
+        rubyArgs[ArgumentIndicies.SELF.ordinal()] = self;
+        rubyArgs[ArgumentIndicies.BLOCK.ordinal()] = block;
+        rubyArgs[ArgumentIndicies.DESCRIPTOR.ordinal()] = descriptor;
 
-        ArrayUtils.arraycopy(arguments, 0, packed, RUNTIME_ARGUMENT_COUNT, arguments.length);
+        ArrayUtils.arraycopy(arguments, 0, rubyArgs, RUNTIME_ARGUMENT_COUNT, arguments.length);
 
-        assert assertFrameArguments(packed);
+        assert assertFrameArguments(rubyArgs);
 
-        return packed;
+        return rubyArgs;
     }
 
     public static Object[] allocate(int count) {
@@ -138,13 +145,15 @@ public final class RubyArguments {
         return newArgs;
     }
 
-    public static Object[] repack(Object[] rubyArgs, Object receiver, int from, int count) {
-        return repack(rubyArgs, receiver, from, 0, count);
+    public static Object[] repack(Object[] rubyArgs, Object receiver, int from) {
+        return repack(rubyArgs, receiver, from, 0);
     }
 
-    /** Same as {@code pack(null, null, null, null, receiver, getBlock(rubyArgs), getArguments(rubyArgs))} but without
-     * the intermediary Object[] allocation and arraycopy. */
-    public static Object[] repack(Object[] rubyArgs, Object receiver, int from, int to, int count) {
+    /** Same as
+     * {@code pack(null, null, null, null, receiver, getBlock(rubyArgs), getDescriptor(rubyArgs), getRawArguments(rubyArgs))}
+     * but without the intermediary Object[] allocation and arraycopy. */
+    public static Object[] repack(Object[] rubyArgs, Object receiver, int from, int to) {
+        final int count = getRawArgumentsCount(rubyArgs) - from;
         final Object[] newArgs = new Object[RUNTIME_ARGUMENT_COUNT + to + count];
         newArgs[ArgumentIndicies.SELF.ordinal()] = receiver;
         newArgs[ArgumentIndicies.BLOCK.ordinal()] = getBlock(rubyArgs);
@@ -285,56 +294,94 @@ public final class RubyArguments {
         return (ArgumentsDescriptor) args[ArgumentIndicies.DESCRIPTOR.ordinal()];
     }
 
-    /** Get the number of user argument inside the frame arguments */
-    public static int getArgumentsCount(Frame frame) {
+    /** Get the raw number of user arguments inside the frame arguments, which might include keyword arguments */
+    public static int getRawArgumentsCount(Frame frame) {
         return frame.getArguments().length - RUNTIME_ARGUMENT_COUNT;
     }
 
-    /** Get the number of user argument inside the frame arguments */
-    public static int getArgumentsCount(Object[] args) {
-        return args.length - RUNTIME_ARGUMENT_COUNT;
+    /** Get the raw number of user arguments inside the frame arguments, which might include keyword arguments */
+    public static int getRawArgumentsCount(Object[] rubyArgs) {
+        return rubyArgs.length - RUNTIME_ARGUMENT_COUNT;
+    }
+
+    /** Get the number of positional user arguments inside the frame arguments */
+    public static int getPositionalArgumentsCount(Frame frame, boolean methodHasKeywordParameters) {
+        return getPositionalArgumentsCount(frame.getArguments(), methodHasKeywordParameters);
+    }
+
+    /** Get the number of positional user arguments inside the frame arguments */
+    public static int getPositionalArgumentsCount(Object[] rubyArgs, boolean methodHasKeywordParameters) {
+        CompilerAsserts.partialEvaluationConstant(methodHasKeywordParameters);
+        final int argumentsCount = rubyArgs.length - RUNTIME_ARGUMENT_COUNT;
+
+        if (methodHasKeywordParameters && getDescriptor(rubyArgs) instanceof KeywordArgumentsDescriptor) {
+            return argumentsCount - 1; // the last argument is kwargs
+        } else {
+            return argumentsCount;
+        }
     }
 
     /** Get the user argument at given index out of frame arguments */
     public static Object getArgument(Frame frame, int index) {
-        assert index >= 0 && index < getArgumentsCount(frame);
+        assert index >= 0 && index < getRawArgumentsCount(frame);
         return frame.getArguments()[RUNTIME_ARGUMENT_COUNT + index];
     }
 
     /** Get the user argument at given index out of frame arguments */
     public static Object getArgument(Object[] rubyArgs, int index) {
-        assert index >= 0 && index < getArgumentsCount(rubyArgs);
+        assert index >= 0 && index < getRawArgumentsCount(rubyArgs);
         return rubyArgs[RUNTIME_ARGUMENT_COUNT + index];
     }
 
-    /** Set the user argument at given index inside frame arguments */
-    public static void setArgument(Frame frame, int index, Object value) {
-        assert index >= 0 && index < getArgumentsCount(frame);
-        frame.getArguments()[RUNTIME_ARGUMENT_COUNT + index] = value;
+    public static Object getLastArgument(Frame frame) {
+        return getLastArgument(frame.getArguments());
+    }
+
+    public static Object getLastArgument(Object[] rubyArgs) {
+        assert getRawArgumentsCount(rubyArgs) > 0;
+        return rubyArgs[rubyArgs.length - 1];
+    }
+
+    public static void setLastArgument(Frame frame, Object value) {
+        setLastArgument(frame.getArguments(), value);
+    }
+
+    public static void setLastArgument(Object[] rubyArgs, Object value) {
+        assert getRawArgumentsCount(rubyArgs) > 0;
+        rubyArgs[rubyArgs.length - 1] = value;
     }
 
     /** Set the user argument at given index inside frame arguments */
     public static void setArgument(Object[] rubyArgs, int index, Object value) {
-        assert index >= 0 && index < getArgumentsCount(rubyArgs);
+        assert index >= 0 && index < getRawArgumentsCount(rubyArgs);
         rubyArgs[RUNTIME_ARGUMENT_COUNT + index] = value;
     }
 
-    /** Get the user arguments out of frame arguments. Should only be used when strictly necessary, {@link #repack} or
-     * {@link #getArgument} avoid the extra allocation. */
-    public static Object[] getArguments(Object[] rubyArgs) {
+    /** Get the positional user arguments out of frame arguments. Should only be used when strictly necessary,
+     * {@link #repack} or {@link #getArgument} avoid the extra allocation. */
+    public static Object[] getPositionalArguments(Object[] rubyArgs, boolean methodHasKeywordParameters) {
+        int count = getPositionalArgumentsCount(rubyArgs, methodHasKeywordParameters);
+        return ArrayUtils.extractRange(rubyArgs, RUNTIME_ARGUMENT_COUNT, RUNTIME_ARGUMENT_COUNT + count);
+    }
+
+    /** Get the user arguments out of frame arguments, from start to start+length. Only used by *rest arg nodes. */
+    public static Object[] getRawArguments(Frame frame, int start, int length) {
+        Object[] rubyArgs = frame.getArguments();
+        return ArrayUtils.extractRange(rubyArgs, RUNTIME_ARGUMENT_COUNT + start,
+                RUNTIME_ARGUMENT_COUNT + start + length);
+    }
+
+    /** Get the user arguments and also potentially the keyword Hash, this should only be used for delegation, and the
+     * descriptor should be preserved as well. */
+    public static Object[] getRawArguments(Object[] rubyArgs) {
         return ArrayUtils.extractRange(rubyArgs, RUNTIME_ARGUMENT_COUNT, rubyArgs.length);
     }
 
-    /** Get the user arguments out of frame arguments. */
-    public static Object[] getArguments(Frame frame) {
+    /** Get the user arguments and also potentially the keyword Hash, this should only be used for delegation, and the
+     * descriptor should be preserved as well. */
+    public static Object[] getRawArguments(Frame frame) {
         Object[] rubyArgs = frame.getArguments();
         return ArrayUtils.extractRange(rubyArgs, RUNTIME_ARGUMENT_COUNT, rubyArgs.length);
-    }
-
-    /** Get the user arguments out of frame arguments, skipping the first start arguments. */
-    public static Object[] getArguments(Frame frame, int start) {
-        Object[] rubyArgs = frame.getArguments();
-        return ArrayUtils.extractRange(rubyArgs, RUNTIME_ARGUMENT_COUNT + start, rubyArgs.length);
     }
 
     public static void setArguments(Object[] rubyArgs, Object[] arguments) {

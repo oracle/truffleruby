@@ -358,7 +358,7 @@ public class CoreMethodNodeManager {
 
         for (int n = 0; n < nArgs; n++) {
             RubyNode readArgumentNode = Translator
-                    .profileArgument(language, new ReadPreArgumentNode(n, MissingArgumentBehavior.NOT_PROVIDED));
+                    .profileArgument(language, new ReadPreArgumentNode(n, false, MissingArgumentBehavior.NOT_PROVIDED));
             argumentsNodes[i++] = transformArgument(method, readArgumentNode, n + 1);
         }
 

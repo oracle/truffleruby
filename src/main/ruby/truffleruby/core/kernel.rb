@@ -48,8 +48,8 @@ module Kernel
   end
   module_function :Array
 
-  def Complex(*args)
-    Complex.__send__ :convert, *args
+  def Complex(real, imag = undefined, exception: true)
+    Complex.__send__(:convert, real, imag, exception: exception)
   end
   module_function :Complex
 
@@ -551,12 +551,13 @@ module Kernel
   end
   module_function :test
 
-  def to_enum(method=:each, *args, &block)
-    Enumerator.new(self, method, *args).tap do |enum|
+  def to_enum(method=:each, *args, **kwargs, &block)
+    Enumerator.new(self, method, *args, **kwargs).tap do |enum|
       enum.__send__ :size=, block if block_given?
     end
   end
   alias_method :enum_for, :to_enum
+
 
   def trap(sig, prc=nil, &block)
     Signal.trap(sig, prc, &block)
@@ -669,8 +670,7 @@ module Kernel
   end
   module_function :warn
 
-  def raise(*args)
-    exc, msg, ctx, cause = Truffle::KernelOperations.extract_raise_args(args)
+  def raise(exc = undefined, msg = undefined, ctx = nil, cause: undefined, **kwargs)
     cause_given = !Primitive.undefined?(cause)
     cause = cause_given ? cause : $!
 
@@ -678,6 +678,14 @@ module Kernel
       raise ArgumentError, 'only cause is given with no arguments' if cause_given
       exc = cause
     else
+      unless kwargs.empty?
+        if Primitive.undefined?(msg)
+          msg = kwargs
+        else
+          raise ArgumentError, 'cannot give both message and extra keyword arguments'
+        end
+      end
+
       exc = Truffle::ExceptionOperations.build_exception_for_raise(exc, msg)
 
       exc.set_backtrace(ctx) if ctx

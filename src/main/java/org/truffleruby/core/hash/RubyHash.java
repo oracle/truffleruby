@@ -48,24 +48,36 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
     public Object defaultBlock;
     public Object defaultValue;
     public boolean compareByIdentity;
-    public boolean ruby2_keywords = false;
+    public final boolean ruby2_keywords;
 
     public RubyHash(
             RubyClass rubyClass,
             Shape shape,
             RubyContext context,
             Object store,
-            int size) {
+            int size,
+            boolean ruby2_keywords) {
         super(rubyClass, shape);
         this.store = store;
         this.size = size;
         this.defaultBlock = Nil.INSTANCE;
         this.defaultValue = Nil.INSTANCE;
         this.compareByIdentity = false;
+        this.ruby2_keywords = ruby2_keywords;
 
         if (context.isPreInitializing()) {
             context.getPreInitializationManager().addPreInitHash(this);
         }
+    }
+
+    // Not named isEmpty() has that's deprecated on DynamicObject
+    public boolean empty() {
+        return size == 0;
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() + "(size=" + size + ")";
     }
 
     @TruffleBoundary

@@ -26,10 +26,6 @@ public abstract class HashGuards {
 
     // Higher level properties
 
-    public static boolean isEmptyHash(RubyHash hash) {
-        return hash.size == 0;
-    }
-
     public static boolean isCompareByIdentity(RubyHash hash) {
         return hash.compareByIdentity;
     }

@@ -9,84 +9,41 @@
  */
 package org.truffleruby.language.arguments;
 
-import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class ReadOptionalArgumentNode extends RubyContextSourceNode {
 
     private final int index;
     private final int minimum;
-    private final boolean considerRejectedKWArgs;
-    private final boolean reduceMinimumWhenNoKWargs;
-
+    private final boolean keywordArguments;
     @Child private RubyNode defaultValue;
-    @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
-    @Child private ReadRejectedKeywordArgumentsNode readRejectedKeywordArgumentsNode;
-
     private final BranchProfile defaultValueProfile = BranchProfile.create();
-    private final ConditionProfile hasKeywordsProfile;
-    private final ConditionProfile hasRejectedKwargs;
 
     public ReadOptionalArgumentNode(
             int index,
             int minimum,
-            boolean considerRejectedKWArgs,
-            boolean reduceMinimumWhenNoKWargs,
-            int requiredForKWArgs,
+            boolean keywordArguments,
             RubyNode defaultValue) {
         this.index = index;
         this.minimum = minimum;
-        this.considerRejectedKWArgs = considerRejectedKWArgs;
+        this.keywordArguments = keywordArguments;
         this.defaultValue = defaultValue;
-        this.reduceMinimumWhenNoKWargs = reduceMinimumWhenNoKWargs;
-
-        if (reduceMinimumWhenNoKWargs || considerRejectedKWArgs) {
-            this.readUserKeywordsHashNode = new ReadUserKeywordsHashNode(requiredForKWArgs);
-        }
-
-        this.hasKeywordsProfile = considerRejectedKWArgs ? ConditionProfile.create() : null;
-        this.hasRejectedKwargs = considerRejectedKWArgs ? ConditionProfile.create() : null;
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
-        int effectiveMinimum = minimum;
+        final int positionalArgumentsCount = RubyArguments.getPositionalArgumentsCount(frame, keywordArguments);
 
-        if (reduceMinimumWhenNoKWargs) {
-            if (readUserKeywordsHashNode.execute(frame) == null) {
-                effectiveMinimum--;
-            }
-        }
-
-        if (RubyArguments.getArgumentsCount(frame) >= effectiveMinimum) {
+        if (positionalArgumentsCount >= minimum) {
             return RubyArguments.getArgument(frame, index);
+        } else {
+            defaultValueProfile.enter();
+            return defaultValue.execute(frame);
         }
-
-        defaultValueProfile.enter();
-
-        if (considerRejectedKWArgs) {
-            final RubyHash kwargsHash = readUserKeywordsHashNode.execute(frame);
-
-            if (hasKeywordsProfile.profile(kwargsHash != null)) {
-                if (readRejectedKeywordArgumentsNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    readRejectedKeywordArgumentsNode = insert(new ReadRejectedKeywordArgumentsNode());
-                }
-
-                final RubyHash rejectedKwargs = readRejectedKeywordArgumentsNode.extractRejectedKwargs(kwargsHash);
-                if (hasRejectedKwargs.profile(rejectedKwargs.size > 0)) {
-                    return rejectedKwargs;
-                }
-            }
-        }
-
-        return defaultValue.execute(frame);
     }
 
     @Override

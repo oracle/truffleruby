@@ -129,7 +129,7 @@ public abstract class BindingNodes {
                         RubyArguments.getSelf(parent),
                         RubyArguments.getBlock(parent),
                         RubyArguments.getDescriptor(parent),
-                        RubyArguments.getArguments(parent)),
+                        RubyArguments.getRawArguments(parent)),
                 descriptor).materialize();
     }
 

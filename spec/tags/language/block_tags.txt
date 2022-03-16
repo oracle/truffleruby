@@ -1,11 +1,2 @@
-fails:A block yielded a single Array calls #to_hash on the argument but ignores result when optional argument and keyword argument accepted
 fails:Post-args with optional args with a circular argument reference raises a SyntaxError if using an existing local with the same name as the argument
 fails:Post-args with optional args with a circular argument reference raises a SyntaxError if there is an existing method with the same name as the argument
-fails:A block yielded a single Array assigns elements to mixed argument types
-fails:A block yielded a single Array does not treat final Hash as keyword arguments and does not autosplat
-fails:A block yielded a single Array does not call #to_hash on final argument to get keyword arguments and does not autosplat
-fails:A block yielded a single Array does not call #to_hash on the argument when optional argument and keyword argument accepted and does not autosplat
-fails:A block yielded a single Array does not treat hashes with string keys as keyword arguments and does not autosplat
-fails:A block yielded a single Array does not call #to_hash on the last element if keyword arguments are present
-fails:A block yielded a single Array does not call #to_hash on the last element when there are more arguments than parameters
-fails:A block yielded a single Array when non-symbol keys are in a keyword arguments Hash does not separate non-symbol keys and symbol keys and does not autosplat

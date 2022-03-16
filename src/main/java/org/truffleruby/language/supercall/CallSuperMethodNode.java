@@ -45,9 +45,8 @@ public class CallSuperMethodNode extends FrameAndVariablesSendingNode {
 
         if (missingProfile.profile(superMethod == null)) {
             final String name = RubyArguments.getMethod(frame).getSharedMethodInfo().getMethodNameForNotBlock(); // use the original name
-            final Object[] methodMissingArguments = ArrayUtils
-                    .unshift(arguments, getSymbol(name));
-            return callMethodMissing(frame, self, block, methodMissingArguments);
+            final Object[] methodMissingArguments = ArrayUtils.unshift(arguments, getSymbol(name));
+            return callMethodMissing(self, block, descriptor, methodMissingArguments);
         }
 
         final Object callerFrameOrVariables = getFrameOrStorageIfRequired(frame);
@@ -64,11 +63,12 @@ public class CallSuperMethodNode extends FrameAndVariablesSendingNode {
         return callMethodNode;
     }
 
-    private Object callMethodMissing(VirtualFrame frame, Object receiver, Object block, Object[] arguments) {
+    private Object callMethodMissing(Object receiver, Object block, ArgumentsDescriptor descriptor,
+            Object[] arguments) {
         if (callMethodMissingNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callMethodMissingNode = insert(DispatchNode.create());
         }
-        return callMethodMissingNode.callWithBlock(receiver, "method_missing", block, arguments);
+        return callMethodMissingNode.callWithDescriptor(receiver, "method_missing", block, descriptor, arguments);
     }
 }

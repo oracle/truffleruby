@@ -76,8 +76,8 @@ class Struct
         define_method(:"#{a}=") { |value| Primitive.object_hidden_var_set(self, a, value) }
       end
 
-      def self.new(*args, &block)
-        subclass_new(*args, &block)
+      def self.new(...)
+        subclass_new(...)
       end
 
       def self.[](*args)
@@ -158,7 +158,7 @@ class Struct
   end
   alias_method :inspect, :to_s
 
-  def initialize(*args)
+  def initialize(*args, **kwargs)
     attrs = _attrs
 
     unless args.length <= attrs.length
@@ -166,15 +166,15 @@ class Struct
     end
 
     if self.class::KEYWORD_INIT
-      return if args.empty?
-
-      if args.length > 1 || !Primitive.object_kind_of?(args.first, Hash)
+      # Accept a single positional hash for https://bugs.ruby-lang.org/issues/18632 and spec
+      if kwargs.empty? && args.size == 1 && Primitive.object_kind_of?(args.first, Hash)
+        kwargs = args.first
+      elsif args.size > 0
         raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 0)"
       end
-      kw_args = args.first
 
       unknowns = []
-      kw_args.each_pair do |attr, value|
+      kwargs.each_pair do |attr, value|
         if attrs.include?(attr)
           Primitive.object_hidden_var_set self, attr, value
         else

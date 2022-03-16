@@ -14,6 +14,7 @@ import org.truffleruby.language.RubyContextSourceNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
+/** Assumes no keyword parameters */
 public class ReadRemainingArgumentsNode extends RubyContextSourceNode {
 
     private final int start;
@@ -25,10 +26,10 @@ public class ReadRemainingArgumentsNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final int count = RubyArguments.getArgumentsCount(frame);
+        final int count = RubyArguments.getPositionalArgumentsCount(frame, false);
 
         if (remainingArguments.profile(start < count)) {
-            return RubyArguments.getArguments(frame, start);
+            return RubyArguments.getRawArguments(frame, start, count - start);
         } else {
             return EMPTY_ARGUMENTS;
         }

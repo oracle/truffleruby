@@ -9,7 +9,6 @@
  */
 package org.truffleruby.builtins;
 
-import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -49,8 +48,11 @@ public class ReturnEnumeratorIfNoBlockNode extends RubyContextSourceNode {
                 methodSymbol = getSymbol(methodName);
             }
 
-            final Object[] arguments = ArrayUtils.unshift(RubyArguments.getArguments(frame), methodSymbol);
-            return toEnumNode.call(RubyArguments.getSelf(frame), "to_enum", arguments);
+            final Object receiver = RubyArguments.getSelf(frame);
+            final Object[] rubyArgs = RubyArguments.repack(frame.getArguments(), receiver, 0, 1);
+            RubyArguments.setArgument(rubyArgs, 0, methodSymbol);
+
+            return toEnumNode.dispatch(null, receiver, "to_enum", rubyArgs);
         } else {
             return method.execute(frame);
         }

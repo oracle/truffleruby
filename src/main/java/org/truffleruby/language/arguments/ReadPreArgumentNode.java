@@ -19,20 +19,25 @@ import org.truffleruby.utils.Utils;
 public class ReadPreArgumentNode extends RubyContextSourceNode {
 
     private final int index;
+    private final boolean keywordArguments;
 
     private final BranchProfile outOfRangeProfile = BranchProfile.create();
     private final MissingArgumentBehavior missingArgumentBehavior;
 
     public ReadPreArgumentNode(
             int index,
+            boolean keywordArguments,
             MissingArgumentBehavior missingArgumentBehavior) {
         this.index = index;
+        this.keywordArguments = keywordArguments;
         this.missingArgumentBehavior = missingArgumentBehavior;
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
-        if (index < RubyArguments.getArgumentsCount(frame)) {
+        final int positionalArgumentsCount = RubyArguments.getPositionalArgumentsCount(frame, keywordArguments);
+
+        if (index < positionalArgumentsCount) {
             return RubyArguments.getArgument(frame, index);
         }
 

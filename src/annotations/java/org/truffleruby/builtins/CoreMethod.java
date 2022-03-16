@@ -47,6 +47,8 @@ public @interface CoreMethod {
 
     int optional() default 0;
 
+    /** Returns all remaining arguments. If keyword arguments are given they will simply be the last argument as a
+     * RubyHash, and the arguments descriptor will tell if it was kwargs or positional, as always. */
     boolean rest() default false;
 
     boolean needsBlock() default false;

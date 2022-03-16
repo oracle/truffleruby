@@ -12,27 +12,28 @@ package org.truffleruby.language.supercall;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.FrozenStrings;
-import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
+import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.dispatch.LiteralCallNode;
 import org.truffleruby.language.methods.InternalMethod;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class SuperCallNode extends RubyContextSourceNode {
+public class SuperCallNode extends LiteralCallNode {
 
     @Child private RubyNode arguments;
     @Child private RubyNode block;
-    private final ArgumentsDescriptor descriptor;
     @Child private LookupSuperMethodNode lookupSuperMethodNode;
     @Child private CallSuperMethodNode callSuperMethodNode;
 
-    public SuperCallNode(RubyNode arguments, RubyNode block, ArgumentsDescriptor descriptor) {
+    public SuperCallNode(boolean isSplatted, RubyNode arguments, RubyNode block, ArgumentsDescriptor descriptor) {
+        super(isSplatted, descriptor);
         this.arguments = arguments;
         this.block = block;
-        this.descriptor = descriptor;
     }
 
     @Override
@@ -40,7 +41,19 @@ public class SuperCallNode extends RubyContextSourceNode {
         final Object self = RubyArguments.getSelf(frame);
 
         // Execute the arguments
-        final Object[] superArguments = (Object[]) arguments.execute(frame);
+        Object[] superArguments = (Object[]) arguments.execute(frame);
+
+        ArgumentsDescriptor descriptor = this.descriptor;
+        if (isSplatted) {
+            // superArguments already splatted
+            descriptor = getArgumentsDescriptorAndCheckRuby2KeywordsHash(superArguments, superArguments.length);
+        }
+
+        // Remove empty kwargs in the caller, so the callee does not need to care about this special case
+        if (descriptor instanceof KeywordArgumentsDescriptor && emptyKeywordArguments(superArguments)) {
+            superArguments = removeEmptyKeywordArguments(superArguments);
+            descriptor = EmptyArgumentsDescriptor.INSTANCE;
+        }
 
         // Execute the block
         final Object blockObject = block.execute(frame);

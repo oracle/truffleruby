@@ -23,6 +23,7 @@ import org.truffleruby.parser.ast.KeywordRestArgParseNode;
 import org.truffleruby.parser.ast.ListParseNode;
 import org.truffleruby.parser.ast.LocalAsgnParseNode;
 import org.truffleruby.parser.ast.MultipleAsgnParseNode;
+import org.truffleruby.parser.ast.NoKeywordsArgParseNode;
 import org.truffleruby.parser.ast.OptArgParseNode;
 import org.truffleruby.parser.ast.ParseNode;
 import org.truffleruby.parser.ast.RestArgParseNode;
@@ -139,4 +140,8 @@ public class ParameterCollector extends AbstractNodeVisitor<Object> {
         return null;
     }
 
+    @Override
+    public Object visitNoKeywordsArgNode(NoKeywordsArgParseNode node) {
+        return null;
+    }
 }

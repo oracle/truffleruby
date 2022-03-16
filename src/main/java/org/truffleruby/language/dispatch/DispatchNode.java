@@ -25,6 +25,7 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -202,11 +203,12 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         return dispatch(null, receiver, method, rubyArgs);
     }
 
-    public Object callWithBlock(Object receiver, String method, Object block, Object[] arguments) {
+    public Object callWithDescriptor(Object receiver, String method, Object block, ArgumentsDescriptor descriptor,
+            Object[] arguments) {
         final Object[] rubyArgs = RubyArguments.allocate(arguments.length);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, block);
-        RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
+        RubyArguments.setDescriptor(rubyArgs, descriptor);
         RubyArguments.setArguments(rubyArgs, arguments);
         return dispatch(null, receiver, method, rubyArgs);
     }
@@ -259,11 +261,11 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
     }
 
     public final Object callWithFrameAndBlock(Frame frame, Object receiver, String methodName, Object block,
-            Object[] arguments) {
+            ArgumentsDescriptor descriptor, Object[] arguments) {
         final Object[] rubyArgs = RubyArguments.allocate(arguments.length);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, block);
-        RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
+        RubyArguments.setDescriptor(rubyArgs, descriptor);
         RubyArguments.setArguments(rubyArgs, arguments);
         return dispatch(frame, receiver, methodName, rubyArgs);
     }
@@ -297,8 +299,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
 
     private Object callMethodMissing(Frame frame, Object receiver, String methodName, Object[] rubyArgs) {
         final RubySymbol symbolName = nameToSymbol(methodName);
-        final Object[] newArgs = RubyArguments.repack(rubyArgs, receiver, 0, 1,
-                RubyArguments.getArgumentsCount(rubyArgs));
+        final Object[] newArgs = RubyArguments.repack(rubyArgs, receiver, 0, 1);
 
         RubyArguments.setArgument(newArgs, 0, symbolName);
         final Object result = callMethodMissingNode(frame, receiver, newArgs);
@@ -309,7 +310,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
                     ExceptionFormatter.NO_METHOD_ERROR,
                     receiver,
                     methodName,
-                    RubyArguments.getArguments(rubyArgs),
+                    RubyArguments.getPositionalArguments(rubyArgs, false),
                     this));
         }
 
@@ -323,7 +324,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         }
 
         final Object block = RubyArguments.getBlock(rubyArgs);
-        final Object[] arguments = RubyArguments.getArguments(rubyArgs);
+        final Object[] arguments = RubyArguments.getPositionalArguments(rubyArgs, false);
         return callForeign.execute(receiver, methodName, block, arguments);
     }
 
@@ -398,7 +399,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
             }
 
             final Object block = RubyArguments.getBlock(rubyArgs);
-            final Object[] arguments = RubyArguments.getArguments(rubyArgs);
+            final Object[] arguments = RubyArguments.getPositionalArguments(rubyArgs, false);
             return callForeign.execute(receiver, methodName, block, arguments);
         }
 

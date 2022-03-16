@@ -31,8 +31,14 @@ VALUE rb_funcallv(VALUE object, ID name, int args_count, const VALUE *args) {
 }
 
 VALUE rb_funcallv_kw(VALUE object, ID name, int args_count, const VALUE *args, int kw_splat) {
-  // Ignoring kw_splat for now
-  return rb_funcallv(object, name, args_count, args);
+  if (kw_splat && args_count > 0) {
+    return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_funcallv_keywords",
+      rb_tr_unwrap(object),
+      rb_tr_unwrap(ID2SYM(name)),
+      polyglot_from_VALUE_array(args, args_count)));
+  } else {
+    return rb_funcallv(object, name, args_count, args);
+  }
 }
 
 VALUE rb_funcallv_public(VALUE object, ID name, int args_count, const VALUE *args) {
@@ -69,7 +75,7 @@ VALUE rb_call_super(int args_count, const VALUE *args) {
 }
 
 int rb_keyword_given_p(void) {
-  return 0; // TODO
+  return polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("rb_keyword_given_p")) ? RB_PASS_KEYWORDS : RB_NO_KEYWORDS;
 }
 
 int rb_block_given_p(void) {

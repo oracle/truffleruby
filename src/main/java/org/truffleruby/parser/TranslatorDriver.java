@@ -267,7 +267,7 @@ public class TranslatorDriver {
                 final RubyNode readNode = Translator
                         .profileArgument(
                                 language,
-                                new ReadPreArgumentNode(n, MissingArgumentBehavior.NIL));
+                                new ReadPreArgumentNode(n, false, MissingArgumentBehavior.NIL));
                 final int slot = environment.findFrameSlot(name);
                 sequence.add(new WriteLocalVariableNode(slot, readNode));
             }

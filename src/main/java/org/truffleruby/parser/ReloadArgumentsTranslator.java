@@ -27,6 +27,7 @@ import org.truffleruby.parser.ast.AssignableParseNode;
 import org.truffleruby.parser.ast.KeywordArgParseNode;
 import org.truffleruby.parser.ast.KeywordRestArgParseNode;
 import org.truffleruby.parser.ast.MultipleAsgnParseNode;
+import org.truffleruby.parser.ast.NoKeywordsArgParseNode;
 import org.truffleruby.parser.ast.OptArgParseNode;
 import org.truffleruby.parser.ast.ParseNode;
 import org.truffleruby.parser.ast.RestArgParseNode;
@@ -41,6 +42,7 @@ import com.oracle.truffle.api.source.Source;
 public class ReloadArgumentsTranslator extends Translator {
 
     private final BodyTranslator methodBodyTranslator;
+    private final boolean hasKeywordArguments;
 
     private int index = 0;
     private int restParameterIndex = -1;
@@ -50,9 +52,11 @@ public class ReloadArgumentsTranslator extends Translator {
             Source source,
             ParserContext parserContext,
             Node currentNode,
-            BodyTranslator methodBodyTranslator) {
+            BodyTranslator methodBodyTranslator,
+            ArgsParseNode argsNode) {
         super(language, source, parserContext, currentNode);
         this.methodBodyTranslator = methodBodyTranslator;
+        this.hasKeywordArguments = argsNode.hasKwargs();
     }
 
     public int getRestParameterIndex() {
@@ -146,7 +150,8 @@ public class ReloadArgumentsTranslator extends Translator {
 
     @Override
     public RubyNode visitMultipleAsgnNode(MultipleAsgnParseNode node) {
-        return profileArgument(language, new ReadPreArgumentNode(index, MissingArgumentBehavior.NIL));
+        return profileArgument(language,
+                new ReadPreArgumentNode(index, hasKeywordArguments, MissingArgumentBehavior.NIL));
     }
 
     @Override
@@ -167,6 +172,11 @@ public class ReloadArgumentsTranslator extends Translator {
     public RubyNode visitKeywordRestArgNode(KeywordRestArgParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
         return methodBodyTranslator.getEnvironment().findLocalVarNode(node.getName(), sourceSection);
+    }
+
+    @Override
+    public RubyNode visitNoKeywordsArgNode(NoKeywordsArgParseNode node) {
+        return defaultVisit(node);
     }
 
     @Override

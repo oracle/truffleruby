@@ -20,10 +20,11 @@ import org.truffleruby.core.inlined.LambdaToProcNode;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
+import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.arguments.SplatToArgsNode;
 import org.truffleruby.language.literal.NilLiteralNode;
@@ -43,17 +44,14 @@ import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PROTECTED;
 
-public class RubyCallNode extends RubyContextSourceNode implements AssignableNode {
+public class RubyCallNode extends LiteralCallNode implements AssignableNode {
 
     private final String methodName;
 
     @Child private RubyNode receiver;
     @Child private RubyNode block;
-    private final boolean hasLiteralBlock;
-    private final ArgumentsDescriptor descriptor;
     @Children private final RubyNode[] arguments;
 
-    private final boolean isSplatted;
     private final DispatchConfiguration dispatchConfig;
     private final boolean isVCall;
     private final boolean isSafeNavigation;
@@ -67,16 +65,12 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
     @Child private SplatToArgsNode splatToArgs;
 
     public RubyCallNode(RubyCallNodeParameters parameters) {
+        super(parameters.isSplatted(), parameters.getDescriptor());
         this.methodName = parameters.getMethodName();
         this.receiver = parameters.getReceiver();
         this.arguments = parameters.getArguments();
-
-        final RubyNode block = parameters.getBlock();
         this.block = parameters.getBlock();
-        this.hasLiteralBlock = block instanceof BlockDefinitionNode || block instanceof LambdaToProcNode;
-        this.descriptor = parameters.getDescriptor();
 
-        this.isSplatted = parameters.isSplatted();
         this.dispatchConfig = parameters.isIgnoreVisibility() ? PRIVATE : PROTECTED;
         this.isVCall = parameters.isVCall();
         this.isSafeNavigation = parameters.isSafeNavigation();
@@ -97,17 +91,20 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         }
         Object[] rubyArgs = RubyArguments.allocate(arguments.length);
         RubyArguments.setSelf(rubyArgs, receiverObject);
-        RubyArguments.setDescriptor(rubyArgs, descriptor);
 
+        final ArgumentsDescriptor descriptor;
         executeArguments(frame, rubyArgs);
+        if (isSplatted) {
+            rubyArgs = splatArgs(receiverObject, rubyArgs);
+            descriptor = getArgumentsDescriptorAndCheckRuby2KeywordsHash(rubyArgs,
+                    RubyArguments.getRawArgumentsCount(rubyArgs));
+        } else {
+            descriptor = this.descriptor;
+        }
 
         RubyArguments.setBlock(rubyArgs, executeBlock(frame));
 
-        // The expansion of the splat is done after executing the block, for m(*args, &args.pop)
-        if (isSplatted) {
-            rubyArgs = splatArgs(receiverObject, rubyArgs);
-        }
-        return executeWithArgumentsEvaluated(frame, receiverObject, rubyArgs);
+        return doCall(frame, receiverObject, descriptor, rubyArgs);
     }
 
     @Override
@@ -121,24 +118,30 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
         }
         Object[] rubyArgs = RubyArguments.allocate(arguments.length);
         RubyArguments.setSelf(rubyArgs, receiverObject);
-        RubyArguments.setDescriptor(rubyArgs, descriptor);
 
         executeArguments(frame, rubyArgs);
-
-        RubyArguments.setBlock(rubyArgs, executeBlock(frame));
-
         if (isSplatted) {
             rubyArgs = splatArgs(receiverObject, rubyArgs);
         }
 
-        int argCount = RubyArguments.getArgumentsCount(rubyArgs);
-        assert RubyArguments.getArgument(rubyArgs, argCount - 1) == nil;
-        RubyArguments.setArgument(rubyArgs, argCount - 1, value);
+        assert RubyArguments.getLastArgument(rubyArgs) == nil;
+        RubyArguments.setLastArgument(rubyArgs, value);
 
-        executeWithArgumentsEvaluated(frame, receiverObject, rubyArgs);
+        RubyArguments.setBlock(rubyArgs, executeBlock(frame));
+
+        // no ruby2_keywords behavior for assign
+        doCall(frame, receiverObject, descriptor, rubyArgs);
     }
 
-    public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object receiverObject, Object[] rubyArgs) {
+    public Object doCall(VirtualFrame frame, Object receiverObject, ArgumentsDescriptor descriptor, Object[] rubyArgs) {
+        // Remove empty kwargs in the caller, so the callee does not need to care about this special case
+        if (descriptor instanceof KeywordArgumentsDescriptor && emptyKeywordArguments(rubyArgs)) {
+            rubyArgs = removeEmptyKeywordArguments(rubyArgs);
+            RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
+        } else {
+            RubyArguments.setDescriptor(rubyArgs, descriptor);
+        }
+
         if (dispatch == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             dispatch = insert(DispatchNode.create(dispatchConfig));
@@ -157,12 +160,12 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
 
     public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object receiverObject, Object blockObject,
             Object[] argumentsObjects) {
+        assert !isSplatted;
         Object[] rubyArgs = RubyArguments.allocate(argumentsObjects.length);
         RubyArguments.setSelf(rubyArgs, receiverObject);
         RubyArguments.setBlock(rubyArgs, blockObject);
-        RubyArguments.setDescriptor(rubyArgs, descriptor);
         RubyArguments.setArguments(rubyArgs, argumentsObjects);
-        return executeWithArgumentsEvaluated(frame, receiverObject, rubyArgs);
+        return doCall(frame, receiverObject, descriptor, rubyArgs);
     }
 
     private Object executeBlock(VirtualFrame frame) {
@@ -208,7 +211,7 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
     }
 
     public boolean hasLiteralBlock() {
-        return hasLiteralBlock;
+        return block instanceof BlockDefinitionNode || block instanceof LambdaToProcNode;
     }
 
     private RubyNode getLastArgumentNode() {

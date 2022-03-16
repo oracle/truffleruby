@@ -1,3 +1,1 @@
 fails(GR-30031):Numbered parameters warns when numbered parameter is overwritten with local variable
-fails:Numbered parameters cannot be overwritten with local variable
-fails:Numbered parameters errors when numbered parameter is overwritten with local variable

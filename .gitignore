@@ -71,7 +71,6 @@ test/mri/tests/cext-c/**/mkmf.log
 
 # Tests
 /mri_tests.txt
-/test/truffle/ecosystem/blog5/Gemfile.lock
 /test/truffle/ecosystem/blog6/Gemfile.lock
 /test/truffle/integration/gem-testing
 /truffleruby-gem-test-pack

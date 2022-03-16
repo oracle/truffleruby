@@ -143,6 +143,7 @@ public class MethodTranslator extends BodyTranslator {
         final Supplier<RootCallTarget> procCompiler = procCompiler(
                 sourceSection,
                 source,
+                arityForCheck,
                 preludeProc,
                 body,
                 methodCalledLambda,
@@ -198,7 +199,7 @@ public class MethodTranslator extends BodyTranslator {
         if (shouldConsiderDestructuringArrayArg(arity)) {
             final RubyNode readArrayNode = profileArgument(
                     language,
-                    new ReadPreArgumentNode(0, MissingArgumentBehavior.RUNTIME_ERROR));
+                    new ReadPreArgumentNode(0, argsNode.hasKwargs(), MissingArgumentBehavior.RUNTIME_ERROR));
             final SplatCastNode castArrayNode = SplatCastNodeGen
                     .create(language, NilBehavior.NIL, true, readArrayNode);
             castArrayNode.doNotCopy();
@@ -227,7 +228,7 @@ public class MethodTranslator extends BodyTranslator {
                                             new ReadLocalVariableNode(LocalVariableType.FRAME_LOCAL, arraySlot)))));
 
             final RubyNode shouldDestructureAndArrayWasNotNil = new AndNode(
-                    new ShouldDestructureNode(),
+                    new ShouldDestructureNode(arity.acceptsKeywords()),
                     arrayWasNotNil);
 
             preludeProc = new IfElseNode(
@@ -243,6 +244,7 @@ public class MethodTranslator extends BodyTranslator {
     private static Supplier<RootCallTarget> procCompiler(
             SourceIndexLength sourceSection,
             Source source,
+            Arity arityForCheck,
             RubyNode preludeProc,
             RubyNode body,
             boolean methodCalledLambda,
@@ -266,7 +268,8 @@ public class MethodTranslator extends BodyTranslator {
                     environment.getSharedMethodInfo(),
                     bodyProc,
                     Split.HEURISTIC,
-                    environment.getReturnID());
+                    environment.getReturnID(),
+                    arityForCheck);
 
             final RootCallTarget callTarget = newRootNodeForProcs.getCallTarget();
 
@@ -345,16 +348,21 @@ public class MethodTranslator extends BodyTranslator {
     }
 
     private boolean shouldConsiderDestructuringArrayArg(Arity arity) {
-        if (arity.hasKeywordsRest()) {
+        if (arity.getRequired() == 1 && arity.getOptional() == 0 && !arity.hasRest() && arity.hasKeywordsRest()) {
+            // Special case for: proc { |a, **kw| a }.call([1, 2]) => 1
+            // Seems inconsistent: https://bugs.ruby-lang.org/issues/16166#note-14
             return true;
         }
-        // If we do not accept any arguments or only one required, there's never any need to destructure
-        if (!arity.hasRest() && arity.getOptional() == 0 && arity.getRequired() <= 1) {
+
+        if (!arity.hasRest() && arity.getRequired() + arity.getOptional() <= 1) {
+            // If we accept at most 0 or 1 arguments, there's never any need to destructure
             return false;
+        } else if (arity.hasRest() && arity.getRequired() == 0) {
             // If there are only a rest argument and optional arguments, there is no need to destructure.
             // Because the first optional argument (or the rest if no optional) will take the whole array.
+            return false;
         } else {
-            return !arity.hasRest() || arity.getRequired() != 0;
+            return true;
         }
     }
 
@@ -448,7 +456,8 @@ public class MethodTranslator extends BodyTranslator {
                 argumentsAndBlock.isSplatted());
         final RubyNode block = executeOrInheritBlock(argumentsAndBlock.getBlock(), node);
 
-        RubyNode callNode = new SuperCallNode(arguments, block, argumentsAndBlock.getArgumentsDescriptor());
+        RubyNode callNode = new SuperCallNode(argumentsAndBlock.isSplatted(), arguments, block,
+                argumentsAndBlock.getArgumentsDescriptor());
         callNode = wrapCallWithLiteralBlock(argumentsAndBlock, callNode);
 
         return withSourceSection(sourceSection, callNode);
@@ -478,14 +487,15 @@ public class MethodTranslator extends BodyTranslator {
             methodArgumentsTranslator = (MethodTranslator) methodArgumentsTranslator.parent;
         }
 
+        final ArgsParseNode argsNode = methodArgumentsTranslator.argsNode;
         final ReloadArgumentsTranslator reloadTranslator = new ReloadArgumentsTranslator(
                 language,
                 source,
                 parserContext,
                 currentNode,
-                this);
+                this,
+                argsNode);
 
-        final ArgsParseNode argsNode = methodArgumentsTranslator.argsNode;
         final SequenceNode reloadSequence = (SequenceNode) reloadTranslator.visitArgsNode(argsNode);
 
         final ArgumentsDescriptor descriptor = argsNode.hasKwargs()
@@ -495,8 +505,9 @@ public class MethodTranslator extends BodyTranslator {
                 reloadTranslator.getRestParameterIndex(),
                 reloadSequence.getSequence());
         final RubyNode block = executeOrInheritBlock(argumentsAndBlock.getBlock(), node);
+        final boolean isSplatted = reloadTranslator.getRestParameterIndex() != -1;
 
-        RubyNode callNode = new SuperCallNode(arguments, block, descriptor);
+        RubyNode callNode = new SuperCallNode(isSplatted, arguments, block, descriptor);
         callNode = wrapCallWithLiteralBlock(argumentsAndBlock, callNode);
 
         return withSourceSection(sourceSection, callNode);

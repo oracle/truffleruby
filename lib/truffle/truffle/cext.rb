@@ -832,11 +832,7 @@ module Truffle::CExt
       opts[:invalid] = :replace
     end
 
-    if opts.empty?
-      str.encode(to)
-    else
-      str.encode(to, opts)
-    end
+    str.encode(to, **opts)
   end
 
   def rb_str_conv_enc_opts(str, from, to, ecflags, ecopts)
@@ -877,6 +873,10 @@ module Truffle::CExt
 
   def rb_funcallv(recv, meth, argv)
     Primitive.send_argv_without_cext_lock(recv, meth, argv, nil)
+  end
+
+  def rb_funcallv_keywords(recv, meth, argv)
+    Primitive.send_argv_keywords_without_cext_lock(recv, meth, argv, nil)
   end
 
   def rb_funcall(recv, meth, n, *args)
@@ -1180,6 +1180,15 @@ module Truffle::CExt
   def rb_class_new_instance(klass, args)
     obj = klass.send(:__allocate__)
     obj.send(:initialize, *args)
+    obj
+  end
+
+  def rb_class_new_instance_kw(klass, args)
+    *args, kwargs = args
+    kwargs = Truffle::Type.rb_convert_type kwargs, Hash, :to_hash
+
+    obj = klass.send(:__allocate__)
+    obj.send(:initialize, *args, **kwargs)
     obj
   end
 

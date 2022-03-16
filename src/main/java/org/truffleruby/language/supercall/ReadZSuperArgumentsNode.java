@@ -17,7 +17,6 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
-import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -34,14 +33,11 @@ public class ReadZSuperArgumentsNode extends RubyContextSourceNode {
     public ReadZSuperArgumentsNode(int restArgIndex, RubyNode[] reloadNodes) {
         this.restArgIndex = restArgIndex;
         this.reloadNodes = reloadNodes;
-
     }
 
     @ExplodeLoop
     @Override
     public final Object execute(VirtualFrame frame) {
-        CompilerAsserts.compilationConstant(reloadNodes.length);
-
         // Reload the arguments
         Object[] superArguments = new Object[reloadNodes.length];
         for (int n = 0; n < superArguments.length; n++) {

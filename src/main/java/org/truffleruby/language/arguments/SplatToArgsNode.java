@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.arguments;
 
-import com.oracle.truffle.api.nodes.Node.Child;
 import com.oracle.truffle.api.profiles.IntValueProfile;
 
 import org.truffleruby.core.array.ArrayGuards;
@@ -30,7 +29,8 @@ public class SplatToArgsNode extends RubyBaseNode {
     public Object[] execute(Object receiver, Object[] rubyArgs, RubyArray splatted) {
         int size = splatSizeProfile.profile(splatted.size);
         Object store = splatted.store;
-        Object[] newArgs = RubyArguments.repack(rubyArgs, receiver, 0, size, 0);
+        final Object[] newArgs = RubyArguments.allocate(size);
+        RubyArguments.setSelf(newArgs, receiver);
         stores.copyContents(store, 0, newArgs, RubyArguments.RUNTIME_ARGUMENT_COUNT, size);
         return newArgs;
     }

@@ -676,6 +676,8 @@ public class BodyTranslator extends Translator {
             ParseNode iterNode, ParseNode argsNode, String nameToSetWhenTranslatingBlock) {
         assert !(argsNode instanceof IterParseNode);
 
+        final ArgumentsDescriptor keywordDescriptor = getKeywordArgumentsDescriptor(language, argsNode);
+
         final ParseNode[] arguments;
         boolean isSplatted = false;
 
@@ -693,19 +695,9 @@ public class BodyTranslator extends Translator {
             throw CompilerDirectives.shouldNotReachHere("Unknown argument node type: " + argsNode.getClass());
         }
 
-        ArgumentsDescriptor keywordDescriptor = getKeywordArgumentsDescriptor(language, arguments);
-
         final RubyNode[] argumentsTranslated = createArray(arguments.length);
         for (int i = 0; i < arguments.length; i++) {
             argumentsTranslated[i] = arguments[i].accept(this);
-        }
-
-        // If the last argument is a splat, do not copy the array, to support m(*args, &args.pop)
-        if (isSplatted) {
-            final RubyNode last = argumentsTranslated[argumentsTranslated.length - 1];
-            if (last instanceof SplatCastNode) {
-                ((SplatCastNode) last).doNotCopy();
-            }
         }
 
         ParseNode blockPassNode = null;
@@ -3115,15 +3107,14 @@ public class BodyTranslator extends Translator {
         return node;
     }
 
-    private static ArgumentsDescriptor getKeywordArgumentsDescriptor(RubyLanguage language, ParseNode[] arguments) {
-        // A simple empty set of arguments is always an empty descriptor
-        if (arguments.length == 0) {
-            return EmptyArgumentsDescriptor.INSTANCE;
-        }
-
+    private static ArgumentsDescriptor getKeywordArgumentsDescriptor(RubyLanguage language, ParseNode argsNode) {
         // Find the keyword argument hash parse node
-        var lastArgument = arguments[arguments.length - 1];
-        final HashParseNode keywordHashArgumentNode = findLastHashParseNode(lastArgument);
+
+        final ParseNode lastNode = findLastNode(argsNode);
+        HashParseNode keywordHashArgumentNode = null;
+        if (lastNode instanceof HashParseNode) {
+            keywordHashArgumentNode = (HashParseNode) lastNode;
+        }
 
         if (keywordHashArgumentNode == null || !keywordHashArgumentNode.isKeywordArguments()) {
             return EmptyArgumentsDescriptor.INSTANCE;
@@ -3148,15 +3139,29 @@ public class BodyTranslator extends Translator {
         return EmptyArgumentsDescriptor.INSTANCE;
     }
 
-    private static HashParseNode findLastHashParseNode(ParseNode node) {
-        if (node instanceof HashParseNode) {
-            return (HashParseNode) node;
-        } else if (node instanceof ArgsPushParseNode) {
-            return findLastHashParseNode(((ArgsPushParseNode) node).getSecondNode());
+    /* This is carefully written so ArrayParseNode is only considered if it is the argsNode itself, or as the RHS of an
+     * ArgsCatParseNode. For instance ArgsPushParseNode(..., ArrayParseNode(..., HashParseNode)) should not be
+     * considered as kwargs. */
+    private static ParseNode findLastNode(ParseNode argsNode) {
+        if (argsNode instanceof ArrayParseNode) {
+            return ((ArrayParseNode) argsNode).getLast();
         } else {
-            // SplatParseNode: cannot contain kwargs (*array)
-            // ArgsCatParseNode: cannot contain kwargs (RHS is *array)
-            return null;
+            return findLastNodeRecursive(argsNode);
+        }
+    }
+
+    private static ParseNode findLastNodeRecursive(ParseNode node) {
+        if (node instanceof ArgsPushParseNode) {
+            return findLastNodeRecursive(((ArgsPushParseNode) node).getSecondNode());
+        } else if (node instanceof ArgsCatParseNode) {
+            final ParseNode rhs = ((ArgsCatParseNode) node).getSecondNode();
+            if (rhs instanceof ArrayParseNode && !((ArrayParseNode) rhs).isEmpty()) {
+                return findLastNodeRecursive(((ArrayParseNode) rhs).getLast());
+            } else {
+                return node;
+            }
+        } else {
+            return node;
         }
     }
 
