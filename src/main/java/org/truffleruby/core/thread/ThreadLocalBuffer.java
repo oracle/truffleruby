@@ -17,6 +17,8 @@ import org.truffleruby.extra.ffi.Pointer;
 public final class ThreadLocalBuffer {
 
     public static final ThreadLocalBuffer NULL_BUFFER = new ThreadLocalBuffer(new Pointer(0, 0), null);
+    private static final long ALIGNMENT = 8L;
+    private static final long ALIGNMENT_MASK = ALIGNMENT - 1;
 
     public final Pointer start;
     long remaining;
@@ -73,7 +75,7 @@ public final class ThreadLocalBuffer {
 
         /* We ensure we allocate a non-zero number of bytes so we can track the allocation. This avoids returning null
          * or reallocating a buffer that we technically have a pointer to. */
-        final long allocationSize = Math.max(size, 4);
+        final long allocationSize = alignUp(size);
         if (allocationProfile.profile(remaining >= allocationSize)) {
             final Pointer pointer = new Pointer(cursor(), allocationSize);
             remaining -= allocationSize;
@@ -86,6 +88,10 @@ public final class ThreadLocalBuffer {
             assert newBuffer.invariants();
             return pointer;
         }
+    }
+
+    private static long alignUp(long size) {
+        return (size + ALIGNMENT_MASK) & ~ALIGNMENT_MASK;
     }
 
     @TruffleBoundary
