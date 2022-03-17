@@ -58,11 +58,16 @@ RBIMPL_SYMBOL_EXPORT_BEGIN()
 #define USE_SYMBOL_AS_METHOD_NAME 1
 
 VALUE rb_get_path(VALUE);
+#ifdef TRUFFLERUBY
+#define FilePathValue(v) (v = rb_get_path(v))
+#else
 #define FilePathValue(v) (RB_GC_GUARD(v) = rb_get_path(v))
+#endif
 
 VALUE rb_get_path_no_checksafe(VALUE);
 #define FilePathStringValue(v) ((v) = rb_get_path(v))
 
+#ifndef TRUFFLERUBY
 #if defined(HAVE_BUILTIN___BUILTIN_CONSTANT_P) && defined(HAVE_STMT_AND_DECL_IN_EXPR)
 # define rb_varargs_argc_check_runtime(argc, vargc) \
     (((argc) <= (vargc)) ? (argc) : \
@@ -87,6 +92,7 @@ ERRORFUNC((" argument length doesn't match"), int rb_varargs_bad_length(int,int)
 #   define rb_varargs_argc_check(argc, vargc) \
 	rb_varargs_argc_check_runtime(argc, vargc)
 # endif
+#endif
 #endif
 
 const char *rb_class2name(VALUE);
@@ -147,6 +153,8 @@ __extension__({ \
 #if !defined RUBY_EXPORT && !defined RUBY_NO_OLD_COMPATIBILITY
 # include "ruby/backward.h"
 #endif
+
+#include <truffleruby/truffleruby.h>
 
 RBIMPL_SYMBOL_EXPORT_END()
 

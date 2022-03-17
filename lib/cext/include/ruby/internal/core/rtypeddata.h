@@ -43,7 +43,11 @@
 #define HAVE_RB_DATA_TYPE_T_PARENT   1
 #define RUBY_TYPED_DEFAULT_FREE      RUBY_DEFAULT_FREE
 #define RUBY_TYPED_NEVER_FREE        RUBY_NEVER_FREE
+#ifdef TRUFFLERUBY
+#define RTYPEDDATA(obj) (polyglot_as_RTypedData(polyglot_invoke(RUBY_CEXT, "RDATA", rb_tr_unwrap(obj))))
+#else
 #define RTYPEDDATA(obj)              RBIMPL_CAST((struct RTypedData *)(obj))
+#endif
 #define RTYPEDDATA_DATA(v)           (RTYPEDDATA(v)->data)
 #define Check_TypedStruct(v, t)      \
     rb_check_typeddata(RBIMPL_CAST((VALUE)(v)), (t))
@@ -84,11 +88,18 @@ struct rb_data_type_struct {
 };
 
 struct RTypedData {
+#ifndef TRUFFLERUBY
+    // TruffleRuby: RBasic is an empty struct. clang makes it size 0 for C, but size 1 for C++. That difference affects field offsets, so we comment out the reference to ensure the size is always 0.
     struct RBasic basic;
+#endif
     const rb_data_type_t *type;
     VALUE typed_flag; /* 1 or not */
     void *data;
 };
+
+#ifdef TRUFFLERUBY
+POLYGLOT_DECLARE_STRUCT(RTypedData)
+#endif
 
 RBIMPL_SYMBOL_EXPORT_BEGIN()
 VALUE rb_data_typed_object_wrap(VALUE klass, void *datap, const rb_data_type_t *);
@@ -96,6 +107,9 @@ VALUE rb_data_typed_object_zalloc(VALUE klass, size_t size, const rb_data_type_t
 int rb_typeddata_inherited_p(const rb_data_type_t *child, const rb_data_type_t *parent);
 int rb_typeddata_is_kind_of(VALUE obj, const rb_data_type_t *data_type);
 void *rb_check_typeddata(VALUE obj, const rb_data_type_t *data_type);
+#ifdef TRUFFLERUBY
+VALUE rb_data_typed_object_make(VALUE ruby_class, const rb_data_type_t *type, void **data_pointer, size_t size);
+#endif
 RBIMPL_SYMBOL_EXPORT_END()
 
 #define TypedData_Wrap_Struct(klass,data_type,sval)\
@@ -169,12 +183,14 @@ RTYPEDDATA_TYPE(VALUE obj)
     return RTYPEDDATA(obj)->type;
 }
 
+#ifndef TRUFFLERUBY
 static inline VALUE
 rb_data_typed_object_make(VALUE klass, const rb_data_type_t *type, void **datap, size_t size)
 {
     TypedData_Make_Struct0(result, klass, void, size, type, *datap);
     return result;
 }
+#endif
 
 RBIMPL_ATTR_DEPRECATED(("by: rb_data_typed_object_wrap"))
 static inline VALUE

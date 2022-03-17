@@ -18,6 +18,7 @@ class Gem::Platform
   end
 
   def self.match(platform)
+    warn 'Gem::Platform.match should not be used on TruffleRuby, use match_spec? instead', uplevel: 1
     match_platforms?(platform, Gem.platforms)
   end
 
@@ -34,10 +35,15 @@ class Gem::Platform
     match_gem?(spec.platform, spec.name)
   end
 
+  REUSE_AS_BINARY_ON_TRUFFLERUBY = %w[libv8 libv8-node sorbet-static]
+
   def self.match_gem?(platform, gem_name)
-    # Note: this method might be redefined by Ruby implementations to
-    # customize behavior per RUBY_ENGINE, gem_name or other criteria.
-    match_platforms?(platform, Gem.platforms)
+    raise unless String === gem_name
+    if REUSE_AS_BINARY_ON_TRUFFLERUBY.include?(gem_name)
+      match_platforms?(platform, [Gem::Platform::RUBY, Gem::Platform.local])
+    else
+      match_platforms?(platform, Gem.platforms)
+    end
   end
 
   def self.installable?(spec)

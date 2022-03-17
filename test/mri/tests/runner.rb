@@ -1,11 +1,25 @@
 # frozen_string_literal: true
+require 'rbconfig'
 
-# Should be done in rubygems test files?
-ENV["GEM_SKIP"] = ENV["GEM_HOME"] = ENV["GEM_PATH"] = "".freeze
+# TruffleRuby: adapt test lib path
+$LOAD_PATH.unshift File.expand_path("lib", __dir__)
+# $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 
-# Get bundled gems on load path
-Dir.glob("#{__dir__}/../gems/*/*.gemspec")
-  .reject {|f| f =~ /minitest|test-unit|power_assert/ }
-  .map {|f| $LOAD_PATH.unshift File.join(File.dirname(f), "lib") }
+require 'test/unit'
 
-require_relative '../tool/test/runner'
+require "profile_test_all" if ENV.key?('RUBY_TEST_ALL_PROFILE')
+require "tracepointchecker" unless defined?(::TruffleRuby)
+require "zombie_hunter"
+require "iseq_loader_checker" unless defined?(::TruffleRuby)
+require "gc_compact_checker"
+require_relative "../test-coverage.rb" if ENV.key?('COVERAGE')
+
+case $0
+when __FILE__
+  dir = __dir__
+when "-e"
+  # No default directory
+else
+  dir = File.expand_path("..", $0)
+end
+exit Test::Unit::AutoRunner.run(true, dir)
