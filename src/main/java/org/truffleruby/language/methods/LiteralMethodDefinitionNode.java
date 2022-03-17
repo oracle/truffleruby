@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.methods;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.instrumentation.InstrumentableNode;
 import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.instrumentation.Tag;
@@ -60,16 +61,20 @@ public class LiteralMethodDefinitionNode extends RubyContextSourceNode {
             visibility = DeclarationContext.findVisibility(frame);
         }
 
-        final DeclarationContext declarationContext = RubyArguments
-                .getDeclarationContext(frame)
-                .withVisibility(Visibility.PUBLIC);
         final InternalMethod currentMethod = RubyArguments.getMethod(frame);
+        final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
 
+        return addMethod(module, visibility, currentMethod, declarationContext);
+    }
+
+    @TruffleBoundary
+    private Object addMethod(RubyModule module, Visibility visibility, InternalMethod currentMethod,
+            DeclarationContext declarationContext) {
         final InternalMethod method = new InternalMethod(
                 getContext(),
                 sharedMethodInfo,
                 currentMethod.getLexicalScope(),
-                declarationContext,
+                declarationContext.withVisibility(Visibility.PUBLIC),
                 name,
                 module,
                 visibility,
