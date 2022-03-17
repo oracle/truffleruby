@@ -17,12 +17,12 @@ import org.truffleruby.extra.ffi.Pointer;
 public final class ThreadLocalBuffer {
 
     public static final ThreadLocalBuffer NULL_BUFFER = new ThreadLocalBuffer(new Pointer(0, 0), null);
+    private static final long ALIGNMENT = 8L;
+    private static final long ALIGNMENT_MASK = ALIGNMENT - 1;
 
     public final Pointer start;
     long remaining;
     private final ThreadLocalBuffer parent;
-    private final long ALIGNMENT = 8L;
-    private final long ALIGNMENT_MASK = ALIGNMENT - 1;
 
     private ThreadLocalBuffer(Pointer start, ThreadLocalBuffer parent) {
         this.start = start;
@@ -90,7 +90,7 @@ public final class ThreadLocalBuffer {
         }
     }
 
-    private long alignUp(long size) {
+    private static long alignUp(long size) {
         return (size + ALIGNMENT_MASK) & ~ALIGNMENT_MASK;
     }
 

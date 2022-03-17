@@ -362,6 +362,8 @@ module Truffle::POSIX
     end
   end
 
+  # Read up to count bytes of io to the thread-local IO buffer, and
+  # yields the buffer (a FFI::Pointer) and bytes_read
   def self.read_to_buffer_at_least_one_byte(io, count, &block)
     while true
       # must call #read_to_buffer in order to properly support polyglot STDIO
