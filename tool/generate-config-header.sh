@@ -3,9 +3,12 @@
 set -e
 set -x
 
+VERSION=$(cat .ruby-version)
+
 url="$1"
 if [ -z "$url" ]; then
-    url=$(mx urlrewrite https://lafo.ssw.uni-linz.ac.at/pub/graal-external-deps/ruby-3.0.2.tar.gz)
+    # The source archive, a copy from https://www.ruby-lang.org/en/downloads/
+    url=$(mx urlrewrite "https://lafo.ssw.uni-linz.ac.at/pub/graal-external-deps/ruby-$VERSION.tar.gz")
 fi
 
 os=$(uname -s)
@@ -29,10 +32,10 @@ archive=$(basename "$url")
 
 if [ ! -e "$archive" ]; then
     curl -O "$url"
-    tar xf ruby-3.0.2.tar.gz
+    tar xf "ruby-$VERSION.tar.gz"
 fi
 
-cd ruby-3.0.2 || exit 1
+cd "ruby-$VERSION" || exit 1
 ./configure || (cat config.log; exit 1)
 
 cp .ext/include/*/ruby/config.h "../lib/cext/include/truffleruby/config_${mx_platform}.h"
