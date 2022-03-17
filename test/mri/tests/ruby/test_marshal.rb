@@ -672,6 +672,23 @@ class TestMarshal < Test::Unit::TestCase
     assert_equal(['X', 'X'], Marshal.load(Marshal.dump(obj), ->(v) { v == str ? v.upcase : v }))
   end
 
+  def test_marshal_proc_string_encoding
+    string = "foo"
+    payload = Marshal.dump(string)
+    Marshal.load(payload, ->(v) {
+      if v.is_a?(String)
+        assert_equal(string, v)
+        assert_equal(string.encoding, v.encoding)
+      end
+      v
+    })
+  end
+
+  def test_marshal_proc_freeze
+    object = { foo: [42, "bar"] }
+    assert_equal object, Marshal.load(Marshal.dump(object), :freeze.to_proc)
+  end
+
   def test_marshal_load_extended_class_crash
     assert_separately([], "#{<<-"begin;"}\n#{<<-"end;"}")
     begin;
@@ -785,8 +802,22 @@ class TestMarshal < Test::Unit::TestCase
 
   def test_marshal_with_ruby2_keywords_hash
     flagged_hash = ruby2_keywords_hash(key: 42)
-    hash = Marshal.load(Marshal.dump(flagged_hash))
+    data = Marshal.dump(flagged_hash)
+    hash = Marshal.load(data)
     assert_equal(42, ruby2_keywords_test(*[hash]))
+
+    hash2 = Marshal.load(data.sub(/\x06K(?=T\z)/, "\x08KEY"))
+    assert_raise(ArgumentError, /\(given 1, expected 0\)/) {
+      ruby2_keywords_test(*[hash2])
+    }
+  end
+
+  def test_invalid_byte_sequence_symbol
+    data = Marshal.dump(:K)
+    data = data.sub(/:\x06K/, "I\\&\x06:\x0dencoding\"\x0dUTF-16LE")
+    assert_raise(ArgumentError, /UTF-16LE: "\\x4B"/) {
+      Marshal.load(data)
+    }
   end
 
   def exception_test
@@ -817,6 +848,18 @@ class TestMarshal < Test::Unit::TestCase
       assert_equal(e.name, e2.name)
       assert_equal(e.backtrace, e2.backtrace)
       assert_nil(e2.backtrace_locations) # temporal
+    end
+  end
+
+  class TestMarshalFreezeProc < Test::Unit::TestCase
+    include MarshalTestLib
+
+    def encode(o)
+      Marshal.dump(o)
+    end
+
+    def decode(s)
+      Marshal.load(s, :freeze.to_proc)
     end
   end
 end

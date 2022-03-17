@@ -110,13 +110,6 @@ void rb_ary_ptr_use_end(VALUE a);
 #if USE_TRANSIENT_HEAP
 void rb_ary_detransient(VALUE a);
 #endif
-#ifdef TRUFFLERUBY
-long rb_array_len(VALUE a);
-int RARRAY_LENINT(VALUE ary);
-VALUE *RARRAY_PTR_IMPL(VALUE array);
-void rb_ary_store(VALUE, long, VALUE);
-VALUE RARRAY_AREF(VALUE array, long index);
-#endif
 RBIMPL_SYMBOL_EXPORT_END()
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
@@ -133,7 +126,6 @@ RARRAY_EMBED_LEN(VALUE ary)
     return RBIMPL_CAST((long)f);
 }
 
-#ifndef TRUFFLERUBY
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 static inline long
 rb_array_len(VALUE a)
@@ -147,16 +139,13 @@ rb_array_len(VALUE a)
         return RARRAY(a)->as.heap.len;
     }
 }
-#endif
 
-#ifndef TRUFFLERUBY
 RBIMPL_ATTR_ARTIFICIAL()
 static inline int
 RARRAY_LENINT(VALUE ary)
 {
     return rb_long2int(RARRAY_LEN(ary));
 }
-#endif
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 RBIMPL_ATTR_ARTIFICIAL()
@@ -179,16 +168,12 @@ rb_array_const_ptr_transient(VALUE a)
 {
     RBIMPL_ASSERT_TYPE(a, RUBY_T_ARRAY);
 
-#ifdef TRUFFLERUBY
-    return FIX_CONST_VALUE_PTR(RARRAY_PTR_IMPL(a));
-#else
     if (RB_FL_ANY_RAW(a, RARRAY_EMBED_FLAG)) {
         return FIX_CONST_VALUE_PTR(RARRAY(a)->as.ary);
     }
     else {
         return FIX_CONST_VALUE_PTR(RARRAY(a)->as.heap.ptr);
     }
-#endif
 }
 
 #if ! USE_TRANSIENT_HEAP
@@ -208,7 +193,6 @@ rb_array_const_ptr(VALUE a)
     return rb_array_const_ptr_transient(a);
 }
 
-#ifndef TRUFFLERUBY
 /* internal function. do not use this function */
 static inline VALUE *
 rb_array_ptr_use_start(VALUE a,
@@ -237,7 +221,6 @@ rb_array_ptr_use_end(VALUE a,
     RBIMPL_ASSERT_TYPE(a, RUBY_T_ARRAY);
     rb_ary_ptr_use_end(a);
 }
-#endif
 
 #define RBIMPL_RARRAY_STMT(flag, ary, var, expr) do {        \
     RBIMPL_ASSERT_TYPE((ary), RUBY_T_ARRAY);                 \
@@ -262,23 +245,15 @@ RARRAY_PTR(VALUE ary)
 {
     RBIMPL_ASSERT_TYPE(ary, RUBY_T_ARRAY);
 
-#ifdef TRUFFLERUBY
-    return RARRAY_PTR_IMPL(ary);
-#else
     VALUE tmp = RB_OBJ_WB_UNPROTECT_FOR(ARRAY, ary);
     return RBIMPL_CAST((VALUE *)RARRAY_CONST_PTR(tmp));
-#endif
 }
 
 static inline void
 RARRAY_ASET(VALUE ary, long i, VALUE v)
 {
-#ifdef TRUFFLERUBY
-    rb_ary_store(ary, i, v);
-#else
     RARRAY_PTR_USE_TRANSIENT(ary, ptr,
         RB_OBJ_WRITE(ary, &ptr[i], v));
-#endif
 }
 
 /*
@@ -290,10 +265,6 @@ RARRAY_ASET(VALUE ary, long i, VALUE v)
  * remains as  it is due to  that.  If we could  warn such usages we  can set a
  * transition path, but currently no way is found to do so.
  */
-#ifdef TRUFFLERUBY
-#define RARRAY_AREF RARRAY_AREF
-#else
 #define RARRAY_AREF(a, i) RARRAY_CONST_PTR_TRANSIENT(a)[i]
-#endif
 
 #endif /* RBIMPL_RARRAY_H */

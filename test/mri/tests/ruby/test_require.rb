@@ -531,6 +531,28 @@ class TestRequire < Test::Unit::TestCase
     $".replace(features)
   end
 
+  def test_default_loaded_features_encoding
+    Dir.mktmpdir {|tmp|
+      Dir.mkdir("#{tmp}/1")
+      Dir.mkdir("#{tmp}/2")
+      File.write("#{tmp}/1/bug18191-1.rb", "")
+      File.write("#{tmp}/2/bug18191-2.rb", "")
+      assert_separately(%W[-Eutf-8 -I#{tmp}/1 -], "#{<<~"begin;"}\n#{<<~'end;'}")
+      tmp = #{tmp.dump}"/2"
+      begin;
+        $:.unshift(tmp)
+        require "bug18191-1"
+        require "bug18191-2"
+        encs = [Encoding::US_ASCII, Encoding.find("filesystem")]
+        message = -> {
+          require "pp"
+          {filesystem: encs[1], **$".group_by(&:encoding)}.pretty_inspect
+        }
+        assert($".all? {|n| encs.include?(n.encoding)}, message)
+      end;
+    }
+  end
+
   def test_require_changed_current_dir
     bug7158 = '[ruby-core:47970]'
     Dir.mktmpdir {|tmp|
@@ -837,6 +859,23 @@ class TestRequire < Test::Unit::TestCase
       result = IO.popen([EnvUtil.rubybin, "-I#{tmp}/symlink", "-e", "require 'test_symlink_load_path.rb'"], &:read)
       assert_operator(result, :end_with?, "/real/test_symlink_load_path.rb")
     }
+  end
+
+  def test_provide_in_required_file
+    paths, loaded = $:.dup, $".dup
+    Dir.mktmpdir do |tmp|
+      provide = File.realdirpath("provide.rb", tmp)
+      File.write(File.join(tmp, "target.rb"), "raise __FILE__\n")
+      File.write(provide, '$" << '"'target.rb'\n")
+      $:.replace([tmp])
+      assert(require("provide"))
+      assert(!require("target"))
+      assert_equal($".pop, provide)
+      assert_equal($".pop, "target.rb")
+    end
+  ensure
+    $:.replace(paths)
+    $".replace(loaded)
   end
 
   if defined?($LOAD_PATH.resolve_feature_path)

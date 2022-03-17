@@ -32,13 +32,5 @@ struct RFile {
     struct rb_io_t *fptr;
 };
 
-#ifdef TRUFFLERUBY
-POLYGLOT_DECLARE_STRUCT(RFile)
-#endif
-
-#ifdef TRUFFLERUBY
-#define RFILE(obj) (polyglot_as_RFile(RUBY_CEXT_INVOKE_NO_WRAP("RFILE", obj)))
-#else
 #define RFILE(obj) RBIMPL_CAST((struct RFile *)(obj))
-#endif
 #endif /* RBIMPL_RFILE_H */

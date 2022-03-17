@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-require 'rubygems/test_case'
+require_relative 'helper'
 require 'rubygems/commands/server_command'
 
 class TestGemCommandsServerCommand < Gem::TestCase
@@ -40,18 +40,18 @@ class TestGemCommandsServerCommand < Gem::TestCase
     begin
       @cmd.send :handle_options, %w[-p discard]
       assert_equal 9, @cmd.options[:port]
-    rescue OptionParser::InvalidArgument
+    rescue Gem::OptionParser::InvalidArgument
       # for container environment on GitHub Actions
     end
 
-    e = assert_raise OptionParser::InvalidArgument do
+    e = assert_raise Gem::OptionParser::InvalidArgument do
       @cmd.send :handle_options, %w[-p nonexistent]
     end
 
     assert_equal 'invalid argument: -p nonexistent: no such named service',
                  e.message
 
-    e = assert_raise OptionParser::InvalidArgument do
+    e = assert_raise Gem::OptionParser::InvalidArgument do
       @cmd.send :handle_options, %w[-p 65536]
     end
 

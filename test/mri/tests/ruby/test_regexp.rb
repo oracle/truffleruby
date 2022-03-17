@@ -265,6 +265,27 @@ class TestRegexp < Test::Unit::TestCase
     assert_equal(re, re.match("foo").regexp)
   end
 
+  def test_match_lambda_multithread
+    bug17507 = "[ruby-core:101901]"
+    str = "a-x-foo-bar-baz-z-b"
+
+    worker = lambda do
+      m = /foo-([A-Za-z0-9_\.]+)-baz/.match(str)
+      assert_equal("bar", m[1], bug17507)
+
+      # These two lines are needed to trigger the bug
+      File.exist? "/tmp"
+      str.gsub(/foo-bar-baz/, "foo-abc-baz")
+    end
+
+    def self. threaded_test(worker)
+      6.times.map {Thread.new {10_000.times {worker.call}}}.each(&:join)
+    end
+
+    # The bug only occurs in a method calling a block/proc/lambda
+    threaded_test(worker)
+  end
+
   def test_source
     bug5484 = '[ruby-core:40364]'
     assert_equal('', //.source)
@@ -694,11 +715,16 @@ class TestRegexp < Test::Unit::TestCase
     test = proc {|&blk| "abc".sub("a", ""); blk.call($~) }
 
     bug10877 = '[ruby-core:68209] [Bug #10877]'
+    bug18160 = '[Bug #18160]'
     test.call {|m| assert_raise_with_message(IndexError, /foo/, bug10877) {m["foo"]} }
     key = "\u{3042}"
     [Encoding::UTF_8, Encoding::Shift_JIS, Encoding::EUC_JP].each do |enc|
       idx = key.encode(enc)
-      test.call {|m| assert_raise_with_message(IndexError, /#{idx}/, bug10877) {m[idx]} }
+      pat = /#{idx}/
+      test.call {|m| assert_raise_with_message(IndexError, pat, bug10877) {m[idx]} }
+      test.call {|m| assert_raise_with_message(IndexError, pat, bug18160) {m.offset(idx)} }
+      test.call {|m| assert_raise_with_message(IndexError, pat, bug18160) {m.begin(idx)} }
+      test.call {|m| assert_raise_with_message(IndexError, pat, bug18160) {m.end(idx)} }
     end
     test.call {|m| assert_equal(/a/, m.regexp) }
     test.call {|m| assert_equal("abc", m.string) }
@@ -1105,7 +1131,7 @@ class TestRegexp < Test::Unit::TestCase
     assert_no_match(/^\p{age=1.1}$/u, "\u2754")
 
     assert_no_match(/^\p{age=12.0}$/u, "\u32FF")
-    # assert_match(/^\p{age=12.1}$/u, "\u32FF") # TruffleRuby: invalid character property name <age=12.1> (RegexpError)
+    assert_match(/^\p{age=12.1}$/u, "\u32FF")
   end
 
   MatchData_A = eval("class MatchData_\u{3042} < MatchData; self; end")
@@ -1286,7 +1312,7 @@ class TestRegexp < Test::Unit::TestCase
     assert_separately([], "#{<<-"begin;"}\n#{<<-"end;"}")
     begin;
       begin
-        # require '-test-/regexp'
+        require '-test-/regexp'
       rescue LoadError
       else
         bug = '[ruby-core:79624] [Bug #13234]'

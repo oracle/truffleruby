@@ -87,14 +87,6 @@ extern void *alloca();
 # define RUBY_ALLOCV_LIMIT 1024
 #endif
 
-#ifdef TRUFFLERUBY
-#define RB_GC_GUARD(v) \
-    (*__extension__ ({ \
-       polyglot_invoke(RUBY_CEXT, "rb_tr_gc_guard", v); \
-       volatile VALUE *rb_gc_guarded_ptr = &v; \
-       rb_gc_guarded_ptr; \
-    }))
-#else
 #ifdef __GNUC__
 #define RB_GC_GUARD(v) \
     (*__extension__ ({ \
@@ -107,7 +99,6 @@ extern void *alloca();
 #else
 #define HAVE_RB_GC_GUARDED_PTR_VAL 1
 #define RB_GC_GUARD(v) (*rb_gc_guarded_ptr_val(&(v),(v)))
-#endif
 #endif
 
 /* Casts needed because void* is NOT compaible with others in C++. */
@@ -264,7 +255,6 @@ rb_alloc_tmp_buffer2(volatile VALUE *store, long count, size_t elsize)
     return rb_alloc_tmp_buffer_with_count(store, total_size, cnt);
 }
 
-#ifndef TRUFFLERUBY
 #ifndef __MINGW32__
 RBIMPL_ATTR_NOALIAS()
 RBIMPL_ATTR_NONNULL((1))
@@ -284,7 +274,6 @@ ruby_nonempty_memcpy(void *dest, const void *src, size_t n)
 }
 #undef memcpy
 #define memcpy ruby_nonempty_memcpy
-#endif
 #endif
 
 #endif /* RBIMPL_MEMORY_H */

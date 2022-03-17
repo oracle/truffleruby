@@ -274,7 +274,7 @@ module Test
           line ||= loc.lineno
         end
         capture_stdout = true
-        unless defined?(::TruffleRuby) or /mswin|mingw/ =~ RUBY_PLATFORM
+        unless /mswin|mingw/ =~ RUBY_PLATFORM
           capture_stdout = false
           opt[:out] = MiniTest::Unit.output if defined?(MiniTest::Unit)
           res_p, res_c = IO.pipe
@@ -294,11 +294,8 @@ eom
       ensure
         if res_c
           res_c.close
-          begin
-            res = res_p.read
-          ensure
-            res_p.close
-          end
+          res = res_p.read
+          res_p.close
         else
           res = stdout
         end

@@ -31,13 +31,6 @@
 #include "ruby/internal/stdbool.h"
 #include "ruby/internal/value.h"
 
-#ifdef TRUFFLERUBY
-RBIMPL_SYMBOL_EXPORT_BEGIN()
-bool RB_FIXNUM_P(VALUE value);
-bool rb_tr_special_const_p(VALUE object);
-RBIMPL_SYMBOL_EXPORT_END()
-#endif
-
 #if defined(USE_FLONUM)
 # /* Take that. */
 #elif SIZEOF_VALUE >= SIZEOF_DOUBLE
@@ -137,7 +130,6 @@ RB_NIL_P(VALUE obj)
     return obj == RUBY_Qnil;
 }
 
-#ifndef TRUFFLERUBY
 RBIMPL_ATTR_CONST()
 RBIMPL_ATTR_CONSTEXPR(CXX11)
 RBIMPL_ATTR_ARTIFICIAL()
@@ -146,7 +138,6 @@ RB_FIXNUM_P(VALUE obj)
 {
     return obj & RUBY_FIXNUM_FLAG;
 }
-#endif
 
 RBIMPL_ATTR_CONST()
 RBIMPL_ATTR_CONSTEXPR(CXX14)
@@ -187,11 +178,7 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline bool
 RB_SPECIAL_CONST_P(VALUE obj)
 {
-#ifdef TRUFFLERUBY
-    return rb_tr_special_const_p(obj);
-#else
     return RB_IMMEDIATE_P(obj) || ! RB_TEST(obj);
-#endif
 }
 
 RBIMPL_ATTR_CONST()

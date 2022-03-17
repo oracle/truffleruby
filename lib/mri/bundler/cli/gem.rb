@@ -68,7 +68,7 @@ module Bundler
         :bundler_version  => bundler_dependency_version,
         :git              => use_git,
         :github_username  => github_username.empty? ? "[USERNAME]" : github_username,
-        :required_ruby_version => Gem.ruby_version < Gem::Version.new("2.4.a") ? "2.3.0" : "2.4.0",
+        :required_ruby_version => required_ruby_version,
       }
       ensure_safe_gem_name(name, constant_array)
 
@@ -163,15 +163,16 @@ module Bundler
         templates.merge!("CHANGELOG.md.tt" => "CHANGELOG.md")
       end
 
-      if ask_and_set(:rubocop, "Do you want to add rubocop as a dependency for gems you generate?",
-        "RuboCop is a static code analyzer that has out-of-the-box rules for many " \
-        "of the guidelines in the community style guide. " \
-        "For more information, see the RuboCop docs (https://docs.rubocop.org/en/stable/) " \
-        "and the Ruby Style Guides (https://github.com/rubocop-hq/ruby-style-guide).")
-        config[:rubocop] = true
-        config[:rubocop_version] = Gem.ruby_version < Gem::Version.new("2.4.a") ? "0.81.0" : "1.7"
+      config[:linter] = ask_and_set_linter
+      case config[:linter]
+      when "rubocop"
+        config[:linter_version] = rubocop_version
         Bundler.ui.info "RuboCop enabled in config"
         templates.merge!("rubocop.yml.tt" => ".rubocop.yml")
+      when "standard"
+        config[:linter_version] = standard_version
+        Bundler.ui.info "Standard enabled in config"
+        templates.merge!("standard.yml.tt" => ".standard.yml")
       end
 
       templates.merge!("exe/newgem.tt" => "exe/#{name}") if config[:exe]
@@ -184,14 +185,15 @@ module Bundler
         )
       end
 
-      if File.exist?(target) && !File.directory?(target)
+      if target.exist? && !target.directory?
         Bundler.ui.error "Couldn't create a new gem named `#{gem_name}` because there's an existing file named `#{gem_name}`."
         exit Bundler::BundlerError.all_errors[Bundler::GenericSystemCallError]
       end
 
       if use_git
         Bundler.ui.info "Initializing git repo in #{target}"
-        `git init #{target}`
+        require "shellwords"
+        `git init #{target.to_s.shellescape}`
 
         config[:git_default_branch] = File.read("#{target}/.git/HEAD").split("/").last.chomp
       end
@@ -316,6 +318,58 @@ module Bundler
       ci_template
     end
 
+    def ask_and_set_linter
+      linter_template = options[:linter] || Bundler.settings["gem.linter"]
+      linter_template = deprecated_rubocop_option if linter_template.nil?
+
+      if linter_template.to_s.empty?
+        Bundler.ui.confirm "Do you want to add a code linter and formatter to your gem? " \
+          "Supported Linters:\n" \
+          "* RuboCop:       https://rubocop.org\n" \
+          "* Standard:      https://github.com/testdouble/standard\n" \
+          "\n"
+        Bundler.ui.info hint_text("linter")
+
+        result = Bundler.ui.ask "Enter a linter. rubocop/standard/(none):"
+        if result =~ /rubocop|standard/
+          linter_template = result
+        else
+          linter_template = false
+        end
+      end
+
+      if Bundler.settings["gem.linter"].nil?
+        Bundler.settings.set_global("gem.linter", linter_template)
+      end
+
+      # Once gem.linter safely set, unset the deprecated gem.rubocop
+      unless Bundler.settings["gem.rubocop"].nil?
+        Bundler.settings.set_global("gem.rubocop", nil)
+      end
+
+      if options[:linter] == Bundler.settings["gem.linter"]
+        Bundler.ui.info "#{options[:linter]} is already configured, ignoring --linter flag."
+      end
+
+      linter_template
+    end
+
+    def deprecated_rubocop_option
+      if !options[:rubocop].nil?
+        if options[:rubocop]
+          Bundler::SharedHelpers.major_deprecation 2, "--rubocop is deprecated, use --linter=rubocop"
+          "rubocop"
+        else
+          Bundler::SharedHelpers.major_deprecation 2, "--no-rubocop is deprecated, use --linter"
+          false
+        end
+      elsif !Bundler.settings["gem.rubocop"].nil?
+        Bundler::SharedHelpers.major_deprecation 2,
+          "config gem.rubocop is deprecated; we've updated your config to use gem.linter instead"
+        Bundler.settings["gem.rubocop"] ? "rubocop" : false
+      end
+    end
+
     def bundler_dependency_version
       v = Gem::Version.new(Bundler::VERSION)
       req = v.segments[0..1]
@@ -348,6 +402,31 @@ module Bundler
 
     def open_editor(editor, file)
       thor.run(%(#{editor} "#{file}"))
+    end
+
+    def required_ruby_version
+      if Gem.ruby_version < Gem::Version.new("2.4.a") then "2.3.0"
+      elsif Gem.ruby_version < Gem::Version.new("2.5.a") then "2.4.0"
+      elsif Gem.ruby_version < Gem::Version.new("2.6.a") then "2.5.0"
+      else
+        "2.6.0"
+      end
+    end
+
+    def rubocop_version
+      if Gem.ruby_version < Gem::Version.new("2.4.a") then "0.81.0"
+      elsif Gem.ruby_version < Gem::Version.new("2.5.a") then "1.12"
+      else
+        "1.21"
+      end
+    end
+
+    def standard_version
+      if Gem.ruby_version < Gem::Version.new("2.4.a") then "0.2.5"
+      elsif Gem.ruby_version < Gem::Version.new("2.5.a") then "1.0"
+      else
+        "1.3"
+      end
     end
   end
 end

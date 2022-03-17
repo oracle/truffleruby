@@ -13,13 +13,7 @@
 
 require "mkmf"
 
-if defined?(::TruffleRuby)
-  require 'truffle/openssl-prefix'
-  dir_config("openssl", ENV["OPENSSL_PREFIX"])
-else
-  dir_config("openssl")
-end
-
+dir_config("openssl")
 dir_config("kerberos")
 
 Logging::message "=== OpenSSL for Ruby configurator ===\n"
@@ -33,16 +27,11 @@ if with_config("debug") or enable_config("debug")
 end
 
 Logging::message "=== Checking for system dependent stuff... ===\n"
-unless defined?(::TruffleRuby) # These do not exist on any of our supported platforms
-  have_library("nsl", "t_open")
-  have_library("socket", "socket")
-end
+have_library("nsl", "t_open")
+have_library("socket", "socket")
 if $mswin || $mingw
   have_library("ws2_32")
 end
-
-Logging::message "=== Checking for required stuff... ===\n"
-result = pkg_config("openssl") && have_header("openssl/ssl.h")
 
 if $mingw
   append_cflags '-D_FORTIFY_SOURCE=2'
@@ -100,26 +89,33 @@ def find_openssl_library
   return false
 end
 
-unless result
-  unless find_openssl_library
-    Logging::message "=== Checking for required stuff failed. ===\n"
-    Logging::message "Makefile wasn't created. Fix the errors above.\n"
-    raise "OpenSSL library could not be found. You might want to use " \
-      "--with-openssl-dir=<dir> option to specify the prefix where OpenSSL " \
-      "is installed."
-  end
+Logging::message "=== Checking for required stuff... ===\n"
+pkg_config_found = pkg_config("openssl") && have_header("openssl/ssl.h")
+
+if !pkg_config_found && !find_openssl_library
+  Logging::message "=== Checking for required stuff failed. ===\n"
+  Logging::message "Makefile wasn't created. Fix the errors above.\n"
+  raise "OpenSSL library could not be found. You might want to use " \
+    "--with-openssl-dir=<dir> option to specify the prefix where OpenSSL " \
+    "is installed."
 end
 
-# TruffleRuby: do not perform all checks again if extconf.h already exists
-extconf_h = "#{__dir__}/extconf.h"
-if File.exist?(extconf_h) && File.mtime(extconf_h) >= File.mtime(__FILE__ )
-  $extconf_h = extconf_h
+version_ok = if have_macro("LIBRESSL_VERSION_NUMBER", "openssl/opensslv.h")
+  is_libressl = true
+  checking_for("LibreSSL version >= 2.5.0") {
+    try_static_assert("LIBRESSL_VERSION_NUMBER >= 0x20500000L", "openssl/opensslv.h") }
 else
-### START of checks
+  checking_for("OpenSSL version >= 1.0.1 and < 3.0.0") {
+    try_static_assert("OPENSSL_VERSION_NUMBER >= 0x10001000L", "openssl/opensslv.h") &&
+    !try_static_assert("OPENSSL_VERSION_MAJOR >= 3", "openssl/opensslv.h") }
+end
+unless version_ok
+  raise "OpenSSL >= 1.0.1, < 3.0.0 or LibreSSL >= 2.5.0 is required"
+end
 
-unless checking_for("OpenSSL version is 1.0.1 or later") {
-    try_static_assert("OPENSSL_VERSION_NUMBER >= 0x10001000L", "openssl/opensslv.h") }
-  raise "OpenSSL >= 1.0.1 or LibreSSL is required"
+# Prevent wincrypt.h from being included, which defines conflicting macro with openssl/x509.h
+if is_libressl && ($mswin || $mingw)
+  $defs.push("-DNOCRYPT")
 end
 
 Logging::message "=== Checking for OpenSSL features... ===\n"
@@ -130,10 +126,6 @@ engines = %w{dynamic 4758cca aep atalla chil
 engines.each { |name|
   have_func("ENGINE_load_#{name}()", "openssl/engine.h")
 }
-
-if ($mswin || $mingw) && have_macro("LIBRESSL_VERSION_NUMBER", "openssl/opensslv.h")
-  $defs.push("-DNOCRYPT")
-end
 
 # added in 1.0.2
 have_func("EC_curve_nist2nid")
@@ -194,9 +186,5 @@ have_func("SSL_CTX_set_post_handshake_auth")
 Logging::message "=== Checking done. ===\n"
 
 create_header
-
-### END of checks
-end
-
 create_makefile("openssl")
 Logging::message "Done.\n"

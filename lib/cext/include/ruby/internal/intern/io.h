@@ -27,13 +27,11 @@ RBIMPL_SYMBOL_EXPORT_BEGIN()
 
 /* io.c */
 #define rb_defout rb_stdout
-#ifndef TRUFFLERUBY
 RUBY_EXTERN VALUE rb_fs;
 RUBY_EXTERN VALUE rb_output_fs;
 RUBY_EXTERN VALUE rb_rs;
 RUBY_EXTERN VALUE rb_default_rs;
 RUBY_EXTERN VALUE rb_output_rs;
-#endif
 VALUE rb_io_write(VALUE, VALUE);
 VALUE rb_io_gets(VALUE);
 VALUE rb_io_getbyte(VALUE);

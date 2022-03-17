@@ -47,15 +47,9 @@
 #define RSTRING_END       RSTRING_END
 /** @endcond */
 
-#ifdef TRUFFLERUBY
-#define StringValue(v)     rb_tr_string_value(&(v))
-#define StringValuePtr(v)  rb_tr_string_value_ptr(&(v))
-#define StringValueCStr(v) rb_tr_string_value_cstr(&(v))
-#else
 #define StringValue(v)     rb_string_value(&(v))
 #define StringValuePtr(v)  rb_string_value_ptr(&(v))
 #define StringValueCStr(v) rb_string_value_cstr(&(v))
-#endif
 #define SafeStringValue(v) StringValue(v)
 #define ExportStringValue(v) do { \
     StringValue(v);               \
@@ -93,26 +87,15 @@ struct RString {
 
 RBIMPL_SYMBOL_EXPORT_BEGIN()
 VALUE rb_str_to_str(VALUE);
-#ifdef TRUFFLERUBY
-VALUE rb_string_value(VALUE *value_pointer);
-char *rb_string_value_ptr(VALUE *value_pointer);
-char *rb_string_value_cstr(VALUE *value_pointer);
-#else
 VALUE rb_string_value(volatile VALUE*);
 char *rb_string_value_ptr(volatile VALUE*);
 char *rb_string_value_cstr(volatile VALUE*);
-#endif
 VALUE rb_str_export(VALUE);
 VALUE rb_str_export_locale(VALUE);
 
 RBIMPL_ATTR_ERROR(("rb_check_safe_str() and Check_SafeStr() are obsolete; use StringValue() instead"))
 void rb_check_safe_str(VALUE);
 #define Check_SafeStr(v) rb_check_safe_str(RBIMPL_CAST((VALUE)(v)))
-#ifdef TRUFFLERUBY
-int rb_tr_str_len(VALUE string);
-char *RSTRING_PTR_IMPL(VALUE string);
-char *RSTRING_END_IMPL(VALUE string);
-#endif
 RBIMPL_SYMBOL_EXPORT_END()
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
@@ -160,20 +143,13 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline long
 RSTRING_LEN(VALUE str)
 {
-#ifdef TRUFFLERUBY
-    return rb_tr_str_len(str);
-#else
     return rbimpl_rstring_getmem(str).as.heap.len;
-#endif
 }
 
 RBIMPL_ATTR_ARTIFICIAL()
 static inline char *
 RSTRING_PTR(VALUE str)
 {
-#ifdef TRUFFLERUBY
-    return RSTRING_PTR_IMPL(str);
-#else
     char *ptr = rbimpl_rstring_getmem(str).as.heap.ptr;
 
     if (RB_UNLIKELY(! ptr)) {
@@ -196,16 +172,12 @@ RSTRING_PTR(VALUE str)
     }
 
     return ptr;
-#endif
 }
 
 RBIMPL_ATTR_ARTIFICIAL()
 static inline char *
 RSTRING_END(VALUE str)
 {
-#ifdef TRUFFLERUBY
-    return RSTRING_END_IMPL(str);
-#else
     struct RString buf = rbimpl_rstring_getmem(str);
 
     if (RB_UNLIKELY(! buf.as.heap.ptr)) {
@@ -219,27 +191,15 @@ RSTRING_END(VALUE str)
     }
 
     return &buf.as.heap.ptr[buf.as.heap.len];
-#endif
 }
 
 RBIMPL_ATTR_ARTIFICIAL()
 static inline int
 RSTRING_LENINT(VALUE str)
 {
-#ifdef TRUFFLERUBY
-    return rb_tr_str_len(str);
-#else
     return rb_long2int(RSTRING_LEN(str));
-#endif
 }
 
-#ifdef TRUFFLERUBY
-#define RSTRING_GETMEM(string, ptrvar, lenvar) \
-    __extension__ ({ \
-        (ptrvar) = RSTRING_PTR(string); \
-        (lenvar) = RSTRING_LEN(string); \
-    })
-#else
 #ifdef HAVE_STMT_AND_DECL_IN_EXPR
 # define RSTRING_GETMEM(str, ptrvar, lenvar) \
     __extension__ ({ \
@@ -252,5 +212,4 @@ RSTRING_LENINT(VALUE str)
     ((ptrvar) = RSTRING_PTR(str),           \
      (lenvar) = RSTRING_LEN(str))
 #endif /* HAVE_STMT_AND_DECL_IN_EXPR */
-#endif
 #endif /* RBIMPL_RSTRING_H */

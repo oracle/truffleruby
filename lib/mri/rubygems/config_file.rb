@@ -5,7 +5,7 @@
 # See LICENSE.txt for permissions.
 #++
 
-require 'rubygems/user_interaction'
+require_relative 'user_interaction'
 require 'rbconfig'
 
 ##
@@ -43,12 +43,7 @@ class Gem::ConfigFile
   DEFAULT_BULK_THRESHOLD = 1000
   DEFAULT_VERBOSITY = true
   DEFAULT_UPDATE_SOURCES = true
-  if defined?(::TruffleRuby)
-    # GR-18264: Gem::Specification._all does not seem thread safe and raises "nil spec! included in"
-    DEFAULT_CONCURRENT_DOWNLOADS = 1
-  else
-    DEFAULT_CONCURRENT_DOWNLOADS = 8
-  end
+  DEFAULT_CONCURRENT_DOWNLOADS = 8
   DEFAULT_CERT_EXPIRATION_LENGTH_DAYS = 365
   DEFAULT_IPV4_FALLBACK_ENABLED = false
 
@@ -325,7 +320,8 @@ if you believe they were disclosed to a third party.
     config = load_file(credentials_path).merge(host => api_key)
 
     dirname = File.dirname credentials_path
-    FileUtils.mkdir_p(dirname) unless File.exist? dirname
+    require 'fileutils'
+    FileUtils.mkdir_p(dirname)
 
     Gem.load_yaml
 
@@ -462,9 +458,8 @@ if you believe they were disclosed to a third party.
 
   # Writes out this config file, replacing its source.
   def write
-    unless File.exist?(File.dirname(config_file_name))
-      FileUtils.mkdir_p File.dirname(config_file_name)
-    end
+    require 'fileutils'
+    FileUtils.mkdir_p File.dirname(config_file_name)
 
     File.open config_file_name, 'w' do |io|
       io.write to_yaml

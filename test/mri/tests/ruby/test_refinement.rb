@@ -2540,15 +2540,11 @@ class TestRefinement < Test::Unit::TestCase
   class Bug17822
     module Ext
       refine(Bug17822) do
-        def foo
-          :refined
-        end
+        def foo = :refined
       end
     end
 
-    private def foo
-      :not_refined
-    end
+    private(def foo = :not_refined)
 
     module Client
       using Ext

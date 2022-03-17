@@ -62,7 +62,6 @@ RBIMPL_SYMBOL_EXPORT_END()
         } \
     } while (0)
 
-#ifndef TRUFFLERUBY
 static inline void
 rb_check_frozen_inline(VALUE obj)
 {
@@ -71,7 +70,6 @@ rb_check_frozen_inline(VALUE obj)
     }
 }
 #define rb_check_frozen rb_check_frozen_inline
-#endif
 
 static inline int
 rb_check_arity(int argc, int min, int max)

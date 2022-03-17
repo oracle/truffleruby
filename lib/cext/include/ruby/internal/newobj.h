@@ -47,7 +47,6 @@ void rb_singleton_class_attached(VALUE,VALUE);
 void rb_copy_generic_ivar(VALUE,VALUE);
 RBIMPL_SYMBOL_EXPORT_END()
 
-#ifndef TRUFFLERUBY
 static inline void
 rb_clone_setup(VALUE clone, VALUE obj)
 {
@@ -70,6 +69,5 @@ rb_dup_setup(VALUE dup, VALUE obj)
     rb_obj_setup(dup, rb_obj_class(obj), RB_FL_TEST_RAW(obj, RUBY_FL_DUPPED));
     if (RB_FL_TEST(obj, RUBY_FL_EXIVAR)) rb_copy_generic_ivar(dup, obj);
 }
-#endif
 
 #endif /* RBIMPL_NEWOBJ_H */

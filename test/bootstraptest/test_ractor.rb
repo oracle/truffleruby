@@ -187,6 +187,28 @@ assert_equal '[:ok, :ok, :ok]', %q{
   }.map(&:take)
 }
 
+# Ractor.make_shareable issue for locals in proc [Bug #18023]
+assert_equal '[:a, :b, :c, :d, :e]', %q{
+  v1, v2, v3, v4, v5 = :a, :b, :c, :d, :e
+  closure = Proc.new { [v1, v2, v3, v4, v5] }
+
+  Ractor.make_shareable(closure).call
+}
+
+# Ractor.make_shareable issue for locals in proc [Bug #18023]
+assert_equal '[:a, :b, :c, :d, :e, :f, :g]', %q{
+  a = :a
+  closure = -> {
+    b, c, d = :b, :c, :d
+    -> {
+      e, f, g = :e, :f, :g
+      -> { [a, b, c, d, e, f, g] }
+    }.call
+  }.call
+
+  Ractor.make_shareable(closure).call
+}
+
 ###
 ###
 # Ractor still has several memory corruption so skip huge number of tests
@@ -1377,6 +1399,21 @@ assert_equal "ok", %q{
   rescue TypeError
     'ok'
   end
+}
+
+# Can yield back values while GC is sweeping [Bug #18117]
+assert_equal "ok", %q{
+  workers = (0...8).map do
+    Ractor.new do
+      loop do
+        10_000.times.map { Object.new }
+        Ractor.yield Time.now
+      end
+    end
+  end
+
+  1_000.times { idle_worker, tmp_reporter = Ractor.select(*workers) }
+  "ok"
 }
 
 end # if !ENV['GITHUB_WORKFLOW']

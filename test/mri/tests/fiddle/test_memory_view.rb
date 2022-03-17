@@ -4,10 +4,10 @@ begin
 rescue LoadError
 end
 
-# begin
-#   require '-test-/memory_view'
-# rescue LoadError
-# end
+begin
+  require '-test-/memory_view'
+rescue LoadError
+end
 
 module Fiddle
   class TestMemoryView < TestCase

@@ -115,13 +115,8 @@ RUBY_EXTERN VALUE rb_eLoadError;
 
 RUBY_EXTERN VALUE rb_eMathDomainError;
 
-#ifndef TRUFFLERUBY
 RUBY_EXTERN VALUE rb_stdin, rb_stdout, rb_stderr;
-#endif
 
-#ifdef TRUFFLERUBY
-VALUE rb_class_of(VALUE object);
-#else
 RBIMPL_ATTR_PURE()
 static inline VALUE
 rb_class_of(VALUE obj)
@@ -154,7 +149,6 @@ rb_class_of(VALUE obj)
     RUBY_ASSERT_FAIL("unexpected type");
 #endif
 }
-#endif
 
 #define CLASS_OF rb_class_of
 

@@ -121,12 +121,7 @@ typedef struct rb_io_enc_t rb_io_enc_t;
 /* #define FMODE_INET                  0x00400000 */
 /* #define FMODE_INET6                 0x00800000 */
 
-#ifdef TRUFFLERUBY
-POLYGLOT_DECLARE_STRUCT(rb_io_t)
-#define RB_IO_POINTER(obj,fp) rb_io_check_closed((fp) = polyglot_as_rb_io_t(RUBY_CEXT_INVOKE_NO_WRAP("GetOpenFile", obj)))
-#else
 #define RB_IO_POINTER(obj,fp) rb_io_check_closed((fp) = RFILE(rb_io_taint_check(obj))->fptr)
-#endif
 #define GetOpenFile RB_IO_POINTER
 
 #define RB_IO_OPEN(obj, fp) do {\

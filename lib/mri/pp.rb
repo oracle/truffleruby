@@ -237,7 +237,7 @@ class PP < PrettyPrint
         else
           sep.call
         end
-        yield(*v, **{})
+        RUBY_VERSION >= "3.0" ? yield(*v, **{}) : yield(*v)
       }
     end
 
@@ -562,7 +562,7 @@ class RubyVM::AbstractSyntaxTree::Node
       end
     }
   end
-end if defined?(RubyVM::AbstractSyntaxTree::Node)
+end
 
 class Object < BasicObject # :nodoc:
   include PP::ObjectMixin

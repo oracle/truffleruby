@@ -2,7 +2,6 @@
 require 'test/unit'
 EnvUtil.suppress_warning {require 'continuation'}
 require 'stringio'
-require 'delegate'
 
 class TestEnumerable < Test::Unit::TestCase
   def setup
@@ -133,6 +132,11 @@ class TestEnumerable < Test::Unit::TestCase
 
   def test_to_a
     assert_equal([1, 2, 3, 1, 2], @obj.to_a)
+  end
+
+  def test_to_a_keywords
+    def @obj.each(foo:) yield foo end
+    assert_equal([1], @obj.to_a(foo: 1))
   end
 
   def test_to_a_size_symbol
