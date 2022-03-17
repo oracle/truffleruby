@@ -136,6 +136,8 @@ public class Options {
     public final boolean WARN_TRUFFLE_REGEX_COMPILE_FALLBACK;
     /** --warn-truffle-regex-match-fallback=false */
     public final boolean WARN_TRUFFLE_REGEX_MATCH_FALLBACK;
+    /** --truffle-regex-ignore-atomic-groups=false */
+    public final boolean TRUFFLE_REGEX_IGNORE_ATOMIC_GROUPS;
     /** --argv-globals=false */
     public final boolean ARGV_GLOBALS;
     /** --chomp-loop=false */
@@ -264,6 +266,7 @@ public class Options {
         USE_TRUFFLE_REGEX = options.get(OptionsCatalog.USE_TRUFFLE_REGEX_KEY);
         WARN_TRUFFLE_REGEX_COMPILE_FALLBACK = options.get(OptionsCatalog.WARN_TRUFFLE_REGEX_COMPILE_FALLBACK_KEY);
         WARN_TRUFFLE_REGEX_MATCH_FALLBACK = options.get(OptionsCatalog.WARN_TRUFFLE_REGEX_MATCH_FALLBACK_KEY);
+        TRUFFLE_REGEX_IGNORE_ATOMIC_GROUPS = options.get(OptionsCatalog.TRUFFLE_REGEX_IGNORE_ATOMIC_GROUPS_KEY);
         ARGV_GLOBALS = options.get(OptionsCatalog.ARGV_GLOBALS_KEY);
         CHOMP_LOOP = options.get(OptionsCatalog.CHOMP_LOOP_KEY);
         GETS_LOOP = options.get(OptionsCatalog.GETS_LOOP_KEY);
@@ -415,6 +418,8 @@ public class Options {
                 return WARN_TRUFFLE_REGEX_COMPILE_FALLBACK;
             case "ruby.warn-truffle-regex-match-fallback":
                 return WARN_TRUFFLE_REGEX_MATCH_FALLBACK;
+            case "ruby.truffle-regex-ignore-atomic-groups":
+                return TRUFFLE_REGEX_IGNORE_ATOMIC_GROUPS;
             case "ruby.argv-globals":
                 return ARGV_GLOBALS;
             case "ruby.chomp-loop":
