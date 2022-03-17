@@ -10,12 +10,12 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Yukihiro Matsumoto".freeze]
   s.bindir = "exe".freeze
-  s.date = "2021-10-13"
+  s.date = "2022-03-17"
   s.description = "Transactional File Storage for Ruby Objects".freeze
   s.email = ["matz@ruby-lang.org".freeze]
   s.files = ["pstore.rb".freeze]
   s.homepage = "https://github.com/ruby/pstore".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
-  s.rubygems_version = "3.2.22".freeze
+  s.rubygems_version = "3.2.32".freeze
   s.summary = "Transactional File Storage for Ruby Objects".freeze
 end

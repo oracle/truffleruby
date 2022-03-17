@@ -1,0 +1,39 @@
+module RBS
+  class EnvironmentWalker
+    class InstanceNode
+      attr_reader type_name: TypeName
+      def initialize: (type_name: TypeName) -> void
+    end
+
+    class SingletonNode
+      attr_reader type_name: TypeName
+      def initialize: (type_name: TypeName) -> void
+    end
+
+    class TypeNameNode
+      attr_reader type_name: TypeName
+      def initialize: (type_name: TypeName) -> void
+    end
+
+    attr_reader env: Environment
+    attr_reader only_ancestors: bool
+    attr_reader builder: DefinitionBuilder
+
+    def initialize: (env: Environment) -> void
+
+    def only_ancestors!: (?bool only) -> self
+
+    def only_ancestors?: () -> bool
+
+    type node = InstanceNode | SingletonNode | TypeNameNode
+    include TSort[node]
+
+    def tsort_each_node: () { (node) -> void } -> void
+
+    def tsort_each_child: (node) { (node) -> void } -> void
+
+    def each_type_name: (Types::t) { (TypeName) -> void } -> void
+
+    def each_type_node: (Types::t) { (node) -> void } -> void
+  end
+end

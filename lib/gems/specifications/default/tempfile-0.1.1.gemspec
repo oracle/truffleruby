@@ -10,13 +10,13 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Yukihiro Matsumoto".freeze]
   s.bindir = "exe".freeze
-  s.date = "2021-10-13"
+  s.date = "2022-03-17"
   s.description = "A utility class for managing temporary files.".freeze
   s.email = ["matz@ruby-lang.org".freeze]
   s.files = ["tempfile.rb".freeze]
   s.homepage = "https://github.com/ruby/tempfile".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.5.0".freeze)
-  s.rubygems_version = "3.2.22".freeze
+  s.rubygems_version = "3.2.32".freeze
   s.summary = "A utility class for managing temporary files.".freeze
 end

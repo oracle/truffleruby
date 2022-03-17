@@ -1,0 +1,3 @@
+class Gem::PathSupport
+  # TODO: Add sinatures...
+end

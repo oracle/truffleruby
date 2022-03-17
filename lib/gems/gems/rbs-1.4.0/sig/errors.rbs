@@ -1,0 +1,208 @@
+module RBS
+  interface _MethodName
+    def kind: () -> (:instance | :singleton)
+
+    def type_name: () -> TypeName
+
+    def method_name: () -> Symbol
+  end
+
+  module MethodNameHelper : _MethodName
+    def method_name_string: () -> String
+  end
+
+  # Error class for errors defined in RBS.
+  #
+  class BaseError < StandardError
+  end
+
+  # Error class for errors raised during parsing.
+  #
+  class ParsingError < BaseError
+  end
+
+  # Error class for errors raised during loading environments.
+  #
+  class LoadingError < BaseError
+  end
+
+  # Error class for errors raised during building definitions.
+  #
+  class DefinitionError < BaseError
+  end
+
+  class InvalidTypeApplicationError < DefinitionError
+    attr_reader type_name: TypeName
+    attr_reader args: Array[Types::t]
+    attr_reader params: Array[Symbol]
+    attr_reader location: Location?
+
+    def initialize: (type_name: TypeName, args: Array[Types::t], params: Array[Symbol], location: Location?) -> void
+
+    def self.check!: (type_name: TypeName, args: Array[Types::t], params: Array[Symbol], location: Location?) -> void
+  end
+
+  class RecursiveAncestorError < DefinitionError
+    attr_reader ancestors: Array[Definition::Ancestor::t]
+    attr_reader location: Location?
+
+    def initialize: (ancestors: Array[Definition::Ancestor::t], location: Location?) -> void
+
+    def self.check!: (Definition::Ancestor::t, ancestors: Array[Definition::Ancestor::t], location: Location?) -> void
+  end
+
+  class NoTypeFoundError < DefinitionError
+    attr_reader type_name: TypeName
+    attr_reader location: Location?
+
+    def initialize: (type_name: TypeName, location: Location?) -> void
+
+    def self.check!: (TypeName, env: Environment, location: Location?) -> TypeName
+  end
+
+  class NoSuperclassFoundError < DefinitionError
+    attr_reader type_name: TypeName
+    attr_reader location: Location?
+
+    def initialize: (type_name: TypeName, location: Location?) -> void
+
+    def self.check!: (TypeName, env: Environment, location: Location?) -> void
+  end
+
+  class NoSelfTypeFoundError < DefinitionError
+    attr_reader type_name: TypeName
+    attr_reader location: Location?
+
+    def initialize: (type_name: TypeName, location: Location?) -> void
+
+    def self.check!: (AST::Declarations::Module::Self, env: Environment) -> void
+  end
+
+  class NoMixinFoundError < DefinitionError
+    attr_reader type_name: TypeName
+    attr_reader member: AST::Members::t
+
+    def initialize: (type_name: TypeName, member: AST::Members::t) -> void
+
+    def location: () -> Location?
+
+    def self.check!: (TypeName, env: Environment, member: AST::Members::t) -> void
+  end
+
+  class DuplicatedMethodDefinitionError < DefinitionError
+    type ty = Types::ClassSingleton | Types::ClassInstance | Types::Interface
+    type original = DefinitionBuilder::MethodBuilder::Methods::Definition::original
+
+    attr_reader type: ty
+    attr_reader method_name: Symbol
+    attr_reader members: Array[original]
+
+    def initialize: (type: ty, method_name: Symbol, members: Array[original]) -> void
+
+    def type_name: () -> TypeName
+
+    def qualified_method_name: () -> String
+
+    def location: () -> Location?
+
+    def other_locations: () -> Array[Location?]
+  end
+
+  class DuplicatedInterfaceMethodDefinitionError < DefinitionError
+    type ty = Types::ClassSingleton | Types::ClassInstance | Types::Interface
+    type mixin_member = AST::Members::Include | AST::Members::Extend
+
+    attr_reader type: ty
+    attr_reader method_name: Symbol
+    attr_reader member: mixin_member
+
+    def initialize: (type: ty, method_name: Symbol, member: mixin_member) -> void
+
+    def type_name: () -> TypeName
+
+    def qualified_method_name: () -> String
+  end
+
+  class UnknownMethodAliasError < DefinitionError
+    attr_reader type_name: TypeName
+    attr_reader original_name: Symbol
+    attr_reader aliased_name: Symbol
+    attr_reader location: Location?
+
+    def initialize: (type_name: TypeName, original_name: Symbol, aliased_name: Symbol, location: Location?) -> void
+  end
+
+  class SuperclassMismatchError < DefinitionError
+    attr_reader name: TypeName
+    attr_reader entry: Environment::ClassEntry
+
+    def initialize: (name: TypeName, entry: Environment::ClassEntry) -> void
+  end
+
+  class InvalidOverloadMethodError < DefinitionError
+    attr_reader type_name: TypeName
+    attr_reader method_name: Symbol
+    attr_reader kind: :instance | :singleton
+    attr_reader members: Array[AST::Members::MethodDefinition]
+
+    def initialize: (type_name: TypeName, method_name: Symbol, kind: :instance | :singleton, members: Array[AST::Members::MethodDefinition]) -> void
+  end
+
+  class GenericParameterMismatchError < LoadingError
+    attr_reader name: TypeName
+    attr_reader decl: AST::Declarations::Class | AST::Declarations::Module
+
+    def initialize: (name: TypeName, decl: AST::Declarations::Class | AST::Declarations::Module) -> void
+  end
+
+  class DuplicatedDeclarationError < LoadingError
+    attr_reader name: TypeName | Symbol
+    attr_reader decls: Array[AST::Declarations::t]
+
+    def initialize: (TypeName | Symbol, *AST::Declarations::t) -> void
+  end
+
+  class InvalidVarianceAnnotationError < DefinitionError
+    attr_reader type_name: TypeName
+    attr_reader param: AST::Declarations::ModuleTypeParams::TypeParam
+    attr_reader location: Location?
+
+    def initialize: (type_name: TypeName, param: AST::Declarations::ModuleTypeParams::TypeParam, location: Location?) -> void
+  end
+
+  class RecursiveAliasDefinitionError < DefinitionError
+    type ty = Types::ClassInstance | Types::ClassSingleton | Types::Interface
+    type defn = DefinitionBuilder::MethodBuilder::Methods::Definition
+
+    attr_reader type: ty
+    attr_reader defs: Array[defn]
+
+    def initialize: (type: ty, defs: Array[defn]) -> void
+
+    def location: () -> Location?
+  end
+
+  class MixinClassError < DefinitionError
+    type member = AST::Members::Include | AST::Members::Prepend | AST::Members::Extend
+
+    attr_reader type_name: TypeName
+    attr_reader member: member
+
+    def initialize: (type_name: TypeName, member: member) -> void
+
+    def location: () -> Location?
+
+    def self.check!: (type_name: TypeName, env: Environment, member: member) -> void
+
+    def mixin_name: () -> String
+  end
+
+  class RecursiveTypeAliasError < LoadingError
+    attr_reader alias_names: Array[TypeName]
+    attr_reader location: Location
+
+    def initialize: (alias_names: Array[TypeName], location: Location) -> void
+
+    def name: () -> String
+  end
+end

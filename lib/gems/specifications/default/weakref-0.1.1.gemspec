@@ -10,13 +10,13 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Yukihiro Matsumoto".freeze]
   s.bindir = "exe".freeze
-  s.date = "2021-10-13"
+  s.date = "2022-03-17"
   s.description = "Allows a referenced object to be garbage-collected.".freeze
   s.email = ["matz@ruby-lang.org".freeze]
   s.files = ["weakref.rb".freeze]
   s.homepage = "https://github.com/ruby/weakref".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
-  s.rubygems_version = "3.2.22".freeze
+  s.rubygems_version = "3.2.32".freeze
   s.summary = "Allows a referenced object to be garbage-collected.".freeze
 
   if s.respond_to? :specification_version then

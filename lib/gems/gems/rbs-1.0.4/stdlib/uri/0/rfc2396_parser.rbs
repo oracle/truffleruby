@@ -1,9 +1,0 @@
-# Class that parses String's into URI's.
-#
-# It contains a Hash set of patterns and Regexp's that match and validate.
-class URI::RFC2396_Parser
-end
-
-# Includes URI::REGEXP::PATTERN
-module URI::RFC2396_REGEXP
-end

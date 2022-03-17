@@ -1,0 +1,14 @@
+module RBS
+  class Validator
+    attr_reader env: Environment
+    attr_reader resolver: TypeNameResolver
+
+    def initialize: (env: Environment, resolver: TypeNameResolver) -> void
+
+    def absolute_type: (Types::t, context: TypeNameResolver::context) { (Types::t) -> TypeName } -> Types::t
+
+    def validate_type: (Types::t, context: TypeNameResolver::context) -> void
+
+    def validate_type_alias: (entry: Environment::SingleEntry[TypeName, AST::Declarations::Alias]) -> void
+  end
+end
