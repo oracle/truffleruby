@@ -33,8 +33,6 @@ Test error in the callback to the Sulong-instrinsified qsort()
 /bin/backtraces:74:in `block in <main>': error from Ruby called from instrinsified qsort() (RuntimeError)
 	from /lib/truffle/truffle/cext.rb:n:in `rb_funcall'
 	from /ext/backtraces/backtraces.c:17:in `compare_function'
-	from com.oracle.truffle.llvm.libraries.bitcode/src/qsort.c:n:in `sift'
-	from com.oracle.truffle.llvm.libraries.bitcode/src/qsort.c:n:in `trinkle'
 	from com.oracle.truffle.llvm.libraries.bitcode/src/qsort.c:n:in `qsort'
 	from /ext/backtraces/backtraces.c:25:in `call_qsort'
 	from /lib/truffle/truffle/cext_ruby.rb:n:in `qsort'
