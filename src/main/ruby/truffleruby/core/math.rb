@@ -13,8 +13,6 @@ module Math
   PI = 3.14159265358979323846
   E = 2.7182818284590452354
 
-  DomainError = Errno::EDOM
-
   module_function
 
   def hypot(a, b)

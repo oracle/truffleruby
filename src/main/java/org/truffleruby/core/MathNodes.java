@@ -592,6 +592,10 @@ public abstract class MathNodes {
 
         @Override
         protected double doFunction(double a) {
+            if (a < 0.0) {
+                exceptionProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().mathDomainError("sqrt", this));
+            }
             return Math.sqrt(a);
         }
 

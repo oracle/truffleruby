@@ -423,7 +423,7 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException mathDomainError(String method, Node currentNode) {
-        RubyClass exceptionClass = context.getCoreLibrary().getErrnoClass("EDOM");
+        RubyClass exceptionClass = context.getCoreLibrary().mathDomainErrorClass;
         Rope rope = StringOperations.encodeRope(
                 StringUtils.format("Numerical argument is out of domain - \"%s\"", method),
                 UTF8Encoding.INSTANCE);
