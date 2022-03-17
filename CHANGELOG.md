@@ -1,3 +1,21 @@
+# 22.2.0
+
+New features:
+
+
+Bug fixes:
+
+
+Compatibility:
+
+
+Performance:
+
+
+Changes:
+
+* `-Werror=implicit-function-declaration` is now used for compiling C extensions to fail more clearly and earlier if a function is missing, like CRuby 3.2 (#2618, @eregon).
+
 # 22.1.0
 
 New features:
