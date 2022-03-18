@@ -310,6 +310,10 @@ module Polyglot
     def call(*args)
       Truffle::Interop.execute(self, *args)
     end
+
+    def to_proc
+      -> (*args) { call(*args) }
+    end
   end
 
   module InstantiableTrait
