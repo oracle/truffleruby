@@ -1,0 +1,2 @@
+fails:Fiber.schedule raises a runtime error if no scheduler has been set
+fails:Fiber.schedule Starts the fiber is a scheduler is available

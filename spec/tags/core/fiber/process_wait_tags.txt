@@ -1,0 +1,1 @@
+fails:A non blocking fiber with a scheduler calls `process_wait` on the scheduler when `Process::Status.wait` is called

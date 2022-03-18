@@ -1,0 +1,4 @@
+fails:A non blocking fiber with a scheduler calls block on the scheduler when `Thread#join` is called with no limit
+fails:A non blocking fiber with a scheduler calls block on the scheduler when `Thread#join` is called with a limit
+fails:A non blocking fiber with a scheduler calls block on the scheduler when `Thread#join` is called with a limit that expires before the thread ends
+fails:A non blocking fiber with a scheduler calls block on the scheduler when `Thread#join` is called with a limit that may expire before the thread ends

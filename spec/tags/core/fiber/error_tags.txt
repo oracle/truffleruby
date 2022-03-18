@@ -1,0 +1,2 @@
+fails:A fiber scheduler raises a ThreadError if a dead fiber is resumed by the scheduler
+fails:A fiber scheduler errors raised in unblock are raised as normal
