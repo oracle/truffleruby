@@ -21,6 +21,7 @@ Bug fixes:
 * Fix `Array#sample` for `[]` when called without `n` and a `Random` is given (#2612, @bjfish).
 * Fix `Module#const_get` to raise a `NameError` when nested modules do not exist (#2610, @bjfish).
 * Ensure native `VALUE`s returned from C are unwrapped before the objects can be collected (@aardvark179).
+* Fix `Integer#fdiv` and `Rational#to_f` for large `Integer` values (#2631, @bjfish).
 
 Compatibility:
 

@@ -111,7 +111,7 @@ class Integer < Numeric
 
   def fdiv(n)
     if Primitive.object_kind_of?(n, Integer)
-      to_f / n
+      Primitive.interger_fdiv(self, n)
     else
       redo_coerced :fdiv, n
     end
