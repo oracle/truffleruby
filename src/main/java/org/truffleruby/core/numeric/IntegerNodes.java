@@ -9,7 +9,9 @@
  */
 package org.truffleruby.core.numeric;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
@@ -280,6 +282,39 @@ public abstract class IntegerNodes {
         protected Object mul(Object a, Object b,
                 @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", coreSymbols().MULTIPLY, b);
+        }
+
+    }
+
+    @Primitive(name = "interger_fdiv")
+    public abstract static class FDivNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected double fDivIntInt(int num, int den) {
+            return ((double) num) / den;
+        }
+
+        @Specialization
+        protected double fDivLongLong(long num, long den) {
+            return ((double) num) / den;
+        }
+
+        @TruffleBoundary
+        @Specialization
+        protected double fDivLongBig(long num, RubyBignum den) {
+            return new BigDecimal(num).divide(new BigDecimal(den.value), 17, RoundingMode.HALF_UP).doubleValue();
+        }
+
+        @TruffleBoundary
+        @Specialization
+        protected double fDivBigLong(RubyBignum num, long den) {
+            return new BigDecimal(num.value).divide(new BigDecimal(den), 17, RoundingMode.HALF_UP).doubleValue();
+        }
+
+        @TruffleBoundary
+        @Specialization
+        protected double fDivBigBig(RubyBignum num, RubyBignum den) {
+            return new BigDecimal(num.value).divide(new BigDecimal(den.value), 17, RoundingMode.HALF_UP).doubleValue();
         }
 
     }

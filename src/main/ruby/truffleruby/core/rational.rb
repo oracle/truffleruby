@@ -302,7 +302,11 @@ class Rational < Numeric
   end
 
   def to_f
-    @numerator.to_f / @denominator.to_f
+    if Primitive.object_kind_of?(@numerator, Integer) && Primitive.object_kind_of?(@denominator, Integer)
+      @numerator.fdiv(@denominator)
+    else
+      Truffle::Type.rb_num2dbl(@numerator) / Truffle::Type.rb_num2dbl(@denominator)
+    end
   end
 
   def to_i
