@@ -45,6 +45,7 @@ local part_definitions = {
 
       packages+: {
         "pip:ninja_syntax": "==1.7.2",  # Required by NFI and mx
+        "mx": "5.320.4",
       },
 
       setup+: [
