@@ -247,55 +247,30 @@ class SyntaxError < ScriptError
 end
 
 class SystemExit < Exception
+  def initialize(status = true, message = nil)
+    case status
+    when true
+      status = Process::EXIT_SUCCESS
+    when false
+      status = Process::EXIT_FAILURE
+    else
+      converted = Truffle::Type.rb_check_to_integer(status, :to_int)
+      if Primitive.nil?(converted)
+        message = status
+        status = Process::EXIT_SUCCESS
+      else
+        status = converted
+      end
+    end
 
-  ##
-  # Process exit status if this exception is raised
-
-  ##
-  # Creates a SystemExit exception with optional status and message.  If the
-  # status is omitted, Process::EXIT_SUCCESS is used.
-  #--
-  # *args is used to simulate optional prepended argument like MRI
-
-  def initialize(*args)
-    status = if args.empty?
-               Process::EXIT_SUCCESS
-             else
-               case args[0]
-               when true
-                 args.shift
-                 Process::EXIT_SUCCESS
-               when false
-                 args.shift
-                 Process::EXIT_FAILURE
-               else
-                 converted = Truffle::Type.rb_check_to_integer(args[0], :to_int)
-                 if Primitive.nil?(converted)
-                   Process::EXIT_SUCCESS
-                 else
-                   args.shift
-                   if converted == 0
-                     Process::EXIT_SUCCESS
-                   else
-                     converted
-                   end
-                 end
-               end
-             end
-    super(*args)
+    message ? super(message) : super()
 
     Primitive.system_exit_set_status(self, status)
   end
 
-  ##
-  # Returns true is exiting successfully, false if not. A successful exit is
-  # one with a status equal to 0 (zero). Any other status is considered a
-  # unsuccessful exit.
-
   def success?
     status == Process::EXIT_SUCCESS
   end
-
 end
 
 
