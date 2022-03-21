@@ -69,8 +69,6 @@ module Process
 
   FFI = Truffle::FFI
 
-  # Terminate with given status code.
-  #
   def self.exit(code=0)
     case code
     when true
@@ -81,7 +79,7 @@ module Process
       code = Truffle::Type.coerce_to code, Integer, :to_int
     end
 
-    raise SystemExit, code
+    raise SystemExit.new(code, 'exit')
   end
 
   def self.exit!(code=1)
