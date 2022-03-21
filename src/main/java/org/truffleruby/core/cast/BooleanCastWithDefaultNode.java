@@ -9,11 +9,10 @@
  */
 package org.truffleruby.core.cast;
 
-import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.language.Nil;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Fallback;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyDynamicObject;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -37,39 +36,10 @@ public abstract class BooleanCastWithDefaultNode extends RubyBaseNodeWithExecute
         return defaultValue;
     }
 
-    @Specialization
-    protected boolean doBoolean(boolean value) {
-        return value;
-    }
-
-    @Specialization
-    protected boolean doNil(Nil nil) {
-        return false;
-    }
-
-    @Specialization
-    protected boolean doSymbol(RubySymbol symbol) {
-        return true;
-    }
-
-    @Specialization
-    protected boolean doInt(int value) {
-        return true;
-    }
-
-    @Specialization
-    protected boolean doLong(long value) {
-        return true;
-    }
-
-    @Specialization
-    protected boolean doFloat(double value) {
-        return true;
-    }
-
-    @Specialization
-    protected boolean doBasicObject(RubyDynamicObject object) {
-        return true;
+    @Fallback
+    protected boolean fallback(Object value,
+            @Cached BooleanCastNode booleanCastNode) {
+        return booleanCastNode.executeToBoolean(value);
     }
 
 }
