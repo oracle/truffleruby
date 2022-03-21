@@ -48,6 +48,8 @@ when /aarch64-linux/
 when /x86_64-linux/
   PLATFORM_FILE = 'org/truffleruby/platform/LinuxAMD64NativeConfiguration.java'
   EXTRA_CFLAGS << ' -D_GNU_SOURCE'
+when /arm64-darwin/
+  PLATFORM_FILE = 'org/truffleruby/platform/DarwinARM64NativeConfiguration.java'
 when /x86_64-darwin/
   PLATFORM_FILE = 'org/truffleruby/platform/DarwinAMD64NativeConfiguration.java'
 else

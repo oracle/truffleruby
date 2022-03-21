@@ -75,6 +75,10 @@ public class NativeConfiguration {
                     case AMD64:
                         DarwinAMD64NativeConfiguration.load(nativeConfiguration, context);
                         return nativeConfiguration;
+                    case ARM64:
+                    case AARCH64:
+                        DarwinARM64NativeConfiguration.load(nativeConfiguration, context);
+                        return nativeConfiguration;
                 }
                 break;
         }
