@@ -244,7 +244,7 @@ local part_definitions = {
       },
     },
 
-    local darwin_deps = common.sulong.deps.darwin + {
+    local darwin_deps = common.sulong.deps.darwin_amd64 + {
       packages+: {
         ruby: "==3.0.2",
       },
