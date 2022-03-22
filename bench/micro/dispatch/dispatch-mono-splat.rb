@@ -1,5 +1,5 @@
 class Callee
-  def call(arg1 = nil, arg2 = nil, arg3 = nil, arg4 = nil)
+  def call(arg1 = nil, arg2 = nil, arg3 = nil)
     :foo
   end
 end
