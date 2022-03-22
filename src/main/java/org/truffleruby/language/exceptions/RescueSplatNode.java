@@ -35,6 +35,7 @@ public class RescueSplatNode extends RescueNode {
                 SplatCastNode.NilBehavior.EMPTY_ARRAY,
                 false,
                 handlingClassesArray);
+        this.splatCastNode.doNotCopy();
         this.stores = ArrayStoreLibrary.getFactory().createDispatched(ArrayGuards.storageStrategyLimit());
     }
 
