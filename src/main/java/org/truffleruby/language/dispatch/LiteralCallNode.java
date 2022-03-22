@@ -27,7 +27,8 @@ public abstract class LiteralCallNode extends RubyContextSourceNode {
     @Child private CopyHashAndSetRuby2KeywordsNode copyHashAndSetRuby2KeywordsNode;
 
     protected final boolean isSplatted;
-    @CompilationFinal private boolean notRuby2KeywordsHashProfile, emptyKeywordsProfile, notEmptyKeywordsProfile;
+    @CompilationFinal private boolean lastArgIsNotHashProfile, notRuby2KeywordsHashProfile, emptyKeywordsProfile,
+            notEmptyKeywordsProfile;
 
     protected LiteralCallNode(boolean isSplatted, ArgumentsDescriptor descriptor) {
         this.isSplatted = isSplatted;
@@ -42,7 +43,17 @@ public abstract class LiteralCallNode extends RubyContextSourceNode {
             if (userArgsCount > 0) {
                 final Object lastArgument = ArrayUtils.getLast(args);
                 assert lastArgument != null;
-                if (isRuby2KeywordsHash(lastArgument)) { // both branches profiled
+
+                if (!(lastArgument instanceof RubyHash)) {
+                    if (!lastArgIsNotHashProfile) {
+                        CompilerDirectives.transferToInterpreterAndInvalidate();
+                        lastArgIsNotHashProfile = true;
+                    }
+
+                    return descriptor;
+                }
+
+                if (((RubyHash) lastArgument).ruby2_keywords) { // both branches profiled
                     if (copyHashAndSetRuby2KeywordsNode == null) {
                         CompilerDirectives.transferToInterpreterAndInvalidate();
                         copyHashAndSetRuby2KeywordsNode = insert(CopyHashAndSetRuby2KeywordsNode.create());
@@ -63,12 +74,10 @@ public abstract class LiteralCallNode extends RubyContextSourceNode {
         return descriptor;
     }
 
-    private boolean isRuby2KeywordsHash(Object lastArgument) {
-        return lastArgument instanceof RubyHash && ((RubyHash) lastArgument).ruby2_keywords;
-    }
-
     // NOTE: args is either frame args or user args
     protected boolean emptyKeywordArguments(Object[] args) {
+        assert isSplatted || descriptor instanceof KeywordArgumentsDescriptor;
+
         if (((RubyHash) ArrayUtils.getLast(args)).empty()) {
             if (!emptyKeywordsProfile) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
