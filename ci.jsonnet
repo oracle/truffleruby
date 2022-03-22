@@ -507,7 +507,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-mri-linux":         $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.run.test_mri + { timelimit: "01:10:00" },
       "ruby-test-mri-darwin":        $.platform.darwin + $.jdk.v11 + $.env.jvm + gate + $.run.test_mri + { timelimit: "01:30:00" },
       "ruby-test-integration-linux": $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.run.test_integration,
-      "ruby-test-cexts-linux":       $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_cexts,
+      "ruby-test-cexts-linux":       $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.use.gem_test_pack + $.use.sqlite331 + $.run.test_cexts,
       "ruby-test-cexts-darwin":      $.platform.darwin + $.jdk.v11 + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_cexts + { timelimit: "01:20:00" },
       "ruby-test-gems-linux":        $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,
       "ruby-test-gems-darwin":       $.platform.darwin + $.jdk.v11 + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,

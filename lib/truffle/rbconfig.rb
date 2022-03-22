@@ -72,7 +72,7 @@ module RbConfig
   optflags = ''
   debugflags = ''
   warnflags = [
-    '-Wimplicit-function-declaration', # To make missing C ext functions clear
+    '-Werror=implicit-function-declaration', # https://bugs.ruby-lang.org/issues/18615
     '-Wno-int-conversion',             # MRI has VALUE defined as long while we have it as void*
     '-Wno-int-to-pointer-cast',        # Same as above
     '-Wno-incompatible-pointer-types', # Fix byebug 8.2.1 compile (st_data_t error)
