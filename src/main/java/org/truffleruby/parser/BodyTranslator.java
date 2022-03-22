@@ -69,7 +69,6 @@ import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
-import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
 import org.truffleruby.language.constants.OrAssignConstantNode;
 import org.truffleruby.language.constants.ReadConstantNode;
 import org.truffleruby.language.constants.ReadConstantWithDynamicScopeNode;
@@ -3134,13 +3133,13 @@ public class BodyTranslator extends Translator {
 
             if (key instanceof SymbolParseNode &&
                     ((SymbolParseNode) key).getName() != null) {
-                return KeywordArgumentsDescriptor.INSTANCE;
+                return language.keywordArgumentsDescriptorManager.EMPTY;
             } else if (key == null && value != null) {
                 // A splat keyword hash
-                return KeywordArgumentsDescriptor.INSTANCE;
+                return language.keywordArgumentsDescriptorManager.EMPTY;
             } else {
                 // For non-symbol keys
-                return KeywordArgumentsDescriptor.INSTANCE;
+                return language.keywordArgumentsDescriptorManager.EMPTY;
             }
         }
 

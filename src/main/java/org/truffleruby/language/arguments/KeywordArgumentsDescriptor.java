@@ -14,9 +14,14 @@ package org.truffleruby.language.arguments;
  * arguments were passed. The callee must handle that for now. */
 public class KeywordArgumentsDescriptor extends ArgumentsDescriptor {
 
-    public static final KeywordArgumentsDescriptor INSTANCE = new KeywordArgumentsDescriptor();
+    private final String[] keywords;
 
-    private KeywordArgumentsDescriptor() {
+    /** Use {@link KeywordArgumentsDescriptorManager} to get an instance. */
+    public KeywordArgumentsDescriptor(String[] keywords) {
+        this.keywords = keywords;
     }
 
+    public String[] getKeywords() {
+        return keywords;
+    }
 }

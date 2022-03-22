@@ -28,7 +28,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
-import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.CallForeignMethodNode;
@@ -160,7 +159,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         final Object[] rubyArgs = RubyArguments.allocate(2);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
-        RubyArguments.setDescriptor(rubyArgs, KeywordArgumentsDescriptor.INSTANCE);
+        RubyArguments.setDescriptor(rubyArgs, getLanguage().keywordArgumentsDescriptorManager.EMPTY);
         RubyArguments.setArgument(rubyArgs, 0, arg1);
         RubyArguments.setArgument(rubyArgs, 1, keywords);
         return dispatch(null, receiver, method, rubyArgs);
