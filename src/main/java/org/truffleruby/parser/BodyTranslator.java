@@ -700,6 +700,14 @@ public class BodyTranslator extends Translator {
             argumentsTranslated[i] = arguments[i].accept(this);
         }
 
+        if (isSplatted) {
+            assert argumentsTranslated.length == 1;
+            // No need to copy the array for call(*splat), the elements will be copied to the frame arguments
+            if (argumentsTranslated[0] instanceof SplatCastNode) {
+                ((SplatCastNode) argumentsTranslated[0]).doNotCopy();
+            }
+        }
+
         ParseNode blockPassNode = null;
         if (iterNode instanceof BlockPassParseNode) {
             blockPassNode = ((BlockPassParseNode) iterNode).getBodyNode();
