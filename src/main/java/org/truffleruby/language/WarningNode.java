@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.nodes.DenyReplace;
 
 /** Warns only if $VERBOSE is true. Corresponds to Kernel#warn(message, uplevel: 1) if $VERBOSE, but in Java with a
  * given SourceSection. */
@@ -20,7 +21,8 @@ public class WarningNode extends WarnNode {
         return verbosity == Boolean.TRUE;
     }
 
-    public static class UncachedWarningNode extends UncachedWarnNode {
+    @DenyReplace
+    public static final class UncachedWarningNode extends AbstractUncachedWarnNode {
 
         public static final UncachedWarningNode INSTANCE = new UncachedWarningNode();
 

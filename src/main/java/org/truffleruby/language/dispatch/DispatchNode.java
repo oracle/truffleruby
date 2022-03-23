@@ -13,6 +13,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.nodes.DenyReplace;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -372,7 +373,8 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         }
     }
 
-    private static class Uncached extends DispatchNode {
+    @DenyReplace
+    private static final class Uncached extends DispatchNode {
 
         static final Uncached[] UNCACHED_NODES = new Uncached[DispatchConfiguration.values().length];
         static {
@@ -393,34 +395,20 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
 
         @Override
         protected Object callForeign(Object receiver, String methodName, Object[] rubyArgs) {
-            if (callForeign == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                callForeign = insert(CallForeignMethodNode.getUncached());
-            }
-
             final Object block = RubyArguments.getBlock(rubyArgs);
             final Object[] arguments = RubyArguments.getPositionalArguments(rubyArgs, false);
-            return callForeign.execute(receiver, methodName, block, arguments);
+            return CallForeignMethodNode.getUncached().execute(receiver, methodName, block, arguments);
         }
 
         @Override
         protected Object callMethodMissingNode(Frame frame, Object receiver, Object[] rubyArgs) {
-            if (callMethodMissing == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                callMethodMissing = insert(
-                        DispatchNode.getUncached(DispatchConfiguration.PRIVATE_RETURN_MISSING_IGNORE_REFINEMENTS));
-            }
-
-            return callMethodMissing.dispatch(frame, receiver, "method_missing", rubyArgs);
+            return DispatchNode.getUncached(DispatchConfiguration.PRIVATE_RETURN_MISSING_IGNORE_REFINEMENTS)
+                    .dispatch(frame, receiver, "method_missing", rubyArgs);
         }
 
         @Override
         protected RubySymbol nameToSymbol(String methodName) {
-            if (toSymbol == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                toSymbol = insert(ToSymbolNode.getUncached());
-            }
-            return toSymbol.execute(methodName);
+            return ToSymbolNode.getUncached().execute(methodName);
         }
 
         @Override
