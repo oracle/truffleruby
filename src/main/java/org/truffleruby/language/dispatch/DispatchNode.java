@@ -395,34 +395,20 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
 
         @Override
         protected Object callForeign(Object receiver, String methodName, Object[] rubyArgs) {
-            if (callForeign == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                callForeign = insert(CallForeignMethodNode.getUncached());
-            }
-
             final Object block = RubyArguments.getBlock(rubyArgs);
             final Object[] arguments = RubyArguments.getPositionalArguments(rubyArgs, false);
-            return callForeign.execute(receiver, methodName, block, arguments);
+            return CallForeignMethodNode.getUncached().execute(receiver, methodName, block, arguments);
         }
 
         @Override
         protected Object callMethodMissingNode(Frame frame, Object receiver, Object[] rubyArgs) {
-            if (callMethodMissing == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                callMethodMissing = insert(
-                        DispatchNode.getUncached(DispatchConfiguration.PRIVATE_RETURN_MISSING_IGNORE_REFINEMENTS));
-            }
-
-            return callMethodMissing.dispatch(frame, receiver, "method_missing", rubyArgs);
+            return DispatchNode.getUncached(DispatchConfiguration.PRIVATE_RETURN_MISSING_IGNORE_REFINEMENTS)
+                    .dispatch(frame, receiver, "method_missing", rubyArgs);
         }
 
         @Override
         protected RubySymbol nameToSymbol(String methodName) {
-            if (toSymbol == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                toSymbol = insert(ToSymbolNode.getUncached());
-            }
-            return toSymbol.execute(methodName);
+            return ToSymbolNode.getUncached().execute(methodName);
         }
 
         @Override
