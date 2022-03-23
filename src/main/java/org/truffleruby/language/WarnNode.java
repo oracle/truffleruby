@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.nodes.DenyReplace;
 import com.oracle.truffle.api.nodes.NodeCost;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -75,16 +76,9 @@ public class WarnNode extends RubyBaseNode {
         return sourceLocation + "warning: " + message;
     }
 
-    public static class UncachedWarnNode extends RubyBaseNode {
+    abstract static class AbstractUncachedWarnNode extends RubyBaseNode {
 
-        public static final UncachedWarnNode INSTANCE = new UncachedWarnNode();
-
-        UncachedWarnNode() {
-        }
-
-        public boolean shouldWarn() {
-            return coreLibrary().warningsEnabled();
-        }
+        public abstract boolean shouldWarn();
 
         public void warningMessage(SourceSection sourceSection, String message) {
             assert shouldWarn();
@@ -106,6 +100,19 @@ public class WarnNode extends RubyBaseNode {
             return false;
         }
 
+    }
+
+    @DenyReplace
+    public static final class UncachedWarnNode extends AbstractUncachedWarnNode {
+
+        public static final UncachedWarnNode INSTANCE = new UncachedWarnNode();
+
+        UncachedWarnNode() {
+        }
+
+        public boolean shouldWarn() {
+            return coreLibrary().warningsEnabled();
+        }
     }
 
 }

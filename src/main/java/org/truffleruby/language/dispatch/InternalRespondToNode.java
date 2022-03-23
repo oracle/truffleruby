@@ -10,6 +10,7 @@
 package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.DenyReplace;
 import com.oracle.truffle.api.nodes.NodeCost;
 import org.truffleruby.core.kernel.KernelNodes.RespondToNode;
 import org.truffleruby.core.klass.RubyClass;
@@ -71,7 +72,8 @@ public class InternalRespondToNode extends RubyBaseNode {
         return method != null && method.isDefined() && method.isImplemented();
     }
 
-    private static class Uncached extends InternalRespondToNode {
+    @DenyReplace
+    private static final class Uncached extends InternalRespondToNode {
 
         static final Uncached[] UNCACHED_NODES = new Uncached[DispatchConfiguration.values().length];
         static {

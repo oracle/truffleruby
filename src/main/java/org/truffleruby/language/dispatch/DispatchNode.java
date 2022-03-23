@@ -13,6 +13,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.nodes.DenyReplace;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -372,7 +373,8 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         }
     }
 
-    private static class Uncached extends DispatchNode {
+    @DenyReplace
+    private static final class Uncached extends DispatchNode {
 
         static final Uncached[] UNCACHED_NODES = new Uncached[DispatchConfiguration.values().length];
         static {
