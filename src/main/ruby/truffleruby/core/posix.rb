@@ -171,7 +171,6 @@ module Truffle::POSIX
   end
 
   # Filesystem-related
-  attach_function :access, [:string, :int], :int
   attach_function :chdir, [:string], :int
   attach_function :chmod, [:string, :mode_t], :int
   attach_function :chown, [:string, :uid_t, :gid_t], :int
