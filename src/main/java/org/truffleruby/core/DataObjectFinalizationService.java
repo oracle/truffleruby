@@ -106,7 +106,7 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
     protected void processReferenceInternal(RubyContext context, RubyLanguage language,
             DataObjectFinalizerReference ref) {
         final ExtensionCallStack stack = language.getCurrentThread().getCurrentFiber().extensionCallStack;
-        stack.push(stack.getSpecialVariables(), stack.getBlock());
+        stack.push(false, stack.getSpecialVariables(), stack.getBlock());
         try {
             rootNode.execute(ref);
         } finally {
