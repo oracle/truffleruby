@@ -138,7 +138,6 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
 
     public static class ReferenceProcessor {
         protected final ReferenceQueue<Object> processingQueue = new ReferenceQueue<>();
-        protected final ReferenceQueue<Object> sharedQueue;
 
         private volatile boolean shutdown = false;
         protected RubyThread processingThread;
@@ -146,7 +145,6 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
 
         public ReferenceProcessor(RubyContext context) {
             this.context = context;
-            this.sharedQueue = context.getLanguageSlow().sharedReferenceQueue;
         }
 
         protected void processReferenceQueue() {
@@ -190,24 +188,15 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
                 while (true) {
                     final ProcessingReference<?> reference = threadManager
                             .runUntilResult(DummyNode.INSTANCE, () -> {
-                                ProcessingReference<?> ref = null;
-                                while (ref == null) {
-                                    ref = (ProcessingReference<?>) sharedQueue.poll();
-                                    if (ref != null) {
-                                        return ref;
-                                    }
-                                    try {
-                                        ref = (ProcessingReference<?>) processingQueue
-                                                .remove(context.getOptions().REFERENCE_PROCESSOR_QUEUE_TIMEOUT);
-                                    } catch (InterruptedException interrupted) {
-                                        if (shutdown) {
-                                            throw new KillException(DummyNode.INSTANCE);
-                                        } else {
-                                            throw interrupted;
-                                        }
+                                try {
+                                    return (ProcessingReference<?>) processingQueue.remove();
+                                } catch (InterruptedException interrupted) {
+                                    if (shutdown) {
+                                        throw new KillException(DummyNode.INSTANCE);
+                                    } else {
+                                        throw interrupted;
                                     }
                                 }
-                                return ref;
                             });
                     reference.service().processReference(context, language, reference);
                 }
@@ -233,15 +222,10 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
 
         @TruffleBoundary
         protected final void drainReferenceQueues() {
-            final ReferenceQueue<Object> sharedReferenceQueue = context.getLanguageSlow().sharedReferenceQueue;
             final RubyLanguage language = context.getLanguageSlow();
             while (true) {
                 @SuppressWarnings("unchecked")
                 ProcessingReference<?> reference = (ProcessingReference<?>) processingQueue.poll();
-
-                if (reference == null) {
-                    reference = (ProcessingReference<?>) sharedReferenceQueue.poll();
-                }
 
                 if (reference == null) {
                     break;

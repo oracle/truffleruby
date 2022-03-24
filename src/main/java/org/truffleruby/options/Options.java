@@ -172,8 +172,6 @@ public class Options {
     public final int CEXTS_MARKING_CACHE;
     /** --global-variable-max-invalidations=1 */
     public final int GLOBAL_VARIABLE_MAX_INVALIDATIONS;
-    /** --reference-processor-queue-timeout=1000 */
-    public final int REFERENCE_PROCESSOR_QUEUE_TIMEOUT;
     /** --clone-default=true */
     public final boolean CLONE_DEFAULT;
     /** --inline-default=true */
@@ -284,7 +282,6 @@ public class Options {
         ARRAY_SMALL = options.get(OptionsCatalog.ARRAY_SMALL_KEY);
         CEXTS_MARKING_CACHE = options.get(OptionsCatalog.CEXTS_MARKING_CACHE_KEY);
         GLOBAL_VARIABLE_MAX_INVALIDATIONS = options.get(OptionsCatalog.GLOBAL_VARIABLE_MAX_INVALIDATIONS_KEY);
-        REFERENCE_PROCESSOR_QUEUE_TIMEOUT = options.get(OptionsCatalog.REFERENCE_PROCESSOR_QUEUE_TIMEOUT_KEY);
         CLONE_DEFAULT = options.get(OptionsCatalog.CLONE_DEFAULT_KEY);
         INLINE_DEFAULT = options.get(OptionsCatalog.INLINE_DEFAULT_KEY);
         CORE_ALWAYS_CLONE = options.get(OptionsCatalog.CORE_ALWAYS_CLONE_KEY);
@@ -454,8 +451,6 @@ public class Options {
                 return CEXTS_MARKING_CACHE;
             case "ruby.global-variable-max-invalidations":
                 return GLOBAL_VARIABLE_MAX_INVALIDATIONS;
-            case "ruby.reference-processor-queue-timeout":
-                return REFERENCE_PROCESSOR_QUEUE_TIMEOUT;
             case "ruby.clone-default":
                 return CLONE_DEFAULT;
             case "ruby.inline-default":
