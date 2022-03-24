@@ -616,8 +616,8 @@ public abstract class VMPrimitiveNodes {
                 final KeywordArgumentsDescriptor keywordArgumentsDescriptor = (KeywordArgumentsDescriptor) descriptor;
 
                 final Stream<RubySymbol> keywords = Stream.concat(
-                                Stream.of("keywords"),
-                                Arrays.stream(keywordArgumentsDescriptor.getKeywords()))
+                        Stream.of("keywords"),
+                        Arrays.stream(keywordArgumentsDescriptor.getKeywords()))
                         .map(getLanguage()::getSymbol);
 
                 return createArray(keywords.toArray());

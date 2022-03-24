@@ -3127,23 +3127,32 @@ public class BodyTranslator extends Translator {
             return EmptyArgumentsDescriptor.INSTANCE;
         }
 
+        final List<String> keywords = new ArrayList<>();
+        boolean splat = false;
+        boolean nonKeywordKeys = false;
+
         for (ParseNodeTuple pair : keywordHashArgumentNode.getPairs()) {
             final ParseNode key = pair.getKey();
             final ParseNode value = pair.getValue();
 
             if (key instanceof SymbolParseNode &&
                     ((SymbolParseNode) key).getName() != null) {
-                return language.keywordArgumentsDescriptorManager.EMPTY;
+                keywords.add(((SymbolParseNode) key).getName());
             } else if (key == null && value != null) {
                 // A splat keyword hash
-                return language.keywordArgumentsDescriptorManager.EMPTY;
+                splat = true;
             } else {
                 // For non-symbol keys
-                return language.keywordArgumentsDescriptorManager.EMPTY;
+                nonKeywordKeys = true;
             }
         }
 
-        return EmptyArgumentsDescriptor.INSTANCE;
+        if (splat || nonKeywordKeys || !keywords.isEmpty()) {
+            return language.keywordArgumentsDescriptorManager
+                    .getArgumentsDescriptor(keywords.toArray(n -> new String[n]));
+        } else {
+            return EmptyArgumentsDescriptor.INSTANCE;
+        }
     }
 
     /* This is carefully written so ArrayParseNode is only considered if it is the argsNode itself, or as the RHS of an

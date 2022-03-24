@@ -319,7 +319,8 @@ public class CExtNodes {
                 return sendWithoutCExtLock(frame, receiver, method, block, EmptyArgumentsDescriptor.INSTANCE, args,
                         dispatchNode, ownedProfile);
             } else {
-                return sendWithoutCExtLock(frame, receiver, method, block, getLanguage().keywordArgumentsDescriptorManager.EMPTY, args,
+                return sendWithoutCExtLock(frame, receiver, method, block,
+                        getLanguage().keywordArgumentsDescriptorManager.EMPTY, args,
                         dispatchNode, ownedProfile);
             }
         }
