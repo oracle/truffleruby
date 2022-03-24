@@ -10,6 +10,8 @@
 package org.truffleruby.language.arguments;
 
 import org.truffleruby.core.hash.RubyHash;
+import org.truffleruby.core.hash.library.HashStoreLibrary;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -17,19 +19,35 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public final class ReadUserKeywordsHashNode extends RubyBaseNode {
 
-    private final ConditionProfile keywordArgumentsProfile = ConditionProfile.create();
+    @Child protected HashStoreLibrary hashStoreLibrary;
 
-    public ReadUserKeywordsHashNode() {
-    }
+    private final ConditionProfile keywordArgumentsProfile = ConditionProfile.create();
 
     public RubyHash execute(VirtualFrame frame) {
         final ArgumentsDescriptor descriptor = RubyArguments.getDescriptor(frame);
         if (keywordArgumentsProfile.profile(descriptor instanceof KeywordArgumentsDescriptor)) {
             final RubyHash keywords = (RubyHash) RubyArguments.getLastArgument(frame);
             assert !keywords.empty();
+            assert assertHashMatchesDescriptor(keywords, (KeywordArgumentsDescriptor) descriptor);
             return keywords;
         } else {
             return null;
         }
     }
+
+    /** Verify that all keywords the descriptor claims should be in the hash, are in fact in the hash. **/
+    private boolean assertHashMatchesDescriptor(RubyHash hash, KeywordArgumentsDescriptor descriptor) {
+        if (hashStoreLibrary == null) {
+            hashStoreLibrary = insert(HashStoreLibrary.createDispatched());
+        }
+
+        for (String keyword : descriptor.getKeywords()) {
+            final RubySymbol symbol = getSymbol(keyword);
+            final Object value = hashStoreLibrary.lookupOrDefault(hash.store, null, hash, symbol, (f, h, k) -> null);
+            assert value != null : "descriptor claims " + keyword +
+                    " was a passed keyword argument but it's not in the hash";
+        }
+        return true;
+    }
+
 }
