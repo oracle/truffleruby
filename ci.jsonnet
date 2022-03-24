@@ -149,7 +149,7 @@ local part_definitions = {
       environment+: { path+:: ["$NODE/bin"] },
     },
     
-    sqlite331: { packages+: { sqlite: ">=3.31" } },
+    sqlite331: { packages+: { sqlite: "==3.31.0" } },
 
     no_multi_tier: {
       environment+: {
@@ -452,7 +452,8 @@ local part_definitions = {
     micro: { benchmarks+:: ["micro"] },
     other_extra: { benchmarks+:: ["savina"] },
     other: { benchmarks+:: ["image-demo", "optcarrot", "synthetic", "rubykon", "liquid"] },
-    warmup: {
+
+    warmup: $.use.sqlite331 + {
       benchmarks+:: [
         ["--fork-count-file", "mx.truffleruby/warmup-fork-counts.json", "ruby-warmup:*"],
       ],
