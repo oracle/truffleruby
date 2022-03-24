@@ -213,7 +213,8 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
             if (methodEntry.getMethod() != null) {
                 MethodEntry newMethodEntry = new MethodEntry(methodEntry
                         .getMethod()
-                        .withDeclaringModule(rubyModule));
+                        .withDeclaringModule(rubyModule)
+                        .withOwner(rubyModule));
                 this.methods.put(methodEntry.getMethod().getName(), newMethodEntry);
             }
         }
@@ -512,6 +513,8 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
                 (method.isUndefined() && methods.get(method.getName()) != null);
 
         checkFrozen(context, currentNode);
+
+        method = method.withOwner(rubyModule);
 
         if (SharedObjects.isShared(rubyModule)) {
             Set<Object> adjacent = ObjectGraph.newObjectSet();

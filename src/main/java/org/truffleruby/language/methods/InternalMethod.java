@@ -40,7 +40,10 @@ public class InternalMethod implements ObjectGraphNode {
     private final DeclarationContext activeRefinements;
     private final String name;
 
+    /** The module on which the method was initially declared in the source code (e.g., with def) */
     private final RubyModule declaringModule;
+    /** The module owning this InternalMethod (i.e., the method is part of that module's instance methods) */
+    private final RubyModule owner;
     private final Visibility visibility;
     private final boolean undefined;
     private final boolean unimplemented; // similar to MRI's rb_f_notimplement
@@ -124,6 +127,7 @@ public class InternalMethod implements ObjectGraphNode {
                 declarationContext,
                 name,
                 declaringModule,
+                declaringModule,
                 visibility,
                 undefined,
                 false,
@@ -142,6 +146,7 @@ public class InternalMethod implements ObjectGraphNode {
             DeclarationContext declarationContext,
             String name,
             RubyModule declaringModule,
+            RubyModule owner,
             Visibility visibility,
             boolean undefined,
             boolean unimplemented,
@@ -160,6 +165,7 @@ public class InternalMethod implements ObjectGraphNode {
         this.lexicalScope = lexicalScope;
         this.declarationContext = declarationContext;
         this.declaringModule = declaringModule;
+        this.owner = owner;
         this.name = name;
         this.visibility = visibility;
         this.undefined = undefined;
@@ -179,6 +185,10 @@ public class InternalMethod implements ObjectGraphNode {
 
     public RubyModule getDeclaringModule() {
         return declaringModule;
+    }
+
+    public RubyModule getOwner() {
+        return owner;
     }
 
     public String getName() {
@@ -235,6 +245,31 @@ public class InternalMethod implements ObjectGraphNode {
                     declarationContext,
                     name,
                     newDeclaringModule,
+                    owner,
+                    visibility,
+                    undefined,
+                    unimplemented,
+                    builtIn,
+                    alwaysInlinedNodeFactory,
+                    activeRefinements,
+                    proc,
+                    callTarget,
+                    callTargetSupplier,
+                    capturedBlock);
+        }
+    }
+
+    public InternalMethod withOwner(RubyModule newOwner) {
+        if (newOwner == owner) {
+            return this;
+        } else {
+            return new InternalMethod(
+                    sharedMethodInfo,
+                    lexicalScope,
+                    declarationContext,
+                    name,
+                    declaringModule,
+                    newOwner,
                     visibility,
                     undefined,
                     unimplemented,
@@ -258,6 +293,7 @@ public class InternalMethod implements ObjectGraphNode {
                     declarationContext,
                     newName,
                     declaringModule,
+                    owner,
                     visibility,
                     undefined,
                     unimplemented,
@@ -281,6 +317,7 @@ public class InternalMethod implements ObjectGraphNode {
                     declarationContext,
                     name,
                     declaringModule,
+                    owner,
                     newVisibility,
                     undefined,
                     unimplemented,
@@ -304,6 +341,7 @@ public class InternalMethod implements ObjectGraphNode {
                     declarationContext,
                     name,
                     declaringModule,
+                    owner,
                     visibility,
                     undefined,
                     unimplemented,
@@ -327,6 +365,7 @@ public class InternalMethod implements ObjectGraphNode {
                     newDeclarationContext,
                     name,
                     declaringModule,
+                    owner,
                     visibility,
                     undefined,
                     unimplemented,
@@ -347,6 +386,7 @@ public class InternalMethod implements ObjectGraphNode {
                 declarationContext,
                 name,
                 declaringModule,
+                owner,
                 visibility,
                 true,
                 unimplemented,
@@ -366,6 +406,7 @@ public class InternalMethod implements ObjectGraphNode {
                 declarationContext,
                 name,
                 declaringModule,
+                owner,
                 visibility,
                 undefined,
                 true,

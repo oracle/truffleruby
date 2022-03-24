@@ -155,7 +155,7 @@ public abstract class UnboundMethodNodes {
 
         @Specialization
         protected RubyModule owner(RubyUnboundMethod unboundMethod) {
-            return unboundMethod.method.getDeclaringModule();
+            return unboundMethod.method.getOwner();
         }
 
     }

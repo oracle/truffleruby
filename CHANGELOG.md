@@ -8,6 +8,7 @@ Bug fixes:
 * Fix `rb_id2name` to ensure the native string will have the same lifetime as the id (#2630, @aardvark179).
 * Fix `MatchData#[]` exception when passing a length argument larger than the number of match values (#2636, @nirvdrum).
 * Fix `MatchData#[]` exception when supplying a large negative index along with a length argument (@nirvdrum).
+* Fix aliased methods to return the correct owner when method is from a superclass (@bjfish).
 
 Compatibility:
 
