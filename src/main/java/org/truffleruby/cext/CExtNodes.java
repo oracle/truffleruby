@@ -1214,7 +1214,6 @@ public class CExtNodes {
                 nativeRope = (NativeRope) currentRope;
             } else {
                 nativeRope = new NativeRope(
-                        getContext(),
                         bytesNode.execute(currentRope),
                         currentRope.getEncoding(),
                         characterLengthNode.execute(currentRope),
@@ -1231,7 +1230,6 @@ public class CExtNodes {
             return ConcurrentOperations.getOrCompute(getContext().getImmutableNativeRopes(), string, s -> {
                 final LeafRope currentRope = s.rope;
                 return new NativeRope(
-                        getContext(),
                         currentRope.getBytes(),
                         currentRope.getEncoding(),
                         currentRope.characterLength(),
