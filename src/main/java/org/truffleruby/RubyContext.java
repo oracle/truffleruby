@@ -57,13 +57,11 @@ import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.time.GetTimeZoneNode;
 import org.truffleruby.debug.MetricsProfiler;
 import org.truffleruby.language.CallStackManager;
-import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.SafepointManager;
@@ -128,7 +126,6 @@ public class RubyContext {
     private final Map<Source, Integer> sourceLineOffsets = Collections.synchronizedMap(new WeakHashMap<>());
     /** (Symbol, refinements) -> Proc for Symbol#to_proc */
     public final Map<Pair<RubySymbol, Map<RubyModule, RubyModule[]>>, RootCallTarget> cachedSymbolToProcTargetsWithRefinements = new ConcurrentHashMap<>();
-    private final Map<ImmutableRubyString, NativeRope> immutableNativeRopes = new ConcurrentHashMap<>();
     /** Default signal handlers for Ruby, only SIGINT and SIGALRM, see {@code core/main.rb} */
     public final ConcurrentMap<String, SignalHandler> defaultRubySignalHandlers = new ConcurrentHashMap<>();
 
@@ -719,10 +716,6 @@ public class RubyContext {
 
     public Map<Source, Integer> getSourceLineOffsets() {
         return sourceLineOffsets;
-    }
-
-    public Map<ImmutableRubyString, NativeRope> getImmutableNativeRopes() {
-        return immutableNativeRopes;
     }
 
     private static SecureRandom createRandomInstance() {

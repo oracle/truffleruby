@@ -29,7 +29,6 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.cext.CExtNodesFactory.CallWithCExtLockNodeFactory;
 import org.truffleruby.cext.CExtNodesFactory.StringToNativeNodeGen;
 import org.truffleruby.cext.UnwrapNode.UnwrapCArrayNode;
-import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.core.MarkingServiceNodes;
@@ -62,7 +61,6 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.Bytes;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -1224,17 +1222,9 @@ public class CExtNodes {
             return nativeRope;
         }
 
-        @TruffleBoundary
         @Specialization
         protected NativeRope toNativeImmutable(ImmutableRubyString string) {
-            return ConcurrentOperations.getOrCompute(getContext().getImmutableNativeRopes(), string, s -> {
-                final LeafRope currentRope = s.rope;
-                return new NativeRope(
-                        currentRope.getBytes(),
-                        currentRope.getEncoding(),
-                        currentRope.characterLength(),
-                        currentRope.getCodeRange());
-            });
+            return string.getNativeRope();
         }
 
     }
@@ -1281,7 +1271,7 @@ public class CExtNodes {
         @TruffleBoundary
         @Specialization
         protected boolean isNative(ImmutableRubyString string) {
-            return getContext().getImmutableNativeRopes().containsKey(string);
+            return string.isNative();
         }
 
     }

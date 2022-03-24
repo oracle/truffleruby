@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.string;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -23,6 +24,7 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.LeafRope;
+import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
@@ -37,6 +39,7 @@ import org.truffleruby.language.library.RubyStringLibrary;
 public class ImmutableRubyString extends ImmutableRubyObject implements TruffleObject {
 
     public final LeafRope rope;
+    private volatile NativeRope nativeRope = null;
     public final RubyEncoding encoding;
 
     ImmutableRubyString(LeafRope rope, RubyEncoding encoding) {
@@ -49,6 +52,22 @@ public class ImmutableRubyString extends ImmutableRubyObject implements TruffleO
     @Override
     public String toString() {
         return rope.toString();
+    }
+
+    public boolean isNative() {
+        return nativeRope != null;
+    }
+
+    public synchronized NativeRope getNativeRope() {
+        if (nativeRope == null) {
+            nativeRope = createNativeRope();
+        }
+        return nativeRope;
+    }
+
+    @TruffleBoundary
+    private NativeRope createNativeRope() {
+        return new NativeRope(rope.getBytes(), rope.getEncoding(), rope.characterLength(), rope.getCodeRange());
     }
 
     // region RubyStringLibrary messages
