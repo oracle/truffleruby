@@ -1061,7 +1061,7 @@ module Truffle::CExt
   end
 
   def rb_cvar_defined(cls, id)
-    id_s = id.to_s
+    id_s = id.name
     if id_s.start_with?('@@') || !id_s.start_with?('@')
       cls.class_variable_defined?(id)
     else
@@ -1126,7 +1126,7 @@ module Truffle::CExt
   end
 
   def rb_id2str(sym)
-    sym.to_s
+    sym.name
   end
 
   def rb_const_defined?(mod, name)
@@ -1760,7 +1760,7 @@ module Truffle::CExt
   end
 
   def rb_gv_get(name)
-    name = "$#{name}" unless name.to_s.start_with?('$')
+    name = "$#{name}" unless name.start_with?('$')
     if name == '$~'
       rb_backref_get
     else

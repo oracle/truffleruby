@@ -32,7 +32,7 @@ ID rb_intern3(const char *name, long len, rb_encoding *enc) {
 }
 
 VALUE rb_sym2str(VALUE string) {
-  return RUBY_INVOKE(string, "to_s");
+  return RUBY_INVOKE(string, "name");
 }
 
 const char *rb_id2name(ID id) {
