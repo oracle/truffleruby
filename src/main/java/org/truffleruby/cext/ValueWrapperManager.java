@@ -10,6 +10,7 @@
 package org.truffleruby.cext;
 
 import java.lang.ref.WeakReference;
+import java.lang.ref.Cleaner.Cleanable;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -85,10 +86,10 @@ public class ValueWrapperManager {
         blockMap = map;
         map[blockIndex] = new HandleBlockWeakReference(block);
 
-        context.getFinalizationService().addFinalizer(context, block, ValueWrapperManager.class, () -> {
+        block.cleanable = RubyLanguage.cleaner.register(block, () -> {
             this.blockMap[blockIndex] = null;
             allocator.addFreeBlock(blockBase);
-        }, null);
+        });
     }
 
     @TruffleBoundary
@@ -101,10 +102,10 @@ public class ValueWrapperManager {
             language.handleBlockSharedMap = map;
             map[blockIndex] = new HandleBlockWeakReference(block);
 
-            language.sharedFinzationService.addFinalizer(context, block, ValueWrapperManager.class, () -> {
+            block.cleanable = RubyLanguage.cleaner.register(block, () -> {
                 language.handleBlockSharedMap[blockIndex] = null;
                 allocator.addFreeBlock(blockBase);
-            }, null);
+            });
         }
     }
 
@@ -224,6 +225,8 @@ public class ValueWrapperManager {
         private final long base;
         @SuppressWarnings("rawtypes") private final ValueWrapper[] wrappers;
         private int count;
+
+        private Cleanable cleanable;
 
         public HandleBlock(RubyContext context, HandleBlockAllocator allocator) {
             this(context, allocator.getFreeBlock(), new ValueWrapper[BLOCK_SIZE]);
