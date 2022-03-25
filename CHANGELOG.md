@@ -5,6 +5,7 @@ New features:
 
 Bug fixes:
 
+* Fix `rb_id2name` to ensure the native string will have the same lifetime as the id (#2630, @aardvark179).
 
 Compatibility:
 
@@ -40,6 +41,7 @@ Bug fixes:
 * Fix `Module#const_get` to raise a `NameError` when nested modules do not exist (#2610, @bjfish).
 * Ensure native `VALUE`s returned from C are unwrapped before the objects can be collected (@aardvark179).
 * Fix `Enumerator::Lazy#with_index` to start with new index for multiple enumerations (@bjfish).
+* Fix `rb_id2name` to ensure the native string will have the same lifetime as the id (#2630, @aardvark179).
 
 Compatibility:
 
