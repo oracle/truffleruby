@@ -52,6 +52,7 @@ Compatibility:
 * Update `IO.readlines` to ignore negative limit parameters (#2625 , @bjfish).
 * Update `Math.sqrt` to raise a `Math::DomainError` for negative numbers (#2621, @bjfish).
 * Update `Enumerable#inject` to raise an `ArgumentError` if no block or symbol are given (#2626, @bjfish).
+* Fix `Marshal.dump` to raise an error when an object has singleton methods (@bjfish).
 
 Performance:
 

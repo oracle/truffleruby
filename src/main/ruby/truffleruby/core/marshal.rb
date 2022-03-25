@@ -1013,6 +1013,7 @@ module Marshal
     end
 
     def serialize_extended_object(obj)
+      raise TypeError, "singleton can't be dumped" if Primitive.singleton_methods?(obj)
       str = +''
       Primitive.vm_extended_modules obj, -> mod do
         str << "e#{serialize(mod.name.to_sym)}"

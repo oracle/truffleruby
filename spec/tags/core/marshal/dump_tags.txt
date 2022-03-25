@@ -1,4 +1,3 @@
-fails:Marshal.dump with an Object raises if an Object has a singleton class and singleton methods
 fails(immutable regexp):Marshal.dump with a Regexp dumps a Regexp with instance variables
 fails(immutable regexp):Marshal.dump with a Regexp dumps an extended Regexp
 fails(immutable regexp):Marshal.dump with a Regexp dumps a Regexp subclass
