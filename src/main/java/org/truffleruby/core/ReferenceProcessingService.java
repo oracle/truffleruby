@@ -25,86 +25,22 @@ import org.truffleruby.language.control.TerminationException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
-public abstract class ReferenceProcessingService<R extends ReferenceProcessingService.ProcessingReference<R>> {
+public abstract class ReferenceProcessingService<R extends ReferenceProcessingService.PhantomProcessingReference<R, T>, T> {
 
-    public static interface ProcessingReference<R extends ProcessingReference<R>> {
-        public R getPrevious();
-
-        public void setPrevious(R previous);
-
-        public R getNext();
-
-        public void setNext(R next);
-
-        public void remove();
-
-        public ReferenceProcessingService<R> service();
-    }
-
-    public abstract static class WeakProcessingReference<R extends ProcessingReference<R>, T> extends WeakReference<T>
-            implements ProcessingReference<R> {
-
-        private R next;
-        private R previous;
-        private ReferenceProcessingService<R> service;
-
-        public WeakProcessingReference(
-                T object,
-                ReferenceQueue<? super Object> queue,
-                ReferenceProcessingService<R> service) {
-            super(object, queue);
-            this.service = service;
-        }
-
-        private void check(R previous, R next) {
-            if (next != null && next == previous) {
-                throw CompilerDirectives.shouldNotReachHere("broken doubly-linked list of WeakProcessingReference");
-            }
-        }
-
-        public R getPrevious() {
-            return previous;
-        }
-
-        public void setPrevious(R previous) {
-            check(previous, next);
-            this.previous = previous;
-        }
-
-        public R getNext() {
-            return next;
-        }
-
-        public void setNext(R next) {
-            check(previous, next);
-            this.next = next;
-        }
-
-        @SuppressWarnings("unchecked")
-        public void remove() {
-            this.next = (R) this;
-            this.previous = (R) this;
-        }
-
-        public ReferenceProcessingService<R> service() {
-            return service;
-        }
-    }
-
-    public abstract static class PhantomProcessingReference<R extends ProcessingReference<R>, T>
+    public abstract static class PhantomProcessingReference<R extends PhantomProcessingReference<R, T>, T>
             extends
-            PhantomReference<T> implements ProcessingReference<R> {
+            PhantomReference<T> {
 
         /** Doubly linked list of references to keep to allow the reference service to traverse them and to keep the
          * references alive for processing. */
         private R next;
         private R previous;
-        private ReferenceProcessingService<R> service;
+        private ReferenceProcessingService<R, T> service;
 
         public PhantomProcessingReference(
                 T object,
                 ReferenceQueue<? super Object> queue,
-                ReferenceProcessingService<R> service) {
+                ReferenceProcessingService<R, T> service) {
             super(object, queue);
             this.service = service;
         }
@@ -131,7 +67,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
             this.previous = (R) this;
         }
 
-        public ReferenceProcessingService<R> service() {
+        public ReferenceProcessingService<R,T> service() {
             return service;
         }
     }
@@ -147,7 +83,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
             this.context = context;
         }
 
-        protected void processReferenceQueue(ReferenceProcessingService<?> service) {
+        protected void processReferenceQueue(ReferenceProcessingService<?, ?> service) {
             if (processOnMainThread()) {
                 drainReferenceQueues();
             } else {
@@ -171,7 +107,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
         private static final String THREAD_NAME = "Ruby-reference-processor";
 
         @TruffleBoundary
-        protected void createProcessingThread(ReferenceProcessingService<?> service) {
+        protected void createProcessingThread(ReferenceProcessingService<?, ?> service) {
             final ThreadManager threadManager = context.getThreadManager();
             final RubyLanguage language = context.getLanguageSlow();
             RubyThread newThread;
@@ -187,10 +123,10 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
 
             threadManager.initialize(newThread, DummyNode.INSTANCE, THREAD_NAME, sharingReason, () -> {
                 while (true) {
-                    final ProcessingReference<?> reference = threadManager
+                    final PhantomProcessingReference<?, ?> reference = threadManager
                             .runUntilResult(DummyNode.INSTANCE, () -> {
                                 try {
-                                    return (ProcessingReference<?>) processingQueue.remove();
+                                    return (PhantomProcessingReference<?, ?>) processingQueue.remove();
                                 } catch (InterruptedException interrupted) {
                                     if (shutdown) {
                                         throw new KillException(DummyNode.INSTANCE);
@@ -226,7 +162,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
             final RubyLanguage language = context.getLanguageSlow();
             while (true) {
                 @SuppressWarnings("unchecked")
-                ProcessingReference<?> reference = (ProcessingReference<?>) processingQueue.poll();
+                    PhantomProcessingReference<?,  ?> reference = (PhantomProcessingReference<?, ?>) processingQueue.poll();
 
                 if (reference == null) {
                     break;
@@ -248,7 +184,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
     }
 
     @SuppressWarnings("unchecked")
-    protected void processReference(RubyContext context, RubyLanguage language, ProcessingReference<?> reference) {
+    protected void processReference(RubyContext context, RubyLanguage language, PhantomProcessingReference<?, ?> reference) {
         remove((R) reference);
     }
 
@@ -272,7 +208,6 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
         }
     }
 
-    @TruffleBoundary
     protected synchronized void remove(R ref) {
         if (ref.getNext() == ref) {
             // Already removed.
@@ -302,7 +237,6 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
         ref.remove();
     }
 
-    @TruffleBoundary
     protected synchronized void add(R newRef) {
         if (first != null) {
             newRef.setNext(first);
