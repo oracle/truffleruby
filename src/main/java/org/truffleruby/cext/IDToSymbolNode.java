@@ -27,14 +27,14 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 @ReportPolymorphism
 public abstract class IDToSymbolNode extends RubyBaseNode {
 
-    public abstract Object execute(Object value);
+    public abstract RubySymbol execute(Object value);
 
     public static IDToSymbolNode create() {
         return IDToSymbolNodeGen.create();
     }
 
     @Specialization(guards = "isStaticSymbol(value)")
-    protected Object unwrapStaticSymbol(long value,
+    protected RubySymbol unwrapStaticSymbol(long value,
             @Cached BranchProfile errorProfile) {
         final int index = idToIndex(value);
         final RubySymbol symbol = getLanguage().coreSymbols.STATIC_SYMBOLS[index];
@@ -50,9 +50,9 @@ public abstract class IDToSymbolNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "!isStaticSymbol(value)")
-    protected Object unwrapDynamicSymbol(Object value,
+    protected RubySymbol unwrapDynamicSymbol(Object value,
             @Cached UnwrapNode unwrapNode) {
-        return unwrapNode.execute(value);
+        return (RubySymbol) unwrapNode.execute(value);
     }
 
     public static boolean isStaticSymbol(Object value) {

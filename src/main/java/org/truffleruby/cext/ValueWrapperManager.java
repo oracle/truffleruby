@@ -18,6 +18,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.cext.ValueWrapperManagerFactory.AllocateHandleNodeGen;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.NotProvided;
@@ -405,7 +406,7 @@ public class ValueWrapperManager {
         }
 
         @ExportMessage
-        public Object execute(Object[] arguments,
+        public RubySymbol execute(Object[] arguments,
                 @Cached IDToSymbolNode unwrapIDNode) {
             return unwrapIDNode.execute(arguments[0]);
         }

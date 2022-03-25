@@ -20,7 +20,7 @@ VALUE rb_define_class(const char *name, VALUE superclass) {
 }
 
 VALUE rb_define_class_under(VALUE module, const char *name, VALUE superclass) {
-  return rb_define_class_id_under(module, rb_str_new_cstr(name), superclass);
+  return rb_define_class_id_under(module, rb_intern(name), superclass);
 }
 
 VALUE rb_define_class_id_under(VALUE module, ID name, VALUE superclass) {
@@ -77,7 +77,7 @@ void rb_define_singleton_method(VALUE object, const char *name, VALUE (*function
 }
 
 void rb_define_alias(VALUE module, const char *new_name, const char *old_name) {
-  rb_alias(module, rb_str_new_cstr(new_name), rb_str_new_cstr(old_name));
+  rb_alias(module, rb_intern(new_name), rb_intern(old_name));
 }
 
 void rb_alias(VALUE module, ID new_name, ID old_name) {
@@ -85,7 +85,7 @@ void rb_alias(VALUE module, ID new_name, ID old_name) {
 }
 
 void rb_undef_method(VALUE module, const char *name) {
-  rb_undef(module, rb_str_new_cstr(name));
+  rb_undef(module, rb_intern(name));
 }
 
 void rb_undef(VALUE module, ID name) {
