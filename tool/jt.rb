@@ -2934,7 +2934,7 @@ module Commands
         puts "* if ABI has changed, then increment #{ABI_VERSION_FILE}"
         puts "* if ABI has not changed, then increment #{ABI_CHECK_FILE}"
         puts
-        puts 'Changing a macro, changing compilation flags, removing or adding a non-static function'
+        puts 'Changing headers or compilation flags, as well as removing/adding a non-static function'
         puts '(because e.g. mkmf have_func can depend on that) should all be considered ABI changes.'
         if fail
           abort
