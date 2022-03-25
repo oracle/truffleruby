@@ -268,7 +268,11 @@ static int rb_str_symname_type(VALUE name, unsigned int allowed_attrset) {
 }
 
 int id_type(ID id) {
-  const char* cstr = rb_id2name(id);
-  VALUE name = rb_str_new_cstr(cstr);
-  return rb_str_symname_type(name, 0);
+  if (is_notop_id(id)) {
+    const char* cstr = rb_id2name(id);
+    VALUE name = rb_str_new_cstr(cstr);
+    return rb_str_symname_type(name, 0);
+  } else {
+    return -1;
+  }
 }
