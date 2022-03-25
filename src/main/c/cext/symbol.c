@@ -36,11 +36,21 @@ VALUE rb_sym2str(VALUE string) {
 }
 
 const char *rb_id2name(ID id) {
+  if (id == 0) {
+    return NULL; // like CRuby
+  }
+
   VALUE str = rb_id2str(id);
   return RSTRING_PTR(str);
 }
 
 VALUE rb_id2str(ID id) {
+  if (id == 0) {
+    // Ripper relies on this in id_is_var() for the rb_id2str() for the compile_error().
+    // CRuby returns (VALUE) 0 in that case, see get_id_serial_entry().
+    return Qfalse;
+  }
+
   return RUBY_CEXT_INVOKE("rb_id2str", ID2SYM(id));
 }
 
