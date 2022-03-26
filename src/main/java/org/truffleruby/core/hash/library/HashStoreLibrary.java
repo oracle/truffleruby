@@ -47,9 +47,14 @@ public abstract class HashStoreLibrary extends Library {
         return FACTORY.createDispatched(HashGuards.hashStrategyLimit());
     }
 
+    public static HashStoreLibrary createUncached(RubyHash hash) {
+        final Object store = hash.store;
+        return FACTORY.getUncached(store);
+    }
+
     public static boolean verify(RubyHash hash) {
         final Object store = hash.store;
-        return FACTORY.getUncached(store).verify(store, hash);
+        return createUncached(hash).verify(store, hash);
     }
 
     /** Looks up the key in the hash and returns the associated value, or the result of calling {@code defaultNode} if
