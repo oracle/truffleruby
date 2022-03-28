@@ -35,13 +35,13 @@ public final class ReadUserKeywordsHashNode extends RubyBaseNode {
 
     /** Verify that all keywords the descriptor claims should be in the hash, are in fact in the hash. **/
     private boolean assertHashMatchesDescriptor(RubyHash hash, KeywordArgumentsDescriptor descriptor) {
-        final HashStoreLibrary hashStoreLibrary = HashStoreLibrary.createUncached(hash);
+        final HashStoreLibrary hashStoreLibrary = HashStoreLibrary.getUncached(hash);
 
         for (String keyword : descriptor.getKeywords()) {
             final RubySymbol symbol = getSymbol(keyword);
             final Object value = hashStoreLibrary.lookupOrDefault(hash.store, null, hash, symbol, (f, h, k) -> null);
             assert value != null : "descriptor claims " + keyword +
-                    " was a passed as a keyword argument but it's not in the hash";
+                    " was passed as a keyword argument but it's not in the hash";
         }
         return true;
     }

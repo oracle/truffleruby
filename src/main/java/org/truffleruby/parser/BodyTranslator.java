@@ -59,6 +59,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.core.string.InterpolatedStringNode;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.LexicalScope;
@@ -3149,7 +3150,7 @@ public class BodyTranslator extends Translator {
 
         if (splat || nonKeywordKeys || !keywords.isEmpty()) {
             return language.keywordArgumentsDescriptorManager
-                    .getArgumentsDescriptor(keywords.toArray(n -> new String[n]));
+                    .getArgumentsDescriptor(keywords.toArray(StringUtils.EMPTY_STRING_ARRAY));
         } else {
             return EmptyArgumentsDescriptor.INSTANCE;
         }
