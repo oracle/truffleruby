@@ -70,7 +70,7 @@ Compatibility:
 * Update `Dir.foreach` to accept an `encoding` parameter (#2627, @bjfish).
 * Update `IO.readlines` to ignore negative limit parameters (#2625 , @bjfish).
 * Update `Math.sqrt` to raise a `Math::DomainError` for negative numbers (#2621, @bjfish).
-* Update `Enumerable#inject` to raise a `LocalJumpError` if no block or symbol are given (#2626, @bjfish).
+* Update `Enumerable#inject` to raise an `ArgumentError` if no block or symbol are given (#2626, @bjfish).
 
 Performance:
 
