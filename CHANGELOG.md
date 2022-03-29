@@ -9,6 +9,7 @@ Bug fixes:
 
 Compatibility:
 
+* Fix `Marshal.dump` to raise an error when an object has singleton methods (@bjfish).
 
 Performance:
 
