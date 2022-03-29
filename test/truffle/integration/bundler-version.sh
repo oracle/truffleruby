@@ -11,7 +11,7 @@ GEM_HOME=$PWD/temp-gem-home jt ruby -S gem install --local "$gem_test_pack/gem-c
 
 output=$(GEM_HOME=$PWD/temp-gem-home jt ruby -Ctest/truffle/integration/bundler-version/one bundler-version.rb)
 
-if [ "$output" = '"1.17.3"' ]; then
+if [ "$output" = 'true' ]; then
   echo Success
 else
   echo Unexpected bundler 1 output
@@ -21,7 +21,7 @@ fi
 
 output=$(GEM_HOME=$PWD/temp-gem-home jt ruby -Ctest/truffle/integration/bundler-version/two bundler-version.rb)
 
-if [ "$output" = '"2.2.22"' ]; then
+if [ "$output" = 'true' ]; then
   echo Success
 else
   echo Unexpected bundler 2 output
