@@ -36,6 +36,7 @@ racc/test_racc_command.rb
 
 # Other issues
 
+cext-ruby/array/test_to_ary_concat.rb # non-standard extension name and irrelevant
 cext-ruby/bignum/test_big2str.rb
 cext-ruby/bignum/test_bigzero.rb
 cext-ruby/bignum/test_div.rb
