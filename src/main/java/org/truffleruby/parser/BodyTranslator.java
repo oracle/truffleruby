@@ -59,6 +59,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.core.string.InterpolatedStringNode;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.LexicalScope;
@@ -69,7 +70,6 @@ import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
-import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
 import org.truffleruby.language.constants.OrAssignConstantNode;
 import org.truffleruby.language.constants.ReadConstantNode;
 import org.truffleruby.language.constants.ReadConstantWithDynamicScopeNode;
@@ -3128,23 +3128,32 @@ public class BodyTranslator extends Translator {
             return EmptyArgumentsDescriptor.INSTANCE;
         }
 
+        final List<String> keywords = new ArrayList<>();
+        boolean splat = false;
+        boolean nonKeywordKeys = false;
+
         for (ParseNodeTuple pair : keywordHashArgumentNode.getPairs()) {
             final ParseNode key = pair.getKey();
             final ParseNode value = pair.getValue();
 
             if (key instanceof SymbolParseNode &&
                     ((SymbolParseNode) key).getName() != null) {
-                return KeywordArgumentsDescriptor.INSTANCE;
+                keywords.add(((SymbolParseNode) key).getName());
             } else if (key == null && value != null) {
                 // A splat keyword hash
-                return KeywordArgumentsDescriptor.INSTANCE;
+                splat = true;
             } else {
                 // For non-symbol keys
-                return KeywordArgumentsDescriptor.INSTANCE;
+                nonKeywordKeys = true;
             }
         }
 
-        return EmptyArgumentsDescriptor.INSTANCE;
+        if (splat || nonKeywordKeys || !keywords.isEmpty()) {
+            return language.keywordArgumentsDescriptorManager
+                    .getArgumentsDescriptor(keywords.toArray(StringUtils.EMPTY_STRING_ARRAY));
+        } else {
+            return EmptyArgumentsDescriptor.INSTANCE;
+        }
     }
 
     /* This is carefully written so ArrayParseNode is only considered if it is the argsNode itself, or as the RHS of an

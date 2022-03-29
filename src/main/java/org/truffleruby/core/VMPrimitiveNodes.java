@@ -37,7 +37,9 @@
  */
 package org.truffleruby.core;
 
+import java.util.Arrays;
 import java.util.Map.Entry;
+import java.util.stream.Stream;
 
 import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -611,7 +613,14 @@ public abstract class VMPrimitiveNodes {
             if (descriptor == EmptyArgumentsDescriptor.INSTANCE) {
                 return createEmptyArray();
             } else if (descriptor instanceof KeywordArgumentsDescriptor) {
-                return createArray(new Object[]{ getLanguage().getSymbol("keywords") });
+                final KeywordArgumentsDescriptor keywordArgumentsDescriptor = (KeywordArgumentsDescriptor) descriptor;
+
+                final Stream<RubySymbol> keywords = Stream.concat(
+                        Stream.of("keywords"),
+                        Arrays.stream(keywordArgumentsDescriptor.getKeywords()))
+                        .map(getLanguage()::getSymbol);
+
+                return createArray(keywords.toArray());
             } else {
                 throw CompilerDirectives.shouldNotReachHere();
             }

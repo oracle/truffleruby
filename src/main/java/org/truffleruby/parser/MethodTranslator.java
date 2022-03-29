@@ -27,7 +27,7 @@ import org.truffleruby.language.RubyProcRootNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
-import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
+import org.truffleruby.language.arguments.KeywordArgumentsDescriptorManager;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.ShouldDestructureNode;
@@ -499,7 +499,7 @@ public class MethodTranslator extends BodyTranslator {
         final SequenceNode reloadSequence = (SequenceNode) reloadTranslator.visitArgsNode(argsNode);
 
         final ArgumentsDescriptor descriptor = argsNode.hasKwargs()
-                ? KeywordArgumentsDescriptor.INSTANCE
+                ? KeywordArgumentsDescriptorManager.EMPTY
                 : EmptyArgumentsDescriptor.INSTANCE;
         final RubyNode arguments = new ReadZSuperArgumentsNode(
                 reloadTranslator.getRestParameterIndex(),

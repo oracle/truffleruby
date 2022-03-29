@@ -10,6 +10,8 @@
 package org.truffleruby.language.arguments;
 
 import org.truffleruby.core.hash.RubyHash;
+import org.truffleruby.core.hash.library.HashStoreLibrary;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -19,17 +21,29 @@ public final class ReadUserKeywordsHashNode extends RubyBaseNode {
 
     private final ConditionProfile keywordArgumentsProfile = ConditionProfile.create();
 
-    public ReadUserKeywordsHashNode() {
-    }
-
     public RubyHash execute(VirtualFrame frame) {
         final ArgumentsDescriptor descriptor = RubyArguments.getDescriptor(frame);
         if (keywordArgumentsProfile.profile(descriptor instanceof KeywordArgumentsDescriptor)) {
             final RubyHash keywords = (RubyHash) RubyArguments.getLastArgument(frame);
             assert !keywords.empty();
+            assert assertHashMatchesDescriptor(keywords, (KeywordArgumentsDescriptor) descriptor);
             return keywords;
         } else {
             return null;
         }
     }
+
+    /** Verify that all keywords the descriptor claims should be in the hash, are in fact in the hash. **/
+    private boolean assertHashMatchesDescriptor(RubyHash hash, KeywordArgumentsDescriptor descriptor) {
+        final HashStoreLibrary hashStoreLibrary = HashStoreLibrary.getUncached(hash);
+
+        for (String keyword : descriptor.getKeywords()) {
+            final RubySymbol symbol = getSymbol(keyword);
+            final Object value = hashStoreLibrary.lookupOrDefault(hash.store, null, hash, symbol, (f, h, k) -> null);
+            assert value != null : "descriptor claims " + keyword +
+                    " was passed as a keyword argument but it's not in the hash";
+        }
+        return true;
+    }
+
 }

@@ -90,6 +90,7 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
+import org.truffleruby.language.arguments.KeywordArgumentsDescriptorManager;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.constants.GetConstantNode;
@@ -319,7 +320,8 @@ public class CExtNodes {
                 return sendWithoutCExtLock(frame, receiver, method, block, EmptyArgumentsDescriptor.INSTANCE, args,
                         dispatchNode, ownedProfile);
             } else {
-                return sendWithoutCExtLock(frame, receiver, method, block, KeywordArgumentsDescriptor.INSTANCE, args,
+                return sendWithoutCExtLock(frame, receiver, method, block,
+                        KeywordArgumentsDescriptorManager.EMPTY, args,
                         dispatchNode, ownedProfile);
             }
         }
