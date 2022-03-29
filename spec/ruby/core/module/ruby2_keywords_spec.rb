@@ -79,7 +79,7 @@ ruby_version_is "2.7" do
       after_usage.should == h
       after_usage.should_not.equal?(h)
       after_usage.should_not.equal?(marked)
-      ruby_bug "#18625", ""..."3.2" do
+      ruby_bug "#18625", ""..."3.3" do # might be fixed in 3.2
         Hash.ruby2_keywords_hash?(after_usage).should == false
       end
       Hash.ruby2_keywords_hash?(marked).should == true

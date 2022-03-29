@@ -125,7 +125,7 @@ ruby_version_is "3.0" do
       end
 
       it "works with -> (*args, **kwargs) {}" do
-        m = -> (*args, **kwargs) do
+        m = -> *args, **kwargs do
           target(*args, **kwargs)
         end
 
@@ -261,8 +261,8 @@ ruby_version_is "3.0" do
             yield(*args)
           end
 
-          ruby2_keywords def m(*args)
-            y(args, &-> (*args, **kwargs) { target(*args, **kwargs) })
+          ruby2_keywords def m(*outer_args)
+            y(outer_args, &-> *args, **kwargs { target(*args, **kwargs) })
           end
         end
 
