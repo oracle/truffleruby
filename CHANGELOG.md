@@ -11,6 +11,7 @@ Bug fixes:
 
 Compatibility:
 
+* Updated to Ruby 3.0.3. The 3 CVEs did not affect TruffleRuby, this is to bring the stdlib and gem updates (@eregon).
 * Fix `Marshal.dump` to raise an error when an object has singleton methods (@bjfish).
 
 Performance:
