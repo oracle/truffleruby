@@ -785,7 +785,7 @@ module Commands
       jt gem                                         shortcut for `jt ruby -S gem`, to install Ruby gems, etc
       jt e 14 + 2                                    evaluate an expression
       jt puts 14 + 2                                 evaluate and print an expression
-      jt cextc directory clang-args                  compile the C extension in directory, with optional extra clang arguments
+      jt cextc directory                             compile the C extension in directory
       jt test                                        run all mri tests, specs and integration tests
       jt test basictest                              run MRI's basictest suite
       jt test bootstraptest                          run MRI's bootstraptest suite
@@ -1074,16 +1074,16 @@ module Commands
     ruby '-S', 'gem', *args
   end
 
-  def cextc(cext_dir, *clang_opts)
+  def cextc(cext_dir)
     require_ruby_launcher!
     cext_dir = File.expand_path(cext_dir)
     name = File.basename(cext_dir)
     ext_dir = "#{cext_dir}/ext/#{name}"
     target = "#{cext_dir}/lib/#{name}/#{name}.#{DLEXT}"
-    compile_cext(name, ext_dir, target, clang_opts)
+    compile_cext(name, ext_dir, target)
   end
 
-  private def compile_cext(name, ext_dir, target, clang_opts, env: {})
+  private def compile_cext(name, ext_dir, target, env: {})
     extconf = "#{ext_dir}/extconf.rb"
     raise "#{extconf} does not exist" unless File.exist?(extconf)
 
@@ -1267,7 +1267,7 @@ module Commands
                      end
         dest_dir = File.join(MRI_TEST_CEXT_LIB_DIR, target_dir)
         FileUtils::Verbose.mkdir_p(dest_dir)
-        compile_cext(name, compile_dir, dest_dir, [], env: compile_env)
+        compile_cext(name, compile_dir, dest_dir, env: compile_env)
       else
         puts "c require not found for cext test: #{test_path}"
       end
@@ -1399,7 +1399,7 @@ module Commands
         gem_root = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}"
         ext_dir = Dir.glob("#{gem_home}/gems/#{gem_name}*/")[0] + "ext/#{gem_name}"
 
-        compile_cext gem_name, ext_dir, "#{gem_root}/lib/#{gem_name}/#{gem_name}.#{DLEXT}", ['-Werror=implicit-function-declaration']
+        compile_cext gem_name, ext_dir, "#{gem_root}/lib/#{gem_name}/#{gem_name}.#{DLEXT}"
 
         next if gem_name == 'psd_native' # psd_native is excluded just for running
         run_ruby(*dependencies.map { |d| "-I#{gem_home}/gems/#{d}/lib" },
