@@ -1435,9 +1435,9 @@ module Truffle::CExt
     data_holder = Primitive.data_holder_create(data)
     Primitive.object_hidden_var_set object, DATA_HOLDER, data_holder
 
-    Primitive.object_space_define_data_finalizer object, free, data_holder unless free.nil?
+    Primitive.object_space_define_data_finalizer object, free, data_holder unless Truffle::Interop.null?(free)
 
-    define_marker object, data_marker(mark, data_holder) unless mark.nil?
+    define_marker object, data_marker(mark, data_holder) unless Truffle::Interop.null?(mark)
 
     object
   end
@@ -1448,11 +1448,11 @@ module Truffle::CExt
     data_holder = Primitive.data_holder_create(data)
     Primitive.object_hidden_var_set object, DATA_TYPE, data_type
     Primitive.object_hidden_var_set object, DATA_HOLDER, data_holder
-    Primitive.object_hidden_var_set object, DATA_MEMSIZER, data_sizer(size, data_holder) unless size.nil?
+    Primitive.object_hidden_var_set object, DATA_MEMSIZER, data_sizer(size, data_holder) unless Truffle::Interop.null?(size)
 
-    Primitive.object_space_define_data_finalizer object, free, data_holder unless free.nil?
+    Primitive.object_space_define_data_finalizer object, free, data_holder unless Truffle::Interop.null?(free)
 
-    define_marker object, data_marker(mark, data_holder) unless mark.nil?
+    define_marker object, data_marker(mark, data_holder) unless Truffle::Interop.null?(mark)
     object
   end
 
