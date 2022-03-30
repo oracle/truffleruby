@@ -205,12 +205,17 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
 
     public Object callWithDescriptor(Object receiver, String method, Object block, ArgumentsDescriptor descriptor,
             Object[] arguments) {
+        return callWithDescriptor(receiver, method, block, descriptor, arguments, null);
+    }
+
+    public Object callWithDescriptor(Object receiver, String method, Object block, ArgumentsDescriptor descriptor,
+            Object[] arguments, LiteralCallNode literalCallNode) {
         final Object[] rubyArgs = RubyArguments.allocate(arguments.length);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, block);
         RubyArguments.setDescriptor(rubyArgs, descriptor);
         RubyArguments.setArguments(rubyArgs, arguments);
-        return dispatch(null, receiver, method, rubyArgs);
+        return dispatch(null, receiver, method, rubyArgs, literalCallNode);
     }
 
     public Object callWithFrame(Frame frame, Object receiver, String method) {
@@ -271,6 +276,11 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
     }
 
     public final Object dispatch(Frame frame, Object receiver, String methodName, Object[] rubyArgs) {
+        return dispatch(frame, receiver, methodName, rubyArgs, null);
+    }
+
+    public final Object dispatch(Frame frame, Object receiver, String methodName, Object[] rubyArgs,
+            LiteralCallNode literalCallNode) {
         assert RubyArguments.getSelf(rubyArgs) == receiver;
 
         final RubyClass metaclass = metaclassNode.execute(receiver);
@@ -285,7 +295,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
                     if (RubyGuards.isForeignObject(receiver)) { // TODO (eregon, 16 Aug 2021) maybe use a final boolean on the class to know if foreign
                         return callForeign(receiver, methodName, rubyArgs);
                     } else {
-                        return callMethodMissing(frame, receiver, methodName, rubyArgs);
+                        return callMethodMissing(frame, receiver, methodName, rubyArgs, literalCallNode);
                     }
             }
         }
@@ -294,17 +304,19 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         RubyArguments.setCallerData(rubyArgs, getFrameOrStorageIfRequired(frame));
 
         assert RubyArguments.assertFrameArguments(rubyArgs);
-        return callNode.execute(frame, method, receiver, rubyArgs);
+        return callNode.execute(frame, method, receiver, rubyArgs, literalCallNode);
     }
 
-    private Object callMethodMissing(Frame frame, Object receiver, String methodName, Object[] rubyArgs) {
+    private Object callMethodMissing(Frame frame, Object receiver, String methodName, Object[] rubyArgs,
+            LiteralCallNode literalCallNode) {
         // profiles through lazy node creation
         final RubySymbol symbolName = nameToSymbol(methodName);
 
         final Object[] newArgs = RubyArguments.repack(rubyArgs, receiver, 0, 1);
 
         RubyArguments.setArgument(newArgs, 0, symbolName);
-        final Object result = getMethodMissingNode().dispatch(frame, receiver, "method_missing", newArgs);
+        final Object result = getMethodMissingNode().dispatch(frame, receiver, "method_missing", newArgs,
+                literalCallNode);
 
         if (result == MISSING) {
             methodMissingMissing.enter();
