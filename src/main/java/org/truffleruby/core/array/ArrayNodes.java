@@ -2355,9 +2355,9 @@ public abstract class ArrayNodes {
             return array;
         }
 
-        // TODO
         @Specialization(guards = "array != other")
         protected RubyArray stealStorage(RubyArray array, RubyArray other,
+                @CachedLibrary(limit = "2") ArrayStoreLibrary stores,
                 @Cached PropagateSharingNode propagateSharingNode) {
             propagateSharingNode.executePropagate(array, other);
 
@@ -2365,7 +2365,7 @@ public abstract class ArrayNodes {
             final Object store = other.store;
             array.store = store;
             array.size = size;
-            other.store = ArrayStoreLibrary.INITIAL_STORE;
+            other.store = stores.initialStore(store);
             other.size = 0;
 
             return array;

@@ -81,6 +81,11 @@ public abstract class ArrayStoreLibrary extends Library {
         return false;
     }
 
+    /** Return an initial store with the appropriate sharing. */
+    public Object initialStore(Object store) {
+        return INITIAL_STORE;
+    }
+
     /** Return whether {@code store} and {@code other} share the same underlying array storage. */
     public abstract boolean isStorageSame(Object store, Object other);
 
