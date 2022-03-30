@@ -285,14 +285,27 @@ public abstract class MatchDataNodes {
         }
 
         @Specialization
-        protected RubyArray getIndex(RubyMatchData matchData, int index, int length,
-                @Cached ConditionProfile normalizedIndexProfile) {
-            // TODO BJF 15-May-2015 Need to handle negative indexes and lengths and out of bounds
+        protected Object getIndex(RubyMatchData matchData, int index, int length,
+                @Cached ConditionProfile normalizedIndexProfile,
+                @Cached ConditionProfile indexOutOfBoundsProfile,
+                @Cached ConditionProfile tooLargeTotalProfile) {
             final Object[] values = getValuesNode.execute(matchData);
+
             if (normalizedIndexProfile.profile(index < 0)) {
                 index += values.length;
+
+                if (indexOutOfBoundsProfile.profile(index < 0)) {
+                    return nil;
+                }
             }
-            final Object[] store = Arrays.copyOfRange(values, index, index + length);
+
+            int endIndex = index + length;
+            if (tooLargeTotalProfile.profile(endIndex > values.length)) {
+                endIndex = values.length;
+            }
+
+            final Object[] store = Arrays.copyOfRange(values, index, endIndex);
+
             return createArray(store);
         }
 
