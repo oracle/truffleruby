@@ -105,7 +105,7 @@ public class IntegerArrayStore {
             return others.isStorageSame(other, store);
         }
 
-        @Specialization
+        @Fallback
         protected static boolean sameShared(int[] store, Object other) {
             return false;
         }

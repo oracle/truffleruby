@@ -110,7 +110,7 @@ public class LongArrayStore {
             return others.isStorageSame(other, store);
         }
 
-        @Specialization
+        @Fallback
         protected static boolean sameShared(long[] store, Object other) {
             return false;
         }

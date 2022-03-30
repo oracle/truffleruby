@@ -65,7 +65,7 @@ public class ZeroLengthArrayStore {
             return others.isStorageSame(other, store);
         }
 
-        @Specialization
+        @Fallback
         protected static boolean sameShared(ZeroLengthArrayStore store, Object other) {
             return false;
         }

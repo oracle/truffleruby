@@ -105,7 +105,7 @@ public class DoubleArrayStore {
             return others.isStorageSame(other, store);
         }
 
-        @Specialization
+        @Fallback
         protected static boolean sameShared(double[] store, Object other) {
             return false;
         }

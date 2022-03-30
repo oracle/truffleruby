@@ -14,6 +14,7 @@ import java.util.Set;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
@@ -72,7 +73,7 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
             return stores.isStorageSame(other.storage, store);
         }
 
-        @Specialization
+        @Fallback
         protected static boolean sameOther(DelegatedArrayStorage store, Object other,
                 @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
             return store.offset == 0 && stores.isStorageSame(store.storage, other);
