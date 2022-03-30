@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects.shared;
 
+import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Specialization;
@@ -28,11 +29,12 @@ public abstract class ReadAndShareFieldNode extends RubyBaseNode {
         this.writeBarrierNode = WriteBarrierNodeGen.create(depth);
     }
 
-    public abstract void executeReadFieldAndShare(RubyDynamicObject object);
+    public abstract void executeReadFieldAndShare(RubyDynamicObject object, Shape shape);
 
     @Specialization
-    protected void readFieldAndShare(RubyDynamicObject object) {
-        final Object value = property.get(object, true);
+    protected void readFieldAndShare(RubyDynamicObject object, Shape shape) {
+        assert object.getShape() == shape;
+        final Object value = property.get(object, shape);
         writeBarrierNode.executeWriteBarrier(value);
     }
 
