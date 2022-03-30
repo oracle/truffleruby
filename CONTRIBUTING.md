@@ -38,7 +38,7 @@ You can use `tool/hooks/lint-check.sh` as a git hook to run `jt lint fast` autom
 When opening a Pull Request, please add a ChangeLog entry with the format:
 
 ```
-* Description (#PR number, @author).
+* Description (#GitHub issue number if any, @author).
 ```
 
 See the [the ChangeLog](CHANGELOG.md) for examples.
