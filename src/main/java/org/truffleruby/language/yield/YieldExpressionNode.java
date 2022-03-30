@@ -20,6 +20,7 @@ import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
+import org.truffleruby.language.arguments.KeywordArgumentsDescriptorManager;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 
@@ -67,17 +68,22 @@ public class YieldExpressionNode extends LiteralCallNode {
             argumentsObjects[i] = arguments[i].execute(frame);
         }
 
-        Object block = readBlock(frame);
-
-        if (block == nil) {
+        final Object maybeBlock = readBlock(frame);
+        if (maybeBlock == nil) {
             noCapturedBlock.enter();
             throw new RaiseException(getContext(), coreExceptions().noBlockToYieldTo(this));
         }
 
+        final RubyProc block = (RubyProc) maybeBlock;
+
         ArgumentsDescriptor descriptor = this.descriptor;
+        boolean ruby2KeywordsHash = false;
         if (isSplatted) {
             argumentsObjects = unsplat(argumentsObjects);
-            descriptor = getArgumentsDescriptorAndCheckRuby2KeywordsHash(argumentsObjects, argumentsObjects.length);
+            ruby2KeywordsHash = isRuby2KeywordsHash(argumentsObjects, argumentsObjects.length);
+            if (ruby2KeywordsHash) {
+                descriptor = KeywordArgumentsDescriptorManager.EMPTY;
+            }
         }
 
         // Remove empty kwargs in the caller, so the callee does not need to care about this special case
@@ -86,7 +92,7 @@ public class YieldExpressionNode extends LiteralCallNode {
             descriptor = EmptyArgumentsDescriptor.INSTANCE;
         }
 
-        return getYieldNode().yield((RubyProc) block, descriptor, argumentsObjects);
+        return getYieldNode().yield(block, descriptor, argumentsObjects, ruby2KeywordsHash ? this : null);
     }
 
     private Object readBlock(VirtualFrame frame) {

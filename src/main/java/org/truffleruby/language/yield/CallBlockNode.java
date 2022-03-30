@@ -16,6 +16,7 @@ import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.dispatch.LiteralCallNode;
 import org.truffleruby.language.methods.DeclarationContext;
 
 import com.oracle.truffle.api.RootCallTarget;
@@ -39,17 +40,20 @@ public abstract class CallBlockNode extends RubyBaseNode {
         return CallBlockNodeGen.getUncached();
     }
 
-    public final Object yield(RubyProc block, ArgumentsDescriptor descriptor, Object... args) {
-        return executeCallBlock(block.declarationContext, block, ProcOperations.getSelf(block), nil, descriptor, args);
+    public final Object yield(RubyProc block, ArgumentsDescriptor descriptor, Object[] args,
+            LiteralCallNode literalCallNode) {
+        return executeCallBlock(block.declarationContext, block, ProcOperations.getSelf(block), nil, descriptor, args,
+                literalCallNode);
     }
 
     public final Object yield(RubyProc block, Object... args) {
         return executeCallBlock(block.declarationContext, block, ProcOperations.getSelf(block), nil,
-                EmptyArgumentsDescriptor.INSTANCE, args);
+                EmptyArgumentsDescriptor.INSTANCE, args, null);
     }
 
+    /** {@code literalCallNode} is only non-null if this was called splatted with a ruby2_keyword Hash. */
     public abstract Object executeCallBlock(DeclarationContext declarationContext, RubyProc block, Object self,
-            Object blockArgument, ArgumentsDescriptor descriptor, Object[] arguments);
+            Object blockArgument, ArgumentsDescriptor descriptor, Object[] arguments, LiteralCallNode literalCallNode);
 
     @Specialization(guards = "block.callTarget == cachedCallTarget", limit = "getCacheLimit()")
     protected Object callBlockCached(
@@ -59,8 +63,13 @@ public abstract class CallBlockNode extends RubyBaseNode {
             Object blockArgument,
             ArgumentsDescriptor descriptor,
             Object[] arguments,
+            LiteralCallNode literalCallNode,
             @Cached("block.callTarget") RootCallTarget cachedCallTarget,
             @Cached("createBlockCallNode(cachedCallTarget)") DirectCallNode callNode) {
+        if (literalCallNode != null) {
+            literalCallNode.copyRuby2KeywordsHash(arguments, RubyRootNode.of(cachedCallTarget).getSharedMethodInfo());
+        }
+
         final Object[] frameArguments = packArguments(declarationContext, block, self, blockArgument, descriptor,
                 arguments);
         return callNode.call(frameArguments);
@@ -74,7 +83,12 @@ public abstract class CallBlockNode extends RubyBaseNode {
             Object blockArgument,
             ArgumentsDescriptor descriptor,
             Object[] arguments,
+            LiteralCallNode literalCallNode,
             @Cached IndirectCallNode callNode) {
+        if (literalCallNode != null) {
+            literalCallNode.copyRuby2KeywordsHash(arguments, block.sharedMethodInfo);
+        }
+
         final Object[] frameArguments = packArguments(declarationContext, block, self, blockArgument, descriptor,
                 arguments);
         return callNode.call(block.callTarget, frameArguments);
