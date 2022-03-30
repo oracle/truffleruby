@@ -298,11 +298,13 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
     }
 
     private Object callMethodMissing(Frame frame, Object receiver, String methodName, Object[] rubyArgs) {
+        // profiles through lazy node creation
         final RubySymbol symbolName = nameToSymbol(methodName);
+
         final Object[] newArgs = RubyArguments.repack(rubyArgs, receiver, 0, 1);
 
         RubyArguments.setArgument(newArgs, 0, symbolName);
-        final Object result = callMethodMissingNode(frame, receiver, newArgs);
+        final Object result = getMethodMissingNode().dispatch(frame, receiver, "method_missing", newArgs);
 
         if (result == MISSING) {
             methodMissingMissing.enter();
@@ -318,24 +320,30 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
     }
 
     protected Object callForeign(Object receiver, String methodName, Object[] rubyArgs) {
+        // profiles through lazy node creation
+        final CallForeignMethodNode callForeignMethodNode = getCallForeignMethodNode();
+
+        final Object block = RubyArguments.getBlock(rubyArgs);
+        final Object[] arguments = RubyArguments.getPositionalArguments(rubyArgs, false);
+        return callForeignMethodNode.execute(receiver, methodName, block, arguments);
+    }
+
+    protected CallForeignMethodNode getCallForeignMethodNode() {
         if (callForeign == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callForeign = insert(CallForeignMethodNode.create());
         }
-
-        final Object block = RubyArguments.getBlock(rubyArgs);
-        final Object[] arguments = RubyArguments.getPositionalArguments(rubyArgs, false);
-        return callForeign.execute(receiver, methodName, block, arguments);
+        return callForeign;
     }
 
-    protected Object callMethodMissingNode(Frame frame, Object receiver, Object[] rubyArgs) {
+    protected DispatchNode getMethodMissingNode() {
         if (callMethodMissing == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             // #method_missing ignores refinements on CRuby: https://bugs.ruby-lang.org/issues/13129
             callMethodMissing = insert(
                     DispatchNode.create(DispatchConfiguration.PRIVATE_RETURN_MISSING_IGNORE_REFINEMENTS));
         }
-        return callMethodMissing.dispatch(frame, receiver, "method_missing", rubyArgs);
+        return callMethodMissing;
     }
 
     protected RubySymbol nameToSymbol(String methodName) {
@@ -392,26 +400,13 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         }
 
         @Override
-        protected Object callForeign(Object receiver, String methodName, Object[] rubyArgs) {
-            if (callForeign == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                callForeign = insert(CallForeignMethodNode.getUncached());
-            }
-
-            final Object block = RubyArguments.getBlock(rubyArgs);
-            final Object[] arguments = RubyArguments.getPositionalArguments(rubyArgs, false);
-            return callForeign.execute(receiver, methodName, block, arguments);
+        protected CallForeignMethodNode getCallForeignMethodNode() {
+            return CallForeignMethodNode.getUncached();
         }
 
         @Override
-        protected Object callMethodMissingNode(Frame frame, Object receiver, Object[] rubyArgs) {
-            if (callMethodMissing == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                callMethodMissing = insert(
-                        DispatchNode.getUncached(DispatchConfiguration.PRIVATE_RETURN_MISSING_IGNORE_REFINEMENTS));
-            }
-
-            return callMethodMissing.dispatch(frame, receiver, "method_missing", rubyArgs);
+        protected DispatchNode getMethodMissingNode() {
+            return DispatchNode.getUncached(DispatchConfiguration.PRIVATE_RETURN_MISSING_IGNORE_REFINEMENTS);
         }
 
         @Override
