@@ -6,6 +6,8 @@ New features:
 Bug fixes:
 
 * Fix `rb_id2name` to ensure the native string will have the same lifetime as the id (#2630, @aardvark179).
+* Fix `MatchData#[]` exception when passing a length argument larger than the number of match values (#2636, @nirvdrum).
+* Fix `MatchData#[]` exception when supplying a large negative index along with a length argument (@nirvdrum).
 
 Compatibility:
 
@@ -82,7 +84,7 @@ Performance:
 * Reduce memory footprint by tracking `VALUE`s created during C extension init separately (@aardvark179).
 * Rewrote `ArrayEachIteratorNode` to optimize performance for a constant-sized array and reduce specializations to 1 general case (#2587, @MattAlp)
 * Reduce conversion of `VALUE`s to native handle during common operations in C extensions (@aardvark179).
-* Improved performance of regex boolean matches (e.g., `Regexp#match?`) by avoiding match data allocation in TRegex (#2558, @nirvdrum).
+* Improved performance of regex boolean matches (e.g., `Regexp#match?`) by avoiding match data allocation in TRegex (#2588, @nirvdrum).
 * Remove overhead when getting using `RDATA_PTR` (@aardvark179).
 * Additional copy operations have been reduced when performing IO (#2536, @aardvark179).
 
