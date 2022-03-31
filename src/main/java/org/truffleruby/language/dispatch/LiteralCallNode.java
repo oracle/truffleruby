@@ -19,7 +19,7 @@ import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
-import org.truffleruby.language.arguments.KeywordArgumentsDescriptorManager;
+import org.truffleruby.language.methods.SharedMethodInfo;
 
 /** A literal call site in Ruby code: one of foo(), super or yield. */
 public abstract class LiteralCallNode extends RubyContextSourceNode {
@@ -28,8 +28,8 @@ public abstract class LiteralCallNode extends RubyContextSourceNode {
     @Child private CopyHashAndSetRuby2KeywordsNode copyHashAndSetRuby2KeywordsNode;
 
     protected final boolean isSplatted;
-    @CompilationFinal private boolean lastArgIsNotHashProfile, notRuby2KeywordsHashProfile, emptyKeywordsProfile,
-            notEmptyKeywordsProfile;
+    @CompilationFinal private boolean lastArgIsNotHashProfile, ruby2KeywordsHashProfile, notRuby2KeywordsHashProfile,
+            emptyKeywordsProfile, notEmptyKeywordsProfile;
 
     protected LiteralCallNode(boolean isSplatted, ArgumentsDescriptor descriptor) {
         this.isSplatted = isSplatted;
@@ -37,7 +37,7 @@ public abstract class LiteralCallNode extends RubyContextSourceNode {
     }
 
     // NOTE: args is either frame args or user args
-    protected ArgumentsDescriptor getArgumentsDescriptorAndCheckRuby2KeywordsHash(Object[] args, int userArgsCount) {
+    protected boolean isRuby2KeywordsHash(Object[] args, int userArgsCount) {
         assert isSplatted : "this is only needed if isSplatted";
 
         if (descriptor == EmptyArgumentsDescriptor.INSTANCE) { // *rest and no kwargs passed explicitly (k: v/k => v/**kw)
@@ -51,18 +51,16 @@ public abstract class LiteralCallNode extends RubyContextSourceNode {
                         lastArgIsNotHashProfile = true;
                     }
 
-                    return descriptor;
+                    return false;
                 }
 
                 if (((RubyHash) lastArgument).ruby2_keywords) { // both branches profiled
-                    if (copyHashAndSetRuby2KeywordsNode == null) {
+                    if (!ruby2KeywordsHashProfile) {
                         CompilerDirectives.transferToInterpreterAndInvalidate();
-                        copyHashAndSetRuby2KeywordsNode = insert(CopyHashAndSetRuby2KeywordsNode.create());
+                        ruby2KeywordsHashProfile = true;
                     }
 
-                    RubyHash unmarked = copyHashAndSetRuby2KeywordsNode.execute((RubyHash) lastArgument, false);
-                    ArrayUtils.setLast(args, unmarked);
-                    return KeywordArgumentsDescriptorManager.EMPTY;
+                    return true;
                 } else {
                     if (!notRuby2KeywordsHashProfile) {
                         CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -72,7 +70,7 @@ public abstract class LiteralCallNode extends RubyContextSourceNode {
             }
         }
 
-        return descriptor;
+        return false;
     }
 
     // NOTE: args is either frame args or user args
@@ -97,6 +95,19 @@ public abstract class LiteralCallNode extends RubyContextSourceNode {
     // NOTE: args is either frame args or user args
     public static Object[] removeEmptyKeywordArguments(Object[] args) {
         return ArrayUtils.extractRange(args, 0, args.length - 1);
+    }
+
+    // NOTE: args is either frame args or user args
+    public void copyRuby2KeywordsHash(Object[] args, SharedMethodInfo info) {
+        if (!info.getArity().hasRest()) { // https://bugs.ruby-lang.org/issues/18625
+            if (copyHashAndSetRuby2KeywordsNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                copyHashAndSetRuby2KeywordsNode = insert(CopyHashAndSetRuby2KeywordsNode.create());
+            }
+
+            final RubyHash lastArgument = (RubyHash) ArrayUtils.getLast(args);
+            ArrayUtils.setLast(args, copyHashAndSetRuby2KeywordsNode.execute(lastArgument, false));
+        }
     }
 
 }
