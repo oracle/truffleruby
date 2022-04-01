@@ -15,6 +15,7 @@ Compatibility:
 
 Performance:
 
+* Reimplement `Float#to_s` for better performance (#1584, @aardvark179).
 
 Changes:
 

@@ -29,14 +29,19 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.numeric.FloatNodesFactory.ModNodeFactory;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
 @CoreModule(value = "Float", isClass = true)
@@ -826,64 +831,105 @@ public abstract class FloatNodes {
     }
 
     @CoreMethod(names = { "to_s", "inspect" })
+    @ImportStatic(Double.class)
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
-        @TruffleBoundary
-        @Specialization
-        protected RubyString toS(double value) {
-            /* Ruby has complex custom formatting logic for floats. Our logic meets the specs but we suspect it's
-             * possibly still not entirely correct. JRuby seems to be correct, but their logic is tied up in their
-             * printf implementation. Also see our FormatFloatNode, which I suspect is also deficient or
-             * under-tested. */
+        /* Ruby has complex custom formatting logic for floats. Our logic meets the specs but we suspect it's possibly
+         * still not entirely correct. JRuby seems to be correct, but their logic is tied up in their printf
+         * implementation. Also see our FormatFloatNode, which I suspect is also deficient or under-tested. */
 
-            if (Double.isInfinite(value) || Double.isNaN(value)) {
-                return makeStringNode.executeMake(Double.toString(value), Encodings.US_ASCII, CodeRange.CR_7BIT);
-            }
+        private static final DecimalFormat DF_NO_EXP;
+        private static final DecimalFormat DF_SMALL_EXP;
+        private static final DecimalFormat DF_LARGE_EXP;
 
-            String str = StringUtils.format(Locale.ENGLISH, "%.17g", value);
-
-            // If no dot, add one to show it's a floating point number
-            if (str.indexOf('.') == -1) {
-                assert str.indexOf('e') == -1;
-                str += ".0";
-            }
-
-            final int dot = str.indexOf('.');
-            assert dot != -1;
-
-            final int e = str.indexOf('e');
-            final boolean hasE = e != -1;
-
-            // Remove trailing zeroes, but keep at least one after the dot
-            final int start = hasE ? e : str.length();
-            int i = start - 1; // last digit we keep, inclusive
-            while (i > dot + 1 && str.charAt(i) == '0') {
-                i--;
-            }
-
-            String formatted = str.substring(0, i + 1) + str.substring(start);
-
-            int wholeDigits = 0;
-            int n = 0;
-
-            if (formatted.charAt(0) == '-') {
-                n++;
-            }
-
-            while (formatted.charAt(n) != '.') {
-                wholeDigits++;
-                n++;
-            }
-
-            if (wholeDigits >= 16) {
-                formatted = StringUtils.format(Locale.ENGLISH, "%.1e", value);
-            }
-
-            return makeStringNode.executeMake(formatted, Encodings.US_ASCII, CodeRange.CR_7BIT);
+        static {
+            final DecimalFormatSymbols smallExpSymbols = new DecimalFormatSymbols(Locale.ENGLISH);
+            smallExpSymbols.setExponentSeparator("e");
+            final DecimalFormatSymbols largeExpSymbols = new DecimalFormatSymbols(Locale.ENGLISH);
+            largeExpSymbols.setExponentSeparator("e+");
+            DF_NO_EXP = new DecimalFormat("0.0################");
+            DF_SMALL_EXP = new DecimalFormat("0.0################E00", smallExpSymbols);
+            DF_LARGE_EXP = new DecimalFormat("0.0################E00", largeExpSymbols);
         }
 
+        @Specialization(guards = "value == POSITIVE_INFINITY")
+        protected RubyString toSPositiveInfinity(double value,
+                @Cached("specialValueRope(POSITIVE_INFINITY)") Rope cachedRope) {
+            return makeStringNode.executeMake(cachedRope, Encodings.US_ASCII, NotProvided.INSTANCE);
+        }
+
+        @Specialization(guards = "value == NEGATIVE_INFINITY")
+        protected RubyString toSNegativeInfinity(double value,
+                @Cached("specialValueRope(NEGATIVE_INFINITY)") Rope cachedRope) {
+            return makeStringNode.executeMake(cachedRope, Encodings.US_ASCII, NotProvided.INSTANCE);
+        }
+
+        @Specialization(guards = "isNaN(value)")
+        protected RubyString toSNaN(double value,
+                @Cached("specialValueRope(value)") Rope cachedRope) {
+            return makeStringNode.executeMake(cachedRope, Encodings.US_ASCII, NotProvided.INSTANCE);
+        }
+
+        @Specialization(guards = "hasNoExp(value)")
+        protected RubyString toSNoExp(double value) {
+            return makeStringNode.executeMake(makeRopeNoExp(value), Encodings.US_ASCII, NotProvided.INSTANCE);
+        }
+
+        @Specialization(guards = "hasLargeExp(value)")
+        protected RubyString toSLargeExp(double value) {
+            return makeStringNode.executeMake(makeRopeLargeExp(value), Encodings.US_ASCII, NotProvided.INSTANCE);
+        }
+
+        @Specialization(guards = "hasSmallExp(value)")
+        protected RubyString toSSmallExp(double value) {
+            return makeStringNode.executeMake(makeRopeSmallExp(value), Encodings.US_ASCII, NotProvided.INSTANCE);
+        }
+
+        @TruffleBoundary
+        private Rope makeRopeSimple(double value) {
+            String str = Double.toString(value);
+
+            return RopeOperations.encodeAscii(str, Encodings.US_ASCII.jcoding);
+        }
+
+        @TruffleBoundary
+        private Rope makeRopeNoExp(double value) {
+            String str = DF_NO_EXP.format(value);
+            return RopeOperations.encodeAscii(str, Encodings.US_ASCII.jcoding);
+        }
+
+        @TruffleBoundary
+        private Rope makeRopeSmallExp(double value) {
+            String str = DF_SMALL_EXP.format(value);
+            return RopeOperations.encodeAscii(str, Encodings.US_ASCII.jcoding);
+        }
+
+        @TruffleBoundary
+        private Rope makeRopeLargeExp(double value) {
+            String str = DF_LARGE_EXP.format(value);
+            return RopeOperations.encodeAscii(str, Encodings.US_ASCII.jcoding);
+        }
+
+        protected static boolean hasNoExp(double value) {
+            double abs = Math.abs(value);
+            return abs == 0.0d || ((abs >= 0.0001d) && (abs < 1_000_000_000_000_000.0d));
+        }
+
+        protected static boolean hasLargeExp(double value) {
+            double abs = Math.abs(value);
+            return (abs >= 1_000_000_000_000_000.0d);
+        }
+
+        protected static boolean hasSmallExp(double value) {
+            double abs = Math.abs(value);
+            return (abs < 0.0001d) && (abs != 0.0d);
+        }
+
+        protected static Rope specialValueRope(double value) {
+            return RopeOperations.encodeAscii(Double.toString(value), Encodings.US_ASCII.jcoding);
+        }
     }
 
     @NonStandard
