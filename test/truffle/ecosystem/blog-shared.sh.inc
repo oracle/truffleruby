@@ -8,6 +8,7 @@ alias truffleruby="jt ruby -S"
 
 gem_test_pack_path="$1"
 
+# NOTE: part of this logic is duplicated in bench/rails/blog6-setup.rb
 # The Gemfile and Gemfile.lock are renamed to avoid GitHub thinking those gems are dependencies of TruffleRuby
 cp Gemfile.renamed Gemfile
 cp Gemfile.lock.renamed Gemfile.lock
