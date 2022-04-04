@@ -1952,4 +1952,12 @@ public class CExtNodes {
                     threadManager.isRubyManagedThread(Thread.currentThread());
         }
     }
+
+    @CoreMethod(names = "zlib_get_crc_table", onSingleton = true)
+    public abstract static class ZLibGetCRCTable extends CoreMethodArrayArgumentsNode {
+        @Specialization
+        protected RubyArray zlibGetCRCTable() {
+            return createArray(ZLibCRCTable.TABLE.clone());
+        }
+    }
 }
