@@ -214,6 +214,8 @@ module Truffle::POSIX
   attach_function :open, [:string, :int, varargs(:mode_t)], :int
   attach_function :opendir, [:string], :pointer
   attach_function :pipe, [:pointer], :int
+  poll_args = [:pointer, :long, :int]
+  attach_function :poll, poll_args, :int, LIBC, true
   attach_function :read, [:int, :pointer, :size_t], :ssize_t, LIBC, true
   attach_function :readlink, [:string, :pointer, :size_t], :ssize_t
   attach_function :realpath, [:string, :pointer], :pointer
@@ -241,6 +243,9 @@ module Truffle::POSIX
       # We should capture the non-lazy method
       attach_function_eagerly :truffleposix_select, select_args, :int, LIBTRUFFLEPOSIX, false, :truffleposix_select, self
       SELECT = method(:truffleposix_select)
+
+      attach_function_eagerly :poll, poll_args, :int, LIBC, true, :poll, self
+      POLL = method(:poll)
     end
   end
 

@@ -563,6 +563,13 @@ struct 'msghdr' do |s|
   s.field :msg_flags
 end
 
+struct 'pollfd' do |s|
+  s.include 'poll.h'
+  s.field 'fd'
+  s.field 'events'
+  s.field 'revents'
+end
+
 struct 'servent' do |s|
   s.include 'netdb.h'
   s.field :s_name
@@ -633,6 +640,13 @@ constants 'fcntl' do |cg|
     F_READBOOTSTRAP F_WRITEBOOTSTRAP F_NOCACHE F_LOG2PHYS F_GETPATH F_FULLFSYNC
     F_PATHPKG_CHECK F_FREEZE_FS F_THAW_FS F_GLOBAL_NOCACHE F_ADDSIG
     F_MARKDEPENDENCY F_ALLOCATECONTIG F_ALLOCATEALL
+  ]
+end
+
+constants 'poll' do |cg|
+  cg.include 'poll.h'
+  cg.consts %w[
+    POLLIN POLLOUT
   ]
 end
 

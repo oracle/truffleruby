@@ -10,6 +10,14 @@
 
 module Truffle
   module IOOperations
+
+    POLLIN = Truffle::Config['platform.poll.POLLIN']
+    POLLOUT = Truffle::Config['platform.poll.POLLOUT']
+
+    POLLFD_SIZE = Truffle::Config['platform.pollfd.sizeof']
+    POLLFD_FD_OFFSET = Truffle::Config['platform.pollfd.fd.offset']
+    POLLFD_EVENTS_OFFSET = Truffle::Config['platform.pollfd.events.offset']
+
     def self.print(io, args, last_line_storage)
       if args.empty?
         raise 'last_line_binding is required' if Primitive.nil? last_line_storage
@@ -189,6 +197,58 @@ module Truffle
         Truffle::FFI::Pool.stack_free(buffer)
       end
 
+    end
+
+    def self.poll(io, events, timeout)
+      if timeout
+        unless Primitive.object_kind_of? timeout, Numeric
+          raise TypeError, 'Timeout must be numeric'
+        end
+
+        raise ArgumentError, 'timeout must be positive' if timeout < 0
+
+        # Microseconds, rounded down
+        timeout = remaining_timeout = Integer(timeout * 1_000)
+        start = Process.clock_gettime(Process::CLOCK_MONOTONIC, :millisecond)
+      else
+        remaining_timeout = -1
+      end
+
+      pollfd = Primitive.io_thread_buffer_allocate(POLLFD_SIZE)
+      begin
+        pollfd.put_int(POLLFD_FD_OFFSET, Primitive.io_fd(io))
+        pollfd.put_uint16(POLLFD_EVENTS_OFFSET, events)
+        begin
+          primitive_result = Truffle::POSIX.poll(pollfd, 1, remaining_timeout)
+          result =
+            if primitive_result < 0
+              errno = Errno.errno
+              if errno == Errno::EINTR::Errno
+                if timeout
+                  # Update timeout
+                  now = Process.clock_gettime(Process::CLOCK_MONOTONIC, :millisecond)
+                  waited = now - start
+                  if waited >= timeout
+                    nil # timeout
+                  else
+                    remaining_timeout = timeout - waited
+                    :retry
+                  end
+                else
+                  :retry
+                end
+              else
+                Errno.handle_errno(errno)
+              end
+            else
+              primitive_result
+            end
+        end while result == :retry
+      ensure
+        Primitive.io_thread_buffer_free(pollfd)
+      end
+
+      result
     end
 
     # The constants used to express a mode for the opening of files are

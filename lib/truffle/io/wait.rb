@@ -13,16 +13,16 @@ class IO
   end
 
   def ready?
-    not Kernel.select([self], [], [], 0).nil?
+    Truffle::IOOperations.poll(self, Truffle::IOOperations::POLLIN, 0) > 0
   end
 
   def wait(timeout = nil)
-    Kernel.select([self], [], [], timeout).nil? ? nil : self
+    Truffle::IOOperations.poll(self, Truffle::IOOperations::POLLIN, timeout) > 0 ? self : nil
   end
 
   alias_method :wait_readable, :wait
 
   def wait_writable(timeout = nil)
-    Kernel.select([], [self], [], timeout).nil? ? nil : self
+    Truffle::IOOperations.poll(self, Truffle::IOOperations::POLLOUT, timeout) > 0 ? self : nil
   end
 end
