@@ -12,6 +12,7 @@ Bug fixes:
 Compatibility:
 
 * Fix `Marshal.dump` to raise an error when an object has singleton methods (@bjfish).
+* Fix `Process.wait2` to return `nil` when the `WNOHANG` flag is given and the child process is still running (@bjfish).
 
 Performance:
 
