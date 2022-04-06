@@ -14,6 +14,7 @@ import org.truffleruby.language.FrameAndVariablesSendingNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.dispatch.DispatchNode;
+import org.truffleruby.language.dispatch.LiteralCallNode;
 import org.truffleruby.language.methods.CallInternalMethodNode;
 import org.truffleruby.language.methods.InternalMethod;
 
@@ -41,18 +42,20 @@ public class CallSuperMethodNode extends FrameAndVariablesSendingNode {
             InternalMethod superMethod,
             ArgumentsDescriptor descriptor,
             Object[] arguments,
-            Object block) {
+            Object block,
+            LiteralCallNode literalCallNode) {
 
         if (missingProfile.profile(superMethod == null)) {
             final String name = RubyArguments.getMethod(frame).getSharedMethodInfo().getMethodNameForNotBlock(); // use the original name
             final Object[] methodMissingArguments = ArrayUtils.unshift(arguments, getSymbol(name));
-            return callMethodMissing(self, block, descriptor, methodMissingArguments);
+            return callMethodMissing(self, block, descriptor, methodMissingArguments, literalCallNode);
         }
 
         final Object callerFrameOrVariables = getFrameOrStorageIfRequired(frame);
-        Object[] rubyArgs = RubyArguments.pack(
+        final Object[] rubyArgs = RubyArguments.pack(
                 null, callerFrameOrVariables, superMethod, null, self, block, descriptor, arguments);
-        return getCallMethodNode().execute(frame, superMethod, self, rubyArgs);
+
+        return getCallMethodNode().execute(frame, superMethod, self, rubyArgs, literalCallNode);
     }
 
     private CallInternalMethodNode getCallMethodNode() {
@@ -63,12 +66,13 @@ public class CallSuperMethodNode extends FrameAndVariablesSendingNode {
         return callMethodNode;
     }
 
-    private Object callMethodMissing(Object receiver, Object block, ArgumentsDescriptor descriptor,
-            Object[] arguments) {
+    private Object callMethodMissing(Object receiver, Object block, ArgumentsDescriptor descriptor, Object[] arguments,
+            LiteralCallNode literalCallNode) {
         if (callMethodMissingNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callMethodMissingNode = insert(DispatchNode.create());
         }
-        return callMethodMissingNode.callWithDescriptor(receiver, "method_missing", block, descriptor, arguments);
+        return callMethodMissingNode.callWithDescriptor(receiver, "method_missing", block, descriptor, arguments,
+                literalCallNode);
     }
 }

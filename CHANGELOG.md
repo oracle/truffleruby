@@ -20,6 +20,12 @@ Bug fixes:
 * Fix `Random#rand` not returning random floats when given float ranges (#2612, @bjfish).
 * Fix `Array#sample` for `[]` when called without `n` and a `Random` is given (#2612, @bjfish).
 * Fix `Module#const_get` to raise a `NameError` when nested modules do not exist (#2610, @bjfish).
+* Ensure native `VALUE`s returned from C are unwrapped before the objects can be collected (@aardvark179).
+* Fix `Enumerator::Lazy#with_index` to start with new index for multiple enumerations (@bjfish).
+* Fix `rb_id2name` to ensure the native string will have the same lifetime as the id (#2630, @aardvark179).
+* Fix `MatchData#[]` exception when passing a length argument larger than the number of match values (#2636, @nirvdrum).
+* Fix `MatchData#[]` exception when supplying a large negative index along with a length argument (@nirvdrum).
+* Fix `Integer#fdiv` and `Rational#to_f` for large `Integer` values (#2631, @bjfish).
 
 Compatibility:
 
@@ -48,6 +54,8 @@ Compatibility:
 * Update `Dir.foreach` to accept an `encoding` parameter (#2627, @bjfish).
 * Update `IO.readlines` to ignore negative limit parameters (#2625 , @bjfish).
 * Update `Math.sqrt` to raise a `Math::DomainError` for negative numbers (#2621, @bjfish).
+* Update `Enumerable#inject` to raise an `ArgumentError` if no block or symbol are given (#2626, @bjfish).
+* Fix `Marshal.dump` to raise an error when an object has singleton methods (@bjfish).
 
 Performance:
 
@@ -58,7 +66,7 @@ Performance:
 * Reduce memory footprint by tracking `VALUE`s created during C extension init separately (@aardvark179).
 * Rewrote `ArrayEachIteratorNode` to optimize performance for a constant-sized array and reduce specializations to 1 general case (#2587, @MattAlp)
 * Reduce conversion of `VALUE`s to native handle during common operations in C extensions (@aardvark179).
-* Improved performance of regex boolean matches (e.g., `Regexp#match?`) by avoiding match data allocation in TRegex (#2558, @nirvdrum).
+* Improved performance of regex boolean matches (e.g., `Regexp#match?`) by avoiding match data allocation in TRegex (#2588, @nirvdrum).
 * Remove overhead when getting using `RDATA_PTR` (@aardvark179).
 * Additional copy operations have been reduced when performing IO (#2536, @aardvark179).
 

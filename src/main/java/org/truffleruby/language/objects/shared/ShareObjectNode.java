@@ -77,7 +77,7 @@ public abstract class ShareObjectNode extends RubyBaseNode {
         shareInternalFieldsNode.executeShare(object);
 
         for (ReadAndShareFieldNode readAndShareFieldNode : readAndShareFieldNodes) {
-            readAndShareFieldNode.executeReadFieldAndShare(object);
+            readAndShareFieldNode.executeReadFieldAndShare(object, sharedShape);
         }
 
         assert allFieldsAreShared(object);

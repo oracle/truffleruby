@@ -1047,6 +1047,15 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return filtered;
     }
 
+    public boolean anyMethodDefined() {
+        for (var value : methods.values()) {
+            if (value.getMethod() != null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private Map<String, InternalMethod> getInternalMethodMap() {
         Map<String, InternalMethod> map = new HashMap<>();
         for (Entry<String, MethodEntry> e : methods.entrySet()) {

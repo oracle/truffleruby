@@ -32,15 +32,25 @@ ID rb_intern3(const char *name, long len, rb_encoding *enc) {
 }
 
 VALUE rb_sym2str(VALUE string) {
-  return RUBY_INVOKE(string, "to_s");
+  return RUBY_INVOKE(string, "name");
 }
 
 const char *rb_id2name(ID id) {
+  if (id == 0) {
+    return NULL; // like CRuby
+  }
+
   VALUE str = rb_id2str(id);
   return RSTRING_PTR(str);
 }
 
 VALUE rb_id2str(ID id) {
+  if (id == 0) {
+    // Ripper relies on this in id_is_var() for the rb_id2str() for the compile_error().
+    // CRuby returns (VALUE) 0 in that case, see get_id_serial_entry().
+    return Qfalse;
+  }
+
   return RUBY_CEXT_INVOKE("rb_id2str", ID2SYM(id));
 }
 
@@ -268,7 +278,11 @@ static int rb_str_symname_type(VALUE name, unsigned int allowed_attrset) {
 }
 
 int id_type(ID id) {
-  const char* cstr = rb_id2name(id);
-  VALUE name = rb_str_new_cstr(cstr);
-  return rb_str_symname_type(name, 0);
+  if (is_notop_id(id)) {
+    const char* cstr = rb_id2name(id);
+    VALUE name = rb_str_new_cstr(cstr);
+    return rb_str_symname_type(name, 0);
+  } else {
+    return -1;
+  }
 }

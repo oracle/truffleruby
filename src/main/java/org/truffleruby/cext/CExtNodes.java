@@ -159,6 +159,55 @@ public class CExtNodes {
         }
     }
 
+    @Primitive(name = "call_with_c_mutex_and_frame_and_unwrap")
+    public abstract static class CallWithCExtLockAndFrameAndUnwrapNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(limit = "getCacheLimit()")
+        protected Object callWithCExtLockAndFrame(
+                VirtualFrame frame, Object receiver, RubyArray argsArray, Object specialVariables, Object block,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
+                @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
+                @Cached ConditionProfile ownedProfile,
+                @Cached UnwrapNode unwrapNode) {
+            final ExtensionCallStack extensionStack = getLanguage()
+                    .getCurrentThread()
+                    .getCurrentFiber().extensionCallStack;
+            final boolean keywordsGiven = RubyArguments.getDescriptor(frame) instanceof KeywordArgumentsDescriptor;
+            extensionStack.push(keywordsGiven, specialVariables, block);
+            try {
+                final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
+
+                if (getContext().getOptions().CEXT_LOCK) {
+                    final ReentrantLock lock = getContext().getCExtensionsLock();
+                    boolean owned = ownedProfile.profile(lock.isHeldByCurrentThread());
+
+                    if (!owned) {
+                        MutexOperations.lockInternal(getContext(), lock, this);
+                    }
+                    try {
+                        return unwrapNode.execute(
+                                InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode));
+                    } finally {
+                        if (!owned) {
+                            MutexOperations.unlockInternal(lock);
+                        }
+                    }
+                } else {
+                    return unwrapNode
+                            .execute(InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode));
+                }
+
+            } finally {
+                extensionStack.pop();
+            }
+        }
+
+        protected int getCacheLimit() {
+            return getLanguage().options.DISPATCH_CACHE;
+        }
+    }
+
     @Primitive(name = "call_with_c_mutex")
     public abstract static class CallWithCExtLockNode extends PrimitiveArrayArgumentsNode {
 
@@ -1042,7 +1091,7 @@ public class CExtNodes {
             final InternalMethod superMethod = superMethodLookup.getMethod();
             // This C API only passes positional arguments, but maybe it should be influenced by ruby2_keywords hashes?
             return callSuperMethodNode.execute(
-                    frame, callingSelf, superMethod, EmptyArgumentsDescriptor.INSTANCE, args, nil);
+                    frame, callingSelf, superMethod, EmptyArgumentsDescriptor.INSTANCE, args, nil, null);
         }
 
         @TruffleBoundary
@@ -1901,6 +1950,14 @@ public class CExtNodes {
             ThreadManager threadManager = getContext().getThreadManager();
             return Thread.currentThread() == threadManager.getRootJavaThread() ||
                     threadManager.isRubyManagedThread(Thread.currentThread());
+        }
+    }
+
+    @CoreMethod(names = "zlib_get_crc_table", onSingleton = true)
+    public abstract static class ZLibGetCRCTable extends CoreMethodArrayArgumentsNode {
+        @Specialization
+        protected RubyArray zlibGetCRCTable() {
+            return createArray(ZLibCRCTable.TABLE.clone());
         }
     }
 }

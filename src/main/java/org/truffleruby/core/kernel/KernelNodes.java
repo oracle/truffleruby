@@ -1629,6 +1629,24 @@ public abstract class KernelNodes {
 
     }
 
+    @Primitive(name = "singleton_methods?")
+    public abstract static class HasSingletonMethodsNode extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        protected boolean hasSingletonMethods(Object self,
+                @Cached MetaClassNode metaClassNode) {
+            final RubyClass metaClass = metaClassNode.execute(self);
+
+            if (!metaClass.isSingleton) {
+                return false;
+            }
+
+            return metaClass.fields.anyMethodDefined();
+        }
+
+    }
+
     @NodeChild(value = "duration", type = RubyBaseNodeWithExecute.class)
     @CoreMethod(names = "sleep", isModuleFunction = true, optional = 1)
     public abstract static class SleepNode extends CoreMethodNode {

@@ -975,14 +975,13 @@ module Truffle::CExt
 
   def rb_proc_new(function, value)
     Proc.new do |*args, &block|
-      Primitive.cext_unwrap(
-          Primitive.call_with_c_mutex_and_frame(function, [
-              Primitive.cext_wrap(args.first), # yieldarg
-              Primitive.cext_wrap(value), # procarg,
-              args.size, # argc
-              Truffle::CExt.RARRAY_PTR(args), # argv
-              Primitive.cext_wrap(block), # blockarg
-          ], Primitive.caller_special_variables_if_available, nil))
+      Primitive.call_with_c_mutex_and_frame_and_unwrap(function, [
+        Primitive.cext_wrap(args.first), # yieldarg
+        Primitive.cext_wrap(value), # procarg,
+        args.size, # argc
+        Truffle::CExt.RARRAY_PTR(args), # argv
+        Primitive.cext_wrap(block), # blockarg
+      ], Primitive.caller_special_variables_if_available, nil)
     end
   end
 
@@ -1062,7 +1061,7 @@ module Truffle::CExt
   end
 
   def rb_cvar_defined(cls, id)
-    id_s = id.to_s
+    id_s = id.name
     if id_s.start_with?('@@') || !id_s.start_with?('@')
       cls.class_variable_defined?(id)
     else
@@ -1127,7 +1126,7 @@ module Truffle::CExt
   end
 
   def rb_id2str(sym)
-    sym.to_s
+    sym.name
   end
 
   def rb_const_defined?(mod, name)
@@ -1227,7 +1226,7 @@ module Truffle::CExt
   def rb_enumeratorize_with_size(obj, meth, args, size_fn)
     return rb_enumeratorize(obj, meth, args) if size_fn.nil?
     enum = obj.to_enum(meth, *args) do
-      Primitive.cext_unwrap(Primitive.call_with_c_mutex_and_frame(size_fn, [Primitive.cext_wrap(obj), Primitive.cext_wrap(args), Primitive.cext_wrap(enum)], Primitive.caller_special_variables_if_available, nil))
+      Primitive.call_with_c_mutex_and_frame_and_unwrap(size_fn, [Primitive.cext_wrap(obj), Primitive.cext_wrap(args), Primitive.cext_wrap(enum)], Primitive.caller_special_variables_if_available, nil)
     end
     enum
   end
@@ -1242,7 +1241,7 @@ module Truffle::CExt
 
   def rb_define_alloc_func(ruby_class, function)
     ruby_class.singleton_class.define_method(:__allocate__) do
-      Primitive.cext_unwrap(Primitive.call_with_c_mutex_and_frame(function, [Primitive.cext_wrap(self)], Primitive.caller_special_variables_if_available, nil))
+      Primitive.call_with_c_mutex_and_frame_and_unwrap(function, [Primitive.cext_wrap(self)], Primitive.caller_special_variables_if_available, nil)
     end
     class << ruby_class
       private :__allocate__
@@ -1667,13 +1666,13 @@ module Truffle::CExt
   def rb_iterate(iteration, iterated_object, callback, callback_arg)
     block = rb_block_proc
     wrapped_callback = proc do |block_arg|
-      Primitive.cext_unwrap(Primitive.call_with_c_mutex_and_frame(callback, [
+      Primitive.call_with_c_mutex_and_frame_and_unwrap(callback, [
         Primitive.cext_wrap(block_arg),
         Primitive.cext_wrap(callback_arg),
         0, # argc
         nil, # argv
         nil, # blockarg
-      ], Primitive.cext_special_variables_from_stack, block))
+      ], Primitive.cext_special_variables_from_stack, block)
     end
     Primitive.cext_unwrap(
       Primitive.call_with_c_mutex_and_frame(iteration, [Primitive.cext_wrap(iterated_object)], Primitive.cext_special_variables_from_stack, wrapped_callback))
@@ -1761,7 +1760,7 @@ module Truffle::CExt
   end
 
   def rb_gv_get(name)
-    name = "$#{name}" unless name.to_s.start_with?('$')
+    name = "$#{name}" unless name.start_with?('$')
     if name == '$~'
       rb_backref_get
     else
@@ -1785,7 +1784,7 @@ module Truffle::CExt
     id = name.to_sym
 
     getter_proc = -> {
-      Primitive.cext_unwrap(Primitive.call_with_c_mutex_and_frame(getter, [Primitive.cext_wrap(id), gvar, Primitive.cext_wrap(nil)], Primitive.caller_special_variables_if_available, nil))
+      Primitive.call_with_c_mutex_and_frame_and_unwrap(getter, [Primitive.cext_wrap(id), gvar, Primitive.cext_wrap(nil)], Primitive.caller_special_variables_if_available, nil)
     }
 
     setter_proc = -> value {
@@ -1910,14 +1909,13 @@ module Truffle::CExt
 
   def rb_fiber_new(function, value)
     Fiber.new do |*args|
-      Primitive.cext_unwrap(
-        Primitive.call_with_c_mutex_and_frame(function, [
-          Primitive.cext_wrap(args.first), # yieldarg
-          nil, # procarg,
-          0, # argc
-          nil, # argv
-          nil, # blockarg
-        ], nil, nil))
+      Primitive.call_with_c_mutex_and_frame_and_unwrap(function, [
+        Primitive.cext_wrap(args.first), # yieldarg
+        nil, # procarg,
+        0, # argc
+        nil, # argv
+        nil, # blockarg
+      ], nil, nil)
     end
   end
 

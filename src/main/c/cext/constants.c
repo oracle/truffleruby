@@ -40,7 +40,7 @@ void rb_const_set(VALUE module, ID name, VALUE value) {
 }
 
 void rb_define_const(VALUE module, const char *name, VALUE value) {
-  rb_const_set(module, rb_str_new_cstr(name), value);
+  rb_const_set(module, rb_intern(name), value);
 }
 
 void rb_define_global_const(const char *name, VALUE value) {

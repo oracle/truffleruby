@@ -138,7 +138,7 @@ public abstract class MethodNodes {
             final Object[] newArgs = RubyArguments.repack(rubyArgs, method.receiver);
             RubyArguments.setMethod(newArgs, internalMethod);
             assert RubyArguments.assertFrameArguments(newArgs);
-            return callInternalMethodNode.execute(callerFrame, internalMethod, method.receiver, newArgs);
+            return callInternalMethodNode.execute(callerFrame, internalMethod, method.receiver, newArgs, null);
         }
     }
 
@@ -360,7 +360,7 @@ public abstract class MethodNodes {
             final Object originalBoundMethodReceiver = RubyArguments.getSelf(RubyArguments.getDeclarationFrame(frame));
             Object[] rubyArgs = RubyArguments.repack(frame.getArguments(), originalBoundMethodReceiver);
             RubyArguments.setMethod(rubyArgs, method);
-            return callInternalMethodNode.execute(frame, method, originalBoundMethodReceiver, rubyArgs);
+            return callInternalMethodNode.execute(frame, method, originalBoundMethodReceiver, rubyArgs, null);
         }
     }
 

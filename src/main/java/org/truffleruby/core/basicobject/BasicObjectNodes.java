@@ -448,7 +448,7 @@ public abstract class BasicObjectNodes {
                     block.declarationContext.getRefinements());
             var descriptor = RubyArguments.getDescriptor(frame);
             return callBlockNode.executeCallBlock(
-                    declarationContext, block, receiver, block.block, descriptor, arguments);
+                    declarationContext, block, receiver, block.block, descriptor, arguments, null);
         }
 
         @Specialization

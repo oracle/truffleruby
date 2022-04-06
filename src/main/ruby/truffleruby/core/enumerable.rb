@@ -492,6 +492,7 @@ module Enumerable
 
     if !block_given? or !Primitive.undefined?(sym)
       if Primitive.undefined?(sym)
+        raise ArgumentError, 'no block or symbol given' if Primitive.undefined?(initial)
         sym = initial
         initial = undefined
       end

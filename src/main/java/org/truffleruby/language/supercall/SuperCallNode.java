@@ -44,9 +44,13 @@ public class SuperCallNode extends LiteralCallNode {
         Object[] superArguments = (Object[]) arguments.execute(frame);
 
         ArgumentsDescriptor descriptor = this.descriptor;
+        boolean ruby2KeywordsHash = false;
         if (isSplatted) {
             // superArguments already splatted
-            descriptor = getArgumentsDescriptorAndCheckRuby2KeywordsHash(superArguments, superArguments.length);
+            ruby2KeywordsHash = isRuby2KeywordsHash(superArguments, superArguments.length);
+            if (ruby2KeywordsHash) {
+                descriptor = KeywordArgumentsDescriptor.INSTANCE;
+            }
         }
 
         // Remove empty kwargs in the caller, so the callee does not need to care about this special case
@@ -65,7 +69,8 @@ public class SuperCallNode extends LiteralCallNode {
             callSuperMethodNode = insert(CallSuperMethodNode.create());
         }
 
-        return callSuperMethodNode.execute(frame, self, superMethod, descriptor, superArguments, blockObject);
+        return callSuperMethodNode.execute(frame, self, superMethod, descriptor, superArguments, blockObject,
+                ruby2KeywordsHash ? this : null);
     }
 
     @Override
