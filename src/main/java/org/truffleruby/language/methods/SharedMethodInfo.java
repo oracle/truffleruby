@@ -9,8 +9,6 @@
  */
 package org.truffleruby.language.methods;
 
-import java.util.Arrays;
-
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.RubyModule;
@@ -19,7 +17,6 @@ import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.parser.ArgumentDescriptor;
-import org.truffleruby.parser.ArgumentType;
 
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -76,10 +73,6 @@ public class SharedMethodInfo {
     }
 
     public SharedMethodInfo convertMethodMissingToMethod(RubyModule declaringModule, String methodName) {
-        final ArgumentDescriptor[] oldArgs = getArgumentDescriptors();
-        final ArgumentDescriptor[] newArgs = Arrays.copyOfRange(oldArgs, 1, oldArgs.length);
-        newArgs[0] = new ArgumentDescriptor(ArgumentType.anonrest);
-
         return new SharedMethodInfo(
                 sourceSection,
                 staticLexicalScope,
@@ -88,7 +81,7 @@ public class SharedMethodInfo {
                 blockDepth,
                 moduleAndMethodName(declaringModule, methodName),
                 notes,
-                newArgs);
+                ArgumentDescriptor.ANY);
     }
 
     public SharedMethodInfo withArity(Arity newArity) {

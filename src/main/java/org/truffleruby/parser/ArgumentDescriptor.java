@@ -34,6 +34,7 @@ public final class ArgumentDescriptor {
     /** The name of the argument */
     public final String name;
 
+    public static final ArgumentDescriptor[] ANY = { new ArgumentDescriptor(ArgumentType.anonrest) };
     public static final ArgumentDescriptor[] AT_LEAST_ONE = {
             new ArgumentDescriptor(ArgumentType.anonreq),
             new ArgumentDescriptor(ArgumentType.anonrest) };
