@@ -25,14 +25,6 @@ module BenchmarkInterface
         end
       end
 
-      def self.run_n_iterations(iterations)
-        i = 0
-        while i < iterations
-          yield
-          i += 1
-        end
-      end
-
       def self.run(benchmark_set, names, options)
         full_time = options['--time']
         freq = options['--freq']
