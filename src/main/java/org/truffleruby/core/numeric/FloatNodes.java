@@ -874,57 +874,47 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "hasNoExp(value)")
         protected RubyString toSNoExp(double value) {
-            return makeStringNode.executeMake(makeRopeNoExp(value), Encodings.US_ASCII, NotProvided.INSTANCE);
+            return makeStringNode.executeMake(makeRopeNoExp(value), Encodings.US_ASCII, CodeRange.CR_7BIT);
         }
 
         @Specialization(guards = "hasLargeExp(value)")
         protected RubyString toSLargeExp(double value) {
-            return makeStringNode.executeMake(makeRopeLargeExp(value), Encodings.US_ASCII, NotProvided.INSTANCE);
+            return makeStringNode.executeMake(makeRopeLargeExp(value), Encodings.US_ASCII, CodeRange.CR_7BIT);
         }
 
         @Specialization(guards = "hasSmallExp(value)")
         protected RubyString toSSmallExp(double value) {
-            return makeStringNode.executeMake(makeRopeSmallExp(value), Encodings.US_ASCII, NotProvided.INSTANCE);
+            return makeStringNode.executeMake(makeRopeSmallExp(value), Encodings.US_ASCII, CodeRange.CR_7BIT);
         }
 
         @TruffleBoundary
-        private Rope makeRopeSimple(double value) {
-            String str = Double.toString(value);
-
-            return RopeOperations.encodeAscii(str, Encodings.US_ASCII.jcoding);
+        private String makeRopeNoExp(double value) {
+            return DF_NO_EXP.format(value);
         }
 
         @TruffleBoundary
-        private Rope makeRopeNoExp(double value) {
-            String str = DF_NO_EXP.format(value);
-            return RopeOperations.encodeAscii(str, Encodings.US_ASCII.jcoding);
+        private String makeRopeSmallExp(double value) {
+            return DF_SMALL_EXP.format(value);
         }
 
         @TruffleBoundary
-        private Rope makeRopeSmallExp(double value) {
-            String str = DF_SMALL_EXP.format(value);
-            return RopeOperations.encodeAscii(str, Encodings.US_ASCII.jcoding);
-        }
-
-        @TruffleBoundary
-        private Rope makeRopeLargeExp(double value) {
-            String str = DF_LARGE_EXP.format(value);
-            return RopeOperations.encodeAscii(str, Encodings.US_ASCII.jcoding);
+        private String makeRopeLargeExp(double value) {
+            return DF_LARGE_EXP.format(value);
         }
 
         protected static boolean hasNoExp(double value) {
             double abs = Math.abs(value);
-            return abs == 0.0d || ((abs >= 0.0001d) && (abs < 1_000_000_000_000_000.0d));
+            return abs == 0.0 || ((abs >= 0.0001) && (abs < 1_000_000_000_000_000.0));
         }
 
         protected static boolean hasLargeExp(double value) {
             double abs = Math.abs(value);
-            return (abs >= 1_000_000_000_000_000.0d);
+            return (abs >= 1_000_000_000_000_000.0);
         }
 
         protected static boolean hasSmallExp(double value) {
             double abs = Math.abs(value);
-            return (abs < 0.0001d) && (abs != 0.0d);
+            return (abs < 0.0001) && (abs != 0.0);
         }
 
         protected static Rope specialValueRope(double value) {
