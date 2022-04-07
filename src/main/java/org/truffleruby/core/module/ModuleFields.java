@@ -49,7 +49,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.constants.ConstantEntry;
 import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.loader.ReentrantLockFreeingMap;
 import org.truffleruby.language.methods.InternalMethod;
@@ -245,7 +244,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     public void checkFrozen(RubyContext context, Node currentNode) {
-        if (context.getCoreLibrary() != null && RubyLibrary.getUncached().isFrozen(rubyModule)) {
+        if (context.getCoreLibrary() != null && rubyModule.isFrozenUncached()) {
             String name;
             Object receiver = rubyModule;
             if (rubyModule instanceof RubyClass) {
