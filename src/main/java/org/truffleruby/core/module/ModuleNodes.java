@@ -1328,7 +1328,8 @@ public abstract class ModuleNodes {
             final RubyLambdaRootNode rootNode = RubyLambdaRootNode.of(callTargetForLambda);
             final SharedMethodInfo info = proc.sharedMethodInfo.forDefineMethod(module, name);
             final RubyNode body = rootNode.copyBody();
-            final RubyNode newBody = new CallMethodWithLambdaBody(proc.declarationFrame, body);
+            final RubyNode newBody = new CallMethodWithLambdaBody(isSingleContext() ? proc : null,
+                    callTargetForLambda, body);
 
             final RubyLambdaRootNode newRootNode = rootNode.copyRootNode(info, newBody);
             final RootCallTarget newCallTarget = newRootNode.getCallTarget();
@@ -1347,17 +1348,28 @@ public abstract class ModuleNodes {
 
         private static class CallMethodWithLambdaBody extends RubyContextSourceNode {
 
-            private final MaterializedFrame declarationFrame;
+            private final RubyProc proc;
+            private final RootCallTarget lambdaCallTarget;
             @Child private RubyNode lambdaBody;
 
-            public CallMethodWithLambdaBody(MaterializedFrame declarationFrame, RubyNode lambdaBody) {
-                this.declarationFrame = declarationFrame;
+            public CallMethodWithLambdaBody(RubyProc proc, RootCallTarget lambdaCallTarget, RubyNode lambdaBody) {
+                this.proc = proc;
+                this.lambdaCallTarget = lambdaCallTarget;
                 this.lambdaBody = lambdaBody;
             }
 
             @Override
             public Object execute(VirtualFrame frame) {
-                RubyArguments.setDeclarationFrame(frame, declarationFrame);
+                final RubyProc proc;
+                if (this.proc == null) {
+                    proc = RubyArguments.getMethod(frame).getProc();
+                    assert proc.callTargets.getCallTargetForLambda() == lambdaCallTarget;
+                } else {
+                    assert RubyArguments.getMethod(frame).getProc() == this.proc;
+                    proc = this.proc;
+                }
+
+                RubyArguments.setDeclarationFrame(frame, proc.declarationFrame);
                 return lambdaBody.execute(frame);
             }
 

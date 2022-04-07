@@ -217,6 +217,10 @@ public class InternalMethod implements ObjectGraphNode {
         return sharedMethodInfo.getArity().getMethodArityNumber();
     }
 
+    public RubyProc getProc() {
+        return proc;
+    }
+
     public RootCallTarget getCallTarget() {
         if (callTarget == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
