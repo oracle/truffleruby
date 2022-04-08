@@ -1751,7 +1751,7 @@ public abstract class StringNodes {
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsFrom,
                 @Cached @Shared("stringGetAssociatedNode") StringGetAssociatedNode stringGetAssociatedNode) {
             self.setRope(
-                    ((NativeRope) stringsFrom.getRope(from)).makeCopy(getContext()),
+                    ((NativeRope) stringsFrom.getRope(from)).makeCopy(getLanguage()),
                     stringsFrom.getEncoding(from));
             final Object associated = stringGetAssociatedNode.execute(from);
             copyAssociated(self, associated);

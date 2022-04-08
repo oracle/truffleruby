@@ -198,7 +198,7 @@ public abstract class PointerNodes {
 
         @Specialization(guards = "autorelease")
         protected boolean enableAutorelease(RubyPointer pointer, boolean autorelease) {
-            pointer.pointer.enableAutorelease(getContext());
+            pointer.pointer.enableAutorelease(getLanguage());
             return autorelease;
         }
 

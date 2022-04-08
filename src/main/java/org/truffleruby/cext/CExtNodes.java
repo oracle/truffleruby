@@ -708,7 +708,7 @@ public class CExtNodes {
         @Specialization
         protected RubyString rbStrNewNul(int byteLength,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
-            final Rope rope = NativeRope.newBuffer(getContext(), byteLength, byteLength);
+            final Rope rope = NativeRope.newBuffer(getLanguage(), byteLength, byteLength);
 
             return makeStringNode.fromRope(rope, Encodings.BINARY);
         }
@@ -766,7 +766,7 @@ public class CExtNodes {
                 nativeRope.clearCodeRange();
                 return string;
             } else {
-                final NativeRope newRope = nativeRope.resize(getContext(), newByteLength);
+                final NativeRope newRope = nativeRope.resize(getLanguage(), newByteLength);
 
                 // Like MRI's rb_str_resize()
                 newRope.clearCodeRange();
@@ -788,7 +788,7 @@ public class CExtNodes {
             if (nativeRope.getCapacity() == newCapacity) {
                 return string;
             } else {
-                final NativeRope newRope = nativeRope.expandCapacity(getContext(), newCapacity);
+                final NativeRope newRope = nativeRope.expandCapacity(getLanguage(), newCapacity);
                 string.setRope(newRope);
                 return string;
             }
@@ -1215,7 +1215,8 @@ public class CExtNodes {
                         bytesNode.execute(currentRope),
                         currentRope.getEncoding(),
                         characterLengthNode.execute(currentRope),
-                        codeRangeNode.execute(currentRope));
+                        codeRangeNode.execute(currentRope),
+                        getLanguage());
                 string.setRope(nativeRope);
             }
 
@@ -1224,7 +1225,7 @@ public class CExtNodes {
 
         @Specialization
         protected NativeRope toNativeImmutable(ImmutableRubyString string) {
-            return string.getNativeRope();
+            return string.getNativeRope(getLanguage());
         }
 
     }

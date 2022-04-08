@@ -39,8 +39,8 @@ import org.truffleruby.language.library.RubyStringLibrary;
 public class ImmutableRubyString extends ImmutableRubyObject implements TruffleObject {
 
     public final LeafRope rope;
-    private volatile NativeRope nativeRope = null;
     public final RubyEncoding encoding;
+    private NativeRope nativeRope = null;
 
     ImmutableRubyString(LeafRope rope, RubyEncoding encoding) {
         assert rope.encoding == encoding.jcoding;
@@ -58,16 +58,16 @@ public class ImmutableRubyString extends ImmutableRubyObject implements TruffleO
         return nativeRope != null;
     }
 
-    public synchronized NativeRope getNativeRope() {
+    public synchronized NativeRope getNativeRope(RubyLanguage language) {
         if (nativeRope == null) {
-            nativeRope = createNativeRope();
+            nativeRope = createNativeRope(language);
         }
         return nativeRope;
     }
 
     @TruffleBoundary
-    private NativeRope createNativeRope() {
-        return new NativeRope(rope.getBytes(), rope.getEncoding(), rope.characterLength(), rope.getCodeRange());
+    private NativeRope createNativeRope(RubyLanguage language) {
+        return new NativeRope(rope.getBytes(), rope.getEncoding(), rope.characterLength(), rope.getCodeRange(), language);
     }
 
     // region RubyStringLibrary messages

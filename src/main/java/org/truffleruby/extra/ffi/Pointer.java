@@ -39,9 +39,9 @@ public final class Pointer implements AutoCloseable {
         return new Pointer(UNSAFE.allocateMemory(size), size);
     }
 
-    /** Includes {@link #enableAutorelease(RubyContext)} and avoids locking for it */
-    public static Pointer mallocAutoRelease(long size) {
-        return new Pointer(UNSAFE.allocateMemory(size), size, true);
+    /** Includes {@link #enableAutorelease(RubyLanguage)} and avoids locking for it */
+    public static Pointer mallocAutoRelease(long size, RubyLanguage langauge) {
+        return new Pointer(UNSAFE.allocateMemory(size), size, langauge);
     }
 
     /** Allocates memory and produces a pointer to it. Clears the memory before returning it. Use {@link #malloc} if you
@@ -52,9 +52,9 @@ public final class Pointer implements AutoCloseable {
         return pointer;
     }
 
-    /** Includes {@link #enableAutorelease(RubyContext)} and avoids locking for it */
-    public static Pointer callocAutoRelease(long size) {
-        final Pointer pointer = mallocAutoRelease(size);
+    /** Includes {@link #enableAutorelease(RubyLanguage)} and avoids locking for it */
+    public static Pointer callocAutoRelease(long size, RubyLanguage langauge) {
+        final Pointer pointer = mallocAutoRelease(size, langauge);
         pointer.writeBytes(0, size, (byte) 0);
         return pointer;
     }
@@ -93,12 +93,10 @@ public final class Pointer implements AutoCloseable {
         this.size = size;
     }
 
-    private Pointer(long address, long size, boolean autoRelease) {
+    private Pointer(long address, long size, RubyLanguage langauge) {
         this.address = address;
         this.size = size;
-        if (autoRelease) {
-            enableAutoreleaseUnsynchronized();
-        }
+        enableAutoreleaseUnsynchronized(langauge);
     }
 
     public boolean isNull() {
@@ -344,20 +342,20 @@ public final class Pointer implements AutoCloseable {
     }
 
     @TruffleBoundary
-    public synchronized void enableAutorelease(RubyContext context) {
+    public synchronized void enableAutorelease(RubyLanguage language) {
         if (cleanable != null) {
             return;
         }
 
-        enableAutoreleaseUnsynchronized();
+        enableAutoreleaseUnsynchronized(language);
     }
 
     @TruffleBoundary
-    private void enableAutoreleaseUnsynchronized() {
+    private void enableAutoreleaseUnsynchronized(RubyLanguage language) {
         // We must be careful here that the finalizer does not capture the Pointer itself that we'd
         // like to finalize.
         autoReleaseState = new AutoReleaseState(address);
-        cleanable = RubyLanguage.cleaner.register(this, autoReleaseState);
+        cleanable = language.cleaner.register(this, autoReleaseState);
 
     }
 

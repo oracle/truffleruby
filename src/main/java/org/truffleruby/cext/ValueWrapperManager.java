@@ -234,7 +234,7 @@ public class ValueWrapperManager {
             this.base = base;
             this.wrappers = new ValueWrapper[BLOCK_SIZE];
             this.count = 0;
-            this.cleanable = RubyLanguage.cleaner.register(this, HandleBlock.makeCleaner(manager, base, allocator));
+            this.cleanable = language.cleaner.register(this, HandleBlock.makeCleaner(manager, base, allocator));
         }
 
         private static Runnable makeCleaner(ValueWrapperManager manager, long base, HandleBlockAllocator allocator) {

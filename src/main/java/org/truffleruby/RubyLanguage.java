@@ -167,8 +167,6 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public static final String MIME_TYPE_MAIN_SCRIPT = "application/x-ruby;main-script=true";
     public static final String[] MIME_TYPES = { MIME_TYPE, MIME_TYPE_COVERAGE, MIME_TYPE_MAIN_SCRIPT };
 
-    public static final Cleaner cleaner = Cleaner.create();
-
     public static final String PLATFORM = String.format(
             "%s-%s%s",
             Platform.getArchName(),
@@ -213,6 +211,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final SymbolTable symbolTable;
     public final KeywordArgumentsDescriptorManager keywordArgumentsDescriptorManager = new KeywordArgumentsDescriptorManager();
     public final FrozenStringLiterals frozenStringLiterals;
+    public final Cleaner cleaner = Cleaner.create();
+
 
     public volatile ValueWrapperManager.HandleBlockWeakReference[] handleBlockSharedMap = new ValueWrapperManager.HandleBlockWeakReference[0];
     public final ValueWrapperManager.HandleBlockAllocator handleBlockAllocator = new ValueWrapperManager.HandleBlockAllocator();
