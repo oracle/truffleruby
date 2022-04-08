@@ -12,6 +12,7 @@ Bug fixes:
 Compatibility:
 
 * Fix `Marshal.dump` to raise an error when an object has singleton methods (@bjfish).
+* `Exception#full_message` now defaults the order to `:top` like CRuby 3+ (@eregon).
 
 Performance:
 
