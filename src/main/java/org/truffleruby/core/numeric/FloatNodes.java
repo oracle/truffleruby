@@ -18,6 +18,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -34,6 +35,7 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.Visibility;
@@ -840,20 +842,6 @@ public abstract class FloatNodes {
          * still not entirely correct. JRuby seems to be correct, but their logic is tied up in their printf
          * implementation. Also see our FormatFloatNode, which I suspect is also deficient or under-tested. */
 
-        private static final DecimalFormat DF_NO_EXP;
-        private static final DecimalFormat DF_SMALL_EXP;
-        private static final DecimalFormat DF_LARGE_EXP;
-
-        static {
-            final DecimalFormatSymbols smallExpSymbols = new DecimalFormatSymbols(Locale.ENGLISH);
-            smallExpSymbols.setExponentSeparator("e");
-            final DecimalFormatSymbols largeExpSymbols = new DecimalFormatSymbols(Locale.ENGLISH);
-            largeExpSymbols.setExponentSeparator("e+");
-            DF_NO_EXP = new DecimalFormat("0.0################");
-            DF_SMALL_EXP = new DecimalFormat("0.0################E00", smallExpSymbols);
-            DF_LARGE_EXP = new DecimalFormat("0.0################E00", largeExpSymbols);
-        }
-
         @Specialization(guards = "value == POSITIVE_INFINITY")
         protected RubyString toSPositiveInfinity(double value,
                 @Cached("specialValueRope(POSITIVE_INFINITY)") Rope cachedRope) {
@@ -874,32 +862,35 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "hasNoExp(value)")
         protected RubyString toSNoExp(double value) {
-            return makeStringNode.executeMake(makeRopeNoExp(value), Encodings.US_ASCII, CodeRange.CR_7BIT);
+            return makeStringNode.executeMake(makeRopeNoExp(value, getLanguage().getCurrentThread()),
+                    Encodings.US_ASCII, CodeRange.CR_7BIT);
         }
 
         @Specialization(guards = "hasLargeExp(value)")
         protected RubyString toSLargeExp(double value) {
-            return makeStringNode.executeMake(makeRopeLargeExp(value), Encodings.US_ASCII, CodeRange.CR_7BIT);
+            return makeStringNode.executeMake(makeRopeLargeExp(value, getLanguage().getCurrentThread()),
+                    Encodings.US_ASCII, CodeRange.CR_7BIT);
         }
 
         @Specialization(guards = "hasSmallExp(value)")
         protected RubyString toSSmallExp(double value) {
-            return makeStringNode.executeMake(makeRopeSmallExp(value), Encodings.US_ASCII, CodeRange.CR_7BIT);
+            return makeStringNode.executeMake(makeRopeSmallExp(value, getLanguage().getCurrentThread()),
+                    Encodings.US_ASCII, CodeRange.CR_7BIT);
         }
 
         @TruffleBoundary
-        private String makeRopeNoExp(double value) {
-            return DF_NO_EXP.format(value);
+        private String makeRopeNoExp(double value, RubyThread thread) {
+            return getNoExpFormat(thread).format(value);
         }
 
         @TruffleBoundary
-        private String makeRopeSmallExp(double value) {
-            return DF_SMALL_EXP.format(value);
+        private String makeRopeSmallExp(double value, RubyThread thread) {
+            return getSmallExpFormat(thread).format(value);
         }
 
         @TruffleBoundary
-        private String makeRopeLargeExp(double value) {
-            return DF_LARGE_EXP.format(value);
+        private String makeRopeLargeExp(double value, RubyThread thread) {
+            return getLargeExpFormat(thread).format(value);
         }
 
         protected static boolean hasNoExp(double value) {
@@ -920,6 +911,33 @@ public abstract class FloatNodes {
         protected static Rope specialValueRope(double value) {
             return RopeOperations.encodeAscii(Double.toString(value), Encodings.US_ASCII.jcoding);
         }
+
+        private DecimalFormat getNoExpFormat(RubyThread thread) {
+            if (thread.noExpFormat == null) {
+                final DecimalFormatSymbols noExpSymbols = new DecimalFormatSymbols(Locale.ENGLISH);
+                thread.noExpFormat = new DecimalFormat("0.0################", noExpSymbols);
+            }
+            return thread.noExpFormat;
+        }
+
+        private DecimalFormat getSmallExpFormat(RubyThread thread) {
+            if (thread.smallExpFormat == null) {
+                final DecimalFormatSymbols smallExpSymbols = new DecimalFormatSymbols(Locale.ENGLISH);
+                smallExpSymbols.setExponentSeparator("e");
+                thread.smallExpFormat = new DecimalFormat("0.0################E00", smallExpSymbols);
+            }
+            return thread.smallExpFormat;
+        }
+
+        private DecimalFormat getLargeExpFormat(RubyThread thread) {
+            if (thread.largeExpFormat == null) {
+                final DecimalFormatSymbols largeExpSymbols = new DecimalFormatSymbols(Locale.ENGLISH);
+                largeExpSymbols.setExponentSeparator("e+");
+                thread.largeExpFormat = new DecimalFormat("0.0################E00", largeExpSymbols);
+            }
+            return thread.largeExpFormat;
+        }
+
     }
 
     @NonStandard
