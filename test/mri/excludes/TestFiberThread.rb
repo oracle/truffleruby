@@ -1,0 +1,5 @@
+exclude :test_broken_unblock, "needs investigation"
+exclude :test_thread_join, "needs investigation"
+exclude :test_thread_join_blocking, "needs investigation"
+exclude :test_thread_join_hang, "needs investigation"
+exclude :test_thread_join_implicit, "needs investigation"
