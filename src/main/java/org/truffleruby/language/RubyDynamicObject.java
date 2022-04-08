@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.interop.StopIterationException;
 import com.oracle.truffle.api.interop.UnknownKeyException;
 import org.truffleruby.RubyContext;
@@ -20,6 +21,8 @@ import org.truffleruby.core.cast.LongCastNode;
 import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.range.RubyRange;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
@@ -113,6 +116,12 @@ public abstract class RubyDynamicObject extends DynamicObject {
     public boolean isFrozen(
             @CachedLibrary("this") DynamicObjectLibrary objLib) {
         return (objLib.getShapeFlags(this) & FROZEN) != 0;
+    }
+
+    public boolean isFrozenUncached() {
+        CompilerAsserts.neverPartOfCompilation("Use RubyLibrary instead in PE code");
+        assert !(this instanceof RubyString) && !(this instanceof RubyRange);
+        return (getShape().getFlags() & FROZEN) != 0;
     }
     // endregion
 
