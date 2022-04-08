@@ -16,12 +16,19 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
+import java.util.Objects;
+
 /** Executes a child node just once, and uses the same value each subsequent time the node is executed. */
 public class OnceNode extends RubyContextSourceNode {
 
+    static class Holder { // Not NodeCloneable, on purpose
+        @CompilationFinal private volatile Object cachedValue;
+    }
+
     @Child private RubyNode child;
 
-    @CompilationFinal private volatile Object cachedValue;
+    // An extra indirection so with splitting we compute the value only once, and the Holder is shared across splits.
+    private final Holder holder = new Holder();
 
     public OnceNode(RubyNode child) {
         this.child = child;
@@ -29,7 +36,7 @@ public class OnceNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        Object value = cachedValue;
+        Object value = holder.cachedValue;
 
         if (value == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -37,10 +44,9 @@ public class OnceNode extends RubyContextSourceNode {
                 // Read `cachedValue` again to check if the value was updated by another thread while this thread
                 // was waiting on the lock. If it's still null, this thread is the first one to get the lock and
                 // must update the cache.
-                value = cachedValue;
+                value = holder.cachedValue;
                 if (value == null) {
-                    value = cachedValue = child.execute(frame);
-                    assert value != null;
+                    value = holder.cachedValue = Objects.requireNonNull(child.execute(frame));
                 }
             }
         }
