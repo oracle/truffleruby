@@ -25,7 +25,6 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
-import org.truffleruby.collections.Memo;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.rope.CodeRange;
@@ -267,13 +266,13 @@ public abstract class TruffleBootNodes {
         @TruffleBoundary
         @Specialization
         protected Object sourceOfCaller() {
-            final Memo<Integer> frameCount = new Memo<>(0);
+            final int[] frameCount = new int[]{ 0 };
 
             final Source source = Truffle.getRuntime().iterateFrames(frameInstance -> {
-                if (frameCount.get() == 2) {
+                if (frameCount[0] == 2) {
                     return frameInstance.getCallNode().getEncapsulatingSourceSection().getSource();
                 } else {
-                    frameCount.set(frameCount.get() + 1);
+                    frameCount[0] += 1;
                     return null;
                 }
             });
