@@ -87,7 +87,7 @@ class Exception
     end
   end
 
-  def full_message(highlight: nil, order: undefined)
+  def full_message(highlight: nil, order: :top)
     Truffle::ExceptionOperations.full_message(self, highlight, order)
   end
 

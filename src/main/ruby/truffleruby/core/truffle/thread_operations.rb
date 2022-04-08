@@ -161,7 +161,7 @@ module Truffle::ThreadOperations
   end
 
   def self.report_exception(thread, exception)
-    message = "#{thread.inspect} terminated with exception:\n#{exception.full_message}"
+    message = "#{thread.inspect} terminated with exception (report_on_exception is true):\n#{exception.full_message}"
     $stderr.write message
   end
 
