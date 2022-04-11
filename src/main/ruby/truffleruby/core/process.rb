@@ -541,7 +541,11 @@ module Process
   #
   def self.wait2(input_pid=-1, flags=nil)
     status = Truffle::ProcessOperations.wait(input_pid, flags, true, true)
-    [status.pid, status]
+    if status
+      [status.pid, status]
+    else
+      nil
+    end
   end
 
   #
