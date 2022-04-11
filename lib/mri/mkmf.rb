@@ -32,7 +32,7 @@ if defined?(::TruffleRuby)
 
     for_pipe = proc do |compiler, flags|
       language_flag = '$(CXX)' == compiler ? '-xc++' : '-xc'
-      "#{RbConfig.ruby} #{cext_dir}/preprocess.rb $< | #{compiler} -I$(<D) #{flags} #{language_flag} -"
+      "#{RbConfig.ruby} #{cext_dir}/preprocess.rb $< #{flags} | #{compiler} -I$(<D) #{flags} #{language_flag} -"
     end
 
     c_flags = '$(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG)$@ -c'

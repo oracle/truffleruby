@@ -96,15 +96,18 @@ EOF
             # preprocessor macro which _must_ end with a newline and
             # so requires that we preserve the trailing whitespace.
             patched_file[:patches].each do |patch|
-              replacement = patch[:replacement].rstrip
-              last_line = replacement.lines.last || replacement # .lines returns an empty Array if String#empty?
-              last_line = last_line.lstrip
-              contents = contents.gsub(patch[:match],
-                                       if last_line && last_line.start_with?('#')
-                                         patch[:replacement]
-                                       else
-                                         patch[:replacement].rstrip
-                                       end)
+              predicate = patch[:predicate] || -> { true }
+              if predicate.call
+                replacement = patch[:replacement].rstrip
+                last_line = replacement.lines.last || replacement # .lines returns an empty Array if String#empty?
+                last_line = last_line.lstrip
+                contents = contents.gsub(patch[:match],
+                                         if last_line && last_line.start_with?('#')
+                                           patch[:replacement]
+                                         else
+                                           patch[:replacement].rstrip
+                                         end)
+              end
             end
           end
         end
