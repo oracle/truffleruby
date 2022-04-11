@@ -1993,6 +1993,15 @@ module Commands
         stack << [name, time]
         result[stack.map(&:first)] += (time * 1000.0)
         stack.pop
+      # [0.423s][info][gc] GC(0) Pause Young (Normal) (G1 Evacuation Pause) 25M->7M(506M) 5.526ms
+      elsif line =~ /^\[\d+\.\d+s\]\[info\]\[gc\] (.+) (\d+\.\d+)ms$/
+        name = $1
+        time = Float($2)
+        stack << [name, time]
+        result[stack.map(&:first)] += time
+        stack.pop
+      elsif line =~ /\[info\]\[gc\] Using G1$/ or line =~ /\[info\]\[gc\] GC\(\d+\) Concurrent Cycle$/
+        # ignore
       else
         STDERR.puts line
       end
