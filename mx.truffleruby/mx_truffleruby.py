@@ -197,16 +197,6 @@ def ruby_testdownstream_aot(args):
     # Run "jt test fast --native :truffle" to catch slow specs in Truffle which only apply to native
     ruby_run_specs(aot_bin, fast + [':truffle'])
 
-def ruby_testdownstream_sulong(args):
-    """Run C extension tests"""
-    build_truffleruby([])
-    # Ensure Sulong is available
-    mx.suite('sulong')
-
-    # Only what is not already tested in the GraalVM gates
-    jt('test', 'mri', '--all-sulong')
-    jt('test', 'cexts')
-
 def ruby_spotbugs(args):
     """Run SpotBugs with custom options to detect more issues"""
     mx.command_function('build')(['--no-native']) # SpotBugs needs all Java projects to be built
@@ -312,7 +302,6 @@ mx.update_commands(_suite, {
     'ruby_check_heap_dump': [ruby_check_heap_dump, ''],
     'ruby_testdownstream_aot': [ruby_testdownstream_aot, 'aot_bin'],
     'ruby_testdownstream_hello': [ruby_testdownstream_hello, ''],
-    'ruby_testdownstream_sulong': [ruby_testdownstream_sulong, ''],
     'ruby_spotbugs': [ruby_spotbugs, ''],
     'verify-ci': [verify_ci, '[options]'],
     'ruby_jacoco_args': [ruby_jacoco_args, ''],

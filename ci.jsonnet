@@ -346,9 +346,10 @@ local part_definitions = {
 
     test_cexts: {
       is_after+:: ["$.use.common"],
-      run+: [
-        ["mx", "--dynamicimports", "/sulong", "ruby_testdownstream_sulong"],
-      ] + jt(["test", "bundle"]),
+      # Only what is not already tested in other gates (e.g., C API and C ext specs are part of test_specs)
+      run+: jt(["test", "mri", "--all-sulong"]) +
+            jt(["test", "cexts"]) +
+            jt(["test", "bundle"]),
     },
 
     testdownstream_aot: { run+: [["mx", "ruby_testdownstream_aot", "$RUBY_BIN"]] },
