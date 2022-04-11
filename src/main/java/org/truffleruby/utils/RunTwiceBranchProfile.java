@@ -11,8 +11,9 @@ package org.truffleruby.utils;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.nodes.NodeCloneable;
 
-public final class RunTwiceBranchProfile {
+public final class RunTwiceBranchProfile extends NodeCloneable {
 
     private enum ExecuteCounter {
         NEVER,
