@@ -2150,7 +2150,7 @@ module Commands
           method_glob_pattern = "Isolated:_#{method_glob_pattern}"
         end
 
-        dumps = Dir.glob('graal_dumps/*').sort.last
+        dumps = Dir.glob('graal_dumps/*').select { |path| File.directory?(path) }.sort.last
         raise 'Could not dump directory under graal_dumps/' unless dumps
         graphs = Dir.glob("#{dumps}/*\\[#{method_glob_pattern}*\\].bgv").sort
         graph = graphs.last
@@ -2158,7 +2158,11 @@ module Commands
 
         list = run_gem_test_pack_gem_or_install('seafoam', SEAFOAM_VERSION, '--json', graph, 'list', capture: :out, no_print_cmd: true)
         decoded = JSON.parse(list)
-        n = decoded.find { |entry| entry['graph_name_components'].last == 'Before phase org.graalvm.compiler.phases.common.LoweringPhase' }['graph_index']
+        graph_names = decoded.map { |entry| entry.fetch('graph_name_components').last }
+        before_lowering_regexp = /Before.+Lowering/
+        before_lowering = graph_names.index { |name| name =~ before_lowering_regexp }
+        raise "Could not find #{before_lowering_regexp.inspect} in #{graph_names}" unless before_lowering
+        n = decoded.fetch(before_lowering).fetch('graph_index')
 
         json_args = json ? %w[--json] : []
         action = describe ? 'describe' : 'render'
