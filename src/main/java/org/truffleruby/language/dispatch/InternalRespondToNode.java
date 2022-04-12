@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language.dispatch;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.nodes.DenyReplace;
 import com.oracle.truffle.api.nodes.NodeCost;
 import org.truffleruby.core.kernel.KernelNodes.RespondToNode;
@@ -66,7 +66,7 @@ public class InternalRespondToNode extends RubyBaseNode {
         this(config, MetaClassNode.create(), LookupMethodNode.create());
     }
 
-    public boolean execute(VirtualFrame frame, Object receiver, String methodName) {
+    public final boolean execute(Frame frame, Object receiver, String methodName) {
         final RubyClass metaclass = metaclassNode.execute(receiver);
         final InternalMethod method = methodLookup.execute(frame, metaclass, methodName, config);
         return method != null && method.isDefined() && method.isImplemented();
@@ -84,11 +84,6 @@ public class InternalRespondToNode extends RubyBaseNode {
 
         protected Uncached(DispatchConfiguration config) {
             super(config, MetaClassNodeGen.getUncached(), LookupMethodNodeGen.getUncached());
-        }
-
-        @Override
-        public boolean execute(VirtualFrame frame, Object receiver, String methodName) {
-            return super.execute(null, receiver, methodName);
         }
 
         @Override

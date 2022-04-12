@@ -30,7 +30,6 @@ import org.truffleruby.core.cast.ToRubyIntegerNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodes.ToSNode;
-import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.rope.CodeRange;
@@ -77,16 +76,12 @@ public abstract class TypeNodes {
 
     @Primitive(name = "object_respond_to?")
     public abstract static class ObjectRespondToNode extends PrimitiveArrayArgumentsNode {
-
-        @Child private KernelNodes.RespondToNode respondToNode = KernelNodesFactory.RespondToNodeFactory
-                .create(null, null, null);
-
         @Specialization
-        protected boolean objectRespondTo(Object object, Object name, boolean includePrivate) {
+        protected boolean objectRespondTo(Object object, Object name, boolean includePrivate,
+                @Cached KernelNodes.RespondToNode respondToNode) {
             // Do not pass a frame here, we want to ignore refinements and not need to read the caller frame
-            return respondToNode.executeDoesRespondTo(null, object, name, includePrivate);
+            return respondToNode.executeDoesRespondTo(object, name, includePrivate);
         }
-
     }
 
     @Primitive(name = "object_class")

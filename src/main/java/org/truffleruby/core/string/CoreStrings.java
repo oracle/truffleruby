@@ -28,8 +28,6 @@ public class CoreStrings {
     public final CoreString REPLACEMENT_CHARACTER_SETUP_FAILED;
     public final CoreString STACK_LEVEL_TOO_DEEP;
     public final CoreString TIME_INTERVAL_MUST_BE_POS;
-    public final CoreString TO_ARY;
-    public final CoreString TO_STR;
     public final CoreString TOO_FEW_ARGUMENTS;
     public final CoreString TZ;
     public final CoreString UNKNOWN;
@@ -53,8 +51,6 @@ public class CoreStrings {
         REPLACEMENT_CHARACTER_SETUP_FAILED = new CoreString(language, "replacement character setup failed");
         STACK_LEVEL_TOO_DEEP = new CoreString(language, "stack level too deep");
         TIME_INTERVAL_MUST_BE_POS = new CoreString(language, "time interval must be positive");
-        TO_ARY = new CoreString(language, "to_ary");
-        TO_STR = new CoreString(language, "to_str");
         TOO_FEW_ARGUMENTS = new CoreString(language, "too few arguments");
         TZ = new CoreString(language, "TZ");
         UNKNOWN = new CoreString(language, "(unknown)");

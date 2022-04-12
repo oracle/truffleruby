@@ -19,14 +19,14 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
 /** A core method that should always be executed inline, without going through a CallTarget. That enables accessing the
- * caller frame efficiently and reliably.
+ * caller frame efficiently and reliably. It also means there is a copy/"split" of that core method for every call site.
  * <p>
  * If called from a foreign language, then the caller frame will be null. The node should check using
- * {@link #needCallerFrame(Frame, RootCallTarget)} that the caller frame is not null before using it (if it uses it), in
- * order to provide a useful exception in that case.
+ * {@link #needCallerFrame(Frame, RootCallTarget)} that the caller frame is not null before using it (if it needs it),
+ * in order to provide a useful exception in that case.
  * <p>
  * Such a method will not appear in backtraces. However, Ruby exceptions emitted from this node will be resent through a
- * CallTarget to get the proper backtrace.
+ * CallTarget to get the proper backtrace. This should be tested in spec/truffle/always_inlined_spec.rb.
  * <p>
  * Such a core method should not emit significantly more Graal nodes than a non-inlined call, as Truffle cannot decide
  * to not inline it, and that could lead to too big methods to compile. */

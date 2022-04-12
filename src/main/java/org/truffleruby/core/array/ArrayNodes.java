@@ -21,7 +21,6 @@ import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.graalvm.collections.EconomicSet;
 import org.graalvm.collections.Equivalence;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -1263,7 +1262,7 @@ public abstract class ArrayNodes {
                 guards = { "!isImplicitLong(object)", "wasProvided(object)", "!isRubyArray(object)" })
         protected RubyArray initialize(RubyArray array, Object object, NotProvided unusedValue, Nil block) {
             RubyArray copy = null;
-            if (respondToToAry(getLanguage(), object)) {
+            if (respondToToAry(object)) {
                 Object toAryResult = callToAry(object);
                 if (toAryResult instanceof RubyArray) {
                     copy = (RubyArray) toAryResult;
@@ -1278,13 +1277,12 @@ public abstract class ArrayNodes {
             }
         }
 
-        public boolean respondToToAry(RubyLanguage language, Object object) {
+        public boolean respondToToAry(Object object) {
             if (respondToToAryNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                respondToToAryNode = insert(KernelNodesFactory.RespondToNodeFactory.create(null, null, null));
+                respondToToAryNode = insert(KernelNodesFactory.RespondToNodeFactory.create());
             }
-            return respondToToAryNode
-                    .executeDoesRespondTo(null, object, language.coreStrings.TO_ARY.createInstance(getContext()), true);
+            return respondToToAryNode.executeDoesRespondTo(object, coreSymbols().TO_ARY, true);
         }
 
         protected Object callToAry(Object object) {

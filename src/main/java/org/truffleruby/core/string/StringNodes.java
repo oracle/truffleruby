@@ -495,10 +495,10 @@ public abstract class StringNodes {
         protected boolean equal(Object a, Object b) {
             if (respondToNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                respondToNode = insert(KernelNodesFactory.RespondToNodeFactory.create(null, null, null));
+                respondToNode = insert(KernelNodesFactory.RespondToNodeFactory.create());
             }
 
-            if (respondToNode.executeDoesRespondTo(null, b, coreStrings().TO_STR.createInstance(getContext()), false)) {
+            if (respondToNode.executeDoesRespondTo(b, coreSymbols().TO_STR, false)) {
                 if (objectEqualNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
                     objectEqualNode = insert(DispatchNode.create());
