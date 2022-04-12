@@ -3,15 +3,20 @@ require 'json'
 $tests = 0
 $failures = 0
 
-def test(program, extra = '', shape_expected)
+def test(program, shape_expected)
   $tests += 1
-  output = `bin/jt -q graph --json --describe #{program} #{extra}`
+  command = "bin/jt -q graph --json --describe #{program}"
+  output = `#{command}`
+  unless $?.success?
+    abort "`#{command}` failed (#{$?}).\nOutput:\n#{output}\n"
+  end
   last_line = output.lines.last.strip
 
   begin
     decoded = JSON.parse(last_line, symbolize_names: true)
   rescue JSON::ParserError => e
-    abort "#{program}: could not parse JSON (#{e}):\n#{output}"
+    abort "ERROR: Could not parse JSON from command `#{command}` (#{e}).\n" \
+      "JSON line:\n#{last_line}\nFull output:\n#{output}\n"
   end
 
   shape_got = decoded
