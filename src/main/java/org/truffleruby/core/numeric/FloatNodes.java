@@ -900,7 +900,7 @@ public abstract class FloatNodes {
 
         protected static boolean hasLargeExp(double value) {
             double abs = Math.abs(value);
-            return (abs >= 1_000_000_000_000_000.0);
+            return Double.isFinite(abs) && (abs >= 1_000_000_000_000_000.0);
         }
 
         protected static boolean hasSmallExp(double value) {
