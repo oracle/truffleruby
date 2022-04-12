@@ -142,7 +142,7 @@ public class RopeOperations {
 
     /** Prefer this to {@code getBytes(StandardCharsets.US_ASCII)} */
     public static byte[] encodeAsciiBytes(String value) {
-        assert StringOperations.isAsciiOnly(value);
+        assert StringOperations.isAsciiOnly(value) : "String contained non ascii characters \"" + value + "\"";
 
         final byte[] bytes = new byte[value.length()];
 
