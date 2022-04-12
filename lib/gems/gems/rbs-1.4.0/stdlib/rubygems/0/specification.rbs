@@ -1,0 +1,3 @@
+class Gem::Specification < Gem::BasicSpecification
+  # TODO: Add sinatures...
+end

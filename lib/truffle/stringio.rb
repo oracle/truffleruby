@@ -212,6 +212,7 @@ class StringIO
     string = d.string
 
     while d.pos < string.length
+      check_readable
       byte = string.getbyte d.pos
       d.pos += 1
       yield byte
@@ -239,6 +240,7 @@ class StringIO
     string = d.string
 
     while d.pos < string.bytesize
+      check_readable
       char = Primitive.string_chr_at(string, d.pos)
 
       unless char

@@ -8,14 +8,14 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["aycabta".freeze]
-  s.date = "2021-10-13"
+  s.date = "2022-03-17"
   s.description = "Alternative GNU Readline or Editline implementation by pure Ruby.".freeze
   s.email = ["aycabta@gmail.com".freeze]
   s.files = ["reline.rb".freeze, "reline/ansi.rb".freeze, "reline/config.rb".freeze, "reline/general_io.rb".freeze, "reline/history.rb".freeze, "reline/key_actor.rb".freeze, "reline/key_actor/base.rb".freeze, "reline/key_actor/emacs.rb".freeze, "reline/key_actor/vi_command.rb".freeze, "reline/key_actor/vi_insert.rb".freeze, "reline/key_stroke.rb".freeze, "reline/kill_ring.rb".freeze, "reline/line_editor.rb".freeze, "reline/unicode.rb".freeze, "reline/unicode/east_asian_width.rb".freeze, "reline/version.rb".freeze, "reline/windows.rb".freeze]
   s.homepage = "https://github.com/ruby/reline".freeze
   s.licenses = ["Ruby".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.5".freeze)
-  s.rubygems_version = "3.2.22".freeze
+  s.rubygems_version = "3.2.32".freeze
   s.summary = "Alternative GNU Readline or Editline implementation by pure Ruby.".freeze
 
   if s.respond_to? :specification_version then

@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-require 'rubygems/installer_test_case'
+require_relative 'installer_test_case'
 
 class TestGemInstaller < Gem::InstallerTestCase
   def setup
@@ -32,6 +32,8 @@ class TestGemInstaller < Gem::InstallerTestCase
 #
 
 require 'rubygems'
+
+Gem.use_gemdeps
 
 version = \">= 0.a\"
 
@@ -730,7 +732,7 @@ gem 'other', version
     installer.generate_bin
 
     default_shebang = Gem.ruby
-    shebang_line = open("#{@gemhome}/bin/executable") {|f| f.readlines.first }
+    shebang_line = File.open("#{@gemhome}/bin/executable") {|f| f.readlines.first }
     assert_match(/\A#!/, shebang_line)
     assert_match(/#{default_shebang}/, shebang_line)
   end
@@ -740,7 +742,6 @@ gem 'other', version
 
     installer = Gem::Installer.at(
       gem_with_dangling_symlink,
-      :install_dir => @gem_home,
       :user_install => false,
       :force => true
     )
@@ -1482,6 +1483,7 @@ gem 'other', version
 
   def test_install_extension_and_script
     pend "Makefile creation crashes on jruby" if Gem.java_platform?
+    pend if /mswin/ =~ RUBY_PLATFORM && ENV.key?('GITHUB_ACTIONS') # not working from the beginning
 
     @spec = setup_base_spec
     @spec.extensions << "extconf.rb"

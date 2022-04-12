@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'rubygems/test_case'
+require_relative 'helper'
 require 'rubygems/commands/setup_command'
 
 class TestGemCommandsSetupCommand < Gem::TestCase
@@ -14,14 +14,12 @@ class TestGemCommandsSetupCommand < Gem::TestCase
   def setup
     super
 
-    @install_dir = File.join @tempdir, 'install'
     @cmd = Gem::Commands::SetupCommand.new
-    @cmd.options[:prefix] = @install_dir
 
     filelist = %w[
       bin/gem
       lib/rubygems.rb
-      lib/rubygems/test_case.rb
+      lib/rubygems/requirement.rb
       lib/rubygems/ssl_certs/rubygems.org/foo.pem
       bundler/exe/bundle
       bundler/exe/bundler
@@ -48,7 +46,7 @@ class TestGemCommandsSetupCommand < Gem::TestCase
       io.puts gemspec.to_ruby
     end
 
-    open(File.join(Gem.default_specifications_dir, "bundler-1.15.4.gemspec"), 'w') do |io|
+    File.open(File.join(Gem.default_specifications_dir, "bundler-1.15.4.gemspec"), 'w') do |io|
       gemspec.version = "1.15.4"
       io.puts gemspec.to_ruby
     end
@@ -159,7 +157,7 @@ class TestGemCommandsSetupCommand < Gem::TestCase
   end
 
   def test_files_in
-    assert_equal %w[rubygems.rb rubygems/ssl_certs/rubygems.org/foo.pem rubygems/test_case.rb],
+    assert_equal %w[rubygems.rb rubygems/requirement.rb rubygems/ssl_certs/rubygems.org/foo.pem],
                  @cmd.files_in('lib').sort
   end
 
@@ -227,27 +225,60 @@ class TestGemCommandsSetupCommand < Gem::TestCase
       f.puts 'echo "hello"'
     end
 
-    bindir(bin_dir) do
-      @cmd.options[:force] = true
+    @cmd.options[:force] = true
 
-      @cmd.install_default_bundler_gem bin_dir
+    @cmd.install_default_bundler_gem bin_dir
 
-      bundler_spec = Gem::Specification.load("bundler/bundler.gemspec")
-      default_spec_path = File.join(Gem.default_specifications_dir, "#{bundler_spec.full_name}.gemspec")
-      spec = Gem::Specification.load(default_spec_path)
+    bundler_spec = Gem::Specification.load("bundler/bundler.gemspec")
+    default_spec_path = File.join(Gem.default_specifications_dir, "#{bundler_spec.full_name}.gemspec")
+    spec = Gem::Specification.load(default_spec_path)
 
-      spec.executables.each do |e|
-        if Gem.win_platform?
-          assert_path_exist File.join(bin_dir, "#{e}.bat")
-        end
-
-        assert_path_exist File.join bin_dir, e
+    spec.executables.each do |e|
+      if Gem.win_platform?
+        assert_path_exist File.join(bin_dir, "#{e}.bat")
       end
+
+      assert_path_exist File.join bin_dir, e
+    end
+  end
+
+  def test_install_default_bundler_gem_with_destdir_flag
+    @cmd.extend FileUtils
+
+    destdir = File.join(@tempdir, 'foo')
+    bin_dir = File.join(destdir, 'bin')
+
+    @cmd.options[:destdir] = destdir
+
+    @cmd.install_default_bundler_gem bin_dir
+
+    spec = Gem::Specification.load("bundler/bundler.gemspec")
+
+    spec.executables.each do |e|
+      assert_path_exist File.join destdir, @gemhome.gsub(/^[a-zA-Z]:/, ''), 'gems', spec.full_name, spec.bindir, e
+    end
+  end
+
+  def test_install_default_bundler_gem_with_destdir_and_prefix_flags
+    @cmd.extend FileUtils
+
+    destdir = File.join(@tempdir, 'foo')
+    bin_dir = File.join(destdir, 'bin')
+
+    @cmd.options[:destdir] = destdir
+    @cmd.options[:prefix] = "/"
+
+    @cmd.install_default_bundler_gem bin_dir
+
+    spec = Gem::Specification.load("bundler/bundler.gemspec")
+
+    spec.executables.each do |e|
+      assert_path_exist File.join destdir, 'gems', spec.full_name, spec.bindir, e
     end
   end
 
   def test_remove_old_lib_files
-    lib                   = File.join @install_dir, 'lib'
+    lib                   = RbConfig::CONFIG["sitelibdir"]
     lib_rubygems          = File.join lib, 'rubygems'
     lib_bundler           = File.join lib, 'bundler'
     lib_rubygems_defaults = File.join lib_rubygems, 'defaults'
@@ -278,7 +309,7 @@ class TestGemCommandsSetupCommand < Gem::TestCase
   end
 
   def test_remove_old_man_files
-    man = File.join @install_dir, 'man'
+    man = File.join RbConfig::CONFIG['mandir'], 'man'
 
     ruby_1             = File.join man, 'man1', 'ruby.1'
     bundle_b_1         = File.join man, 'man1', 'bundle-b.1'
@@ -384,14 +415,14 @@ class TestGemCommandsSetupCommand < Gem::TestCase
   end
 
   def default_gem_bin_path
-    File.join @install_dir, 'bin', 'gem'
+    File.join RbConfig::CONFIG['bindir'], 'gem'
   end
 
   def default_bundle_bin_path
-    File.join @install_dir, 'bin', 'bundle'
+    File.join RbConfig::CONFIG['bindir'], 'bundle'
   end
 
   def default_bundler_bin_path
-    File.join @install_dir, 'bin', 'bundler'
+    File.join RbConfig::CONFIG['bindir'], 'bundler'
   end
 end unless Gem.java_platform?

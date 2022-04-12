@@ -9,14 +9,14 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Marc-Andre Lafortune".freeze]
   s.bindir = "exe".freeze
-  s.date = "2021-10-13"
+  s.date = "2022-03-17"
   s.description = "Class to build custom data structures, similar to a Hash.".freeze
   s.email = ["ruby-core@marc-andre.ca".freeze]
   s.files = ["ostruct.rb".freeze]
   s.homepage = "https://github.com/ruby/ostruct".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.5.0".freeze)
-  s.rubygems_version = "3.2.22".freeze
+  s.rubygems_version = "3.2.32".freeze
   s.summary = "Class to build custom data structures, similar to a Hash.".freeze
 
   if s.respond_to? :specification_version then

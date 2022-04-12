@@ -1,0 +1,3 @@
+class Gem::Installer
+  # TODO: Add sinatures...
+end
