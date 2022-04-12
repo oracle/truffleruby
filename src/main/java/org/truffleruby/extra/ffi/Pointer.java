@@ -17,7 +17,6 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
-import org.truffleruby.core.FinalizationService;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -365,7 +364,7 @@ public final class Pointer implements AutoCloseable {
     }
 
     @TruffleBoundary
-    public synchronized void disableAutorelease(FinalizationService finalizationService) {
+    public synchronized void disableAutorelease() {
         if (cleanable == null) {
             return;
         }
