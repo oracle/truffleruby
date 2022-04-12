@@ -104,18 +104,30 @@ public class BucketsHashStore {
             1073741824 + 85
     };
 
+    private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
+    private static final int MAX_ENTRIES = (int) (MAX_ARRAY_SIZE * LOAD_FACTOR);
+
     // endregion
     // region Utilities
 
     @TruffleBoundary
-    static int capacityGreaterThan(int size) {
+    static int growthCapacityGreaterThan(int size) {
+        int buckets = 0;
         for (int capacity : CAPACITIES) {
             if (capacity > size) {
-                return capacity;
+                buckets = capacity * OVERALLOCATE_FACTOR;
+                break;
             }
         }
 
-        return CAPACITIES[CAPACITIES.length - 1];
+        if (buckets > 0) {
+            assert buckets * LOAD_FACTOR > size;
+            return buckets;
+        } else if (size < MAX_ENTRIES) {
+            return MAX_ARRAY_SIZE;
+        } else {
+            throw new OutOfMemoryError("too big Hash: " + size + " entries");
+        }
     }
 
     static int getBucketIndex(int hashed, int bucketsCount) {
@@ -124,7 +136,7 @@ public class BucketsHashStore {
 
     @TruffleBoundary
     private void resize(RubyHash hash, int size) {
-        final int bucketsCount = capacityGreaterThan(size) * OVERALLOCATE_FACTOR;
+        final int bucketsCount = growthCapacityGreaterThan(size);
         final Entry[] newEntries = new Entry[bucketsCount];
 
         final Entry firstInSequence = this.firstInSequence;
@@ -589,7 +601,7 @@ public class BucketsHashStore {
 
         public GenericHashLiteralNode(RubyNode[] keyValues) {
             super(keyValues);
-            bucketsCount = capacityGreaterThan(keyValues.length / 2) * OVERALLOCATE_FACTOR;
+            bucketsCount = growthCapacityGreaterThan(keyValues.length / 2);
         }
 
         @ExplodeLoop

@@ -124,7 +124,7 @@ public class PackedHashStoreLibrary {
 
     @TruffleBoundary
     private static void promoteToBuckets(RubyHash hash, Object[] store, int size) {
-        final Entry[] buckets = new Entry[BucketsHashStore.capacityGreaterThan(size)];
+        final Entry[] buckets = new Entry[BucketsHashStore.growthCapacityGreaterThan(size)];
 
         Entry firstInSequence = null;
         Entry previousInSequence = null;
