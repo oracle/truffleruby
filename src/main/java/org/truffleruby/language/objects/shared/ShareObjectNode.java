@@ -17,7 +17,6 @@ import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -27,6 +26,7 @@ import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.ObjectLocation;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.utils.RunTwiceBranchProfile;
 
 /** Share the object and all that is reachable from it (see {@link ObjectGraph#getAdjacentObjects}) */
 @ImportStatic(ShapeCachingGuards.class)
@@ -50,6 +50,7 @@ public abstract class ShareObjectNode extends RubyBaseNode {
     protected void shareCached(RubyDynamicObject object,
             @Cached("object.getShape()") Shape cachedShape,
             @CachedLibrary(limit = "1") DynamicObjectLibrary objectLibrary,
+            @Cached("new()") RunTwiceBranchProfile shareMetaClassProfile,
             @Cached("createShareInternalFieldsNode()") ShareInternalFieldsNode shareInternalFieldsNode,
             @Cached("getObjectProperties(cachedShape)") List<Property> properties,
             @Cached("createReadAndShareFieldNodes(properties)") ReadAndShareFieldNode[] readAndShareFieldNodes,
@@ -59,20 +60,14 @@ public abstract class ShareObjectNode extends RubyBaseNode {
         objectLibrary.markShared(object);
         assert object.getShape() == sharedShape;
 
-        // Share the logical class
-        if (!object.getLogicalClass().getShape().isShared()) {
-            // The logical class is fixed for a given Shape and only needs to be shared once
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            SharedObjects.writeBarrier(getLanguage(), object.getLogicalClass());
-        }
-
-        // Share the metaclass. Note that the metaclass might refer to `object` via `attached`,
-        // so it is important to share the object first.
+        // Share the metaclass. This will also the share the logical class, which is the same or its superclass.
+        // Note that the metaclass might refer to `object` via `attached`, so it is important to share the object first.
         if (!object.getMetaClass().getShape().isShared()) {
-            // The metaclass is fixed for a given Shape and only needs to be shared once
-            CompilerDirectives.transferToInterpreterAndInvalidate();
+            shareMetaClassProfile.enter();
             SharedObjects.writeBarrier(getLanguage(), object.getMetaClass());
         }
+        assert SharedObjects
+                .isShared(object.getLogicalClass()) : "the logical class should have been shared by the metaclass";
 
         shareInternalFieldsNode.executeShare(object);
 
