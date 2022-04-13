@@ -1,3 +1,4 @@
+exclude :test_ar2st, "mutating Hash during key.hash"
 exclude :test_ASET_fstring_key, "needs investigation"
 exclude :test_ASET_fstring_non_literal_key, "needs investigation"
 exclude :test_NEWHASH_fstring_key, "needs investigation"
