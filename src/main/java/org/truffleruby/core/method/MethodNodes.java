@@ -172,7 +172,7 @@ public abstract class MethodNodes {
 
         @Specialization
         protected RubyModule owner(RubyMethod method) {
-            return method.method.getDeclaringModule();
+            return method.method.getOwner();
         }
 
     }

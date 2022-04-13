@@ -96,7 +96,8 @@ public class RubyModule extends RubyDynamicObject implements ObjectGraphNode {
             singletonClass.fields.addMethod(
                     context,
                     currentNode,
-                    method.withDeclaringModule(singletonClass).withVisibility(Visibility.PUBLIC));
+                    method.withDeclaringModule(singletonClass).withOwner(singletonClass)
+                            .withVisibility(Visibility.PUBLIC));
         } else {
             fields.addMethod(context, currentNode, method.withVisibility(visibility));
         }
