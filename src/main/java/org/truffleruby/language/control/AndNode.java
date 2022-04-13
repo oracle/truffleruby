@@ -48,7 +48,7 @@ public class AndNode extends RubyContextSourceNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             leftCast = insert(BooleanCastNodeGen.create(null));
         }
-        return leftCast.executeToBoolean(value);
+        return leftCast.execute(value);
     }
 
 }

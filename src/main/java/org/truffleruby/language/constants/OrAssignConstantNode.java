@@ -81,6 +81,6 @@ public class OrAssignConstantNode extends RubyContextSourceNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             cast = insert(BooleanCastNodeGen.create(null));
         }
-        return cast.executeToBoolean(value);
+        return cast.execute(value);
     }
 }

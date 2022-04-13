@@ -65,7 +65,7 @@ public final class WhileNode extends RubyContextSourceNode {
 
         @Override
         public boolean executeRepeating(VirtualFrame frame) {
-            if (!condition.executeBoolean(frame)) {
+            if (!condition.execute(frame)) {
                 return false;
             }
 
@@ -104,7 +104,7 @@ public final class WhileNode extends RubyContextSourceNode {
                 return true;
             }
 
-            return condition.executeBoolean(frame);
+            return condition.execute(frame);
         }
 
     }

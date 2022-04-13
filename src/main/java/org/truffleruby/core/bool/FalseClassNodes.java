@@ -35,7 +35,7 @@ public abstract class FalseClassNodes {
         @Specialization
         protected boolean orXor(Object other,
                 @Cached BooleanCastNode cast) {
-            return cast.executeToBoolean(other);
+            return cast.execute(other);
         }
 
     }

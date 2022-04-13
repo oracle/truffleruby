@@ -39,7 +39,7 @@ public abstract class BooleanCastWithDefaultNode extends RubyBaseNodeWithExecute
     @Fallback
     protected boolean fallback(Object value,
             @Cached BooleanCastNode booleanCastNode) {
-        return booleanCastNode.executeToBoolean(value);
+        return booleanCastNode.execute(value);
     }
 
 }

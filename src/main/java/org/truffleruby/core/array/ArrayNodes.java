@@ -1790,7 +1790,7 @@ public abstract class ArrayNodes {
                 for (; loopProfile.inject(n < arraySizeProfile.profile(array.size)); n++) {
                     final Object value = stores.read(store, n);
 
-                    if (!booleanCastNode.executeToBoolean(callBlock(block, value))) {
+                    if (!booleanCastNode.execute(callBlock(block, value))) {
                         arrayBuilder.appendValue(state, selectedSize, value);
                         selectedSize++;
                     }
@@ -1856,7 +1856,7 @@ public abstract class ArrayNodes {
             try {
                 for (; loop1Profile.inject(n < arraySizeProfile.profile(array.size)); n++) {
                     final Object value = stores.read(store, n);
-                    if (booleanCastNode.executeToBoolean(callBlock(block, value))) {
+                    if (booleanCastNode.execute(callBlock(block, value))) {
                         continue;
                     }
 
@@ -2080,7 +2080,7 @@ public abstract class ArrayNodes {
                 for (; loopProfile.inject(n < arraySizeProfile.profile(array.size)); n++) {
                     final Object value = stores.read(store, n);
 
-                    if (booleanCastNode.executeToBoolean(callBlock(block, value))) {
+                    if (booleanCastNode.execute(callBlock(block, value))) {
                         arrayBuilder.appendValue(state, selectedSize, value);
                         selectedSize++;
                     }

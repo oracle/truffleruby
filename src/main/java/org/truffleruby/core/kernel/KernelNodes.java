@@ -202,7 +202,7 @@ public abstract class KernelNodes {
                 booleanCastNode = insert(BooleanCastNode.create());
             }
 
-            return booleanCastNode.executeToBoolean(equalNode.call(left, "==", right));
+            return booleanCastNode.execute(equalNode.call(left, "==", right));
         }
 
     }
@@ -244,7 +244,7 @@ public abstract class KernelNodes {
                 @Cached ReferenceEqualNode referenceEqual,
                 @Cached DispatchNode eql,
                 @Cached BooleanCastNode booleanCast) {
-            return referenceEqual.executeReferenceEqual(a, b) || booleanCast.executeToBoolean(eql.call(a, "eql?", b));
+            return referenceEqual.executeReferenceEqual(a, b) || booleanCast.execute(eql.call(a, "eql?", b));
         }
     }
 
@@ -1452,7 +1452,7 @@ public abstract class KernelNodes {
             final Object name = RubyArguments.getArgument(rubyArgs, 0);
             final int nArgs = RubyArguments.getPositionalArgumentsCount(rubyArgs, false);
             final boolean includeProtectedAndPrivate = nArgs >= 2 &&
-                    castArgumentNode.executeToBoolean(RubyArguments.getArgument(rubyArgs, 1));
+                    castArgumentNode.execute(RubyArguments.getArgument(rubyArgs, 1));
 
             if (!RubyGuards.isRubySymbolOrString(name)) {
                 notSymbolOrStringProfile.enter();
@@ -1473,7 +1473,7 @@ public abstract class KernelNodes {
                 return true;
             } else if (respondToMissingProfile
                     .profile(dispatchRespondToMissing.execute(callerFrame, self, "respond_to_missing?"))) {
-                return castMissingResultNode.executeToBoolean(respondToMissingNode.call(self, "respond_to_missing?",
+                return castMissingResultNode.execute(respondToMissingNode.call(self, "respond_to_missing?",
                         toSymbolNode.execute(name), includeProtectedAndPrivate));
             } else {
                 return false;
@@ -1709,7 +1709,7 @@ public abstract class KernelNodes {
                 @Cached IndirectCallNode callPackNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat) {
             final BytesResult result;
-            final boolean isDebug = readDebugGlobalNode.executeBoolean(frame);
+            final boolean isDebug = readDebugGlobalNode.execute(frame);
             try {
                 result = (BytesResult) callPackNode.call(
                         compileFormat(format, arguments, isDebug, libFormat),
@@ -1752,7 +1752,7 @@ public abstract class KernelNodes {
         }
 
         protected boolean isDebug(VirtualFrame frame) {
-            return readDebugGlobalNode.executeBoolean(frame);
+            return readDebugGlobalNode.execute(frame);
         }
 
     }

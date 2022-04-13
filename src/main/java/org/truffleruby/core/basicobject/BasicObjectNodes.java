@@ -90,7 +90,7 @@ public abstract class BasicObjectNodes {
         @Specialization
         protected boolean not(Object value,
                 @Cached BooleanCastNode cast) {
-            return !cast.executeToBoolean(value);
+            return !cast.execute(value);
         }
 
     }
@@ -103,7 +103,7 @@ public abstract class BasicObjectNodes {
 
         @Specialization
         protected boolean equal(VirtualFrame frame, Object a, Object b) {
-            return !booleanCastNode.executeToBoolean(equalNode.call(a, "==", b));
+            return !booleanCastNode.execute(equalNode.call(a, "==", b));
         }
 
     }

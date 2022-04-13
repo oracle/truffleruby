@@ -509,7 +509,7 @@ public abstract class StringNodes {
                     booleanCastNode = insert(BooleanCastNode.create());
                 }
 
-                return booleanCastNode.executeToBoolean(objectEqualNode.call(b, "==", a));
+                return booleanCastNode.execute(objectEqualNode.call(b, "==", a));
             }
 
             return false;
@@ -850,7 +850,7 @@ public abstract class StringNodes {
 
             final Object included = includeNode.call(string, "include?", matchStr);
 
-            if (booleanCastNode.executeToBoolean(included)) {
+            if (booleanCastNode.execute(included)) {
                 return dupNode.executeDupAsStringInstance(matchStr);
             }
 

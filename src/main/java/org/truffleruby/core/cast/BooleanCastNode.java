@@ -36,10 +36,10 @@ public abstract class BooleanCastNode extends RubyBaseNode {
     }
 
     /** Execute with child node */
-    public abstract boolean executeBoolean(VirtualFrame frame);
+    public abstract boolean execute(VirtualFrame frame);
 
     /** Execute with given value */
-    public abstract boolean executeToBoolean(Object value);
+    public abstract boolean execute(Object value);
 
     @Specialization
     protected boolean doNil(Nil nil) {
