@@ -30,7 +30,8 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-/** Share the internal fields of an object, accessible by its Layout */
+/** Share the plain Java fields which may contain objets for subclasses of RubyDynamicObject.
+ * {@link RubyDynamicObject#metaClass} is handled by {@link ShareObjectNode}. */
 @ImportStatic({ ShapeCachingGuards.class, ArrayGuards.class })
 public abstract class ShareInternalFieldsNode extends RubyBaseNode {
 
@@ -85,7 +86,7 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
 
     @Specialization
     protected void shareCachedBasicObject(RubyBasicObject object) {
-        /* No internal fields for RubyBasicObject */
+        /* No extra Java fields for RubyBasicObject */
     }
 
     @Specialization(

@@ -31,7 +31,8 @@ import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-/** Finalizers are implemented with phantom references and reference queues, and are run in a dedicated Ruby thread. */
+/** C-ext data finalizers are implemented with phantom references and reference queues, and are run in a dedicated Ruby
+ * thread. */
 public class DataObjectFinalizationService extends ReferenceProcessingService<DataObjectFinalizerReference> {
 
     // We need a base node here, it should extend ruby base root node and implement internal root node.

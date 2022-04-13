@@ -39,8 +39,8 @@ public final class Pointer implements AutoCloseable {
     }
 
     /** Includes {@link #enableAutorelease(RubyLanguage)} and avoids locking for it */
-    public static Pointer mallocAutoRelease(long size, RubyLanguage langauge) {
-        return new Pointer(UNSAFE.allocateMemory(size), size, langauge);
+    public static Pointer mallocAutoRelease(long size, RubyLanguage language) {
+        return new Pointer(UNSAFE.allocateMemory(size), size, language);
     }
 
     /** Allocates memory and produces a pointer to it. Clears the memory before returning it. Use {@link #malloc} if you
@@ -52,8 +52,8 @@ public final class Pointer implements AutoCloseable {
     }
 
     /** Includes {@link #enableAutorelease(RubyLanguage)} and avoids locking for it */
-    public static Pointer callocAutoRelease(long size, RubyLanguage langauge) {
-        final Pointer pointer = mallocAutoRelease(size, langauge);
+    public static Pointer callocAutoRelease(long size, RubyLanguage language) {
+        final Pointer pointer = mallocAutoRelease(size, language);
         pointer.writeBytes(0, size, (byte) 0);
         return pointer;
     }
@@ -65,7 +65,7 @@ public final class Pointer implements AutoCloseable {
     private AutoReleaseState autoReleaseState = null;
 
     /** This is needed because we need a mutable object to hold the pointer address so that it can be freed or marked as
-     * not to be freed if auto-release is disabled. THis can't be the address field on the pointer itself as that would
+     * not to be freed if auto-release is disabled. This can't be the address field on the pointer itself as that would
      * prevent the pointer from being collected, and we can't retrieve this from the cleaner as it is effectively
      * opaque. */
     private static class AutoReleaseState implements Runnable {
@@ -96,10 +96,10 @@ public final class Pointer implements AutoCloseable {
         this.size = size;
     }
 
-    private Pointer(long address, long size, RubyLanguage langauge) {
+    private Pointer(long address, long size, RubyLanguage language) {
         this.address = address;
         this.size = size;
-        enableAutoreleaseUnsynchronized(langauge);
+        enableAutoreleaseUnsynchronized(language);
     }
 
     public boolean isNull() {

@@ -58,17 +58,20 @@ public class ImmutableRubyString extends ImmutableRubyObject implements TruffleO
         return nativeRope != null;
     }
 
-    public synchronized NativeRope getNativeRope(RubyLanguage language) {
+    public NativeRope getNativeRope(RubyLanguage language) {
         if (nativeRope == null) {
-            nativeRope = createNativeRope(language);
+            return createNativeRope(language);
         }
         return nativeRope;
     }
 
     @TruffleBoundary
-    private NativeRope createNativeRope(RubyLanguage language) {
-        return new NativeRope(rope.getBytes(), rope.getEncoding(), rope.characterLength(), rope.getCodeRange(),
-                language);
+    private synchronized NativeRope createNativeRope(RubyLanguage language) {
+        if (nativeRope == null) {
+            nativeRope = new NativeRope(language, rope.getBytes(), rope.getEncoding(), rope.characterLength(),
+                    rope.getCodeRange());
+        }
+        return nativeRope;
     }
 
     // region RubyStringLibrary messages

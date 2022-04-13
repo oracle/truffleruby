@@ -148,7 +148,7 @@ public class ValueWrapperManager {
             }
             HandleBlock block = ref.get();
             if (block != null) {
-                allocator.addFreeBlock(block.base);
+                block.cleanable.clean();
             }
         }
     }

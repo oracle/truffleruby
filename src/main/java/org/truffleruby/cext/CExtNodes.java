@@ -1212,11 +1212,11 @@ public class CExtNodes {
                 nativeRope = (NativeRope) currentRope;
             } else {
                 nativeRope = new NativeRope(
+                        getLanguage(),
                         bytesNode.execute(currentRope),
                         currentRope.getEncoding(),
                         characterLengthNode.execute(currentRope),
-                        codeRangeNode.execute(currentRope),
-                        getLanguage());
+                        codeRangeNode.execute(currentRope));
                 string.setRope(nativeRope);
             }
 

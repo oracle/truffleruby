@@ -91,7 +91,7 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
 
     @Specialization
     @TruffleBoundary
-    protected void writeBarrierFinalizer(DataObjectFinalizerReference ref) {
+    protected void writeBarrierDataFinalizer(DataObjectFinalizerReference ref) {
         SharedObjects.writeBarrier(getLanguage(), ref.callable);
         SharedObjects.writeBarrier(getLanguage(), ref.dataHolder);
     }

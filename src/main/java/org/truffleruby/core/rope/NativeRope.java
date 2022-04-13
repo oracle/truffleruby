@@ -28,12 +28,12 @@ public class NativeRope extends Rope {
     private final Pointer pointer;
 
     public NativeRope(
+            RubyLanguage language,
             byte[] bytes,
             Encoding encoding,
             int characterLength,
-            CodeRange codeRange,
-            RubyLanguage language) {
-        this(allocateNativePointer(bytes, language), bytes.length, encoding, characterLength, codeRange);
+            CodeRange codeRange) {
+        this(allocateNativePointer(language, bytes), bytes.length, encoding, characterLength, codeRange);
     }
 
     private NativeRope(Pointer pointer, int byteLength, Encoding encoding, int characterLength, CodeRange codeRange) {
@@ -45,7 +45,7 @@ public class NativeRope extends Rope {
         this.pointer = pointer;
     }
 
-    private static Pointer allocateNativePointer(byte[] bytes, RubyLanguage language) {
+    private static Pointer allocateNativePointer(RubyLanguage language, byte[] bytes) {
         final Pointer pointer = Pointer.mallocAutoRelease(bytes.length + 1, language);
         pointer.writeBytes(0, bytes, 0, bytes.length);
         pointer.writeByte(bytes.length, (byte) 0);
