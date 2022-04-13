@@ -12,27 +12,29 @@ package org.truffleruby.cext;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.interop.TranslateInteropExceptionNode;
 
 /** This object represents a struct pointer in C held by a Ruby object. */
 @ExportLibrary(InteropLibrary.class)
 public final class DataHolder implements TruffleObject {
 
-    private volatile Object address;
+    private Object pointer;
 
     public DataHolder(Object address) {
-        this.address = address;
+        this.pointer = address;
     }
 
-    public Object getAddress() {
-        return address;
+    public Object getPointer() {
+        return pointer;
     }
 
-    public void setAddress(Object address) {
-        this.address = address;
+    public void setPointer(Object address) {
+        this.pointer = address;
     }
 
     @ExportMessage
@@ -48,13 +50,17 @@ public final class DataHolder implements TruffleObject {
     @TruffleBoundary
     @Override
     public String toString() {
-        return address.toString();
+        return pointer.toString();
     }
 
     @TruffleBoundary
     @ExportMessage
     protected String toDisplayString(boolean allowSideEffects) {
         final InteropLibrary interop = InteropLibrary.getUncached();
-        return "DATA_HOLDER: " + interop.toDisplayString(address, allowSideEffects);
+        try {
+            return "DATA_HOLDER: " + interop.asString(interop.toDisplayString(pointer, allowSideEffects));
+        } catch (UnsupportedMessageException e) {
+            throw TranslateInteropExceptionNode.getUncached().execute(e);
+        }
     }
 }

@@ -78,7 +78,7 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
         private void runFinalizer(DataObjectFinalizerReference ref) throws Error {
             try {
                 if (!getContext().isFinalizing()) {
-                    Object data = ref.dataHolder.getAddress();
+                    Object data = ref.dataHolder.getPointer();
                     if (!nullNode.isNull(data)) {
                         final ExtensionCallStack stack = getLanguage().getCurrentThread()
                                 .getCurrentFiber().extensionCallStack;

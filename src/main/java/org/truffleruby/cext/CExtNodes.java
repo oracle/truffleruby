@@ -1966,7 +1966,7 @@ public class CExtNodes {
 
         @Specialization
         protected Object getData(DataHolder data) {
-            return data.getAddress();
+            return data.getPointer();
         }
     }
 
@@ -1975,7 +1975,7 @@ public class CExtNodes {
 
         @Specialization
         protected Object setData(DataHolder data, Object address) {
-            data.setAddress(address);
+            data.setPointer(address);
             return nil;
         }
     }
