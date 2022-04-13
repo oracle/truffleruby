@@ -200,6 +200,10 @@ module Truffle
     end
 
     def self.poll(io, events, timeout)
+      if (events & POLLIN) != 0
+        return 1 unless io.__send__(:buffer_empty?)
+      end
+
       if timeout
         unless Primitive.object_kind_of? timeout, Numeric
           raise TypeError, 'Timeout must be numeric'

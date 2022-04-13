@@ -13,6 +13,7 @@ class IO
   end
 
   def ready?
+    ensure_open_and_readable
     Truffle::IOOperations.poll(self, Truffle::IOOperations::POLLIN, 0) > 0
   end
 
