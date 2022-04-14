@@ -209,6 +209,9 @@ public abstract class ObjectSpaceNodes {
             if (respondToCallNode.execute(frame, finalizer, "call")) {
                 if (!getContext().getReferenceProcessor().processOnMainThread()) {
                     // Share the finalizer, as it might run on a different Thread
+                    if (!getContext().getSharedObjects().isSharing()) {
+                        startSharing();
+                    }
                     writeBarrierNode.executeWriteBarrier(finalizer);
                 }
 
@@ -220,6 +223,11 @@ public abstract class ObjectSpaceNodes {
                         getContext(),
                         coreExceptions().argumentErrorWrongArgumentType(finalizer, "callable", this));
             }
+        }
+
+        @TruffleBoundary
+        private void startSharing() {
+            getContext().getSharedObjects().startSharing(getLanguage(), "creating finalizer");
         }
 
         @TruffleBoundary
@@ -258,6 +266,9 @@ public abstract class ObjectSpaceNodes {
                 @CachedLibrary(limit = "1") DynamicObjectLibrary objectLibrary) {
             if (!getContext().getReferenceProcessor().processOnMainThread()) {
                 // Share the finalizer, as it might run on a different Thread
+                if (!getContext().getSharedObjects().isSharing()) {
+                    startSharing();
+                }
                 writeBarrierNode.executeWriteBarrier(finalizer);
                 writeBarrierNode.executeWriteBarrier(dataHolder);
             }
@@ -271,6 +282,11 @@ public abstract class ObjectSpaceNodes {
             return nil;
         }
 
+
+        @TruffleBoundary
+        private void startSharing() {
+            getContext().getSharedObjects().startSharing(getLanguage(), "creating finalizer");
+        }
     }
 
     @CoreMethod(names = "undefine_finalizer", isModuleFunction = true, required = 1)
