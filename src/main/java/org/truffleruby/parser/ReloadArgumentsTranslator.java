@@ -133,6 +133,9 @@ public class ReloadArgumentsTranslator extends Translator {
             sequence.add(kwArgsNode);
         }
 
+        if (sequence.size() == 1) {
+            return sequence.get(0);
+        }
         return new SequenceNode(sequence.toArray(RubyNode.EMPTY_ARRAY));
     }
 

@@ -496,14 +496,18 @@ public class MethodTranslator extends BodyTranslator {
                 this,
                 argsNode);
 
-        final SequenceNode reloadSequence = (SequenceNode) reloadTranslator.visitArgsNode(argsNode);
+        final RubyNode reloadSequence = reloadTranslator.visitArgsNode(argsNode);
 
         final ArgumentsDescriptor descriptor = argsNode.hasKwargs()
                 ? KeywordArgumentsDescriptorManager.EMPTY
                 : EmptyArgumentsDescriptor.INSTANCE;
-        final RubyNode arguments = new ReadZSuperArgumentsNode(
-                reloadTranslator.getRestParameterIndex(),
-                reloadSequence.getSequence());
+        final RubyNode arguments;
+        final int restParamIndex = reloadTranslator.getRestParameterIndex();
+        if (reloadSequence instanceof SequenceNode) {
+            arguments = new ReadZSuperArgumentsNode(restParamIndex, ((SequenceNode) reloadSequence).getSequence());
+        } else {
+            arguments = new ReadZSuperArgumentsNode(restParamIndex, new RubyNode[]{ reloadSequence });
+        }
         final RubyNode block = executeOrInheritBlock(argumentsAndBlock.getBlock(), node);
         final boolean isSplatted = reloadTranslator.getRestParameterIndex() != -1;
 
