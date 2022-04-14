@@ -1,0 +1,82 @@
+<h1>Publications</h1>
+
+{% assign year = 0 %}
+{% assign bibs = papers
+        | sort: "publication_date"
+        | reverse %}
+
+{% for bib in bibs %}
+{{ bib.title }}
+
+{% if bib.bibtype == "unpublished" %}
+    {% continue %}
+{% endif %}
+
+{% if bib.year != year %}
+{% assign year = bib.year %}
+    {% if forloop.first != true %}</ul>{% endif %}
+    <h3>{{ year }}</h3>
+<ul class="biblist">
+    {% endif %}
+
+    <li class="bib-venue bib-venue-{{ bib.series_venue | slugify }}">
+        <strong class="bibtitle">{% if bib.html %}<a href="{{ bib.html }}">{{ bib.title }}</a>{% else %}{{ bib.title }}{% endif %}</strong>{% if bib.pdf %}<span class="bibtitle"> (<a href="{{ bib.pdf }}">pdf</a>)</span>{% endif %}<br/>
+    {% for a in bib.author_abbr_firstname %}
+        {% if a.last == "Marr" %}<em>{% endif %}
+        {{ a.first }} {{ a.last }}{% if a.last == "Marr" %}</em>{% endif %}{% if forloop.last != true %},{% endif %}
+        {% endfor %}<br/>
+        {% case bib.bibtype %}
+            {% when "inproceedings" %}
+                {{ bib.booktitle }},
+            {% when "article" %}
+                {% if bib.journal == empty %}
+                    {{ bib.booktitle }},
+                {% else %}
+                    {{ bib.journal }},
+                {% endif %}
+            {% when "presentation" %}
+                {% if bib.booktitle %}
+                    {% unless bib.booktitle == empty %}
+                        {{ bib.booktitle }},
+                    {% endunless %}
+                {% endif %}
+            {% when "phdthesis" %}
+                {{ bib.school }},
+            {% when "mastersthesis" %}
+                {{ bib.school }},
+            {% when "techreport" %}
+            {% when "proceedings" %}
+            {% when "patent" %}
+                {% if bib.howpublished %}{{ bib.howpublished }}{% if bib.number %} {{ bib.number }}{% endif %},{% endif %}
+            {% else %}
+                <strong>Unsupported</strong>: {{ bib.bibtype }}
+        {% endcase %}
+
+        {% if bib.series %}{% if bib.series != "none" %}<span class="bibseries">{{ bib.series }}</span>,{% endif %}{% endif %}
+        {% if bib.pages %}p. {{ bib.pages }},{% endif %}
+
+        {% if bib.publisher %}{{ bib.publisher }},{% endif %}
+        {{ bib.year }}.
+
+        {% if bib.type %}
+            {{ bib.type }}.
+        {% endif %}
+
+        {% if bib.doi %}
+            doi:&nbsp;<a href="https://doi.org/{{ bib.doi }}">{{ bib.doi }}</a>
+        {% endif %}
+
+        {% if bib.blog %}
+            (<a href="{{ bib.blog }}">blog</a>)
+        {% endif %}
+
+        {% if bib.appendix %}
+            (<a href="{{ bib.appendix }}">appendix</a>)
+        {% endif %}
+
+        <span tabindex="0" class="bibtex">(<span class="biblink">bibtex</span>)
+  <pre>{{ bib.bibtex }}</pre>
+  </span>
+    </li>
+    {% endfor %}
+</ul>
