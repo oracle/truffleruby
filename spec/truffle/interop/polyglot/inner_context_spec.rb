@@ -50,4 +50,37 @@ describe "Polyglot::InnerContext" do
       -> { context.eval('does_not_exist', '') }.should raise_error(ArgumentError, 'Unknown language: does_not_exist')
     end
   end
+
+  it "raises a RuntimeError when stopped" do
+    context = Polyglot::InnerContext.new
+    context.eval('ruby', '42') # Eagerly initializes the context to avoid stopping during context initialization
+
+    in_synchronize = false
+    th = Thread.new do
+      Thread.pass until in_synchronize
+      context.stop
+    end
+    -> {
+      in_synchronize = true
+      context.eval('ruby', 'loop { }')
+    }.should raise_error(RuntimeError, 'Polyglot::InnerContext was terminated forcefully')
+    th.join
+  end
+
+  it "calls the given on_cancelled proc when stopped" do
+    custom_error = Class.new(StandardError)
+    context = Polyglot::InnerContext.new(on_cancelled: -> { raise custom_error, 'error message' })
+    context.eval('ruby', '42') # Eagerly initializes the context to avoid stopping during context initialization
+
+    in_synchronize = false
+    th = Thread.new do
+      Thread.pass until in_synchronize
+      context.stop
+    end
+    -> {
+      in_synchronize = true
+      context.eval('ruby', 'loop { }')
+    }.should raise_error(custom_error, 'error message')
+    th.join
+  end
 end
