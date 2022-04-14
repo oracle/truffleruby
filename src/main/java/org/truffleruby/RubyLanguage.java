@@ -100,6 +100,7 @@ import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.interop.RubyInnerContext;
 import org.truffleruby.interop.RubySourceLocation;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyEvalInteractiveRootNode;
 import org.truffleruby.language.RubyInlineParsingRequestNode;
@@ -180,6 +181,11 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public static final String RESOURCE_SCHEME = "resource:";
 
     public static final TruffleLogger LOGGER = TruffleLogger.getLogger(TruffleRuby.LANGUAGE_ID);
+
+    /** This is a truly empty frame descriptor and should only by dummy root nodes which require no variables any other
+     * root nodes should should use {#link
+     * {@link TranslatorEnvironment#newFrameDescriptorBuilder(org.truffleruby.parser.ParentFrameDescriptor, boolean)}}. */
+    public static final FrameDescriptor EMPTY_FRAME_DESCRIPTOR = new FrameDescriptor(Nil.INSTANCE);
 
     /** We need an extra indirection added to ContextThreadLocal due to multiple Fibers of different Ruby Threads
      * sharing the same Java Thread when using the fiber pool. */

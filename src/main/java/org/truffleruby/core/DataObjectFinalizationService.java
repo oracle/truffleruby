@@ -18,12 +18,10 @@ import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.language.RubyBaseRootNode;
 import org.truffleruby.language.backtrace.InternalRootNode;
 
-import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
-import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 /** Finalizers are implemented with phantom references and reference queues, and are run in a dedicated Ruby thread. */
@@ -32,17 +30,16 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
     // We need a base node here, it shoudl extend ruby base root node and implement internal root node.
     public static class DataObjectFinalizerRootNode extends RubyBaseRootNode implements InternalRootNode {
 
-        private static final FrameDescriptor FINALIZER_FRAME = FrameDescriptor.newBuilder().build();
-
         @Child private InteropLibrary nullNode;
         @Child private InteropLibrary callNode;
 
         public DataObjectFinalizerRootNode(
-                TruffleLanguage<?> language) {
-            super(language, FINALIZER_FRAME, null);
+                RubyLanguage language) {
+            super(language, RubyLanguage.EMPTY_FRAME_DESCRIPTOR, null);
 
-            nullNode = insert(InteropLibrary.getFactory().createDispatched(2));
-            callNode = insert(InteropLibrary.getFactory().createDispatched(2));
+            nullNode = InteropLibrary.getFactory().createDispatched(2);
+            callNode = InteropLibrary.getFactory().createDispatched(2);
+            adoptChildren();
         }
 
         @Override

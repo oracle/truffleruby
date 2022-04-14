@@ -78,7 +78,6 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleOptions;
-import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
@@ -233,8 +232,6 @@ public class CoreLibrary {
 
     public final GlobalVariables globalVariables;
     public final BindingLocalVariablesObject interactiveBindingLocalVariablesObject;
-
-    public final FrameDescriptor emptyDescriptor;
 
     @CompilationFinal private RubyClass eagainWaitReadable;
     @CompilationFinal private RubyClass eagainWaitWritable;
@@ -552,7 +549,6 @@ public class CoreLibrary {
         // Create some key objects
 
         mainObject = new RubyBasicObject(objectClass, language.basicObjectShape);
-        emptyDescriptor = new FrameDescriptor(Nil.INSTANCE);
         argv = new RubyArray(arrayClass, language.arrayShape, ArrayStoreLibrary.INITIAL_STORE, 0);
 
         globalVariables = new GlobalVariables(context);
