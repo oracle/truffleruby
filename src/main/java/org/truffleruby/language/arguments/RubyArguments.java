@@ -291,7 +291,9 @@ public final class RubyArguments {
     }
 
     public static ArgumentsDescriptor getDescriptor(Object[] args) {
-        return (ArgumentsDescriptor) args[ArgumentIndicies.DESCRIPTOR.ordinal()];
+        final Object descriptor = args[ArgumentIndicies.DESCRIPTOR.ordinal()];
+        assert descriptor instanceof ArgumentsDescriptor : descriptor;
+        return (ArgumentsDescriptor) descriptor;
     }
 
     /** Get the raw number of user arguments inside the frame arguments, which might include keyword arguments */

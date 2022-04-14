@@ -64,7 +64,7 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
             final RubySymbol symbolName = toSymbolNode.execute(name);
             final Object respondToMissing = respondToMissingNode
                     .call(self, "respond_to_missing?", symbolName, dispatchConfig.ignoreVisibility);
-            if (respondToMissingProfile.profile(booleanCastNode.executeToBoolean(respondToMissing))) {
+            if (respondToMissingProfile.profile(booleanCastNode.execute(respondToMissing))) {
                 // refinements should not affect BasicObject#method_missing: https://bugs.ruby-lang.org/issues/13129
                 final InternalMethod methodMissing = lookupMethodNode.execute(
                         frame,

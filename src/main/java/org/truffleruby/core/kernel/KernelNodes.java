@@ -103,7 +103,6 @@ import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.WarningNode;
-import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
@@ -119,7 +118,6 @@ import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.loader.RequireNode;
 import org.truffleruby.language.loader.RequireNodeGen;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode;
-import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.GetMethodObjectNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocationTracing;
@@ -204,7 +202,7 @@ public abstract class KernelNodes {
                 booleanCastNode = insert(BooleanCastNode.create());
             }
 
-            return booleanCastNode.executeToBoolean(equalNode.call(left, "==", right));
+            return booleanCastNode.execute(equalNode.call(left, "==", right));
         }
 
     }
@@ -246,7 +244,7 @@ public abstract class KernelNodes {
                 @Cached ReferenceEqualNode referenceEqual,
                 @Cached DispatchNode eql,
                 @Cached BooleanCastNode booleanCast) {
-            return referenceEqual.executeReferenceEqual(a, b) || booleanCast.executeToBoolean(eql.call(a, "eql?", b));
+            return referenceEqual.executeReferenceEqual(a, b) || booleanCast.execute(eql.call(a, "eql?", b));
         }
     }
 
@@ -1425,104 +1423,71 @@ public abstract class KernelNodes {
 
     }
 
-    @CoreMethod(names = "respond_to?", required = 1, optional = 1)
-    @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
-    @NodeChild(value = "includeProtectedAndPrivate", type = RubyBaseNodeWithExecute.class)
-    public abstract static class RespondToNode extends CoreMethodNode {
+    @ImportStatic(DispatchConfiguration.class)
+    @GenerateUncached
+    @CoreMethod(names = "respond_to?", required = 1, optional = 1, alwaysInlined = true)
+    public abstract static class RespondToNode extends AlwaysInlinedMethodNode {
 
-        @Child private InternalRespondToNode dispatch;
-        @Child private InternalRespondToNode dispatchIgnoreVisibility;
-        @Child private InternalRespondToNode dispatchRespondToMissing;
-        @Child private ReadCallerFrameNode readCallerFrame;
-        @Child private DispatchNode respondToMissingNode;
-        @Child private BooleanCastNode booleanCastNode;
-        private final ConditionProfile ignoreVisibilityProfile = ConditionProfile.create();
-        private final ConditionProfile isTrueProfile = ConditionProfile.create();
-        private final ConditionProfile respondToMissingProfile = ConditionProfile.create();
-
-        public RespondToNode() {
-            dispatch = InternalRespondToNode.create(DispatchConfiguration.PUBLIC);
-            dispatchIgnoreVisibility = InternalRespondToNode.create();
-            dispatchRespondToMissing = InternalRespondToNode.create();
-        }
-
-        /** Callers should pass null for the frame here, unless they want to use refinements and can ensure the direct
-         * caller is a Ruby method */
-        public abstract boolean executeDoesRespondTo(VirtualFrame frame, Object object, Object name,
-                boolean includeProtectedAndPrivate);
-
-        @CreateCast("includeProtectedAndPrivate")
-        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute includeProtectedAndPrivate) {
-            return BooleanCastWithDefaultNode.create(false, includeProtectedAndPrivate);
+        public final boolean executeDoesRespondTo(Object self, Object name, boolean includeProtectedAndPrivate) {
+            final Object[] rubyArgs = RubyArguments.allocate(2);
+            RubyArguments.setArgument(rubyArgs, 0, name);
+            RubyArguments.setArgument(rubyArgs, 1, includeProtectedAndPrivate);
+            return (boolean) execute(null, self, rubyArgs, null);
         }
 
         @Specialization
-        protected boolean doesRespondTo(
-                VirtualFrame frame, Object object, Object name, boolean includeProtectedAndPrivate,
-                @Cached ConditionProfile notSymbolOrStringProfile,
+        protected boolean doesRespondTo(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
+                @Cached BranchProfile notSymbolOrStringProfile,
                 @Cached ToJavaStringNode toJavaString,
-                @Cached ToSymbolNode toSymbolNode) {
-            if (notSymbolOrStringProfile.profile(!RubyGuards.isRubySymbolOrString(name))) {
+                @Cached ToSymbolNode toSymbolNode,
+                @Cached BooleanCastNode castArgumentNode,
+                @Cached ConditionProfile ignoreVisibilityProfile,
+                @Cached ConditionProfile isTrueProfile,
+                @Cached ConditionProfile respondToMissingProfile,
+                @Cached(parameters = "PUBLIC") InternalRespondToNode dispatchPublic,
+                @Cached InternalRespondToNode dispatchPrivate,
+                @Cached InternalRespondToNode dispatchRespondToMissing,
+                @Cached DispatchNode respondToMissingNode,
+                @Cached BooleanCastNode castMissingResultNode) {
+            final Object name = RubyArguments.getArgument(rubyArgs, 0);
+            final int nArgs = RubyArguments.getPositionalArgumentsCount(rubyArgs, false);
+            final boolean includeProtectedAndPrivate = nArgs >= 2 &&
+                    castArgumentNode.execute(RubyArguments.getArgument(rubyArgs, 1));
+
+            if (!RubyGuards.isRubySymbolOrString(name)) {
+                notSymbolOrStringProfile.enter();
                 throw new RaiseException(
                         getContext(),
-                        coreExceptions().typeErrorIsNotAOrB(object, "symbol", "string", this));
+                        coreExceptions().typeErrorIsNotAOrB(self, "symbol", "string", this));
             }
 
-            final boolean ret;
-            useCallerRefinements(frame);
-
+            final String methodName = toJavaString.executeToJavaString(name);
+            final boolean found;
             if (ignoreVisibilityProfile.profile(includeProtectedAndPrivate)) {
-                ret = dispatchIgnoreVisibility.execute(frame, object, toJavaString.executeToJavaString(name));
+                found = dispatchPrivate.execute(callerFrame, self, methodName);
             } else {
-                ret = dispatch.execute(frame, object, toJavaString.executeToJavaString(name));
+                found = dispatchPublic.execute(callerFrame, self, methodName);
             }
 
-            if (isTrueProfile.profile(ret)) {
+            if (isTrueProfile.profile(found)) {
                 return true;
             } else if (respondToMissingProfile
-                    .profile(dispatchRespondToMissing.execute(frame, object, "respond_to_missing?"))) {
-                return respondToMissing(object, toSymbolNode.execute(name), includeProtectedAndPrivate);
+                    .profile(dispatchRespondToMissing.execute(callerFrame, self, "respond_to_missing?"))) {
+                return castMissingResultNode.execute(respondToMissingNode.call(self, "respond_to_missing?",
+                        toSymbolNode.execute(name), includeProtectedAndPrivate));
             } else {
                 return false;
             }
         }
-
-        private boolean respondToMissing(Object object, RubySymbol name, boolean includeProtectedAndPrivate) {
-            if (respondToMissingNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                respondToMissingNode = insert(DispatchNode.create());
-            }
-
-            if (booleanCastNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                booleanCastNode = insert(BooleanCastNode.create());
-            }
-
-            return booleanCastNode.executeToBoolean(
-                    respondToMissingNode.call(object, "respond_to_missing?", name, includeProtectedAndPrivate));
-        }
-
-        private void useCallerRefinements(VirtualFrame frame) {
-            if (frame != null) {
-                if (readCallerFrame == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    readCallerFrame = insert(ReadCallerFrameNode.create());
-                }
-                DeclarationContext context = RubyArguments.getDeclarationContext(readCallerFrame.execute(frame));
-                RubyArguments.setDeclarationContext(frame, context);
-            }
-        }
     }
 
-    @CoreMethod(names = "respond_to_missing?", required = 2)
-    public abstract static class RespondToMissingNode extends CoreMethodArrayArgumentsNode {
-
+    @GenerateUncached
+    @CoreMethod(names = "respond_to_missing?", required = 2, alwaysInlined = true)
+    public abstract static class RespondToMissingNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected boolean doesRespondToMissing(Object object, Object name, Object unusedIncludeAll) {
+        protected boolean respondToMissing(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target) {
             return false;
         }
-
     }
 
     @CoreMethod(names = "set_trace_func", isModuleFunction = true, required = 1)
@@ -1744,7 +1709,7 @@ public abstract class KernelNodes {
                 @Cached IndirectCallNode callPackNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat) {
             final BytesResult result;
-            final boolean isDebug = readDebugGlobalNode.executeBoolean(frame);
+            final boolean isDebug = readDebugGlobalNode.execute(frame);
             try {
                 result = (BytesResult) callPackNode.call(
                         compileFormat(format, arguments, isDebug, libFormat),
@@ -1787,7 +1752,7 @@ public abstract class KernelNodes {
         }
 
         protected boolean isDebug(VirtualFrame frame) {
-            return readDebugGlobalNode.executeBoolean(frame);
+            return readDebugGlobalNode.execute(frame);
         }
 
     }

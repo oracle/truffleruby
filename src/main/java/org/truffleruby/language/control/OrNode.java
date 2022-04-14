@@ -34,7 +34,7 @@ public class OrNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
         final Object leftValue = left.execute(frame);
 
-        if (conditionProfile.profile(leftCast.executeToBoolean(leftValue))) {
+        if (conditionProfile.profile(leftCast.execute(leftValue))) {
             return leftValue;
         } else {
             return right.execute(frame);

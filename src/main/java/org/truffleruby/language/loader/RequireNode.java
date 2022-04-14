@@ -371,7 +371,7 @@ public abstract class RequireNode extends RubyBaseNode {
     public boolean isFeatureLoaded(Object feature) {
         final Object included = isInLoadedFeatures
                 .call(coreLibrary().truffleFeatureLoaderModule, "feature_provided?", feature, true);
-        return booleanCastNode.executeToBoolean(included);
+        return booleanCastNode.execute(included);
     }
 
     private void addToLoadedFeatures(Object feature) {

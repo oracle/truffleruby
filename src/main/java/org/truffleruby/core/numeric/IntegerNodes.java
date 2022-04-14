@@ -819,7 +819,7 @@ public abstract class IntegerNodes {
                 @Cached DispatchNode reverseCallNode,
                 @Cached BooleanCastNode booleanCastNode) {
             final Object reversedResult = reverseCallNode.call(b, "==", a);
-            return booleanCastNode.executeToBoolean(reversedResult);
+            return booleanCastNode.execute(reversedResult);
         }
 
     }

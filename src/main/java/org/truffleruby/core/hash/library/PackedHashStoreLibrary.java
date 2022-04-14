@@ -546,7 +546,7 @@ public class PackedHashStoreLibrary {
                 booleanCastNode = insert(BooleanCastNode.create());
             }
 
-            return booleanCastNode.executeToBoolean(equalNode.call(receiver, "eql?", key));
+            return booleanCastNode.execute(equalNode.call(receiver, "eql?", key));
         }
     }
 

@@ -39,26 +39,26 @@ public class FlipFlopNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
         if (exclusive) {
             if (stateNode.getState(frame)) {
-                if (end.executeBoolean(frame)) {
+                if (end.execute(frame)) {
                     stateNode.setState(frame, false);
                 }
 
                 return true;
             } else {
-                final boolean newState = begin.executeBoolean(frame);
+                final boolean newState = begin.execute(frame);
                 stateNode.setState(frame, newState);
                 return newState;
             }
         } else {
             if (stateNode.getState(frame)) {
-                if (end.executeBoolean(frame)) {
+                if (end.execute(frame)) {
                     stateNode.setState(frame, false);
                 }
 
                 return true;
             } else {
-                if (begin.executeBoolean(frame)) {
-                    stateNode.setState(frame, !end.executeBoolean(frame));
+                if (begin.execute(frame)) {
+                    stateNode.setState(frame, !end.execute(frame));
                     return true;
                 }
 

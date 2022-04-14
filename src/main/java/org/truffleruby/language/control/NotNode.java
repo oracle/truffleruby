@@ -26,7 +26,7 @@ public class NotNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        return !child.executeBoolean(frame);
+        return !child.execute(frame);
     }
 
 }

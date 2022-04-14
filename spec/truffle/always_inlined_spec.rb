@@ -20,6 +20,15 @@ describe "Always-inlined core methods" do
       }.should raise_error(TypeError) { |e| e.backtrace_locations[0].label.should == 'public_send' }
     end
 
+    it "for #respond_to?" do
+      -> {
+        respond_to?()
+      }.should raise_error(ArgumentError) { |e| e.backtrace_locations[0].label.should == 'respond_to?' }
+      -> {
+        respond_to?(Object.new)
+      }.should raise_error(TypeError) { |e| e.backtrace_locations[0].label.should == 'respond_to?' }
+    end
+
     it "for #block_given?" do
       -> {
         block_given?(:wrong)
@@ -191,6 +200,19 @@ describe "Always-inlined core methods" do
     end
 
     guard -> { RUBY_ENGINE != "ruby" } do
+      it "for #respond_to?" do
+        obj = Object.new
+        def obj.respond_to_missing?(name, priv)
+          name == :foo ? raise("foo") : super
+        end
+        -> {
+          obj.respond_to?(:foo)
+        }.should raise_error(RuntimeError, "foo") { |e|
+          e.backtrace_locations[0].label.should == 'respond_to_missing?'
+          e.backtrace_locations[1].label.should.start_with?('block (5 levels)')
+        }
+      end
+
       it "for Method#call" do
         def method_to_call
           raise "foo"

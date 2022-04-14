@@ -84,11 +84,11 @@ public abstract class CmpIntNode extends RubyBaseNode {
             @Cached BooleanCastNode gtCastNode,
             @Cached BooleanCastNode ltCastNode) {
 
-        if (gtCastNode.executeToBoolean(gtNode.call(value, ">", 0))) {
+        if (gtCastNode.execute(gtNode.call(value, ">", 0))) {
             return 1;
         }
 
-        if (ltCastNode.executeToBoolean(ltNode.call(value, "<", 0))) {
+        if (ltCastNode.execute(ltNode.call(value, "<", 0))) {
             return -1;
         }
 

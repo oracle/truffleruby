@@ -495,10 +495,10 @@ public abstract class StringNodes {
         protected boolean equal(Object a, Object b) {
             if (respondToNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                respondToNode = insert(KernelNodesFactory.RespondToNodeFactory.create(null, null, null));
+                respondToNode = insert(KernelNodesFactory.RespondToNodeFactory.create());
             }
 
-            if (respondToNode.executeDoesRespondTo(null, b, coreStrings().TO_STR.createInstance(getContext()), false)) {
+            if (respondToNode.executeDoesRespondTo(b, coreSymbols().TO_STR, false)) {
                 if (objectEqualNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
                     objectEqualNode = insert(DispatchNode.create());
@@ -509,7 +509,7 @@ public abstract class StringNodes {
                     booleanCastNode = insert(BooleanCastNode.create());
                 }
 
-                return booleanCastNode.executeToBoolean(objectEqualNode.call(b, "==", a));
+                return booleanCastNode.execute(objectEqualNode.call(b, "==", a));
             }
 
             return false;
@@ -850,7 +850,7 @@ public abstract class StringNodes {
 
             final Object included = includeNode.call(string, "include?", matchStr);
 
-            if (booleanCastNode.executeToBoolean(included)) {
+            if (booleanCastNode.execute(included)) {
                 return dupNode.executeDupAsStringInstance(matchStr);
             }
 

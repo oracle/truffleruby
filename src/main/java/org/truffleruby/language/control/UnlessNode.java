@@ -36,7 +36,7 @@ public class UnlessNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        if (!conditionProfile.profile(condition.executeBoolean(frame))) {
+        if (!conditionProfile.profile(condition.execute(frame))) {
             return thenBody.execute(frame);
         } else {
             return nil;
