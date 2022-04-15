@@ -15,7 +15,7 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -81,8 +81,8 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
     @Specialization
     @TruffleBoundary
     protected void writeBarrierFinalizer(FinalizerReference ref) {
-        HashSet<Object> roots = new HashSet<>();
-        ref.getAdjacentObjects(roots);
+        ArrayList<Object> roots = new ArrayList<>();
+        ref.collectRoots(roots);
         for (var root : roots) {
             SharedObjects.writeBarrier(getLanguage(), root);
         }

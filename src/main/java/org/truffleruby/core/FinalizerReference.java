@@ -49,7 +49,7 @@ public class FinalizerReference
         return finalizers.pollFirst();
     }
 
-    void collectRoots(Collection<Object> roots) {
+    public void collectRoots(Collection<Object> roots) {
         for (FinalizationService.Finalizer finalizer : finalizers) {
             final RubyDynamicObject root = finalizer.getRoot();
             if (root != null) {
