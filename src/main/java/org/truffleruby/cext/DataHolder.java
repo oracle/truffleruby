@@ -12,15 +12,12 @@ package org.truffleruby.cext;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.interop.TranslateInteropExceptionNode;
 
-/** This object represents a VALUE in C which wraps the raw Ruby object. This allows foreign access methods to be set up
- * which convert these value wrappers to native pointers without affecting the semantics of the wrapped objects. */
+/** This object represents a struct pointer in C held by a Ruby object. */
 @ExportLibrary(InteropLibrary.class)
 public final class DataHolder implements TruffleObject {
 
@@ -58,10 +55,6 @@ public final class DataHolder implements TruffleObject {
     @ExportMessage
     protected String toDisplayString(boolean allowSideEffects) {
         final InteropLibrary interop = InteropLibrary.getUncached();
-        try {
-            return "DATA_HOLDER: " + interop.asString(address);
-        } catch (UnsupportedMessageException e) {
-            throw TranslateInteropExceptionNode.getUncached().execute(e);
-        }
+        return "DATA_HOLDER: " + interop.toDisplayString(address, allowSideEffects);
     }
 }

@@ -67,7 +67,8 @@ public class ImmutableRubyString extends ImmutableRubyObject implements TruffleO
 
     @TruffleBoundary
     private NativeRope createNativeRope(RubyLanguage language) {
-        return new NativeRope(rope.getBytes(), rope.getEncoding(), rope.characterLength(), rope.getCodeRange(), language);
+        return new NativeRope(rope.getBytes(), rope.getEncoding(), rope.characterLength(), rope.getCodeRange(),
+                language);
     }
 
     // region RubyStringLibrary messages
