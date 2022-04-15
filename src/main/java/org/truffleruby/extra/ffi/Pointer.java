@@ -65,6 +65,10 @@ public final class Pointer implements AutoCloseable {
     private Cleanable cleanable = null;
     private AutoReleaseState autoReleaseState = null;
 
+    /** This is needed because we need a mutable object to hold the pointer address so that it can be freed or marked as
+     * not to be freed if auto-release is disabled. THis can't be the address field on the pointer itself as that would
+     * prevent the pointer from being collected, and we can't retrieve this from the cleaner as it is effectively
+     * opaque. */
     private static class AutoReleaseState implements Runnable {
 
         long address;
@@ -352,8 +356,9 @@ public final class Pointer implements AutoCloseable {
 
     @TruffleBoundary
     private void enableAutoreleaseUnsynchronized(RubyLanguage language) {
-        // We must be careful here that the finalizer does not capture the Pointer itself that we'd
-        // like to finalize.
+        // We must be careful here that the cleaner does not capture
+        // the Pointer itself, and that we a form of mutable state
+        // that will allow use to disable autorelease later.
         autoReleaseState = new AutoReleaseState(address);
         cleanable = language.cleaner.register(this, autoReleaseState);
 
