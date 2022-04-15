@@ -147,7 +147,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
             this.context = context;
         }
 
-        protected void processReferenceQueue() {
+        protected void processReferenceQueue(ReferenceProcessingService<?> service) {
             if (processOnMainThread()) {
                 drainReferenceQueues();
             } else {
@@ -159,7 +159,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
                  * assumption and a low risk of leaking a tiny number of bytes if it doesn't hold. */
                 if (processingThread == null && !context.isPreInitializing() && context.isInitialized() &&
                         !context.isFinalizing()) {
-                    createProcessingThread();
+                    createProcessingThread(service);
                 }
             }
         }
@@ -171,7 +171,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
         private static final String THREAD_NAME = "Ruby-reference-processor";
 
         @TruffleBoundary
-        protected void createProcessingThread() {
+        protected void createProcessingThread(ReferenceProcessingService<?> service) {
             final ThreadManager threadManager = context.getThreadManager();
             final RubyLanguage language = context.getLanguageSlow();
             RubyThread newThread;
@@ -182,7 +182,8 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
                 newThread = threadManager.createBootThread(THREAD_NAME);
                 processingThread = newThread;
             }
-            final String sharingReason = "creating " + THREAD_NAME + " thread";
+            final String sharingReason = "creating " + THREAD_NAME + " thread for " +
+                    service.getClass().getSimpleName();
 
             threadManager.initialize(newThread, DummyNode.INSTANCE, THREAD_NAME, sharingReason, () -> {
                 while (true) {

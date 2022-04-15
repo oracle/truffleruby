@@ -10,24 +10,28 @@
 package org.truffleruby.core;
 
 import java.lang.ref.ReferenceQueue;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.DataHolder;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
+import org.truffleruby.core.mutex.MutexOperations;
 import org.truffleruby.language.RubyBaseRootNode;
 import org.truffleruby.language.backtrace.InternalRootNode;
 
+import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 /** Finalizers are implemented with phantom references and reference queues, and are run in a dedicated Ruby thread. */
 public class DataObjectFinalizationService extends ReferenceProcessingService<DataObjectFinalizerReference> {
 
-    // We need a base node here, it shoudl extend ruby base root node and implement internal root node.
+    // We need a base node here, it should extend ruby base root node and implement internal root node.
     public static class DataObjectFinalizerRootNode extends RubyBaseRootNode implements InternalRootNode {
 
         @Child private InteropLibrary nullNode;
@@ -64,13 +68,13 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
 
     private final DataObjectFinalizerRootNode rootNode;
 
-    public DataObjectFinalizationService(ReferenceQueue<Object> processingQueue) {
+    public DataObjectFinalizationService(RubyLanguage language, ReferenceQueue<Object> processingQueue) {
         super(processingQueue);
-        rootNode = new DataObjectFinalizerRootNode(RubyLanguage.getCurrentLanguage());
+        rootNode = new DataObjectFinalizerRootNode(language);
     }
 
-    public DataObjectFinalizationService(ReferenceProcessor referenceProcessor) {
-        this(referenceProcessor.processingQueue);
+    public DataObjectFinalizationService(RubyLanguage language, ReferenceProcessor referenceProcessor) {
+        this(language, referenceProcessor.processingQueue);
     }
 
     public DataObjectFinalizerReference addFinalizer(RubyContext context, Object object, Object callable,
@@ -78,7 +82,7 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
         final DataObjectFinalizerReference newRef = createRef(object, callable, dataHolder);
 
         add(newRef);
-        context.getReferenceProcessor().processReferenceQueue();
+        context.getReferenceProcessor().processReferenceQueue(this);
 
         return newRef;
     }

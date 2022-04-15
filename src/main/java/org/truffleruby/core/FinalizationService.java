@@ -64,7 +64,7 @@ public class FinalizationService extends ReferenceProcessingService<FinalizerRef
         newRef.addFinalizer(owner, action, root);
 
         add(newRef);
-        context.getReferenceProcessor().processReferenceQueue();
+        context.getReferenceProcessor().processReferenceQueue(this);
 
         return newRef;
     }
@@ -78,7 +78,7 @@ public class FinalizationService extends ReferenceProcessingService<FinalizerRef
         assert Thread.holdsLock(object) : "caller must synchronize access to the FinalizerReference";
         existingRef.addFinalizer(owner, action, root);
 
-        context.getReferenceProcessor().processReferenceQueue();
+        context.getReferenceProcessor().processReferenceQueue(this);
     }
 
     public final void drainFinalizationQueue(RubyContext context) {

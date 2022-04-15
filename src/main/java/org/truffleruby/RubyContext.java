@@ -189,7 +189,7 @@ public class RubyContext {
         referenceProcessor = new ReferenceProcessor(this);
         finalizationService = new FinalizationService(referenceProcessor);
         markingService = new MarkingService(referenceProcessor);
-        dataObjectFinalizationService = new DataObjectFinalizationService(referenceProcessor);
+        dataObjectFinalizationService = new DataObjectFinalizationService(language, referenceProcessor);
 
         // We need to construct this at runtime
         random = createRandomInstance();
