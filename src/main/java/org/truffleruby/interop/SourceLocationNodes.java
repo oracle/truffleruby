@@ -16,6 +16,7 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
@@ -109,6 +110,17 @@ public class SourceLocationNodes {
         @Specialization
         protected boolean isInternal(RubySourceLocation location) {
             return location.sourceSection.getSource().isInternal();
+        }
+    }
+
+    @CoreMethod(names = "language")
+    public abstract static class LanguageNode extends UnaryCoreMethodNode {
+        @TruffleBoundary
+        @Specialization
+        protected RubyString language(RubySourceLocation location,
+                @Cached StringNodes.MakeStringNode makeStringNode) {
+            return makeStringNode.executeMake(location.sourceSection.getSource().getLanguage(),
+                    Encodings.UTF_8, CodeRange.CR_UNKNOWN);
         }
     }
 
