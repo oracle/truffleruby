@@ -10,11 +10,13 @@
 package org.truffleruby.core;
 
 import java.lang.ref.ReferenceQueue;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.DataHolder;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
+import org.truffleruby.core.mutex.MutexOperations;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseRootNode;
 import org.truffleruby.language.backtrace.InternalRootNode;
@@ -26,6 +28,7 @@ import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 /** Finalizers are implemented with phantom references and reference queues, and are run in a dedicated Ruby thread. */
@@ -36,6 +39,7 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
 
         @Child private InteropLibrary nullNode;
         @Child private InteropLibrary callNode;
+        private final ConditionProfile ownedProfile = ConditionProfile.create();
 
         public DataObjectFinalizerRootNode(
                 RubyLanguage language) {
@@ -51,17 +55,44 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
         }
 
         public Object execute(DataObjectFinalizerReference ref) {
+            if (getContext().getOptions().CEXT_LOCK) {
+                final ReentrantLock lock = getContext().getCExtensionsLock();
+                boolean owned = ownedProfile.profile(lock.isHeldByCurrentThread());
+
+                if (!owned) {
+                    MutexOperations.lockInternal(getContext(), lock, this);
+                }
+                try {
+                    runFinalizer(ref);
+                } finally {
+                    if (!owned) {
+                        MutexOperations.unlockInternal(lock);
+                    }
+                }
+            } else {
+                runFinalizer(ref);
+            }
+            return Nil.INSTANCE;
+        }
+
+        private void runFinalizer(DataObjectFinalizerReference ref) throws Error {
             try {
                 if (!getContext().isFinalizing()) {
                     Object data = ref.dataHolder.getAddress();
                     if (!nullNode.isNull(data)) {
-                        callNode.execute(ref.callable, data);
+                        final ExtensionCallStack stack = getLanguage().getCurrentThread()
+                                .getCurrentFiber().extensionCallStack;
+                        stack.push(false, stack.getSpecialVariables(), stack.getBlock());
+                        try {
+                            callNode.execute(ref.callable, data);
+                        } finally {
+                            stack.pop();
+                        }
                     }
                 }
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
                 throw CompilerDirectives.shouldNotReachHere("Data holder finalization on invalid object");
             }
-            return Nil.INSTANCE;
         }
     }
 
@@ -106,12 +137,6 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
     @TruffleBoundary
     protected void processReferenceInternal(RubyContext context, RubyLanguage language,
             DataObjectFinalizerReference ref) {
-        final ExtensionCallStack stack = language.getCurrentThread().getCurrentFiber().extensionCallStack;
-        stack.push(false, stack.getSpecialVariables(), stack.getBlock());
-        try {
-            callTarget.call(new Object[]{ ref });
-        } finally {
-            stack.pop();
-        }
+        callTarget.call(new Object[]{ ref });
     }
 }
