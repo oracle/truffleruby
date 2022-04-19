@@ -10,22 +10,22 @@
 package org.truffleruby.core;
 
 import java.lang.ref.ReferenceQueue;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.DataHolder;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
-import org.truffleruby.core.mutex.MutexOperations;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseRootNode;
 import org.truffleruby.language.backtrace.InternalRootNode;
 
 import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 /** Finalizers are implemented with phantom references and reference queues, and are run in a dedicated Ruby thread. */
@@ -41,14 +41,13 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
                 RubyLanguage language) {
             super(language, RubyLanguage.EMPTY_FRAME_DESCRIPTOR, null);
 
-            nullNode = InteropLibrary.getFactory().createDispatched(2);
-            callNode = InteropLibrary.getFactory().createDispatched(2);
-            adoptChildren();
+            nullNode = InteropLibrary.getFactory().createDispatched(1);
+            callNode = InteropLibrary.getFactory().createDispatched(1);
         }
 
         @Override
         public Object execute(VirtualFrame frame) {
-            return null;
+            return execute((DataObjectFinalizerReference) frame.getArguments()[0]);
         }
 
         public Object execute(DataObjectFinalizerReference ref) {
@@ -60,17 +59,17 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
                     }
                 }
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
-                throw new Error(e);
+                throw CompilerDirectives.shouldNotReachHere("Data holder finalization on invalid object");
             }
-            return null;
+            return Nil.INSTANCE;
         }
     }
 
-    private final DataObjectFinalizerRootNode rootNode;
+    private final CallTarget callTarget;
 
     public DataObjectFinalizationService(RubyLanguage language, ReferenceQueue<Object> processingQueue) {
         super(processingQueue);
-        rootNode = new DataObjectFinalizerRootNode(language);
+        callTarget = new DataObjectFinalizerRootNode(language).getCallTarget();
     }
 
     public DataObjectFinalizationService(RubyLanguage language, ReferenceProcessor referenceProcessor) {
@@ -104,12 +103,13 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
                 (DataObjectFinalizerReference) finalizerReference);
     }
 
+    @TruffleBoundary
     protected void processReferenceInternal(RubyContext context, RubyLanguage language,
             DataObjectFinalizerReference ref) {
         final ExtensionCallStack stack = language.getCurrentThread().getCurrentFiber().extensionCallStack;
         stack.push(false, stack.getSpecialVariables(), stack.getBlock());
         try {
-            rootNode.execute(ref);
+            callTarget.call(new Object[]{ ref });
         } finally {
             stack.pop();
         }
