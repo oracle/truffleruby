@@ -14,46 +14,17 @@ def test_patch(file, directory, input, expected)
 end
 
 original = <<-EOF
-static void warning_func(void * ctx, const char *msg, ...)
+static int dealloc_node_i(xmlNodePtr key, xmlNodePtr node, xmlDocPtr doc)
 {
-  VALUE self = NOKOGIRI_SAX_SELF(ctx);
-  VALUE doc = rb_iv_get(self, "@document");
-  char * message;
-  VALUE ruby_message;
-
-  va_list args;
-  va_start(args, msg);
-  vasprintf(&message, msg, args);
-  va_end(args);
-
-  ruby_message = NOKOGIRI_STR_NEW2(message);
-  vasprintf_free(message);
-  rb_funcall(doc, id_warning, 1, ruby_message);
 }
 EOF
 
 modified = <<-EOF
-static void warning_func(void * ctx, const char *msg, ...)
+static int dealloc_node_i(st_data_t a, st_data_t b, st_data_t c, int errorState)
 {
-  VALUE self = NOKOGIRI_SAX_SELF(ctx);
-  VALUE doc = rb_iv_get(self, "@document");
-  char * message;
-  VALUE ruby_message;
-
-  #ifdef NOKOGIRI_PACKAGED_LIBRARIES
-va_list args;
-  va_start(args, msg);
-  vasprintf(&message, msg, args);
-  va_end(args);
-
-  ruby_message = NOKOGIRI_STR_NEW2(message);
-  vasprintf_free(message);
-  rb_funcall(doc, id_warning, 1, ruby_message);
-#else
-rb_funcall(doc, id_warning, 1, NOKOGIRI_STR_NEW2("Warning."));
-#endif
-
-}
+  xmlNodePtr key = (xmlNodePtr)a;
+  xmlNodePtr node = (xmlNodePtr)b;
+  xmlDocPtr doc = (xmlDocPtr)c;}
 EOF
 
 json_original = <<-EOF
@@ -68,7 +39,7 @@ json_patched = <<-EOF
 # endif
 EOF
 
-test_patch 'xml_sax_parser.c', 'ext/nokogiri', original, modified
+test_patch 'xml_document.c', 'ext/nokogiri', original, modified
 # Should not patch other files or other gems
 test_patch 'other_file.c', 'ext/nokogiri', original, original
 test_patch 'xml_sax_parser.c', 'ext/other_gem', original, original

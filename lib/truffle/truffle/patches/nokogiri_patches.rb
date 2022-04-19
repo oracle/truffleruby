@@ -23,14 +23,8 @@ static int dealloc_node_i(st_data_t a, st_data_t b, st_data_t c, int errorState)
   xmlDocPtr doc = (xmlDocPtr)c;
 EOF
 
-  def self.patch_for_system_libraries(replacement)
-    <<-EOF
-#ifdef NOKOGIRI_PACKAGED_LIBRARIES
-\\&
-#else
-#{replacement}
-#endif
-EOF
+  def self.using_system_libraries?
+    !ARGV.include?('-DNOKOGIRI_PACKAGED_LIBRARIES')
   end
 
   PATCHES = {
@@ -41,14 +35,16 @@ EOF
           # is called with. This works on MRI but causes an error in
           # TruffleRuby.
           match: 'static VALUE to_array(VALUE self, VALUE rb_node)',
-          replacement: patch_for_system_libraries('static VALUE to_array(VALUE self)')
+          replacement: 'static VALUE to_array(VALUE self)',
+          predicate: -> { using_system_libraries? }
         },
       ],
       'xslt_stylesheet.c' => [
         { # It is not currently possible to pass var args from native
           # functions to sulong, so we work round the issue here.
           match: 'va_list args;',
-          replacement: patch_for_system_libraries('va_list args; rb_str_cat2(ctx, "Generic error"); return;')
+          replacement: 'va_list args; rb_str_cat2(ctx, "Generic error"); return;',
+          predicate: -> { using_system_libraries? }
         }
       ],
       'xml_document.c' => [
@@ -61,31 +57,37 @@ EOF
         { # It is not currently possible to pass var args from native
           # functions to sulong, so we work round the issue here.
           match: /va_list args;[^}]*id_warning, 1, ruby_message\);/,
-          replacement: patch_for_system_libraries('rb_funcall(doc, id_warning, 1, NOKOGIRI_STR_NEW2("Warning."));')
+          replacement: 'rb_funcall(doc, id_warning, 1, NOKOGIRI_STR_NEW2("Warning."));',
+          predicate: -> { using_system_libraries? }
         },
         { # It is not currently possible to pass var args from native
           # functions to sulong, so we work round the issue here.
           match: /va_list args;[^}]*id_error, 1, ruby_message\);/,
-          replacement: patch_for_system_libraries('rb_funcall(doc, id_error, 1, NOKOGIRI_STR_NEW2("Warning."));')
+          replacement: 'rb_funcall(doc, id_error, 1, NOKOGIRI_STR_NEW2("Warning."));',
+          predicate: -> { using_system_libraries? }
         }
       ],
       'xml_xpath_context.c' => [
         { # It is not currently possible to pass var args from native
           # functions to sulong, so we work round the issue here.
           match: 'va_list args;',
-          replacement: patch_for_system_libraries('va_list args; rb_raise(rb_eRuntimeError, "%s", "Exception:"); return;')
+          replacement: 'va_list args; rb_raise(rb_eRuntimeError, "%s", "Exception:"); return;',
+          predicate: -> { using_system_libraries? }
         },
         {
           match: 'VALUE thing = Qnil;',
-          replacement: patch_for_system_libraries("VALUE thing = Qnil;\nVALUE errors = rb_ary_new();")
+          replacement: "VALUE thing = Qnil;\nVALUE errors = rb_ary_new();",
+          predicate: -> { using_system_libraries? }
         },
         {
           match: 'xmlSetStructuredErrorFunc(NULL, Nokogiri_error_raise);',
-          replacement: patch_for_system_libraries('xmlSetStructuredErrorFunc(errors, Nokogiri_error_array_pusher);')
+          replacement: 'xmlSetStructuredErrorFunc(errors, Nokogiri_error_array_pusher);',
+          predicate: -> { using_system_libraries? }
         },
         {
           match: 'if(xpath == NULL)',
-          replacement: patch_for_system_libraries("if (RARRAY_LEN(errors) > 0) { rb_exc_raise(rb_ary_entry(errors, 0)); }\nif(xpath == NULL)")
+          replacement: "if (RARRAY_LEN(errors) > 0) { rb_exc_raise(rb_ary_entry(errors, 0)); }\nif(xpath == NULL)",
+          predicate: -> { using_system_libraries? }
         },
       ],
     }
