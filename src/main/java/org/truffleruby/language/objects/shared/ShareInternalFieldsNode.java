@@ -10,7 +10,6 @@
 package org.truffleruby.language.objects.shared;
 
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
-import org.truffleruby.Layouts;
 import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayOperations;
@@ -29,10 +28,10 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-/** Share the internal fields of an object, accessible by its Layout */
+/** Share the plain Java fields which may contain objets for subclasses of RubyDynamicObject.
+ * {@link RubyDynamicObject#metaClass} is handled by {@link ShareObjectNode}. */
 @ImportStatic({ ShapeCachingGuards.class, ArrayGuards.class })
 public abstract class ShareInternalFieldsNode extends RubyBaseNode {
 
@@ -85,14 +84,9 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
         }
     }
 
-    @Specialization(
-            guards = { "object.getShape() == cachedShape", "!hasFinalizerRef" },
-            assumptions = "cachedShape.getValidAssumption()",
-            limit = "CACHE_LIMIT")
-    protected void shareCachedBasicObject(RubyBasicObject object,
-            @Cached("object.getShape()") Shape cachedShape,
-            @Cached("hasFinalizerRefProperty(cachedShape)") boolean hasFinalizerRef) {
-        /* No internal fields for RubyBasicObject */
+    @Specialization
+    protected void shareCachedBasicObject(RubyBasicObject object) {
+        /* No extra Java fields for RubyBasicObject */
     }
 
     @Specialization(
@@ -109,10 +103,6 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
     protected static boolean isDelegatedObjectArray(RubyArray array) {
         final Object store = array.store;
         return store instanceof DelegatedArrayStorage && ((DelegatedArrayStorage) store).hasObjectArrayStorage();
-    }
-
-    protected static boolean hasFinalizerRefProperty(Shape shape) {
-        return shape.hasProperty(Layouts.FINALIZER_REF_IDENTIFIER);
     }
 
     protected WriteBarrierNode createWriteBarrierNode() {

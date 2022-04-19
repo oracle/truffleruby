@@ -9,14 +9,14 @@
  */
 package org.truffleruby.extra.ffi;
 
+import java.lang.ref.Cleaner.Cleanable;
 import java.lang.reflect.Field;
 
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
-import org.truffleruby.core.FinalizationService;
-import org.truffleruby.core.FinalizerReference;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -38,9 +38,9 @@ public final class Pointer implements AutoCloseable {
         return new Pointer(UNSAFE.allocateMemory(size), size);
     }
 
-    /** Includes {@link #enableAutorelease(RubyContext)} and avoids locking for it */
-    public static Pointer malloc(long size, RubyContext context) {
-        return new Pointer(UNSAFE.allocateMemory(size), size, context);
+    /** Includes {@link #enableAutorelease(RubyLanguage)} and avoids locking for it */
+    public static Pointer mallocAutoRelease(long size, RubyLanguage language) {
+        return new Pointer(UNSAFE.allocateMemory(size), size, language);
     }
 
     /** Allocates memory and produces a pointer to it. Clears the memory before returning it. Use {@link #malloc} if you
@@ -51,9 +51,9 @@ public final class Pointer implements AutoCloseable {
         return pointer;
     }
 
-    /** Includes {@link #enableAutorelease(RubyContext)} and avoids locking for it */
-    public static Pointer calloc(long size, RubyContext context) {
-        final Pointer pointer = malloc(size, context);
+    /** Includes {@link #enableAutorelease(RubyLanguage)} and avoids locking for it */
+    public static Pointer callocAutoRelease(long size, RubyLanguage language) {
+        final Pointer pointer = mallocAutoRelease(size, language);
         pointer.writeBytes(0, size, (byte) 0);
         return pointer;
     }
@@ -61,7 +61,31 @@ public final class Pointer implements AutoCloseable {
     private final long address;
     private final long size;
     /** Non-null iff autorelease */
-    private FinalizerReference finalizerRef = null;
+    private Cleanable cleanable = null;
+    private AutoReleaseState autoReleaseState = null;
+
+    /** This is needed because we need a mutable object to hold the pointer address so that it can be freed or marked as
+     * not to be freed if auto-release is disabled. This can't be the address field on the pointer itself as that would
+     * prevent the pointer from being collected, and we can't retrieve this from the cleaner as it is effectively
+     * opaque. */
+    private static class AutoReleaseState implements Runnable {
+
+        long address;
+
+        AutoReleaseState(long address) {
+            this.address = address;
+        }
+
+        public void run() {
+            if (address != 0) {
+                UNSAFE.freeMemory(address);
+            }
+        }
+
+        public void markFreed() {
+            address = 0;
+        }
+    }
 
     public Pointer(long address) {
         this(address, UNBOUNDED);
@@ -72,10 +96,10 @@ public final class Pointer implements AutoCloseable {
         this.size = size;
     }
 
-    public Pointer(long address, long size, RubyContext context) {
+    private Pointer(long address, long size, RubyLanguage language) {
         this.address = address;
         this.size = size;
-        enableAutoreleaseUnsynchronized(context);
+        enableAutoreleaseUnsynchronized(language);
     }
 
     public boolean isNull() {
@@ -295,16 +319,17 @@ public final class Pointer implements AutoCloseable {
     }
 
     @TruffleBoundary
-    public synchronized void free(FinalizationService finalizationService) {
-        if (finalizerRef != null) {
-            disableAutorelease(finalizationService);
+    public synchronized void free() {
+        if (cleanable != null) {
+            cleanable.clean();
+        } else {
+            UNSAFE.freeMemory(address);
         }
-        UNSAFE.freeMemory(address);
     }
 
     @TruffleBoundary
     public synchronized void freeNoAutorelease() {
-        if (finalizerRef != null) {
+        if (cleanable != null) {
             throw new UnsupportedOperationException("Calling freeNoAutorelease() on a autorelease Pointer");
         }
         UNSAFE.freeMemory(address);
@@ -316,57 +341,37 @@ public final class Pointer implements AutoCloseable {
     }
 
     public synchronized boolean isAutorelease() {
-        return finalizerRef != null;
+        return cleanable != null;
     }
 
     @TruffleBoundary
-    public synchronized void enableAutorelease(RubyContext context) {
-        if (finalizerRef != null) {
+    public synchronized void enableAutorelease(RubyLanguage language) {
+        if (cleanable != null) {
             return;
         }
 
-        enableAutoreleaseUnsynchronized(context);
+        enableAutoreleaseUnsynchronized(language);
     }
 
-    private void enableAutoreleaseUnsynchronized(RubyContext context) {
-        // We must be careful here that the finalizer does not capture the Pointer itself that we'd
-        // like to finalize.
-        finalizerRef = context.getFinalizationService().addFinalizer(
-                context,
-                this,
-                Pointer.class,
-                new FreeAddressFinalizer(address),
-                null);
-    }
-
-    private static class FreeAddressFinalizer implements Runnable {
-
-        private final long address;
-
-        public FreeAddressFinalizer(long address) {
-            this.address = address;
-        }
-
-        public void run() {
-            UNSAFE.freeMemory(address);
-        }
-
-        @Override
-        public String toString() {
-            return "free(0x" + Long.toHexString(address) + ")";
-        }
+    @TruffleBoundary
+    private void enableAutoreleaseUnsynchronized(RubyLanguage language) {
+        // We must be careful here that the cleaner does not capture
+        // the Pointer itself, and that we a form of mutable state
+        // that will allow use to disable autorelease later.
+        autoReleaseState = new AutoReleaseState(address);
+        cleanable = language.cleaner.register(this, autoReleaseState);
 
     }
 
     @TruffleBoundary
-    public synchronized void disableAutorelease(FinalizationService finalizationService) {
-        if (finalizerRef == null) {
+    public synchronized void disableAutorelease() {
+        if (cleanable == null) {
             return;
         }
 
-        FinalizerReference left = finalizationService.removeFinalizers(this, finalizerRef, Pointer.class);
-        assert left == null;
-        finalizerRef = null;
+        autoReleaseState.markFreed();
+        cleanable.clean();
+        cleanable = null;
     }
 
     @Override

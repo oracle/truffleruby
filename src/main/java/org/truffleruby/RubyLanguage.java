@@ -11,7 +11,7 @@ package org.truffleruby;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.ref.ReferenceQueue;
+import java.lang.ref.Cleaner;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
@@ -36,7 +36,6 @@ import org.truffleruby.builtins.PrimitiveManager;
 import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.collections.SharedIndicesMap;
 import org.truffleruby.collections.SharedIndicesMap.LanguageArray;
-import org.truffleruby.core.FinalizationService;
 import org.truffleruby.core.RubyHandle;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.RubyBasicObject;
@@ -101,6 +100,7 @@ import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.interop.RubyInnerContext;
 import org.truffleruby.interop.RubySourceLocation;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyEvalInteractiveRootNode;
 import org.truffleruby.language.RubyInlineParsingRequestNode;
@@ -182,6 +182,11 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     public static final TruffleLogger LOGGER = TruffleLogger.getLogger(TruffleRuby.LANGUAGE_ID);
 
+    /** This is a truly empty frame descriptor and should only by dummy root nodes which require no variables. Any other
+     * root nodes should should use
+     * {@link TranslatorEnvironment#newFrameDescriptorBuilder(org.truffleruby.parser.ParentFrameDescriptor, boolean)}. */
+    public static final FrameDescriptor EMPTY_FRAME_DESCRIPTOR = new FrameDescriptor(Nil.INSTANCE);
+
     /** We need an extra indirection added to ContextThreadLocal due to multiple Fibers of different Ruby Threads
      * sharing the same Java Thread when using the fiber pool. */
     public static final class ThreadLocalState {
@@ -212,9 +217,9 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final SymbolTable symbolTable;
     public final KeywordArgumentsDescriptorManager keywordArgumentsDescriptorManager = new KeywordArgumentsDescriptorManager();
     public final FrozenStringLiterals frozenStringLiterals;
+    public final Cleaner cleaner = Cleaner.create();
 
-    public final ReferenceQueue<Object> sharedReferenceQueue = new ReferenceQueue<>();
-    public final FinalizationService sharedFinzationService = new FinalizationService(sharedReferenceQueue);
+
     public volatile ValueWrapperManager.HandleBlockWeakReference[] handleBlockSharedMap = new ValueWrapperManager.HandleBlockWeakReference[0];
     public final ValueWrapperManager.HandleBlockAllocator handleBlockAllocator = new ValueWrapperManager.HandleBlockAllocator();
 
@@ -831,5 +836,4 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
             throw CompilerDirectives.shouldNotReachHere(e);
         }
     }
-
 }

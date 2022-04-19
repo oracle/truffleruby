@@ -29,7 +29,6 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.cext.CExtNodesFactory.CallWithCExtLockNodeFactory;
 import org.truffleruby.cext.CExtNodesFactory.StringToNativeNodeGen;
 import org.truffleruby.cext.UnwrapNode.UnwrapCArrayNode;
-import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.core.MarkingServiceNodes;
@@ -62,7 +61,6 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.Bytes;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -710,7 +708,7 @@ public class CExtNodes {
         @Specialization
         protected RubyString rbStrNewNul(int byteLength,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
-            final Rope rope = NativeRope.newBuffer(getContext(), byteLength, byteLength);
+            final Rope rope = NativeRope.newBuffer(getLanguage(), byteLength, byteLength);
 
             return makeStringNode.fromRope(rope, Encodings.BINARY);
         }
@@ -768,7 +766,7 @@ public class CExtNodes {
                 nativeRope.clearCodeRange();
                 return string;
             } else {
-                final NativeRope newRope = nativeRope.resize(getContext(), newByteLength);
+                final NativeRope newRope = nativeRope.resize(getLanguage(), newByteLength);
 
                 // Like MRI's rb_str_resize()
                 newRope.clearCodeRange();
@@ -790,7 +788,7 @@ public class CExtNodes {
             if (nativeRope.getCapacity() == newCapacity) {
                 return string;
             } else {
-                final NativeRope newRope = nativeRope.expandCapacity(getContext(), newCapacity);
+                final NativeRope newRope = nativeRope.expandCapacity(getLanguage(), newCapacity);
                 string.setRope(newRope);
                 return string;
             }
@@ -1214,7 +1212,7 @@ public class CExtNodes {
                 nativeRope = (NativeRope) currentRope;
             } else {
                 nativeRope = new NativeRope(
-                        getContext(),
+                        getLanguage(),
                         bytesNode.execute(currentRope),
                         currentRope.getEncoding(),
                         characterLengthNode.execute(currentRope),
@@ -1225,18 +1223,9 @@ public class CExtNodes {
             return nativeRope;
         }
 
-        @TruffleBoundary
         @Specialization
         protected NativeRope toNativeImmutable(ImmutableRubyString string) {
-            return ConcurrentOperations.getOrCompute(getContext().getImmutableNativeRopes(), string, s -> {
-                final LeafRope currentRope = s.rope;
-                return new NativeRope(
-                        getContext(),
-                        currentRope.getBytes(),
-                        currentRope.getEncoding(),
-                        currentRope.characterLength(),
-                        currentRope.getCodeRange());
-            });
+            return string.getNativeRope(getLanguage());
         }
 
     }
@@ -1283,7 +1272,7 @@ public class CExtNodes {
         @TruffleBoundary
         @Specialization
         protected boolean isNative(ImmutableRubyString string) {
-            return getContext().getImmutableNativeRopes().containsKey(string);
+            return string.isNative();
         }
 
     }
@@ -1960,6 +1949,43 @@ public class CExtNodes {
         @Specialization
         protected RubyArray zlibGetCRCTable() {
             return createArray(ZLibCRCTable.TABLE.clone());
+        }
+    }
+
+    @Primitive(name = "data_holder_create")
+    public abstract static class DataHolderCreate extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected DataHolder create(Object address) {
+            return new DataHolder(address);
+        }
+    }
+
+    @Primitive(name = "data_holder_get_data")
+    public abstract static class DataHolderGetData extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected Object getData(DataHolder data) {
+            return data.getPointer();
+        }
+    }
+
+    @Primitive(name = "data_holder_set_data")
+    public abstract static class DataHolderSetData extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected Object setData(DataHolder data, Object address) {
+            data.setPointer(address);
+            return nil;
+        }
+    }
+
+    @Primitive(name = "data_holder_is_holder?")
+    public abstract static class DataHolderIsHolder extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected boolean setData(Object dataHolder) {
+            return dataHolder instanceof DataHolder;
         }
     }
 }

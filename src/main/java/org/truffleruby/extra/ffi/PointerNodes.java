@@ -198,13 +198,13 @@ public abstract class PointerNodes {
 
         @Specialization(guards = "autorelease")
         protected boolean enableAutorelease(RubyPointer pointer, boolean autorelease) {
-            pointer.pointer.enableAutorelease(getContext());
+            pointer.pointer.enableAutorelease(getLanguage());
             return autorelease;
         }
 
         @Specialization(guards = "!autorelease")
         protected boolean disableAutorelease(RubyPointer pointer, boolean autorelease) {
-            pointer.pointer.disableAutorelease(getContext().getFinalizationService());
+            pointer.pointer.disableAutorelease();
             return autorelease;
         }
 
@@ -226,7 +226,7 @@ public abstract class PointerNodes {
 
         @Specialization
         protected RubyPointer free(RubyPointer pointer) {
-            pointer.pointer.free(getContext().getFinalizationService());
+            pointer.pointer.free();
             return pointer;
         }
 

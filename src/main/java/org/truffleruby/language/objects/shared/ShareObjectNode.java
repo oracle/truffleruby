@@ -98,8 +98,7 @@ public abstract class ShareObjectNode extends RubyBaseNode {
 
     protected static List<Property> getObjectProperties(Shape shape) {
         final List<Property> objectProperties = new ArrayList<>();
-        // User properties only, ShareInternalFieldsNode do the rest
-        for (Property property : shape.getProperties()) {
+        for (Property property : shape.getPropertyListInternal(false)) {
             if (property.getLocation() instanceof ObjectLocation) {
                 objectProperties.add(property);
             }

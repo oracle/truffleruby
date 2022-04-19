@@ -22,6 +22,8 @@ Compatibility:
 Performance:
 
 * Reimplement `Float#to_s` for better performance (#1584, @aardvark179).
+* Improve reference processing by making C object free functions and other finalizers more lightweight (@aardvark179).
+* Improve performance of `RSTRING_PTR` for interned strings (@aardvark179).
 
 Changes:
 

@@ -138,7 +138,6 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
 
     public static class ReferenceProcessor {
         protected final ReferenceQueue<Object> processingQueue = new ReferenceQueue<>();
-        protected final ReferenceQueue<Object> sharedQueue;
 
         private volatile boolean shutdown = false;
         protected RubyThread processingThread;
@@ -146,12 +145,10 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
 
         public ReferenceProcessor(RubyContext context) {
             this.context = context;
-            this.sharedQueue = context.getLanguageSlow().sharedReferenceQueue;
         }
 
-        @TruffleBoundary
-        protected void processReferenceQueue(Class<?> owner) {
-            if (context.getOptions().SINGLE_THREADED || context.hasOtherPublicLanguages()) {
+        protected void processReferenceQueue(ReferenceProcessingService<?> service) {
+            if (processOnMainThread()) {
                 drainReferenceQueues();
             } else {
                 /* We can't create a new thread while the context is initializing or finalizing, as the polyglot API
@@ -162,14 +159,19 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
                  * assumption and a low risk of leaking a tiny number of bytes if it doesn't hold. */
                 if (processingThread == null && !context.isPreInitializing() && context.isInitialized() &&
                         !context.isFinalizing()) {
-                    createProcessingThread(owner);
+                    createProcessingThread(service);
                 }
             }
         }
 
+        public boolean processOnMainThread() {
+            return context.getOptions().SINGLE_THREADED || context.hasOtherPublicLanguages();
+        }
+
         private static final String THREAD_NAME = "Ruby-reference-processor";
 
-        protected void createProcessingThread(Class<?> owner) {
+        @TruffleBoundary
+        protected void createProcessingThread(ReferenceProcessingService<?> service) {
             final ThreadManager threadManager = context.getThreadManager();
             final RubyLanguage language = context.getLanguageSlow();
             RubyThread newThread;
@@ -180,30 +182,22 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
                 newThread = threadManager.createBootThread(THREAD_NAME);
                 processingThread = newThread;
             }
-            final String sharingReason = "creating " + THREAD_NAME + " thread for " + owner.getSimpleName();
+            final String sharingReason = "creating " + THREAD_NAME + " thread for " +
+                    service.getClass().getSimpleName();
 
             threadManager.initialize(newThread, DummyNode.INSTANCE, THREAD_NAME, sharingReason, () -> {
                 while (true) {
                     final ProcessingReference<?> reference = threadManager
                             .runUntilResult(DummyNode.INSTANCE, () -> {
-                                ProcessingReference<?> ref = null;
-                                while (ref == null) {
-                                    ref = (ProcessingReference<?>) sharedQueue.poll();
-                                    if (ref != null) {
-                                        return ref;
-                                    }
-                                    try {
-                                        ref = (ProcessingReference<?>) processingQueue
-                                                .remove(context.getOptions().REFERENCE_PROCESSOR_QUEUE_TIMEOUT);
-                                    } catch (InterruptedException interrupted) {
-                                        if (shutdown) {
-                                            throw new KillException(DummyNode.INSTANCE);
-                                        } else {
-                                            throw interrupted;
-                                        }
+                                try {
+                                    return (ProcessingReference<?>) processingQueue.remove();
+                                } catch (InterruptedException interrupted) {
+                                    if (shutdown) {
+                                        throw new KillException(DummyNode.INSTANCE);
+                                    } else {
+                                        throw interrupted;
                                     }
                                 }
-                                return ref;
                             });
                     reference.service().processReference(context, language, reference);
                 }
@@ -227,16 +221,12 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
             return processingThread;
         }
 
+        @TruffleBoundary
         protected final void drainReferenceQueues() {
-            final ReferenceQueue<Object> sharedReferenceQueue = context.getLanguageSlow().sharedReferenceQueue;
             final RubyLanguage language = context.getLanguageSlow();
             while (true) {
                 @SuppressWarnings("unchecked")
                 ProcessingReference<?> reference = (ProcessingReference<?>) processingQueue.poll();
-
-                if (reference == null) {
-                    reference = (ProcessingReference<?>) sharedReferenceQueue.poll();
-                }
 
                 if (reference == null) {
                     break;

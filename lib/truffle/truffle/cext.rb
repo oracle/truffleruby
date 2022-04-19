@@ -183,7 +183,7 @@ module Truffle::CExt
 
   def rb_tr_cached_type(value, type)
     if type == T_NONE
-      if Primitive.object_hidden_var_get(value, DATA_HOLDER)
+      if Primitive.data_holder_is_holder?(Primitive.object_hidden_var_get(value, DATA_HOLDER))
         T_DATA
       else
         T_OBJECT
@@ -1432,44 +1432,35 @@ module Truffle::CExt
   def rb_data_object_wrap(ruby_class, data, mark, free)
     ruby_class = Object unless ruby_class
     object = ruby_class.__send__(:__layout_allocate__)
-    data_holder = DataHolder.new(data)
+    data_holder = Primitive.data_holder_create(data)
     Primitive.object_hidden_var_set object, DATA_HOLDER, data_holder
-    ObjectSpace.define_finalizer object, data_finalizer(free, data_holder) unless free.nil?
-    define_marker object, data_marker(mark, data_holder) unless mark.nil?
+
+    Primitive.object_space_define_data_finalizer object, free, data_holder unless Truffle::Interop.null?(free)
+
+    define_marker object, data_marker(mark, data_holder) unless Truffle::Interop.null?(mark)
+
     object
   end
 
   def rb_data_typed_object_wrap(ruby_class, data, data_type, mark, free, size)
     ruby_class = Object unless ruby_class
     object = ruby_class.__send__(:__layout_allocate__)
-    data_holder = DataHolder.new(data)
+    data_holder = Primitive.data_holder_create(data)
     Primitive.object_hidden_var_set object, DATA_TYPE, data_type
     Primitive.object_hidden_var_set object, DATA_HOLDER, data_holder
-    Primitive.object_hidden_var_set object, DATA_MEMSIZER, data_sizer(size, data_holder) unless size.nil?
+    Primitive.object_hidden_var_set object, DATA_MEMSIZER, data_sizer(size, data_holder) unless Truffle::Interop.null?(size)
 
-    ObjectSpace.define_finalizer object, data_finalizer(free, data_holder) unless free.nil?
+    Primitive.object_space_define_data_finalizer object, free, data_holder unless Truffle::Interop.null?(free)
 
-    define_marker object, data_marker(mark, data_holder) unless mark.nil?
+    define_marker object, data_marker(mark, data_holder) unless Truffle::Interop.null?(mark)
     object
-  end
-
-  # These data function are created in separate methods to ensure they
-  # will not accidentally capture the objects they operate on, which
-  # might prevent garbage collection.
-  def data_finalizer(free, data_holder)
-    raise unless free.respond_to?(:call)
-    proc {
-      data = data_holder.data
-      # This call does not require a frame as the finalisation processor will push one.
-      Primitive.call_with_c_mutex(free, [data]) unless Truffle::Interop.null?(data)
-    }
   end
 
   def data_marker(mark, data_holder)
     raise unless mark.respond_to?(:call)
     proc { |obj|
       create_mark_list(obj)
-      data = data_holder.data
+      data = Primitive.data_holder_get_data(data_holder)
       # This call is done without pushing a new frame as the marking service manages frames itself.
       Primitive.call_with_c_mutex(mark, [data]) unless Truffle::Interop.null?(data)
       set_mark_list_on_object(obj)
@@ -1479,7 +1470,7 @@ module Truffle::CExt
   def data_sizer(sizer, data_holder)
     raise unless sizer.respond_to?(:call)
     proc {
-      Primitive.call_with_c_mutex_and_frame(sizer, [data_holder.data], Primitive.caller_special_variables_if_available, nil)
+      Primitive.call_with_c_mutex_and_frame(sizer, [Primitive.data_holder_get_data(data_holder)], Primitive.caller_special_variables_if_available, nil)
     }
   end
 

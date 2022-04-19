@@ -10,6 +10,7 @@
 package org.truffleruby.cext;
 
 import java.lang.ref.WeakReference;
+import java.lang.ref.Cleaner.Cleanable;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -77,34 +78,25 @@ public class ValueWrapperManager {
     }
 
     @TruffleBoundary
-    public synchronized void addToBlockMap(HandleBlock block, RubyContext context, RubyLanguage language) {
+    public synchronized HandleBlock addToBlockMap(RubyContext context, RubyLanguage language) {
+        HandleBlock block = new HandleBlock(context, language, this);
         int blockIndex = block.getIndex();
-        long blockBase = block.getBase();
-        HandleBlockAllocator allocator = language.handleBlockAllocator;
         HandleBlockWeakReference[] map = growMapIfRequired(blockMap, blockIndex);
         blockMap = map;
         map[blockIndex] = new HandleBlockWeakReference(block);
 
-        context.getFinalizationService().addFinalizer(context, block, ValueWrapperManager.class, () -> {
-            this.blockMap[blockIndex] = null;
-            allocator.addFreeBlock(blockBase);
-        }, null);
+        return block;
     }
 
     @TruffleBoundary
-    public void addToSharedBlockMap(HandleBlock block, RubyContext context, RubyLanguage language) {
+    public HandleBlock addToSharedBlockMap(RubyContext context, RubyLanguage language) {
         synchronized (language) {
+            HandleBlock block = new HandleBlock(context, language, this);
             int blockIndex = block.getIndex();
-            long blockBase = block.getBase();
-            HandleBlockAllocator allocator = language.handleBlockAllocator;
             HandleBlockWeakReference[] map = growMapIfRequired(language.handleBlockSharedMap, blockIndex);
             language.handleBlockSharedMap = map;
             map[blockIndex] = new HandleBlockWeakReference(block);
-
-            language.sharedFinzationService.addFinalizer(context, block, ValueWrapperManager.class, () -> {
-                language.handleBlockSharedMap[blockIndex] = null;
-                allocator.addFreeBlock(blockBase);
-            }, null);
+            return block;
         }
     }
 
@@ -156,7 +148,7 @@ public class ValueWrapperManager {
             }
             HandleBlock block = ref.get();
             if (block != null) {
-                allocator.addFreeBlock(block.base);
+                block.cleanable.clean();
             }
         }
     }
@@ -217,7 +209,7 @@ public class ValueWrapperManager {
 
     public static class HandleBlock {
 
-        public static final HandleBlock DUMMY_BLOCK = new HandleBlock(null, 0, null);
+        public static final HandleBlock DUMMY_BLOCK = new HandleBlock();
 
         private static final Set<HandleBlock> keepAlive = ConcurrentHashMap.newKeySet();
 
@@ -225,17 +217,31 @@ public class ValueWrapperManager {
         @SuppressWarnings("rawtypes") private final ValueWrapper[] wrappers;
         private int count;
 
-        public HandleBlock(RubyContext context, HandleBlockAllocator allocator) {
-            this(context, allocator.getFreeBlock(), new ValueWrapper[BLOCK_SIZE]);
+        @SuppressWarnings("unused") private Cleanable cleanable;
+
+        private HandleBlock() {
+            base = 0;
+            cleanable = null;
+            wrappers = null;
         }
 
-        private HandleBlock(RubyContext context, long base, ValueWrapper[] wrappers) {
+        public HandleBlock(RubyContext context, RubyLanguage language, ValueWrapperManager manager) {
+            HandleBlockAllocator allocator = language.handleBlockAllocator;
+            long base = allocator.getFreeBlock();
             if (context != null && context.getOptions().CEXTS_KEEP_HANDLES_ALIVE) {
                 keepAlive(this);
             }
             this.base = base;
-            this.wrappers = wrappers;
+            this.wrappers = new ValueWrapper[BLOCK_SIZE];
             this.count = 0;
+            this.cleanable = language.cleaner.register(this, HandleBlock.makeCleaner(manager, base, allocator));
+        }
+
+        private static Runnable makeCleaner(ValueWrapperManager manager, long base, HandleBlockAllocator allocator) {
+            return () -> {
+                manager.blockMap[(int) ((base - ALLOCATION_BASE) >> BLOCK_BITS)] = null;
+                allocator.addFreeBlock(base);
+            };
         }
 
         @TruffleBoundary
@@ -327,11 +333,11 @@ public class ValueWrapperManager {
                     context.getMarkingService().queueForMarking(block);
                 }
                 if (shared) {
-                    block = (holder.sharedHandleBlock = new HandleBlock(context, language.handleBlockAllocator));
-                    context.getValueWrapperManager().addToSharedBlockMap(block, context, language);
+                    block = context.getValueWrapperManager().addToSharedBlockMap(context, language);
+                    holder.sharedHandleBlock = block;
                 } else {
-                    block = (holder.handleBlock = new HandleBlock(context, language.handleBlockAllocator));
-                    context.getValueWrapperManager().addToBlockMap(block, context, language);
+                    block = context.getValueWrapperManager().addToBlockMap(context, language);
+                    holder.handleBlock = block;
                 }
 
             }
@@ -354,9 +360,9 @@ public class ValueWrapperManager {
         if (block != null) {
             context.getMarkingService().queueForMarking(block);
         }
-        block = (holder.handleBlock = new HandleBlock(context, language.handleBlockAllocator));
-        context.getValueWrapperManager().addToBlockMap(block, context, language);
+        block = context.getValueWrapperManager().addToBlockMap(context, language);
 
+        holder.handleBlock = block;
         return block;
     }
 

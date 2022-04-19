@@ -9,10 +9,15 @@
  */
 package org.truffleruby.language.objects.shared;
 
+import org.truffleruby.core.DataObjectFinalizerReference;
+import org.truffleruby.core.FinalizerReference;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 
+import java.util.ArrayList;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -35,7 +40,7 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
 
     public abstract void executeWriteBarrier(Object value);
 
-    @Specialization(guards = "!isRubyDynamicObject(value)")
+    @Specialization(guards = { "!isRubyDynamicObject(value)", "!isFinalizer(value)" })
     protected void noWriteBarrier(Object value) {
     }
 
@@ -71,6 +76,28 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
             replaces = { "writeBarrierCached", "updateShapeAndWriteBarrier" })
     protected void writeBarrierUncached(RubyDynamicObject value) {
         SharedObjects.writeBarrier(getLanguage(), value);
+    }
+
+    @Specialization
+    @TruffleBoundary
+    protected void writeBarrierFinalizer(FinalizerReference ref) {
+        ArrayList<Object> roots = new ArrayList<>();
+        ref.collectRoots(roots);
+        for (var root : roots) {
+            SharedObjects.writeBarrier(getLanguage(), root);
+        }
+    }
+
+
+    @Specialization
+    @TruffleBoundary
+    protected void writeBarrierDataFinalizer(DataObjectFinalizerReference ref) {
+        SharedObjects.writeBarrier(getLanguage(), ref.callable);
+        SharedObjects.writeBarrier(getLanguage(), ref.dataHolder);
+    }
+
+    protected boolean isFinalizer(Object object) {
+        return object instanceof FinalizerReference || object instanceof DataObjectFinalizerReference;
     }
 
     protected ShareObjectNode createShareObjectNode() {

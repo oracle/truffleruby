@@ -15,7 +15,11 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.cext.DataHolder;
+import org.truffleruby.core.DataObjectFinalizerReference;
 import org.truffleruby.core.FinalizerReference;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.klass.RubyClass;
@@ -41,6 +45,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 @CoreModule("ObjectSpace")
@@ -202,8 +207,11 @@ public abstract class ObjectSpaceNodes {
                 @Cached BranchProfile errorProfile,
                 @Cached WriteBarrierNode writeBarrierNode) {
             if (respondToCallNode.execute(frame, finalizer, "call")) {
-                if (getContext().getSharedObjects().isSharing()) {
+                if (!getContext().getReferenceProcessor().processOnMainThread()) {
                     // Share the finalizer, as it might run on a different Thread
+                    if (!getContext().getSharedObjects().isSharing()) {
+                        startSharing();
+                    }
                     writeBarrierNode.executeWriteBarrier(finalizer);
                 }
 
@@ -215,6 +223,11 @@ public abstract class ObjectSpaceNodes {
                         getContext(),
                         coreExceptions().argumentErrorWrongArgumentType(finalizer, "callable", this));
             }
+        }
+
+        @TruffleBoundary
+        private void startSharing() {
+            getContext().getSharedObjects().startSharing(getLanguage(), "creating finalizer");
         }
 
         @TruffleBoundary
@@ -241,6 +254,39 @@ public abstract class ObjectSpaceNodes {
             }
         }
 
+    }
+
+    @Primitive(name = "object_space_define_data_finalizer")
+    public abstract static class DefineDataObjectFinalizerNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected Object defineFinalizer(
+                VirtualFrame frame, RubyDynamicObject object, Object finalizer, DataHolder dataHolder,
+                @Cached WriteBarrierNode writeBarrierNode,
+                @CachedLibrary(limit = "1") DynamicObjectLibrary objectLibrary) {
+            if (!getContext().getReferenceProcessor().processOnMainThread()) {
+                // Share the finalizer, as it might run on a different Thread
+                if (!getContext().getSharedObjects().isSharing()) {
+                    startSharing();
+                }
+                writeBarrierNode.executeWriteBarrier(finalizer);
+                writeBarrierNode.executeWriteBarrier(dataHolder);
+            }
+
+            DataObjectFinalizerReference newRef = getContext()
+                    .getDataObjectFinalizationService()
+                    .addFinalizer(getContext(), object, finalizer, dataHolder);
+
+            objectLibrary.put(object, Layouts.DATA_OBJECT_FINALIZER_REF_IDENTIFIER, newRef);
+
+            return nil;
+        }
+
+
+        @TruffleBoundary
+        private void startSharing() {
+            getContext().getSharedObjects().startSharing(getLanguage(), "creating finalizer");
+        }
     }
 
     @CoreMethod(names = "undefine_finalizer", isModuleFunction = true, required = 1)
