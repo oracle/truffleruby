@@ -62,7 +62,7 @@ public class FindDeclarationVariableNodes {
     public static FrameSlotAndDepth findFrameSlotOrNull(String identifier, Frame frame) {
         CompilerAsserts.neverPartOfCompilation("Must not be called in PE code as the frame would escape");
         int depth = 0;
-        while (frame != null) {
+        do {
             int slot = findSlot(frame.getFrameDescriptor(), identifier);
             if (slot != -1) {
                 return new FrameSlotAndDepth(slot, depth);
@@ -70,15 +70,8 @@ public class FindDeclarationVariableNodes {
 
             frame = RubyArguments.getDeclarationFrame(frame);
             depth++;
-        }
+        } while (frame != null);
         return null;
-    }
-
-    public static FrameSlotAndDepth findFrameSlot(String identifier, FrameDescriptor descriptor) {
-        int frameSlot = findSlot(descriptor, identifier);
-        assert frameSlot != -1;
-
-        return new FrameSlotAndDepth(frameSlot, 0);
     }
 
     @ReportPolymorphism
@@ -107,10 +100,14 @@ public class FindDeclarationVariableNodes {
             }
         }
 
-        @TruffleBoundary
         @Specialization(replaces = "getVariable")
         protected Object getVariableSlow(Frame frame, String name, Object defaultValue) {
-            FrameSlotAndDepth slotAndDepth = findFrameSlotOrNull(name, frame);
+            return getVariableSlowBoundary(frame.materialize(), name, defaultValue);
+        }
+
+        @TruffleBoundary
+        private Object getVariableSlowBoundary(MaterializedFrame frame, String name, Object defaultValue) {
+            final FrameSlotAndDepth slotAndDepth = findFrameSlotOrNull(name, frame);
             if (slotAndDepth == null) {
                 return defaultValue;
             } else {
