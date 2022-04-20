@@ -56,6 +56,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
+import com.oracle.truffle.api.TruffleSafepoint;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
@@ -63,6 +64,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.collections.ByteArrayBuilder;
+import org.truffleruby.core.DummyNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.rope.BytesKey;
 import org.truffleruby.core.rope.CodeRange;
@@ -815,6 +817,8 @@ public class RubyLexer implements MagicCommentHandler {
     @SuppressWarnings("fallthrough")
     @SuppressFBWarnings("SF")
     private int yylex() {
+        TruffleSafepoint.poll(DummyNode.INSTANCE);
+
         int c;
         boolean spaceSeen = false;
         boolean commandState;

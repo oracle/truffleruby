@@ -13,10 +13,12 @@ import java.util.List;
 import java.util.function.Function;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.TruffleSafepoint;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.CachedSupplier;
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.DummyNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.klass.RubyClass;
@@ -242,6 +244,7 @@ public class CoreMethodNodeManager {
             String[] names,
             Arity arity,
             Visibility visibility) {
+        TruffleSafepoint.poll(DummyNode.INSTANCE);
 
         for (String name : names) {
             final SharedMethodInfo sharedMethodInfo = makeSharedMethodInfo(

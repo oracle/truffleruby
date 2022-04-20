@@ -9,12 +9,19 @@
  */
 package org.truffleruby.core;
 
+import com.oracle.truffle.api.nodes.DenyReplace;
 import com.oracle.truffle.api.nodes.Node;
 
 /** When a Node is needed but none is available */
-public class DummyNode extends Node {
+@DenyReplace
+public final class DummyNode extends Node {
     public static final Node INSTANCE = new DummyNode();
 
     private DummyNode() {
+    }
+
+    @Override
+    public boolean isAdoptable() {
+        return false;
     }
 }

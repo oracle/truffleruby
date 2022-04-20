@@ -42,6 +42,7 @@ import java.util.List;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -49,6 +50,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.aot.ParserCache;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.DummyNode;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.binding.SetBindingFrameForEvalNode;
 import org.truffleruby.core.kernel.AutoSplitNode;
@@ -393,7 +395,9 @@ public class TranslatorDriver {
             configuration.parseAsBlock(blockScope);
         }
 
+        TruffleSafepoint.poll(DummyNode.INSTANCE);
         RubyParser parser = new RubyParser(lexerSource, rubyWarnings);
+        TruffleSafepoint.poll(DummyNode.INSTANCE); // RubyParser <clinit> takes a while
         RubyParserResult result;
         try {
             result = parser.parse(configuration);
