@@ -18,6 +18,7 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 
+import com.oracle.truffle.api.TruffleSafepoint;
 import org.jcodings.Encoding;
 import org.joni.NameEntry;
 import org.joni.Regex;
@@ -26,6 +27,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.PrimitiveNodeConstructor;
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.DummyNode;
 import org.truffleruby.core.IsNilNode;
 import org.truffleruby.core.array.ArrayAppendOneNodeGen;
 import org.truffleruby.core.array.ArrayConcatNode;
@@ -3099,6 +3101,8 @@ public class BodyTranslator extends Translator {
 
     private RubyNode addNewlineIfNeeded(ParseNode jrubyNode, RubyNode node) {
         if (jrubyNode.isNewline()) {
+            TruffleSafepoint.poll(DummyNode.INSTANCE);
+
             final SourceIndexLength current = node.getEncapsulatingSourceIndexLength();
 
             if (current == null) {
