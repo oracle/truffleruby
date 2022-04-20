@@ -87,7 +87,7 @@ public class FinalizationService extends ReferenceProcessingService<FinalizerRef
 
     @Override
     protected void processReference(RubyContext context, RubyLanguage language,
-                                    PhantomProcessingReference<?, ?> finalizerReference) {
+            PhantomProcessingReference<?, ?> finalizerReference) {
         super.processReference(context, language, finalizerReference);
 
         runCatchingErrors(context, language, this::processReferenceInternal, (FinalizerReference) finalizerReference);

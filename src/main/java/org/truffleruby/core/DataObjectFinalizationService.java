@@ -127,7 +127,7 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
 
     @Override
     protected void processReference(RubyContext context, RubyLanguage language,
-                                    PhantomProcessingReference<?, ?> finalizerReference) {
+            PhantomProcessingReference<?, ?> finalizerReference) {
         super.processReference(context, language, finalizerReference);
 
         runCatchingErrors(context, language, this::processReferenceInternal,

@@ -11,9 +11,7 @@ package org.truffleruby.core;
 
 import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
-import java.lang.ref.WeakReference;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
@@ -67,7 +65,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
             this.previous = (R) this;
         }
 
-        public ReferenceProcessingService<R,T> service() {
+        public ReferenceProcessingService<R, T> service() {
             return service;
         }
     }
@@ -162,7 +160,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
             final RubyLanguage language = context.getLanguageSlow();
             while (true) {
                 @SuppressWarnings("unchecked")
-                    PhantomProcessingReference<?,  ?> reference = (PhantomProcessingReference<?, ?>) processingQueue.poll();
+                PhantomProcessingReference<?, ?> reference = (PhantomProcessingReference<?, ?>) processingQueue.poll();
 
                 if (reference == null) {
                     break;
@@ -184,7 +182,8 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
     }
 
     @SuppressWarnings("unchecked")
-    protected void processReference(RubyContext context, RubyLanguage language, PhantomProcessingReference<?, ?> reference) {
+    protected void processReference(RubyContext context, RubyLanguage language,
+            PhantomProcessingReference<?, ?> reference) {
         remove((R) reference);
     }
 
