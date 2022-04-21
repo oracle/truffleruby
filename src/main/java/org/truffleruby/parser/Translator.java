@@ -101,7 +101,11 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
                 flattened.addAll(flatten(Arrays.asList(((SequenceNode) node).getSequence()), lastNode));
             } else if (node.canSubsumeFollowing() && !lastNode) {
                 List<RubyNode> rest = flattenFromN(sequence, allowTrailingNil, n + 1);
-                flattened.add(node.subsumeFollowing(new SequenceNode(rest.toArray(RubyNode.EMPTY_ARRAY))));
+                if (rest.size() == 1) {
+                    flattened.add(node.subsumeFollowing(rest.get(0)));
+                } else {
+                    flattened.add(node.subsumeFollowing(new SequenceNode(rest.toArray(RubyNode.EMPTY_ARRAY))));
+                }
                 return flattened;
             } else {
                 flattened.add(node);

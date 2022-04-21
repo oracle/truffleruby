@@ -19,7 +19,6 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
-import org.truffleruby.language.control.SequenceNode;
 import org.truffleruby.language.literal.ObjectLiteralNode;
 import org.truffleruby.parser.ast.ArgsParseNode;
 import org.truffleruby.parser.ast.ArgumentParseNode;
@@ -63,8 +62,7 @@ public class ReloadArgumentsTranslator extends Translator {
         return restParameterIndex;
     }
 
-    @Override
-    public RubyNode visitArgsNode(ArgsParseNode node) {
+    public RubyNode[] reload(ArgsParseNode node) {
         final List<RubyNode> sequence = new ArrayList<>();
         final ParseNode[] args = node.getArgs();
         final int preCount = node.getPreCount();
@@ -133,7 +131,7 @@ public class ReloadArgumentsTranslator extends Translator {
             sequence.add(kwArgsNode);
         }
 
-        return new SequenceNode(sequence.toArray(RubyNode.EMPTY_ARRAY));
+        return sequence.toArray(RubyNode.EMPTY_ARRAY);
     }
 
     @Override
