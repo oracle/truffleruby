@@ -283,10 +283,14 @@ if $0 == __FILE__
   require $0
 else
   # call Tracer.on only if required by -r command-line option
-  count = caller.count {|bt| %r%/rubygems/core_ext/kernel_require\.rb:% !~ bt}
-  if (defined?(Gem) and count == 0) or
-     (!defined?(Gem) and count <= 1)
-    Tracer.on
+  if defined?(::TruffleRuby)
+    Tracer.on if caller.all? { |bt| bt.start_with?('<internal:') }
+  else
+    count = caller.count {|bt| %r%/rubygems/core_ext/kernel_require\.rb:% !~ bt}
+    if (defined?(Gem) and count == 0) or
+        (!defined?(Gem) and count <= 1)
+      Tracer.on
+    end
   end
 end
 # :startdoc:
