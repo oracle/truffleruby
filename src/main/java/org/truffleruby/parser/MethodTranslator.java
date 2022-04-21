@@ -37,7 +37,6 @@ import org.truffleruby.language.control.IfElseNode;
 import org.truffleruby.language.control.InvalidReturnNode;
 import org.truffleruby.language.control.NotNode;
 import org.truffleruby.language.control.ReturnID;
-import org.truffleruby.language.control.SequenceNode;
 import org.truffleruby.language.locals.FlipFlopStateNode;
 import org.truffleruby.language.locals.LocalVariableType;
 import org.truffleruby.language.locals.ReadLocalVariableNode;
@@ -496,18 +495,13 @@ public class MethodTranslator extends BodyTranslator {
                 this,
                 argsNode);
 
-        final RubyNode reloadSequence = reloadTranslator.visitArgsNode(argsNode);
+        final RubyNode[] reloadSequence = reloadTranslator.reload(argsNode);
 
         final ArgumentsDescriptor descriptor = argsNode.hasKwargs()
                 ? KeywordArgumentsDescriptorManager.EMPTY
                 : EmptyArgumentsDescriptor.INSTANCE;
-        final RubyNode arguments;
         final int restParamIndex = reloadTranslator.getRestParameterIndex();
-        if (reloadSequence instanceof SequenceNode) {
-            arguments = new ReadZSuperArgumentsNode(restParamIndex, ((SequenceNode) reloadSequence).getSequence());
-        } else {
-            arguments = new ReadZSuperArgumentsNode(restParamIndex, new RubyNode[]{ reloadSequence });
-        }
+        final RubyNode arguments = new ReadZSuperArgumentsNode(restParamIndex, reloadSequence);
         final RubyNode block = executeOrInheritBlock(argumentsAndBlock.getBlock(), node);
         final boolean isSplatted = reloadTranslator.getRestParameterIndex() != -1;
 

@@ -23,8 +23,7 @@ public final class SequenceNode extends RubyContextSourceNode {
     @Children private final RubyNode[] body;
 
     public SequenceNode(RubyNode... body) {
-        assert body.length != 1 : "sequences can be empty or need to have more than but element, but got: " +
-                body.length;
+        assert body.length != 1 : "sequences must not be created for a single element";
         this.body = body;
     }
 
