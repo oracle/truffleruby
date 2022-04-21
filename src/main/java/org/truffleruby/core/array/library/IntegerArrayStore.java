@@ -86,7 +86,7 @@ public class IntegerArrayStore {
     }
 
     @ExportMessage
-    static class IsStorageSame {
+    static class IsSameStorage {
 
         @Specialization
         protected static boolean sameIntegerStore(int[] store, int[] other) {
@@ -96,13 +96,13 @@ public class IntegerArrayStore {
         @Specialization
         protected static boolean sameDelegated(int[] store, DelegatedArrayStorage other,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary others) {
-            return others.isStorageSame(other, store);
+            return others.isSameStorage(other, store);
         }
 
         @Specialization
         protected static boolean sameShared(int[] store, SharedArrayStorage other,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary others) {
-            return others.isStorageSame(other, store);
+            return others.isSameStorage(other, store);
         }
 
         @Fallback

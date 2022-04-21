@@ -91,7 +91,7 @@ public class LongArrayStore {
     }
 
     @ExportMessage
-    static class IsStorageSame {
+    static class IsSameStorage {
 
         @Specialization
         protected static boolean sameLongStore(long[] store, long[] other) {
@@ -101,13 +101,13 @@ public class LongArrayStore {
         @Specialization
         protected static boolean sameDelegated(long[] store, DelegatedArrayStorage other,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary others) {
-            return others.isStorageSame(other, store);
+            return others.isSameStorage(other, store);
         }
 
         @Specialization
         protected static boolean sameShared(long[] store, SharedArrayStorage other,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary others) {
-            return others.isStorageSame(other, store);
+            return others.isSameStorage(other, store);
         }
 
         @Fallback

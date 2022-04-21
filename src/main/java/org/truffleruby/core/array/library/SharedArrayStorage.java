@@ -111,9 +111,9 @@ public class SharedArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    protected boolean isStorageSame(Object other,
+    protected boolean isSameStorage(Object other,
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
-        return stores.isStorageSame(storage, other);
+        return stores.isSameStorage(storage, other);
     }
 
     @ExportMessage

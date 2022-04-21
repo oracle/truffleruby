@@ -59,24 +59,24 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
 
     @ExportMessage
     @ImportStatic(ArrayGuards.class)
-    static class IsStorageSame {
+    static class IsSameStorage {
 
         @Specialization
         protected static boolean sameDelegated(DelegatedArrayStorage store, DelegatedArrayStorage other,
                 @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
-            return store.offset == other.offset && stores.isStorageSame(store.storage, other.storage);
+            return store.offset == other.offset && stores.isSameStorage(store.storage, other.storage);
         }
 
         @Specialization
         protected static boolean sameShared(DelegatedArrayStorage store, SharedArrayStorage other,
                 @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
-            return stores.isStorageSame(other.storage, store);
+            return stores.isSameStorage(other.storage, store);
         }
 
         @Fallback
         protected static boolean sameOther(DelegatedArrayStorage store, Object other,
                 @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
-            return store.offset == 0 && stores.isStorageSame(store.storage, other);
+            return store.offset == 0 && stores.isSameStorage(store.storage, other);
         }
 
     }

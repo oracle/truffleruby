@@ -103,7 +103,7 @@ public abstract class ArrayStoreLibrary extends Library {
     }
 
     /** Return whether {@code store} and {@code other} share the same underlying array storage. */
-    public abstract boolean isStorageSame(Object store, Object other);
+    public abstract boolean isSameStorage(Object store, Object other);
 
     /** Return the underlying storage used by this array, which may be behind multiple warppers. Stores which wrap some
      * array store should always recursively unwrap that store using this same library call. */
