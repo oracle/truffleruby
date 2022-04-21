@@ -56,7 +56,7 @@ public abstract class ArrayHelpers {
         return new RubyArray(
                 context.getCoreLibrary().arrayClass,
                 language.arrayShape,
-                ArrayStoreLibrary.INITIAL_STORE,
+                ArrayStoreLibrary.initialStorage(false),
                 0);
     }
 

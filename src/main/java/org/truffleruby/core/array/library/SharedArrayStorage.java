@@ -107,7 +107,7 @@ public class SharedArrayStorage implements ObjectGraphNode {
 
     @ExportMessage
     public Object initialStore() {
-        return ArrayStoreLibrary.SHARED_INITIAL_STORE;
+        return ArrayStoreLibrary.initialStorage(true);
     }
 
     @ExportMessage

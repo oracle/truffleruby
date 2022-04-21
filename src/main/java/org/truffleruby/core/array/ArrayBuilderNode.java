@@ -58,7 +58,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
 
     private static class ArrayBuilderProxyNode extends ArrayBuilderNode {
 
-        @Child StartNode startNode = new StartNode(ArrayStoreLibrary.INITIAL_ALLOCATOR, 0);
+        @Child StartNode startNode = new StartNode(ArrayStoreLibrary.initialAllocator(false), 0);
         @Child AppendArrayNode appendArrayNode;
         @Child AppendOneNode appendOneNode;
 
@@ -160,7 +160,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         }
 
         public BuilderState start() {
-            if (allocator == ArrayStoreLibrary.INITIAL_ALLOCATOR) {
+            if (allocator == ArrayStoreLibrary.initialAllocator(false)) {
                 return new BuilderState(allocator.allocate(0), expectedLength);
             } else {
                 return new BuilderState(allocator.allocate(expectedLength), expectedLength);
@@ -172,7 +172,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 replaceNodes(allocator, length);
             }
-            if (allocator == ArrayStoreLibrary.INITIAL_ALLOCATOR) {
+            if (allocator == ArrayStoreLibrary.initialAllocator(false)) {
                 return new BuilderState(allocator.allocate(0), length);
             } else {
                 return new BuilderState(allocator.allocate(length), length);

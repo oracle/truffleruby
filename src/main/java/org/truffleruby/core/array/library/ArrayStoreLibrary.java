@@ -30,11 +30,11 @@ import com.oracle.truffle.api.nodes.Node;
 public abstract class ArrayStoreLibrary extends Library {
 
     /** An initial immutable empty array store. This is what should be assigned initially to an array of zero size. */
-    public static final Object INITIAL_STORE = ZeroLengthArrayStore.ZERO_LENGTH_STORE;
-    public static final ArrayAllocator INITIAL_ALLOCATOR = ZeroLengthArrayStore.ZERO_LENGTH_ALLOCATOR;
+    private static final Object INITIAL_STORE = ZeroLengthArrayStore.ZERO_LENGTH_STORE;
+    private static final ArrayAllocator INITIAL_ALLOCATOR = ZeroLengthArrayStore.ZERO_LENGTH_ALLOCATOR;
 
-    public static final Object SHARED_INITIAL_STORE = new SharedArrayStorage(ZeroLengthArrayStore.ZERO_LENGTH_STORE);
-    public static final ArrayAllocator SHARED_INITIAL_ALLOCATOR = SharedArrayStorage.SHARED_ZERO_LENGTH_ARRAY_ALLOCATOR;
+    private static final Object SHARED_INITIAL_STORE = new SharedArrayStorage(ZeroLengthArrayStore.ZERO_LENGTH_STORE);
+    private static final ArrayAllocator SHARED_INITIAL_ALLOCATOR = SharedArrayStorage.SHARED_ZERO_LENGTH_ARRAY_ALLOCATOR;
 
     private static final LibraryFactory<ArrayStoreLibrary> FACTORY = LibraryFactory.resolve(ArrayStoreLibrary.class);
 
@@ -84,6 +84,22 @@ public abstract class ArrayStoreLibrary extends Library {
     /** Return an initial store with the appropriate sharing. */
     public Object initialStore(Object store) {
         return INITIAL_STORE;
+    }
+
+    public static Object initialStorage(boolean shared) {
+        if (shared) {
+            return SHARED_INITIAL_STORE;
+        } else {
+            return INITIAL_STORE;
+        }
+    }
+
+    public static ArrayAllocator initialAllocator(boolean shared) {
+        if (shared) {
+            return SHARED_INITIAL_ALLOCATOR;
+        } else {
+            return INITIAL_ALLOCATOR;
+        }
     }
 
     /** Return whether {@code store} and {@code other} share the same underlying array storage. */

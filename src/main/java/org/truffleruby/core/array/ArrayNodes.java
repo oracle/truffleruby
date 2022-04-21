@@ -120,7 +120,7 @@ public abstract class ArrayNodes {
         @Specialization
         protected RubyArray allocate(RubyClass rubyClass) {
             final Shape shape = getLanguage().arrayShape;
-            final RubyArray array = new RubyArray(rubyClass, shape, ArrayStoreLibrary.INITIAL_STORE, 0);
+            final RubyArray array = new RubyArray(rubyClass, shape, ArrayStoreLibrary.initialStorage(false), 0);
             AllocationTracing.trace(array, this);
             return array;
         }
@@ -478,7 +478,7 @@ public abstract class ArrayNodes {
 
         @Specialization
         protected RubyArray clear(RubyArray array) {
-            setStoreAndSize(array, ArrayStoreLibrary.INITIAL_STORE, 0);
+            setStoreAndSize(array, ArrayStoreLibrary.initialStorage(false), 0);
             return array;
         }
 
@@ -1172,11 +1172,7 @@ public abstract class ArrayNodes {
         protected RubyArray initializeNoArgs(RubyArray array, NotProvided size, NotProvided fillingValue, Nil block,
                 @Cached IsSharedNode isSharedNode,
                 @Cached ConditionProfile sharedProfile) {
-            if (sharedProfile.profile(isSharedNode.executeIsShared(array))) {
-                setStoreAndSize(array, ArrayStoreLibrary.SHARED_INITIAL_STORE, 0);
-            } else {
-                setStoreAndSize(array, ArrayStoreLibrary.INITIAL_STORE, 0);
-            }
+            setStoreAndSize(array, ArrayStoreLibrary.initialStorage(sharedProfile.profile(isSharedNode.executeIsShared(array))), 0);
             return array;
         }
 
@@ -1185,11 +1181,7 @@ public abstract class ArrayNodes {
                 RubyArray array, NotProvided size, NotProvided fillingValue, RubyProc block,
                 @Cached IsSharedNode isShared,
                 @Cached ConditionProfile sharedProfile) {
-            if (sharedProfile.profile(isShared.executeIsShared(array))) {
-                setStoreAndSize(array, ArrayStoreLibrary.SHARED_INITIAL_STORE, 0);
-            } else {
-                setStoreAndSize(array, ArrayStoreLibrary.INITIAL_STORE, 0);
-            }
+            setStoreAndSize(array, ArrayStoreLibrary.initialStorage(sharedProfile.profile(isShared.executeIsShared(array))), 0);
             return array;
         }
 
