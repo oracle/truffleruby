@@ -13,7 +13,24 @@ module Truffle
 
     DOT_DLEXT = ".#{Truffle::Platform::DLEXT}"
 
-    # FeatureEntry => [*index_inside_$LOADED_FEATURES]
+    #
+    # The following $LOADED_FEATURES:
+    # ["/one/path.rb", "/two/path.so", "three/path" ]
+    #
+    # would create the @loaded_features_index:
+    #
+    # {
+    #     "path" => [
+    #             #<FeatureEntry @feature="/one/path.rb" @index=0>,
+    #             #<FeatureEntry @feature="/two/path.so" @index=1>,
+    #             #<FeatureEntry @feature="/three/path" @index=2>,
+    #         ]
+    # }
+    #
+    # For the feature "path" or "nested/path", all three feature entries are in the same hash key and `include?`
+    # the feature. However, for feature "path.rb", only the first entry with the same extension would be at the same
+    # hash key and not `include?` the feature.
+    #
     @loaded_features_index = {}
     # A snapshot of $LOADED_FEATURES, to check if the @loaded_features_index cache is up to date.
     @loaded_features_version = -1
@@ -33,42 +50,23 @@ module Truffle
     end
 
     class FeatureEntry
-      attr_reader :feature, :ext, :feature_no_ext
-      attr_accessor :part_of_index
+      attr_accessor :index
+      attr_reader :feature, :ext, :feature_no_ext, :base
 
       def initialize(feature)
-        @part_of_index = false
         @ext = Truffle::FeatureLoader.extension(feature)
         @feature = feature
         @feature_no_ext = @ext ? feature[0...(-@ext.size)] : feature
         @base = File.basename(@feature_no_ext)
+        @index = nil
       end
 
-      def ==(other)
-        # The looked up feature has to be the trailing part of an already-part_of_index entry.
-        # We always want to check part_of_index_feature.end_with?(lookup_feature).
-        # We compare extensions only if the lookup_feature has an extension.
-
-        if @part_of_index
-          stored = self
-          lookup = other
-        elsif other.part_of_index
-          stored = other
-          lookup = self
-        else
-          raise 'Expected that at least one of the FeatureEntry instances is part of the index'
-        end
-
+      def include?(lookup)
         if lookup.ext
-          stored.feature.end_with?(lookup.feature)
+          feature.end_with?(lookup.feature)
         else
-          stored.feature_no_ext.end_with?(lookup.feature_no_ext)
+          feature_no_ext.end_with?(lookup.feature_no_ext)
         end
-      end
-      alias_method :eql?, :==
-
-      def hash
-        @base.hash
       end
     end
 
@@ -161,30 +159,32 @@ module Truffle
       with_synchronized_features do
         get_loaded_features_index
         feature_entry = FeatureEntry.new(feature)
-        if @loaded_features_index.key?(feature_entry)
-          @loaded_features_index[feature_entry].each do |i|
-            loaded_feature = $LOADED_FEATURES[i]
+        if @loaded_features_index.key?(feature_entry.base)
+          @loaded_features_index[feature_entry.base].each do |fe|
+            if fe.include?(feature_entry)
+              loaded_feature = $LOADED_FEATURES[fe.index]
 
-            next if loaded_feature.size < feature.size
-            feature_path = if loaded_feature.start_with?(feature)
-                             feature
-                           else
-                             if expanded
-                               nil
+              next if loaded_feature.size < feature.size
+              feature_path = if loaded_feature.start_with?(feature)
+                               feature
                              else
-                               loaded_feature_path(loaded_feature, feature, get_expanded_load_path)
+                               if expanded
+                                 nil
+                               else
+                                 loaded_feature_path(loaded_feature, feature, get_expanded_load_path)
+                               end
                              end
-                           end
-            if feature_path
-              loaded_feature_ext = extension_symbol(loaded_feature)
-              if !loaded_feature_ext
-                return :unknown unless feature_ext
-              else
-                if (!feature_has_rb_ext || !feature_ext) && binary_ext?(loaded_feature_ext)
-                  return :so
-                end
-                if (feature_has_rb_ext || !feature_ext) && loaded_feature_ext == :rb
-                  return :rb
+              if feature_path
+                loaded_feature_ext = extension_symbol(loaded_feature)
+                if !loaded_feature_ext
+                  return :unknown unless feature_ext
+                else
+                  if (!feature_has_rb_ext || !feature_ext) && binary_ext?(loaded_feature_ext)
+                    return :so
+                  end
+                  if (feature_has_rb_ext || !feature_ext) && loaded_feature_ext == :rb
+                    return :rb
+                  end
                 end
               end
             end
@@ -225,7 +225,7 @@ module Truffle
       if !load_path_entries.empty?
         load_path_entry = load_path_entries.max_by(&:length)
         before_dot_rb = expanded_path.end_with?('.rb') ? -4 : -1
-        expanded_path[load_path_entry.size+1..before_dot_rb]
+        expanded_path[load_path_entry.size + 1..before_dot_rb]
       else
         nil
       end
@@ -297,13 +297,14 @@ module Truffle
 
     # MRI: features_index_add
     # always called inside #with_synchronized_features
+    #
     def self.features_index_add(feature, offset)
       feature_entry = FeatureEntry.new(feature)
-      if @loaded_features_index.key?(feature_entry)
-        @loaded_features_index[feature_entry] << offset
+      feature_entry.index = offset
+      if @loaded_features_index.key?(feature_entry.base)
+        @loaded_features_index[feature_entry.base] << feature_entry
       else
-        @loaded_features_index[feature_entry] = [offset]
-        feature_entry.part_of_index = true
+        @loaded_features_index[feature_entry.base] = [feature_entry]
       end
     end
 
