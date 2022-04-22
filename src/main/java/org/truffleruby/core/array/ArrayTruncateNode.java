@@ -50,8 +50,7 @@ public abstract class ArrayTruncateNode extends RubyBaseNode {
 
         final Object newStore = stores.allocateForNewStore(store, store, size);
         stores.copyContents(store, 0, newStore, 0, size);
-        array.store = newStore;
-        array.size = size;
+        ArrayHelpers.setStoreAndSize(array, newStore, size);
     }
 
     @ReportPolymorphism.Exclude

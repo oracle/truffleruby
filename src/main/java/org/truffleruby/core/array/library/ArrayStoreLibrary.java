@@ -201,6 +201,12 @@ public abstract class ArrayStoreLibrary extends Library {
      * of {@code newStore}. */
     public abstract Object allocateForNewStore(Object store, Object newStore, int length);
 
+    /** Return a new store of length {@code length} that can accept all the values of {@code store} and all the values
+     * of {@code newStore} and is unshared. */
+    public Object unsharedAllocateForNewStore(Object store, Object newStore, int length) {
+        return allocateForNewStore(store, newStore, length);
+    }
+
     /** Return an allocator for a mutable version of {@code store}. */
     public abstract ArrayAllocator allocator(Object store);
 

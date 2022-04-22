@@ -150,7 +150,7 @@ public abstract class ArrayNodes {
             final int aSize = aSizeProfile.profile(a.size);
             final int bSize = bSizeProfile.profile(b.size);
             final int combinedSize = aSize + bSize;
-            Object newStore = as.allocateForNewStore(aStore, bStore, combinedSize);
+            Object newStore = as.unsharedAllocateForNewStore(aStore, bStore, combinedSize);
             as.copyContents(aStore, 0, newStore, 0, aSize);
             bs.copyContents(bStore, 0, newStore, aSize, bSize);
             return createArray(newStore, combinedSize);
@@ -2345,7 +2345,7 @@ public abstract class ArrayNodes {
             try {
                 for (; loopProfile.inject(n < zippedLength); n++) {
                     if (bNotSmallerProfile.profile(n < bSize)) {
-                        final Object pair = aStores.allocateForNewStore(a, b, 2);
+                        final Object pair = aStores.unsharedAllocateForNewStore(a, b, 2);
                         pairs.write(pair, 0, aStores.read(a, n));
                         pairs.write(pair, 1, bStores.read(b, n));
                         zipped[n] = createArray(pair, 2);

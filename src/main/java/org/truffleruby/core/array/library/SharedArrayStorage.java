@@ -252,6 +252,12 @@ public class SharedArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
+    protected Object unsharedAllocateForNewStore(Object newStore, int length,
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+        return stores.allocateForNewStore(storage, newStore, length);
+    }
+
+    @ExportMessage
     protected boolean isDefaultValue(Object value,
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
         return stores.isDefaultValue(storage, value);
