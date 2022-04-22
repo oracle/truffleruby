@@ -477,8 +477,12 @@ public abstract class ArrayNodes {
     public abstract static class ClearNode extends ArrayCoreMethodNode {
 
         @Specialization
-        protected RubyArray clear(RubyArray array) {
-            setStoreAndSize(array, ArrayStoreLibrary.initialStorage(false), 0);
+        protected RubyArray clear(RubyArray array,
+                @Cached IsSharedNode isSharedNode,
+                @Cached ConditionProfile sharedProfile) {
+            setStoreAndSize(array,
+                    ArrayStoreLibrary.initialStorage(sharedProfile.profile(isSharedNode.executeIsShared(array))),
+                    0);
             return array;
         }
 
@@ -1723,7 +1727,7 @@ public abstract class ArrayNodes {
             final int numPop = minProfile.profile(size < n) ? size : n;
 
             // Extract values in a new array
-            final Object popped = stores.allocator(store).allocate(numPop);
+            final Object popped = stores.unsharedAllocator(store).allocate(numPop);
             stores.copyContents(store, size - numPop, popped, 0, numPop);
 
             // Remove the end from the original array.
