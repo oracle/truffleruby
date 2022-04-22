@@ -143,6 +143,10 @@ public abstract class ArrayStoreLibrary extends Library {
         return new DelegatedArrayStorage(store, start, (end - start));
     }
 
+    public Object extractRangeAndUnshare(Object store, int start, int end) {
+        return extractRange(store, start, end);
+    }
+
     /** Copy a range from this array store into a plane Object[]. */
     public abstract Object[] boxedCopyOfRange(Object store, int start, int length);
 

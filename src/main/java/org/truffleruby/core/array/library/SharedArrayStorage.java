@@ -154,6 +154,12 @@ public class SharedArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
+    protected Object extractRangeAndUnshare(int start, int end,
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+        return stores.extractRange(storage, start, end);
+    }
+
+    @ExportMessage
     protected Object[] boxedCopyOfRange(int start, int length,
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
         return stores.boxedCopyOfRange(storage, start, length);

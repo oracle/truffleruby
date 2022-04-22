@@ -35,7 +35,7 @@ public abstract class ArrayCopyOnWriteNode extends RubyBaseNode {
             @CachedLibrary("store") ArrayStoreLibrary stores) {
         int size = array.size;
         Object cowStore = stores.extractRange(store, 0, size);
-        Object range = stores.extractRange(store, start, start + length);
+        Object range = stores.extractRangeAndUnshare(store, start, start + length);
         array.store = cowStore;
         return range;
     }
@@ -44,7 +44,7 @@ public abstract class ArrayCopyOnWriteNode extends RubyBaseNode {
     protected Object extractFromNonMutableArray(RubyArray array, int start, int length,
             @Bind("array.store") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores) {
-        Object range = stores.extractRange(store, start, start + length);
+        Object range = stores.extractRangeAndUnshare(store, start, start + length);
         return range;
     }
 }
