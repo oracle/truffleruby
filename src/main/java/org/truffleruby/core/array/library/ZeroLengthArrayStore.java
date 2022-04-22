@@ -109,6 +109,10 @@ public class ZeroLengthArrayStore {
     }
 
     @ExportMessage
+    protected void clear(int start, int length) {
+    }
+
+    @ExportMessage
     protected Object[] toJavaArrayCopy(int length) {
         assert length == 0;
         return new Object[length];

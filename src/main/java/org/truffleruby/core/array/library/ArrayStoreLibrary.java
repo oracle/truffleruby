@@ -153,9 +153,8 @@ public abstract class ArrayStoreLibrary extends Library {
     /** If the array is mutable, clears the part of the array starting at {@code start} and extending for {@code length}
      * elements, so that that range does not retain references to objects/memory/resources. This can be understood as
      * "nulling out" that part of the array, and will do nothing for primitive arrays. */
-    public void clear(Object store, int start, int length) {
-        throw new UnsupportedOperationException("clear operation not supported");
-    }
+    public abstract void clear(Object store, int start, int length);
+
 
     /** Fill the part of the array starting at {@code start} and extending for {@code length} elements using
      * {@code value}, which must be accepted by the store. */

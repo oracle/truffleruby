@@ -184,6 +184,10 @@ public class LongArrayStore {
     }
 
     @ExportMessage
+    protected static void clear(long[] store, int start, int length) {
+    }
+
+    @ExportMessage
     static class Fill {
         @Specialization
         protected static void fill(long[] store, int start, int length, int value) {

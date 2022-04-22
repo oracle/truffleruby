@@ -171,6 +171,10 @@ public class IntegerArrayStore {
     }
 
     @ExportMessage
+    protected static void clear(int[] store, int start, int length) {
+    }
+
+    @ExportMessage
     protected static void fill(int[] store, int start, int length, Object value) {
         Arrays.fill(store, start, start + length, (int) value);
     }

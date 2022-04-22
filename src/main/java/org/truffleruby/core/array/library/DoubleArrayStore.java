@@ -172,6 +172,10 @@ public class DoubleArrayStore {
     }
 
     @ExportMessage
+    protected static void clear(double[] store, int start, int length) {
+    }
+
+    @ExportMessage
     protected static void fill(double[] store, int start, int length, Object value) {
         Arrays.fill(store, start, start + length, (double) value);
     }

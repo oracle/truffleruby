@@ -146,6 +146,10 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
+    protected void clear(int start, int length) {
+    }
+
+    @ExportMessage
     protected Object toJavaArrayCopy(int length,
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
         Object newStore = stores.allocator(storage).allocate(length);

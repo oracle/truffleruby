@@ -30,7 +30,7 @@ public abstract class ArrayTruncateNode extends RubyBaseNode {
     public abstract void execute(RubyArray array, int size);
 
     @Specialization(
-            guards = { "array.size > size", "stores.isMutable(store)", "!stores.isPrimitive(store)" },
+            guards = { "array.size > size", "stores.isMutable(store)" },
             limit = "storageStrategyLimit()")
     protected void truncate(RubyArray array, int size,
             @Bind("array.store") Object store,
@@ -39,15 +39,6 @@ public abstract class ArrayTruncateNode extends RubyBaseNode {
         final int oldSize = array.size;
         array.size = size;
         stores.clear(store, size, oldSize - size);
-    }
-
-    @Specialization(
-            guards = { "array.size > size", "stores.isMutable(store)", "stores.isPrimitive(store)" },
-            limit = "storageStrategyLimit()")
-    protected void truncatePrimitive(RubyArray array, int size,
-            @Bind("array.store") Object store,
-            @CachedLibrary("store") ArrayStoreLibrary stores) {
-        array.size = size;
     }
 
     @Specialization(
