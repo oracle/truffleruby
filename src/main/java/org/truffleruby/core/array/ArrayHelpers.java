@@ -12,10 +12,12 @@ package org.truffleruby.core.array;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.core.array.library.SharedArrayStorage;
 
 public abstract class ArrayHelpers {
 
     public static void setStoreAndSize(RubyArray array, Object store, int size) {
+        assert (store instanceof SharedArrayStorage) == (array.getShape().isShared());
         array.store = store;
         setSize(array, size);
     }
