@@ -13,31 +13,64 @@ describe "Internal errors reaching the top level" do
     file = fixture(__FILE__, 'throw_java_exception.rb')
     out = ruby_exe(file, args: "2>&1", exit_status: 1)
     out = out.gsub(/\.java:\d+/, '.java:LINE')
-    out.should.include? <<-EOS
+    out.should == <<-EOS
+
 truffleruby: an internal exception escaped out of the interpreter,
 please report it to https://github.com/oracle/truffleruby/issues.
+
+```
+custom message (java.lang.RuntimeException)
+	from org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionNode.throwingMethod(TruffleDebugNodes.java:LINE)
+	from org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionNode.callingMethod(TruffleDebugNodes.java:LINE)
+	from org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionNode.throwJavaException(TruffleDebugNodes.java:LINE)
+	from org.truffleruby.debug.TruffleDebugNodesFactory$ThrowJavaExceptionNodeFactory$ThrowJavaExceptionNodeGen.executeAndSpecialize(TruffleDebugNodesFactory.java:LINE)
+	from org.truffleruby.debug.TruffleDebugNodesFactory$ThrowJavaExceptionNodeFactory$ThrowJavaExceptionNodeGen.execute(TruffleDebugNodesFactory.java:LINE)
+	from org.truffleruby.language.RubyCoreMethodRootNode.execute(RubyCoreMethodRootNode.java:LINE)
+#{file}:10:in `throw_java_exception'
+	from #{file}:10:in `foo'
+	from #{file}:13:in `<main>'
+```
     EOS
-    out.should.include? "custom message (java.lang.RuntimeException)\n"
-
-    out.should.include? "\tfrom org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionNode.throwingMethod(TruffleDebugNodes.java:LINE)\n"
-    out.should.include? "\tfrom org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionNode.callingMethod(TruffleDebugNodes.java:LINE)\n"
-    out.should.include? "\tfrom org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionNode.throwJavaException(TruffleDebugNodes.java:LINE)\n"
-
-    out.should.include? "#{file}:10:in `throw_java_exception'\n"
-    out.should.include? "\tfrom #{file}:10:in `foo'\n"
-    out.should.include? "\tfrom #{file}:13:in `<main>'\n"
   end
 
   it "show the cause" do
-    out = ruby_exe("Truffle::Debug.throw_java_exception_with_cause 'message'", args: "2>&1", exit_status: 1)
-    message = out.gsub(/:\d+/, ':LINE')
+    file = fixture(__FILE__, 'throw_java_exception_with_cause.rb')
+    out = ruby_exe(file, args: "2>&1", exit_status: 1)
+    out = out.gsub(/\.java:\d+/, '.java:LINE')
+    out.should == <<-EOS
 
-    message.should.include? <<-EOS
+truffleruby: an internal exception escaped out of the interpreter,
+please report it to https://github.com/oracle/truffleruby/issues.
+
+```
 message (java.lang.RuntimeException)
-\tfrom org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionWithCauseNode.throwJavaExceptionWithCause(TruffleDebugNodes.java:LINE)
+	from org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionWithCauseNode.throwJavaExceptionWithCause(TruffleDebugNodes.java:LINE)
+	from org.truffleruby.debug.TruffleDebugNodesFactory$ThrowJavaExceptionWithCauseNodeFactory$ThrowJavaExceptionWithCauseNodeGen.executeAndSpecialize(TruffleDebugNodesFactory.java:LINE)
+	from org.truffleruby.debug.TruffleDebugNodesFactory$ThrowJavaExceptionWithCauseNodeFactory$ThrowJavaExceptionWithCauseNodeGen.execute(TruffleDebugNodesFactory.java:LINE)
+	from org.truffleruby.language.RubyCoreMethodRootNode.execute(RubyCoreMethodRootNode.java:LINE)
+#{file}:10:in `throw_java_exception_with_cause'
+	from #{file}:10:in `foo'
+	from #{file}:13:in `<main>'
+Caused by:
+cause 1 (java.lang.RuntimeException)
+	from org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionWithCauseNode.throwJavaExceptionWithCause(TruffleDebugNodes.java:LINE)
+	from org.truffleruby.debug.TruffleDebugNodesFactory$ThrowJavaExceptionWithCauseNodeFactory$ThrowJavaExceptionWithCauseNodeGen.executeAndSpecialize(TruffleDebugNodesFactory.java:LINE)
+	from org.truffleruby.debug.TruffleDebugNodesFactory$ThrowJavaExceptionWithCauseNodeFactory$ThrowJavaExceptionWithCauseNodeGen.execute(TruffleDebugNodesFactory.java:LINE)
+	from org.truffleruby.language.RubyCoreMethodRootNode.execute(RubyCoreMethodRootNode.java:LINE)
+#{file}:10:in `throw_java_exception_with_cause'
+	from #{file}:10:in `foo'
+	from #{file}:13:in `<main>'
+Caused by:
+cause 2 (java.lang.RuntimeException)
+	from org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionWithCauseNode.throwJavaExceptionWithCause(TruffleDebugNodes.java:LINE)
+	from org.truffleruby.debug.TruffleDebugNodesFactory$ThrowJavaExceptionWithCauseNodeFactory$ThrowJavaExceptionWithCauseNodeGen.executeAndSpecialize(TruffleDebugNodesFactory.java:LINE)
+	from org.truffleruby.debug.TruffleDebugNodesFactory$ThrowJavaExceptionWithCauseNodeFactory$ThrowJavaExceptionWithCauseNodeGen.execute(TruffleDebugNodesFactory.java:LINE)
+	from org.truffleruby.language.RubyCoreMethodRootNode.execute(RubyCoreMethodRootNode.java:LINE)
+#{file}:10:in `throw_java_exception_with_cause'
+	from #{file}:10:in `foo'
+	from #{file}:13:in `<main>'
+```
     EOS
-    message.should.include? "Caused by:\ncause 1 (java.lang.RuntimeException)\n"
-    message.should.include? "Caused by:\ncause 2 (java.lang.RuntimeException)\n"
   end
 
   it "AssertionError in another Thread is rethrown on the main Ruby Thread" do

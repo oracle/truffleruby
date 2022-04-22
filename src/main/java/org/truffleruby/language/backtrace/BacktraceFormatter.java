@@ -310,9 +310,14 @@ public class BacktraceFormatter {
         return builder.toString();
     }
 
-    public static String formatJava(StackTraceElement stackTraceElement) {
-        return stackTraceElement.getFileName() + ":" + stackTraceElement.getLineNumber() +
-                ":in `" + stackTraceElement.getClassName() + "." + stackTraceElement.getMethodName() + "'";
+    /** Like {@link StackTraceElement#toString()} but without any classloader/module info. Not formatted in Ruby order
+     * (file:line:in `method') to keep a Java feel to it and be closer to {@link Throwable#printStackTrace()}. Using an
+     * explicit StringBuilder to avoid using too much stack space for this (matters for StackOverflowError) */
+    public static String formatStackTraceElement(StackTraceElement element) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(element.getClassName()).append(".").append(element.getMethodName());
+        builder.append("(").append(element.getFileName()).append(":").append(element.getLineNumber()).append(")");
+        return builder.toString();
     }
 
     private String formatException(RubyException exception) {
@@ -320,8 +325,7 @@ public class BacktraceFormatter {
 
         final String message = ExceptionOperations.messageToString(exception);
 
-        final String exceptionClass = exception.getLogicalClass().fields
-                .getName();
+        final String exceptionClass = exception.getLogicalClass().fields.getName();
 
         // Show the exception class at the end of the first line of the message
         final int firstLn = message.indexOf('\n');
@@ -434,10 +438,10 @@ public class BacktraceFormatter {
     public static void appendJavaStackTrace(Throwable t, StringBuilder builder) {
         final StackTraceElement[] stackTrace = t.getStackTrace();
         for (StackTraceElement stackTraceElement : stackTrace) {
-            builder.append("\tfrom ").append(stackTraceElement).append('\n');
             if (BacktraceInterleaver.isCallBoundary(stackTraceElement)) {
                 break;
             }
+            builder.append("\tfrom ").append(formatStackTraceElement(stackTraceElement)).append('\n');
         }
     }
 
