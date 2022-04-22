@@ -265,16 +265,18 @@ public class BacktraceFormatter {
         }
 
         final Node callNode = element.getLocation();
+        final RootNode rootNode = element.getTarget().getRootNode();
 
-        if (callNode == null || callNode.getRootNode() instanceof RubyRootNode) { // A Ruby frame
-            final SourceSection sourceSection = callNode == null ? null : callNode.getEncapsulatingSourceSection();
+        if (rootNode instanceof RubyRootNode) { // A Ruby frame
+            final SourceSection sourceSection = callNode == null
+                    ? rootNode.getSourceSection()
+                    : callNode.getEncapsulatingSourceSection();
             final SourceSection reportedSourceSection;
             final String reportedName;
 
             // Unavailable SourceSections are always skipped, as there is no source position information.
             if (isAvailable(sourceSection)) {
                 reportedSourceSection = sourceSection;
-                final RootNode rootNode = callNode.getRootNode();
                 reportedName = ((RubyRootNode) rootNode).getSharedMethodInfo().getBacktraceName();
             } else {
                 final SourceSection nextUserSourceSection = nextAvailableSourceSection(stackTrace, n);
