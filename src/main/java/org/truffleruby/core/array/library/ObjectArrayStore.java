@@ -126,7 +126,7 @@ public class ObjectArrayStore {
                 @Cached WriteBarrierNode writeBarrierNode) {
             int i = 0;
             try {
-                for (; i < store.length; i++) {
+                for (; loopProfile.inject(i < store.length); i++) {
                     writeBarrierNode.executeWriteBarrier(store[i]);
                 }
             } finally {

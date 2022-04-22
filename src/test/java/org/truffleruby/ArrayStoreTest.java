@@ -146,6 +146,7 @@ public class ArrayStoreTest {
     @Test
     public void extractRangeOnZeroLengthArrayReturnssZeroLengthArray() {
         ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
-        assertEquals(stores.extractRange(ArrayStoreLibrary.initialStorage(false), 0, 0), ArrayStoreLibrary.initialStorage(false));
+        assertEquals(stores.extractRange(ArrayStoreLibrary.initialStorage(false), 0, 0),
+                ArrayStoreLibrary.initialStorage(false));
     }
 }

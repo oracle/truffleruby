@@ -1172,7 +1172,8 @@ public abstract class ArrayNodes {
         protected RubyArray initializeNoArgs(RubyArray array, NotProvided size, NotProvided fillingValue, Nil block,
                 @Cached IsSharedNode isSharedNode,
                 @Cached ConditionProfile sharedProfile) {
-            setStoreAndSize(array, ArrayStoreLibrary.initialStorage(sharedProfile.profile(isSharedNode.executeIsShared(array))), 0);
+            setStoreAndSize(array,
+                    ArrayStoreLibrary.initialStorage(sharedProfile.profile(isSharedNode.executeIsShared(array))), 0);
             return array;
         }
 
@@ -1181,7 +1182,8 @@ public abstract class ArrayNodes {
                 RubyArray array, NotProvided size, NotProvided fillingValue, RubyProc block,
                 @Cached IsSharedNode isShared,
                 @Cached ConditionProfile sharedProfile) {
-            setStoreAndSize(array, ArrayStoreLibrary.initialStorage(sharedProfile.profile(isShared.executeIsShared(array))), 0);
+            setStoreAndSize(array,
+                    ArrayStoreLibrary.initialStorage(sharedProfile.profile(isShared.executeIsShared(array))), 0);
             return array;
         }
 

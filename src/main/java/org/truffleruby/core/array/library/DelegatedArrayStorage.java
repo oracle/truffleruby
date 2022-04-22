@@ -211,6 +211,8 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
         assert offset >= 0;
         assert length >= 0;
         assert !(storage instanceof DelegatedArrayStorage);
+        assert !(storage instanceof NativeArrayStorage);
+        assert !(storage instanceof SharedArrayStorage);
         this.storage = storage;
         this.offset = offset;
         this.length = length;

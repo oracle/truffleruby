@@ -39,6 +39,7 @@ public class SharedArrayStorage implements ObjectGraphNode {
     public final Object storage;
 
     public SharedArrayStorage(Object storage) {
+        assert !(storage instanceof SharedArrayStorage);
         this.storage = storage;
     }
 
@@ -263,7 +264,7 @@ public class SharedArrayStorage implements ObjectGraphNode {
     }
 
     public boolean hasObjectArrayStorage() {
-        return storage != null && storage.getClass() == Object[].class;
+        return storage.getClass() == Object[].class;
     }
 
     @Override

@@ -178,10 +178,6 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
                 return new BuilderState(allocator.allocate(length), length);
             }
         }
-
-        public BuilderState share(BuilderState state) {
-            return state;
-        }
     }
 
     @ImportStatic(ArrayGuards.class)

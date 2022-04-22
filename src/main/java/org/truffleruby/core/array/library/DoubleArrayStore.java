@@ -64,7 +64,7 @@ public class DoubleArrayStore {
         }
 
         @Specialization
-        protected static boolean acceptsDelegateValues(double[] store, SharedArrayStorage otherStore,
+        protected static boolean acceptsSharedValues(double[] store, SharedArrayStorage otherStore,
                 @CachedLibrary("store") ArrayStoreLibrary stores) {
             return stores.acceptsAllValues(store, otherStore.storage);
         }
@@ -310,7 +310,8 @@ public class DoubleArrayStore {
             return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
         }
 
-        @Specialization(guards = "!basicStore(newStore)", limit = "storageStrategyLimit()")
+        @Specialization(guards = { "!basicStore(newStore)", "!zeroLengthStore(newStore)" },
+                limit = "storageStrategyLimit()")
         protected static Object allocate(double[] store, Object newStore, int length,
                 @CachedLibrary("newStore") ArrayStoreLibrary newStores) {
             return newStores.allocateForNewStore(newStore, store, length);

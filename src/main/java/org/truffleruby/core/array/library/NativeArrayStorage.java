@@ -187,7 +187,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
                 @Cached WriteBarrierNode writeBarrierNode) {
             int i = 0;
             try {
-                for (; i < store.length; i++) {
+                for (; loopProfile.inject(i < store.length); i++) {
                     writeBarrierNode.executeWriteBarrier(node.read(store, i));
                 }
             } finally {

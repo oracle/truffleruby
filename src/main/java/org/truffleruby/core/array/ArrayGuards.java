@@ -10,6 +10,7 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.array.library.ZeroLengthArrayStore;
 
 public class ArrayGuards {
 
@@ -35,5 +36,9 @@ public class ArrayGuards {
                 store.getClass() == Object[].class : "Must be Object[], not a subclass: " + store;
         return store instanceof int[] || store instanceof long[] || store instanceof double[] ||
                 store instanceof Object[];
+    }
+
+    public static boolean zeroLengthStore(Object store) {
+        return store == ZeroLengthArrayStore.ZERO_LENGTH_STORE;
     }
 }
