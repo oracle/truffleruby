@@ -440,14 +440,20 @@ public abstract class TruffleDebugNodes {
 
     @CoreMethod(names = "assert", onSingleton = true, required = 1)
     public abstract static class AssertNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
         @Specialization
         protected Object doAssert(boolean condition) {
             assert condition;
             return nil;
         }
+    }
 
+    @Primitive(name = "assert")
+    public abstract static class AssertPrimitiveNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected Object doAssert(boolean condition) {
+            assert condition;
+            return nil;
+        }
     }
 
     @CoreMethod(names = "java_class", onSingleton = true)

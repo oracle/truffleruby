@@ -14,7 +14,6 @@ import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.TruffleStackTraceElement;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.UTF8Encoding;
@@ -264,23 +263,21 @@ public class BacktraceFormatter {
             builder.append("\tfrom ");
         }
 
-        final Node callNode = element.getLocation();
+        var callNode = element.getLocation();
+        var rootNode = element.getTarget().getRootNode();
+        var sourceSection = callNode == null ? rootNode.getSourceSection() : callNode.getEncapsulatingSourceSection();
+        var methodName = Backtrace.labelFor(element);
 
-        if (callNode == null || callNode.getRootNode() instanceof RubyRootNode) { // A Ruby frame
-            final SourceSection sourceSection = callNode == null ? null : callNode.getEncapsulatingSourceSection();
+        if (rootNode instanceof RubyRootNode) { // A Ruby frame
             final SourceSection reportedSourceSection;
-            final String reportedName;
 
             // Unavailable SourceSections are always skipped, as there is no source position information.
             if (isAvailable(sourceSection)) {
                 reportedSourceSection = sourceSection;
-                final RootNode rootNode = callNode.getRootNode();
-                reportedName = ((RubyRootNode) rootNode).getSharedMethodInfo().getBacktraceName();
             } else {
                 final SourceSection nextUserSourceSection = nextAvailableSourceSection(stackTrace, n);
                 // if there is no next source section use a core one to avoid ???
                 reportedSourceSection = nextUserSourceSection != null ? nextUserSourceSection : sourceSection;
-                reportedName = Backtrace.labelFor(element);
             }
 
             if (reportedSourceSection == null) {
@@ -290,12 +287,20 @@ public class BacktraceFormatter {
                 builder.append(":");
                 builder.append(RubySource.getStartLineAdjusted(context, reportedSourceSection));
             }
-            builder.append(":in `");
-            builder.append(reportedName);
-            builder.append("'");
         } else { // A foreign frame
-            builder.append(formatForeign(callNode, Backtrace.labelFor(element)));
+            if (sourceSection == null) {
+                builder.append("???");
+            } else {
+                builder.append(language.getSourcePath(sourceSection.getSource()));
+                if (sourceSection.isAvailable()) {
+                    builder.append(":").append(sourceSection.getStartLine());
+                }
+            }
         }
+
+        builder.append(":in `");
+        builder.append(methodName);
+        builder.append("'");
 
         if (!flags.contains(FormattingFlags.OMIT_EXCEPTION) && exception != null && n == 0) {
             builder.append(": ");
@@ -305,44 +310,13 @@ public class BacktraceFormatter {
         return builder.toString();
     }
 
-    public static String formatJava(StackTraceElement stackTraceElement) {
-        return stackTraceElement.getFileName() + ":" + stackTraceElement.getLineNumber() +
-                ":in `" + stackTraceElement.getClassName() + "." + stackTraceElement.getMethodName() + "'";
-    }
-
-    private String formatForeign(Node callNode, String methodName) {
-        final StringBuilder builder = new StringBuilder();
-        final SourceSection sourceSection = callNode == null ? null : callNode.getEncapsulatingSourceSection();
-
-        if (sourceSection != null) {
-            final Source source = sourceSection.getSource();
-            final String path = language.getSourcePath(source);
-
-            builder.append(path);
-            if (sourceSection.isAvailable()) {
-                builder.append(":").append(sourceSection.getStartLine());
-            }
-
-            final RootNode rootNode = callNode.getRootNode();
-            if (rootNode != null) {
-                String identifier = rootNode.getName();
-
-                if (identifier != null && !identifier.isEmpty()) {
-                    if (rootNode.getLanguageInfo().getId().equals("llvm") && identifier.startsWith("@")) {
-                        identifier = identifier.substring(1);
-                    }
-
-                    builder.append(":in `");
-                    builder.append(identifier);
-                    builder.append("'");
-                }
-            }
-        } else if (callNode != null) {
-            builder.append(getRootOrTopmostNode(callNode).getClass().getSimpleName());
-        } else {
-            builder.append(methodName);
-        }
-
+    /** Like {@link StackTraceElement#toString()} but without any classloader/module info. Not formatted in Ruby order
+     * (file:line:in `method') to keep a Java feel to it and be closer to {@link Throwable#printStackTrace()}. Using an
+     * explicit StringBuilder to avoid using too much stack space for this (matters for StackOverflowError) */
+    public static String formatStackTraceElement(StackTraceElement element) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(element.getClassName()).append(".").append(element.getMethodName());
+        builder.append("(").append(element.getFileName()).append(":").append(element.getLineNumber()).append(")");
         return builder.toString();
     }
 
@@ -351,8 +325,7 @@ public class BacktraceFormatter {
 
         final String message = ExceptionOperations.messageToString(exception);
 
-        final String exceptionClass = exception.getLogicalClass().fields
-                .getName();
+        final String exceptionClass = exception.getLogicalClass().fields.getName();
 
         // Show the exception class at the end of the first line of the message
         final int firstLn = message.indexOf('\n');
@@ -397,14 +370,6 @@ public class BacktraceFormatter {
     public static boolean isRubyCore(RubyLanguage language, Source source) {
         final String path = RubyLanguage.getPath(source);
         return path.startsWith(language.coreLoadPath);
-    }
-
-    private Node getRootOrTopmostNode(Node node) {
-        while (node.getParent() != null) {
-            node = node.getParent();
-        }
-
-        return node;
     }
 
     public static String formatJavaThrowableMessage(Throwable t) {
@@ -473,10 +438,10 @@ public class BacktraceFormatter {
     public static void appendJavaStackTrace(Throwable t, StringBuilder builder) {
         final StackTraceElement[] stackTrace = t.getStackTrace();
         for (StackTraceElement stackTraceElement : stackTrace) {
-            builder.append("\tfrom ").append(stackTraceElement).append('\n');
             if (BacktraceInterleaver.isCallBoundary(stackTraceElement)) {
                 break;
             }
+            builder.append("\tfrom ").append(formatStackTraceElement(stackTraceElement)).append('\n');
         }
     }
 

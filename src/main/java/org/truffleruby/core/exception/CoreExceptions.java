@@ -357,7 +357,7 @@ public class CoreExceptions {
             boolean showExceptionIfDebug) {
         final StackTraceElement[] stackTrace = javaThrowable.getStackTrace();
         final String topOfTheStack = stackTrace.length > 0
-                ? BacktraceFormatter.formatJava(stackTrace[0])
+                ? BacktraceFormatter.formatStackTraceElement(stackTrace[0])
                 : "<empty Java stacktrace>";
         final String message = coreStrings().STACK_LEVEL_TOO_DEEP + "\n\tfrom " + topOfTheStack;
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 0, javaThrowable);
