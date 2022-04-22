@@ -1939,8 +1939,7 @@ public abstract class ArrayNodes {
             if (sharedProfile.profile(isSharedNode.executeIsShared(array))) {
                 store = stores.makeShared(store);
             }
-            array.store = store;
-            array.size = size;
+            setStoreAndSize(array, store, size);
             return array;
         }
 
