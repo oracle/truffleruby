@@ -358,7 +358,7 @@ public class LongArrayStore {
                 limit = "storageStrategyLimit()")
         protected static Object allocate(long[] store, Object newStore, int length,
                 @CachedLibrary("newStore") ArrayStoreLibrary newStores) {
-            return newStores.allocateForNewValue(newStore, store, length);
+            return newStores.unsharedAllocateForNewStore(newStore, store, length);
         }
     }
 
