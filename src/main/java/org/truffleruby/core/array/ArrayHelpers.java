@@ -37,6 +37,7 @@ public abstract class ArrayHelpers {
 
     public static RubyArray createArray(RubyContext context, RubyLanguage language, Object store, int size) {
         assert !(store instanceof Object[]) || store.getClass() == Object[].class;
+        assert !(store instanceof SharedArrayStorage);
         assert assertValidElements(store, size);
         return new RubyArray(context.getCoreLibrary().arrayClass, language.arrayShape, store, size);
     }

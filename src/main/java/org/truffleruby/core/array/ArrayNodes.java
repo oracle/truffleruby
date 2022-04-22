@@ -1703,7 +1703,7 @@ public abstract class ArrayNodes {
             final int size = arraySizeProfile.profile(array.size);
             final int numPop = minProfile.profile(size < n) ? size : n;
 
-            final Object popped = stores.extractRange(store, size - numPop, size); // copy on write
+            final Object popped = stores.extractRangeAndUnshare(store, size - numPop, size); // copy on write
             final Object prefix = stores.extractRange(store, 0, size - numPop);    // copy on write
             // NOTE(norswap): if one of these two arrays outlives the other, you get a memory leak
 
@@ -2168,9 +2168,9 @@ public abstract class ArrayNodes {
                 @Cached ConditionProfile minProfile) {
             final int size = array.size;
             final int numShift = minProfile.profile(size < n) ? size : n;
-            final Object result = stores.extractRange(store, 0, numShift);
-            array.store = stores.extractRange(store, numShift, size);
-            setSize(array, size - numShift);
+            final Object result = stores.extractRangeAndUnshare(store, 0, numShift);
+            final Object newStore = stores.extractRange(store, numShift, size);
+            setStoreAndSize(array, newStore, size - numShift);
             return createArray(result, numShift);
         }
 

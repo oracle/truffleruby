@@ -191,6 +191,40 @@ describe "Sharing is correctly propagated for" do
     ary.each { |e| shared?(e).should == true }
   end
 
+  it "Array#shift(n) with copy-on-write DelegatedArrayStorage" do
+    ary = [Object.new, Object.new, Object.new, Object.new, Object.new]
+    @share = ary
+    new_ary = ary.shift(3)
+    shared?(ary).should == true
+    ary.each { |e| shared?(e).should == true }
+
+    shared?(new_ary).should == false
+    new_ary.each { |e| shared?(e).should == true }
+  end
+
+  it "Array#pop with copy-on-write DelegatedArrayStorage" do
+    ary = [Object.new, Object.new, Object.new]
+    ary.pop
+    @share = ary
+    shared?(ary).should == true
+    ary.each { |e| shared?(e).should == true }
+
+    wb = Object.new
+    ary[0] = wb
+    ary.each { |e| shared?(e).should == true }
+  end
+
+  it "Array#pop(n) with copy-on-write DelegatedArrayStorage" do
+    ary = [Object.new, Object.new, Object.new, Object.new, Object.new]
+    @share = ary
+    new_ary = ary.pop(3)
+    shared?(ary).should == true
+    ary.each { |e| shared?(e).should == true }
+
+    shared?(new_ary).should == false
+    new_ary.each { |e| shared?(e).should == true }
+  end
+
   it "Hash" do
     initial = Object.new
     hsh = { initial => Object.new }
