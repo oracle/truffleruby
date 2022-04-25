@@ -316,8 +316,7 @@ local part_definitions = {
         "CHECK_LEAKS": "true",
       },
       run+: jt(["-u", mri_path(mri_version), "mspec", "spec/ruby"]) +
-            jt(["-u", mri_path("2.7.2"), "mspec", "spec/ruby"]) +
-            jt(["-u", mri_path("2.6.6"), "mspec", "spec/ruby"]),
+            jt(["-u", mri_path("2.7.2"), "mspec", "spec/ruby"]),
     },
 
     test_fast: {
