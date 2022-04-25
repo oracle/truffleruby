@@ -577,8 +577,7 @@ public abstract class ArrayNodes {
 
             stores.clear(oldStore, m, size - m);
 
-            array.store = newStore;
-            array.size = m;
+            setStoreAndSize(array, newStore, m);
 
             if (m == size) {
                 return nil;
@@ -740,8 +739,7 @@ public abstract class ArrayNodes {
                 if (sameStores) {
                     oldStores.clear(oldStore, i, size - i);
                 }
-                array.store = newStore;
-                array.size = i;
+                setStoreAndSize(array, newStore, i);
                 return found;
             } else {
                 if (maybeBlock == nil) {
@@ -794,8 +792,7 @@ public abstract class ArrayNodes {
                 final Object value = stores.read(store, i);
                 stores.copyContents(store, i + 1, store, i, size - i - 1);
                 stores.clear(store, size - 1, 1);
-                array.store = store;
-                array.size = size - 1;
+                setStoreAndSize(array, store, size - 1);
                 return value;
             }
         }
@@ -822,8 +819,7 @@ public abstract class ArrayNodes {
                 stores.copyContents(store, 0, mutableStore, 0, i);
                 final Object value = stores.read(store, i);
                 stores.copyContents(store, i + 1, mutableStore, i, size - i - 1);
-                array.store = mutableStore;
-                array.size = size - 1;
+                setStoreAndSize(array, mutableStore, size - 1);
                 return value;
             }
         }
@@ -2141,8 +2137,7 @@ public abstract class ArrayNodes {
             final int size = array.size;
             final Object value = stores.read(store, 0);
             stores.clear(store, 0, 1);
-            array.store = stores.extractRange(store, 1, size);
-            setSize(array, size - 1);
+            setStoreAndSize(array, stores.extractRange(store, 1, size), size - 1);
             return value;
         }
 
@@ -2310,10 +2305,8 @@ public abstract class ArrayNodes {
 
             final int size = other.size;
             final Object store = other.store;
-            array.store = store;
-            array.size = size;
-            other.store = stores.initialStore(store);
-            other.size = 0;
+            setStoreAndSize(array, store, size);
+            setStoreAndSize(other, stores.initialStore(store), 0);
 
             return array;
         }
