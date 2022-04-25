@@ -13,5 +13,7 @@ dev_null = File.open('/dev/null', 'w')
 benchmark do
   result = template.render!(data)
   dev_null.write result
-  raise StandardError, "Incorrect rendering result" unless result == expected_result
+  result
+end.verify do |result|
+  result == expected_result
 end

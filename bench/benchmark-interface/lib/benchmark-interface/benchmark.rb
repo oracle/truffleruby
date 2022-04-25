@@ -10,10 +10,21 @@ module BenchmarkInterface
   class Benchmark
   
     attr_reader :name, :block
-  
+    attr_writer :verify_block
+
     def initialize(name, block)
       @name = name
       @block = block
+    end
+
+    def verify!(result)
+      if @verify_block
+        check = @verify_block.call(result)
+        unless check
+          raise "Benchmark #{@name} did not return the correct value, " \
+            "the verify block returned #{check.inspect} and the result was:\n#{result.inspect}"
+        end
+      end
     end
 
     def remove_line_numbers
@@ -23,18 +34,21 @@ module BenchmarkInterface
     def time_block(desired_time)
       iterations = 1
       while true
-        start = Time.now
+        start = BenchmarkInterface.get_time
         if block.arity == 1
-          block.call iterations
+          result = block.call iterations
         else
-          BenchmarkInterface.run_n_iterations(iterations, &block)
+          result = BenchmarkInterface.run_n_iterations(iterations, &block)
         end
+        time = BenchmarkInterface.get_time - start
 
-        time = Time.now - start
+        verify!(result)
+
         return [time, iterations] if time >= desired_time
         iterations *= 2
       end
     end
+    private :time_block
 
     def basic_iteration_time
       time, iterations = time_block(0.1)

@@ -35,7 +35,9 @@ module BenchmarkInterface
 
     def register(name, code)
       name = implicit_name unless name
-      @benchmarks.push Benchmark.new(name, code)
+      benchmark = Benchmark.new(name, code)
+      @benchmarks.push benchmark
+      BenchmarkInterface::BenchmarkAPI.new(benchmark)
     end
 
     def implicit_name
