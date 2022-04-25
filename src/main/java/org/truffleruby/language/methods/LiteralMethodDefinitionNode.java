@@ -98,10 +98,8 @@ public class LiteralMethodDefinitionNode extends RubyContextSourceNode {
      * the method CallTarget, therefore we compute the method CallTarget here when instrumentation requests it. */
     @Override
     public InstrumentableNode materializeInstrumentableNodes(Set<Class<? extends Tag>> materializedTags) {
-        for (Class<? extends Tag> tag : materializedTags) {
-            if (tag == StandardTags.StatementTag.class) {
-                callTargetSupplier.get(); // force computation of the call target
-            }
+        if (materializedTags.contains(StandardTags.StatementTag.class)) {
+            callTargetSupplier.get(); // force computation of the call target
         }
         return this;
     }
