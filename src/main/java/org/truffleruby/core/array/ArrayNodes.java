@@ -184,7 +184,7 @@ public abstract class ArrayNodes {
             } catch (ArithmeticException e) {
                 throw new RaiseException(getContext(), coreExceptions().rangeError("new array size too large", this));
             }
-            final Object newStore = arrays.allocator(store).allocate(newSize);
+            final Object newStore = arrays.unsharedAllocator(store).allocate(newSize);
             int n = 0;
             try {
                 for (; loopProfile.inject(n < count); n++) {
@@ -2217,7 +2217,7 @@ public abstract class ArrayNodes {
                 @Cached DispatchNode compareDispatchNode,
                 @Cached CmpIntNode cmpIntNode) {
             final Object newStore = stores
-                    .allocator(store)
+                    .unsharedAllocator(store)
                     .allocate(getContext().getOptions().ARRAY_SMALL);
             final int size = arraySizeProfile.profile(array.size);
 
