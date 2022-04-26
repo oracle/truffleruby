@@ -257,7 +257,7 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class ClearNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "2")
+        @Specialization(limit = "hashStrategyLimit()")
         protected RubyHash clear(RubyHash hash,
                 @CachedLibrary("hash.store") HashStoreLibrary hashes) {
             hashes.clear(hash.store, hash);
