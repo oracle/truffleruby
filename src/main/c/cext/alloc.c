@@ -95,3 +95,15 @@ void* rb_imemo_tmpbuf_set_ptr(VALUE imemo, void *ptr) {
   polyglot_invoke(RUBY_CEXT, "rb_imemo_tmpbuf_set_ptr", rb_tr_unwrap(imemo), ptr);
   return ptr;
 }
+
+rb_imemo_tmpbuf_t *rb_imemo_tmpbuf_parser_heap(void *buf, rb_imemo_tmpbuf_t *old_heap, size_t cnt) {
+  /* This differs from CRuby as this does not produce an object known to the
+     GC. This is not a problem for Ripper because we also mod that to free the
+     heap when freeing the parser structure, but it might be a problem if other
+     extensions use this function. */
+  rb_imemo_tmpbuf_t *imemo = malloc(sizeof(rb_imemo_tmpbuf_t));
+  imemo->ptr = buf;
+  imemo->next = old_heap;
+  imemo->cnt = cnt;
+  return imemo;
+}
