@@ -165,6 +165,7 @@ public class PackedHashStoreLibrary {
         return lookupPackedEntryNode.execute(frame, hash, key, hashed, defaultNode);
     }
 
+    @ImportStatic(HashGuards.class)
     @ExportMessage
     protected static class Set {
         @Specialization(guards = "hash.size == 0")
@@ -190,7 +191,7 @@ public class PackedHashStoreLibrary {
                 @Cached @Shared("propagateKey") PropagateSharingNode propagateSharingKey,
                 @Cached @Shared("propagateValue") PropagateSharingNode propagateSharingValue,
                 @Cached @Shared("compareHashKeys") CompareHashKeysNode compareHashKeys,
-                @CachedLibrary(limit = "2") HashStoreLibrary hashes,
+                @CachedLibrary(limit = "hashStrategyLimit()") HashStoreLibrary hashes,
                 @Cached ConditionProfile withinCapacity) {
 
             assert verify(store, hash);
