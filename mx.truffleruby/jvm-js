@@ -1,2 +1,2 @@
 DYNAMIC_IMPORTS=/tools,/graal-js
-COMPONENTS=TruffleRuby,Graal.js,suite:tools
+COMPONENTS=TruffleRuby,suite:tools,Graal.js

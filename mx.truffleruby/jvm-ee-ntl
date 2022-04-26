@@ -1,0 +1,3 @@
+DYNAMIC_IMPORTS=/tools,/graal-enterprise,/substratevm-enterprise
+COMPONENTS=TruffleRuby,suite:tools,GraalVM enterprise compiler,SubstrateVM Enterprise
+NATIVE_IMAGES=suite:sulong
