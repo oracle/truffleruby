@@ -61,6 +61,24 @@ if (polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "warning?"))) { \
 } \
 })
 
+#define rb_tr_scan_args_kw(kw_flag, argc, argv, format, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10) \
+  (RBIMPL_CONSTANT_P(format) ?                                             \
+     __extension__ ({ \
+         static bool evaled; \
+         static int pre; \
+         static int optional; \
+         static bool rest; \
+         static int post; \
+         static bool kwargs; \
+         static bool block; \
+         if (!evaled) { \
+             rb_tr_scan_args_kw_parse(format, &pre, &optional, &rest, &post, &kwargs, &block); \
+             evaled = true; \
+         } \
+         rb_tr_scan_args_kw_int(kw_flag, argc, argv, pre, optional, rest, post, kwargs, block, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10); \
+     }) : \
+  rb_tr_scan_args_kw_non_const(kw_flag, argc, argv, format, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10))
+
 #define rb_tr_scan_args_kw_1(KW_FLAG, ARGC, ARGV, FORMAT, V1) rb_tr_scan_args_kw(KW_FLAG, ARGC, ARGV, FORMAT, V1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
 #define rb_tr_scan_args_kw_2(KW_FLAG, ARGC, ARGV, FORMAT, V1, V2) rb_tr_scan_args_kw(KW_FLAG, ARGC, ARGV, FORMAT, V1, V2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
 #define rb_tr_scan_args_kw_3(KW_FLAG, ARGC, ARGV, FORMAT, V1, V2, V3) rb_tr_scan_args_kw(KW_FLAG, ARGC, ARGV, FORMAT, V1, V2, V3, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
@@ -196,20 +214,10 @@ static inline char *rb_tr_string_value_cstr(VALUE *value_pointer) {
   return RSTRING_PTR(string);
 }
 
-ALWAYS_INLINE(static int rb_tr_scan_args_kw(int kw_flag, int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10));
-static inline int rb_tr_scan_args_kw(int kw_flag, int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10) {
+void rb_tr_scan_args_kw_parse(const char *format, int *pre, int *optional, bool *rest, int *post, bool *kwargs, bool *block);
 
-  // TODO CS 7-Feb-17 maybe we could inline cache this part?
-
-  const char *formatp = format;
-  int pre = 0;
-  int optional = 0;
-  bool rest;
-  int post = 0;
-  bool kwargs;
-  bool block;
-
-  // Interpret kw_flag
+ALWAYS_INLINE(static int rb_tr_scan_args_kw_int(int kw_flag, int argc, VALUE *argv, int pre, int optional, bool rest, int post, bool kwargs, bool block, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10));
+static inline int rb_tr_scan_args_kw_int(int kw_flag, int argc, VALUE *argv, int pre, int optional, bool rest, int post, bool kwargs, bool block, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10) {
 
   int keyword_given = 0;
   int last_hash_keyword = 0;
@@ -218,48 +226,6 @@ static inline int rb_tr_scan_args_kw(int kw_flag, int argc, VALUE *argv, const c
     case RB_SCAN_ARGS_PASS_CALLED_KEYWORDS: break;
     case RB_SCAN_ARGS_KEYWORDS: keyword_given = 1; break;
     case RB_SCAN_ARGS_LAST_HASH_KEYWORDS: last_hash_keyword = 1; break;
-  }
-
-  // TODO CS 27-Feb-17 can LLVM constant-fold through isdigit?
-
-  if (isdigit(*formatp)) {
-    pre = *formatp - '0';
-    formatp++;
-
-    if (isdigit(*formatp)) {
-      optional = *formatp - '0';
-      formatp++;
-    }
-  }
-
-  if (*formatp == '*') {
-    rest = true;
-    formatp++;
-  } else {
-    rest = false;
-  }
-
-  if (isdigit(*formatp)) {
-    post = *formatp - '0';
-    formatp++;
-  }
-
-  if (*formatp == ':') {
-    kwargs = true;
-    formatp++;
-  } else {
-    kwargs = false;
-  }
-
-  if (*formatp == '&') {
-    block = true;
-    formatp++;
-  } else {
-    block = false;
-  }
-
-  if (*formatp != '\0') {
-    rb_raise(rb_eArgError, "bad rb_scan_args format");
   }
 
   // Check we have enough arguments
@@ -423,6 +389,22 @@ static inline int rb_tr_scan_args_kw(int kw_flag, int argc, VALUE *argv, const c
   }
 
   return argc;
+}
+
+ALWAYS_INLINE(static int rb_tr_scan_args_kw_non_const(int kw_flag, int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10));
+static inline int rb_tr_scan_args_kw_non_const(int kw_flag, int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10) {
+
+  const char *formatp = format;
+  int pre = 0;
+  int optional = 0;
+  bool rest;
+  int post = 0;
+  bool kwargs;
+  bool block;
+
+  rb_tr_scan_args_kw_parse(format, &pre, &optional, &rest, &post, &kwargs, &block);
+
+  return rb_tr_scan_args_kw_int(kw_flag, argc, argv, pre, optional, rest, post, kwargs, block, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10);
 }
 
 #define rb_iv_get(obj, name) \

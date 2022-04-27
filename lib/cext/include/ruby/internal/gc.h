@@ -36,11 +36,7 @@ void rb_gc_register_address(VALUE *valptr);
 /**
  * An alias for `rb_gc_register_address()`.
  */
-#ifdef TRUFFLERUBY
-#define rb_global_variable(address) ;
-#else
 void rb_global_variable(VALUE *);
-#endif
 
 /**
  * Inform the garbage collector that a pointer previously passed to

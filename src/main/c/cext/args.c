@@ -102,3 +102,47 @@ int rb_get_kwargs(VALUE keyword_hash, const ID *table, int required, int optiona
 
   return extracted;
 }
+
+void rb_tr_scan_args_kw_parse(const char *format, int *pre, int *optional, bool *rest, int *post, bool *kwargs, bool *block) {
+  const char *formatp = format;
+
+  if (isdigit(*formatp)) {
+    *pre = *formatp - '0';
+    formatp++;
+
+    if (isdigit(*formatp)) {
+      *optional = *formatp - '0';
+      formatp++;
+    }
+  }
+
+  if (*formatp == '*') {
+    *rest = true;
+    formatp++;
+  } else {
+    *rest = false;
+  }
+
+  if (isdigit(*formatp)) {
+    *post = *formatp - '0';
+    formatp++;
+  }
+
+  if (*formatp == ':') {
+    *kwargs = true;
+    formatp++;
+  } else {
+    *kwargs = false;
+  }
+
+  if (*formatp == '&') {
+    *block = true;
+    formatp++;
+  } else {
+    *block = false;
+  }
+
+  if (*formatp != '\0') {
+    rb_raise(rb_eArgError, "bad rb_scan_args format");
+  }
+}
