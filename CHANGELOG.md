@@ -10,6 +10,7 @@ Bug fixes:
 * Fix `MatchData#[]` exception when supplying a large negative index along with a length argument (@nirvdrum).
 * Fix capacity computation for huge `Hash` (#2635, @eregon).
 * Fix aliased methods to return the correct owner when method is from a superclass (@bjfish).
+* Fix `String#[Regexp, Integer]` when the capture group exists but is not matched (@eregon).
 
 Compatibility:
 
