@@ -20248,7 +20248,9 @@ parser_mark(void *ptr)
     rb_gc_mark(p->debug_buffer);
     rb_gc_mark(p->debug_output);
 #ifdef YYMALLOC
+#ifndef TRUFFLERUBY
     rb_gc_mark((VALUE)p->heap);
+#endif
 #endif
 }
 
@@ -20257,6 +20259,17 @@ parser_free(void *ptr)
 {
     struct parser_params *p = (struct parser_params*)ptr;
     struct local_vars *local, *prev;
+
+#ifdef TRUFFLERUBY
+    rb_imemo_tmpbuf_t *heap = p->heap;
+
+    while (heap != NULL) {
+        if (heap->ptr != NULL) {
+            xfree(ptr);
+        }
+        heap = heap->next;
+    }
+#endif
 
     if (p->tokenbuf) {
         ruby_sized_xfree(p->tokenbuf, p->toksiz);
