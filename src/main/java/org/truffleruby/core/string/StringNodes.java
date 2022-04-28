@@ -818,6 +818,8 @@ public abstract class StringNodes {
                 @Cached ReadCallerVariablesNode readCallerStorageNode,
                 @Cached ConditionProfile unsetProfile,
                 @Cached ConditionProfile sameThreadProfile,
+                @Cached ConditionProfile notMatchedProfile,
+                @Cached ConditionProfile captureSetProfile,
                 @Cached StringDupAsStringInstanceNode dupNode) {
             final Object capture = RubyGuards.wasProvided(maybeCapture) ? maybeCapture : 0;
             final Object matchStrPair = callNode.call(
@@ -828,13 +830,19 @@ public abstract class StringNodes {
                     capture);
 
             final SpecialVariableStorage variables = readCallerStorageNode.execute(frame);
-            if (matchStrPair == nil) {
+            if (notMatchedProfile.profile(matchStrPair == nil)) {
                 variables.setLastMatch(nil, getContext(), unsetProfile, sameThreadProfile);
                 return nil;
             } else {
                 final Object[] array = (Object[]) ((RubyArray) matchStrPair).store;
-                variables.setLastMatch(array[0], getContext(), unsetProfile, sameThreadProfile);
-                return dupNode.executeDupAsStringInstance(array[1]);
+                final Object matchData = array[0];
+                final Object captureStringOrNil = array[1];
+                variables.setLastMatch(matchData, getContext(), unsetProfile, sameThreadProfile);
+                if (captureSetProfile.profile(captureStringOrNil != nil)) {
+                    return dupNode.executeDupAsStringInstance(captureStringOrNil);
+                } else {
+                    return nil;
+                }
             }
         }
 
