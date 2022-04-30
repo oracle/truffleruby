@@ -38,12 +38,14 @@ local part_definitions = {
         path+:: [],
         TRUFFLERUBY_CI: "true",
         RUBY_BENCHMARKS: "true",
-        MX_PYTHON_VERSION: "3",
+        MX_PYTHON: "python3.8",
         TRUFFLE_STRICT_OPTION_DEPRECATION: "true",
         PATH: std.join(":", self.path + ["$PATH"]),
       },
 
       packages+: {
+        mx: "HEAD",
+        python3: "==3.8.10", # For mx
         "pip:ninja_syntax": "==1.7.2",  # Required by NFI and mx
       },
 
@@ -329,7 +331,7 @@ local part_definitions = {
       environment+: common.downloads.eclipse.environment,
       mx_build_options:: ["--jdt", "builtin", "--warning-as-error", "--force-deprecation-as-warning"],
       packages+: {
-        "pip:pylint": "==1.9.0",
+        "pip:pylint": "==2.4.4",
         "shellcheck": "==0.6.0",
       },
       run+: jt(["lint"]) + jt(["spotbugs"]),
@@ -733,7 +735,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 };
 
 {
-  specVersion: "2",
+  specVersion: "3",
   overlay: overlay,
   builds: composition_environment.builds,
 }

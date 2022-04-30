@@ -38,10 +38,9 @@ class BackgroundServerTask:
         self.args = args
 
     def __enter__(self):
-        preexec_fn, creationflags = mx._get_new_progress_group_args()
         if mx._opts.verbose:
             mx.log(' '.join(['(background)'] + [pipes.quote(arg) for arg in self.args]))
-        self.process = subprocess.Popen(self.args, preexec_fn=preexec_fn, creationflags=creationflags)
+        self.process = subprocess.Popen(self.args, start_new_session=True)
         mx._addSubprocess(self.process, self.args)
 
     def __exit__(self, exc_type, value, traceback):
