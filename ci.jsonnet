@@ -10,7 +10,7 @@
 # https://github.com/google/jsonnet/releases and compiled.
 
 # CONFIGURATION
-local overlay = "ffb092a26e86b0b4c2ac33bdbc329d938b527942";
+local overlay = "52900f1ecd0b7b23e0bbb74e7552886e6ec29df3";
 
 # For debugging: generated builds will be restricted to those listed in
 # the array. No restriction is applied when it is empty.
@@ -737,6 +737,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 };
 
 {
+  part_definitions:: part_definitions,
   specVersion: "3",
   overlay: overlay,
   builds: composition_environment.builds,
