@@ -34,6 +34,8 @@ local part_definitions = {
 
   use: {
     common: {
+      python_version: "3", # To use the correct virtualenv
+
       environment+: {
         path+:: [],
         TRUFFLERUBY_CI: "true",
