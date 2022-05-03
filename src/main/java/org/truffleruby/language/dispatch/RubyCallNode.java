@@ -192,7 +192,7 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
             splatToArgs = insert(new SplatToArgsNode());
         }
 
-        return splatToArgs.execute(receiverObject, rubyArgs, (RubyArray) RubyArguments.getArgument(rubyArgs, 0));
+        return splatToArgs.execute(receiverObject, (RubyArray) RubyArguments.getArgument(rubyArgs, 0));
     }
 
     @Override
