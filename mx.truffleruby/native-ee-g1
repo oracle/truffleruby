@@ -1,5 +1,6 @@
-DYNAMIC_IMPORTS=/substratevm-enterprise,substratevm-enterprise-gcs,/tools
-COMPONENTS=TruffleRuby,SubstrateVM Enterprise,SubstrateVM Enterprise GC,suite:tools
-NATIVE_IMAGES=true
+DYNAMIC_IMPORTS=/tools,/graal-enterprise,/substratevm-enterprise,substratevm-enterprise-gcs
+COMPONENTS=TruffleRuby,suite:tools,GraalVM enterprise compiler,SubstrateVM Enterprise,SubstrateVM Enterprise GC
+NATIVE_IMAGES=suite:sulong,lib:rubyvm
 EXTRA_IMAGE_BUILDER_ARGUMENTS=rubyvm:-H:+UseG1GC
+# To also create the standalone
 DISABLE_INSTALLABLES=false

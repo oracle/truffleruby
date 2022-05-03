@@ -1,4 +1,5 @@
-DYNAMIC_IMPORTS=/substratevm,/tools
-COMPONENTS=TruffleRuby,SubstrateVM,suite:tools
-NATIVE_IMAGES=true
+DYNAMIC_IMPORTS=/tools,/compiler,/substratevm
+COMPONENTS=TruffleRuby,suite:tools,GraalVM compiler,SubstrateVM
+NATIVE_IMAGES=suite:sulong,lib:rubyvm
+# To also create the standalone
 DISABLE_INSTALLABLES=false

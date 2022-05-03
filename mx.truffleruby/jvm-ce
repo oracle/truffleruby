@@ -1,2 +1,2 @@
-DYNAMIC_IMPORTS=/compiler,/tools
-COMPONENTS=TruffleRuby,GraalVM compiler,suite:tools
+DYNAMIC_IMPORTS=/tools,/compiler
+COMPONENTS=TruffleRuby,suite:tools,GraalVM compiler
