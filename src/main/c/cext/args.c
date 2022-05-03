@@ -103,43 +103,43 @@ int rb_get_kwargs(VALUE keyword_hash, const ID *table, int required, int optiona
   return extracted;
 }
 
-void rb_tr_scan_args_kw_parse(const char *format, int *pre, int *optional, bool *rest, int *post, bool *kwargs, bool *block) {
+void rb_tr_scan_args_kw_parse(const char *format, struct rb_tr_scan_args_parse_data *parse_data) {
   const char *formatp = format;
 
   if (isdigit(*formatp)) {
-    *pre = *formatp - '0';
+    parse_data->pre = *formatp - '0';
     formatp++;
 
     if (isdigit(*formatp)) {
-      *optional = *formatp - '0';
+      parse_data->optional = *formatp - '0';
       formatp++;
     }
   }
 
   if (*formatp == '*') {
-    *rest = true;
+    parse_data->rest = true;
     formatp++;
   } else {
-    *rest = false;
+    parse_data->rest = false;
   }
 
   if (isdigit(*formatp)) {
-    *post = *formatp - '0';
+    parse_data->post = *formatp - '0';
     formatp++;
   }
 
   if (*formatp == ':') {
-    *kwargs = true;
+    parse_data->kwargs = true;
     formatp++;
   } else {
-    *kwargs = false;
+    parse_data->kwargs = false;
   }
 
   if (*formatp == '&') {
-    *block = true;
+    parse_data->block = true;
     formatp++;
   } else {
-    *block = false;
+    parse_data->block = false;
   }
 
   if (*formatp != '\0') {

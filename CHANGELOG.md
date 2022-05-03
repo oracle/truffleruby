@@ -12,6 +12,7 @@ Bug fixes:
 * Fix aliased methods to return the correct owner when method is from a superclass (@bjfish).
 * Fix `String#[Regexp, Integer]` when the capture group exists but is not matched (@eregon).
 * Fix `File.open` mode string parsing when binary option is the third character (@bjfish).
+* Fix `rb_scan_args_kw` macro to avoid shadowing variables (#2649, @aardvark179).
 
 Compatibility:
 
