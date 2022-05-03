@@ -66,7 +66,14 @@ public class InternalRespondToNode extends RubyBaseNode {
         this(config, MetaClassNode.create(), LookupMethodNode.create());
     }
 
-    public final boolean execute(Frame frame, Object receiver, String methodName) {
+    public boolean execute(Frame frame, Object receiver, String methodName) {
+        return executeInternal(frame, receiver, methodName, config, metaclassNode, methodLookup);
+    }
+
+    protected static boolean executeInternal(Frame frame, Object receiver, String methodName,
+            DispatchConfiguration config,
+            MetaClassNode metaclassNode,
+            LookupMethodNode methodLookup) {
         final RubyClass metaclass = metaclassNode.execute(receiver);
         final InternalMethod method = methodLookup.execute(frame, metaclass, methodName, config);
         return method != null && method.isDefined() && method.isImplemented();
@@ -83,7 +90,14 @@ public class InternalRespondToNode extends RubyBaseNode {
         }
 
         protected Uncached(DispatchConfiguration config) {
-            super(config, MetaClassNodeGen.getUncached(), LookupMethodNodeGen.getUncached());
+            super(config, null, null);
+        }
+
+        public boolean execute(Frame frame, Object receiver, String methodName) {
+            return executeInternal(frame, receiver, methodName,
+                    config,
+                    MetaClassNodeGen.getUncached(),
+                    LookupMethodNodeGen.getUncached());
         }
 
         @Override
