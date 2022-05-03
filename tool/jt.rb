@@ -2330,11 +2330,11 @@ module Commands
         with_color(TERM_COLOR_RED) do
           puts "\nNOTE: Set env variable JT_IMPORTS_DONT_ASK to always answer 'no' to this prompt.\n\n"
           puts scheckimports_output
-          input = ''
-          until %w(y n).include? input
+          begin
             print 'Do you want to checkout the supported version of graal as specified in truffleruby\'s suite.py? (runs `mx sforceimports`) [y/n] '
+            STDOUT.flush
             input = STDIN.gets.chomp
-          end
+          end until %w(y n).include? input
           puts ''
           input == 'y'
         end
