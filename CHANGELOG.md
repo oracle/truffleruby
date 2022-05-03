@@ -11,6 +11,7 @@ Bug fixes:
 * Fix capacity computation for huge `Hash` (#2635, @eregon).
 * Fix aliased methods to return the correct owner when method is from a superclass (@bjfish).
 * Fix `String#[Regexp, Integer]` when the capture group exists but is not matched (@eregon).
+* Fix `rb_scan_args_kw` macro to avoid shadowing variables (#2649, @aardvark179).
 
 Compatibility:
 

@@ -61,21 +61,25 @@ if (polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "warning?"))) { \
 } \
 })
 
+struct rb_tr_scan_args_parse_data {
+  int pre;
+  int optional;
+  bool rest;
+  int post;
+  bool kwargs;
+  bool block;
+};
+
 #define rb_tr_scan_args_kw(kw_flag, argc, argv, format, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10) \
   (RBIMPL_CONSTANT_P(format) ?                                             \
      __extension__ ({ \
-         static bool evaled; \
-         static int pre; \
-         static int optional; \
-         static bool rest; \
-         static int post; \
-         static bool kwargs; \
-         static bool block; \
-         if (!evaled) { \
-             rb_tr_scan_args_kw_parse(format, &pre, &optional, &rest, &post, &kwargs, &block); \
-             evaled = true; \
+         static bool rb_tr_scan_args_format_str_evaled; \
+         static struct rb_tr_scan_args_parse_data rb_tr_scan_data; \
+         if (!rb_tr_scan_args_format_str_evaled) { \
+             rb_tr_scan_args_kw_parse(format, &rb_tr_scan_data); \
+             rb_tr_scan_args_format_str_evaled = true; \
          } \
-         rb_tr_scan_args_kw_int(kw_flag, argc, argv, pre, optional, rest, post, kwargs, block, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10); \
+         rb_tr_scan_args_kw_int(kw_flag, argc, argv, rb_tr_scan_data, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10); \
      }) : \
   rb_tr_scan_args_kw_non_const(kw_flag, argc, argv, format, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10))
 
@@ -214,10 +218,10 @@ static inline char *rb_tr_string_value_cstr(VALUE *value_pointer) {
   return RSTRING_PTR(string);
 }
 
-void rb_tr_scan_args_kw_parse(const char *format, int *pre, int *optional, bool *rest, int *post, bool *kwargs, bool *block);
+void rb_tr_scan_args_kw_parse(const char *format, struct rb_tr_scan_args_parse_data *parse_data);
 
-ALWAYS_INLINE(static int rb_tr_scan_args_kw_int(int kw_flag, int argc, VALUE *argv, int pre, int optional, bool rest, int post, bool kwargs, bool block, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10));
-static inline int rb_tr_scan_args_kw_int(int kw_flag, int argc, VALUE *argv, int pre, int optional, bool rest, int post, bool kwargs, bool block, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10) {
+ALWAYS_INLINE(static int rb_tr_scan_args_kw_int(int kw_flag, int argc, VALUE *argv, struct rb_tr_scan_args_parse_data parse_data, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10));
+static inline int rb_tr_scan_args_kw_int(int kw_flag, int argc, VALUE *argv, struct rb_tr_scan_args_parse_data parse_data, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10) {
 
   int keyword_given = 0;
   int last_hash_keyword = 0;
@@ -230,12 +234,12 @@ static inline int rb_tr_scan_args_kw_int(int kw_flag, int argc, VALUE *argv, int
 
   // Check we have enough arguments
 
-  if (pre + post > argc) {
+  if (parse_data.pre + parse_data.post > argc) {
     rb_raise(rb_eArgError, "not enough arguments for required");
   }
 
-  const int n_mand = pre + post;
-  const int n_opt = optional;
+  const int n_mand = parse_data.pre + parse_data.post;
+  const int n_opt = parse_data.optional;
 
   // Read arguments
 
@@ -256,7 +260,7 @@ static inline int rb_tr_scan_args_kw_int(int kw_flag, int argc, VALUE *argv, int
   if (argc > 0) {
     VALUE last = argv[argc - 1];
 
-    if (kwargs && n_mand < argc) {
+    if (parse_data.kwargs && n_mand < argc) {
       if (keyword_given) {
         if (!RB_TYPE_P(last, T_HASH)) {
           rb_warn("Keyword flag set when calling rb_scan_args, but last entry is not a hash");
@@ -271,8 +275,8 @@ static inline int rb_tr_scan_args_kw_int(int kw_flag, int argc, VALUE *argv, int
            option hash only if it is not ambiguous; i.e. '*' is
            not specified and arguments are given more than sufficient.
            This will be removed in Ruby 3. */
-        if (rest || argc <= n_mand + n_opt) {
-          kwargs = false;
+        if (parse_data.rest || argc <= n_mand + n_opt) {
+          parse_data.kwargs = false;
           erased_kwargs = true;
           rb_warn("The last argument is nil, treating as empty keywords");
         }
@@ -280,7 +284,7 @@ static inline int rb_tr_scan_args_kw_int(int kw_flag, int argc, VALUE *argv, int
       else {
         hash = rb_check_hash_type(last);
         if (NIL_P(hash)) {
-          kwargs = false;
+          parse_data.kwargs = false;
           erased_kwargs = true;
         }
       }
@@ -290,20 +294,20 @@ static inline int rb_tr_scan_args_kw_int(int kw_flag, int argc, VALUE *argv, int
         if (!polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("test_kwargs", argv[argc - 1], Qfalse))) {
           // Does not handle the case where "The last argument is split into positional and keyword parameters"
           // Instead assumes that it is all one hash
-          kwargs = false;
+          parse_data.kwargs = false;
           erased_kwargs = true;
         }
       }
     }
-    else if (kwargs && keyword_given && n_mand == argc) {
+    else if (parse_data.kwargs && keyword_given && n_mand == argc) {
       /* Warn if treating keywords as positional, as in Ruby 3, this will be an error */
       rb_warn("Passing the keyword argument as the last hash parameter is deprecated");
     }
   }
 
-  int trailing = post;
+  int trailing = parse_data.post;
 
-  if (kwargs) {
+  if (parse_data.kwargs) {
     trailing++;
   }
 
@@ -312,31 +316,31 @@ static inline int rb_tr_scan_args_kw_int(int kw_flag, int argc, VALUE *argv, int
 
     VALUE arg;
 
-    if (pre > 0 || optional > 0) {
-      if (argn - pre < argc - trailing) {
+    if (parse_data.pre > 0 || parse_data.optional > 0) {
+      if (argn - parse_data.pre < argc - trailing) {
         arg = argv[argn];
         argn++;
       } else {
         arg = Qnil;
       }
 
-      if (pre > 0) {
-        pre--;
+      if (parse_data.pre > 0) {
+        parse_data.pre--;
       } else {
-        optional--;
+        parse_data.optional--;
       }
-    } else if (rest && !taken_rest) {
+    } else if (parse_data.rest && !taken_rest) {
       arg = rb_ary_new();
       while (argn < argc - trailing) {
         rb_ary_push(arg, argv[argn]);
         argn++;
       }
       taken_rest = true;
-    } else if (post > 0) {
+    } else if (parse_data.post > 0) {
       arg = argv[argn];
       argn++;
-      post--;
-    } else if (kwargs && !taken_kwargs) {
+      parse_data.post--;
+    } else if (parse_data.kwargs && !taken_kwargs) {
        if (argn < argc) {
         arg = argv[argn];
         RUBY_CEXT_INVOKE_NO_WRAP("test_kwargs", arg, Qtrue);
@@ -349,7 +353,7 @@ static inline int rb_tr_scan_args_kw_int(int kw_flag, int argc, VALUE *argv, int
     } else if (erased_kwargs && !taken_kwargs) {
       arg = Qnil;
       taken_kwargs = true;
-    } else if (block && !taken_block) {
+    } else if (parse_data.block && !taken_block) {
       if (rb_block_given_p()) {
         arg = rb_block_proc();
       } else {
@@ -385,7 +389,7 @@ static inline int rb_tr_scan_args_kw_int(int kw_flag, int argc, VALUE *argv, int
   }
 
   if (argn < argc) {
-	rb_error_arity(argc, n_mand, rest ? UNLIMITED_ARGUMENTS : n_mand + n_opt);
+	rb_error_arity(argc, n_mand, parse_data.rest ? UNLIMITED_ARGUMENTS : n_mand + n_opt);
   }
 
   return argc;
@@ -395,16 +399,11 @@ ALWAYS_INLINE(static int rb_tr_scan_args_kw_non_const(int kw_flag, int argc, VAL
 static inline int rb_tr_scan_args_kw_non_const(int kw_flag, int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10) {
 
   const char *formatp = format;
-  int pre = 0;
-  int optional = 0;
-  bool rest;
-  int post = 0;
-  bool kwargs;
-  bool block;
+  struct rb_tr_scan_args_parse_data parse_data = {0, 0, false, 0, false, false};
 
-  rb_tr_scan_args_kw_parse(format, &pre, &optional, &rest, &post, &kwargs, &block);
+  rb_tr_scan_args_kw_parse(format, &parse_data);
 
-  return rb_tr_scan_args_kw_int(kw_flag, argc, argv, pre, optional, rest, post, kwargs, block, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10);
+  return rb_tr_scan_args_kw_int(kw_flag, argc, argv, parse_data, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10);
 }
 
 #define rb_iv_get(obj, name) \
