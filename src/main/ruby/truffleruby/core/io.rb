@@ -648,8 +648,8 @@ class IO
       mode, external, internal = mode.split(':')
       raise ArgumentError, 'invalid access mode' unless mode
 
-      binary = true  if mode[1] === ?b
-      binary = false if mode[1] === ?t
+      binary = true  if mode.include?(?b)
+      binary = false if mode.include?(?t)
     elsif mode
       binary = true  if (mode & BINARY) != 0
     end
