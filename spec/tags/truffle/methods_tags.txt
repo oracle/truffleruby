@@ -94,3 +94,5 @@ fails:Public methods on StringIO should not include marshal_dump
 fails:Public methods on StringIO should not include to_yaml_properties
 fails:Public methods on StringIO should not include yaml_initialize
 fails:Public methods on StringIO should include set_encoding_by_bom
+fails:Public methods on Process.singleton_class should include argv0
+fails:Public methods on Process.singleton_class should include getsid

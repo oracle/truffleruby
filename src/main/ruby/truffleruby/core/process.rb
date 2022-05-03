@@ -100,7 +100,9 @@ module Process
     const_set(Primitive.string_substring(key, section.size, key.length), value)
   end
 
-  def self.clock_getres(id, unit=:float_second)
+  module_function
+
+  def clock_getres(id, unit=:float_second)
     res = case id
           when :MACH_ABSOLUTE_TIME_BASED_CLOCK_MONOTONIC,
                CLOCK_MONOTONIC
@@ -129,13 +131,13 @@ module Process
           end
 
     if :hertz == unit
-      1.0 / nanoseconds_to_unit(res,:float_second)
+      1.0 / Truffle::ProcessOperations.nanoseconds_to_unit(res, :float_second)
     else
-      nanoseconds_to_unit(res,unit)
+      Truffle::ProcessOperations.nanoseconds_to_unit(res, unit)
     end
   end
 
-  def self.clock_gettime(id, unit=:float_second)
+  def clock_gettime(id, unit=:float_second)
     if Primitive.object_kind_of?(id, Symbol)
       id = case id
            when :GETTIMEOFDAY_BASED_CLOCK_REALTIME,
@@ -163,30 +165,8 @@ module Process
       Errno.handle if time == 0
     end
 
-    nanoseconds_to_unit(time, unit)
+    Truffle::ProcessOperations.nanoseconds_to_unit(time, unit)
   end
-
-  def self.nanoseconds_to_unit(nanoseconds, unit)
-    case unit # ordered by expected frequency
-    when :float_second, nil
-      nanoseconds / 1e9
-    when :nanosecond
-      nanoseconds
-    when :microsecond
-      nanoseconds / 1_000
-    when :float_microsecond
-      nanoseconds / 1e3
-    when :float_millisecond
-      nanoseconds / 1e6
-    when :second
-      nanoseconds / 1_000_000_000
-    when :millisecond
-      nanoseconds / 1_000_000
-    else
-      raise ArgumentError, "unexpected unit: #{unit}"
-    end
-  end
-  private_class_method :nanoseconds_to_unit
 
   ##
   # Sets the process title. Calling this method does not affect the value of
@@ -195,7 +175,7 @@ module Process
   # @param [String] title
   # @return [Title]
   #
-  def self.setproctitle(title)
+  def setproctitle(title)
     title = Truffle::Type.coerce_to(title, String, :to_str)
     argv = Primitive.vm_native_argv
 
@@ -217,8 +197,8 @@ module Process
     title
   end
 
-  def self.setrlimit(resource, cur_limit, max_limit=undefined)
-    resource =  coerce_rlimit_resource(resource)
+  def setrlimit(resource, cur_limit, max_limit=undefined)
+    resource =  Truffle::ProcessOperations.coerce_rlimit_resource(resource)
     cur_limit = Truffle::Type.coerce_to cur_limit, Integer, :to_int
 
     if Primitive.undefined? max_limit
@@ -239,8 +219,8 @@ module Process
     nil
   end
 
-  def self.getrlimit(resource)
-    resource = coerce_rlimit_resource(resource)
+  def getrlimit(resource)
+    resource = Truffle::ProcessOperations.coerce_rlimit_resource(resource)
 
     rlim_t = Truffle::Config['platform.typedef.rlim_t']
     raise rlim_t unless rlim_t == 'ulong' or rlim_t == 'ulong_long'
@@ -254,7 +234,7 @@ module Process
     end
   end
 
-  def self.setsid
+  def setsid
     pgid = Truffle::POSIX.setsid
     Errno.handle if pgid == -1
     pgid
@@ -265,7 +245,7 @@ module Process
   end
   Primitive.method_unimplement method(:fork)
 
-  def self.times
+  def times
     Truffle::FFI::MemoryPointer.new(:double, 4) do |ptr|
       ret = Truffle::POSIX.truffleposix_getrusage(ptr)
       Errno.handle if ret == -1
@@ -273,7 +253,7 @@ module Process
     end
   end
 
-  def self.kill(signal, *pids)
+  def kill(signal, *pids)
     raise ArgumentError, 'PID argument required' if pids.length == 0
 
     use_process_group = false
@@ -327,7 +307,7 @@ module Process
     raise SystemExit.new(1, msg)
   end
 
-  def self.getpgid(pid)
+  def getpgid(pid)
     pid = Truffle::Type.coerce_to pid, Integer, :to_int
 
     ret = Truffle::POSIX.getpgid(pid)
@@ -335,7 +315,7 @@ module Process
     ret
   end
 
-  def self.setpgid(pid, int)
+  def setpgid(pid, int)
     pid = Truffle::Type.coerce_to pid, Integer, :to_int
     int = Truffle::Type.coerce_to int, Integer, :to_int
 
@@ -344,29 +324,33 @@ module Process
     ret
   end
 
-  @maxgroups = 32
-  class << self
-    attr_accessor :maxgroups
+  def maxgroups
+    Truffle::ProcessOperations.maxgroups
   end
 
-  def self.setpgrp
+  def maxgroups=(maxgroups)
+    Truffle::ProcessOperations.maxgroups = maxgroups
+  end
+
+  def setpgrp
     setpgid(0, 0)
   end
-  def self.getpgrp
+
+  def getpgrp
     ret = Truffle::POSIX.getpgrp
     Errno.handle if ret == -1
     ret
   end
 
-  def self.pid
+  def pid
     Truffle::POSIX.getpid
   end
 
-  def self.ppid
+  def ppid
     Truffle::POSIX.getppid
   end
 
-  def self.uid=(uid)
+  def uid=(uid)
     uid =
       if name = Truffle::Type.rb_check_convert_type(uid, String, :to_str)
         require 'etc'
@@ -402,7 +386,7 @@ module Process
     uid
   end
 
-  def self.gid=(gid)
+  def gid=(gid)
     gid =
       if name = Truffle::Type.rb_check_convert_type(gid, String, :to_str)
         require 'etc'
@@ -414,7 +398,7 @@ module Process
     Process::Sys.setgid gid
   end
 
-  def self.euid=(uid)
+  def euid=(uid)
     # the 4 rescue clauses below are needed
     # until respond_to? can be used to query the implementation of methods attached via FFI
     # atm respond_to returns true if a method is attached but not implemented on the platform
@@ -449,7 +433,7 @@ module Process
     uid
   end
 
-  def self.egid=(gid)
+  def egid=(gid)
     gid =
       if name = Truffle::Type.rb_check_convert_type(gid, String, :to_str)
         require 'etc'
@@ -461,23 +445,23 @@ module Process
     Process::Sys.setegid gid
   end
 
-  def self.uid
+  def uid
     Truffle::POSIX.getuid
   end
 
-  def self.gid
+  def gid
     Truffle::POSIX.getgid
   end
 
-  def self.euid
+  def euid
     Truffle::POSIX.geteuid
   end
 
-  def self.egid
+  def egid
     Truffle::POSIX.getegid
   end
 
-  def self.getpriority(kind, id)
+  def getpriority(kind, id)
     kind = Truffle::Type.coerce_to kind, Integer, :to_int
     id =   Truffle::Type.coerce_to id, Integer, :to_int
 
@@ -488,7 +472,7 @@ module Process
     ret
   end
 
-  def self.setpriority(kind, id, priority)
+  def setpriority(kind, id, priority)
     kind = Truffle::Type.coerce_to kind, Integer, :to_int
     id =   Truffle::Type.coerce_to id, Integer, :to_int
     priority = Truffle::Type.coerce_to priority, Integer, :to_int
@@ -498,7 +482,7 @@ module Process
     ret
   end
 
-  def self.groups
+  def groups
     ngroups = Truffle::POSIX.getgroups(0, FFI::Pointer::NULL)
     Errno.handle if ngroups == -1
 
@@ -512,11 +496,11 @@ module Process
     end
   end
 
-  def self.groups=(groups)
+  def groups=(groups)
     gid_t = Truffle::Config['platform.typedef.gid_t']
     raise gid_t unless gid_t == 'uint'
 
-    @maxgroups = groups.size if groups.size > @maxgroups
+    Truffle::ProcessOperations.maxgroups = groups.size if groups.size > Truffle::ProcessOperations.maxgroups
 
     FFI::MemoryPointer.new(:gid_t, groups.size) do |ptr|
       ptr.write_array_of_uint(groups)
@@ -526,7 +510,7 @@ module Process
     groups
   end
 
-  def self.initgroups(username, gid)
+  def initgroups(username, gid)
     username = StringValue(username)
     gid = Truffle::Type.coerce_to gid, Integer, :to_int
 
@@ -568,7 +552,7 @@ module Process
   #
   # TODO: Support other options such as WUNTRACED? --rue
   #
-  def self.wait2(input_pid=-1, flags=nil)
+  def wait2(input_pid=-1, flags=nil)
     status = Truffle::ProcessOperations.wait(input_pid, flags, true, true)
     if status
       [status.pid, status]
@@ -589,7 +573,7 @@ module Process
   # The .waitall call does not in any way check that it is only
   # waiting for children that existed at the time it was called.
   #
-  def self.waitall
+  def waitall
     statuses = []
 
     begin
@@ -603,7 +587,7 @@ module Process
     statuses
   end
 
-  def self.wait(pid=-1, flags=nil)
+  def wait(pid=-1, flags=nil)
     Truffle::ProcessOperations.wait(pid, flags, true, true)&.pid
   end
 
@@ -612,10 +596,11 @@ module Process
     alias_method :waitpid2, :wait2
   end
 
-  def self.daemon(*args)
+  def daemon(*args)
     raise NotImplementedError, 'Process.daemon is not available'
   end
   Primitive.method_unimplement method(:daemon)
+
 
   def self.exec(*args)
     Truffle::ProcessOperations.exec(*args)
@@ -632,7 +617,7 @@ module Process
   #       is not the case, the check should be made WNOHANG
   #       and called periodically.
   #
-  def self.detach(pid)
+  def detach(pid)
     raise ArgumentError, 'Only positive pids may be detached' unless pid > 0
 
     thread = Thread.new { Process.wait pid; $? }
@@ -641,28 +626,6 @@ module Process
 
     thread
   end
-
-  def self.coerce_rlimit_resource(resource)
-    case resource
-    when Integer
-      return resource
-    when Symbol, String
-      # do nothing
-    else
-      unless r = Truffle::Type.rb_check_convert_type(resource, String, :to_str)
-        return Truffle::Type.coerce_to resource, Integer, :to_int
-      end
-
-      resource = r
-    end
-
-    constant = "RLIMIT_#{resource}"
-    unless const_defined? constant
-      raise ArgumentError, "invalid resource name: #{constant}"
-    end
-    const_get constant
-  end
-  private_class_method :coerce_rlimit_resource
 
   #--
   # TODO: Most of the fields aren't implemented yet.
