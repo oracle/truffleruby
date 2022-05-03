@@ -158,6 +158,11 @@ public abstract class ObjSpaceNodes {
                 }
             }
         }
+
+        @Fallback
+        protected Object allocationInfoImmutable(Object object) {
+            return nil;
+        }
     }
 
     @Primitive(name = "allocation_generation")
@@ -171,6 +176,11 @@ public abstract class ObjSpaceNodes {
             } else {
                 return trace.gcGeneration;
             }
+        }
+
+        @Fallback
+        protected Object allocationGenerationImmutable(Object object) {
+            return nil;
         }
     }
 
@@ -193,6 +203,11 @@ public abstract class ObjSpaceNodes {
                 }
             }
         }
+
+        @Fallback
+        protected Object allocationMethodIdImmutable(Object object) {
+            return nil;
+        }
     }
 
     @Primitive(name = "allocation_sourcefile")
@@ -209,6 +224,11 @@ public abstract class ObjSpaceNodes {
                 return makeStringNode.executeMake(sourcePath, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
             }
         }
+
+        @Fallback
+        protected Object allocationSourcefileImmutable(Object object) {
+            return nil;
+        }
     }
 
     @Primitive(name = "allocation_sourceline")
@@ -222,6 +242,11 @@ public abstract class ObjSpaceNodes {
             } else {
                 return trace.allocatingSourceSection.getStartLine();
             }
+        }
+
+        @Fallback
+        protected Object allocationSourcelineImmutable(Object object) {
+            return nil;
         }
     }
 
