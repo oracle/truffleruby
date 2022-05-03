@@ -9,6 +9,7 @@
 module BenchmarkInterface
   module Backends
     module Stable
+      extend BenchmarkInterface::Timing
 
       def self.run(benchmark_set, names, options)
         full_time = options['--time']
@@ -22,16 +23,16 @@ module BenchmarkInterface
           puts benchmark.name
           block = benchmark.block
 
-          start_time = Time.now
+          start_time = get_time
 
-          while Time.now - start_time < full_time
-            start_round_time = Time.now
+          while get_time - start_time < full_time
+            start_round_time = get_time
             block.call
-            round_time = Time.now - start_round_time
+            round_time = get_time - start_round_time
             
             ips = 1 / round_time
             puts 1 if print_iterations
-            puts Time.now - start_time if elapsed
+            puts get_time - start_time if elapsed
             puts ips * inner_iterations
           end
         end

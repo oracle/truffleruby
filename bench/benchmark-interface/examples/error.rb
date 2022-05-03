@@ -6,8 +6,8 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-start = Time.now
+start = BenchmarkInterface.get_time
 
 benchmark do
-  1/0 if Time.now - start > 3
+  1/0 if BenchmarkInterface.get_time - start > 3
 end

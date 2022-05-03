@@ -9,21 +9,10 @@
 module BenchmarkInterface
   module Backends
     module Simple
-      
+      extend BenchmarkInterface::Timing
+
       INITIAL_ITERATIONS = 1
       MAX_ITERATIONS = 2147483647
-
-      # Accomodates Rubinius
-      
-      if defined?(Process::CLOCK_MONOTONIC)
-        def self.get_time
-          Process.clock_gettime(Process::CLOCK_MONOTONIC)
-        end
-      else
-        def self.get_time
-          Time.now
-        end
-      end
 
       def self.run(benchmark_set, names, options)
         full_time = options['--time']
@@ -42,8 +31,9 @@ module BenchmarkInterface
 
           while get_time - start_time < full_time
             start_round_time = get_time
-            BenchmarkInterface.run_n_iterations(iterations, &block)
+            result = BenchmarkInterface.run_n_iterations(iterations, &block)
             round_time = get_time - start_round_time
+            benchmark.verify!(result)
             
             # If the round time was very low and so very imprecise then we may
             # get a wild number of iterations next time.
