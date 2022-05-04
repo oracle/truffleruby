@@ -10,6 +10,7 @@
 package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.interop.TruffleObject;
@@ -82,7 +83,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
     @Child protected ToSymbolNode toSymbol;
 
     protected final ConditionProfile methodMissing;
-    protected final BranchProfile methodMissingMissing;
+    @CompilationFinal private boolean methodMissingMissingProfile;
 
     protected DispatchNode(
             DispatchConfiguration config,
@@ -96,7 +97,6 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         this.methodLookup = methodLookup;
         this.callNode = callNode;
         this.methodMissing = methodMissing;
-        this.methodMissingMissing = methodMissingMissing;
     }
 
     protected DispatchNode(DispatchConfiguration config) {
@@ -280,14 +280,24 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         return dispatch(frame, receiver, methodName, rubyArgs, null);
     }
 
-    public final Object dispatch(Frame frame, Object receiver, String methodName, Object[] rubyArgs,
+    public Object dispatch(Frame frame, Object receiver, String methodName, Object[] rubyArgs,
             LiteralCallNode literalCallNode) {
+        return dispatchInternal(frame, receiver, methodName, rubyArgs, literalCallNode,
+                metaclassNode, methodLookup, methodMissing, callNode);
+    }
+
+    protected final Object dispatchInternal(Frame frame, Object receiver, String methodName, Object[] rubyArgs,
+            LiteralCallNode literalCallNode,
+            MetaClassNode metaClassNode,
+            LookupMethodNode lookupMethodNode,
+            ConditionProfile methodMissingProfile,
+            CallInternalMethodNode callNode) {
         assert RubyArguments.getSelf(rubyArgs) == receiver;
 
-        final RubyClass metaclass = metaclassNode.execute(receiver);
-        final InternalMethod method = methodLookup.execute(frame, metaclass, methodName, config);
+        final RubyClass metaclass = metaClassNode.execute(receiver);
+        final InternalMethod method = lookupMethodNode.execute(frame, metaclass, methodName, config);
 
-        if (methodMissing.profile(method == null || method.isUndefined())) {
+        if (methodMissingProfile.profile(method == null || method.isUndefined())) {
             switch (config.missingBehavior) {
                 case RETURN_MISSING:
                     return MISSING;
@@ -320,7 +330,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
                 literalCallNode);
 
         if (result == MISSING) {
-            methodMissingMissing.enter();
+            methodMissingMissingProfileEnter();
             throw new RaiseException(getContext(), coreExceptions().noMethodErrorFromMethodMissing(
                     ExceptionFormatter.NO_METHOD_ERROR,
                     receiver,
@@ -357,6 +367,13 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
                     DispatchNode.create(DispatchConfiguration.PRIVATE_RETURN_MISSING_IGNORE_REFINEMENTS));
         }
         return callMethodMissing;
+    }
+
+    protected void methodMissingMissingProfileEnter() {
+        if (!methodMissingMissingProfile) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            methodMissingMissingProfile = true;
+        }
     }
 
     protected RubySymbol nameToSymbol(String methodName) {
@@ -404,13 +421,17 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         }
 
         protected Uncached(DispatchConfiguration config) {
-            super(
-                    config,
+            super(config, null, null, null, null, null);
+        }
+
+        @Override
+        public Object dispatch(Frame frame, Object receiver, String methodName, Object[] rubyArgs,
+                LiteralCallNode literalCallNode) {
+            return dispatchInternal(frame, receiver, methodName, rubyArgs, literalCallNode,
                     MetaClassNodeGen.getUncached(),
                     LookupMethodNodeGen.getUncached(),
-                    CallInternalMethodNodeGen.getUncached(),
                     ConditionProfile.getUncached(),
-                    BranchProfile.getUncached());
+                    CallInternalMethodNodeGen.getUncached());
         }
 
         @Override
@@ -421,6 +442,10 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         @Override
         protected DispatchNode getMethodMissingNode() {
             return DispatchNode.getUncached(DispatchConfiguration.PRIVATE_RETURN_MISSING_IGNORE_REFINEMENTS);
+        }
+
+        @Override
+        protected void methodMissingMissingProfileEnter() {
         }
 
         @Override
