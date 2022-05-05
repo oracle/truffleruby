@@ -425,19 +425,15 @@ class IO
     StreamCopier.new(from, to, max_length, offset).run
   end
 
-  def self.foreach(name, separator=undefined, limit=undefined, options=undefined, &block)
-    return to_enum(:foreach, name, separator, limit, options) unless block
+  def self.foreach(name, separator=undefined, limit=undefined, **options, &block)
+    return to_enum(:foreach, name, separator, limit, **options) unless block
 
     name = Truffle::Type.coerce_to_path name
 
     separator = $/ if Primitive.undefined?(separator)
     case separator
     when Integer
-      options = limit
       limit = separator
-      separator = $/
-    when Hash
-      options = separator
       separator = $/
     when nil
       # do nothing
@@ -449,32 +445,10 @@ class IO
     case limit
     when Integer, nil
       # do nothing
-    when Hash
-      if Primitive.undefined? options
-        options = limit
-        limit = nil
-      else
-        raise TypeError, "can't convert Hash into Integer"
-      end
     else
-      value = limit
-      limit = Truffle::Type.try_convert limit, Integer, :to_int
-
-      unless limit
-        options = Truffle::Type.coerce_to value, Hash, :to_hash
-      end
+      limit = Primitive.rb_to_int(limit)
     end
     limit = nil if limit && limit < 0
-
-    options = {} if Primitive.undefined?(options)
-    case options
-    when Hash
-      # do nothing
-    when nil
-      options = {}
-    else
-      options = Truffle::Type.coerce_to options, Hash, :to_hash
-    end
     chomp = Primitive.as_boolean(options[:chomp])
 
     if name[0] == ?|
@@ -496,9 +470,9 @@ class IO
     nil
   end
 
-  def self.readlines(name, separator=undefined, limit=undefined, options=undefined)
+  def self.readlines(name, separator=undefined, limit=undefined, **options)
     lines = []
-    foreach(name, separator, limit, options) { |l| lines << l }
+    foreach(name, separator, limit, **options) { |l| lines << l }
 
     lines
   end
