@@ -286,7 +286,7 @@ public abstract class IntegerNodes {
 
     }
 
-    @Primitive(name = "interger_fdiv")
+    @Primitive(name = "integer_fdiv")
     public abstract static class FDivNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -302,19 +302,19 @@ public abstract class IntegerNodes {
         @TruffleBoundary
         @Specialization
         protected double fDivLongBig(long num, RubyBignum den) {
-            return new BigDecimal(num).divide(new BigDecimal(den.value), 17, RoundingMode.HALF_UP).doubleValue();
+            return new BigDecimal(num).divide(new BigDecimal(den.value), 323, RoundingMode.HALF_UP).doubleValue();
         }
 
         @TruffleBoundary
         @Specialization
         protected double fDivBigLong(RubyBignum num, long den) {
-            return new BigDecimal(num.value).divide(new BigDecimal(den), 17, RoundingMode.HALF_UP).doubleValue();
+            return new BigDecimal(num.value).divide(new BigDecimal(den), 323, RoundingMode.HALF_UP).doubleValue();
         }
 
         @TruffleBoundary
         @Specialization
         protected double fDivBigBig(RubyBignum num, RubyBignum den) {
-            return new BigDecimal(num.value).divide(new BigDecimal(den.value), 17, RoundingMode.HALF_UP).doubleValue();
+            return new BigDecimal(num.value).divide(new BigDecimal(den.value), 323, RoundingMode.HALF_UP).doubleValue();
         }
 
     }
