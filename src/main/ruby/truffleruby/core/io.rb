@@ -1838,8 +1838,8 @@ class IO
 
   ##
   # Reads a line as with IO#gets, but raises an EOFError on end of file.
-  def readline(sep=$/, chomp: false)
-    out = gets(sep, chomp: chomp)
+  def readline(sep_or_limit=$/, limit=nil, chomp: false)
+    out = gets(sep_or_limit, limit, chomp: chomp)
     raise EOFError, 'end of file' unless out
     out
   end

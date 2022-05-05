@@ -43,6 +43,23 @@ describe "IO#readline" do
     end
   end
 
+  describe "when passed limit" do
+    it "reads limit bytes" do
+      @io.readline(3).should == "Voi"
+    end
+  end
+
+  describe "when passed separator and limit" do
+    it "reads limit bytes till the separator" do
+      # Voici la ligne une.\
+      @io.readline(" ", 4).should == "Voic"
+      @io.readline(" ", 4).should == "i "
+      @io.readline(" ", 4).should == "la "
+      @io.readline(" ", 4).should == "lign"
+      @io.readline(" ", 4).should == "e "
+    end
+  end
+
   describe "when passed chomp" do
     it "returns the first line without a trailing newline character" do
       @io.readline(chomp: true).should == IOSpecs.lines_without_newline_characters[0]
