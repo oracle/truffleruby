@@ -21,6 +21,7 @@ import org.truffleruby.core.format.convert.ToDoubleWithCoercionNodeGen;
 import org.truffleruby.core.format.convert.ToIntegerNodeGen;
 import org.truffleruby.core.format.convert.ToStringNodeGen;
 import org.truffleruby.core.format.format.FormatCharacterNodeGen;
+import org.truffleruby.core.format.format.FormatFFloatNodeGen;
 import org.truffleruby.core.format.format.FormatFloatNodeGen;
 import org.truffleruby.core.format.format.FormatIntegerBinaryNodeGen;
 import org.truffleruby.core.format.format.FormatIntegerNodeGen;
@@ -162,7 +163,6 @@ public class RBSprintfSimpleTreeBuilder {
                         switch (config.getFormat()) {
                             case 'a':
                             case 'A':
-                            case 'f':
                             case 'e':
                             case 'E':
                             case 'g':
@@ -172,6 +172,22 @@ public class RBSprintfSimpleTreeBuilder {
                                                 FormatFloatNodeGen
                                                         .create(
                                                                 config.getFormat(),
+                                                                config.isHasSpace(),
+                                                                config.isZero(),
+                                                                config.isPlus(),
+                                                                config.isMinus(),
+                                                                config.isFsharp(),
+                                                                widthNode,
+                                                                precisionNode,
+                                                                ToDoubleWithCoercionNodeGen
+                                                                        .create(
+                                                                                valueNode)));
+                                break;
+                        case 'f':
+                                node = WriteBytesNodeGen
+                                        .create(
+                                                FormatFFloatNodeGen
+                                                        .create(
                                                                 config.isHasSpace(),
                                                                 config.isZero(),
                                                                 config.isPlus(),

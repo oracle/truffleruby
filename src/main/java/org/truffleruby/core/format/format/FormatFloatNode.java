@@ -27,6 +27,8 @@ import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.core.rope.RopeOperations;
@@ -34,6 +36,7 @@ import org.truffleruby.core.rope.RopeOperations;
 @NodeChild("width")
 @NodeChild("precision")
 @NodeChild("value")
+@ImportStatic(Double.class)
 public abstract class FormatFloatNode extends FormatNode {
 
     private static final byte[] NAN_VALUE = { 'N', 'a', 'N' };
@@ -61,8 +64,120 @@ public abstract class FormatFloatNode extends FormatNode {
         this.hasFSharpFlag = hasFSharpFlag;
     }
 
+    @Specialization(guards = "value == POSITIVE_INFINITY")
+    protected byte[] formatPositiveInfinity(int width, int precision, double value) {
+        final byte[] digits;
+        final int len;
+        final byte signChar;
+        final ByteArrayBuilder buf = new ByteArrayBuilder();
+
+        digits = INFINITY_VALUE;
+        len = INFINITY_VALUE.length;
+        if (hasPlusFlag) {
+            signChar = '+';
+            width--;
+        } else if (hasSpaceFlag) {
+            signChar = ' ';
+            width--;
+        } else {
+            signChar = 0;
+        }
+        width -= len;
+
+        if (width > 0 && !hasMinusFlag) {
+            buf.append(' ', width);
+            width = 0;
+        }
+        if (signChar != 0) {
+            buf.append(signChar);
+        }
+
+        if (width > 0 && !hasMinusFlag) {
+            buf.append('0', width);
+            width = 0;
+        }
+        buf.append(digits);
+        if (width > 0) {
+            buf.append(' ', width);
+        }
+
+        return buf.getBytes();
+    }
+
+    @Specialization(guards = "value == NEGATIVE_INFINITY")
+    protected byte[] formatNegativeInfinity(int width, int precision, double value) {
+        final byte[] digits;
+        final int len;
+        final byte signChar;
+        final ByteArrayBuilder buf = new ByteArrayBuilder();
+
+        digits = INFINITY_VALUE;
+        len = INFINITY_VALUE.length;
+        signChar = '-';
+        width--;
+
+        width -= len;
+
+        if (width > 0 && !hasMinusFlag) {
+            buf.append(' ', width);
+            width = 0;
+        }
+        buf.append(signChar);
+
+        if (width > 0 && !hasMinusFlag) {
+            buf.append('0', width);
+            width = 0;
+        }
+        buf.append(digits);
+        if (width > 0) {
+            buf.append(' ', width);
+        }
+
+        return buf.getBytes();
+    }
+
+    @Specialization(guards = "isNaN(value)")
+    protected byte[] formatNaN(int width, int precision, double value) {
+        final byte[] digits;
+        final int len;
+        final byte signChar;
+        final ByteArrayBuilder buf = new ByteArrayBuilder();
+
+        digits = NAN_VALUE;
+        len = NAN_VALUE.length;
+        if (hasPlusFlag) {
+            signChar = '+';
+            width--;
+        } else if (hasSpaceFlag) {
+            signChar = ' ';
+            width--;
+        } else {
+            signChar = 0;
+        }
+        width -= len;
+
+        if (width > 0 && !hasMinusFlag) {
+            buf.append(' ', width);
+            width = 0;
+        }
+        if (signChar != 0) {
+            buf.append(signChar);
+        }
+
+        if (width > 0 && !hasMinusFlag) {
+            buf.append('0', width);
+            width = 0;
+        }
+        buf.append(digits);
+        if (width > 0) {
+            buf.append(' ', width);
+        }
+
+        return buf.getBytes();
+    }
+
     @TruffleBoundary
-    @Specialization
+    @Specialization(guards = "isFinite(dval)" )
     protected byte[] format(int width, int precision, double dval) {
         //        if (arg == null || name != null) {
         //            arg = args.next(name);
@@ -79,69 +194,13 @@ public abstract class FormatFloatNode extends FormatNode {
         //            }
         //        }
         //        double dval = ((RubyFloat)arg).getDoubleValue();
-        boolean hasPrecisionFlag = precision != PrintfSimpleTreeBuilder.DEFAULT;
-        final char fchar = this.format;
-
-        boolean nan = dval != dval;
-        boolean inf = dval == Double.POSITIVE_INFINITY || dval == Double.NEGATIVE_INFINITY;
-        boolean negative = dval < 0.0d || (dval == 0.0d && Float.valueOf((float) dval).equals(-0.0f));
+        boolean negative = Double.compare(dval, 0.0) == -1;
 
         byte[] digits;
         int nDigits = 0;
         int exponent = 0;
 
-        int len = 0;
-        byte signChar;
-
-        final ByteArrayBuilder buf = new ByteArrayBuilder();
-
-        if (nan || inf) {
-            if (nan) {
-                digits = NAN_VALUE;
-                len = NAN_VALUE.length;
-            } else {
-                digits = INFINITY_VALUE;
-                len = INFINITY_VALUE.length;
-            }
-            if (negative) {
-                signChar = '-';
-                width--;
-            } else if (hasPlusFlag) {
-                signChar = '+';
-                width--;
-            } else if (hasSpaceFlag) {
-                signChar = ' ';
-                width--;
-            } else {
-                signChar = 0;
-            }
-            width -= len;
-
-            if (width > 0 && !hasMinusFlag) {
-                buf.append(' ', width);
-                width = 0;
-            }
-            if (signChar != 0) {
-                buf.append(signChar);
-            }
-
-            if (width > 0 && !hasMinusFlag) {
-                buf.append('0', width);
-                width = 0;
-            }
-            buf.append(digits);
-            if (width > 0) {
-                buf.append(' ', width);
-            }
-
-            //            offset++;
-            //            incomplete = false;
-            //            break;
-            return buf.getBytes();
-        }
-
-        final Locale locale = Locale.ENGLISH;
-        NumberFormat nf = getNumberFormat(locale);
+        NumberFormat nf = getNumberFormat(Locale.ENGLISH);
         nf.setMaximumFractionDigits(Integer.MAX_VALUE);
         String str = nf.format(dval);
 
@@ -151,7 +210,7 @@ public abstract class FormatFloatNode extends FormatNode {
         int strlen = str.length();
         digits = new byte[strlen];
         int nTrailingZeroes = 0;
-        int i = negative ? 1 : 0;
+        int i = Double.compare(dval, 0.0) == -1 ? 1 : 0;
         int decPos = 0;
         byte ival;
         int_loop: while (i < strlen) {
@@ -234,9 +293,22 @@ public abstract class FormatFloatNode extends FormatNode {
         // OK, we now have the significand in digits[0...nDigits]
         // and the exponent in exponent.  We're ready to format.
 
+        return formatCases(width, precision, dval, digits, nDigits, exponent);
+    }
+
+    private byte[] formatCases(int width, int precision, double dval,
+            byte[] digits, int nDigits, int exponent) {
+        byte signChar;
         int intDigits, intZeroes, intLength;
         int decDigits, decZeroes, decLength;
         byte expChar;
+        int len = 0;
+
+        final char fchar = this.format;
+        final boolean hasPrecisionFlag = precision != PrintfSimpleTreeBuilder.DEFAULT;
+        final ByteArrayBuilder buf = new ByteArrayBuilder();
+        final Locale locale = Locale.ENGLISH;
+        final boolean negative = Double.compare(dval, 0.0) == -1;
 
         if (negative) {
             signChar = '-';
@@ -468,87 +540,6 @@ public abstract class FormatFloatNode extends FormatNode {
                 }
                 break;
 
-            case 'f':
-                intDigits = Math.max(0, Math.min(nDigits + exponent, nDigits));
-                intZeroes = Math.max(0, exponent);
-                intLength = intDigits + intZeroes;
-                decDigits = nDigits - intDigits;
-                decZeroes = Math.max(0, -(decDigits + exponent));
-
-                if (precision < decZeroes + decDigits) {
-                    if (precision < decZeroes) {
-                        decDigits = 0;
-                        decZeroes = precision;
-                    } else {
-                        int n = round(digits, nDigits, intDigits + precision - decZeroes - 1, false);
-                        if (n > nDigits) {
-                            // digits arr shifted, update all
-                            nDigits = n;
-                            intDigits = Math.max(0, Math.min(nDigits + exponent, nDigits));
-                            intLength = intDigits + intZeroes;
-                            decDigits = nDigits - intDigits;
-                            decZeroes = Math.max(0, -(decDigits + exponent));
-                        }
-                        decDigits = precision - decZeroes;
-                    }
-                }
-                if (precision > 0) {
-                    len += Math.max(1, intLength) + 1 + precision;
-                    // (1|intlen).prec
-                } else {
-                    len += Math.max(1, intLength);
-                    // (1|intlen)
-                    if (hasFSharpFlag) {
-                        len++; // will have a trailing '.'
-                    }
-                }
-
-                width -= len;
-
-                if (width > 0 && !hasZeroFlag && !hasMinusFlag) {
-                    buf.append(' ', width);
-                    width = 0;
-                }
-                if (signChar != 0) {
-                    buf.append(signChar);
-                }
-                if (width > 0 && !hasMinusFlag) {
-                    buf.append('0', width);
-                    width = 0;
-                }
-                // now some data...
-                if (intLength > 0) {
-                    if (intDigits > 0) { // s/b true, since intLength > 0
-                        buf.append(digits, 0, intDigits);
-                    }
-                    if (intZeroes > 0) {
-                        buf.append('0', intZeroes);
-                    }
-                } else {
-                    // always need at least a 0
-                    buf.append('0');
-                }
-                if (precision > 0 || hasFSharpFlag) {
-                    buf.append(decimalSeparator);
-                }
-                if (precision > 0) {
-                    if (decZeroes > 0) {
-                        buf.append('0', decZeroes);
-                        precision -= decZeroes;
-                    }
-                    if (decDigits > 0) {
-                        buf.append(digits, intDigits, decDigits);
-                        precision -= decDigits;
-                    }
-                    // fill up the rest with zeroes
-                    if (precision > 0) {
-                        buf.append('0', precision);
-                    }
-                }
-                if (width > 0) {
-                    buf.append(' ', width);
-                }
-                break;
             case 'E':
             case 'e':
                 // intDigits isn't used here, but if it were, it would be 1
@@ -679,6 +670,10 @@ public abstract class FormatFloatNode extends FormatNode {
             decimalFormats.put(locale, format);
         }
         return format;
+    }
+
+    protected boolean isFormatF() {
+        return this.format == 'f';
     }
 
     private static final ThreadLocal<Map<Locale, NumberFormat>> LOCALE_NUMBER_FORMATS = new ThreadLocal<>();
