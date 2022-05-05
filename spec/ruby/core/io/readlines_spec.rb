@@ -102,6 +102,12 @@ describe "IO#readlines" do
     end
   end
 
+  describe "when passed limit" do
+    it "raises ArgumentError when passed 0 as a limit" do
+      -> { @io.readlines(0) }.should raise_error(ArgumentError)
+    end
+  end
+
   describe "when passed chomp" do
     it "returns the first line without a trailing newline character" do
       @io.readlines(chomp: true).should == IOSpecs.lines_without_newline_characters

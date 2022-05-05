@@ -210,6 +210,10 @@ describe "IO#gets" do
   it "reads all bytes when pass a separator and reading more than all bytes" do
     @io.gets("\t", 100).should == "one\n\ntwo\n\nthree\nfour\n"
   end
+
+  it "returns empty string when 0 passed as a limit" do
+    @io.gets(0).should == ""
+  end
 end
 
 describe "IO#gets" do

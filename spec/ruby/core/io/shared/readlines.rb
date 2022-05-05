@@ -78,6 +78,14 @@ describe :io_readlines_options_19, shared: true do
         result = IO.send(@method, @name, -2, &@object)
         (result ? result : ScratchPad.recorded).should == IOSpecs.lines
       end
+
+      ruby_bug "#18767", ""..."3.2" do
+        describe "when passed limit" do
+          it "raises ArgumentError when passed 0 as a limit" do
+            -> { IO.send(@method, @name, 0, &@object) }.should raise_error(ArgumentError)
+          end
+        end
+      end
     end
 
     describe "when the object is a String" do

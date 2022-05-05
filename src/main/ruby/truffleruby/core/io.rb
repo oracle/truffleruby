@@ -459,7 +459,7 @@ class IO
       io = File.open(name, options)
     end
 
-    each_reader = io.__send__ :create_each_reader, separator, limit, chomp
+    each_reader = io.__send__ :create_each_reader, separator, limit, chomp, true
 
     begin
       each_reader&.each(&block)
@@ -1311,7 +1311,7 @@ class IO
     end
   end
 
-  private def create_each_reader(sep_or_limit=$/, limit=nil, chomp=false)
+  private def create_each_reader(sep_or_limit=$/, limit=nil, chomp=false, raise_error)
     ensure_open_and_readable
 
     if limit
@@ -1331,7 +1331,9 @@ class IO
       end
     end
 
-    raise ArgumentError, "invalid limit: #{limit} for each" if limit == 0
+    if limit == 0 && raise_error
+      raise ArgumentError, "invalid limit: #{limit} for each"
+    end
 
     return if @ibuffer.exhausted?
 
@@ -1341,7 +1343,7 @@ class IO
   def each(sep_or_limit=$/, limit=nil, chomp: false, &block)
     return to_enum(:each, sep_or_limit, limit, chomp: chomp) unless block_given?
 
-    each_reader = create_each_reader(sep_or_limit, limit, chomp)
+    each_reader = create_each_reader(sep_or_limit, limit, chomp, true)
 
     return if Primitive.nil? each_reader
 
@@ -1559,10 +1561,14 @@ class IO
 
   def gets(sep_or_limit=$/, limit=nil, chomp: false)
     line = nil
-    each sep_or_limit, limit, chomp: chomp do |l|
+    each_reader = create_each_reader(sep_or_limit, limit, chomp, false)
+    return line if Primitive.nil? each_reader
+
+    each_reader.each do |l|
       line = l
       break
     end
+
     Primitive.io_last_line_set(Primitive.caller_special_variables, line) if line
     line
   end
@@ -1856,7 +1862,7 @@ class IO
   def readlines(sep_or_limit=$/, limit=nil, chomp: false)
     ret = []
 
-    each_reader = create_each_reader(sep_or_limit, limit, chomp)
+    each_reader = create_each_reader(sep_or_limit, limit, chomp, true)
     each_reader&.each { |line| ret << line }
 
     ret

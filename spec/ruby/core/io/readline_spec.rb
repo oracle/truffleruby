@@ -47,6 +47,10 @@ describe "IO#readline" do
     it "reads limit bytes" do
       @io.readline(3).should == "Voi"
     end
+
+    it "returns an empty string when passed 0 as a limit" do
+      @io.readline(0).should == ""
+    end
   end
 
   describe "when passed separator and limit" do
