@@ -28,23 +28,27 @@ import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
 
 @ImportStatic(Double.class)
-public abstract class FormatFFloatNode extends FormatFloatGenericNode {
+public abstract class FormatEFloatNode extends FormatFloatGenericNode {
 
     private static final ThreadLocal<DecimalFormat> formatters = new ThreadLocal<>() {
         @Override
         protected DecimalFormat initialValue() {
             final DecimalFormatSymbols formatSymbols = new DecimalFormatSymbols(Locale.ENGLISH);
-            return new DecimalFormat("", formatSymbols);
+            return new DecimalFormat("0.0E00", formatSymbols);
         }
     };
 
-    public FormatFFloatNode(
+    private final char expSeparator;
+
+    public FormatEFloatNode(
+            char expSeparator,
             boolean hasSpaceFlag,
             boolean hasZeroFlag,
             boolean hasPlusFlag,
             boolean hasMinusFlag,
             boolean hasFSharpFlag) {
         super(hasSpaceFlag, hasZeroFlag, hasPlusFlag, hasMinusFlag, hasFSharpFlag);
+        this.expSeparator = expSeparator;
     }
 
     @Specialization(guards = { "isFinite(dval)"})
@@ -89,7 +93,6 @@ public abstract class FormatFFloatNode extends FormatFloatGenericNode {
     private byte[] doFormat(int precision, double dval) {
         final byte[] digits;
         final DecimalFormat format = formatters.get();
-        format.setGroupingSize(0);
         if (hasPlusFlag) {
             format.setPositivePrefix("+");
         } else if (hasSpaceFlag) {
@@ -106,7 +109,14 @@ public abstract class FormatFFloatNode extends FormatFloatGenericNode {
             format.setNegativeSuffix("");
         }
 
-        format.setMinimumIntegerDigits(1);
+        DecimalFormatSymbols symbols = format.getDecimalFormatSymbols();
+        if (expSeparator == 'e') {
+            symbols.setExponentSeparator(Math.abs(dval) >= 1.0 ? "e+" : "e");
+        } else {
+            symbols.setExponentSeparator(Math.abs(dval) >= 1.0 ? "E+" : "E");
+        }
+        format.setDecimalFormatSymbols(symbols);
+
         format.setMinimumFractionDigits(precision);
         format.setMaximumFractionDigits(precision);
         digits = format.format(dval).getBytes();
