@@ -49,7 +49,7 @@ class IO
     include WaitWritable
   end
 
-  # EAGAIN and EWOULDBLOCK are checked to to be the same in posix.rb
+  # EAGAIN and EWOULDBLOCK are checked to be the same in posix.rb
   EWOULDBLOCKWaitReadable = EAGAINWaitReadable
   EWOULDBLOCKWaitWritable = EAGAINWaitWritable
 
