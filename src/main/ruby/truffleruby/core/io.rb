@@ -1363,10 +1363,10 @@ class IO
     EachReader.new(self, @ibuffer, sep, limit, chomp)
   end
 
-  def each(sep_or_limit=$/, limit=nil, &block)
-    return to_enum(:each, sep_or_limit, limit) unless block_given?
+  def each(sep_or_limit=$/, limit=nil, chomp: false, &block)
+    return to_enum(:each, sep_or_limit, limit, chomp: chomp) unless block_given?
 
-    each_reader = create_each_reader(sep_or_limit, limit)
+    each_reader = create_each_reader(sep_or_limit, limit, chomp)
 
     return if Primitive.nil? each_reader
 
@@ -1582,9 +1582,9 @@ class IO
     @ibuffer.getchar(self)
   end
 
-  def gets(sep_or_limit=$/, limit=nil)
+  def gets(sep_or_limit=$/, limit=nil, chomp: false)
     line = nil
-    each sep_or_limit, limit do |l|
+    each sep_or_limit, limit, chomp: chomp do |l|
       line = l
       break
     end
@@ -1864,8 +1864,8 @@ class IO
 
   ##
   # Reads a line as with IO#gets, but raises an EOFError on end of file.
-  def readline(sep=$/)
-    out = gets(sep)
+  def readline(sep=$/, chomp: false)
+    out = gets(sep, chomp: chomp)
     raise EOFError, 'end of file' unless out
     out
   end
@@ -1878,10 +1878,10 @@ class IO
   #
   #  f = File.new("testfile")
   #  f.readlines[0]   #=> "This is line one\n"
-  def readlines(sep_or_limit=$/, limit=nil)
+  def readlines(sep_or_limit=$/, limit=nil, chomp: false)
     ret = []
 
-    each_reader = create_each_reader(sep_or_limit, limit)
+    each_reader = create_each_reader(sep_or_limit, limit, chomp)
     each_reader&.each { |line| ret << line }
 
     ret

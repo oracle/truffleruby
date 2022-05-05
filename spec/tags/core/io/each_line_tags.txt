@@ -1,1 +1,0 @@
-fails:IO#each_line when passed chomp yields each line without trailing newline characters to the passed block

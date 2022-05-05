@@ -1,2 +1,1 @@
-fails:IO#gets when passed chomp returns the first line without a trailing newline character
 fails:IO#gets transcodes to internal encoding if the IO object's external encoding is BINARY
