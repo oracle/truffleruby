@@ -23,6 +23,7 @@ Compatibility:
 * Disable most `nokogiri` C extension patches when system libraries are not being used (#2693, @aardvark179).
 * Implement `rb_gc_mark_maybe` and `rb_global_variable` to ensure `VALUE` stay live in C extensions (@aardvark179).
 * Implement `rb_imemo_tmpbuf` allocation for `ripper` (@aardvark179).
+* Fix `instance_variable_get` and `instance_variable_set` for immutable objects (@bjfish).
 
 Performance:
 
