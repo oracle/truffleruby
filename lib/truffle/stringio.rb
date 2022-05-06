@@ -220,7 +220,6 @@ class StringIO
 
     self
   end
-  alias_method :bytes, :each_byte
 
   def each_char
     return to_enum :each_char unless block_given?
@@ -230,7 +229,6 @@ class StringIO
 
     self
   end
-  alias_method :chars, :each_char
 
   def each_codepoint(&block)
     return to_enum :each_codepoint unless block_given?
@@ -253,7 +251,6 @@ class StringIO
 
     self
   end
-  alias_method :codepoints, :each_codepoint
 
   def each(sep=$/, limit=Undefined, chomp: false)
     return to_enum :each, sep, limit, chomp: chomp unless block_given?
@@ -266,7 +263,6 @@ class StringIO
     self
   end
   alias_method :each_line, :each
-  alias_method :lines, :each
 
   def binmode
     set_encoding(Encoding::BINARY)
