@@ -45,7 +45,7 @@ Truffle::CExt.rb_define_module_under(IO, 'generic_readable').module_eval do
     check_readable
     raise EOFError, 'end of file reached' if eof?
 
-    Primitive.io_last_line_set(Primitive.caller_special_variables, getline(true, sep, limit, chomp))
+    Primitive.io_last_line_set(Primitive.caller_special_variables, getline(false, sep, limit, chomp))
   end
 
   def sysread(length = nil, buffer = nil)
@@ -692,11 +692,16 @@ class StringIO
       unless sep == $/ or sep.nil?
         osep = sep
         sep = Truffle::Type.rb_check_convert_type sep, String, :to_str
-        limit = Primitive.rb_to_int osep unless sep
+        unless sep
+          limit = Primitive.rb_to_int osep
+          sep = $/
+        end
       end
     end
 
     raise ArgumentError if arg_error and limit == 0
+
+    limit = nil if limit && limit < 0
 
     return nil if eof?
 

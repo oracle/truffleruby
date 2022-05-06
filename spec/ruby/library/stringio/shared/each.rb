@@ -121,3 +121,15 @@ describe :stringio_each_chomp, shared: true do
     seen.should == ["a b \rc d e", "1 2 3 4 5", "the end"]
   end
 end
+
+describe :stringio_each_limit, shared: true do
+  before :each do
+    @io = StringIO.new("a b c d e\n1 2 3 4 5")
+  end
+
+  it "returns the data read until the limit is met" do
+    seen = []
+    @io.send(@method, 4) { |s| seen << s }
+    seen.should == ["a b ", "c d ", "e\n", "1 2 ", "3 4 ", "5"]
+  end
+end
