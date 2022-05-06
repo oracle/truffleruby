@@ -112,4 +112,12 @@ describe :stringio_each_chomp, shared: true do
     io.send(@method, chomp: true) {|s| seen << s }
     seen.should == ["a b \rc d e", "1 2 3 4 5", "the end"]
   end
+
+  it "returns each line with removed newline characters when called without block" do
+    seen = []
+    io = StringIO.new("a b \rc d e\n1 2 3 4 5\r\nthe end")
+    enum = io.send(@method, chomp: true)
+    enum.each {|s| seen << s }
+    seen.should == ["a b \rc d e", "1 2 3 4 5", "the end"]
+  end
 end

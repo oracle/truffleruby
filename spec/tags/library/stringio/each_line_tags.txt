@@ -1,1 +1,0 @@
-fails:StringIO#each_line when passed chomp yields each line with removed newline characters to the passed block
