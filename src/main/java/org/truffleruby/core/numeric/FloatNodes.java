@@ -665,6 +665,37 @@ public abstract class FloatNodes {
             }
             return fixnumOrBignum.fixnumOrBignum(f);
         }
+    }
+
+    @ImportStatic(FloatRoundGuards.class)
+    @Primitive(name = "float_round_up_decimal", lowerFixnum = 1)
+    public abstract static class FloatRoundUpDecimalPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "isPositive(n)")
+        protected double roundPositive(double n, int ndigits) {
+            long intPart = (long) n;
+            double s = Math.pow(10.0, ndigits);
+            double f = (n % 1) * s;
+            long fInt = (long) f;
+            double d = f % 1;
+            if (d > 0.5 || (intPart + (fInt + 0.5) / s) <= n) {
+                fInt += 1;
+            }
+            return intPart + fInt / s;
+        }
+
+        @Specialization(guards = "!isPositive(n)")
+        protected double roundNegative(double n, int ndigits) {
+            long intPart = (long) n;
+            double s = Math.pow(10.0, ndigits);
+            double f = -(n % 1) * s;
+            long fInt = (long) f;
+            double d = -f % 1;
+            if (d > 0.5 || (intPart - (fInt + 0.5) / s) >= n) {
+                fInt += 1;
+            }
+            return intPart - fInt / s;
+        }
 
     }
 
@@ -676,7 +707,10 @@ public abstract class FloatNodes {
         @Specialization(guards = { "fitsInInteger(n)", "isPositive(n)" })
         protected int roundFittingIntPositive(double n) {
             int l = (int) n;
-            if (n - l == 0.5) {
+            double d = n - l;
+            if (d > 0.5) {
+                l += 1;
+            } else if (d == 0.5) {
                 l += l % 2;
             }
             return l;
@@ -685,8 +719,11 @@ public abstract class FloatNodes {
         @Specialization(guards = { "fitsInInteger(n)", "!isPositive(n)" })
         protected int roundFittingIntNegative(double n) {
             int l = (int) n;
-            if (n - l == 0.5) {
-                l -= l % 2;
+            double d = n - l;
+            if (d > 0.5) {
+                l += 1;
+            } else if (d == 0.5) {
+                l += l % 2;
             }
             return l;
         }
@@ -694,7 +731,10 @@ public abstract class FloatNodes {
         @Specialization(guards = { "fitsInLong(n)", "isPositive(n)" }, replaces = "roundFittingIntPositive")
         protected long roundFittingLongPositive(double n) {
             long l = (long) n;
-            if (n - l == 0.5) {
+            double d = n - l;
+            if (d > 0.5) {
+                l += 1;
+            } else if (d == 0.5) {
                 l += l % 2;
             }
             return l;
@@ -703,8 +743,11 @@ public abstract class FloatNodes {
         @Specialization(guards = { "fitsInLong(n)", "!isPositive(n)" }, replaces = "roundFittingIntNegative")
         protected long roundFittingLongNegative(double n) {
             long l = (long) n;
-            if (n - l == 0.5) {
-                l -= l % 2;
+            double d = -(n - l);
+            if (d > 0.5) {
+                l -= 1;
+            } else if (d == 0.5) {
+                l -= -l % 2;
             }
             return l;
         }
@@ -713,7 +756,10 @@ public abstract class FloatNodes {
         protected Object roundPositive(double n,
                 @Cached FixnumOrBignumNode fixnumOrBignum) {
             double f = Math.floor(n);
-            if (n - f == 0.5) {
+            double d = n - f;
+            if (d > 0.5) {
+                f += 1;
+            } else if (d == 0.5) {
                 f += f % 2;
             }
             return fixnumOrBignum.fixnumOrBignum(f);
@@ -723,12 +769,50 @@ public abstract class FloatNodes {
         protected Object roundNegative(double n,
                 @Cached FixnumOrBignumNode fixnumOrBignum) {
             double f = Math.ceil(n);
-            if (n - f == 0.5) {
-                f -= f % 2;
+            double d = -(n - f);
+            if (d > 0.5) {
+                f -= 1;
+            } else if (d == 0.5) {
+                f -= -f % 2;
             }
             return fixnumOrBignum.fixnumOrBignum(f);
         }
+    }
 
+    @SuppressFBWarnings("FE_FLOATING_POINT_EQUALITY")
+    @ImportStatic(FloatRoundGuards.class)
+    @Primitive(name = "float_round_even_decimal", lowerFixnum = 1)
+    public abstract static class FloatRoundEvenDecimalPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "isPositive(n)")
+        protected double roundPositiveNDecimal(double n, int ndigits) {
+            long intPart = (long) n;
+            double s = Math.pow(10.0, ndigits);
+            double f = (n % 1) * s;
+            long fInt = (long) f;
+            double d = f % 1;
+            if (d > 0.5) {
+                fInt += 1;
+            } else if (d == 0.5 || (intPart + (fInt + 0.5) / s) <= n) {
+                fInt += fInt % 2;
+            }
+            return intPart + fInt / s;
+        }
+
+        @Specialization(guards = "!isPositive(n)")
+        protected double roundNegativeNDecimal(double n, int ndigits) {
+            long intPart = (long) n;
+            double s = Math.pow(10.0, ndigits);
+            double f = -(n % 1) * s;
+            long fInt = (long) f;
+            double d = f % 1;
+            if (d > 0.5) {
+                fInt += 1;
+            } else if (d == 0.5 || (intPart - (fInt + 0.5) / s) >= n) {
+                fInt += fInt % 2;
+            }
+            return intPart - fInt / s;
+        }
     }
 
     @ImportStatic(FloatRoundGuards.class)
@@ -790,7 +874,47 @@ public abstract class FloatNodes {
             }
             return fixnumOrBignum.fixnumOrBignum(f);
         }
+    }
 
+    @ImportStatic(FloatRoundGuards.class)
+    @Primitive(name = "float_round_down_decimal", lowerFixnum = 1)
+    public abstract static class FloatRoundDownDecimalPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "isPositive(n)")
+        protected double roundPositiveNDecimals(double n, int ndigits) {
+            long intPart = (long) n;
+            double s = Math.pow(10.0, ndigits);
+            double f = (n % 1) * s;
+            long fInt = (long) f;
+            double d = f % 1;
+            if (d > 0.5) {
+                fInt += 1;
+            }
+            return intPart + fInt / s;
+        }
+
+        @Specialization(guards = "!isPositive(n)")
+        protected double roundNegativeNDecimals(double n, int ndigits) {
+            long intPart = (long) n;
+            double s = Math.pow(10.0, ndigits);
+            double f = -(n % 1) * s;
+            long fInt = (long) f;
+            double d = f % 1;
+            if (d > 0.5) {
+                fInt += 1;
+            }
+            return intPart - fInt / s;
+        }
+
+    }
+
+    @Primitive(name = "float_exp")
+    public abstract static class FloatExpNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected int exp(double value) {
+            return (int) (((Double.doubleToRawLongBits(value) & 0x7ff0000000000000L) >> 52) - 1022);
+        }
     }
 
     @CoreMethod(names = { "to_i", "to_int" })
