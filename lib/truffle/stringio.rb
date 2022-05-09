@@ -745,7 +745,10 @@ class StringIO
 
     d.lineno += 1
 
-    line.chomp!(DEFAULT_RECORD_SEPARATOR) if chomp
+    if chomp
+      line.chomp!(sep || DEFAULT_RECORD_SEPARATOR)
+    end
+
     line
   end
 
