@@ -1184,6 +1184,7 @@ class IO
       end
 
       str << @buffer.shift
+      str.chomp!(@separator) if @chomp
       yield_string(str) { |y| yield y }
     end
 
@@ -1233,6 +1234,7 @@ class IO
         end
       end
 
+      str.chomp!(@separator) if @chomp
       yield_string(str) { |s| yield s }
     end
 
@@ -1248,6 +1250,7 @@ class IO
         str << tmp_str
       end
 
+      str.chomp!(DEFAULT_RECORD_SEPARATOR) if @chomp
       yield_string(str) { |s| yield s }
     end
 
@@ -1263,7 +1266,6 @@ class IO
 
           str = @buffer.read_to_char_boundary(@io, str)
 
-          str.chomp!(DEFAULT_RECORD_SEPARATOR) if @chomp
           $. = @io.__send__(:increment_lineno)
           yield str
 
@@ -1281,7 +1283,6 @@ class IO
     def yield_string(str)
       unless str.empty?
         str = IO.read_encode(@io, str)
-        str.chomp!(DEFAULT_RECORD_SEPARATOR) if @chomp
         $. = @io.__send__(:increment_lineno)
         yield str
       end

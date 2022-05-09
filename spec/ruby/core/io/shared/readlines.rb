@@ -233,5 +233,19 @@ describe :io_readlines_options_19, shared: true do
         IO.send(@method, @filename, " ", 10, mode: "w", &@object)
       end.should raise_error(IOError)
     end
+
+    describe "when passed chomp, nil as a separator, and a limit" do
+      it "yields each line of limit size without truncating trailing new line character" do
+        # 43 - is a size of the 1st paragraph in the file
+        result = IO.send(@method, @name, nil, 43, chomp: true, &@object)
+
+        (result ? result : ScratchPad.recorded).should == [
+          "Voici la ligne une.\nQui è la linea due.\n\n\n",
+          "Aquí está la línea tres.\n" + "Hier ist Zeile ",
+          "vier.\n\nEstá aqui a linha cinco.\nHere is li",
+          "ne six.\n"
+        ]
+      end
+    end
   end
 end

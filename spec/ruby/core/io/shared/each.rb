@@ -196,6 +196,20 @@ describe :io_each, shared: true do
       ScratchPad.recorded.should == ["qui a linha cinco.\nHere is line six."]
     end
   end
+
+  describe "when passed chomp, nil as a separator, and a limit" do
+    it "yields each line of limit size without truncating trailing new line character" do
+      # 43 - is a size of the 1st paragraph in the file
+      @io.send(@method, nil, 43, chomp: true) { |s| ScratchPad << s }
+
+      ScratchPad.recorded.should == [
+        "Voici la ligne une.\nQui è la linea due.\n\n\n",
+        "Aquí está la línea tres.\n" + "Hier ist Zeile ",
+        "vier.\n\nEstá aqui a linha cinco.\nHere is li",
+        "ne six.\n"
+      ]
+    end
+  end
 end
 
 describe :io_each_default_separator, shared: true do
