@@ -1173,7 +1173,7 @@ class IO
 
           s = IO.read_encode(@io, s)
 
-          s.chomp!(DEFAULT_RECORD_SEPARATOR) if @chomp
+          s.chomp!(@separator) if @chomp
           $. = @io.__send__(:increment_lineno)
           @buffer.discard @skip if @skip
 
@@ -1204,7 +1204,7 @@ class IO
 
           str = IO.read_encode(@io, str)
 
-          str.chomp!(DEFAULT_RECORD_SEPARATOR) if @chomp
+          str.chomp!(@separator) if @chomp
           $. = @io.__send__(:increment_lineno)
           @buffer.discard @skip if @skip
 
@@ -1218,7 +1218,7 @@ class IO
 
             str = @buffer.read_to_char_boundary(@io, str)
 
-            str.chomp!(DEFAULT_RECORD_SEPARATOR) if @chomp
+            str.chomp!(@separator) if @chomp
             $. = @io.__send__(:increment_lineno)
             @buffer.discard @skip if @skip
 

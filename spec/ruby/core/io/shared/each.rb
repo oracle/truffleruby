@@ -174,6 +174,28 @@ describe :io_each, shared: true do
       end
     end
   end
+
+  describe "when passed chomp and a separator" do
+    it "yields each line without separator to the passed block" do
+      @io.send(@method, " ", chomp: true) { |s| ScratchPad << s }
+      ScratchPad.recorded.should == IOSpecs.lines_space_separator_without_trailing_spaces
+    end
+  end
+
+  describe "when passed chomp and empty line as a separator" do
+    it "yields each paragraph without trailing new line characters" do
+      @io.send(@method, "", 1024, chomp: true) { |s| ScratchPad << s }
+      ScratchPad.recorded.should == IOSpecs.paragraphs_without_trailing_new_line_characters
+    end
+  end
+
+  describe "when passed chomp and nil as a separator" do
+    it "yields self's content without trailing new line character" do
+      @io.pos = 100
+      @io.send(@method, nil, chomp: true) { |s| ScratchPad << s }
+      ScratchPad.recorded.should == ["qui a linha cinco.\nHere is line six."]
+    end
+  end
 end
 
 describe :io_each_default_separator, shared: true do
