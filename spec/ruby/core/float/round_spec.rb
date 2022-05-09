@@ -103,6 +103,10 @@ describe "Float#round" do
     5.55.round(1, half: :up).should eql(5.6)
     5.55.round(1, half: :down).should eql(5.5)
     5.55.round(1, half: :even).should eql(5.6)
+    -5.55.round(1, half: nil).should eql(-5.6)
+    -5.55.round(1, half: :up).should eql(-5.6)
+    -5.55.round(1, half: :down).should eql(-5.5)
+    -5.55.round(1, half: :even).should eql(-5.6)
   end
 
   it "raises FloatDomainError for exceptional values with a half option" do
