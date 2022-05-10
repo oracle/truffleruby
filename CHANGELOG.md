@@ -24,6 +24,7 @@ Compatibility:
 * Implement `rb_gc_mark_maybe` and `rb_global_variable` to ensure `VALUE` stay live in C extensions (@aardvark179).
 * Implement `rb_imemo_tmpbuf` allocation for `ripper` (@aardvark179).
 * Implement `inherit` argument for `Module#class_variables` (#2653, @bjfish).
+* Fix `Float#/` when dividing by `Rational` (@bjfish).
 
 Performance:
 
