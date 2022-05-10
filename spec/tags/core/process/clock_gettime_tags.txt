@@ -1,2 +1,0 @@
-fails:Process.clock_gettime supports the platform clocks mentioned in the documentation CLOCK_REALTIME_COARSE and CLOCK_REALTIME_ALARM
-fails:Process.clock_gettime supports the platform clocks mentioned in the documentation CLOCK_BOOTTIME and CLOCK_BOOTTIME_ALARM

@@ -27,6 +27,7 @@ Compatibility:
 * Fix `Float#/` when dividing by `Rational` (@bjfish).
 * `Process.euid=` should accept String (#2615, @ngtban).
 * Fix `instance_variable_get` and `instance_variable_set` for immutable objects (@bjfish).
+* Define `Process::{CLOCK_BOOTTIME,CLOCK_BOOTTIME_ALARM,CLOCK_REALTIME_ALARM}` (#1480, @eregon).
 
 Performance:
 
