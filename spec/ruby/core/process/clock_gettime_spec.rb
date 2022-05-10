@@ -119,8 +119,11 @@ describe "Process.clock_gettime" do
     end
 
     platform_is :linux do
-      it "CLOCK_REALTIME_COARSE and CLOCK_REALTIME_ALARM" do
+      it "CLOCK_REALTIME_COARSE" do
         Process.clock_gettime(Process::CLOCK_REALTIME_COARSE).should be_an_instance_of(Float)
+      end
+
+      it "CLOCK_REALTIME_ALARM" do
         Process.clock_gettime(Process::CLOCK_REALTIME_ALARM).should be_an_instance_of(Float)
       end
 
@@ -128,8 +131,11 @@ describe "Process.clock_gettime" do
         Process.clock_gettime(Process::CLOCK_MONOTONIC_COARSE).should be_an_instance_of(Float)
       end
 
-      it "CLOCK_BOOTTIME and CLOCK_BOOTTIME_ALARM" do
+      it "CLOCK_BOOTTIME" do
         Process.clock_gettime(Process::CLOCK_BOOTTIME).should be_an_instance_of(Float)
+      end
+
+      it "CLOCK_BOOTTIME_ALARM" do
         Process.clock_gettime(Process::CLOCK_BOOTTIME_ALARM).should be_an_instance_of(Float)
       end
     end
