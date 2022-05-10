@@ -679,19 +679,6 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     {
-      local shared = $.platform.linux + $.jdk.v11 + $.use.common + $.use.gem_test_pack +
-                     $.benchmark.runner + $.benchmark.server +
-                     { timelimit: "00:30:00" },
-
-      "ruby-benchmarks-server-mri": shared + other_rubies.mri,
-      "ruby-benchmarks-server-jruby": shared + other_rubies.jruby,
-      "ruby-benchmarks-server-graal-core": shared + graal_configurations["graal-core"] + $.use.no_multi_tier,
-      "ruby-benchmarks-server-graal-core-multi-tier": shared + graal_configurations["graal-core"] + $.use.multi_tier,
-      "ruby-benchmarks-server-graal-enterprise": shared + graal_configurations["graal-enterprise"] + $.use.no_multi_tier,
-      "ruby-benchmarks-server-graal-enterprise-multi-tier": shared + graal_configurations["graal-enterprise"] + $.use.multi_tier,
-    } +
-
-    {
       "ruby-metrics-truffle":
         $.platform.linux + $.jdk.v11 + $.use.common + $.env.jvm + $.use.build +
         $.use.truffleruby +
