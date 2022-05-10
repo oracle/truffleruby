@@ -664,6 +664,7 @@ public abstract class ModuleOperations {
     private static boolean trySetClassVariable(RubyModule topModule, String name, Object value) {
         return classVariableLookup(
                 topModule,
+                true,
                 module -> module.fields.getClassVariables().putIfPresent(
                         name,
                         value,
@@ -689,11 +690,15 @@ public abstract class ModuleOperations {
     }
 
     @TruffleBoundary
-    public static <R> R classVariableLookup(RubyModule module, Function<RubyModule, R> action) {
+    public static <R> R classVariableLookup(RubyModule module, boolean inherit, Function<RubyModule, R> action) {
         // Look in the current module
         R result = action.apply(module);
         if (result != null) {
             return result;
+        }
+
+        if (!inherit) {
+            return null;
         }
 
         // If singleton class of a module, check the attached module.

@@ -12,6 +12,7 @@ package org.truffleruby.core.module;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -884,15 +885,22 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "class_variables")
-    public abstract static class ClassVariablesNode extends CoreMethodArrayArgumentsNode {
+    @CoreMethod(names = "class_variables", optional = 1)
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "inherit", type = RubyBaseNodeWithExecute.class)
+    public abstract static class ClassVariablesNode extends CoreMethodNode {
+
+        @CreateCast("inherit")
+        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute inherit) {
+            return BooleanCastWithDefaultNode.create(true, inherit);
+        }
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray getClassVariables(RubyModule module) {
-            final Set<Object> variables = new HashSet<>();
+        protected RubyArray getClassVariables(RubyModule module, boolean inherit) {
+            final Set<Object> variables = new LinkedHashSet<>();
 
-            ModuleOperations.classVariableLookup(module, m -> {
+            ModuleOperations.classVariableLookup(module, inherit, m -> {
                 final ClassVariableStorage classVariableStorage = m.fields.getClassVariables();
                 for (Object key : classVariableStorage.getShape().getKeys()) {
                     variables.add(getSymbol((String) key));

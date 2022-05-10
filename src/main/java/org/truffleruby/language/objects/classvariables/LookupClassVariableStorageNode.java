@@ -36,7 +36,7 @@ public abstract class LookupClassVariableStorageNode extends RubyBaseNode {
     @Specialization(replaces = "lookupClassVariable")
     @TruffleBoundary
     protected ClassVariableStorage uncachedLookupClassVariable(RubyModule module, String name) {
-        return ModuleOperations.classVariableLookup(module, m -> {
+        return ModuleOperations.classVariableLookup(module, true, m -> {
             final ClassVariableStorage classVariables = m.fields.getClassVariables();
             if (classVariables.getShape().hasProperty(name)) {
                 return classVariables;
