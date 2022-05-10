@@ -1303,14 +1303,6 @@ class IO
     end
   end
 
-  def lines(*args, &block)
-    if block_given?
-      each_line(*args, &block)
-    else
-      to_enum :each_line, *args
-    end
-  end
-
   private def create_each_reader(sep_or_limit=$/, limit=nil, chomp=false, raise_error)
     ensure_open_and_readable
 
@@ -1360,7 +1352,6 @@ class IO
 
     self
   end
-  alias_method :bytes, :each_byte
 
   def each_char
     return to_enum :each_char unless block_given?
@@ -1372,7 +1363,6 @@ class IO
 
     self
   end
-  alias_method :chars, :each_char
 
   def each_codepoint
     return to_enum :each_codepoint unless block_given?
@@ -1384,7 +1374,6 @@ class IO
 
     self
   end
-  alias_method :codepoints, :each_codepoint
 
   ##
   # Returns true if ios is at end of file that means
@@ -1839,7 +1828,6 @@ class IO
   def readbyte
     byte = getbyte
     raise EOFError, 'end of file reached' unless byte
-    raise EOFError, 'end of file' unless bytes
     byte
   end
 

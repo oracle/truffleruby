@@ -66,10 +66,6 @@ fails:Public methods on ENV.singleton_class should not include index
 fails:Public methods on Fiber should include backtrace
 fails:Public methods on Fiber should include backtrace_locations
 fails:Public methods on Fiber should include blocking?
-fails:Public methods on IO should not include bytes
-fails:Public methods on IO should not include chars
-fails:Public methods on IO should not include codepoints
-fails:Public methods on IO should not include lines
 fails:Public methods on IO should include wait_priority
 fails:Public methods on Proc should include ==
 fails:Public methods on Proc should include eql?
