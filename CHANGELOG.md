@@ -26,6 +26,7 @@ Compatibility:
 * Implement `inherit` argument for `Module#class_variables` (#2653, @bjfish).
 * Fix `Float#/` when dividing by `Rational` (@bjfish).
 * `Process.euid=` should accept String (#2615, @ngtban).
+* Fix `instance_variable_get` and `instance_variable_set` for immutable objects (@bjfish).
 
 Performance:
 
