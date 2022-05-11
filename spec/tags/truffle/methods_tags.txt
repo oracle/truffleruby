@@ -86,3 +86,11 @@ fails:Public methods on GC.singleton_class should include verify_transient_heap_
 fails:Public methods on GC.singleton_class should not include measure_total_time
 fails:Public methods on GC.singleton_class should not include total_time
 fails:Public methods on Pathname should include birthtime
+fails:Public methods on StringIO should not include __data__
+fails:Public methods on StringIO should not include encode_with
+fails:Public methods on StringIO should not include init_with
+fails:Public methods on StringIO should not include inspect
+fails:Public methods on StringIO should not include marshal_dump
+fails:Public methods on StringIO should not include to_yaml_properties
+fails:Public methods on StringIO should not include yaml_initialize
+fails:Public methods on StringIO should include set_encoding_by_bom
