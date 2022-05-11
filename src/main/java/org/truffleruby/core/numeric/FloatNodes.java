@@ -913,7 +913,7 @@ public abstract class FloatNodes {
 
         @Specialization
         protected int exp(double value) {
-            return (int) (((Double.doubleToRawLongBits(value) & 0x7ff0000000000000L) >> 52) - 1022);
+            return Math.getExponent(value);
         }
     }
 

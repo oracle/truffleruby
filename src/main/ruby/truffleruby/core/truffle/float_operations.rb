@@ -12,9 +12,14 @@ module Truffle
   module FloatOperations
     def self.round_to_n_place(f, ndigits, half)
       exp = Primitive.float_exp(f)
-      if ndigits >= (Float::DIG + 2) - (exp > 0 ? exp / 4 : exp / 3 - 1)
+      # A double can have a maximum of 17 significant decimal
+      # digits. If the number is large enough that rounding precision
+      # would require more digits then we should simply return the
+      # existing number. Also if the precision is small enough that
+      # rounded to zero then just return 0.0.
+      if ndigits > 17 || (exp >= 0 && ndigits >= (Float::DIG + 2) - exp / 4)
         f
-      elsif ndigits < -(exp > 0 ? exp / 3 + 1 : exp / 4)
+      elsif exp < 0 && ndigits < -(exp / 4)
         0.0
       else
         case half
