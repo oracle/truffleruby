@@ -671,30 +671,17 @@ public abstract class FloatNodes {
     @Primitive(name = "float_round_up_decimal", lowerFixnum = 1)
     public abstract static class FloatRoundUpDecimalPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "isPositive(n)")
-        protected double roundPositive(double n, int ndigits) {
+        @Specialization
+        protected double roundNDecimal(double n, int ndigits) {
             long intPart = (long) n;
-            double s = Math.pow(10.0, ndigits);
+            double s = Math.pow(10.0, ndigits) * Math.signum(n);
             double f = (n % 1) * s;
             long fInt = (long) f;
             double d = f % 1;
-            if (d > 0.5 || (intPart + (fInt + 0.5) / s) <= n) {
+            if (d > 0.5 || Math.abs(n) - Math.abs((intPart + (fInt + 0.5) / s)) >= 0) {
                 fInt += 1;
             }
             return intPart + fInt / s;
-        }
-
-        @Specialization(guards = "!isPositive(n)")
-        protected double roundNegative(double n, int ndigits) {
-            long intPart = (long) n;
-            double s = Math.pow(10.0, ndigits);
-            double f = -(n % 1) * s;
-            long fInt = (long) f;
-            double d = -f % 1;
-            if (d > 0.5 || (intPart - (fInt + 0.5) / s) >= n) {
-                fInt += 1;
-            }
-            return intPart - fInt / s;
         }
 
     }
@@ -784,34 +771,19 @@ public abstract class FloatNodes {
     @Primitive(name = "float_round_even_decimal", lowerFixnum = 1)
     public abstract static class FloatRoundEvenDecimalPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "isPositive(n)")
-        protected double roundPositiveNDecimal(double n, int ndigits) {
+        @Specialization
+        protected double roundNDecimal(double n, int ndigits) {
             long intPart = (long) n;
-            double s = Math.pow(10.0, ndigits);
+            double s = Math.pow(10.0, ndigits) * Math.signum(n);
             double f = (n % 1) * s;
             long fInt = (long) f;
             double d = f % 1;
             if (d > 0.5) {
                 fInt += 1;
-            } else if (d == 0.5 || (intPart + (fInt + 0.5) / s) <= n) {
+            } else if (d == 0.5 || Math.abs(n) - Math.abs((intPart + (fInt + 0.5) / s)) >= 0) {
                 fInt += fInt % 2;
             }
             return intPart + fInt / s;
-        }
-
-        @Specialization(guards = "!isPositive(n)")
-        protected double roundNegativeNDecimal(double n, int ndigits) {
-            long intPart = (long) n;
-            double s = Math.pow(10.0, ndigits);
-            double f = -(n % 1) * s;
-            long fInt = (long) f;
-            double d = f % 1;
-            if (d > 0.5) {
-                fInt += 1;
-            } else if (d == 0.5 || (intPart - (fInt + 0.5) / s) >= n) {
-                fInt += fInt % 2;
-            }
-            return intPart - fInt / s;
         }
     }
 
@@ -880,10 +852,10 @@ public abstract class FloatNodes {
     @Primitive(name = "float_round_down_decimal", lowerFixnum = 1)
     public abstract static class FloatRoundDownDecimalPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "isPositive(n)")
-        protected double roundPositiveNDecimals(double n, int ndigits) {
+        @Specialization
+        protected double roundNDecimals(double n, int ndigits) {
             long intPart = (long) n;
-            double s = Math.pow(10.0, ndigits);
+            double s = Math.pow(10.0, ndigits) * Math.signum(n);
             double f = (n % 1) * s;
             long fInt = (long) f;
             double d = f % 1;
@@ -892,20 +864,6 @@ public abstract class FloatNodes {
             }
             return intPart + fInt / s;
         }
-
-        @Specialization(guards = "!isPositive(n)")
-        protected double roundNegativeNDecimals(double n, int ndigits) {
-            long intPart = (long) n;
-            double s = Math.pow(10.0, ndigits);
-            double f = -(n % 1) * s;
-            long fInt = (long) f;
-            double d = f % 1;
-            if (d > 0.5) {
-                fInt += 1;
-            }
-            return intPart - fInt / s;
-        }
-
     }
 
     @Primitive(name = "float_exp")
