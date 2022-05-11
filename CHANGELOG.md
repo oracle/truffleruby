@@ -25,6 +25,7 @@ Compatibility:
 * Implement `rb_imemo_tmpbuf` allocation for `ripper` (@aardvark179).
 * Implement `inherit` argument for `Module#class_variables` (#2653, @bjfish).
 * Fix `Float#/` when dividing by `Rational` (@bjfish).
+* `Process.euid=` should accept String (#2615, @ngtban).
 
 Performance:
 

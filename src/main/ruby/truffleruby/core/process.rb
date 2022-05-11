@@ -403,7 +403,14 @@ module Process
     # the 4 rescue clauses below are needed
     # until respond_to? can be used to query the implementation of methods attached via FFI
     # atm respond_to returns true if a method is attached but not implemented on the platform
-    uid = Truffle::Type.coerce_to uid, Integer, :to_int
+    uid =
+      if uid.kind_of?(String)
+        require 'etc'
+        Etc.getpwnam(uid).uid
+      else
+        Truffle::Type.coerce_to uid, Integer, :to_int
+      end
+
     begin
       ret = Truffle::POSIX.setresuid(-1, uid, -1)
     rescue NotImplementedError
