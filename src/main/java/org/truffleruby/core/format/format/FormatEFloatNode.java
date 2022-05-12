@@ -66,11 +66,11 @@ public abstract class FormatEFloatNode extends FormatFloatGenericNode {
         if (width > 0 && !hasMinusFlag) {
             if (hasZeroFlag) {
                 boolean firstDigit = digits[0] >= '0' && digits[0] <= '9';
-                if (firstDigit) {
+                if (!firstDigit) {
                     buf.append(digits, 0, 1);
                 }
                 buf.append('0', width);
-                if (firstDigit) {
+                if (!firstDigit) {
                     buf.append(digits, 1, digits.length - 1);
                 } else {
                     buf.append(digits, 0, digits.length);
