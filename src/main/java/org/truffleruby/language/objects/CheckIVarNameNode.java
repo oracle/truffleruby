@@ -11,7 +11,6 @@ package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.IdentifierType;
@@ -52,7 +51,14 @@ public abstract class CheckIVarNameNode extends RubyBaseNode {
     }
 
     @Specialization(replaces = "cached", guards = "!isRubySymbol(originalName)")
-    protected void uncached(Object object, String name, Object originalName) {
-        SymbolTable.checkInstanceVariableName(getContext(), name, object, this);
+    protected void uncached(Object object, String name, Object originalName,
+            @Cached BranchProfile errorProfile) {
+        if (!Identifiers.isValidInstanceVariableName(name)) {
+            errorProfile.enter();
+            throw new RaiseException(getContext(), coreExceptions().nameErrorInstanceNameNotAllowable(
+                    name,
+                    object,
+                    this));
+        }
     }
 }

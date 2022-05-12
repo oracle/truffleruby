@@ -13,7 +13,6 @@ import java.util.Collection;
 
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.RubyContext;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
@@ -24,11 +23,8 @@ import org.truffleruby.core.rope.RopeCache;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.RopeWithEncoding;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.parser.Identifiers;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.nodes.Node;
 
 public class SymbolTable {
 
@@ -128,37 +124,6 @@ public class SymbolTable {
     private RubySymbol createSymbol(LeafRope cachedRope, RubyEncoding encoding) {
         final String string = RopeOperations.decodeOrEscapeBinaryRope(cachedRope);
         return new RubySymbol(string, cachedRope, encoding);
-    }
-
-    // TODO (eregon, 10/10/2015): this check could be done when a Symbol is created to be much cheaper
-    @TruffleBoundary
-    public static String checkInstanceVariableName(
-            RubyContext context,
-            String name,
-            Object receiver,
-            Node currentNode) {
-        if (!Identifiers.isValidInstanceVariableName(name)) {
-            throw new RaiseException(context, context.getCoreExceptions().nameErrorInstanceNameNotAllowable(
-                    name,
-                    receiver,
-                    currentNode));
-        }
-        return name;
-    }
-
-    @TruffleBoundary
-    public static String checkClassVariableName(
-            RubyContext context,
-            String name,
-            Object receiver,
-            Node currentNode) {
-        if (!Identifiers.isValidClassVariableName(name)) {
-            throw new RaiseException(context, context.getCoreExceptions().nameErrorInstanceNameNotAllowable(
-                    name,
-                    receiver,
-                    currentNode));
-        }
-        return name;
     }
 
     @TruffleBoundary
