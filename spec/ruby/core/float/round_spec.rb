@@ -109,23 +109,25 @@ describe "Float#round" do
     -5.55.round(1, half: :even).should eql(-5.6)
   end
 
-  it "does not lose precision during the rounding process" do
-    767573.1875850001.round(5, half: nil).should eql(767573.18759)
-    767573.1875850001.round(5, half: :up).should eql(767573.18759)
-    767573.1875850001.round(5, half: :down).should eql(767573.18759)
-    767573.1875850001.round(5, half: :even).should eql(767573.18759)
-    -767573.1875850001.round(5, half: nil).should eql(-767573.18759)
-    -767573.1875850001.round(5, half: :up).should eql(-767573.18759)
-    -767573.1875850001.round(5, half: :down).should eql(-767573.18759)
-    -767573.1875850001.round(5, half: :even).should eql(-767573.18759)
-    767573.1875849998.round(5, half: nil).should eql(767573.18758)
-    767573.1875849998.round(5, half: :up).should eql(767573.18758)
-    767573.1875849998.round(5, half: :down).should eql(767573.18758)
-    767573.1875849998.round(5, half: :even).should eql(767573.18758)
-    -767573.1875849998.round(5, half: nil).should eql(-767573.18758)
-    -767573.1875849998.round(5, half: :up).should eql(-767573.18758)
-    -767573.1875849998.round(5, half: :down).should eql(-767573.18758)
-    -767573.1875849998.round(5, half: :even).should eql(-767573.18758)
+  ruby_bug "", ""..."3.2" do
+    it "does not lose precision during the rounding process" do
+      767573.1875850001.round(5, half: nil).should eql(767573.18759)
+      767573.1875850001.round(5, half: :up).should eql(767573.18759)
+      767573.1875850001.round(5, half: :down).should eql(767573.18759)
+      767573.1875850001.round(5, half: :even).should eql(767573.18759)
+      -767573.1875850001.round(5, half: nil).should eql(-767573.18759)
+      -767573.1875850001.round(5, half: :up).should eql(-767573.18759)
+      -767573.1875850001.round(5, half: :down).should eql(-767573.18759)
+      -767573.1875850001.round(5, half: :even).should eql(-767573.18759)
+      767573.1875849998.round(5, half: nil).should eql(767573.18758)
+      767573.1875849998.round(5, half: :up).should eql(767573.18758)
+      767573.1875849998.round(5, half: :down).should eql(767573.18758)
+      767573.1875849998.round(5, half: :even).should eql(767573.18758)
+      -767573.1875849998.round(5, half: nil).should eql(-767573.18758)
+      -767573.1875849998.round(5, half: :up).should eql(-767573.18758)
+      -767573.1875849998.round(5, half: :down).should eql(-767573.18758)
+      -767573.1875849998.round(5, half: :even).should eql(-767573.18758)
+    end
   end
 
   it "raises FloatDomainError for exceptional values with a half option" do
