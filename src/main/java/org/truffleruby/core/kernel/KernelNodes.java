@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
@@ -84,7 +85,6 @@ import org.truffleruby.core.support.TypeNodes.ObjectInstanceVariablesNode;
 import org.truffleruby.core.support.TypeNodesFactory.ObjectInstanceVariablesNodeFactory;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.symbol.SymbolNodes;
-import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.interop.ToJavaStringNode;
@@ -1030,31 +1030,6 @@ public abstract class KernelNodes {
     public abstract static class InstanceVariableDefinedNode extends CoreMethodNode {
 
         @Specialization
-        protected boolean isInstanceVariableDefinedBoolean(boolean object, Object name) {
-            return false;
-        }
-
-        @Specialization
-        protected boolean isInstanceVariableDefinedInt(int object, Object name) {
-            return false;
-        }
-
-        @Specialization
-        protected boolean isInstanceVariableDefinedLong(long object, Object name) {
-            return false;
-        }
-
-        @Specialization
-        protected boolean isInstanceVariableDefinedDouble(double object, Object name) {
-            return false;
-        }
-
-        @Specialization
-        protected boolean immutable(ImmutableRubyObject object, Object name) {
-            return false;
-        }
-
-        @Specialization
         protected boolean isInstanceVariableDefined(RubyDynamicObject object, Object name,
                 @Cached CheckIVarNameNode checkIVarNameNode,
                 @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary,
@@ -1064,12 +1039,14 @@ public abstract class KernelNodes {
             return objectLibrary.containsKey(object, nameString);
         }
 
+        @Fallback
+        protected boolean immutable(Object object, Object name) {
+            return false;
+        }
     }
 
     @CoreMethod(names = "instance_variable_get", required = 1)
-    @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
-    public abstract static class InstanceVariableGetNode extends CoreMethodNode {
+    public abstract static class InstanceVariableGetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object instanceVariableGetSymbol(RubyDynamicObject object, Object name,
@@ -1081,8 +1058,8 @@ public abstract class KernelNodes {
             return objectLibrary.getOrDefault(object, nameString, nil);
         }
 
-        @Specialization(guards = "!isRubyDynamicObject(object)")
-        protected Object instanceVariableImmutableGetSymbol(Object object, Object name,
+        @Fallback
+        protected Object immutable(Object object, Object name,
                 @Cached CheckIVarNameNode checkIVarNameNode,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
             final String nameString = nameToJavaStringNode.execute(name);
@@ -1092,10 +1069,7 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "instance_variable_set", required = 2)
-    @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
-    @NodeChild(value = "value", type = RubyNode.class)
-    public abstract static class InstanceVariableSetNode extends CoreMethodNode {
+    public abstract static class InstanceVariableSetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object instanceVariableSet(RubyDynamicObject object, Object name, Object value,
@@ -1110,8 +1084,8 @@ public abstract class KernelNodes {
             return value;
         }
 
-        @Specialization(guards = "!isRubyDynamicObject(object)")
-        protected Object instanceVariableImmutableSet(Object object, Object name, Object value,
+        @Fallback
+        protected Object immutable(Object object, Object name, Object value,
                 @Cached CheckIVarNameNode checkIVarNameNode,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
             final String nameString = nameToJavaStringNode.execute(name);
@@ -1121,22 +1095,31 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "remove_instance_variable", required = 1)
-    @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    public abstract static class RemoveInstanceVariableNode extends CoreMethodNode {
+    public abstract static class RemoveInstanceVariableNode extends CoreMethodArrayArgumentsNode {
 
-        @CreateCast("name")
-        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
-            return NameToJavaStringNode.create(name);
+        @Specialization
+        protected Object removeInstanceVariable(RubyDynamicObject object, Object name,
+                @Cached CheckIVarNameNode checkIVarNameNode,
+                @Cached NameToJavaStringNode nameToJavaStringNode,
+                @Cached TypeNodes.CheckFrozenNode raiseIfFrozenNode) {
+            final String nameString = nameToJavaStringNode.execute(name);
+            checkIVarNameNode.execute(object, nameString, name);
+            raiseIfFrozenNode.execute(object);
+            return removeIVar(object, nameString);
+        }
+
+        @Fallback
+        protected Object immutable(Object object, Object name,
+                @Cached CheckIVarNameNode checkIVarNameNode,
+                @Cached NameToJavaStringNode nameToJavaStringNode) {
+            final String nameString = nameToJavaStringNode.execute(name);
+            checkIVarNameNode.execute(object, nameString, name);
+            throw new RaiseException(getContext(), coreExceptions().frozenError(object, this));
         }
 
         @TruffleBoundary
-        @Specialization
-        protected Object removeInstanceVariable(RubyDynamicObject object, String name,
-                @Cached TypeNodes.CheckFrozenNode raiseIfFrozenNode) {
-            final String ivar = SymbolTable.checkInstanceVariableName(getContext(), name, object, this);
-            raiseIfFrozenNode.execute(object);
-            final Object value = DynamicObjectLibrary.getUncached().getOrDefault(object, ivar, nil);
+        private Object removeIVar(RubyDynamicObject object, String name) {
+            final Object value = DynamicObjectLibrary.getUncached().getOrDefault(object, name, nil);
 
             if (SharedObjects.isShared(object)) {
                 synchronized (object) {
@@ -1146,13 +1129,6 @@ public abstract class KernelNodes {
                 removeField(object, name);
             }
             return value;
-        }
-
-        @TruffleBoundary
-        @Specialization(guards = "!isRubyDynamicObject(object)")
-        protected Object removeInstanceVariableImmutable(Object object, String name) {
-            SymbolTable.checkInstanceVariableName(getContext(), name, object, this);
-            throw new RaiseException(getContext(), coreExceptions().frozenError(object, this));
         }
 
         private void removeField(RubyDynamicObject object, String name) {
