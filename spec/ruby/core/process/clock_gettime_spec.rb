@@ -52,7 +52,7 @@ describe "Process.clock_gettime" do
     end
 
     # These specs need macOS 10.12+ / darwin 16+
-    guard -> { platform_is_not(:darwin) or RUBY_PLATFORM[/darwin(\d+)/, 1].to_i >= 16 } do
+    guard -> { platform_is_not(:darwin) or kernel_version_is '16' } do
       platform_is :linux, :openbsd, :darwin do
         it "CLOCK_PROCESS_CPUTIME_ID" do
           Process.clock_gettime(Process::CLOCK_PROCESS_CPUTIME_ID).should be_an_instance_of(Float)
@@ -118,21 +118,25 @@ describe "Process.clock_gettime" do
       end
     end
 
-    platform_is :linux do
+    guard -> { platform_is :linux and kernel_version_is '2.6.32' } do
       it "CLOCK_REALTIME_COARSE" do
         Process.clock_gettime(Process::CLOCK_REALTIME_COARSE).should be_an_instance_of(Float)
-      end
-
-      it "CLOCK_REALTIME_ALARM" do
-        Process.clock_gettime(Process::CLOCK_REALTIME_ALARM).should be_an_instance_of(Float)
       end
 
       it "CLOCK_MONOTONIC_COARSE" do
         Process.clock_gettime(Process::CLOCK_MONOTONIC_COARSE).should be_an_instance_of(Float)
       end
+    end
 
+    guard -> { platform_is :linux and kernel_version_is '2.6.39' } do
       it "CLOCK_BOOTTIME" do
         Process.clock_gettime(Process::CLOCK_BOOTTIME).should be_an_instance_of(Float)
+      end
+    end
+
+    guard -> { platform_is :linux and kernel_version_is '3.0' } do
+      it "CLOCK_REALTIME_ALARM" do
+        Process.clock_gettime(Process::CLOCK_REALTIME_ALARM).should be_an_instance_of(Float)
       end
 
       it "CLOCK_BOOTTIME_ALARM" do
