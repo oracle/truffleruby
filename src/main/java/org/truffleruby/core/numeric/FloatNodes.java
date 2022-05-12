@@ -781,7 +781,7 @@ public abstract class FloatNodes {
             double f = (n % 1) * s;
             long fInt = (long) f;
             double d = f % 1;
-            if (d > 0.5) {
+            if (d > 0.5 && Math.abs(n) - Math.abs((intPart + (fInt + 0.5) / s)) > 0) {
                 fInt += 1;
             }
             return intPart + fInt / s;
