@@ -36,9 +36,10 @@ module MSpec
   @repeat       = 1
   @expectation  = nil
   @expectations = false
+  @skips = []
 
   class << self
-    attr_reader :file, :include, :exclude
+    attr_reader :file, :include, :exclude, :skips
     attr_writer :repeat, :randomize
     attr_accessor :formatter
   end
@@ -116,6 +117,7 @@ module MSpec
     rescue SystemExit => e
       raise e
     rescue SkippedSpecError => e
+      @skips << [e, block]
       return false
     rescue Object => exc
       register_exit 1
