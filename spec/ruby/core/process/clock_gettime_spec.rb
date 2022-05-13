@@ -130,16 +130,19 @@ describe "Process.clock_gettime" do
 
     guard -> { platform_is :linux and kernel_version_is '2.6.39' } do
       it "CLOCK_BOOTTIME" do
+        skip "No Process::CLOCK_BOOTTIME" unless defined?(Process::CLOCK_BOOTTIME)
         Process.clock_gettime(Process::CLOCK_BOOTTIME).should be_an_instance_of(Float)
       end
     end
 
     guard -> { platform_is :linux and kernel_version_is '3.0' } do
       it "CLOCK_REALTIME_ALARM" do
+        skip "No Process::CLOCK_REALTIME_ALARM" unless defined?(Process::CLOCK_REALTIME_ALARM)
         Process.clock_gettime(Process::CLOCK_REALTIME_ALARM).should be_an_instance_of(Float)
       end
 
       it "CLOCK_BOOTTIME_ALARM" do
+        skip "No Process::CLOCK_BOOTTIME_ALARM" unless defined?(Process::CLOCK_BOOTTIME_ALARM)
         Process.clock_gettime(Process::CLOCK_BOOTTIME_ALARM).should be_an_instance_of(Float)
       end
     end
