@@ -135,7 +135,7 @@ describe "Process.clock_gettime" do
       end
     end
 
-    guard -> { platform_is :linux and kernel_version_is '3.0' } do
+    guard -> { platform_is "x86_64-linux" and kernel_version_is '3.0' } do
       it "CLOCK_REALTIME_ALARM" do
         skip "No Process::CLOCK_REALTIME_ALARM" unless defined?(Process::CLOCK_REALTIME_ALARM)
         Process.clock_gettime(Process::CLOCK_REALTIME_ALARM).should be_an_instance_of(Float)
