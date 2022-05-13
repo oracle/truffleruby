@@ -56,6 +56,7 @@ import org.truffleruby.language.control.DynamicReturnException;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -378,11 +379,8 @@ public class ThreadManager {
 
                 boolean sideEffects = safepoint.setAllowSideEffects(false);
                 try {
-                    RubyContext.send(
-                            context.getCoreLibrary().truffleThreadOperationsModule,
-                            "report_exception",
-                            thread,
-                            exception);
+                    DispatchNode.getUncached().call(context.getCoreLibrary().truffleThreadOperationsModule,
+                            "report_exception", thread, exception);
                 } finally {
                     safepoint.setAllowSideEffects(sideEffects);
                 }

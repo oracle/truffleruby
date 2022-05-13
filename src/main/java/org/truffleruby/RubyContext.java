@@ -437,22 +437,17 @@ public class RubyContext {
     }
 
     @TruffleBoundary
-    public static Object send(Object receiver, String methodName, Object... arguments) {
-        return DispatchNode.getUncached().call(receiver, methodName, arguments);
-    }
-
-    @TruffleBoundary
     public static Object send(Node currentNode, Object receiver, String methodName, Object... arguments) {
         if (currentNode.isAdoptable()) {
             final EncapsulatingNodeReference callNodeRef = EncapsulatingNodeReference.getCurrent();
             final Node prev = callNodeRef.set(currentNode);
             try {
-                return send(receiver, methodName, arguments);
+                return DispatchNode.getUncached().call(receiver, methodName, arguments);
             } finally {
                 callNodeRef.set(prev);
             }
         } else {
-            return send(receiver, methodName, arguments);
+            return DispatchNode.getUncached().call(receiver, methodName, arguments);
         }
     }
 

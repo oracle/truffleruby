@@ -15,9 +15,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-import org.truffleruby.RubyContext;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 public final class PreInitializationManager {
 
@@ -53,7 +52,7 @@ public final class PreInitializationManager {
     private void rehashRubyHashes() {
         for (RubyHash hash : hashesCreatedDuringPreInit) {
             if (!HashGuards.isCompareByIdentity(hash)) {
-                RubyContext.send(hash, "rehash");
+                DispatchNode.getUncached().call(hash, "rehash");
             }
         }
         hashesCreatedDuringPreInit.clear();

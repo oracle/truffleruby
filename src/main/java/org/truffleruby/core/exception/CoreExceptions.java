@@ -51,6 +51,7 @@ import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.objects.LogicalClassNode;
 
@@ -80,7 +81,7 @@ public class CoreExceptions {
     public void showExceptionIfDebug(RubyException rubyException, Backtrace backtrace) {
         if (context.getCoreLibrary().getDebug() == Boolean.TRUE) {
             final RubyClass rubyClass = rubyException.getLogicalClass();
-            final Object message = RubyContext.send(rubyException, "to_s");
+            final Object message = DispatchNode.getUncached().call(rubyException, "to_s");
             showExceptionIfDebug(rubyClass, message, backtrace);
         }
     }
@@ -104,7 +105,7 @@ public class CoreExceptions {
                                 language,
                                 StringOperations.encodeRope(output, UTF8Encoding.INSTANCE));
                 Object stderr = context.getCoreLibrary().getStderr();
-                RubyContext.send(stderr, "write", outputString);
+                DispatchNode.getUncached().call(stderr, "write", outputString);
             } else {
                 context.getEnvErrStream().println(output);
             }
@@ -113,16 +114,15 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public String inspect(Object value) {
-        Object rubyString = RubyContext.send(context.getCoreLibrary().truffleTypeModule, "rb_inspect", value);
+        Object rubyString = DispatchNode.getUncached().call(
+                context.getCoreLibrary().truffleTypeModule, "rb_inspect", value);
         return RubyStringLibrary.getUncached().getJavaString(rubyString);
     }
 
     @TruffleBoundary
     public String inspectReceiver(Object receiver) {
-        Object rubyString = RubyContext.send(
-                context.getCoreLibrary().truffleExceptionOperationsModule,
-                "receiver_string",
-                receiver);
+        Object rubyString = DispatchNode.getUncached().call(
+                context.getCoreLibrary().truffleExceptionOperationsModule, "receiver_string", receiver);
         return RubyStringLibrary.getUncached().getJavaString(rubyString);
     }
 
@@ -686,7 +686,8 @@ public class CoreExceptions {
     @TruffleBoundary
     public RubyException typeErrorUnsupportedTypeException(UnsupportedTypeException exception, Node currentNode) {
         RubyArray rubyArray = createArray(context, language, exception.getSuppliedValues());
-        String formattedValues = RubyStringLibrary.getUncached().getJavaString(RubyContext.send(rubyArray, "inspect"));
+        String formattedValues = RubyStringLibrary.getUncached()
+                .getJavaString(DispatchNode.getUncached().call(rubyArray, "inspect"));
         return typeError("unsupported type " + formattedValues, currentNode);
     }
 

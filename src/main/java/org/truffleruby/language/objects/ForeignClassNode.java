@@ -12,7 +12,6 @@ package org.truffleruby.language.objects;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
-import org.truffleruby.RubyContext;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
@@ -22,6 +21,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 import java.util.ArrayList;
 
@@ -116,7 +116,7 @@ public abstract class ForeignClassNode extends RubyBaseNode {
             }
         }
         final Object[] traitSymbols = traitsList.toArray();
-        return (RubyClass) RubyContext
-                .send(coreLibrary().truffleInteropOperationsModule, "resolve_polyglot_class", traitSymbols);
+        return (RubyClass) DispatchNode.getUncached().call(coreLibrary().truffleInteropOperationsModule,
+                "resolve_polyglot_class", traitSymbols);
     }
 }

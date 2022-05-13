@@ -53,6 +53,7 @@ import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 
 @CoreModule("Truffle::Readline")
@@ -295,7 +296,7 @@ public abstract class ReadlineNodes {
 
             RubyString string = StringOperations
                     .createUTF8String(context, language, StringOperations.encodeRope(buffer, UTF8Encoding.INSTANCE));
-            RubyArray completions = (RubyArray) RubyContext.send(proc, "call", string);
+            RubyArray completions = (RubyArray) DispatchNode.getUncached().call(proc, "call", string);
             for (Object element : ArrayOperations.toIterable(completions)) {
                 final String completion = RubyStringLibrary.getUncached().getJavaString(element);
                 candidates.add(new Candidate(completion + after, completion, null, null, null, null, complete));
