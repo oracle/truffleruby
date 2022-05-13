@@ -376,7 +376,6 @@ public class ThreadManager {
 
             if (!isSystemExit && thread.reportOnException) {
                 final TruffleSafepoint safepoint = TruffleSafepoint.getCurrent();
-
                 boolean sideEffects = safepoint.setAllowSideEffects(false);
                 try {
                     DispatchNode.getUncached().call(context.getCoreLibrary().truffleThreadOperationsModule,
