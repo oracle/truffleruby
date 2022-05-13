@@ -20,6 +20,7 @@ import org.truffleruby.language.backtrace.InternalRootNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.Source;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 public class RubyEvalInteractiveRootNode extends RubyBaseRootNode implements InternalRootNode {
 
@@ -40,11 +41,8 @@ public class RubyEvalInteractiveRootNode extends RubyBaseRootNode implements Int
         // Just do Truffle::Boot::INTERACTIVE_BINDING.eval(code) for interactive sources.
         // It's the semantics we want and takes care of caching correctly based on the Binding's FrameDescriptor.
         final RubyBinding interactiveBinding = context.getCoreLibrary().interactiveBinding;
-        return RubyContext
-                .send(
-                        interactiveBinding,
-                        "eval",
-                        StringOperations.createString(this, sourceRope, Encodings.UTF_8));
+        return DispatchNode.getUncached().call(interactiveBinding, "eval",
+                StringOperations.createString(this, sourceRope, Encodings.UTF_8));
     }
 
     @Override

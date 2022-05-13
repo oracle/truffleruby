@@ -29,6 +29,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.TranslateExceptionNode;
 import org.truffleruby.parser.RubySource;
@@ -132,7 +133,7 @@ public class BacktraceFormatter {
         }
 
         try {
-            final Object fullMessage = RubyContext.send(
+            final Object fullMessage = DispatchNode.getUncached().call(
                     context.getCoreLibrary().truffleExceptionOperationsModule,
                     "get_formatted_backtrace",
                     exceptionObject);

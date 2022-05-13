@@ -11,7 +11,6 @@ package org.truffleruby.core.objectspace;
 
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -34,6 +33,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.InternalRespondToNode;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.ObjectGraph;
@@ -185,7 +185,7 @@ public abstract class ObjectSpaceNodes {
         }
 
         public void run() {
-            RubyContext.send(callable, "call");
+            DispatchNode.getUncached().call(callable, "call");
         }
 
         @Override

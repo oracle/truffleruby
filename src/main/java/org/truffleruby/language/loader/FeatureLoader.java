@@ -206,7 +206,7 @@ public class FeatureLoader {
                 throw CompilerDirectives.shouldNotReachHere(e);
             }
             if (address == 0) {
-                RubyContext.send(context.getCoreLibrary().errnoModule, "handle");
+                DispatchNode.getUncached().call(context.getCoreLibrary().errnoModule, "handle");
             }
             final byte[] bytes = buffer.readZeroTerminatedByteArray(
                     context,
@@ -440,7 +440,7 @@ public class FeatureLoader {
                                 context,
                                 language,
                                 StringOperations.encodeRope("truffle/cext", UTF8Encoding.INSTANCE));
-                RubyContext.send(context.getCoreLibrary().mainObject, "gem_original_require", cextRb);
+                DispatchNode.getUncached().call(context.getCoreLibrary().mainObject, "gem_original_require", cextRb);
 
                 final RubyModule truffleModule = context.getCoreLibrary().truffleModule;
                 final Object truffleCExt = truffleModule.fields.getConstant("CExt").getValue();
@@ -505,7 +505,8 @@ public class FeatureLoader {
             final Object library = context.getEnv().parseInternal(source).call();
 
             final Object embeddedABIVersion = getEmbeddedABIVersion(path, library);
-            RubyContext.send(context.getCoreLibrary().truffleCExtModule, "check_abi_version", embeddedABIVersion, path);
+            DispatchNode.getUncached().call(context.getCoreLibrary().truffleCExtModule, "check_abi_version",
+                    embeddedABIVersion, path);
 
             return library;
         } finally {

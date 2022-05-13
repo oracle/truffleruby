@@ -10,9 +10,9 @@
 package org.truffleruby.core.adapters;
 
 import org.graalvm.shadowed.org.jline.utils.NonBlockingInputStream;
-import org.truffleruby.RubyContext;
 import org.truffleruby.core.support.RubyIO;
 import org.truffleruby.language.Nil;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 /** extends NonBlockingInputStream so JLine does not create an extra thread and calls read() on the same thread as
  * calling readLine(). */
@@ -28,7 +28,7 @@ public class InputStreamAdapter extends NonBlockingInputStream {
 
     @Override
     public int read() {
-        final Object result = RubyContext.send(object, "getbyte");
+        final Object result = DispatchNode.getUncached().call(object, "getbyte");
 
         if (result == Nil.INSTANCE) {
             return EOF;

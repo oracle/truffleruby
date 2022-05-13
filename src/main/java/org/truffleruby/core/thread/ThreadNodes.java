@@ -858,11 +858,14 @@ public abstract class ThreadNodes {
                     new SafepointAction("Thread#raise", rubyThread, true, false) {
                         @Override
                         public void run(RubyThread rubyThread, Node currentNode) {
-                            if (exception.backtrace == null) {
-                                exception.backtrace = context.getCallStack().getBacktrace(currentNode);
+                            final TruffleSafepoint safepoint = TruffleSafepoint.getCurrent();
+                            boolean sideEffects = safepoint.setAllowSideEffects(false);
+                            try {
+                                RubyContext.send(currentNode, rubyThread, "raise", exception);
+                            } finally {
+                                safepoint.setAllowSideEffects(sideEffects);
                             }
-
-                            VMRaiseExceptionNode.reRaiseException(context, exception);
+                            throw CompilerDirectives.shouldNotReachHere("#raise did not throw?");
                         }
                     });
         }

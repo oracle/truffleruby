@@ -28,6 +28,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 
 public abstract class ExceptionOperations {
@@ -112,7 +113,7 @@ public abstract class ExceptionOperations {
     public static String messageToString(RubyException exception) {
         Object messageObject = null;
         try {
-            messageObject = RubyContext.send(exception, "message");
+            messageObject = DispatchNode.getUncached().call(exception, "message");
         } catch (Throwable e) {
             // Fall back to the internal message field
         }

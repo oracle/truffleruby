@@ -42,6 +42,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 public class RubyWarnings implements WarnCallback {
 
@@ -110,7 +111,7 @@ public class RubyWarnings implements WarnCallback {
             final Rope messageRope = StringOperations.encodeRope(message, UTF8Encoding.INSTANCE);
             final RubyString messageString = StringOperations
                     .createUTF8String(context, context.getLanguageSlow(), messageRope);
-            RubyContext.send(warning, "warn", messageString);
+            DispatchNode.getUncached().call(warning, "warn", messageString);
         } else {
             try {
                 context.getEnv().err().write(message.getBytes(StandardCharsets.UTF_8));
