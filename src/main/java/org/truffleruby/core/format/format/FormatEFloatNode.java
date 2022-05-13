@@ -101,14 +101,6 @@ public abstract class FormatEFloatNode extends FormatFloatGenericNode {
             format.setPositivePrefix("");
         }
 
-        if (precision == 0 && hasFSharpFlag) {
-            format.setPositiveSuffix(".");
-            format.setNegativeSuffix(".");
-        } else {
-            format.setPositiveSuffix("");
-            format.setNegativeSuffix("");
-        }
-
         DecimalFormatSymbols symbols = format.getDecimalFormatSymbols();
         if (expSeparator == 'e') {
             symbols.setExponentSeparator(Math.abs(dval) >= 1.0 ? "e+" : "e");
