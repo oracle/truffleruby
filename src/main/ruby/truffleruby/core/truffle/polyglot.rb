@@ -411,12 +411,17 @@ module Polyglot
 
   module StringTrait
     def to_str
-      Truffle::Interop.as_string(self)
+      Truffle::Interop.as_truffle_string(self)
     end
     alias_method :to_s, :to_str
 
-    def inspect
-      to_str.inspect
+    # TruffleString and java.lang.String are both immutable
+    def frozen?
+      true
+    end
+
+    def freeze
+      self
     end
   end
 

@@ -1050,6 +1050,7 @@ public class CoreLibrary {
             "/core/tracepoint.rb",
             "/core/truffle/interop.rb",
             "/core/truffle/polyglot.rb",
+            "/core/truffle/polyglot_methods.rb",
             "/core/posix.rb",
             "/core/main.rb",
             "/core/post.rb",
