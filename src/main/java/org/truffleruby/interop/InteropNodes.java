@@ -846,29 +846,9 @@ public abstract class InteropNodes {
     @CoreMethod(names = "as_string", onSingleton = true, required = 1)
     public abstract static class AsStringNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
-        protected RubyString asString(Object receiver,
-                @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached FromJavaStringNode fromJavaStringNode,
-                @Cached TranslateInteropExceptionNode translateInteropException) {
-            final String string;
-            try {
-                string = receivers.asString(receiver);
-            } catch (InteropException e) {
-                throw translateInteropException.execute(e);
-            }
-
-            return fromJavaStringNode.executeFromJavaString(string);
-        }
-    }
-
-    @CoreMethod(names = "as_string_without_conversion", onSingleton = true, required = 1)
-    public abstract static class AsStringWithoutConversionNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization(limit = "getInteropCacheLimit()")
         protected String asString(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
-
             try {
                 return receivers.asString(receiver);
             } catch (InteropException e) {
@@ -880,7 +860,21 @@ public abstract class InteropNodes {
     @CoreMethod(names = "as_truffle_string", onSingleton = true, required = 1)
     public abstract static class AsTruffleStringNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
-        protected RubyString asTruffleString(Object receiver,
+        protected TruffleString asTruffleString(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return receivers.asTruffleString(receiver);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+
+    @Primitive(name = "foreign_string_to_ruby_string")
+    public abstract static class ForeignStringToRubyStringNode extends PrimitiveArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
+        protected RubyString foreignStringToRubyString(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @Cached TruffleString.SwitchEncodingNode switchEncodingNode,
@@ -906,20 +900,6 @@ public abstract class InteropNodes {
             var rubyString = makeStringNode.executeMake(utf8Bytes, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
             rubyString.freeze();
             return rubyString;
-        }
-    }
-
-    @CoreMethod(names = "as_truffle_string_without_conversion", onSingleton = true, required = 1)
-    public abstract static class AsTruffleStringWithoutConversionNode extends CoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getInteropCacheLimit()")
-        protected TruffleString asTruffleString(Object receiver,
-                @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached TranslateInteropExceptionNode translateInteropException) {
-            try {
-                return receivers.asTruffleString(receiver);
-            } catch (InteropException e) {
-                throw translateInteropException.execute(e);
-            }
         }
     }
 

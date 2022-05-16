@@ -410,18 +410,22 @@ module Polyglot
   end
 
   module StringTrait
-    def to_str
-      Truffle::Interop.as_truffle_string(self)
+    def to_s
+      Primitive.foreign_string_to_ruby_string(self)
     end
-    alias_method :to_s, :to_str
+
+    def to_str
+      Primitive.foreign_string_to_ruby_string(self)
+    end
+
+    # TruffleString and java.lang.String are both immutable
+    def freeze
+      self
+    end
 
     # TruffleString and java.lang.String are both immutable
     def frozen?
       true
-    end
-
-    def freeze
-      self
     end
   end
 
