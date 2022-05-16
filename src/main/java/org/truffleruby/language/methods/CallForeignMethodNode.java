@@ -21,7 +21,6 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.interop.InteropNodes.InvokeMemberNode;
 import org.truffleruby.interop.InteropNodes.ReadMemberNode;
 import org.truffleruby.interop.InteropNodes.WriteMemberWithoutConversionNode;
@@ -160,20 +159,6 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
             }
         }
 
-        @Specialization(guards = "receivers.isString(receiver)", limit = "getInteropCacheLimit()")
-        protected Object callString(Object receiver, String name, Object[] args,
-                @Cached ForeignToRubyNode foreignToRubyNode,
-                @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached TranslateInteropExceptionNode translateInteropException,
-                @Cached DispatchNode dispatch) {
-            try {
-                Object rubyString = foreignToRubyNode.executeConvert(receivers.asString(receiver));
-                return dispatch.call(rubyString, name, args);
-            } catch (InteropException e) {
-                throw translateInteropException.execute(e);
-            }
-        }
-
         @Specialization(
                 guards = { "receivers.isNumber(receiver)", "receivers.fitsInInt(receiver)" },
                 limit = "getInteropCacheLimit()")
@@ -222,11 +207,7 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
             }
         }
 
-        @Specialization(
-                guards = {
-                        "!receivers.isBoolean(receiver)",
-                        "!receivers.isString(receiver)",
-                        "!receivers.isNumber(receiver)" },
+        @Specialization(guards = { "!receivers.isBoolean(receiver)", "!receivers.isNumber(receiver)" },
                 limit = "getInteropCacheLimit()")
         protected Object call(Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,

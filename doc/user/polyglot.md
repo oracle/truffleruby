@@ -20,7 +20,6 @@ The JVM configuration automatically has access to other languages.
 * [Using Ruby objects from a foreign language](#using-ruby-objects-from-a-foreign-language)
 * [Using foreign objects from Ruby](#using-foreign-objects-from-ruby)
 * [Accessing Java objects](#accessing-java-objects)
-* [Strings](#strings)
 * [Threading and interop](#threading-and-interop)
 * [Embedded configuration](#embedded-configuration)
 
@@ -222,10 +221,6 @@ boolean isNull()
 ```
 
 The [JRuby migration guide](jruby-migration.md) includes some more examples.
-
-## Strings
-
-Ruby strings and symbols are converted to Java strings when they are passed to foreign languages, and Java strings are converted to Ruby strings when they are passed into Ruby.
 
 ## Threading and Interop
 

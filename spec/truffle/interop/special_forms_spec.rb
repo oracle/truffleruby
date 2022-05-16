@@ -233,10 +233,10 @@ describe "Interop special forms" do
     Truffle::Debug.foreign_object.inspect.should =~ /\A#<Polyglot::ForeignObject:0x\h+>\z/
   end
 
-  it description['.to_s', :asString, [], 'when `isString(foreign_object)` is true'] do
-    pfo, _, l = proxy['asString contents']
-    pfo.to_s.should == "asString contents"
-    l.log.should include(["asString"])
+  it description['.to_s', :asTruffleString, [], 'when `isString(foreign_object)` is true'] do
+    pfo, _, l = proxy['asTruffleString contents']
+    pfo.to_s.should == "asTruffleString contents"
+    l.log.should include(["asTruffleString"])
   end
 
   it description['.to_s', :toDisplayString, [], 'otherwise'] do
@@ -245,11 +245,11 @@ describe "Interop special forms" do
     l.log.should include(["toDisplayString", true])
   end
 
-  it description['.to_str', :asString, [], 'when `isString(foreign_object)` is true'] do
-    pfo, _, l = proxy["asString contents"]
-    pfo.to_str.should == "asString contents"
+  it description['.to_str', :asTruffleString, [], 'when `isString(foreign_object)` is true'] do
+    pfo, _, l = proxy["asTruffleString contents"]
+    pfo.to_str.should == "asTruffleString contents"
     l.log.should include(["isString"])
-    l.log.should include(["asString"])
+    l.log.should include(["asTruffleString"])
   end
 
   it doc['.to_str', 'raises `NameError` otherwise'] do

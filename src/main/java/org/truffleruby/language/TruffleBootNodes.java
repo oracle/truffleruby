@@ -115,10 +115,8 @@ public abstract class TruffleBootNodes {
         @Child MakeStringNode makeStringNode = MakeStringNode.create();
 
         @TruffleBoundary
-        @Specialization(guards = { "stringsKind.isRubyString(kind)", "stringsToExecute.isRubyString(toExecute)" })
-        protected int main(int argc, long argv, Object kind, Object toExecute,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsKind,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsToExecute) {
+        @Specialization
+        protected int main(int argc, long argv, String kind, String toExecute) {
             return topLevelRaiseHandler.execute(() -> {
                 getContext().nativeArgc = argc;
                 getContext().nativeArgv = argv;
@@ -126,9 +124,7 @@ public abstract class TruffleBootNodes {
 
                 // Need to set $0 before loading required libraries
                 // Also, a non-existing main script file errors out before loading required libraries
-                final RubySource source = loadMainSourceSettingDollarZero(
-                        stringsKind.getJavaString(kind),
-                        stringsToExecute.getJavaString(toExecute).intern()); //intern() to improve footprint
+                final RubySource source = loadMainSourceSettingDollarZero(kind, toExecute.intern()); //intern() to improve footprint
 
                 // Load libraries required from the command line (-r LIBRARY)
                 for (String requiredLibrary : getContext().getOptions().REQUIRED_LIBRARIES) {

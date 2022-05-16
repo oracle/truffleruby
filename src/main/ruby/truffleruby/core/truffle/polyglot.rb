@@ -283,7 +283,7 @@ module Polyglot
       if Truffle::Interop.has_exception_stack_trace?(self)
         last_user_location = nil
         Truffle::Interop.exception_stack_trace(self).reverse.filter_map do |entry|
-          method_name = Truffle::Interop.has_executable_name?(entry) ? Truffle::Interop.executable_name(entry) : '<unknown>'
+          method_name = Truffle::Interop.has_executable_name?(entry) ? Truffle::Interop.executable_name(entry).to_s : '<unknown>'
 
           source_location = Truffle::Interop.has_source_location?(entry) && Truffle::Interop.source_location(entry)
           if source_location && source_location.user?

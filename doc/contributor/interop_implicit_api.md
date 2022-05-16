@@ -31,9 +31,9 @@ Format: `Ruby code` sends `InteropLibrary message`
 - `foreign_object.method_name(*arguments, &block)` sends `invokeMember(foreign_object, method_name, *arguments, block)`
 - `foreign_object.new(*arguments)` sends `instantiate(foreign_object, *arguments)`
 - `foreign_object.inspect` returns a Ruby-style `#inspect` string showing members, array elements, etc
-- `foreign_object.to_s` sends `asString(foreign_object)` when `isString(foreign_object)` is true
+- `foreign_object.to_s` sends `asTruffleString(foreign_object)` when `isString(foreign_object)` is true
 - `foreign_object.to_s` sends `toDisplayString(foreign_object)` otherwise
-- `foreign_object.to_str` sends `asString(foreign_object)` when `isString(foreign_object)` is true
+- `foreign_object.to_str` sends `asTruffleString(foreign_object)` when `isString(foreign_object)` is true
 - `foreign_object.to_str` raises `NameError` otherwise
 - `foreign_object.to_a` converts to a Ruby `Array` with `Truffle::Interop.to_array(foreign_object)`
 - `foreign_object.to_ary` converts to a Ruby `Array` with `Truffle::Interop.to_array(foreign_object)`

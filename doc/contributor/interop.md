@@ -18,7 +18,7 @@ details.
 * [How to explicitly send messages from Ruby](#how-to-explicitly-send-messages-from-ruby)
 * [How to send messages using idiomatic Ruby](#how-to-send-messages-using-idiomatic-ruby)
 * [What messages are sent for Ruby syntax on foreign objects](#what-messages-are-sent-for-ruby-syntax-on-foreign-objects)
-* [String conversion](#string-conversion)
+* [Conversion of primitive values](#conversion-of-primitive-values)
 * [Import and export](#import-and-export)
 * [Interop eval](#interop-eval)
 * [Java interop](#java-interop)
@@ -119,39 +119,20 @@ runtime object instance.
 the foreign object, including allowing the special-forms listed above (see
 [notes on method resolution](#notes-on-method-resolution)).
 
-## String conversion
-
-Ruby strings and symbols are unboxable to Java strings.
+## Conversion of primitive values
 
 A call from Ruby to a foreign language using `NEW`, `EXECUTE`, `INVOKE`, `READ`,
-`WRITE`, or `UNBOX`, that has Ruby strings or symbols as arguments, will convert
-each Ruby string or symbol argument to a Java string. You can avoid this
+`WRITE`, or `UNBOX`, that returns a `byte`, `short` or `float` will convert the
+returned value to respectively `int`, `int` or `double`. You can avoid this
 conversion for `EXECUTE` using `Truffle::Interop.execute_without_conversion`,
 for `READ` using `Truffle::Interop.read_without_conversion`, and for `UNBOX`
 using `Truffle::Interop.unbox_without_conversion`.
 
+Import also converts `byte/short/float`, and has a `import_without_conversion` counterpart.
+
 `Truffle::Interop.members` converts Java string member names to Ruby strings, so it
 also has a `Truffle::Interop.members_without_conversion` equivalent.
-
-A call from Ruby to a foreign language using `NEW`, `EXECUTE`, `INVOKE`, `READ`,
-`WRITE`, or `UNBOX`, that returns a Java string will convert the returned string
-to a Ruby string.
-
-A call from a foreign language to Ruby using `NEW`, `EXECUTE`, `INVOKE`, or
-`WRITE`, that has Java strings as arguments, will convert each Java string
-argument to a Ruby string.
-
-A call from a foreign language to Ruby `NEW`, `EXECUTE`, `INVOKE` or `READ`
-that returns a Ruby string will not convert it to a Java string, as this would
-break our C extension support which uses these messages to get Ruby objects
-and expects to be able to mutate them and so on
-(compare with `Truffle::Interop.execute_without_conversion`).
-
-Export and import also converts strings, and also has `_without_conversion`
-counterparts.
-
-Boxed foreign strings (foreign objects that respond positively to `IS_BOXED` and
-`UNBOX` to a Java string) unbox on `to_s`, `to_str` and `inspect`.
+TODO remove?
 
 ## Import and export
 

@@ -9,7 +9,6 @@
 require_relative '../../ruby/spec_helper'
 
 describe "Truffle::Interop.to_java_string" do
-
   it "can be round-tripped with from_java_string with a string" do
     Truffle::Interop.from_java_string(Truffle::Interop.to_java_string("foo")).should == "foo"
   end
@@ -18,13 +17,8 @@ describe "Truffle::Interop.to_java_string" do
     Truffle::Interop.from_java_string(Truffle::Interop.to_java_string(:foo)).should == "foo"
   end
 
-  it "passes through primitives with from_java_string" do
-    Truffle::Interop.from_java_string(Truffle::Interop.to_java_string(14)).should == 14
+  it "raises when given a non-Symbol non-String" do
+    -> { Truffle::Interop.to_java_string(14) }.should raise_error(TypeError)
+    -> { Truffle::Interop.to_java_string(Object.new) }.should raise_error(TypeError)
   end
-
-  it "passes through non-string objects with from_java_string" do
-    object = Object.new
-    Truffle::Interop.from_java_string(Truffle::Interop.to_java_string(object)).equal?(object).should be_true
-  end
-
 end

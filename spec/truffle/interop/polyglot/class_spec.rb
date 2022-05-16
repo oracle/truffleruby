@@ -52,16 +52,19 @@ describe "Polyglot" do
       Truffle::Interop.to_java_array([1, 2, 3]).class.should == Polyglot::ForeignArray
       Truffle::Interop.to_java_list([1, 2, 3]).class.should == Polyglot::ForeignArray
       Java.type('java.lang.RuntimeException').new.class.should == Polyglot::ForeignException
-      # ForeignExecutable
+      Java.type('java.lang.Thread').currentThread.class.should == Polyglot::ForeignExecutable # Thread implements Runnable
       Java.type('java.math.BigInteger').class.should == Polyglot::ForeignClass
       Java.type('java.math.BigInteger')[:class].class.should == Polyglot::ForeignClass
       Java.type('int').class.should == Polyglot::ForeignMetaObject
-      # ForeignIterable
+      Java.type('java.util.ArrayDeque').new.class.should == Polyglot::ForeignIterable
       Truffle::Interop.to_java_list([1, 2, 3]).iterator.class.should == Polyglot::ForeignIterator
       Truffle::Debug.java_null.class.should == Polyglot::ForeignNull
       # ForeignNumber
       # ForeignPointer
-      Java.type('java.lang.String').new("foo").class.should == String # Should be Polyglot::ForeignString
+      Java.type('java.lang.String').new("foo").class.should == Polyglot::ForeignString
+      Truffle::Interop.to_java_string("foo").class.should == Polyglot::ForeignString
+      Truffle::Interop.as_string("foo").class.should == Polyglot::ForeignString
+      Truffle::Interop.as_truffle_string("foo").class.should == Polyglot::ForeignString
     end
   end
 end

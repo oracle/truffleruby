@@ -45,6 +45,7 @@ import org.truffleruby.core.cast.DurationToMillisecondsNodeGen;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToStrNode;
+import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.cast.ToStringOrSymbolNode;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.encoding.Encodings;
@@ -1671,7 +1672,9 @@ public abstract class KernelNodes {
     @CoreMethod(names = { "format", "sprintf" }, isModuleFunction = true, rest = true, required = 1)
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     @ReportPolymorphism
-    public abstract static class SprintfNode extends CoreMethodArrayArgumentsNode {
+    @NodeChild(value = "format", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "arguments", type = RubyBaseNodeWithExecute.class)
+    public abstract static class SprintfNode extends CoreMethodNode {
 
         @Child private MakeStringNode makeStringNode;
         @Child private BooleanCastNode readDebugGlobalNode = BooleanCastNodeGen
@@ -1679,6 +1682,11 @@ public abstract class KernelNodes {
 
         private final BranchProfile exceptionProfile = BranchProfile.create();
         private final ConditionProfile resizeProfile = ConditionProfile.create();
+
+        @CreateCast("format")
+        protected ToStrNode coerceFormatToString(RubyBaseNodeWithExecute format) {
+            return ToStrNodeGen.create(format);
+        }
 
         @Specialization(
                 guards = {
