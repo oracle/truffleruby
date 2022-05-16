@@ -650,18 +650,51 @@ public abstract class FloatNodes {
     public abstract static class FloatRoundUpDecimalPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected double roundNDecimal(double n, int ndigits) {
+        protected double roundNDecimal(double n, int ndigits,
+                @Cached ConditionProfile boundaryCase) {
             long intPart = (long) n;
             double s = Math.pow(10.0, ndigits) * Math.signum(n);
             double f = (n % 1) * s;
             long fInt = (long) f;
             double d = f % 1;
-            if (d > 0.5 || Math.abs(n) - Math.abs((intPart + (fInt + 0.5) / s)) >= 0) {
+            int limit = Math.getExponent(n) + Math.getExponent(s) - 51;
+            if (boundaryCase.profile((Math.getExponent(d) <= limit) ||
+                    (Math.getExponent(1.0 - d) <= limit))) {
+                return findClosest(n, ndigits, s, d);
+            } else if (d > 0.5 || Math.abs(n) - Math.abs((intPart + (fInt + 0.5) / s)) >= 0) {
                 fInt += 1;
             }
             return intPart + fInt / s;
         }
+    }
 
+    /* If the rounding result is very near to an integer boundary then we need to find the number that is closest to the
+     * correct result. If we don't do this then it's possible to get errors in the least significant bit of the result.
+     * We'll test the adjacent double in the direction closest to the boundary and compare the fractional portions. If
+     * we're already at the minimum error we'll return the original number as it is already rounded as well as it can
+     * be. In the case of a tie we return the lower number, otherwise we check the go round again. */
+    private static double findClosest(double n, int ndigits, double s, double d) {
+        double n2;
+        while (true) {
+            if (d > 0.5) {
+                n2 = Math.nextAfter(n, n + s);
+            } else {
+                n2 = Math.nextAfter(n, n - s);
+            }
+            long intPart = (long) n2;
+            double f = (n2 % 1) * s;
+            long fInt = (long) f;
+            double d2 = f % 1;
+            int limit = Math.getExponent(n2) + Math.getExponent(s) - 52;
+            if (((d > 0.5) ? 1 - d : d) < ((d2 > 0.5) ? 1 - d2 : d2)) {
+                return n;
+            } else if (((d > 0.5) ? 1 - d : d) == ((d2 > 0.5) ? 1 - d2 : d2)) {
+                return Math.abs(n) < Math.abs(n2) ? n : n2;
+            } else {
+                d = d2;
+                n = n2;
+            }
+        }
     }
 
     @SuppressFBWarnings("FE_FLOATING_POINT_EQUALITY")
@@ -716,13 +749,18 @@ public abstract class FloatNodes {
     public abstract static class FloatRoundEvenDecimalPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected double roundNDecimal(double n, int ndigits) {
+        protected double roundNDecimal(double n, int ndigits,
+                @Cached ConditionProfile boundaryCase) {
             long intPart = (long) n;
             double s = Math.pow(10.0, ndigits) * Math.signum(n);
             double f = (n % 1) * s;
             long fInt = (long) f;
             double d = f % 1;
-            if (d > 0.5) {
+            int limit = Math.getExponent(n) + Math.getExponent(s) - 51;
+            if (boundaryCase.profile((Math.getExponent(d) <= limit) ||
+                    (Math.getExponent(1.0 - d) <= limit))) {
+                return findClosest(n, ndigits, s, d);
+            } else if (d > 0.5) {
                 fInt += 1;
             } else if (d == 0.5 || Math.abs(n) - Math.abs((intPart + (fInt + 0.5) / s)) >= 0) {
                 fInt += fInt % 2;
@@ -775,13 +813,18 @@ public abstract class FloatNodes {
     public abstract static class FloatRoundDownDecimalPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected double roundNDecimals(double n, int ndigits) {
+        protected double roundNDecimal(double n, int ndigits,
+                @Cached ConditionProfile boundaryCase) {
             long intPart = (long) n;
             double s = Math.pow(10.0, ndigits) * Math.signum(n);
             double f = (n % 1) * s;
             long fInt = (long) f;
             double d = f % 1;
-            if (d > 0.5 && Math.abs(n) - Math.abs((intPart + (fInt + 0.5) / s)) > 0) {
+            int limit = Math.getExponent(n) + Math.getExponent(s) - 51;
+            if (boundaryCase.profile((Math.getExponent(d) <= limit) ||
+                    (Math.getExponent(1.0 - d) <= limit))) {
+                return findClosest(n, ndigits, s, d);
+            } else if (d > 0.5 && Math.abs(n) - Math.abs((intPart + (fInt + 0.5) / s)) > 0) {
                 fInt += 1;
             }
             return intPart + fInt / s;
