@@ -81,10 +81,6 @@ public abstract class ReadBinaryStringNode extends FormatNode {
             while (start + length < getSourceLength(frame) && length < count && source[start + length] != 0) {
                 length++;
             }
-
-            if (start + length < getSourceLength(frame) && source[start + length] == 0) {
-                length++;
-            }
         } else {
             length = count;
 
