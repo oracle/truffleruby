@@ -806,8 +806,8 @@ class Pathname    # * IO *
   #
   # This method has existed since 1.8.1.
   #
-  def each_line(*args, &block) # :yield: line
-    IO.foreach(@path, *args, &block)
+  def each_line(*args, **kw, &block) # :yield: line
+    IO.foreach(@path, *args, **kw, &block)
   end
 
   # See <tt>IO.read</tt>.  Returns all data from the file, or the first +N+ bytes
@@ -825,7 +825,7 @@ class Pathname    # * IO *
   def binwrite(*args) IO.binwrite(@path, *args) end
 
   # See <tt>IO.readlines</tt>.  Returns all the lines from the file.
-  def readlines(*args) IO.readlines(@path, *args) end
+  def readlines(*args, **kw) IO.readlines(@path, *args, **kw) end
 
   # See <tt>IO.sysopen</tt>.
   def sysopen(*args) IO.sysopen(@path, *args) end

@@ -49,7 +49,7 @@ class IO
     include WaitWritable
   end
 
-  # EAGAIN and EWOULDBLOCK are checked to to be the same in posix.rb
+  # EAGAIN and EWOULDBLOCK are checked to be the same in posix.rb
   EWOULDBLOCKWaitReadable = EAGAINWaitReadable
   EWOULDBLOCKWaitWritable = EAGAINWaitWritable
 
@@ -425,19 +425,15 @@ class IO
     StreamCopier.new(from, to, max_length, offset).run
   end
 
-  def self.foreach(name, separator=undefined, limit=undefined, options=undefined, &block)
-    return to_enum(:foreach, name, separator, limit, options) unless block
+  def self.foreach(name, separator=undefined, limit=undefined, **options, &block)
+    return to_enum(:foreach, name, separator, limit, **options) unless block
 
     name = Truffle::Type.coerce_to_path name
 
     separator = $/ if Primitive.undefined?(separator)
     case separator
     when Integer
-      options = limit
       limit = separator
-      separator = $/
-    when Hash
-      options = separator
       separator = $/
     when nil
       # do nothing
@@ -449,32 +445,10 @@ class IO
     case limit
     when Integer, nil
       # do nothing
-    when Hash
-      if Primitive.undefined? options
-        options = limit
-        limit = nil
-      else
-        raise TypeError, "can't convert Hash into Integer"
-      end
     else
-      value = limit
-      limit = Truffle::Type.try_convert limit, Integer, :to_int
-
-      unless limit
-        options = Truffle::Type.coerce_to value, Hash, :to_hash
-      end
+      limit = Primitive.rb_to_int(limit)
     end
     limit = nil if limit && limit < 0
-
-    options = {} if Primitive.undefined?(options)
-    case options
-    when Hash
-      # do nothing
-    when nil
-      options = {}
-    else
-      options = Truffle::Type.coerce_to options, Hash, :to_hash
-    end
     chomp = Primitive.as_boolean(options[:chomp])
 
     if name[0] == ?|
@@ -485,7 +459,7 @@ class IO
       io = File.open(name, options)
     end
 
-    each_reader = io.__send__ :create_each_reader, separator, limit, chomp
+    each_reader = io.__send__ :create_each_reader, separator, limit, chomp, true
 
     begin
       each_reader&.each(&block)
@@ -496,9 +470,9 @@ class IO
     nil
   end
 
-  def self.readlines(name, separator=undefined, limit=undefined, options=undefined)
+  def self.readlines(name, separator=undefined, limit=undefined, **options)
     lines = []
-    foreach(name, separator, limit, options) { |l| lines << l }
+    foreach(name, separator, limit, **options) { |l| lines << l }
 
     lines
   end
@@ -1199,7 +1173,7 @@ class IO
 
           s = IO.read_encode(@io, s)
 
-          s.chomp!(DEFAULT_RECORD_SEPARATOR) if @chomp
+          s.chomp!(@separator) if @chomp
           $. = @io.__send__(:increment_lineno)
           @buffer.discard @skip if @skip
 
@@ -1210,6 +1184,7 @@ class IO
       end
 
       str << @buffer.shift
+      str.chomp!(@separator) if @chomp
       yield_string(str) { |y| yield y }
     end
 
@@ -1230,7 +1205,7 @@ class IO
 
           str = IO.read_encode(@io, str)
 
-          str.chomp!(DEFAULT_RECORD_SEPARATOR) if @chomp
+          str.chomp!(@separator) if @chomp
           $. = @io.__send__(:increment_lineno)
           @buffer.discard @skip if @skip
 
@@ -1244,7 +1219,7 @@ class IO
 
             str = @buffer.read_to_char_boundary(@io, str)
 
-            str.chomp!(DEFAULT_RECORD_SEPARATOR) if @chomp
+            str.chomp!(@separator) if @chomp
             $. = @io.__send__(:increment_lineno)
             @buffer.discard @skip if @skip
 
@@ -1259,6 +1234,7 @@ class IO
         end
       end
 
+      str.chomp!(@separator) if @chomp
       yield_string(str) { |s| yield s }
     end
 
@@ -1274,6 +1250,7 @@ class IO
         str << tmp_str
       end
 
+      str.chomp!(DEFAULT_RECORD_SEPARATOR) if @chomp
       yield_string(str) { |s| yield s }
     end
 
@@ -1289,7 +1266,6 @@ class IO
 
           str = @buffer.read_to_char_boundary(@io, str)
 
-          str.chomp!(DEFAULT_RECORD_SEPARATOR) if @chomp
           $. = @io.__send__(:increment_lineno)
           yield str
 
@@ -1307,7 +1283,6 @@ class IO
     def yield_string(str)
       unless str.empty?
         str = IO.read_encode(@io, str)
-        str.chomp!(DEFAULT_RECORD_SEPARATOR) if @chomp
         $. = @io.__send__(:increment_lineno)
         yield str
       end
@@ -1328,15 +1303,7 @@ class IO
     end
   end
 
-  def lines(*args, &block)
-    if block_given?
-      each_line(*args, &block)
-    else
-      to_enum :each_line, *args
-    end
-  end
-
-  private def create_each_reader(sep_or_limit=$/, limit=nil, chomp=false)
+  private def create_each_reader(sep_or_limit=$/, limit=nil, chomp=false, raise_error)
     ensure_open_and_readable
 
     if limit
@@ -1356,17 +1323,19 @@ class IO
       end
     end
 
-    raise ArgumentError, "invalid limit: #{limit} for each" if limit == 0
+    if limit == 0 && raise_error
+      raise ArgumentError, "invalid limit: #{limit} for each"
+    end
 
     return if @ibuffer.exhausted?
 
     EachReader.new(self, @ibuffer, sep, limit, chomp)
   end
 
-  def each(sep_or_limit=$/, limit=nil, &block)
-    return to_enum(:each, sep_or_limit, limit) unless block_given?
+  def each(sep_or_limit=$/, limit=nil, chomp: false, &block)
+    return to_enum(:each, sep_or_limit, limit, chomp: chomp) unless block_given?
 
-    each_reader = create_each_reader(sep_or_limit, limit)
+    each_reader = create_each_reader(sep_or_limit, limit, chomp, true)
 
     return if Primitive.nil? each_reader
 
@@ -1383,7 +1352,6 @@ class IO
 
     self
   end
-  alias_method :bytes, :each_byte
 
   def each_char
     return to_enum :each_char unless block_given?
@@ -1395,7 +1363,6 @@ class IO
 
     self
   end
-  alias_method :chars, :each_char
 
   def each_codepoint
     return to_enum :each_codepoint unless block_given?
@@ -1407,7 +1374,6 @@ class IO
 
     self
   end
-  alias_method :codepoints, :each_codepoint
 
   ##
   # Returns true if ios is at end of file that means
@@ -1582,12 +1548,16 @@ class IO
     @ibuffer.getchar(self)
   end
 
-  def gets(sep_or_limit=$/, limit=nil)
+  def gets(sep_or_limit=$/, limit=nil, chomp: false)
     line = nil
-    each sep_or_limit, limit do |l|
+    each_reader = create_each_reader(sep_or_limit, limit, chomp, false)
+    return line if Primitive.nil? each_reader
+
+    each_reader.each do |l|
       line = l
       break
     end
+
     Primitive.io_last_line_set(Primitive.caller_special_variables, line) if line
     line
   end
@@ -1858,14 +1828,13 @@ class IO
   def readbyte
     byte = getbyte
     raise EOFError, 'end of file reached' unless byte
-    raise EOFError, 'end of file' unless bytes
     byte
   end
 
   ##
   # Reads a line as with IO#gets, but raises an EOFError on end of file.
-  def readline(sep=$/)
-    out = gets(sep)
+  def readline(sep_or_limit=$/, limit=nil, chomp: false)
+    out = gets(sep_or_limit, limit, chomp: chomp)
     raise EOFError, 'end of file' unless out
     out
   end
@@ -1878,10 +1847,10 @@ class IO
   #
   #  f = File.new("testfile")
   #  f.readlines[0]   #=> "This is line one\n"
-  def readlines(sep_or_limit=$/, limit=nil)
+  def readlines(sep_or_limit=$/, limit=nil, chomp: false)
     ret = []
 
-    each_reader = create_each_reader(sep_or_limit, limit)
+    each_reader = create_each_reader(sep_or_limit, limit, chomp, true)
     each_reader&.each { |line| ret << line }
 
     ret

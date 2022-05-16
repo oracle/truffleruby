@@ -1,1 +1,0 @@
-fails:StringIO#readlines when passed [chomp] returns the data read without a trailing newline character

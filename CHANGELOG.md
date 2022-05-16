@@ -29,6 +29,7 @@ Compatibility:
 * Fix `instance_variable_get` and `instance_variable_set` for immutable objects (@bjfish).
 * `Thread#raise(exc, message)` now calls `exc.exception` in the target thread like CRuby (@eregon).
 * Define `Process::{CLOCK_BOOTTIME,CLOCK_BOOTTIME_ALARM,CLOCK_REALTIME_ALARM}` (#1480, @eregon).
+* Improve support of `:chomp` keyword argument in `IO` and `StringIO` methods (#2650, @andrykonchin). 
 
 Performance:
 

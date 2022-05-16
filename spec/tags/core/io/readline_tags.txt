@@ -1,2 +1,1 @@
 fails:IO#readline assigns the returned line to $_
-fails:IO#readline when passed chomp returns the first line without a trailing newline character

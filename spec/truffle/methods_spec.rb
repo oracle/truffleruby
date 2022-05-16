@@ -41,9 +41,11 @@ modules = %w[
   Pathname Pathname.singleton_class
 
   StringScanner StringScanner.singleton_class
+
+  StringIO
 ]
 
-requires = %w[digest pathname socket strscan]
+requires = %w[digest pathname socket stringio strscan]
 requires_code = requires.map { |lib| "require #{lib.inspect}" }.join("\n")
 
 guard -> { !defined?(SKIP_SLOW_SPECS) } do

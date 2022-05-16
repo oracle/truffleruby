@@ -41,11 +41,11 @@ Truffle::CExt.rb_define_module_under(IO, 'generic_readable').module_eval do
     readchar.getbyte(0)
   end
 
-  def readline(sep=$/, limit=::Undefined)
+  def readline(sep=$/, limit=::Undefined, chomp: false)
     check_readable
     raise EOFError, 'end of file reached' if eof?
 
-    Primitive.io_last_line_set(Primitive.caller_special_variables, getline(true, sep, limit))
+    Primitive.io_last_line_set(Primitive.caller_special_variables, getline(false, sep, limit, chomp))
   end
 
   def sysread(length = nil, buffer = nil)
@@ -220,7 +220,6 @@ class StringIO
 
     self
   end
-  alias_method :bytes, :each_byte
 
   def each_char
     return to_enum :each_char unless block_given?
@@ -230,7 +229,6 @@ class StringIO
 
     self
   end
-  alias_method :chars, :each_char
 
   def each_codepoint(&block)
     return to_enum :each_codepoint unless block_given?
@@ -253,20 +251,18 @@ class StringIO
 
     self
   end
-  alias_method :codepoints, :each_codepoint
 
-  def each(sep=$/, limit=Undefined)
-    return to_enum :each, sep, limit unless block_given?
+  def each(sep=$/, limit=Undefined, chomp: false)
+    return to_enum :each, sep, limit, chomp: chomp unless block_given?
     check_readable
 
-    while line = getline(true, sep, limit)
+    while line = getline(true, sep, limit, chomp)
       yield line
     end
 
     self
   end
   alias_method :each_line, :each
-  alias_method :lines, :each
 
   def binmode
     set_encoding(Encoding::BINARY)
@@ -373,12 +369,12 @@ class StringIO
     byte
   end
 
-  def gets(sep=$/, limit=Undefined)
+  def gets(sep=$/, limit=Undefined, chomp: false)
     check_readable
 
     # Truffle: $_ is thread and frame local, so we use a primitive to
     # set it in the caller's frame.
-    Primitive.io_last_line_set(Primitive.caller_special_variables, getline(false, sep, limit))
+    Primitive.io_last_line_set(Primitive.caller_special_variables, getline(false, sep, limit, chomp))
   end
 
   def isatty
@@ -476,11 +472,11 @@ class StringIO
     str
   end
 
-  def readlines(sep=$/, limit=Undefined)
+  def readlines(sep=$/, limit=Undefined, chomp: false)
     check_readable
 
     ary = []
-    while line = getline(true, sep, limit)
+    while line = getline(true, sep, limit, chomp)
       ary << line
     end
 
@@ -682,7 +678,7 @@ class StringIO
     d.string.replace('') if (mode & IO::TRUNC) != 0
   end
 
-  private def getline(arg_error, sep, limit)
+  private def getline(arg_error, sep, limit, chomp=false)
     if limit != Undefined
       limit = Primitive.rb_to_int limit if limit
       sep = Truffle::Type.coerce_to sep, String, :to_str if sep
@@ -692,11 +688,16 @@ class StringIO
       unless sep == $/ or sep.nil?
         osep = sep
         sep = Truffle::Type.rb_check_convert_type sep, String, :to_str
-        limit = Primitive.rb_to_int osep unless sep
+        unless sep
+          limit = Primitive.rb_to_int osep
+          sep = $/
+        end
       end
     end
 
     raise ArgumentError if arg_error and limit == 0
+
+    limit = nil if limit && limit < 0
 
     return nil if eof?
 
@@ -743,6 +744,10 @@ class StringIO
     end
 
     d.lineno += 1
+
+    if chomp
+      line.chomp!(sep || DEFAULT_RECORD_SEPARATOR)
+    end
 
     line
   end
