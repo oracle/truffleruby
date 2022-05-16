@@ -856,6 +856,7 @@ public abstract class InteropNodes {
             } catch (InteropException e) {
                 throw translateInteropException.execute(e);
             }
+
             return fromJavaStringNode.executeFromJavaString(string);
         }
     }
@@ -902,8 +903,9 @@ public abstract class InteropNodes {
                 utf8Bytes = ArrayUtils.extractRange(bytes.getArray(), bytes.getOffset(), bytes.getEnd());
             }
 
-            // TODO: should the resulting RubyString be marked as frozen?
-            return makeStringNode.executeMake(utf8Bytes, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+            var rubyString = makeStringNode.executeMake(utf8Bytes, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+            rubyString.freeze();
+            return rubyString;
         }
     }
 
