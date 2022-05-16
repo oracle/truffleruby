@@ -266,9 +266,13 @@ class ConstantsGenerator < Generator
     @constants = {}
   end
 
+  def const(name, default_value = nil, format = '%ld', cast = '(long)')
+    @constants[name] = Constant.new(name, format, cast, default_value)
+  end
+
   def consts(names, format = '%ld', cast = '(long)')
     names.each do |name|
-      @constants[name] = Constant.new(name, format, cast, nil)
+      const(name, nil, format, cast)
     end
   end
 
@@ -774,8 +778,6 @@ end
 constants 'clocks' do |cg|
   cg.include 'time.h'
   cg.consts %w[
-    CLOCK_BOOTTIME
-    CLOCK_BOOTTIME_ALARM
     CLOCK_MONOTONIC
     CLOCK_MONOTONIC_COARSE
     CLOCK_MONOTONIC_FAST
@@ -785,7 +787,6 @@ constants 'clocks' do |cg|
     CLOCK_PROCESS_CPUTIME_ID
     CLOCK_PROF
     CLOCK_REALTIME
-    CLOCK_REALTIME_ALARM
     CLOCK_REALTIME_COARSE
     CLOCK_REALTIME_FAST
     CLOCK_REALTIME_PRECISE
@@ -797,7 +798,15 @@ constants 'clocks' do |cg|
     CLOCK_UPTIME_RAW
     CLOCK_UPTIME_RAW_APPROX
     CLOCK_VIRTUAL
-]
+  ]
+
+  # Give the following clock ids a default so they works on newer Linux built by older Linux:
+  # https://github.com/oracle/truffleruby/issues/1480
+  cg.const 'CLOCK_BOOTTIME', (7 if RUBY_PLATFORM =~ /linux/)
+  # These 2 are not supported on linux-aarch64:
+  # https://patchwork.kernel.org/project/linux-arm-kernel/patch/20171031183306.81375-1-salyzyn@android.com/#21274245
+  cg.const 'CLOCK_REALTIME_ALARM', (8 if RUBY_PLATFORM =~ /x86_64-linux/)
+  cg.const 'CLOCK_BOOTTIME_ALARM', (9 if RUBY_PLATFORM =~ /x86_64-linux/)
 end
 
 TypesGenerator.new.generate

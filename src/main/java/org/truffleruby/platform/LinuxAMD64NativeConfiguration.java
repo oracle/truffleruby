@@ -744,6 +744,9 @@ public class LinuxAMD64NativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.clocks.CLOCK_REALTIME", 0);
         configuration.config("platform.clocks.CLOCK_REALTIME_COARSE", 5);
         configuration.config("platform.clocks.CLOCK_THREAD_CPUTIME_ID", 3);
+        configuration.config("platform.clocks.CLOCK_BOOTTIME", 7);
+        configuration.config("platform.clocks.CLOCK_REALTIME_ALARM", 8);
+        configuration.config("platform.clocks.CLOCK_BOOTTIME_ALARM", 9);
         configuration.config("platform.typedef.int8_t", string(context, "char"));
         configuration.config("platform.typedef.int16_t", string(context, "short"));
         configuration.config("platform.typedef.int32_t", string(context, "int"));
