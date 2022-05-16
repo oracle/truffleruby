@@ -22,10 +22,10 @@ import org.truffleruby.core.format.SharedTreeBuilder;
 import org.truffleruby.core.format.convert.ToDoubleWithCoercionNodeGen;
 import org.truffleruby.core.format.convert.ToIntegerNodeGen;
 import org.truffleruby.core.format.convert.ToStringNodeGen;
+import org.truffleruby.core.format.format.FormatAFloatNodeGen;
 import org.truffleruby.core.format.format.FormatCharacterNodeGen;
 import org.truffleruby.core.format.format.FormatEFloatNodeGen;
 import org.truffleruby.core.format.format.FormatFFloatNodeGen;
-import org.truffleruby.core.format.format.FormatFloatNodeGen;
 import org.truffleruby.core.format.format.FormatGFloatNodeGen;
 import org.truffleruby.core.format.format.FormatIntegerBinaryNodeGen;
 import org.truffleruby.core.format.format.FormatIntegerNodeGen;
@@ -151,7 +151,7 @@ public class PrintfSimpleTreeBuilder {
                             case 'a':
                             case 'A':
                                 node = WriteBytesNodeGen.create(
-                                        FormatFloatNodeGen.create(
+                                        FormatAFloatNodeGen.create(
                                                 config.getFormat(),
                                                 config.isHasSpace(),
                                                 config.isZero(),
