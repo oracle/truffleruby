@@ -135,7 +135,7 @@ public abstract class HashStoreLibrary extends Library {
                 @Cached ConditionProfile arityMoreThanOne) {
             // MRI behavior, see rb_hash_each_pair()
             // We use getMethodArityNumber() here since for non-lambda the semantics are the same for both branches
-            if (arityMoreThanOne.profile(block.sharedMethodInfo.getArity().getMethodArityNumber() > 1)) {
+            if (arityMoreThanOne.profile(block.arity.getMethodArityNumber() > 1)) {
                 return yieldNode.yield(block, key, value);
             } else {
                 return yieldNode.yield(block, createArray(new Object[]{ key, value }));
