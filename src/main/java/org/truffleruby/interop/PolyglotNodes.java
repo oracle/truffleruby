@@ -21,6 +21,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
@@ -40,6 +41,7 @@ import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.source.Source;
 import org.truffleruby.language.library.RubyStringLibrary;
+import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.utils.Utils;
 
 @CoreModule("Polyglot")
@@ -169,11 +171,16 @@ public abstract class PolyglotNodes {
 
     @Primitive(name = "inner_context_new")
     public abstract static class InnerContextNewNode extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary
         @Specialization
-        protected RubyInnerContext newInnerContext(RubyClass rubyClass) {
+        protected RubyInnerContext newInnerContext(RubyClass rubyClass, RubyProc onCancelledCallback) {
             final TruffleContext innerContext = getContext()
                     .getEnv()
                     .newContextBuilder()
+                    .onCancelled(() -> {
+                        CallBlockNode.getUncached().yield(onCancelledCallback);
+                    })
                     .initializeCreatorContext(false)
                     .build();
 
@@ -182,6 +189,7 @@ public abstract class PolyglotNodes {
                     getLanguage().innerContextShape,
                     innerContext);
         }
+
     }
 
     @Primitive(name = "inner_context_eval")

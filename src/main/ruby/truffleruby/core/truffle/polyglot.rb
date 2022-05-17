@@ -17,8 +17,8 @@ module Polyglot
     # Create a new isolated inner context to eval code in any available public language
     # (those languages can be listed with +Polyglot.languages+).
     # Automatically closes the context when given a block.
-    def self.new
-      inner_context = Primitive.inner_context_new(self)
+    def self.new(on_cancelled: -> { raise RuntimeError, 'Polyglot::InnerContext was terminated forcefully' })
+      inner_context = Primitive.inner_context_new(self, on_cancelled)
       if block_given?
         begin
           yield inner_context
