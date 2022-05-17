@@ -156,9 +156,9 @@ public abstract class FormatGFloatNode extends FormatFloatGenericNode {
         }
 
         format.setMinimumIntegerDigits(1);
-        format.setMinimumFractionDigits(0);
         if (!simple) {
             format.setMaximumFractionDigits(precision - 1);
+            format.setMinimumFractionDigits(0);
         } else {
             long lval = (long) Math.abs(dval);
             long pow = 1;
@@ -166,6 +166,11 @@ public abstract class FormatGFloatNode extends FormatFloatGenericNode {
             while (lval >= pow) {
                 pow = 10 * pow;
                 intDigits++;
+            }
+            if (hasFSharpFlag) {
+                format.setMinimumFractionDigits(precision - intDigits);
+            } else {
+                format.setMinimumFractionDigits(0);
             }
             format.setMaximumFractionDigits(precision - intDigits);
         }
