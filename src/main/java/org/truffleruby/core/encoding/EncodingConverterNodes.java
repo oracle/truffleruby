@@ -18,6 +18,7 @@ import java.util.Set;
 
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
 import org.jcodings.Ptr;
@@ -39,9 +40,7 @@ import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
-import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.EncodingUtils;
 import org.truffleruby.core.string.RubyString;
@@ -460,13 +459,13 @@ public abstract class EncodingConverterNodes {
         @Specialization(guards = "libReplacement.isRubyString(replacement)")
         protected Object setReplacement(RubyEncodingConverter encodingConverter, Object replacement,
                 @Cached BranchProfile errorProfile,
-                @Cached RopeNodes.BytesNode bytesNode,
+                @Cached TruffleString.GetInternalByteArrayNode bytesNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libReplacement) {
-            final EConv ec = encodingConverter.econv;
-            final Rope rope = libReplacement.getRope(replacement);
-            final Encoding encoding = rope.getEncoding();
+            var tstring = libReplacement.getTString(replacement);
+            var encoding = libReplacement.getEncoding(replacement);
 
-            final int ret = setReplacement(ec, bytesNode.execute(rope), rope.byteLength(), encoding.getName());
+            int ret = setReplacement(encodingConverter.econv, bytesNode.execute(tstring, encoding.tencoding),
+                    encoding.jcoding.getName());
 
             if (ret == -1) {
                 errorProfile.enter();
@@ -479,8 +478,8 @@ public abstract class EncodingConverterNodes {
         }
 
         @TruffleBoundary
-        private int setReplacement(EConv ec, byte[] string, int len, byte[] encodingName) {
-            return ec.setReplacement(string, 0, len, encodingName);
+        private int setReplacement(EConv ec, InternalByteArray byteArray, byte[] encodingName) {
+            return ec.setReplacement(byteArray.getArray(), byteArray.getOffset(), byteArray.getEnd(), encodingName);
         }
 
     }
