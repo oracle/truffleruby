@@ -429,25 +429,6 @@ public class InternalMethod implements ObjectGraphNode {
     }
 
     @TruffleBoundary
-    public boolean isVisibleTo(RubyClass callerClass) {
-        switch (visibility) {
-            case PUBLIC:
-                return true;
-
-            case PROTECTED:
-                return isProtectedMethodVisibleTo(callerClass);
-
-            case PRIVATE:
-                // A private method may only be called with an implicit receiver,
-                // in which case the visibility must not be checked.
-                return false;
-
-            default:
-                throw new UnsupportedOperationException(visibility.name());
-        }
-    }
-
-    @TruffleBoundary
     public boolean isProtectedMethodVisibleTo(RubyClass callerClass) {
         assert visibility == Visibility.PROTECTED;
 
