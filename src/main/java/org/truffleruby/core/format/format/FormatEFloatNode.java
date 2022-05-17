@@ -102,11 +102,21 @@ public abstract class FormatEFloatNode extends FormatFloatGenericNode {
         }
 
         DecimalFormatSymbols symbols = format.getDecimalFormatSymbols();
-        if (expSeparator == 'e') {
-            symbols.setExponentSeparator(Math.abs(dval) >= 1.0 ? "e+" : "e");
+        String separator;
+        if (precision == 0 && hasFSharpFlag) {
+            separator = ".";
         } else {
-            symbols.setExponentSeparator(Math.abs(dval) >= 1.0 ? "E+" : "E");
+            separator = "";
         }
+
+        separator += expSeparator;
+
+        if ((Math.abs(dval) >= 1.0 || dval == 0.0)) {
+            separator += '+';
+        }
+
+        symbols.setExponentSeparator(separator);
+
         format.setDecimalFormatSymbols(symbols);
 
         format.setMinimumFractionDigits(precision);
