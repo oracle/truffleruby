@@ -45,6 +45,7 @@ import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.CallInternalMethodNode;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
@@ -135,10 +136,16 @@ public abstract class MethodNodes {
         protected Object call(Frame callerFrame, RubyMethod method, Object[] rubyArgs, RootCallTarget target,
                 @Cached CallInternalMethodNode callInternalMethodNode) {
             final InternalMethod internalMethod = method.method;
-            final Object[] newArgs = RubyArguments.repack(rubyArgs, method.receiver);
+            final Object receiver = method.receiver;
+            return callBoundMethod(callerFrame, internalMethod, receiver, rubyArgs, callInternalMethodNode);
+        }
+
+        static Object callBoundMethod(Frame frame, InternalMethod internalMethod, Object receiver,
+                Object[] callerRubyArgs, CallInternalMethodNode callInternalMethodNode) {
+            final Object[] newArgs = RubyArguments.repack(callerRubyArgs, receiver);
             RubyArguments.setMethod(newArgs, internalMethod);
             assert RubyArguments.assertFrameArguments(newArgs);
-            return callInternalMethodNode.execute(callerFrame, internalMethod, method.receiver, newArgs, null);
+            return callInternalMethodNode.execute(frame, internalMethod, receiver, newArgs, null);
         }
     }
 
@@ -273,28 +280,29 @@ public abstract class MethodNodes {
     @CoreMethod(names = "to_proc")
     public abstract static class ToProcNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "methodObject == cachedMethodObject", limit = "getCacheLimit()")
-        protected RubyProc toProcCached(RubyMethod methodObject,
+        @Specialization(guards = { "isSingleContext()", "methodObject == cachedMethodObject" },
+                limit = "getCacheLimit()")
+        protected RubyProc toProcCachedSingleContext(RubyMethod methodObject,
                 @Cached("methodObject") RubyMethod cachedMethodObject,
                 @Cached("toProcUncached(cachedMethodObject)") RubyProc proc) {
             return proc;
         }
 
         @Specialization(
-                guards = "cachedMethod == methodObject.method",
+                guards = "methodObject.method.getCallTarget() == methodCallTarget",
                 limit = "getCacheLimit()",
-                replaces = "toProcCached")
+                replaces = "toProcCachedSingleContext")
         protected RubyProc toProcCachedTarget(RubyMethod methodObject,
-                @Cached("methodObject.method") InternalMethod cachedMethod,
-                @Cached("methodCallTarget(cachedMethod)") RootCallTarget callTarget) {
-            return createProc(callTarget, cachedMethod, methodObject.receiver);
+                @Cached("methodObject.method.getCallTarget()") RootCallTarget methodCallTarget,
+                @Cached("procCallTargetToCallRubyMethod(methodCallTarget)") RootCallTarget procCallTarget) {
+            return createProc(procCallTarget, methodObject.method, methodObject.receiver);
         }
 
-        @Specialization
+        @Specialization(replaces = { "toProcCachedSingleContext", "toProcCachedTarget" })
         protected RubyProc toProcUncached(RubyMethod methodObject) {
             final InternalMethod method = methodObject.method;
-            final RootCallTarget callTarget = methodCallTarget(method);
             final Object receiver = methodObject.receiver;
+            final RootCallTarget callTarget = procCallTargetToCallRubyMethod(method.getCallTarget());
             return createProc(callTarget, method, receiver);
         }
 
@@ -312,32 +320,31 @@ public abstract class MethodNodes {
                     declarationFrame,
                     variables,
                     method,
-                    nil,
                     null,
                     method.getDeclarationContext());
         }
 
         @TruffleBoundary
-        protected RootCallTarget methodCallTarget(InternalMethod method) {
+        protected RootCallTarget procCallTargetToCallRubyMethod(RootCallTarget callTarget) {
             // translate to something like:
             // lambda { |same args list| method.call(args) }
             // We need to preserve the method receiver and we want to have the same argument list.
             // We create a new CallTarget for the Proc that calls the method CallTarget and passes the correct receiver.
 
-            final SourceSection sourceSection = method.getSharedMethodInfo().getSourceSection();
-            final RubyRootNode methodRootNode = RubyRootNode.of(method.getCallTarget());
+            final RubyRootNode methodRootNode = RubyRootNode.of(callTarget);
+            final SharedMethodInfo sharedMethodInfo = methodRootNode.getSharedMethodInfo();
 
-            final SetReceiverNode setReceiverNode = new SetReceiverNode(method);
+            var callWithRubyMethodReceiverNode = new CallWithRubyMethodReceiverNode();
             final RubyLambdaRootNode wrapRootNode = new RubyLambdaRootNode(
                     getLanguage(),
-                    sourceSection,
+                    sharedMethodInfo.getSourceSection(),
                     methodRootNode.getFrameDescriptor(),
-                    method.getSharedMethodInfo(),
-                    setReceiverNode,
+                    sharedMethodInfo,
+                    callWithRubyMethodReceiverNode,
                     methodRootNode.getSplit(),
                     methodRootNode.returnID,
                     BreakID.INVALID,
-                    method.getSharedMethodInfo().getArity());
+                    sharedMethodInfo.getArity());
             return wrapRootNode.getCallTarget();
         }
 
@@ -345,22 +352,16 @@ public abstract class MethodNodes {
             return getLanguage().options.METHOD_TO_PROC_CACHE;
         }
 
-    }
+        private static class CallWithRubyMethodReceiverNode extends RubyContextSourceNode {
+            @Child private CallInternalMethodNode callInternalMethodNode = CallInternalMethodNode.create();
 
-    private static class SetReceiverNode extends RubyContextSourceNode {
-        private final InternalMethod method;
-        @Child private CallInternalMethodNode callInternalMethodNode = CallInternalMethodNode.create();
-
-        public SetReceiverNode(InternalMethod method) {
-            this.method = method;
-        }
-
-        @Override
-        public Object execute(VirtualFrame frame) {
-            final Object originalBoundMethodReceiver = RubyArguments.getSelf(RubyArguments.getDeclarationFrame(frame));
-            Object[] rubyArgs = RubyArguments.repack(frame.getArguments(), originalBoundMethodReceiver);
-            RubyArguments.setMethod(rubyArgs, method);
-            return callInternalMethodNode.execute(frame, method, originalBoundMethodReceiver, rubyArgs, null);
+            @Override
+            public Object execute(VirtualFrame frame) {
+                final MaterializedFrame declarationFrame = RubyArguments.getDeclarationFrame(frame);
+                final Object receiver = RubyArguments.getSelf(declarationFrame);
+                final InternalMethod method = RubyArguments.getMethod(declarationFrame);
+                return CallNode.callBoundMethod(frame, method, receiver, frame.getArguments(), callInternalMethodNode);
+            }
         }
     }
 

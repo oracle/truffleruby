@@ -25,6 +25,8 @@ import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 
+import static org.truffleruby.language.RubyBaseNode.nil;
+
 public abstract class ProcOperations {
 
     private static Object[] packArguments(RubyProc proc, ArgumentsDescriptor descriptor, Object... args) {
@@ -34,7 +36,7 @@ public abstract class ProcOperations {
                 proc.method,
                 proc.frameOnStackMarker,
                 getSelf(proc),
-                proc.block,
+                nil,
                 descriptor,
                 args);
     }
@@ -61,7 +63,6 @@ public abstract class ProcOperations {
             MaterializedFrame declarationFrame,
             SpecialVariableStorage variables,
             InternalMethod method,
-            Object block,
             FrameOnStackMarker frameOnStackMarker,
             DeclarationContext declarationContext) {
 
@@ -82,13 +83,13 @@ public abstract class ProcOperations {
                 rubyClass,
                 procShape,
                 type,
-                sharedMethodInfo,
+                sharedMethodInfo.getArity(),
+                sharedMethodInfo.getRawArgumentDescriptors(),
                 holder,
                 callTargetForType,
                 declarationFrame,
                 variables,
                 method,
-                block,
                 frameOnStackMarker,
                 declarationContext);
 
@@ -101,12 +102,11 @@ public abstract class ProcOperations {
                         context.getCoreLibrary().procClass,
                         language.procShape,
                         type,
-                        block.sharedMethodInfo,
+                        block.getSharedMethodInfo(),
                         block.callTargets,
                         block.declarationFrame,
                         block.declarationVariables,
                         block.method,
-                        block.block,
                         type == ProcType.PROC ? block.frameOnStackMarker : null,
                         block.declarationContext);
     }

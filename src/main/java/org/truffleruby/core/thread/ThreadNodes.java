@@ -423,7 +423,7 @@ public abstract class ThreadNodes {
 
         @TruffleBoundary
         private Object init(RubyThread thread, RubyProc block, ArgumentsDescriptor descriptor, Object[] args) {
-            final SourceSection sourceSection = block.sharedMethodInfo.getSourceSection();
+            final SourceSection sourceSection = block.getSharedMethodInfo().getSourceSection();
             final String info = RubyLanguage.fileLine(sourceSection);
             final String sharingReason = "creating Ruby Thread " + info;
 

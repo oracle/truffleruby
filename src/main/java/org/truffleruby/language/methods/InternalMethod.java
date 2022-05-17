@@ -22,11 +22,14 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
+
+import static org.truffleruby.language.RubyBaseNode.nil;
 
 /** A Ruby method: either a method in a module, a literal module/class body or some meta-information for eval'd code.
  * Blocks capture the method in which they are defined. */
@@ -78,7 +81,7 @@ public class InternalMethod implements ObjectGraphNode {
                 proc,
                 callTarget,
                 null,
-                proc.block);
+                nil);
     }
 
     public InternalMethod(
@@ -160,6 +163,7 @@ public class InternalMethod implements ObjectGraphNode {
         assert declaringModule != null;
         assert lexicalScope != null;
         assert !sharedMethodInfo.isBlock() : sharedMethodInfo;
+        assert callTarget == null || RubyRootNode.of(callTarget).getSharedMethodInfo() == sharedMethodInfo;
         assert capturedBlock instanceof Nil || capturedBlock instanceof RubyProc : capturedBlock;
         this.sharedMethodInfo = sharedMethodInfo;
         this.lexicalScope = lexicalScope;
@@ -235,6 +239,7 @@ public class InternalMethod implements ObjectGraphNode {
         if (callTarget == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callTarget = callTargetSupplier.get();
+            assert RubyRootNode.of(callTarget).getSharedMethodInfo() == sharedMethodInfo;
         }
         return callTarget;
     }
@@ -421,25 +426,6 @@ public class InternalMethod implements ObjectGraphNode {
                 callTarget,
                 callTargetSupplier,
                 capturedBlock);
-    }
-
-    @TruffleBoundary
-    public boolean isVisibleTo(RubyClass callerClass) {
-        switch (visibility) {
-            case PUBLIC:
-                return true;
-
-            case PROTECTED:
-                return isProtectedMethodVisibleTo(callerClass);
-
-            case PRIVATE:
-                // A private method may only be called with an implicit receiver,
-                // in which case the visibility must not be checked.
-                return false;
-
-            default:
-                throw new UnsupportedOperationException(visibility.name());
-        }
     }
 
     @TruffleBoundary

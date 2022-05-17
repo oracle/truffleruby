@@ -125,13 +125,13 @@ public abstract class TruffleGraalNodes {
                     coreLibrary().procClass,
                     getLanguage().procShape,
                     ProcType.LAMBDA,
-                    proc.sharedMethodInfo,
+                    proc.arity,
+                    proc.argumentDescriptors,
                     new ProcCallTargets(newCallTarget),
                     newCallTarget,
                     newDeclarationFrame,
                     variables,
                     proc.method,
-                    proc.block,
                     proc.frameOnStackMarker,
                     proc.declarationContext);
 

@@ -82,7 +82,7 @@ public class SharedObjects {
 
     public static void shareDeclarationFrame(RubyLanguage language, RubyProc block) {
         if (language.options.SHARED_OBJECTS_DEBUG) {
-            final SourceSection sourceSection = block.sharedMethodInfo.getSourceSection();
+            final SourceSection sourceSection = block.getSharedMethodInfo().getSourceSection();
             RubyLanguage.LOGGER.info("sharing decl frame of " + RubyLanguage.fileLine(sourceSection));
         }
 

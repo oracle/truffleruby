@@ -12,11 +12,11 @@ package org.truffleruby.core.proc;
 import java.util.Set;
 
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.FrameOnStackMarker;
+import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
@@ -33,60 +33,65 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.parser.ArgumentDescriptor;
 
 @ExportLibrary(InteropLibrary.class)
 public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
 
-    public final ProcType type;
-    public final SharedMethodInfo sharedMethodInfo;
-    public final ProcCallTargets callTargets;
+    // Accessed for calling a RubyProc
     public final RootCallTarget callTarget;
     public final MaterializedFrame declarationFrame;
-    public final SpecialVariableStorage declarationVariables;
     public final InternalMethod method;
-    public final Object block;
     public final FrameOnStackMarker frameOnStackMarker;
     public final DeclarationContext declarationContext;
+    // Not accessed for calling a RubyProc
+    public final ProcType type;
+    public final ProcCallTargets callTargets;
+    /** Can differ from {@link SharedMethodInfo#getArity()} */
+    public final Arity arity;
+    /** Can differ from {@link SharedMethodInfo#getRawArgumentDescriptors()} */
+    public final ArgumentDescriptor[] argumentDescriptors;
+    public final SpecialVariableStorage declarationVariables;
 
     public RubyProc(
             RubyClass rubyClass,
             Shape shape,
             ProcType type,
-            SharedMethodInfo sharedMethodInfo,
+            Arity arity,
+            ArgumentDescriptor[] argumentDescriptors,
             ProcCallTargets callTargets,
             RootCallTarget callTarget,
             MaterializedFrame declarationFrame,
             SpecialVariableStorage declarationVariables,
             InternalMethod method,
-            Object block,
             FrameOnStackMarker frameOnStackMarker,
             DeclarationContext declarationContext) {
         super(rubyClass, shape);
-        assert block instanceof Nil || block instanceof RubyProc : StringUtils.toString(block);
         this.type = type;
-        this.sharedMethodInfo = sharedMethodInfo;
+        this.arity = arity;
+        this.argumentDescriptors = argumentDescriptors;
         this.callTargets = callTargets;
         this.callTarget = callTarget;
         this.declarationFrame = declarationFrame;
         this.declarationVariables = declarationVariables;
         this.method = method;
-        this.block = block;
         this.frameOnStackMarker = frameOnStackMarker;
         this.declarationContext = declarationContext;
     }
 
-    public RubyProc withSharedMethodInfo(SharedMethodInfo newSharedMethodInfo, RubyClass newRubyClass, Shape newShape) {
+    public RubyProc withArity(Arity newArity, ArgumentDescriptor[] newArgumentDescriptors, RubyClass newRubyClass,
+            Shape newShape) {
         return new RubyProc(
                 newRubyClass,
                 newShape,
                 type,
-                newSharedMethodInfo,
+                newArity,
+                newArgumentDescriptors,
                 callTargets,
                 callTarget,
                 declarationFrame,
                 declarationVariables,
                 method,
-                block,
                 frameOnStackMarker,
                 declarationContext);
     }
@@ -95,7 +100,6 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
     public void getAdjacentObjects(Set<Object> reachable) {
         ObjectGraph.getObjectsInFrame(declarationFrame, reachable);
         ObjectGraph.addProperty(reachable, method);
-        ObjectGraph.addProperty(reachable, block);
     }
 
     public boolean isLambda() {
@@ -108,6 +112,18 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
         return type == ProcType.PROC;
     }
 
+    public SharedMethodInfo getSharedMethodInfo() {
+        return RubyRootNode.of(callTarget).getSharedMethodInfo();
+    }
+
+    public int getArityNumber() {
+        return arity.getArityNumber(type);
+    }
+
+    public ArgumentDescriptor[] getArgumentDescriptors() {
+        return argumentDescriptors == null ? arity.toAnonymousArgumentDescriptors() : argumentDescriptors;
+    }
+
     // region SourceLocation
     @ExportMessage
     public boolean hasSourceLocation() {
@@ -116,13 +132,9 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
 
     @ExportMessage
     public SourceSection getSourceLocation() {
-        return sharedMethodInfo.getSourceSection();
+        return getSharedMethodInfo().getSourceSection();
     }
     // endregion
-
-    public int getArityNumber() {
-        return sharedMethodInfo.getArity().getArityNumber(type);
-    }
 
     // region Executable
     @ExportMessage

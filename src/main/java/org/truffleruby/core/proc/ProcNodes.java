@@ -40,7 +40,6 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode;
 import org.truffleruby.language.methods.Arity;
-import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.yield.CallBlockNode;
@@ -119,13 +118,13 @@ public abstract class ProcNodes {
                     procClass,
                     getLanguage().procShape,
                     block.type,
-                    block.sharedMethodInfo,
+                    block.arity,
+                    block.argumentDescriptors,
                     block.callTargets,
                     block.callTarget,
                     block.declarationFrame,
                     block.declarationVariables,
                     block.method,
-                    block.block,
                     block.frameOnStackMarker,
                     block.declarationContext);
 
@@ -157,13 +156,13 @@ public abstract class ProcNodes {
                     logicalClass,
                     getLanguage().procShape,
                     proc.type,
-                    proc.sharedMethodInfo,
+                    proc.arity,
+                    proc.argumentDescriptors,
                     proc.callTargets,
                     proc.callTarget,
                     proc.declarationFrame,
                     proc.declarationVariables,
                     proc.method,
-                    proc.block,
                     proc.frameOnStackMarker,
                     proc.declarationContext);
 
@@ -187,7 +186,7 @@ public abstract class ProcNodes {
         @Specialization
         protected RubyBinding binding(RubyProc proc) {
             final MaterializedFrame frame = proc.declarationFrame;
-            final SourceSection sourceSection = proc.sharedMethodInfo.getSourceSection();
+            final SourceSection sourceSection = proc.getSharedMethodInfo().getSourceSection();
             return BindingNodes.createBinding(getContext(), getLanguage(), frame, sourceSection);
         }
     }
@@ -247,7 +246,7 @@ public abstract class ProcNodes {
         @TruffleBoundary
         @Specialization
         protected RubyArray parameters(RubyProc proc) {
-            final ArgumentDescriptor[] argsDesc = proc.sharedMethodInfo.getArgumentDescriptors();
+            final ArgumentDescriptor[] argsDesc = proc.getArgumentDescriptors();
             final boolean isLambda = proc.type == ProcType.LAMBDA;
             return ArgumentDescriptorUtils
                     .argumentDescriptorsToParameters(getLanguage(), getContext(), argsDesc, isLambda);
@@ -263,7 +262,7 @@ public abstract class ProcNodes {
         @TruffleBoundary
         @Specialization
         protected Object sourceLocation(RubyProc proc) {
-            SourceSection sourceSection = proc.sharedMethodInfo.getSourceSection();
+            SourceSection sourceSection = proc.getSharedMethodInfo().getSourceSection();
 
             final String sourcePath = getLanguage().getSourcePath(sourceSection.getSource());
             if (!sourceSection.isAvailable() || sourcePath.endsWith("/lib/truffle/truffle/cext.rb")) {
@@ -286,8 +285,9 @@ public abstract class ProcNodes {
 
         @Specialization
         protected RubyProc createSameArityProc(RubyProc userProc, RubyProc block) {
-            final RubyProc composedProc = block.withSharedMethodInfo(
-                    userProc.sharedMethodInfo,
+            final RubyProc composedProc = block.withArity(
+                    userProc.arity,
+                    userProc.argumentDescriptors,
                     coreLibrary().procClass,
                     getLanguage().procShape);
             AllocationTracing.trace(composedProc, this);
@@ -299,7 +299,6 @@ public abstract class ProcNodes {
     public abstract static class ProcSpecifyArityNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         protected RubyProc specifyArityProc(RubyProc block, int argc) {
-            Arity oldArity = block.sharedMethodInfo.getArity();
             final Arity newArity;
             if (argc <= -1) {
                 newArity = new Arity(-(argc + 1), 0, true);
@@ -307,9 +306,9 @@ public abstract class ProcNodes {
                 newArity = new Arity(argc, 0, false);
             }
 
-            SharedMethodInfo newSharedMethodInfo = block.sharedMethodInfo.withArity(newArity);
-            final RubyProc composedProc = block.withSharedMethodInfo(
-                    newSharedMethodInfo,
+            final RubyProc composedProc = block.withArity(
+                    newArity,
+                    null,
                     coreLibrary().procClass,
                     getLanguage().procShape);
             AllocationTracing.trace(composedProc, this);
@@ -322,8 +321,8 @@ public abstract class ProcNodes {
 
         @Specialization
         protected Object symbolToProcSymbol(RubyProc proc) {
-            if (proc.sharedMethodInfo.getArity() == SymbolNodes.ToProcNode.ARITY) {
-                return getSymbol(proc.sharedMethodInfo.getBacktraceName());
+            if (proc.arity == SymbolNodes.ToProcNode.ARITY) {
+                return getSymbol(proc.getSharedMethodInfo().getBacktraceName());
             } else {
                 return nil;
             }
@@ -364,7 +363,7 @@ public abstract class ProcNodes {
     public abstract static class ProcRuby2KeywordsNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         protected Object ruby2Keywords(RubyProc proc) {
-            return MethodRuby2KeywordsNode.ruby2Keywords(proc.sharedMethodInfo, proc.callTarget);
+            return MethodRuby2KeywordsNode.ruby2Keywords(proc.getSharedMethodInfo(), proc.callTarget);
         }
     }
 }

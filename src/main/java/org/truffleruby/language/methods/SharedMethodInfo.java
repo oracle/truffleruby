@@ -113,6 +113,10 @@ public class SharedMethodInfo {
         return arity;
     }
 
+    public ArgumentDescriptor[] getRawArgumentDescriptors() {
+        return argumentDescriptors;
+    }
+
     public ArgumentDescriptor[] getArgumentDescriptors() {
         return argumentDescriptors == null ? arity.toAnonymousArgumentDescriptors() : argumentDescriptors;
     }

@@ -58,7 +58,7 @@ public class FiberManager {
     }
 
     public void initialize(RubyFiber fiber, boolean blocking, RubyProc block, Node currentNode) {
-        final SourceSection sourceSection = block.sharedMethodInfo.getSourceSection();
+        final SourceSection sourceSection = block.getSharedMethodInfo().getSourceSection();
         fiber.sourceLocation = RubyLanguage.fileLine(sourceSection);
         fiber.blocking = blocking;
 
@@ -99,7 +99,7 @@ public class FiberManager {
         assertNotEntered("Fibers should start unentered to avoid triggering multithreading");
 
         final FiberPoolThread thread = (FiberPoolThread) Thread.currentThread();
-        final SourceSection sourceSection = block.sharedMethodInfo.getSourceSection();
+        final SourceSection sourceSection = block.getSharedMethodInfo().getSourceSection();
         final String oldName = thread.getName();
         thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + RubyLanguage.fileLine(sourceSection));
 

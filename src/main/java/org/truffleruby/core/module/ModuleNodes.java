@@ -810,7 +810,7 @@ public abstract class ModuleNodes {
                     new FixedDefaultDefinee(self),
                     block.declarationContext.getRefinements());
 
-            return callBlockNode.executeCallBlock(declarationContext, block, self, block.block, descriptor, args, null);
+            return callBlockNode.executeCallBlock(declarationContext, block, self, nil, descriptor, args, null);
         }
     }
 
@@ -1334,7 +1334,7 @@ public abstract class ModuleNodes {
                 MaterializedFrame callerFrame) {
             final RootCallTarget callTargetForLambda = proc.callTargets.getCallTargetForLambda();
             final RubyLambdaRootNode rootNode = RubyLambdaRootNode.of(callTargetForLambda);
-            final SharedMethodInfo info = proc.sharedMethodInfo.forDefineMethod(module, name);
+            final SharedMethodInfo info = proc.getSharedMethodInfo().forDefineMethod(module, name);
             final RubyNode body = rootNode.copyBody();
             final RubyNode newBody = new CallMethodWithLambdaBody(isSingleContext() ? proc : null,
                     callTargetForLambda, body);
@@ -2289,7 +2289,7 @@ public abstract class ModuleNodes {
                     declarationContext,
                     block,
                     refinement,
-                    block.block,
+                    nil,
                     EmptyArgumentsDescriptor.INSTANCE,
                     EMPTY_ARGUMENTS,
                     null);

@@ -86,7 +86,7 @@ public abstract class CallBlockNode extends RubyBaseNode {
             LiteralCallNode literalCallNode,
             @Cached IndirectCallNode callNode) {
         if (literalCallNode != null) {
-            literalCallNode.copyRuby2KeywordsHash(arguments, block.sharedMethodInfo);
+            literalCallNode.copyRuby2KeywordsHash(arguments, block.getSharedMethodInfo());
         }
 
         final Object[] frameArguments = packArguments(declarationContext, block, self, blockArgument, descriptor,
