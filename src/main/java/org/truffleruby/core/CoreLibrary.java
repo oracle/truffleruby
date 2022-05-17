@@ -1026,6 +1026,7 @@ public class CoreLibrary {
             "/core/dir.rb",
             "/core/dir_glob.rb",
             "/core/file_test.rb",
+            "/core/truffle/float_operations.rb",
             "/core/float.rb",
             "/core/marshal.rb",
             "/core/object_space.rb",

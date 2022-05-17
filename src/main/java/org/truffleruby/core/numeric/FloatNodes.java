@@ -610,62 +610,91 @@ public abstract class FloatNodes {
     @Primitive(name = "float_round_up")
     public abstract static class FloatRoundUpPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = { "fitsInInteger(n)", "isPositive(n)" })
-        protected int roundFittingIntPositive(double n) {
+        @Specialization(guards = "fitsInInteger(n)")
+        protected int roundFittingInt(double n) {
             int l = (int) n;
-            if (n - l >= 0.5) {
-                l++;
+            int signum = (int) Math.signum(n);
+            double d = Math.abs(n - l);
+            if (d >= 0.5) {
+                l += signum;
             }
             return l;
         }
 
-        @Specialization(guards = { "fitsInInteger(n)", "!isPositive(n)" })
-        protected int roundFittingIntNegative(double n) {
-            int l = (int) n;
-            if (l - n >= 0.5) {
-                l--;
-            }
-            return l;
-        }
-
-        @Specialization(guards = { "fitsInLong(n)", "isPositive(n)" }, replaces = "roundFittingIntPositive")
-        protected long roundFittingLongPositive(double n) {
+        @Specialization(guards = "fitsInLong(n)", replaces = "roundFittingInt")
+        protected long roundFittingLong(double n) {
             long l = (long) n;
-            if (n - l >= 0.5) {
-                l++;
+            long signum = (long) Math.signum(n);
+            double d = Math.abs(n - l);
+            if (d >= 0.5) {
+                l += signum;
             }
             return l;
         }
 
-        @Specialization(guards = { "fitsInLong(n)", "!isPositive(n)" }, replaces = "roundFittingIntNegative")
-        protected long roundFittingLongNegative(double n) {
-            long l = (long) n;
-            if (l - n >= 0.5) {
-                l--;
-            }
-            return l;
-        }
-
-        @Specialization(guards = "isPositive(n)", replaces = "roundFittingLongPositive")
-        protected Object roundPositive(double n,
+        @Specialization(replaces = "roundFittingLong")
+        protected Object round(double n,
                 @Cached FixnumOrBignumNode fixnumOrBignum) {
-            double f = Math.floor(n);
-            if (n - f >= 0.5) {
-                f += 1.0;
+            double signum = Math.signum(n);
+            double f = Math.floor(Math.abs(n));
+            double d = Math.abs(n) - f;
+            if (d >= 0.5) {
+                f += 1;
             }
-            return fixnumOrBignum.fixnumOrBignum(f);
+            return fixnumOrBignum.fixnumOrBignum(f * signum);
         }
+    }
 
-        @Specialization(guards = "!isPositive(n)", replaces = "roundFittingLongNegative")
-        protected Object roundNegative(double n,
-                @Cached FixnumOrBignumNode fixnumOrBignum) {
-            double f = Math.ceil(n);
-            if (f - n >= 0.5) {
-                f -= 1.0;
+    @ImportStatic(FloatRoundGuards.class)
+    @Primitive(name = "float_round_up_decimal", lowerFixnum = 1)
+    public abstract static class FloatRoundUpDecimalPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected double roundNDecimal(double n, int ndigits,
+                @Cached ConditionProfile boundaryCase) {
+            long intPart = (long) n;
+            double s = Math.pow(10.0, ndigits) * Math.signum(n);
+            double f = (n % 1) * s;
+            long fInt = (long) f;
+            double d = f % 1;
+            int limit = Math.getExponent(n) + Math.getExponent(s) - 51;
+            if (boundaryCase.profile((Math.getExponent(d) <= limit) ||
+                    (Math.getExponent(1.0 - d) <= limit))) {
+                return findClosest(n, ndigits, s, d);
+            } else if (d > 0.5 || Math.abs(n) - Math.abs((intPart + (fInt + 0.5) / s)) >= 0) {
+                fInt += 1;
             }
-            return fixnumOrBignum.fixnumOrBignum(f);
+            return intPart + fInt / s;
         }
+    }
 
+    /* If the rounding result is very near to an integer boundary then we need to find the number that is closest to the
+     * correct result. If we don't do this then it's possible to get errors in the least significant bit of the result.
+     * We'll test the adjacent double in the direction closest to the boundary and compare the fractional portions. If
+     * we're already at the minimum error we'll return the original number as it is already rounded as well as it can
+     * be. In the case of a tie we return the lower number, otherwise we check the go round again. */
+    private static double findClosest(double n, int ndigits, double s, double d) {
+        double n2;
+        while (true) {
+            if (d > 0.5) {
+                n2 = Math.nextAfter(n, n + s);
+            } else {
+                n2 = Math.nextAfter(n, n - s);
+            }
+            long intPart = (long) n2;
+            double f = (n2 % 1) * s;
+            long fInt = (long) f;
+            double d2 = f % 1;
+            int limit = Math.getExponent(n2) + Math.getExponent(s) - 52;
+            if (((d > 0.5) ? 1 - d : d) < ((d2 > 0.5) ? 1 - d2 : d2)) {
+                return n;
+            } else if (((d > 0.5) ? 1 - d : d) == ((d2 > 0.5) ? 1 - d2 : d2)) {
+                return Math.abs(n) < Math.abs(n2) ? n : n2;
+            } else {
+                d = d2;
+                n = n2;
+            }
+        }
     }
 
     @SuppressFBWarnings("FE_FLOATING_POINT_EQUALITY")
@@ -673,124 +702,142 @@ public abstract class FloatNodes {
     @Primitive(name = "float_round_even")
     public abstract static class FloatRoundEvenPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = { "fitsInInteger(n)", "isPositive(n)" })
-        protected int roundFittingIntPositive(double n) {
+        @Specialization(guards = { "fitsInInteger(n)" })
+        protected int roundFittingInt(double n) {
             int l = (int) n;
-            if (n - l == 0.5) {
+            int signum = (int) Math.signum(n);
+            double d = Math.abs(n - l);
+            if (d > 0.5) {
+                l += signum;
+            } else if (d == 0.5) {
                 l += l % 2;
             }
             return l;
         }
 
-        @Specialization(guards = { "fitsInInteger(n)", "!isPositive(n)" })
-        protected int roundFittingIntNegative(double n) {
-            int l = (int) n;
-            if (n - l == 0.5) {
-                l -= l % 2;
-            }
-            return l;
-        }
-
-        @Specialization(guards = { "fitsInLong(n)", "isPositive(n)" }, replaces = "roundFittingIntPositive")
-        protected long roundFittingLongPositive(double n) {
+        @Specialization(guards = "fitsInLong(n)", replaces = "roundFittingInt")
+        protected long roundFittingLong(double n) {
             long l = (long) n;
-            if (n - l == 0.5) {
+            long signum = (long) Math.signum(n);
+            double d = Math.abs(n - l);
+            if (d > 0.5) {
+                l += signum;
+            } else if (d == 0.5) {
                 l += l % 2;
             }
             return l;
         }
 
-        @Specialization(guards = { "fitsInLong(n)", "!isPositive(n)" }, replaces = "roundFittingIntNegative")
-        protected long roundFittingLongNegative(double n) {
-            long l = (long) n;
-            if (n - l == 0.5) {
-                l -= l % 2;
-            }
-            return l;
-        }
-
-        @Specialization(guards = "isPositive(n)", replaces = "roundFittingLongPositive")
-        protected Object roundPositive(double n,
+        @Specialization(replaces = "roundFittingLong")
+        protected Object round(double n,
                 @Cached FixnumOrBignumNode fixnumOrBignum) {
-            double f = Math.floor(n);
-            if (n - f == 0.5) {
+            double signum = Math.signum(n);
+            double f = Math.floor(Math.abs(n));
+            double d = Math.abs(n) - f;
+            if (d > 0.5) {
+                f += signum;
+            } else if (d == 0.5) {
                 f += f % 2;
             }
-            return fixnumOrBignum.fixnumOrBignum(f);
+            return fixnumOrBignum.fixnumOrBignum(f * signum);
         }
+    }
 
-        @Specialization(guards = "!isPositive(n)", replaces = "roundFittingLongNegative")
-        protected Object roundNegative(double n,
-                @Cached FixnumOrBignumNode fixnumOrBignum) {
-            double f = Math.ceil(n);
-            if (n - f == 0.5) {
-                f -= f % 2;
+    @SuppressFBWarnings("FE_FLOATING_POINT_EQUALITY")
+    @ImportStatic(FloatRoundGuards.class)
+    @Primitive(name = "float_round_even_decimal", lowerFixnum = 1)
+    public abstract static class FloatRoundEvenDecimalPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected double roundNDecimal(double n, int ndigits,
+                @Cached ConditionProfile boundaryCase) {
+            long intPart = (long) n;
+            double s = Math.pow(10.0, ndigits) * Math.signum(n);
+            double f = (n % 1) * s;
+            long fInt = (long) f;
+            double d = f % 1;
+            int limit = Math.getExponent(n) + Math.getExponent(s) - 51;
+            if (boundaryCase.profile((Math.getExponent(d) <= limit) ||
+                    (Math.getExponent(1.0 - d) <= limit))) {
+                return findClosest(n, ndigits, s, d);
+            } else if (d > 0.5) {
+                fInt += 1;
+            } else if (d == 0.5 || Math.abs(n) - Math.abs((intPart + (fInt + 0.5) / s)) >= 0) {
+                fInt += fInt % 2;
             }
-            return fixnumOrBignum.fixnumOrBignum(f);
+            return intPart + fInt / s;
         }
-
     }
 
     @ImportStatic(FloatRoundGuards.class)
     @Primitive(name = "float_round_down")
     public abstract static class FloatRoundDownPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = { "fitsInInteger(n)", "isPositive(n)" })
-        protected int roundFittingIntPositive(double n) {
+        @Specialization(guards = "fitsInInteger(n)")
+        protected int roundFittingInt(double n) {
             int l = (int) n;
-            if (n - l > 0.5) {
-                l++;
+            int signum = (int) Math.signum(n);
+            double d = Math.abs(n - l);
+            if (d > 0.5) {
+                l += signum;
             }
             return l;
         }
 
-        @Specialization(guards = { "fitsInInteger(n)", "!isPositive(n)" })
-        protected int roundFittingIntNegative(double n) {
-            int l = (int) n;
-            if (l - n > 0.5) {
-                l--;
-            }
-            return l;
-        }
-
-        @Specialization(guards = { "fitsInLong(n)", "isPositive(n)" }, replaces = "roundFittingIntPositive")
-        protected long roundFittingLongPositive(double n) {
+        @Specialization(guards = "fitsInLong(n)", replaces = "roundFittingInt")
+        protected long roundFittingLong(double n) {
             long l = (long) n;
-            if (n - l > 0.5) {
-                l++;
+            long signum = (long) Math.signum(n);
+            double d = Math.abs(n - l);
+            if (d > 0.5) {
+                l += signum;
             }
             return l;
         }
 
-        @Specialization(guards = { "fitsInLong(n)", "!isPositive(n)" }, replaces = "roundFittingIntNegative")
-        protected long roundFittingLongNegative(double n) {
-            long l = (long) n;
-            if (l - n > 0.5) {
-                l--;
-            }
-            return l;
-        }
-
-        @Specialization(guards = "isPositive(n)", replaces = "roundFittingLongPositive")
-        protected Object roundPositive(double n,
+        @Specialization(replaces = "roundFittingLong")
+        protected Object round(double n,
                 @Cached FixnumOrBignumNode fixnumOrBignum) {
-            double f = Math.floor(n);
-            if (n - f > 0.5) {
-                f += 1.0;
+            double signum = Math.signum(n);
+            double f = Math.floor(Math.abs(n));
+            double d = Math.abs(n) - f;
+            if (d > 0.5) {
+                f += 1;
             }
-            return fixnumOrBignum.fixnumOrBignum(f);
+            return fixnumOrBignum.fixnumOrBignum(f * signum);
         }
+    }
 
-        @Specialization(guards = "!isPositive(n)", replaces = "roundFittingLongNegative")
-        protected Object roundNegative(double n,
-                @Cached FixnumOrBignumNode fixnumOrBignum) {
-            double f = Math.ceil(n);
-            if (f - n > 0.5) {
-                f -= 1.0;
+    @ImportStatic(FloatRoundGuards.class)
+    @Primitive(name = "float_round_down_decimal", lowerFixnum = 1)
+    public abstract static class FloatRoundDownDecimalPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected double roundNDecimal(double n, int ndigits,
+                @Cached ConditionProfile boundaryCase) {
+            long intPart = (long) n;
+            double s = Math.pow(10.0, ndigits) * Math.signum(n);
+            double f = (n % 1) * s;
+            long fInt = (long) f;
+            double d = f % 1;
+            int limit = Math.getExponent(n) + Math.getExponent(s) - 51;
+            if (boundaryCase.profile((Math.getExponent(d) <= limit) ||
+                    (Math.getExponent(1.0 - d) <= limit))) {
+                return findClosest(n, ndigits, s, d);
+            } else if (d > 0.5 && Math.abs(n) - Math.abs((intPart + (fInt + 0.5) / s)) > 0) {
+                fInt += 1;
             }
-            return fixnumOrBignum.fixnumOrBignum(f);
+            return intPart + fInt / s;
         }
+    }
 
+    @Primitive(name = "float_exp")
+    public abstract static class FloatExpNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected int exp(double value) {
+            return Math.getExponent(value);
+        }
     }
 
     @CoreMethod(names = { "to_i", "to_int" })

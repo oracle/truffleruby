@@ -293,29 +293,43 @@ public abstract class MathNodes {
     @Primitive(name = "math_frexp")
     public abstract static class FrExpNode extends PrimitiveArrayArgumentsNode {
 
+        private static final long SIGN_MASK = 1L << 63;
+        private static final long BIASED_EXP_MASK = 0x7ffL << 52;
+        private static final long MANTISSA_MASK = ~(SIGN_MASK | BIASED_EXP_MASK);
+
         @Specialization
         protected RubyArray frexp(double a) {
             double mantissa = a;
-            short sign = 1;
             long exponent = 0;
 
-            if (!Double.isInfinite(mantissa) && mantissa != 0.0) {
-                // Make mantissa same sign so we only have one code path.
-                if (mantissa < 0) {
-                    mantissa = -mantissa;
-                    sign = -1;
-                }
+            if (Double.isFinite(mantissa) && mantissa != 0.0) {
 
-                // Increase value to hit lower range.
-                for (; mantissa < 0.5; mantissa *= 2.0, exponent -= 1) {
-                }
+                /* Double precision floating pointer numbers are represented as a sign, an exponent (which is biased by
+                 * 1023, and then a remaining 52 bits of mantissa. The mantissa has an implicit 53 bit which is not
+                 * stored and is always 1. There are two exceptions to this. Non-finite numbers have all the bits in
+                 * their exponent set, and if none of the exponent bits are set then the number is a signed zero, or
+                 * subnormal, and the implicit 53 bit is 0. See
+                 * https://en.wikipedia.org/wiki/Double-precision_floating-point_format for further details. */
 
-                // Decrease value to hit upper range.
-                for (; mantissa >= 1.0; mantissa *= 0.5, exponent += 1) {
+                final long bits = Double.doubleToRawLongBits(a);
+                long biasedExp = ((bits & BIASED_EXP_MASK) >> 52);
+                long mantissaBits = bits & MANTISSA_MASK;
+                final long signBits = bits & SIGN_MASK;
+                if (biasedExp == 0) {
+                    // Sub normal cases are a little special.
+                    // Find the most significant bit in the mantissa
+                    final int lz = Long.numberOfLeadingZeros(mantissaBits);
+                    // Shift the mantissa to make it a normal mantissa
+                    // and mask off the leading bit (now the implied 53 bit of the mantissa)..
+                    mantissaBits = (mantissaBits << (lz - 11)) & MANTISSA_MASK;
+                    // Adjust the exponent to reflect this.
+                    biasedExp = biasedExp + (lz - 11);
                 }
+                exponent = biasedExp - 1022;
+                mantissa = Double.longBitsToDouble(signBits | mantissaBits | 0x3fe0000000000000L);
             }
 
-            return createArray(new Object[]{ sign * mantissa, exponent });
+            return createArray(new Object[]{ mantissa, exponent });
         }
 
         @Fallback

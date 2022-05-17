@@ -227,15 +227,7 @@ class Float < Numeric
       elsif infinite? or nan?
         self
       else
-        _, exp = Math.frexp(self)
-        if ndigits >= (Float::DIG + 2) - (exp > 0 ? exp / 4 : exp / 3 - 1)
-          self
-        elsif ndigits < -(exp > 0 ? exp / 3 + 1 : exp / 4)
-          0.0
-        else
-          f = 10**ndigits
-          (self * f).round(half: half) / f.to_f
-        end
+        Truffle::FloatOperations.round_to_n_place(self, ndigits, half)
       end
     end
   end
