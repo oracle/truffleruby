@@ -84,6 +84,10 @@ module Truffle::POSIX
     end
   end
 
+  def self.varargs(type)
+    :"...#{to_nfi_type(type)}"
+  end
+
   # the actual function is looked up and attached on its first call
   def self.attach_function(native_name, argument_types, return_type,
                            library = LIBC, blocking = false, method_name = native_name, on = self)
@@ -184,7 +188,7 @@ module Truffle::POSIX
   attach_function :dup2, [:int, :int], :int
   attach_function :fchmod, [:int, :mode_t], :int
   attach_function :fchown, [:int, :uid_t, :gid_t], :int
-  attach_function :fcntl, [:int, :int, :int], :int
+  attach_function :fcntl, [:int, :int, varargs(:int)], :int
   attach_function :flock, [:int, :int], :int, LIBC, true
   attach_function :truffleposix_fstat, [:int, :pointer], :int, LIBTRUFFLEPOSIX
   attach_function :truffleposix_fstat_mode, [:int], :mode_t, LIBTRUFFLEPOSIX
@@ -207,7 +211,7 @@ module Truffle::POSIX
   attach_function :truffleposix_minor, [:dev_t], :uint, LIBTRUFFLEPOSIX
   attach_function :mkdir, [:string, :mode_t], :int
   attach_function :mkfifo, [:string, :mode_t], :int
-  attach_function :open, [:string, :int, :mode_t], :int
+  attach_function :open, [:string, :int, varargs(:mode_t)], :int
   attach_function :opendir, [:string], :pointer
   attach_function :pipe, [:pointer], :int
   attach_function :read, [:int, :pointer, :size_t], :ssize_t, LIBC, true
