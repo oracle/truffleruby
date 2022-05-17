@@ -51,7 +51,7 @@ public abstract class FormatEFloatNode extends FormatFloatGenericNode {
         this.expSeparator = expSeparator;
     }
 
-    @Specialization(guards = { "isFinite(dval)"})
+    @Specialization(guards = { "isFinite(dval)" })
     protected byte[] formatFGeneric(int width, int precision, double dval) {
         if (precision == PrintfSimpleTreeBuilder.DEFAULT) {
             precision = 6;

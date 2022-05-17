@@ -50,6 +50,7 @@ public abstract class FormatFloatGenericNode extends FormatNode {
         this.hasMinusFlag = hasMinusFlag;
         this.hasFSharpFlag = hasFSharpFlag;
     }
+
     @Specialization(guards = "value == POSITIVE_INFINITY")
     protected byte[] formatPositiveInfinity(int width, int precision, double value) {
         final byte[] digits;

@@ -178,8 +178,8 @@ public class RBSprintfSimpleTreeBuilder {
                                                                         .create(
                                                                                 valueNode)));
                                 break;
-                        case 'e':
-                        case 'E':
+                            case 'e':
+                            case 'E':
                                 node = WriteBytesNodeGen
                                         .create(
                                                 FormatEFloatNodeGen
@@ -196,8 +196,8 @@ public class RBSprintfSimpleTreeBuilder {
                                                                         .create(
                                                                                 valueNode)));
                                 break;
-                        case 'g':
-                        case 'G':
+                            case 'g':
+                            case 'G':
                                 node = WriteBytesNodeGen
                                         .create(
                                                 FormatGFloatNodeGen
@@ -214,7 +214,7 @@ public class RBSprintfSimpleTreeBuilder {
                                                                         .create(
                                                                                 valueNode)));
                                 break;
-                        case 'f':
+                            case 'f':
                                 node = WriteBytesNodeGen
                                         .create(
                                                 FormatFFloatNodeGen

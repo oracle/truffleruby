@@ -40,8 +40,40 @@ public abstract class FormatAFloatNode extends FormatFloatGenericNode {
     private static final long SIGN_MASK = 1L << 63;
     private static final long BIASED_EXP_MASK = 0x7ffL << 52;
     private static final long MANTISSA_MASK = ~(SIGN_MASK | BIASED_EXP_MASK);
-    private static final byte[] HEX_DIGITS = new byte[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
-    private static final byte[] HEX_DIGITS_UPPER_CASE = new byte[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+    private static final byte[] HEX_DIGITS = new byte[]{
+            '0',
+            '1',
+            '2',
+            '3',
+            '4',
+            '5',
+            '6',
+            '7',
+            '8',
+            '9',
+            'a',
+            'b',
+            'c',
+            'd',
+            'e',
+            'f' };
+    private static final byte[] HEX_DIGITS_UPPER_CASE = new byte[]{
+            '0',
+            '1',
+            '2',
+            '3',
+            '4',
+            '5',
+            '6',
+            '7',
+            '8',
+            '9',
+            'A',
+            'B',
+            'C',
+            'D',
+            'E',
+            'F' };
 
     private final char expSeparator;
 
@@ -56,7 +88,7 @@ public abstract class FormatAFloatNode extends FormatFloatGenericNode {
         this.expSeparator = expSeparator;
     }
 
-    @Specialization(guards = { "isFinite(dval)"})
+    @Specialization(guards = { "isFinite(dval)" })
     protected byte[] formatFGeneric(int width, int precision, double dval) {
         final byte[] digits = doFormat(precision, dval);
 
@@ -135,7 +167,7 @@ public abstract class FormatAFloatNode extends FormatFloatGenericNode {
                 buf.append('.');
             }
             while (mantissaBits != 0L || precision > 0) {
-                int digit = (int)((0xf000000000000L & mantissaBits) >> 48);
+                int digit = (int) ((0xf000000000000L & mantissaBits) >> 48);
                 mantissaBits = (mantissaBits << 4) & MANTISSA_MASK;
                 buf.append((expSeparator == 'a' ? HEX_DIGITS : HEX_DIGITS_UPPER_CASE)[digit]);
                 precision--;

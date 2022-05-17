@@ -47,7 +47,7 @@ public abstract class FormatFFloatNode extends FormatFloatGenericNode {
         super(hasSpaceFlag, hasZeroFlag, hasPlusFlag, hasMinusFlag, hasFSharpFlag);
     }
 
-    @Specialization(guards = { "isFinite(dval)"})
+    @Specialization(guards = { "isFinite(dval)" })
     protected byte[] formatFGeneric(int width, int precision, double dval) {
         if (precision == PrintfSimpleTreeBuilder.DEFAULT) {
             precision = 6;
