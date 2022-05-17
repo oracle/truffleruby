@@ -85,7 +85,7 @@ module Truffle::POSIX
   end
 
   def self.varargs(type)
-    "...#{to_nfi_type(type)}"
+    :"...#{to_nfi_type(type)}"
   end
 
   # the actual function is looked up and attached on its first call
