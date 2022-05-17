@@ -10,13 +10,13 @@ If you have [installed GraalVM](installing-graalvm.md), it is recommended to add
 See
 [Configuring Ruby managers for the full GraalVM distribution](#configuring-ruby-managers-for-the-full-graalvm-distribution) below.
 
-## Installing TruffleRuby with RVM, `ruby-build`, or `ruby-install`
+## Installing TruffleRuby with `rvm`, `ruby-build`, `asdf` or `ruby-install`
 
 TruffleRuby is supported by the 3 major Ruby installers.
 
-### RVM
+### `rvm`
 
-Upgrade RVM to let RVM know about the latest TruffleRuby release:
+Upgrade `rvm` to let `rvm` know about the latest TruffleRuby release:
 
 ```bash
 rvm get head
@@ -50,7 +50,7 @@ brew reinstall --HEAD ruby-build
 Check the latest available version of TruffleRuby with:
 
 ```bash
-rbenv install --list | grep truffleruby
+rbenv install --list
 ```
 
 Then install the latest TruffleRuby standalone release with:
@@ -69,6 +69,22 @@ You can also install TruffleRuby+GraalVM with:
 
 ```bash
 rbenv install truffleruby+graalvm-[LATEST_VERSION] OR truffleruby+graalvm-dev
+```
+
+### `asdf` (with `asdf-ruby` plugin)
+
+See https://github.com/asdf-vm/asdf-ruby for installing and updating `asdf-ruby`.
+
+You can install a TruffleRuby standalone release or nightly build with:
+
+```bash
+asdf install ruby truffleruby-VERSION OR truffleruby-dev
+```
+
+You can install TruffleRuby+GraalVM with:
+
+```bash
+asdf install ruby truffleruby+graalvm-VERSION OR truffleruby+graalvm-dev
 ```
 
 ### `ruby-install` and `chruby`
@@ -146,9 +162,9 @@ chruby truffleruby
 ruby --version
 ```
 
-### RVM
+### `rvm`
 
-RVM has a command for adding a precompiled Ruby to the list of available rubies:
+`rvm` has a command for adding a precompiled Ruby to the list of available rubies:
 
 ```bash
 rvm mount "$ruby_home" -n truffleruby
@@ -156,9 +172,10 @@ rvm use ext-truffleruby
 ruby --version
 ```
 
-### asdf (with asdf-ruby plugin)
+### `asdf` (with `asdf-ruby` plugin)
 
-Adding Truffleruby to asdf functions, much like `rbenv` or `chruby`, creates a symbolic link in the `.installs/ruby` directory but you also need to reshim:
+To add TruffleRuby to `asdf`, create a symbolic link in the `.installs/ruby` directory.
+You also need to reshim:
 
 ```bash
 ln -s "$ruby_home" "$HOME/.asdf/installs/ruby/truffleruby"
