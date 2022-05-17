@@ -22,6 +22,7 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
@@ -160,6 +161,7 @@ public class InternalMethod implements ObjectGraphNode {
         assert declaringModule != null;
         assert lexicalScope != null;
         assert !sharedMethodInfo.isBlock() : sharedMethodInfo;
+        assert callTarget == null || RubyRootNode.of(callTarget).getSharedMethodInfo() == sharedMethodInfo;
         assert capturedBlock instanceof Nil || capturedBlock instanceof RubyProc : capturedBlock;
         this.sharedMethodInfo = sharedMethodInfo;
         this.lexicalScope = lexicalScope;
@@ -235,6 +237,7 @@ public class InternalMethod implements ObjectGraphNode {
         if (callTarget == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callTarget = callTargetSupplier.get();
+            assert RubyRootNode.of(callTarget).getSharedMethodInfo() == sharedMethodInfo;
         }
         return callTarget;
     }
