@@ -135,10 +135,16 @@ public abstract class MethodNodes {
         protected Object call(Frame callerFrame, RubyMethod method, Object[] rubyArgs, RootCallTarget target,
                 @Cached CallInternalMethodNode callInternalMethodNode) {
             final InternalMethod internalMethod = method.method;
-            final Object[] newArgs = RubyArguments.repack(rubyArgs, method.receiver);
+            final Object receiver = method.receiver;
+            return callBoundMethod(callerFrame, internalMethod, receiver, rubyArgs, callInternalMethodNode);
+        }
+
+        static Object callBoundMethod(Frame frame, InternalMethod internalMethod, Object receiver,
+                Object[] callerRubyArgs, CallInternalMethodNode callInternalMethodNode) {
+            final Object[] newArgs = RubyArguments.repack(callerRubyArgs, receiver);
             RubyArguments.setMethod(newArgs, internalMethod);
             assert RubyArguments.assertFrameArguments(newArgs);
-            return callInternalMethodNode.execute(callerFrame, internalMethod, method.receiver, newArgs, null);
+            return callInternalMethodNode.execute(frame, internalMethod, receiver, newArgs, null);
         }
     }
 
@@ -327,13 +333,13 @@ public abstract class MethodNodes {
             final SourceSection sourceSection = method.getSharedMethodInfo().getSourceSection();
             final RubyRootNode methodRootNode = RubyRootNode.of(method.getCallTarget());
 
-            final SetReceiverNode setReceiverNode = new SetReceiverNode(method);
+            var callWithRubyMethodReceiverNode = new CallWithRubyMethodReceiverNode(method);
             final RubyLambdaRootNode wrapRootNode = new RubyLambdaRootNode(
                     getLanguage(),
                     sourceSection,
                     methodRootNode.getFrameDescriptor(),
                     method.getSharedMethodInfo(),
-                    setReceiverNode,
+                    callWithRubyMethodReceiverNode,
                     methodRootNode.getSplit(),
                     methodRootNode.returnID,
                     BreakID.INVALID,
@@ -345,22 +351,19 @@ public abstract class MethodNodes {
             return getLanguage().options.METHOD_TO_PROC_CACHE;
         }
 
-    }
+        private static class CallWithRubyMethodReceiverNode extends RubyContextSourceNode {
+            private final InternalMethod method;
+            @Child private CallInternalMethodNode callInternalMethodNode = CallInternalMethodNode.create();
 
-    private static class SetReceiverNode extends RubyContextSourceNode {
-        private final InternalMethod method;
-        @Child private CallInternalMethodNode callInternalMethodNode = CallInternalMethodNode.create();
+            public CallWithRubyMethodReceiverNode(InternalMethod method) {
+                this.method = method;
+            }
 
-        public SetReceiverNode(InternalMethod method) {
-            this.method = method;
-        }
-
-        @Override
-        public Object execute(VirtualFrame frame) {
-            final Object originalBoundMethodReceiver = RubyArguments.getSelf(RubyArguments.getDeclarationFrame(frame));
-            Object[] rubyArgs = RubyArguments.repack(frame.getArguments(), originalBoundMethodReceiver);
-            RubyArguments.setMethod(rubyArgs, method);
-            return callInternalMethodNode.execute(frame, method, originalBoundMethodReceiver, rubyArgs, null);
+            @Override
+            public Object execute(VirtualFrame frame) {
+                final Object receiver = RubyArguments.getSelf(RubyArguments.getDeclarationFrame(frame));
+                return CallNode.callBoundMethod(frame, method, receiver, frame.getArguments(), callInternalMethodNode);
+            }
         }
     }
 
