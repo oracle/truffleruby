@@ -214,7 +214,6 @@ public abstract class SymbolNodes {
                     declarationFrame,
                     variables,
                     method,
-                    nil,
                     null,
                     declarationContext);
         }

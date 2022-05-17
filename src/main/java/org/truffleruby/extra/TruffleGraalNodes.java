@@ -132,7 +132,6 @@ public abstract class TruffleGraalNodes {
                     newDeclarationFrame,
                     variables,
                     proc.method,
-                    proc.block,
                     proc.frameOnStackMarker,
                     proc.declarationContext);
 

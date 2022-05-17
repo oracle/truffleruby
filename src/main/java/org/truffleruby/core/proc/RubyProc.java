@@ -12,9 +12,7 @@ package org.truffleruby.core.proc;
 import java.util.Set;
 
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.FrameOnStackMarker;
@@ -54,7 +52,6 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
     /** Can differ from {@link SharedMethodInfo#getRawArgumentDescriptors()} */
     public final ArgumentDescriptor[] argumentDescriptors;
     public final SpecialVariableStorage declarationVariables;
-    public final Object block;
 
     public RubyProc(
             RubyClass rubyClass,
@@ -67,11 +64,9 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
             MaterializedFrame declarationFrame,
             SpecialVariableStorage declarationVariables,
             InternalMethod method,
-            Object block,
             FrameOnStackMarker frameOnStackMarker,
             DeclarationContext declarationContext) {
         super(rubyClass, shape);
-        assert block instanceof Nil || block instanceof RubyProc : StringUtils.toString(block);
         this.type = type;
         this.arity = arity;
         this.argumentDescriptors = argumentDescriptors;
@@ -80,7 +75,6 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
         this.declarationFrame = declarationFrame;
         this.declarationVariables = declarationVariables;
         this.method = method;
-        this.block = block;
         this.frameOnStackMarker = frameOnStackMarker;
         this.declarationContext = declarationContext;
     }
@@ -98,7 +92,6 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
                 declarationFrame,
                 declarationVariables,
                 method,
-                block,
                 frameOnStackMarker,
                 declarationContext);
     }
@@ -107,7 +100,6 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
     public void getAdjacentObjects(Set<Object> reachable) {
         ObjectGraph.getObjectsInFrame(declarationFrame, reachable);
         ObjectGraph.addProperty(reachable, method);
-        ObjectGraph.addProperty(reachable, block);
     }
 
     public boolean isLambda() {

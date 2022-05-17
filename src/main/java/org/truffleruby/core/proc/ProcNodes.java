@@ -125,7 +125,6 @@ public abstract class ProcNodes {
                     block.declarationFrame,
                     block.declarationVariables,
                     block.method,
-                    block.block,
                     block.frameOnStackMarker,
                     block.declarationContext);
 
@@ -164,7 +163,6 @@ public abstract class ProcNodes {
                     proc.declarationFrame,
                     proc.declarationVariables,
                     proc.method,
-                    proc.block,
                     proc.frameOnStackMarker,
                     proc.declarationContext);
 
