@@ -104,12 +104,12 @@ public abstract class FormatEFloatNode extends FormatFloatGenericNode {
         DecimalFormatSymbols symbols = format.getDecimalFormatSymbols();
         String separator;
         if (precision == 0 && hasFSharpFlag) {
-            separator = ".";
+            format.setDecimalSeparatorAlwaysShown(true);
         } else {
-            separator = "";
+            format.setDecimalSeparatorAlwaysShown(false);
         }
 
-        separator += expSeparator;
+        separator = Character.toString(expSeparator);
 
         if ((Math.abs(dval) >= 1.0 || dval == 0.0)) {
             separator += '+';

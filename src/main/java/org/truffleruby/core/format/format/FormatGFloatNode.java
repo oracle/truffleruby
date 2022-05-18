@@ -71,21 +71,7 @@ public abstract class FormatGFloatNode extends FormatFloatGenericNode {
 
         final ByteArrayBuilder buf = new ByteArrayBuilder();
 
-        int expPos = 0;
-
-        if (simple) {
-            width -= digits.length;
-        } else {
-            if (precision == 0 && hasFSharpFlag) {
-                for (int i = 0; i < digits.length; i++) {
-                    if ('e' == digits[i] || 'E' == digits[i]) {
-                        expPos = i;
-                    }
-                }
-            }
-            width -= digits.length;
-            width -= 1;
-        }
+        width -= digits.length;
 
         if (width > 0 && !hasMinusFlag) {
             if (hasZeroFlag) {
@@ -94,14 +80,14 @@ public abstract class FormatGFloatNode extends FormatFloatGenericNode {
                     buf.append(digits, 0, 1);
                 }
                 buf.append('0', width);
-                appendNumber(digits, buf, firstDigit ? 0 : 1, expPos);
+                appendNumber(digits, buf, firstDigit ? 0 : 1);
             } else {
                 buf.append(' ', width);
-                appendNumber(digits, buf, 0, expPos);
+                appendNumber(digits, buf, 0);
             }
             width = 0;
         } else {
-            appendNumber(digits, buf, 0, expPos);
+            appendNumber(digits, buf, 0);
             if (width > 0) {
                 buf.append(' ', width);
             }
@@ -109,14 +95,8 @@ public abstract class FormatGFloatNode extends FormatFloatGenericNode {
         return buf.getBytes();
     }
 
-    private static void appendNumber(byte[] digits, ByteArrayBuilder buf, int start, int expPos) {
-        if (expPos == 0) {
-            buf.append(digits, start, digits.length - start);
-        } else {
-            buf.append(digits, start, expPos - start);
-            buf.append('.');
-            buf.append(digits, expPos, digits.length - expPos);
-        }
+    private static void appendNumber(byte[] digits, ByteArrayBuilder buf, int start) {
+        buf.append(digits, start, digits.length - start);
     }
 
     protected static boolean inSimpleRange(int precision, double value) {
@@ -135,15 +115,7 @@ public abstract class FormatGFloatNode extends FormatFloatGenericNode {
             format.setPositivePrefix("");
         }
 
-        if (simple) {
-            if (precision == 0 && hasFSharpFlag) {
-                format.setPositiveSuffix(".");
-                format.setNegativeSuffix(".");
-            } else {
-                format.setPositiveSuffix("");
-                format.setNegativeSuffix("");
-            }
-        }
+        format.setDecimalSeparatorAlwaysShown(precision == 0 && hasFSharpFlag);
 
         if (!simple) {
             DecimalFormatSymbols symbols = format.getDecimalFormatSymbols();
