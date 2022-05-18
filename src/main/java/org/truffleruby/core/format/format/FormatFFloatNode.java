@@ -111,6 +111,15 @@ public abstract class FormatFFloatNode extends FormatFloatGenericNode {
         format.setMaximumFractionDigits(precision);
         digits = format.format(dval).getBytes();
 
-        return digits;
+        if (precision <= 340) {
+            return digits;
+        } else {
+            // Decimal format has a limit of 340 decimal places, and apparently people require more.
+
+            final ByteArrayBuilder buf = new ByteArrayBuilder();
+            buf.append(digits);
+            buf.append('0', precision - 340);
+            return buf.getBytes();
+        }
     }
 }
