@@ -6,12 +6,23 @@ describe "Array#sample" do
     ary = [0, 1, 2, 3]
     3.times do |i|
       counts = [0, 0, 0, 0]
-      4000.times do
-        counts[ary.sample(3)[i]] += 1
+      iters = 4000
+      expected = iters / counts.size
+      iters.times do
+        x = ary.sample(3)[i]
+        counts[x] += 1
       end
+      chi_squared = 0.0
       counts.each do |count|
-        (800..1200).should include(count)
+        chi_squared += (((count - expected) ** 2) * 1.0 / expected)
       end
+
+      # Chi squared critical values for tests with 4 degrees of freedom
+      # Values obtained from NIST Engineering Statistic Handbook at
+      # https://www.itl.nist.gov/div898/handbook/eda/section3/eda3674.htm
+
+      chi_squared.should <= 9.488
+      chi_squared.should >= 0.711
     end
   end
 
