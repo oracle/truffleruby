@@ -3,27 +3,14 @@ require_relative 'fixtures/classes'
 
 describe "Array#sample" do
   it "samples evenly" do
-    ary = [0, 1, 2, 3]
-    3.times do |i|
-      counts = [0, 0, 0, 0]
-      iters = 4000
-      expected = iters / counts.size
-      iters.times do
-        x = ary.sample(3)[i]
-        counts[x] += 1
-      end
-      chi_squared = 0.0
-      counts.each do |count|
-        chi_squared += (((count - expected) ** 2) * 1.0 / expected)
-      end
-
-      # Chi squared critical values for tests with 4 degrees of freedom
-      # Values obtained from NIST Engineering Statistic Handbook at
-      # https://www.itl.nist.gov/div898/handbook/eda/section3/eda3674.htm
-
-      chi_squared.should <= 9.488
-      chi_squared.should >= 0.711
-    end
+    ArraySpecs.measure_sample_fairness(4, 1, 4000)
+    ArraySpecs.measure_sample_fairness(4, 2, 4000)
+    ArraySpecs.measure_sample_fairness(4, 3, 4000)
+    ArraySpecs.measure_sample_fairness(40, 3, 4000)
+    ArraySpecs.measure_sample_fairness(40, 4, 4000)
+    ArraySpecs.measure_sample_fairness(40, 8, 4000)
+    ArraySpecs.measure_sample_fairness(40, 16, 4000)
+    ArraySpecs.measure_sample_fairness_large_sample_size(100, 80, 40000)
   end
 
   it "returns nil for an empty Array" do
