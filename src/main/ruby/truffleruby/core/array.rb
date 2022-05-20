@@ -1073,11 +1073,12 @@ class Array
   end
 
   private def sample_many_swap(count, rng)
-    # linear dependence on array size, therefore very slow for small count / size
+    # linear dependence on count,
     result = Array.new(self)
 
-    count.times do |c|
-      result.__send__ :swap, c, rng.rand(size)
+    count.times do |i|
+      r = i + rng.rand(result.size - i)
+      result.__send__ :swap, i, r
     end
 
     count == size ? result : result[0, count]
