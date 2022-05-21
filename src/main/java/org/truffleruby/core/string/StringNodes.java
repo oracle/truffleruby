@@ -1570,20 +1570,23 @@ public abstract class StringNodes {
     public abstract static class StringGetByteNode extends CoreMethodArrayArgumentsNode {
 
         @Child private NormalizeIndexNode normalizeIndexNode = NormalizeIndexNode.create();
-        @Child private GetByteNode ropeGetByteNode = GetByteNode.create();
+        @Child private TruffleString.ReadByteNode readByteNode = TruffleString.ReadByteNode.create();
 
         @Specialization
         protected Object getByte(Object string, int index,
                 @Cached ConditionProfile indexOutOfBoundsProfile,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
-            final Rope rope = libString.getRope(string);
-            final int normalizedIndex = normalizeIndexNode.executeNormalize(index, rope.byteLength());
+            var tstring = libString.getTString(string);
+            var encoding = libString.getEncoding(string).tencoding;
+            int byteLength = tstring.byteLength(encoding);
 
-            if (indexOutOfBoundsProfile.profile((normalizedIndex < 0) || (normalizedIndex >= rope.byteLength()))) {
+            final int normalizedIndex = normalizeIndexNode.executeNormalize(index, byteLength);
+
+            if (indexOutOfBoundsProfile.profile((normalizedIndex < 0) || (normalizedIndex >= byteLength))) {
                 return nil;
             }
 
-            return ropeGetByteNode.executeGetByte(rope, normalizedIndex);
+            return readByteNode.execute(tstring, normalizedIndex, encoding);
         }
 
     }
