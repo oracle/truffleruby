@@ -908,18 +908,24 @@ public abstract class StringNodes {
     @CoreMethod(names = "bytes", needsBlock = true)
     public abstract static class StringBytesNode extends YieldingCoreMethodNode {
 
-        @Child private BytesNode bytesNode = BytesNode.create();
+        @Child private TruffleString.GetInternalByteArrayNode getByteArrayNode = TruffleString.GetInternalByteArrayNode
+                .create();
 
         @Specialization
         protected RubyArray bytes(Object string, Nil block,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            final Rope rope = strings.getRope(string);
-            final byte[] bytes = bytesNode.execute(rope);
+            var tstring = strings.getTString(string);
+            var encoding = strings.getEncoding(string).tencoding;
+            var byteArray = getByteArrayNode.execute(tstring, encoding);
 
-            final int[] store = new int[bytes.length];
+            var bytes = byteArray.getArray();
+            int arrayLength = tstring.byteLength(encoding);
+            int offset = byteArray.getOffset();
 
-            for (int n = 0; n < store.length; n++) {
-                store[n] = bytes[n] & 0xFF;
+            final int[] store = new int[arrayLength];
+
+            for (int i = 0; i < arrayLength; i++) {
+                store[i] = bytes[i + offset] & 0xFF;
             }
 
             return createArray(store);
@@ -928,10 +934,15 @@ public abstract class StringNodes {
         @Specialization
         protected Object bytes(Object string, RubyProc block,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            Rope rope = strings.getRope(string);
-            byte[] bytes = bytesNode.execute(rope);
+            var tstring = strings.getTString(string);
+            var encoding = strings.getEncoding(string).tencoding;
+            var byteArray = getByteArrayNode.execute(tstring, encoding);
 
-            for (int i = 0; i < bytes.length; i++) {
+            var bytes = byteArray.getArray();
+            int offset = byteArray.getOffset();
+            int end = byteArray.getEnd();
+
+            for (int i = offset; i < end; i++) {
                 callBlock(block, bytes[i] & 0xff);
             }
 
