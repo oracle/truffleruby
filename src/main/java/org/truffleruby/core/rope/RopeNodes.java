@@ -514,37 +514,6 @@ public abstract class RopeNodes {
 
     }
 
-    @GenerateUncached
-    public abstract static class GetByteNode extends RubyBaseNode {
-
-        public static GetByteNode create() {
-            return RopeNodesFactory.GetByteNodeGen.create();
-        }
-
-        public abstract int executeGetByte(Rope rope, int index);
-
-        @Specialization(guards = "rope.getRawBytes() != null")
-        protected int getByte(Rope rope, int index) {
-            return rope.getRawBytes()[index] & 0xff;
-        }
-
-        @Specialization(guards = "rope.getRawBytes() == null")
-        protected int getByte(NativeRope rope, int index) {
-            return rope.get(index) & 0xff;
-        }
-
-        @Specialization(guards = "rope.getRawBytes() == null")
-        protected int getByteSubstringRope(SubstringRope rope, int index,
-                @Cached ConditionProfile childRawBytesNullProfile,
-                @Cached ByteSlowNode slowByte) {
-            if (childRawBytesNullProfile.profile(rope.getChild().getRawBytes() == null)) {
-                return slowByte.execute(rope, index) & 0xff;
-            }
-
-            return rope.getChild().getRawBytes()[index + rope.getByteOffset()] & 0xff;
-        }
-    }
-
     public abstract static class EqualNode extends RubyBaseNode {
 
         public static EqualNode create() {
