@@ -2684,18 +2684,21 @@ public abstract class StringNodes {
         public abstract Object executeSum(Object string, Object bits);
 
         @Child private DispatchNode addNode = DispatchNode.create();
-        private final BytesNode bytesNode = BytesNode.create();
+        @Child private TruffleString.GetInternalByteArrayNode byteArrayNode = TruffleString.GetInternalByteArrayNode
+                .create();
 
         @Specialization
         protected Object sum(Object string, long bits,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             // Copied from JRuby
 
-            final Rope rope = strings.getRope(string);
-            final byte[] bytes = bytesNode.execute(rope);
-            int p = 0;
-            final int len = rope.byteLength();
-            final int end = p + len;
+            var tstring = strings.getTString(string);
+            var encoding = strings.getEncoding(string).tencoding;
+            var byteArray = byteArrayNode.execute(tstring, encoding);
+
+            var bytes = byteArray.getArray();
+            int p = byteArray.getOffset();
+            final int end = byteArray.getEnd();
 
             if (bits >= 8 * 8) { // long size * bits in byte
                 Object sum = 0;
