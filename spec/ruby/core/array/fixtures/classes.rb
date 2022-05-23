@@ -61,18 +61,23 @@ module ArraySpecs
   def self.measure_sample_fairness(size, samples, iters)
     ary = Array.new(size) { |x| x }
     (samples).times do |i|
-      counts = Array.new(size) { 0 }
-      expected = iters / size
-      iters.times do
-        x = ary.sample(samples)[i]
-        counts[x] += 1
-      end
-      chi_squared = 0.0
-      counts.each do |count|
-        chi_squared += (((count - expected) ** 2) * 1.0 / expected)
+      chi_results = []
+      3.times do
+        counts = Array.new(size) { 0 }
+        expected = iters / size
+        iters.times do
+          x = ary.sample(samples)[i]
+          counts[x] += 1
+        end
+        chi_squared = 0.0
+        counts.each do |count|
+          chi_squared += (((count - expected) ** 2) * 1.0 / expected)
+        end
+        chi_results << chi_squared
+        break if chi_squared <= CHI_SQUARED_CRITICAL_VALUES[size]
       end
 
-      chi_squared.should <= CHI_SQUARED_CRITICAL_VALUES[size]
+      chi_results.min.should <= CHI_SQUARED_CRITICAL_VALUES[size]
     end
   end
 
