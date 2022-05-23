@@ -145,7 +145,6 @@ import org.truffleruby.core.rope.RopeNodes.BytesNode;
 import org.truffleruby.core.rope.RopeNodes.CalculateCharacterLengthNode;
 import org.truffleruby.core.rope.RopeNodes.CharacterLengthNode;
 import org.truffleruby.core.rope.RopeNodes.CodeRangeNode;
-import org.truffleruby.core.rope.RopeNodes.GetByteNode;
 import org.truffleruby.core.rope.RopeNodes.GetBytesObjectNode;
 import org.truffleruby.core.rope.RopeNodes.SingleByteOptimizableNode;
 import org.truffleruby.core.rope.RopeOperations;
@@ -4454,213 +4453,50 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class StringRindexPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CheckEncodingNode checkEncodingNode;
-        @Child CodeRangeNode codeRangeNode = CodeRangeNode.create();
-        @Child NewSingleByteOptimizableNode singleByteNode = NewSingleByteOptimizableNode.create();
-
-        @Specialization(guards = { "isEmpty(stringsPattern.getRope(pattern))" })
-        protected Object stringRindexEmptyPattern(Object string, Object pattern, int byteOffset,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsPattern) {
-            assert byteOffset >= 0;
-            return byteOffset;
-        }
-
-        @Specialization(guards = {
-                "isSingleByteString(patternRope)",
-                "!isBrokenCodeRange(patternRope, codeRangeNode)",
-                "canMemcmp(libString.getTString(string), patternTString, " +
-                        "libString.getEncoding(string), libPattern.getEncoding(pattern), singleByteNode)" })
-        protected Object stringRindexSingleBytePattern(Object string, Object pattern, int byteOffset,
+        @Specialization
+        protected Object stringRindex(Object rubyString, Object rubyPattern, int byteOffset,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libPattern,
-                @Bind("libPattern.getRope(pattern)") Rope patternRope,
-                @Bind("libPattern.getTString(pattern)") AbstractTruffleString patternTString,
-                @Cached BytesNode bytesNode,
-                @Cached BranchProfile startTooLargeProfile,
-                @Cached BranchProfile matchFoundProfile,
-                @Cached BranchProfile noMatchProfile,
-                @Cached LoopConditionProfile loopProfile,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
-            assert byteOffset >= 0;
-
-            checkEncoding(string, pattern);
-
-            final Rope sourceRope = libString.getRope(string);
-            final int end = sourceRope.byteLength();
-            final byte[] sourceBytes = bytesNode.execute(sourceRope);
-            final byte searchByte = bytesNode.execute(patternRope)[0];
-            int normalizedStart = byteOffset;
-
-            if (normalizedStart >= end) {
-                startTooLargeProfile.enter();
-                normalizedStart = end - 1;
-            }
-
-            int i = normalizedStart;
-            try {
-                for (; loopProfile.inject(i >= 0); i--) {
-                    if (sourceBytes[i] == searchByte) {
-                        matchFoundProfile.enter();
-                        return i;
-                    }
-                    TruffleSafepoint.poll(this);
-                }
-            } finally {
-                profileAndReportLoopCount(loopProfile, normalizedStart - i);
-            }
-
-            noMatchProfile.enter();
-            return nil;
-        }
-
-        @Specialization(guards = {
-                "!isEmpty(patternRope)",
-                "!isSingleByteString(patternRope)",
-                "!isBrokenCodeRange(patternRope, codeRangeNode)",
-                "canMemcmp(libString.getTString(string), patternTString, " +
-                        "libString.getEncoding(string), libPattern.getEncoding(pattern), singleByteNode)" })
-        protected Object stringRindexMultiBytePattern(Object string, Object pattern, int byteOffset,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libPattern,
-                @Bind("libPattern.getRope(pattern)") Rope patternRope,
-                @Bind("libPattern.getTString(pattern)") AbstractTruffleString patternTString,
-                @Cached BytesNode bytesNode,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
+                @Cached CheckEncodingNode checkEncodingNode,
+                @Cached TruffleString.LastByteIndexOfStringNode lastByteIndexOfStringNode,
                 @Cached BranchProfile startOutOfBoundsProfile,
                 @Cached BranchProfile startTooCloseToEndProfile,
-                @Cached BranchProfile matchFoundProfile,
-                @Cached BranchProfile noMatchProfile,
-                @Cached LoopConditionProfile loopProfile,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
+                @Cached BranchProfile noMatchProfile) {
             assert byteOffset >= 0;
 
-            checkEncoding(string, pattern);
+            // Throw an exception if the encodings are not compatible.
+            checkEncodingNode.executeCheckEncoding(rubyString, rubyPattern);
 
-            final Rope sourceRope = libString.getRope(string);
-            final int end = sourceRope.byteLength();
-            final byte[] sourceBytes = bytesNode.execute(sourceRope);
-            final int matchSize = patternRope.byteLength();
-            final byte[] searchBytes = bytesNode.execute(patternRope);
+            var string = libString.getTString(rubyString);
+            var stringEncoding = libString.getEncoding(rubyString).tencoding;
+            int stringByteLength = string.byteLength(stringEncoding);
+
+            var pattern = libPattern.getTString(rubyPattern);
+            var patternEncoding = libPattern.getEncoding(rubyPattern).tencoding;
+            int patternByteLength = pattern.byteLength(patternEncoding);
+
             int normalizedStart = byteOffset;
 
-            if (normalizedStart >= end) {
+            if (normalizedStart >= stringByteLength) {
                 startOutOfBoundsProfile.enter();
-                normalizedStart = end - 1;
+                normalizedStart = stringByteLength - 1;
             }
 
-            if (end - normalizedStart < matchSize) {
+            if (stringByteLength - normalizedStart < patternByteLength) {
                 startTooCloseToEndProfile.enter();
-                normalizedStart = end - matchSize;
+                normalizedStart = stringByteLength - patternByteLength;
             }
 
-            int i = normalizedStart;
-            try {
-                for (; loopProfile.inject(i >= 0); i--) {
-                    if (sourceBytes[i] == searchBytes[0]) {
-                        if (ArrayUtils.regionEquals(sourceBytes, i, searchBytes, 0, matchSize)) {
-                            matchFoundProfile.enter();
-                            return i;
-                        }
-                    }
-                    TruffleSafepoint.poll(this);
-                }
-            } finally {
-                profileAndReportLoopCount(loopProfile, normalizedStart - i);
+            int result = lastByteIndexOfStringNode.execute(string, pattern, normalizedStart + patternByteLength, 0,
+                    stringEncoding);
+
+            if (result < 0) {
+                noMatchProfile.enter();
+                return nil;
             }
 
-            noMatchProfile.enter();
-            return nil;
+            return result;
         }
-
-        @Specialization(guards = { "isBrokenCodeRange(stringsPattern.getRope(pattern), codeRangeNode)" })
-        protected Object stringRindexBrokenPattern(Object string, Object pattern, int byteOffset,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsPattern) {
-            assert byteOffset >= 0;
-            return nil;
-        }
-
-        @Specialization(guards = {
-                "!isBrokenCodeRange(patternRope, codeRangeNode)",
-                "!canMemcmp(libString.getTString(string), patternTString, " +
-                        "libString.getEncoding(string), libPattern.getEncoding(pattern), singleByteNode)" })
-        protected Object stringRindex(Object string, Object pattern, int byteOffset,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libPattern,
-                @Bind("libPattern.getRope(pattern)") Rope patternRope,
-                @Bind("libPattern.getTString(pattern)") AbstractTruffleString patternTString,
-                @Cached BytesNode stringBytes,
-                @Cached BytesNode patternBytes,
-                @Cached GetByteNode patternGetByteNode,
-                @Cached GetByteNode stringGetByteNode,
-                @Cached LoopConditionProfile loopProfile,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
-            // Taken from Rubinius's String::rindex.
-            assert byteOffset >= 0;
-
-            int pos = byteOffset;
-
-            final Rope stringRope = libString.getRope(string);
-            final int total = stringRope.byteLength();
-            final int matchSize = patternRope.byteLength();
-
-            if (pos >= total) {
-                pos = total - 1;
-            }
-
-            switch (matchSize) {
-                case 0: {
-                    return byteOffset;
-                }
-
-                case 1: {
-                    final int matcher = patternGetByteNode.executeGetByte(patternRope, 0);
-
-                    while (pos >= 0) {
-                        if (stringGetByteNode.executeGetByte(stringRope, pos) == matcher) {
-                            return pos;
-                        }
-
-                        pos--;
-                    }
-
-                    return nil;
-                }
-
-                default: {
-                    if (total - pos < matchSize) {
-                        pos = total - matchSize;
-                    }
-
-                    int cur = pos;
-
-                    try {
-                        while (loopProfile.inject(cur >= 0)) {
-                            if (ArrayUtils.regionEquals(
-                                    stringBytes.execute(stringRope),
-                                    cur,
-                                    patternBytes.execute(patternRope),
-                                    0,
-                                    matchSize)) {
-                                return cur;
-                            }
-
-                            cur--;
-                            TruffleSafepoint.poll(this);
-                        }
-                    } finally {
-                        profileAndReportLoopCount(loopProfile, pos - cur);
-                    }
-                }
-            }
-
-            return nil;
-        }
-
-        private void checkEncoding(Object string, Object pattern) {
-            if (checkEncodingNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                checkEncodingNode = insert(CheckEncodingNode.create());
-            }
-
-            checkEncodingNode.executeCheckEncoding(string, pattern);
-        }
-
     }
 
     @Primitive(name = "string_splice", lowerFixnum = { 2, 3 })
