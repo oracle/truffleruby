@@ -147,7 +147,6 @@ import org.truffleruby.core.rope.RopeNodes.CharacterLengthNode;
 import org.truffleruby.core.rope.RopeNodes.CodeRangeNode;
 import org.truffleruby.core.rope.RopeNodes.GetByteNode;
 import org.truffleruby.core.rope.RopeNodes.GetBytesObjectNode;
-import org.truffleruby.core.rope.RopeNodes.GetCodePointNode;
 import org.truffleruby.core.rope.RopeNodes.SingleByteOptimizableNode;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.RopeWithEncoding;
@@ -1763,8 +1762,7 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class LstripBangNode extends CoreMethodArrayArgumentsNode {
 
-        @Child TruffleString.CodePointAtByteIndexNode codePointAtByteIndexNode = TruffleString.CodePointAtByteIndexNode
-                .create();
+        @Child GetCodePointNode getCodePointNode = GetCodePointNode.create();
         @Child TruffleString.SubstringByteIndexNode substringNode = TruffleString.SubstringByteIndexNode.create();
 
         @Specialization(guards = "isEmpty(string.rope)")
@@ -1783,7 +1781,7 @@ public abstract class StringNodes {
             final Rope rope = string.rope;
             var tstring = string.tstring;
             var encoding = string.encoding;
-            int firstCodePoint = codePointAtByteIndexNode.execute(tstring, 0, encoding.tencoding);
+            int firstCodePoint = getCodePointNode.executeGetCodePoint(tstring, encoding, 0);
 
             // Check the first code point to see if it's a space. In the case of strings without leading spaces,
             // this check can avoid having to materialize the entire byte[] (a potentially expensive operation
@@ -1821,7 +1819,7 @@ public abstract class StringNodes {
 
             int p = s;
             while (p < end) {
-                int c = codePointAtByteIndexNode.execute(tstring, p, enc.tencoding);
+                int c = getCodePointNode.executeGetCodePoint(tstring, enc, p);
                 if (!StringSupport.isAsciiSpaceOrNull(c)) {
                     break;
                 }
@@ -1852,7 +1850,7 @@ public abstract class StringNodes {
         protected int ord(Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached GetCodePointNode getCodePointNode) {
-            return getCodePointNode.executeGetCodePoint(strings.getEncoding(string), strings.getRope(string), 0);
+            return getCodePointNode.executeGetCodePoint(strings.getTString(string), strings.getEncoding(string), 0);
         }
 
     }
@@ -1910,8 +1908,7 @@ public abstract class StringNodes {
             var encoding = string.encoding;
             final Rope rope = string.rope;
             var tstring = string.tstring;
-            final int lastCodePoint = getCodePointNode
-                    .executeGetCodePoint(encoding, rope, rope.byteLength() - 1);
+            final int lastCodePoint = getCodePointNode.executeGetCodePoint(tstring, encoding, rope.byteLength() - 1);
 
             // Check the last code point to see if it's a space or NULL. In the case of strings without leading spaces,
             // this check can avoid having to materialize the entire byte[] (a potentially expensive operation
@@ -1959,7 +1956,7 @@ public abstract class StringNodes {
             int endp = end;
             int prev;
             while ((prev = prevCharHead(enc.jcoding, bytes, start, endp, end)) != -1) {
-                int point = getCodePointNode.executeGetCodePoint(enc, rope, prev);
+                int point = getCodePointNode.executeGetCodePoint(tstring, enc, prev);
                 if (!StringSupport.isAsciiSpaceOrNull(point)) {
                     break;
                 }
@@ -3430,12 +3427,12 @@ public abstract class StringNodes {
         protected boolean isCharacterPrintable(Object character,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached ConditionProfile is7BitProfile,
-                @Cached TruffleString.GetByteCodeRangeNode getCodeRangeNode,
-                @Cached TruffleString.CodePointAtByteIndexNode getCodePointNode) {
+                @Cached GetCodePointNode getCodePointNode,
+                @Cached TruffleString.GetByteCodeRangeNode getCodeRangeNode) {
             final RubyEncoding encoding = strings.getEncoding(character);
             final var tString = strings.getTString(character);
 
-            final int codePoint = getCodePointNode.execute(tString, 0, encoding.tencoding);
+            final int codePoint = getCodePointNode.executeGetCodePoint(tString, encoding, 0);
             final boolean asciiOnly = TStringGuards.is7Bit(tString, encoding, getCodeRangeNode);
 
             if (is7BitProfile.profile(asciiOnly)) {
@@ -3553,8 +3550,8 @@ public abstract class StringNodes {
                 @Cached ConditionProfile executeBlockProfile,
                 @Cached ConditionProfile growArrayProfile,
                 @Cached ConditionProfile trailingSubstringProfile,
-                @Cached TruffleString.SubstringByteIndexNode substringNode,
-                @Cached TruffleString.CodePointAtByteIndexNode codePointAtByteIndexNode) {
+                @Cached GetCodePointNode getCodePointNode,
+                @Cached TruffleString.SubstringByteIndexNode substringNode) {
             Object[] ret = new Object[10];
             int storeIndex = 0;
 
@@ -3575,7 +3572,7 @@ public abstract class StringNodes {
 
             int e = 0, b = 0;
             while (p < end) {
-                int c = codePointAtByteIndexNode.execute(tString, p, encoding.tencoding);
+                int c = getCodePointNode.executeGetCodePoint(tString, encoding, p);
                 p += StringSupport.characterLength(enc, cr, bytes, p, end, true);
 
                 if (skip) {
@@ -4935,6 +4932,53 @@ public abstract class StringNodes {
                 return encoding.jcoding.isSingleByte();
             }
         }
+    }
+
+    @ImportStatic(TStringGuards.class)
+    public abstract static class GetCodePointNode extends RubyBaseNode {
+        @Child protected TruffleString.GetByteCodeRangeNode codeRangeNode = TruffleString.GetByteCodeRangeNode.create();
+
+        public static GetCodePointNode create() {
+            return StringNodesFactory.GetCodePointNodeGen.create();
+        }
+
+        public abstract int executeGetCodePoint(AbstractTruffleString string, RubyEncoding encoding, int byteIndex);
+
+        @Specialization(guards = "!isBrokenCodeRange(string, encoding, codeRangeNode)")
+        protected int getCodePointNonBroken(AbstractTruffleString string, RubyEncoding encoding, int byteIndex,
+                @Cached TruffleString.CodePointAtByteIndexNode getCodePointNode) {
+            return getCodePointNode.execute(string, byteIndex, encoding.tencoding);
+        }
+
+        @Specialization(guards = "isBrokenCodeRange(string, encoding, codeRangeNode)")
+        protected int getCodePointBroken(AbstractTruffleString string, RubyEncoding encoding, int byteIndex,
+                @Cached TruffleString.CodePointAtByteIndexNode getCodePointNode,
+                @Cached TruffleString.ByteLengthOfCodePointNode codePointLengthNode,
+                @Cached ConditionProfile potentiallyBadCodePointProfile,
+                @Cached ConditionProfile definitelyBadCodePointProfile) {
+            int codePoint = getCodePointNode.execute(string, byteIndex, encoding.tencoding);
+
+            // TruffleString will return the Unicode Replacement Character if a valid code point cannot be read.
+            // Of course, it will also return that code point if the string has that code point at the specified byte index.
+            if (potentiallyBadCodePointProfile.profile(codePoint == 0xfffd)) {
+                int characterLength = codePointLengthNode.execute(string, byteIndex, encoding.tencoding);
+
+                // TruffleString will return a byte length of 1 for invalid code points. We can use that knowledge to
+                // distinguish whether a Unicode Replacement Character appeared in the string or was used as a default
+                // value for a broken byte range. If it appears in the string, it should have the Replacement Character's
+                // true byte length of 3.
+                if (definitelyBadCodePointProfile.profile(characterLength != 3)) {
+                    throw new RaiseException(
+                            getContext(),
+                            getContext().getCoreExceptions().argumentError(
+                                    Utils.concat("invalid byte sequence in ", encoding),
+                                    null));
+                }
+            }
+
+            return codePoint;
+        }
+
     }
 
     public abstract static class StringAppendNode extends RubyBaseNode {

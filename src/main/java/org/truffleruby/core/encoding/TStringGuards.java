@@ -28,4 +28,9 @@ public abstract class TStringGuards {
         return is7Bit(tstring, encoding, TruffleString.GetByteCodeRangeNode.getUncached());
     }
 
+    public static boolean isBrokenCodeRange(AbstractTruffleString string, RubyEncoding encoding,
+            TruffleString.GetByteCodeRangeNode codeRangeNode) {
+        return codeRangeNode.execute(string, encoding.tencoding) == TruffleString.CodeRange.BROKEN;
+    }
+
 }
