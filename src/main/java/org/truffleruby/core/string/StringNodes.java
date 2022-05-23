@@ -1995,7 +1995,8 @@ public abstract class StringNodes {
         @Child private TruffleString.ConcatNode concatNode = TruffleString.ConcatNode.create();
         @Child private CalculateCharacterLengthNode calculateCharacterLengthNode = CalculateCharacterLengthNode
                 .create();
-        @Child private BytesNode bytesNode = BytesNode.create();
+        @Child private TruffleString.GetInternalByteArrayNode byteArrayNode = TruffleString.GetInternalByteArrayNode
+                .create();
         @Child TruffleString.SubstringByteIndexNode substringNode = TruffleString.SubstringByteIndexNode.create();
 
         @Specialization(
@@ -2012,11 +2013,12 @@ public abstract class StringNodes {
             var tstring = strings.getTString(string);
             TruffleString buf = EMPTY_BINARY_TSTRING;
 
-            final byte[] pBytes = bytesNode.execute(rope);
-            final int e = pBytes.length;
+            var byteArray = byteArrayNode.execute(tstring, tencoding);
+            final byte[] pBytes = byteArray.getArray();
+            final int e = tstring.byteLength(tencoding);
 
-            int p = 0;
-            int p1 = 0;
+            int p = byteArray.getOffset();
+            int p1 = p;
 
             p = StringSupport.searchNonAscii(pBytes, p, e);
             if (p == -1) {
@@ -2032,7 +2034,7 @@ public abstract class StringNodes {
                     // p1~p: valid ascii/multibyte chars
                     // p ~e: invalid bytes + unknown bytes
                     clen = enc.maxLength();
-                    if (p1 < p) {
+                    if (p > p1) {
                         buf = concatNode.execute(buf, substringNode.execute(tstring, p1, p - p1, tencoding, true),
                                 tencoding, true);
                     }
@@ -2063,14 +2065,17 @@ public abstract class StringNodes {
                     }
                 }
             }
+
             if (p1 < p) {
                 buf = concatNode.execute(buf, substringNode.execute(tstring, p1, p - p1, tencoding, true), tencoding,
                         true);
             }
+
             if (p < e) {
                 Object repl = yieldNode.yield(block, createSubString(substringNode, tstring, encoding, p, e - p));
                 buf = concatNode.execute(buf, strings.getTString(repl), tencoding, true);
             }
+
             return createString(buf, encoding);
         }
 
@@ -2089,13 +2094,13 @@ public abstract class StringNodes {
             var tstring = strings.getTString(string);
             TruffleString buf = EMPTY_BINARY_TSTRING;
 
-            final byte[] pBytes = bytesNode.execute(rope);
-            final int e = pBytes.length;
+            var byteArray = byteArrayNode.execute(tstring, tencoding);
+            final byte[] pBytes = byteArray.getArray();
+            final int e = byteArray.getEnd();
 
-            int p = 0;
-            int p1 = 0;
+            int p = byteArray.getOffset();
+            int p1 = p;
             final int mbminlen = enc.minLength();
-
 
             while (p < e) {
                 int clen = calculateCharacterLengthNode.characterLength(enc, CR_BROKEN, Bytes.fromRange(pBytes, p, e));
@@ -2107,7 +2112,7 @@ public abstract class StringNodes {
                     final int q = p;
                     clen = enc.maxLength();
 
-                    if (p1 < p) {
+                    if (p > p1) {
                         buf = concatNode.execute(buf, substringNode.execute(tstring, p1, p - p1, tencoding, true),
                                 tencoding, true);
                     }
@@ -2135,10 +2140,12 @@ public abstract class StringNodes {
                     p1 = p;
                 }
             }
+
             if (p1 < p) {
                 buf = concatNode.execute(buf, substringNode.execute(tstring, p1, p - p1, tencoding, true), tencoding,
                         true);
             }
+
             if (p < e) {
                 RubyString repl = (RubyString) yieldNode.yield(block,
                         createSubString(substringNode, tstring, encoding, p, e - p));
