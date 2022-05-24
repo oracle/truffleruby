@@ -398,7 +398,6 @@ static inline int rb_tr_scan_args_kw_int(int kw_flag, int argc, VALUE *argv, str
 ALWAYS_INLINE(static int rb_tr_scan_args_kw_non_const(int kw_flag, int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10));
 static inline int rb_tr_scan_args_kw_non_const(int kw_flag, int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10) {
 
-  const char *formatp = format;
   struct rb_tr_scan_args_parse_data parse_data = {0, 0, false, 0, false, false};
 
   rb_tr_scan_args_kw_parse(format, &parse_data);
