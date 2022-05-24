@@ -324,7 +324,7 @@ public class ValueWrapperManager {
                 block = holder.handleBlock;
             }
 
-            if (context.getOptions().CEXTS_TO_NATIVE_STATS) {
+            if (context.getOptions().CEXTS_TO_NATIVE_COUNT) {
                 context.getValueWrapperManager().recordHandleAllocation();
             }
 

@@ -172,6 +172,7 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     LOG_PENDING_INTERRUPTS: [log-pending-interrupts, boolean, false, Log when executing pending interrupts]
     ROPE_PRINT_INTERN_STATS: [rope-print-intern-stats, boolean, false, Print interned rope stats at application exit]
     CEXTS_TO_NATIVE_STATS: [cexts-to-native-stats, boolean, false, Track the number of conversions of VALUEs to native and print the stats at application exit]
+    CEXTS_TO_NATIVE_COUNT: [cexts-to-native-count, boolean, CEXTS_TO_NATIVE_STATS, Track the number of conversions of VALUEs to native]
 
     # Options to debug the implementation
     LAZY_BUILTINS: [lazy-builtins, boolean, LAZY_CALLTARGETS, Load builtin classes (core methods & primitives) lazily on first use]

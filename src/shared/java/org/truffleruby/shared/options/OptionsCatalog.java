@@ -102,6 +102,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> LOG_PENDING_INTERRUPTS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> ROPE_PRINT_INTERN_STATS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> CEXTS_TO_NATIVE_STATS_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> CEXTS_TO_NATIVE_COUNT_KEY = new OptionKey<>(CEXTS_TO_NATIVE_STATS_KEY.getDefaultValue());
     public static final OptionKey<Boolean> LAZY_BUILTINS_KEY = new OptionKey<>(LAZY_CALLTARGETS_KEY.getDefaultValue());
     public static final OptionKey<Boolean> LAZY_TRANSLATION_CORE_KEY = new OptionKey<>(LAZY_CALLTARGETS_KEY.getDefaultValue());
     public static final OptionKey<Boolean> CHAOS_DATA_KEY = new OptionKey<>(false);
@@ -819,6 +820,14 @@ public class OptionsCatalog {
             .usageSyntax("")
             .build();
 
+    public static final OptionDescriptor CEXTS_TO_NATIVE_COUNT = OptionDescriptor
+            .newBuilder(CEXTS_TO_NATIVE_COUNT_KEY, "ruby.cexts-to-native-count")
+            .help("Track the number of conversions of VALUEs to native")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
+            .build();
+
     public static final OptionDescriptor LAZY_BUILTINS = OptionDescriptor
             .newBuilder(LAZY_BUILTINS_KEY, "ruby.lazy-builtins")
             .help("Load builtin classes (core methods & primitives) lazily on first use")
@@ -1465,6 +1474,8 @@ public class OptionsCatalog {
                 return ROPE_PRINT_INTERN_STATS;
             case "ruby.cexts-to-native-stats":
                 return CEXTS_TO_NATIVE_STATS;
+            case "ruby.cexts-to-native-count":
+                return CEXTS_TO_NATIVE_COUNT;
             case "ruby.lazy-builtins":
                 return LAZY_BUILTINS;
             case "ruby.lazy-translation-core":
@@ -1674,6 +1685,7 @@ public class OptionsCatalog {
             LOG_PENDING_INTERRUPTS,
             ROPE_PRINT_INTERN_STATS,
             CEXTS_TO_NATIVE_STATS,
+            CEXTS_TO_NATIVE_COUNT,
             LAZY_BUILTINS,
             LAZY_TRANSLATION_CORE,
             CHAOS_DATA,
