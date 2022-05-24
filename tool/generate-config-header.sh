@@ -32,7 +32,10 @@ archive=$(basename "$url")
 
 if [ ! -e "$archive" ]; then
     curl -O "$url"
-    tar xf "ruby-$VERSION.tar.gz"
+fi
+
+if [ ! -d "ruby-$VERSION" ]; then
+    tar xf "$archive"
 fi
 
 cd "ruby-$VERSION" || exit 1
