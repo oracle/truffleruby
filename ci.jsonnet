@@ -529,6 +529,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-fast-linux-aarch64":   $.platform.linux_aarch64 + $.jdk.v11 + $.env.jvm + gate + $.run.test_fast + native_config + { timelimit: "45:00" },
       "ruby-test-fast-linux":           $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.run.test_fast + { timelimit: "45:00" },  # To catch missing slow tags
       "ruby-test-mri-linux":            $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.run.test_mri + { timelimit: "01:10:00" },
+      "ruby-test-mri-linux-aarch64":    $.platform.linux_aarch64 + $.jdk.v11 + $.env.jvm + gate + $.run.test_mri + { timelimit: "01:10:00" },
       "ruby-test-mri-darwin-amd64":     $.platform.darwin_amd64 + $.jdk.v11 + $.env.jvm + gate + $.run.test_mri + { timelimit: "01:30:00" },
       "ruby-test-mri-darwin-aarch64":   $.platform.darwin_aarch64 + $.jdk.v11 + $.env.jvm + gate + $.run.test_mri + { timelimit: "01:30:00" },
       "ruby-test-integration-linux":    $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.run.test_integration,
