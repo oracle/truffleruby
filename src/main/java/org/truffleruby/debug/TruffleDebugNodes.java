@@ -30,6 +30,7 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
+import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.graalvm.collections.Pair;
 import org.truffleruby.Layouts;
@@ -98,6 +99,11 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.utilities.TriState;
+import org.truffleruby.parser.RubyDeferredWarnings;
+import org.truffleruby.parser.RubySource;
+import org.truffleruby.parser.TranslatorDriver;
+import org.truffleruby.parser.parser.ParserConfiguration;
+import org.truffleruby.parser.scope.StaticScope;
 
 @CoreModule("Truffle::Debug")
 public abstract class TruffleDebugNodes {
@@ -204,6 +210,28 @@ public abstract class TruffleDebugNodes {
             return nil;
         }
 
+    }
+
+    @CoreMethod(names = "parse_ast", onSingleton = true, required = 1)
+    public abstract static class ParseASTNode extends CoreMethodArrayArgumentsNode {
+        @TruffleBoundary
+        @Specialization(guards = "strings.isRubyString(code)")
+        protected Object ast(Object code,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached MakeStringNode makeStringNode) {
+            String codeString = strings.getJavaString(code);
+            String name = "<parse_ast>";
+            var source = Source.newBuilder("ruby", codeString, name).build();
+            var rubySource = new RubySource(source, name);
+
+            var staticScope = new StaticScope(StaticScope.Type.LOCAL, null);
+            var parserConfiguration = new ParserConfiguration(null, false, true, false);
+            var rubyWarnings = new RubyDeferredWarnings();
+            var rootParseNode = TranslatorDriver
+                    .parseToJRubyAST(getContext(), rubySource, staticScope, parserConfiguration, rubyWarnings);
+
+            return makeStringNode.executeMake(rootParseNode.toString(), Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+        }
     }
 
     @CoreMethod(names = "ast", onSingleton = true, required = 1)

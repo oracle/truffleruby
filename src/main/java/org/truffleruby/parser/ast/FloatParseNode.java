@@ -75,4 +75,9 @@ public class FloatParseNode extends NumericParseNode implements ILiteralNode, Si
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;
     }
+
+    @Override
+    protected String toStringInternal() {
+        return "value=" + value;
+    }
 }
