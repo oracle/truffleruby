@@ -191,9 +191,9 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         String pager;
         if (helpOptionUsed && System.console() != null && !(pager = getPagerFromEnv()).isEmpty()) {
             try {
-                Process process = new ProcessBuilder(pager)
-                        .redirectOutput(Redirect.INHERIT)
-                        .redirectErrorStream(true)
+                Process process = new ProcessBuilder(pager.split(" "))
+                        .redirectOutput(Redirect.INHERIT) // set the output of the pager to the terminal and not a pipe
+                        .redirectError(Redirect.INHERIT) // set the error of the pager to the terminal and not a pipe
                         .start();
                 PrintStream out = new PrintStream(process.getOutputStream());
 
