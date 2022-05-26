@@ -11,17 +11,14 @@ package org.truffleruby.cext;
 
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
-import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @GenerateUncached
-@ImportStatic(RubyGuards.class)
 @ReportPolymorphism
 public abstract class SymbolToIDNode extends RubyBaseNode {
 

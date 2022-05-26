@@ -21,12 +21,10 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
-import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
@@ -35,7 +33,6 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import java.lang.invoke.VarHandle;
 
 @GenerateUncached
-@ImportStatic(RubyGuards.class)
 public abstract class WrapNode extends RubyBaseNode {
 
     public static WrapNode create() {

@@ -43,7 +43,6 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
@@ -729,7 +728,6 @@ public abstract class EncodingNodes {
 
     // MRI: rb_enc_check_str / rb_encoding_check (with Ruby String arguments)
     @Primitive(name = "encoding_ensure_compatible_str")
-    @ImportStatic(RubyGuards.class)
     public abstract static class CheckStringEncodingPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization(guards = {
                 "libFirst.isRubyString(first)",
