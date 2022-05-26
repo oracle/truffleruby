@@ -10,6 +10,7 @@
 package org.truffleruby.core.format.write.bytes;
 
 import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringNodes;
@@ -40,10 +41,13 @@ public abstract class WritePaddedBytesNode extends FormatNode {
             @Cached RopeNodes.BytesNode bytesNode,
             @Cached RopeNodes.CharacterLengthNode charLengthNode,
             @Cached StringNodes.ByteIndexFromCharIndexNode indexNode) {
+        if (padding == PrintfSimpleTreeBuilder.DEFAULT) {
+            padding = 0;
+        }
         final byte[] bytes = bytesNode.execute(rope);
-        if (leftJustifiedProfile.profile(leftJustified)) {
+        if (leftJustifiedProfile.profile(leftJustified || padding < 0)) {
             writeStringBytes(frame, precision, rope, bytesNode, indexNode);
-            writePaddingBytes(frame, padding, precision, rope, charLengthNode);
+            writePaddingBytes(frame, Math.abs(padding), precision, rope, charLengthNode);
         } else {
             writePaddingBytes(frame, padding, precision, rope, charLengthNode);
             writeStringBytes(frame, precision, rope, bytesNode, indexNode);

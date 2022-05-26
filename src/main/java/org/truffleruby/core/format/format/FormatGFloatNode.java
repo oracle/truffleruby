@@ -25,7 +25,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 
-import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
 
 @ImportStatic(Double.class)
@@ -53,38 +52,7 @@ public abstract class FormatGFloatNode extends FormatFloatGenericNode {
             precision = 6;
         }
 
-        final boolean simple = inSimpleRange(precision, dval);
-
-        final byte[] digits = doFormat(precision, simple, dval);
-
-        final ByteArrayBuilder buf = new ByteArrayBuilder();
-
-        width -= digits.length;
-
-        if (width > 0 && !hasMinusFlag) {
-            if (hasZeroFlag) {
-                boolean firstDigit = digits[0] >= '0' && digits[0] <= '9';
-                if (!firstDigit) {
-                    buf.append(digits, 0, 1);
-                }
-                buf.append('0', width);
-                appendNumber(digits, buf, firstDigit ? 0 : 1);
-            } else {
-                buf.append(' ', width);
-                appendNumber(digits, buf, 0);
-            }
-            width = 0;
-        } else {
-            appendNumber(digits, buf, 0);
-            if (width > 0) {
-                buf.append(' ', width);
-            }
-        }
-        return buf.getBytes();
-    }
-
-    private static void appendNumber(byte[] digits, ByteArrayBuilder buf, int start) {
-        buf.append(digits, start, digits.length - start);
+        return formatNumber(width, precision, dval);
     }
 
     protected static boolean inSimpleRange(int precision, double value) {
@@ -92,7 +60,9 @@ public abstract class FormatGFloatNode extends FormatFloatGenericNode {
     }
 
     @TruffleBoundary
-    private byte[] doFormat(int precision, boolean simple, double dval) {
+    @Override
+    protected byte[] doFormat(int precision, double dval) {
+        final boolean simple = inSimpleRange(precision, dval);
         final byte[] digits;
         DecimalFormat format = (simple ? simpleFormatters : exponentialFormatters).pollFirst();
 
@@ -115,7 +85,7 @@ public abstract class FormatGFloatNode extends FormatFloatGenericNode {
                 format.setPositivePrefix("");
             }
 
-            format.setDecimalSeparatorAlwaysShown(precision == 0 && hasFSharpFlag);
+            format.setDecimalSeparatorAlwaysShown(hasFSharpFlag);
 
             if (!simple) {
                 DecimalFormatSymbols symbols = format.getDecimalFormatSymbols();

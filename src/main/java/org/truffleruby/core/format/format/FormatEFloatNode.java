@@ -25,7 +25,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 
-import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
 
 @ImportStatic(Double.class)
@@ -52,40 +51,12 @@ public abstract class FormatEFloatNode extends FormatFloatGenericNode {
             precision = 6;
         }
 
-        final byte[] digits = doFormat(precision, dval);
-
-        final ByteArrayBuilder buf = new ByteArrayBuilder();
-
-        width -= digits.length;
-
-        if (width > 0 && !hasMinusFlag) {
-            if (hasZeroFlag) {
-                boolean firstDigit = digits[0] >= '0' && digits[0] <= '9';
-                if (!firstDigit) {
-                    buf.append(digits, 0, 1);
-                }
-                buf.append('0', width);
-                if (!firstDigit) {
-                    buf.append(digits, 1, digits.length - 1);
-                } else {
-                    buf.append(digits, 0, digits.length);
-                }
-            } else {
-                buf.append(' ', width);
-                buf.append(digits, 0, digits.length);
-            }
-            width = 0;
-        } else {
-            buf.append(digits, 0, digits.length);
-            if (width > 0) {
-                buf.append(' ', width);
-            }
-        }
-        return buf.getBytes();
+        return formatNumber(width, precision, dval);
     }
 
     @TruffleBoundary
-    private byte[] doFormat(int precision, double dval) {
+    @Override
+    protected byte[] doFormat(int precision, double dval) {
         final byte[] digits;
         DecimalFormat format = formatters.pollFirst();
         if (format == null) {

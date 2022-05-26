@@ -16,10 +16,6 @@
  */
 package org.truffleruby.core.format.format;
 
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.util.Locale;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -28,14 +24,6 @@ import org.truffleruby.collections.ByteArrayBuilder;
 
 @ImportStatic(Double.class)
 public abstract class FormatAFloatNode extends FormatFloatGenericNode {
-
-    private static final ThreadLocal<DecimalFormat> formatters = new ThreadLocal<>() {
-        @Override
-        protected DecimalFormat initialValue() {
-            final DecimalFormatSymbols formatSymbols = new DecimalFormatSymbols(Locale.ENGLISH);
-            return new DecimalFormat("0.0E00", formatSymbols);
-        }
-    };
 
     private static final long SIGN_MASK = 1L << 63;
     private static final long BIASED_EXP_MASK = 0x7ffL << 52;
@@ -90,46 +78,17 @@ public abstract class FormatAFloatNode extends FormatFloatGenericNode {
 
     @Specialization(guards = { "isFinite(dval)" })
     protected byte[] formatFGeneric(int width, int precision, double dval) {
-        final byte[] digits = doFormat(precision, dval);
+        return formatNumber(width, precision, dval);
+    }
 
-        final ByteArrayBuilder buf = new ByteArrayBuilder();
-
-        width -= digits.length;
-
-        if (width > 0 && !hasMinusFlag) {
-            if (hasZeroFlag) {
-                boolean firstDigit = digits[0] >= '0' && digits[0] <= '9';
-                if (!firstDigit) {
-                    buf.append(digits, 0, 3);
-                } else {
-                    buf.append(digits, 0, 2);
-                }
-                buf.append('0', width);
-                if (!firstDigit) {
-                    buf.append(digits, 3, digits.length - 3);
-                } else {
-                    buf.append(digits, 2, digits.length - 2);
-                }
-            } else {
-                buf.append(' ', width);
-                buf.append(digits, 0, digits.length);
-            }
-            width = 0;
-        } else {
-            buf.append(digits, 0, digits.length);
-            if (width > 0) {
-                buf.append(' ', width);
-            }
-        }
-        return buf.getBytes();
+    @Override
+    protected int prefixBytes() {
+        return 2;
     }
 
     @TruffleBoundary
-    private byte[] doFormat(int precision, double dval) {
-        if (precision == 0) {
-            throw new UnsupportedOperationException("format flags a/A do not support precision 0");
-        }
-
+    @Override
+    protected byte[] doFormat(int precision, double dval) {
         final ByteArrayBuilder buf = new ByteArrayBuilder();
 
         final long bits = Double.doubleToRawLongBits(dval);
@@ -163,10 +122,10 @@ public abstract class FormatAFloatNode extends FormatFloatGenericNode {
             }
             exponent = biasedExp - 1023;
             buf.append('1');
-            if (mantissaBits != 0L) {
+            if (mantissaBits != 0L || hasFSharpFlag) {
                 buf.append('.');
             }
-            while (mantissaBits != 0L || precision > 0) {
+            while ((precision < 0 && mantissaBits != 0L) || precision > 0) {
                 int digit = (int) ((0xf000000000000L & mantissaBits) >> 48);
                 mantissaBits = (mantissaBits << 4) & MANTISSA_MASK;
                 buf.append((expSeparator == 'a' ? HEX_DIGITS : HEX_DIGITS_UPPER_CASE)[digit]);

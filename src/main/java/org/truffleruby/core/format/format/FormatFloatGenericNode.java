@@ -163,4 +163,43 @@ public abstract class FormatFloatGenericNode extends FormatNode {
         return buf.getBytes();
     }
 
+    protected final byte[] formatNumber(int origWidth, int precision, double dval) {
+        final byte[] digits = doFormat(precision, dval);
+        final ByteArrayBuilder buf = new ByteArrayBuilder();
+
+        int width = Math.abs(origWidth);
+        width -= digits.length;
+
+        if (origWidth > 0 && width > 0 && !hasMinusFlag) {
+            if (hasZeroFlag) {
+                boolean firstDigit = digits[0] >= '0' && digits[0] <= '9';
+                buf.append(digits, 0, prefixBytes() + (firstDigit ? 0 : 1));
+                buf.append('0', width);
+                appendNumber(digits, buf, prefixBytes() + (firstDigit ? 0 : 1));
+            } else {
+                buf.append(' ', width);
+                appendNumber(digits, buf, 0);
+            }
+            width = 0;
+        } else {
+            appendNumber(digits, buf, 0);
+            if (width > 0) {
+                buf.append(' ', width);
+            }
+        }
+        return buf.getBytes();
+    }
+
+    protected int prefixBytes() {
+        return 0;
+    }
+
+    protected byte[] doFormat(int precision, double dval) {
+        return null;
+    }
+
+    private static void appendNumber(byte[] digits, ByteArrayBuilder buf, int start) {
+        buf.append(digits, start, digits.length - start);
+    }
+
 }
