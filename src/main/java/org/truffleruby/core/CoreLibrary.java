@@ -292,15 +292,10 @@ public class CoreLibrary {
 
         // Create the cyclic classes and modules
 
-        classClass = ClassNodes.createClassClass(language);
-
-        basicObjectClass = ClassNodes.createBootClass(language, classClass, Nil.INSTANCE, "BasicObject");
-        objectClass = ClassNodes.createBootClass(language, classClass, basicObjectClass, "Object");
-        moduleClass = ClassNodes.createBootClass(language, classClass, objectClass, "Module");
-
-        // Close the cycles
-        // Set superclass of Class to Module
-        classClass.setSuperClass(moduleClass);
+        classClass = ClassNodes.createClassClassAndBootClasses(language);
+        moduleClass = (RubyClass) classClass.superclass;
+        objectClass = (RubyClass) moduleClass.superclass;
+        basicObjectClass = (RubyClass) objectClass.superclass;
 
         // Set constants in Object and lexical parents
         classClass.fields.getAdoptedByLexicalParent(context, objectClass, "Class", node);

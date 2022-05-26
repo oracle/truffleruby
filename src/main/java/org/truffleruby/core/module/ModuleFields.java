@@ -33,7 +33,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.kernel.KernelNodes;
-import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.MethodEntry;
 import org.truffleruby.core.method.MethodFilter;
@@ -126,6 +125,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
      * {@code module A; end; module B; end; class C; end; C.include A; A.include B; C.ancestors.include?(B) => false} */
     private final Set<RubyModule> includedBy;
 
+    @TruffleBoundary
     public ModuleFields(
             RubyLanguage language,
             SourceSection sourceSection,
@@ -161,7 +161,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         if (!hasFullName()) {
             // Tricky, we need to compare with the Object class, but we only have a Class at hand.
             final RubyClass classClass = getLogicalClass().getLogicalClass();
-            final RubyClass objectClass = ClassNodes.getSuperClass(ClassNodes.getSuperClass(classClass));
+            final RubyClass objectClass = (RubyClass) ((RubyClass) classClass.superclass).superclass;
 
             if (lexicalParent == objectClass) {
                 this.setFullName(name);
@@ -237,10 +237,6 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
             this.parentModule = fromFields.start.getParentModule();
         } else {
             this.parentModule = fromFields.parentModule;
-        }
-
-        if (rubyModule instanceof RubyClass) {
-            ((RubyClass) rubyModule).superclass = ((RubyClass) from).superclass;
         }
     }
 
@@ -1083,8 +1079,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
 
         if (rubyModule instanceof RubyClass) {
-            RubyClass superClass = ClassNodes.getSuperClass((RubyClass) rubyModule);
-            ObjectGraph.addProperty(adjacent, superClass);
+            ObjectGraph.addProperty(adjacent, ((RubyClass) rubyModule).superclass);
         }
 
         for (ConstantEntry constant : constants.values()) {

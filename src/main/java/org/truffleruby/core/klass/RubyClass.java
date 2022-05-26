@@ -12,6 +12,7 @@ package org.truffleruby.core.klass;
 import java.util.Arrays;
 import java.util.Set;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.RubyModule;
@@ -21,6 +22,8 @@ import org.truffleruby.language.objects.ObjectGraphNode;
 
 import com.oracle.truffle.api.object.Shape;
 
+import static org.truffleruby.language.RubyBaseNode.nil;
+
 public final class RubyClass extends RubyModule implements ObjectGraphNode {
 
     private static final RubyClass[] EMPTY_CLASS_ARRAY = new RubyClass[0];
@@ -29,13 +32,13 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
     /** If this is an object's metaclass, then nonSingletonClass is the logical class of the object. */
     public final RubyClass nonSingletonClass;
     public final RubyDynamicObject attached;
-    /* a RubyClass, or nil for BasicObject, or null when not yet initialized */
-    public Object superclass;
-    public RubyClass[] ancestorClasses;
-
+    /* a RubyClass or nil for BasicObject */
+    public final Object superclass;
+    public final RubyClass[] ancestorClasses;
     /** Depth from BasicObject (= 0) in the inheritance hierarchy. */
-    public int depth;
+    public final int depth;
 
+    @TruffleBoundary
     public RubyClass(
             RubyClass classClass,
             RubyLanguage language,
@@ -51,24 +54,41 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
         this.attached = attached;
 
         if (superclass instanceof RubyClass) {
-            updateSuperclass((RubyClass) superclass);
-        } else { // BasicObject (nil superclass) or uninitialized class (null)
-            this.depth = 0;
+            if (lexicalParent == null && givenBaseName != null) {
+                fields.setFullName(givenBaseName);
+            }
+            // superclass should be set after "full name"
+            this.superclass = superclass;
+            this.ancestorClasses = computeAncestorClasses((RubyClass) superclass);
+            this.depth = ((RubyClass) superclass).depth + 1;
+            fields.setSuperClass((RubyClass) superclass);
+        } else { // BasicObject (nil superclass)
+            assert superclass == nil;
             this.superclass = superclass;
             this.ancestorClasses = EMPTY_CLASS_ARRAY;
+            this.depth = 0;
         }
 
         this.nonSingletonClass = computeNonSingletonClass(isSingleton, superclass);
     }
 
 
-    /** Special constructor to build the 'Class' RubyClass itself. The superclass is set later. */
+    /** Special constructor to build the 'Class' RubyClass itself. */
     RubyClass(RubyLanguage language, Shape classShape) {
         super(language, classShape, "constructor only for the class Class");
         this.isSingleton = false;
         this.attached = null;
-        this.superclass = null;
         this.nonSingletonClass = this;
+
+        RubyClass basicObjectClass = ClassNodes.createBootClass(language, this, nil, "BasicObject");
+        RubyClass objectClass = ClassNodes.createBootClass(language, this, basicObjectClass, "Object");
+        RubyClass moduleClass = ClassNodes.createBootClass(language, this, objectClass, "Module");
+
+        RubyClass superclass = moduleClass;
+        this.superclass = superclass;
+        this.ancestorClasses = computeAncestorClasses(superclass);
+        this.depth = superclass.depth + 1;
+        fields.setSuperClass(superclass);
     }
 
     private RubyClass computeNonSingletonClass(boolean isSingleton, Object superclassObject) {
@@ -84,23 +104,11 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
         }
     }
 
-    public boolean isInitialized() {
-        return superclass != null;
-    }
-
-    public void setSuperClass(RubyClass superclass) {
-        assert this.superclass == null || this.superclass == superclass;
-        updateSuperclass(superclass);
-        fields.setSuperClass(superclass);
-    }
-
-    private void updateSuperclass(RubyClass superclass) {
+    private RubyClass[] computeAncestorClasses(RubyClass superclass) {
         final RubyClass[] superAncestors = superclass.ancestorClasses;
         final RubyClass[] ancestors = Arrays.copyOf(superAncestors, superAncestors.length + 1);
         ancestors[superAncestors.length] = superclass;
-        this.superclass = superclass;
-        this.depth = superclass.depth + 1;
-        this.ancestorClasses = ancestors;
+        return ancestors;
     }
 
     @Override

@@ -102,8 +102,6 @@ import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocationTracing;
-import org.truffleruby.language.objects.InitializeClassNode;
-import org.truffleruby.language.objects.InitializeClassNodeGen;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.supercall.CallSuperMethodNode;
@@ -1313,27 +1311,6 @@ public class CExtNodes {
             }
 
             return value;
-        }
-
-    }
-
-    @CoreMethod(names = "rb_class_new", onSingleton = true, required = 1)
-    public abstract static class ClassNewNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private DispatchNode allocateNode;
-        @Child private InitializeClassNode initializeClassNode;
-
-        @Specialization
-        protected RubyClass classNew(RubyClass superclass) {
-            if (allocateNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                allocateNode = insert(DispatchNode.create());
-                initializeClassNode = insert(InitializeClassNodeGen.create(false));
-            }
-
-            RubyClass klass = (RubyClass) allocateNode
-                    .call(getContext().getCoreLibrary().classClass, "__allocate__");
-            return initializeClassNode.executeInitialize(klass, superclass, nil);
         }
 
     }
