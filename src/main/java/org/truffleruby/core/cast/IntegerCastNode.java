@@ -10,17 +10,14 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
-import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.utils.Utils;
 
 /** See {@link ToIntNode} for a comparison of different integer conversion nodes. */
 @GenerateUncached
-@ImportStatic(RubyGuards.class)
 public abstract class IntegerCastNode extends RubyBaseNode {
 
     public static IntegerCastNode create() {
