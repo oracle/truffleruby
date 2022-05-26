@@ -372,9 +372,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             case SHORT:
                 printShortHelp(getOutput());
                 break;
-            case LONG:
-                printHelp(getOutput());
-                break;
+            // --help is handled by org.graalvm.launcher.Launcher#printDefaultHelp
         }
     }
 

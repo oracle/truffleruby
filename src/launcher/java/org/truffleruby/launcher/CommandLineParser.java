@@ -432,8 +432,10 @@ public class CommandLineParser {
                         disallowedInRubyOpts(argument);
                         warnInternalDebugTool(argument);
                         break FOR;
-                    } else if (rubyOpts && argument.equals("--help")) {
+                    } else if (argument.equals("--help")) {
                         disallowedInRubyOpts(argument);
+                        // --help is handled by org.graalvm.launcher.Launcher#printDefaultHelp
+                        config.getUnknownArguments().add(argument);
                         break FOR;
                     } else if (argument.equals("--version")) {
                         disallowedInRubyOpts(argument);

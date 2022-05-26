@@ -11,6 +11,6 @@ package org.truffleruby.launcher;
 
 public enum ShowHelp {
     NONE,
-    SHORT,
-    LONG
+    SHORT // -h
+    // LONG // --help is handled by org.graalvm.launcher.Launcher#printDefaultHelp
 }
