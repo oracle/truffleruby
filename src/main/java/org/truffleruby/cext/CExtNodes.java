@@ -1693,7 +1693,7 @@ public class CExtNodes {
         protected Object checkSymbolCStr(Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             final RubySymbol sym = getLanguage().symbolTable.getSymbolIfExists(
-                    strings.getRope(string),
+                    strings.getTString(string),
                     strings.getEncoding(string));
             return sym == null ? nil : sym;
         }

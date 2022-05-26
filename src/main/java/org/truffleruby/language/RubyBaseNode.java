@@ -126,7 +126,7 @@ public abstract class RubyBaseNode extends Node {
         return getLanguage().getSymbol(name);
     }
 
-    protected final RubySymbol getSymbol(Rope name, RubyEncoding encoding) {
+    protected final RubySymbol getSymbol(AbstractTruffleString name, RubyEncoding encoding) {
         return getLanguage().getSymbol(name, encoding);
     }
 

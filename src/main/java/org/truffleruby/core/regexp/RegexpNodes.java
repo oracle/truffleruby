@@ -14,7 +14,6 @@ import java.util.Iterator;
 
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import org.jcodings.specific.UTF8Encoding;
 import org.joni.NameEntry;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -24,11 +23,10 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.regexp.RegexpNodesFactory.ToSNodeFactory;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -159,8 +157,8 @@ public abstract class RegexpNodes {
                 final NameEntry e = iter.next();
                 final byte[] bytes = Arrays.copyOfRange(e.name, e.nameP, e.nameEnd);
 
-                final Rope rope = RopeOperations.create(bytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-                final RubySymbol name = getSymbol(rope, Encodings.UTF_8);
+                var tstring = TStringUtils.fromByteArray(bytes, Encodings.UTF_8);
+                final RubySymbol name = getSymbol(tstring, Encodings.UTF_8);
 
                 final int[] backrefs = e.getBackRefs();
                 final RubyArray backrefsRubyArray = createArray(backrefs);

@@ -13,6 +13,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -70,16 +71,17 @@ public abstract class ToSymbolNode extends RubyBaseNodeWithExecute {
     protected RubySymbol rubyString(Object str,
             @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
             @Cached(value = "strings.getRope(str)") Rope cachedRope,
+            @Cached(value = "strings.getTString(str)") AbstractTruffleString cachedTString,
             @Cached(value = "strings.getEncoding(str)") RubyEncoding cachedEncoding,
             @Cached RopeNodes.EqualNode equals,
-            @Cached(value = "getSymbol(cachedRope, cachedEncoding)") RubySymbol rubySymbol) {
+            @Cached(value = "getSymbol(cachedTString, cachedEncoding)") RubySymbol rubySymbol) {
         return rubySymbol;
     }
 
     @Specialization(guards = "strings.isRubyString(str)", replaces = "rubyString")
     protected RubySymbol rubyStringUncached(Object str,
             @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-        return getSymbol(strings.getRope(str), strings.getEncoding(str));
+        return getSymbol(strings.getTString(str), strings.getEncoding(str));
     }
 
     @Specialization(guards = { "!isRubySymbol(object)", "!isString(object)", "isNotRubyString(object)" })

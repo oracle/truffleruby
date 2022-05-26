@@ -30,6 +30,7 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.options.OptionDescriptors;
 import org.truffleruby.builtins.PrimitiveManager;
@@ -72,7 +73,6 @@ import org.truffleruby.core.regexp.RegexpTable;
 import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.PathToRopeCache;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeCache;
 import org.truffleruby.core.rope.TStringCache;
 import org.truffleruby.core.string.CoreStrings;
@@ -363,8 +363,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     @TruffleBoundary
-    public RubySymbol getSymbol(Rope rope, RubyEncoding encoding) {
-        return symbolTable.getSymbol(rope, encoding);
+    public RubySymbol getSymbol(AbstractTruffleString name, RubyEncoding encoding) {
+        return symbolTable.getSymbol(name, encoding);
     }
 
     public Assumption getTracingAssumption() {

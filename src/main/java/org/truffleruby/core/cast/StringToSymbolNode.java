@@ -24,12 +24,12 @@ public abstract class StringToSymbolNode extends RubyContextSourceNode {
 
     @Specialization
     protected RubySymbol doString(RubyString string) {
-        return getSymbol(string.rope, string.encoding);
+        return getSymbol(string.tstring, string.encoding);
     }
 
     @Specialization
     protected RubySymbol doString(ImmutableRubyString string) {
-        return getSymbol(string.rope, string.encoding);
+        return getSymbol(string.tstring, string.encoding);
     }
 
 }

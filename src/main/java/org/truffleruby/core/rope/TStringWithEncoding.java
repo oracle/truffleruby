@@ -47,7 +47,7 @@ public final class TStringWithEncoding {
             return false;
         }
         TStringWithEncoding that = (TStringWithEncoding) o;
-        return tstring.equals(that.tstring) && encoding == that.encoding;
+        return encoding == that.encoding && tstring.equals(that.tstring);
     }
 
     @Override

@@ -2796,8 +2796,9 @@ public abstract class StringNodes {
         protected RubySymbol toSymCached(Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached("strings.getRope(string)") Rope cachedRope,
+                @Cached("strings.getTString(string)") AbstractTruffleString cachedTString,
                 @Cached("strings.getEncoding(string)") RubyEncoding cachedEncoding,
-                @Cached("getSymbol(cachedRope, cachedEncoding)") RubySymbol cachedSymbol,
+                @Cached("getSymbol(cachedTString, cachedEncoding)") RubySymbol cachedSymbol,
                 @Cached RopeNodes.EqualNode equalNode) {
             return cachedSymbol;
         }
@@ -2805,7 +2806,7 @@ public abstract class StringNodes {
         @Specialization(guards = "!isBrokenCodeRange(strings.getRope(string), codeRangeNode)", replaces = "toSymCached")
         protected RubySymbol toSym(Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            return getSymbol(strings.getRope(string), strings.getEncoding(string));
+            return getSymbol(strings.getTString(string), strings.getEncoding(string));
         }
 
         @Specialization(guards = "isBrokenCodeRange(strings.getRope(string), codeRangeNode)")

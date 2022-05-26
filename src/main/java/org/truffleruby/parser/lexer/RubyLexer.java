@@ -586,7 +586,7 @@ public class RubyLexer implements MagicCommentHandler {
             // If we have characters outside 7-bit range and we are still ascii then change to ascii-8bit
             if (codeRange == CodeRange.CR_7BIT) {
                 // Do nothing like MRI
-            } else if (getEncoding() == USASCIIEncoding.INSTANCE && bufferEncoding != UTF8Encoding.INSTANCE) {
+            } else if (encoding == Encodings.US_ASCII && bufferEncoding != UTF8Encoding.INSTANCE) {
                 codeRange = associateEncoding(buffer, ASCIIEncoding.INSTANCE, codeRange);
                 buffer = RopeNodesFactory.WithEncodingNodeGen.getUncached().executeWithEncoding(buffer,
                         ASCIIEncoding.INSTANCE);
