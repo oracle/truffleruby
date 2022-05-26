@@ -35,7 +35,6 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.Visibility;
@@ -45,6 +44,7 @@ import org.truffleruby.language.dispatch.DispatchNode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
+import java.util.concurrent.LinkedBlockingDeque;
 
 @CoreModule(value = "Float", isClass = true)
 public abstract class FloatNodes {
@@ -909,35 +909,50 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "hasNoExp(value)")
         protected RubyString toSNoExp(double value) {
-            return makeStringNode.executeMake(makeRopeNoExp(value, getLanguage().getCurrentThread()),
+            return makeStringNode.executeMake(makeRopeNoExp(value),
                     Encodings.US_ASCII, CodeRange.CR_7BIT);
         }
 
         @Specialization(guards = "hasLargeExp(value)")
         protected RubyString toSLargeExp(double value) {
-            return makeStringNode.executeMake(makeRopeLargeExp(value, getLanguage().getCurrentThread()),
+            return makeStringNode.executeMake(makeRopeLargeExp(value),
                     Encodings.US_ASCII, CodeRange.CR_7BIT);
         }
 
         @Specialization(guards = "hasSmallExp(value)")
         protected RubyString toSSmallExp(double value) {
-            return makeStringNode.executeMake(makeRopeSmallExp(value, getLanguage().getCurrentThread()),
+            return makeStringNode.executeMake(makeRopeSmallExp(value),
                     Encodings.US_ASCII, CodeRange.CR_7BIT);
         }
 
         @TruffleBoundary
-        private String makeRopeNoExp(double value, RubyThread thread) {
-            return getNoExpFormat(thread).format(value);
+        private String makeRopeNoExp(double value) {
+            DecimalFormat format = getNoExpFormat();
+            try {
+                return format.format(value);
+            } finally {
+                releaseNoExpFormat(format);
+            }
         }
 
         @TruffleBoundary
-        private String makeRopeSmallExp(double value, RubyThread thread) {
-            return getSmallExpFormat(thread).format(value);
+        private String makeRopeSmallExp(double value) {
+            DecimalFormat format = getSmallExpFormat();
+            try {
+                return format.format(value);
+            } finally {
+                releaseSmallExpFormat(format);
+            }
         }
 
         @TruffleBoundary
-        private String makeRopeLargeExp(double value, RubyThread thread) {
-            return getLargeExpFormat(thread).format(value);
+        private String makeRopeLargeExp(double value) {
+            DecimalFormat format = getLargeExpFormat();
+            try {
+                return format.format(value);
+            } finally {
+                releaseLargeExpFormat(format);
+            }
         }
 
         protected static boolean hasNoExp(double value) {
@@ -959,30 +974,49 @@ public abstract class FloatNodes {
             return RopeOperations.encodeAscii(Double.toString(value), Encodings.US_ASCII.jcoding);
         }
 
-        private DecimalFormat getNoExpFormat(RubyThread thread) {
-            if (thread.noExpFormat == null) {
+        private static LinkedBlockingDeque<DecimalFormat> noExpFormats = new LinkedBlockingDeque<>();
+        private static LinkedBlockingDeque<DecimalFormat> smallExpFormats = new LinkedBlockingDeque<>();
+        private static LinkedBlockingDeque<DecimalFormat> largeExpFormats = new LinkedBlockingDeque<>();
+
+        private DecimalFormat getNoExpFormat() {
+            DecimalFormat format = noExpFormats.pollFirst();
+            if (format == null) {
                 final DecimalFormatSymbols noExpSymbols = new DecimalFormatSymbols(Locale.ENGLISH);
-                thread.noExpFormat = new DecimalFormat("0.0################", noExpSymbols);
+                format = new DecimalFormat("0.0################", noExpSymbols);
             }
-            return thread.noExpFormat;
+            return format;
         }
 
-        private DecimalFormat getSmallExpFormat(RubyThread thread) {
-            if (thread.smallExpFormat == null) {
+        private void releaseNoExpFormat(DecimalFormat format) {
+            noExpFormats.offerFirst(format);
+        }
+
+        private DecimalFormat getSmallExpFormat() {
+            DecimalFormat format = smallExpFormats.pollFirst();
+            if (format == null) {
                 final DecimalFormatSymbols smallExpSymbols = new DecimalFormatSymbols(Locale.ENGLISH);
                 smallExpSymbols.setExponentSeparator("e");
-                thread.smallExpFormat = new DecimalFormat("0.0################E00", smallExpSymbols);
+                format = new DecimalFormat("0.0################E00", smallExpSymbols);
             }
-            return thread.smallExpFormat;
+            return format;
         }
 
-        private DecimalFormat getLargeExpFormat(RubyThread thread) {
-            if (thread.largeExpFormat == null) {
+        private void releaseSmallExpFormat(DecimalFormat format) {
+            smallExpFormats.offerFirst(format);
+        }
+
+        private DecimalFormat getLargeExpFormat() {
+            DecimalFormat format = largeExpFormats.pollFirst();
+            if (format == null) {
                 final DecimalFormatSymbols largeExpSymbols = new DecimalFormatSymbols(Locale.ENGLISH);
                 largeExpSymbols.setExponentSeparator("e+");
-                thread.largeExpFormat = new DecimalFormat("0.0################E00", largeExpSymbols);
+                format = new DecimalFormat("0.0################E00", largeExpSymbols);
             }
-            return thread.largeExpFormat;
+            return format;
+        }
+
+        private void releaseLargeExpFormat(DecimalFormat format) {
+            largeExpFormats.offerFirst(format);
         }
 
     }

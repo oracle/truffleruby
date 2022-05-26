@@ -19,6 +19,7 @@ package org.truffleruby.core.format.format;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
+import java.util.concurrent.LinkedBlockingDeque;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -30,13 +31,7 @@ import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
 @ImportStatic(Double.class)
 public abstract class FormatFFloatNode extends FormatFloatGenericNode {
 
-    private static final ThreadLocal<DecimalFormat> formatters = new ThreadLocal<>() {
-        @Override
-        protected DecimalFormat initialValue() {
-            final DecimalFormatSymbols formatSymbols = new DecimalFormatSymbols(Locale.ENGLISH);
-            return new DecimalFormat("", formatSymbols);
-        }
-    };
+    private static final LinkedBlockingDeque<DecimalFormat> formatters = new LinkedBlockingDeque<>();
 
     public FormatFFloatNode(
             boolean hasSpaceFlag,
@@ -88,38 +83,47 @@ public abstract class FormatFFloatNode extends FormatFloatGenericNode {
     @TruffleBoundary
     private byte[] doFormat(int precision, double dval) {
         final byte[] digits;
-        final DecimalFormat format = formatters.get();
-        format.setGroupingSize(0);
-        if (hasPlusFlag) {
-            format.setPositivePrefix("+");
-        } else if (hasSpaceFlag) {
-            format.setPositivePrefix(" ");
-        } else {
-            format.setPositivePrefix("");
+        DecimalFormat format = formatters.pollFirst();
+        if (format == null) {
+            final DecimalFormatSymbols formatSymbols = new DecimalFormatSymbols(Locale.ENGLISH);
+            format = new DecimalFormat("", formatSymbols);
         }
 
-        if (precision == 0 && hasFSharpFlag) {
-            format.setPositiveSuffix(".");
-            format.setNegativeSuffix(".");
-        } else {
-            format.setPositiveSuffix("");
-            format.setNegativeSuffix("");
-        }
+        try {
+            format.setGroupingSize(0);
+            if (hasPlusFlag) {
+                format.setPositivePrefix("+");
+            } else if (hasSpaceFlag) {
+                format.setPositivePrefix(" ");
+            } else {
+                format.setPositivePrefix("");
+            }
 
-        format.setMinimumIntegerDigits(1);
-        format.setMinimumFractionDigits(precision);
-        format.setMaximumFractionDigits(precision);
-        digits = format.format(dval).getBytes();
+            if (precision == 0 && hasFSharpFlag) {
+                format.setPositiveSuffix(".");
+                format.setNegativeSuffix(".");
+            } else {
+                format.setPositiveSuffix("");
+                format.setNegativeSuffix("");
+            }
 
-        if (precision <= 340) {
-            return digits;
-        } else {
-            // Decimal format has a limit of 340 decimal places, and apparently people require more.
+            format.setMinimumIntegerDigits(1);
+            format.setMinimumFractionDigits(precision);
+            format.setMaximumFractionDigits(precision);
+            digits = format.format(dval).getBytes();
 
-            final ByteArrayBuilder buf = new ByteArrayBuilder();
-            buf.append(digits);
-            buf.append('0', precision - 340);
-            return buf.getBytes();
+            if (precision <= 340) {
+                return digits;
+            } else {
+                // Decimal format has a limit of 340 decimal places, and apparently people require more.
+
+                final ByteArrayBuilder buf = new ByteArrayBuilder();
+                buf.append(digits);
+                buf.append('0', precision - 340);
+                return buf.getBytes();
+            }
+        } finally {
+            formatters.offerFirst(format);
         }
     }
 }

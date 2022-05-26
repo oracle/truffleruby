@@ -19,6 +19,7 @@ package org.truffleruby.core.format.format;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
+import java.util.concurrent.LinkedBlockingDeque;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -30,13 +31,7 @@ import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
 @ImportStatic(Double.class)
 public abstract class FormatEFloatNode extends FormatFloatGenericNode {
 
-    private static final ThreadLocal<DecimalFormat> formatters = new ThreadLocal<>() {
-        @Override
-        protected DecimalFormat initialValue() {
-            final DecimalFormatSymbols formatSymbols = new DecimalFormatSymbols(Locale.ENGLISH);
-            return new DecimalFormat("0.0E00", formatSymbols);
-        }
-    };
+    private static final LinkedBlockingDeque<DecimalFormat> formatters = new LinkedBlockingDeque<>();
 
     private final char expSeparator;
 
@@ -92,37 +87,46 @@ public abstract class FormatEFloatNode extends FormatFloatGenericNode {
     @TruffleBoundary
     private byte[] doFormat(int precision, double dval) {
         final byte[] digits;
-        final DecimalFormat format = formatters.get();
-        if (hasPlusFlag) {
-            format.setPositivePrefix("+");
-        } else if (hasSpaceFlag) {
-            format.setPositivePrefix(" ");
-        } else {
-            format.setPositivePrefix("");
+        DecimalFormat format = formatters.pollFirst();
+        if (format == null) {
+            final DecimalFormatSymbols formatSymbols = new DecimalFormatSymbols(Locale.ENGLISH);
+            format = new DecimalFormat("0.0E00", formatSymbols);
         }
 
-        DecimalFormatSymbols symbols = format.getDecimalFormatSymbols();
-        String separator;
-        if (precision == 0 && hasFSharpFlag) {
-            format.setDecimalSeparatorAlwaysShown(true);
-        } else {
-            format.setDecimalSeparatorAlwaysShown(false);
+        try {
+            if (hasPlusFlag) {
+                format.setPositivePrefix("+");
+            } else if (hasSpaceFlag) {
+                format.setPositivePrefix(" ");
+            } else {
+                format.setPositivePrefix("");
+            }
+
+            DecimalFormatSymbols symbols = format.getDecimalFormatSymbols();
+            String separator;
+            if (precision == 0 && hasFSharpFlag) {
+                format.setDecimalSeparatorAlwaysShown(true);
+            } else {
+                format.setDecimalSeparatorAlwaysShown(false);
+            }
+
+            separator = Character.toString(expSeparator);
+
+            if ((Math.abs(dval) >= 1.0 || dval == 0.0)) {
+                separator += '+';
+            }
+
+            symbols.setExponentSeparator(separator);
+
+            format.setDecimalFormatSymbols(symbols);
+
+            format.setMinimumFractionDigits(precision);
+            format.setMaximumFractionDigits(precision);
+            digits = format.format(dval).getBytes();
+
+            return digits;
+        } finally {
+            formatters.offerFirst(format);
         }
-
-        separator = Character.toString(expSeparator);
-
-        if ((Math.abs(dval) >= 1.0 || dval == 0.0)) {
-            separator += '+';
-        }
-
-        symbols.setExponentSeparator(separator);
-
-        format.setDecimalFormatSymbols(symbols);
-
-        format.setMinimumFractionDigits(precision);
-        format.setMaximumFractionDigits(precision);
-        digits = format.format(dval).getBytes();
-
-        return digits;
     }
 }

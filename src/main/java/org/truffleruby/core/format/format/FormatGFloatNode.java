@@ -19,6 +19,7 @@ package org.truffleruby.core.format.format;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
+import java.util.concurrent.LinkedBlockingDeque;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -30,21 +31,8 @@ import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
 @ImportStatic(Double.class)
 public abstract class FormatGFloatNode extends FormatFloatGenericNode {
 
-    private static final ThreadLocal<DecimalFormat> simpleFormatters = new ThreadLocal<>() {
-        @Override
-        protected DecimalFormat initialValue() {
-            final DecimalFormatSymbols formatSymbols = new DecimalFormatSymbols(Locale.ENGLISH);
-            return new DecimalFormat("0.0", formatSymbols);
-        }
-    };
-
-    private static final ThreadLocal<DecimalFormat> exponentialFormatters = new ThreadLocal<>() {
-        @Override
-        protected DecimalFormat initialValue() {
-            final DecimalFormatSymbols formatSymbols = new DecimalFormatSymbols(Locale.ENGLISH);
-            return new DecimalFormat("0.0E00", formatSymbols);
-        }
-    };
+    private static final LinkedBlockingDeque<DecimalFormat> simpleFormatters = new LinkedBlockingDeque<>();
+    private static final LinkedBlockingDeque<DecimalFormat> exponentialFormatters = new LinkedBlockingDeque<>();
 
     private final char expSeparator;
 
@@ -106,48 +94,63 @@ public abstract class FormatGFloatNode extends FormatFloatGenericNode {
     @TruffleBoundary
     private byte[] doFormat(int precision, boolean simple, double dval) {
         final byte[] digits;
-        final DecimalFormat format = simple ? simpleFormatters.get() : exponentialFormatters.get();
-        if (hasPlusFlag) {
-            format.setPositivePrefix("+");
-        } else if (hasSpaceFlag) {
-            format.setPositivePrefix(" ");
-        } else {
-            format.setPositivePrefix("");
+        DecimalFormat format = (simple ? simpleFormatters : exponentialFormatters).pollFirst();
+
+        if (format == null) {
+            if (simple) {
+                final DecimalFormatSymbols formatSymbols = new DecimalFormatSymbols(Locale.ENGLISH);
+                format = new DecimalFormat("0.0", formatSymbols);
+            } else {
+                final DecimalFormatSymbols formatSymbols = new DecimalFormatSymbols(Locale.ENGLISH);
+                format = new DecimalFormat("0.0E00", formatSymbols);
+            }
         }
 
-        format.setDecimalSeparatorAlwaysShown(precision == 0 && hasFSharpFlag);
-
-        if (!simple) {
-            DecimalFormatSymbols symbols = format.getDecimalFormatSymbols();
-            if (expSeparator == 'g') {
-                symbols.setExponentSeparator(Math.abs(dval) >= 1.0 ? "e+" : "e");
+        try {
+            if (hasPlusFlag) {
+                format.setPositivePrefix("+");
+            } else if (hasSpaceFlag) {
+                format.setPositivePrefix(" ");
             } else {
-                symbols.setExponentSeparator(Math.abs(dval) >= 1.0 ? "E+" : "E");
+                format.setPositivePrefix("");
             }
-            format.setDecimalFormatSymbols(symbols);
-        }
 
-        format.setMinimumIntegerDigits(1);
-        if (!simple) {
-            format.setMaximumFractionDigits(precision - 1);
-            format.setMinimumFractionDigits(0);
-        } else {
-            long lval = (long) Math.abs(dval);
-            long pow = 1;
-            int intDigits = 0;
-            while (lval >= pow) {
-                pow = 10 * pow;
-                intDigits++;
+            format.setDecimalSeparatorAlwaysShown(precision == 0 && hasFSharpFlag);
+
+            if (!simple) {
+                DecimalFormatSymbols symbols = format.getDecimalFormatSymbols();
+                if (expSeparator == 'g') {
+                    symbols.setExponentSeparator(Math.abs(dval) >= 1.0 ? "e+" : "e");
+                } else {
+                    symbols.setExponentSeparator(Math.abs(dval) >= 1.0 ? "E+" : "E");
+                }
+                format.setDecimalFormatSymbols(symbols);
             }
-            if (hasFSharpFlag) {
-                format.setMinimumFractionDigits(precision - intDigits);
-            } else {
+
+            format.setMinimumIntegerDigits(1);
+            if (!simple) {
+                format.setMaximumFractionDigits(precision - 1);
                 format.setMinimumFractionDigits(0);
+            } else {
+                long lval = (long) Math.abs(dval);
+                long pow = 1;
+                int intDigits = 0;
+                while (lval >= pow) {
+                    pow = 10 * pow;
+                    intDigits++;
+                }
+                if (hasFSharpFlag) {
+                    format.setMinimumFractionDigits(precision - intDigits);
+                } else {
+                    format.setMinimumFractionDigits(0);
+                }
+                format.setMaximumFractionDigits(precision - intDigits);
             }
-            format.setMaximumFractionDigits(precision - intDigits);
-        }
-        digits = format.format(dval).getBytes();
+            digits = format.format(dval).getBytes();
 
-        return digits;
+            return digits;
+        } finally {
+            (simple ? simpleFormatters : exponentialFormatters).offerFirst(format);
+        }
     }
 }
