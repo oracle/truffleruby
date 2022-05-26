@@ -33,6 +33,7 @@ Compatibility:
 * Define `Process::{CLOCK_BOOTTIME,CLOCK_BOOTTIME_ALARM,CLOCK_REALTIME_ALARM}` (#1480, @eregon).
 * Improve support of `:chomp` keyword argument in `IO` and `StringIO` methods (#2650, @andrykonchin). 
 * Implement specializations for immutable ruby objects for ObjectSpace methods (@bjfish).
+* Use `$PAGER` for `--help` and `--help*`, similar to CRuby (#2542, @Strech).
 
 Performance:
 
