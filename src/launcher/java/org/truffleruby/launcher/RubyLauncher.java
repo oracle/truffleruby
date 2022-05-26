@@ -10,12 +10,14 @@
 package org.truffleruby.launcher;
 
 import java.io.PrintStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.lang.ProcessBuilder.Redirect;
 
 import org.graalvm.launcher.AbstractLanguageLauncher;
 import org.graalvm.nativeimage.ProcessProperties;
@@ -33,6 +35,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     private CommandLineOptions config;
     private String implementationName = null;
+    private boolean helpOptionUsed = false; // Any --help* option
 
     public static void main(String[] args) {
         new RubyLauncher().launch(args);
@@ -54,8 +57,8 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     @Override
     protected void printVersion() {
-        System.out.println(TruffleRuby.getVersionString(getImplementationNameFromEngine()));
-        System.out.println();
+        getOutput().println(TruffleRuby.getVersionString(getImplementationNameFromEngine()));
+        getOutput().println();
         printPolyglotVersions();
     }
 
@@ -109,9 +112,9 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             }
 
         } catch (CommandLineException commandLineException) {
-            System.err.println("truffleruby: " + commandLineException.getMessage());
+            getError().println("truffleruby: " + commandLineException.getMessage());
             if (commandLineException.isUsageError()) {
-                printHelp(System.err);
+                printHelp(getError());
             }
             System.exit(1);
         }
@@ -163,7 +166,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     @Override
     protected void printHelp(OptionCategory maxCategory) {
-        printHelp(System.out);
+        printHelp(getOutput());
     }
 
     @Override
@@ -171,6 +174,43 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         throw abortInvalidArgument(
                 argument,
                 "truffleruby: invalid option " + argument + "  (Use --help for usage instructions.)");
+    }
+
+    @Override
+    protected boolean parseCommonOption(String defaultOptionPrefix, Map<String, String> polyglotOptions,
+            boolean experimentalOptions, String arg) {
+        if (arg.startsWith("--help")) {
+            helpOptionUsed = true;
+        }
+
+        return super.parseCommonOption(defaultOptionPrefix, polyglotOptions, experimentalOptions, arg);
+    }
+
+    @Override
+    protected boolean runLauncherAction() {
+        String pager;
+        if (helpOptionUsed && System.console() != null && !(pager = getPagerFromEnv()).isEmpty()) {
+            try {
+                Process process = new ProcessBuilder(pager.split(" "))
+                        .redirectOutput(Redirect.INHERIT) // set the output of the pager to the terminal and not a pipe
+                        .redirectError(Redirect.INHERIT) // set the error of the pager to the terminal and not a pipe
+                        .start();
+                PrintStream out = new PrintStream(process.getOutputStream());
+
+                setOutput(out);
+                boolean code = super.runLauncherAction();
+
+                out.flush();
+                out.close();
+                process.waitFor();
+
+                return code;
+            } catch (IOException | InterruptedException e) {
+                throw abort(e);
+            }
+        } else {
+            return super.runLauncherAction();
+        }
     }
 
     private int runRubyMain(Context.Builder contextBuilder, CommandLineOptions config) {
@@ -184,7 +224,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 case IRB:
                     config.executionAction = ExecutionAction.PATH;
                     if (System.console() != null) {
-                        System.err.println(
+                        getError().println(
                                 "[ruby] WARNING: truffleruby starts IRB when stdin is a TTY instead of reading from stdin, use '-' to read from stdin");
                         config.executionAction = ExecutionAction.PATH;
                         config.toExecute = "irb";
@@ -203,7 +243,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             // Apply options to run gem/bundle more efficiently
             contextBuilder.option("engine.Mode", "latency");
             if (Boolean.getBoolean("truffleruby.launcher.log")) {
-                System.err.println("[ruby] CONFIG: detected gem or bundle command, using --engine.Mode=latency");
+                getError().println("[ruby] CONFIG: detected gem or bundle command, using --engine.Mode=latency");
             }
         }
 
@@ -241,7 +281,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 if (file.isString()) {
                     config.toExecute = file.asString();
                 } else {
-                    System.err
+                    getError()
                             .println("truffleruby: No such file or directory -- " + config.toExecute + " (LoadError)");
                     return 1;
                 }
@@ -270,9 +310,9 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             return exitCode;
         } catch (PolyglotException e) {
             if (e.isHostException()) { // GR-22071
-                System.err.println("truffleruby: a host exception reached the top level:");
+                getError().println("truffleruby: a host exception reached the top level:");
             } else {
-                System.err.println(
+                getError().println(
                         "truffleruby: an exception escaped out of the interpreter - this is an implementation bug");
             }
             e.printStackTrace();
@@ -299,24 +339,36 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         return Collections.emptyList();
     }
 
+    private static String getPagerFromEnv() {
+        String pager = System.getenv("RUBY_PAGER");
+        if (pager != null) {
+            return pager.strip();
+        }
+
+        pager = System.getenv("PAGER");
+        if (pager != null) {
+            return pager.strip();
+        }
+
+        return "";
+    }
+
     private void printPreRunInformation(CommandLineOptions config) {
         if (config.showVersion) {
-            System.out.println(TruffleRuby.getVersionString(getImplementationNameFromEngine()));
+            getOutput().println(TruffleRuby.getVersionString(getImplementationNameFromEngine()));
         }
 
         if (config.showCopyright) {
-            System.out.println(TruffleRuby.RUBY_COPYRIGHT);
+            getOutput().println(TruffleRuby.RUBY_COPYRIGHT);
         }
 
         switch (config.showHelp) {
             case NONE:
                 break;
             case SHORT:
-                printShortHelp(System.out);
+                printShortHelp(getOutput());
                 break;
-            case LONG:
-                printHelp(System.out);
-                break;
+            // --help is handled by org.graalvm.launcher.Launcher#printDefaultHelp
         }
     }
 
