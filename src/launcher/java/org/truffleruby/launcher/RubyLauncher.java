@@ -35,7 +35,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     private CommandLineOptions config;
     private String implementationName = null;
-    private boolean helpOptionUsed;
+    private boolean helpOptionUsed = false; // Any --help* option
 
     public static void main(String[] args) {
         new RubyLauncher().launch(args);
@@ -193,7 +193,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         }
 
         String pager = getPagerFromEnv();
-        if (pager == null || pager.length() == 0) {
+        if (pager.isEmpty()) {
             return super.runLauncherAction();
         }
 
@@ -354,7 +354,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             return pager.strip();
         }
 
-        return null;
+        return "";
     }
 
     private void printPreRunInformation(CommandLineOptions config) {
