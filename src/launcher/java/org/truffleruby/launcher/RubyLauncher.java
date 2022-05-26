@@ -188,32 +188,28 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     @Override
     protected boolean runLauncherAction() {
-        if (!helpOptionUsed || System.console() == null) {
+        String pager;
+        if (helpOptionUsed && System.console() != null && !(pager = getPagerFromEnv()).isEmpty()) {
+            try {
+                Process process = new ProcessBuilder(pager)
+                        .redirectOutput(Redirect.INHERIT)
+                        .redirectErrorStream(true)
+                        .start();
+                PrintStream out = new PrintStream(process.getOutputStream());
+
+                setOutput(out);
+                boolean code = super.runLauncherAction();
+
+                out.flush();
+                out.close();
+                process.waitFor();
+
+                return code;
+            } catch (IOException | InterruptedException e) {
+                throw abort(e);
+            }
+        } else {
             return super.runLauncherAction();
-        }
-
-        String pager = getPagerFromEnv();
-        if (pager.isEmpty()) {
-            return super.runLauncherAction();
-        }
-
-        try {
-            Process process = new ProcessBuilder(pager)
-                    .redirectOutput(Redirect.INHERIT)
-                    .redirectErrorStream(true)
-                    .start();
-            PrintStream out = new PrintStream(process.getOutputStream());
-
-            setOutput(out);
-            boolean code = super.runLauncherAction();
-
-            out.flush();
-            out.close();
-            process.waitFor();
-
-            return code;
-        } catch (IOException | InterruptedException e) {
-            throw abort(e);
         }
     }
 
