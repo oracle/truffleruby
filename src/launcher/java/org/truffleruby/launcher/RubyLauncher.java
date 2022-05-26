@@ -57,8 +57,8 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     @Override
     protected void printVersion() {
-        System.out.println(TruffleRuby.getVersionString(getImplementationNameFromEngine()));
-        System.out.println();
+        getOutput().println(TruffleRuby.getVersionString(getImplementationNameFromEngine()));
+        getOutput().println();
         printPolyglotVersions();
     }
 
@@ -112,9 +112,9 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             }
 
         } catch (CommandLineException commandLineException) {
-            System.err.println("truffleruby: " + commandLineException.getMessage());
+            getError().println("truffleruby: " + commandLineException.getMessage());
             if (commandLineException.isUsageError()) {
-                printHelp(System.err);
+                printHelp(getError());
             }
             System.exit(1);
         }
@@ -228,7 +228,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 case IRB:
                     config.executionAction = ExecutionAction.PATH;
                     if (System.console() != null) {
-                        System.err.println(
+                        getError().println(
                                 "[ruby] WARNING: truffleruby starts IRB when stdin is a TTY instead of reading from stdin, use '-' to read from stdin");
                         config.executionAction = ExecutionAction.PATH;
                         config.toExecute = "irb";
@@ -247,7 +247,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             // Apply options to run gem/bundle more efficiently
             contextBuilder.option("engine.Mode", "latency");
             if (Boolean.getBoolean("truffleruby.launcher.log")) {
-                System.err.println("[ruby] CONFIG: detected gem or bundle command, using --engine.Mode=latency");
+                getError().println("[ruby] CONFIG: detected gem or bundle command, using --engine.Mode=latency");
             }
         }
 
@@ -285,7 +285,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 if (file.isString()) {
                     config.toExecute = file.asString();
                 } else {
-                    System.err
+                    getError()
                             .println("truffleruby: No such file or directory -- " + config.toExecute + " (LoadError)");
                     return 1;
                 }
@@ -314,9 +314,9 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             return exitCode;
         } catch (PolyglotException e) {
             if (e.isHostException()) { // GR-22071
-                System.err.println("truffleruby: a host exception reached the top level:");
+                getError().println("truffleruby: a host exception reached the top level:");
             } else {
-                System.err.println(
+                getError().println(
                         "truffleruby: an exception escaped out of the interpreter - this is an implementation bug");
             }
             e.printStackTrace();
@@ -359,21 +359,21 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     private void printPreRunInformation(CommandLineOptions config) {
         if (config.showVersion) {
-            System.out.println(TruffleRuby.getVersionString(getImplementationNameFromEngine()));
+            getOutput().println(TruffleRuby.getVersionString(getImplementationNameFromEngine()));
         }
 
         if (config.showCopyright) {
-            System.out.println(TruffleRuby.RUBY_COPYRIGHT);
+            getOutput().println(TruffleRuby.RUBY_COPYRIGHT);
         }
 
         switch (config.showHelp) {
             case NONE:
                 break;
             case SHORT:
-                printShortHelp(System.out);
+                printShortHelp(getOutput());
                 break;
             case LONG:
-                printHelp(System.out);
+                printHelp(getOutput());
                 break;
         }
     }
