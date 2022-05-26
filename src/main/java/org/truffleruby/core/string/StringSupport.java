@@ -35,6 +35,8 @@ import java.util.Arrays;
 
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
+import com.oracle.truffle.api.strings.InternalByteArray;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
 import org.jcodings.Config;
 import org.jcodings.Encoding;
@@ -45,6 +47,7 @@ import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.jcodings.util.IntHash;
 import org.truffleruby.RubyContext;
+import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.collections.IntHashMap;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.encoding.Encodings;
@@ -89,7 +92,33 @@ public final class StringSupport {
         }
     }
 
+    public static int characterLength(Encoding encoding, TruffleString.CodeRange codeRange, byte[] bytes,
+            int byteOffset, int byteEnd, boolean recoverIfBroken) {
+        assert byteOffset >= 0 && byteOffset < byteEnd && byteEnd <= bytes.length;
+
+        switch (codeRange) {
+            case ASCII:
+                return 1;
+            case VALID:
+                return characterLengthValid(encoding, bytes, byteOffset, byteEnd);
+            case BROKEN:
+                if (recoverIfBroken) {
+                    return length(encoding, bytes, byteOffset, byteEnd);
+                } else {
+                    return preciseLength(encoding, bytes, byteOffset, byteEnd);
+                }
+            default:
+                throw Utils.unsupportedOperation("unknown code range value: ", codeRange);
+        }
+    }
+
     public static int characterLength(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset,
+            int byteEnd) {
+        return characterLength(encoding, codeRange, bytes, byteOffset, byteEnd, false);
+    }
+
+    public static int characterLength(Encoding encoding, TruffleString.CodeRange codeRange, byte[] bytes,
+            int byteOffset,
             int byteEnd) {
         return characterLength(encoding, codeRange, bytes, byteOffset, byteEnd, false);
     }
@@ -327,6 +356,23 @@ public final class StringSupport {
 
     @TruffleBoundary
     public static int codePoint(Encoding enc, CodeRange codeRange, byte[] bytes, int p, int end, Node node) {
+        if (p >= end) {
+            final RubyContext context = RubyContext.get(node);
+            throw new RaiseException(context, context.getCoreExceptions().argumentError("empty string", node));
+        }
+        int cl = characterLength(enc, codeRange, bytes, p, end);
+        if (cl <= 0) {
+            final RubyContext context = RubyContext.get(node);
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().argumentError("invalid byte sequence in " + enc, node));
+        }
+        return enc.mbcToCode(bytes, p, end);
+    }
+
+    @TruffleBoundary
+    public static int codePoint(Encoding enc, TruffleString.CodeRange codeRange, byte[] bytes, int p, int end,
+            Node node) {
         if (p >= end) {
             final RubyContext context = RubyContext.get(node);
             throw new RaiseException(context, context.getCoreExceptions().argumentError("empty string", node));
@@ -1375,7 +1421,7 @@ public final class StringSupport {
 
     @TruffleBoundary
     private static int caseMapChar(int codePoint, Encoding enc, byte[] stringBytes, int stringByteOffset,
-            RopeBuilder builder, IntHolder flags, byte[] workBuffer) {
+            ByteArrayBuilder builder, IntHolder flags, byte[] workBuffer) {
         final IntHolder fromP = new IntHolder();
         fromP.value = stringByteOffset;
 
@@ -1592,22 +1638,26 @@ public final class StringSupport {
      * the string doesn't require changes. The encoding must be ASCII-compatible (i.e. represent each ASCII character as
      * a single byte ({@link Encoding#isAsciiCompatible()}). */
     @TruffleBoundary
-    public static byte[] capitalizeMultiByteAsciiSimple(Encoding enc, CodeRange codeRange, byte[] bytes) {
+    public static byte[] capitalizeMultiByteAsciiSimple(Encoding enc, TruffleString.CodeRange codeRange,
+            InternalByteArray byteArray) {
         assert enc.isAsciiCompatible();
         boolean modified = false;
-        final int end = bytes.length;
 
-        if (end == 0) {
+        int p = byteArray.getOffset();
+        final int end = byteArray.getEnd();
+        var bytes = byteArray.getArray();
+
+        if (byteArray.getLength() == 0) {
             return bytes;
         }
 
-        if (StringSupport.isAsciiLowercase(bytes[0])) {
+        if (StringSupport.isAsciiLowercase(bytes[p])) {
             bytes = bytes.clone();
-            bytes[0] ^= 0x20;
+            bytes[p] ^= 0x20;
             modified = true;
         }
 
-        int s = 1;
+        int s = p + 1;
         while (s < end) {
             if (StringSupport.isAsciiUppercase(bytes[s])) {
                 if (!modified) {
@@ -1625,7 +1675,8 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean capitalizeMultiByteComplex(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder,
+    public static boolean capitalizeMultiByteComplex(Encoding enc, TruffleString.CodeRange originalCodeRange,
+            ByteArrayBuilder builder,
             int caseMappingOptions, Node node) {
         byte[] buf = new byte[CASE_MAP_BUFFER_SIZE];
 

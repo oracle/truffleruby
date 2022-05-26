@@ -81,6 +81,7 @@ import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
+import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.MutableTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
@@ -3121,10 +3122,10 @@ public abstract class StringNodes {
             this.upperToLower = upperToLower;
         }
 
-        public abstract byte[] executeInvert(byte[] bytes, int start);
+        public abstract byte[] executeInvert(Object bytes, int start);
 
         @Specialization
-        protected byte[] invert(byte[] bytes, int start,
+        protected byte[] invertOld(byte[] bytes, int start,
                 @Cached BranchProfile foundLowerCaseCharProfile,
                 @Cached BranchProfile foundUpperCaseCharProfile,
                 @Cached LoopConditionProfile loopProfile) {
@@ -3166,6 +3167,49 @@ public abstract class StringNodes {
             return modified;
         }
 
+        @Specialization
+        protected byte[] invert(InternalByteArray byteArray, int start,
+                @Cached BranchProfile foundLowerCaseCharProfile,
+                @Cached BranchProfile foundUpperCaseCharProfile,
+                @Cached LoopConditionProfile loopProfile) {
+            var bytes = byteArray.getArray();
+            byte[] modified = null;
+
+            int i = start + byteArray.getOffset();
+            try {
+                for (; loopProfile.inject(i < byteArray.getEnd()); i++) {
+                    final byte b = bytes[i];
+
+                    if (lowerToUpper && StringSupport.isAsciiLowercase(b)) {
+                        foundLowerCaseCharProfile.enter();
+
+                        if (modified == null) {
+                            modified = bytes.clone();
+                        }
+
+                        // Convert lower-case ASCII char to upper-case.
+                        modified[i] ^= 0x20;
+                    }
+
+                    if (upperToLower && StringSupport.isAsciiUppercase(b)) {
+                        foundUpperCaseCharProfile.enter();
+
+                        if (modified == null) {
+                            modified = bytes.clone();
+                        }
+
+                        // Convert upper-case ASCII char to lower-case.
+                        modified[i] ^= 0x20;
+                    }
+
+                    TruffleSafepoint.poll(this);
+                }
+            } finally {
+                profileAndReportLoopCount(loopProfile, i - start);
+            }
+
+            return modified;
+        }
     }
 
     public abstract static class InvertAsciiCaseNode extends RubyBaseNode {
@@ -3298,9 +3342,11 @@ public abstract class StringNodes {
     @ImportStatic({ StringGuards.class, Config.class })
     public abstract static class StringCapitalizeBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private BytesNode bytesNode = BytesNode.create();
-        @Child private CodeRangeNode codeRangeNode = CodeRangeNode.create();
-        @Child private TruffleString.FromByteArrayNode fromByteArrayNode = TruffleString.FromByteArrayNode.create();
+        @Child private TruffleString.GetByteCodeRangeNode codeRangeNode;
+        @Child private TruffleString.GetInternalByteArrayNode byteArrayNode = TruffleString.GetInternalByteArrayNode
+                .create();
+        @Child private TruffleString.CopyToByteArrayNode copyToByteArrayNode;
+        @Child private TruffleString.FromByteArrayNode fromByteArrayNode;
         @Child NewSingleByteOptimizableNode singleByteOptimizableNode = NewSingleByteOptimizableNode.create();
 
         @Specialization(guards = "isSingleByteCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
@@ -3310,16 +3356,18 @@ public abstract class StringNodes {
                 @Cached @Exclusive ConditionProfile firstCharIsLowerProfile,
                 @Cached @Exclusive ConditionProfile otherCharsAlreadyLowerProfile,
                 @Cached @Exclusive ConditionProfile mustCapitalizeFirstCharProfile) {
-            final Rope rope = string.rope;
+            var tstring = string.tstring;
+            var encoding = string.encoding.tencoding;
 
-            if (emptyStringProfile.profile(rope.isEmpty())) {
+            if (emptyStringProfile.profile(tstring.isEmpty())) {
                 return nil;
             }
 
-            final byte[] sourceBytes = bytesNode.execute(rope);
+            var byteArray = byteArrayNode.execute(tstring, encoding);
+            final byte[] sourceBytes = byteArray.getArray();
             final byte[] finalBytes;
 
-            final byte[] processedBytes = invertAsciiCaseNode.executeInvert(sourceBytes, 1);
+            final byte[] processedBytes = invertAsciiCaseNode.executeInvert(byteArray, 1);
 
             if (otherCharsAlreadyLowerProfile.profile(processedBytes == null)) {
                 // Bytes 1..N are either not letters or already lowercased. Time to check the first byte.
@@ -3327,7 +3375,7 @@ public abstract class StringNodes {
                 if (firstCharIsLowerProfile.profile(StringSupport.isAsciiLowercase(sourceBytes[0]))) {
                     // The first char requires capitalization, but the remaining bytes in the original string are
                     // already properly cased.
-                    finalBytes = sourceBytes.clone();
+                    finalBytes = copyByteArray(tstring, encoding);
                 } else {
                     // The string is already capitalized.
                     return nil;
@@ -3341,7 +3389,8 @@ public abstract class StringNodes {
                 finalBytes[0] ^= 0x20;
             }
 
-            string.setTString(fromByteArrayNode.execute(finalBytes, string.encoding.tencoding)); // codeRangeNode.execute(rope), characterLengthNode.execute(rope)
+            string.setTString(makeTString(finalBytes, encoding));
+
             return string;
         }
 
@@ -3351,27 +3400,27 @@ public abstract class StringNodes {
                 @Cached @Shared("emptyStringProfile") ConditionProfile emptyStringProfile,
                 @Cached @Shared("modifiedProfile") ConditionProfile modifiedProfile) {
             // Taken from org.jruby.RubyString#capitalize_bang19.
+            var tstring = string.tstring;
+            var encoding = string.encoding;
 
-            final Rope rope = string.rope;
-            final Encoding enc = rope.getEncoding();
-
-            if (enc.isDummy()) {
+            if (encoding.jcoding.isDummy()) {
                 dummyEncodingProfile.enter();
                 throw new RaiseException(
                         getContext(),
-                        coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
+                        coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding.jcoding, this));
             }
 
-            if (emptyStringProfile.profile(rope.isEmpty())) {
+            if (emptyStringProfile.profile(tstring.isEmpty())) {
                 return nil;
             }
 
-            final CodeRange cr = codeRangeNode.execute(rope);
-            final byte[] inputBytes = bytesNode.execute(rope);
-            final byte[] outputBytes = StringSupport.capitalizeMultiByteAsciiSimple(enc, cr, inputBytes);
+            var cr = getCodeRange(tstring, encoding.tencoding);
+            var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
+            final byte[] outputBytes = StringSupport.capitalizeMultiByteAsciiSimple(encoding.jcoding, cr, byteArray);
 
-            if (modifiedProfile.profile(inputBytes != outputBytes)) {
-                string.setTString(fromByteArrayNode.execute(outputBytes, string.encoding.tencoding)); // cr, characterLengthNode.execute(rope)
+            if (modifiedProfile.profile(byteArray.getArray() != outputBytes)) {
+                string.setTString(
+                        makeTString(outputBytes, encoding.tencoding, byteArray.getOffset(), byteArray.getLength()));
                 return string;
             }
 
@@ -3383,29 +3432,72 @@ public abstract class StringNodes {
                 @Cached @Shared("dummyEncodingProfile") BranchProfile dummyEncodingProfile,
                 @Cached @Shared("emptyStringProfile") ConditionProfile emptyStringProfile,
                 @Cached @Shared("modifiedProfile") ConditionProfile modifiedProfile) {
-            final Rope rope = string.rope;
-            final Encoding enc = rope.getEncoding();
+            var tstring = string.tstring;
+            var encoding = string.encoding;
 
-            if (enc.isDummy()) {
+            if (encoding.jcoding.isDummy()) {
                 dummyEncodingProfile.enter();
                 throw new RaiseException(
                         getContext(),
-                        coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
+                        coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding.jcoding, this));
             }
 
-            if (emptyStringProfile.profile(rope.isEmpty())) {
+            if (emptyStringProfile.profile(tstring.isEmpty())) {
                 return nil;
             }
 
-            final RopeBuilder builder = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), string.encoding);
+            var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
+
+            // TODO (nirvdrum 26-May-22): Make the byte array builder copy-on-write so we don't eagerly clone the source byte array.
+            var builder = ByteArrayBuilder.create(byteArray);
+
+            var cr = getCodeRange(tstring, encoding.tencoding);
             final boolean modified = StringSupport
-                    .capitalizeMultiByteComplex(enc, codeRangeNode.execute(rope), builder, caseMappingOptions, this);
+                    .capitalizeMultiByteComplex(encoding.jcoding, cr, builder, caseMappingOptions, this);
+
             if (modifiedProfile.profile(modified)) {
-                string.setTString(fromByteArrayNode.execute(builder.getBytes(), string.encoding.tencoding));
+                string.setTString(makeTString(builder.getUnsafeBytes(), encoding.tencoding));
                 return string;
             } else {
                 return nil;
             }
+        }
+
+        private byte[] copyByteArray(AbstractTruffleString string, TruffleString.Encoding encoding) {
+            if (copyToByteArrayNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                copyToByteArrayNode = insert(TruffleString.CopyToByteArrayNode.create());
+            }
+
+            int byteLength = string.byteLength(encoding);
+            var ret = new byte[byteLength];
+
+            copyToByteArrayNode.execute(string, 0, ret, 0, byteLength, encoding);
+
+            return ret;
+        }
+
+        private TruffleString.CodeRange getCodeRange(AbstractTruffleString string, TruffleString.Encoding encoding) {
+            if (codeRangeNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                codeRangeNode = insert(TruffleString.GetByteCodeRangeNode.create());
+            }
+
+            return codeRangeNode.execute(string, encoding);
+        }
+
+        private AbstractTruffleString makeTString(byte[] bytes, TruffleString.Encoding encoding, int byteOffset,
+                int byteLength) {
+            if (fromByteArrayNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                fromByteArrayNode = insert(TruffleString.FromByteArrayNode.create());
+            }
+
+            return fromByteArrayNode.execute(bytes, byteOffset, byteLength, encoding, false);
+        }
+
+        private AbstractTruffleString makeTString(byte[] bytes, TruffleString.Encoding encoding) {
+            return makeTString(bytes, encoding, 0, bytes.length);
         }
 
     }
