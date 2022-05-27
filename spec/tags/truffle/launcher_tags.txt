@@ -56,7 +56,7 @@ slow:The launcher supports running rdoc symlinked
 slow:The launcher supports running ri symlinked
 slow:The launcher supports running ruby symlinked
 slow:The launcher supports running truffleruby symlinked
-arm64:The launcher for gem can install and uninstall the hello-world gem
+aarch64:The launcher for gem can install and uninstall the hello-world gem
 slow:The launcher should recognize ruby --vm options in RUBYOPT
 slow:The launcher should recognize ruby --vm options in TRUFFLERUBYOPT
 slow:The launcher runtime configuration flags should recognize ruby --vm options in RUBYOPT when switching to JVM

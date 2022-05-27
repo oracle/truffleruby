@@ -271,7 +271,7 @@ local part_definitions = {
       },
     },
     linux_aarch64: linux_deps + {
-      platform_name:: "LinuxARM64",
+      platform_name:: "LinuxAArch64",
       platform: "linux",
       arch:: "aarch64",
       "$.cap":: {
@@ -290,7 +290,7 @@ local part_definitions = {
       },
     },
     darwin_aarch64: darwin_aarch64_deps + {
-      platform_name:: "DarwinARM64",
+      platform_name:: "DarwinAArch64",
       platform: "darwin",
       arch:: "aarch64",
       "$.cap":: {

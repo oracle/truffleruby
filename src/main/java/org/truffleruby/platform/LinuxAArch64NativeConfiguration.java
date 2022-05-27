@@ -39,7 +39,7 @@ package org.truffleruby.platform;
 
 import org.truffleruby.RubyContext;
 
-public class LinuxARM64NativeConfiguration extends DefaultNativeConfiguration {
+public class LinuxAArch64NativeConfiguration extends DefaultNativeConfiguration {
 
     public static void load(NativeConfiguration configuration, RubyContext context) {
         // Generated from tool/generate-native-config.rb on aarch64-linux

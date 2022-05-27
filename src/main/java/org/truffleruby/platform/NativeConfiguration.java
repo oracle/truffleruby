@@ -64,9 +64,8 @@ public class NativeConfiguration {
                     case AMD64:
                         LinuxAMD64NativeConfiguration.load(nativeConfiguration, context);
                         return nativeConfiguration;
-                    case ARM64:
                     case AARCH64:
-                        LinuxARM64NativeConfiguration.load(nativeConfiguration, context);
+                        LinuxAArch64NativeConfiguration.load(nativeConfiguration, context);
                         return nativeConfiguration;
                 }
                 break;
@@ -75,9 +74,8 @@ public class NativeConfiguration {
                     case AMD64:
                         DarwinAMD64NativeConfiguration.load(nativeConfiguration, context);
                         return nativeConfiguration;
-                    case ARM64:
                     case AARCH64:
-                        DarwinARM64NativeConfiguration.load(nativeConfiguration, context);
+                        DarwinAArch64NativeConfiguration.load(nativeConfiguration, context);
                         return nativeConfiguration;
                 }
                 break;

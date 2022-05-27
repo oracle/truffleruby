@@ -54,7 +54,6 @@ public abstract class BasicPlatform {
 
     public enum ARCH {
         AMD64("x86_64"),
-        ARM64("arm64"),
         AARCH64("aarch64"),
         UNKNOWN("unknown");
 
@@ -107,9 +106,8 @@ public abstract class BasicPlatform {
             case "amd64":
             case "x86_64":
                 return ARCH.AMD64;
-            case "arm64":
-                return ARCH.ARM64;
             case "aarch64":
+            case "arm64":
                 return ARCH.AARCH64;
             default:
                 return ARCH.UNKNOWN;

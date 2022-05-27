@@ -43,7 +43,7 @@ EXTRA_CFLAGS = ''
 
 case RUBY_PLATFORM
 when /aarch64-linux/
-  PLATFORM_FILE = 'org/truffleruby/platform/LinuxARM64NativeConfiguration.java'
+  PLATFORM_FILE = 'org/truffleruby/platform/LinuxAArch64NativeConfiguration.java'
   EXTRA_CFLAGS << ' -D_GNU_SOURCE'
 when /x86_64-linux/
   PLATFORM_FILE = 'org/truffleruby/platform/LinuxAMD64NativeConfiguration.java'
@@ -51,7 +51,7 @@ when /x86_64-linux/
 when /x86_64-darwin/
   PLATFORM_FILE = 'org/truffleruby/platform/DarwinAMD64NativeConfiguration.java'
 when /arm64.*-darwin/
-  PLATFORM_FILE = 'org/truffleruby/platform/DarwinARM64NativeConfiguration.java'
+  PLATFORM_FILE = 'org/truffleruby/platform/DarwinAArch64NativeConfiguration.java'
 else
   raise "Unsupported platform #{RUBY_PLATFORM}"
 end
