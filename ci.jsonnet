@@ -205,18 +205,19 @@ local part_definitions = {
       },
       environment+: {
         GDB_BIN: "$GDB/bin/gdb",
-        HOST_VM: "svm",
       },
     },
     native: {
       mx_env:: "native",
       environment+: {
+        HOST_VM: "svm",
         HOST_VM_CONFIG: "graal-core",
       },
     },
     native_ee: {
       mx_env:: "native-ee",
       environment+: {
+        HOST_VM: "svm",
         HOST_VM_CONFIG: "graal-enterprise",
       },
     },
