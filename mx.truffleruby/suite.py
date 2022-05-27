@@ -306,13 +306,11 @@ suite = {
             "native": True,
             "dir": "src/main/c",
             "buildDependencies": [
-                "truffle:TRUFFLE_NFI_NATIVE", # trufflenfi.h
                 "sulong:SULONG_BOOTSTRAP_TOOLCHAIN", # graalvm-native-clang
                 "sulong:SULONG_HOME", # polyglot.h
                 "TRUFFLERUBY-BOOTSTRAP-LAUNCHER",
             ],
             "buildEnv": {
-                "NFI_HEADERS_DIR": "<path:truffle:TRUFFLE_NFI_NATIVE>/include",
                 "TRUFFLERUBY_BOOTSTRAP_LAUNCHER": "<path:TRUFFLERUBY-BOOTSTRAP-LAUNCHER>/miniruby",
                 "GRAALVM_TOOLCHAIN_CC": "<toolchainGetToolPath:native,CC>",
             },

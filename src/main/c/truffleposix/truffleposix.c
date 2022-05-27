@@ -69,8 +69,6 @@ SUCH DAMAGE.
 #include <sys/sysmacros.h>
 #endif
 
-#include <trufflenfi.h>
-
 struct truffleposix_stat {
   uint64_t atime;
   uint64_t mtime;
