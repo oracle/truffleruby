@@ -614,37 +614,6 @@ public abstract class RopeNodes {
 
     }
 
-    public abstract static class CharacterLengthNode extends RubyBaseNode {
-
-        public static CharacterLengthNode create() {
-            return RopeNodesFactory.CharacterLengthNodeGen.create();
-        }
-
-        public abstract int execute(Rope rope);
-
-        @Specialization
-        protected int getCharacterLengthManaged(ManagedRope rope) {
-            return rope.characterLength();
-        }
-
-        @Specialization
-        protected int getCharacterLengthNative(NativeRope rope,
-                @Cached CalculateAttributesNode calculateAttributesNode,
-                @Cached ConditionProfile unknownCharacterLengthProfile,
-                @Cached GetBytesObjectNode getBytesObjectNode) {
-            if (unknownCharacterLengthProfile
-                    .profile(rope.rawCharacterLength() == NativeRope.UNKNOWN_CHARACTER_LENGTH)) {
-                final StringAttributes attributes = calculateAttributesNode
-                        .executeCalculateAttributes(rope.getEncoding(), getBytesObjectNode.getBytes(rope));
-                rope.updateAttributes(attributes);
-                return attributes.getCharacterLength();
-            } else {
-                return rope.rawCharacterLength();
-            }
-        }
-
-    }
-
     public abstract static class SingleByteOptimizableNode extends RubyBaseNode {
 
         public static SingleByteOptimizableNode create() {

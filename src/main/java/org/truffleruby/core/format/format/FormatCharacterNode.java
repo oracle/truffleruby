@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.format.format;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToIntNodeGen;
@@ -19,8 +20,6 @@ import org.truffleruby.core.format.convert.ToStringNodeGen;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
 import org.truffleruby.core.format.write.bytes.WriteByteNodeGen;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
@@ -31,6 +30,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.library.RubyStringLibrary;
 
 @NodeChild("width")
 @NodeChild("value")
@@ -48,18 +48,20 @@ public abstract class FormatCharacterNode extends FormatNode {
     @Specialization(guards = { "width == cachedWidth" }, limit = "getLimit()")
     protected byte[] formatCached(VirtualFrame frame, int width, Object value,
             @Cached("width") int cachedWidth,
-            @Cached("makeFormatString(width)") String cachedFormatString) {
-        final String charString = getCharString(frame, value);
+            @Cached("makeFormatString(width)") String cachedFormatString,
+            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
+        final String charString = getCharString(frame, value, libString);
         return StringUtils.formatASCIIBytes(cachedFormatString, charString);
     }
 
     @Specialization(replaces = "formatCached")
-    protected byte[] format(VirtualFrame frame, int width, Object value) {
-        final String charString = getCharString(frame, value);
+    protected byte[] format(VirtualFrame frame, int width, Object value,
+            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
+        final String charString = getCharString(frame, value, libString);
         return StringUtils.formatASCIIBytes(makeFormatString(width), charString);
     }
 
-    protected String getCharString(VirtualFrame frame, Object value) {
+    protected String getCharString(VirtualFrame frame, Object value, RubyStringLibrary libString) {
         if (toStringNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             toStringNode = insert(ToStringNodeGen.create(
@@ -85,9 +87,8 @@ public abstract class FormatCharacterNode extends FormatNode {
             final int charValue = toIntegerNode.execute(value);
             // TODO BJF check char length is > 0
             charString = Character.toString((char) charValue);
-        } else if (toStrResult instanceof Rope) {
-            Rope rope = (Rope) toStrResult;
-            final String resultString = RopeOperations.decodeRope(rope);
+        } else if (libString.isRubyString(toStrResult)) {
+            final String resultString = libString.getJavaString(toStrResult);
             final int size = resultString.length();
             if (size > 1) {
                 throw new RaiseException(

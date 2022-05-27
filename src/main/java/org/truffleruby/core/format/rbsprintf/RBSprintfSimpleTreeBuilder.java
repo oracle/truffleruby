@@ -37,8 +37,8 @@ import org.truffleruby.core.format.read.array.ReadCValueNodeGen;
 import org.truffleruby.core.format.read.array.ReadValueNodeGen;
 import org.truffleruby.core.format.write.bytes.WriteBytesNodeGen;
 import org.truffleruby.core.format.write.bytes.WritePaddedBytesNodeGen;
-import org.truffleruby.core.rope.LeafRope;
-import org.truffleruby.core.rope.RopeConstants;
+import org.truffleruby.core.string.FrozenStrings;
+import org.truffleruby.core.string.ImmutableRubyString;
 
 public class RBSprintfSimpleTreeBuilder {
 
@@ -48,7 +48,7 @@ public class RBSprintfSimpleTreeBuilder {
 
     public static final int DEFAULT = PrintfSimpleTreeBuilder.DEFAULT;
 
-    private static final LeafRope EMPTY_ROPE = RopeConstants.EMPTY_US_ASCII_ROPE;
+    private static final ImmutableRubyString EMPTY_STRING = FrozenStrings.EMPTY_US_ASCII;
 
     public RBSprintfSimpleTreeBuilder(List<RBSprintfConfig> configs, Object stringReader) {
         this.configs = configs;
@@ -275,7 +275,7 @@ public class RBSprintfSimpleTreeBuilder {
                                                 true,
                                                 conversionMethodName,
                                                 false,
-                                                EMPTY_ROPE,
+                                                EMPTY_STRING,
                                                 config.isPlus(),
                                                 new SourceNode());
                             } else {
@@ -289,7 +289,7 @@ public class RBSprintfSimpleTreeBuilder {
                                             true,
                                             conversionMethodName,
                                             false,
-                                            EMPTY_ROPE,
+                                            EMPTY_STRING,
                                             config.isPlus(),
                                             (config.getAbsoluteArgumentIndex() == null)
                                                     ? (ReadCValueNodeGen

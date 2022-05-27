@@ -14,7 +14,6 @@ import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
-import org.truffleruby.language.library.RubyStringLibrary;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -38,14 +37,13 @@ public abstract class ReadCStringNode extends FormatNode {
     protected Object read(VirtualFrame frame, Object pointer,
             @Cached UnwrapNode unwrapNode,
             @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
             @CachedLibrary("stringReader") InteropLibrary stringReaders) {
         Object string = unwrapNode.execute(InteropNodes.execute(
                 stringReader,
                 new Object[]{ pointer },
                 stringReaders,
                 translateInteropExceptionNode));
-        return libString.getRope(string);
+        return string;
     }
 
 }

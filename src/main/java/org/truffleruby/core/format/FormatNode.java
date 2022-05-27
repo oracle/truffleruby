@@ -130,14 +130,14 @@ public abstract class FormatNode extends RubyBaseNode {
         increaseStringLength(frame, 1);
     }
 
-    protected void writeBytes(VirtualFrame frame, byte... values) {
-        writeBytes(frame, values, values.length);
+    protected void writeBytes(VirtualFrame frame, byte[] values) {
+        writeBytes(frame, values, 0, values.length);
     }
 
-    protected void writeBytes(VirtualFrame frame, byte[] values, int valuesLength) {
+    protected void writeBytes(VirtualFrame frame, byte[] values, int valuesOffset, int valuesLength) {
         byte[] output = ensureCapacity(frame, valuesLength);
         final int outputPosition = getOutputPosition(frame);
-        System.arraycopy(values, 0, output, outputPosition, valuesLength);
+        System.arraycopy(values, valuesOffset, output, outputPosition, valuesLength);
         setOutputPosition(frame, outputPosition + valuesLength);
         increaseStringLength(frame, valuesLength);
     }

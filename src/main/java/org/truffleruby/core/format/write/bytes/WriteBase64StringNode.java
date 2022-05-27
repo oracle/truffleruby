@@ -9,10 +9,10 @@
  */
 package org.truffleruby.core.format.write.bytes;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -20,6 +20,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.library.RubyStringLibrary;
 
 @NodeChild("value")
 public abstract class WriteBase64StringNode extends FormatNode {
@@ -43,9 +44,11 @@ public abstract class WriteBase64StringNode extends FormatNode {
         return null;
     }
 
-    @Specialization
-    protected Object write(VirtualFrame frame, Rope rope,
+    @Specialization(guards = "libString.isRubyString(string)")
+    protected Object write(VirtualFrame frame, Object string,
+            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
             @Cached RopeNodes.BytesNode bytesNode) {
+        var rope = libString.getRope(string);
         return write(frame, bytesNode.execute(rope));
     }
 
