@@ -187,11 +187,8 @@ public abstract class ByteArrayNodes {
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libPattern) {
             var patternTString = libPattern.getTString(pattern);
             var tencoding = libPattern.getTEncoding(pattern);
-            final int index = indexOf(
-                    byteArray.bytes,
-                    start,
-                    length,
-                    bytesNode.execute(libPattern.getRope(pattern)));
+            final byte[] patternBytes = bytesNode.execute(libPattern.getRope(pattern));
+            final int index = ArrayUtils.indexOfWithOrMask(byteArray.bytes, start, length, patternBytes, null);
 
             if (notFoundProfile.profile(index == -1)) {
                 return nil;
@@ -203,43 +200,6 @@ public abstract class ByteArrayNodes {
         protected boolean isSingleBytePattern(Rope rope) {
             return RopeGuards.isSingleByteString(rope);
         }
-
-        public int indexOf(byte[] in, int start, int length, byte[] target) {
-            int targetCount = target.length;
-            int fromIndex = start;
-            if (fromIndex >= length) {
-                return (targetCount == 0 ? length : -1);
-            }
-            if (fromIndex < 0) {
-                fromIndex = 0;
-            }
-            if (targetCount == 0) {
-                return fromIndex;
-            }
-
-            byte first = target[0];
-            int max = length - targetCount;
-
-            for (int i = fromIndex; i <= max; i++) {
-                if (in[i] != first) {
-                    while (++i <= max && in[i] != first) {
-                    }
-                }
-
-                if (i <= max) {
-                    int j = i + 1;
-                    int end = j + targetCount - 1;
-                    for (int k = 1; j < end && in[j] == target[k]; j++, k++) {
-                    }
-
-                    if (j == end) {
-                        return i;
-                    }
-                }
-            }
-            return -1;
-        }
-
     }
 
 }
