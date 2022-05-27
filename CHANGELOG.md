@@ -2,6 +2,7 @@
 
 New features:
 
+* Add support for `darwin-aarch64` (macOS M1) (#2181, @lewurm, @chrisseaton, @eregon).
 
 Bug fixes:
 
