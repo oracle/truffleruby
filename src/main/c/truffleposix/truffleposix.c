@@ -69,8 +69,6 @@ SUCH DAMAGE.
 #include <sys/sysmacros.h>
 #endif
 
-#include <trufflenfi.h>
-
 struct truffleposix_stat {
   uint64_t atime;
   uint64_t mtime;
@@ -467,7 +465,7 @@ static void copy_stat(struct stat *native_stat, struct truffleposix_stat* buffer
 #elif defined(HAVE_STRUCT_STAT_ST_ATIMENSEC)
   buffer->atime_nsec = (long)native_stat->st_atimensec;
 #else
-  buffer->atime_nsec = 0
+  buffer->atime_nsec = 0;
 #endif
 #if defined(HAVE_STRUCT_STAT_ST_MTIM)
   buffer->mtime_nsec = native_stat->st_mtim.tv_nsec;
