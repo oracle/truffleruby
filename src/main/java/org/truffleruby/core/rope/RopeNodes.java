@@ -34,7 +34,6 @@ import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.utils.Utils;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -441,75 +440,6 @@ public abstract class RopeNodes {
                     System.err.print("|  ");
                 }
             }
-        }
-
-    }
-
-    @ImportStatic(CompilerDirectives.class)
-    @GenerateUncached
-    public abstract static class WithEncodingNode extends RubyBaseNode {
-
-        public static WithEncodingNode create() {
-            return RopeNodesFactory.WithEncodingNodeGen.create();
-        }
-
-        public abstract Rope executeWithEncoding(Rope rope, Encoding encoding);
-
-        @Specialization(guards = "rope.getEncoding() == encoding")
-        protected Rope sameEncoding(Rope rope, Encoding encoding) {
-            return rope;
-        }
-
-        @Specialization(guards = "rope.getEncoding() != encoding")
-        protected Rope nativeRopeWithEncoding(NativeRope rope, Encoding encoding) {
-            return rope.withEncoding(encoding);
-        }
-
-        @Specialization(
-                guards = { "managedRope.getEncoding() != encoding", "isExact(managedRope, cachedRopeClass)", },
-                limit = "getCacheLimit()")
-        protected Rope asciiCompatible(ManagedRope managedRope, Encoding encoding,
-                @Cached("managedRope.getClass()") Class<? extends ManagedRope> cachedRopeClass,
-                @Cached ConditionProfile asciiCompatibleProfile,
-                @Cached ConditionProfile asciiOnlyProfile,
-                @Cached ConditionProfile binaryEncodingProfile,
-                @Cached ConditionProfile bytesNotNull,
-                @Cached BytesNode bytesNode,
-                @Cached MakeLeafRopeNode makeLeafRopeNode) {
-            final ManagedRope rope = CompilerDirectives.castExact(managedRope, cachedRopeClass);
-
-            if (asciiCompatibleProfile.profile(encoding.isAsciiCompatible())) {
-                if (asciiOnlyProfile.profile(rope.isAsciiOnly())) {
-                    // ASCII-only strings can trivially convert to other ASCII-compatible encodings.
-                    return rope.withEncoding7bit(encoding, bytesNotNull);
-                } else if (binaryEncodingProfile.profile(encoding == ASCIIEncoding.INSTANCE &&
-                        rope.getCodeRange() == CR_VALID &&
-                        rope.getEncoding().isAsciiCompatible())) {
-                    // ASCII-compatible CR_VALID strings are also CR_VALID in binary, but they might change character length.
-                    final Rope binary = rope.withBinaryEncoding(bytesNotNull);
-                    assert binary.getCodeRange() == CR_VALID;
-                    return binary;
-                } else {
-                    // The rope either has a broken code range or isn't ASCII-compatible. In the case of a broken
-                    // code range, we must perform a new code range scan with the target encoding to see if it's still
-                    // broken. In the case of a non-ASCII-compatible encoding we don't have a quick way to reinterpret
-                    // the byte sequence.
-                    return rescanBytesForEncoding(rope, encoding, bytesNode, makeLeafRopeNode);
-                }
-            } else {
-                // We don't know of any good way to quickly reinterpret bytes from two different encodings, so we
-                // must perform a full code range scan and character length calculation.
-                return rescanBytesForEncoding(rope, encoding, bytesNode, makeLeafRopeNode);
-            }
-        }
-
-        private Rope rescanBytesForEncoding(ManagedRope rope, Encoding encoding, BytesNode bytesNode,
-                MakeLeafRopeNode makeLeafRopeNode) {
-            return makeLeafRopeNode.executeMake(bytesNode.execute(rope), encoding, CR_UNKNOWN, NotProvided.INSTANCE);
-        }
-
-        protected int getCacheLimit() {
-            return Rope.NUMBER_OF_CONCRETE_CLASSES;
         }
 
     }

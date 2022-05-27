@@ -39,7 +39,6 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.collections.IntStack;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.encoding.EncodingManager;
-import org.truffleruby.core.rope.RopeNodesFactory.WithEncodingNodeGen;
 import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
@@ -129,10 +128,6 @@ public class RopeOperations {
         } else {
             return new ValidLeafRope(RopeConstants.EMPTY_BYTES, encoding, 0);
         }
-    }
-
-    public static Rope withEncoding(Rope originalRope, Encoding newEncoding) {
-        return WithEncodingNodeGen.getUncached().executeWithEncoding(originalRope, newEncoding);
     }
 
     public static LeafRope encodeAscii(String value, Encoding encoding) {

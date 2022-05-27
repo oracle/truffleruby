@@ -20,9 +20,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public abstract class Rope implements Comparable<Rope> {
 
-    // NativeRope, RepeatingRope, 3 LeafRope, ConcatRope, SubstringRope, 1 LazyRope
-    public static final int NUMBER_OF_CONCRETE_CLASSES = 8;
-
     public final Encoding encoding;
     private final int byteLength;
     private int hashCode = 0;

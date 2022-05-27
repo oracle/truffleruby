@@ -77,7 +77,7 @@ import org.truffleruby.core.rope.ManagedRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
-import org.truffleruby.core.rope.RopeNodesFactory;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.language.SourceIndexLength;
@@ -584,13 +584,13 @@ public class RubyLexer implements MagicCommentHandler {
         CodeRange codeRange = buffer.getCodeRange();
 
         if ((flags & STR_FUNC_REGEXP) == 0 && bufferEncoding.isAsciiCompatible()) {
-            // If we have characters outside 7-bit range and we are still ascii then change to ascii-8bit
+            // If we have characters outside 7-bit range and we are still ascii then change to binary
             if (codeRange == CodeRange.CR_7BIT) {
                 // Do nothing like MRI
             } else if (encoding == Encodings.US_ASCII && bufferEncoding != UTF8Encoding.INSTANCE) {
-                codeRange = associateEncoding(buffer, ASCIIEncoding.INSTANCE, codeRange);
-                buffer = RopeNodesFactory.WithEncodingNodeGen.getUncached().executeWithEncoding(buffer,
-                        ASCIIEncoding.INSTANCE);
+                assert !buffer.isAsciiOnly();
+                codeRange = bufferEncoding == ASCIIEncoding.INSTANCE ? codeRange : CR_UNKNOWN;
+                buffer = RopeOperations.create(buffer.getBytes(), ASCIIEncoding.INSTANCE, CodeRange.CR_VALID);
             }
         }
 
@@ -601,20 +601,6 @@ public class RubyLexer implements MagicCommentHandler {
         }
 
         return newStr;
-    }
-
-    public static CodeRange associateEncoding(Rope buffer, Encoding newEncoding, CodeRange codeRange) {
-        Encoding bufferEncoding = buffer.getEncoding();
-
-        if (newEncoding == bufferEncoding) {
-            return codeRange;
-        }
-
-        if (codeRange != CodeRange.CR_7BIT || !newEncoding.isAsciiCompatible()) {
-            return CodeRange.CR_UNKNOWN;
-        }
-
-        return codeRange;
     }
 
     /** What type/kind of quote are we dealing with?
