@@ -50,6 +50,6 @@ describe "String#rstrip!" do
   it "raises an ArgumentError if the last codepoint is invalid" do
     s = "abc\xDF".force_encoding(Encoding::UTF_8)
     s.valid_encoding?.should be_false
-    -> { s.send(@method) { } }.should raise_error(ArgumentError)
+    -> { s.rstrip! }.should raise_error(ArgumentError)
   end
 end
