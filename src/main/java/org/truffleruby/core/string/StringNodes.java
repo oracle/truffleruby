@@ -920,7 +920,7 @@ public abstract class StringNodes {
             var byteArray = getByteArrayNode.execute(tstring, encoding);
 
             var bytes = byteArray.getArray();
-            int arrayLength = tstring.byteLength(encoding);
+            int arrayLength = byteArray.getLength();
             int offset = byteArray.getOffset();
 
             final int[] store = new int[arrayLength];
