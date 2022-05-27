@@ -172,6 +172,10 @@ class String
     Primitive.string_to_inum(self, 16, false, true)
   end
 
+  def replace(other)
+    Primitive.string_replace(self, other)
+  end
+
   def reverse
     Primitive.dup_as_string_instance(self).reverse!
   end
@@ -392,7 +396,7 @@ class String
           status = ec.primitive_convert src, dest, nil, nil
         end
 
-        return replace(dest)
+        return Primitive.string_replace(self, dest)
       else
         force_encoding to_enc
       end
@@ -568,10 +572,10 @@ class String
 
   def prepend(*others)
     if others.size == 1
-      replace(StringValue(others.first) + self)
+      Primitive.string_replace(self, StringValue(others.first) + self)
     else
       reduced = others.reduce(''.encode(self.encoding)) { |memo, other| memo + StringValue(other) }
-      replace(StringValue(reduced) + self)
+      Primitive.string_replace(self, StringValue(reduced) + self)
     end
   end
 
@@ -622,7 +626,7 @@ class String
     matches = Truffle::StringOperations.gsub_internal_matches(false, self, pattern)
     res = Truffle::StringOperations.gsub_match_and_replace(s, matches, replacement, &block)
     Primitive.regexp_last_match_set(Primitive.caller_special_variables, matches.last)
-    s.replace(res) if res
+    Primitive.string_replace(s, res) if res
     s
   end
 
@@ -637,7 +641,7 @@ class String
     res = Truffle::StringOperations.gsub_match_and_replace(self, matches, replacement, &block)
     Primitive.regexp_last_match_set(Primitive.caller_special_variables, matches.last)
     if res
-      replace(res)
+      Primitive.string_replace(self, res)
       self
     else
       nil
@@ -867,7 +871,7 @@ class String
     matches = Truffle::StringOperations.gsub_internal_matches(true, self, pattern)
     res = Truffle::StringOperations.gsub_match_and_replace(s, matches, replacement, &block)
     Primitive.regexp_last_match_set(Primitive.caller_special_variables, matches.last)
-    s.replace(res) if res
+    Primitive.string_replace(s, res) if res
     s
   end
 
@@ -882,7 +886,7 @@ class String
     res = Truffle::StringOperations.gsub_match_and_replace(self, matches, replacement, &block)
     Primitive.regexp_last_match_set(Primitive.caller_special_variables, matches.last)
     if res
-      replace(res)
+      Primitive.string_replace(self, res)
       self
     else
       nil
@@ -946,7 +950,7 @@ class String
 
   def scrub!(replace = nil, &block)
     return self if valid_encoding?
-    replace(scrub(replace, &block))
+    Primitive.string_replace(self, scrub(replace, &block))
     self
   end
 
@@ -1151,13 +1155,13 @@ class String
     Primitive.check_mutable_string self
 
     if index == 0
-      replace(other + self)
+      Primitive.string_replace(self, other + self)
     elsif index == length
       self << other
     else
       left = self[0...index]
       right = self[index..-1]
-      replace(left + other + right)
+      Primitive.string_replace(self, left + other + right)
     end
 
     self
@@ -1297,7 +1301,7 @@ class String
   end
 
   def unicode_normalize!(form = :nfc)
-    replace(unicode_normalize(form))
+    Primitive.string_replace(self, unicode_normalize(form))
   end
 
   def unicode_normalized?(form = :nfc)
