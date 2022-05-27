@@ -34,6 +34,7 @@ Compatibility:
 * Improve support of `:chomp` keyword argument in `IO` and `StringIO` methods (#2650, @andrykonchin). 
 * Implement specializations for immutable ruby objects for ObjectSpace methods (@bjfish).
 * Use `$PAGER` for `--help` and `--help*`, similar to CRuby (#2542, @Strech).
+* All `IO` instances should have `T_FILE` as their `rb_type()`, not only `File` instances (#2662, @eregon).
 
 Performance:
 
