@@ -513,6 +513,21 @@ describe "CApiObject" do
       @o.rb_is_type_class(ObjectTest).should == true
       @o.rb_is_type_data(Time.now).should == true
     end
+
+    it "returns T_FILE for instances of IO and subclasses" do
+      STDERR.class.should == IO
+      @o.rb_is_rb_type_p_file(STDERR).should == true
+
+      File.open(__FILE__) do |f|
+        f.class.should == File
+        @o.rb_is_rb_type_p_file(f).should == true
+      end
+
+      require 'socket'
+      TCPServer.open(0) do |s|
+        @o.rb_is_rb_type_p_file(s).should == true
+      end
+    end
   end
 
   describe "rb_check_type" do

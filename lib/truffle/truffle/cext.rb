@@ -215,7 +215,7 @@ module Truffle::CExt
       T_HASH
     when Struct
       T_STRUCT
-    when File
+    when IO
       T_FILE
     when Complex
       T_COMPLEX
