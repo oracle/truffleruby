@@ -34,6 +34,7 @@ Compatibility:
 * Improve support of `:chomp` keyword argument in `IO` and `StringIO` methods (#2650, @andrykonchin). 
 * Implement specializations for immutable ruby objects for ObjectSpace methods (@bjfish).
 * Use `$PAGER` for `--help` and `--help*`, similar to CRuby (#2542, @Strech).
+* Ensure all headers are warnings-free (#2662, @eregon).
 
 Performance:
 

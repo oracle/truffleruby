@@ -171,6 +171,13 @@ rb_obj_wb_unprotect(VALUE x, RB_UNUSED_VAR(const char *filename), RB_UNUSED_VAR(
 }
 #endif // TRUFFLERUBY
 
+#ifdef TRUFFLERUBY
+static inline VALUE
+rb_obj_written(VALUE a, RB_UNUSED_VAR(VALUE oldv), RB_UNUSED_VAR(VALUE b), RB_UNUSED_VAR(const char *filename), RB_UNUSED_VAR(int line))
+{
+    return a;
+}
+#else
 static inline VALUE
 rb_obj_written(VALUE a, RB_UNUSED_VAR(VALUE oldv), VALUE b, RB_UNUSED_VAR(const char *filename), RB_UNUSED_VAR(int line))
 {
@@ -178,14 +185,13 @@ rb_obj_written(VALUE a, RB_UNUSED_VAR(VALUE oldv), VALUE b, RB_UNUSED_VAR(const 
     RGENGC_LOGGING_OBJ_WRITTEN(a, oldv, b, filename, line);
 #endif
 
-#ifndef TRUFFLERUBY
     if (!RB_SPECIAL_CONST_P(b)) {
         rb_gc_writebarrier(a, b);
     }
-#endif
 
     return a;
 }
+#endif
 
 static inline VALUE
 rb_obj_write(VALUE a, VALUE *slot, VALUE b, RB_UNUSED_VAR(const char *filename), RB_UNUSED_VAR(int line))
