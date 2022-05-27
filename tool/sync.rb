@@ -29,6 +29,7 @@ abort "#{TO} is not a TruffleRuby home" unless File.directory?("#{TO}/lib/truffl
 
 # Must be consistent with TRUFFLERUBY_GRAALVM_SUPPORT in suite.py
 DIRS_TO_SYNC = %w[
+  lib/cext
   lib/json
   lib/mri
   lib/patches

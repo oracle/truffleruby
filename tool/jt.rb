@@ -1336,7 +1336,7 @@ module Commands
     ]
     no_openssl = args.delete('--no-openssl')
     no_gems = args.delete('--no-gems')
-    tests = args.empty? ? all_tests : all_tests & args
+    tests = args.empty? ? all_tests : args
     tests -= %w[xopenssl] if no_openssl
     tests.delete 'gems' if no_gems
 
@@ -1352,7 +1352,7 @@ module Commands
         # Test tools
         run_ruby 'test/truffle/cexts/test_preprocess.rb'
 
-      when 'minimum', 'method', 'module', 'globals', 'backtraces', 'xopenssl'
+      when 'minimum', 'method', 'module', 'globals', 'backtraces', 'xopenssl', 'werror'
         # Test that we can compile and run some very basic C extensions
         begin
           output_file = 'cext-output.txt'
