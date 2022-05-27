@@ -98,6 +98,11 @@ public class TStringUtils {
         return TruffleString.fromJavaStringUncached(javaString, encoding);
     }
 
+    @TruffleBoundary
+    public static TruffleString fromJavaString(String javaString, RubyEncoding encoding) {
+        return TruffleString.fromJavaStringUncached(javaString, encoding.tencoding);
+    }
+
     // Should be avoided as much as feasible
     public static byte[] getBytesOrCopy(AbstractTruffleString tstring, RubyEncoding encoding) {
         var bytes = tstring.getInternalByteArrayUncached(encoding.tencoding);

@@ -35,8 +35,6 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.parser;
 
-import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
-
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -1273,7 +1271,7 @@ public class ParserSupport {
     }
 
     private void checkSymbolCodeRange(SymbolParseNode symbolParseNode) {
-        if (symbolParseNode.getRope().getCodeRange() == CR_BROKEN) {
+        if (!symbolParseNode.getTString().isValidUncached(symbolParseNode.getRubyEncoding().tencoding)) {
             throw new RaiseException(
                     RubyLanguage.getCurrentContext(),
                     getConfiguration().getContext().getCoreExceptions().encodingError("invalid encoding symbol", null));
@@ -1506,7 +1504,7 @@ public class ParserSupport {
             final ParseNode parseNode = encounteredKeys.get(i);
             // TODO BJF 27-Nov-17 Handle additional literal nodes, consider interface with valueEquals
             if (parseNode instanceof SymbolParseNode && currentNode instanceof SymbolParseNode) {
-                if (((SymbolParseNode) parseNode).getRope().equals(((SymbolParseNode) currentNode).getRope())) {
+                if (((SymbolParseNode) parseNode).valueEquals((SymbolParseNode) currentNode)) {
                     return i;
                 }
             }

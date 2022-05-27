@@ -2972,9 +2972,8 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitSymbolNode(SymbolParseNode node) {
-        var encoding = Encodings.getBuiltInEncoding(node.getRope().getEncoding());
-        final RubyNode ret = new ObjectLiteralNode(
-                language.getSymbol(TStringUtils.fromRope(node.getRope(), encoding), encoding));
+        var encoding = Encodings.getBuiltInEncoding(node.getEncoding());
+        final RubyNode ret = new ObjectLiteralNode(language.getSymbol(node.getTString(), encoding));
         ret.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, ret);
     }

@@ -34,12 +34,15 @@ package org.truffleruby.parser.ast;
 
 import java.util.List;
 
+import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
 import org.jcodings.specific.USASCIIEncoding;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.ManagedRope;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.types.INameNode;
@@ -49,7 +52,8 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 public class SymbolParseNode extends ParseNode implements ILiteralNode, INameNode, SideEffectFree {
 
     private final String name;
-    private final Rope rope;
+    private final TruffleString tstring;
+    private final Encoding encoding;
 
     // Interned ident path (e.g. [':', ident]).
     public SymbolParseNode(SourceIndexLength position, String name, Encoding encoding, CodeRange cr) {
@@ -62,21 +66,27 @@ public class SymbolParseNode extends ParseNode implements ILiteralNode, INameNod
             encoding = USASCIIEncoding.INSTANCE;
         }
 
-        this.rope = StringOperations.encodeRope(name, encoding, cr);
+        RubyEncoding rubyEncoding = Encodings.getBuiltInEncoding(encoding);
+        this.tstring = TStringUtils.fromJavaString(name, rubyEncoding);
+        this.encoding = encoding;
     }
 
     // String path (e.g. [':', str_beg, str_content, str_end])
     public SymbolParseNode(SourceIndexLength position, Rope value) {
         super(position);
 
+        RubyEncoding rubyEncoding = Encodings.getBuiltInEncoding(value.getEncoding());
         if (value.isAsciiOnly()) {
-            rope = RopeOperations.withEncoding(value, USASCIIEncoding.INSTANCE);
+            tstring = TStringUtils.fromRope((ManagedRope) value, rubyEncoding)
+                    .switchEncodingUncached(Encodings.US_ASCII.tencoding);
+            rubyEncoding = Encodings.US_ASCII;
         } else {
-            rope = value;
+            tstring = TStringUtils.fromRope((ManagedRope) value, rubyEncoding);
         }
+        this.encoding = rubyEncoding.jcoding;
 
         // intern() to allow identity checks for caching
-        this.name = RopeOperations.decodeRope(rope).intern();
+        this.name = tstring.toJavaStringUncached().intern();
     }
 
     @Override
@@ -96,8 +106,24 @@ public class SymbolParseNode extends ParseNode implements ILiteralNode, INameNod
         return name;
     }
 
-    public Rope getRope() {
-        return rope;
+    public TruffleString getTString() {
+        return tstring;
+    }
+
+    public Encoding getEncoding() {
+        return encoding;
+    }
+
+    public RubyEncoding getRubyEncoding() {
+        return Encodings.getBuiltInEncoding(encoding);
+    }
+
+    public boolean valueEquals(ILiteralNode o) {
+        if (!(o instanceof SymbolParseNode)) {
+            return false;
+        }
+        SymbolParseNode other = (SymbolParseNode) o;
+        return tstring.equals(other.tstring) && encoding == other.encoding;
     }
 
     @Override
