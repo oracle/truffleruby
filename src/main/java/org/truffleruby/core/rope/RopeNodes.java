@@ -393,30 +393,6 @@ public abstract class RopeNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object debugPrintSubstringRope(SubstringRope rope, int currentLevel, boolean printString) {
-            printPreamble(currentLevel);
-
-            // Converting a rope to a java.lang.String may populate the byte[], so we need to query for the array status beforehand.
-            final boolean bytesAreNull = rope.getRawBytes() == null;
-
-            System.err.println(String.format(
-                    "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; O: %d; E: %s)",
-                    printString ? RopeOperations.escape(rope) : "<skipped>",
-                    rope.getClass().getSimpleName(),
-                    bytesAreNull,
-                    rope.byteLength(),
-                    rope.characterLength(),
-                    rope.getCodeRange(),
-                    rope.getByteOffset(),
-                    rope.getEncoding()));
-
-            executeDebugPrint(rope.getChild(), currentLevel + 1, printString);
-
-            return nil;
-        }
-
-        @TruffleBoundary
-        @Specialization
         protected Object debugPrintNative(NativeRope rope, int currentLevel, boolean printString) {
             printPreamble(currentLevel);
 
@@ -583,42 +559,6 @@ public abstract class RopeNodes {
         @Specialization
         protected byte[] getBytesNative(NativeRope rope) {
             return rope.getBytes();
-        }
-    }
-
-    @GenerateUncached
-    public abstract static class ByteSlowNode extends RubyBaseNode {
-
-        public static ByteSlowNode create() {
-            return RopeNodesFactory.ByteSlowNodeGen.create();
-        }
-
-        public abstract byte execute(Rope rope, int index);
-
-        @Specialization
-        protected byte getByteFromSubString(SubstringRope rope, int index,
-                @Cached ByteSlowNode childNode) {
-            return childNode.execute(rope.getChild(), rope.getByteOffset() + index);
-        }
-
-        @Specialization(guards = "rope.getRawBytes() != null")
-        protected byte fastByte(ManagedRope rope, int index) {
-            return rope.getRawBytes()[index];
-        }
-
-        @TruffleBoundary
-        @Specialization(guards = { "rope.getRawBytes() == null", "!isSubstringRope(rope)" })
-        protected byte getByteFromRope(ManagedRope rope, int index) {
-            return rope.getByteSlow(index);
-        }
-
-        @Specialization
-        protected byte getByteFromNativeRope(NativeRope rope, int index) {
-            return rope.getByteSlow(index);
-        }
-
-        protected static boolean isSubstringRope(ManagedRope rope) {
-            return rope instanceof SubstringRope;
         }
     }
 
@@ -863,8 +803,8 @@ public abstract class RopeNodes {
     }
 
     /** Returns a {@link Bytes} object for the given rope and bounds. This will simply get the bytes for the rope and
-     * build the object, except in the case of {@link SubstringRope} which is optimized to use the bytes of the child
-     * rope instead - which is better for footprint. */
+     * build the object, except in the case of SubstringRope which is optimized to use the bytes of the child rope
+     * instead - which is better for footprint. */
     @GenerateUncached
     public abstract static class GetBytesObjectNode extends RubyBaseNode {
 
@@ -899,25 +839,15 @@ public abstract class RopeNodes {
             return new Bytes(rope.getRawBytes(), offset, length);
         }
 
-        @Specialization(guards = "rope.getRawBytes() == null")
-        protected Bytes getBytesObject(SubstringRope rope, int offset, int length,
-                @Cached @Shared("bytes") BytesNode bytes) {
-            return new Bytes(bytes.execute(rope.getChild()), rope.getByteOffset() + offset, length);
-        }
-
-        @Specialization(guards = { "rope.getRawBytes() == null", "!isSubstringRope(rope)" })
+        @Specialization(guards = { "rope.getRawBytes() == null" })
         protected Bytes getBytesObject(ManagedRope rope, int offset, int length,
-                @Cached @Shared("bytes") BytesNode bytes) {
+                @Cached BytesNode bytes) {
             return new Bytes(bytes.execute(rope), offset, length);
         }
 
         @Specialization(guards = "rope.getRawBytes() == null")
         protected Bytes getBytesObject(NativeRope rope, int offset, int length) {
             return new Bytes(rope.getBytes(offset, length));
-        }
-
-        protected static boolean isSubstringRope(ManagedRope rope) {
-            return rope instanceof SubstringRope;
         }
     }
 }

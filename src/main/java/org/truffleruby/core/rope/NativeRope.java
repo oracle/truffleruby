@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.rope;
 
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyLanguage;
@@ -184,16 +183,6 @@ public class NativeRope extends Rope {
     public int hashCode() {
         // TODO (pitr-ch 16-May-2017): this forces Rope#hashCode to be non-final, which is bad for performance
         return RopeOperations.hashForRange(this, 1, 0, byteLength());
-    }
-
-    @Override
-    Rope withEncoding7bit(Encoding newEncoding, ConditionProfile bytesNotNull) {
-        return withEncoding(newEncoding);
-    }
-
-    @Override
-    Rope withBinaryEncoding(ConditionProfile bytesNotNull) {
-        return withEncoding(ASCIIEncoding.INSTANCE);
     }
 
     NativeRope withEncoding(Encoding newEncoding) {

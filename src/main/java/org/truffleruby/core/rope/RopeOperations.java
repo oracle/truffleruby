@@ -372,65 +372,11 @@ public class RopeOperations {
                 continue;
             }
 
-            if (current instanceof SubstringRope) {
-                final SubstringRope substringRope = (SubstringRope) current;
-
-                workStack.push(substringRope.getChild());
-
-                // Either we haven't seen another SubstringRope or it's been cleared off the work queue. In either case,
-                // we can start fresh.
-                if (substringLengths.isEmpty()) {
-                    substringLengths.push(substringRope.byteLength());
-                } else {
-                    // Since we may be taking a substring of a substring, we need to note that we're not extracting the
-                    // entirety of the current SubstringRope.
-                    final int adjustedByteLength = substringRope.byteLength() - byteOffset;
-
-                    // We have to do some bookkeeping once we encounter multiple SubstringRopes along the same ancestry
-                    // chain. The top of the stack always indicates the number of bytes to extract from any descendants.
-                    // Any bytes extracted from this SubstringRope must contribute to the total of the parent SubstringRope
-                    // and are thus deducted. We can't simply update a total byte count, however, because we need distinct
-                    // counts for each level.
-                    //
-                    // For example:                    SubstringRope (byteLength = 6)
-                    //                                       |
-                    //                                   ConcatRope (byteLength = 20)
-                    //                                    /      \
-                    //         SubstringRope (byteLength = 4)  LeafRope (byteLength = 16)
-                    //               |
-                    //           LeafRope (byteLength = 50)
-                    //
-                    // In this case we need to know that we're only extracting 4 bytes from descendants of the second
-                    // SubstringRope. And those 4 bytes contribute to the total 6 bytes from the ancestor SubstringRope.
-                    // The top of stack manipulation performed here maintains that invariant.
-
-                    if (substringLengths.peek() > adjustedByteLength) {
-                        final int bytesToCopy = substringLengths.pop();
-                        substringLengths.push(bytesToCopy - adjustedByteLength);
-                        substringLengths.push(adjustedByteLength);
-                    }
-                }
-
-                // If this SubstringRope is a descendant of another SubstringRope, we need to increment the offset
-                // so that when we finally reach a rope with its byte[] filled, we're extracting bytes from the correct
-                // location.
-                byteOffset += substringRope.getByteOffset();
-            } else {
-                throw new UnsupportedOperationException(
-                        "Don't know how to flatten rope of type: " + current.getClass().getName());
-            }
+            throw new UnsupportedOperationException(
+                    "Don't know how to flatten rope of type: " + current.getClass().getName());
         }
 
         return buffer;
-    }
-
-    private static int computeLoopCount(int offset, int times, int length, int patternLength) {
-        // The loopCount has to be precisely determined so every repetition has at least some parts used.
-        // It has to account for the beginning we don't need (offset), has to reach the end but, and must not
-        // have extra repetitions. However it cannot ever be longer than repeatingRope.getTimes().
-        return Integer.min(
-                times,
-                (offset + patternLength * length / patternLength + patternLength - 1) / patternLength);
     }
 
     @TruffleBoundary
@@ -465,11 +411,6 @@ public class RopeOperations {
 
             if (bytes != null) {
                 resultHash = Hashing.stringHash(bytes, startingHashCode, offset, length);
-            } else if (rope instanceof SubstringRope) {
-                final SubstringRope substringRope = (SubstringRope) rope;
-                final Rope child = substringRope.getChild();
-                final int newOffset = offset + substringRope.getByteOffset();
-                workStack.push(new Params(child, startingHashCode, newOffset, length, false));
             } else {
                 resultHash = Hashing.stringHash(rope.getBytes(), startingHashCode, offset, length);
             }
@@ -528,9 +469,9 @@ public class RopeOperations {
     }
 
     public static boolean anyChildContains(Rope rope, String value) {
-        if (rope instanceof SubstringRope) {
-            return anyChildContains(((SubstringRope) rope).getChild(), value);
-        }
+        //        if (rope instanceof SubstringRope) {
+        //            return anyChildContains(((SubstringRope) rope).getChild(), value);
+        //        }
         // NOTE(norswap, 18 Dec 2020): We do not treat ConcatRopes specially: `decodeRope` will flatten them
         //   If we just search left and right, we risk missing the case where the value straddles the two children.
         //

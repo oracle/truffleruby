@@ -111,8 +111,6 @@ public abstract class TruffleRopesNodes {
         protected static String getStructure(Rope rope) {
             if (rope instanceof LeafRope) {
                 return getStructure((LeafRope) rope);
-            } else if (rope instanceof SubstringRope) {
-                return getStructure((SubstringRope) rope);
             } else {
                 return "(unknown rope class: " + rope.getClass() + ")";
             }
@@ -120,13 +118,6 @@ public abstract class TruffleRopesNodes {
 
         private static String getStructure(LeafRope rope) {
             return RopeOperations.escape(rope);
-        }
-
-        private static String getStructure(SubstringRope rope) {
-            final Rope child = rope.getChild();
-            final int characterOffset = RopeOperations
-                    .strLength(child.getEncoding(), child.getBytes(), 0, rope.getByteOffset());
-            return getStructure(child) + "[" + characterOffset + ", " + rope.characterLength() + "]";
         }
 
     }

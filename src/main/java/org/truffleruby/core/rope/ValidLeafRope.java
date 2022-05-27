@@ -10,11 +10,7 @@
 
 package org.truffleruby.core.rope;
 
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.Encoding;
-import org.jcodings.specific.ASCIIEncoding;
-
-import com.oracle.truffle.api.CompilerDirectives;
 
 public class ValidLeafRope extends LeafRope {
 
@@ -25,14 +21,4 @@ public class ValidLeafRope extends LeafRope {
         assert !RopeOperations.isInvalid(bytes, encoding) : "Broken string incorrectly marked as CR_VALID";
     }
 
-    @Override
-    Rope withEncoding7bit(Encoding newEncoding, ConditionProfile bytesNotNull) {
-        CompilerDirectives.transferToInterpreterAndInvalidate();
-        throw new UnsupportedOperationException("Must only be called for ASCII-only Strings");
-    }
-
-    @Override
-    Rope withBinaryEncoding(ConditionProfile bytesNotNull) {
-        return new ValidLeafRope(getRawBytes(), ASCIIEncoding.INSTANCE, byteLength());
-    }
 }
