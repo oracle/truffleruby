@@ -17,10 +17,12 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.module.RubyModule;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -37,12 +39,14 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
+import static org.truffleruby.language.RubyBaseNode.nil;
+
 @CoreModule(value = "Class", isClass = true)
 public abstract class ClassNodes {
 
     /** Special constructor for class Class */
     @TruffleBoundary
-    public static RubyClass createClassClass(RubyLanguage language) {
+    public static RubyClass createClassClassAndBootClasses(RubyLanguage language) {
         final RubyClass rubyClass = new RubyClass(language, language.classShape);
 
         assert rubyClass.getLogicalClass() == rubyClass;
@@ -56,22 +60,7 @@ public abstract class ClassNodes {
     @TruffleBoundary
     public static RubyClass createBootClass(RubyLanguage language, RubyClass classClass, Object superclass,
             String name) {
-        final RubyClass rubyClass = new RubyClass(
-                classClass,
-                language,
-                null,
-                null,
-                name,
-                false,
-                null,
-                superclass);
-        rubyClass.fields.setFullName(name);
-
-        if (superclass != Nil.INSTANCE) {
-            rubyClass.setSuperClass((RubyClass) superclass);
-        }
-
-        return rubyClass;
+        return new RubyClass(classClass, language, null, null, name, false, null, superclass);
     }
 
     @TruffleBoundary
@@ -131,45 +120,14 @@ public abstract class ClassNodes {
 
         if (lexicalParent != null) {
             rubyClass.fields.getAdoptedByLexicalParent(context, lexicalParent, name, null);
-        } else if (name != null) { // bootstrap module
-            rubyClass.fields.setFullName(name);
         }
-
-        rubyClass.setSuperClass(superclass);
 
         return rubyClass;
     }
 
     @TruffleBoundary
-    public static RubyClass createUninitializedRubyClass(RubyContext context,
-            SourceSection sourceSection,
-            RubyClass classClass) {
-        if (classClass != context.getCoreLibrary().classClass) {
-            throw CompilerDirectives.shouldNotReachHere("Subclasses of class Class are forbidden in Ruby");
-        }
-
-        final RubyClass rubyClass = new RubyClass(
-                classClass,
-                context.getLanguageSlow(),
-                sourceSection,
-                null,
-                null,
-                false,
-                null,
-                null);
-
-        // For Class.allocate, set it in the fields but not in RubyClass#superclass to mark as not yet initialized
-        rubyClass.fields.setSuperClass(context.getCoreLibrary().objectClass);
-
-        assert !rubyClass.isInitialized();
-        return rubyClass;
-    }
-
-    @TruffleBoundary
-    public static void initialize(RubyContext context, RubyClass rubyClass, RubyClass superclass) {
+    public static void initialize(RubyContext context, RubyClass rubyClass) {
         assert !rubyClass.isSingleton : "Singleton classes can only be created internally";
-
-        rubyClass.setSuperClass(superclass);
 
         ensureItHasSingletonClassCreated(context, rubyClass);
     }
@@ -209,11 +167,11 @@ public abstract class ClassNodes {
     @TruffleBoundary
     private static RubyClass createSingletonClass(RubyContext context, RubyClass rubyClass) {
         final RubyClass singletonSuperclass;
-        final RubyClass superclass = getSuperClass(rubyClass);
-        if (superclass == null) {
+        final Object superclass = rubyClass.superclass;
+        if (superclass == nil) {
             singletonSuperclass = rubyClass.getLogicalClass();
         } else {
-            singletonSuperclass = getLazyCreatedSingletonClass(context, superclass);
+            singletonSuperclass = getLazyCreatedSingletonClass(context, (RubyClass) superclass);
         }
 
         RubyClass metaClass = ClassNodes.createRubyClass(
@@ -236,15 +194,47 @@ public abstract class ClassNodes {
         return rubyClass.getLogicalClass();
     }
 
-    @TruffleBoundary
-    public static RubyClass getSuperClass(RubyClass rubyClass) {
-        for (RubyModule ancestor : rubyClass.fields.ancestors()) {
-            if (ancestor instanceof RubyClass && ancestor != rubyClass) {
-                return (RubyClass) ancestor;
+    @Primitive(name = "class_new")
+    public abstract static class NewClassNode extends PrimitiveArrayArgumentsNode {
+
+        @Child private InitializeClassNode initializeClassNode;
+        private final BranchProfile errorProfile = BranchProfile.create();
+
+        @Specialization
+        protected RubyClass newClass(RubyClass superclass, boolean callInherited, Object maybeBlock) {
+            if (superclass.isSingleton) {
+                errorProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().typeErrorSubclassSingletonClass(this));
             }
+            if (superclass == coreLibrary().classClass) {
+                errorProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().typeErrorSubclassClass(this));
+            }
+
+            final RubyClass newRubyClass = new RubyClass(
+                    coreLibrary().classClass,
+                    getLanguage(),
+                    getEncapsulatingSourceSection(),
+                    null,
+                    null,
+                    false,
+                    null,
+                    superclass);
+
+            if (initializeClassNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                initializeClassNode = insert(InitializeClassNodeGen.create());
+            }
+
+            initializeClassNode.executeInitialize(newRubyClass, superclass, callInherited, maybeBlock);
+
+            return newRubyClass;
         }
 
-        return null;
+        @Specialization(guards = "!isRubyClass(superclass)")
+        protected RubyClass newClass(Object superclass, boolean callInherited, Object maybeBlock) {
+            throw new RaiseException(getContext(), coreExceptions().typeErrorSuperclassMustBeClass(this));
+        }
     }
 
     /** #allocate should only be defined as an instance method of Class (Class#allocate), which is required for
@@ -293,78 +283,38 @@ public abstract class ClassNodes {
         }
     }
 
-    @CoreMethod(names = "initialize", optional = 1, needsBlock = true)
+
+    @CoreMethod(names = "initialize", optional = 1)
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private InitializeClassNode initializeClassNode;
-
         @Specialization
-        protected RubyClass initialize(RubyClass rubyClass, Object maybeSuperclass, Object maybeBlock) {
-            if (initializeClassNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                initializeClassNode = insert(InitializeClassNodeGen.create(true));
-            }
-
-            return initializeClassNode.executeInitialize(rubyClass, maybeSuperclass, maybeBlock);
+        protected Object initialize(RubyClass rubyClass, Object maybeSuperclass) {
+            throw new RaiseException(
+                    getContext(),
+                    getContext().getCoreExceptions().typeErrorAlreadyInitializedClass(this));
         }
-
     }
 
     @CoreMethod(names = "inherited", needsSelf = false, required = 1, visibility = Visibility.PRIVATE)
     public abstract static class InheritedNode extends CoreMethodArrayArgumentsNode {
-
         @Specialization
         protected Object inherited(Object subclass) {
             return nil;
         }
-
     }
 
     @CoreMethod(names = "superclass")
     public abstract static class SuperClassNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization(
-                guards = { "rubyClass == cachedRubyClass", "cachedSuperclass != null" },
-                limit = "getCacheLimit()")
-        protected Object getSuperClass(RubyClass rubyClass,
-                @Cached("rubyClass") RubyClass cachedRubyClass,
-                @Cached("fastLookUp(cachedRubyClass)") Object cachedSuperclass) {
-            // caches only initialized classes, just allocated will go through slow look up
-            return cachedSuperclass;
-        }
-
-        @Specialization(replaces = "getSuperClass")
-        protected Object getSuperClassUncached(RubyClass rubyClass,
-                @Cached BranchProfile errorProfile) {
-            final Object superclass = fastLookUp(rubyClass);
-            if (superclass != null) {
-                return superclass;
-            } else {
-                errorProfile.enter();
-                throw new RaiseException(
-                        getContext(),
-                        getContext().getCoreExceptions().typeError("uninitialized class", this));
-            }
-        }
-
-        protected Object fastLookUp(RubyClass rubyClass) {
+        @Specialization
+        protected Object getSuperClass(RubyClass rubyClass) {
             return rubyClass.superclass;
-        }
-
-        protected int getCacheLimit() {
-            return getLanguage().options.CLASS_CACHE;
         }
     }
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
-    public abstract static class AllocateClassNode extends CoreMethodArrayArgumentsNode {
-
+    public abstract static class AllocateNode extends UnaryCoreMethodNode {
         @Specialization
-        protected RubyClass allocate(RubyClass classClass) {
-            return createUninitializedRubyClass(
-                    getContext(),
-                    getEncapsulatingSourceSection(),
-                    classClass);
+        protected Object allocate(RubyClass rubyClass) {
+            throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
     }
 }

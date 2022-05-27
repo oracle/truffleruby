@@ -47,7 +47,6 @@ import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNode;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.encoding.Encodings;
-import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.core.format.BytesResult;
 import org.truffleruby.core.format.FormatExceptionTranslator;
@@ -512,7 +511,7 @@ public abstract class KernelNodes {
 
         public abstract RubyDynamicObject executeCopy(Object self);
 
-        @Specialization
+        @Specialization(guards = "!isRubyClass(self)")
         protected RubyDynamicObject copyRubyDynamicObject(RubyDynamicObject self,
                 @Cached DispatchNode allocateNode,
                 @Cached CopyInstanceVariablesNode copyInstanceVariablesNode) {
@@ -522,15 +521,18 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected RubyString copyImmutableString(ImmutableRubyString string,
-                @Cached DispatchNode allocateStringNode) {
-            return (RubyString) allocateStringNode.call(coreLibrary().stringClass, "__allocate__");
+        protected RubyClass copyRubyClass(RubyClass self,
+                @Cached CopyInstanceVariablesNode copyInstanceVariablesNode) {
+            var newClass = new RubyClass(coreLibrary().classClass, getLanguage(), getEncapsulatingSourceSection(),
+                    null, null, false, null, self.superclass);
+            copyInstanceVariablesNode.execute(newClass, self);
+            return newClass;
         }
 
         @Specialization
-        protected RubyDynamicObject copyRubyEncoding(RubyEncoding encoding) {
-            throw new RaiseException(getContext(),
-                    coreExceptions().typeErrorAllocatorUndefinedFor(coreLibrary().encodingClass, this));
+        protected RubyString copyImmutableString(ImmutableRubyString string,
+                @Cached DispatchNode allocateStringNode) {
+            return (RubyString) allocateStringNode.call(coreLibrary().stringClass, "__allocate__");
         }
     }
 
@@ -573,10 +575,6 @@ public abstract class KernelNodes {
             // Default behavior - is just to copy the frozen state of the original object
             if (forceFrozen(freeze) || (copyFrozen && rubyLibrary.isFrozen(object))) { // Profiled through lazy usage of rubyLibraryFreeze
                 rubyLibraryFreeze.freeze(newObject);
-            }
-
-            if (isRubyClass.profile(object instanceof RubyClass)) {
-                ((RubyClass) newObject).superclass = ((RubyClass) object).superclass;
             }
 
             return newObject;

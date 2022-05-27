@@ -1139,6 +1139,10 @@ module Truffle::CExt
     Primitive.module_remove_const(mod, name)
   end
 
+  def rb_class_new(superclass)
+    Primitive.class_new(superclass, false, nil)
+  end
+
   def rb_define_class_under(mod, name, superclass)
     # nil is TypeError (checked below), false is ArgumentError
     if false.equal?(superclass)

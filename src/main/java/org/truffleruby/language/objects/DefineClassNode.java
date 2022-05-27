@@ -83,8 +83,7 @@ public class DefineClassNode extends RubyContextSourceNode {
 
             definedClass = (RubyClass) existing;
 
-            final RubyClass currentSuperClass = ClassNodes.getSuperClass(definedClass);
-
+            final Object currentSuperClass = definedClass.superclass;
             if (suppliedSuperClass != null && currentSuperClass != suppliedSuperClass) { // bug-compat with MRI https://bugs.ruby-lang.org/issues/12367
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().superclassMismatch(

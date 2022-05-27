@@ -15,57 +15,32 @@ import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.ModuleNodesFactory;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
 public abstract class InitializeClassNode extends RubyBaseNode {
-
-    private final boolean callInherited;
-    private final BranchProfile errorProfile = BranchProfile.create();
 
     @Child private ModuleNodes.InitializeNode moduleInitializeNode;
     @Child private DispatchNode inheritedNode;
 
-    public InitializeClassNode(boolean callInherited) {
-        this.callInherited = callInherited;
-    }
-
-    public abstract RubyClass executeInitialize(RubyClass rubyClass, Object superclass, Object block);
+    public abstract RubyClass executeInitialize(RubyClass rubyClass, RubyClass superclass, boolean callInherited,
+            Object block);
 
     @Specialization
-    protected RubyClass initialize(RubyClass rubyClass, NotProvided superclass, Nil block) {
-        return initializeGeneralWithoutBlock(rubyClass, coreLibrary().objectClass, false);
+    protected RubyClass initialize(RubyClass rubyClass, RubyClass superclass, boolean callInherited, Nil block) {
+        return initializeGeneralWithoutBlock(rubyClass, superclass, callInherited);
     }
 
     @Specialization
-    protected RubyClass initialize(RubyClass rubyClass, NotProvided superclass, RubyProc block) {
-        return initializeGeneralWithBlock(rubyClass, coreLibrary().objectClass, block, false);
+    protected RubyClass initialize(RubyClass rubyClass, RubyClass superclass, boolean callInherited, RubyProc block) {
+        return initializeGeneralWithBlock(rubyClass, superclass, block, callInherited);
     }
 
-    @Specialization
-    protected RubyClass initialize(RubyClass rubyClass, RubyClass superclass, Nil block) {
-        return initializeGeneralWithoutBlock(rubyClass, superclass, true);
-    }
-
-    @Specialization
-    protected RubyClass initialize(RubyClass rubyClass, RubyClass superclass, RubyProc block) {
-        return initializeGeneralWithBlock(rubyClass, superclass, block, true);
-    }
-
-    @Specialization(guards = { "!isRubyClass(superclass)", "wasProvided(superclass)" })
-    protected RubyClass initializeNotClass(RubyClass rubyClass, Object superclass, Object maybeBlock) {
-        throw new RaiseException(getContext(), coreExceptions().typeErrorSuperclassMustBeClass(this));
-    }
-
-    private RubyClass initializeGeneralWithoutBlock(RubyClass rubyClass, RubyClass superclass,
-            boolean superClassProvided) {
-        initializeCommon(rubyClass, superclass, superClassProvided);
+    private RubyClass initializeGeneralWithoutBlock(RubyClass rubyClass, RubyClass superclass, boolean callInherited) {
+        initializeCommon(rubyClass);
         if (callInherited) {
             triggerInheritedHook(rubyClass, superclass);
         }
@@ -74,46 +49,19 @@ public abstract class InitializeClassNode extends RubyBaseNode {
     }
 
     private RubyClass initializeGeneralWithBlock(RubyClass rubyClass, RubyClass superclass, RubyProc block,
-            boolean superClassProvided) {
-        initializeCommon(rubyClass, superclass, superClassProvided);
-        triggerInheritedHook(rubyClass, superclass);
+            boolean callInherited) {
+        initializeCommon(rubyClass);
+        if (callInherited) {
+            triggerInheritedHook(rubyClass, superclass);
+        }
 
         moduleInitialize(rubyClass, block);
 
         return rubyClass;
     }
 
-    private void initializeCommon(RubyClass rubyClass, RubyClass superclass, boolean superClassProvided) {
-        if (rubyClass.isInitialized()) {
-            errorProfile.enter();
-            throw new RaiseException(
-                    getContext(),
-                    getContext().getCoreExceptions().typeErrorAlreadyInitializedClass(this));
-        }
-
-        if (superClassProvided) {
-            checkInheritable(superclass);
-            if (!superclass.isInitialized()) {
-                errorProfile.enter();
-                throw new RaiseException(
-                        getContext(),
-                        getContext().getCoreExceptions().typeErrorInheritUninitializedClass(this));
-            }
-        }
-
-        ClassNodes.initialize(getContext(), rubyClass, superclass);
-    }
-
-    // rb_check_inheritable
-    private void checkInheritable(RubyClass superClass) {
-        if (superClass.isSingleton) {
-            errorProfile.enter();
-            throw new RaiseException(getContext(), coreExceptions().typeErrorSubclassSingletonClass(this));
-        }
-        if (superClass == coreLibrary().classClass) {
-            errorProfile.enter();
-            throw new RaiseException(getContext(), coreExceptions().typeErrorSubclassClass(this));
-        }
+    private void initializeCommon(RubyClass rubyClass) {
+        ClassNodes.initialize(getContext(), rubyClass);
     }
 
     private void triggerInheritedHook(RubyClass subClass, RubyClass superClass) {

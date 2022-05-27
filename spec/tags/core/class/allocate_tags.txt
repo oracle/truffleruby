@@ -1,0 +1,2 @@
+fails:Class#allocate returns a fully-formed instance of Module
+fails:Class#allocate throws an exception when calling a method on a new instance

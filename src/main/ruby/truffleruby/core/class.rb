@@ -34,4 +34,8 @@ class Class
   undef_method :module_function
   undef_method :prepend_features
   undef_method :refine
+
+  def self.new(superclass = Object, &block)
+    Primitive.class_new(superclass, true, block)
+  end
 end
