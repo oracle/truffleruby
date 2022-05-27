@@ -15,6 +15,7 @@ Bug fixes:
 * Fix `rb_scan_args_kw` macro to avoid shadowing variables (#2649, @aardvark179).
 * Fix `String#unpack("Z")` to not advance after the null byte, like CRuby (#2659, @aardvark179).
 * Fix `Float#round` to avoid losing precision during the rounding process (@aardvark179).
+* Fix `String#insert` to not call a subclassed string method (@bjfish).
 
 Compatibility:
 

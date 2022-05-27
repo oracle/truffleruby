@@ -1882,10 +1882,10 @@ public abstract class StringNodes {
 
     }
 
-    @CoreMethod(names = "replace", required = 1, raiseIfNotMutableSelf = true)
+    @Primitive(name = "string_replace", raiseIfNotMutable = 0)
     @NodeChild(value = "string", type = RubyNode.class)
     @NodeChild(value = "other", type = RubyBaseNodeWithExecute.class)
-    public abstract static class ReplaceNode extends CoreMethodNode {
+    public abstract static class ReplaceNode extends PrimitiveNode {
 
         @CreateCast("other")
         protected ToStrNode coerceOtherToString(RubyBaseNodeWithExecute other) {
