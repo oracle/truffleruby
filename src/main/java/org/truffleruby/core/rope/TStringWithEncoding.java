@@ -12,8 +12,10 @@ package org.truffleruby.core.rope;
 import java.util.Objects;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.InternalByteArray;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringGuards;
 import org.truffleruby.core.encoding.TStringUtils;
@@ -87,5 +89,42 @@ public final class TStringWithEncoding {
     public boolean isAsciiOnly() {
         CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
         return TStringGuards.is7BitUncached(tstring, encoding);
+    }
+
+    public int get(int index) {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        return tstring.readByteUncached(index, encoding.tencoding);
+    }
+
+    public TStringWithEncoding substring(int byteOffset, int length) {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        return new TStringWithEncoding(tstring.substringByteIndexUncached(byteOffset, length, encoding.tencoding, true),
+                encoding);
+    }
+
+    public String toJavaString() {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        return tstring.toJavaStringUncached();
+    }
+
+    public String toJavaStringOrThrow() {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        if (encoding == Encodings.BINARY && !isAsciiOnly()) {
+            var byteArray = getInternalByteArray();
+            for (int i = byteArray.getOffset(); i < byteArray.getEnd(); i++) {
+                if (byteArray.getArray()[i] < 0) {
+                    throw new CannotConvertBinaryRubyStringToJavaString(Byte.toUnsignedInt(byteArray.getArray()[i]));
+                }
+            }
+            throw CompilerDirectives.shouldNotReachHere();
+        } else {
+            return toJavaString();
+        }
+    }
+
+    // TODO: should return InternalByteArray and use that instead
+    public byte[] getBytes() {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        return TStringUtils.getBytesOrCopy(tstring, encoding);
     }
 }

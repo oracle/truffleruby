@@ -10,12 +10,14 @@
 package org.truffleruby.language.loader;
 
 import com.oracle.truffle.api.nodes.Node;
-import org.jcodings.Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.encoding.EncodingManager;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.rope.CannotConvertBinaryRubyStringToJavaString;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.lexer.RubyLexer;
@@ -27,13 +29,15 @@ import com.oracle.truffle.api.source.Source;
 public abstract class EvalLoader {
 
     @TruffleBoundary
-    public static RubySource createEvalSource(RubyContext context, Rope code, String method, String file, int line,
+    public static RubySource createEvalSource(RubyContext context, Rope codeRope, String method, String file, int line,
             Node currentNode) {
-        final Rope sourceRope = createEvalRope(code);
+        var rubyEncoding = Encodings.getBuiltInEncoding(codeRope.getEncoding());
+        var code = TStringUtils.fromRopeWithEnc(codeRope, rubyEncoding);
+        var sourceTString = createEvalRope(code);
 
         final String sourceString;
         try {
-            sourceString = RopeOperations.decodeRope(sourceRope);
+            sourceString = sourceTString.toJavaStringOrThrow();
         } catch (CannotConvertBinaryRubyStringToJavaString e) {
             // In such a case, we have no way to build a Java String for the Truffle Source that
             // could accurately represent the source Rope, so we throw an error.
@@ -50,23 +54,23 @@ public abstract class EvalLoader {
 
         final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, sourceString, file).build();
 
-        final RubySource rubySource = new RubySource(source, file, sourceRope, true, line - 1);
+        final RubySource rubySource = new RubySource(source, file, sourceTString.toRope(), true, line - 1);
 
         context.getSourceLineOffsets().put(source, line - 1);
         return rubySource;
     }
 
-    private static Rope createEvalRope(Rope source) {
-        final Encoding[] encoding = { source.getEncoding() };
+    private static TStringWithEncoding createEvalRope(TStringWithEncoding source) {
+        final RubyEncoding[] encoding = { source.getEncoding() };
 
         RubyLexer.parseMagicComment(source, (name, value) -> {
             if (RubyLexer.isMagicEncodingComment(name)) {
-                encoding[0] = EncodingManager.getEncoding(value);
+                encoding[0] = Encodings.getBuiltInEncoding(EncodingManager.getEncoding(value));
             }
         });
 
         if (source.getEncoding() != encoding[0]) {
-            source = RopeOperations.withEncoding(source, encoding[0]);
+            source = source.forceEncoding(encoding[0]);
         }
 
         return source;

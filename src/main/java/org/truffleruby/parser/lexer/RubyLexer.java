@@ -78,6 +78,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeNodesFactory;
+import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.control.RaiseException;
@@ -863,8 +864,8 @@ public class RubyLexer implements MagicCommentHandler {
                     // verbose is not known at this point and we don't want to remove the tokenSeen check because it would
                     // affect lexer performance.
                     if (!tokenSeen) {
-                        if (!parser_magic_comment(lexb, lex_p, lex_pend - lex_p, src.parserRopeOperations, encoding,
-                                this)) {
+                        if (!parser_magic_comment(new TStringWithEncoding(lexb, encoding), lex_p, lex_pend - lex_p,
+                                src.parserRopeOperations, this)) {
                             if (comment_at_top()) {
                                 set_file_encoding(lex_p, lex_pend);
                             }
@@ -1156,7 +1157,7 @@ public class RubyLexer implements MagicCommentHandler {
 
     /** Peak in source to see if there is a magic comment. This is used by eval() & friends to know the actual encoding
      * of the source code, and be able to convert to a Java String faithfully. */
-    public static void parseMagicComment(Rope source, BiConsumer<String, String> magicCommentHandler) {
+    public static void parseMagicComment(TStringWithEncoding source, BiConsumer<String, String> magicCommentHandler) {
         final byte[] bytes = source.getBytes();
         final int length = source.byteLength();
         int start = 0;
@@ -1180,10 +1181,9 @@ public class RubyLexer implements MagicCommentHandler {
             }
             int magicLineLength = endOfMagicLine - magicLineStart;
 
-            RubyEncoding rubyEncoding = Encodings.getBuiltInEncoding(source.getEncoding());
-            var tstring = TStringUtils.fromRope((ManagedRope) source, rubyEncoding);
-            parser_magic_comment(tstring, magicLineStart, magicLineLength, new ParserRopeOperations(rubyEncoding),
-                    rubyEncoding,
+            RubyEncoding rubyEncoding = source.getEncoding();
+            parser_magic_comment(source, magicLineStart, magicLineLength,
+                    new ParserRopeOperations(rubyEncoding),
                     (name, value) -> {
                         magicCommentHandler.accept(name, value.toJavaStringUncached());
                         return isKnownMagicComment(name);
@@ -1192,10 +1192,8 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     // MRI: parser_magic_comment
-    private static boolean parser_magic_comment(TruffleString magicLine, int magicLineOffset, int magicLineLength,
-            ParserRopeOperations parserRopeOperations, RubyEncoding encoding, MagicCommentHandler magicCommentHandler) {
-        final TruffleString.Encoding tencoding = encoding.tencoding;
-
+    private static boolean parser_magic_comment(TStringWithEncoding magicLine, int magicLineOffset, int magicLineLength,
+            ParserRopeOperations parserRopeOperations, MagicCommentHandler magicCommentHandler) {
         boolean emacsStyle = false;
         int i = magicLineOffset;
         int end = magicLineOffset + magicLineLength;
@@ -1204,9 +1202,9 @@ public class RubyLexer implements MagicCommentHandler {
             return false;
         }
 
-        final int emacsBegin = findEmacsStyleMarker(magicLine, encoding, 0, end);
+        final int emacsBegin = findEmacsStyleMarker(magicLine, 0, end);
         if (emacsBegin >= 0) {
-            final int emacsEnd = findEmacsStyleMarker(magicLine, encoding, emacsBegin, end);
+            final int emacsEnd = findEmacsStyleMarker(magicLine, emacsBegin, end);
             if (emacsEnd < 0) {
                 return false;
             }
@@ -1224,7 +1222,7 @@ public class RubyLexer implements MagicCommentHandler {
 
             // Ignore leading whitespace or '":;
             while (i < end) {
-                int c = magicLine.readByteUncached(i, tencoding);
+                int c = magicLine.get(i);
 
                 if (isIgnoredMagicLineCharacter(c) || isAsciiSpace(c)) {
                     i++;
@@ -1237,7 +1235,7 @@ public class RubyLexer implements MagicCommentHandler {
 
             // Consume anything except [\s'":;]
             while (i < end) {
-                int c = magicLine.readByteUncached(i, tencoding);
+                int c = magicLine.get(i);
 
                 if (isIgnoredMagicLineCharacter(c) || isAsciiSpace(c)) {
                     break;
@@ -1249,7 +1247,7 @@ public class RubyLexer implements MagicCommentHandler {
             final int nameEnd = i;
 
             // Ignore whitespace
-            while (i < end && isAsciiSpace(magicLine.readByteUncached(i, tencoding))) {
+            while (i < end && isAsciiSpace(magicLine.get(i))) {
                 i++;
             }
 
@@ -1258,7 +1256,7 @@ public class RubyLexer implements MagicCommentHandler {
             }
 
             // Expect ':' between name and value
-            final int sep = magicLine.readByteUncached(i, tencoding);
+            final int sep = magicLine.get(i);
             if (sep == ':') {
                 i++;
             } else {
@@ -1269,7 +1267,7 @@ public class RubyLexer implements MagicCommentHandler {
             }
 
             // Ignore whitespace
-            while (i < end && isAsciiSpace(magicLine.readByteUncached(i, tencoding))) {
+            while (i < end && isAsciiSpace(magicLine.get(i))) {
                 i++;
             }
 
@@ -1279,10 +1277,10 @@ public class RubyLexer implements MagicCommentHandler {
 
             final int valueBegin, valueEnd;
 
-            if (magicLine.readByteUncached(i, tencoding) == '"') { // quoted value
+            if (magicLine.get(i) == '"') { // quoted value
                 valueBegin = ++i;
-                while (i < end && magicLine.readByteUncached(i, tencoding) != '"') {
-                    if (magicLine.readByteUncached(i, tencoding) == '\\') {
+                while (i < end && magicLine.get(i) != '"') {
+                    if (magicLine.get(i) == '\\') {
                         i += 2;
                     } else {
                         i++;
@@ -1297,7 +1295,7 @@ public class RubyLexer implements MagicCommentHandler {
             } else {
                 valueBegin = i;
                 while (i < end) {
-                    int c = magicLine.readByteUncached(i, tencoding);
+                    int c = magicLine.get(i);
                     if (c != '"' && c != ';' && !isAsciiSpace(c)) {
                         i++;
                     } else {
@@ -1309,13 +1307,13 @@ public class RubyLexer implements MagicCommentHandler {
 
             if (emacsStyle) {
                 // Ignore trailing whitespace or ;
-                while (i < end && (magicLine.readByteUncached(i, tencoding) == ';' ||
-                        isAsciiSpace(magicLine.readByteUncached(i, tencoding)))) {
+                while (i < end && (magicLine.get(i) == ';' ||
+                        isAsciiSpace(magicLine.get(i)))) {
                     i++;
                 }
             } else {
                 // Ignore trailing whitespace
-                while (i < end && isAsciiSpace(magicLine.readByteUncached(i, tencoding))) {
+                while (i < end && isAsciiSpace(magicLine.get(i))) {
                     i++;
                 }
 
@@ -1324,9 +1322,9 @@ public class RubyLexer implements MagicCommentHandler {
                 }
             }
 
-            final String name = magicLine.substringByteIndexUncached(nameBegin, nameEnd - nameBegin, tencoding, true)
-                    .toJavaStringUncached().replace('-', '_');
-            final TruffleString value = parserRopeOperations.makeShared(magicLine, valueBegin, valueEnd - valueBegin);
+            final String name = magicLine.substring(nameBegin, nameEnd - nameBegin).toJavaString().replace('-', '_');
+            final TruffleString value = parserRopeOperations.makeShared(magicLine.tstring, valueBegin,
+                    valueEnd - valueBegin);
 
             if (!magicCommentHandler.onMagicComment(name, value)) {
                 return false;
@@ -1349,8 +1347,8 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     /* MRI: magic_comment_marker Find -*-, as in emacs "file local variable" (special comment at the top of the file) */
-    private static int findEmacsStyleMarker(TruffleString str, RubyEncoding encoding, int begin, int end) {
-        final byte[] bytes = TStringUtils.getBytesOrCopy(str, encoding);
+    private static int findEmacsStyleMarker(TStringWithEncoding str, int begin, int end) {
+        final byte[] bytes = str.getBytes();
         int i = begin;
 
         while (i < end) {

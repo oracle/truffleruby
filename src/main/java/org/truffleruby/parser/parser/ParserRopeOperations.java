@@ -9,6 +9,7 @@
  */
 package org.truffleruby.parser.parser;
 
+import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.RubyEncoding;
 
@@ -20,7 +21,7 @@ public class ParserRopeOperations {
         tencoding = encoding.tencoding;
     }
 
-    public TruffleString makeShared(TruffleString rope, int sharedStart, int sharedLength) {
+    public TruffleString makeShared(AbstractTruffleString rope, int sharedStart, int sharedLength) {
         return rope.substringByteIndexUncached(sharedStart, sharedLength, tencoding, true);
     }
 
