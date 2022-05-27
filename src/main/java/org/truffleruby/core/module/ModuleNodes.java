@@ -1334,7 +1334,7 @@ public abstract class ModuleNodes {
                 MaterializedFrame callerFrame) {
             final RootCallTarget callTargetForLambda = proc.callTargets.getCallTargetForLambda();
             final RubyLambdaRootNode rootNode = RubyLambdaRootNode.of(callTargetForLambda);
-            final SharedMethodInfo info = proc.getSharedMethodInfo().forDefineMethod(module, name);
+            final SharedMethodInfo info = proc.getSharedMethodInfo().forDefineMethod(module, name, proc);
             final RubyNode body = rootNode.copyBody();
             final RubyNode newBody = new CallMethodWithLambdaBody(isSingleContext() ? proc : null,
                     callTargetForLambda, body);
