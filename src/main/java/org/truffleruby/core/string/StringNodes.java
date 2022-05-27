@@ -84,6 +84,7 @@ import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.MutableTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.api.strings.TruffleString.CodePointLengthNode;
 import org.graalvm.collections.Pair;
 import org.jcodings.Config;
 import org.jcodings.Encoding;
@@ -648,7 +649,7 @@ public abstract class StringNodes {
         @Child private NormalizeIndexNode normalizeIndexNode;
         @Child private StringSubstringPrimitiveNode substringNode;
         @Child private ToLongNode toLongNode;
-        @Child private TruffleString.CodePointLengthNode codePointLengthNode;
+        @Child private CodePointLengthNode codePointLengthNode;
         private final BranchProfile outOfBounds = BranchProfile.create();
 
         // endregion
@@ -874,7 +875,7 @@ public abstract class StringNodes {
         private int codePointLength(AbstractTruffleString string, RubyEncoding encoding) {
             if (codePointLengthNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                codePointLengthNode = insert(TruffleString.CodePointLengthNode.create());
+                codePointLengthNode = insert(CodePointLengthNode.create());
             }
 
             return codePointLengthNode.execute(string, encoding.tencoding);
@@ -2532,8 +2533,8 @@ public abstract class StringNodes {
         @Specialization
         protected int size(Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
-                @Cached CharacterLengthNode characterLengthNode) {
-            return characterLengthNode.execute(libString.getRope(string));
+                @Cached CodePointLengthNode codePointLengthNode) {
+            return codePointLengthNode.execute(libString.getTString(string), libString.getTEncoding(string));
         }
 
     }
@@ -2820,7 +2821,7 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class ReverseBangNode extends CoreMethodArrayArgumentsNode {
 
-        @Child TruffleString.CodePointLengthNode codePointLengthNode = TruffleString.CodePointLengthNode.create();
+        @Child CodePointLengthNode codePointLengthNode = CodePointLengthNode.create();
         @Child private TruffleString.FromByteArrayNode fromByteArrayNode = TruffleString.FromByteArrayNode.create();
 
         @Specialization(guards = "reverseIsEqualToSelf(string, codePointLengthNode)")
@@ -2885,7 +2886,7 @@ public abstract class StringNodes {
         }
 
         public static boolean reverseIsEqualToSelf(RubyString string,
-                TruffleString.CodePointLengthNode codePointLengthNode) {
+                CodePointLengthNode codePointLengthNode) {
             return codePointLengthNode.execute(string.tstring, string.encoding.tencoding) <= 1;
         }
     }
@@ -4343,7 +4344,7 @@ public abstract class StringNodes {
                 @Bind("libString.getEncoding(rubyString)") RubyEncoding stringEncoding,
                 @Bind("libPattern.getTString(rubyPattern)") AbstractTruffleString pattern,
                 @Bind("libPattern.getEncoding(rubyPattern)") RubyEncoding patternEncoding,
-                @Cached TruffleString.CodePointLengthNode codePointLengthNode,
+                @Cached CodePointLengthNode codePointLengthNode,
                 @Cached TruffleString.IndexOfStringNode indexOfStringNode,
                 @Cached ConditionProfile foundProfile) {
 
@@ -4822,7 +4823,7 @@ public abstract class StringNodes {
                 @Bind("libString.getTString(string)") AbstractTruffleString tstring,
                 @Bind("libString.getEncoding(string)") RubyEncoding encoding,
                 @Cached NormalizeIndexNode normalizeIndexNode,
-                @Cached TruffleString.CodePointLengthNode codePointLengthNode,
+                @Cached CodePointLengthNode codePointLengthNode,
                 @Cached TruffleString.SubstringNode substringNode,
                 @Cached ConditionProfile negativeIndexProfile,
                 @Cached ConditionProfile tooLargeTotalProfile,

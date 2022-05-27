@@ -86,6 +86,11 @@ public class ImmutableRubyString extends ImmutableRubyObjectCopyable implements 
     }
 
     @ExportMessage
+    public TruffleString.Encoding getTEncoding() {
+        return encoding.tencoding;
+    }
+
+    @ExportMessage
     protected boolean isRubyString() {
         return true;
     }

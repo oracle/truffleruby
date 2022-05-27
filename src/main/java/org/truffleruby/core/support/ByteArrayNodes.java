@@ -11,6 +11,7 @@ package org.truffleruby.core.support;
 
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -181,20 +182,21 @@ public abstract class ByteArrayNodes {
                 guards = { "!isSingleBytePattern(libPattern.getRope(pattern))" })
         protected Object getByte(RubyByteArray byteArray, Object pattern, int start, int length,
                 @Cached RopeNodes.BytesNode bytesNode,
-                @Cached RopeNodes.CharacterLengthNode characterLengthNode,
+                @Cached TruffleString.CodePointLengthNode codePointLengthNode,
                 @Cached ConditionProfile notFoundProfile,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libPattern) {
-            final Rope patternRope = libPattern.getRope(pattern);
+            var patternTString = libPattern.getTString(pattern);
+            var tencoding = libPattern.getTEncoding(pattern);
             final int index = indexOf(
                     byteArray.bytes,
                     start,
                     length,
-                    bytesNode.execute(patternRope));
+                    bytesNode.execute(libPattern.getRope(pattern)));
 
             if (notFoundProfile.profile(index == -1)) {
                 return nil;
             } else {
-                return index + characterLengthNode.execute(patternRope);
+                return index + codePointLengthNode.execute(patternTString, tencoding);
             }
         }
 

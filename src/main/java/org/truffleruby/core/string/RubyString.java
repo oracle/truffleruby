@@ -116,6 +116,11 @@ public final class RubyString extends RubyDynamicObject {
     }
 
     @ExportMessage
+    public TruffleString.Encoding getTEncoding() {
+        return encoding.tencoding;
+    }
+
+    @ExportMessage
     protected boolean isRubyString() {
         return true;
     }
