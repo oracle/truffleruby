@@ -39,6 +39,13 @@ fedora28:
   locale:
   <<: *rpm
 
+fedora36:
+  base: fedora:36
+  install: RUN dnf install -y
+  locale: glibc-langpack-en
+  <<: *rpm
+  openssl: openssl1.1-devel
+
 fedora34:
   base: fedora:34
   install: RUN dnf install -y
