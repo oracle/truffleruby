@@ -12,6 +12,7 @@ package org.truffleruby.language.methods;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.RubyModule;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
@@ -60,16 +61,16 @@ public class SharedMethodInfo {
         this.argumentDescriptors = argumentDescriptors;
     }
 
-    public SharedMethodInfo forDefineMethod(RubyModule declaringModule, String methodName) {
+    public SharedMethodInfo forDefineMethod(RubyModule declaringModule, String methodName, RubyProc proc) {
         return new SharedMethodInfo(
                 sourceSection,
                 staticLexicalScope,
-                arity,
+                proc.arity,
                 methodName,
                 0, // no longer a block
                 moduleAndMethodName(declaringModule, methodName),
                 null,
-                argumentDescriptors);
+                proc.argumentDescriptors);
     }
 
     public SharedMethodInfo convertMethodMissingToMethod(RubyModule declaringModule, String methodName) {
