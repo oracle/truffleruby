@@ -81,7 +81,6 @@ import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
-import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.MutableTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.strings.TruffleString.CodePointLengthNode;
@@ -3176,23 +3175,32 @@ public abstract class StringNodes {
         }
 
         @Specialization
-        protected byte[] invert(InternalByteArray byteArray, int start,
+        protected byte[] invert(RubyString string, int start,
+                @Cached TruffleString.CopyToByteArrayNode copyToByteArrayNode,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Cached BranchProfile foundLowerCaseCharProfile,
                 @Cached BranchProfile foundUpperCaseCharProfile,
                 @Cached LoopConditionProfile loopProfile) {
+            var tstring = string.tstring;
+            var encoding = string.encoding.tencoding;
+            var byteArray = byteArrayNode.execute(tstring, encoding);
+
             var bytes = byteArray.getArray();
             byte[] modified = null;
 
-            int i = start + byteArray.getOffset();
+            final int offset = byteArray.getOffset();
+            final int byteLength = byteArray.getLength();
+            int i = start;
+
             try {
-                for (; loopProfile.inject(i < byteArray.getEnd()); i++) {
-                    final byte b = bytes[i];
+                for (; loopProfile.inject(i < byteLength); i++) {
+                    final byte b = bytes[i + offset];
 
                     if (lowerToUpper && StringSupport.isAsciiLowercase(b)) {
                         foundLowerCaseCharProfile.enter();
 
                         if (modified == null) {
-                            modified = bytes.clone();
+                            modified = TStringUtils.copyByteArray(tstring, encoding, copyToByteArrayNode);
                         }
 
                         // Convert lower-case ASCII char to upper-case.
@@ -3203,7 +3211,7 @@ public abstract class StringNodes {
                         foundUpperCaseCharProfile.enter();
 
                         if (modified == null) {
-                            modified = bytes.clone();
+                            modified = TStringUtils.copyByteArray(tstring, encoding, copyToByteArrayNode);
                         }
 
                         // Convert upper-case ASCII char to lower-case.
@@ -3218,6 +3226,7 @@ public abstract class StringNodes {
 
             return modified;
         }
+
     }
 
     public abstract static class InvertAsciiCaseNode extends RubyBaseNode {
@@ -3374,7 +3383,7 @@ public abstract class StringNodes {
             final byte[] sourceBytes = byteArray.getArray();
             final byte[] finalBytes;
 
-            final byte[] processedBytes = invertAsciiCaseNode.executeInvert(byteArray, 1);
+            final byte[] processedBytes = invertAsciiCaseNode.executeInvert(string, 1);
 
             if (otherCharsAlreadyLowerProfile.profile(processedBytes == null)) {
                 // Bytes 1..N are either not letters or already lowercased. Time to check the first byte.
