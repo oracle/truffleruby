@@ -15,7 +15,15 @@ unless defined?(::TruffleRuby)
 end
 
 module ArgumentsDescriptorSpecs
-  Info = Struct.new(:values, :descriptor, :arguments)
+  class Info
+    attr_reader :values, :descriptor, :arguments
+
+    def initialize(values, descriptor, arguments)
+      @values = values
+      @descriptor = descriptor
+      @arguments = arguments
+    end
+  end
 end
 
 describe "Arguments descriptors" do
@@ -23,8 +31,8 @@ describe "Arguments descriptors" do
     defined?(::TruffleRuby)
   end
 
-  def info(*args)
-    ArgumentsDescriptorSpecs::Info.new(*args)
+  def info(values, descriptor, arguments)
+    ArgumentsDescriptorSpecs::Info.new(values, descriptor, arguments)
   end
 
   guard -> { truffleruby? } do
