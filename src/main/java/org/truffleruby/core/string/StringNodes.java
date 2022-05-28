@@ -3476,12 +3476,7 @@ public abstract class StringNodes {
                 copyToByteArrayNode = insert(TruffleString.CopyToByteArrayNode.create());
             }
 
-            int byteLength = string.byteLength(encoding);
-            var ret = new byte[byteLength];
-
-            copyToByteArrayNode.execute(string, 0, ret, 0, byteLength, encoding);
-
-            return ret;
+            return TStringUtils.copyByteArray(string, encoding, copyToByteArrayNode);
         }
 
         private TruffleString.CodeRange getCodeRange(AbstractTruffleString string, TruffleString.Encoding encoding) {

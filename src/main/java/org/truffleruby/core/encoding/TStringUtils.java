@@ -40,6 +40,16 @@ public class TStringUtils {
         return JCODING_TO_TSTRING_ENCODINGS[jcoding.getIndex()];
     }
 
+    public static byte[] copyByteArray(AbstractTruffleString string, TruffleString.Encoding encoding,
+            TruffleString.CopyToByteArrayNode copyToByteArrayNode) {
+        int byteLength = string.byteLength(encoding);
+        var ret = new byte[byteLength];
+
+        copyToByteArrayNode.execute(string, 0, ret, 0, byteLength, encoding);
+
+        return ret;
+    }
+
     public static TruffleString fromByteArray(byte[] bytes, TruffleString.Encoding tencoding) {
         return TruffleString.fromByteArrayUncached(bytes, 0, bytes.length, tencoding, false);
     }
