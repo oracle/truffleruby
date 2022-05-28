@@ -38,6 +38,7 @@
 package org.truffleruby.core;
 
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.stream.Stream;
 
@@ -616,8 +617,8 @@ public abstract class VMPrimitiveNodes {
                 final KeywordArgumentsDescriptor keywordArgumentsDescriptor = (KeywordArgumentsDescriptor) descriptor;
 
                 final Stream<RubySymbol> keywords = Stream.concat(
-                        Stream.of("keywords"),
-                        Arrays.stream(keywordArgumentsDescriptor.getKeywords()))
+                        Arrays.stream(keywordArgumentsDescriptor.getKeywords()),
+                        Stream.of(keywordArgumentsDescriptor.getSplatType().name().toLowerCase(Locale.ROOT)))
                         .map(getLanguage()::getSymbol);
 
                 return createArray(keywords.toArray());

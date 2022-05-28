@@ -72,6 +72,7 @@ import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
 import org.truffleruby.language.constants.OrAssignConstantNode;
 import org.truffleruby.language.constants.ReadConstantNode;
 import org.truffleruby.language.constants.ReadConstantWithDynamicScopeNode;
@@ -3133,7 +3134,7 @@ public class BodyTranslator extends Translator {
         }
 
         final List<String> keywords = new ArrayList<>();
-        boolean splat = false;
+        KeywordArgumentsDescriptor.SplatType splatType = KeywordArgumentsDescriptor.SplatType.NO_SPLAT;
         boolean nonKeywordKeys = false;
 
         for (ParseNodeTuple pair : keywordHashArgumentNode.getPairs()) {
@@ -3145,16 +3146,22 @@ public class BodyTranslator extends Translator {
                 keywords.add(((SymbolParseNode) key).getName());
             } else if (key == null && value != null) {
                 // A splat keyword hash
-                splat = true;
+                if (keywordHashArgumentNode.getPairs().size() == 1) {
+                    splatType = KeywordArgumentsDescriptor.SplatType.ONLY_SPLAT;
+                } else if (keywords.isEmpty()) {
+                    splatType = KeywordArgumentsDescriptor.SplatType.PRE_SPLAT;
+                } else {
+                    splatType = KeywordArgumentsDescriptor.SplatType.POST_SPLAT;
+                }
             } else {
                 // For non-symbol keys
                 nonKeywordKeys = true;
             }
         }
 
-        if (splat || nonKeywordKeys || !keywords.isEmpty()) {
+        if (splatType != KeywordArgumentsDescriptor.SplatType.NO_SPLAT || nonKeywordKeys || !keywords.isEmpty()) {
             return language.keywordArgumentsDescriptorManager
-                    .getArgumentsDescriptor(keywords.toArray(StringUtils.EMPTY_STRING_ARRAY));
+                    .getArgumentsDescriptor(keywords.toArray(StringUtils.EMPTY_STRING_ARRAY), splatType);
         } else {
             return EmptyArgumentsDescriptor.INSTANCE;
         }

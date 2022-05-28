@@ -16,14 +16,27 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
  * arguments were passed. The callee must handle that for now. */
 public class KeywordArgumentsDescriptor extends ArgumentsDescriptor {
 
+    public enum SplatType {
+        NO_SPLAT,
+        ONLY_SPLAT,
+        PRE_SPLAT,
+        POST_SPLAT
+    }
+
     @CompilationFinal(dimensions = 1) private final String[] keywords;
+    private final SplatType splatType;
 
     /** Use {@link KeywordArgumentsDescriptorManager} to get an instance. */
-    KeywordArgumentsDescriptor(String[] keywords) {
+    KeywordArgumentsDescriptor(String[] keywords, SplatType splatType) {
         this.keywords = keywords;
+        this.splatType = splatType;
     }
 
     public String[] getKeywords() {
         return keywords;
+    }
+
+    public SplatType getSplatType() {
+        return splatType;
     }
 }
