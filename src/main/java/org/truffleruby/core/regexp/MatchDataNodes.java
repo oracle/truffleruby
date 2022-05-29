@@ -459,7 +459,7 @@ public abstract class MatchDataNodes {
                 @Cached ConditionProfile lazyProfile,
                 @Cached ConditionProfile negativeBeginProfile,
                 @Cached ConditionProfile multiByteCharacterProfile,
-                @Cached StringNodes.NewSingleByteOptimizableNode singleByteOptimizableNode,
+                @Cached StringNodes.SingleByteOptimizableNode singleByteOptimizableNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop) {
             final int begin = getStart(matchData, index, lazyProfile, interop);
@@ -545,7 +545,7 @@ public abstract class MatchDataNodes {
                 @Cached ConditionProfile lazyProfile,
                 @Cached ConditionProfile negativeEndProfile,
                 @Cached ConditionProfile multiByteCharacterProfile,
-                @Cached StringNodes.NewSingleByteOptimizableNode singleByteOptimizableNode,
+                @Cached StringNodes.SingleByteOptimizableNode singleByteOptimizableNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop) {
             final int end = getEnd(matchData, index, lazyProfile, interop);

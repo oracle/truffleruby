@@ -11,7 +11,6 @@
 package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.strings.AbstractTruffleString;
-import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Config;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.CodeRange;
@@ -23,12 +22,12 @@ public class StringGuards {
     private static final int CASE_FULL_UNICODE = 0;
 
     public static boolean isSingleByteOptimizable(RubyString string,
-            StringNodes.NewSingleByteOptimizableNode singleByteOptimizableNode) {
+            StringNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
         return singleByteOptimizableNode.execute(string.tstring, string.encoding);
     }
 
     public static boolean isSingleByteOptimizable(AbstractTruffleString tString, RubyEncoding encoding,
-            StringNodes.NewSingleByteOptimizableNode singleByteOptimizableNode) {
+            StringNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
         return singleByteOptimizableNode.execute(tString, encoding);
     }
 
@@ -67,7 +66,7 @@ public class StringGuards {
     public static boolean canMemcmp(AbstractTruffleString sourceRope, AbstractTruffleString patternRope,
             RubyEncoding sourceEncoding,
             RubyEncoding patternEncoding,
-            StringNodes.NewSingleByteOptimizableNode singleByteNode) {
+            StringNodes.SingleByteOptimizableNode singleByteNode) {
 
         return (singleByteNode.execute(sourceRope, sourceEncoding) || sourceEncoding.jcoding.isUTF8()) &&
                 (singleByteNode.execute(patternRope, patternEncoding) || patternEncoding.jcoding.isUTF8());
@@ -82,21 +81,21 @@ public class StringGuards {
     /** The string can be optimized to single-byte representation and is a simple case mapping (ASCII-only or full
      * Unicode). */
     public static boolean isSingleByteCaseMapping(RubyString string, int caseMappingOptions,
-            StringNodes.NewSingleByteOptimizableNode singleByteOptimizableNode) {
+            StringNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
         return isSingleByteOptimizable(string, singleByteOptimizableNode) && isAsciiCompatMapping(caseMappingOptions);
     }
 
     /** The string's encoding is ASCII-compatible, the mapping is ASCII-only and {@link #isSingleByteCaseMapping} is not
      * applicable. */
     public static boolean isSimpleAsciiCaseMapping(RubyString string, int caseMappingOptions,
-            StringNodes.NewSingleByteOptimizableNode singleByteOptimizableNode) {
+            StringNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
         return !isSingleByteOptimizable(string, singleByteOptimizableNode) &&
                 caseMappingOptions == Config.CASE_ASCII_ONLY && isAsciiCompatible(string);
     }
 
     /** Both {@link #isSingleByteCaseMapping} and {@link #isSimpleAsciiCaseMapping} are not applicable. */
     public static boolean isComplexCaseMapping(RubyString string, int caseMappingOptions,
-            StringNodes.NewSingleByteOptimizableNode singleByteOptimizableNode) {
+            StringNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
         return !isSingleByteCaseMapping(string, caseMappingOptions, singleByteOptimizableNode) &&
                 !isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode);
     }
