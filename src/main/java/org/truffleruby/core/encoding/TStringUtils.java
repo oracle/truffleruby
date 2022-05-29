@@ -23,13 +23,13 @@ import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.EncodingDB;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.ManagedRope;
 import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.StringAttributes;
+import org.truffleruby.extra.ffi.Pointer;
 
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.ASCII;
 
@@ -50,7 +50,12 @@ public class TStringUtils {
         return TruffleString.fromByteArrayUncached(bytes, 0, bytes.length, rubyEncoding.tencoding, false);
     }
 
-    public static LeafRope toRope(AbstractTruffleString tstring, RubyEncoding rubyEncoding) {
+    public static Rope toRope(AbstractTruffleString tstring, RubyEncoding rubyEncoding) {
+        if (tstring.isNative() && tstring.isMutable()) {
+            Pointer pointer = (Pointer) tstring.getInternalNativePointerUncached(rubyEncoding.tencoding);
+            return new NativeRope(pointer, tstring.byteLength(rubyEncoding.tencoding), rubyEncoding.jcoding,
+                    NativeRope.UNKNOWN_CHARACTER_LENGTH, CodeRange.CR_UNKNOWN);
+        }
         var bytes = getBytesOrCopy(tstring, rubyEncoding);
         final var rope = RopeOperations.create(bytes, rubyEncoding.jcoding, CodeRange.CR_UNKNOWN);
         assert assertEqual(rope, tstring, rubyEncoding);

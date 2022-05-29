@@ -34,7 +34,7 @@ public class NativeRope extends Rope {
         this(allocateNativePointer(language, bytes), bytes.length, encoding, characterLength, codeRange);
     }
 
-    private NativeRope(Pointer pointer, int byteLength, Encoding encoding, int characterLength, CodeRange codeRange) {
+    public NativeRope(Pointer pointer, int byteLength, Encoding encoding, int characterLength, CodeRange codeRange) {
         super(encoding, byteLength, null);
 
         assert (codeRange == CodeRange.CR_UNKNOWN) == (characterLength == UNKNOWN_CHARACTER_LENGTH);
@@ -69,41 +69,9 @@ public class NativeRope extends Rope {
                 CodeRange.CR_UNKNOWN);
     }
 
-    public NativeRope withByteLength(int newByteLength, int characterLength, CodeRange codeRange) {
-        pointer.writeByte(newByteLength, (byte) 0); // Like MRI
-        return new NativeRope(pointer, newByteLength, getEncoding(), characterLength, codeRange);
-    }
-
     public NativeRope makeCopy(RubyLanguage language) {
         final Pointer newPointer = copyNativePointer(language, pointer);
         return new NativeRope(newPointer, byteLength(), getEncoding(), characterLength(), getCodeRange());
-    }
-
-    public NativeRope resize(RubyLanguage language, int newByteLength) {
-        assert byteLength() != newByteLength;
-
-        final Pointer pointer = Pointer.mallocAutoRelease(newByteLength + 1, language);
-        pointer.writeBytes(0, this.pointer, 0, Math.min(getNativePointer().getSize(), newByteLength));
-        pointer.writeByte(newByteLength, (byte) 0); // Like MRI
-        return new NativeRope(pointer, newByteLength, getEncoding(), UNKNOWN_CHARACTER_LENGTH, CodeRange.CR_UNKNOWN);
-    }
-
-    /** Creates a new native rope which preserves existing bytes and byte length up to newCapacity
-     *
-     * @param context the Ruby context
-     * @param newCapacity the size in bytes minus one of the new pointer length
-     * @return the new NativeRope */
-    public NativeRope expandCapacity(RubyLanguage language, int newCapacity) {
-        assert getCapacity() != newCapacity;
-        final Pointer pointer = Pointer.mallocAutoRelease(newCapacity + 1, language);
-        pointer.writeBytes(0, this.pointer, 0, Math.min(getNativePointer().getSize(), newCapacity));
-        pointer.writeByte(newCapacity, (byte) 0); // Like MRI
-        return new NativeRope(
-                pointer,
-                byteLength(),
-                getEncoding(),
-                UNKNOWN_CHARACTER_LENGTH,
-                CodeRange.CR_UNKNOWN);
     }
 
     @Override

@@ -21,6 +21,7 @@ import com.oracle.truffle.api.strings.TruffleString.GetByteCodeRangeNode;
 import org.jcodings.Encoding;
 import org.jcodings.IntHolder;
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -75,6 +76,7 @@ import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager;
+import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.extra.ffi.RubyPointer;
 import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.ToJavaStringNode;
@@ -138,6 +140,13 @@ import static com.oracle.truffle.api.strings.TruffleString.CodeRange.BROKEN;
 
 @CoreModule("Truffle::CExt")
 public class CExtNodes {
+
+    private static long getNativeStringCapacity(Pointer pointer) {
+        final long nativeBufferSize = pointer.getSize();
+        assert nativeBufferSize > 0;
+        // Do not count the extra byte for \0, like MRI.
+        return nativeBufferSize - 1;
+    }
 
     @Primitive(name = "call_with_c_mutex_and_frame")
     public abstract static class CallWithCExtLockAndFrameNode extends PrimitiveArrayArgumentsNode {
@@ -624,10 +633,8 @@ public class CExtNodes {
         @Specialization
         protected RubyString clearCodeRange(RubyString string,
                 @Cached StringToNativeNode stringToNativeNode) {
-            final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
-            string.setRope(nativeRope);
-            nativeRope.clearCodeRange();
-            ((MutableTruffleString) string.tstring).notifyExternalMutation();
+            stringToNativeNode.executeToNative(string);
+            string.clearCodeRange();
 
             return string;
         }
@@ -724,9 +731,8 @@ public class CExtNodes {
         @Specialization
         protected long capacity(Object string,
                 @Cached StringToNativeNode stringToNativeNode) {
-            return stringToNativeNode.executeToNative(string).getCapacity();
+            return getNativeStringCapacity(stringToNativeNode.executeToNative(string));
         }
-
     }
 
     @CoreMethod(names = "rb_str_set_len", onSingleton = true, required = 2, lowerFixnum = 2)
@@ -735,25 +741,17 @@ public class CExtNodes {
         @Specialization
         protected RubyString strSetLen(RubyString string, int newByteLength,
                 @Cached StringToNativeNode stringToNativeNode,
-                @Cached ConditionProfile asciiOnlyProfile) {
-            final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
+                @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode) {
+            var pointer = stringToNativeNode.executeToNative(string);
 
-            final CodeRange newCodeRange;
-            final int newCharacterLength;
-            if (asciiOnlyProfile.profile(nativeRope.getRawCodeRange() == CodeRange.CR_7BIT)) {
-                newCodeRange = CodeRange.CR_7BIT;
-                newCharacterLength = newByteLength;
-            } else {
-                newCodeRange = CodeRange.CR_UNKNOWN;
-                newCharacterLength = NativeRope.UNKNOWN_CHARACTER_LENGTH;
-            }
+            pointer.writeByte(newByteLength, (byte) 0); // Like MRI
 
-            final NativeRope newNativeRope = nativeRope.withByteLength(newByteLength, newCharacterLength, newCodeRange);
-            string.setRope(newNativeRope);
+            var newNativeTString = fromNativePointerNode.execute(pointer, 0, newByteLength, string.getTEncoding(),
+                    false);
+            string.setTString(newNativeTString);
 
             return string;
         }
-
     }
 
     @CoreMethod(names = "rb_str_resize", onSingleton = true, required = 2, lowerFixnum = 2)
@@ -761,21 +759,23 @@ public class CExtNodes {
 
         @Specialization
         protected RubyString rbStrResize(RubyString string, int newByteLength,
-                @Cached StringToNativeNode stringToNativeNode) {
-            final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
+                @Cached StringToNativeNode stringToNativeNode,
+                @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode) {
+            var pointer = stringToNativeNode.executeToNative(string);
+            var tencoding = string.getTEncoding();
+            int byteLength = string.tstring.byteLength(tencoding);
 
-            if (nativeRope.byteLength() == newByteLength) {
+            if (byteLength == newByteLength) {
                 // Like MRI's rb_str_resize()
-                nativeRope.clearCodeRange();
-                ((MutableTruffleString) string.tstring).notifyExternalMutation();
+                string.clearCodeRange();
                 return string;
             } else {
-                final NativeRope newRope = nativeRope.resize(getLanguage(), newByteLength);
-                string.setRope(newRope);
+                var newNativeTString = TrStrCapaResizeNode.resize(pointer, newByteLength, newByteLength, tencoding,
+                        fromNativePointerNode, getLanguage());
+                string.setTString(newNativeTString);
 
                 // Like MRI's rb_str_resize()
-                newRope.clearCodeRange();
-                ((MutableTruffleString) string.tstring).notifyExternalMutation();
+                string.clearCodeRange();
 
                 return string;
             }
@@ -787,18 +787,32 @@ public class CExtNodes {
 
         @Specialization
         protected RubyString trStrCapaResize(RubyString string, int newCapacity,
-                @Cached StringToNativeNode stringToNativeNode) {
-            final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
+                @Cached StringToNativeNode stringToNativeNode,
+                @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode) {
+            var pointer = stringToNativeNode.executeToNative(string);
+            var tencoding = string.getTEncoding();
 
-            if (nativeRope.getCapacity() == newCapacity) {
+            if (getNativeStringCapacity(pointer) == newCapacity) {
                 return string;
             } else {
-                final NativeRope newRope = nativeRope.expandCapacity(getLanguage(), newCapacity);
-                string.setRope(newRope);
+                int byteLength = string.tstring.byteLength(tencoding);
+                var newNativeTString = resize(pointer, newCapacity, byteLength, tencoding, fromNativePointerNode,
+                        getLanguage());
+                string.setTString(newNativeTString);
+
                 return string;
             }
         }
 
+        static MutableTruffleString resize(Pointer pointer, int newCapacity, int newByteLength,
+                TruffleString.Encoding tencoding, MutableTruffleString.FromNativePointerNode fromNativePointerNode,
+                RubyLanguage language) {
+            final Pointer newPointer = Pointer.mallocAutoRelease(newCapacity + 1, language);
+            newPointer.writeBytes(0, pointer, 0, Math.min(pointer.getSize(), newCapacity));
+            newPointer.writeByte(newCapacity, (byte) 0); // Like MRI
+
+            return fromNativePointerNode.execute(newPointer, 0, newByteLength, tencoding, false);
+        }
     }
 
     @CoreMethod(names = "rb_keyword_given_p", onSingleton = true)
@@ -1180,36 +1194,38 @@ public class CExtNodes {
             return StringToNativeNodeGen.create();
         }
 
-        public abstract NativeRope executeToNative(Object string);
+        public abstract Pointer executeToNative(Object string);
 
         @Specialization
-        protected NativeRope toNative(RubyString string,
+        protected Pointer toNative(RubyString string,
                 @Cached ConditionProfile convertProfile,
-                @Cached RopeNodes.BytesNode bytesNode,
-                @Cached TruffleString.CodePointLengthNode codePointLengthNode,
-                @Cached RopeNodes.CodeRangeNode codeRangeNode) {
-            final Rope currentRope = string.rope;
+                @Cached TruffleString.CopyToNativeMemoryNode copyToNativeMemoryNode,
+                @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode,
+                @Cached TruffleString.GetInternalNativePointerNode getInternalNativePointerNode) {
+            var tstring = string.tstring;
+            var tencoding = string.encoding.tencoding;
 
-            final NativeRope nativeRope;
+            final Pointer pointer;
 
-            if (convertProfile.profile(currentRope instanceof NativeRope)) {
-                nativeRope = (NativeRope) currentRope;
+            if (convertProfile.profile(tstring.isNative())) {
+                assert tstring.isMutable();
+                pointer = (Pointer) getInternalNativePointerNode.execute(tstring, tencoding);
             } else {
-                nativeRope = new NativeRope(
-                        getLanguage(),
-                        bytesNode.execute(currentRope),
-                        currentRope.getEncoding(),
-                        codePointLengthNode.execute(string.tstring, string.encoding.tencoding),
-                        codeRangeNode.execute(currentRope));
-                string.setRope(nativeRope);
+                int byteLength = tstring.byteLength(tencoding);
+                pointer = Pointer.mallocAutoRelease(byteLength + 1, getLanguage());
+                copyToNativeMemoryNode.execute(tstring, 0, pointer, 0, byteLength, tencoding);
+                pointer.writeByte(byteLength, (byte) 0);
+
+                var nativeTString = fromNativePointerNode.execute(pointer, 0, byteLength, tencoding, false);
+                string.setTString(nativeTString);
             }
 
-            return nativeRope;
+            return pointer;
         }
 
         @Specialization
-        protected NativeRope toNativeImmutable(ImmutableRubyString string) {
-            return string.getNativeRope(getLanguage());
+        protected Pointer toNativeImmutable(ImmutableRubyString string) {
+            return string.getNativeRope(getLanguage()).getNativePointer();
         }
 
     }
@@ -1220,29 +1236,25 @@ public class CExtNodes {
         @Specialization
         protected long toNative(Object string,
                 @Cached StringToNativeNode stringToNativeNode) {
-            final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
-
-            return nativeRope.getNativePointer().getAddress();
+            return stringToNativeNode.executeToNative(string).getAddress();
         }
-
     }
 
     @CoreMethod(names = "string_to_ffi_pointer", onSingleton = true, required = 1)
-    public abstract static class StringToPointerNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class StringToFFIPointerNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyPointer toNative(Object string,
                 @Cached StringToNativeNode stringToNativeNode) {
-            final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
+            var pointer = stringToNativeNode.executeToNative(string);
 
             final RubyPointer instance = new RubyPointer(
                     coreLibrary().truffleFFIPointerClass,
                     getLanguage().truffleFFIPointerShape,
-                    nativeRope.getNativePointer());
+                    pointer);
             AllocationTracing.trace(instance, this);
             return instance;
         }
-
     }
 
     @Primitive(name = "string_is_native?")
