@@ -1613,8 +1613,9 @@ public abstract class StringNodes {
         @Specialization
         protected long hash(Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @Cached RopeNodes.HashNode hashNode) {
-            return getContext().getHashing(this).hash(CLASS_SALT, hashNode.execute(strings.getRope(string)));
+                @Cached TruffleString.HashCodeNode hashCodeNode) {
+            int hashCode = hashCodeNode.execute(strings.getTString(string), strings.getTEncoding(string));
+            return getContext().getHashing(this).hash(CLASS_SALT, hashCode);
         }
     }
 

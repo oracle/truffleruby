@@ -593,27 +593,6 @@ public abstract class RopeNodes {
 
     }
 
-    @GenerateUncached
-    public abstract static class HashNode extends RubyBaseNode {
-
-        public static HashNode create() {
-            return RopeNodesFactory.HashNodeGen.create();
-        }
-
-        public abstract int execute(Rope rope);
-
-        @Specialization(guards = "rope.isHashCodeCalculated()")
-        protected int executeHashCalculated(Rope rope) {
-            return rope.calculatedHashCode();
-        }
-
-        @Specialization(guards = "!rope.isHashCodeCalculated()")
-        protected int executeHashNotCalculated(Rope rope) {
-            return rope.hashCode();
-        }
-
-    }
-
     public abstract static class SingleByteOptimizableNode extends RubyBaseNode {
 
         public static SingleByteOptimizableNode create() {
