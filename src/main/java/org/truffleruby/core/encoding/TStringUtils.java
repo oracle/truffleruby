@@ -122,15 +122,6 @@ public class TStringUtils {
         return bytes.getArray();
     }
 
-    public static byte[] copyByteArray(AbstractTruffleString string, TruffleString.Encoding encoding,
-            TruffleString.CopyToByteArrayNode copyToByteArrayNode) {
-        int byteLength = string.byteLength(encoding);
-
-        byte[] copy = new byte[byteLength];
-        copyToByteArrayNode.execute(string, 0, copy, 0, byteLength, encoding);
-        return copy;
-    }
-
     private static boolean assertEqual(Rope rope, AbstractTruffleString truffleString, RubyEncoding rubyEncoding) {
         var tencoding = rubyEncoding.tencoding;
         assert truffleString.isCompatibleTo(tencoding);

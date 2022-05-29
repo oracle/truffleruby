@@ -15,6 +15,7 @@ import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.InternalByteArray;
+import org.jcodings.Encoding;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringGuards;
@@ -115,10 +116,11 @@ public final class TStringWithEncoding {
     public String toJavaStringOrThrow() {
         CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
         if (encoding == Encodings.BINARY && !isAsciiOnly()) {
-            var byteArray = getInternalByteArray();
-            for (int i = byteArray.getOffset(); i < byteArray.getEnd(); i++) {
-                if (byteArray.getArray()[i] < 0) {
-                    throw new CannotConvertBinaryRubyStringToJavaString(Byte.toUnsignedInt(byteArray.getArray()[i]));
+            int length = byteLength();
+            for (int i = 0; i < length; i++) {
+                final int b = tstring.readByteUncached(i, encoding.tencoding);
+                if (!Encoding.isAscii(b)) {
+                    throw new CannotConvertBinaryRubyStringToJavaString(b);
                 }
             }
             throw CompilerDirectives.shouldNotReachHere();

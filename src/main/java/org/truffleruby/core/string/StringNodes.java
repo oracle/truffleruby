@@ -913,19 +913,18 @@ public abstract class StringNodes {
 
         @Specialization
         protected RubyArray bytes(Object string, Nil block,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached TruffleString.MaterializeNode materializeNode,
+                @Cached TruffleString.ReadByteNode readByteNode) {
             var tstring = strings.getTString(string);
             var encoding = strings.getEncoding(string).tencoding;
-            var byteArray = getByteArrayNode.execute(tstring, encoding);
-
-            var bytes = byteArray.getArray();
-            int arrayLength = byteArray.getLength();
-            int offset = byteArray.getOffset();
+            int arrayLength = tstring.byteLength(encoding);
 
             final int[] store = new int[arrayLength];
 
+            materializeNode.execute(tstring, encoding);
             for (int i = 0; i < arrayLength; i++) {
-                store[i] = bytes[i + offset] & 0xFF;
+                store[i] = readByteNode.execute(tstring, i, encoding);
             }
 
             return createArray(store);
@@ -3177,30 +3176,27 @@ public abstract class StringNodes {
         @Specialization
         protected byte[] invert(RubyString string, int start,
                 @Cached TruffleString.CopyToByteArrayNode copyToByteArrayNode,
-                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
+                @Cached TruffleString.MaterializeNode materializeNode,
+                @Cached TruffleString.ReadByteNode readByteNode,
                 @Cached BranchProfile foundLowerCaseCharProfile,
                 @Cached BranchProfile foundUpperCaseCharProfile,
                 @Cached LoopConditionProfile loopProfile) {
             var tstring = string.tstring;
             var encoding = string.encoding.tencoding;
-            var byteArray = byteArrayNode.execute(tstring, encoding);
+            final int byteLength = tstring.byteLength(encoding);
 
-            var bytes = byteArray.getArray();
             byte[] modified = null;
-
-            final int offset = byteArray.getOffset();
-            final int byteLength = byteArray.getLength();
             int i = start;
-
+            materializeNode.execute(tstring, encoding);
             try {
                 for (; loopProfile.inject(i < byteLength); i++) {
-                    final byte b = bytes[i + offset];
+                    final byte b = (byte) readByteNode.execute(tstring, i, encoding);
 
                     if (lowerToUpper && StringSupport.isAsciiLowercase(b)) {
                         foundLowerCaseCharProfile.enter();
 
                         if (modified == null) {
-                            modified = TStringUtils.copyByteArray(tstring, encoding, copyToByteArrayNode);
+                            modified = copyToByteArrayNode.execute(tstring, encoding);
                         }
 
                         // Convert lower-case ASCII char to upper-case.
@@ -3211,7 +3207,7 @@ public abstract class StringNodes {
                         foundUpperCaseCharProfile.enter();
 
                         if (modified == null) {
-                            modified = TStringUtils.copyByteArray(tstring, encoding, copyToByteArrayNode);
+                            modified = copyToByteArrayNode.execute(tstring, encoding);
                         }
 
                         // Convert upper-case ASCII char to lower-case.
@@ -3485,7 +3481,7 @@ public abstract class StringNodes {
                 copyToByteArrayNode = insert(TruffleString.CopyToByteArrayNode.create());
             }
 
-            return TStringUtils.copyByteArray(string, encoding, copyToByteArrayNode);
+            return copyToByteArrayNode.execute(string, encoding);
         }
 
         private TruffleString.CodeRange getCodeRange(AbstractTruffleString string, TruffleString.Encoding encoding) {
