@@ -70,6 +70,7 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.TStringGuards;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.rope.BytesKey;
 import org.truffleruby.core.rope.CodeRange;
@@ -3019,7 +3020,7 @@ public class RubyLexer implements MagicCommentHandler {
             // then determines the characters are actually part of an identifier (see <code>lessThan</code> for such
             // a case).
 
-            if (lexb.getByteCodeRangeUncached(tencoding) == TruffleString.CodeRange.ASCII) {
+            if (TStringGuards.is7BitUncached(lexb, encoding)) {
                 // We don't know which substring of lexb was used for the token at this point, but if the source string
                 // is CR_7BIT, all substrings must be CR_7BIT by definition.
                 return CR_7BIT;
