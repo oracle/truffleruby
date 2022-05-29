@@ -98,10 +98,6 @@ public class NativeRope extends Rope {
         }
     }
 
-    public int rawCharacterLength() {
-        return characterLength;
-    }
-
     @Override
     public int characterLength() {
         if (characterLength == UNKNOWN_CHARACTER_LENGTH) {
@@ -153,24 +149,8 @@ public class NativeRope extends Rope {
         return RopeOperations.hashForRange(this, 1, 0, byteLength());
     }
 
-    NativeRope withEncoding(Encoding newEncoding) {
-        return new NativeRope(pointer, byteLength(), newEncoding, UNKNOWN_CHARACTER_LENGTH, CodeRange.CR_UNKNOWN);
-    }
-
     public Pointer getNativePointer() {
         return pointer;
-    }
-
-    public long getCapacity() {
-        final long nativeBufferSize = pointer.getSize();
-        assert nativeBufferSize > 0;
-        // Do not count the extra byte for \0, like MRI.
-        return nativeBufferSize - 1;
-    }
-
-    @TruffleBoundary
-    public LeafRope toLeafRope() {
-        return RopeOperations.create(getBytes(), getEncoding(), CodeRange.CR_UNKNOWN);
     }
 
 }

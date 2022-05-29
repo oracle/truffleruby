@@ -15,6 +15,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.MutableTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.strings.TruffleString.GetByteCodeRangeNode;
@@ -140,6 +141,10 @@ import static com.oracle.truffle.api.strings.TruffleString.CodeRange.BROKEN;
 
 @CoreModule("Truffle::CExt")
 public class CExtNodes {
+
+    public static Pointer newNativeStringPointer(int capacity, RubyLanguage language) {
+        return Pointer.mallocAutoRelease(capacity + 1, language);
+    }
 
     private static long getNativeStringCapacity(Pointer pointer) {
         final long nativeBufferSize = pointer.getSize();
@@ -807,7 +812,7 @@ public class CExtNodes {
         static MutableTruffleString resize(Pointer pointer, int newCapacity, int newByteLength,
                 TruffleString.Encoding tencoding, MutableTruffleString.FromNativePointerNode fromNativePointerNode,
                 RubyLanguage language) {
-            final Pointer newPointer = Pointer.mallocAutoRelease(newCapacity + 1, language);
+            final Pointer newPointer = newNativeStringPointer(newCapacity, language);
             newPointer.writeBytes(0, pointer, 0, Math.min(pointer.getSize(), newCapacity));
             newPointer.writeByte(newCapacity, (byte) 0); // Like MRI
 
@@ -1212,9 +1217,8 @@ public class CExtNodes {
                 pointer = (Pointer) getInternalNativePointerNode.execute(tstring, tencoding);
             } else {
                 int byteLength = tstring.byteLength(tencoding);
-                pointer = Pointer.mallocAutoRelease(byteLength + 1, getLanguage());
-                copyToNativeMemoryNode.execute(tstring, 0, pointer, 0, byteLength, tencoding);
-                pointer.writeByte(byteLength, (byte) 0);
+                pointer = allocateAndCopyToNative(tstring, tencoding, byteLength, copyToNativeMemoryNode,
+                        getLanguage());
 
                 var nativeTString = fromNativePointerNode.execute(pointer, 0, byteLength, tencoding, false);
                 string.setTString(nativeTString);
@@ -1224,8 +1228,18 @@ public class CExtNodes {
         }
 
         @Specialization
-        protected Pointer toNativeImmutable(ImmutableRubyString string) {
-            return string.getNativeRope(getLanguage()).getNativePointer();
+        protected Pointer toNativeImmutable(ImmutableRubyString string,
+                @Cached TruffleString.GetInternalNativePointerNode getInternalNativePointerNode) {
+            final MutableTruffleString nativeTString = string.getNativeTString(getLanguage());
+            return (Pointer) getInternalNativePointerNode.execute(nativeTString, string.getTEncoding());
+        }
+
+        public static Pointer allocateAndCopyToNative(AbstractTruffleString tstring, TruffleString.Encoding tencoding,
+                int capacity, TruffleString.CopyToNativeMemoryNode copyToNativeMemoryNode, RubyLanguage language) {
+            final Pointer pointer = newNativeStringPointer(capacity, language);
+            copyToNativeMemoryNode.execute(tstring, 0, pointer, 0, capacity, tencoding);
+            pointer.writeByte(capacity, (byte) 0); // Like MRI
+            return pointer;
         }
 
     }

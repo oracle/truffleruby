@@ -19,18 +19,20 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
+import com.oracle.truffle.api.strings.MutableTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.cext.CExtNodes;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.LeafRope;
-import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.ImmutableRubyObjectCopyable;
+import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 
@@ -43,7 +45,8 @@ public class ImmutableRubyString extends ImmutableRubyObjectCopyable implements 
     public final LeafRope rope;
     public final TruffleString tstring;
     public final RubyEncoding encoding;
-    private NativeRope nativeRope = null;
+    // TODO should be TruffleString but native empty TruffleString is not possible currently (GR-38902)
+    private MutableTruffleString nativeTString = null;
 
     ImmutableRubyString(TruffleString tstring, LeafRope rope, RubyEncoding encoding) {
         assert tstring.isCompatibleTo(encoding.tencoding);
@@ -59,23 +62,28 @@ public class ImmutableRubyString extends ImmutableRubyObjectCopyable implements 
     }
 
     public boolean isNative() {
-        return nativeRope != null;
+        return nativeTString != null;
     }
 
-    public NativeRope getNativeRope(RubyLanguage language) {
-        if (nativeRope == null) {
-            return createNativeRope(language);
+    public MutableTruffleString getNativeTString(RubyLanguage language) {
+        if (nativeTString == null) {
+            return createNativeTString(language);
         }
-        return nativeRope;
+        return nativeTString;
     }
 
     @TruffleBoundary
-    private synchronized NativeRope createNativeRope(RubyLanguage language) {
-        if (nativeRope == null) {
-            nativeRope = new NativeRope(language, rope.getBytes(), rope.getEncoding(), rope.characterLength(),
-                    rope.getCodeRange());
+    private synchronized MutableTruffleString createNativeTString(RubyLanguage language) {
+        if (nativeTString == null) {
+            var tencoding = encoding.tencoding;
+            int byteLength = tstring.byteLength(tencoding);
+            Pointer pointer = CExtNodes.StringToNativeNode.allocateAndCopyToNative(tstring, tencoding, byteLength,
+                    TruffleString.CopyToNativeMemoryNode.getUncached(), language);
+
+            nativeTString = MutableTruffleString.fromNativePointerUncached(pointer, 0, byteLength, tencoding, false);
+            assert nativeTString.isNative();
         }
-        return nativeRope;
+        return nativeTString;
     }
 
     // region RubyStringLibrary messages
