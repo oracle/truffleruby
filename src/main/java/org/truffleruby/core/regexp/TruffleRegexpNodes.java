@@ -921,7 +921,6 @@ public class TruffleRegexpNodes {
 
             if (createMatchDataProfile.profile(createMatchData)) {
                 if (startPosNotZeroProfile.profile(startPos > 0)) {
-                    // GR-32765: When adopting TruffleString, use a TruffleString substring here instead
                     // If startPos != 0, then fromPos == startPos.
                     assert fromPos == startPos;
                     fromIndex = 0;
