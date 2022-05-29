@@ -96,6 +96,11 @@ public final class TStringWithEncoding {
         return tstring.readByteUncached(index, encoding.tencoding);
     }
 
+    public int getByte(int index) {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        return (byte) tstring.readByteUncached(index, encoding.tencoding);
+    }
+
     public TStringWithEncoding substring(int byteOffset, int length) {
         CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
         return new TStringWithEncoding(tstring.substringByteIndexUncached(byteOffset, length, encoding.tencoding, true),
