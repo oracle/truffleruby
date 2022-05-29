@@ -722,10 +722,12 @@ public class CExtNodes {
     public abstract static class RbStrNewNulNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyString rbStrNewNul(int byteLength) {
-            final Rope rope = NativeRope.newBuffer(getLanguage(), byteLength, byteLength);
-
-            return createString(rope, Encodings.BINARY);
+        protected RubyString rbStrNewNul(int byteLength,
+                @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode) {
+            final Pointer pointer = Pointer.callocAutoRelease(byteLength + 1, getLanguage());
+            var nativeTString = fromNativePointerNode.execute(pointer, 0, byteLength, Encodings.BINARY.tencoding,
+                    false);
+            return createString(nativeTString, Encodings.BINARY);
         }
 
     }

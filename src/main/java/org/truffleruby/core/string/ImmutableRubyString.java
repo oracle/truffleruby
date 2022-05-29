@@ -48,6 +48,7 @@ public class ImmutableRubyString extends ImmutableRubyObjectCopyable implements 
 
     ImmutableRubyString(TruffleString tstring, LeafRope rope, RubyEncoding encoding) {
         assert tstring.isCompatibleTo(encoding.tencoding);
+        assert tstring.isManaged();
         this.rope = rope;
         this.tstring = tstring;
         this.encoding = encoding;

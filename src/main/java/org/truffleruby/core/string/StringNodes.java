@@ -1723,31 +1723,64 @@ public abstract class StringNodes {
             return self;
         }
 
-        @Specialization(
-                guards = {
-                        "stringsFrom.isRubyString(from)",
-                        "!areEqual(self, from)",
-                        "!isNativeRope(stringsFrom.getRope(from))" })
-        protected Object initializeCopy(RubyString self, Object from,
+        @Specialization(guards = {
+                "stringsFrom.isRubyString(from)",
+                "!areEqual(self, from)",
+                "!tstring.isNative()",
+                "tstring.isImmutable()" })
+        protected Object initializeCopyImmutable(RubyString self, Object from,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsFrom,
-                @Cached @Shared("stringGetAssociatedNode") StringGetAssociatedNode stringGetAssociatedNode) {
+                @Cached @Shared("stringGetAssociatedNode") StringGetAssociatedNode stringGetAssociatedNode,
+                @Bind("stringsFrom.getTString(from)") AbstractTruffleString tstring) {
+            // TODO Somehow this way makes spec/ruby/library/cgi/queryextension/multipart_spec.rb fail:
+            // self.setTString(tstring, stringsFrom.getEncoding(from));
             self.setRope(stringsFrom.getRope(from), stringsFrom.getEncoding(from));
+
             final Object associated = stringGetAssociatedNode.execute(from);
             copyAssociated(self, associated);
             return self;
         }
 
-        @Specialization(
-                guards = {
-                        "stringsFrom.isRubyString(from)",
-                        "!areEqual(self, from)",
-                        "isNativeRope(stringsFrom.getRope(from))" })
-        protected Object initializeCopyFromNative(RubyString self, Object from,
+        @Specialization(guards = {
+                "stringsFrom.isRubyString(from)",
+                "!areEqual(self, from)",
+                "!tstring.isNative()",
+                "tstring.isMutable()" })
+        protected Object initializeCopyMutable(RubyString self, Object from,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsFrom,
-                @Cached @Shared("stringGetAssociatedNode") StringGetAssociatedNode stringGetAssociatedNode) {
-            self.setRope(
-                    ((NativeRope) stringsFrom.getRope(from)).makeCopy(getLanguage()),
-                    stringsFrom.getEncoding(from));
+                @Cached @Shared("stringGetAssociatedNode") StringGetAssociatedNode stringGetAssociatedNode,
+                @Cached MutableTruffleString.SubstringByteIndexNode copyMutableTruffleStringNode,
+                @Bind("stringsFrom.getTString(from)") AbstractTruffleString tstring) {
+            var encoding = stringsFrom.getEncoding(from);
+            var tencoding = encoding.tencoding;
+            int byteLength = tstring.byteLength(tencoding);
+            // TODO Should the copy be a MutableTruffleString too, or TruffleString with AsTruffleStringNode?
+            MutableTruffleString copy = copyMutableTruffleStringNode.execute(tstring, 0, byteLength, tencoding);
+            self.setTString(copy, encoding);
+
+            final Object associated = stringGetAssociatedNode.execute(from);
+            copyAssociated(self, associated);
+            return self;
+        }
+
+        @Specialization(guards = { "!areEqual(self, from)", "tstring.isNative()" })
+        protected Object initializeCopyNative(RubyString self, RubyString from,
+                @Cached @Shared("stringGetAssociatedNode") StringGetAssociatedNode stringGetAssociatedNode,
+                @Cached TruffleString.GetInternalNativePointerNode getInternalNativePointerNode,
+                @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode,
+                @Bind("from.tstring") AbstractTruffleString tstring) {
+            var encoding = from.encoding;
+            var tencoding = encoding.tencoding;
+            final Pointer fromPointer = (Pointer) getInternalNativePointerNode.execute(tstring, tencoding);
+
+            final Pointer newPointer = Pointer.mallocAutoRelease(fromPointer.getSize(), getLanguage());
+            newPointer.writeBytes(0, fromPointer, 0, fromPointer.getSize());
+
+            // TODO should we have the copy be native too, or rather take the opportunity of having to copy to be managed?
+            assert tstring.isMutable();
+            var copy = fromNativePointerNode.execute(newPointer, 0, tstring.byteLength(tencoding), tencoding, false);
+            self.setTString(copy, encoding);
+
             final Object associated = stringGetAssociatedNode.execute(from);
             copyAssociated(self, associated);
             return self;

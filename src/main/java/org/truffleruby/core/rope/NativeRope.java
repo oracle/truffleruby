@@ -10,8 +10,6 @@
 package org.truffleruby.core.rope;
 
 import org.jcodings.Encoding;
-import org.jcodings.specific.ASCIIEncoding;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.extra.ffi.Pointer;
 
@@ -25,15 +23,6 @@ public class NativeRope extends Rope {
     private int characterLength;
     private final Pointer pointer;
 
-    public NativeRope(
-            RubyLanguage language,
-            byte[] bytes,
-            Encoding encoding,
-            int characterLength,
-            CodeRange codeRange) {
-        this(allocateNativePointer(language, bytes), bytes.length, encoding, characterLength, codeRange);
-    }
-
     public NativeRope(Pointer pointer, int byteLength, Encoding encoding, int characterLength, CodeRange codeRange) {
         super(encoding, byteLength, null);
 
@@ -41,37 +30,6 @@ public class NativeRope extends Rope {
         this.codeRange = codeRange;
         this.characterLength = characterLength;
         this.pointer = pointer;
-    }
-
-    private static Pointer allocateNativePointer(RubyLanguage language, byte[] bytes) {
-        final Pointer pointer = Pointer.mallocAutoRelease(bytes.length + 1, language);
-        pointer.writeBytes(0, bytes, 0, bytes.length);
-        pointer.writeByte(bytes.length, (byte) 0);
-        return pointer;
-    }
-
-    private static Pointer copyNativePointer(RubyLanguage language, Pointer existing) {
-        final Pointer pointer = Pointer.mallocAutoRelease(existing.getSize(), language);
-        pointer.writeBytes(0, existing, 0, existing.getSize());
-        return pointer;
-    }
-
-    public static NativeRope newBuffer(RubyLanguage language, int byteCapacity, int byteLength) {
-        assert byteCapacity >= byteLength;
-
-        final Pointer pointer = Pointer.callocAutoRelease(byteCapacity + 1, language);
-
-        return new NativeRope(
-                pointer,
-                byteLength,
-                ASCIIEncoding.INSTANCE,
-                UNKNOWN_CHARACTER_LENGTH,
-                CodeRange.CR_UNKNOWN);
-    }
-
-    public NativeRope makeCopy(RubyLanguage language) {
-        final Pointer newPointer = copyNativePointer(language, pointer);
-        return new NativeRope(newPointer, byteLength(), getEncoding(), characterLength(), getCodeRange());
     }
 
     @Override
