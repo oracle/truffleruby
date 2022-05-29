@@ -16,11 +16,14 @@ import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 
+import static com.oracle.truffle.api.strings.TruffleString.CodeRange.ASCII;
+import static com.oracle.truffle.api.strings.TruffleString.CodeRange.BROKEN;
+
 public abstract class TStringGuards {
 
     public static boolean is7Bit(AbstractTruffleString tstring, RubyEncoding encoding,
             TruffleString.GetByteCodeRangeNode codeRangeNode) {
-        return codeRangeNode.execute(tstring, encoding.tencoding) == TruffleString.CodeRange.ASCII;
+        return codeRangeNode.execute(tstring, encoding.tencoding) == ASCII;
     }
 
     public static boolean is7BitUncached(AbstractTruffleString tstring, RubyEncoding encoding) {
@@ -30,7 +33,7 @@ public abstract class TStringGuards {
 
     public static boolean isBrokenCodeRange(AbstractTruffleString string, RubyEncoding encoding,
             TruffleString.GetByteCodeRangeNode codeRangeNode) {
-        return codeRangeNode.execute(string, encoding.tencoding) == TruffleString.CodeRange.BROKEN;
+        return codeRangeNode.execute(string, encoding.tencoding) == BROKEN;
     }
 
 }

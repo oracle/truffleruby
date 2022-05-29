@@ -31,6 +31,8 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.StringAttributes;
 
+import static com.oracle.truffle.api.strings.TruffleString.CodeRange.ASCII;
+
 public class TStringUtils {
 
     @CompilationFinal(
@@ -187,7 +189,7 @@ public class TStringUtils {
 
     @TruffleBoundary
     public static boolean isSingleByteOptimizable(AbstractTruffleString truffleString, RubyEncoding encoding) {
-        return truffleString.getByteCodeRangeUncached(encoding.tencoding) == TruffleString.CodeRange.ASCII ||
+        return truffleString.getByteCodeRangeUncached(encoding.tencoding) == ASCII ||
                 encoding.jcoding.isSingleByte();
     }
 
