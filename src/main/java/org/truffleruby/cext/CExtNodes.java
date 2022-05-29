@@ -1228,10 +1228,8 @@ public class CExtNodes {
         }
 
         @Specialization
-        protected Pointer toNativeImmutable(ImmutableRubyString string,
-                @Cached TruffleString.GetInternalNativePointerNode getInternalNativePointerNode) {
-            final MutableTruffleString nativeTString = string.getNativeTString(getLanguage());
-            return (Pointer) getInternalNativePointerNode.execute(nativeTString, string.getTEncoding());
+        protected Pointer toNativeImmutable(ImmutableRubyString string) {
+            return string.getNativeString(getLanguage());
         }
 
         public static Pointer allocateAndCopyToNative(AbstractTruffleString tstring, TruffleString.Encoding tencoding,

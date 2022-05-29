@@ -19,7 +19,6 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
-import com.oracle.truffle.api.strings.MutableTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -45,8 +44,7 @@ public class ImmutableRubyString extends ImmutableRubyObjectCopyable implements 
     public final LeafRope rope;
     public final TruffleString tstring;
     public final RubyEncoding encoding;
-    // TODO should be TruffleString but native empty TruffleString is not possible currently (GR-38902)
-    private MutableTruffleString nativeTString = null;
+    private Pointer nativeString = null;
 
     ImmutableRubyString(TruffleString tstring, LeafRope rope, RubyEncoding encoding) {
         assert tstring.isCompatibleTo(encoding.tencoding);
@@ -62,28 +60,25 @@ public class ImmutableRubyString extends ImmutableRubyObjectCopyable implements 
     }
 
     public boolean isNative() {
-        return nativeTString != null;
+        return nativeString != null;
     }
 
-    public MutableTruffleString getNativeTString(RubyLanguage language) {
-        if (nativeTString == null) {
-            return createNativeTString(language);
+    public Pointer getNativeString(RubyLanguage language) {
+        if (nativeString == null) {
+            return createNativeString(language);
         }
-        return nativeTString;
+        return nativeString;
     }
 
     @TruffleBoundary
-    private synchronized MutableTruffleString createNativeTString(RubyLanguage language) {
-        if (nativeTString == null) {
+    private synchronized Pointer createNativeString(RubyLanguage language) {
+        if (nativeString == null) {
             var tencoding = encoding.tencoding;
             int byteLength = tstring.byteLength(tencoding);
-            Pointer pointer = CExtNodes.StringToNativeNode.allocateAndCopyToNative(tstring, tencoding, byteLength,
+            nativeString = CExtNodes.StringToNativeNode.allocateAndCopyToNative(tstring, tencoding, byteLength,
                     TruffleString.CopyToNativeMemoryNode.getUncached(), language);
-
-            nativeTString = MutableTruffleString.fromNativePointerUncached(pointer, 0, byteLength, tencoding, false);
-            assert nativeTString.isNative();
         }
-        return nativeTString;
+        return nativeString;
     }
 
     // region RubyStringLibrary messages
