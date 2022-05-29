@@ -29,7 +29,6 @@ import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.language.NotProvided;
@@ -591,26 +590,6 @@ public abstract class RopeNodes {
             }
         }
 
-    }
-
-    public abstract static class SingleByteOptimizableNode extends RubyBaseNode {
-
-        public static SingleByteOptimizableNode create() {
-            return RopeNodesFactory.SingleByteOptimizableNodeGen.create();
-        }
-
-        public abstract boolean execute(Rope rope, RubyEncoding encoding);
-
-        @Specialization
-        protected boolean isSingleByteOptimizable(Rope rope, RubyEncoding encoding,
-                @Cached ConditionProfile asciiOnlyProfile) {
-
-            if (asciiOnlyProfile.profile(rope.isAsciiOnly())) {
-                return true;
-            } else {
-                return rope.getEncoding().isSingleByte();
-            }
-        }
     }
 
     @ImportStatic(CodeRange.class)

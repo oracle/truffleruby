@@ -140,17 +140,14 @@ import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
-import org.truffleruby.core.rope.RopeGuards;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeNodes.BytesNode;
 import org.truffleruby.core.rope.RopeNodes.CalculateCharacterLengthNode;
 import org.truffleruby.core.rope.RopeNodes.CodeRangeNode;
 import org.truffleruby.core.rope.RopeNodes.GetBytesObjectNode;
-import org.truffleruby.core.rope.RopeNodes.SingleByteOptimizableNode;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.RopeWithEncoding;
 import org.truffleruby.core.rope.TStringWithEncoding;
-import org.truffleruby.core.string.StringNodesFactory.ByteIndexFromCharIndexNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.ByteSizeNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.CheckIndexNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.CountRopesNodeFactory;
@@ -4404,98 +4401,16 @@ public abstract class StringNodes {
         }
     }
 
-    /** Calculates the byte offset of a character, indicated by a character index, starting from a provided byte offset
-     * into the rope. Providing a 0 starting offset simply finds the byte offset for the nth character into the rope,
-     * according to the rope's encoding. Providing a non-zero starting byte offset effectively allows for calculating a
-     * character's byte offset into a substring of the rope without having to creating a SubstringRope.
-     *
-     * @rope - The rope/string being indexed.
-     * @startByteOffset - Starting position in the rope for the calculation of the character's byte offset.
-     * @characterIndex - The character index into the rope, starting from the provided byte offset. */
-    @ImportStatic({ RopeGuards.class, StringGuards.class, StringOperations.class })
-    public abstract static class ByteIndexFromCharIndexNode extends RubyBaseNode {
-
-        public static ByteIndexFromCharIndexNode create() {
-            return ByteIndexFromCharIndexNodeGen.create();
-        }
-
-        @Child protected SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
-
-        public abstract int execute(Rope rope, int startByteOffset, int characterIndex);
-
-        @Specialization(guards = "isSingleByteOptimizable(rope)")
-        protected int singleByteOptimizable(Rope rope, int startByteOffset, int characterIndex) {
-            return startByteOffset + characterIndex;
-        }
-
-        @Specialization(guards = { "!isSingleByteOptimizable(rope)", "isFixedWidthEncoding(rope)" })
-        protected int fixedWidthEncoding(Rope rope, int startByteOffset, int characterIndex) {
-            final Encoding encoding = rope.getEncoding();
-            return startByteOffset + characterIndex * encoding.minLength();
-        }
-
-        @Specialization(
-                guards = { "!isSingleByteOptimizable(rope)", "!isFixedWidthEncoding(rope)", "characterIndex == 0" })
-        protected int multiByteZeroIndex(Rope rope, int startByteOffset, int characterIndex) {
-            return startByteOffset;
-        }
-
-        @Specialization(guards = { "!isSingleByteOptimizable(rope)", "!isFixedWidthEncoding(rope)" })
-        protected int multiBytes(Rope rope, int startByteOffset, int characterIndex,
-                @Cached ConditionProfile indexTooLargeProfile,
-                @Cached ConditionProfile invalidByteProfile,
-                @Cached BytesNode bytesNode,
-                @Cached CalculateCharacterLengthNode calculateCharacterLengthNode,
-                @Cached CodeRangeNode codeRangeNode) {
-            // Taken from Rubinius's String::byte_index.
-
-            final Encoding enc = rope.getEncoding();
-            final byte[] bytes = bytesNode.execute(rope);
-            final int e = rope.byteLength();
-            int p = startByteOffset;
-
-            int i, k = characterIndex;
-
-            for (i = 0; i < k && p < e; i++) {
-                final int c = calculateCharacterLengthNode
-                        .characterLength(enc, codeRangeNode.execute(rope), Bytes.fromRange(bytes, p, e));
-
-                // TODO (nirvdrum 22-Dec-16): Consider having a specialized version for CR_BROKEN strings to avoid these checks.
-                // If it's an invalid byte, just treat it as a single byte
-                if (invalidByteProfile.profile(!StringSupport.MBCLEN_CHARFOUND_P(c))) {
-                    ++p;
-                } else {
-                    p += StringSupport.MBCLEN_CHARFOUND_LEN(c);
-                }
-            }
-
-            // TODO (nirvdrum 22-Dec-16): Since we specialize elsewhere on index being too large, do we need this? Can character boundary search in a CR_BROKEN string cause us to encounter this case?
-            if (indexTooLargeProfile.profile(i < k)) {
-                return -1;
-            } else {
-                return p;
-            }
-        }
-
-        protected boolean isSingleByteOptimizable(Rope rope) {
-            return singleByteOptimizableNode.execute(rope,
-                    Encodings.getBuiltInEncoding(rope.encoding)); // TODO
-        }
-
-    }
-
     // Named 'string_byte_index' in Rubinius.
     @Primitive(name = "string_byte_index_from_char_index", lowerFixnum = 1)
-    @ImportStatic({ StringGuards.class, StringOperations.class })
     public abstract static class StringByteIndexFromCharIndexNode extends PrimitiveArrayArgumentsNode {
-
         @Specialization
-        protected Object singleByteOptimizable(Object string, int characterIndex,
-                @Cached ByteIndexFromCharIndexNode byteIndexFromCharIndexNode,
+        protected Object byteIndexFromCharIndex(Object string, int characterIndex,
+                @Cached TruffleString.CodePointIndexToByteIndexNode codePointIndexToByteIndexNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
-            return byteIndexFromCharIndexNode.execute(libString.getRope(string), 0, characterIndex);
+            return codePointIndexToByteIndexNode.execute(libString.getTString(string), 0, characterIndex,
+                    libString.getTEncoding(string));
         }
-
     }
 
     // Port of Rubinius's String::previous_byte_index.
@@ -4872,6 +4787,7 @@ public abstract class StringNodes {
 
     }
 
+    // TODO: rename
     public abstract static class NewSingleByteOptimizableNode extends RubyBaseNode {
         public static NewSingleByteOptimizableNode create() {
             return NewSingleByteOptimizableNodeGen.create();
