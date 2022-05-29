@@ -276,7 +276,6 @@ public abstract class PointerNodes {
 
         @Specialization
         protected RubyString readStringToNull(long address, Nil limit,
-                @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
                 @CachedLibrary(limit = "1") InteropLibrary interop,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             final Pointer ptr = new Pointer(address);
@@ -292,8 +291,7 @@ public abstract class PointerNodes {
 
         @Specialization
         protected Object readBytes(RubyByteArray array, int arrayOffset, long address, int length,
-                @Cached ConditionProfile zeroProfile,
-                @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode) {
+                @Cached ConditionProfile zeroProfile) {
             final Pointer ptr = new Pointer(address);
             if (zeroProfile.profile(length == 0)) {
                 // No need to check the pointer address if we read nothing
@@ -314,7 +312,6 @@ public abstract class PointerNodes {
         @Specialization
         protected RubyString readBytes(long address, int length,
                 @Cached ConditionProfile zeroProfile,
-                @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             final Pointer ptr = new Pointer(address);
             if (zeroProfile.profile(length == 0)) {
