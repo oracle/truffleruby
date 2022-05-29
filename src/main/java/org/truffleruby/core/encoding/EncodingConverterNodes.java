@@ -464,8 +464,9 @@ public abstract class EncodingConverterNodes {
             var tstring = libReplacement.getTString(replacement);
             var encoding = libReplacement.getEncoding(replacement);
 
-            int ret = setReplacement(encodingConverter.econv, bytesNode.execute(tstring, encoding.tencoding),
-                    encoding.jcoding.getName());
+            final InternalByteArray byteArray = bytesNode.execute(tstring, encoding.tencoding);
+            int ret = setReplacement(encodingConverter.econv, byteArray.getArray(), byteArray.getOffset(),
+                    byteArray.getLength(), encoding.jcoding.getName());
 
             if (ret == -1) {
                 errorProfile.enter();
@@ -478,8 +479,8 @@ public abstract class EncodingConverterNodes {
         }
 
         @TruffleBoundary
-        private int setReplacement(EConv ec, InternalByteArray byteArray, byte[] encodingName) {
-            return ec.setReplacement(byteArray.getArray(), byteArray.getOffset(), byteArray.getEnd(), encodingName);
+        private int setReplacement(EConv ec, byte[] bytes, int offset, int len, byte[] encodingName) {
+            return ec.setReplacement(bytes, offset, len, encodingName);
         }
 
     }
