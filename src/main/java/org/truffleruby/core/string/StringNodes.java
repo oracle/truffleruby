@@ -147,6 +147,7 @@ import org.truffleruby.core.rope.RopeNodes.CodeRangeNode;
 import org.truffleruby.core.rope.RopeNodes.GetBytesObjectNode;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.RopeWithEncoding;
+import org.truffleruby.core.rope.TStringNodes.SingleByteOptimizableNode;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.StringNodesFactory.ByteSizeNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.CheckIndexNodeGen;
@@ -4786,25 +4787,6 @@ public abstract class StringNodes {
 
     }
 
-    public abstract static class SingleByteOptimizableNode extends RubyBaseNode {
-        public static SingleByteOptimizableNode create() {
-            return StringNodesFactory.SingleByteOptimizableNodeGen.create();
-        }
-
-        public abstract boolean execute(AbstractTruffleString string, RubyEncoding encoding);
-
-        @Specialization
-        protected boolean isSingleByteOptimizable(AbstractTruffleString string, RubyEncoding encoding,
-                @Cached ConditionProfile asciiOnlyProfile,
-                @Cached TruffleString.GetByteCodeRangeNode getByteCodeRangeNode) {
-            if (asciiOnlyProfile.profile(TStringGuards.is7Bit(string, encoding, getByteCodeRangeNode))) {
-                return true;
-            } else {
-                return encoding.jcoding.isSingleByte();
-            }
-        }
-    }
-
     @ImportStatic(TStringGuards.class)
     public abstract static class GetCodePointNode extends RubyBaseNode {
         @Child protected TruffleString.GetByteCodeRangeNode codeRangeNode = TruffleString.GetByteCodeRangeNode.create();
@@ -4928,6 +4910,50 @@ public abstract class StringNodes {
             TruffleString immutableManagedString = asManagedNode.execute(string.tstring, encoding.tencoding);
             return getLanguage().getFrozenStringLiteral(immutableManagedString, encoding);
         }
+    }
+
+    @Primitive(name = "string_truncate", lowerFixnum = 1)
+    public abstract static class TruncateNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "newByteLength < 0")
+        @TruffleBoundary
+        protected RubyString truncateLengthNegative(RubyString string, int newByteLength) {
+            throw new RaiseException(
+                    getContext(),
+                    getContext().getCoreExceptions().argumentError(formatNegativeError(newByteLength), this));
+        }
+
+        @Specialization(guards = { "newByteLength >= 0", "isNewLengthTooLarge(string, newByteLength)" })
+        @TruffleBoundary
+        protected RubyString truncateLengthTooLong(RubyString string, int newByteLength) {
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().argumentError(formatTooLongError(newByteLength, string), this));
+        }
+
+        @Specialization(guards = { "newByteLength >= 0", "!isNewLengthTooLarge(string, newByteLength)" })
+        protected RubyString tuncate(RubyString string, int newByteLength,
+                @Cached TruffleString.SubstringByteIndexNode substringNode) {
+            var tencoding = string.encoding.tencoding;
+            string.setTString(substringNode.execute(string.tstring, 0, newByteLength, tencoding, true));
+            return string;
+        }
+
+        protected static boolean isNewLengthTooLarge(RubyString string, int newByteLength) {
+            return newByteLength > string.byteLength();
+        }
+
+        @TruffleBoundary
+        private String formatNegativeError(int count) {
+            return StringUtils.format("Invalid byte count: %d is negative", count);
+        }
+
+        @TruffleBoundary
+        private String formatTooLongError(int count, RubyString string) {
+            return StringUtils
+                    .format("Invalid byte count: %d exceeds string size of %d bytes", count, string.byteLength());
+        }
+
     }
 
 }

@@ -189,7 +189,7 @@ module Truffle
 
     def self.shorten!(string, size)
       return if string.empty?
-      Truffle::StringOperations.truncate(string, string.bytesize - size)
+      Primitive.string_truncate(string, string.bytesize - size)
     end
 
     def self.to_sub_replacement(string, result, match)

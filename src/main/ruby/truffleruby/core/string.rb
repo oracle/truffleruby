@@ -705,7 +705,7 @@ class String
       end
     end
 
-    Truffle::StringOperations.truncate(self, bytes)
+    Primitive.string_truncate(self, bytes)
 
     self
   end
@@ -767,7 +767,7 @@ class String
       bytes = bytesize - sep_bytesize
     end
 
-    Truffle::StringOperations.truncate(self, bytes)
+    Primitive.string_truncate(self, bytes)
 
     self
   end
