@@ -10,17 +10,32 @@
 
 package org.truffleruby.core.string;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Config;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.TStringNodes;
+
+import static com.oracle.truffle.api.strings.TruffleString.CodeRange.ASCII;
+import static com.oracle.truffle.api.strings.TruffleString.CodeRange.BROKEN;
+import static com.oracle.truffle.api.strings.TruffleString.CodeRange.VALID;
 
 public class StringGuards {
 
     private static final int CASE_FULL_UNICODE = 0;
+
+    public static boolean is7Bit(AbstractTruffleString tstring, RubyEncoding encoding,
+            TruffleString.GetByteCodeRangeNode codeRangeNode) {
+        return codeRangeNode.execute(tstring, encoding.tencoding) == ASCII;
+    }
+
+    public static boolean is7BitUncached(AbstractTruffleString tstring, RubyEncoding encoding) {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        return tstring.getByteCodeRangeUncached(encoding.tencoding) == ASCII;
+    }
 
     public static boolean isSingleByteOptimizable(RubyString string,
             TStringNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
@@ -32,47 +47,39 @@ public class StringGuards {
         return singleByteOptimizableNode.execute(tString, encoding);
     }
 
-    public static boolean is7Bit(Rope rope, RopeNodes.CodeRangeNode codeRangeNode) {
-        return codeRangeNode.execute(rope) == CodeRange.CR_7BIT;
-    }
-
     public static boolean isAsciiCompatible(Rope rope) {
         return rope.getEncoding().isAsciiCompatible();
     }
 
     public static boolean isAsciiCompatible(RubyString string) {
-        return string.rope.getEncoding().isAsciiCompatible();
+        return string.encoding.jcoding.isAsciiCompatible();
+    }
+
+    public static boolean isAsciiCompatible(RubyEncoding encoding) {
+        return encoding.jcoding.isAsciiCompatible();
     }
 
     public static boolean isFixedWidthEncoding(Rope rope) {
         return rope.getEncoding().isFixedWidth();
     }
 
-    public static boolean isValidUtf8(Rope rope, RopeNodes.CodeRangeNode codeRangeNode) {
-        return rope.getEncoding().isUTF8() && codeRangeNode.execute(rope) == CodeRange.CR_VALID;
+    public static boolean isFixedWidthEncoding(RubyEncoding encoding) {
+        return encoding.jcoding.isFixedWidth();
+    }
+
+    public static boolean isValidUtf8(AbstractTruffleString tstring, RubyEncoding encoding,
+            TruffleString.GetByteCodeRangeNode codeRangeNode) {
+        return encoding == Encodings.UTF_8 && codeRangeNode.execute(tstring, encoding.tencoding) == VALID;
     }
 
     public static boolean isEmpty(Rope rope) {
         return rope.isEmpty();
     }
 
-    public static boolean isBrokenCodeRange(Rope rope, RopeNodes.CodeRangeNode codeRangeNode) {
-        return codeRangeNode.execute(rope) == CodeRange.CR_BROKEN;
+    public static boolean isBrokenCodeRange(AbstractTruffleString string, RubyEncoding encoding,
+            TruffleString.GetByteCodeRangeNode codeRangeNode) {
+        return codeRangeNode.execute(string, encoding.tencoding) == BROKEN;
     }
-
-    public static boolean isSingleByteString(Rope rope) {
-        return rope.byteLength() == 1;
-    }
-
-    public static boolean canMemcmp(AbstractTruffleString sourceRope, AbstractTruffleString patternRope,
-            RubyEncoding sourceEncoding,
-            RubyEncoding patternEncoding,
-            TStringNodes.SingleByteOptimizableNode singleByteNode) {
-
-        return (singleByteNode.execute(sourceRope, sourceEncoding) || sourceEncoding.jcoding.isUTF8()) &&
-                (singleByteNode.execute(patternRope, patternEncoding) || patternEncoding.jcoding.isUTF8());
-    }
-
 
     /** The case mapping is simple (ASCII-only or full Unicode): no complex option like Turkic, case-folding, etc. */
     public static boolean isAsciiCompatMapping(int caseMappingOptions) {

@@ -19,7 +19,6 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
-import org.truffleruby.core.rope.RopeGuards;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.extra.ffi.Pointer;
@@ -198,7 +197,7 @@ public abstract class ByteArrayNodes {
         }
 
         protected boolean isSingleBytePattern(Rope rope) {
-            return RopeGuards.isSingleByteString(rope);
+            return rope.byteLength() == 1;
         }
     }
 

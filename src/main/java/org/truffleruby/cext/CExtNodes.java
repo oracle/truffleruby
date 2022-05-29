@@ -17,6 +17,7 @@ import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.strings.MutableTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.api.strings.TruffleString.GetByteCodeRangeNode;
 import org.jcodings.Encoding;
 import org.jcodings.IntHolder;
 import org.truffleruby.Layouts;
@@ -132,6 +133,8 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
+
+import static com.oracle.truffle.api.strings.TruffleString.CodeRange.BROKEN;
 
 @CoreModule("Truffle::CExt")
 public class CExtNodes {
@@ -649,19 +652,20 @@ public class CExtNodes {
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
-                @Cached RopeNodes.CodeRangeNode codeRangeNode,
+                @Cached GetByteCodeRangeNode codeRangeNode,
                 @Cached ConditionProfile sameEncodingProfile,
                 @Cached BranchProfile errorProfile) {
             final Rope rope = strings.getRope(string);
+            var tstring = strings.getTString(string);
             final byte[] bytes = bytesNode.execute(rope);
-            final CodeRange ropeCodeRange = codeRangeNode.execute(rope);
+            var stringCodeRange = codeRangeNode.execute(tstring, strings.getTEncoding(string));
             final Encoding enc = encoding.jcoding;
 
-            final CodeRange cr;
+            final TruffleString.CodeRange cr;
             if (sameEncodingProfile.profile(enc == rope.getEncoding())) {
-                cr = ropeCodeRange;
+                cr = stringCodeRange;
             } else {
-                cr = CodeRange.CR_UNKNOWN;
+                cr = BROKEN /* UNKNOWN */;
             }
 
             final int r = calculateCharacterLengthNode.characterLength(enc, cr, new Bytes(bytes));
@@ -674,7 +678,7 @@ public class CExtNodes {
             }
 
             final int len_p = StringSupport.MBCLEN_CHARFOUND_LEN(r);
-            final int codePoint = StringSupport.preciseCodePoint(enc, ropeCodeRange, bytes, 0, bytes.length);
+            final int codePoint = StringSupport.preciseCodePoint(enc, stringCodeRange, bytes, 0, bytes.length);
 
             return createArray(new Object[]{ len_p, codePoint });
         }
@@ -1427,7 +1431,7 @@ public class CExtNodes {
         protected Object rbEncMbLen(RubyEncoding enc, Object string, int p, int e,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached RopeNodes.BytesNode getBytes,
-                @Cached RopeNodes.CodeRangeNode codeRangeNode,
+                @Cached GetByteCodeRangeNode codeRangeNode,
                 @Cached ConditionProfile sameEncodingProfile) {
             final Encoding encoding = enc.jcoding;
             final Rope rope = strings.getRope(string);
@@ -1436,8 +1440,8 @@ public class CExtNodes {
             return StringSupport.characterLength(
                     encoding,
                     sameEncodingProfile.profile(encoding == ropeEncoding)
-                            ? codeRangeNode.execute(rope)
-                            : CodeRange.CR_UNKNOWN,
+                            ? codeRangeNode.execute(strings.getTString(string), strings.getTEncoding(string))
+                            : BROKEN /* UNKNOWN */,
                     getBytes.execute(strings.getRope(string)),
                     p,
                     e,
@@ -1474,36 +1478,26 @@ public class CExtNodes {
     @CoreMethod(names = "rb_enc_precise_mbclen", onSingleton = true, required = 4, lowerFixnum = { 3, 4 })
     public abstract static class RbEncPreciseMbclenNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private RopeNodes.CodeRangeNode codeRangeNode;
-
         @Specialization(guards = "strings.isRubyString(string)")
         protected int rbEncPreciseMbclen(RubyEncoding enc, Object string, int p, int end,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached RopeNodes.GetBytesObjectNode getBytesObject,
+                @Cached GetByteCodeRangeNode codeRangeNode,
                 @Cached ConditionProfile sameEncodingProfile) {
             final Encoding encoding = enc.jcoding;
             final Rope rope = strings.getRope(string);
-            final CodeRange cr;
+            final TruffleString.CodeRange cr;
             if (sameEncodingProfile.profile(encoding == rope.getEncoding())) {
-                cr = codeRange(rope);
+                cr = codeRangeNode.execute(strings.getTString(string), strings.getTEncoding(string));
             } else {
-                cr = CodeRange.CR_UNKNOWN;
+                cr = BROKEN /* UNKNOWN */;
             }
 
             final int length = calculateCharacterLengthNode
                     .characterLength(encoding, cr, getBytesObject.getRange(rope, p, end));
             assert end - p >= length; // assert this condition not reached: https://github.com/ruby/ruby/blob/46a5d1b4a63f624f2c5c5b6f710cc1a176c88b02/encoding.c#L1046
             return length;
-        }
-
-        private CodeRange codeRange(Rope rope) {
-            if (codeRangeNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                codeRangeNode = insert(RopeNodes.CodeRangeNode.create());
-            }
-
-            return codeRangeNode.execute(rope);
         }
 
     }

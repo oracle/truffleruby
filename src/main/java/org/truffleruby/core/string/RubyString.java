@@ -18,7 +18,6 @@ import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.encoding.TStringGuards;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.Rope;
@@ -179,7 +178,7 @@ public final class RubyString extends RubyDynamicObject {
             final Rope rope = string.rope;
             final byte[] bytes = bytesNode.execute(rope);
 
-            if (asciiOnlyProfile.profile(TStringGuards.is7Bit(string.tstring, string.encoding, codeRangeNode))) {
+            if (asciiOnlyProfile.profile(StringGuards.is7Bit(string.tstring, string.encoding, codeRangeNode))) {
                 return RopeOperations.decodeAscii(bytes);
             } else {
                 return RopeOperations.decodeNonAscii(rope.getEncoding(), bytes, 0, bytes.length);

@@ -25,7 +25,9 @@ import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.language.RubyBaseNode;
@@ -433,6 +435,10 @@ public abstract class RopeNodes {
             return executeLength(encoding, codeRange, bytes, false);
         }
 
+        public int characterLength(Encoding encoding, TruffleString.CodeRange codeRange, Bytes bytes) {
+            return characterLength(encoding, TStringUtils.toCodeRange(codeRange), bytes);
+        }
+
         /** This method works very similarly to `characterLength` and maintains the same invariants on inputs. Where it
          * differs is in the treatment of invalid byte sequences. Whereas `characterLength` will return a negative
          * value, this method will always return a positive value. MRI provides an arbitrary, but deterministic,
@@ -442,6 +448,10 @@ public abstract class RopeNodes {
          * lengths to be returned because it would break iterating through the characters. */
         public int characterLengthWithRecovery(Encoding encoding, CodeRange codeRange, Bytes bytes) {
             return executeLength(encoding, codeRange, bytes, true);
+        }
+
+        public int characterLengthWithRecovery(Encoding encoding, TruffleString.CodeRange codeRange, Bytes bytes) {
+            return characterLengthWithRecovery(encoding, TStringUtils.toCodeRange(codeRange), bytes);
         }
 
         @Specialization(guards = "codeRange == CR_7BIT")

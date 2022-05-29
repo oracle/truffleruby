@@ -2,9 +2,6 @@
 <!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.3//EN" "http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
 
 <!--
-    This configuration file was written by the eclipse-cs plugin configuration editor
--->
-<!--
     Checkstyle-Configuration: Checks
     Description: none
 -->
@@ -253,6 +250,10 @@
     <module name="RegexpSinglelineJava">
       <property name="format" value='@CachedLibrary\(limit = "\d+"\) RubyStringLibrary'/>
       <property name="message" value='Use @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary instead.'/>
+    </module>
+    <module name="RegexpSinglelineJava">
+      <property name="format" value='GetCodeRangeNode'/>
+      <property name="message" value='Use GetByteCodeRangeNode instead.'/>
     </module>
     <module name="IllegalType">
       <!-- Use PrintStream instead of PrintWriter, PrintWriter does not consistently flush, even when writing \n.-->

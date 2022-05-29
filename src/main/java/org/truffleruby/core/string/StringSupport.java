@@ -92,6 +92,7 @@ public final class StringSupport {
         }
     }
 
+    // Should probably use ByteLengthOfCodePointNode instead longer-term for recoverIfBroken=true cases
     public static int characterLength(Encoding encoding, TruffleString.CodeRange codeRange, byte[] bytes,
             int byteOffset, int byteEnd, boolean recoverIfBroken) {
         assert byteOffset >= 0 && byteOffset < byteEnd && byteEnd <= bytes.length;
@@ -401,6 +402,15 @@ public final class StringSupport {
 
     @TruffleBoundary
     public static int preciseCodePoint(Encoding enc, CodeRange codeRange, byte[] bytes, int p, int end) {
+        int l = characterLength(enc, codeRange, bytes, p, end);
+        if (l > 0) {
+            return enc.mbcToCode(bytes, p, end);
+        }
+        return -1;
+    }
+
+    @TruffleBoundary
+    public static int preciseCodePoint(Encoding enc, TruffleString.CodeRange codeRange, byte[] bytes, int p, int end) {
         int l = characterLength(enc, codeRange, bytes, p, end);
         if (l > 0) {
             return enc.mbcToCode(bytes, p, end);
@@ -1455,7 +1465,7 @@ public final class StringSupport {
      * doesn't require changes. The encoding must be ASCII-compatible (i.e. represent each ASCII character as a single
      * byte ({@link Encoding#isAsciiCompatible()}). */
     @TruffleBoundary
-    public static byte[] swapcaseMultiByteAsciiSimple(Encoding enc, CodeRange codeRange, byte[] bytes) {
+    public static byte[] swapcaseMultiByteAsciiSimple(Encoding enc, TruffleString.CodeRange codeRange, byte[] bytes) {
         assert enc.isAsciiCompatible();
         boolean modified = false;
         int s = 0;
@@ -1478,8 +1488,8 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean swapCaseMultiByteComplex(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder,
-            int caseMappingOptions, Node node) {
+    public static boolean swapCaseMultiByteComplex(Encoding enc, TruffleString.CodeRange originalCodeRange,
+            RopeBuilder builder, int caseMappingOptions, Node node) {
         byte[] buf = new byte[CASE_MAP_BUFFER_SIZE];
 
         final IntHolder flagP = new IntHolder();
@@ -1510,7 +1520,7 @@ public final class StringSupport {
      * characters need upcasing. The encoding must be ASCII-compatible (i.e. represent each ASCII character as a single
      * byte ({@link Encoding#isAsciiCompatible()}). */
     @TruffleBoundary
-    public static byte[] downcaseMultiByteAsciiSimple(Encoding enc, CodeRange codeRange, byte[] bytes) {
+    public static byte[] downcaseMultiByteAsciiSimple(Encoding enc, TruffleString.CodeRange codeRange, byte[] bytes) {
         assert enc.isAsciiCompatible();
         boolean modified = false;
         int s = 0;
@@ -1533,8 +1543,8 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean downcaseMultiByteComplex(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder,
-            int caseMappingOptions, Node node) {
+    public static boolean downcaseMultiByteComplex(Encoding enc, TruffleString.CodeRange originalCodeRange,
+            RopeBuilder builder, int caseMappingOptions, Node node) {
         byte[] buf = new byte[CASE_MAP_BUFFER_SIZE];
 
         final IntHolder flagP = new IntHolder();
@@ -1575,7 +1585,7 @@ public final class StringSupport {
      * characters need upcasing. The encoding must be ASCII-compatible (i.e. represent each ASCII character as a single
      * byte ( {@link Encoding#isAsciiCompatible()}). */
     @TruffleBoundary
-    public static byte[] upcaseMultiByteAsciiSimple(Encoding enc, CodeRange codeRange, byte[] bytes) {
+    public static byte[] upcaseMultiByteAsciiSimple(Encoding enc, TruffleString.CodeRange codeRange, byte[] bytes) {
         assert enc.isAsciiCompatible();
         boolean modified = false;
         int s = 0;
@@ -1598,8 +1608,8 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean upcaseMultiByteComplex(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder,
-            int caseMappingOptions, Node node) {
+    public static boolean upcaseMultiByteComplex(Encoding enc, TruffleString.CodeRange originalCodeRange,
+            RopeBuilder builder, int caseMappingOptions, Node node) {
         byte[] buf = new byte[CASE_MAP_BUFFER_SIZE];
 
         final IntHolder flagP = new IntHolder();

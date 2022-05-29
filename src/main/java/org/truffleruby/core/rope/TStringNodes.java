@@ -15,7 +15,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.encoding.TStringGuards;
+import org.truffleruby.core.string.StringGuards;
 import org.truffleruby.language.RubyBaseNode;
 
 public abstract class TStringNodes {
@@ -31,7 +31,7 @@ public abstract class TStringNodes {
         protected boolean isSingleByteOptimizable(AbstractTruffleString string, RubyEncoding encoding,
                 @Cached ConditionProfile asciiOnlyProfile,
                 @Cached TruffleString.GetByteCodeRangeNode getByteCodeRangeNode) {
-            if (asciiOnlyProfile.profile(TStringGuards.is7Bit(string, encoding, getByteCodeRangeNode))) {
+            if (asciiOnlyProfile.profile(StringGuards.is7Bit(string, encoding, getByteCodeRangeNode))) {
                 return true;
             } else {
                 return encoding.jcoding.isSingleByte();

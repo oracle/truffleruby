@@ -37,8 +37,8 @@ import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeGuards;
-import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.string.StringGuards;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.string.ImmutableRubyString;
@@ -56,6 +56,8 @@ import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+
+import static com.oracle.truffle.api.strings.TruffleString.CodeRange.ASCII;
 
 @CoreModule(value = "Encoding", isClass = true)
 public abstract class EncodingNodes {
@@ -175,7 +177,7 @@ public abstract class EncodingNodes {
             }
             if (firstRope.isEmpty()) {
                 return (firstJCoding.isAsciiCompatible() &&
-                        TStringGuards.is7Bit(secondRope, secondEncoding, getCodeRangeNode()))
+                        StringGuards.is7Bit(secondRope, secondEncoding, getCodeRangeNode()))
                                 ? firstEncoding
                                 : secondEncoding;
             }
@@ -184,10 +186,10 @@ public abstract class EncodingNodes {
                 return null;
             }
 
-            if (TStringGuards.is7Bit(secondRope, secondEncoding, getCodeRangeNode())) {
+            if (StringGuards.is7Bit(secondRope, secondEncoding, getCodeRangeNode())) {
                 return firstEncoding;
             }
-            if (TStringGuards.is7Bit(firstRope, firstEncoding, getCodeRangeNode())) {
+            if (StringGuards.is7Bit(firstRope, firstEncoding, getCodeRangeNode())) {
                 return secondEncoding;
             }
 
@@ -224,7 +226,7 @@ public abstract class EncodingNodes {
     // MRI: enc_compatible_latter
     public abstract static class NegotiateCompatibleEncodingNode extends RubyBaseNode {
 
-        @Child private RopeNodes.CodeRangeNode codeRangeNode;
+        @Child private TruffleString.GetByteCodeRangeNode codeRangeNode;
         @Child private ToRubyEncodingNode getEncodingNode = ToRubyEncodingNode.create();
 
         public static NegotiateCompatibleEncodingNode create() {
@@ -279,7 +281,7 @@ public abstract class EncodingNodes {
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSecond,
                 @Cached("getEncoding(first)") RubyEncoding firstEncoding,
                 @Cached("getEncoding(second)") RubyEncoding secondEncoding,
-                @Cached("getCodeRange(first, libFirst)") CodeRange codeRange,
+                @Cached("getCodeRange(first, libFirst)") TruffleString.CodeRange codeRange,
                 @Cached("negotiateStringObjectUncached(first, second, libFirst)") RubyEncoding negotiatedEncoding) {
             return negotiatedEncoding;
         }
@@ -307,7 +309,7 @@ public abstract class EncodingNodes {
                 return firstEncoding;
             }
 
-            if (getCodeRange(first, libFirst) == CodeRange.CR_7BIT) {
+            if (getCodeRange(first, libFirst) == ASCII) {
                 return secondEncoding;
             }
 
@@ -377,13 +379,13 @@ public abstract class EncodingNodes {
             return null;
         }
 
-        protected CodeRange getCodeRange(Object string, RubyStringLibrary libString) {
+        protected TruffleString.CodeRange getCodeRange(Object string, RubyStringLibrary libString) {
             if (codeRangeNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                codeRangeNode = insert(RopeNodes.CodeRangeNode.create());
+                codeRangeNode = insert(TruffleString.GetByteCodeRangeNode.create());
             }
 
-            return codeRangeNode.execute(libString.getRope(string));
+            return codeRangeNode.execute(libString.getTString(string), libString.getTEncoding(string));
         }
 
         protected RubyEncoding getEncoding(Object value) {

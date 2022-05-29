@@ -16,40 +16,12 @@ import org.jcodings.specific.ASCIIEncoding;
 
 public abstract class RopeGuards {
 
-    public static boolean isSingleByteString(Rope rope) {
-        return rope.byteLength() == 1;
-    }
-
-    public static boolean isLeafRope(Rope rope) {
-        return rope instanceof LeafRope;
-    }
-
-    public static boolean isEmpty(byte[] bytes) {
-        return bytes.length == 0;
-    }
-
     public static boolean isBinaryString(Encoding encoding) {
         return encoding == ASCIIEncoding.INSTANCE;
     }
 
     public static boolean isAsciiCompatible(Encoding encoding) {
         return encoding.isAsciiCompatible();
-    }
-
-    public static boolean isFixedWidthEncoding(Rope rope) {
-        return rope.getEncoding().isFixedWidth();
-    }
-
-    public static boolean is7Bit(Rope rope, RopeNodes.CodeRangeNode codeRangeNode) {
-        return codeRangeNode.execute(rope) == CodeRange.CR_7BIT;
-    }
-
-    public static boolean isBroken(Rope rope, RopeNodes.CodeRangeNode codeRangeNode) {
-        return codeRangeNode.execute(rope) == CodeRange.CR_BROKEN;
-    }
-
-    public static boolean isAsciiCompatible(Rope rope) {
-        return rope.getEncoding().isAsciiCompatible();
     }
 
 }

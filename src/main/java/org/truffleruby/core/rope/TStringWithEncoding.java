@@ -18,8 +18,8 @@ import com.oracle.truffle.api.strings.InternalByteArray;
 import org.jcodings.Encoding;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.encoding.TStringGuards;
 import org.truffleruby.core.encoding.TStringUtils;
+import org.truffleruby.core.string.StringGuards;
 import org.truffleruby.language.library.RubyStringLibrary;
 
 public final class TStringWithEncoding {
@@ -89,7 +89,7 @@ public final class TStringWithEncoding {
 
     public boolean isAsciiOnly() {
         CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
-        return TStringGuards.is7BitUncached(tstring, encoding);
+        return StringGuards.is7BitUncached(tstring, encoding);
     }
 
     public int get(int index) {
