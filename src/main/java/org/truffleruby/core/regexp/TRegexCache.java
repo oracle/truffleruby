@@ -15,11 +15,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.source.Source;
-import org.jcodings.Encoding;
-import org.jcodings.specific.ASCIIEncoding;
-import org.jcodings.specific.ISO8859_1Encoding;
-import org.jcodings.specific.USASCIIEncoding;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
@@ -128,14 +123,14 @@ public final class TRegexCache {
                 TranslateInteropExceptionNode.getUncached());
     }
 
-    public static String toTRegexEncoding(Encoding encoding) {
-        if (encoding == UTF8Encoding.INSTANCE) {
+    public static String toTRegexEncoding(RubyEncoding encoding) {
+        if (encoding == Encodings.UTF_8) {
             return "UTF-8";
-        } else if (encoding == USASCIIEncoding.INSTANCE) {
+        } else if (encoding == Encodings.US_ASCII) {
             return "ASCII";
-        } else if (encoding == ISO8859_1Encoding.INSTANCE) {
+        } else if (encoding == Encodings.ISO_8859_1) {
             return "LATIN-1";
-        } else if (encoding == ASCIIEncoding.INSTANCE) {
+        } else if (encoding == Encodings.BINARY) {
             return "BYTES";
         } else {
             return null;
@@ -170,7 +165,7 @@ public final class TRegexCache {
 
         String flags = optionsToFlags(regexp.options, atStart);
 
-        String tRegexEncoding = TRegexCache.toTRegexEncoding(enc.jcoding);
+        String tRegexEncoding = TRegexCache.toTRegexEncoding(enc);
         if (tRegexEncoding == null) {
             return null;
         }

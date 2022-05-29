@@ -33,6 +33,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.IntValueProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.specific.UTF8Encoding;
 import org.joni.Matcher;
 import org.joni.Option;
@@ -176,7 +177,7 @@ public class TruffleRegexpNodes {
             // conflict with those in other branches.
             fallbackProcessingProfile.enter();
 
-            if (regexpEncoding == stringLibrary.getEncoding(matchString)) {
+            if (regexpEncoding == matchStringEncoding) {
                 sameEncodingProfile.enter();
 
                 return regexpEncoding;
@@ -187,14 +188,14 @@ public class TruffleRegexpNodes {
             } else if (!matchStringEncoding.jcoding.isAsciiCompatible()) {
                 asciiIncompatibleMatchStringEncodingProfile.enter();
 
-                return raiseEncodingCompatibilityError(regexp, matchRope);
+                return raiseEncodingCompatibilityError(regexp, matchStringEncoding);
             } else if (regexp.options.isFixed()) {
                 fixedRegexpEncodingProfile.enter();
 
                 if (!regexpEncoding.jcoding.isAsciiCompatible() || matchStringCodeRange != CodeRange.CR_7BIT) {
                     asciiIncompatibleFixedRegexpEncodingProfile.enter();
 
-                    return raiseEncodingCompatibilityError(regexp, matchRope);
+                    return raiseEncodingCompatibilityError(regexp, matchStringEncoding);
                 }
 
                 return regexpEncoding;
@@ -213,12 +214,12 @@ public class TruffleRegexpNodes {
         }
 
         // MRI: reg_enc_error
-        private RubyEncoding raiseEncodingCompatibilityError(RubyRegexp regexp, Rope matchRope) {
+        private RubyEncoding raiseEncodingCompatibilityError(RubyRegexp regexp, RubyEncoding matchStringEncoding) {
             throw new RaiseException(
                     getContext(),
                     coreExceptions().encodingCompatibilityErrorRegexpIncompatible(
                             regexp.encoding.jcoding,
-                            matchRope.getEncoding(),
+                            matchStringEncoding.jcoding,
                             this));
         }
 
@@ -385,7 +386,8 @@ public class TruffleRegexpNodes {
             }
         }
 
-        @Specialization(guards = "encoding == BINARY")
+        // TODO: Currently disabled because of https://github.com/oracle/graal/issues/4588#issuecomment-1140428808
+        @Specialization(guards = { "false", "encoding == BINARY" })
         protected Object binary(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
             final Object tregex = regexp.tregexCache.getBinaryRegex(atStart);
             if (tregex != null) {
@@ -850,7 +852,7 @@ public class TruffleRegexpNodes {
         @Child DispatchNode stringDupNode;
         @Child TranslateInteropExceptionNode translateInteropExceptionNode;
 
-        @Child RopeNodes.GetBytesObjectNode getBytesObjectNode;
+        @Child TruffleString.SubstringByteIndexNode substringByteIndexNode;
 
         @Specialization(guards = "libString.isRubyString(string)")
         protected Object matchInRegionTRegex(
@@ -861,6 +863,7 @@ public class TruffleRegexpNodes {
                 boolean atStart,
                 int startPos,
                 boolean createMatchData,
+                @Cached TruffleString.SwitchEncodingNode switchEncodingNode,
                 @Cached ConditionProfile createMatchDataProfile,
                 @Cached ConditionProfile matchFoundProfile,
                 @Cached ConditionProfile tRegexCouldNotCompileProfile,
@@ -870,16 +873,16 @@ public class TruffleRegexpNodes {
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary regexInterop,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary resultInterop,
                 @Cached PrepareRegexpEncodingNode prepareRegexpEncodingNode,
-                @Cached RopeNodes.BytesNode bytesNode,
                 @Cached TRegexCompileNode tRegexCompileNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @Cached IntValueProfile groupCountProfile) {
-            Rope rope = libString.getRope(string);
             final Object tRegex;
             final RubyEncoding negotiatedEncoding = prepareRegexpEncodingNode.executePrepare(regexp, string);
+            var tstring = switchEncodingNode.execute(libString.getTString(string), negotiatedEncoding.tencoding);
+            final int byteLength = tstring.byteLength(negotiatedEncoding.tencoding);
 
             if (tRegexIncompatibleProfile
-                    .profile(toPos < fromPos || toPos != rope.byteLength() || fromPos < 0) ||
+                    .profile(toPos < fromPos || toPos != byteLength || fromPos < 0) ||
                     tRegexCouldNotCompileProfile.profile((tRegex = tRegexCompileNode.executeTRegexCompile(
                             regexp,
                             atStart,
@@ -905,7 +908,7 @@ public class TruffleRegexpNodes {
             }
 
             int fromIndex = fromPos;
-            final Object interopByteArray;
+            final AbstractTruffleString tstringToMatch;
             final String execMethod;
 
             if (createMatchDataProfile.profile(createMatchData)) {
@@ -915,28 +918,25 @@ public class TruffleRegexpNodes {
                     assert fromPos == startPos;
                     fromIndex = 0;
 
-                    if (getBytesObjectNode == null) {
+                    if (substringByteIndexNode == null) {
                         CompilerDirectives.transferToInterpreterAndInvalidate();
-                        getBytesObjectNode = insert(RopeNodes.GetBytesObjectNode.create());
+                        substringByteIndexNode = insert(TruffleString.SubstringByteIndexNode.create());
                     }
-                    interopByteArray = getBytesObjectNode.getRange(rope, startPos, toPos);
-                    execMethod = "exec";
+                    tstringToMatch = substringByteIndexNode.execute(tstring, startPos, toPos - startPos,
+                            negotiatedEncoding.tencoding, true);
                 } else {
-                    final byte[] bytes = bytesNode.execute(rope);
-                    interopByteArray = getContext().getEnv().asGuestValue(bytes);
-                    execMethod = "execBytes";
+                    tstringToMatch = tstring;
                 }
+                execMethod = "exec";
             } else {
                 // Only strscan ever passes a non-zero startPos and that never uses `match?`.
                 assert startPos == 0 : "Simple Boolean match not supported with non-zero startPos";
 
-                final byte[] bytes = bytesNode.execute(rope);
-                // TODO: remove HostAccess in ContextPermissionsTest#testRequireGem when migrated to TruffleString
-                interopByteArray = getContext().getEnv().asGuestValue(bytes);
+                tstringToMatch = tstring;
                 execMethod = "execBoolean";
             }
 
-            final Object result = invoke(regexInterop, tRegex, execMethod, interopByteArray, fromIndex);
+            final Object result = invoke(regexInterop, tRegex, execMethod, tstringToMatch, fromIndex);
 
             if (createMatchDataProfile.profile(createMatchData)) {
                 final boolean isMatch = (boolean) readMember(resultInterop, result, "isMatch");
