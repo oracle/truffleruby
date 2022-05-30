@@ -91,8 +91,6 @@ import org.graalvm.collections.Pair;
 import org.jcodings.Config;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
-import org.jcodings.specific.USASCIIEncoding;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
@@ -4125,68 +4123,51 @@ public abstract class StringNodes {
     @CoreMethod(names = "from_codepoint", onSingleton = true, required = 2, lowerFixnum = 1)
     public abstract static class StringFromCodepointPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-
-        @Specialization(guards = { "isSimple(code, rubyEncoding)", "isCodepoint(code)" })
-        protected RubyString stringFromCodepointSimple(long code, RubyEncoding rubyEncoding,
+        @Specialization(guards = "isSimple(code, encoding)")
+        protected RubyString stringFromCodepointSimple(int code, RubyEncoding encoding,
                 @Cached ConditionProfile isUTF8Profile,
                 @Cached ConditionProfile isUSAsciiProfile,
-                @Cached ConditionProfile isAscii8BitProfile) {
-            final int intCode = (int) code; // isSimple() guarantees this is OK
-            final Encoding encoding = rubyEncoding.jcoding;
-            final Rope rope;
-
-            if (isUTF8Profile.profile(encoding == UTF8Encoding.INSTANCE)) {
-                rope = RopeConstants.UTF8_SINGLE_BYTE_ROPES[intCode];
-            } else if (isUSAsciiProfile.profile(encoding == USASCIIEncoding.INSTANCE)) {
-                rope = RopeConstants.US_ASCII_SINGLE_BYTE_ROPES[intCode];
-            } else if (isAscii8BitProfile.profile(encoding == ASCIIEncoding.INSTANCE)) {
-                rope = RopeConstants.ASCII_8BIT_SINGLE_BYTE_ROPES[intCode];
+                @Cached ConditionProfile isAscii8BitProfile,
+                @Cached TruffleString.FromCodePointNode fromCodePointNode) {
+            final TruffleString tstring;
+            if (isUTF8Profile.profile(encoding == Encodings.UTF_8)) {
+                tstring = RopeConstants.UTF8_SINGLE_BYTE_TSTRINGS[code];
+            } else if (isUSAsciiProfile.profile(encoding == Encodings.US_ASCII)) {
+                tstring = RopeConstants.US_ASCII_SINGLE_BYTE_TSTRINGS[code];
+            } else if (isAscii8BitProfile.profile(encoding == Encodings.BINARY)) {
+                tstring = RopeConstants.BINARY_SINGLE_BYTE_TSTRINGS[code];
             } else {
-                rope = RopeOperations.create(new byte[]{ (byte) intCode }, encoding, CodeRange.CR_UNKNOWN);
+                tstring = fromCodePointNode.execute(code, encoding.tencoding, false);
             }
 
-            return createString(rope, rubyEncoding);
+            return createString(tstring, encoding);
         }
 
-        @Specialization(guards = { "!isSimple(code, rubyEncoding)", "isCodepoint(code)" })
-        protected RubyString stringFromCodepoint(long code, RubyEncoding rubyEncoding,
-                @Cached CalculateCharacterLengthNode calculateCharacterLengthNode,
+        @Specialization(guards = "!isSimple(code, encoding)")
+        protected RubyString stringFromCodepoint(int code, RubyEncoding encoding,
+                @Cached TruffleString.FromCodePointNode fromCodePointNode,
                 @Cached BranchProfile errorProfile) {
-            final Encoding encoding = rubyEncoding.jcoding;
-
-            final int length = StringSupport.codeLength(encoding, (int) code);
-            if (length <= 0) {
+            final TruffleString tstring;
+            try {
+                tstring = fromCodePointNode.execute(code, encoding.tencoding, false);
+            } catch (IllegalArgumentException e) { // TODO check this is efficient enough in TruffleString
                 errorProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().rangeError(code, rubyEncoding, this));
+                throw new RaiseException(getContext(), coreExceptions().rangeError(code, encoding, this));
             }
 
-            final byte[] bytes = new byte[length];
-            final int codeToMbc = StringSupport.codeToMbc(encoding, (int) code, bytes, 0);
-            if (codeToMbc < 0) {
-                errorProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().rangeError(code, rubyEncoding, this));
-            }
-
-            final Bytes bytesObject = new Bytes(bytes, 0, length);
-            if (calculateCharacterLengthNode.characterLength(encoding, BROKEN /* UNKNOWN */, bytesObject) != length) {
-                errorProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().rangeError(code, rubyEncoding, this));
-            }
-
-            return makeStringNode.executeMake(bytes, rubyEncoding, CodeRange.CR_VALID);
+            return createString(tstring, encoding);
         }
 
-        protected boolean isCodepoint(long code) {
-            // Fits in an unsigned int
-            return code >= 0 && code < (1L << 32);
+        @Specialization(guards = "!fitsInInteger(code)")
+        protected RubyString stringFromCodepoint(long code, RubyEncoding encoding) {
+            throw new RaiseException(getContext(), coreExceptions().rangeError(code, encoding, this));
         }
 
-        protected boolean isSimple(long code, RubyEncoding encoding) {
+        protected boolean isSimple(int codepoint, RubyEncoding encoding) {
             final Encoding enc = encoding.jcoding;
 
-            return (enc.isAsciiCompatible() && code >= 0x00 && code < 0x80) ||
-                    (enc == ASCIIEncoding.INSTANCE && code >= 0x00 && code <= 0xFF);
+            return (enc.isAsciiCompatible() && codepoint >= 0x00 && codepoint < 0x80) ||
+                    (encoding == Encodings.BINARY && codepoint >= 0x00 && codepoint <= 0xFF);
         }
 
     }

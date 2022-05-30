@@ -33,7 +33,6 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.cext.CExtNodesFactory.CallWithCExtLockNodeFactory;
 import org.truffleruby.cext.CExtNodesFactory.StringToNativeNodeGen;
 import org.truffleruby.cext.UnwrapNode.UnwrapCArrayNode;
-import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.core.MarkingServiceNodes;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
@@ -616,20 +615,15 @@ public class CExtNodes {
             return num;
         }
 
-        @Specialization(guards = "fitsIntoInteger(num)")
+        @Specialization(guards = "fitsInInteger(num)")
         protected int long2fixInRange(long num) {
             return (int) num;
         }
 
-        @Specialization(guards = "!fitsIntoInteger(num)")
+        @Specialization(guards = "!fitsInInteger(num)")
         protected int long2fixOutOfRange(long num) {
             throw new RaiseException(getContext(), coreExceptions().rangeErrorConvertToInt(num, this));
         }
-
-        protected boolean fitsIntoInteger(long num) {
-            return CoreLibrary.fitsIntoInteger(num);
-        }
-
     }
 
     @CoreMethod(names = "rb_enc_coderange_clear", onSingleton = true, required = 1)

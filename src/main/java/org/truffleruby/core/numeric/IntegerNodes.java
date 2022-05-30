@@ -1646,20 +1646,15 @@ public abstract class IntegerNodes {
             return value;
         }
 
-        @Specialization(guards = "canLower(value)")
+        @Specialization(guards = "fitsInInteger(value)")
         protected int lower(long value) {
             return (int) value;
         }
 
-        @Specialization(guards = "!canLower(value)")
+        @Specialization(guards = "!fitsInInteger(value)")
         protected long lowerFails(long value) {
             return value;
         }
-
-        protected static boolean canLower(long value) {
-            return CoreLibrary.fitsIntoInteger(value);
-        }
-
     }
 
     @Primitive(name = "integer_ulong_from_bignum")

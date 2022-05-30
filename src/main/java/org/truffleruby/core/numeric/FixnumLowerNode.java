@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.numeric;
 
-import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyContextSourceNode;
 
@@ -41,12 +40,12 @@ public abstract class FixnumLowerNode extends RubyContextSourceNode {
         return value;
     }
 
-    @Specialization(guards = "canLower(value)")
+    @Specialization(guards = "fitsInInteger(value)")
     protected int lower(long value) {
         return (int) value;
     }
 
-    @Specialization(guards = "!canLower(value)")
+    @Specialization(guards = "!fitsInInteger(value)")
     protected long lowerFails(long value) {
         return value;
     }
@@ -55,10 +54,5 @@ public abstract class FixnumLowerNode extends RubyContextSourceNode {
     protected Object passThrough(Object value) {
         return value;
     }
-
-    protected static boolean canLower(long value) {
-        return CoreLibrary.fitsIntoInteger(value);
-    }
-
 }
 
