@@ -173,6 +173,19 @@ describe "Arguments descriptors" do
     info.arguments.should == [{a: 1, b: 2}] if truffleruby?
   end
 
+  it "allow multiple interleaved splat keyword arguments and literal keyword arguments" do
+    def kwargs(a:, b:, c:, d:, e:)
+      info([a, b, c, d, e], Primitive.arguments_descriptor, Primitive.arguments)
+    end
+
+    splatted_b = {b: 2}
+    splatted_d = {d: 4}
+    info = kwargs(a: 1, **splatted_b, c: 3, **splatted_d, e: 5)
+    info.values.should == [1, 2, 3, 4, 5]
+    info.descriptor.should == [:a, :c, :e, :no_idea_splat] if truffleruby?
+    info.arguments.should == [{a: 1, b: 2, c: 3, d: 4, e: 5}] if truffleruby?
+  end
+
   it "cause correct copy of an only-splat" do
     def kwargs(**kwargs)
       info(kwargs, Primitive.arguments_descriptor, Primitive.arguments)
