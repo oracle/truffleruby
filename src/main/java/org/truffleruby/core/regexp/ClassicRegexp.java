@@ -699,7 +699,8 @@ public class ClassicRegexp implements ReOptions {
         final boolean asciiOnly = bs.isAsciiOnly();
         var byteArray = bs.getInternalByteArray();
         final byte[] bytes = byteArray.getArray();
-        int p = byteArray.getOffset();
+        final int offset = byteArray.getOffset();
+        int p = offset;
         int end = byteArray.getEnd();
         final Encoding enc = bs.encoding.jcoding;
         final CodeRange cr = bs.getCodeRange();
@@ -754,11 +755,11 @@ public class ClassicRegexp implements ReOptions {
             return bs;
         } while (false);
 
-        ByteArrayBuilder result = new ByteArrayBuilder(end * 2);
+        ByteArrayBuilder result = new ByteArrayBuilder(byteArray.getLength() * 2);
         RubyEncoding resultEncoding = asciiOnly ? Encodings.US_ASCII : bs.encoding;
         byte[] obytes = result.getUnsafeBytes();
-        int op = p;
-        System.arraycopy(bytes, 0, obytes, 0, op);
+        int op = p - offset;
+        System.arraycopy(bytes, offset, obytes, 0, op);
 
         while (p < end) {
             final int c;
