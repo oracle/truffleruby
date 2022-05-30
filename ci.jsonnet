@@ -199,27 +199,28 @@ local part_definitions = {
         HOST_VM_CONFIG: "graal-enterprise",
       },
     },
-    local svm = {
+    gdb_svm: {
       downloads+: {
         GDB: { name: "gdb", version: "7.11.1", platformspecific: true },
       },
       environment+: {
         GDB_BIN: "$GDB/bin/gdb",
-        HOST_VM: "svm",
       },
     },
     native: {
       mx_env:: "native",
       environment+: {
+        HOST_VM: "svm",
         HOST_VM_CONFIG: "graal-core",
       },
-    } + svm,
+    },
     native_ee: {
       mx_env:: "native-ee",
       environment+: {
+        HOST_VM: "svm",
         HOST_VM_CONFIG: "graal-enterprise",
       },
-    } + svm,
+    },
   },
 
   jdk: {
@@ -248,7 +249,13 @@ local part_definitions = {
       },
     },
 
-    local darwin_deps = common.sulong.deps.darwin_amd64 + {
+    local darwin_amd64_deps = common.sulong.deps.darwin_amd64 + {
+      packages+: {
+        ruby: "==3.0.2",
+      },
+    },
+
+    local darwin_aarch64_deps = common.sulong.deps.darwin_aarch64 + {
       packages+: {
         ruby: "==3.0.2",
       },
@@ -263,20 +270,31 @@ local part_definitions = {
         bench_machine: ["x52"] + self.normal_machine + ["no_frequency_scaling"],
       },
     },
-    linux_arm64: linux_deps + {
-      platform_name:: "LinuxARM64",
+    linux_aarch64: linux_deps + {
+      platform_name:: "LinuxAArch64",
       platform: "linux",
       arch:: "aarch64",
       "$.cap":: {
         normal_machine: ["linux", "aarch64"],
       },
     },
-    darwin: darwin_deps + {
+    darwin_amd64: darwin_amd64_deps + {
       platform_name:: "DarwinAMD64",
       platform: "darwin",
       arch:: "amd64",
       "$.cap":: {
         normal_machine: ["darwin_mojave", "amd64"],
+      },
+      environment+: {
+        LANG: "en_US.UTF-8",
+      },
+    },
+    darwin_aarch64: darwin_aarch64_deps + {
+      platform_name:: "DarwinAArch64",
+      platform: "darwin",
+      arch:: "aarch64",
+      "$.cap":: {
+        normal_machine: ["darwin", "aarch64"],
       },
       environment+: {
         LANG: "en_US.UTF-8",
@@ -502,34 +520,42 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       local native_config = $.run.generate_native_config + $.run.check_native_config,
       local native_tests = $.run.testdownstream_aot + $.run.test_integration + $.run.test_compiler,
 
-      // Order: platform, jdk, mx_env. Keep aligned for an easy visual comparison.
-      "ruby-test-specs-linux-11":    $.platform.linux  + $.jdk.v11 + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:20:00" },
-      "ruby-test-specs-linux-17":    $.platform.linux  + $.jdk.v17 + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:20:00" },
-      "ruby-test-specs-darwin-11":   $.platform.darwin + $.jdk.v11 + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
-      "ruby-test-specs-darwin-17":   $.platform.darwin + $.jdk.v17 + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
-      "ruby-test-fast-linux-arm64":  $.platform.linux_arm64 + $.jdk.v11 + $.env.jvm + gate + $.run.test_fast + native_config + { timelimit: "45:00" },
-      "ruby-test-fast-linux":        $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.run.test_fast + { timelimit: "45:00" },  # To catch missing slow tags
-      "ruby-test-mri-linux":         $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.run.test_mri + { timelimit: "01:10:00" },
-      "ruby-test-mri-darwin":        $.platform.darwin + $.jdk.v11 + $.env.jvm + gate + $.run.test_mri + { timelimit: "01:30:00" },
-      "ruby-test-integration-linux": $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.run.test_integration,
-      "ruby-test-cexts-linux":       $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.use.gem_test_pack + $.use.sqlite331 + $.run.test_cexts,
-      "ruby-test-cexts-darwin":      $.platform.darwin + $.jdk.v11 + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_cexts + { timelimit: "01:20:00" },
-      "ruby-test-gems-linux":        $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,
-      "ruby-test-gems-darwin":       $.platform.darwin + $.jdk.v11 + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,
-      "ruby-test-ecosystem-linux":   $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.use.node + $.use.sqlite331 + $.use.gem_test_pack + $.run.test_ecosystem,
-      "ruby-test-standalone-linux":  $.platform.linux  + $.jdk.v11+ gate_no_build + $.run.test_make_standalone_distribution,
+      # Order: platform, jdk, mx_env. Keep aligned for an easy visual comparison.
+      "ruby-test-specs-linux-11":          $.platform.linux  + $.jdk.v11 + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:20:00" },
+      "ruby-test-specs-linux-17":          $.platform.linux  + $.jdk.v17 + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:20:00" },
+      "ruby-test-specs-darwin-amd64-11":   $.platform.darwin_amd64 + $.jdk.v11 + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
+      "ruby-test-specs-darwin-amd64-17":   $.platform.darwin_amd64 + $.jdk.v17 + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
+      "ruby-test-specs-darwin-aarch64-11": $.platform.darwin_aarch64 + $.jdk.v11 + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
+      "ruby-test-specs-darwin-aarch64-17": $.platform.darwin_aarch64 + $.jdk.v17 + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
+      "ruby-test-fast-linux-aarch64":   $.platform.linux_aarch64 + $.jdk.v11 + $.env.jvm + gate + $.run.test_fast + native_config + { timelimit: "45:00" },
+      "ruby-test-fast-linux":           $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.run.test_fast + { timelimit: "45:00" },  # To catch missing slow tags
+      "ruby-test-mri-linux":            $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.run.test_mri + { timelimit: "01:10:00" },
+      "ruby-test-mri-linux-aarch64":    $.platform.linux_aarch64 + $.jdk.v11 + $.env.jvm + gate + $.run.test_mri + { timelimit: "01:10:00" },
+      "ruby-test-mri-darwin-amd64":     $.platform.darwin_amd64 + $.jdk.v11 + $.env.jvm + gate + $.run.test_mri + { timelimit: "01:30:00" },
+      "ruby-test-mri-darwin-aarch64":   $.platform.darwin_aarch64 + $.jdk.v11 + $.env.jvm + gate + $.run.test_mri + { timelimit: "01:30:00" },
+      "ruby-test-integration-linux":    $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.run.test_integration,
+      "ruby-test-cexts-linux":          $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.use.gem_test_pack + $.use.sqlite331 + $.run.test_cexts,
+      "ruby-test-cexts-darwin-amd64":   $.platform.darwin_amd64 + $.jdk.v11 + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_cexts + { timelimit: "01:20:00" },
+      "ruby-test-cexts-darwin-aarch64": $.platform.darwin_aarch64 + $.jdk.v11 + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_cexts + { timelimit: "01:20:00" },
+      "ruby-test-gems-linux":           $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,
+      "ruby-test-gems-darwin-amd64":    $.platform.darwin_amd64 + $.jdk.v11 + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,
+      "ruby-test-gems-darwin-aarch64":  $.platform.darwin_aarch64 + $.jdk.v11 + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,
+      "ruby-test-ecosystem-linux":      $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.use.node + $.use.sqlite331 + $.use.gem_test_pack + $.run.test_ecosystem,
+      "ruby-test-standalone-linux":     $.platform.linux  + $.jdk.v11+ gate_no_build + $.run.test_make_standalone_distribution,
 
       "ruby-test-compiler-graal-core-11":       $.platform.linux + $.jdk.v11 + $.env.jvm_ce + gate + $.use.truffleruby + $.run.test_compiler,
       "ruby-test-compiler-graal-core-17":       $.platform.linux + $.jdk.v17 + $.env.jvm_ce + gate + $.use.truffleruby + $.run.test_compiler,
       "ruby-test-compiler-graal-enterprise-11": $.platform.linux + $.jdk.v11 + $.env.jvm_ee + gate + $.use.truffleruby + $.run.test_compiler,
       "ruby-test-compiler-graal-enterprise-17": $.platform.linux + $.jdk.v17 + $.env.jvm_ee + gate + $.use.truffleruby + $.run.test_compiler,
 
-      "ruby-test-svm-graal-core-linux-11":     $.platform.linux  + $.jdk.v11 + $.env.native    + gate + native_tests,
-      "ruby-test-svm-graal-core-linux-17":     $.platform.linux  + $.jdk.v17 + $.env.native    + gate + native_tests,
-      "ruby-test-svm-graal-core-darwin-11":    $.platform.darwin + $.jdk.v11 + $.env.native    + gate + native_tests,
-      "ruby-test-svm-graal-core-darwin-17":    $.platform.darwin + $.jdk.v17 + $.env.native    + gate + native_tests,
-      "ruby-test-svm-graal-enterprise-linux":  $.platform.linux  + $.jdk.v11 + $.env.native_ee + gate + native_tests,
-      "ruby-test-svm-graal-enterprise-darwin": $.platform.darwin + $.jdk.v11 + $.env.native_ee + gate + native_tests,
+      "ruby-test-svm-graal-core-linux-11":              $.platform.linux          + $.jdk.v11 + $.env.native    + $.env.gdb_svm + gate + native_tests,
+      "ruby-test-svm-graal-core-linux-17":              $.platform.linux          + $.jdk.v17 + $.env.native    + $.env.gdb_svm + gate + native_tests,
+      "ruby-test-svm-graal-core-darwin-amd64-11":       $.platform.darwin_amd64   + $.jdk.v11 + $.env.native    + $.env.gdb_svm + gate + native_tests,
+      "ruby-test-svm-graal-core-darwin-amd64-17":       $.platform.darwin_amd64   + $.jdk.v17 + $.env.native    + $.env.gdb_svm + gate + native_tests,
+      "ruby-test-svm-graal-core-darwin-aarch64-11":     $.platform.darwin_aarch64 + $.jdk.v11 + $.env.native    +                 gate + native_tests,
+      "ruby-test-svm-graal-core-darwin-aarch64-17":     $.platform.darwin_aarch64 + $.jdk.v17 + $.env.native    +                 gate + native_tests,
+      "ruby-test-svm-graal-enterprise-linux":           $.platform.linux          + $.jdk.v11 + $.env.native_ee + $.env.gdb_svm + gate + native_tests,
+      "ruby-test-svm-graal-enterprise-darwin-aarch64 ": $.platform.darwin_aarch64 + $.jdk.v11 + $.env.native_ee +                 gate + native_tests,
     },
 
   local other_rubies = {
@@ -545,8 +571,8 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
   local svm_configurations = {
     local shared = $.cap.bench + $.cap.daily + $.use.truffleruby + $.use.build,
 
-    "svm-graal-core": shared + $.env.native,
-    "svm-graal-enterprise": shared + $.env.native_ee,
+    "svm-graal-core": shared + $.env.native + $.env.gdb_svm,
+    "svm-graal-enterprise": shared + $.env.native_ee + $.env.gdb_svm,
   },
 
   bench_builds:
@@ -700,9 +726,10 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
   manual_builds: {
     local shared = $.use.common + $.cap.manual + { timelimit: "15:00" },
 
-    "ruby-generate-native-config-linux-amd64": $.platform.linux + $.jdk.v11 + shared + $.run.generate_native_config,
-    "ruby-generate-native-config-linux-aarch64": $.platform.linux_arm64 + $.jdk.v11 + shared + $.run.generate_native_config,
-    "ruby-generate-native-config-darwin-amd64": $.platform.darwin + $.jdk.v11 + shared + $.run.generate_native_config,
+    "ruby-generate-native-config-linux-amd64":    $.platform.linux + $.jdk.v11 + shared + $.run.generate_native_config,
+    "ruby-generate-native-config-linux-aarch64":  $.platform.linux_aarch64 + $.jdk.v11 + shared + $.run.generate_native_config,
+    "ruby-generate-native-config-darwin-amd64":   $.platform.darwin_amd64 + $.jdk.v11 + shared + $.run.generate_native_config,
+    "ruby-generate-native-config-darwin-aarch64": $.platform.darwin_aarch64 + $.jdk.v11 + shared + $.run.generate_native_config,
   },
 
   builds:

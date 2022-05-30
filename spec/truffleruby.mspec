@@ -25,7 +25,7 @@ class MSpecScript
     RbConfig::CONFIG['host_os'].include?('solaris')
   end
 
-  def self.arm64?
+  def self.aarch64?
     %w[arm64 aarch64].include? RbConfig::CONFIG['host_cpu']
   end
 
@@ -134,8 +134,8 @@ class MSpecScript
     excludes << 'solaris'
   end
 
-  if arm64?
-    excludes << 'arm64'
+  if aarch64?
+    excludes << 'aarch64'
   end
 
   # All specs, excluding specs needing C-extensions support, and TracePoint specs.

@@ -1,2 +1,2 @@
 slow:IRB supports using arrow keys first
-arm64:IRB supports using arrow keys first
+aarch64:IRB supports using arrow keys first

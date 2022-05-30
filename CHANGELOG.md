@@ -2,6 +2,7 @@
 
 New features:
 
+* Add support for `darwin-aarch64` (macOS M1) (#2181, @lewurm, @chrisseaton, @eregon).
 
 Bug fixes:
 
@@ -558,7 +559,7 @@ New features:
 * `foreign_object.to_s` now uses `InteropLibrary#toDisplayString()` (and still `asString()` if `isString()`).
 * `foreign_object.inspect` has been improved to be more useful (include the language and meta object).
 * `foreign_object.class` now calls `getMetaObject()` (except for Java classes, same as before).
-* Add basic support for Linux ARM64.
+* Add basic support for Linux AArch64.
 * `foreign_object.name = value` will now call `Interoplibrary#writeMember("name", value)` instead of `invokeMember("name=", value)`.
 * Always show the Ruby core library files in backtraces (#1414).
 * The Java stacktrace is now shown when sending SIGQUIT to the process, also on TruffleRuby Native, see [Debugging](doc/user/debugging.md) for details (#2041).

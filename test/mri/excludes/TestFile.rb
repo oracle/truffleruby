@@ -8,3 +8,4 @@ exclude :test_uninitialized, "needs investigation"
 exclude :test_file_share_delete, "needs investigation"
 exclude :test_stat, "needs investigation"
 exclude :test_realpath_special_symlink, "needs investigation"
+exclude :test_open_tempfile_path, "fails on aarch64-linux" if RUBY_PLATFORM == 'aarch64-linux'
