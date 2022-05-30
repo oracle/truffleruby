@@ -173,13 +173,13 @@ class Integer < Numeric
       elsif self < 0x80
         enc = Encoding::US_ASCII
       else
-        enc = Encoding::ASCII_8BIT
+        enc = Encoding::BINARY
       end
     else
       enc = Truffle::Type.coerce_to_encoding enc
     end
 
-    String.from_codepoint self, enc
+    Primitive.string_from_codepoint self, enc
   end
 
   def round(ndigits=undefined, half: :up)

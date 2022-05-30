@@ -4119,9 +4119,8 @@ public abstract class StringNodes {
 
     }
 
-    @NonStandard
-    @CoreMethod(names = "from_codepoint", onSingleton = true, required = 2, lowerFixnum = 1)
-    public abstract static class StringFromCodepointPrimitiveNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "string_from_codepoint", lowerFixnum = 0)
+    public abstract static class StringFromCodepointPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isSimple(code, encoding)")
         protected RubyString stringFromCodepointSimple(int code, RubyEncoding encoding,
