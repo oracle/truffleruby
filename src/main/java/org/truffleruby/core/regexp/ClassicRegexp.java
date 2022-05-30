@@ -752,7 +752,7 @@ public class ClassicRegexp implements ReOptions {
             if (asciiOnly) {
                 return bs.forceEncoding(Encodings.US_ASCII);
             }
-            return bs;
+            return bs.asImmutable();
         } while (false);
 
         ByteArrayBuilder result = new ByteArrayBuilder(byteArray.getLength() * 2);
