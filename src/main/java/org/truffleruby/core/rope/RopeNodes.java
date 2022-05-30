@@ -14,21 +14,13 @@
 
 package org.truffleruby.core.rope;
 
-import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
-import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
-import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
-import static org.truffleruby.core.rope.CodeRange.CR_VALID;
-
 import java.util.Arrays;
 
-import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
-import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
 import org.truffleruby.core.encoding.TStringUtils;
-import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.language.RubyBaseNode;
 
@@ -38,155 +30,10 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.nodes.SlowPathException;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public abstract class RopeNodes {
-
-    /** See {@link RopeOperations#calculateCodeRangeAndLength} */
-    @ImportStatic(RopeGuards.class)
-    @GenerateUncached
-    public abstract static class CalculateAttributesNode extends RubyBaseNode {
-
-        public static CalculateAttributesNode create() {
-            return RopeNodesFactory.CalculateAttributesNodeGen.create();
-        }
-
-        abstract StringAttributes executeCalculateAttributes(Encoding encoding, Bytes bytes);
-
-        @Specialization(guards = "bytes.isEmpty()")
-        protected StringAttributes calculateAttributesEmpty(Encoding encoding, Bytes bytes,
-                @Cached ConditionProfile isAsciiCompatible) {
-            return new StringAttributes(
-                    0,
-                    isAsciiCompatible.profile(encoding.isAsciiCompatible()) ? CR_7BIT : CR_VALID);
-        }
-
-        @Specialization(guards = { "!bytes.isEmpty()", "isBinaryString(encoding)" })
-        protected StringAttributes calculateAttributesBinaryString(Encoding encoding, Bytes bytes,
-                @Cached BranchProfile nonAsciiStringProfile) {
-            CodeRange codeRange = CR_7BIT;
-
-            for (int i = 0; i < bytes.length; i++) {
-                if (bytes.get(i) < 0) {
-                    nonAsciiStringProfile.enter();
-                    codeRange = CR_VALID;
-                    break;
-                }
-            }
-
-            return new StringAttributes(bytes.length, codeRange);
-        }
-
-        @Specialization(
-                rewriteOn = NonAsciiCharException.class,
-                guards = { "!bytes.isEmpty()", "!isBinaryString(encoding)", "isAsciiCompatible(encoding)" })
-        protected StringAttributes calculateAttributesAsciiCompatible(Encoding encoding, Bytes bytes,
-                @Cached LoopConditionProfile loopProfile)
-                throws NonAsciiCharException {
-            // Optimistically assume this string consists only of ASCII characters. If a non-ASCII character is found,
-            // fail over to a more generalized search.
-
-            int i = 0;
-            try {
-                for (; loopProfile.inject(i < bytes.length); i++) {
-                    if (bytes.get(i) < 0) {
-                        throw new NonAsciiCharException();
-                    }
-                    TruffleSafepoint.poll(this);
-                }
-            } finally {
-                profileAndReportLoopCount(loopProfile, i);
-            }
-
-            return new StringAttributes(bytes.length, CR_7BIT);
-        }
-
-        /** See {@link StringSupport#strLengthWithCodeRangeAsciiCompatible} */
-        @Specialization(
-                replaces = "calculateAttributesAsciiCompatible",
-                guards = { "!bytes.isEmpty()", "!isBinaryString(encoding)", "isAsciiCompatible(encoding)" })
-        protected StringAttributes calculateAttributesAsciiCompatibleGeneric(Encoding encoding, Bytes bytes,
-                @Cached CalculateCharacterLengthNode calculateCharacterLengthNode,
-                @Cached ConditionProfile validCharacterProfile) {
-            CodeRange codeRange = CR_7BIT;
-            int characters = 0;
-            int p = 0;
-            final int end = bytes.length;
-
-            while (p < end) {
-                if (Encoding.isAscii(bytes.get(p))) {
-                    final int multiByteCharacterPosition = StringSupport.searchNonAscii(bytes.sliceRange(p, end));
-
-                    if (multiByteCharacterPosition == -1) {
-                        return new StringAttributes(characters + (end - p), codeRange);
-                    }
-
-                    characters += multiByteCharacterPosition;
-                    p += multiByteCharacterPosition;
-                }
-
-                final int lengthOfCurrentCharacter = calculateCharacterLengthNode
-                        .characterLength(encoding, CR_UNKNOWN, bytes.sliceRange(p, end));
-
-                if (validCharacterProfile.profile(lengthOfCurrentCharacter > 0)) {
-                    if (codeRange != CR_BROKEN) {
-                        codeRange = CR_VALID;
-                    }
-
-                    p += lengthOfCurrentCharacter;
-                } else {
-                    codeRange = CR_BROKEN;
-                    p++;
-                }
-
-                characters++;
-            }
-
-            return new StringAttributes(characters, codeRange);
-        }
-
-        /** See {@link StringSupport#strLengthWithCodeRangeNonAsciiCompatible} */
-        @Specialization(guards = { "!bytes.isEmpty()", "!isBinaryString(encoding)", "!isAsciiCompatible(encoding)" })
-        protected StringAttributes calculateAttributesNonAsciiCompatible(Encoding encoding, Bytes bytes,
-                @Cached CalculateCharacterLengthNode calculateCharacterLengthNode,
-                @Cached ConditionProfile validCharacterProfile,
-                @Cached ConditionProfile fixedWidthProfile) {
-            CodeRange codeRange = CR_VALID;
-            int characters;
-            int p = 0;
-            final int end = bytes.length;
-
-            for (characters = 0; p < end; characters++) {
-                final int lengthOfCurrentCharacter = calculateCharacterLengthNode
-                        .characterLength(encoding, CR_UNKNOWN, bytes.sliceRange(p, end));
-
-                if (validCharacterProfile.profile(lengthOfCurrentCharacter > 0)) {
-                    p += lengthOfCurrentCharacter;
-                } else {
-                    codeRange = CR_BROKEN;
-
-                    // If a string is detected as broken and we already know the character length due to a
-                    // fixed width encoding, there's no value in visiting any more bytes.
-                    if (fixedWidthProfile.profile(encoding.isFixedWidth())) {
-                        characters = (bytes.length + encoding.minLength() - 1) / encoding.minLength();
-
-                        return new StringAttributes(characters, CR_BROKEN);
-                    } else {
-                        p += encoding.minLength();
-                    }
-                }
-            }
-
-            return new StringAttributes(characters, codeRange);
-        }
-
-        protected static final class NonAsciiCharException extends SlowPathException {
-            private static final long serialVersionUID = 5550642254188358382L;
-        }
-
-    }
 
     public abstract static class DebugPrintRopeNode extends RubyBaseNode {
 
@@ -382,37 +229,6 @@ public abstract class RopeNodes {
         protected byte[] getBytesNative(NativeRope rope) {
             return rope.getBytes();
         }
-    }
-
-    @GenerateUncached
-    public abstract static class CodeRangeNode extends RubyBaseNode {
-
-        public static CodeRangeNode create() {
-            return RopeNodesFactory.CodeRangeNodeGen.create();
-        }
-
-        public abstract CodeRange execute(Rope rope);
-
-        @Specialization
-        protected CodeRange getCodeRangeManaged(ManagedRope rope) {
-            return rope.getCodeRange();
-        }
-
-        @Specialization
-        protected CodeRange getCodeRangeNative(NativeRope rope,
-                @Cached CalculateAttributesNode calculateAttributesNode,
-                @Cached ConditionProfile unknownCodeRangeProfile,
-                @Cached GetBytesObjectNode getBytesObject) {
-            if (unknownCodeRangeProfile.profile(rope.getRawCodeRange() == CR_UNKNOWN)) {
-                final StringAttributes attributes = calculateAttributesNode
-                        .executeCalculateAttributes(rope.getEncoding(), getBytesObject.getBytes(rope));
-                rope.updateAttributes(attributes);
-                return attributes.getCodeRange();
-            } else {
-                return rope.getRawCodeRange();
-            }
-        }
-
     }
 
     @ImportStatic(CodeRange.class)

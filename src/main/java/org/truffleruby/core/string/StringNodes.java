@@ -146,7 +146,6 @@ import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeNodes.BytesNode;
 import org.truffleruby.core.rope.RopeNodes.CalculateCharacterLengthNode;
-import org.truffleruby.core.rope.RopeNodes.CodeRangeNode;
 import org.truffleruby.core.rope.RopeNodes.GetBytesObjectNode;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.RopeWithEncoding;
@@ -1474,17 +1473,16 @@ public abstract class StringNodes {
         protected Object eachChar(Object string, RubyProc block,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached CalculateCharacterLengthNode calculateCharacterLengthNode,
-                @Cached CodeRangeNode codeRangeNode,
+                @Cached GetByteCodeRangeNode codeRangeNode,
                 @Cached TruffleString.GetInternalByteArrayNode bytesNode,
                 @Cached TruffleString.SubstringByteIndexNode substringNode) {
             // Unlike String#each_byte, String#each_char does not make
             // modifications to the string visible to the rest of the iteration.
-            final Rope rope = strings.getRope(string);
             var tstring = strings.getTString(string);
             final RubyEncoding encoding = strings.getEncoding(string);
             var bytes = bytesNode.execute(tstring, encoding.tencoding);
             final int len = bytes.getLength();
-            final CodeRange cr = codeRangeNode.execute(rope);
+            var cr = codeRangeNode.execute(tstring, encoding.tencoding);
 
             int clen;
             for (int i = 0; i < len; i += clen) {
