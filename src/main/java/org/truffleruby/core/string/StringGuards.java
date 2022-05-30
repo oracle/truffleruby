@@ -14,14 +14,12 @@ import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Config;
-import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.TStringNodes;
 
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.ASCII;
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.BROKEN;
-import static com.oracle.truffle.api.strings.TruffleString.CodeRange.VALID;
 
 public class StringGuards {
 
@@ -65,11 +63,6 @@ public class StringGuards {
 
     public static boolean isFixedWidthEncoding(RubyEncoding encoding) {
         return encoding.jcoding.isFixedWidth();
-    }
-
-    public static boolean isValidUtf8(AbstractTruffleString tstring, RubyEncoding encoding,
-            TruffleString.GetByteCodeRangeNode codeRangeNode) {
-        return encoding == Encodings.UTF_8 && codeRangeNode.execute(tstring, encoding.tencoding) == VALID;
     }
 
     public static boolean isEmpty(Rope rope) {

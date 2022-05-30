@@ -161,7 +161,6 @@ import org.truffleruby.core.string.StringNodesFactory.MakeStringNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.NormalizeIndexNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.StringAppendNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.StringAppendPrimitiveNodeFactory;
-import org.truffleruby.core.string.StringNodesFactory.StringByteCharacterIndexNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.StringByteSubstringPrimitiveNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.StringEqualNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.StringSubstringPrimitiveNodeFactory;
@@ -4279,80 +4278,14 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_byte_character_index", lowerFixnum = 1)
-    @ImportStatic(StringGuards.class)
     public abstract static class StringByteCharacterIndexNode extends PrimitiveArrayArgumentsNode {
-
-        @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
-
-        public abstract int executeStringByteCharacterIndex(Object string, int byteIndex);
-
-        public static StringByteCharacterIndexNode create() {
-            return StringByteCharacterIndexNodeFactory.create(null);
-        }
-
-        @Specialization(
-                guards = "isSingleByteOptimizable(tstring, encoding, singleByteOptimizableNode)")
-        protected int singleByte(Object string, int byteIndex,
+        @Specialization
+        protected int byteIndexToCodePointIndex(Object string, int byteIndex,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
+                @Cached TruffleString.ByteIndexToCodePointIndexNode byteIndexToCodePointIndexNode,
                 @Bind("libString.getTString(string)") AbstractTruffleString tstring,
                 @Bind("libString.getEncoding(string)") RubyEncoding encoding) {
-            return byteIndex;
-        }
-
-        @Specialization(
-                guards = {
-                        "!isSingleByteOptimizable(tstring, encoding, singleByteOptimizableNode)",
-                        "isFixedWidthEncoding(encoding)" })
-        protected int fixedWidth(Object string, int byteIndex,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
-                @Bind("libString.getTString(string)") AbstractTruffleString tstring,
-                @Bind("libString.getEncoding(string)") RubyEncoding encoding) {
-            return byteIndex / encoding.jcoding.minLength();
-        }
-
-        @Specialization(
-                guards = {
-                        "!isSingleByteOptimizable(tstring, encoding, singleByteOptimizableNode)",
-                        "!isFixedWidthEncoding(encoding)",
-                        "isValidUtf8(tstring, encoding, codeRangeNode)" })
-        protected int validUtf8(Object string, int byteIndex,
-                @Cached GetByteCodeRangeNode codeRangeNode,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
-                @Bind("libString.getTString(string)") AbstractTruffleString tstring,
-                @Bind("libString.getEncoding(string)") RubyEncoding encoding) {
-            // Taken from Rubinius's String::find_byte_character_index.
-            // TODO (nirvdrum 02-Apr-15) There's a way to optimize this for UTF-8, but porting all that code isn't necessary at the moment.
-            return notValidUtf8(string, byteIndex, codeRangeNode, libString, tstring, encoding);
-        }
-
-        @TruffleBoundary
-        @Specialization(
-                guards = {
-                        "!isSingleByteOptimizable(tstring, encoding, singleByteOptimizableNode)",
-                        "!isFixedWidthEncoding(libString.getRope(string))",
-                        "!isValidUtf8(tstring, encoding, codeRangeNode)" })
-        protected int notValidUtf8(Object string, int byteIndex,
-                @Cached GetByteCodeRangeNode codeRangeNode,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
-                @Bind("libString.getTString(string)") AbstractTruffleString tstring,
-                @Bind("libString.getEncoding(string)") RubyEncoding encoding) {
-            // Taken from Rubinius's String::find_byte_character_index and Encoding::find_byte_character_index.
-
-            final Rope rope = libString.getRope(string);
-            final byte[] bytes = rope.getBytes();
-            final CodeRange codeRange = rope.getCodeRange();
-            int p = 0;
-            final int end = bytes.length;
-            int charIndex = 0;
-
-            while (p < end && byteIndex > 0) {
-                final int charLen = StringSupport.characterLength(encoding.jcoding, codeRange, bytes, p, end, true);
-                p += charLen;
-                byteIndex -= charLen;
-                charIndex++;
-            }
-
-            return charIndex;
+            return byteIndexToCodePointIndexNode.execute(tstring, 0, byteIndex, encoding.tencoding);
         }
     }
 
