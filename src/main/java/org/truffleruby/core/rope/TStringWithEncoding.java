@@ -58,6 +58,11 @@ public final class TStringWithEncoding {
         return Objects.hash(tstring, encoding);
     }
 
+    @Override
+    public String toString() {
+        return "TStringWithEncoding:" + tstring.toStringDebug();
+    }
+
     public Rope toRope() {
         return TStringUtils.toRope(tstring, encoding);
     }

@@ -1726,9 +1726,7 @@ public abstract class StringNodes {
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsFrom,
                 @Cached @Shared("stringGetAssociatedNode") StringGetAssociatedNode stringGetAssociatedNode,
                 @Bind("stringsFrom.getTString(from)") AbstractTruffleString tstring) {
-            // TODO Somehow this way makes spec/ruby/library/cgi/queryextension/multipart_spec.rb fail:
-            // self.setTString(tstring, stringsFrom.getEncoding(from));
-            self.setRope(stringsFrom.getRope(from), stringsFrom.getEncoding(from));
+            self.setTString(tstring, stringsFrom.getEncoding(from));
 
             final Object associated = stringGetAssociatedNode.execute(from);
             copyAssociated(self, associated);

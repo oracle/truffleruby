@@ -32,6 +32,7 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
@@ -127,6 +128,17 @@ public abstract class TruffleDebugNodes {
             return nil;
         }
 
+    }
+
+    @CoreMethod(names = "tstring_to_debug_string", onSingleton = true, required = 1)
+    public abstract static class TStringToDebugPrintNode extends CoreMethodArrayArgumentsNode {
+        @TruffleBoundary
+        @Specialization(guards = "strings.isRubyString(string)")
+        protected RubyString toStringDebug(Object string,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
+            return createString(fromJavaStringNode, strings.getTString(string).toStringDebug(), Encodings.US_ASCII);
+        }
     }
 
     @CoreMethod(names = "break_handle", onSingleton = true, required = 2, needsBlock = true, lowerFixnum = 2)
