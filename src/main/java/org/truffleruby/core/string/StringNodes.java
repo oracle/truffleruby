@@ -66,7 +66,6 @@ import static com.oracle.truffle.api.strings.TruffleString.CodeRange.ASCII;
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.BROKEN;
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.VALID;
 import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
-import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
 import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import static org.truffleruby.core.rope.RopeConstants.EMPTY_BINARY_TSTRING;
 import static org.truffleruby.core.string.StringSupport.MBCLEN_CHARFOUND_LEN;
@@ -2059,7 +2058,7 @@ public abstract class StringNodes {
                 p = e;
             }
             while (p < e) {
-                int clen = calculateCharacterLengthNode.characterLength(enc, CR_BROKEN, Bytes.fromRange(pBytes, p, e));
+                int clen = calculateCharacterLengthNode.characterLength(enc, BROKEN, Bytes.fromRange(pBytes, p, e));
                 if (MBCLEN_NEEDMORE_P(clen)) {
                     break;
                 } else if (MBCLEN_CHARFOUND_P(clen)) {
@@ -2140,7 +2139,7 @@ public abstract class StringNodes {
             final int mbminlen = enc.minLength();
 
             while (p < e) {
-                int clen = calculateCharacterLengthNode.characterLength(enc, CR_BROKEN, Bytes.fromRange(pBytes, p, e));
+                int clen = calculateCharacterLengthNode.characterLength(enc, BROKEN, Bytes.fromRange(pBytes, p, e));
                 if (MBCLEN_NEEDMORE_P(clen)) {
                     break;
                 } else if (MBCLEN_CHARFOUND_P(clen)) {
@@ -4171,7 +4170,7 @@ public abstract class StringNodes {
             }
 
             final Bytes bytesObject = new Bytes(bytes, 0, length);
-            if (calculateCharacterLengthNode.characterLength(encoding, CR_UNKNOWN, bytesObject) != length) {
+            if (calculateCharacterLengthNode.characterLength(encoding, BROKEN /* UNKNOWN */, bytesObject) != length) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().rangeError(code, rubyEncoding, this));
             }

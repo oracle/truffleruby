@@ -20,7 +20,6 @@ import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
-import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.language.RubyBaseNode;
 
@@ -231,7 +230,7 @@ public abstract class RopeNodes {
         }
     }
 
-    @ImportStatic(CodeRange.class)
+    @ImportStatic(TruffleString.CodeRange.class)
     @GenerateUncached
     public abstract static class CalculateCharacterLengthNode extends RubyBaseNode {
 
@@ -239,45 +238,39 @@ public abstract class RopeNodes {
             return RopeNodesFactory.CalculateCharacterLengthNodeGen.create();
         }
 
-        protected abstract int executeLength(Encoding encoding, CodeRange codeRange, Bytes bytes,
+        protected abstract int executeLength(Encoding encoding, TruffleString.CodeRange codeRange, Bytes bytes,
                 boolean recoverIfBroken);
 
         /** This method returns the byte length for the first character encountered in `bytes`. The validity of a
          * character is defined by the `encoding`. If the `codeRange` for the byte sequence is known for the supplied
          * `encoding`, it should be passed to help short-circuit some validation checks. If the `codeRange` is not known
-         * for the supplied `encoding`, then `CodeRange.CR_UNKNOWN` should be passed. If the byte sequence is invalid, a
+         * for the supplied `encoding`, then `BROKEN // UNKNOWN` should be passed. If the byte sequence is invalid, a
          * negative value will be returned. See `Encoding#length` for details on how to interpret the return value. */
-        public int characterLength(Encoding encoding, CodeRange codeRange, Bytes bytes) {
-            return executeLength(encoding, codeRange, bytes, false);
-        }
-
         public int characterLength(Encoding encoding, TruffleString.CodeRange codeRange, Bytes bytes) {
-            return characterLength(encoding, TStringUtils.toCodeRange(codeRange), bytes);
+            return executeLength(encoding, codeRange, bytes, false);
         }
 
         /** This method works very similarly to `characterLength` and maintains the same invariants on inputs. Where it
          * differs is in the treatment of invalid byte sequences. Whereas `characterLength` will return a negative
          * value, this method will always return a positive value. MRI provides an arbitrary, but deterministic,
          * algorithm for returning a byte length for invalid byte sequences. This method is to be used when the
-         * `codeRange` might be `CodeRange.CR_BROKEN` and the caller must handle the case without raising an error.
-         * E.g., if `String#each_char` is called on a String that is `CR_BROKEN`, you wouldn't want negative byte
-         * lengths to be returned because it would break iterating through the characters. */
-        public int characterLengthWithRecovery(Encoding encoding, CodeRange codeRange, Bytes bytes) {
+         * `codeRange` might be `BROKEN` and the caller must handle the case without raising an error. E.g., if
+         * `String#each_char` is called on a String that is `BROKEN`, you wouldn't want negative byte lengths to be
+         * returned because it would break iterating through the characters. */
+        public int characterLengthWithRecovery(Encoding encoding, TruffleString.CodeRange codeRange, Bytes bytes) {
             return executeLength(encoding, codeRange, bytes, true);
         }
 
-        public int characterLengthWithRecovery(Encoding encoding, TruffleString.CodeRange codeRange, Bytes bytes) {
-            return characterLengthWithRecovery(encoding, TStringUtils.toCodeRange(codeRange), bytes);
-        }
-
-        @Specialization(guards = "codeRange == CR_7BIT")
-        protected int cr7Bit(Encoding encoding, CodeRange codeRange, Bytes bytes, boolean recoverIfBroken) {
+        @Specialization(guards = "codeRange == ASCII")
+        protected int cr7Bit(
+                Encoding encoding, TruffleString.CodeRange codeRange, Bytes bytes, boolean recoverIfBroken) {
             assert bytes.length > 0;
             return 1;
         }
 
-        @Specialization(guards = { "codeRange == CR_VALID", "encoding.isUTF8()" })
-        protected int validUtf8(Encoding encoding, CodeRange codeRange, Bytes bytes, boolean recoverIfBroken,
+        @Specialization(guards = { "codeRange == VALID", "encoding.isUTF8()" })
+        protected int validUtf8(
+                Encoding encoding, TruffleString.CodeRange codeRange, Bytes bytes, boolean recoverIfBroken,
                 @Cached @Exclusive BranchProfile oneByteProfile,
                 @Cached @Exclusive BranchProfile twoBytesProfile,
                 @Cached @Exclusive BranchProfile threeBytesProfile,
@@ -308,8 +301,9 @@ public abstract class RopeNodes {
             return ret;
         }
 
-        @Specialization(guards = { "codeRange == CR_VALID", "encoding.isAsciiCompatible()" })
-        protected int validAsciiCompatible(Encoding encoding, CodeRange codeRange, Bytes bytes, boolean recoverIfBroken,
+        @Specialization(guards = { "codeRange == VALID", "encoding.isAsciiCompatible()" })
+        protected int validAsciiCompatible(
+                Encoding encoding, TruffleString.CodeRange codeRange, Bytes bytes, boolean recoverIfBroken,
                 @Cached @Exclusive ConditionProfile asciiCharProfile) {
             if (asciiCharProfile.profile(bytes.get(0) >= 0)) {
                 return 1;
@@ -318,8 +312,9 @@ public abstract class RopeNodes {
             }
         }
 
-        @Specialization(guards = { "codeRange == CR_VALID", "encoding.isFixedWidth()" })
-        protected int validFixedWidth(Encoding encoding, CodeRange codeRange, Bytes bytes, boolean recoverIfBroken) {
+        @Specialization(guards = { "codeRange == VALID", "encoding.isFixedWidth()" })
+        protected int validFixedWidth(
+                Encoding encoding, TruffleString.CodeRange codeRange, Bytes bytes, boolean recoverIfBroken) {
             final int width = encoding.minLength();
             assert bytes.length >= width;
             return width;
@@ -327,17 +322,18 @@ public abstract class RopeNodes {
 
         @Specialization(
                 guards = {
-                        "codeRange == CR_VALID",
+                        "codeRange == VALID",
                         /* UTF-8 is ASCII-compatible, so we don't need to check the encoding is not UTF-8 here. */
                         "!encoding.isAsciiCompatible()",
                         "!encoding.isFixedWidth()" })
-        protected int validGeneral(Encoding encoding, CodeRange codeRange, Bytes bytes, boolean recoverIfBroken) {
+        protected int validGeneral(
+                Encoding encoding, TruffleString.CodeRange codeRange, Bytes bytes, boolean recoverIfBroken) {
             return encodingLength(encoding, bytes);
         }
 
-        @Specialization(guards = { "codeRange == CR_BROKEN || codeRange == CR_UNKNOWN", "recoverIfBroken" })
+        @Specialization(guards = { "codeRange == BROKEN" /* or UNKNOWN */, "recoverIfBroken" })
         protected int brokenOrUnknownWithRecovery(
-                Encoding encoding, CodeRange codeRange, Bytes bytes, boolean recoverIfBroken,
+                Encoding encoding, TruffleString.CodeRange codeRange, Bytes bytes, boolean recoverIfBroken,
                 @Cached @Shared("validCharWidthProfile") ConditionProfile validCharWidthProfile,
                 @Cached @Exclusive ConditionProfile minEncodingWidthUsedProfile) {
             final int width = encodingLength(encoding, bytes);
@@ -355,9 +351,9 @@ public abstract class RopeNodes {
             }
         }
 
-        @Specialization(guards = { "codeRange == CR_BROKEN || codeRange == CR_UNKNOWN", "!recoverIfBroken" })
+        @Specialization(guards = { "codeRange == BROKEN" /* or UNKNOWN */, "!recoverIfBroken" })
         protected int brokenOrUnknownWithoutRecovery(
-                Encoding encoding, CodeRange codeRange, Bytes bytes, boolean recoverIfBroken,
+                Encoding encoding, TruffleString.CodeRange codeRange, Bytes bytes, boolean recoverIfBroken,
                 @Cached @Shared("validCharWidthProfile") ConditionProfile validCharWidthProfile) {
 
             final int width = encodingLength(encoding, bytes);
