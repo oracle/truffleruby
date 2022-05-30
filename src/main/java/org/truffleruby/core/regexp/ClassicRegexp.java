@@ -44,6 +44,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 import com.oracle.truffle.api.strings.AbstractTruffleString;
+import com.oracle.truffle.api.strings.TruffleStringBuilder;
 import org.jcodings.Encoding;
 import org.joni.NameEntry;
 import org.joni.Option;
@@ -691,95 +692,67 @@ public class ClassicRegexp implements ReOptions {
         return true;
     }
 
+    /** \v */
     private static final int QUOTED_V = 11;
 
     /** rb_reg_quote */
     @TruffleBoundary
     public static TStringWithEncoding quote19(TStringWithEncoding bs) {
         final boolean asciiOnly = bs.isAsciiOnly();
-        var byteArray = bs.getInternalByteArray();
-        final byte[] bytes = byteArray.getArray();
-        final int offset = byteArray.getOffset();
-        int p = offset;
-        int end = byteArray.getEnd();
-        final Encoding enc = bs.encoding.jcoding;
-        final CodeRange cr = bs.getCodeRange();
+        boolean metaFound = false;
 
-        metaFound: do {
-            while (p < end) {
-                final int c;
-                final int cl;
-                if (enc.isAsciiCompatible()) {
-                    cl = 1;
-                    c = bytes[p] & 0xff;
-                } else {
-                    cl = StringSupport.characterLength(enc, cr, bytes, p, end);
-                    c = enc.mbcToCode(bytes, p, end);
-                }
+        var iterator = bs.createCodePointIterator();
+        while (iterator.hasNext()) {
+            final int c = iterator.nextUncached();
 
-                if (!Encoding.isAscii(c)) {
-                    p += StringSupport.characterLength(enc, cr, bytes, p, end, true);
-                    continue;
-                }
-
-                switch (c) {
-                    case '[':
-                    case ']':
-                    case '{':
-                    case '}':
-                    case '(':
-                    case ')':
-                    case '|':
-                    case '-':
-                    case '*':
-                    case '.':
-                    case '\\':
-                    case '?':
-                    case '+':
-                    case '^':
-                    case '$':
-                    case ' ':
-                    case '#':
-                    case '\t':
-                    case '\f':
-                    case QUOTED_V:
-                    case '\n':
-                    case '\r':
-                        break metaFound;
-                }
-                p += cl;
+            switch (c) {
+                case '[':
+                case ']':
+                case '{':
+                case '}':
+                case '(':
+                case ')':
+                case '|':
+                case '-':
+                case '*':
+                case '.':
+                case '\\':
+                case '?':
+                case '+':
+                case '^':
+                case '$':
+                case ' ':
+                case '#':
+                case '\t':
+                case '\f':
+                case QUOTED_V:
+                case '\n':
+                case '\r':
+                    metaFound = true;
+                    break;
             }
+        }
+
+        if (!metaFound) {
             if (asciiOnly) {
                 return bs.forceEncoding(Encodings.US_ASCII);
-            }
-            return bs.asImmutable();
-        } while (false);
-
-        ByteArrayBuilder result = new ByteArrayBuilder(byteArray.getLength() * 2);
-        RubyEncoding resultEncoding = asciiOnly ? Encodings.US_ASCII : bs.encoding;
-        byte[] obytes = result.getUnsafeBytes();
-        int op = p - offset;
-        System.arraycopy(bytes, offset, obytes, 0, op);
-
-        while (p < end) {
-            final int c;
-            final int cl;
-            if (enc.isAsciiCompatible()) {
-                cl = 1;
-                c = bytes[p] & 0xff;
             } else {
-                cl = StringSupport.characterLength(enc, cr, bytes, p, end);
-                c = enc.mbcToCode(bytes, p, end);
+                return bs.asImmutable();
             }
+        }
+
+        var resultEncoding = asciiOnly ? Encodings.US_ASCII : bs.encoding;
+        var builder = TruffleStringBuilder.create(resultEncoding.tencoding, bs.byteLength() * 2);
+
+        iterator = bs.createCodePointIterator();
+        while (iterator.hasNext()) {
+            final int c = iterator.nextUncached();
 
             if (!Encoding.isAscii(c)) {
-                int n = StringSupport.characterLength(enc, cr, bytes, p, end, true);
-                while (n-- > 0) {
-                    obytes[op++] = bytes[p++];
-                }
+                builder.appendCodePointUncached(c);
                 continue;
             }
-            p += cl;
+
             switch (c) {
                 case '[':
                 case ']':
@@ -797,38 +770,37 @@ public class ClassicRegexp implements ReOptions {
                 case '^':
                 case '$':
                 case '#':
-                    op += enc.codeToMbc('\\', obytes, op);
-                    break;
                 case ' ':
-                    op += enc.codeToMbc('\\', obytes, op);
-                    op += enc.codeToMbc(' ', obytes, op);
-                    continue;
+                    builder.appendCodePointUncached('\\');
+                    builder.appendCodePointUncached(c);
+                    break;
                 case '\t':
-                    op += enc.codeToMbc('\\', obytes, op);
-                    op += enc.codeToMbc('t', obytes, op);
-                    continue;
+                    builder.appendCodePointUncached('\\');
+                    builder.appendCodePointUncached('t');
+                    break;
                 case '\n':
-                    op += enc.codeToMbc('\\', obytes, op);
-                    op += enc.codeToMbc('n', obytes, op);
-                    continue;
+                    builder.appendCodePointUncached('\\');
+                    builder.appendCodePointUncached('n');
+                    break;
                 case '\r':
-                    op += enc.codeToMbc('\\', obytes, op);
-                    op += enc.codeToMbc('r', obytes, op);
-                    continue;
+                    builder.appendCodePointUncached('\\');
+                    builder.appendCodePointUncached('r');
+                    break;
                 case '\f':
-                    op += enc.codeToMbc('\\', obytes, op);
-                    op += enc.codeToMbc('f', obytes, op);
-                    continue;
+                    builder.appendCodePointUncached('\\');
+                    builder.appendCodePointUncached('f');
+                    break;
                 case QUOTED_V:
-                    op += enc.codeToMbc('\\', obytes, op);
-                    op += enc.codeToMbc('v', obytes, op);
-                    continue;
+                    builder.appendCodePointUncached('\\');
+                    builder.appendCodePointUncached('v');
+                    break;
+                default:
+                    builder.appendCodePointUncached(c);
+                    break;
             }
-            op += enc.codeToMbc(c, obytes, op);
         }
 
-        result.setLength(op);
-        return new TStringWithEncoding(result.toTString(resultEncoding), resultEncoding);
+        return new TStringWithEncoding(builder.toStringUncached(), resultEncoding);
     }
 
     /** WARNING: This mutates options, so the caller should make sure it's a copy */

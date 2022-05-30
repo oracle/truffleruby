@@ -15,6 +15,7 @@ import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.InternalByteArray;
+import com.oracle.truffle.api.strings.TruffleStringIterator;
 import org.jcodings.Encoding;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
@@ -84,7 +85,7 @@ public final class TStringWithEncoding {
 
     public TStringWithEncoding forceEncoding(RubyEncoding newEncoding) {
         CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
-        if (encoding == newEncoding) {
+        if (encoding == newEncoding && tstring.isImmutable()) {
             return this;
         } else {
             return new TStringWithEncoding(tstring.forceEncodingUncached(encoding.tencoding, newEncoding.tencoding),
@@ -132,6 +133,16 @@ public final class TStringWithEncoding {
         } else {
             return toJavaString();
         }
+    }
+
+    public TruffleStringIterator createCodePointIterator() {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        return tstring.createCodePointIteratorUncached(encoding.tencoding);
+    }
+
+    public TStringWithEncoding asImmutable() {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        return new TStringWithEncoding(tstring.asTruffleStringUncached(encoding.tencoding), encoding);
     }
 
     // TODO: should return InternalByteArray and use that instead
