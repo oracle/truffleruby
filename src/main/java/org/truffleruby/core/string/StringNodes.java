@@ -1478,22 +1478,17 @@ public abstract class StringNodes {
         @Specialization
         protected Object eachChar(Object string, RubyProc block,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @Cached CalculateCharacterLengthNode calculateCharacterLengthNode,
-                @Cached GetByteCodeRangeNode codeRangeNode,
-                @Cached TruffleString.GetInternalByteArrayNode bytesNode,
-                @Cached TruffleString.SubstringByteIndexNode substringNode) {
+                @Cached TruffleString.SubstringByteIndexNode substringNode,
+                @Cached TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode) {
             // Unlike String#each_byte, String#each_char does not make
             // modifications to the string visible to the rest of the iteration.
             var tstring = strings.getTString(string);
-            final RubyEncoding encoding = strings.getEncoding(string);
-            var bytes = bytesNode.execute(tstring, encoding.tencoding);
-            final int len = bytes.getLength();
-            var cr = codeRangeNode.execute(tstring, encoding.tencoding);
+            var encoding = strings.getEncoding(string);
+            final int len = tstring.byteLength(encoding.tencoding);
 
             int clen;
             for (int i = 0; i < len; i += clen) {
-                clen = calculateCharacterLengthNode.characterLengthWithRecovery(encoding.jcoding, cr,
-                        Bytes.fromRange(bytes.getArray(), bytes.getOffset() + i, bytes.getEnd()));
+                clen = byteLengthOfCodePointNode.execute(tstring, i, encoding.tencoding);
                 callBlock(block, createSubString(substringNode, tstring, encoding, i, clen));
             }
 
