@@ -9,10 +9,11 @@
  */
 package org.truffleruby.language.literal;
 
-import com.oracle.truffle.api.strings.AbstractTruffleString;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
+import org.truffleruby.core.rope.ManagedRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -21,13 +22,13 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class StringLiteralNode extends RubyContextSourceNode {
 
-    private final AbstractTruffleString tstring;
+    private final TruffleString tstring;
     private final RubyEncoding encoding;
 
     public StringLiteralNode(Rope rope) {
         final RubyEncoding rubyEncoding = Encodings.getBuiltInEncoding(rope.encoding);
         this.encoding = rubyEncoding;
-        this.tstring = TStringUtils.fromRope(rope, rubyEncoding);
+        this.tstring = TStringUtils.fromRope((ManagedRope) rope, rubyEncoding);
     }
 
     @Override

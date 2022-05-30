@@ -85,6 +85,7 @@ import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.MutableTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.api.strings.TruffleString.AsTruffleStringNode;
 import com.oracle.truffle.api.strings.TruffleString.CodePointLengthNode;
 import com.oracle.truffle.api.strings.TruffleString.GetByteCodeRangeNode;
 import org.graalvm.collections.Pair;
@@ -536,9 +537,10 @@ public abstract class StringNodes {
     public abstract static class StringDupAsStringInstanceNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         protected RubyString dupAsStringInstance(Object string,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached AsTruffleStringNode asTruffleStringNode) {
             final RubyEncoding encoding = strings.getEncoding(string);
-            return createString(strings.getTString(string), encoding);
+            return createStringCopy(asTruffleStringNode, strings.getTString(string), encoding);
         }
     }
 
@@ -599,13 +601,15 @@ public abstract class StringNodes {
         protected Object concatMany(RubyString string, Object first, Object[] rest,
                 @Cached("rest.length") int cachedLength,
                 @Cached StringConcatNode argConcatNode,
+                @Cached AsTruffleStringNode asTruffleStringNode,
                 @Cached ConditionProfile selfArgProfile) {
             var tstring = string.tstring;
             Object result = argConcatNode.executeConcat(string, first, EMPTY_ARGUMENTS);
             for (int i = 0; i < cachedLength; ++i) {
-                final Object argOrCopy = selfArgProfile.profile(rest[i] == string)
-                        ? createString(tstring, string.encoding)
-                        : rest[i];
+                Object arg = rest[i];
+                final Object argOrCopy = selfArgProfile.profile(arg == string)
+                        ? createStringCopy(asTruffleStringNode, tstring, string.encoding)
+                        : arg;
                 result = argConcatNode.executeConcat(string, argOrCopy, EMPTY_ARGUMENTS);
             }
             return result;
@@ -615,16 +619,15 @@ public abstract class StringNodes {
         @Specialization(guards = { "wasProvided(first)", "rest.length > 0" }, replaces = "concatMany")
         protected Object concatManyGeneral(RubyString string, Object first, Object[] rest,
                 @Cached StringConcatNode argConcatNode,
+                @Cached AsTruffleStringNode asTruffleStringNode,
                 @Cached ConditionProfile selfArgProfile) {
             var tstring = string.tstring;
             Object result = argConcatNode.executeConcat(string, first, EMPTY_ARGUMENTS);
             for (Object arg : rest) {
-                if (selfArgProfile.profile(arg == string)) {
-                    Object copy = createString(tstring, string.encoding);
-                    result = argConcatNode.executeConcat(string, copy, EMPTY_ARGUMENTS);
-                } else {
-                    result = argConcatNode.executeConcat(string, arg, EMPTY_ARGUMENTS);
-                }
+                final Object argOrCopy = selfArgProfile.profile(arg == string)
+                        ? createStringCopy(asTruffleStringNode, tstring, string.encoding)
+                        : arg;
+                result = argConcatNode.executeConcat(string, argOrCopy, EMPTY_ARGUMENTS);
             }
             return result;
         }
@@ -826,13 +829,14 @@ public abstract class StringNodes {
         protected Object slice2(Object string, Object matchStr, NotProvided length,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsMatchStr,
                 @Cached @Exclusive DispatchNode includeNode,
-                @Cached BooleanCastNode booleanCastNode) {
+                @Cached BooleanCastNode booleanCastNode,
+                @Cached AsTruffleStringNode asTruffleStringNode) {
 
             final Object included = includeNode.call(string, "include?", matchStr);
 
             if (booleanCastNode.execute(included)) {
                 final RubyEncoding encoding = stringsMatchStr.getEncoding(matchStr);
-                return createString(stringsMatchStr.getTString(matchStr), encoding);
+                return createStringCopy(asTruffleStringNode, stringsMatchStr.getTString(matchStr), encoding);
             }
 
             return nil;
@@ -2805,8 +2809,9 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "isStringSubclass(string)")
-        protected RubyString toSOnSubclass(RubyString string) {
-            return createString(string.tstring, string.encoding);
+        protected RubyString toSOnSubclass(RubyString string,
+                @Cached AsTruffleStringNode asTruffleStringNode) {
+            return createStringCopy(asTruffleStringNode, string.tstring, string.encoding);
         }
 
         public boolean isStringSubclass(RubyString string) {

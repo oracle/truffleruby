@@ -17,6 +17,7 @@ import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
+import com.oracle.truffle.api.strings.MutableTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -169,7 +170,43 @@ public abstract class RubyBaseNode extends Node {
         return instance;
     }
 
+    public final RubyString createString(TruffleString tstring, RubyEncoding encoding) {
+        final RubyString instance = new RubyString(
+                coreLibrary().stringClass,
+                getLanguage().stringShape,
+                false,
+                tstring,
+                encoding);
+        AllocationTracing.trace(instance, this);
+        return instance;
+    }
+
+    // Unsafe, because tstring might be mutable and used somewhere else
     public final RubyString createString(AbstractTruffleString tstring, RubyEncoding encoding) {
+        final RubyString instance = new RubyString(
+                coreLibrary().stringClass,
+                getLanguage().stringShape,
+                false,
+                tstring,
+                encoding);
+        AllocationTracing.trace(instance, this);
+        return instance;
+    }
+
+    public final RubyString createStringCopy(TruffleString.AsTruffleStringNode asTruffleStringNode,
+            AbstractTruffleString tstring, RubyEncoding encoding) {
+        final TruffleString copy = asTruffleStringNode.execute(tstring, encoding.tencoding);
+        final RubyString instance = new RubyString(
+                coreLibrary().stringClass,
+                getLanguage().stringShape,
+                false,
+                copy,
+                encoding);
+        AllocationTracing.trace(instance, this);
+        return instance;
+    }
+
+    public final RubyString createMutableString(MutableTruffleString tstring, RubyEncoding encoding) {
         final RubyString instance = new RubyString(
                 coreLibrary().stringClass,
                 getLanguage().stringShape,

@@ -721,7 +721,7 @@ public class CExtNodes {
             final Pointer pointer = Pointer.callocAutoRelease(byteLength + 1, getLanguage());
             var nativeTString = fromNativePointerNode.execute(pointer, 0, byteLength, Encodings.BINARY.tencoding,
                     false);
-            return createString(nativeTString, Encodings.BINARY);
+            return createMutableString(nativeTString, Encodings.BINARY);
         }
 
     }
