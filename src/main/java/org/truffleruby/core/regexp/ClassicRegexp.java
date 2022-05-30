@@ -56,6 +56,7 @@ import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.rope.ATStringWithEncoding;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
@@ -697,7 +698,7 @@ public class ClassicRegexp implements ReOptions {
 
     /** rb_reg_quote */
     @TruffleBoundary
-    public static TStringWithEncoding quote19(TStringWithEncoding bs) {
+    public static TStringWithEncoding quote19(ATStringWithEncoding bs) {
         final boolean asciiOnly = bs.isAsciiOnly();
         boolean metaFound = false;
 

@@ -60,6 +60,7 @@ import org.truffleruby.core.regexp.RegexWarnDeferredCallback;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.LeafRope;
+import org.truffleruby.core.rope.ManagedRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.FrozenStrings;
@@ -2735,7 +2736,7 @@ public class BodyTranslator extends Translator {
         final Rope rope = node.getValue();
         final RubyEncoding encoding = Encodings.getBuiltInEncoding(rope.getEncoding());
         final RegexpOptions options = node.getOptions().setLiteral(true);
-        var tstring = TStringUtils.fromRope(rope, encoding);
+        var tstring = TStringUtils.fromRope((ManagedRope) rope, encoding);
         try {
             final RubyRegexp regexp = RubyRegexp.create(language, tstring, encoding, options, currentNode);
             final ObjectLiteralNode literalNode = new ObjectLiteralNode(regexp);

@@ -32,7 +32,7 @@ public abstract class EvalLoader {
     public static RubySource createEvalSource(RubyContext context, Rope codeRope, String method, String file, int line,
             Node currentNode) {
         var rubyEncoding = Encodings.getBuiltInEncoding(codeRope.getEncoding());
-        var code = TStringUtils.fromRopeWithEnc(codeRope, rubyEncoding);
+        var code = TStringUtils.fromRopeWithEnc(codeRope.asManaged(), rubyEncoding);
         var sourceTString = createEvalRope(code);
 
         final String sourceString;

@@ -18,7 +18,6 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.Node;
 
-import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.joni.Regex;
 import org.truffleruby.RubyContext;
@@ -38,7 +37,7 @@ public class RubyRegexp extends ImmutableRubyObjectNotCopyable implements Truffl
 
     @TruffleBoundary
     public static RubyRegexp create(RubyLanguage language,
-            AbstractTruffleString source,
+            TruffleString source,
             RubyEncoding sourceEncoding,
             RegexpOptions regexpOptions,
             Node currentNode) throws DeferredRaiseException {
@@ -83,7 +82,7 @@ public class RubyRegexp extends ImmutableRubyObjectNotCopyable implements Truffl
         // constructing the final regexp.
         this.regex = regex;
         final TStringWithEncoding ropeWithEncoding = (TStringWithEncoding) regex.getUserObject();
-        this.sourceTString = (TruffleString) ropeWithEncoding.tstring;
+        this.sourceTString = ropeWithEncoding.tstring;
         this.source = ropeWithEncoding.toRope();
         this.encoding = ropeWithEncoding.getEncoding();
         this.options = options;

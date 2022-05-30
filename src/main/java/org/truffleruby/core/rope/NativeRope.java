@@ -33,6 +33,11 @@ public class NativeRope extends Rope {
     }
 
     @Override
+    public ManagedRope asManaged() {
+        return RopeOperations.create(getBytes(), getEncoding(), CodeRange.CR_UNKNOWN);
+    }
+
+    @Override
     public byte[] getBytes() {
         // Always re-read bytes from the native pointer as they might have changed.
         final byte[] bytes = new byte[byteLength()];

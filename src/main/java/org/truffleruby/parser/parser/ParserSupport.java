@@ -54,6 +54,7 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.regexp.ClassicRegexp;
 import org.truffleruby.core.regexp.RegexpOptions;
+import org.truffleruby.core.rope.ManagedRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.TStringWithEncoding;
@@ -1696,7 +1697,7 @@ public class ParserSupport {
         try {
             pattern = new ClassicRegexp(
                     configuration.getContext(),
-                    TStringUtils.fromRopeWithEnc(regexpNode.getValue(), regexpNode.getRubyEncoding()),
+                    TStringUtils.fromRopeWithEnc((ManagedRope) regexpNode.getValue(), regexpNode.getRubyEncoding()),
                     regexpNode.getOptions());
         } catch (DeferredRaiseException dre) {
             throw dre.getException(RubyLanguage.getCurrentContext());
@@ -1825,7 +1826,8 @@ public class ParserSupport {
             return new RegexpParseNode(position, newValue.toRope(), options.withoutOnce());
         } else if (contents instanceof StrParseNode) {
             Rope rope = ((StrParseNode) contents).getValue();
-            TStringWithEncoding meat = TStringUtils.fromRopeWithEnc(rope, Encodings.getBuiltInEncoding(rope.encoding));
+            TStringWithEncoding meat = TStringUtils.fromRopeWithEnc((ManagedRope) rope,
+                    Encodings.getBuiltInEncoding(rope.encoding));
             meat = regexpFragmentCheck(end, meat);
             checkRegexpSyntax(meat, options.withoutOnce());
             return new RegexpParseNode(contents.getPosition(), meat.toRope(), options.withoutOnce());
@@ -1836,8 +1838,8 @@ public class ParserSupport {
                 ParseNode fragment = dStrNode.get(i);
                 if (fragment instanceof StrParseNode) {
                     Rope frag = ((StrParseNode) fragment).getValue();
-                    regexpFragmentCheck(end,
-                            TStringUtils.fromRopeWithEnc(frag, Encodings.getBuiltInEncoding(frag.getEncoding())));
+                    regexpFragmentCheck(end, TStringUtils.fromRopeWithEnc((ManagedRope) frag,
+                            Encodings.getBuiltInEncoding(frag.getEncoding())));
                 }
             }
 

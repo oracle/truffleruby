@@ -55,8 +55,8 @@ public final class RopeWithEncoding {
         return TStringUtils.fromRope(rope, encoding);
     }
 
-    public TStringWithEncoding toTStringWithEncoding() {
-        return new TStringWithEncoding(TStringUtils.fromRope(rope, encoding), encoding);
+    public ATStringWithEncoding toATStringWithEncoding() {
+        return new ATStringWithEncoding(TStringUtils.fromRope(rope, encoding), encoding);
     }
 
 }

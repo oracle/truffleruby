@@ -32,6 +32,11 @@ public abstract class ManagedRope extends Rope {
     }
 
     @Override
+    public ManagedRope asManaged() {
+        return this;
+    }
+
+    @Override
     public final CodeRange getCodeRange() {
         return this.codeRange;
     }

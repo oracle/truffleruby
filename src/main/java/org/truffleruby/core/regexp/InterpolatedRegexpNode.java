@@ -10,6 +10,7 @@
 package org.truffleruby.core.regexp;
 
 import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.api.strings.TruffleString.AsTruffleStringNode;
 import org.truffleruby.core.cast.ToSNode;
 import org.truffleruby.core.regexp.InterpolatedRegexpNodeFactory.RegexpBuilderNodeGen;
 import org.truffleruby.core.rope.TStringWithEncoding;
@@ -30,6 +31,7 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
     @Children private final ToSNode[] children;
     @Child private RegexpBuilderNode builderNode;
     @Child private RubyStringLibrary rubyStringLibrary;
+    @Child private AsTruffleStringNode asTruffleStringNode = AsTruffleStringNode.create();
 
     public InterpolatedRegexpNode(ToSNode[] children, RegexpOptions options) {
         this.children = children;
@@ -47,7 +49,8 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
         TStringWithEncoding[] values = new TStringWithEncoding[children.length];
         for (int i = 0; i < children.length; i++) {
             final Object value = children[i].execute(frame);
-            values[i] = new TStringWithEncoding(rubyStringLibrary.getTString(value),
+            values[i] = new TStringWithEncoding(asTruffleStringNode,
+                    rubyStringLibrary.getTString(value),
                     rubyStringLibrary.getEncoding(value));
         }
         return values;

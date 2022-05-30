@@ -14,6 +14,7 @@ import java.util.Iterator;
 
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.joni.NameEntry;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -26,6 +27,7 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.regexp.RegexpNodesFactory.ToSNodeFactory;
+import org.truffleruby.core.rope.ATStringWithEncoding;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.RubyString;
@@ -68,7 +70,7 @@ public abstract class RegexpNodes {
         @Specialization(guards = "libRaw.isRubyString(raw)")
         protected RubyString quoteString(Object raw,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libRaw) {
-            return createString(ClassicRegexp.quote19(new TStringWithEncoding(libRaw, raw)));
+            return createString(ClassicRegexp.quote19(new ATStringWithEncoding(libRaw, raw)));
         }
 
         @Specialization
@@ -196,12 +198,14 @@ public abstract class RegexpNodes {
         @Specialization(guards = "libPattern.isRubyString(pattern)")
         protected RubyRegexp initialize(Object pattern, int options,
                 @Cached BranchProfile errorProfile,
+                @Cached TruffleString.AsTruffleStringNode asTruffleStringNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libPattern) {
+            var encoding = libPattern.getEncoding(pattern);
             try {
                 return RubyRegexp.create(
                         getLanguage(),
-                        libPattern.getTString(pattern),
-                        libPattern.getEncoding(pattern),
+                        asTruffleStringNode.execute(libPattern.getTString(pattern), encoding.tencoding),
+                        encoding,
                         RegexpOptions.fromEmbeddedOptions(options),
                         this);
             } catch (DeferredRaiseException dre) {

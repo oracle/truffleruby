@@ -86,7 +86,7 @@ public class TStringUtils {
         }
     }
 
-    public static TStringWithEncoding fromRopeWithEnc(Rope rope, RubyEncoding rubyEncoding) {
+    public static TStringWithEncoding fromRopeWithEnc(ManagedRope rope, RubyEncoding rubyEncoding) {
         return new TStringWithEncoding(fromRope(rope, rubyEncoding), rubyEncoding);
     }
 

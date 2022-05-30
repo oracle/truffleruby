@@ -34,6 +34,7 @@ import com.oracle.truffle.api.profiles.IntValueProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.api.strings.TruffleString.AsTruffleStringNode;
 import org.jcodings.specific.UTF8Encoding;
 import org.joni.Matcher;
 import org.joni.Option;
@@ -58,6 +59,7 @@ import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
 import org.truffleruby.core.regexp.TruffleRegexpNodesFactory.MatchNodeGen;
+import org.truffleruby.core.rope.ATStringWithEncoding;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
@@ -287,6 +289,7 @@ public class TruffleRegexpNodes {
     public abstract static class RegexpUnionNode extends CoreMethodArrayArgumentsNode {
 
         @Child StringAppendPrimitiveNode appendNode = StringAppendPrimitiveNode.create();
+        @Child AsTruffleStringNode asTruffleStringNode = AsTruffleStringNode.create();
         @Child ToSNode toSNode = ToSNode.create();
         @Child DispatchNode copyNode = DispatchNode.create();
         @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
@@ -309,17 +312,19 @@ public class TruffleRegexpNodes {
         }
 
         public RubyRegexp buildUnion(RubyString str, Object sep, Object[] args, BranchProfile errorProfile) {
+            assert args.length > 0;
             RubyString regexpString = null;
-            for (int i = 0; i < args.length; i++) {
+            for (Object arg : args) {
                 if (regexpString == null) {
-                    regexpString = appendNode.executeStringAppend(str, string(args[i]));
+                    regexpString = appendNode.executeStringAppend(str, string(arg));
                 } else {
                     regexpString = appendNode.executeStringAppend(regexpString, sep);
-                    regexpString = appendNode.executeStringAppend(regexpString, string(args[i]));
+                    regexpString = appendNode.executeStringAppend(regexpString, string(arg));
                 }
             }
+            var truffleString = asTruffleStringNode.execute(regexpString.tstring, regexpString.encoding.tencoding);
             try {
-                return createRegexp(regexpString.tstring, regexpString.encoding);
+                return createRegexp(truffleString, regexpString.encoding);
             } catch (DeferredRaiseException dre) {
                 errorProfile.enter();
                 throw dre.getException(getContext());
@@ -329,7 +334,7 @@ public class TruffleRegexpNodes {
         public Object string(Object obj) {
             if (rubyStringLibrary.isRubyString(obj)) {
                 final TStringWithEncoding quotedRopeResult = ClassicRegexp
-                        .quote19(new TStringWithEncoding(rubyStringLibrary, obj));
+                        .quote19(new ATStringWithEncoding(rubyStringLibrary, obj));
                 return createString(quotedRopeResult);
             } else {
                 return toSNode.execute((RubyRegexp) obj);
@@ -351,7 +356,7 @@ public class TruffleRegexpNodes {
         }
 
         @TruffleBoundary
-        public RubyRegexp createRegexp(AbstractTruffleString pattern, RubyEncoding encoding)
+        public RubyRegexp createRegexp(TruffleString pattern, RubyEncoding encoding)
                 throws DeferredRaiseException {
             return RubyRegexp.create(getLanguage(), pattern, encoding, RegexpOptions.fromEmbeddedOptions(0), this);
         }

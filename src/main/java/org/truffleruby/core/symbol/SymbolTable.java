@@ -97,7 +97,7 @@ public class SymbolTable {
         }
 
         final RubyEncoding symbolEncoding = key.encoding;
-        var cachedTString = tstringCache.getTString((TruffleString) key.tstring, symbolEncoding);
+        var cachedTString = tstringCache.getTString(key.tstring, symbolEncoding);
         final LeafRope cachedRope = ropeCache.getRope(key.toRope());
         final RubySymbol newSymbol = createSymbol(cachedRope, cachedTString, symbolEncoding);
         // Use a TStringWithEncoding with the cached TString in symbolMap, since the Symbol refers to it and so we

@@ -181,18 +181,6 @@ public abstract class RubyBaseNode extends Node {
         return instance;
     }
 
-    // Unsafe, because tstring might be mutable and used somewhere else
-    public final RubyString createString(AbstractTruffleString tstring, RubyEncoding encoding) {
-        final RubyString instance = new RubyString(
-                coreLibrary().stringClass,
-                getLanguage().stringShape,
-                false,
-                tstring,
-                encoding);
-        AllocationTracing.trace(instance, this);
-        return instance;
-    }
-
     public final RubyString createStringCopy(TruffleString.AsTruffleStringNode asTruffleStringNode,
             AbstractTruffleString tstring, RubyEncoding encoding) {
         final TruffleString copy = asTruffleStringNode.execute(tstring, encoding.tencoding);
