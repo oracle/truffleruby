@@ -157,6 +157,22 @@ describe "Arguments descriptors" do
     info.arguments.should == [{a: 1, b: 3}] if truffleruby?
   end
 
+  it "overwrite earlier splatted keyword arguments when splatted in the middle" do
+    splatted = {a: 3}
+    info = only_kws(a: 1, **splatted, b: 2)
+    info.values.should == [3, 2]
+    info.descriptor.should == [:a, :b, :no_idea_splat] if truffleruby?
+    info.arguments.should == [{a: 3, b: 2}] if truffleruby?
+  end
+
+  it "do not overwrite later splatted keyword arguments when splatted in the middle" do
+    splatted = {b: 3}
+    info = only_kws(a: 1, **splatted, b: 2)
+    info.values.should == [1, 2]
+    info.descriptor.should == [:a, :b, :no_idea_splat] if truffleruby?
+    info.arguments.should == [{a: 1, b: 2}] if truffleruby?
+  end
+
   it "cause correct copy of an only-splat" do
     def kwargs(**kwargs)
       info(kwargs, Primitive.arguments_descriptor, Primitive.arguments)
