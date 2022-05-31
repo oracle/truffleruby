@@ -16,6 +16,7 @@ import org.truffleruby.core.format.LiteralFormatNode;
 import org.truffleruby.core.format.convert.ToStringNode;
 import org.truffleruby.core.format.convert.ToStringNodeGen;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
+import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
 import org.truffleruby.core.format.write.bytes.WriteByteNodeGen;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
@@ -100,6 +101,9 @@ public abstract class FormatCharacterNode extends FormatNode {
     @TruffleBoundary
     protected String makeFormatString(int width) {
         final boolean leftJustified = hasMinusFlag || width < 0;
+        if (width == PrintfSimpleTreeBuilder.DEFAULT) {
+            width = 1;
+        }
         if (width < 0) {
             width = -width;
         }

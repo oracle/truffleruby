@@ -21,6 +21,7 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 
 import org.truffleruby.collections.ByteArrayBuilder;
+import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
 
 @ImportStatic(Double.class)
 public abstract class FormatAFloatNode extends FormatFloatGenericNode {
@@ -125,6 +126,11 @@ public abstract class FormatAFloatNode extends FormatFloatGenericNode {
             if (mantissaBits != 0L || hasFSharpFlag) {
                 buf.append('.');
             }
+
+            if (precision == PrintfSimpleTreeBuilder.DEFAULT) {
+                precision = -1;
+            }
+
             while ((precision < 0 && mantissaBits != 0L) || precision > 0) {
                 int digit = (int) ((0xf000000000000L & mantissaBits) >> 48);
                 mantissaBits = (mantissaBits << 4) & MANTISSA_MASK;

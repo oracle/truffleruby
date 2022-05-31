@@ -22,6 +22,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
 
 @NodeChild("width")
 @NodeChild("precision")
@@ -57,6 +58,10 @@ public abstract class FormatFloatGenericNode extends FormatNode {
         final int len;
         final byte signChar;
         final ByteArrayBuilder buf = new ByteArrayBuilder();
+
+        if (width == PrintfSimpleTreeBuilder.DEFAULT) {
+            width = 0;
+        }
 
         digits = INFINITY_VALUE;
         len = INFINITY_VALUE.length;
@@ -98,6 +103,10 @@ public abstract class FormatFloatGenericNode extends FormatNode {
         final byte signChar;
         final ByteArrayBuilder buf = new ByteArrayBuilder();
 
+        if (width == PrintfSimpleTreeBuilder.DEFAULT) {
+            width = 0;
+        }
+
         digits = INFINITY_VALUE;
         len = INFINITY_VALUE.length;
         signChar = '-';
@@ -129,6 +138,10 @@ public abstract class FormatFloatGenericNode extends FormatNode {
         final int len;
         final byte signChar;
         final ByteArrayBuilder buf = new ByteArrayBuilder();
+
+        if (width == PrintfSimpleTreeBuilder.DEFAULT) {
+            width = 0;
+        }
 
         digits = NAN_VALUE;
         len = NAN_VALUE.length;
@@ -167,7 +180,7 @@ public abstract class FormatFloatGenericNode extends FormatNode {
         final byte[] digits = doFormat(precision, dval);
         final ByteArrayBuilder buf = new ByteArrayBuilder();
 
-        int width = Math.abs(origWidth);
+        int width = (origWidth == PrintfSimpleTreeBuilder.DEFAULT) ? -1 : Math.abs(origWidth);
         width -= digits.length;
 
         if (origWidth > 0 && width > 0 && !hasMinusFlag) {

@@ -99,7 +99,7 @@ public abstract class FormatGFloatNode extends FormatFloatGenericNode {
 
             format.setMinimumIntegerDigits(1);
             if (!simple) {
-                format.setMaximumFractionDigits(precision - 1);
+                format.setMaximumFractionDigits(Math.max(0, precision - 1));
                 format.setMinimumFractionDigits(0);
             } else {
                 long lval = (long) Math.abs(dval);

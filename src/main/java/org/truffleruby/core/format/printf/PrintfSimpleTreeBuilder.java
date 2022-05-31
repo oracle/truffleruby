@@ -49,7 +49,7 @@ public class PrintfSimpleTreeBuilder {
     private final List<FormatNode> sequence = new ArrayList<>();
     private final List<SprintfConfig> configs;
 
-    public static final int DEFAULT = -1;
+    public static final int DEFAULT = Integer.MIN_VALUE;
 
     private static final LeafRope EMPTY_ROPE = RopeConstants.EMPTY_US_ASCII_ROPE;
 
@@ -85,7 +85,7 @@ public class PrintfSimpleTreeBuilder {
                 } else if (config.isArgWidth()) {
                     widthNode = ReadArgumentIndexValueNodeGen.create(config.getWidth(), new SourceNode());
                 } else {
-                    widthNode = new LiteralFormatNode(config.getWidth() == null ? -1 : config.getWidth());
+                    widthNode = new LiteralFormatNode(config.getWidth() == null ? DEFAULT : config.getWidth());
                 }
 
                 final FormatNode precisionNode;
@@ -94,7 +94,7 @@ public class PrintfSimpleTreeBuilder {
                 } else if (config.isPrecisionArg()) {
                     precisionNode = ReadArgumentIndexValueNodeGen.create(config.getPrecision(), new SourceNode());
                 } else {
-                    precisionNode = new LiteralFormatNode(config.getPrecision() == null ? -1 : config.getPrecision());
+                    precisionNode = new LiteralFormatNode(config.getPrecision() == null ? DEFAULT : config.getPrecision());
                 }
 
 

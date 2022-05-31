@@ -26,6 +26,7 @@ import org.truffleruby.core.format.format.FormatFFloatNodeGen;
 import org.truffleruby.core.format.format.FormatGFloatNodeGen;
 import org.truffleruby.core.format.format.FormatIntegerBinaryNodeGen;
 import org.truffleruby.core.format.format.FormatIntegerNodeGen;
+import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
 import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.format.read.array.ReadArgumentIndexValueNodeGen;
 import org.truffleruby.core.format.read.array.ReadIntegerNodeGen;
@@ -43,7 +44,7 @@ public class RBSprintfSimpleTreeBuilder {
     private final List<RBSprintfConfig> configs;
     private final Object stringReader;
 
-    public static final int DEFAULT = -1;
+    public static final int DEFAULT = PrintfSimpleTreeBuilder.DEFAULT;
 
     private static final LeafRope EMPTY_ROPE = RopeConstants.EMPTY_US_ASCII_ROPE;
 
