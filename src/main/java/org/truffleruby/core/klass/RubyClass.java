@@ -169,7 +169,9 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
         for (Map.Entry<String, Integer> entry : this.methodNamesToIndex.nameToIndex.entrySet()) {
             this.methodVTable[entry.getValue()] = ModuleOperations.lookupMethodUncached(this, entry.getKey());
         }
-        superclass.includedBy.add(this);
+        synchronized (superclass) {
+            superclass.includedBy.add(this);
+        }
     }
 
     @Override

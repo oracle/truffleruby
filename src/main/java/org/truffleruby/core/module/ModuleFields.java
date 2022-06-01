@@ -560,22 +560,24 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
 
     public static void updateVTableRecursive(RubyModule rubyModule, String name) {
-        if (rubyModule instanceof RubyClass) {
-            RubyClass rubyClass = (RubyClass) rubyModule;
-            final int index = rubyClass.methodNamesToIndex.lookup(name);
-            final int len = rubyClass.methodVTable.length;
-            if (index >= len) {
-                final int newLength = Math.max(10, Math.max(len * 2, index + 1));
-                rubyClass.methodVTable = Arrays.copyOf(rubyClass.methodVTable, newLength);
-            }
-            rubyClass.methodVTable[index] = ModuleOperations.lookupMethodUncached(rubyClass, name);
-            for (RubyClass subclass : rubyClass.includedBy) {
-                updateVTableRecursive(subclass, name);
-            }
-        } else {
-            if (rubyModule.fields.includedBy != null) {
-                for (RubyModule module : rubyModule.fields.includedBy) {
-                    updateVTableRecursive(module, name);
+        synchronized (rubyModule) {
+            if (rubyModule instanceof RubyClass) {
+                RubyClass rubyClass = (RubyClass) rubyModule;
+                final int index = rubyClass.methodNamesToIndex.lookup(name);
+                final int len = rubyClass.methodVTable.length;
+                if (index >= len) {
+                    final int newLength = Math.max(10, Math.max(len * 2, index + 1));
+                    rubyClass.methodVTable = Arrays.copyOf(rubyClass.methodVTable, newLength);
+                }
+                rubyClass.methodVTable[index] = ModuleOperations.lookupMethodUncached(rubyClass, name);
+                for (RubyClass subclass : rubyClass.includedBy) {
+                    updateVTableRecursive(subclass, name);
+                }
+            } else {
+                if (rubyModule.fields.includedBy != null) {
+                    for (RubyModule module : rubyModule.fields.includedBy) {
+                        updateVTableRecursive(module, name);
+                    }
                 }
             }
         }
