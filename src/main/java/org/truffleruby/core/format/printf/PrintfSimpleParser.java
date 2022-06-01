@@ -63,7 +63,11 @@ public class PrintfSimpleParser {
             boolean argTypeSet = false;
 
             while (!finished) {
-                char p = i >= this.source.length ? '\0' : this.source[i];
+                if (i >= this.source.length) {
+                    throw new InvalidFormatException("incomplete format specifier; use %% (double %) instead");
+                }
+
+                char p = this.source[i];
 
                 switch (p) {
                     case ' ':
