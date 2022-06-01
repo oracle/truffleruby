@@ -47,34 +47,13 @@ public abstract class LookupMethodNode extends RubyBaseNode {
     public abstract InternalMethod execute(Frame frame, RubyClass metaClass, String name, DispatchConfiguration config);
 
     @Specialization(
-            // no need to guard on the context, the metaClass is context-specific
             guards = {
-                    "isSingleContext()",
-                    "metaClass == cachedMetaClass",
-                    "name == cachedName",
-                    "config == cachedConfig" },
-            assumptions = "methodLookupResult.getAssumptions()",
-            limit = "getCacheLimit()")
-    protected InternalMethod lookupMethodCached(
-            Frame frame, RubyClass metaClass, String name, DispatchConfiguration config,
-            @Cached("metaClass") RubyClass cachedMetaClass,
-            @Cached("name") String cachedName,
-            @Cached("config") DispatchConfiguration cachedConfig,
-            @Cached("lookupCached(getContext(), frame, cachedMetaClass, cachedName, config)") MethodLookupResult methodLookupResult) {
-
-        return methodLookupResult.getMethod();
-    }
-
-
-    @Specialization(
-            guards = {
-                    "!isSingleContext()", // Use temporarily for single context for testing
                     "metaClass.methodNamesToIndex == cachedMethodNamesToIndex",
                     "getRefinements(frame, cachedConfig) == NO_REFINEMENTS",
                     "name == cachedName",
                     "config == cachedConfig" },
             limit = "getCacheLimit()")
-    protected InternalMethod lookupMethodCachedMultiContext(
+    protected InternalMethod lookupMethodCached(
             Frame frame, RubyClass metaClass, String name, DispatchConfiguration config,
             @Cached("name") String cachedName,
             @Cached("config") DispatchConfiguration cachedConfig,
@@ -99,7 +78,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
     }
 
     @InliningCutoff
-    @Specialization(replaces = { "lookupMethodCachedMultiContext", "lookupMethodCached" }) // "lookupMethodCached",
+    @Specialization(replaces = { "lookupMethodCachedMultiContext", "lookupMethodCached" })
     protected InternalMethod lookupMethodUncached(
             Frame frame, RubyClass metaClass, String name, DispatchConfiguration config,
             @Cached MetaClassNode metaClassNode,
