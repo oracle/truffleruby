@@ -132,7 +132,7 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
         for (String name : fromMetaClass.fields.getMethodNames()) {
             final int index = selfMetaClass.methodNamesToIndex.lookup(name);
             final InternalMethod method = selfMetaClass.methodVTable[index];
-            selfMetaClass.methodVTable[index] = method.withDeclaringModule(selfMetaClass);
+            selfMetaClass.methodVTable[index] = method.withDeclaringModule(selfMetaClass).withOwner(selfMetaClass);
         }
     }
 
