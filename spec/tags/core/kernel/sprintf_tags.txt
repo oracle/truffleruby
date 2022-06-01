@@ -6,7 +6,6 @@ fails:Kernel#sprintf other formats c supports Unicode characters
 fails:Kernel#sprintf other formats s does not try to convert with to_str
 fails:Kernel#sprintf flags # applies to format o does nothing for negative argument
 fails:Kernel#sprintf flags # applies to formats bBxX does nothing for zero argument
-fails:Kernel#sprintf flags 0 (zero) applies to numeric formats bBdiouxXaAeEfgG and width is specified uses radix-1 when displays negative argument as a two's complement
 fails:Kernel.sprintf returns a String in the same encoding as the format String if compatible
 fails:Kernel.sprintf returns a String in the argument's encoding if format encoding is more restrictive
 fails:Kernel.sprintf raises Encoding::CompatibilityError if both encodings are ASCII compatible and there ano not ASCII characters
@@ -15,6 +14,3 @@ fails:Kernel.sprintf other formats c supports Unicode characters
 fails:Kernel.sprintf other formats s does not try to convert with to_str
 fails:Kernel.sprintf flags # applies to format o does nothing for negative argument
 fails:Kernel.sprintf flags # applies to formats bBxX does nothing for zero argument
-fails:Kernel.sprintf flags 0 (zero) applies to numeric formats bBdiouxXaAeEfgG and width is specified uses radix-1 when displays negative argument as a two's complement
-fails:Kernel#sprintf other formats % alone raises an ArgumentError
-fails:Kernel.sprintf other formats % alone raises an ArgumentError
