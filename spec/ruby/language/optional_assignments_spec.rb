@@ -300,6 +300,14 @@ describe 'Optional variable assignments' do
         (@b[:k] ||= 12).should == 12
       end
 
+      it "evaluates the index precisely once" do
+        ary = [:x, :y]
+        @a[:x] = 15
+        @a[ary.pop] ||= 25
+        ary.should == [:x]
+        @a.should == { x: 15, y: 25 }
+      end
+
       it 'returns the assigned value, not the result of the []= method with +=' do
         @b[:k] = 17
         (@b[:k] += 12).should == 29
