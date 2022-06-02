@@ -435,7 +435,14 @@ module Process
   end
 
   def self.egid=(gid)
-    gid = Truffle::Type.coerce_to gid, Integer, :to_int
+    gid =
+      if gid.kind_of?(String)
+        require 'etc'
+        Etc.getgrnam(gid).gid
+      else
+        Truffle::Type.coerce_to gid, Integer, :to_int
+      end
+
     Process::Sys.setegid gid
   end
 
