@@ -1448,21 +1448,24 @@ public abstract class StringNodes {
         @Specialization
         protected Object eachByte(Object string, RubyProc block,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @Cached BytesNode bytesNode,
-                @Cached BytesNode updatedBytesNode,
-                @Cached ConditionProfile ropeChangedProfile) {
-            Rope rope = strings.getRope(string);
-            byte[] bytes = bytesNode.execute(rope);
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
+                @Cached ConditionProfile stringChangedProfile) {
+            var tstring = strings.getTString(string);
+            var encoding = strings.getEncoding(string).tencoding;
 
-            for (int i = 0; i < bytes.length; i++) {
-                callBlock(block, bytes[i] & 0xff);
+            var byteArray = byteArrayNode.execute(tstring, encoding);
+            var bytes = byteArray.getArray();
+
+            for (int i = 0; i < byteArray.getLength(); i++) {
+                callBlock(block, bytes[i + byteArray.getOffset()] & 0xff);
 
                 // Don't be tempted to extract the rope from the passed string. If the block being yielded to modifies the
                 // source string, you'll get a different rope.
-                Rope updatedRope = strings.getRope(string);
-                if (ropeChangedProfile.profile(rope != updatedRope)) {
-                    rope = updatedRope;
-                    bytes = updatedBytesNode.execute(updatedRope);
+                var updatedTString = strings.getTString(string);
+                if (stringChangedProfile.profile(tstring != updatedTString)) {
+                    tstring = updatedTString;
+                    byteArray = byteArrayNode.execute(tstring, strings.getEncoding(string).tencoding);
+                    bytes = byteArray.getArray();
                 }
             }
 
