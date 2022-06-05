@@ -3631,9 +3631,9 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class StringAwkSplitPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private BytesNode bytesNode = BytesNode.create();
         @Child private CallBlockNode yieldNode = CallBlockNode.create();
         @Child GetByteCodeRangeNode codeRangeNode = GetByteCodeRangeNode.create();
+        @Child TruffleString.GetInternalByteArrayNode byteArrayNode = TruffleString.GetInternalByteArrayNode.create();
 
         private static final int SUBSTRING_CREATED = -1;
 
@@ -3650,13 +3650,15 @@ public abstract class StringNodes {
             Object[] ret = new Object[10];
             int storeIndex = 0;
 
-            final Rope rope = strings.getRope(string);
-            final byte[] bytes = bytesNode.execute(rope);
+            var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
+            var bytes = byteArray.getArray();
+            int byteOffset = byteArray.getOffset();
+            int byteLength = byteArray.getLength();
 
             int substringStart = 0;
             boolean findingSubstringEnd = false;
-            for (int i = 0; i < bytes.length; i++) {
-                if (StringSupport.isAsciiSpace(bytes[i])) {
+            for (int i = 0; i < byteLength; i++) {
+                if (StringSupport.isAsciiSpace(bytes[i + byteOffset])) {
                     if (findingSubstringEnd) {
                         findingSubstringEnd = false;
 
@@ -3685,12 +3687,12 @@ public abstract class StringNodes {
 
             if (trailingSubstringProfile.profile(findingSubstringEnd)) {
                 final RubyString substring = createSubString(substringNode, tstring, encoding, substringStart,
-                        bytes.length - substringStart);
+                        byteLength - substringStart);
                 ret = addSubstring(ret, storeIndex++, substring, block, executeBlockProfile, growArrayProfile);
             }
 
-            if (trailingEmptyStringProfile.profile(limit < 0 && StringSupport.isAsciiSpace(bytes[bytes.length - 1]))) {
-                final RubyString substring = createSubString(substringNode, tstring, encoding, bytes.length - 1, 0);
+            if (trailingEmptyStringProfile.profile(limit < 0 && StringSupport.isAsciiSpace(bytes[byteLength - 1]))) {
+                final RubyString substring = createSubString(substringNode, tstring, encoding, byteLength - 1, 0);
                 ret = addSubstring(ret, storeIndex++, substring, block, executeBlockProfile, growArrayProfile);
             }
 
@@ -3715,22 +3717,25 @@ public abstract class StringNodes {
             Object[] ret = new Object[10];
             int storeIndex = 0;
 
-            final Rope rope = strings.getRope(string);
             final boolean limitPositive = limit > 0;
             int i = limit > 0 ? 1 : 0;
 
-            final byte[] bytes = bytesNode.execute(rope);
-            int p = 0;
+            var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
+            final byte[] bytes = byteArray.getArray();
+            int byteOffset = byteArray.getOffset();
+
+            int p = byteOffset;
             int ptr = p;
-            int len = rope.byteLength();
+            int len = byteArray.getLength();
             int end = p + len;
-            final Encoding enc = rope.getEncoding();
-            final CodeRange cr = rope.getCodeRange();
+
+            final Encoding enc = encoding.jcoding;
+            final TruffleString.CodeRange cr = codeRangeNode.execute(tstring, encoding.tencoding);
             boolean skip = true;
 
             int e = 0, b = 0;
             while (p < end) {
-                int c = getCodePointNode.executeGetCodePoint(tstring, encoding, p);
+                int c = getCodePointNode.executeGetCodePoint(tstring, encoding, p - byteOffset);
                 p += StringSupport.characterLength(enc, cr, bytes, p, end, true);
 
                 if (skip) {
