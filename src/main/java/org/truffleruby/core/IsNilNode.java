@@ -24,7 +24,7 @@ public class IsNilNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        return child.execute(frame) == nil;
+        return child.execute(frame) == nil();
     }
 
 }

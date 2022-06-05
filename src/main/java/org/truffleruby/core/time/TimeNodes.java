@@ -66,7 +66,7 @@ public abstract class TimeNodes {
 
         @Specialization
         protected RubyTime allocate(RubyClass rubyClass) {
-            final RubyTime instance = new RubyTime(rubyClass, getLanguage().timeShape, ZERO, nil, 0, false, false);
+            final RubyTime instance = new RubyTime(rubyClass, getLanguage().timeShape, ZERO, nil(), 0, false, false);
             AllocationTracing.trace(instance, this);
             return instance;
         }
@@ -113,7 +113,7 @@ public abstract class TimeNodes {
 
             time.isUtc = false;
             time.relativeOffset = true;
-            time.zone = nil;
+            time.zone = nil();
             time.dateTime = dateTime;
 
             return time;
@@ -181,7 +181,7 @@ public abstract class TimeNodes {
             final TimeZoneAndName zoneAndName = getTimeZoneNode.executeGetTimeZone();
             final ZonedDateTime dt = now(zoneAndName.getZone());
             final RubyString zone = getShortZoneName(makeStringNode, dt, zoneAndName);
-            final RubyTime instance = new RubyTime(timeClass, getLanguage().timeShape, dt, zone, nil, false, false);
+            final RubyTime instance = new RubyTime(timeClass, getLanguage().timeShape, dt, zone, nil(), false, false);
             AllocationTracing.trace(instance, this);
             return instance;
 
@@ -207,7 +207,7 @@ public abstract class TimeNodes {
             final RubyString zone = getShortZoneName(makeStringNode, dateTime, zoneAndName);
 
             final Shape shape = getLanguage().timeShape;
-            final RubyTime instance = new RubyTime(timeClass, shape, dateTime, zone, nil, false, false);
+            final RubyTime instance = new RubyTime(timeClass, shape, dateTime, zone, nil(), false, false);
             AllocationTracing.trace(instance, this);
             return instance;
         }
@@ -510,14 +510,14 @@ public abstract class TimeNodes {
 
             final ZoneId zone;
             final boolean relativeOffset;
-            Object zoneToStore = nil;
+            Object zoneToStore = nil();
             TimeZoneAndName envZone = null;
 
             if (isutc) {
                 zone = GetTimeZoneNode.UTC;
                 relativeOffset = false;
                 zoneToStore = language.coreStrings.UTC.createInstance(getContext());
-            } else if (utcoffset == nil) {
+            } else if (utcoffset == nil()) {
                 if (makeStringNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
                     makeStringNode = insert(StringNodes.MakeStringNode.create());
@@ -530,7 +530,7 @@ public abstract class TimeNodes {
                 final int offset = ((Number) utcoffset).intValue();
                 zone = getZoneOffset(offset);
                 relativeOffset = true;
-                zoneToStore = nil;
+                zoneToStore = nil();
             } else {
                 throw new UnsupportedOperationException(
                         StringUtils.format("%s %s %s %s", isdst, isutc, utcoffset, utcoffset.getClass()));

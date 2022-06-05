@@ -107,7 +107,7 @@ public abstract class TruffleSystemNodes {
             final String value = getEnv(javaName);
 
             if (nullValueProfile.profile(value == null)) {
-                return nil;
+                return nil();
             } else {
                 return fromJavaStringNode.executeFromJavaString(value);
             }
@@ -135,7 +135,7 @@ public abstract class TruffleSystemNodes {
                 canonicalFile = truffleFile.getCanonicalFile();
             } catch (NoSuchFileException e) {
                 // Let the following chdir() fail
-                return nil;
+                return nil();
             } catch (IOException e) {
                 throw new RaiseException(getContext(), coreExceptions().ioError(e, this));
             }
@@ -185,7 +185,7 @@ public abstract class TruffleSystemNodes {
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             String value = getProperty(strings.getJavaString(property));
             if (value == null) {
-                return nil;
+                return nil();
             } else {
                 return makeStringNode.executeMake(value, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
             }
@@ -230,14 +230,14 @@ public abstract class TruffleSystemNodes {
                 @Cached("level") RubySymbol cachedLevel,
                 @Cached("getLevel(cachedLevel)") Level javaLevel) {
             log(javaLevel, strings.getJavaString(message));
-            return nil;
+            return nil();
         }
 
         @Specialization(guards = "strings.isRubyString(message)", replaces = "logCached")
         protected Object log(RubySymbol level, Object message,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             log(getLevel(level), strings.getJavaString(message));
-            return nil;
+            return nil();
         }
 
         @TruffleBoundary

@@ -70,7 +70,7 @@ public abstract class TruffleMonitorNodes {
         protected Object enter(RubyMutex mutex) {
             final RubyThread thread = getLanguage().getCurrentThread();
             MutexOperations.lock(getContext(), mutex.lock, thread, this);
-            return nil;
+            return nil();
         }
     }
 

@@ -70,7 +70,7 @@ public final class RubyArguments {
         assert RubyGuards.assertIsValidRubyValue(rubyArgs[ArgumentIndicies.SELF.ordinal()]);
 
         final Object block = rubyArgs[ArgumentIndicies.BLOCK.ordinal()];
-        assert block instanceof RubyProc || block == Nil.INSTANCE : block;
+        assert block instanceof RubyProc || block == Nil.get() : block;
 
         Object descriptor = rubyArgs[ArgumentIndicies.DESCRIPTOR.ordinal()];
         assert descriptor instanceof ArgumentsDescriptor : descriptor;

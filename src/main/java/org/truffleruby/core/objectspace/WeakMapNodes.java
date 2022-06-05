@@ -71,7 +71,7 @@ public abstract class WeakMapNodes {
         @Specialization
         protected Object get(RubyWeakMap map, Object key) {
             Object value = map.storage.get(new CompareByRubyIdentityWrapper(key));
-            return value == null ? nil : value;
+            return value == null ? nil() : value;
         }
     }
 

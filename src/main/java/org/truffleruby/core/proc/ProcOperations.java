@@ -14,6 +14,7 @@ import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.FrameOnStackMarker;
@@ -25,8 +26,6 @@ import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 
-import static org.truffleruby.language.RubyBaseNode.nil;
-
 public abstract class ProcOperations {
 
     private static Object[] packArguments(RubyProc proc, ArgumentsDescriptor descriptor, Object... args) {
@@ -36,7 +35,7 @@ public abstract class ProcOperations {
                 proc.method,
                 proc.frameOnStackMarker,
                 getSelf(proc),
-                nil,
+                Nil.get(),
                 descriptor,
                 args);
     }

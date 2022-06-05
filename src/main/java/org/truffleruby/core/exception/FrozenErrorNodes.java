@@ -33,7 +33,7 @@ public abstract class FrozenErrorNodes {
         @Specialization
         protected RubyFrozenError allocateFrozenError(RubyClass rubyClass) {
             final Shape shape = getLanguage().frozenErrorShape;
-            final RubyFrozenError instance = new RubyFrozenError(rubyClass, shape, nil, null, nil, null);
+            final RubyFrozenError instance = new RubyFrozenError(rubyClass, shape, nil(), null, nil(), null);
             AllocationTracing.trace(instance, this);
             return instance;
         }

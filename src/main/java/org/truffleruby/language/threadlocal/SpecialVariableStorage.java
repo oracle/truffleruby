@@ -71,7 +71,7 @@ public final class SpecialVariableStorage implements TruffleObject {
 
     public Object getLastMatch(ConditionProfile unsetProfile, ConditionProfile sameThreadProfile) {
         if (unsetProfile.profile(lastMatch == null)) {
-            return Nil.INSTANCE;
+            return Nil.get();
         } else {
             return lastMatch.get(sameThreadProfile);
         }
@@ -87,7 +87,7 @@ public final class SpecialVariableStorage implements TruffleObject {
 
     public Object getLastLine(ConditionProfile unsetProfile, ConditionProfile sameThreadProfilew) {
         if (unsetProfile.profile(lastLine == null)) {
-            return Nil.INSTANCE;
+            return Nil.get();
         } else {
             return lastLine.get(sameThreadProfilew);
         }

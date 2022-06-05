@@ -188,7 +188,7 @@ public abstract class UnboundMethodNodes {
                     .getSourceSection();
 
             if (!sourceSection.isAvailable()) {
-                return nil;
+                return nil();
             } else {
                 RubyString file = makeStringNode.executeMake(
                         getLanguage().getSourcePath(sourceSection.getSource()),
@@ -210,7 +210,7 @@ public abstract class UnboundMethodNodes {
             RubyModule origin = unboundMethod.origin;
             MethodLookupResult superMethod = ModuleOperations.lookupSuperMethod(internalMethod, origin);
             if (!superMethod.isDefined()) {
-                return nil;
+                return nil();
             } else {
                 final RubyUnboundMethod instance = new RubyUnboundMethod(
                         coreLibrary().unboundMethodClass,
@@ -236,7 +236,7 @@ public abstract class UnboundMethodNodes {
         public static Object ruby2Keywords(SharedMethodInfo sharedMethodInfo, RootCallTarget callTarget) {
             final Arity arity = sharedMethodInfo.getArity();
             if (!arity.hasRest() || arity.acceptsKeywords()) {
-                return nil;
+                return nil();
             }
 
             ReadRestArgumentNode readRestArgumentNode = NodeUtil.findFirstNodeInstance(callTarget.getRootNode(),

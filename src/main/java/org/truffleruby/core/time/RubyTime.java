@@ -43,7 +43,7 @@ public class RubyTime extends RubyDynamicObject {
             boolean relativeOffset,
             boolean isUtc) {
         super(rubyClass, shape);
-        assert zone instanceof RubyString || zone == Nil.INSTANCE;
+        assert zone instanceof RubyString || zone == Nil.get();
         this.dateTime = dateTime;
         this.offset = offset;
         this.zone = zone;

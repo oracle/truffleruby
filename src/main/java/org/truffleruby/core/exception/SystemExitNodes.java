@@ -30,7 +30,7 @@ public abstract class SystemExitNodes {
         @Specialization
         protected RubySystemExit allocateSytemExit(RubyClass rubyClass) {
             final Shape shape = getLanguage().systemExitShape;
-            final RubySystemExit instance = new RubySystemExit(rubyClass, shape, nil, null, nil, 0);
+            final RubySystemExit instance = new RubySystemExit(rubyClass, shape, nil(), null, nil(), 0);
             AllocationTracing.trace(instance, this);
             return instance;
         }

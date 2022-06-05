@@ -69,7 +69,7 @@ public class YieldExpressionNode extends LiteralCallNode {
         }
 
         final Object maybeBlock = readBlock(frame);
-        if (maybeBlock == nil) {
+        if (maybeBlock == nil()) {
             noCapturedBlock.enter();
             throw new RaiseException(getContext(), coreExceptions().noBlockToYieldTo(this));
         }
@@ -98,7 +98,7 @@ public class YieldExpressionNode extends LiteralCallNode {
     private Object readBlock(VirtualFrame frame) {
         Object block = readBlockNode.execute(frame);
 
-        if (block == nil) {
+        if (block == nil()) {
             useCapturedBlock.enter();
             block = RubyArguments.getMethod(frame).getCapturedBlock();
         }
@@ -117,8 +117,8 @@ public class YieldExpressionNode extends LiteralCallNode {
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
         Object block = readBlock(frame);
-        if (block == nil) {
-            return nil;
+        if (block == nil()) {
+            return nil();
         } else {
             return FrozenStrings.YIELD;
         }

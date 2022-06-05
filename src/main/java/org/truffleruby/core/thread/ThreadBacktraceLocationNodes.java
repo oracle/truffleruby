@@ -68,7 +68,7 @@ public class ThreadBacktraceLocationNodes {
             } else {
                 final Source source = sourceSection.getSource();
                 if (BacktraceFormatter.isRubyCore(language, source)) {
-                    return nil;
+                    return nil();
                 } else if (source.getPath() != null) { // A normal file
                     final String path = language.getSourcePath(source);
                     final String canonicalPath = context.getFeatureLoader().canonicalize(path);

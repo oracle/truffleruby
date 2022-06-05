@@ -54,7 +54,7 @@ public class ModuleBodyDefinitionNode extends RubyBaseNode {
         if (captureBlock) {
             capturedBlock = RubyArguments.getBlock(frame);
         } else {
-            capturedBlock = nil;
+            capturedBlock = nil();
         }
 
         final LexicalScope parentLexicalScope = RubyArguments.getMethod(frame).getLexicalScope();

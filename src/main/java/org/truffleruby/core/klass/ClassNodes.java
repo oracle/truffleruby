@@ -23,6 +23,7 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.module.RubyModule;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -38,8 +39,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
-
-import static org.truffleruby.language.RubyBaseNode.nil;
 
 @CoreModule(value = "Class", isClass = true)
 public abstract class ClassNodes {
@@ -168,7 +167,7 @@ public abstract class ClassNodes {
     private static RubyClass createSingletonClass(RubyContext context, RubyClass rubyClass) {
         final RubyClass singletonSuperclass;
         final Object superclass = rubyClass.superclass;
-        if (superclass == nil) {
+        if (superclass == Nil.get()) {
             singletonSuperclass = rubyClass.getLogicalClass();
         } else {
             singletonSuperclass = getLazyCreatedSingletonClass(context, (RubyClass) superclass);
@@ -298,7 +297,7 @@ public abstract class ClassNodes {
     public abstract static class InheritedNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected Object inherited(Object subclass) {
-            return nil;
+            return nil();
         }
     }
 

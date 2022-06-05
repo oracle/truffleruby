@@ -40,8 +40,6 @@ public abstract class RubyBaseNode extends Node {
 
     public static final Object[] EMPTY_ARGUMENTS = ArrayUtils.EMPTY_ARRAY;
 
-    public static final Nil nil = Nil.INSTANCE;
-
     public static final int MAX_EXPLODE_SIZE = 16;
 
     public static final int LIBSTRING_CACHE = 3;
@@ -50,12 +48,16 @@ public abstract class RubyBaseNode extends Node {
         return getLanguage().singleContext;
     }
 
+    public static Nil nil() {
+        return Nil.get();
+    }
+
     public static Object nilToNull(Object value) {
-        return value == nil ? null : value;
+        return value == nil() ? null : value;
     }
 
     public static Object nullToNil(Object value) {
-        return value == null ? nil : value;
+        return value == null ? nil() : value;
     }
 
     /** Variants for {@link com.oracle.truffle.api.library.Library}. The node argument should typically be

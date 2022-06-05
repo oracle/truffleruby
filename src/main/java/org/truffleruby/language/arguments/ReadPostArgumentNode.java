@@ -36,7 +36,7 @@ public class ReadPostArgumentNode extends RubyContextSourceNode {
             return RubyArguments.getArgument(frame, effectiveIndex);
         } else {
             // CheckArityNode will prevent this case for methods & lambdas, but it is still possible for procs.
-            return nil;
+            return nil();
         }
     }
 

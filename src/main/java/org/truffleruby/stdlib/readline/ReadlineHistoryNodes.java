@@ -101,7 +101,7 @@ public abstract class ReadlineHistoryNodes {
             final ConsoleHolder consoleHolder = getContext().getConsoleHolder();
 
             if (consoleHolder.getHistory().isEmpty()) {
-                return nil;
+                return nil();
             }
 
             final String lastLine = consoleHolder.getHistory().removeLast().line();
@@ -124,7 +124,7 @@ public abstract class ReadlineHistoryNodes {
             final ConsoleHolder consoleHolder = getContext().getConsoleHolder();
 
             if (consoleHolder.getHistory().isEmpty()) {
-                return nil;
+                return nil();
             }
 
             final String lastLine = consoleHolder.getHistory().removeFirst().line();
@@ -158,7 +158,7 @@ public abstract class ReadlineHistoryNodes {
             } catch (IOException e) {
                 throw new RaiseException(getContext(), coreExceptions().ioError(e, this));
             }
-            return nil;
+            return nil();
         }
 
     }
@@ -240,7 +240,7 @@ public abstract class ReadlineHistoryNodes {
 
             try {
                 consoleHolder.getHistory().set(normalizedIndex, line);
-                return nil;
+                return nil();
             } catch (IndexOutOfBoundsException e) {
                 throw new RaiseException(getContext(), coreExceptions().indexErrorInvalidIndex(this));
             }

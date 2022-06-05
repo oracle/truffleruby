@@ -112,8 +112,8 @@ public abstract class TruffleGraalNodes {
                             null,
                             RubyArguments.getMethod(proc.declarationFrame),
                             null,
-                            nil,
-                            nil,
+                            nil(),
+                            nil(),
                             EmptyArgumentsDescriptor.INSTANCE,
                             EMPTY_ARGUMENTS);
 
@@ -168,7 +168,7 @@ public abstract class TruffleGraalNodes {
                 compiledBoundary();
             }
 
-            return nil;
+            return nil();
         }
 
         @TruffleBoundary
@@ -185,7 +185,7 @@ public abstract class TruffleGraalNodes {
         protected Object bailout(Object message,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             CompilerDirectives.bailout(strings.getJavaString(message));
-            return nil;
+            return nil();
         }
     }
 
@@ -196,31 +196,31 @@ public abstract class TruffleGraalNodes {
         @Specialization
         protected Object blackhole(boolean value) {
             CompilerDirectives.blackhole(value);
-            return nil;
+            return nil();
         }
 
         @Specialization
         protected Object blackhole(int value) {
             CompilerDirectives.blackhole(value);
-            return nil;
+            return nil();
         }
 
         @Specialization
         protected Object blackhole(long value) {
             CompilerDirectives.blackhole(value);
-            return nil;
+            return nil();
         }
 
         @Specialization
         protected Object blackhole(double value) {
             CompilerDirectives.blackhole(value);
-            return nil;
+            return nil();
         }
 
         @Specialization
         protected Object blackhole(Object value) {
             CompilerDirectives.blackhole(value);
-            return nil;
+            return nil();
         }
 
     }

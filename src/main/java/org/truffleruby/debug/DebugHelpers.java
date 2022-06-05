@@ -62,7 +62,7 @@ public abstract class DebugHelpers {
                 declarationContext,
                 null,
                 RubyArguments.getSelf(currentFrame),
-                Nil.INSTANCE,
+                Nil.get(),
                 EmptyArgumentsDescriptor.INSTANCE,
                 RubyNode.EMPTY_ARGUMENTS);
 

@@ -43,7 +43,7 @@ public class RunModuleDefinitionNode extends RubyContextSourceNode {
                 definition,
                 null,
                 module,
-                nil,
+                nil(),
                 EmptyArgumentsDescriptor.INSTANCE,
                 EMPTY_ARGUMENTS));
     }

@@ -1938,7 +1938,7 @@ public abstract class IntegerNodes {
                 profileAndReportLoopCount(loopProfile, from - i + 1);
             }
 
-            return nil;
+            return nil();
         }
 
         @Specialization
@@ -1957,7 +1957,7 @@ public abstract class IntegerNodes {
                 profileAndReportLoopCount(loopProfile, from - i + 1);
             }
 
-            return nil;
+            return nil();
         }
 
         @Specialization
@@ -2014,7 +2014,7 @@ public abstract class IntegerNodes {
                 profileAndReportLoopCount(loopProfile, i - from + 1);
             }
 
-            return nil;
+            return nil();
         }
 
         @Specialization
@@ -2033,7 +2033,7 @@ public abstract class IntegerNodes {
                 profileAndReportLoopCount(loopProfile, i - from + 1);
             }
 
-            return nil;
+            return nil();
         }
 
         @Specialization

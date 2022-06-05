@@ -23,7 +23,7 @@ public class SetTopLevelBindingNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
         final MaterializedFrame mainScriptFrame = frame.materialize();
         updateTopLevelBindingFrame(mainScriptFrame);
-        return nil;
+        return nil();
     }
 
     @TruffleBoundary

@@ -39,7 +39,7 @@ public class UnlessNode extends RubyContextSourceNode {
         if (!conditionProfile.profile(condition.execute(frame))) {
             return thenBody.execute(frame);
         } else {
-            return nil;
+            return nil();
         }
     }
 

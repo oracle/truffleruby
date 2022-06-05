@@ -53,7 +53,7 @@ public abstract class ArrayIndexNodes {
             if (isInBounds.profile(0 <= normalizedIndex && normalizedIndex < size)) {
                 return stores.read(store, normalizedIndex);
             } else {
-                return nil;
+                return nil();
             }
         }
     }
@@ -84,7 +84,7 @@ public abstract class ArrayIndexNodes {
 
         @Specialization(guards = "!isInBounds(array, index)")
         protected Object readOutOfBounds(RubyArray array, int index) {
-            return nil;
+            return nil();
         }
 
         protected static boolean isInBounds(RubyArray array, int index) {
@@ -104,12 +104,12 @@ public abstract class ArrayIndexNodes {
 
         @Specialization(guards = "!indexInBounds(array, index)")
         protected Object readIndexOutOfBounds(RubyArray array, int index, int length) {
-            return nil;
+            return nil();
         }
 
         @Specialization(guards = "length < 0")
         protected Object readNegativeLength(RubyArray array, int index, int length) {
-            return nil;
+            return nil();
         }
 
         @Specialization(guards = { "indexInBounds(array, index)", "length >= 0" })

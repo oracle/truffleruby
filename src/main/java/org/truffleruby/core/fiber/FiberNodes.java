@@ -127,7 +127,7 @@ public abstract class FiberNodes {
         protected Object initialize(RubyFiber fiber, boolean blocking, RubyProc block) {
             final RubyThread thread = getLanguage().getCurrentThread();
             getContext().fiberManager.initialize(fiber, blocking, block, this);
-            return nil;
+            return nil();
         }
 
         @Specialization

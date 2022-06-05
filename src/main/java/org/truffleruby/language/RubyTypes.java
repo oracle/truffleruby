@@ -30,12 +30,12 @@ public abstract class RubyTypes {
 
     @TypeCheck(Nil.class)
     public static boolean isNil(Object value) {
-        return value == Nil.INSTANCE;
+        return value == Nil.get();
     }
 
     @TypeCast(Nil.class)
     public static Nil asNil(Object value) {
-        return Nil.INSTANCE;
+        return Nil.get();
     }
 
     @TypeCheck(NotProvided.class)

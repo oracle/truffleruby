@@ -65,7 +65,7 @@ public class ReadClassVariableNode extends RubyContextSourceNode {
         final Object value = lookupClassVariableNode.execute(module, name);
 
         if (value == null) {
-            return nil;
+            return nil();
         } else {
             return FrozenStrings.CLASS_VARIABLE;
         }

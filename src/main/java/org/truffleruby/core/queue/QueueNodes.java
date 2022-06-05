@@ -84,7 +84,7 @@ public abstract class QueueNodes {
 
             if (value == UnsizedQueue.CLOSED) {
                 closedProfile.enter();
-                return nil;
+                return nil();
             } else {
                 return value;
             }
@@ -147,7 +147,7 @@ public abstract class QueueNodes {
             if (result == null) {
                 return false;
             } else if (result == UnsizedQueue.CLOSED) {
-                return nil;
+                return nil();
             } else {
                 return result;
             }

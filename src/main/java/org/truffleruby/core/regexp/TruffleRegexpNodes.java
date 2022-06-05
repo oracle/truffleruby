@@ -403,7 +403,7 @@ public class TruffleRegexpNodes {
 
         @Fallback
         protected Object other(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
-            return nil;
+            return nil();
         }
 
         DispatchNode getWarnOnFallbackNode() {
@@ -889,7 +889,7 @@ public class TruffleRegexpNodes {
                     tRegexCouldNotCompileProfile.profile((tRegex = tRegexCompileNode.executeTRegexCompile(
                             regexp,
                             atStart,
-                            negotiatedEncoding)) == nil)) {
+                            negotiatedEncoding)) == nil())) {
                 return fallbackToJoni(
                         regexp,
                         string,
@@ -964,7 +964,7 @@ public class TruffleRegexpNodes {
 
                     return createMatchData(regexp, dupString(string), region, result);
                 } else {
-                    return nil;
+                    return nil();
                 }
             } else {
                 return result;
@@ -1093,7 +1093,7 @@ public class TruffleRegexpNodes {
 
             if (createMatchDataProfile.profile(createMatchData)) {
                 if (mismatchProfile.profile(match == Matcher.FAILED)) {
-                    return nil;
+                    return nil();
                 }
 
                 assert match >= 0;

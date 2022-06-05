@@ -283,7 +283,7 @@ public abstract class RequireNode extends RubyBaseNode {
 
         requireMetric("before-execute-" + feature);
         ValueWrapperManager.allocateNewBlock(getContext(), getLanguage());
-        getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack.push(false, nil, nil);
+        getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack.push(false, nil(), nil());
         try {
             InteropNodes
                     .execute(

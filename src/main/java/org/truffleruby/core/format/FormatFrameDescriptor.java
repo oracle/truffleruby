@@ -26,7 +26,7 @@ public class FormatFrameDescriptor {
     public static final int ASSOCIATED_SLOT;
     public static final FrameDescriptor FRAME_DESCRIPTOR;
     static {
-        var builder = FrameDescriptor.newBuilder().defaultValue(Nil.INSTANCE);
+        var builder = FrameDescriptor.newBuilder().defaultValue(Nil.get());
         SOURCE_SLOT = builder.addSlot(FrameSlotKind.Object, "source", null);
         SOURCE_LENGTH_SLOT = builder.addSlot(FrameSlotKind.Int, "source-length", null);
         SOURCE_POSITION_SLOT = builder.addSlot(FrameSlotKind.Int, "source-position", null);

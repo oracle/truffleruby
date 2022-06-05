@@ -71,7 +71,7 @@ public abstract class TruffleBootNodes {
         protected Object rubyHome() {
             final String home = getLanguage().getRubyHome();
             if (home == null) {
-                return nil;
+                return nil();
             } else {
                 return makeStringNode.executeMake(home, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
             }
@@ -84,7 +84,7 @@ public abstract class TruffleBootNodes {
 
         @Specialization
         protected Object forceContext() {
-            return nil;
+            return nil();
         }
     }
 
@@ -279,7 +279,7 @@ public abstract class TruffleBootNodes {
             });
 
             if (source == null) {
-                return nil;
+                return nil();
             }
 
             return makeStringNode
@@ -303,7 +303,7 @@ public abstract class TruffleBootNodes {
             if (emitWarningsNode != null) {
                 emitWarningsNode.printWarnings(context);
             }
-            return nil;
+            return nil();
         }
 
     }
@@ -323,7 +323,7 @@ public abstract class TruffleBootNodes {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions()
-                                .nameError("option not defined: " + optionNameString, nil, optionNameString, this));
+                                .nameError("option not defined: " + optionNameString, nil(), optionNameString, this));
             }
 
             Object value = getContext().getOptions().fromDescriptor(descriptor);
@@ -371,7 +371,7 @@ public abstract class TruffleBootNodes {
         @Specialization
         protected Object printTimeMetric(RubySymbol name) {
             Metrics.printTime(name.getString());
-            return nil;
+            return nil();
         }
 
     }

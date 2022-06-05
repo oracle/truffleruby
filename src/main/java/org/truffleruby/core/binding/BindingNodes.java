@@ -481,7 +481,7 @@ public abstract class BindingNodes {
             final SourceSection sourceSection = binding.sourceSection;
 
             if (sourceSection == null) {
-                return nil;
+                return nil();
             } else {
                 final RubyString file = makeStringNode.executeMake(
                         getLanguage().getSourcePath(sourceSection.getSource()),

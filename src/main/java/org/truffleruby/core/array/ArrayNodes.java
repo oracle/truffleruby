@@ -243,7 +243,7 @@ public abstract class ArrayNodes {
         @Specialization
         protected Object at(RubyArray array, long index) {
             assert !CoreLibrary.fitsIntoInteger(index);
-            return nil;
+            return nil();
         }
 
         @Specialization(guards = "!isImplicitLong(index)")
@@ -308,7 +308,7 @@ public abstract class ArrayNodes {
                 @Cached ReadSliceNormalizedNode readSliceNode,
                 @Cached ConditionProfile negativeIndexProfile) {
             if (length < 0) {
-                return nil;
+                return nil();
             }
             if (negativeIndexProfile.profile(start < 0)) {
                 start += array.size;
@@ -519,7 +519,7 @@ public abstract class ArrayNodes {
             try {
                 for (; loopProfile.inject(n < size); n++) {
                     Object v = stores.read(store, n);
-                    if (v != nil) {
+                    if (v != nil()) {
                         arrayBuilder.appendValue(state, m, v);
                         m++;
                     }
@@ -543,7 +543,7 @@ public abstract class ArrayNodes {
         protected Object compactNotObjects(RubyArray array,
                 @Bind("array.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores) {
-            return nil;
+            return nil();
         }
 
         @Specialization(guards = "!stores.isPrimitive(store)", limit = "storageStrategyLimit()")
@@ -567,7 +567,7 @@ public abstract class ArrayNodes {
             try {
                 for (; loopProfile.inject(n < size); n++) {
                     Object v = stores.read(oldStore, n);
-                    if (v != nil) {
+                    if (v != nil()) {
                         mutableStores.write(newStore, m, v);
                         m++;
                     }
@@ -583,7 +583,7 @@ public abstract class ArrayNodes {
             array.size = m;
 
             if (m == size) {
-                return nil;
+                return nil();
             } else {
                 return array;
             }
@@ -714,7 +714,7 @@ public abstract class ArrayNodes {
             assert !sameStores || (oldStore == newStore && oldStores == newStores);
 
             final int size = arraySizeProfile.profile(array.size);
-            Object found = nil;
+            Object found = nil();
 
             int i = 0;
             int n = 0;
@@ -746,8 +746,8 @@ public abstract class ArrayNodes {
                 array.size = i;
                 return found;
             } else {
-                if (maybeBlock == nil) {
-                    return nil;
+                if (maybeBlock == nil()) {
+                    return nil();
                 } else {
                     return callBlock((RubyProc) maybeBlock, value);
                 }
@@ -791,7 +791,7 @@ public abstract class ArrayNodes {
             }
 
             if (notInBoundsProfile.profile(i < 0 || i >= size)) {
-                return nil;
+                return nil();
             } else {
                 final Object value = stores.read(store, i);
                 stores.copyContents(store, i + 1, store, i, size - i - 1);
@@ -818,7 +818,7 @@ public abstract class ArrayNodes {
             }
 
             if (notInBoundsProfile.profile(i < 0 || i >= size)) {
-                return nil;
+                return nil();
             } else {
                 final Object mutableStore = stores.allocator(store).allocate(size - 1);
                 stores.copyContents(store, 0, mutableStore, 0, i);
@@ -1187,7 +1187,7 @@ public abstract class ArrayNodes {
         @Specialization(guards = "size >= 0")
         protected RubyArray initializeWithSizeNoValue(RubyArray array, int size, NotProvided fillingValue, Nil block) {
             final Object[] store = new Object[size];
-            Arrays.fill(store, nil);
+            Arrays.fill(store, nil());
             setStoreAndSize(array, store, size);
             return array;
         }
@@ -1270,10 +1270,10 @@ public abstract class ArrayNodes {
             }
 
             if (copy != null) {
-                return executeInitialize(array, copy, NotProvided.INSTANCE, nil);
+                return executeInitialize(array, copy, NotProvided.INSTANCE, nil());
             } else {
                 int size = toInt(object);
-                return executeInitialize(array, size, NotProvided.INSTANCE, nil);
+                return executeInitialize(array, size, NotProvided.INSTANCE, nil());
             }
         }
 
@@ -1345,7 +1345,7 @@ public abstract class ArrayNodes {
         @ReportPolymorphism.Exclude
         protected Object injectEmptyArrayNoInitial(
                 RubyArray array, NotProvided initialOrSymbol, NotProvided symbol, RubyProc block) {
-            return nil;
+            return nil();
         }
 
         @Specialization(
@@ -1395,7 +1395,7 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "isEmptyArray(array)" })
         protected Object injectSymbolEmptyArrayNoInitial(
                 RubyArray array, RubySymbol initialOrSymbol, NotProvided symbol, Nil block) {
-            return nil;
+            return nil();
         }
 
         @Specialization(
@@ -1813,7 +1813,7 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "array.size == 0")
         protected Object rejectEmpty(RubyArray array, RubyProc block) {
-            return nil;
+            return nil();
         }
 
         @Specialization(
@@ -1887,7 +1887,7 @@ public abstract class ArrayNodes {
             if (i != n) {
                 return array;
             } else {
-                return nil;
+                return nil();
             }
         }
     }
@@ -2108,7 +2108,7 @@ public abstract class ArrayNodes {
         @Specialization(guards = "isEmptyArray(array)")
         @ReportPolymorphism.Exclude
         protected Object shiftEmpty(RubyArray array, NotProvided n) {
-            return nil;
+            return nil();
         }
 
         @Specialization(guards = "!isEmptyArray(array)", limit = "storageStrategyLimit()")
@@ -2326,7 +2326,7 @@ public abstract class ArrayNodes {
                         pairs.write(pair, 1, bStores.read(b, n));
                         zipped[n] = createArray(pair, 2);
                     } else {
-                        zipped[n] = createArray(new Object[]{ aStores.read(a, n), nil });
+                        zipped[n] = createArray(new Object[]{ aStores.read(a, n), nil() });
                     }
                     TruffleSafepoint.poll(this);
                 }
@@ -2461,7 +2461,7 @@ public abstract class ArrayNodes {
                             obj,
                             coreLibrary().arrayClass,
                             coreSymbols().TO_ARY);
-                    if (converted == nil) {
+                    if (converted == nil()) {
                         append.executeAppendOne(out, obj);
                     } else {
                         modified = true;

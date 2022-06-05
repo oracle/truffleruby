@@ -734,7 +734,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
             assert rubyStringName != null;
             return rubyStringName;
         } else {
-            return Nil.INSTANCE;
+            return Nil.get();
         }
     }
 

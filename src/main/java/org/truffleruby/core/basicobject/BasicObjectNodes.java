@@ -310,7 +310,7 @@ public abstract class BasicObjectNodes {
     public abstract static class InitializeNode extends AlwaysInlinedMethodNode {
         @Specialization
         protected Object initialize(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target) {
-            return nil;
+            return nil();
         }
     }
 
@@ -448,7 +448,7 @@ public abstract class BasicObjectNodes {
                     block.declarationContext.getRefinements());
             var descriptor = RubyArguments.getDescriptor(frame);
             return callBlockNode.executeCallBlock(
-                    declarationContext, block, receiver, nil, descriptor, arguments, null);
+                    declarationContext, block, receiver, nil(), descriptor, arguments, null);
         }
 
         @Specialization

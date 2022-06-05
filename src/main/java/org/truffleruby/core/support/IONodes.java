@@ -424,7 +424,7 @@ public abstract class IONodes {
                 throw new RaiseException(getContext(), coreExceptions().ioError("closed stream", this));
             } else {
                 assert fd >= 0;
-                return nil;
+                return nil();
             }
         }
 
@@ -448,7 +448,7 @@ public abstract class IONodes {
             });
 
             if (bytesRead < 0) {
-                return nil;
+                return nil();
             }
 
             final byte[] bytes;
@@ -529,7 +529,7 @@ public abstract class IONodes {
                 @Cached ConditionProfile freeProfile) {
             RubyThread thread = getLanguage().getCurrentThread();
             thread.ioBuffer.free(thread, pointer.pointer, freeProfile);
-            return nil;
+            return nil();
         }
     }
 

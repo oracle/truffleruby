@@ -171,7 +171,7 @@ public abstract class SizedQueueNodes {
             final Object value = doPop(queue);
 
             if (value == SizedQueue.CLOSED) {
-                return nil;
+                return nil();
             } else {
                 return value;
             }

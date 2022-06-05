@@ -16,13 +16,12 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.RubyModule;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
 import com.oracle.truffle.api.object.Shape;
-
-import static org.truffleruby.language.RubyBaseNode.nil;
 
 public final class RubyClass extends RubyModule implements ObjectGraphNode {
 
@@ -63,7 +62,7 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
             this.depth = ((RubyClass) superclass).depth + 1;
             fields.setSuperClass((RubyClass) superclass);
         } else { // BasicObject (nil superclass)
-            assert superclass == nil;
+            assert superclass == Nil.get();
             this.superclass = superclass;
             this.ancestorClasses = EMPTY_CLASS_ARRAY;
             this.depth = 0;
@@ -80,7 +79,7 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
         this.attached = null;
         this.nonSingletonClass = this;
 
-        RubyClass basicObjectClass = ClassNodes.createBootClass(language, this, nil, "BasicObject");
+        RubyClass basicObjectClass = ClassNodes.createBootClass(language, this, Nil.get(), "BasicObject");
         RubyClass objectClass = ClassNodes.createBootClass(language, this, basicObjectClass, "Object");
         RubyClass moduleClass = ClassNodes.createBootClass(language, this, objectClass, "Module");
 

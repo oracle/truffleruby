@@ -49,7 +49,7 @@ public abstract class WeakRefNodes {
             final TruffleWeakReference<?> ref = (TruffleWeakReference<?>) objectLibrary
                     .getOrDefault(weakRef, FIELD_NAME, EMPTY_WEAK_REF);
             final Object object = ref.get();
-            return object == null ? nil : object;
+            return object == null ? nil() : object;
         }
     }
 }

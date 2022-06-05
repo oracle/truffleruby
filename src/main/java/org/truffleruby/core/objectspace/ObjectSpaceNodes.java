@@ -57,7 +57,7 @@ public abstract class ObjectSpaceNodes {
 
         @Specialization(guards = "id == NIL")
         protected Object id2RefNil(long id) {
-            return nil;
+            return nil();
         }
 
         @Specialization(guards = "id == TRUE")
@@ -279,7 +279,7 @@ public abstract class ObjectSpaceNodes {
 
             objectLibrary.put(object, Layouts.DATA_OBJECT_FINALIZER_REF_IDENTIFIER, newRef);
 
-            return nil;
+            return nil();
         }
 
 

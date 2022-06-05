@@ -11,10 +11,9 @@ package org.truffleruby.language.threadlocal;
 
 import com.oracle.truffle.api.exception.AbstractTruffleException;
 import org.truffleruby.core.exception.RubyException;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.TerminationException;
-
-import static org.truffleruby.language.RubyBaseNode.nil;
 
 public class ThreadLocalGlobals {
 
@@ -22,8 +21,8 @@ public class ThreadLocalGlobals {
     public Object processStatus; // $?
 
     public ThreadLocalGlobals() {
-        this.lastException = nil;
-        this.processStatus = nil;
+        this.lastException = Nil.get();
+        this.processStatus = Nil.get();
     }
 
     public Object getLastException() {
@@ -33,7 +32,8 @@ public class ThreadLocalGlobals {
     public void setLastException(Object exception) {
         assert !(exception instanceof TerminationException) : "$? should never be a TerminationException: " + exception;
         assert !(exception instanceof RaiseException) : "$? should never be a RaiseException: " + exception;
-        assert exception == nil || exception instanceof RubyException || exception instanceof AbstractTruffleException;
+        assert exception == Nil.get() || exception instanceof RubyException ||
+                exception instanceof AbstractTruffleException;
         this.lastException = exception;
     }
 }

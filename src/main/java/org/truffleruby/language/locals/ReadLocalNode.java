@@ -46,10 +46,10 @@ public abstract class ReadLocalNode extends RubyContextSourceNode {
                 return FrozenStrings.LOCAL_VARIABLE;
 
             case FRAME_LOCAL_GLOBAL:
-                if (readFrameSlot(frame) != nil) {
+                if (readFrameSlot(frame) != nil()) {
                     return FrozenStrings.GLOBAL_VARIABLE;
                 } else {
-                    return nil;
+                    return nil();
                 }
 
             default:

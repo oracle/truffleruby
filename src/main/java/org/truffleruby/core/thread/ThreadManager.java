@@ -238,7 +238,7 @@ public class ThreadManager {
                 context.getCoreLibrary().threadClass,
                 language.threadShape,
                 language,
-                Nil.INSTANCE,
+                Nil.get(),
                 info);
     }
 
@@ -310,20 +310,20 @@ public class ThreadManager {
             // Handlers in the same order as in FiberManager
             // Each catch must either setThreadValue() (before rethrowing) or setException()
         } catch (KillException e) {
-            setThreadValue(thread, Nil.INSTANCE);
+            setThreadValue(thread, Nil.get());
         } catch (ThreadDeath e) { // Context#close(true)
-            setThreadValue(thread, Nil.INSTANCE);
+            setThreadValue(thread, Nil.get());
             throw e;
         } catch (RaiseException e) {
             setException(thread, e.getException(), currentNode);
         } catch (DynamicReturnException e) {
             setException(thread, context.getCoreExceptions().unexpectedReturn(currentNode), currentNode);
         } catch (ExitException e) {
-            setThreadValue(thread, Nil.INSTANCE);
+            setThreadValue(thread, Nil.get());
             rethrowOnMainThread(currentNode, e);
         } catch (Throwable e) {
             final RuntimeException runtimeException = printInternalError(e);
-            setThreadValue(thread, Nil.INSTANCE);
+            setThreadValue(thread, Nil.get());
             rethrowOnMainThread(currentNode, runtimeException);
         } finally {
             assert thread.value != null || thread.exception != null;

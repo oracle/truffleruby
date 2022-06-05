@@ -95,7 +95,7 @@ public abstract class ObjSpaceNodes {
 
         @Fallback
         protected Object adjacentObjectsPrimitive(Object object) {
-            return nil;
+            return nil();
         }
     }
 
@@ -116,7 +116,7 @@ public abstract class ObjSpaceNodes {
         @Specialization
         protected Object traceAllocationsStart() {
             getContext().getObjectSpaceManager().traceAllocationsStart(getLanguage());
-            return nil;
+            return nil();
         }
     }
 
@@ -126,7 +126,7 @@ public abstract class ObjSpaceNodes {
         @Specialization
         protected Object traceAllocationsStop() {
             getContext().getObjectSpaceManager().traceAllocationsStop(getLanguage());
-            return nil;
+            return nil();
         }
     }
 
@@ -136,7 +136,7 @@ public abstract class ObjSpaceNodes {
         @Specialization
         protected Object traceAllocationsClear() {
             getContext().getObjectSpaceManager().traceAllocationsClear();
-            return nil;
+            return nil();
         }
     }
 
@@ -148,11 +148,11 @@ public abstract class ObjSpaceNodes {
                 @Cached MakeStringNode makeStringNode) {
             AllocationTrace trace = getAllocationTrace(getContext(), object);
             if (trace == null) {
-                return nil;
+                return nil();
             } else {
                 final String className = trace.className;
                 if (className.isEmpty()) {
-                    return nil;
+                    return nil();
                 } else {
                     return makeStringNode.executeMake(className, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
                 }
@@ -161,7 +161,7 @@ public abstract class ObjSpaceNodes {
 
         @Fallback
         protected Object allocationInfoImmutable(Object object) {
-            return nil;
+            return nil();
         }
     }
 
@@ -172,7 +172,7 @@ public abstract class ObjSpaceNodes {
         protected Object allocationInfo(RubyDynamicObject object) {
             AllocationTrace trace = getAllocationTrace(getContext(), object);
             if (trace == null) {
-                return nil;
+                return nil();
             } else {
                 return trace.gcGeneration;
             }
@@ -180,7 +180,7 @@ public abstract class ObjSpaceNodes {
 
         @Fallback
         protected Object allocationGenerationImmutable(Object object) {
-            return nil;
+            return nil();
         }
     }
 
@@ -191,11 +191,11 @@ public abstract class ObjSpaceNodes {
         protected Object allocationInfo(RubyDynamicObject object) {
             AllocationTrace trace = getAllocationTrace(getContext(), object);
             if (trace == null) {
-                return nil;
+                return nil();
             } else {
                 final String allocatingMethod = trace.allocatingMethod;
                 if (allocatingMethod.startsWith("<")) { // <top (required)> or <main> are hidden in MRI
-                    return nil;
+                    return nil();
                 } else if (allocatingMethod.equals("__allocate__")) { // The allocator function is hidden in MRI
                     return getLanguage().coreSymbols.NEW;
                 } else {
@@ -206,7 +206,7 @@ public abstract class ObjSpaceNodes {
 
         @Fallback
         protected Object allocationMethodIdImmutable(Object object) {
-            return nil;
+            return nil();
         }
     }
 
@@ -218,7 +218,7 @@ public abstract class ObjSpaceNodes {
                 @Cached MakeStringNode makeStringNode) {
             AllocationTrace trace = getAllocationTrace(getContext(), object);
             if (trace == null) {
-                return nil;
+                return nil();
             } else {
                 final String sourcePath = getLanguage().getSourcePath(trace.allocatingSourceSection.getSource());
                 return makeStringNode.executeMake(sourcePath, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
@@ -227,7 +227,7 @@ public abstract class ObjSpaceNodes {
 
         @Fallback
         protected Object allocationSourcefileImmutable(Object object) {
-            return nil;
+            return nil();
         }
     }
 
@@ -238,7 +238,7 @@ public abstract class ObjSpaceNodes {
         protected Object allocationInfo(RubyDynamicObject object) {
             AllocationTrace trace = getAllocationTrace(getContext(), object);
             if (trace == null) {
-                return nil;
+                return nil();
             } else {
                 return trace.allocatingSourceSection.getStartLine();
             }
@@ -246,7 +246,7 @@ public abstract class ObjSpaceNodes {
 
         @Fallback
         protected Object allocationSourcelineImmutable(Object object) {
-            return nil;
+            return nil();
         }
     }
 

@@ -621,7 +621,7 @@ public class CoreLibrary {
     private Object verbosityOption() {
         switch (context.getOptions().VERBOSITY) {
             case NIL:
-                return Nil.INSTANCE;
+                return Nil.get();
             case FALSE:
                 return false;
             case TRUE:
@@ -887,7 +887,7 @@ public class CoreLibrary {
 
     /** true if $VERBOSE is true or false, but not nil */
     public boolean warningsEnabled() {
-        return verbosity() != Nil.INSTANCE;
+        return verbosity() != Nil.get();
     }
 
     /** true only if $VERBOSE is true */

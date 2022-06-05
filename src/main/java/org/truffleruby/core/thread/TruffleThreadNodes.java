@@ -62,7 +62,7 @@ public class TruffleThreadNodes {
                             moduleArray,
                             f -> new FrameAndCallNode(f.getFrame(FrameAccess.MATERIALIZE), f.getCallNode()));
             if (data == null) {
-                return nil;
+                return nil();
             } else {
                 CallerDataReadingNode.notifyCallerToSendData(getContext(), data.callNode, this);
                 Object variables = storageNode.execute(data.frame.materialize());

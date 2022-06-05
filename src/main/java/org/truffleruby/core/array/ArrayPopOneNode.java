@@ -28,7 +28,7 @@ public abstract class ArrayPopOneNode extends RubyBaseNode {
 
     @Specialization(guards = "isEmptyArray(array)")
     protected Object popOneEmpty(RubyArray array) {
-        return nil;
+        return nil();
     }
 
     // Pop from a non-empty array

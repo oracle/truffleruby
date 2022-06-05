@@ -42,12 +42,12 @@ public abstract class CallBlockNode extends RubyBaseNode {
 
     public final Object yield(RubyProc block, ArgumentsDescriptor descriptor, Object[] args,
             LiteralCallNode literalCallNode) {
-        return executeCallBlock(block.declarationContext, block, ProcOperations.getSelf(block), nil, descriptor, args,
+        return executeCallBlock(block.declarationContext, block, ProcOperations.getSelf(block), nil(), descriptor, args,
                 literalCallNode);
     }
 
     public final Object yield(RubyProc block, Object... args) {
-        return executeCallBlock(block.declarationContext, block, ProcOperations.getSelf(block), nil,
+        return executeCallBlock(block.declarationContext, block, ProcOperations.getSelf(block), nil(),
                 EmptyArgumentsDescriptor.INSTANCE, args, null);
     }
 

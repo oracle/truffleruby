@@ -164,7 +164,7 @@ public abstract class ByteArrayNodes {
 
             if (start >= length) {
                 tooLargeStartProfile.enter();
-                return nil;
+                return nil();
             }
 
             if (start < 0) {
@@ -174,7 +174,7 @@ public abstract class ByteArrayNodes {
 
             final int index = ArrayUtils.indexOf(bytes, start, length, searchByte);
 
-            return index == -1 ? nil : index + 1;
+            return index == -1 ? nil() : index + 1;
         }
 
         @Specialization(
@@ -192,7 +192,7 @@ public abstract class ByteArrayNodes {
                     bytesNode.execute(patternRope));
 
             if (notFoundProfile.profile(index == -1)) {
-                return nil;
+                return nil();
             } else {
                 return index + characterLengthNode.execute(patternRope);
             }

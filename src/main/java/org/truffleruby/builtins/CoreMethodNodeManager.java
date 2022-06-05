@@ -285,7 +285,7 @@ public class CoreMethodNodeManager {
                     null,
                     callTarget,
                     callTargetSupplier,
-                    Nil.INSTANCE));
+                    Nil.get()));
         }
     }
 

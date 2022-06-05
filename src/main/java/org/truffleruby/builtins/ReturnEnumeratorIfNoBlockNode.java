@@ -37,7 +37,7 @@ public class ReturnEnumeratorIfNoBlockNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
         final Object block = RubyArguments.getBlock(frame);
 
-        if (noBlockProfile.profile(block == nil)) {
+        if (noBlockProfile.profile(block == nil())) {
             if (toEnumNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toEnumNode = insert(DispatchNode.create());

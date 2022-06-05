@@ -74,8 +74,8 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
         for (RubyNode value : values) {
-            if (value.isDefined(frame, language, context) == nil) {
-                return nil;
+            if (value.isDefined(frame, language, context) == nil()) {
+                return nil();
             }
         }
 
@@ -337,7 +337,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
                 final double[] store = new double[objects.length];
 
                 for (int n = 0; n < objects.length; n++) {
-                    store[n] = CoreLibrary.toDouble(objects[n], nil);
+                    store[n] = CoreLibrary.toDouble(objects[n], nil());
                 }
 
                 return store;

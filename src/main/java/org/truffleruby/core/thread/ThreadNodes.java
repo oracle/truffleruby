@@ -169,7 +169,7 @@ public abstract class ThreadNodes {
             // If the thread is dead or aborting the SafepointAction will not run.
             // Must return nil if omitting more entries than available.
             if (backtrace == null || omit > backtrace.getTotalUnderlyingElements()) {
-                return nil;
+                return nil();
             }
 
             if (length < 0) {
@@ -251,7 +251,7 @@ public abstract class ThreadNodes {
 
             // If the thread is dead or aborting the SafepointAction will not run.
             return backtraceLocationsMemo.get() == null
-                    ? nil
+                    ? nil()
                     : backtraceLocationsMemo.get();
         }
     }
@@ -438,7 +438,7 @@ public abstract class ThreadNodes {
                     info,
                     sharingReason,
                     () -> ProcOperations.rootCall(block, descriptor, args));
-            return nil;
+            return nil();
         }
     }
 
@@ -486,7 +486,7 @@ public abstract class ThreadNodes {
             if (doJoinNanos(self, timeoutInNanos)) {
                 return self;
             } else {
-                return nil;
+                return nil();
             }
         }
 
@@ -556,7 +556,7 @@ public abstract class ThreadNodes {
         @Specialization
         protected Object pass() {
             Thread.yield();
-            return nil;
+            return nil();
         }
 
     }
@@ -572,7 +572,7 @@ public abstract class ThreadNodes {
             final ThreadStatus status = self.status;
             if (status == ThreadStatus.DEAD) {
                 if (self.exception != null) {
-                    return nil;
+                    return nil();
                 } else {
                     return false;
                 }
@@ -649,7 +649,7 @@ public abstract class ThreadNodes {
                 @Cached("new(receivers, translateInteropExceptionNode)") BlockingCallInterruptible blockingCallInterruptible) {
             final ThreadManager threadManager = getContext().getThreadManager();
             final Interrupter interrupter;
-            if (unblocker == nil) {
+            if (unblocker == nil()) {
                 interrupter = threadManager.getNativeCallInterrupter();
             } else {
                 interrupter = makeInterrupter(getContext(), unblocker, unblockerArg);
@@ -844,7 +844,7 @@ public abstract class ThreadNodes {
         @Specialization
         protected Object raise(RubyThread thread, RubyException exception) {
             raiseInThread(getLanguage(), getContext(), thread, exception, this);
-            return nil;
+            return nil();
         }
 
         @TruffleBoundary

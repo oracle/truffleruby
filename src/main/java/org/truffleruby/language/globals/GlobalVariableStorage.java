@@ -50,7 +50,7 @@ public final class GlobalVariableStorage {
 
     public Object getValue() {
         Object currentValue = value;
-        return currentValue == UNSET_VALUE ? Nil.INSTANCE : currentValue;
+        return currentValue == UNSET_VALUE ? Nil.get() : currentValue;
     }
 
     public boolean isDefined() {

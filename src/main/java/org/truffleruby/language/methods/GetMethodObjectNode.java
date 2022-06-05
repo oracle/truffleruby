@@ -101,7 +101,7 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
         final RubyRootNode newRootNode = new RubyRootNode(
                 getLanguage(),
                 info.getSourceSection(),
-                new FrameDescriptor(nil),
+                new FrameDescriptor(nil()),
                 info,
                 newBody,
                 Split.HEURISTIC,

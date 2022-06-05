@@ -27,7 +27,7 @@ public class ThreadAndFrameLocalStorage {
     public ThreadAndFrameLocalStorage(RubyContext context) {
         // Cannot store a Thread id while pre-initializing
         originalThreadId = context.isPreInitializing() ? 0 : Thread.currentThread().getId();
-        originalThreadValue = Nil.INSTANCE;
+        originalThreadValue = Nil.get();
     }
 
     public Object get(ConditionProfile sameThreadProfile) {
@@ -47,7 +47,7 @@ public class ThreadAndFrameLocalStorage {
                 if (otherThreadValues != null) {
                     return otherThreadValues;
                 } else {
-                    otherThreadValues = ThreadLocal.withInitial(() -> Nil.INSTANCE);
+                    otherThreadValues = ThreadLocal.withInitial(() -> Nil.get());
                     return otherThreadValues;
                 }
             }

@@ -48,7 +48,7 @@ public class EnsureNode extends RubyContextSourceNode {
     /** The reason this is so complicated is to avoid duplication of the ensurePart so it is PE'd only once, no matter
      * which execution paths are taken (GR-25608). */
     public Object executeCommon(VirtualFrame frame, boolean executeVoid) {
-        Object value = nil;
+        Object value = nil();
         AbstractTruffleException guestException = null;
         Throwable javaException = null;
 

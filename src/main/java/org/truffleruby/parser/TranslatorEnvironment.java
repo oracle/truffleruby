@@ -150,7 +150,7 @@ public class TranslatorEnvironment {
                     "A descriptor should either be a method and have special variables, or be a block and have no special variables");
         }
 
-        var builder = FrameDescriptor.newBuilder().defaultValue(Nil.INSTANCE);
+        var builder = FrameDescriptor.newBuilder().defaultValue(Nil.get());
 
         if (parentDescriptor != null) {
             builder.info(parentDescriptor);

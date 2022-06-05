@@ -563,7 +563,7 @@ public abstract class RangeNodes {
                 @Cached DispatchNode compare,
                 @Bind("rubyClass == getRangeClass()") boolean standardClass) {
 
-            if (compare.call(begin, "<=>", end) == nil && end != nil && begin != nil) {
+            if (compare.call(begin, "<=>", end) == nil() && end != nil() && begin != nil()) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("bad value for range", this));
             }
 
@@ -585,7 +585,7 @@ public abstract class RangeNodes {
         @Specialization
         protected RubyObjectRange allocate(RubyClass rubyClass) {
             final Shape shape = getLanguage().objectRangeShape;
-            final RubyObjectRange range = new RubyObjectRange(rubyClass, shape, false, nil, nil, false);
+            final RubyObjectRange range = new RubyObjectRange(rubyClass, shape, false, nil(), nil(), false);
             AllocationTracing.trace(range, this);
             return range;
         }

@@ -73,7 +73,7 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
             } else {
                 runFinalizer(ref);
             }
-            return Nil.INSTANCE;
+            return Nil.get();
         }
 
         private void runFinalizer(DataObjectFinalizerReference ref) throws Error {

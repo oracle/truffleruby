@@ -275,7 +275,7 @@ public class Backtrace {
         // Omitting more locations than available should return nil.
         if (stackTraceLength == 0) {
             return omitted > totalUnderlyingElements
-                    ? Nil.INSTANCE
+                    ? Nil.get()
                     : ArrayHelpers.createEmptyArray(context, language);
         }
 

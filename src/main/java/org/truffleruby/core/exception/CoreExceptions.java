@@ -952,7 +952,7 @@ public class CoreExceptions {
                 null,
                 // FIXME: the name of the method is not known in this case currently
                 language.getSymbol("<unknown>"),
-                Nil.INSTANCE);
+                Nil.get());
     }
 
     public RubyNoMethodError noMethodErrorUnknownIdentifier(Object receiver, String name, Object[] args,
@@ -1258,7 +1258,7 @@ public class CoreExceptions {
         RubyClass exceptionClass = context.getCoreLibrary().systemCallErrorClass;
         Object errorMessage;
         if (message == null) {
-            errorMessage = Nil.INSTANCE;
+            errorMessage = Nil.get();
         } else {
             errorMessage = StringOperations
                     .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));

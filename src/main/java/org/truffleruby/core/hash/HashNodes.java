@@ -325,10 +325,10 @@ public abstract class HashNodes {
             final Object value = hashes.delete(hash.store, hash, key);
             if (hasValue.profile(value != null)) {
                 return value;
-            } else if (hasBlock.profile(maybeBlock != nil)) {
+            } else if (hasBlock.profile(maybeBlock != nil())) {
                 return yieldNode.yield((RubyProc) maybeBlock, key);
             } else {
-                return nil;
+                return nil();
             }
         }
     }
@@ -369,8 +369,8 @@ public abstract class HashNodes {
         @Specialization
         protected RubyHash initialize(RubyHash hash, NotProvided defaultValue, Nil block) {
             assert HashStoreLibrary.verify(hash);
-            hash.defaultValue = nil;
-            hash.defaultBlock = nil;
+            hash.defaultValue = nil();
+            hash.defaultBlock = nil();
             return hash;
         }
 
@@ -378,7 +378,7 @@ public abstract class HashNodes {
         protected RubyHash initialize(RubyHash hash, NotProvided defaultValue, RubyProc block,
                 @Cached PropagateSharingNode propagateSharingNode) {
             assert HashStoreLibrary.verify(hash);
-            hash.defaultValue = nil;
+            hash.defaultValue = nil();
             propagateSharingNode.executePropagate(hash, block);
             hash.defaultBlock = block;
             return hash;
@@ -390,7 +390,7 @@ public abstract class HashNodes {
             assert HashStoreLibrary.verify(hash);
             propagateSharingNode.executePropagate(hash, defaultValue);
             hash.defaultValue = defaultValue;
-            hash.defaultBlock = nil;
+            hash.defaultBlock = nil();
             return hash;
         }
 
@@ -474,16 +474,16 @@ public abstract class HashNodes {
         protected RubyProc setDefaultProc(RubyHash hash, RubyProc defaultProc,
                 @Cached PropagateSharingNode propagateSharingNode) {
             propagateSharingNode.executePropagate(hash, defaultProc);
-            hash.defaultValue = nil;
+            hash.defaultValue = nil();
             hash.defaultBlock = defaultProc;
             return defaultProc;
         }
 
         @Specialization
         protected Object setDefaultProc(RubyHash hash, Nil defaultProc) {
-            hash.defaultValue = nil;
-            hash.defaultBlock = nil;
-            return nil;
+            hash.defaultValue = nil();
+            hash.defaultBlock = nil();
+            return nil();
         }
     }
 
@@ -496,7 +496,7 @@ public abstract class HashNodes {
             propagateSharingNode.executePropagate(hash, defaultValue);
 
             hash.defaultValue = defaultValue;
-            hash.defaultBlock = nil;
+            hash.defaultBlock = nil();
             return defaultValue;
         }
     }
@@ -508,7 +508,7 @@ public abstract class HashNodes {
         @Specialization(guards = "hash.empty()")
         protected Object shiftEmpty(RubyHash hash,
                 @Cached DispatchNode callDefault) {
-            return callDefault.call(hash, "default", nil);
+            return callDefault.call(hash, "default", nil());
         }
 
         @Specialization(guards = "!hash.empty()", limit = "hashStrategyLimit()")

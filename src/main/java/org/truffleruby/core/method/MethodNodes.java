@@ -220,7 +220,7 @@ public abstract class MethodNodes {
             SourceSection sourceSection = method.method.getSharedMethodInfo().getSourceSection();
 
             if (!sourceSection.isAvailable()) {
-                return nil;
+                return nil();
             } else {
                 RubyString file = makeStringNode.executeMake(
                         getLanguage().getSourcePath(sourceSection.getSource()),
@@ -244,7 +244,7 @@ public abstract class MethodNodes {
             RubyClass selfMetaClass = metaClassNode.execute(receiver);
             MethodLookupResult superMethod = ModuleOperations.lookupSuperMethod(internalMethod, selfMetaClass);
             if (!superMethod.isDefined()) {
-                return nil;
+                return nil();
             } else {
                 final RubyMethod instance = new RubyMethod(
                         coreLibrary().methodClass,
@@ -308,7 +308,8 @@ public abstract class MethodNodes {
 
         private RubyProc createProc(RootCallTarget callTarget, InternalMethod method, Object receiver) {
             final Object[] packedArgs = RubyArguments
-                    .pack(null, null, method, null, receiver, nil, EmptyArgumentsDescriptor.INSTANCE, EMPTY_ARGUMENTS);
+                    .pack(null, null, method, null, receiver, nil(), EmptyArgumentsDescriptor.INSTANCE,
+                            EMPTY_ARGUMENTS);
             final var variables = new SpecialVariableStorage();
             final MaterializedFrame declarationFrame = getLanguage().createEmptyDeclarationFrame(packedArgs, variables);
             return ProcOperations.createRubyProc(
@@ -371,13 +372,13 @@ public abstract class MethodNodes {
         @Specialization
         protected Object bound(RubyMethod rubyMethod) {
             unimplement(rubyMethod.method);
-            return nil;
+            return nil();
         }
 
         @Specialization
         protected Object unbound(RubyUnboundMethod rubyMethod) {
             unimplement(rubyMethod.method);
-            return nil;
+            return nil();
         }
 
         @TruffleBoundary

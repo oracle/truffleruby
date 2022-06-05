@@ -394,12 +394,12 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "isNaN(a)")
         protected Object compareFirstNaN(double a, Object b) {
-            return nil;
+            return nil();
         }
 
         @Specialization(guards = "isNaN(b)")
         protected Object compareSecondNaN(Object a, double b) {
-            return nil;
+            return nil();
         }
 
         @Specialization(guards = { "!isNaN(a)", "!isNaN(b)" })
@@ -512,7 +512,7 @@ public abstract class FloatNodes {
                     return 1;
                 }
             } else {
-                return nil;
+                return nil();
             }
         }
 

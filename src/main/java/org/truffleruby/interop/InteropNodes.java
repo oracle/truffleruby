@@ -225,7 +225,7 @@ public abstract class InteropNodes {
                 throw new RaiseException(getContext(), coreExceptions().ioError(e, this));
             }
 
-            return nil;
+            return nil();
         }
 
     }
@@ -726,7 +726,7 @@ public abstract class InteropNodes {
                 throw translateInteropException.execute(e);
             }
 
-            return Nil.INSTANCE;
+            return Nil.get();
         }
     }
 
@@ -1302,7 +1302,7 @@ public abstract class InteropNodes {
         protected Nil toNative(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             receivers.toNative(receiver);
-            return Nil.INSTANCE;
+            return Nil.get();
         }
 
     }
@@ -1460,7 +1460,7 @@ public abstract class InteropNodes {
                 throw translateInteropException.execute(e);
             }
 
-            return Nil.INSTANCE;
+            return Nil.get();
         }
     }
 
@@ -1658,14 +1658,14 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached FromJavaStringNode fromJavaStringNode) {
             if (!receivers.hasLanguage(receiver)) {
-                return nil;
+                return nil();
             }
 
             final Class<? extends TruffleLanguage<?>> language;
             try {
                 language = receivers.getLanguage(receiver);
             } catch (UnsupportedMessageException e) {
-                return nil;
+                return nil();
             }
 
             final String name = languageClassToLanguageName(language);
@@ -2158,7 +2158,7 @@ public abstract class InteropNodes {
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             try {
                 interop.removeHashEntry(receiver, key);
-                return nil;
+                return nil();
             } catch (InteropException e) {
                 throw translateInteropException.execute(e);
             }
@@ -2253,7 +2253,7 @@ public abstract class InteropNodes {
                     throw translateInteropException.execute(e);
                 }
             } else {
-                return nil;
+                return nil();
             }
         }
     }

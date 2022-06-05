@@ -78,20 +78,20 @@ public class ReadConstantNode extends RubyContextSourceNode {
 
     /** Whether the module part of this constant read is undefined, without attempting to evaluate it. */
     public boolean isModuleTriviallyUndefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
-        return moduleNode.isDefined(frame, language, context) == nil;
+        return moduleNode.isDefined(frame, language, context) == nil();
     }
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
         if (isModuleTriviallyUndefined(frame, language, context)) {
-            return nil;
+            return nil();
         }
         try {
             final RubyModule module = checkModule(moduleNode.execute(frame));
             final RubyConstant constant = getConstantIfDefined(module);
-            return constant == null ? nil : FrozenStrings.CONSTANT;
+            return constant == null ? nil() : FrozenStrings.CONSTANT;
         } catch (RaiseException e) {
-            return nil; // MRI swallows all exceptions in defined? (https://bugs.ruby-lang.org/issues/5786)
+            return nil(); // MRI swallows all exceptions in defined? (https://bugs.ruby-lang.org/issues/5786)
         }
     }
 

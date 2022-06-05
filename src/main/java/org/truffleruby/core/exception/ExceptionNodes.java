@@ -46,7 +46,7 @@ public abstract class ExceptionNodes {
         @Specialization
         protected RubyException allocateException(RubyClass rubyClass) {
             final Shape shape = getLanguage().exceptionShape;
-            final RubyException instance = new RubyException(rubyClass, shape, nil, null, nil);
+            final RubyException instance = new RubyException(rubyClass, shape, nil(), null, nil());
             AllocationTracing.trace(instance, this);
             return instance;
         }
@@ -57,7 +57,7 @@ public abstract class ExceptionNodes {
 
         @Specialization
         protected RubyException initialize(RubyException exception, NotProvided message) {
-            exception.message = nil;
+            exception.message = nil();
             return exception;
         }
 
@@ -162,7 +162,7 @@ public abstract class ExceptionNodes {
                 }
                 return backtraceStringArray;
             } else {
-                return nil;
+                return nil();
             }
         }
 
@@ -185,7 +185,7 @@ public abstract class ExceptionNodes {
                 }
                 return backtraceLocations;
             } else {
-                return nil;
+                return nil();
             }
         }
     }
@@ -226,7 +226,7 @@ public abstract class ExceptionNodes {
         @Specialization
         protected Object captureBacktrace(RubyException exception, int offset) {
             exception.backtrace = getContext().getCallStack().getBacktrace(this, offset);
-            return nil;
+            return nil();
         }
 
     }
@@ -238,7 +238,7 @@ public abstract class ExceptionNodes {
         protected Object message(RubyException exception) {
             final Object message = exception.message;
             if (message == null) {
-                return nil;
+                return nil();
             } else {
                 return message;
             }
@@ -252,7 +252,7 @@ public abstract class ExceptionNodes {
         @Specialization
         protected Object setMessage(RubyException exception, Object message) {
             exception.message = message;
-            return nil;
+            return nil();
         }
 
     }
@@ -275,7 +275,7 @@ public abstract class ExceptionNodes {
         protected Object formatter(RubyException exception) {
             final RubyProc formatter = exception.formatter;
             if (formatter == null) {
-                return nil;
+                return nil();
             } else {
                 return formatter;
             }

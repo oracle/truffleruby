@@ -47,7 +47,7 @@ public abstract class TruffleBindingNodes {
             });
 
             if (frame == null) {
-                return nil;
+                return nil();
             }
 
             return BindingNodes.createBinding(getContext(), getLanguage(), frame, sourceSection.get());

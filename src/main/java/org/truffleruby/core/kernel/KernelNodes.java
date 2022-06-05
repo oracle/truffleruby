@@ -267,7 +267,7 @@ public abstract class KernelNodes {
             final String expandedPath = getContext().getFeatureLoader().findFeature(featureString);
             if (expandedPath == null) {
                 notFoundProfile.enter();
-                return nil;
+                return nil();
             }
             return makeStringNode
                     .executeMake(expandedPath, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
@@ -343,7 +343,7 @@ public abstract class KernelNodes {
             if (sameOrEqualNode.executeSameOrEqual(self, other)) {
                 return 0;
             } else {
-                return nil;
+                return nil();
             }
         }
 
@@ -371,7 +371,7 @@ public abstract class KernelNodes {
                 @Cached ConditionProfile blockProfile) {
             needCallerFrame(callerFrame, target);
             return blockProfile
-                    .profile(readNode.execute(callerFrame, TranslatorEnvironment.METHOD_BLOCK_NAME, nil) != nil);
+                    .profile(readNode.execute(callerFrame, TranslatorEnvironment.METHOD_BLOCK_NAME, nil()) != nil());
         }
     }
 
@@ -721,7 +721,7 @@ public abstract class KernelNodes {
 
             final RubyBinding binding;
             final Object self;
-            if (hasBindingArgument.profile(args.length > 1 && args[1] != nil)) {
+            if (hasBindingArgument.profile(args.length > 1 && args[1] != nil())) {
                 final Object bindingArg = args[1];
                 if (!(bindingArg instanceof RubyBinding)) {
                     errorProfile.enter();
@@ -740,10 +740,10 @@ public abstract class KernelNodes {
             final Object file;
             final int line;
 
-            if (fileAndLineProfile.profile(args.length > 3 && args[3] != nil)) {
+            if (fileAndLineProfile.profile(args.length > 3 && args[3] != nil())) {
                 line = toIntNode.execute(args[3]);
                 file = toStrNode.execute(args[2]);
-            } else if (fileNoLineProfile.profile(args.length > 2 && args[2] != nil)) {
+            } else if (fileNoLineProfile.profile(args.length > 2 && args[2] != nil())) {
                 file = toStrNode.execute(args[2]);
                 line = 1;
             } else {
@@ -1053,7 +1053,7 @@ public abstract class KernelNodes {
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
             final String nameString = nameToJavaStringNode.execute(name);
             checkIVarNameNode.execute(object, nameString, name);
-            return objectLibrary.getOrDefault(object, nameString, nil);
+            return objectLibrary.getOrDefault(object, nameString, nil());
         }
 
         @Fallback
@@ -1062,7 +1062,7 @@ public abstract class KernelNodes {
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
             final String nameString = nameToJavaStringNode.execute(name);
             checkIVarNameNode.execute(object, nameString, name);
-            return nil;
+            return nil();
         }
     }
 
@@ -1117,7 +1117,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         private Object removeIVar(RubyDynamicObject object, String name) {
-            final Object value = DynamicObjectLibrary.getUncached().getOrDefault(object, name, nil);
+            final Object value = DynamicObjectLibrary.getUncached().getOrDefault(object, name, nil());
 
             if (SharedObjects.isShared(object)) {
                 synchronized (object) {
@@ -1500,7 +1500,7 @@ public abstract class KernelNodes {
         @Specialization
         protected Object setTraceFunc(Nil traceFunc) {
             getContext().getTraceManager().setTraceFunc(null);
-            return nil;
+            return nil();
         }
 
         @Specialization

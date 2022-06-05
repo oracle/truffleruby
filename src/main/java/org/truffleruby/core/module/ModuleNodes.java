@@ -201,7 +201,7 @@ public abstract class ModuleNodes {
                 return false;
             }
 
-            return nil;
+            return nil();
         }
 
         @Specialization(guards = "!isRubyModule(other)")
@@ -227,7 +227,7 @@ public abstract class ModuleNodes {
                 return false;
             }
 
-            return nil;
+            return nil();
         }
 
         @Specialization(guards = "!isRubyModule(other)")
@@ -257,7 +257,7 @@ public abstract class ModuleNodes {
                 return false;
             }
 
-            return nil;
+            return nil();
         }
 
         @Specialization(guards = "!isRubyModule(other)")
@@ -283,7 +283,7 @@ public abstract class ModuleNodes {
                 return false;
             }
 
-            return nil;
+            return nil();
         }
 
         @Specialization(guards = "!isRubyModule(other)")
@@ -314,8 +314,8 @@ public abstract class ModuleNodes {
 
             final Object isSubclass = isSubclass(self, other);
 
-            if (isSubclass == nil) {
-                return nil;
+            if (isSubclass == nil()) {
+                return nil();
             } else {
                 return (boolean) isSubclass ? -1 : 1;
             }
@@ -323,7 +323,7 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = "!isRubyModule(other)")
         protected Object compareOther(RubyModule self, Object other) {
-            return nil;
+            return nil();
         }
 
     }
@@ -393,7 +393,7 @@ public abstract class ModuleNodes {
                         coreExceptions().typeError("append_features must be called only on modules", this));
             }
             target.fields.include(getContext(), this, features);
-            return nil;
+            return nil();
         }
     }
 
@@ -407,12 +407,12 @@ public abstract class ModuleNodes {
             final String ivarName = RubyRootNode.of(target).getSharedMethodInfo().getNotes();
             CompilerAsserts.partialEvaluationConstant(ivarName);
 
-            return objectLibrary.getOrDefault(self, ivarName, nil);
+            return objectLibrary.getOrDefault(self, ivarName, nil());
         }
 
         @Specialization(guards = "!isRubyDynamicObject(self)")
         protected Object notObject(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target) {
-            return nil;
+            return nil();
         }
     }
 
@@ -523,7 +523,7 @@ public abstract class ModuleNodes {
                     null,
                     callTarget,
                     null,
-                    nil);
+                    nil());
 
             module.fields.addMethod(getContext(), this, method);
             return getLanguage().getSymbol(method.getName());
@@ -624,7 +624,7 @@ public abstract class ModuleNodes {
 
             final String javaStringFilename = libFilename.getJavaString(filename);
             module.fields.setAutoloadConstant(getContext(), this, name, filename, javaStringFilename);
-            return nil;
+            return nil();
         }
     }
 
@@ -659,7 +659,7 @@ public abstract class ModuleNodes {
             if (constant.isAutoload() && !constant.getConstant().getAutoloadConstant().isAutoloadingThread()) {
                 return constant.getConstant().getAutoloadConstant().getFeature();
             } else {
-                return nil;
+                return nil();
             }
         }
     }
@@ -810,7 +810,7 @@ public abstract class ModuleNodes {
                     new FixedDefaultDefinee(self),
                     block.declarationContext.getRefinements());
 
-            return callBlockNode.executeCallBlock(declarationContext, block, self, nil, descriptor, args, null);
+            return callBlockNode.executeCallBlock(declarationContext, block, self, nil(), descriptor, args, null);
         }
     }
 
@@ -1150,7 +1150,7 @@ public abstract class ModuleNodes {
 
         private Object getLocation(ConstantLookupResult lookupResult) {
             if (!lookupResult.isFound()) {
-                return nil;
+                return nil();
             }
 
             final SourceSection sourceSection = lookupResult.getConstant().getSourceSection();
@@ -1267,7 +1267,7 @@ public abstract class ModuleNodes {
         @Specialization
         protected RubySymbol defineMethodBlock(
                 VirtualFrame frame, RubyModule module, String name, NotProvided proc, RubyProc block) {
-            return defineMethodProc(frame, module, name, block, nil);
+            return defineMethodProc(frame, module, name, block, nil());
         }
 
         @Specialization
@@ -1423,7 +1423,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected Object extended(RubyModule module, Object object) {
-            return nil;
+            return nil();
         }
 
     }
@@ -1470,7 +1470,7 @@ public abstract class ModuleNodes {
             final RubyClass fromMetaClass = getSingletonClass(from);
             selfMetaClass.fields.initCopy(fromMetaClass);
 
-            return nil;
+            return nil();
         }
 
         @Specialization
@@ -1494,7 +1494,7 @@ public abstract class ModuleNodes {
 
             selfMetaClass.fields.initCopy(fromMetaClass); // copy class methods
 
-            return nil;
+            return nil();
         }
 
         protected RubyClass getSingletonClass(RubyModule object) {
@@ -1513,7 +1513,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected Object included(Object subclass) {
-            return nil;
+            return nil();
         }
 
     }
@@ -1731,7 +1731,7 @@ public abstract class ModuleNodes {
                         coreExceptions().typeError("prepend_features must be called only on modules", this));
             }
             target.fields.prepend(getContext(), this, features);
-            return nil;
+            return nil();
         }
     }
 
@@ -2064,7 +2064,7 @@ public abstract class ModuleNodes {
                         coreExceptions().nameErrorConstantNotDefined(module, name, this));
             } else {
                 if (oldConstant.isAutoload() || oldConstant.isUndefined()) {
-                    return nil;
+                    return nil();
                 } else {
                     return oldConstant.getValue();
                 }
@@ -2289,7 +2289,7 @@ public abstract class ModuleNodes {
                     declarationContext,
                     block,
                     refinement,
-                    nil,
+                    nil(),
                     EmptyArgumentsDescriptor.INSTANCE,
                     EMPTY_ARGUMENTS,
                     null);

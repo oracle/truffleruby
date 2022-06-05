@@ -261,7 +261,7 @@ public abstract class MatchDataNodes {
             }
 
             if (indexOutOfBoundsProfile.profile(index < 0 || index >= region.numRegs)) {
-                return nil;
+                return nil();
             } else {
                 final int start = getStart(matchData, index, lazyProfile, interop);
                 final int end = getEnd(matchData, index, lazyProfile, interop);
@@ -279,7 +279,7 @@ public abstract class MatchDataNodes {
                     AllocationTracing.trace(string, this);
                     return string;
                 } else {
-                    return nil;
+                    return nil();
                 }
             }
         }
@@ -295,7 +295,7 @@ public abstract class MatchDataNodes {
                 index += values.length;
 
                 if (indexOutOfBoundsProfile.profile(index < 0)) {
-                    return nil;
+                    return nil();
                 }
             }
 
@@ -470,7 +470,7 @@ public abstract class MatchDataNodes {
             final int begin = getStart(matchData, index, lazyProfile, interop);
 
             if (negativeBeginProfile.profile(begin < 0)) {
-                return nil;
+                return nil();
             }
 
             final Rope matchDataSourceRope = strings.getRope(matchData.source);
@@ -534,7 +534,7 @@ public abstract class MatchDataNodes {
                         AllocationTracing.trace(string, this);
                         values[n] = string;
                     } else {
-                        values[n] = nil;
+                        values[n] = nil();
                     }
 
                     TruffleSafepoint.poll(this);
@@ -562,7 +562,7 @@ public abstract class MatchDataNodes {
             final int end = getEnd(matchData, index, lazyProfile, interop);
 
             if (negativeEndProfile.profile(end < 0)) {
-                return nil;
+                return nil();
             }
 
             final Rope matchDataSourceRope = strings.getRope(matchData.source);
@@ -597,7 +597,7 @@ public abstract class MatchDataNodes {
             final int begin = getStart(matchData, index, lazyProfile, interop);
 
             if (negativeBeginProfile.profile(begin < 0)) {
-                return nil;
+                return nil();
             } else {
                 return begin;
             }
@@ -619,7 +619,7 @@ public abstract class MatchDataNodes {
             final int end = getEnd(matchData, index, lazyProfile, interop);
 
             if (negativeEndProfile.profile(end < 0)) {
-                return nil;
+                return nil();
             } else {
                 return end;
             }

@@ -40,7 +40,7 @@ public abstract class ErrnoErrorNode extends RubyBaseNode {
         final RubyClass errnoClass;
         if (errnoName == null) {
             errnoClass = getContext().getCoreLibrary().systemCallErrorClass;
-            errnoDescription = nil;
+            errnoDescription = nil();
         } else {
             if (rubyClass != null && rubyClass != getContext().getCoreLibrary().systemCallErrorClass) {
                 errnoClass = rubyClass;

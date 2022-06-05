@@ -34,6 +34,6 @@ public class CheckNoKeywordArgumentsNode extends RubyContextSourceNode {
             throw new RaiseException(getContext(), coreExceptions().argumentError("no keywords accepted", this));
         }
 
-        return nil;
+        return nil();
     }
 }

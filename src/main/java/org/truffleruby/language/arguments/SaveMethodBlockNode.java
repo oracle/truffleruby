@@ -24,7 +24,7 @@ public class SaveMethodBlockNode extends RubyContextSourceNode {
     @Override
     public Object execute(VirtualFrame frame) {
         frame.setObject(slot, RubyArguments.getBlock(frame));
-        return nil;
+        return nil();
     }
 
 }

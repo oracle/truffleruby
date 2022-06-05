@@ -83,7 +83,7 @@ public class LiteralMethodDefinitionNode extends RubyContextSourceNode {
                 null,
                 null,
                 callTargetSupplier,
-                Nil.INSTANCE);
+                Nil.get());
 
         if (isDefSingleton) {
             module.addMethodIgnoreNameVisibility(getContext(), method, visibility, this);

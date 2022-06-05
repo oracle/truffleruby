@@ -28,7 +28,7 @@ public abstract class SyntaxErrorNodes {
         @Specialization
         protected RubySyntaxError allocateSyntaxError(RubyClass rubyClass) {
             final Shape shape = getLanguage().syntaxErrorShape;
-            final RubySyntaxError instance = new RubySyntaxError(rubyClass, shape, nil, null, nil, null);
+            final RubySyntaxError instance = new RubySyntaxError(rubyClass, shape, nil(), null, nil(), null);
             AllocationTracing.trace(instance, this);
             return instance;
         }

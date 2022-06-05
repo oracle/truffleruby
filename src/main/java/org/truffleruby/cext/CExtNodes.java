@@ -1089,7 +1089,7 @@ public class CExtNodes {
             final InternalMethod superMethod = superMethodLookup.getMethod();
             // This C API only passes positional arguments, but maybe it should be influenced by ruby2_keywords hashes?
             return callSuperMethodNode.execute(
-                    frame, callingSelf, superMethod, EmptyArgumentsDescriptor.INSTANCE, args, nil, null);
+                    frame, callingSelf, superMethod, EmptyArgumentsDescriptor.INSTANCE, args, nil(), null);
         }
 
         @TruffleBoundary
@@ -1353,7 +1353,7 @@ public class CExtNodes {
 
                 System.err.printf("%s @ %s: %s%n", object.getClass(), System.identityHashCode(object), representation);
             }
-            return nil;
+            return nil();
         }
 
         private Object callToS(Object object) {
@@ -1377,7 +1377,7 @@ public class CExtNodes {
             try {
                 callBlock(block);
                 noExceptionProfile.enter();
-                return nil;
+                return nil();
             } catch (Throwable e) {
                 exceptionProfile.enter();
                 return new CapturedException(e);
@@ -1395,7 +1395,7 @@ public class CExtNodes {
             if (rubyExceptionProfile.profile(e instanceof RaiseException)) {
                 return ((RaiseException) e).getException();
             } else {
-                return nil;
+                return nil();
             }
         }
     }
@@ -1621,7 +1621,7 @@ public class CExtNodes {
                 @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
             getContext().getMarkingService().startMarking(
                     (Object[]) objectLibrary.getOrDefault(object, Layouts.MARKED_OBJECTS_IDENTIFIER, null));
-            return nil;
+            return nil();
         }
     }
 
@@ -1640,7 +1640,7 @@ public class CExtNodes {
             // We do nothing here if the handle cannot be resolved. If we are marking an object
             // which is only reachable via weak refs then the handles of objects it is itself
             // marking may have already been removed from the handle map.
-            return nil;
+            return nil();
         }
 
     }
@@ -1658,7 +1658,7 @@ public class CExtNodes {
                 noExceptionProfile.enter();
                 keepAliveNode.execute(wrappedValue);
             }
-            return nil;
+            return nil();
         }
 
     }
@@ -1673,7 +1673,7 @@ public class CExtNodes {
                     structOwner,
                     Layouts.MARKED_OBJECTS_IDENTIFIER,
                     getContext().getMarkingService().finishMarking());
-            return nil;
+            return nil();
         }
     }
 
@@ -1690,7 +1690,7 @@ public class CExtNodes {
             getContext()
                     .getMarkingService()
                     .addMarker(object, (o) -> CallBlockNode.getUncached().yield(marker, o));
-            return nil;
+            return nil();
         }
 
     }
@@ -1701,7 +1701,7 @@ public class CExtNodes {
         @Specialization
         protected Object checkInts() {
             TruffleSafepoint.pollHere(this);
-            return nil;
+            return nil();
         }
     }
 
@@ -1767,7 +1767,7 @@ public class CExtNodes {
             final RubySymbol sym = getLanguage().symbolTable.getSymbolIfExists(
                     strings.getRope(string),
                     strings.getEncoding(string));
-            return sym == null ? nil : sym;
+            return sym == null ? nil() : sym;
         }
     }
 
@@ -1953,7 +1953,7 @@ public class CExtNodes {
         @Specialization
         protected Object setData(DataHolder data, Object address) {
             data.setPointer(address);
-            return nil;
+            return nil();
         }
     }
 

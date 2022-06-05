@@ -185,7 +185,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     /** This is a truly empty frame descriptor and should only by dummy root nodes which require no variables. Any other
      * root nodes should should use
      * {@link TranslatorEnvironment#newFrameDescriptorBuilder(org.truffleruby.parser.ParentFrameDescriptor, boolean)}. */
-    public static final FrameDescriptor EMPTY_FRAME_DESCRIPTOR = new FrameDescriptor(Nil.INSTANCE);
+    public static final FrameDescriptor EMPTY_FRAME_DESCRIPTOR = new FrameDescriptor(Nil.get());
 
     /** We need an extra indirection added to ContextThreadLocal due to multiple Fibers of different Ruby Threads
      * sharing the same Java Thread when using the fiber pool. */

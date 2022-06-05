@@ -26,7 +26,11 @@ import static org.truffleruby.cext.ValueWrapperManager.NIL_HANDLE;
 @ExportLibrary(InteropLibrary.class)
 public final class Nil extends ImmutableRubyObject implements TruffleObject {
 
-    public static final Nil INSTANCE = new Nil();
+    private static final Nil INSTANCE = new Nil();
+
+    public static Nil get() {
+        return INSTANCE;
+    }
 
     private Nil() {
         this.valueWrapper = new ValueWrapper(this, NIL_HANDLE, null);

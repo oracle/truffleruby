@@ -64,7 +64,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
 
         @Specialization(guards = "handle == NIL_HANDLE")
         protected Object unwrapNil(long handle) {
-            return nil;
+            return nil();
         }
 
         @Specialization(guards = "isTaggedLong(handle)")
@@ -126,7 +126,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
 
         @Specialization(guards = "handle == NIL_HANDLE")
         protected ValueWrapper unwrapNil(long handle) {
-            return nil.getValueWrapper();
+            return nil().getValueWrapper();
         }
 
         @Specialization(guards = "isTaggedLong(handle)")

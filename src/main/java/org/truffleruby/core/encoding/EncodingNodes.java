@@ -397,7 +397,7 @@ public abstract class EncodingNodes {
             final RubyEncoding negotiatedEncoding = negotiateCompatibleEncodingNode.executeNegotiate(first, second);
 
             if (noNegotiatedEncodingProfile.profile(negotiatedEncoding == null)) {
-                return nil;
+                return nil();
             }
 
             return negotiatedEncoding;
@@ -469,7 +469,7 @@ public abstract class EncodingNodes {
                         aliasName,
                         Encodings.getBuiltInEncoding(entry.value.getEncoding().getIndex()));
             }
-            return nil;
+            return nil();
         }
     }
 
@@ -551,7 +551,7 @@ public abstract class EncodingNodes {
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringLibrary) {
             final RubyEncoding encoding = getEncoding(stringLibrary.getJavaString(name));
             if (encoding == null) {
-                return nil;
+                return nil();
             } else {
                 return encoding;
             }
@@ -603,7 +603,7 @@ public abstract class EncodingNodes {
         @Specialization
         protected Object noDefaultInternal(Nil encoding) {
             getContext().getEncodingManager().setDefaultInternalEncoding(null);
-            return nil;
+            return nil();
         }
 
     }
@@ -640,7 +640,7 @@ public abstract class EncodingNodes {
         @Fallback
         protected Object encodingGetObjectEncodingNil(Object object) {
             // TODO(CS, 26 Jan 15) something to do with __encoding__ here?
-            return nil;
+            return nil();
         }
 
     }

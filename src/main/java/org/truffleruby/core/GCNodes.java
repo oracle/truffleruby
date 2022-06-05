@@ -45,7 +45,7 @@ public abstract class GCNodes {
         protected Object vmGCStart() {
             getContext().getMarkingService().queueMarking();
             System.gc();
-            return nil;
+            return nil();
         }
 
     }
@@ -77,7 +77,7 @@ public abstract class GCNodes {
             // by making sure the method that allocates the weak value is exited before we run the GC loop;
             initCache(cache, key);
             gcLoop(cache, key);
-            return nil;
+            return nil();
         }
 
         @SuppressFBWarnings("DLS")
@@ -213,7 +213,7 @@ public abstract class GCNodes {
             // Get memory usage values from relevant memory pools (2-3 / ~8 are relevant)
             memoryPools = new Object[memoryPoolNames.length];
             // On Native Image, ManagementFactory.getMemoryPoolMXBeans() is empty
-            Arrays.fill(memoryPools, nil);
+            Arrays.fill(memoryPools, nil());
             for (int i = 0; i < memoryPoolNames.length; i++) {
                 String memoryPoolName = memoryPoolNames[i];
                 for (MemoryPoolMXBean bean : ManagementFactory.getMemoryPoolMXBeans()) {

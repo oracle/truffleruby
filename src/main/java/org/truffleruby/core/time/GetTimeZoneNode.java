@@ -79,7 +79,7 @@ public abstract class GetTimeZoneNode extends RubyBaseNode {
             tzString = libString.getJavaString(tz);
         }
 
-        if (tz == nil) {
+        if (tz == nil()) {
             // $TZ is not set, use the system timezone
             return new TimeZoneAndName(getSystemTimeZone());
         } else if (libString.isRubyString(tz)) {

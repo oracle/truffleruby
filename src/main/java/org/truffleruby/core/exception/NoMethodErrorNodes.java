@@ -32,7 +32,8 @@ public abstract class NoMethodErrorNodes {
         @Specialization
         protected RubyNoMethodError allocateNoMethodError(RubyClass rubyClass) {
             final Shape shape = getLanguage().noMethodErrorShape;
-            final RubyNoMethodError instance = new RubyNoMethodError(rubyClass, shape, nil, null, nil, null, nil, nil);
+            final RubyNoMethodError instance = new RubyNoMethodError(rubyClass, shape, nil(), null, nil(), null, nil(),
+                    nil());
             AllocationTracing.trace(instance, this);
             return instance;
         }
@@ -54,7 +55,7 @@ public abstract class NoMethodErrorNodes {
 
         @Specialization
         protected Object setArgs(RubyNoMethodError error, Object args) {
-            assert args == Nil.INSTANCE || args instanceof RubyArray;
+            assert args == Nil.get() || args instanceof RubyArray;
             error.args = args;
             return args;
         }

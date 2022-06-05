@@ -143,7 +143,7 @@ public class CodeLoader {
                 method,
                 null,
                 self,
-                Nil.INSTANCE,
+                Nil.get(),
                 EmptyArgumentsDescriptor.INSTANCE,
                 arguments);
     }

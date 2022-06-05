@@ -47,7 +47,7 @@ public abstract class TruffleRubyNodes {
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             String value = getProperty("org.graalvm.home");
             if (value == null) {
-                return nil;
+                return nil();
             } else {
                 return makeStringNode.executeMake(value, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
             }
@@ -101,7 +101,7 @@ public abstract class TruffleRubyNodes {
         @Specialization
         protected Object fullMemoryBarrier() {
             VarHandle.fullFence();
-            return nil;
+            return nil();
         }
     }
 

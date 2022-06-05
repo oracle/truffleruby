@@ -28,7 +28,7 @@ public abstract class InlinedOperationNode extends InlinedReplaceableNode {
     }
 
     protected Object rewriteAndCall(VirtualFrame frame, Object receiver, Object... arguments) {
-        return rewriteAndCallWithBlock(frame, receiver, nil, arguments);
+        return rewriteAndCallWithBlock(frame, receiver, nil(), arguments);
     }
 
     protected Object rewriteAndCallWithBlock(VirtualFrame frame, Object receiver, Object block,

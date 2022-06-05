@@ -39,8 +39,8 @@ public abstract class ReadMatchReferenceNodes extends RubyContextSourceNode {
         public Object execute(VirtualFrame frame) {
             final Object match = readMatchNode.execute(frame);
 
-            if (matchNilProfile.profile(match == nil)) {
-                return nil;
+            if (matchNilProfile.profile(match == nil())) {
+                return nil();
             }
 
             return callGetIndex(frame, match, index);
@@ -56,8 +56,8 @@ public abstract class ReadMatchReferenceNodes extends RubyContextSourceNode {
 
         @Override
         public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
-            if (execute(frame) == nil) {
-                return nil;
+            if (execute(frame) == nil()) {
+                return nil();
             } else {
                 return FrozenStrings.GLOBAL_VARIABLE;
             }
@@ -88,7 +88,7 @@ public abstract class ReadMatchReferenceNodes extends RubyContextSourceNode {
         public Object execute(VirtualFrame frame) {
             final Object matchResult = matchDataNode.execute(frame);
             Object match = readMatchNode.execute(frame);
-            if (matchNilProfile.profile(match == nil)) {
+            if (matchNilProfile.profile(match == nil())) {
                 setNamedForNil(frame);
             } else {
                 setNamedForNonNil(frame);

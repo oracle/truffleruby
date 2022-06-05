@@ -123,7 +123,7 @@ public abstract class TruffleDebugNodes {
             }
 
             System.err.println(javaString);
-            return nil;
+            return nil();
         }
 
     }
@@ -181,7 +181,7 @@ public abstract class TruffleDebugNodes {
         @Specialization
         protected Object remove(RubyHandle handle) {
             ((EventBinding<?>) handle.object).dispose();
-            return nil;
+            return nil();
         }
 
     }
@@ -207,7 +207,7 @@ public abstract class TruffleDebugNodes {
         @Specialization
         protected Object printBacktrace() {
             getContext().getDefaultBacktraceFormatter().printBacktraceOnEnvStderr(this);
-            return nil;
+            return nil();
         }
 
     }
@@ -242,12 +242,12 @@ public abstract class TruffleDebugNodes {
                 @Cached ToCallTargetNode toCallTargetNode) {
             final RootCallTarget callTarget = toCallTargetNode.execute(executable);
             ast(callTarget.getRootNode());
-            return nil;
+            return nil();
         }
 
         private Object ast(Node node) {
             if (node == null) {
-                return nil;
+                return nil();
             }
 
             final List<Object> array = new ArrayList<>();
@@ -270,7 +270,7 @@ public abstract class TruffleDebugNodes {
                 @Cached ToCallTargetNode toCallTargetNode) {
             final RootCallTarget callTarget = toCallTargetNode.execute(executable);
             NodeUtil.printCompactTree(System.err, callTarget.getRootNode());
-            return nil;
+            return nil();
         }
     }
 
@@ -373,7 +373,7 @@ public abstract class TruffleDebugNodes {
         protected Object logWarning(Object value,
                 @Cached ToJavaStringNode toJavaStringNode) {
             warning(toJavaStringNode.executeToJavaString(value));
-            return nil;
+            return nil();
         }
 
         @TruffleBoundary
@@ -390,7 +390,7 @@ public abstract class TruffleDebugNodes {
         protected Object logInfo(Object value,
                 @Cached ToJavaStringNode toJavaStringNode) {
             info(toJavaStringNode.executeToJavaString(value));
-            return nil;
+            return nil();
         }
 
         @TruffleBoundary
@@ -407,7 +407,7 @@ public abstract class TruffleDebugNodes {
         protected Object logConfig(Object value,
                 @Cached ToJavaStringNode toJavaStringNode) {
             config(toJavaStringNode.executeToJavaString(value));
-            return nil;
+            return nil();
         }
 
         @TruffleBoundary
@@ -425,7 +425,7 @@ public abstract class TruffleDebugNodes {
         protected Object throwJavaException(Object message,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             callingMethod(strings.getJavaString(message));
-            return nil;
+            return nil();
         }
 
         // These two named methods makes it easy to test that the backtrace for a Java exception is what we expect
@@ -471,7 +471,7 @@ public abstract class TruffleDebugNodes {
         @Specialization
         protected Object doAssert(boolean condition) {
             assert condition;
-            return nil;
+            return nil();
         }
     }
 
@@ -480,7 +480,7 @@ public abstract class TruffleDebugNodes {
         @Specialization
         protected Object doAssert(boolean condition) {
             assert condition;
-            return nil;
+            return nil();
         }
     }
 
@@ -1142,7 +1142,7 @@ public abstract class TruffleDebugNodes {
         @Specialization
         protected Object drainFinalizationQueue() {
             getContext().getFinalizationService().drainFinalizationQueue(getContext());
-            return nil;
+            return nil();
         }
 
     }
@@ -1211,7 +1211,7 @@ public abstract class TruffleDebugNodes {
                             .createBinding(getContext(), getLanguage(), frame, sourceSection);
                     frameBindings.add(binding);
                 } else {
-                    frameBindings.add(nil);
+                    frameBindings.add(nil());
                 }
             }
             Collections.reverse(frameBindings);

@@ -87,8 +87,8 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
     @Override
     public Object execute(VirtualFrame frame) {
         final Object receiverObject = receiver.execute(frame);
-        if (isSafeNavigation && nilProfile.profile(receiverObject == nil)) {
-            return nil;
+        if (isSafeNavigation && nilProfile.profile(receiverObject == nil())) {
+            return nil();
         }
         Object[] rubyArgs = RubyArguments.allocate(arguments.length);
         RubyArguments.setSelf(rubyArgs, receiverObject);
@@ -115,7 +115,7 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
                 ((NilLiteralNode) getLastArgumentNode()).isImplicit()) : getLastArgumentNode();
 
         final Object receiverObject = receiver.execute(frame);
-        if (isSafeNavigation && nilProfile.profile(receiverObject == nil)) {
+        if (isSafeNavigation && nilProfile.profile(receiverObject == nil())) {
             return;
         }
         Object[] rubyArgs = RubyArguments.allocate(arguments.length);
@@ -126,7 +126,7 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
             rubyArgs = splatArgs(receiverObject, rubyArgs);
         }
 
-        assert RubyArguments.getLastArgument(rubyArgs) == nil;
+        assert RubyArguments.getLastArgument(rubyArgs) == nil();
         RubyArguments.setLastArgument(rubyArgs, value);
 
         RubyArguments.setBlock(rubyArgs, executeBlock(frame));
@@ -175,7 +175,7 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
         if (block != null) {
             return block.execute(frame);
         } else {
-            return nil;
+            return nil();
         }
     }
 
@@ -255,14 +255,14 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
 
         @ExplodeLoop
         public Object isDefined(VirtualFrame frame, RubyContext context) {
-            if (receiverDefinedProfile.profile(receiver.isDefined(frame, getLanguage(), context) == nil)) {
-                return nil;
+            if (receiverDefinedProfile.profile(receiver.isDefined(frame, getLanguage(), context) == nil())) {
+                return nil();
             }
 
             for (RubyNode argument : arguments) {
-                if (argument.isDefined(frame, getLanguage(), context) == nil) {
+                if (argument.isDefined(frame, getLanguage(), context) == nil()) {
                     argumentNotDefinedProfile.enter();
-                    return nil;
+                    return nil();
                 }
             }
 
@@ -274,7 +274,7 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
                 receiverObject = receiver.execute(frame);
             } catch (Exception e) {
                 receiverExceptionProfile.enter();
-                return nil;
+                return nil();
             }
 
             final InternalMethod method = lookupMethodNode.execute(frame, receiverObject, methodName, dispatchConfig);
@@ -283,7 +283,7 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
                 final Object r = respondToMissing.call(receiverObject, "respond_to_missing?", methodNameSymbol, false);
 
                 if (r != DispatchNode.MISSING && !respondToMissingCast.execute(r)) {
-                    return nil;
+                    return nil();
                 }
             }
 

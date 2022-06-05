@@ -81,7 +81,7 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
                     method,
                     null,
                     context.getCoreLibrary().mainObject,
-                    Nil.INSTANCE,
+                    Nil.get(),
                     EmptyArgumentsDescriptor.INSTANCE,
                     frame.getArguments()));
 

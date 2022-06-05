@@ -89,13 +89,13 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
             @CachedLibrary(limit = "1") ArrayStoreLibrary newStores,
             @Cached LoopConditionProfile loopProfile) {
         final int newSize = index + 1;
-        final Object objectStore = stores.allocateForNewValue(store, nil, newSize);
+        final Object objectStore = stores.allocateForNewValue(store, nil(), newSize);
         int oldSize = array.size;
         stores.copyContents(store, 0, objectStore, 0, oldSize);
         int n = oldSize;
         try {
             for (; loopProfile.inject(n < index); n++) {
-                newStores.write(objectStore, n, nil);
+                newStores.write(objectStore, n, nil());
                 TruffleSafepoint.poll(this);
             }
         } finally {
@@ -123,7 +123,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
         int n = array.size;
         try {
             for (; loopProfile.inject(n < index); n++) {
-                newStores.write(newStore, n, nil);
+                newStores.write(newStore, n, nil());
                 TruffleSafepoint.poll(this);
             }
         } finally {

@@ -167,7 +167,7 @@ public abstract class TypeNodes {
     public abstract static class IsNilNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         protected boolean isNil(Object value) {
-            return value == nil;
+            return value == nil();
         }
     }
 
@@ -238,7 +238,7 @@ public abstract class TypeNodes {
         @Specialization(limit = "getDynamicObjectCacheLimit()")
         protected Object ivarGet(RubyDynamicObject object, RubySymbol name,
                 @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
-            return objectLibrary.getOrDefault(object, name.getString(), nil);
+            return objectLibrary.getOrDefault(object, name.getString(), nil());
         }
     }
 
@@ -271,12 +271,12 @@ public abstract class TypeNodes {
         @Specialization(limit = "getDynamicObjectCacheLimit()")
         protected Object objectHiddenVarGet(RubyDynamicObject object, Object identifier,
                 @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
-            return objectLibrary.getOrDefault(object, identifier, nil);
+            return objectLibrary.getOrDefault(object, identifier, nil());
         }
 
         @Fallback
         protected Object immutable(Object object, Object identifier) {
-            return nil;
+            return nil();
         }
     }
 

@@ -40,7 +40,7 @@ public abstract class IsDefinedGlobalVariableNode extends RubyBaseNode {
         if (storage.isDefined()) {
             return FrozenStrings.GLOBAL_VARIABLE;
         } else {
-            return nil;
+            return nil();
         }
     }
 

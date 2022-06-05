@@ -80,7 +80,7 @@ public abstract class TruffleKernelNodes {
         @Specialization
         protected Object atExit(boolean always, RubyProc block) {
             getContext().getAtExitManager().add(block, always);
-            return nil;
+            return nil();
         }
     }
 
@@ -191,7 +191,7 @@ public abstract class TruffleKernelNodes {
                     setter,
                     isDefined,
                     this);
-            return nil;
+            return nil();
         }
 
     }
@@ -221,7 +221,7 @@ public abstract class TruffleKernelNodes {
             Object variables;
             if (declarationFrameDepth == 0) {
                 variables = SpecialVariableStorage.get(frame);
-                if (variables == nil) {
+                if (variables == nil()) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
                     variables = new SpecialVariableStorage();
                     SpecialVariableStorage.set(frame, (SpecialVariableStorage) variables);
@@ -247,7 +247,7 @@ public abstract class TruffleKernelNodes {
                 }
 
                 variables = SpecialVariableStorage.get(storageFrame);
-                if (variables == nil) {
+                if (variables == nil()) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
                     variables = new SpecialVariableStorage();
                     SpecialVariableStorage.set(storageFrame, (SpecialVariableStorage) variables);
@@ -266,7 +266,7 @@ public abstract class TruffleKernelNodes {
         public static SpecialVariableStorage getSlow(MaterializedFrame aFrame) {
             MaterializedFrame frame = FindDeclarationVariableNodes.getOuterDeclarationFrame(aFrame);
             Object variables = SpecialVariableStorage.get(frame);
-            if (variables == Nil.INSTANCE) {
+            if (variables == Nil.get()) {
                 variables = new SpecialVariableStorage();
                 SpecialVariableStorage.set(frame, (SpecialVariableStorage) variables);
                 SpecialVariableStorage.getAssumption(frame.getFrameDescriptor()).invalidate();
@@ -312,7 +312,7 @@ public abstract class TruffleKernelNodes {
                 @Cached ConditionProfile nullProfile) {
             Object variables = callerVariablesNode.execute(frame);
             if (nullProfile.profile(variables == null)) {
-                return nil;
+                return nil();
             } else {
                 return variables;
             }
@@ -334,7 +334,7 @@ public abstract class TruffleKernelNodes {
                     .getOriginalRequires()
                     .get(strings.getJavaString(string));
             if (originalRequire == null) {
-                return Nil.INSTANCE;
+                return Nil.get();
             } else {
                 return makeStringNode.executeMake(originalRequire, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
             }
@@ -360,7 +360,7 @@ public abstract class TruffleKernelNodes {
                 @Cached("declarationDepth(frame)") int declarationFrameDepth) {
             final Frame storageFrame = RubyArguments.getDeclarationFrame(frame, declarationFrameDepth);
             SpecialVariableStorage.set(storageFrame, storage);
-            return nil;
+            return nil();
         }
 
         @Specialization(replaces = "shareSpecialVariable")
@@ -373,7 +373,7 @@ public abstract class TruffleKernelNodes {
             MaterializedFrame frame = FindDeclarationVariableNodes.getOuterDeclarationFrame(aFrame);
             SpecialVariableStorage.set(frame, storage);
             // TODO: should invalidate here?
-            return nil;
+            return nil();
         }
 
         public static GetSpecialVariableStorage create() {

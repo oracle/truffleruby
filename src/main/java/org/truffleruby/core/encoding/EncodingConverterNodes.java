@@ -95,7 +95,7 @@ public abstract class EncodingConverterNodes {
                     .open(sourceEncoding.getName(), destinationEncoding.getName(), toJCodingFlags(options));
 
             if (econv == null) {
-                return nil;
+                return nil();
             }
 
             econv.sourceEncoding = sourceEncoding;
@@ -169,7 +169,7 @@ public abstract class EncodingConverterNodes {
         protected Object search(RubySymbol source) {
             final Set<String> transcoders = TranscodingManager.allDirectTranscoderPaths.get(source.getString());
             if (transcoders == null) {
-                return nil;
+                return nil();
             }
 
             final Object[] destinations = new Object[transcoders.size()];
@@ -252,7 +252,7 @@ public abstract class EncodingConverterNodes {
             // Taken from org.jruby.RubyConverter#primitive_convert.
 
             Rope targetRope = target.rope;
-            final boolean nonNullSource = source != nil;
+            final boolean nonNullSource = source != nil();
             final RopeBuilder outBytes = RopeOperations.toRopeBuilderCopy(targetRope);
 
             final Ptr inPtr = new Ptr();
@@ -382,7 +382,9 @@ public abstract class EncodingConverterNodes {
             ec.putback(bytes, 0, n);
 
             final Object sourceEncoding = (RubyEncoding) sourceEncodingNode.call(encodingConverter, "source_encoding");
-            final RubyEncoding rubyEncoding = sourceEncoding == nil ? Encodings.BINARY : (RubyEncoding) sourceEncoding;
+            final RubyEncoding rubyEncoding = sourceEncoding == nil()
+                    ? Encodings.BINARY
+                    : (RubyEncoding) sourceEncoding;
             return makeStringNode.executeMake(bytes, rubyEncoding, CodeRange.CR_UNKNOWN);
         }
     }
@@ -400,7 +402,7 @@ public abstract class EncodingConverterNodes {
             if (lastError.getResult() != EConvResult.InvalidByteSequence &&
                     lastError.getResult() != EConvResult.IncompleteInput &&
                     lastError.getResult() != EConvResult.UndefinedConversion) {
-                return nil;
+                return nil();
             }
 
             final boolean readAgain = lastError.getReadAgainLength() != 0;
@@ -457,7 +459,7 @@ public abstract class EncodingConverterNodes {
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final EConv ec = encodingConverter.econv;
 
-            final Object[] ret = { getSymbol(ec.lastError.getResult().symbolicName()), nil, nil, nil, nil };
+            final Object[] ret = { getSymbol(ec.lastError.getResult().symbolicName()), nil(), nil(), nil(), nil() };
 
             if (ec.lastError.getSource() != null) {
                 ret[1] = makeStringNode.executeMake(ec.lastError.getSource(), Encodings.BINARY, CR_UNKNOWN);

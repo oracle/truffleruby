@@ -153,7 +153,7 @@ public abstract class VMPrimitiveNodes {
                 }
             }
 
-            return nil;
+            return nil();
         }
 
     }
@@ -195,7 +195,7 @@ public abstract class VMPrimitiveNodes {
             final String normalizedName = nameToJavaStringNode.execute(name);
             InternalMethod method = lookupMethodNode.lookupIgnoringVisibility(frame, receiver, normalizedName);
             if (method == null) {
-                return nil;
+                return nil();
             }
             final RubyMethod instance = new RubyMethod(
                     coreLibrary().methodClass,
@@ -389,7 +389,7 @@ public abstract class VMPrimitiveNodes {
             final Object value = getContext().getNativeConfiguration().get(keyString);
 
             if (value == null) {
-                return nil;
+                return nil();
             } else {
                 return value;
             }
@@ -414,7 +414,7 @@ public abstract class VMPrimitiveNodes {
                 yieldNode.yield(block, key, entry.getValue());
             }
 
-            return nil;
+            return nil();
         }
 
     }

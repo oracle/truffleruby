@@ -55,7 +55,7 @@ public abstract class ArrayPrepareForCopyNode extends RubyBaseNode {
         final int oldSize = dst.size;
         final Object[] newStore = new Object[ArrayUtils.capacity(getLanguage(), oldSize, start + length)];
         dstStores.copyContents(dstStore, 0, newStore, 0, oldSize); // copy the original store
-        Arrays.fill(newStore, oldSize, start, nil); // nil-pad the new empty part
+        Arrays.fill(newStore, oldSize, start, nil()); // nil-pad the new empty part
         dst.store = newStore;
         dst.size = start + length;
         return newStore;

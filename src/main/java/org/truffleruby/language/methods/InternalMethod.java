@@ -29,8 +29,6 @@ import org.truffleruby.language.objects.ObjectGraphNode;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 
-import static org.truffleruby.language.RubyBaseNode.nil;
-
 /** A Ruby method: either a method in a module, a literal module/class body or some meta-information for eval'd code.
  * Blocks capture the method in which they are defined. */
 public class InternalMethod implements ObjectGraphNode {
@@ -81,7 +79,7 @@ public class InternalMethod implements ObjectGraphNode {
                 proc,
                 callTarget,
                 null,
-                nil);
+                Nil.get());
     }
 
     public InternalMethod(
@@ -106,7 +104,7 @@ public class InternalMethod implements ObjectGraphNode {
                 null,
                 callTarget,
                 null,
-                Nil.INSTANCE);
+                Nil.get());
     }
 
     /** Constructor for new methods, computing builtIn from the context */

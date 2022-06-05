@@ -277,7 +277,7 @@ public abstract class PolyglotNodes {
         @Specialization
         protected Object close(RubyInnerContext rubyInnerContext) {
             rubyInnerContext.innerContext.close();
-            return nil;
+            return nil();
         }
     }
 
@@ -286,7 +286,7 @@ public abstract class PolyglotNodes {
         @Specialization
         protected Object closeExited(RubyInnerContext rubyInnerContext) {
             rubyInnerContext.innerContext.closeCancelled(this, "force terminate");
-            return nil;
+            return nil();
         }
     }
 

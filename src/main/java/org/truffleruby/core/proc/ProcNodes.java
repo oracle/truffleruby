@@ -83,9 +83,9 @@ public abstract class ProcNodes {
                 @Cached("new()") WarnNode warnNode) {
             final MaterializedFrame parentFrame = readCaller.execute(frame);
 
-            Object parentBlock = readNode.execute(parentFrame, TranslatorEnvironment.METHOD_BLOCK_NAME, nil);
+            Object parentBlock = readNode.execute(parentFrame, TranslatorEnvironment.METHOD_BLOCK_NAME, nil());
 
-            if (parentBlock == nil) {
+            if (parentBlock == nil()) {
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorProcWithoutBlock(this));
             } else {
                 if (warnNode.shouldWarnForDeprecation()) {
@@ -266,7 +266,7 @@ public abstract class ProcNodes {
 
             final String sourcePath = getLanguage().getSourcePath(sourceSection.getSource());
             if (!sourceSection.isAvailable() || sourcePath.endsWith("/lib/truffle/truffle/cext.rb")) {
-                return nil;
+                return nil();
             } else {
                 final RubyString file = makeStringNode.executeMake(
                         sourcePath,
@@ -324,7 +324,7 @@ public abstract class ProcNodes {
             if (proc.arity == SymbolNodes.ToProcNode.ARITY) {
                 return getSymbol(proc.getSharedMethodInfo().getBacktraceName());
             } else {
-                return nil;
+                return nil();
             }
         }
 
@@ -347,7 +347,7 @@ public abstract class ProcNodes {
             int userArgumentCount = RubyArguments.getPositionalArgumentsCount(frame, false);
 
             if (emptyArgsProfile.profile(userArgumentCount == 0)) {
-                return nil;
+                return nil();
             } else {
                 if (singleArgProfile.profile(userArgumentCount == 1)) {
                     return RubyArguments.getArgument(frame, 0);

@@ -80,7 +80,7 @@ public class SuperCallNode extends LiteralCallNode {
         final InternalMethod superMethod = executeLookupSuperMethod(frame, self);
 
         if (superMethod == null) {
-            return nil;
+            return nil();
         } else {
             return FrozenStrings.SUPER;
         }

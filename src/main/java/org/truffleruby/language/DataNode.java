@@ -50,7 +50,7 @@ public class DataNode extends RubyContextSourceNode {
 
         coreLibrary().objectClass.fields.setConstant(getContext(), null, "DATA", data);
 
-        return nil;
+        return nil();
     }
 
     @TruffleBoundary

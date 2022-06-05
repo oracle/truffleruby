@@ -764,7 +764,7 @@ public abstract class RopeNodes {
                     rope.getCodeRange(),
                     rope.getEncoding()));
 
-            return nil;
+            return nil();
         }
 
         @TruffleBoundary
@@ -788,7 +788,7 @@ public abstract class RopeNodes {
 
             executeDebugPrint(rope.getChild(), currentLevel + 1, printString);
 
-            return nil;
+            return nil();
         }
 
         @TruffleBoundary
@@ -826,7 +826,7 @@ public abstract class RopeNodes {
                 executeDebugPrint(state.right, currentLevel + 1, printString);
             }
 
-            return nil;
+            return nil();
         }
 
         @TruffleBoundary
@@ -850,7 +850,7 @@ public abstract class RopeNodes {
 
             executeDebugPrint(rope.getChild(), currentLevel + 1, printString);
 
-            return nil;
+            return nil();
         }
 
         @TruffleBoundary
@@ -872,7 +872,7 @@ public abstract class RopeNodes {
                     rope.getValue(),
                     rope.getEncoding()));
 
-            return nil;
+            return nil();
         }
 
         @TruffleBoundary
@@ -891,7 +891,7 @@ public abstract class RopeNodes {
                     rope.getNativePointer().getSize(),
                     rope.getEncoding()));
 
-            return nil;
+            return nil();
         }
 
         private void printPreamble(int level) {

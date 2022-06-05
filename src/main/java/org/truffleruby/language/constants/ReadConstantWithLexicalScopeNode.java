@@ -50,7 +50,7 @@ public class ReadConstantWithLexicalScopeNode extends RubyContextSourceNode {
         } catch (RaiseException e) {
             if (e.getException().getLogicalClass() == coreLibrary().nameErrorClass) {
                 // private constant
-                return nil;
+                return nil();
             }
             throw e;
         }
@@ -58,7 +58,7 @@ public class ReadConstantWithLexicalScopeNode extends RubyContextSourceNode {
         if (ModuleOperations.isConstantDefined(constant)) {
             return FrozenStrings.CONSTANT;
         } else {
-            return nil;
+            return nil();
         }
     }
 

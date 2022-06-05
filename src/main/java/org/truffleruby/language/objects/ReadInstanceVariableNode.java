@@ -42,9 +42,9 @@ public class ReadInstanceVariableNode extends RubyContextSourceNode {
         if (objectProfile.profile(receiverObject instanceof RubyDynamicObject)) {
             final DynamicObjectLibrary objectLibrary = getObjectLibrary();
             final RubyDynamicObject dynamicObject = (RubyDynamicObject) receiverObject;
-            return objectLibrary.getOrDefault(dynamicObject, name, nil);
+            return objectLibrary.getOrDefault(dynamicObject, name, nil());
         } else {
-            return nil;
+            return nil();
         }
     }
 
@@ -58,7 +58,7 @@ public class ReadInstanceVariableNode extends RubyContextSourceNode {
             if (objectLibrary.containsKey(dynamicObject, name)) {
                 return FrozenStrings.INSTANCE_VARIABLE;
             } else {
-                return nil;
+                return nil();
             }
         } else {
             return false;

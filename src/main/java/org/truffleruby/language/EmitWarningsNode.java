@@ -35,7 +35,7 @@ public class EmitWarningsNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
         final RubyContext context = getContext();
         printWarnings(context);
-        return nil;
+        return nil();
     }
 
     public void printWarnings(RubyContext context) {

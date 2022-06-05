@@ -830,18 +830,18 @@ public abstract class StringNodes {
                     capture);
 
             final SpecialVariableStorage variables = readCallerStorageNode.execute(frame);
-            if (notMatchedProfile.profile(matchStrPair == nil)) {
-                variables.setLastMatch(nil, getContext(), unsetProfile, sameThreadProfile);
-                return nil;
+            if (notMatchedProfile.profile(matchStrPair == nil())) {
+                variables.setLastMatch(nil(), getContext(), unsetProfile, sameThreadProfile);
+                return nil();
             } else {
                 final Object[] array = (Object[]) ((RubyArray) matchStrPair).store;
                 final Object matchData = array[0];
                 final Object captureStringOrNil = array[1];
                 variables.setLastMatch(matchData, getContext(), unsetProfile, sameThreadProfile);
-                if (captureSetProfile.profile(captureStringOrNil != nil)) {
+                if (captureSetProfile.profile(captureStringOrNil != nil())) {
                     return dupNode.executeDupAsStringInstance(captureStringOrNil);
                 } else {
-                    return nil;
+                    return nil();
                 }
             }
         }
@@ -862,7 +862,7 @@ public abstract class StringNodes {
                 return dupNode.executeDupAsStringInstance(matchStr);
             }
 
-            return nil;
+            return nil();
         }
 
         // endregion
@@ -870,7 +870,7 @@ public abstract class StringNodes {
 
         private Object outOfBoundsNil() {
             outOfBounds.enter();
-            return nil;
+            return nil();
         }
 
         private Object substring(Object string, int start, int length) {
@@ -1007,7 +1007,7 @@ public abstract class StringNodes {
 
             final RubyEncoding encoding = negotiateCompatibleEncodingNode.executeNegotiate(string, other);
             if (incompatibleEncodingProfile.profile(encoding == null)) {
-                return nil;
+                return nil();
             }
 
             return RopeOperations.caseInsensitiveCmp(strings.getRope(string), stringsOther.getRope(other));
@@ -1022,7 +1022,7 @@ public abstract class StringNodes {
             final RubyEncoding encoding = negotiateCompatibleEncodingNode.executeNegotiate(string, other);
 
             if (incompatibleEncodingProfile.profile(encoding == null)) {
-                return nil;
+                return nil();
             }
 
             return StringSupport
@@ -1309,7 +1309,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isEmpty(string.rope)")
         protected Object deleteBangEmpty(RubyString string, Object[] args) {
-            return nil;
+            return nil();
         }
 
         @Specialization(
@@ -1330,7 +1330,7 @@ public abstract class StringNodes {
             final Rope processedRope = processStr(string, squeeze, compatEncoding, tables);
             if (processedRope == null) {
                 nullProfile.enter();
-                return nil;
+                return nil();
             }
 
             string.setRope(processedRope);
@@ -1358,7 +1358,7 @@ public abstract class StringNodes {
 
             final Rope processedRope = processStr(string, squeeze, enc, tables);
             if (processedRope == null) {
-                return nil;
+                return nil();
             }
 
             string.setRope(processedRope);
@@ -1412,7 +1412,7 @@ public abstract class StringNodes {
                         makeLeafRopeNode.executeMake(outputBytes, encoding, cr, characterLengthNode.execute(rope)));
                 return string;
             } else {
-                return nil;
+                return nil();
             }
         }
 
@@ -1443,7 +1443,7 @@ public abstract class StringNodes {
 
                 return string;
             } else {
-                return nil;
+                return nil();
             }
         }
 
@@ -1514,13 +1514,13 @@ public abstract class StringNodes {
         private Object substr(Rope rope, RubyEncoding encoding, int beg, int len, RubyClass logicalClass) {
             int length = rope.byteLength();
             if (len < 0 || beg > length) {
-                return nil;
+                return nil();
             }
 
             if (beg < 0) {
                 beg += length;
                 if (beg < 0) {
-                    return nil;
+                    return nil();
                 }
             }
 
@@ -1602,7 +1602,7 @@ public abstract class StringNodes {
             final int normalizedIndex = normalizeIndexNode.executeNormalize(index, rope.byteLength());
 
             if (indexOutOfBoundsProfile.profile((normalizedIndex < 0) || (normalizedIndex >= rope.byteLength()))) {
-                return nil;
+                return nil();
             }
 
             return ropeGetByteNode.executeGetByte(rope, normalizedIndex);
@@ -1795,7 +1795,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isEmpty(string.rope)")
         protected Object lstripBangEmptyString(RubyString string) {
-            return nil;
+            return nil();
         }
 
         @Specialization(
@@ -1813,7 +1813,7 @@ public abstract class StringNodes {
             // this check can avoid having to materialize the entire byte[] (a potentially expensive operation
             // for ropes) and can avoid having to compile the while loop.
             if (noopProfile.profile(!StringSupport.isAsciiSpaceOrNull(firstCodePoint))) {
-                return nil;
+                return nil();
             }
 
             final int end = rope.byteLength();
@@ -1858,7 +1858,7 @@ public abstract class StringNodes {
                 return string;
             }
 
-            return nil;
+            return nil();
         }
 
     }
@@ -1923,7 +1923,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isEmpty(string.rope)")
         protected Object rstripBangEmptyString(RubyString string) {
-            return nil;
+            return nil();
         }
 
         @Specialization(
@@ -1942,7 +1942,7 @@ public abstract class StringNodes {
             // for ropes) and can avoid having to compile the while loop.
             final boolean willStrip = StringSupport.isAsciiSpaceOrNull(lastCodePoint);
             if (noopProfile.profile(!willStrip)) {
-                return nil;
+                return nil();
             }
 
             final int end = rope.byteLength();
@@ -1995,7 +1995,7 @@ public abstract class StringNodes {
 
                 return string;
             }
-            return nil;
+            return nil();
         }
 
         @TruffleBoundary
@@ -2205,7 +2205,7 @@ public abstract class StringNodes {
                         makeLeafRopeNode.executeMake(outputBytes, enc, cr, characterLengthNode.execute(rope)));
                 return string;
             } else {
-                return nil;
+                return nil();
             }
         }
 
@@ -2238,7 +2238,7 @@ public abstract class StringNodes {
 
                 return string;
             } else {
-                return nil;
+                return nil();
             }
         }
     }
@@ -2585,7 +2585,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isEmpty(string.rope)")
         protected Object squeezeBangEmptyString(RubyString string, Object[] args) {
-            return nil;
+            return nil();
         }
 
         @TruffleBoundary
@@ -2603,7 +2603,7 @@ public abstract class StringNodes {
 
             if (singleByteOptimizableProfile.profile(rope.isSingleByteOptimizable())) {
                 if (!StringSupport.singleByteSqueeze(buffer, squeeze)) {
-                    return nil;
+                    return nil();
                 } else {
                     string.setRope(RopeOperations.ropeFromRopeBuilder(buffer));
                 }
@@ -2617,7 +2617,7 @@ public abstract class StringNodes {
                                 string.rope.getEncoding(),
                                 false,
                                 this)) {
-                    return nil;
+                    return nil();
                 } else {
                     string.setRope(RopeOperations.ropeFromRopeBuilder(buffer));
                 }
@@ -2660,7 +2660,7 @@ public abstract class StringNodes {
             if (singlebyte && otherRope.byteLength() == 1 && otherStrings.length == 1) {
                 squeeze[otherRope.getRawBytes()[0]] = true;
                 if (!StringSupport.singleByteSqueeze(buffer, squeeze)) {
-                    return nil;
+                    return nil();
                 } else {
                     string.setRope(RopeOperations.ropeFromRopeBuilder(buffer));
                     return string;
@@ -2680,14 +2680,14 @@ public abstract class StringNodes {
 
             if (singleByteOptimizableProfile.profile(singlebyte)) {
                 if (!StringSupport.singleByteSqueeze(buffer, squeeze)) {
-                    return nil;
+                    return nil();
                 } else {
                     string.setRope(RopeOperations.ropeFromRopeBuilder(buffer));
                 }
             } else {
                 if (!StringSupport
                         .multiByteSqueeze(buffer, rope.getCodeRange(), squeeze, tables, enc.jcoding, true, this)) {
-                    return nil;
+                    return nil();
                 } else {
                     string.setRope(RopeOperations.ropeFromRopeBuilder(buffer));
                 }
@@ -2972,7 +2972,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isEmpty(self.rope)")
         protected Object trBangSelfEmpty(RubyString self, Object fromStr, Object toStr) {
-            return nil;
+            return nil();
         }
 
         @Specialization(
@@ -3038,7 +3038,7 @@ public abstract class StringNodes {
         @Specialization(
                 guards = { "isEmpty(self.rope)" })
         protected Object trSBangEmpty(RubyString self, Object fromStr, Object toStr) {
-            return nil;
+            return nil();
         }
 
         @Specialization(
@@ -3265,7 +3265,7 @@ public abstract class StringNodes {
             byte[] modified = invertNode.executeInvert(bytes, 0);
 
             if (noopProfile.profile(modified == null)) {
-                return nil;
+                return nil();
             } else {
                 final Rope newRope = makeLeafRopeNode.executeMake(
                         modified,
@@ -3319,7 +3319,7 @@ public abstract class StringNodes {
                         makeLeafRopeNode.executeMake(outputBytes, encoding, cr, characterLengthNode.execute(rope)));
                 return string;
             } else {
-                return nil;
+                return nil();
             }
         }
 
@@ -3349,7 +3349,7 @@ public abstract class StringNodes {
 
                 return string;
             } else {
-                return nil;
+                return nil();
             }
         }
 
@@ -3390,7 +3390,7 @@ public abstract class StringNodes {
             final Rope rope = string.rope;
 
             if (emptyStringProfile.profile(rope.isEmpty())) {
-                return nil;
+                return nil();
             }
 
             final byte[] sourceBytes = bytesNode.execute(rope);
@@ -3407,7 +3407,7 @@ public abstract class StringNodes {
                     finalBytes = sourceBytes.clone();
                 } else {
                     // The string is already capitalized.
-                    return nil;
+                    return nil();
                 }
             } else {
                 // At least one char was lowercased when looking at bytes 1..N. We still must check the first byte.
@@ -3446,7 +3446,7 @@ public abstract class StringNodes {
             }
 
             if (emptyStringProfile.profile(rope.isEmpty())) {
-                return nil;
+                return nil();
             }
 
             final CodeRange cr = codeRangeNode.execute(rope);
@@ -3463,7 +3463,7 @@ public abstract class StringNodes {
                 return string;
             }
 
-            return nil;
+            return nil();
         }
 
         @Specialization(guards = "isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
@@ -3482,7 +3482,7 @@ public abstract class StringNodes {
             }
 
             if (emptyStringProfile.profile(rope.isEmpty())) {
-                return nil;
+                return nil();
             }
 
             final RopeBuilder builder = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
@@ -3494,7 +3494,7 @@ public abstract class StringNodes {
                                 .executeMake(builder.getBytes(), rope.getEncoding(), CR_UNKNOWN, NotProvided.INSTANCE));
                 return string;
             } else {
-                return nil;
+                return nil();
             }
         }
 
@@ -3525,7 +3525,7 @@ public abstract class StringNodes {
             final Rope ret = StringSupport
                     .trTransHelper(selfRope, fromStrRope, toStrRope, e1.jcoding, enc.jcoding, sFlag, node);
             if (ret == null) {
-                return Nil.INSTANCE;
+                return Nil.get();
             }
 
             self.setRope(ret, enc);
@@ -3646,7 +3646,7 @@ public abstract class StringNodes {
                 ret = addSubstring(ret, storeIndex++, substring, block, executeBlockProfile, growArrayProfile);
             }
 
-            if (block == nil) {
+            if (block == nil()) {
                 return createArray(ret, storeIndex);
             } else {
                 return string;
@@ -3718,7 +3718,7 @@ public abstract class StringNodes {
                 ret = addSubstring(ret, storeIndex++, substring, block, executeBlockProfile, growArrayProfile);
             }
 
-            if (block == nil) {
+            if (block == nil()) {
                 return createArray(ret, storeIndex);
             } else {
                 return string;
@@ -3727,7 +3727,7 @@ public abstract class StringNodes {
 
         private Object[] addSubstring(Object[] store, int index, RubyString substring,
                 Object block, ConditionProfile executeBlockProfile, ConditionProfile growArrayProfile) {
-            if (executeBlockProfile.profile(block != nil)) {
+            if (executeBlockProfile.profile(block != nil())) {
                 yieldNode.yield((RubyProc) block, substring);
             } else {
                 if (growArrayProfile.profile(index < store.length)) {
@@ -3772,12 +3772,12 @@ public abstract class StringNodes {
                     lengthTooLongProfile,
                     libString);
 
-            if (nilSubstringProfile.profile(subString == nil)) {
+            if (nilSubstringProfile.profile(subString == nil())) {
                 return subString;
             }
 
             if (emptySubstringProfile.profile(((RubyString) subString).rope.isEmpty())) {
-                return nil;
+                return nil();
             }
 
             return subString;
@@ -3790,7 +3790,7 @@ public abstract class StringNodes {
                 @Cached ConditionProfile lengthTooLongProfile,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
             if (negativeLengthProfile.profile(length < 0)) {
-                return nil;
+                return nil();
             }
 
             final Rope rope = libString.getRope(string);
@@ -3798,7 +3798,7 @@ public abstract class StringNodes {
             final int normalizedIndex = normalizeIndexNode.executeNormalize(index, stringByteLength);
 
             if (indexOutOfBoundsProfile.profile(normalizedIndex < 0 || normalizedIndex > stringByteLength)) {
-                return nil;
+                return nil();
             }
 
             if (lengthTooLongProfile.profile(normalizedIndex + length > stringByteLength)) {
@@ -3823,7 +3823,7 @@ public abstract class StringNodes {
                 guards = { "indexOutOfBounds(strings.getRope(string), byteIndex)" })
         protected Object stringChrAtOutOfBounds(Object string, int byteIndex,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            return nil;
+            return nil();
         }
 
         @Specialization(
@@ -3859,11 +3859,11 @@ public abstract class StringNodes {
                     Bytes.fromRange(bytes, byteIndex, end));
 
             if (!StringSupport.MBCLEN_CHARFOUND_P(c)) {
-                return nil;
+                return nil();
             }
 
             if (c + byteIndex > end) {
-                return nil;
+                return nil();
             }
 
             return makeStringNode.executeMake(
@@ -4061,13 +4061,13 @@ public abstract class StringNodes {
 
         @Specialization(guards = "offset < 0")
         protected Object stringFindCharacterNegativeOffset(Object string, int offset) {
-            return nil;
+            return nil();
         }
 
         @Specialization(guards = "offsetTooLarge(strings.getRope(string), offset)")
         protected Object stringFindCharacterOffsetTooLarge(Object string, int offset,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            return nil;
+            return nil();
         }
 
         @Specialization(
@@ -4193,7 +4193,7 @@ public abstract class StringNodes {
                 @Cached BytesNode bytesNode) {
             final Rope rope = strings.getRope(string);
             if (rope.isEmpty()) {
-                return nil;
+                return nil();
             }
 
             final String javaString = strings.getJavaString(string);
@@ -4218,14 +4218,14 @@ public abstract class StringNodes {
                     } else if (result instanceof Double) {
                         return result;
                     } else {
-                        return nil;
+                        return nil();
                     }
                 }
             }
             try {
                 return new DoubleConverter().parse(rope, true, true);
             } catch (NumberFormatException e) {
-                return nil;
+                return nil();
             }
         }
 
@@ -4265,7 +4265,7 @@ public abstract class StringNodes {
             final int end = sourceRope.byteLength();
 
             if (offsetTooLargeProfile.profile(byteOffset >= end)) {
-                return nil;
+                return nil();
             }
 
             final byte[] sourceBytes = bytesNode.execute(sourceRope);
@@ -4273,7 +4273,7 @@ public abstract class StringNodes {
 
             final int index = com.oracle.truffle.api.ArrayUtils.indexOf(sourceBytes, byteOffset, end, searchByte);
 
-            return index == -1 ? nil : index;
+            return index == -1 ? nil() : index;
         }
 
         @Specialization(
@@ -4316,7 +4316,7 @@ public abstract class StringNodes {
             }
 
             noMatchProfile.enter();
-            return nil;
+            return nil();
         }
 
         @Specialization(
@@ -4325,7 +4325,7 @@ public abstract class StringNodes {
         protected Object stringIndexBrokenPattern(Object string, Object pattern, int byteOffset,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsPattern) {
             assert byteOffset >= 0;
-            return nil;
+            return nil();
         }
 
         @Specialization(
@@ -4356,7 +4356,7 @@ public abstract class StringNodes {
                     byteIndexFromCharIndexNode);
 
             if (badIndexProfile.profile(index == -1)) {
-                return nil;
+                return nil();
             }
 
             return index;
@@ -4585,7 +4585,7 @@ public abstract class StringNodes {
                 profileAndReportLoopCount(loopProfile, p - offset);
             }
 
-            return nil;
+            return nil();
         }
 
         @TruffleBoundary
@@ -4619,21 +4619,21 @@ public abstract class StringNodes {
                     p += c;
                     index++;
                 } else {
-                    return nil;
+                    return nil();
                 }
             }
 
             for (; p < l; p += c, ++index) {
                 c = calculateCharacterLengthNode.characterLength(enc, cr, Bytes.fromRange(stringBytes, p, e));
                 if (!StringSupport.MBCLEN_CHARFOUND_P(c)) {
-                    return nil;
+                    return nil();
                 }
                 if (ArrayUtils.regionEquals(stringBytes, p, patternBytes, 0, pe)) {
                     return index;
                 }
             }
 
-            return nil;
+            return nil();
         }
     }
 
@@ -4659,7 +4659,7 @@ public abstract class StringNodes {
         @Specialization(guards = "!patternFits(stringRope, patternRope, offset)")
         protected Object patternTooLarge(Rope stringRope, Rope patternRope, int offset) {
             assert offset >= 0;
-            return nil;
+            return nil();
         }
 
         @Specialization(
@@ -4691,7 +4691,7 @@ public abstract class StringNodes {
                 profileAndReportLoopCount(loopProfile, p - offset);
             }
 
-            return nil;
+            return nil();
         }
 
         @TruffleBoundary
@@ -4720,14 +4720,14 @@ public abstract class StringNodes {
             for (; p < l; p += c) {
                 c = calculateCharacterLengthNode.characterLength(enc, cr, Bytes.fromRange(stringBytes, p, e));
                 if (!StringSupport.MBCLEN_CHARFOUND_P(c)) {
-                    return nil;
+                    return nil();
                 }
                 if (ArrayUtils.regionEquals(stringBytes, p, patternBytes, 0, pe)) {
                     return p;
                 }
             }
 
-            return nil;
+            return nil();
         }
 
         protected boolean patternFits(Rope stringRope, Rope patternRope, int offset) {
@@ -4843,7 +4843,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "index == 0")
         protected Object zeroIndex(Object string, int index) {
-            return nil;
+            return nil();
         }
 
         @Specialization(guards = {
@@ -4892,7 +4892,7 @@ public abstract class StringNodes {
             final int b = rope.getEncoding().prevCharHead(rope.getBytes(), p, p + index, end);
 
             if (b == -1) {
-                return nil;
+                return nil();
             }
 
             return b - p;
@@ -4957,7 +4957,7 @@ public abstract class StringNodes {
             }
 
             noMatchProfile.enter();
-            return nil;
+            return nil();
         }
 
         @Specialization(guards = {
@@ -5012,14 +5012,14 @@ public abstract class StringNodes {
             }
 
             noMatchProfile.enter();
-            return nil;
+            return nil();
         }
 
         @Specialization(guards = { "isBrokenCodeRange(stringsPattern.getRope(pattern), codeRangeNode)" })
         protected Object stringRindexBrokenPattern(Object string, Object pattern, int byteOffset,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsPattern) {
             assert byteOffset >= 0;
-            return nil;
+            return nil();
         }
 
         @Specialization(guards = {
@@ -5063,7 +5063,7 @@ public abstract class StringNodes {
                         pos--;
                     }
 
-                    return nil;
+                    return nil();
                 }
 
                 default: {
@@ -5093,7 +5093,7 @@ public abstract class StringNodes {
                 }
             }
 
-            return nil;
+            return nil();
         }
 
         private void checkEncoding(Object string, Object pattern) {
@@ -5229,7 +5229,7 @@ public abstract class StringNodes {
             } catch (RaiseException e) {
                 exceptionProfile.enter();
                 if (!raiseOnError) {
-                    return nil;
+                    return nil();
                 }
                 throw e;
             }
@@ -5285,7 +5285,7 @@ public abstract class StringNodes {
             int characterLength = length;
 
             if (negativeIndexProfile.profile(normalizedIndex < 0)) {
-                return nil;
+                return nil();
             }
 
             if (tooLargeTotalProfile.profile(normalizedIndex + characterLength > ropeCharacterLength)) {
@@ -5314,7 +5314,7 @@ public abstract class StringNodes {
             int characterLength = length;
 
             if (negativeIndexProfile.profile(normalizedIndex < 0)) {
-                return nil;
+                return nil();
             }
 
             if (tooLargeTotalProfile.profile(normalizedIndex + characterLength > ropeCharacterLength)) {
@@ -5351,7 +5351,7 @@ public abstract class StringNodes {
                 "indexTriviallyOutOfBounds(strings.getRope(string), characterLengthNode, index, length)" })
         protected Object stringSubstringNegativeLength(Object string, int index, int length,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            return nil;
+            return nil();
         }
 
         private SearchResult searchForSingleByteOptimizableDescendant(Rope base, int index, int characterLength,

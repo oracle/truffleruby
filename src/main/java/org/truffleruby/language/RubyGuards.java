@@ -173,7 +173,7 @@ public abstract class RubyGuards {
     }
 
     public static boolean isNil(Object object) {
-        return object == Nil.INSTANCE;
+        return object == Nil.get();
     }
 
     // Internal types

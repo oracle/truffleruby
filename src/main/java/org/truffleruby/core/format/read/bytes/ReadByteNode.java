@@ -33,7 +33,7 @@ public abstract class ReadByteNode extends FormatNode {
         int index = advanceSourcePositionNoThrow(frame);
 
         if (rangeProfile.profile(index == -1)) {
-            return nil;
+            return nil();
         }
 
         return source[index];

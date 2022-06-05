@@ -51,7 +51,7 @@ public class ReadPreArgumentNode extends RubyContextSourceNode {
                 return NotProvided.INSTANCE;
 
             case NIL:
-                return nil;
+                return nil();
 
             default:
                 throw Utils.unsupportedOperation("unknown missing argument behaviour");

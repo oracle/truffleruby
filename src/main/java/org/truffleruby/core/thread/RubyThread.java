@@ -65,7 +65,7 @@ public final class RubyThread extends RubyDynamicObject implements ObjectGraphNo
     public ThreadLocalBuffer ioBuffer = ThreadLocalBuffer.NULL_BUFFER;
     Object threadGroup;
     public String sourceLocation;
-    Object name = Nil.INSTANCE;
+    Object name = Nil.get();
 
     // Decimal formats are not thread safe, so we'll create them on the thread as we need them.
 
