@@ -48,7 +48,7 @@ public abstract class RubyBaseNode extends Node {
         return getLanguage().singleContext;
     }
 
-    public static Nil nil() {
+    public Nil nil() {
         return Nil.get();
     }
 
@@ -56,7 +56,7 @@ public abstract class RubyBaseNode extends Node {
         return Nil.is(value) ? null : value;
     }
 
-    public static Object nullToNil(Object value) {
+    public Object nullToNil(Object value) {
         return value == null ? nil() : value;
     }
 

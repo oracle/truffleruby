@@ -20,6 +20,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.backtrace.Backtrace;
 
@@ -68,7 +69,7 @@ public class ThreadBacktraceLocationNodes {
             } else {
                 final Source source = sourceSection.getSource();
                 if (BacktraceFormatter.isRubyCore(language, source)) {
-                    return nil();
+                    return Nil.get();
                 } else if (source.getPath() != null) { // A normal file
                     final String path = language.getSourcePath(source);
                     final String canonicalPath = context.getFeatureLoader().canonicalize(path);

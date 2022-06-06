@@ -31,6 +31,7 @@ import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyLambdaRootNode;
 import org.truffleruby.language.RubyRootNode;
@@ -197,7 +198,7 @@ public abstract class SymbolNodes {
                     : new DeclarationContext(Visibility.PUBLIC, null, refinements);
 
             final Object[] args = RubyArguments
-                    .pack(null, null, method, declarationContext, null, nil(), nil(),
+                    .pack(null, null, method, declarationContext, null, Nil.get(), Nil.get(),
                             EmptyArgumentsDescriptor.INSTANCE, EMPTY_ARGUMENTS);
             // MRI raises an error on Proc#binding if you attempt to access the binding of a Proc generated
             // by Symbol#to_proc. We generate a declaration frame here so that all procedures will have a
@@ -238,7 +239,7 @@ public abstract class SymbolNodes {
             final RubyLambdaRootNode rootNode = new RubyLambdaRootNode(
                     language,
                     sourceSection,
-                    new FrameDescriptor(nil()),
+                    new FrameDescriptor(Nil.get()),
                     sharedMethodInfo,
                     new SymbolProcNode(symbol.getString()),
                     Split.HEURISTIC,
