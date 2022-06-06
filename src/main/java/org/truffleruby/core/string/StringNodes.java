@@ -830,7 +830,7 @@ public abstract class StringNodes {
                     capture);
 
             final SpecialVariableStorage variables = readCallerStorageNode.execute(frame);
-            if (notMatchedProfile.profile(matchStrPair == nil())) {
+            if (notMatchedProfile.profile(Nil.is(matchStrPair))) {
                 variables.setLastMatch(nil(), getContext(), unsetProfile, sameThreadProfile);
                 return nil();
             } else {
@@ -838,7 +838,7 @@ public abstract class StringNodes {
                 final Object matchData = array[0];
                 final Object captureStringOrNil = array[1];
                 variables.setLastMatch(matchData, getContext(), unsetProfile, sameThreadProfile);
-                if (captureSetProfile.profile(captureStringOrNil != nil())) {
+                if (captureSetProfile.profile(Nil.isNot(captureStringOrNil))) {
                     return dupNode.executeDupAsStringInstance(captureStringOrNil);
                 } else {
                     return nil();
@@ -3646,7 +3646,7 @@ public abstract class StringNodes {
                 ret = addSubstring(ret, storeIndex++, substring, block, executeBlockProfile, growArrayProfile);
             }
 
-            if (block == nil()) {
+            if (Nil.is(block)) {
                 return createArray(ret, storeIndex);
             } else {
                 return string;
@@ -3718,7 +3718,7 @@ public abstract class StringNodes {
                 ret = addSubstring(ret, storeIndex++, substring, block, executeBlockProfile, growArrayProfile);
             }
 
-            if (block == nil()) {
+            if (Nil.is(block)) {
                 return createArray(ret, storeIndex);
             } else {
                 return string;
@@ -3727,7 +3727,7 @@ public abstract class StringNodes {
 
         private Object[] addSubstring(Object[] store, int index, RubyString substring,
                 Object block, ConditionProfile executeBlockProfile, ConditionProfile growArrayProfile) {
-            if (executeBlockProfile.profile(block != nil())) {
+            if (executeBlockProfile.profile(Nil.isNot(block))) {
                 yieldNode.yield((RubyProc) block, substring);
             } else {
                 if (growArrayProfile.profile(index < store.length)) {
@@ -3772,7 +3772,7 @@ public abstract class StringNodes {
                     lengthTooLongProfile,
                     libString);
 
-            if (nilSubstringProfile.profile(subString == nil())) {
+            if (nilSubstringProfile.profile(Nil.is(subString))) {
                 return subString;
             }
 

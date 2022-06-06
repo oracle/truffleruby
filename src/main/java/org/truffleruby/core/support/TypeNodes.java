@@ -167,7 +167,7 @@ public abstract class TypeNodes {
     public abstract static class IsNilNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         protected boolean isNil(Object value) {
-            return value == nil();
+            return Nil.is(value);
         }
     }
 

@@ -70,6 +70,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.interop.TranslateInteropExceptionNodeGen;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.control.DeferredRaiseException;
@@ -886,10 +887,10 @@ public class TruffleRegexpNodes {
 
             if (tRegexIncompatibleProfile
                     .profile(toPos < fromPos || toPos != rope.byteLength() || fromPos < 0) ||
-                    tRegexCouldNotCompileProfile.profile((tRegex = tRegexCompileNode.executeTRegexCompile(
+                    tRegexCouldNotCompileProfile.profile(Nil.is(tRegex = tRegexCompileNode.executeTRegexCompile(
                             regexp,
                             atStart,
-                            negotiatedEncoding)) == nil())) {
+                            negotiatedEncoding)))) {
                 return fallbackToJoni(
                         regexp,
                         string,

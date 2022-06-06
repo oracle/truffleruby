@@ -36,19 +36,19 @@ public final class RubyObjectRange extends RubyRange implements ObjectGraphNode 
     }
 
     public boolean isBoundless() {
-        return begin == Nil.get() && end == Nil.get();
+        return Nil.is(begin) && Nil.is(end);
     }
 
     public boolean isEndless() {
-        return begin != Nil.get() && end == Nil.get();
+        return Nil.isNot(begin) && Nil.is(end);
     }
 
     public boolean isBeginless() {
-        return begin == Nil.get() && end != Nil.get();
+        return Nil.is(begin) && Nil.isNot(end);
     }
 
     public boolean isBounded() {
-        return begin != Nil.get() && end != Nil.get();
+        return Nil.isNot(begin) && Nil.isNot(end);
     }
 
     @Override

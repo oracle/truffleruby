@@ -55,7 +55,7 @@ public abstract class NoMethodErrorNodes {
 
         @Specialization
         protected Object setArgs(RubyNoMethodError error, Object args) {
-            assert args == Nil.get() || args instanceof RubyArray;
+            assert Nil.is(args) || args instanceof RubyArray;
             error.args = args;
             return args;
         }

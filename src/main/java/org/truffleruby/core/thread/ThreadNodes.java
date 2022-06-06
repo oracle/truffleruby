@@ -649,7 +649,7 @@ public abstract class ThreadNodes {
                 @Cached("new(receivers, translateInteropExceptionNode)") BlockingCallInterruptible blockingCallInterruptible) {
             final ThreadManager threadManager = getContext().getThreadManager();
             final Interrupter interrupter;
-            if (unblocker == nil()) {
+            if (Nil.is(unblocker)) {
                 interrupter = threadManager.getNativeCallInterrupter();
             } else {
                 interrupter = makeInterrupter(getContext(), unblocker, unblockerArg);

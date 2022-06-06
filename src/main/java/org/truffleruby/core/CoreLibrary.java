@@ -887,7 +887,7 @@ public class CoreLibrary {
 
     /** true if $VERBOSE is true or false, but not nil */
     public boolean warningsEnabled() {
-        return verbosity() != Nil.get();
+        return Nil.isNot(verbosity());
     }
 
     /** true only if $VERBOSE is true */

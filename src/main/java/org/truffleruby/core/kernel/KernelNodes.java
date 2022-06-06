@@ -371,7 +371,7 @@ public abstract class KernelNodes {
                 @Cached ConditionProfile blockProfile) {
             needCallerFrame(callerFrame, target);
             return blockProfile
-                    .profile(readNode.execute(callerFrame, TranslatorEnvironment.METHOD_BLOCK_NAME, nil()) != nil());
+                    .profile(Nil.isNot(readNode.execute(callerFrame, TranslatorEnvironment.METHOD_BLOCK_NAME, nil())));
         }
     }
 
@@ -562,7 +562,7 @@ public abstract class KernelNodes {
                 newObjectMetaClass.fields.initCopy(selfMetaClass);
             }
 
-            final boolean copyFrozen = freeze instanceof Nil;
+            final boolean copyFrozen = Nil.is(freeze);
 
             if (copyFrozen) {
                 initializeCloneNode.call(newObject, "initialize_clone", object);
@@ -721,7 +721,7 @@ public abstract class KernelNodes {
 
             final RubyBinding binding;
             final Object self;
-            if (hasBindingArgument.profile(args.length > 1 && args[1] != nil())) {
+            if (hasBindingArgument.profile(args.length > 1 && Nil.isNot(args[1]))) {
                 final Object bindingArg = args[1];
                 if (!(bindingArg instanceof RubyBinding)) {
                     errorProfile.enter();
@@ -740,10 +740,10 @@ public abstract class KernelNodes {
             final Object file;
             final int line;
 
-            if (fileAndLineProfile.profile(args.length > 3 && args[3] != nil())) {
+            if (fileAndLineProfile.profile(args.length > 3 && Nil.isNot(args[3]))) {
                 line = toIntNode.execute(args[3]);
                 file = toStrNode.execute(args[2]);
-            } else if (fileNoLineProfile.profile(args.length > 2 && args[2] != nil())) {
+            } else if (fileNoLineProfile.profile(args.length > 2 && Nil.isNot(args[2]))) {
                 file = toStrNode.execute(args[2]);
                 line = 1;
             } else {

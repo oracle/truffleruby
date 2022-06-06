@@ -100,7 +100,7 @@ public abstract class SplatCastNode extends RubyContextSourceNode {
                 object,
                 coreLibrary().arrayClass,
                 conversionMethod);
-        if (array == nil()) {
+        if (Nil.is(array)) {
             return createArray(new Object[]{ object });
         } else {
             if (copy) {

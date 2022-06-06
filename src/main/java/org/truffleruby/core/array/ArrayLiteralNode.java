@@ -13,6 +13,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
@@ -74,7 +75,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
         for (RubyNode value : values) {
-            if (value.isDefined(frame, language, context) == nil()) {
+            if (Nil.is(value.isDefined(frame, language, context))) {
                 return nil();
             }
         }

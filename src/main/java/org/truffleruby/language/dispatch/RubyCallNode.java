@@ -19,6 +19,7 @@ import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.inlined.LambdaToProcNode;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -87,7 +88,7 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
     @Override
     public Object execute(VirtualFrame frame) {
         final Object receiverObject = receiver.execute(frame);
-        if (isSafeNavigation && nilProfile.profile(receiverObject == nil())) {
+        if (isSafeNavigation && nilProfile.profile(Nil.is(receiverObject))) {
             return nil();
         }
         Object[] rubyArgs = RubyArguments.allocate(arguments.length);
@@ -115,7 +116,7 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
                 ((NilLiteralNode) getLastArgumentNode()).isImplicit()) : getLastArgumentNode();
 
         final Object receiverObject = receiver.execute(frame);
-        if (isSafeNavigation && nilProfile.profile(receiverObject == nil())) {
+        if (isSafeNavigation && nilProfile.profile(Nil.is(receiverObject))) {
             return;
         }
         Object[] rubyArgs = RubyArguments.allocate(arguments.length);
@@ -126,7 +127,7 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
             rubyArgs = splatArgs(receiverObject, rubyArgs);
         }
 
-        assert RubyArguments.getLastArgument(rubyArgs) == nil();
+        assert Nil.is(RubyArguments.getLastArgument(rubyArgs));
         RubyArguments.setLastArgument(rubyArgs, value);
 
         RubyArguments.setBlock(rubyArgs, executeBlock(frame));
@@ -255,12 +256,12 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
 
         @ExplodeLoop
         public Object isDefined(VirtualFrame frame, RubyContext context) {
-            if (receiverDefinedProfile.profile(receiver.isDefined(frame, getLanguage(), context) == nil())) {
+            if (receiverDefinedProfile.profile(Nil.is(receiver.isDefined(frame, getLanguage(), context)))) {
                 return nil();
             }
 
             for (RubyNode argument : arguments) {
-                if (argument.isDefined(frame, getLanguage(), context) == nil()) {
+                if (Nil.is(argument.isDefined(frame, getLanguage(), context))) {
                     argumentNotDefinedProfile.enter();
                     return nil();
                 }

@@ -252,7 +252,7 @@ public abstract class EncodingConverterNodes {
             // Taken from org.jruby.RubyConverter#primitive_convert.
 
             Rope targetRope = target.rope;
-            final boolean nonNullSource = source != nil();
+            final boolean nonNullSource = Nil.isNot(source);
             final RopeBuilder outBytes = RopeOperations.toRopeBuilderCopy(targetRope);
 
             final Ptr inPtr = new Ptr();
@@ -382,7 +382,7 @@ public abstract class EncodingConverterNodes {
             ec.putback(bytes, 0, n);
 
             final Object sourceEncoding = (RubyEncoding) sourceEncodingNode.call(encodingConverter, "source_encoding");
-            final RubyEncoding rubyEncoding = sourceEncoding == nil()
+            final RubyEncoding rubyEncoding = Nil.is(sourceEncoding)
                     ? Encodings.BINARY
                     : (RubyEncoding) sourceEncoding;
             return makeStringNode.executeMake(bytes, rubyEncoding, CodeRange.CR_UNKNOWN);

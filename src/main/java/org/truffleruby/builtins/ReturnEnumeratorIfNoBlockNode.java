@@ -10,6 +10,7 @@
 package org.truffleruby.builtins;
 
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -37,7 +38,7 @@ public class ReturnEnumeratorIfNoBlockNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
         final Object block = RubyArguments.getBlock(frame);
 
-        if (noBlockProfile.profile(block == nil())) {
+        if (noBlockProfile.profile(Nil.is(block))) {
             if (toEnumNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toEnumNode = insert(DispatchNode.create());

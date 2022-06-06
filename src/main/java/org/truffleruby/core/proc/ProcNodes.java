@@ -85,7 +85,7 @@ public abstract class ProcNodes {
 
             Object parentBlock = readNode.execute(parentFrame, TranslatorEnvironment.METHOD_BLOCK_NAME, nil());
 
-            if (parentBlock == nil()) {
+            if (Nil.is(parentBlock)) {
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorProcWithoutBlock(this));
             } else {
                 if (warnNode.shouldWarnForDeprecation()) {

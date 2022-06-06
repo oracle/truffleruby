@@ -34,7 +34,7 @@ public final class RubyNoMethodError extends RubyNameError implements ObjectGrap
             Object name,
             Object args) {
         super(rubyClass, shape, message, backtrace, cause, receiver, name);
-        assert args == Nil.get() || args instanceof RubyArray;
+        assert Nil.is(args) || args instanceof RubyArray;
         this.args = args;
     }
 

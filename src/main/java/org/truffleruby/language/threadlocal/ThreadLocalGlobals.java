@@ -32,8 +32,7 @@ public class ThreadLocalGlobals {
     public void setLastException(Object exception) {
         assert !(exception instanceof TerminationException) : "$? should never be a TerminationException: " + exception;
         assert !(exception instanceof RaiseException) : "$? should never be a RaiseException: " + exception;
-        assert exception == Nil.get() || exception instanceof RubyException ||
-                exception instanceof AbstractTruffleException;
+        assert Nil.is(exception) || exception instanceof RubyException || exception instanceof AbstractTruffleException;
         this.lastException = exception;
     }
 }

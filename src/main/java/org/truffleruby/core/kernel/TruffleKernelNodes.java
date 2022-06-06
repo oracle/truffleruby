@@ -221,7 +221,7 @@ public abstract class TruffleKernelNodes {
             Object variables;
             if (declarationFrameDepth == 0) {
                 variables = SpecialVariableStorage.get(frame);
-                if (variables == nil()) {
+                if (Nil.is(variables)) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
                     variables = new SpecialVariableStorage();
                     SpecialVariableStorage.set(frame, (SpecialVariableStorage) variables);
@@ -247,7 +247,7 @@ public abstract class TruffleKernelNodes {
                 }
 
                 variables = SpecialVariableStorage.get(storageFrame);
-                if (variables == nil()) {
+                if (Nil.is(variables)) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
                     variables = new SpecialVariableStorage();
                     SpecialVariableStorage.set(storageFrame, (SpecialVariableStorage) variables);
@@ -266,7 +266,7 @@ public abstract class TruffleKernelNodes {
         public static SpecialVariableStorage getSlow(MaterializedFrame aFrame) {
             MaterializedFrame frame = FindDeclarationVariableNodes.getOuterDeclarationFrame(aFrame);
             Object variables = SpecialVariableStorage.get(frame);
-            if (variables == Nil.get()) {
+            if (Nil.is(variables)) {
                 variables = new SpecialVariableStorage();
                 SpecialVariableStorage.set(frame, (SpecialVariableStorage) variables);
                 SpecialVariableStorage.getAssumption(frame.getFrameDescriptor()).invalidate();

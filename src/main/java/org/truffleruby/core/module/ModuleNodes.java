@@ -314,7 +314,7 @@ public abstract class ModuleNodes {
 
             final Object isSubclass = isSubclass(self, other);
 
-            if (isSubclass == nil()) {
+            if (Nil.is(isSubclass)) {
                 return nil();
             } else {
                 return (boolean) isSubclass ? -1 : 1;

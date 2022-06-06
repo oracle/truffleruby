@@ -517,7 +517,7 @@ public abstract class TimeNodes {
                 zone = GetTimeZoneNode.UTC;
                 relativeOffset = false;
                 zoneToStore = language.coreStrings.UTC.createInstance(getContext());
-            } else if (utcoffset == nil()) {
+            } else if (Nil.is(utcoffset)) {
                 if (makeStringNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
                     makeStringNode = insert(StringNodes.MakeStringNode.create());

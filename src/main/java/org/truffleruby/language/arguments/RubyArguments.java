@@ -70,7 +70,7 @@ public final class RubyArguments {
         assert RubyGuards.assertIsValidRubyValue(rubyArgs[ArgumentIndicies.SELF.ordinal()]);
 
         final Object block = rubyArgs[ArgumentIndicies.BLOCK.ordinal()];
-        assert block instanceof RubyProc || block == Nil.get() : block;
+        assert block instanceof RubyProc || Nil.is(block) : block;
 
         Object descriptor = rubyArgs[ArgumentIndicies.DESCRIPTOR.ordinal()];
         assert descriptor instanceof ArgumentsDescriptor : descriptor;
@@ -264,20 +264,20 @@ public final class RubyArguments {
     public static Object getBlock(Object[] args) {
         final Object block = args[ArgumentIndicies.BLOCK.ordinal()];
         /* We put into the frame arguments either a Nil or RubyProc, so that's all we'll get out at this point. */
-        assert block instanceof Nil || block instanceof RubyProc : StringUtils.toString(block);
+        assert Nil.is(block) || block instanceof RubyProc : StringUtils.toString(block);
         return block;
     }
 
     public static void setBlock(Object[] args, Object block) {
         // We put into the frame arguments either a Nil or RubyProc.
-        assert block instanceof Nil || block instanceof RubyProc : StringUtils.toString(block);
+        assert Nil.is(block) || block instanceof RubyProc : StringUtils.toString(block);
         args[ArgumentIndicies.BLOCK.ordinal()] = block;
     }
 
     public static Object getBlock(Frame frame) {
         final Object block = frame.getArguments()[ArgumentIndicies.BLOCK.ordinal()];
         /* We put into the frame arguments either a Nil or RubyProc, so that's all we'll get out at this point. */
-        assert block instanceof Nil || block instanceof RubyProc : StringUtils.toString(block);
+        assert Nil.is(block) || block instanceof RubyProc : StringUtils.toString(block);
         return block;
     }
 

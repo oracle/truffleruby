@@ -27,6 +27,7 @@ import org.truffleruby.core.cast.BooleanCastWithDefaultNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyGuards;
@@ -563,7 +564,7 @@ public abstract class RangeNodes {
                 @Cached DispatchNode compare,
                 @Bind("rubyClass == getRangeClass()") boolean standardClass) {
 
-            if (compare.call(begin, "<=>", end) == nil() && end != nil() && begin != nil()) {
+            if (Nil.is(compare.call(begin, "<=>", end)) && Nil.isNot(end) && Nil.isNot(begin)) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("bad value for range", this));
             }
 

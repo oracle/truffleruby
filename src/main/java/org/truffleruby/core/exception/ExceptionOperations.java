@@ -99,7 +99,7 @@ public abstract class ExceptionOperations {
     private static String messageFieldToString(RubyException exception) {
         Object message = exception.message;
         RubyStringLibrary strings = RubyStringLibrary.getUncached();
-        if (message == null || message == Nil.get()) {
+        if (message == null || Nil.is(message)) {
             final ModuleFields exceptionClass = exception.getLogicalClass().fields;
             return exceptionClass.getName(); // What Exception#message would return if no message is set
         } else if (strings.isRubyString(message)) {

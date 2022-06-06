@@ -15,6 +15,7 @@ import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNodeGen;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.FrozenStrings;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
@@ -69,7 +70,7 @@ public class YieldExpressionNode extends LiteralCallNode {
         }
 
         final Object maybeBlock = readBlock(frame);
-        if (maybeBlock == nil()) {
+        if (Nil.is(maybeBlock)) {
             noCapturedBlock.enter();
             throw new RaiseException(getContext(), coreExceptions().noBlockToYieldTo(this));
         }
@@ -98,7 +99,7 @@ public class YieldExpressionNode extends LiteralCallNode {
     private Object readBlock(VirtualFrame frame) {
         Object block = readBlockNode.execute(frame);
 
-        if (block == nil()) {
+        if (Nil.is(block)) {
             useCapturedBlock.enter();
             block = RubyArguments.getMethod(frame).getCapturedBlock();
         }
@@ -117,7 +118,7 @@ public class YieldExpressionNode extends LiteralCallNode {
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
         Object block = readBlock(frame);
-        if (block == nil()) {
+        if (Nil.is(block)) {
             return nil();
         } else {
             return FrozenStrings.YIELD;

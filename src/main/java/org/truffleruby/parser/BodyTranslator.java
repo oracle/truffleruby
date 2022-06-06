@@ -735,7 +735,7 @@ public class BodyTranslator extends Translator {
             }
 
             if (blockTranslated instanceof ObjectLiteralNode &&
-                    ((ObjectLiteralNode) blockTranslated).getObject() == Nil.get()) {
+                    Nil.is(((ObjectLiteralNode) blockTranslated).getObject())) {
                 blockTranslated = null;
             }
         } else {

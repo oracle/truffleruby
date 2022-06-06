@@ -10,6 +10,7 @@
 package org.truffleruby.builtins;
 
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -39,7 +40,7 @@ public class EnumeratorSizeNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
         final Object block = RubyArguments.getBlock(frame);
 
-        if (noBlockProfile.profile(block == nil())) {
+        if (noBlockProfile.profile(Nil.is(block))) {
             if (toEnumWithSize == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toEnumWithSize = insert(DispatchNode.create());

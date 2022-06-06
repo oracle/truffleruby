@@ -62,7 +62,7 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
             this.depth = ((RubyClass) superclass).depth + 1;
             fields.setSuperClass((RubyClass) superclass);
         } else { // BasicObject (nil superclass)
-            assert superclass == Nil.get();
+            assert Nil.is(superclass);
             this.superclass = superclass;
             this.ancestorClasses = EMPTY_CLASS_ARRAY;
             this.depth = 0;

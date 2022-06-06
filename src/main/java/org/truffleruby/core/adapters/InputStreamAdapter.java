@@ -30,7 +30,7 @@ public class InputStreamAdapter extends NonBlockingInputStream {
     public int read() {
         final Object result = DispatchNode.getUncached().call(object, "getbyte");
 
-        if (result == Nil.get()) {
+        if (Nil.is(result)) {
             return EOF;
         }
 

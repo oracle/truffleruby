@@ -35,6 +35,7 @@ import java.util.regex.Pattern;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -79,7 +80,7 @@ public abstract class GetTimeZoneNode extends RubyBaseNode {
             tzString = libString.getJavaString(tz);
         }
 
-        if (tz == nil()) {
+        if (Nil.is(tz)) {
             // $TZ is not set, use the system timezone
             return new TimeZoneAndName(getSystemTimeZone());
         } else if (libString.isRubyString(tz)) {

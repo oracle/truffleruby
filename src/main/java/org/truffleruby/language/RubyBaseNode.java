@@ -53,7 +53,7 @@ public abstract class RubyBaseNode extends Node {
     }
 
     public static Object nilToNull(Object value) {
-        return value == nil() ? null : value;
+        return Nil.is(value) ? null : value;
     }
 
     public static Object nullToNil(Object value) {

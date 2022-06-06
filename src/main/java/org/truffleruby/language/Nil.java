@@ -32,6 +32,14 @@ public final class Nil extends ImmutableRubyObject implements TruffleObject {
         return INSTANCE;
     }
 
+    public static boolean is(Object object) {
+        return object == INSTANCE;
+    }
+
+    public static boolean isNot(Object object) {
+        return object != INSTANCE;
+    }
+
     private Nil() {
         this.valueWrapper = new ValueWrapper(this, NIL_HANDLE, null);
         this.objectId = ObjectIDOperations.NIL;

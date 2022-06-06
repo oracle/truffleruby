@@ -519,7 +519,7 @@ public abstract class ArrayNodes {
             try {
                 for (; loopProfile.inject(n < size); n++) {
                     Object v = stores.read(store, n);
-                    if (v != nil()) {
+                    if (Nil.isNot(v)) {
                         arrayBuilder.appendValue(state, m, v);
                         m++;
                     }
@@ -567,7 +567,7 @@ public abstract class ArrayNodes {
             try {
                 for (; loopProfile.inject(n < size); n++) {
                     Object v = stores.read(oldStore, n);
-                    if (v != nil()) {
+                    if (Nil.isNot(v)) {
                         mutableStores.write(newStore, m, v);
                         m++;
                     }
@@ -746,7 +746,7 @@ public abstract class ArrayNodes {
                 array.size = i;
                 return found;
             } else {
-                if (maybeBlock == nil()) {
+                if (Nil.is(maybeBlock)) {
                     return nil();
                 } else {
                     return callBlock((RubyProc) maybeBlock, value);
@@ -2461,7 +2461,7 @@ public abstract class ArrayNodes {
                             obj,
                             coreLibrary().arrayClass,
                             coreSymbols().TO_ARY);
-                    if (converted == nil()) {
+                    if (Nil.is(converted)) {
                         append.executeAppendOne(out, obj);
                     } else {
                         modified = true;

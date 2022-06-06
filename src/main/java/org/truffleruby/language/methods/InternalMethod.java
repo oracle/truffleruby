@@ -162,7 +162,7 @@ public class InternalMethod implements ObjectGraphNode {
         assert lexicalScope != null;
         assert !sharedMethodInfo.isBlock() : sharedMethodInfo;
         assert callTarget == null || RubyRootNode.of(callTarget).getSharedMethodInfo() == sharedMethodInfo;
-        assert capturedBlock instanceof Nil || capturedBlock instanceof RubyProc : capturedBlock;
+        assert Nil.is(capturedBlock) || capturedBlock instanceof RubyProc : capturedBlock;
         this.sharedMethodInfo = sharedMethodInfo;
         this.lexicalScope = lexicalScope;
         this.declarationContext = declarationContext;

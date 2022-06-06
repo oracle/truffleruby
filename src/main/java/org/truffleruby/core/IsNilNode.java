@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core;
 
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
@@ -24,7 +25,7 @@ public class IsNilNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        return child.execute(frame) == nil();
+        return Nil.is(child.execute(frame));
     }
 
 }

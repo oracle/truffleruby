@@ -51,10 +51,10 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
             @Cached TranslateExceptionNode translateException,
             @Cached ConditionProfile hasBlock,
             @Cached BranchProfile errorProfile) {
-        assert block instanceof Nil || block instanceof RubyProc : block;
+        assert Nil.is(block) || block instanceof RubyProc : block;
 
         Object[] newArguments = arguments;
-        if (hasBlock.profile(block != nil())) {
+        if (hasBlock.profile(Nil.isNot(block))) {
             newArguments = ArrayUtils.append(arguments, block);
         }
 

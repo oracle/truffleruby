@@ -167,7 +167,7 @@ public abstract class ClassNodes {
     private static RubyClass createSingletonClass(RubyContext context, RubyClass rubyClass) {
         final RubyClass singletonSuperclass;
         final Object superclass = rubyClass.superclass;
-        if (superclass == Nil.get()) {
+        if (Nil.is(superclass)) {
             singletonSuperclass = rubyClass.getLogicalClass();
         } else {
             singletonSuperclass = getLazyCreatedSingletonClass(context, (RubyClass) superclass);

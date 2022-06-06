@@ -325,7 +325,7 @@ public abstract class HashNodes {
             final Object value = hashes.delete(hash.store, hash, key);
             if (hasValue.profile(value != null)) {
                 return value;
-            } else if (hasBlock.profile(maybeBlock != nil())) {
+            } else if (hasBlock.profile(Nil.isNot(maybeBlock))) {
                 return yieldNode.yield((RubyProc) maybeBlock, key);
             } else {
                 return nil();

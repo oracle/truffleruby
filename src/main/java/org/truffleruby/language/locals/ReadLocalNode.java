@@ -13,6 +13,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.debug.SingleMemberDescriptor;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.utils.Utils;
@@ -46,7 +47,7 @@ public abstract class ReadLocalNode extends RubyContextSourceNode {
                 return FrozenStrings.LOCAL_VARIABLE;
 
             case FRAME_LOCAL_GLOBAL:
-                if (readFrameSlot(frame) != nil()) {
+                if (Nil.isNot(readFrameSlot(frame))) {
                     return FrozenStrings.GLOBAL_VARIABLE;
                 } else {
                     return nil();

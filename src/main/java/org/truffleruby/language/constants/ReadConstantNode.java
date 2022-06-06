@@ -15,6 +15,7 @@ import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -78,7 +79,7 @@ public class ReadConstantNode extends RubyContextSourceNode {
 
     /** Whether the module part of this constant read is undefined, without attempting to evaluate it. */
     public boolean isModuleTriviallyUndefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
-        return moduleNode.isDefined(frame, language, context) == nil();
+        return Nil.is(moduleNode.isDefined(frame, language, context));
     }
 
     @Override
