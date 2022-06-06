@@ -84,7 +84,7 @@ public abstract class ArrayIndexNodes {
 
         @Specialization(guards = "!isInBounds(array, index)")
         protected Object readOutOfBounds(RubyArray array, int index) {
-            return nil();
+            return nil("out of array bounds");
         }
 
         protected static boolean isInBounds(RubyArray array, int index) {

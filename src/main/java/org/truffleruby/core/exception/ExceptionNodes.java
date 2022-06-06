@@ -12,6 +12,7 @@ package org.truffleruby.core.exception;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -19,9 +20,11 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
+import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
@@ -349,6 +352,32 @@ public abstract class ExceptionNodes {
         @Specialization
         protected int limit() {
             return getContext().getOptions().BACKTRACE_LIMIT;
+        }
+
+    }
+
+
+    @Primitive(name = "nil_trace")
+    public abstract static class NilTraceNode extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        protected RubyArray nilTrace(RubyNoMethodError nilCarrier) {
+            if (nilCarrier.receiver instanceof Nil) {
+                final String[] trace = ((Nil) nilCarrier.receiver).getTrace(getLanguage());
+                final Object[] array = new Object[trace.length];
+
+                for (int n = 0; n < trace.length; n++) {
+                    array[n] = StringOperations.createUTF8String(
+                            getContext(),
+                            getLanguage(),
+                            StringOperations.encodeRope(trace[n], UTF8Encoding.INSTANCE));
+                }
+
+                return ArrayHelpers.createArray(getContext(), getLanguage(), array);
+            } else {
+                return ArrayHelpers.createEmptyArray(getContext(), getLanguage());
+            }
         }
 
     }

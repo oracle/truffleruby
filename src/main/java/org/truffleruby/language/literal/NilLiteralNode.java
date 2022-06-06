@@ -29,7 +29,11 @@ public class NilLiteralNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        return nil();
+        if (isImplicit) {
+            return nil();
+        } else {
+            return nil("nil literal");
+        }
     }
 
     @Override

@@ -61,7 +61,7 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
         this.store = store;
         this.size = size;
         this.defaultBlock = Nil.get();
-        this.defaultValue = Nil.get();
+        this.defaultValue = null;
         this.compareByIdentity = false;
         this.ruby2_keywords = ruby2_keywords;
 

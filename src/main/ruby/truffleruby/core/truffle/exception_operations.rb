@@ -156,6 +156,15 @@ module Truffle
         end
         append_causes(result, exception, {}.compare_by_identity, reverse, highlight)
       end
+      if exception.is_a?(NameError) && exception.receiver.nil?
+        trace = Primitive.nil_trace(exception)
+        unless trace.empty?
+          result << "nil trace:\n"
+          trace.reverse.each do |line|
+            result << "\t" << line << "\n"
+          end
+        end
+      end
       result
     end
 

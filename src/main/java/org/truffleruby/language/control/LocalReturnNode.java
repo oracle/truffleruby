@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.control;
 
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
@@ -24,7 +25,13 @@ public class LocalReturnNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        throw new LocalReturnException(value.execute(frame));
+        final Object returned = value.execute(frame);
+
+        if (Nil.is(returned)) {
+            ((Nil) returned).trace(this, "returned");
+        }
+
+        throw new LocalReturnException(returned);
     }
 
     @Override
@@ -36,4 +43,5 @@ public class LocalReturnNode extends RubyContextSourceNode {
     public RubyNode simplifyAsTailExpression() {
         return value;
     }
+
 }

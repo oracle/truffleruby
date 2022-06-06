@@ -20,6 +20,7 @@ import org.truffleruby.core.cast.SplatCastNode.NilBehavior;
 import org.truffleruby.core.cast.SplatCastNodeGen;
 import org.truffleruby.core.proc.ProcCallTargets;
 import org.truffleruby.core.proc.ProcType;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyLambdaRootNode;
 import org.truffleruby.language.RubyMethodRootNode;
 import org.truffleruby.language.RubyNode;
@@ -49,8 +50,10 @@ import org.truffleruby.language.supercall.ReadZSuperArgumentsNode;
 import org.truffleruby.language.supercall.SuperCallNode;
 import org.truffleruby.language.supercall.ZSuperOutsideMethodNode;
 import org.truffleruby.parser.ast.ArgsParseNode;
+import org.truffleruby.parser.ast.BlockParseNode;
 import org.truffleruby.parser.ast.MethodDefParseNode;
 import org.truffleruby.parser.ast.ParseNode;
+import org.truffleruby.parser.ast.ReturnParseNode;
 import org.truffleruby.parser.ast.SuperParseNode;
 import org.truffleruby.parser.ast.UnnamedRestArgParseNode;
 import org.truffleruby.parser.ast.ZSuperParseNode;
@@ -134,7 +137,11 @@ public class MethodTranslator extends BodyTranslator {
             }
         }
 
-        final RubyNode body = translateNodeOrNil(sourceSection, bodyNode).simplifyAsTailExpression();
+        RubyNode body = translateNodeOrNil(sourceSection, bodyNode);
+
+        if (!Nil.TRACE) {
+            body = body.simplifyAsTailExpression();
+        }
 
         final boolean methodCalledLambda = !isStabbyLambda && methodNameForBlock.equals("lambda");
         final boolean emitLambda = isStabbyLambda || methodCalledLambda;
@@ -391,7 +398,23 @@ public class MethodTranslator extends BodyTranslator {
                 true,
                 this).translate();
 
-        RubyNode body = translateNodeOrNil(sourceSection, bodyNode).simplifyAsTailExpression();
+        final SourceIndexLength returnPosition;
+
+        if (Nil.TRACE) {
+            // We want an explicit return - so that it traces for nil
+            if (bodyNode instanceof BlockParseNode) {
+                returnPosition = ((BlockParseNode) bodyNode).getLast().getPosition();
+            } else {
+                returnPosition = bodyNode.getPosition();
+            }
+            bodyNode = new ReturnParseNode(returnPosition, bodyNode);
+        }
+
+        RubyNode body = translateNodeOrNil(sourceSection, bodyNode);
+
+        if (!Nil.TRACE) {
+            body = body.simplifyAsTailExpression();
+        }
 
         body = sequence(sourceSection, Arrays.asList(loadArguments, body));
 

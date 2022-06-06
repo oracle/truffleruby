@@ -12,6 +12,7 @@ package org.truffleruby.language.locals;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import org.truffleruby.core.array.AssignableNode;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 
@@ -65,6 +66,10 @@ public abstract class WriteFrameSlotNode extends RubyBaseNode implements Assigna
         /* No-op if kind is already Object. */
         final FrameDescriptor descriptor = getFrameDescriptor(frame);
         descriptor.setSlotKind(frameSlot, FrameSlotKind.Object);
+
+        if (Nil.is(value)) {
+            ((Nil) value).trace(this, "stored in local");
+        }
 
         frame.setObject(frameSlot, value);
     }

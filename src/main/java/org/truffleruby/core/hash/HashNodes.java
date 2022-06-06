@@ -308,7 +308,11 @@ public abstract class HashNodes {
 
         @Specialization
         protected Object defaultValue(RubyHash hash) {
-            return hash.defaultValue;
+            if (hash.defaultValue == null) {
+                return nil("default hash value");
+            } else {
+                return hash.defaultValue;
+            }
         }
     }
 

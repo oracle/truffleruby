@@ -49,7 +49,11 @@ public abstract class RubyBaseNode extends Node {
     }
 
     public Nil nil() {
-        return Nil.get();
+        return Nil.get(this, "implicit nil");
+    }
+
+    public Nil nil(String event) {
+        return Nil.get(this, event);
     }
 
     public static Object nilToNull(Object value) {
