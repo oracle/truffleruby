@@ -940,7 +940,16 @@ public abstract class KernelNodes {
 
         // Default hash for Kernel#hash, can be overwritten by defining a #hash method
 
-        @Specialization(guards = { "!isRubyBignum(value)", "!isImmutableRubyString(value)", "!isRubySymbol(value)" })
+        @Specialization
+        protected int hashNil(Nil value) {
+            return System.identityHashCode(Nil.class);
+        }
+
+        @Specialization(guards = {
+                "!isRubyBignum(value)",
+                "!isImmutableRubyString(value)",
+                "!isRubySymbol(value)",
+                "!isNil(value)" })
         protected int hashImmutableRubyObject(ImmutableRubyObject value) {
             return System.identityHashCode(value);
         }

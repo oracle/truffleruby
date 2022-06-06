@@ -128,6 +128,21 @@ public abstract class BasicObjectNodes {
         public abstract boolean executeReferenceEqual(Object a, Object b);
 
         @Specialization
+        protected boolean equal(Nil a, Nil b) {
+            return true;
+        }
+
+        @Specialization(guards = "!isNil(b)")
+        protected boolean equal(Nil a, Object b) {
+            return false;
+        }
+
+        @Specialization(guards = "!isNil(a)")
+        protected boolean equal(Object a, Nil b) {
+            return false;
+        }
+
+        @Specialization
         protected boolean equal(boolean a, boolean b) {
             return a == b;
         }
@@ -147,17 +162,18 @@ public abstract class BasicObjectNodes {
             return Double.doubleToRawLongBits(a) == Double.doubleToRawLongBits(b);
         }
 
-        @Specialization(guards = { "isNonPrimitiveRubyObject(a)", "isNonPrimitiveRubyObject(b)" })
+        @Specialization(
+                guards = { "isNonPrimitiveRubyObject(a)", "isNonPrimitiveRubyObject(b)", "!isNil(a)", "!isNil(b)" })
         protected boolean equalRubyObjects(Object a, Object b) {
             return a == b;
         }
 
-        @Specialization(guards = { "isNonPrimitiveRubyObject(a)", "isPrimitive(b)" })
+        @Specialization(guards = { "isNonPrimitiveRubyObject(a)", "isPrimitive(b)", "!isNil(a)" })
         protected boolean rubyObjectPrimitive(Object a, Object b) {
             return false;
         }
 
-        @Specialization(guards = { "isPrimitive(a)", "isNonPrimitiveRubyObject(b)" })
+        @Specialization(guards = { "isPrimitive(a)", "isNonPrimitiveRubyObject(b)", "!isNil(b)" })
         protected boolean primitiveRubyObject(Object a, Object b) {
             return false;
         }
