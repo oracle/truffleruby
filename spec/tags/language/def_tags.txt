@@ -1,1 +1,0 @@
-fails:A singleton method definition raises FrozenError with the correct class name

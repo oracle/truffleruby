@@ -9,7 +9,9 @@
  */
 package org.truffleruby.language.objects;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.klass.RubyClass;
@@ -42,15 +44,23 @@ public abstract class SingletonClassNode extends RubyBaseNode {
             // no need to guard on the context, the rubyClass is context-specific
             guards = { "isSingleContext()", "rubyClass == cachedClass", "cachedSingletonClass != null" },
             limit = "1")
-    RubyClass singletonClassClassCached(RubyClass rubyClass,
+    static RubyClass singletonClassClassCached(RubyClass rubyClass,
             @Cached("rubyClass") RubyClass cachedClass,
-            @Cached("getSingletonClassOfClassOrNull(getContext(), cachedClass)") RubyClass cachedSingletonClass) {
+            @Cached IsFrozenNode isFrozenNode,
+            @Cached FreezeNode freezeNode,
+            @Bind("this") Node node,
+            @Cached("getSingletonClassOfClassOrNull(getContext(node), node, cachedClass, isFrozenNode, freezeNode)") RubyClass cachedSingletonClass) {
         return cachedSingletonClass;
     }
 
     @Specialization(replaces = "singletonClassClassCached")
     RubyClass singletonClassClassUncached(RubyClass rubyClass) {
-        return ClassNodes.getSingletonClassOfClass(getContext(), rubyClass);
+        final RubyClass result = ClassNodes.getSingletonClassOfClass(getContext(), rubyClass);
+
+        if (IsFrozenNodeGen.getUncached().execute(rubyClass)) {
+            FreezeNode.executeUncached(result);
+        }
+        return result;
     }
 
     @Specialization(
@@ -111,8 +121,16 @@ public abstract class SingletonClassNode extends RubyBaseNode {
         throw new RaiseException(getContext(), coreExceptions().typeErrorCantDefineSingleton(this));
     }
 
-    protected RubyClass getSingletonClassOfClassOrNull(RubyContext context, RubyClass rubyClass) {
-        return ClassNodes.getSingletonClassOfClassOrNull(context, rubyClass);
+    protected RubyClass getSingletonClassOfClassOrNull(RubyContext context, Node node, RubyClass rubyClass,
+            IsFrozenNode isFrozenNode,
+            FreezeNode freezeNode) {
+        final RubyClass result = ClassNodes.getSingletonClassOfClassOrNull(context, rubyClass);
+
+        if (result != null && isFrozenNode.execute(rubyClass)) {
+            freezeNode.execute(node, result);
+        }
+
+        return result;
     }
 
     @TruffleBoundary

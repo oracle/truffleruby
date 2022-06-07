@@ -5,6 +5,7 @@ New features:
 Bug fixes:
 
 * Add missing thread-safe objects write barriers for `TruffleRuby::ConcurrentMap` (#3179, @eregon).
+* Fix singleton class of class should be frozen if class is frozen (@bjfish).
 
 Compatibility:
 
@@ -37,7 +38,6 @@ Bug fixes:
 * Fix using the `--cpusampler` profiler when there are custom unblock functions for `rb_thread_call_without_gvl()` (#3013, @eregon).
 * Fix recursive raising `FrozenError` exception when redefined `#inspect` modifies an object (#3388, @andrykonchin).
 * Fix `Integer#div` returning the wrong object type when the divisor is a `Rational` (@simonlevasseur, @nirvdrum).
-* Remove constant `Random::DEFAULT` (#3039, @patricklinpl)
 
 Compatibility:
 
@@ -74,6 +74,7 @@ Compatibility:
 * Remove deprecated `Fixnum` and `Bignum` constants (#3039, @andrykonchin).
 * Add `rb_enc_interned_str_cstr` function (#3408, @goyox86, @thomasmarshall).
 * Add `rb_str_to_interned_str` function (#3408, @thomasmarshall).
+* Remove constant `Random::DEFAULT` (#3039, @patricklinpl)
 
 Performance:
 
@@ -84,9 +85,7 @@ Performance:
 
 Changes:
 
-
 Memory Footprint:
-
 
 # 23.1.0
 
@@ -151,7 +150,6 @@ Memory Footprint:
 * Replaced `RubyLibrary` with `FreezeNode` and `IsFrozenNode` (@horakivo).
 * Address many truffle-sharing warnings (@horakivo).
 * Address many truffle-inlining warnings (@horakivo).
-
 
 # 23.0.0
 
