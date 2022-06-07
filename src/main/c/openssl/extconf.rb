@@ -13,7 +13,13 @@
 
 require "mkmf"
 
-dir_config("openssl")
+if defined?(::TruffleRuby)
+  require 'truffle/openssl-prefix'
+  dir_config("openssl", ENV["OPENSSL_PREFIX"])
+else
+  dir_config("openssl")
+end
+
 dir_config("kerberos")
 
 Logging::message "=== OpenSSL for Ruby configurator ===\n"
@@ -102,6 +108,13 @@ if !pkg_config_found && !find_openssl_library
     "is installed."
 end
 
+# TruffleRuby: do not perform all checks again if extconf.h already exists
+extconf_h = "#{__dir__}/extconf.h"
+if File.exist?(extconf_h) && File.mtime(extconf_h) >= File.mtime(__FILE__ ) && !Truffle::OPENSSL_PREFIX_WAS_SET
+  $extconf_h = extconf_h
+else
+### START of checks
+
 version_ok = if have_macro("LIBRESSL_VERSION_NUMBER", "openssl/opensslv.h")
   is_libressl = true
   checking_for("LibreSSL version >= 3.1.0") {
@@ -184,5 +197,9 @@ have_func("EVP_PKEY_dup")
 Logging::message "=== Checking done. ===\n"
 
 create_header
+
+### END of checks
+end
+
 create_makefile("openssl")
 Logging::message "Done.\n"
