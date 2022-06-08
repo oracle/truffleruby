@@ -3474,7 +3474,7 @@ public abstract class StringNodes {
 
             if (modifiedProfile.profile(byteArray.getArray() != outputBytes)) {
                 string.setTString(
-                        makeTString(outputBytes, encoding.tencoding, byteArray.getOffset(), byteArray.getLength()));
+                        makeTString(outputBytes, encoding.tencoding, 0, byteArray.getLength()));
                 return string;
             }
 

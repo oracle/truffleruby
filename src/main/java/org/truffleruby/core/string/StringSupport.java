@@ -1654,7 +1654,7 @@ public final class StringSupport {
         boolean modified = false;
 
         int p = byteArray.getOffset();
-        final int end = byteArray.getEnd();
+        int end = byteArray.getEnd();
         var bytes = byteArray.getArray();
 
         if (byteArray.getLength() == 0) {
@@ -1662,7 +1662,9 @@ public final class StringSupport {
         }
 
         if (StringSupport.isAsciiLowercase(bytes[p])) {
-            bytes = bytes.clone();
+            bytes = ArrayUtils.extractRange(bytes, byteArray.getOffset(), byteArray.getEnd());
+            p = 0;
+            end = byteArray.getLength();
             bytes[p] ^= 0x20;
             modified = true;
         }
@@ -1671,8 +1673,10 @@ public final class StringSupport {
         while (s < end) {
             if (StringSupport.isAsciiUppercase(bytes[s])) {
                 if (!modified) {
-                    bytes = bytes.clone();
+                    bytes = ArrayUtils.extractRange(bytes, byteArray.getOffset(), byteArray.getEnd());
                     modified = true;
+                    s -= byteArray.getOffset();
+                    end = byteArray.getLength();
                 }
                 bytes[s] ^= 0x20;
                 s++;
