@@ -20,7 +20,6 @@ import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.Nil;
@@ -65,7 +64,7 @@ public abstract class ToStringNode extends FormatNode {
         this.convertNumbersToStrings = convertNumbersToStrings;
         this.conversionMethod = conversionMethod;
         this.inspectOnConversionFailure = inspectOnConversionFailure;
-        assert !(valueOnNil instanceof Rope);
+
         this.valueOnNil = valueOnNil;
         this.specialClassBehaviour = specialClassBehaviour;
     }
