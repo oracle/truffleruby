@@ -48,8 +48,9 @@ package org.truffleruby.core.format.write.bytes;
 import java.nio.ByteOrder;
 
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.strings.InternalByteArray;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.format.FormatNode;
-import org.truffleruby.core.rope.RopeNodes;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -71,19 +72,20 @@ public abstract class WriteHexStringNode extends FormatNode {
     @Specialization(guards = "libString.isRubyString(string)")
     protected Object write(VirtualFrame frame, Object string,
             @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
-            @Cached RopeNodes.BytesNode bytesNode) {
-        var rope = libString.getRope(string);
-        return write(frame, bytesNode.execute(rope));
+            @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
+        var tstring = libString.getTString(string);
+        var encoding = libString.getTEncoding(string);
+
+        return write(frame, byteArrayNode.execute(tstring, encoding));
     }
 
-    @Specialization
-    protected Object write(VirtualFrame frame, byte[] bytes) {
+    protected Object write(VirtualFrame frame, InternalByteArray byteArray) {
         int currentByte = 0;
 
         final int lengthToUse;
 
         if (length == -1) {
-            lengthToUse = bytes.length;
+            lengthToUse = byteArray.getLength();
         } else {
             lengthToUse = length;
         }
@@ -91,8 +93,8 @@ public abstract class WriteHexStringNode extends FormatNode {
         for (int n = 0; n < lengthToUse; n++) {
             byte currentChar;
 
-            if (n < bytes.length) {
-                currentChar = bytes[n];
+            if (n < byteArray.getLength()) {
+                currentChar = byteArray.get(n);
             } else {
                 currentChar = 0;
             }

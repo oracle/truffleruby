@@ -48,8 +48,9 @@ package org.truffleruby.core.format.write.bytes;
 import java.nio.ByteOrder;
 
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.strings.InternalByteArray;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.format.FormatNode;
-import org.truffleruby.core.rope.RopeNodes;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -73,17 +74,20 @@ public abstract class WriteBitStringNode extends FormatNode {
     @Specialization(guards = "libString.isRubyString(string)")
     protected Object write(VirtualFrame frame, Object string,
             @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
-            @Cached RopeNodes.BytesNode bytesNode) {
-        var rope = libString.getRope(string);
-        return write(frame, bytesNode.execute(rope));
+            @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
+        var tstring = libString.getTString(string);
+        var encoding = libString.getTEncoding(string);
+
+        return write(frame, byteArrayNode.execute(tstring, encoding));
     }
 
-    @Specialization
-    protected Object write(VirtualFrame frame, byte[] bytes) {
+    protected Object write(VirtualFrame frame, InternalByteArray byteArray) {
         int occurrences;
 
+        int byteLength = byteArray.getLength();
+
         if (star) {
-            occurrences = bytes.length;
+            occurrences = byteLength;
         } else {
             occurrences = length;
         }
@@ -91,14 +95,14 @@ public abstract class WriteBitStringNode extends FormatNode {
         int currentByte = 0;
         int padLength = 0;
 
-        if (occurrences > bytes.length) {
-            padLength = (occurrences - bytes.length) / 2 + (occurrences + bytes.length) % 2;
-            occurrences = bytes.length;
+        if (occurrences > byteLength) {
+            padLength = (occurrences - byteLength) / 2 + (occurrences + byteLength) % 2;
+            occurrences = byteLength;
         }
 
         if (byteOrder == ByteOrder.LITTLE_ENDIAN) {
             for (int i = 0; i < occurrences;) {
-                if ((bytes[i++] & 1) != 0) { // if the low bit is set
+                if ((byteArray.get(i++) & 1) != 0) { // if the low bit is set
                     currentByte |= 128; //set the high bit of the result
                 }
 
@@ -118,7 +122,7 @@ public abstract class WriteBitStringNode extends FormatNode {
             }
         } else {
             for (int i = 0; i < occurrences;) {
-                currentByte |= bytes[i++] & 1;
+                currentByte |= byteArray.get(i++) & 1;
 
                 // we filled up current byte; append it and create next one
                 if ((i & 7) == 0) {

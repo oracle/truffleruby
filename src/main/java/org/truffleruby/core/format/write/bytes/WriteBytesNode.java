@@ -29,7 +29,7 @@ public abstract class WriteBytesNode extends FormatNode {
     }
 
     @Specialization(guards = "libString.isRubyString(string)")
-    protected Object writeRope(VirtualFrame frame, Object string,
+    protected Object writeString(VirtualFrame frame, Object string,
             @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
             @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode) {
         var tstring = libString.getTString(string);

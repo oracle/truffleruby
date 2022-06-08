@@ -58,12 +58,6 @@ public abstract class WriteBinaryStringNode extends FormatNode {
         return null;
     }
 
-    @Specialization
-    protected Object write(VirtualFrame frame, byte[] bytes) {
-        write(frame, bytes, 0, bytes.length);
-        return null;
-    }
-
     @Specialization(guards = "libString.isRubyString(string)")
     protected Object write(VirtualFrame frame, Object string,
             @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
