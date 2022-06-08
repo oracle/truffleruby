@@ -18,7 +18,7 @@ describe "Process.egid=" do
 
   platform_is_not :windows do
     it "raises TypeError if not passed an Integer or String" do
-      -> { Process.euid = Object.new }.should raise_error(TypeError)
+      -> { Process.egid = Object.new }.should raise_error(TypeError)
     end
 
     it "sets the effective group id to its own gid if given the username corresponding to its own gid" do
