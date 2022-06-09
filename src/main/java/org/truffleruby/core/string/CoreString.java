@@ -20,7 +20,6 @@ import org.truffleruby.core.rope.Rope;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import org.truffleruby.core.rope.RopeOperations;
 
 public class CoreString {
 
@@ -42,7 +41,7 @@ public class CoreString {
             CompilerDirectives.transferToInterpreterAndInvalidate();
 
             rope = language.ropeCache.getRope(
-                    RopeOperations.encodeAsciiBytes(literal),
+                    StringOperations.encodeAsciiBytes(literal),
                     // Binary because error message Strings have a ASCII-8BIT encoding on MRI.
                     // When used for creating a Symbol, the encoding is adapted as needed.
                     ASCIIEncoding.INSTANCE,
@@ -59,7 +58,7 @@ public class CoreString {
             // Binary because error message Strings have a ASCII-8BIT encoding on MRI.
             // When used for creating a Symbol, the encoding is adapted as needed.
             // TODO: use RopeCache equivalent
-            tstring = TStringUtils.fromByteArray(RopeOperations.encodeAsciiBytes(literal), Encodings.BINARY);
+            tstring = TStringUtils.fromByteArray(StringOperations.encodeAsciiBytes(literal), Encodings.BINARY);
         }
 
         return tstring;

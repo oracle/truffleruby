@@ -25,9 +25,9 @@ import org.jcodings.specific.UTF32LEEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.RopeConstants;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.FrozenStringLiterals;
 import org.truffleruby.core.string.ImmutableRubyString;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.TStringConstants;
 
 public class Encodings {
@@ -45,12 +45,12 @@ public class Encodings {
     public static final RubyEncoding ISO_8859_1 = BUILT_IN_ENCODINGS[ISO8859_1Encoding.INSTANCE.getIndex()];
     public static final RubyEncoding UTF16_DUMMY = BUILT_IN_ENCODINGS[EncodingDB
             .getEncodings()
-            .get(RopeOperations.encodeAsciiBytes("UTF-16"))
+            .get(StringOperations.encodeAsciiBytes("UTF-16"))
             .getEncoding()
             .getIndex()];
     public static final RubyEncoding UTF32_DUMMY = BUILT_IN_ENCODINGS[EncodingDB
             .getEncodings()
-            .get(RopeOperations.encodeAsciiBytes("UTF-32"))
+            .get(StringOperations.encodeAsciiBytes("UTF-32"))
             .getEncoding()
             .getIndex()];
 

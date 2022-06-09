@@ -34,6 +34,7 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.EncodingUtils;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
@@ -90,7 +91,7 @@ public class EncodingManager {
             // The alias name should be exactly the one in the encodings DB.
             final Encoding encoding = encodingEntry.getEncoding();
             final RubyEncoding rubyEncoding = defineAlias(encoding,
-                    RopeOperations.decodeAscii(entry.bytes, entry.p, entry.end));
+                    StringOperations.decodeAscii(entry.bytes, entry.p, entry.end));
 
             // The constant names must be treated by the the <code>encodingNames</code> helper.
             for (String constName : EncodingUtils.encodingNames(entry.bytes, entry.p, entry.end)) {
@@ -158,7 +159,7 @@ public class EncodingManager {
                     context,
                     InteropLibrary.getUncached(),
                     0);
-            localeEncodingName = RopeOperations.decodeAscii(bytes);
+            localeEncodingName = StringOperations.decodeAscii(bytes);
         } else {
             localeEncodingName = Charset.defaultCharset().name();
         }
@@ -279,7 +280,7 @@ public class EncodingManager {
             return null;
         }
 
-        final byte[] nameBytes = RopeOperations.encodeAsciiBytes(name);
+        final byte[] nameBytes = StringOperations.encodeAsciiBytes(name);
         return defineDynamicEncoding(Encodings.DUMMY_ENCODING_BASE, nameBytes);
     }
 
@@ -289,7 +290,7 @@ public class EncodingManager {
             return null;
         }
 
-        final byte[] nameBytes = RopeOperations.encodeAsciiBytes(name);
+        final byte[] nameBytes = StringOperations.encodeAsciiBytes(name);
         return defineDynamicEncoding(encoding.jcoding, nameBytes);
     }
 

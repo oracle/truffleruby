@@ -105,4 +105,38 @@ public abstract class StringOperations {
         }
         return true;
     }
+
+    /** Prefer this to {@code getBytes(StandardCharsets.US_ASCII)} */
+    public static byte[] encodeAsciiBytes(String value) {
+        assert isAsciiOnly(value) : "String contained non ascii characters \"" + value + "\"";
+
+        final byte[] bytes = new byte[value.length()];
+
+        for (int i = 0; i < bytes.length; i++) {
+            bytes[i] = (byte) value.charAt(i);
+        }
+
+        return bytes;
+    }
+
+    public static String decodeAscii(byte[] bytes) {
+        return decodeAscii(bytes, 0, bytes.length);
+    }
+
+    public static String decodeAscii(byte[] bytes, int byteOffset, int byteLength) {
+        final char[] buffer = new char[byteLength];
+
+        for (int i = 0; i < byteLength; i++) {
+            byte b = bytes[byteOffset + i];
+            assert b >= 0;
+            buffer[i] = (char) b;
+        }
+
+        return newString(buffer);
+    }
+
+    @TruffleBoundary
+    private static String newString(char[] buffer) {
+        return new String(buffer);
+    }
 }

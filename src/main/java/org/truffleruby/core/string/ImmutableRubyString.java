@@ -165,7 +165,7 @@ public class ImmutableRubyString extends ImmutableRubyObjectCopyable implements 
             final byte[] bytes = bytesNode.execute(rope);
 
             if (asciiOnlyProfile.profile(StringGuards.is7Bit(string.tstring, string.encoding, codeRangeNode))) {
-                return RopeOperations.decodeAscii(bytes);
+                return StringOperations.decodeAscii(bytes);
             } else {
                 return RopeOperations.decodeNonAscii(rope.getEncoding(), bytes, 0, bytes.length);
             }

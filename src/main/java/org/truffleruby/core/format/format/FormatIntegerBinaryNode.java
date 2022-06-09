@@ -15,7 +15,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
 import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringOperations;
 
 import java.math.BigInteger;
 
@@ -181,7 +181,7 @@ public abstract class FormatIntegerBinaryNode extends FormatNode {
             }
         }
 
-        return RopeOperations.encodeAsciiBytes(formatted);
+        return StringOperations.encodeAsciiBytes(formatted);
     }
 
 }

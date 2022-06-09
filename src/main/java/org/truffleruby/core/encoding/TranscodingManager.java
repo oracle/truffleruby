@@ -44,7 +44,7 @@ import org.jcodings.util.CaseInsensitiveBytesHash;
 import org.jcodings.util.Hash;
 
 import com.oracle.truffle.api.TruffleOptions;
-import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 
 /** This class computes all direct transcoder paths for both JVM and Native Image as a convenient-to-access Map. On
@@ -59,8 +59,8 @@ public class TranscodingManager {
             for (Hash.HashEntry<TranscoderDB.Entry> destinationEntry : sourceEntry.entryIterator()) {
                 final TranscoderDB.Entry e = destinationEntry.value;
 
-                final String sourceName = StringUtils.toUpperCase(RopeOperations.decodeAscii(e.getSource()));
-                final String destinationName = StringUtils.toUpperCase(RopeOperations.decodeAscii(e.getDestination()));
+                final String sourceName = StringUtils.toUpperCase(StringOperations.decodeAscii(e.getSource()));
+                final String destinationName = StringUtils.toUpperCase(StringOperations.decodeAscii(e.getDestination()));
 
                 if (TruffleOptions.AOT) {
                     // Load the classes eagerly

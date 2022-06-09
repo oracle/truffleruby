@@ -1773,8 +1773,8 @@ public final class StringSupport {
     //endregion
     //region undump helpers
 
-    private static final byte[] FORCE_ENCODING_BYTES = RopeOperations.encodeAsciiBytes(".force_encoding(\"");
-    private static final byte[] HEXDIGIT = RopeOperations.encodeAsciiBytes("0123456789abcdef0123456789ABCDEF");
+    private static final byte[] FORCE_ENCODING_BYTES = StringOperations.encodeAsciiBytes(".force_encoding(\"");
+    private static final byte[] HEXDIGIT = StringOperations.encodeAsciiBytes("0123456789abcdef0123456789ABCDEF");
     private static final String INVALID_FORMAT_MESSAGE = "invalid dumped string; not wrapped with '\"' nor '\"...\".force_encoding(\"...\")' form";
 
     @TruffleBoundary

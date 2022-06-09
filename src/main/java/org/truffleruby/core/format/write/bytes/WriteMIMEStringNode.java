@@ -53,7 +53,7 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.library.RubyStringLibrary;
 
@@ -92,7 +92,7 @@ public abstract class WriteMIMEStringNode extends FormatNode {
         return output.getBytes();
     }
 
-    private static final byte[] hex_table = RopeOperations.encodeAsciiBytes("0123456789ABCDEF");
+    private static final byte[] hex_table = StringOperations.encodeAsciiBytes("0123456789ABCDEF");
 
     /** encodes a String with the Quoted printable, MIME encoding (see RFC2045). appends the result of the encoding in a
      * StringBuffer

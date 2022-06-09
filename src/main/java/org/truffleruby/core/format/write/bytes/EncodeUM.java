@@ -38,15 +38,15 @@ package org.truffleruby.core.format.write.bytes;
 
 import com.oracle.truffle.api.strings.InternalByteArray;
 import org.truffleruby.collections.ByteArrayBuilder;
-import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringOperations;
 
 public class EncodeUM {
 
-    private static final byte[] uu_table = RopeOperations
+    private static final byte[] uu_table = StringOperations
             .encodeAsciiBytes("`!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_");
-    private static final byte[] b64_table = RopeOperations
+    private static final byte[] b64_table = StringOperations
             .encodeAsciiBytes("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
-    public static final byte[] sHexDigits = RopeOperations.encodeAsciiBytes("0123456789abcdef0123456789ABCDEFx");
+    public static final byte[] sHexDigits = StringOperations.encodeAsciiBytes("0123456789abcdef0123456789ABCDEFx");
     public static final int[] b64_xtable = new int[256];
 
     static {

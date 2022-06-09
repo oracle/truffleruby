@@ -17,7 +17,6 @@ import org.truffleruby.core.rope.AsciiOnlyLeafRope;
 import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
-import org.truffleruby.core.rope.RopeOperations;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -211,7 +210,7 @@ public class TStringConstants {
         if (string.length() == 1) {
             return US_ASCII_SINGLE_BYTE_TSTRINGS[string.charAt(0)];
         } else {
-            final byte[] bytes = RopeOperations.encodeAsciiBytes(string);
+            final byte[] bytes = StringOperations.encodeAsciiBytes(string);
             final LeafRope rope = withHashCode(new AsciiOnlyLeafRope(bytes, USASCIIEncoding.INSTANCE));
             final Rope existing = RopeConstants.ROPE_CONSTANTS.putIfAbsent(string, rope);
 

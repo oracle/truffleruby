@@ -131,41 +131,7 @@ public class RopeOperations {
     }
 
     public static LeafRope encodeAscii(String value, Encoding encoding) {
-        return create(encodeAsciiBytes(value), encoding, CR_7BIT);
-    }
-
-    /** Prefer this to {@code getBytes(StandardCharsets.US_ASCII)} */
-    public static byte[] encodeAsciiBytes(String value) {
-        assert StringOperations.isAsciiOnly(value) : "String contained non ascii characters \"" + value + "\"";
-
-        final byte[] bytes = new byte[value.length()];
-
-        for (int i = 0; i < bytes.length; i++) {
-            bytes[i] = (byte) value.charAt(i);
-        }
-
-        return bytes;
-    }
-
-    public static String decodeAscii(byte[] bytes) {
-        return decodeAscii(bytes, 0, bytes.length);
-    }
-
-    public static String decodeAscii(byte[] bytes, int byteOffset, int byteLength) {
-        final char[] buffer = new char[byteLength];
-
-        for (int i = 0; i < byteLength; i++) {
-            byte b = bytes[byteOffset + i];
-            assert b >= 0;
-            buffer[i] = (char) b;
-        }
-
-        return newString(buffer);
-    }
-
-    @TruffleBoundary
-    private static String newString(char[] buffer) {
-        return new String(buffer);
+        return create(StringOperations.encodeAsciiBytes(value), encoding, CR_7BIT);
     }
 
     @TruffleBoundary
@@ -230,7 +196,7 @@ public class RopeOperations {
 
     private static String decodeRopeSegment(Rope value, byte[] bytes, int byteOffset, int byteLength) {
         if (value.isAsciiOnly()) {
-            return decodeAscii(bytes, byteOffset, byteLength);
+            return StringOperations.decodeAscii(bytes, byteOffset, byteLength);
         } else {
             return decodeNonAscii(value.getEncoding(), bytes, byteOffset, byteLength);
         }

@@ -23,7 +23,6 @@ import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -65,7 +64,7 @@ public class ConvertBytes {
     static {
         MIN_VALUE_BYTES = new byte[37][];
         for (int i = 2; i <= 36; i++) {
-            MIN_VALUE_BYTES[i] = RopeOperations.encodeAsciiBytes(Long.toString(Long.MIN_VALUE, i));
+            MIN_VALUE_BYTES[i] = StringOperations.encodeAsciiBytes(Long.toString(Long.MIN_VALUE, i));
         }
     }
 

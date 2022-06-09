@@ -36,7 +36,6 @@ import org.jcodings.ascii.AsciiTables;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.control.RaiseException;
 
 public class EncodingUtils {
@@ -85,7 +84,7 @@ public class EncodingUtils {
         boolean isValid = false;
         if (s >= end) {
             isValid = true;
-            names.add(RopeOperations.decodeAscii(name, p, end));
+            names.add(StringOperations.decodeAscii(name, p, end));
         }
 
         if (!isValid || hasLower) {
@@ -116,7 +115,7 @@ public class EncodingUtils {
                     }
                 }
                 if (hasUpper) {
-                    names.add(RopeOperations.decodeAscii(constName));
+                    names.add(StringOperations.decodeAscii(constName));
                 }
             }
             if (hasLower) {
@@ -126,7 +125,7 @@ public class EncodingUtils {
                         constName[s] = AsciiTables.ToUpperCaseTable[code];
                     }
                 }
-                names.add(RopeOperations.decodeAscii(constName));
+                names.add(StringOperations.decodeAscii(constName));
             }
         }
 
