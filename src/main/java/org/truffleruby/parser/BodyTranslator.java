@@ -2541,9 +2541,15 @@ public class BodyTranslator extends Translator {
             ArrayList<ValueFromNode> argValues,
             String op,
             ParseNode right) {
-        final ArrayParseNode readArguments = new ArrayParseNode(node.getPosition());
-        for (var arg : argValues) {
-            readArguments.add(arg.get(node.getPosition()));
+        ParseNode readArguments;
+        if (node.getArgsNode() instanceof ArrayParseNode) {
+            final ArrayParseNode readArgsArray = new ArrayParseNode(node.getPosition());
+            for (var arg : argValues) {
+                readArgsArray.add(arg.get(node.getPosition()));
+            }
+            readArguments = readArgsArray;
+        } else {
+            readArguments = argValues.get(0).get(node.getPosition());
         }
 
         final ParseNode read = new CallParseNode(
