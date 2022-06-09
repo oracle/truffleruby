@@ -27,9 +27,9 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.core.support.RubyByteArray;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -261,7 +261,7 @@ public abstract class PointerNodes {
 
         @Specialization(guards = "limit == 0")
         protected RubyString readNullPointer(long address, long limit) {
-            return createString(RopeConstants.EMPTY_BINARY_TSTRING, Encodings.BINARY);
+            return createString(TStringConstants.EMPTY_BINARY_TSTRING, Encodings.BINARY);
         }
 
         @Specialization(guards = "limit != 0")
@@ -316,7 +316,7 @@ public abstract class PointerNodes {
             final Pointer ptr = new Pointer(address);
             if (zeroProfile.profile(length == 0)) {
                 // No need to check the pointer address if we read nothing
-                return createString(RopeConstants.EMPTY_BINARY_TSTRING, Encodings.BINARY);
+                return createString(TStringConstants.EMPTY_BINARY_TSTRING, Encodings.BINARY);
             } else {
                 checkNull(ptr);
                 final byte[] bytes = new byte[length];

@@ -50,6 +50,7 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.RubyDeferredWarnings;
@@ -1249,10 +1250,10 @@ states[38] = (support, lexer, yyVal, yyVals, yyTop) -> {
 
     SourceIndexLength pos = ((AssignableParseNode)yyVals[-2+yyTop]).getPosition();
     TruffleString asgnOp = ((TruffleString)yyVals[-1+yyTop]);
-    if (asgnOp == RopeConstants.OR_OR) {
+    if (asgnOp == TStringConstants.OR_OR) {
         ((AssignableParseNode)yyVals[-2+yyTop]).setValueNode(((ParseNode)yyVals[0+yyTop]));
         yyVal = new OpAsgnOrParseNode(pos, support.gettable2(((AssignableParseNode)yyVals[-2+yyTop])), ((AssignableParseNode)yyVals[-2+yyTop]));
-    } else if (asgnOp == RopeConstants.AMPERSAND_AMPERSAND) {
+    } else if (asgnOp == TStringConstants.AMPERSAND_AMPERSAND) {
         ((AssignableParseNode)yyVals[-2+yyTop]).setValueNode(((ParseNode)yyVals[0+yyTop]));
         yyVal = new OpAsgnAndParseNode(pos, support.gettable2(((AssignableParseNode)yyVals[-2+yyTop])), ((AssignableParseNode)yyVals[-2+yyTop]));
     } else {
@@ -1310,7 +1311,7 @@ states[50] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[51] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.getOperatorCallNode(support.getConditionNode(((ParseNode)yyVals[0+yyTop])), RopeConstants.BANG);
+    yyVal = support.getOperatorCallNode(support.getConditionNode(((ParseNode)yyVals[0+yyTop])), TStringConstants.BANG);
     return yyVal;
 };
 states[52] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -2011,10 +2012,10 @@ states[220] = (support, lexer, yyVal, yyVals, yyTop) -> {
 
     SourceIndexLength pos = ((AssignableParseNode)yyVals[-2+yyTop]).getPosition();
     TruffleString asgnOp = ((TruffleString)yyVals[-1+yyTop]);
-    if (asgnOp == RopeConstants.OR_OR) {
+    if (asgnOp == TStringConstants.OR_OR) {
         ((AssignableParseNode)yyVals[-2+yyTop]).setValueNode(((ParseNode)yyVals[0+yyTop]));
         yyVal = new OpAsgnOrParseNode(pos, support.gettable2(((AssignableParseNode)yyVals[-2+yyTop])), ((AssignableParseNode)yyVals[-2+yyTop]));
-    } else if (asgnOp == RopeConstants.AMPERSAND_AMPERSAND) {
+    } else if (asgnOp == TStringConstants.AMPERSAND_AMPERSAND) {
         ((AssignableParseNode)yyVals[-2+yyTop]).setValueNode(((ParseNode)yyVals[0+yyTop]));
         yyVal = new OpAsgnAndParseNode(pos, support.gettable2(((AssignableParseNode)yyVals[-2+yyTop])), ((AssignableParseNode)yyVals[-2+yyTop]));
     } else {
@@ -2517,11 +2518,11 @@ states[331] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[332] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.getOperatorCallNode(support.getConditionNode(((ParseNode)yyVals[-1+yyTop])), RopeConstants.BANG);
+    yyVal = support.getOperatorCallNode(support.getConditionNode(((ParseNode)yyVals[-1+yyTop])), TStringConstants.BANG);
     return yyVal;
 };
 states[333] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.getOperatorCallNode(NilImplicitParseNode.NIL, RopeConstants.BANG);
+    yyVal = support.getOperatorCallNode(NilImplicitParseNode.NIL, TStringConstants.BANG);
     return yyVal;
 };
 states[334] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -3032,11 +3033,11 @@ states[448] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[449] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.new_call(((ParseNode)yyVals[-2+yyTop]), ((TruffleString)yyVals[-1+yyTop]), RopeConstants.CALL, ((ParseNode)yyVals[0+yyTop]), null);
+    yyVal = support.new_call(((ParseNode)yyVals[-2+yyTop]), ((TruffleString)yyVals[-1+yyTop]), TStringConstants.CALL, ((ParseNode)yyVals[0+yyTop]), null);
     return yyVal;
 };
 states[450] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.new_call(((ParseNode)yyVals[-2+yyTop]), RopeConstants.CALL, ((ParseNode)yyVals[0+yyTop]), null);
+    yyVal = support.new_call(((ParseNode)yyVals[-2+yyTop]), TStringConstants.CALL, ((ParseNode)yyVals[0+yyTop]), null);
     return yyVal;
 };
 states[451] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -3049,10 +3050,10 @@ states[452] = (support, lexer, yyVal, yyVals, yyTop) -> {
 };
 states[453] = (support, lexer, yyVal, yyVals, yyTop) -> {
     if (((ParseNode)yyVals[-3+yyTop]) instanceof SelfParseNode) {
-        yyVal = support.new_fcall(RopeConstants.LBRACKET_RBRACKET);
+        yyVal = support.new_fcall(TStringConstants.LBRACKET_RBRACKET);
         support.frobnicate_fcall_args(((FCallParseNode)yyVal), ((ParseNode)yyVals[-1+yyTop]), null);
     } else {
-        yyVal = support.new_call(((ParseNode)yyVals[-3+yyTop]), RopeConstants.LBRACKET_RBRACKET, ((ParseNode)yyVals[-1+yyTop]), null);
+        yyVal = support.new_call(((ParseNode)yyVals[-3+yyTop]), TStringConstants.LBRACKET_RBRACKET, ((ParseNode)yyVals[-1+yyTop]), null);
     }
     return yyVal;
 };
@@ -3107,7 +3108,7 @@ states[465] = (support, lexer, yyVal, yyVals, yyTop) -> {
 states[468] = (support, lexer, yyVal, yyVals, yyTop) -> {
     ParseNode node;
     if (((ParseNode)yyVals[-3+yyTop]) != null) {
-        node = support.appendToBlock(support.node_assign(((ParseNode)yyVals[-3+yyTop]), new GlobalVarParseNode(((SourceIndexLength)yyVals[-5+yyTop]), support.symbolID(RopeConstants.DOLLAR_BANG))), ((ParseNode)yyVals[-1+yyTop]));
+        node = support.appendToBlock(support.node_assign(((ParseNode)yyVals[-3+yyTop]), new GlobalVarParseNode(((SourceIndexLength)yyVals[-5+yyTop]), support.symbolID(TStringConstants.DOLLAR_BANG))), ((ParseNode)yyVals[-1+yyTop]));
         if (((ParseNode)yyVals[-1+yyTop]) != null) {
             node.setPosition(((SourceIndexLength)yyVals[-5+yyTop]));
         }

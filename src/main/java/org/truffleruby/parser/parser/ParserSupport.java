@@ -56,8 +56,8 @@ import org.truffleruby.core.regexp.ClassicRegexp;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.rope.ManagedRope;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.TStringWithEncoding;
+import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.RaiseException;
@@ -286,8 +286,9 @@ public class ParserSupport {
         return name.length() == 2 && name.charAt(0) == '_' && '1' <= name.charAt(1) && name.charAt(1) <= '9';
     }
 
-    public void checkMethodName(TruffleString rope) {
-        String name = rope.toJavaStringUncached();
+    public void checkMethodName(TruffleString tstring) {
+        String name = tstring.toJavaStringUncached();
+
         if (isNumberedParameter(name)) {
             warnNumberedParameterLikeDeclaration(lexer.getPosition(), name);
         }
@@ -465,7 +466,7 @@ public class ParserSupport {
             return new Match3ParseNode(firstNode.getPosition(), firstNode, secondNode);
         }
 
-        return getOperatorCallNode(firstNode, RopeConstants.EQ_TILDE, secondNode);
+        return getOperatorCallNode(firstNode, TStringConstants.EQ_TILDE, secondNode);
     }
 
     /** Define an array set condition so we can return lhs
@@ -485,7 +486,7 @@ public class ParserSupport {
      * @param name of the attribute being set
      * @return an AttrAssignParseNode */
     public ParseNode attrset(ParseNode receiver, TruffleString name) {
-        return attrset(receiver, RopeConstants.DOT, name);
+        return attrset(receiver, TStringConstants.DOT, name);
     }
 
     public ParseNode attrset(ParseNode receiver, TruffleString callType, TruffleString name) {
@@ -866,7 +867,7 @@ public class ParserSupport {
 
         if (node instanceof FixnumParseNode) {
             warnUnlessEOption(node, "integer literal in conditional range");
-            return getOperatorCallNode(node, RopeConstants.EQ_EQ, new GlobalVarParseNode(node.getPosition(), "$."));
+            return getOperatorCallNode(node, TStringConstants.EQ_EQ, new GlobalVarParseNode(node.getPosition(), "$."));
         }
 
         return node;
@@ -1068,7 +1069,7 @@ public class ParserSupport {
     }
 
     public boolean isLazy(TruffleString callType) {
-        return callType == RopeConstants.AMPERSAND_DOT;
+        return callType == TStringConstants.AMPERSAND_DOT;
     }
 
     public ParseNode new_attrassign(SourceIndexLength position, ParseNode receiver, String name, ParseNode args,
@@ -1104,7 +1105,7 @@ public class ParserSupport {
     }
 
     public ParseNode new_call(ParseNode receiver, TruffleString name, ParseNode argsNode, ParseNode iter) {
-        return new_call(receiver, RopeConstants.DOT, name, argsNode, iter);
+        return new_call(receiver, TStringConstants.DOT, name, argsNode, iter);
     }
 
     public Colon2ParseNode new_colon2(SourceIndexLength position, ParseNode leftNode, TruffleString name) {
@@ -1816,7 +1817,7 @@ public class ParserSupport {
         final Encoding encoding = lexer.getEncoding();
 
         if (contents == null) {
-            TStringWithEncoding newValue = new TStringWithEncoding(RopeConstants.EMPTY_US_ASCII_TSTRING,
+            TStringWithEncoding newValue = new TStringWithEncoding(TStringConstants.EMPTY_US_ASCII_TSTRING,
                     Encodings.US_ASCII);
             if (encoding != null) {
                 newValue = newValue.forceEncoding(Encodings.getBuiltInEncoding(encoding));
@@ -1894,7 +1895,7 @@ public class ParserSupport {
         return new DefinedParseNode(position, makeNullNil(something));
     }
 
-    public static final TruffleString INTERNAL_ID = RopeConstants.EMPTY_US_ASCII_TSTRING;
+    public static final TruffleString INTERNAL_ID = TStringConstants.EMPTY_US_ASCII_TSTRING;
 
     public SourceIndexLength extendedUntil(SourceIndexLength start, SourceIndexLength end) {
         return new SourceIndexLength(start.getCharIndex(), end.getCharEnd() - start.getCharIndex());

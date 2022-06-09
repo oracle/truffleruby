@@ -15,6 +15,7 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.FrozenStrings;
+import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.core.symbol.RubySymbol;
 
@@ -42,16 +43,16 @@ public class TStringCache {
     }
 
     private void addTStringConstants() {
-        for (var tstring : RopeConstants.UTF8_SINGLE_BYTE_TSTRINGS) {
+        for (var tstring : TStringConstants.UTF8_SINGLE_BYTE_TSTRINGS) {
             register(tstring, Encodings.UTF_8);
         }
-        for (var tstring : RopeConstants.US_ASCII_SINGLE_BYTE_TSTRINGS) {
+        for (var tstring : TStringConstants.US_ASCII_SINGLE_BYTE_TSTRINGS) {
             register(tstring, Encodings.US_ASCII);
         }
-        for (var tstring : RopeConstants.BINARY_SINGLE_BYTE_TSTRINGS) {
+        for (var tstring : TStringConstants.BINARY_SINGLE_BYTE_TSTRINGS) {
             register(tstring, Encodings.BINARY);
         }
-        for (var tstring : RopeConstants.TSTRING_CONSTANTS.values()) {
+        for (var tstring : TStringConstants.TSTRING_CONSTANTS.values()) {
             register(tstring, Encodings.US_ASCII);
         }
     }

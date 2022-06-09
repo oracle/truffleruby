@@ -23,8 +23,8 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.FrozenStringLiterals;
 import org.truffleruby.core.string.ImmutableRubyString;
-
 import org.truffleruby.language.ImmutableRubyObjectNotCopyable;
+import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
@@ -52,7 +52,7 @@ public class RubyEncoding extends ImmutableRubyObjectNotCopyable implements Obje
         this.jcoding = Objects.requireNonNull(USASCIIEncoding.INSTANCE);
         this.tencoding = Objects.requireNonNull(TruffleString.Encoding.US_ASCII);
         this.name = Objects.requireNonNull(
-                FrozenStringLiterals.createStringAndCacheLater(RopeConstants.US_ASCII,
+                FrozenStringLiterals.createStringAndCacheLater(TStringConstants.US_ASCII,
                         RopeConstants.ROPE_CONSTANTS.get("US-ASCII"), this));
         this.index = index;
     }
