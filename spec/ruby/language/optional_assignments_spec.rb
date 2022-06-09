@@ -300,6 +300,10 @@ describe 'Optional variable assignments' do
         (@b[:k] ||= 12).should == 12
       end
 
+      it 'correctly handles a splatted argument for the index' do
+        (@b[*[:k]] ||= 12).should == 12
+      end
+
       it "evaluates the index precisely once" do
         ary = [:x, :y]
         @a[:x] = 15
