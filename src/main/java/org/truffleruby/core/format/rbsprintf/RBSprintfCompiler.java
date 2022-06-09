@@ -23,6 +23,7 @@ import org.truffleruby.core.format.FormatRootNode;
 import org.truffleruby.core.format.rbsprintf.RBSprintfConfig.FormatArgumentType;
 
 import com.oracle.truffle.api.RootCallTarget;
+import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.language.library.RubyStringLibrary;
 
 public class RBSprintfCompiler {
@@ -40,7 +41,7 @@ public class RBSprintfCompiler {
         var formatEncoding = libFormat.getEncoding(format);
         var byteArray = byteArrayNode.execute(formatTString, formatEncoding.tencoding);
 
-        final RBSprintfSimpleParser parser = new RBSprintfSimpleParser(bytesToChars(byteArray), false);
+        final RBSprintfSimpleParser parser = new RBSprintfSimpleParser(StringSupport.bytesToChars(byteArray), false);
         final List<RBSprintfConfig> configs = parser.parse();
         final RBSprintfSimpleTreeBuilder builder = new RBSprintfSimpleTreeBuilder(configs, stringReader);
 
@@ -58,7 +59,7 @@ public class RBSprintfCompiler {
         var formatEncoding = libFormat.getTEncoding(format);
         var byteArray = byteArrayNode.execute(formatTString, formatEncoding);
 
-        final RBSprintfSimpleParser parser = new RBSprintfSimpleParser(bytesToChars(byteArray), false);
+        final RBSprintfSimpleParser parser = new RBSprintfSimpleParser(StringSupport.bytesToChars(byteArray), false);
         final List<RBSprintfConfig> configs = parser.parse();
         final int[] types = new int[3 * configs.size()]; // Ensure there is enough space for the argument types that might be in the format string.
 
@@ -109,17 +110,5 @@ public class RBSprintfCompiler {
 
         return new RubyArray(context.getCoreLibrary().arrayClass, language.arrayShape, types, highWaterMark + 1);
     }
-
-    private static char[] bytesToChars(InternalByteArray byteArray) {
-        int byteLength = byteArray.getLength();
-        final char[] chars = new char[byteLength];
-
-        for (int n = 0; n < byteLength; n++) {
-            chars[n] = (char) byteArray.get(n);
-        }
-
-        return chars;
-    }
-
 
 }

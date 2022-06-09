@@ -543,6 +543,17 @@ public final class StringSupport {
         return count;
     }
 
+    public static char[] bytesToChars(InternalByteArray byteArray) {
+        final int byteLength = byteArray.getLength();
+        final char[] chars = new char[byteLength];
+
+        for (int n = 0; n < byteLength; n++) {
+            chars[n] = (char) byteArray.get(n);
+        }
+
+        return chars;
+    }
+
     /** rb_str_tr / rb_str_tr_bang */
     public static final class TR {
         public TR(Rope rope) {
