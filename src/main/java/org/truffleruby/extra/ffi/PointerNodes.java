@@ -26,8 +26,6 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.BigIntegerOps;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.core.support.RubyByteArray;
@@ -332,17 +330,22 @@ public abstract class PointerNodes {
 
         @Specialization(guards = "libString.isRubyString(string)")
         protected Object writeBytes(long address, Object string, int index, int length,
-                @Cached RopeNodes.BytesNode bytesNode,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
-            final Pointer ptr = new Pointer(address);
-            final Rope rope = libString.getRope(string);
-            assert index + length <= rope.byteLength();
+            Pointer ptr = new Pointer(address);
+            var tstring = libString.getTString(string);
+            var encoding = libString.getTEncoding(string);
+            var byteArray = byteArrayNode.execute(tstring, encoding);
+
+            assert index + length <= byteArray.getLength();
+
             if (length != 0) {
                 // No need to check the pointer address if we write nothing
                 checkNull(ptr);
             }
 
-            ptr.writeBytes(0, bytesNode.execute(rope), index, length);
+            ptr.writeBytes(0, byteArray, index, length);
+
             return string;
         }
 

@@ -17,6 +17,7 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.strings.InternalByteArray;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 
@@ -176,29 +177,39 @@ public final class Pointer implements AutoCloseable, TruffleObject {
     }
 
     @TruffleBoundary
-    public void writeBytes(long offset, long size, byte value) {
-        assert address + offset != 0 || size == 0;
-        UNSAFE.setMemory(address + offset, size, value);
+    public void writeBytes(long destByteOffset, long size, byte value) {
+        assert address + destByteOffset != 0 || size == 0;
+        UNSAFE.setMemory(address + destByteOffset, size, value);
     }
 
     @TruffleBoundary
-    public void writeBytes(long offset, Pointer buffer, int bufferPos, long length) {
-        assert address + offset != 0 || length == 0;
-        assert buffer != null;
-        assert bufferPos >= 0;
-        assert length >= 0;
+    public void writeBytes(long destByteOffset, Pointer source, int sourceByteOffset, long bytesToCopy) {
+        assert address + destByteOffset != 0 || bytesToCopy == 0;
+        assert source != null;
+        assert sourceByteOffset >= 0;
+        assert bytesToCopy >= 0;
 
-        UNSAFE.copyMemory(buffer.getAddress() + bufferPos, address + offset, length);
+        UNSAFE.copyMemory(source.getAddress() + sourceByteOffset, address + destByteOffset, bytesToCopy);
     }
 
     @TruffleBoundary
-    public void writeBytes(long offset, byte[] buffer, int bufferPos, int length) {
-        assert address + offset != 0 || length == 0;
-        assert buffer != null;
-        assert bufferPos >= 0;
-        assert length >= 0;
+    public void writeBytes(long destByteOffset, byte[] source, int sourceByteOffset, int bytesToCopy) {
+        assert address + destByteOffset != 0 || bytesToCopy == 0;
+        assert source != null;
+        assert sourceByteOffset >= 0;
+        assert bytesToCopy >= 0;
 
-        UNSAFE.copyMemory(buffer, Unsafe.ARRAY_BYTE_BASE_OFFSET + bufferPos, null, address + offset, length);
+        UNSAFE.copyMemory(source, Unsafe.ARRAY_BYTE_BASE_OFFSET + sourceByteOffset, null, address + destByteOffset, bytesToCopy);
+    }
+
+    @TruffleBoundary
+    public void writeBytes(long destByteOffset, InternalByteArray source, int sourceByteOffset, int bytesToCopy) {
+        assert address + destByteOffset != 0 || bytesToCopy == 0;
+        assert source != null;
+        assert sourceByteOffset >= 0;
+        assert bytesToCopy >= 0;
+
+        UNSAFE.copyMemory(source.getArray(), Unsafe.ARRAY_BYTE_BASE_OFFSET + sourceByteOffset + source.getOffset(), null, address + destByteOffset, bytesToCopy);
     }
 
     public byte readByte(long offset) {
