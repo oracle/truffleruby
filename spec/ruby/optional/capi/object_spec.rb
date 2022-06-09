@@ -30,6 +30,7 @@ describe "CApiObject" do
   class ObjectTest
     def initialize
       @foo = 7
+      yield if block_given?
     end
 
     def foo
@@ -87,6 +88,15 @@ describe "CApiObject" do
       @o.rb_obj_call_init(o, 2, [:one, :two])
       o.initialized.should be_true
       o.arguments.should == [:one, :two]
+    end
+
+    it "passes the block to #initialize" do
+      v = nil
+      o = @o.rb_obj_alloc(ObjectTest)
+      @o.rb_obj_call_init(o, 0, []) do
+        v = :foo
+      end
+      v.should == :foo
     end
   end
 
