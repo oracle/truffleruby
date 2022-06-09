@@ -9,17 +9,17 @@
  */
 package org.truffleruby.core.support;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
-import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.extra.ffi.PointerNodes;
@@ -161,16 +161,17 @@ public abstract class ByteArrayNodes {
     public abstract static class LocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(
-                guards = { "isSingleBytePattern(libPattern.getRope(pattern))" })
+                guards = { "isSingleBytePattern(patternTString, patternEncoding)" })
         protected Object getByteSingleByte(RubyByteArray byteArray, Object pattern, int start, int length,
-                @Cached RopeNodes.BytesNode bytesNode,
+                @Cached TruffleString.ReadByteNode readByteNode,
                 @Cached BranchProfile tooSmallStartProfile,
                 @Cached BranchProfile tooLargeStartProfile,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libPattern) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libPattern,
+                @Bind("libPattern.getTString(pattern)") AbstractTruffleString patternTString,
+                @Bind("libPattern.getTEncoding(pattern)") TruffleString.Encoding patternEncoding) {
 
-            final byte[] bytes = byteArray.bytes;
-            final Rope rope = libPattern.getRope(pattern);
-            final byte searchByte = bytesNode.execute(rope)[0];
+            byte[] bytes = byteArray.bytes;
+            int searchByte = readByteNode.execute(patternTString, 0, patternEncoding);
 
             if (start >= length) {
                 tooLargeStartProfile.enter();
@@ -182,32 +183,34 @@ public abstract class ByteArrayNodes {
                 start = 0;
             }
 
-            final int index = ArrayUtils.indexOf(bytes, start, length, searchByte);
+            final int index = ArrayUtils.indexOf(bytes, start, length, (byte) searchByte);
 
             return index == -1 ? nil : index + 1;
         }
 
         @Specialization(
-                guards = { "!isSingleBytePattern(libPattern.getRope(pattern))" })
+                guards = { "!isSingleBytePattern(patternTString, patternEncoding)" })
         protected Object getByte(RubyByteArray byteArray, Object pattern, int start, int length,
-                @Cached RopeNodes.BytesNode bytesNode,
                 @Cached TruffleString.CodePointLengthNode codePointLengthNode,
+                @Cached TruffleString.CopyToByteArrayNode copyToByteArrayNode,
                 @Cached ConditionProfile notFoundProfile,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libPattern) {
-            var patternTString = libPattern.getTString(pattern);
-            var tencoding = libPattern.getTEncoding(pattern);
-            final byte[] patternBytes = bytesNode.execute(libPattern.getRope(pattern));
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libPattern,
+                @Bind("libPattern.getTString(pattern)") AbstractTruffleString patternTString,
+                @Bind("libPattern.getTEncoding(pattern)") TruffleString.Encoding patternEncoding) {
+            // TODO (nirvdrum 09-June-2022): Copying the byte array here is wasteful, but ArrayUtils doesn't have a method that works with an offset or length.
+            final byte[] patternBytes = copyToByteArrayNode.execute(patternTString, patternEncoding);
+
             final int index = ArrayUtils.indexOfWithOrMask(byteArray.bytes, start, length, patternBytes, null);
 
             if (notFoundProfile.profile(index == -1)) {
                 return nil;
             } else {
-                return index + codePointLengthNode.execute(patternTString, tencoding);
+                return index + codePointLengthNode.execute(patternTString, patternEncoding);
             }
         }
 
-        protected boolean isSingleBytePattern(Rope rope) {
-            return rope.byteLength() == 1;
+        protected boolean isSingleBytePattern(AbstractTruffleString string, TruffleString.Encoding encoding) {
+            return string.byteLength(encoding) == 1;
         }
     }
 
