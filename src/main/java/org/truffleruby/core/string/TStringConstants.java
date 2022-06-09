@@ -30,6 +30,7 @@ public class TStringConstants {
     public static final TruffleString EMPTY_US_ASCII_TSTRING = withHashCode(TruffleString.Encoding.US_ASCII.getEmpty());
     public static final TruffleString EMPTY_UTF8_TSTRING = withHashCode(TruffleString.Encoding.UTF_8.getEmpty());
 
+    @CompilerDirectives.CompilationFinal(dimensions = 1) public static final byte[] EMPTY_BYTES = new byte[0];
     @CompilerDirectives.CompilationFinal(dimensions = 1) public static final TruffleString[] UTF8_SINGLE_BYTE_TSTRINGS = new TruffleString[256];
     @CompilerDirectives.CompilationFinal(dimensions = 1) public static final TruffleString[] US_ASCII_SINGLE_BYTE_TSTRINGS = new TruffleString[256];
     @CompilerDirectives.CompilationFinal(dimensions = 1) public static final TruffleString[] BINARY_SINGLE_BYTE_TSTRINGS = new TruffleString[256];

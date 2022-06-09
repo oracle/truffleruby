@@ -15,7 +15,7 @@ import java.util.Arrays;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.format.exceptions.TooFewArgumentsException;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.RopeConstants;
+import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -167,7 +167,7 @@ public abstract class FormatNode extends RubyBaseNode {
     }
 
     private static final Class<? extends ByteBuffer> HEAP_BYTE_BUFFER_CLASS = ByteBuffer
-            .wrap(RopeConstants.EMPTY_BYTES)
+            .wrap(TStringConstants.EMPTY_BYTES)
             .getClass();
 
     public ByteBuffer wrapByteBuffer(VirtualFrame frame, byte[] source) {
