@@ -1030,33 +1030,38 @@ public abstract class StringNodes {
 
         @Specialization
         protected boolean endWithBytes(Object string, Object suffix, RubyEncoding enc,
-                @Cached BytesNode stringBytesNode,
-                @Cached BytesNode suffixBytesNode,
+                @Cached TruffleString.GetInternalByteArrayNode stringByteArrayNode,
+                @Cached TruffleString.GetInternalByteArrayNode suffixByteArrayNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsSuffix,
                 @Cached ConditionProfile isCharacterHeadProfile) {
 
-            final Rope stringRope = strings.getRope(string);
-            final Rope suffixRope = stringsSuffix.getRope(suffix);
-            final int stringByteLength = stringRope.byteLength();
-            final int suffixByteLength = suffixRope.byteLength();
+            var stringTString = strings.getTString(string);
+            var stringEncoding = strings.getTEncoding(string);
+            var stringByteArray = stringByteArrayNode.execute(stringTString, stringEncoding);
+
+            var suffixTString = stringsSuffix.getTString(suffix);
+            var suffixEncoding = stringsSuffix.getTEncoding(suffix);
+            var suffixByteArray = suffixByteArrayNode.execute(suffixTString, suffixEncoding);
+
+            final int stringByteLength = stringByteArray.getLength();
+            final int suffixByteLength = suffixByteArray.getLength();
 
             if (stringByteLength < suffixByteLength) {
                 return false;
             }
+
             if (suffixByteLength == 0) {
                 return true;
             }
-            final byte[] stringBytes = stringBytesNode.execute(stringRope);
-            final byte[] suffixBytes = suffixBytesNode.execute(suffixRope);
 
             final int offset = stringByteLength - suffixByteLength;
 
-            if (isCharacterHeadProfile.profile(!isCharacterHead(enc, stringByteLength, stringBytes, offset))) {
+            if (isCharacterHeadProfile.profile(!isCharacterHead(enc, stringByteLength, stringByteArray.getArray(), offset + stringByteArray.getOffset()))) {
                 return false;
             }
 
-            return ArrayUtils.regionEquals(stringBytes, offset, suffixBytes, 0, suffixByteLength);
+            return ArrayUtils.regionEquals(stringByteArray.getArray(), offset + stringByteArray.getOffset(), suffixByteArray.getArray(), suffixByteArray.getOffset(), suffixByteLength);
         }
 
         private boolean isCharacterHead(RubyEncoding enc, int stringByteLength, byte[] stringBytes, int offset) {
