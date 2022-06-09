@@ -11,7 +11,6 @@ package org.truffleruby.core.adapters;
 
 import java.io.OutputStream;
 
-import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.RubyEncoding;
