@@ -121,12 +121,15 @@ public abstract class ByteArrayNodes {
 
         @Specialization
         protected Object fillFromString(
-                RubyByteArray byteArray, int dstStart, RubyString source, int srcStart, int length,
-                @Cached RopeNodes.BytesNode bytesNode) {
-            final Rope rope = source.rope;
-            final byte[] bytes = byteArray.bytes;
+                RubyByteArray destByteArray, int dstStart, RubyString source, int srcStart, int length,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
+            var tstring = source.tstring;
+            var encoding = source.encoding.tencoding;
+            var sourceByteArray = byteArrayNode.execute(tstring, encoding);
 
-            System.arraycopy(bytesNode.execute(rope), srcStart, bytes, dstStart, length);
+            final byte[] destBytes = destByteArray.bytes;
+
+            System.arraycopy(sourceByteArray.getArray(), srcStart + sourceByteArray.getOffset(), destBytes, dstStart, length);
             return source;
         }
 
