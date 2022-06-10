@@ -1817,57 +1817,57 @@ public abstract class StringNodes {
         @Child GetCodePointNode getCodePointNode = GetCodePointNode.create();
         @Child TruffleString.SubstringByteIndexNode substringNode = TruffleString.SubstringByteIndexNode.create();
 
-        @Specialization(guards = "isEmpty(string.rope)")
+        @Specialization(guards = "isEmpty(string.tstring)")
         protected Object lstripBangEmptyString(RubyString string) {
             return nil;
         }
 
         @Specialization(
-                guards = { "!isEmpty(string.rope)", "isSingleByteOptimizable(string, singleByteOptimizableNode)" })
+                guards = { "!isEmpty(string.tstring)", "isSingleByteOptimizable(string, singleByteOptimizableNode)" })
         protected Object lstripBangSingleByte(RubyString string,
-                @Cached BytesNode bytesNode,
                 @Cached SingleByteOptimizableNode singleByteOptimizableNode,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Cached ConditionProfile noopProfile) {
             // Taken from org.jruby.RubyString#lstrip_bang19 and org.jruby.RubyString#singleByteLStrip.
 
-            final Rope rope = string.rope;
             var tstring = string.tstring;
             var encoding = string.encoding;
             int firstCodePoint = getCodePointNode.executeGetCodePoint(tstring, encoding, 0);
 
             // Check the first code point to see if it's a space. In the case of strings without leading spaces,
-            // this check can avoid having to materialize the entire byte[] (a potentially expensive operation
-            // for ropes) and can avoid having to compile the while loop.
+            // this check can avoid having to compile the while loop.
             if (noopProfile.profile(!StringSupport.isAsciiSpaceOrNull(firstCodePoint))) {
                 return nil;
             }
 
-            final int end = rope.byteLength();
-            final byte[] bytes = bytesNode.execute(rope);
+            final var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
+            final int byteOffset = byteArray.getOffset();
+            final int end = byteArray.getEnd();
+            final byte[] bytes = byteArray.getArray();
 
-            int p = 0;
+            int p = byteOffset;
             while (p < end && StringSupport.isAsciiSpaceOrNull(bytes[p])) {
                 p++;
             }
 
-            string.setTString(substringNode.execute(tstring, p, end - p, encoding.tencoding, true));
+            string.setTString(substringNode.execute(tstring, p - byteOffset, end - p, encoding.tencoding, true));
+
             return string;
         }
 
         @TruffleBoundary
         @Specialization(
-                guards = { "!isEmpty(string.rope)", "!isSingleByteOptimizable(string, singleByteOptimizableNode)" })
+                guards = { "!isEmpty(string.tstring)", "!isSingleByteOptimizable(string, singleByteOptimizableNode)" })
         protected Object lstripBang(RubyString string,
                 @Cached SingleByteOptimizableNode singleByteOptimizableNode,
                 @Cached GetActualEncodingNode getActualEncodingNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             // Taken from org.jruby.RubyString#lstrip_bang19 and org.jruby.RubyString#multiByteLStrip.
 
-            final Rope rope = string.rope;
             var tstring = string.tstring;
-            final RubyEncoding enc = getActualEncodingNode.execute(rope, strings.getEncoding(string));
+            final RubyEncoding enc = getActualEncodingNode.execute(tstring, strings.getEncoding(string));
             final int s = 0;
-            final int end = s + rope.byteLength();
+            final int end = s + tstring.byteLength(strings.getEncoding(string).tencoding);
 
             int p = s;
             while (p < end) {

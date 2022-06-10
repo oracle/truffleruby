@@ -544,10 +544,10 @@ public abstract class EncodingNodes {
             return EncodingNodesFactory.GetActualEncodingNodeGen.create();
         }
 
-        public abstract RubyEncoding execute(Rope rope, RubyEncoding encoding);
+        public abstract RubyEncoding execute(Object rope, RubyEncoding encoding);
 
         @Specialization(guards = "!encoding.jcoding.isDummy()")
-        protected RubyEncoding getActualEncoding(Rope rope, RubyEncoding encoding) {
+        protected RubyEncoding getActualEncoding(Object rope, RubyEncoding encoding) {
             return encoding;
         }
 
@@ -571,6 +571,43 @@ public abstract class EncodingNodes {
                     int c1 = rope.get(1) & 0xff;
                     int c2 = rope.get(2) & 0xff;
                     int c3 = rope.get(3) & 0xff;
+
+                    if (c0 == 0 && c1 == 0 && c2 == 0xFE && c3 == 0xFF) {
+                        return Encodings.UTF32BE;
+                    } else if (c3 == 0 && c2 == 0 && c1 == 0xFE && c0 == 0xFF) {
+                        return Encodings.UTF32LE;
+                    }
+                    return Encodings.BINARY;
+                }
+            }
+
+            return encoding;
+        }
+
+        @TruffleBoundary
+        @Specialization(guards = "encoding.jcoding.isDummy()")
+        protected RubyEncoding getActualEncodingDummy(AbstractTruffleString string, RubyEncoding encoding,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
+            if (encoding.jcoding instanceof UnicodeEncoding) {
+                var enc = encoding.tencoding;
+                var byteArray = byteArrayNode.execute(string, enc);
+
+                // handle dummy UTF-16 and UTF-32 by scanning for BOM, as in MRI
+                if (encoding == Encodings.UTF16_DUMMY && byteArray.getLength() >= 2) {
+                    int c0 = byteArray.get(0) & 0xff;
+                    int c1 = byteArray.get(1) & 0xff;
+
+                    if (c0 == 0xFE && c1 == 0xFF) {
+                        return Encodings.UTF16BE;
+                    } else if (c0 == 0xFF && c1 == 0xFE) {
+                        return Encodings.UTF16LE;
+                    }
+                    return Encodings.BINARY;
+                } else if (encoding == Encodings.UTF32_DUMMY && byteArray.getLength() >= 4) {
+                    int c0 = byteArray.get(0) & 0xff;
+                    int c1 = byteArray.get(1) & 0xff;
+                    int c2 = byteArray.get(2) & 0xff;
+                    int c3 = byteArray.get(3) & 0xff;
 
                     if (c0 == 0 && c1 == 0 && c2 == 0xFE && c3 == 0xFF) {
                         return Encodings.UTF32BE;

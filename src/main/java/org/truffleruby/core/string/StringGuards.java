@@ -69,6 +69,10 @@ public class StringGuards {
         return rope.isEmpty();
     }
 
+    public static boolean isEmpty(AbstractTruffleString string) {
+        return string.isEmpty();
+    }
+
     public static boolean isBrokenCodeRange(AbstractTruffleString string, RubyEncoding encoding,
             TruffleString.GetByteCodeRangeNode codeRangeNode) {
         return codeRangeNode.execute(string, encoding.tencoding) == BROKEN;
