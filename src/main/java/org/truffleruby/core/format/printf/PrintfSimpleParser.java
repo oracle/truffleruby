@@ -192,7 +192,7 @@ public class PrintfSimpleParser {
                         }
 
                         LookAheadResult re = getNum(i + 1, end);
-                        config.setPrecision(re.getNumber());
+                        config.setPrecision(re.getNumber() == null ? 0 : re.getNumber());
                         i = re.getNextI();
                         break;
                     case '\n':

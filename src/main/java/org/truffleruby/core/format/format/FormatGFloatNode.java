@@ -51,12 +51,14 @@ public abstract class FormatGFloatNode extends FormatFloatGenericNode {
         if (precision == PrintfSimpleTreeBuilder.DEFAULT) {
             precision = 6;
         }
-
+        if (precision == 0) {
+            precision = 1;
+        }
         return formatNumber(width, precision, dval);
     }
 
     protected static boolean inSimpleRange(int precision, double value) {
-        return value == 0.0 || (Math.abs(value) >= 0.0001 && Math.abs(value) <= Math.pow(10, precision));
+        return value == 0.0 || (Math.abs(value) >= 0.0001 && Math.pow(10, precision) - Math.abs(value) >= 0.5);
     }
 
     @TruffleBoundary
@@ -102,12 +104,18 @@ public abstract class FormatGFloatNode extends FormatFloatGenericNode {
                 format.setMaximumFractionDigits(Math.max(0, precision - 1));
                 format.setMinimumFractionDigits(0);
             } else {
-                long lval = (long) Math.abs(dval);
-                long pow = 1;
+                double absval = Math.abs(dval);
+                double pow = 0.1;
                 int intDigits = 0;
-                while (lval >= pow) {
-                    pow = 10 * pow;
-                    intDigits++;
+                if (absval != 0.0) {
+                    while (absval >= pow * 10) {
+                        pow = 10 * pow;
+                        intDigits++;
+                    }
+                    while (absval < pow) {
+                        pow = pow / 10;
+                        intDigits--;
+                    }
                 }
                 if (hasFSharpFlag) {
                     format.setMinimumFractionDigits(precision - intDigits);
