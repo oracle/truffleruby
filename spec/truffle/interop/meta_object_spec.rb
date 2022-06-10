@@ -9,7 +9,6 @@
 require_relative '../../ruby/spec_helper'
 
 describe "Truffle::Interop.meta_object" do
-
   it "returns Integer class for an integer" do
     Truffle::Interop.meta_object(14).should == Integer
   end
@@ -30,4 +29,15 @@ describe "Truffle::Interop.meta_object" do
     Truffle::Interop.meta_object([1, 2, 3]).should == Array
   end
 
+  it "returns a Ruby class implementing all meta objects methods" do
+    meta = Truffle::Interop.meta_object("string")
+    Truffle::Interop.meta_simple_name(meta).should == 'String'
+    Truffle::Interop.meta_qualified_name(meta).should == 'String'
+    Truffle::Interop.meta_parents(meta).to_a.should == [Object]
+
+    Truffle::Interop.meta_simple_name(Enumerator::Lazy).should == 'Lazy'
+    Truffle::Interop.meta_qualified_name(Enumerator::Lazy).should == 'Enumerator::Lazy'
+
+    Truffle::Interop.should_not.has_meta_parents?(Enumerable)
+  end
 end
