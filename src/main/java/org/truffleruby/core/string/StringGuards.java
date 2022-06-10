@@ -15,7 +15,6 @@ import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Config;
 import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.TStringNodes;
 
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.ASCII;
@@ -45,20 +44,12 @@ public class StringGuards {
         return singleByteOptimizableNode.execute(tString, encoding);
     }
 
-    public static boolean isAsciiCompatible(Rope rope) {
-        return rope.getEncoding().isAsciiCompatible();
-    }
-
     public static boolean isAsciiCompatible(RubyString string) {
         return string.encoding.jcoding.isAsciiCompatible();
     }
 
     public static boolean isAsciiCompatible(RubyEncoding encoding) {
         return encoding.jcoding.isAsciiCompatible();
-    }
-
-    public static boolean isFixedWidthEncoding(Rope rope) {
-        return rope.getEncoding().isFixedWidth();
     }
 
     public static boolean isFixedWidthEncoding(RubyEncoding encoding) {
