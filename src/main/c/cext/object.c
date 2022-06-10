@@ -125,7 +125,7 @@ VALUE rb_equal(VALUE a, VALUE b) {
 }
 
 void rb_obj_call_init(VALUE object, int argc, const VALUE *argv) {
-  RUBY_CEXT_INVOKE_NO_WRAP("rb_obj_call_init", object, rb_ary_new4(argc, argv));
+  RUBY_CEXT_INVOKE_NO_WRAP("rb_obj_call_init", object, rb_ary_new4(argc, argv), rb_block_proc());
 }
 
 // taint status

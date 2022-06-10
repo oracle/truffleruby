@@ -1217,8 +1217,8 @@ module Truffle::CExt
     Primitive.object_same_or_equal(a, b)
   end
 
-  def rb_obj_call_init(obj, args)
-    obj.__send__ :initialize, *args
+  def rb_obj_call_init(obj, args, block)
+    obj.__send__ :initialize, *args, &block
   end
 
   def rb_obj_instance_eval(obj, args, block)
