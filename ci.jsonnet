@@ -270,6 +270,10 @@ local part_definitions = {
         normal_machine: ["linux", "amd64"],
         bench_machine: ["x52"] + self.normal_machine + ["no_frequency_scaling"],
       },
+      docker: {
+        image: "phx.ocir.io/oraclelabs2/c_graal/buildslave:buildslave_ol7",
+        mount_modules: true,
+      },
     },
     linux_aarch64: linux_deps + {
       platform_name:: "LinuxAArch64",
