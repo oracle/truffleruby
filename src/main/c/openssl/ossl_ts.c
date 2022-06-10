@@ -146,6 +146,12 @@ obj_to_asn1obj(VALUE obj)
 }
 
 static VALUE
+obj_to_asn1obj_i(VALUE obj)
+{
+    return (VALUE)obj_to_asn1obj(obj);
+}
+
+static VALUE
 get_asn1obj(ASN1_OBJECT *obj)
 {
     BIO *out;
@@ -820,17 +826,14 @@ ossl_ts_resp_verify(int argc, VALUE *argv, VALUE self)
         X509_up_ref(cert);
     }
 
-    TS_VERIFY_CTS_set_certs(ctx, x509inter);
+    TS_VERIFY_CTX_set_certs(ctx, x509inter);
     TS_VERIFY_CTX_add_flags(ctx, TS_VFY_SIGNATURE);
     TS_VERIFY_CTX_set_store(ctx, x509st);
 
     ok = TS_RESP_verify_response(ctx, resp);
-
-    /* WORKAROUND:
-     *   X509_STORE can count references, but X509_STORE_free() doesn't check
-     *   this. To prevent our X509_STORE from being freed with our
-     *   TS_VERIFY_CTX we set the store to NULL first.
-     *   Fixed in OpenSSL 1.0.2; bff9ce4db38b (master), 5b4b9ce976fc (1.0.2)
+    /*
+     * TS_VERIFY_CTX_set_store() call above does not increment the reference
+     * counter, so it must be unset before TS_VERIFY_CTX_free() is called.
      */
     TS_VERIFY_CTX_set_store(ctx, NULL);
     TS_VERIFY_CTX_free(ctx);
@@ -1091,6 +1094,18 @@ ossl_tsfac_time_cb(struct TS_resp_ctx *ctx, void *data, time_t *sec, long *usec)
     return 1;
 }
 
+static VALUE
+ossl_evp_get_digestbyname_i(VALUE arg)
+{
+    return (VALUE)ossl_evp_get_digestbyname(arg);
+}
+
+static VALUE
+ossl_obj2bio_i(VALUE arg)
+{
+    return (VALUE)ossl_obj2bio((VALUE *)arg);
+}
+
 /*
  * Creates a Response with the help of an OpenSSL::PKey, an
  * OpenSSL::X509::Certificate and a Request.
@@ -1159,7 +1174,7 @@ ossl_tsfac_create_ts(VALUE self, VALUE key, VALUE certificate, VALUE request)
         goto end;
     }
     if (!NIL_P(def_policy_id) && !TS_REQ_get_policy_id(req)) {
-        def_policy_id_obj = (ASN1_OBJECT*)rb_protect((VALUE (*)(VALUE))obj_to_asn1obj, (VALUE)def_policy_id, &status);
+        def_policy_id_obj = (ASN1_OBJECT*)rb_protect(obj_to_asn1obj_i, (VALUE)def_policy_id, &status);
         if (status)
             goto end;
     }
@@ -1201,7 +1216,7 @@ ossl_tsfac_create_ts(VALUE self, VALUE key, VALUE certificate, VALUE request)
 
         for (i = 0; i < RARRAY_LEN(allowed_digests); i++) {
             rbmd = rb_ary_entry(allowed_digests, i);
-            md = (const EVP_MD *)rb_protect((VALUE (*)(VALUE))ossl_evp_get_digestbyname, rbmd, &status);
+            md = (const EVP_MD *)rb_protect(ossl_evp_get_digestbyname_i, rbmd, &status);
             if (status)
                 goto end;
             TS_RESP_CTX_add_md(ctx, md);
@@ -1212,7 +1227,7 @@ ossl_tsfac_create_ts(VALUE self, VALUE key, VALUE certificate, VALUE request)
     if (status)
         goto end;
 
-    req_bio = (BIO*)rb_protect((VALUE (*)(VALUE))ossl_obj2bio, (VALUE)&str, &status);
+    req_bio = (BIO*)rb_protect(ossl_obj2bio_i, (VALUE)&str, &status);
     if (status)
         goto end;
 
@@ -1236,7 +1251,7 @@ end:
     ASN1_OBJECT_free(def_policy_id_obj);
     TS_RESP_CTX_free(ctx);
     if (err_msg)
-        ossl_raise(eTimestampError, err_msg);
+        rb_exc_raise(ossl_make_error(eTimestampError, rb_str_new_cstr(err_msg)));
     if (status)
         rb_jump_tag(status);
     return ret;
@@ -1290,7 +1305,7 @@ Init_ossl_ts(void)
      * ===Create a Response:
      *      #Assumes ts.p12 is a PKCS#12-compatible file with a private key
      *      #and a certificate that has an extended key usage of 'timeStamping'
-     *      p12 = OpenSSL::PKCS12.new(File.open('ts.p12', 'rb'), 'pwd')
+     *      p12 = OpenSSL::PKCS12.new(File.binread('ts.p12'), 'pwd')
      *      md = OpenSSL::Digest.new('SHA1')
      *      hash = md.digest(data) #some binary data to be timestamped
      *      req = OpenSSL::Timestamp::Request.new
@@ -1305,16 +1320,16 @@ Init_ossl_ts(void)
      *
      * ===Verify a timestamp response:
      *      #Assume we have a timestamp token in a file called ts.der
-     *      ts = OpenSSL::Timestamp::Response.new(File.open('ts.der', 'rb')
+     *      ts = OpenSSL::Timestamp::Response.new(File.binread('ts.der'))
      *      #Assume we have the Request for this token in a file called req.der
-     *      req = OpenSSL::Timestamp::Request.new(File.open('req.der', 'rb')
+     *      req = OpenSSL::Timestamp::Request.new(File.binread('req.der'))
      *      # Assume the associated root CA certificate is contained in a
      *      # DER-encoded file named root.cer
-     *      root = OpenSSL::X509::Certificate.new(File.open('root.cer', 'rb')
+     *      root = OpenSSL::X509::Certificate.new(File.binread('root.cer'))
      *      # get the necessary intermediate certificates, available in
      *      # DER-encoded form in inter1.cer and inter2.cer
-     *      inter1 = OpenSSL::X509::Certificate.new(File.open('inter1.cer', 'rb')
-     *      inter2 = OpenSSL::X509::Certificate.new(File.open('inter2.cer', 'rb')
+     *      inter1 = OpenSSL::X509::Certificate.new(File.binread('inter1.cer'))
+     *      inter2 = OpenSSL::X509::Certificate.new(File.binread('inter2.cer'))
      *      ts.verify(req, root, inter1, inter2) -> ts or raises an exception if validation fails
      *
      */
@@ -1447,9 +1462,9 @@ Init_ossl_ts(void)
      * timestamping certificate.
      *
      *      req = OpenSSL::Timestamp::Request.new(raw_bytes)
-     *      p12 = OpenSSL::PKCS12.new(File.open('ts.p12', 'rb'), 'pwd')
-     *      inter1 = OpenSSL::X509::Certificate.new(File.open('inter1.cer', 'rb')
-     *      inter2 = OpenSSL::X509::Certificate.new(File.open('inter2.cer', 'rb')
+     *      p12 = OpenSSL::PKCS12.new(File.binread('ts.p12'), 'pwd')
+     *      inter1 = OpenSSL::X509::Certificate.new(File.binread('inter1.cer'))
+     *      inter2 = OpenSSL::X509::Certificate.new(File.binread('inter2.cer'))
      *      fac = OpenSSL::Timestamp::Factory.new
      *      fac.gen_time = Time.now
      *      fac.serial_number = 1

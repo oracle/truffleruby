@@ -33,10 +33,10 @@ ol8:
   locale: glibc-langpack-en
   <<: *rpm
 
-fedora28:
-  base: fedora:28
+fedora35:
+  base: fedora:35
   install: RUN dnf install -y
-  locale:
+  locale: glibc-langpack-en
   <<: *rpm
 
 fedora36:
@@ -44,16 +44,9 @@ fedora36:
   install: RUN dnf install -y
   locale: glibc-langpack-en
   <<: *rpm
-  openssl: openssl1.1-devel
 
-fedora34:
-  base: fedora:34
-  install: RUN dnf install -y
-  locale: glibc-langpack-en
-  <<: *rpm
-
-ubuntu2004:
-  base: ubuntu:20.04
+ubuntu1604:
+  base: ubuntu:16.04
   install: RUN apt-get update && apt-get install -y
   <<: *deb
 
@@ -62,8 +55,13 @@ ubuntu1804:
   install: RUN apt-get update && apt-get install -y
   <<: *deb
 
-ubuntu1604:
-  base: ubuntu:16.04
+ubuntu2004:
+  base: ubuntu:20.04
+  install: RUN apt-get update && apt-get install -y
+  <<: *deb
+
+ubuntu2204:
+  base: ubuntu:22.04
   install: RUN apt-get update && apt-get install -y
   <<: *deb
 

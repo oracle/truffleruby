@@ -238,6 +238,7 @@
 #define HAVE_ATAN2L 1
 #define HAVE_ATAN2F 1
 #define HAVE_CHROOT 1
+#define HAVE_CLOCK_GETTIME 1
 #define HAVE_COSH 1
 #define HAVE_CRYPT_R 1
 #define HAVE_DIRFD 1
@@ -370,8 +371,6 @@
 #define HAVE_BUILTIN___BUILTIN_TRAP 1
 #define HAVE_GNU_QSORT_R 1
 #define ATAN2_INF_C99 1
-#define HAVE_LIBRT 1
-#define HAVE_CLOCK_GETTIME 1
 #define HAVE_CLOCK_GETRES 1
 #define HAVE_LIBRT 1
 #define HAVE_LIBRT 1

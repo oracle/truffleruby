@@ -123,14 +123,7 @@ class OpenSSL::TestOCSP < OpenSSL::TestCase
 
     assert_equal true, req.verify([@cert], store, OpenSSL::OCSP::NOINTERN)
     ret = req.verify([@cert], store)
-    if ret || openssl?(1, 0, 2)
-      assert_equal true, ret
-    else
-      # RT2560; OCSP_request_verify() does not find signer cert from 'certs' when
-      # OCSP_NOINTERN is not specified.
-      # fixed by OpenSSL 1.0.1j, 1.0.2
-      pend "RT2560: ocsp_req_find_signer"
-    end
+    assert_equal true, ret
 
     # not signed
     req = OpenSSL::OCSP::Request.new.add_certid(cid)
@@ -235,7 +228,7 @@ class OpenSSL::TestOCSP < OpenSSL::TestCase
     assert_equal OpenSSL::OCSP::V_CERTSTATUS_REVOKED, single.cert_status
     assert_equal OpenSSL::OCSP::REVOKED_STATUS_UNSPECIFIED, single.revocation_reason
     assert_equal now - 400, single.revocation_time
-    assert_in_delta (now - 301), single.this_update, EnvUtil.apply_timeout_scale(1)
+    assert_in_delta (now - 301), single.this_update, 1
     assert_equal nil, single.next_update
     assert_equal [], single.extensions
 
