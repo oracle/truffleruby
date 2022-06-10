@@ -30,6 +30,8 @@ import com.oracle.truffle.api.object.Shape;
 @NodeField(name = "depth", type = int.class)
 public abstract class WriteBarrierNode extends RubyBaseNode {
 
+    public static final WriteBarrierNode[] EMPTY_ARRAY = new WriteBarrierNode[0];
+
     protected static final int MAX_DEPTH = 3;
 
     protected abstract int getDepth();

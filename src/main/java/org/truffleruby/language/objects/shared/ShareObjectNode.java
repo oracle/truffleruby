@@ -11,7 +11,10 @@ package org.truffleruby.language.objects.shared;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
+import com.oracle.truffle.api.object.PropertyGetter;
+import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraph;
@@ -23,7 +26,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import com.oracle.truffle.api.object.ObjectLocation;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.utils.RunTwiceBranchProfile;
@@ -44,17 +46,17 @@ public abstract class ShareObjectNode extends RubyBaseNode {
 
     @ExplodeLoop
     @Specialization(
-            guards = { "object.getShape() == cachedShape", "properties.size() <= MAX_EXPLODE_SIZE" },
+            guards = { "object.getShape() == cachedShape", "propertyGetters.length <= MAX_EXPLODE_SIZE" },
             assumptions = { "cachedShape.getValidAssumption()", "sharedShape.getValidAssumption()" },
             limit = "CACHE_LIMIT")
     protected void shareCached(RubyDynamicObject object,
             @Cached("object.getShape()") Shape cachedShape,
+            @Cached("createSharedShape(cachedShape)") Shape sharedShape,
             @CachedLibrary(limit = "1") DynamicObjectLibrary objectLibrary,
             @Cached("new()") RunTwiceBranchProfile shareMetaClassProfile,
             @Cached("createShareInternalFieldsNode()") ShareInternalFieldsNode shareInternalFieldsNode,
-            @Cached("getObjectProperties(cachedShape)") List<Property> properties,
-            @Cached("createReadAndShareFieldNodes(properties)") ReadAndShareFieldNode[] readAndShareFieldNodes,
-            @Cached("createSharedShape(cachedShape)") Shape sharedShape) {
+            @Cached(value = "getObjectProperties(sharedShape)", dimensions = 1) PropertyGetter[] propertyGetters,
+            @Cached("createWriteBarrierNodes(propertyGetters)") WriteBarrierNode[] writeBarrierNodes) {
         // Mark the object as shared first to avoid recursion
         assert object.getShape() == cachedShape;
         objectLibrary.markShared(object);
@@ -71,8 +73,10 @@ public abstract class ShareObjectNode extends RubyBaseNode {
 
         shareInternalFieldsNode.executeShare(object);
 
-        for (ReadAndShareFieldNode readAndShareFieldNode : readAndShareFieldNodes) {
-            readAndShareFieldNode.executeReadFieldAndShare(object, sharedShape);
+        for (int i = 0; i < propertyGetters.length; i++) {
+            final PropertyGetter propertyGetter = propertyGetters[i];
+            final Object value = propertyGetter.get(object);
+            writeBarrierNodes[i].executeWriteBarrier(value);
         }
 
         assert allFieldsAreShared(object);
@@ -96,26 +100,26 @@ public abstract class ShareObjectNode extends RubyBaseNode {
         SharedObjects.writeBarrier(getLanguage(), object);
     }
 
-    protected static List<Property> getObjectProperties(Shape shape) {
-        final List<Property> objectProperties = new ArrayList<>();
+    protected static PropertyGetter[] getObjectProperties(Shape shape) {
+        final List<PropertyGetter> objectProperties = new ArrayList<>();
         for (Property property : shape.getPropertyListInternal(false)) {
-            if (property.getLocation() instanceof ObjectLocation) {
-                objectProperties.add(property);
+            if (!property.getLocation().isPrimitive()) {
+                objectProperties.add(Objects.requireNonNull(shape.makePropertyGetter(property.getKey())));
             }
         }
-        return objectProperties;
+        return objectProperties.toArray(KernelNodes.CopyInstanceVariablesNode.EMPTY_PROPERTY_GETTER_ARRAY);
     }
 
     protected ShareInternalFieldsNode createShareInternalFieldsNode() {
         return ShareInternalFieldsNodeGen.create(depth);
     }
 
-    protected ReadAndShareFieldNode[] createReadAndShareFieldNodes(List<Property> properties) {
-        ReadAndShareFieldNode[] nodes = properties.size() == 0
-                ? ReadAndShareFieldNode.EMPTY_ARRAY
-                : new ReadAndShareFieldNode[properties.size()];
+    protected WriteBarrierNode[] createWriteBarrierNodes(PropertyGetter[] propertyGetters) {
+        WriteBarrierNode[] nodes = propertyGetters.length == 0
+                ? WriteBarrierNode.EMPTY_ARRAY
+                : new WriteBarrierNode[propertyGetters.length];
         for (int i = 0; i < nodes.length; i++) {
-            nodes[i] = ReadAndShareFieldNodeGen.create(properties.get(i), depth);
+            nodes[i] = WriteBarrierNodeGen.create(depth);
         }
         return nodes;
     }
