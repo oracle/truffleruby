@@ -3,6 +3,7 @@
 New features:
 
 * Add support for `darwin-aarch64` (macOS M1) (#2181, @lewurm, @chrisseaton, @eregon).
+* Add support for OpenSSL 3.0.0 by updating the openssl gem (@aardvark179, @eregon).
 
 Bug fixes:
 
