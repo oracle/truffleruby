@@ -65,10 +65,6 @@ public class StringGuards {
         return encoding.jcoding.isFixedWidth();
     }
 
-    public static boolean isEmpty(Rope rope) {
-        return rope.isEmpty();
-    }
-
     public static boolean isEmpty(AbstractTruffleString string) {
         return string.isEmpty();
     }
