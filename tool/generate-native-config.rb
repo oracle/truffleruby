@@ -800,15 +800,10 @@ constants 'clocks' do |cg|
     CLOCK_UPTIME_RAW
     CLOCK_UPTIME_RAW_APPROX
     CLOCK_VIRTUAL
+    CLOCK_BOOTTIME
+    CLOCK_REALTIME_ALARM
+    CLOCK_BOOTTIME_ALARM
   ]
-
-  # Give the following clock ids a default so they works on newer Linux built by older Linux:
-  # https://github.com/oracle/truffleruby/issues/1480
-  cg.const 'CLOCK_BOOTTIME', (7 if RUBY_PLATFORM =~ /linux/)
-  # These 2 are not supported on linux-aarch64:
-  # https://patchwork.kernel.org/project/linux-arm-kernel/patch/20171031183306.81375-1-salyzyn@android.com/#21274245
-  cg.const 'CLOCK_REALTIME_ALARM', (8 if RUBY_PLATFORM =~ /x86_64-linux/)
-  cg.const 'CLOCK_BOOTTIME_ALARM', (9 if RUBY_PLATFORM =~ /x86_64-linux/)
 end
 
 TypesGenerator.new.generate
