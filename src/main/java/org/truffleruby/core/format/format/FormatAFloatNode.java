@@ -109,6 +109,13 @@ public abstract class FormatAFloatNode extends FormatFloatGenericNode {
         if (dval == 0.0) {
             buf.append('0');
             exponent = 0;
+            if (precision > 0 || hasFSharpFlag) {
+                buf.append('.');
+                while (precision > 0) {
+                    buf.append((expSeparator == 'a' ? HEX_DIGITS : HEX_DIGITS_UPPER_CASE)[0]);
+                    precision--;
+                }
+            }
         } else {
             long mantissaBits = bits & MANTISSA_MASK;
             if (biasedExp == 0) {
@@ -119,11 +126,11 @@ public abstract class FormatAFloatNode extends FormatFloatGenericNode {
                 // and mask off the leading bit (now the implied 53 bit of the mantissa)..
                 mantissaBits = (mantissaBits << (lz - 11)) & MANTISSA_MASK;
                 // Adjust the exponent to reflect this.
-                biasedExp = biasedExp + (lz - 11);
+                biasedExp = biasedExp - (lz - 12);
             }
             exponent = biasedExp - 1023;
             buf.append('1');
-            if (mantissaBits != 0L || hasFSharpFlag) {
+            if (mantissaBits != 0L || hasFSharpFlag || precision > 0) {
                 buf.append('.');
             }
 
