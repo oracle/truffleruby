@@ -9,11 +9,7 @@
  */
 package org.truffleruby.language.objects;
 
-import com.oracle.truffle.api.object.ObjectType;
-
-public final class RubyObjectType extends ObjectType {
-
+public final class RubyObjectType {
     public RubyObjectType() {
     }
-
 }

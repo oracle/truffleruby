@@ -21,6 +21,7 @@ import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.object.PropertyGetter;
 import com.oracle.truffle.api.utilities.AssumedValue;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
@@ -438,24 +439,22 @@ public abstract class KernelNodes {
     @GenerateUncached
     public abstract static class CopyInstanceVariablesNode extends RubyBaseNode {
 
-        public static final Property[] EMPTY_PROPERTY_ARRAY = new Property[0];
+        public static final PropertyGetter[] EMPTY_PROPERTY_GETTER_ARRAY = new PropertyGetter[0];
 
         public abstract RubyDynamicObject execute(RubyDynamicObject newObject, RubyDynamicObject from);
 
         @ExplodeLoop
         @Specialization(
-                guards = { "from.getShape() == cachedShape", "properties.length <= MAX_EXPLODE_SIZE" },
+                guards = { "from.getShape() == cachedShape", "propertyGetters.length <= MAX_EXPLODE_SIZE" },
                 limit = "getDynamicObjectCacheLimit()")
         protected RubyDynamicObject copyCached(RubyDynamicObject newObject, RubyDynamicObject from,
                 @Cached("from.getShape()") Shape cachedShape,
-                // GR-25595: should probably be shared between specialization instances but Truffle does not support it yet
-                @Cached DispatchNode allocateNode,
-                @Cached(value = "getCopiedProperties(cachedShape)", dimensions = 1) Property[] properties,
-                @Cached("createWriteFieldNodes(properties)") DynamicObjectLibrary[] writeFieldNodes) {
-            for (int i = 0; i < properties.length; i++) {
-                final Property property = properties[i];
-                final Object value = property.get(from, cachedShape);
-                writeFieldNodes[i].putWithFlags(newObject, property.getKey(), value, property.getFlags());
+                @Cached(value = "getCopiedProperties(cachedShape)", dimensions = 1) PropertyGetter[] propertyGetters,
+                @Cached("createWriteFieldNodes(propertyGetters)") DynamicObjectLibrary[] writeFieldNodes) {
+            for (int i = 0; i < propertyGetters.length; i++) {
+                final PropertyGetter propertyGetter = propertyGetters[i];
+                final Object value = propertyGetter.get(from);
+                writeFieldNodes[i].putWithFlags(newObject, propertyGetter.getKey(), value, propertyGetter.getFlags());
             }
 
             return newObject;
@@ -472,21 +471,21 @@ public abstract class KernelNodes {
             return newObject;
         }
 
-        protected Property[] getCopiedProperties(Shape shape) {
-            final List<Property> copiedProperties = new ArrayList<>();
+        protected PropertyGetter[] getCopiedProperties(Shape shape) {
+            final List<PropertyGetter> copiedProperties = new ArrayList<>();
 
             for (Property property : shape.getProperties()) {
                 if (property.getKey() instanceof String) {
-                    copiedProperties.add(property);
+                    copiedProperties.add(Objects.requireNonNull(shape.makePropertyGetter(property.getKey())));
                 }
             }
 
-            return copiedProperties.toArray(EMPTY_PROPERTY_ARRAY);
+            return copiedProperties.toArray(EMPTY_PROPERTY_GETTER_ARRAY);
         }
 
-        protected DynamicObjectLibrary[] createWriteFieldNodes(Property[] properties) {
-            final DynamicObjectLibrary[] nodes = new DynamicObjectLibrary[properties.length];
-            for (int i = 0; i < properties.length; i++) {
+        protected DynamicObjectLibrary[] createWriteFieldNodes(PropertyGetter[] propertyGetters) {
+            final DynamicObjectLibrary[] nodes = new DynamicObjectLibrary[propertyGetters.length];
+            for (int i = 0; i < propertyGetters.length; i++) {
                 nodes[i] = DynamicObjectLibrary.getFactory().createDispatched(1);
             }
             return nodes;
@@ -496,12 +495,13 @@ public abstract class KernelNodes {
         private void copyInstanceVariables(RubyDynamicObject from, RubyDynamicObject to) {
             // Concurrency: OK if callers create the object and publish it after copy
             // Only copy user-level instance variables, hidden ones are initialized later with #initialize_copy.
-            for (Property property : getCopiedProperties(from.getShape())) {
+            Shape shape = from.getShape();
+            for (PropertyGetter propertyGetter : getCopiedProperties(shape)) {
                 DynamicObjectLibrary.getUncached().putWithFlags(
                         to,
-                        property.getKey(),
-                        property.get(from, from.getShape()),
-                        property.getFlags());
+                        propertyGetter.getKey(),
+                        propertyGetter.get(from),
+                        propertyGetter.getFlags());
             }
         }
     }

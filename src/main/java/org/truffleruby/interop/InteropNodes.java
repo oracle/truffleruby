@@ -1997,6 +1997,29 @@ public abstract class InteropNodes {
             }
         }
     }
+
+    @CoreMethod(names = "has_meta_parents?", onSingleton = true, required = 1)
+    public abstract static class HasMetaParentsNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
+        protected boolean hasMetaParents(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary interop) {
+            return interop.hasMetaParents(receiver);
+        }
+    }
+
+    @CoreMethod(names = "meta_parents", onSingleton = true, required = 1)
+    public abstract static class GetMetaParentsNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
+        protected Object getMetaParents(Object value,
+                @CachedLibrary("value") InteropLibrary interop,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return interop.getMetaParents(value);
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
     // endregion
 
     // region Hash entries
