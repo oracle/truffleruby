@@ -17,6 +17,7 @@ Bug fixes:
 * Fix `String#unpack("Z")` to not advance after the null byte, like CRuby (#2659, @aardvark179).
 * Fix `Float#round` to avoid losing precision during the rounding process (@aardvark179).
 * Fix `String#insert` to not call a subclassed string method (@bjfish).
+* Fix `Process.egid=` to accept `String`s (#2615, @ngtban)
 
 Compatibility:
 
