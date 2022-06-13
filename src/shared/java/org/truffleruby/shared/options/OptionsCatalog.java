@@ -53,7 +53,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> LAZY_TRANSLATION_USER_KEY = new OptionKey<>(LAZY_CALLTARGETS_KEY.getDefaultValue());
     public static final OptionKey<Boolean> PATCHING_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> HASHING_DETERMINISTIC_KEY = new OptionKey<>(false);
-    public static final OptionKey<Boolean> FIBER_POOL_KEY = new OptionKey<>(true);
+    public static final OptionKey<Boolean> FIBER_POOL_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LOG_SUBPROCESS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> WARN_LOCALE_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> EXCEPTIONS_STORE_JAVA_KEY = new OptionKey<>(false);

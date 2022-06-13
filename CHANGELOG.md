@@ -51,6 +51,7 @@ Performance:
 Changes:
 
 * `-Werror=implicit-function-declaration` is now used for compiling C extensions to fail more clearly and earlier if a function is missing, like CRuby 3.2 (#2618, @eregon).
+* Disable thread pool for Fibers as it causes correctness issues (#2551, @eregon).
 
 # 22.1.0
 
