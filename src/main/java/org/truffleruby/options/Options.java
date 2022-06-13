@@ -72,7 +72,7 @@ public class Options {
     public final boolean PATCHING;
     /** --hashing-deterministic=false */
     public final boolean HASHING_DETERMINISTIC;
-    /** --fiber-pool=true */
+    /** --fiber-pool=false */
     public final boolean FIBER_POOL;
     /** --log-subprocess=false */
     public final boolean LOG_SUBPROCESS;
