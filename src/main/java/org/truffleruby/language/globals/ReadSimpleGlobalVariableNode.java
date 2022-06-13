@@ -10,10 +10,15 @@
 package org.truffleruby.language.globals;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
+import org.truffleruby.language.WarningNode;
 
 public abstract class ReadSimpleGlobalVariableNode extends RubyBaseNode {
 
@@ -38,19 +43,50 @@ public abstract class ReadSimpleGlobalVariableNode extends RubyBaseNode {
     protected Object readConstant(
             @Cached("getLanguage().getGlobalVariableIndex(name)") int index,
             @Cached("getContext().getGlobalVariableStorage(index)") GlobalVariableStorage storage,
-            @Cached("storage.getValue()") Object value) {
+            @Cached("storage.getValue()") Object value,
+            @Cached("new()") WarningNode warningNode,
+            @Cached("storage.isDefined()") boolean isDefined) {
+        if (!isDefined && warningNode.shouldWarn()) {
+            SourceSection sourceSection = getEncapsulatingSourceSection();
+            String message = globalVariableNotInitializedMessageFor(name);
+
+            warningNode.warningMessage(sourceSection, message);
+        }
+
         return value;
     }
 
     @Specialization
-    protected Object read() {
+    protected Object read(
+            @Cached("new()") WarningNode warningNode,
+            @Cached ConditionProfile isDefinedProfile) {
         if (lookupGlobalVariableStorageNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             lookupGlobalVariableStorageNode = insert(LookupGlobalVariableStorageNode.create(name));
         }
+
         final GlobalVariableStorage storage = lookupGlobalVariableStorageNode.execute(null);
 
-        return storage.getValue();
+        // don't use storage.getValue() and storage.isDefined() to avoid
+        // accessing volatile storage.value several times
+        final Object rawValue = storage.getRawValue();
+
+        if (isDefinedProfile.profile(rawValue != GlobalVariableStorage.UNSET_VALUE)) {
+            return rawValue;
+        } else {
+            if (warningNode.shouldWarn()) {
+                SourceSection sourceSection = getEncapsulatingSourceSection();
+                String message = globalVariableNotInitializedMessageFor(name);
+
+                warningNode.warningMessage(sourceSection, message);
+            }
+
+            return Nil.INSTANCE;
+        }
+    }
+
+    private String globalVariableNotInitializedMessageFor(String name) {
+        return StringUtils.format("global variable `%s' not initialized", name);
     }
 
 }

@@ -21,7 +21,7 @@ import com.oracle.truffle.api.utilities.CyclicAssumption;
 
 public final class GlobalVariableStorage {
 
-    private static final Object UNSET_VALUE = NotProvided.INSTANCE;
+    public static final Object UNSET_VALUE = NotProvided.INSTANCE;
 
     private final CyclicAssumption unchangedAssumption = new CyclicAssumption("global variable unchanged");
     private int changes = 0;
@@ -51,6 +51,10 @@ public final class GlobalVariableStorage {
     public Object getValue() {
         Object currentValue = value;
         return currentValue == UNSET_VALUE ? Nil.INSTANCE : currentValue;
+    }
+
+    public Object getRawValue() {
+        return value;
     }
 
     public boolean isDefined() {
