@@ -8,6 +8,7 @@ Bug fixes:
 
 Compatibility:
 
+* Fix `Array#fill` to raise `TypeError` instead of `ArgumentError` when the length argument is not numeric (#2652, @andrykonchin).
 
 Performance:
 
