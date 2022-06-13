@@ -31,18 +31,26 @@ public class TStringConstants {
     public static final TruffleString EMPTY_UTF8_TSTRING = withHashCode(TruffleString.Encoding.UTF_8.getEmpty());
 
     @CompilerDirectives.CompilationFinal(dimensions = 1) public static final byte[] EMPTY_BYTES = new byte[0];
-    @CompilerDirectives.CompilationFinal(dimensions = 1) public static final TruffleString[] UTF8_SINGLE_BYTE_TSTRINGS = new TruffleString[256];
-    @CompilerDirectives.CompilationFinal(dimensions = 1) public static final TruffleString[] US_ASCII_SINGLE_BYTE_TSTRINGS = new TruffleString[256];
-    @CompilerDirectives.CompilationFinal(dimensions = 1) public static final TruffleString[] BINARY_SINGLE_BYTE_TSTRINGS = new TruffleString[256];
-    @CompilerDirectives.CompilationFinal(dimensions = 1) private static final TruffleString[] PADDED_NUMBERS = createPaddedNumbersTable();
-    @CompilerDirectives.CompilationFinal(dimensions = 1) private static final TruffleString[] PADDING_ZEROS = createPaddingZeroTable();
+    @CompilerDirectives.CompilationFinal(
+            dimensions = 1) public static final TruffleString[] UTF8_SINGLE_BYTE_TSTRINGS = new TruffleString[256];
+    @CompilerDirectives.CompilationFinal(
+            dimensions = 1) public static final TruffleString[] US_ASCII_SINGLE_BYTE_TSTRINGS = new TruffleString[256];
+    @CompilerDirectives.CompilationFinal(
+            dimensions = 1) public static final TruffleString[] BINARY_SINGLE_BYTE_TSTRINGS = new TruffleString[256];
+    @CompilerDirectives.CompilationFinal(
+            dimensions = 1) private static final TruffleString[] PADDED_NUMBERS = createPaddedNumbersTable();
+    @CompilerDirectives.CompilationFinal(
+            dimensions = 1) private static final TruffleString[] PADDING_ZEROS = createPaddingZeroTable();
 
     static {
         for (int i = 0; i < 256; i++) {
             final byte[] bytes = new byte[]{ (byte) i };
-            UTF8_SINGLE_BYTE_TSTRINGS[i] = withHashCode(TStringUtils.fromByteArray(bytes, TruffleString.Encoding.UTF_8));
-            US_ASCII_SINGLE_BYTE_TSTRINGS[i] = withHashCode(TStringUtils.fromByteArray(bytes, TruffleString.Encoding.US_ASCII));
-            BINARY_SINGLE_BYTE_TSTRINGS[i] = withHashCode(TStringUtils.fromByteArray(bytes, TruffleString.Encoding.BYTES));
+            UTF8_SINGLE_BYTE_TSTRINGS[i] = withHashCode(
+                    TStringUtils.fromByteArray(bytes, TruffleString.Encoding.UTF_8));
+            US_ASCII_SINGLE_BYTE_TSTRINGS[i] = withHashCode(
+                    TStringUtils.fromByteArray(bytes, TruffleString.Encoding.US_ASCII));
+            BINARY_SINGLE_BYTE_TSTRINGS[i] = withHashCode(
+                    TStringUtils.fromByteArray(bytes, TruffleString.Encoding.BYTES));
         }
     }
 

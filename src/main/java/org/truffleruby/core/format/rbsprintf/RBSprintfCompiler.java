@@ -13,7 +13,6 @@ import java.util.List;
 
 import com.oracle.truffle.api.nodes.Node;
 
-import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -36,7 +35,8 @@ public class RBSprintfCompiler {
         this.currentNode = currentNode;
     }
 
-    public RootCallTarget compile(Object format, RubyStringLibrary libFormat, TruffleString.GetInternalByteArrayNode byteArrayNode, Object stringReader) {
+    public RootCallTarget compile(Object format, RubyStringLibrary libFormat,
+            TruffleString.GetInternalByteArrayNode byteArrayNode, Object stringReader) {
         var formatTString = libFormat.getTString(format);
         var formatEncoding = libFormat.getEncoding(format);
         var byteArray = byteArrayNode.execute(formatTString, formatEncoding.tencoding);
@@ -54,7 +54,8 @@ public class RBSprintfCompiler {
 
     private static int SIGN = 0x10;
 
-    public RubyArray typeList(Object format, RubyStringLibrary libFormat, TruffleString.GetInternalByteArrayNode byteArrayNode,  RubyContext context, RubyLanguage language) {
+    public RubyArray typeList(Object format, RubyStringLibrary libFormat,
+            TruffleString.GetInternalByteArrayNode byteArrayNode, RubyContext context, RubyLanguage language) {
         var formatTString = libFormat.getTString(format);
         var formatEncoding = libFormat.getTEncoding(format);
         var byteArray = byteArrayNode.execute(formatTString, formatEncoding);

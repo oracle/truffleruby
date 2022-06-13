@@ -1057,11 +1057,13 @@ public abstract class StringNodes {
 
             final int offset = stringByteLength - suffixByteLength;
 
-            if (isCharacterHeadProfile.profile(!isCharacterHead(enc, stringByteLength, stringByteArray.getArray(), offset + stringByteArray.getOffset()))) {
+            if (isCharacterHeadProfile.profile(!isCharacterHead(enc, stringByteLength, stringByteArray.getArray(),
+                    offset + stringByteArray.getOffset()))) {
                 return false;
             }
 
-            return ArrayUtils.regionEquals(stringByteArray.getArray(), offset + stringByteArray.getOffset(), suffixByteArray.getArray(), suffixByteArray.getOffset(), suffixByteLength);
+            return ArrayUtils.regionEquals(stringByteArray.getArray(), offset + stringByteArray.getOffset(),
+                    suffixByteArray.getArray(), suffixByteArray.getOffset(), suffixByteLength);
         }
 
         private boolean isCharacterHead(RubyEncoding enc, int stringByteLength, byte[] stringBytes, int offset) {
@@ -3034,7 +3036,10 @@ public abstract class StringNodes {
         }
 
         @Specialization(
-                guards = { "libFromStr.isRubyString(fromStr)", "libToStr.isRubyString(toStr)", "!isEmpty(self.tstring)" })
+                guards = {
+                        "libFromStr.isRubyString(fromStr)",
+                        "libToStr.isRubyString(toStr)",
+                        "!isEmpty(self.tstring)" })
         protected Object trSBang(RubyString self, Object fromStr, Object toStr,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFromStr,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libToStr) {

@@ -136,7 +136,8 @@ public abstract class ByteArrayNodes {
 
             final byte[] destBytes = destByteArray.bytes;
 
-            System.arraycopy(sourceByteArray.getArray(), srcStart + sourceByteArray.getOffset(), destBytes, dstStart, length);
+            System.arraycopy(sourceByteArray.getArray(), srcStart + sourceByteArray.getOffset(), destBytes, dstStart,
+                    length);
             return source;
         }
 

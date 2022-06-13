@@ -60,7 +60,8 @@ public class TranscodingManager {
                 final TranscoderDB.Entry e = destinationEntry.value;
 
                 final String sourceName = StringUtils.toUpperCase(StringOperations.decodeAscii(e.getSource()));
-                final String destinationName = StringUtils.toUpperCase(StringOperations.decodeAscii(e.getDestination()));
+                final String destinationName = StringUtils
+                        .toUpperCase(StringOperations.decodeAscii(e.getDestination()));
 
                 if (TruffleOptions.AOT) {
                     // Load the classes eagerly

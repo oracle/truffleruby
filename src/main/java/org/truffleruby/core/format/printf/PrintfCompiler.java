@@ -31,12 +31,14 @@ public class PrintfCompiler {
         this.currentNode = currentNode;
     }
 
-    public RootCallTarget compile(Object format, RubyStringLibrary libFormat, TruffleString.GetInternalByteArrayNode byteArrayNode,  Object[] arguments, boolean isDebug) {
+    public RootCallTarget compile(Object format, RubyStringLibrary libFormat,
+            TruffleString.GetInternalByteArrayNode byteArrayNode, Object[] arguments, boolean isDebug) {
         var formatTString = libFormat.getTString(format);
         var formatEncoding = libFormat.getEncoding(format);
         var byteArray = byteArrayNode.execute(formatTString, formatEncoding.tencoding);
 
-        final PrintfSimpleParser parser = new PrintfSimpleParser(StringSupport.bytesToChars(byteArray), arguments, isDebug);
+        final PrintfSimpleParser parser = new PrintfSimpleParser(StringSupport.bytesToChars(byteArray), arguments,
+                isDebug);
         final List<SprintfConfig> configs = parser.parse();
         final PrintfSimpleTreeBuilder builder = new PrintfSimpleTreeBuilder(language, configs);
 
