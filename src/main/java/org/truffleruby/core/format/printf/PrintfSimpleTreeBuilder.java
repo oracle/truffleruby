@@ -94,7 +94,8 @@ public class PrintfSimpleTreeBuilder {
                 } else if (config.isPrecisionArg()) {
                     precisionNode = ReadArgumentIndexValueNodeGen.create(config.getPrecision(), new SourceNode());
                 } else {
-                    precisionNode = new LiteralFormatNode(config.getPrecision() == null ? DEFAULT : config.getPrecision());
+                    precisionNode = new LiteralFormatNode(
+                            config.getPrecision() == null ? DEFAULT : config.getPrecision());
                 }
 
 

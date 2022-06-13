@@ -63,11 +63,13 @@ public class PrintfSimpleParser {
             boolean argTypeSet = false;
 
             while (!finished) {
-                if (i >= this.source.length) {
+                /* MRI's parser will accept a format specifier such as %1$ even though it doesn't actually include a
+                 * type, but will raise an exception for a format specifier such as %1. */
+                if (i >= this.source.length && config.getAbsoluteArgumentIndex() == null) {
                     throw new InvalidFormatException("incomplete format specifier; use %% (double %) instead");
                 }
 
-                char p = this.source[i];
+                char p = i >= this.source.length ? '\0' : this.source[i];
 
                 switch (p) {
                     case ' ':
