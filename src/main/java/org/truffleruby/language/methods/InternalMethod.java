@@ -457,10 +457,6 @@ public class InternalMethod implements ObjectGraphNode {
         }
     }
 
-    public Object getCapturedBlock() {
-        return capturedBlock;
-    }
-
     public LexicalScope getLexicalScope() {
         return lexicalScope;
     }

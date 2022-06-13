@@ -3036,7 +3036,7 @@ public class BodyTranslator extends Translator {
                 argumentsAndBlock.getArgumentsDescriptor(),
                 argumentsTranslated,
                 readBlock,
-                environment.shouldWarnYieldInModuleBody());
+                environment.getSurroundingMethodEnvironment().isModuleBody());
 
         ret.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, ret);

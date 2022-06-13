@@ -21,18 +21,16 @@ import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.KeywordArgumentsDescriptorManager;
-import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.language.dispatch.LiteralCallNode;
 
 public class YieldExpressionNode extends LiteralCallNode {
 
-    private final boolean warnInModuleBody;
+    private final boolean isModuleBody;
 
     @Children private final RubyNode[] arguments;
     @Child private CallBlockNode yieldNode;
@@ -40,26 +38,23 @@ public class YieldExpressionNode extends LiteralCallNode {
     @Child private RubyNode readBlockNode;
     @Child private WarnNode warnNode;
 
-    private final BranchProfile useCapturedBlock = BranchProfile.create();
-    private final BranchProfile noCapturedBlock = BranchProfile.create();
-
     public YieldExpressionNode(
             boolean isSplatted,
             ArgumentsDescriptor descriptor,
             RubyNode[] arguments,
             RubyNode readBlockNode,
-            boolean warnInModuleBody) {
+            boolean isModuleBody) {
         super(isSplatted, descriptor);
         this.arguments = arguments;
         this.readBlockNode = readBlockNode;
-        this.warnInModuleBody = warnInModuleBody;
+        this.isModuleBody = isModuleBody;
     }
 
     @ExplodeLoop
     @Override
     public final Object execute(VirtualFrame frame) {
-        if (warnInModuleBody) {
-            warnInModuleBody();
+        if (isModuleBody) {
+            throw new RaiseException(getContext(), coreExceptions().syntaxErrorInvalidYield(this));
         }
 
         Object[] argumentsObjects = new Object[arguments.length];
@@ -68,9 +63,8 @@ public class YieldExpressionNode extends LiteralCallNode {
             argumentsObjects[i] = arguments[i].execute(frame);
         }
 
-        final Object maybeBlock = readBlock(frame);
+        final Object maybeBlock = readBlockNode.execute(frame);
         if (maybeBlock == nil) {
-            noCapturedBlock.enter();
             throw new RaiseException(getContext(), coreExceptions().noBlockToYieldTo(this));
         }
 
@@ -95,17 +89,6 @@ public class YieldExpressionNode extends LiteralCallNode {
         return getYieldNode().yield(block, descriptor, argumentsObjects, ruby2KeywordsHash ? this : null);
     }
 
-    private Object readBlock(VirtualFrame frame) {
-        Object block = readBlockNode.execute(frame);
-
-        if (block == nil) {
-            useCapturedBlock.enter();
-            block = RubyArguments.getMethod(frame).getCapturedBlock();
-        }
-        return block;
-    }
-
-
     private Object[] unsplat(Object[] argumentsObjects) {
         if (unsplatNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -116,7 +99,7 @@ public class YieldExpressionNode extends LiteralCallNode {
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
-        Object block = readBlock(frame);
+        Object block = readBlockNode.execute(frame);
         if (block == nil) {
             return nil;
         } else {
@@ -131,17 +114,5 @@ public class YieldExpressionNode extends LiteralCallNode {
         }
 
         return yieldNode;
-    }
-
-    private void warnInModuleBody() {
-        if (warnNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            warnNode = insert(new WarnNode());
-        }
-        if (warnNode.shouldWarnForDeprecation()) {
-            warnNode.warningMessage(
-                    getSourceSection(),
-                    "`yield' in class syntax will not be supported from Ruby 3.0. [Feature #15575]");
-        }
     }
 }
