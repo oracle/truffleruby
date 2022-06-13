@@ -3301,13 +3301,9 @@ public abstract class StringNodes {
 
         @Specialization
         protected Object invert(RubyString string,
-                @Cached BytesNode bytesNode,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached ConditionProfile noopProfile) {
-            final Rope rope = string.rope;
-
-            final byte[] bytes = bytesNode.execute(rope);
-            byte[] modified = invertNode.executeInvert(bytes, 0);
+            byte[] modified = invertNode.executeInvert(string, 0);
 
             if (noopProfile.profile(modified == null)) {
                 return nil;
