@@ -570,7 +570,6 @@ describe "Predefined global $/" do
     ($/ = "xyz").should == "xyz"
   end
 
-
   it "changes $-0" do
     $/ = "xyz"
     $-0.should equal($/)
@@ -638,6 +637,45 @@ describe "Predefined global $-0" do
 
   it "raises a TypeError if assigned a boolean" do
     -> { $-0 = true }.should raise_error(TypeError)
+  end
+end
+
+describe "Predefined global $\\" do
+  before :each do
+    @verbose, $VERBOSE = $VERBOSE, nil
+    @dollar_backslash = $\
+  end
+
+  after :each do
+    $\ = @dollar_backslash
+    $VERBOSE = @verbose
+  end
+
+  it "can be assigned a String" do
+    str = "abc"
+    $\ = str
+    $\.should equal(str)
+  end
+
+  it "can be assigned nil" do
+    $\ = nil
+    $\.should be_nil
+  end
+
+  it "returns the value assigned" do
+    ($\ = "xyz").should == "xyz"
+  end
+
+  it "does not call #to_str to convert the object to a String" do
+    obj = mock("$\\ value")
+    obj.should_not_receive(:to_str)
+
+    -> { $\ = obj }.should raise_error(TypeError)
+  end
+
+  it "raises a TypeError if assigned not String" do
+    -> { $\ = 1 }.should raise_error(TypeError)
+    -> { $\ = true }.should raise_error(TypeError)
   end
 end
 

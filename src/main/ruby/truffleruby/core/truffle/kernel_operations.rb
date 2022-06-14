@@ -85,6 +85,16 @@ module Truffle
 
     $/ = "\n".freeze
 
+    define_hooked_variable(
+      :$\,
+      -> { Primitive.global_variable_get :$\ },
+      -> v {
+        if v && !Primitive.object_kind_of?(v, String)
+          raise TypeError, '$\ must be a String'
+        end
+        Primitive.global_variable_set :$\, v
+      })
+
     $\ = nil
 
     Truffle::Boot.delay do
