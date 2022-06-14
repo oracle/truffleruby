@@ -1378,3 +1378,29 @@ describe "$LOAD_PATH.resolve_feature_path" do
     end
   end
 end
+
+# Some other pre-defined global variables
+
+describe "Predefined global $=" do
+  before :each do
+    @verbose, $VERBOSE = $VERBOSE, nil
+    @dollar_assign = $=
+  end
+
+  after :each do
+    $= = @dollar_assign
+    $VERBOSE = @verbose
+  end
+
+  it "warns when accessed" do
+    -> { a = $= }.should complain(/is no longer effective/)
+  end
+
+  it "warns when assigned" do
+    -> { $= = "_" }.should complain(/is no longer effective/)
+  end
+
+  it "returns the value assigned" do
+    ($= = "xyz").should == "xyz"
+  end
+end

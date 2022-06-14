@@ -133,7 +133,18 @@ module Truffle
 
     $, = nil # It should be defined by the time boot has finished.
 
-    $= = false
+    define_hooked_variable(
+      :$=,
+      -> {
+        warn 'variable $= is no longer effective', uplevel: 1 if Warning[:deprecated]
+        Primitive.global_variable_get :$=
+      },
+      -> v {
+        warn 'variable $= is no longer effective', uplevel: 1 if Warning[:deprecated]
+        Primitive.global_variable_set :$=, v
+      })
+
+    Primitive.global_variable_set :$=, false
 
     define_hooked_variable(
       :$VERBOSE,
