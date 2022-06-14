@@ -1,6 +1,5 @@
 exclude :test_width_underflow, "needs investigation"
 exclude :test_binary, "needs investigation"
-exclude :test_float, "requires more than 17 significant digits printed for large integers"
 exclude :test_float_prec, "needs investigation"
 exclude :test_integer, "needs investigation"
 exclude :test_named_typed, "needs investigation"
