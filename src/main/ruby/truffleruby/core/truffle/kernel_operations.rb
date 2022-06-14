@@ -85,6 +85,8 @@ module Truffle
 
     $/ = "\n".freeze
 
+    $\ = nil
+
     Truffle::Boot.delay do
       if Truffle::Boot.get_option 'chomp-loop'
         $\ = $/
@@ -172,6 +174,8 @@ module Truffle
         warn "`$;' is deprecated", uplevel: 1 if !Primitive.nil?(v) && Warning[:deprecated]
         Primitive.global_variable_set :"$;", v
       })
+
+    $; = nil
 
     def self.load_error(name)
       load_error = LoadError.new("cannot load such file -- #{name}")
