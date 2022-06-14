@@ -15,27 +15,37 @@ describe "Truffle::FeatureLoader.features_index_add" do
     current_index.clear
 
     Truffle::FeatureLoader.features_index_add('foo', 0)
-    current_index[Truffle::FeatureLoader::FeatureEntry.new('foo')].should == [0]
+    current_index['foo'][0].index.should == 0
 
     Truffle::FeatureLoader.features_index_add('foo', 1)
-    current_index[Truffle::FeatureLoader::FeatureEntry.new('foo')].should == [0, 1]
+    current_index['foo'][1].index.should == 1
     current_index.clear
 
     Truffle::FeatureLoader.features_index_add('foo.rb', 0)
     Truffle::FeatureLoader.features_index_add('foo.rb', 1)
-    current_index[Truffle::FeatureLoader::FeatureEntry.new('foo')].should == [0, 1]
-    current_index[Truffle::FeatureLoader::FeatureEntry.new('foo.rb')].should == [0, 1]
+    current_index['foo'][0].index.should == 0
+    current_index['foo'][1].index.should == 1
     current_index.clear
 
     Truffle::FeatureLoader.features_index_add('one/two/foo.rb', 0)
     ['foo', 'foo.rb', 'two/foo', 'two/foo.rb', 'one/two/foo.rb', 'one/two/foo'].each do |feature|
-      current_index[Truffle::FeatureLoader::FeatureEntry.new(feature)].should == [0]
+      current_index['foo'].any? do |fe|
+        if fe.include?(Truffle::FeatureLoader::FeatureEntry.new(feature))
+          fe.index.should == 0
+          true
+        end
+      end.should == true
     end
     current_index.clear
 
     Truffle::FeatureLoader.features_index_add('/two/foo.rb', 0)
     ['foo', 'foo.rb', 'two/foo', 'two/foo.rb', '/two/foo.rb', '/two/foo'].each do |feature|
-      current_index[Truffle::FeatureLoader::FeatureEntry.new(feature)].should == [0]
+      current_index['foo'].any? do |fe|
+        if fe.include?(Truffle::FeatureLoader::FeatureEntry.new(feature))
+          fe.index.should == 0
+          true
+        end
+      end.should == true
     end
     current_index.clear
   ensure
@@ -89,48 +99,35 @@ describe "Truffle::FeatureLoaderFeatureEntry" do
   it "only a nested path at the end should match" do
     hash = {}
     stored_entry = Truffle::FeatureLoader::FeatureEntry.new("path/to/feature")
-    hash[stored_entry] = true
-    stored_entry.part_of_index = true
+    hash[stored_entry.base] = [stored_entry]
 
     short_lookup_entry = Truffle::FeatureLoader::FeatureEntry.new("to/feature")
-    hash[short_lookup_entry].should be_true
+    hash['feature'].any? { |fe| fe.include?(short_lookup_entry) }.should be_true
 
     exact_lookup_entry = Truffle::FeatureLoader::FeatureEntry.new("path/to/feature")
-    hash[exact_lookup_entry].should be_true
-
+    hash['feature'].any? { |fe| fe.include?(exact_lookup_entry) }.should be_true
 
     longer_lookup_entry = Truffle::FeatureLoader::FeatureEntry.new("long/path/to/feature")
-    hash[longer_lookup_entry].should be_nil
+    hash['feature'].any? { |fe| fe.include?(longer_lookup_entry) }.should be_false
 
     prefix_lookup_entry = Truffle::FeatureLoader::FeatureEntry.new("path/to")
-    hash[prefix_lookup_entry].should be_nil
+    hash['feature'].any? { |fe| fe.include?(prefix_lookup_entry) }.should be_false
   end
 
   describe "when stored has an extension" do
     it "matches a lookup with or without extension" do
       hash = {}
       stored_entry = Truffle::FeatureLoader::FeatureEntry.new("path/to/feature.so")
-      hash[stored_entry] = true
-      stored_entry.part_of_index = true
-
+      hash['feature'] = [stored_entry]
 
       lookup_entry_no_ext = Truffle::FeatureLoader::FeatureEntry.new("to/feature")
-      hash[lookup_entry_no_ext].should be_true
+      hash['feature'].any? { |fe| fe.include?(lookup_entry_no_ext) }.should be_true
 
       lookup_entry_ext = Truffle::FeatureLoader::FeatureEntry.new("to/feature.so")
-      hash[lookup_entry_ext].should be_true
+      hash['feature'].any? { |fe| fe.include?(lookup_entry_ext) }.should be_true
 
       lookup_entry_wrong_ext = Truffle::FeatureLoader::FeatureEntry.new("to/feature.rb")
-      hash[lookup_entry_wrong_ext].should be_nil
+      hash['feature'].any? { |fe| fe.include?(lookup_entry_wrong_ext) }.should be_false
     end
-  end
-
-  it "raises an error when both keys are lookup" do
-    hash = {}
-    stored_entry = Truffle::FeatureLoader::FeatureEntry.new("path/to/feature")
-    hash[stored_entry] = true
-
-    short_lookup_entry = Truffle::FeatureLoader::FeatureEntry.new("to/feature")
-    -> { hash[short_lookup_entry] }.should raise_error
   end
 end
