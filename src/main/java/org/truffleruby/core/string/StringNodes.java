@@ -2887,18 +2887,19 @@ public abstract class StringNodes {
                         "!reverseIsEqualToSelf(string, codePointLengthNode)",
                         "isSingleByteOptimizable(string, singleByteOptimizableNode)" })
         protected RubyString reverseSingleByteOptimizable(RubyString string,
-                @Cached BytesNode bytesNode,
-                @Cached SingleByteOptimizableNode singleByteOptimizableNode) {
-            final Rope rope = string.rope;
-            final byte[] originalBytes = bytesNode.execute(rope);
-            final int len = originalBytes.length;
+                @Cached SingleByteOptimizableNode singleByteOptimizableNode,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
+            var encoding = string.encoding.tencoding;
+            var byteArray = byteArrayNode.execute(string.tstring, encoding);
+
+            final int len = byteArray.getLength();
             final byte[] reversedBytes = new byte[len];
 
             for (int i = 0; i < len; i++) {
-                reversedBytes[len - i - 1] = originalBytes[i];
+                reversedBytes[len - i - 1] = byteArray.get(i);
             }
 
-            string.setTString(fromByteArrayNode.execute(reversedBytes, string.encoding.tencoding)); // codeRangeNode.execute(rope), codePointLengthNode.execute(rope)
+            string.setTString(fromByteArrayNode.execute(reversedBytes, encoding)); // codeRangeNode.execute(rope), codePointLengthNode.execute(rope)
             return string;
         }
 
@@ -2907,24 +2908,26 @@ public abstract class StringNodes {
                         "!reverseIsEqualToSelf(string, codePointLengthNode)",
                         "!isSingleByteOptimizable(string, singleByteOptimizableNode)" })
         protected RubyString reverse(RubyString string,
-                @Cached BytesNode bytesNode,
-                @Cached GetByteCodeRangeNode codeRangeNode,
-                @Cached SingleByteOptimizableNode singleByteOptimizableNode) {
+                @Cached SingleByteOptimizableNode singleByteOptimizableNode,
+                @Cached TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
             // Taken from org.jruby.RubyString#reverse!
 
-            final Rope rope = string.rope;
-            final byte[] originalBytes = bytesNode.execute(rope);
-            int p = 0;
-            final int len = originalBytes.length;
+            var tstring = string.tstring;
+            var encoding = string.encoding.tencoding;
+            var byteArray = byteArrayNode.execute(tstring, encoding);
 
-            final Encoding enc = rope.getEncoding();
-            var cr = codeRangeNode.execute(string.tstring, string.getTEncoding());
+            var originalBytes = byteArray.getArray();
+            int byteOffset = byteArray.getOffset();
+            int p = byteOffset;
+            final int len = byteArray.getLength();
+
             final int end = p + len;
             int op = len;
             final byte[] reversedBytes = new byte[len];
 
             while (p < end) {
-                int cl = StringSupport.characterLength(enc, cr, originalBytes, p, end, true);
+                int cl = byteLengthOfCodePointNode.execute(tstring, p - byteOffset, encoding);
                 if (cl > 1 || (originalBytes[p] & 0x80) != 0) {
                     op -= cl;
                     System.arraycopy(originalBytes, p, reversedBytes, op, cl);
@@ -2934,7 +2937,7 @@ public abstract class StringNodes {
                 }
             }
 
-            string.setTString(fromByteArrayNode.execute(reversedBytes, string.encoding.tencoding)); // codeRangeNode.execute(rope), codePointLengthNode.execute(rope)
+            string.setTString(fromByteArrayNode.execute(reversedBytes, encoding)); // codeRangeNode.execute(rope), codePointLengthNode.execute(rope)
             return string;
         }
 
