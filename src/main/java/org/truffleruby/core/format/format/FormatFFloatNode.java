@@ -16,6 +16,7 @@
  */
 package org.truffleruby.core.format.format;
 
+import java.math.BigInteger;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
@@ -42,8 +43,8 @@ public abstract class FormatFFloatNode extends FormatFloatGenericNode {
         super(hasSpaceFlag, hasZeroFlag, hasPlusFlag, hasMinusFlag, hasFSharpFlag);
     }
 
-    @Specialization(guards = { "isFinite(dval)" })
-    protected byte[] formatFGeneric(int width, int precision, double dval) {
+    @Specialization(guards = { "nonSpecialValue(dval)" })
+    protected byte[] formatFGeneric(int width, int precision, Object dval) {
         if (precision == PrintfSimpleTreeBuilder.DEFAULT) {
             precision = 6;
         }
@@ -53,7 +54,7 @@ public abstract class FormatFFloatNode extends FormatFloatGenericNode {
 
     @TruffleBoundary
     @Override
-    protected byte[] doFormat(int precision, double dval) {
+    protected byte[] doFormat(int precision, Object value) {
         final byte[] digits;
         DecimalFormat format = formatters.pollFirst();
         if (format == null) {
@@ -82,7 +83,16 @@ public abstract class FormatFFloatNode extends FormatFloatGenericNode {
             format.setMinimumIntegerDigits(1);
             format.setMinimumFractionDigits(precision);
             format.setMaximumFractionDigits(precision);
-            digits = format.format(dval).getBytes();
+            if (value instanceof Double && Math.getExponent((double) value) > 53) {
+                double dval = (double) value;
+                long mantissa = Double.doubleToLongBits(dval) & 0xfffffffffffffL | 0x10000000000000L;
+                BigInteger bi = BigInteger.valueOf(mantissa).shiftLeft(Math.getExponent(dval) - 52);
+                if (dval < 0.0) {
+                    bi = bi.negate();
+                }
+                value = bi;
+            }
+            digits = format.format(value).getBytes();
 
             if (precision <= 340) {
                 return digits;
@@ -98,4 +108,5 @@ public abstract class FormatFFloatNode extends FormatFloatGenericNode {
             formatters.offerFirst(format);
         }
     }
+
 }

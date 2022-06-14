@@ -16,6 +16,7 @@
  */
 package org.truffleruby.core.format.format;
 
+import java.math.BigInteger;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
@@ -46,8 +47,8 @@ public abstract class FormatGFloatNode extends FormatFloatGenericNode {
         this.expSeparator = expSeparator;
     }
 
-    @Specialization(guards = { "isFinite(dval)" })
-    protected byte[] formatGExponential(int width, int precision, double dval) {
+    @Specialization(guards = { "nonSpecialValue(dval)" })
+    protected byte[] formatGExponential(int width, int precision, Object dval) {
         if (precision == PrintfSimpleTreeBuilder.DEFAULT) {
             precision = 6;
         }
@@ -57,14 +58,29 @@ public abstract class FormatGFloatNode extends FormatFloatGenericNode {
         return formatNumber(width, precision, dval);
     }
 
-    protected static boolean inSimpleRange(int precision, double value) {
-        return value == 0.0 || (Math.abs(value) >= 0.0001 && Math.pow(10, precision) - Math.abs(value) >= 0.5);
+    protected static boolean inSimpleRange(int precision, Object value) {
+        if (value instanceof Double) {
+            double dval = (double) value;
+            return dval == 0.0 || (Math.abs(dval) >= 0.0001 && Math.pow(10, precision) - Math.abs(dval) >= 0.5);
+        } else if (value instanceof Long) {
+            long lval = (long) value;
+            return lval == 0 || (Math.pow(10, precision) - Math.abs(lval) > 0);
+        } else if (value instanceof Integer) {
+            int ival = (int) value;
+            return ival == 0 || (Math.pow(10, precision) - Math.abs(ival) > 0);
+        } else if (value instanceof BigInteger) {
+            BigInteger bval = (BigInteger) value;
+            return bval.equals(BigInteger.ZERO) ||
+                    BigInteger.TEN.pow(precision).subtract(bval.abs()).compareTo(BigInteger.ZERO) == 1;
+        } else {
+            return true;
+        }
     }
 
     @TruffleBoundary
     @Override
-    protected byte[] doFormat(int precision, double dval) {
-        final boolean simple = inSimpleRange(precision, dval);
+    protected byte[] doFormat(int precision, Object value) {
+        final boolean simple = inSimpleRange(precision, value);
         final byte[] digits;
         DecimalFormat format = (simple ? simpleFormatters : exponentialFormatters).pollFirst();
 
@@ -91,10 +107,11 @@ public abstract class FormatGFloatNode extends FormatFloatGenericNode {
 
             if (!simple) {
                 DecimalFormatSymbols symbols = format.getDecimalFormatSymbols();
+                boolean positiveExp = !(value instanceof Double && Math.abs((double) value) < 1.0);
                 if (expSeparator == 'g') {
-                    symbols.setExponentSeparator(Math.abs(dval) >= 1.0 ? "e+" : "e");
+                    symbols.setExponentSeparator(positiveExp ? "e+" : "e");
                 } else {
-                    symbols.setExponentSeparator(Math.abs(dval) >= 1.0 ? "E+" : "E");
+                    symbols.setExponentSeparator(positiveExp ? "E+" : "E");
                 }
                 format.setDecimalFormatSymbols(symbols);
             }
@@ -104,19 +121,7 @@ public abstract class FormatGFloatNode extends FormatFloatGenericNode {
                 format.setMaximumFractionDigits(Math.max(0, precision - 1));
                 format.setMinimumFractionDigits(0);
             } else {
-                double absval = Math.abs(dval);
-                double pow = 0.1;
-                int intDigits = 0;
-                if (absval != 0.0) {
-                    while (absval >= pow * 10) {
-                        pow = 10 * pow;
-                        intDigits++;
-                    }
-                    while (absval < pow) {
-                        pow = pow / 10;
-                        intDigits--;
-                    }
-                }
+                int intDigits = getIntDigits(value);
                 if (hasFSharpFlag) {
                     format.setMinimumFractionDigits(precision - intDigits);
                 } else {
@@ -124,11 +129,54 @@ public abstract class FormatGFloatNode extends FormatFloatGenericNode {
                 }
                 format.setMaximumFractionDigits(precision - intDigits);
             }
-            digits = format.format(dval).getBytes();
+            digits = format.format(value).getBytes();
 
             return digits;
         } finally {
             (simple ? simpleFormatters : exponentialFormatters).offerFirst(format);
         }
+    }
+
+    private int getIntDigits(Object value) {
+        int intDigits = 0;
+        if (value instanceof Double) {
+            double absval = Math.abs((double) value);
+            double pow = 0.1;
+            if (absval != 0.0) {
+                while (absval >= pow * 10) {
+                    pow = 10 * pow;
+                    intDigits++;
+                }
+                while (absval < pow) {
+                    pow = pow / 10;
+                    intDigits--;
+                }
+            }
+        } else if (value instanceof Long || value instanceof Integer) {
+            long absval;
+            if (value instanceof Long) {
+                absval = Math.abs((long) value);
+            } else {
+                absval = Math.abs((int) value);
+            }
+            long pow = 1;
+            intDigits = 1;
+            if (absval != 0) {
+                while (absval >= pow * 10) {
+                    pow = 10 * pow;
+                    intDigits++;
+                }
+            }
+        } else if (value instanceof BigInteger) {
+            BigInteger absval = ((BigInteger) value).abs();
+            BigInteger pow = BigInteger.ONE;
+            intDigits = 1;
+            if (!absval.equals(BigInteger.ZERO)) {
+                while (absval.compareTo(pow = pow.multiply(BigInteger.TEN)) == 1) {
+                    intDigits++;
+                }
+            }
+        }
+        return intDigits;
     }
 }

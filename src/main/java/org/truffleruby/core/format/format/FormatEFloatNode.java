@@ -45,18 +45,18 @@ public abstract class FormatEFloatNode extends FormatFloatGenericNode {
         this.expSeparator = expSeparator;
     }
 
-    @Specialization(guards = { "isFinite(dval)" })
-    protected byte[] formatFGeneric(int width, int precision, double dval) {
-        if (precision == PrintfSimpleTreeBuilder.DEFAULT) {
-            precision = 6;
-        }
-
+    @Specialization(guards = { "nonSpecialValue(dval)" })
+    protected byte[] formatFGeneric(int width, int precision, Object dval) {
         return formatNumber(width, precision, dval);
     }
 
     @TruffleBoundary
     @Override
-    protected byte[] doFormat(int precision, double dval) {
+    protected byte[] doFormat(int precision, Object value) {
+        if (precision == PrintfSimpleTreeBuilder.DEFAULT) {
+            precision = 6;
+        }
+
         final byte[] digits;
         DecimalFormat format = formatters.pollFirst();
         if (format == null) {
@@ -83,7 +83,7 @@ public abstract class FormatEFloatNode extends FormatFloatGenericNode {
 
             separator = Character.toString(expSeparator);
 
-            if ((Math.abs(dval) >= 1.0 || dval == 0.0)) {
+            if (hasPositiveExponent(value)) {
                 separator += '+';
             }
 
@@ -93,11 +93,20 @@ public abstract class FormatEFloatNode extends FormatFloatGenericNode {
 
             format.setMinimumFractionDigits(precision);
             format.setMaximumFractionDigits(precision);
-            digits = format.format(dval).getBytes();
+            digits = format.format(value).getBytes();
 
             return digits;
         } finally {
             formatters.offerFirst(format);
+        }
+    }
+
+    private boolean hasPositiveExponent(Object value) {
+        if (value instanceof Double) {
+            double dval = (double) value;
+            return Math.abs(dval) >= 1.0 || dval == 0.0;
+        } else {
+            return true;
         }
     }
 }

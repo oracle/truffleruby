@@ -16,6 +16,8 @@
  */
 package org.truffleruby.core.format.format;
 
+import java.math.BigInteger;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -77,8 +79,8 @@ public abstract class FormatAFloatNode extends FormatFloatGenericNode {
         this.expSeparator = expSeparator;
     }
 
-    @Specialization(guards = { "isFinite(dval)" })
-    protected byte[] formatFGeneric(int width, int precision, double dval) {
+    @Specialization(guards = { "nonSpecialValue(dval)" })
+    protected byte[] formatFGeneric(int width, int precision, Object dval) {
         return formatNumber(width, precision, dval);
     }
 
@@ -89,15 +91,13 @@ public abstract class FormatAFloatNode extends FormatFloatGenericNode {
 
     @TruffleBoundary
     @Override
-    protected byte[] doFormat(int precision, double dval) {
+    protected byte[] doFormat(int precision, Object value) {
         final ByteArrayBuilder buf = new ByteArrayBuilder();
+        final boolean positive = isPositive(value);
+        long exponent = getExponent(value);
+        final byte[] mantissaBytes = getMantissaBytes(value);
 
-        final long bits = Double.doubleToRawLongBits(dval);
-        long biasedExp = ((bits & BIASED_EXP_MASK) >> 52);
-        final long signBits = bits & SIGN_MASK;
-        final long exponent;
-
-        if (signBits != 0L) {
+        if (!positive) {
             buf.append('-');
         } else if (hasPlusFlag) {
             buf.append('+');
@@ -106,31 +106,26 @@ public abstract class FormatAFloatNode extends FormatFloatGenericNode {
         }
         buf.append('0');
         buf.append(expSeparator == 'a' ? 'x' : 'X');
-        if (dval == 0.0) {
-            buf.append('0');
+        if (mantissaBytes[0] == 0) {
             exponent = 0;
+            buf.append('0');
             if (precision > 0 || hasFSharpFlag) {
                 buf.append('.');
                 while (precision > 0) {
-                    buf.append((expSeparator == 'a' ? HEX_DIGITS : HEX_DIGITS_UPPER_CASE)[0]);
+                    buf.append('0');
                     precision--;
                 }
             }
         } else {
-            long mantissaBits = bits & MANTISSA_MASK;
-            if (biasedExp == 0) {
-                // Sub normal cases are a little special.
-                // Find the most significant bit in the mantissa
-                final int lz = Long.numberOfLeadingZeros(mantissaBits);
-                // Shift the mantissa to make it a normal mantissa
-                // and mask off the leading bit (now the implied 53 bit of the mantissa)..
-                mantissaBits = (mantissaBits << (lz - 11)) & MANTISSA_MASK;
-                // Adjust the exponent to reflect this.
-                biasedExp = biasedExp - (lz - 12);
+            int i = 0;
+            int digit = getDigit(i++, mantissaBytes);
+            if (digit == 0) {
+                digit = getDigit(i++, mantissaBytes);
             }
-            exponent = biasedExp - 1023;
+            assert digit == 1;
             buf.append('1');
-            if (mantissaBits != 0L || hasFSharpFlag || precision > 0) {
+            int digits = getNumberOfDigits(mantissaBytes);
+            if (i < digits || hasFSharpFlag || precision > 0) {
                 buf.append('.');
             }
 
@@ -138,9 +133,8 @@ public abstract class FormatAFloatNode extends FormatFloatGenericNode {
                 precision = -1;
             }
 
-            while ((precision < 0 && mantissaBits != 0L) || precision > 0) {
-                int digit = (int) ((0xf000000000000L & mantissaBits) >> 48);
-                mantissaBits = (mantissaBits << 4) & MANTISSA_MASK;
+            while ((precision < 0 && i < digits) || precision > 0) {
+                digit = getDigit(i++, mantissaBytes);
                 buf.append((expSeparator == 'a' ? HEX_DIGITS : HEX_DIGITS_UPPER_CASE)[digit]);
                 precision--;
             }
@@ -153,5 +147,102 @@ public abstract class FormatAFloatNode extends FormatFloatGenericNode {
         buf.append(Long.toString(exponent).getBytes());
 
         return buf.getBytes();
+    }
+
+
+    private int getNumberOfDigits(byte[] bytes) {
+        int digits = bytes.length * 2;
+        if (getDigit(digits - 1, bytes) == 0) {
+            digits--;
+        }
+        return digits;
+    }
+
+    private byte getDigit(int position, byte[] bytes) {
+        int index = position / 2;
+        if (index < bytes.length) {
+            byte twoDigits = bytes[index];
+            if (position % 2 == 0) {
+                return (byte) ((twoDigits >> 4) & 0xf);
+            } else {
+                return (byte) (twoDigits & 0xf);
+            }
+        } else {
+            return 0;
+        }
+    }
+
+    private boolean isPositive(Object value) {
+        if (value instanceof Double) {
+            final long bits = Double.doubleToRawLongBits((double) value);
+            return (bits & SIGN_MASK) == 0;
+        } else if (value instanceof Long) {
+            return 0 <= (long) value;
+        } else if (value instanceof Integer) {
+            return 0 <= (long) value;
+        } else if (value instanceof BigInteger) {
+            return ((BigInteger) value).signum() >= 0;
+        }
+        return true;
+    }
+
+    private byte[] getMantissaBytes(Object value) {
+        BigInteger bi;
+        if (value instanceof Double) {
+            final long bits = Double.doubleToRawLongBits((double) value);
+            long biasedExp = ((bits & BIASED_EXP_MASK) >> 52);
+            long mantissaBits = bits & MANTISSA_MASK;
+            if (biasedExp > 0) {
+                mantissaBits = mantissaBits | 0x10000000000000L;
+            }
+            bi = BigInteger.valueOf(mantissaBits);
+        } else if (value instanceof BigInteger) {
+            bi = ((BigInteger) value);
+        } else if (value instanceof Long) {
+            bi = BigInteger.valueOf((long) value);
+        } else if (value instanceof Integer) {
+            bi = BigInteger.valueOf((int) value);
+        } else {
+            bi = BigInteger.ZERO;
+        }
+        bi = bi.abs();
+        if (BigInteger.ZERO.equals(bi)) {
+            return new byte[1];
+        }
+
+        // Shift things to get rid of all the trailing zeros.
+        bi = bi.shiftRight(bi.getLowestSetBit() - 1);
+
+        // We want the bit length to be 4n + 1 so that things line up nicely for the printing routine.
+        int bitLength = bi.bitLength() % 4;
+        if (bitLength != 1) {
+            bi = bi.shiftLeft(5 - bitLength);
+        }
+        return bi.toByteArray();
+    }
+
+    private long getExponent(Object value) {
+        if (value instanceof BigInteger) {
+            return ((BigInteger) value).abs().bitLength() - 1;
+        } else if (value instanceof Long) {
+            long lval = (long) value;
+            return lval == Long.MIN_VALUE ? 63 : 63 - Long.numberOfLeadingZeros(Math.abs(lval));
+        } else if (value instanceof Integer) {
+            long lval = (int) value;
+            return 63 - Long.numberOfLeadingZeros(Math.abs(lval));
+        } else if (value instanceof Double) {
+            final long bits = Double.doubleToRawLongBits((double) value);
+            long biasedExp = ((bits & BIASED_EXP_MASK) >> 52);
+            long mantissaBits = bits & MANTISSA_MASK;
+            if (biasedExp == 0) {
+                // Sub normal cases are a little special.
+                // Find the most significant bit in the mantissa
+                final int lz = Long.numberOfLeadingZeros(mantissaBits);
+                // Adjust the exponent to reflect this.
+                biasedExp = biasedExp - (lz - 12);
+            }
+            return biasedExp - 1023;
+        }
+        return 0;
     }
 }

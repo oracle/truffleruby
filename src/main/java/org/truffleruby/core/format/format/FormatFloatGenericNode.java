@@ -176,8 +176,8 @@ public abstract class FormatFloatGenericNode extends FormatNode {
         return buf.getBytes();
     }
 
-    protected final byte[] formatNumber(int origWidth, int precision, double dval) {
-        final byte[] digits = doFormat(precision, dval);
+    protected final byte[] formatNumber(int origWidth, int precision, Object value) {
+        final byte[] digits = doFormat(precision, value);
         final ByteArrayBuilder buf = new ByteArrayBuilder();
 
         int width = (origWidth == PrintfSimpleTreeBuilder.DEFAULT) ? -1 : Math.abs(origWidth);
@@ -207,7 +207,7 @@ public abstract class FormatFloatGenericNode extends FormatNode {
         return 0;
     }
 
-    protected byte[] doFormat(int precision, double dval) {
+    protected byte[] doFormat(int precision, Object value) {
         return null;
     }
 
@@ -215,4 +215,11 @@ public abstract class FormatFloatGenericNode extends FormatNode {
         buf.append(digits, start, digits.length - start);
     }
 
+    protected boolean nonSpecialValue(Object value) {
+        if (value instanceof Double) {
+            return Double.isFinite((double) value);
+        } else {
+            return true;
+        }
+    }
 }
