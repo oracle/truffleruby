@@ -17,5 +17,6 @@ jt install jvmci
 jt install eclipse
 jt mx sforceimports
 jt build
+jt idea
 jt ruby --version
 popd
