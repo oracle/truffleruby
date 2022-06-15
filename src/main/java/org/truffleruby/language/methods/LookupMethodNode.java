@@ -77,8 +77,27 @@ public abstract class LookupMethodNode extends RubyBaseNode {
                 isVisibleProfile, method);
     }
 
+    @Specialization(
+            // no need to guard on the context, the metaClass is context-specific
+            guards = {
+                    "isSingleContext()",
+                    "metaClass == cachedMetaClass",
+                    "name == cachedName",
+                    "config == cachedConfig" },
+            assumptions = "methodLookupResult.getAssumptions()",
+            limit = "getCacheLimit()")
+    protected InternalMethod lookupMethodRefinementsCached(
+            Frame frame, RubyClass metaClass, String name, DispatchConfiguration config,
+            @Cached("metaClass") RubyClass cachedMetaClass,
+            @Cached("name") String cachedName,
+            @Cached("config") DispatchConfiguration cachedConfig,
+            @Cached("lookupCached(getContext(), frame, cachedMetaClass, cachedName, config)") MethodLookupResult methodLookupResult) {
+
+        return methodLookupResult.getMethod();
+    }
+
     @InliningCutoff
-    @Specialization(replaces = { "lookupMethodCachedMultiContext", "lookupMethodCached" })
+    @Specialization(replaces = { "lookupMethodCached", "lookupMethodRefinementsCached" })
     protected InternalMethod lookupMethodUncached(
             Frame frame, RubyClass metaClass, String name, DispatchConfiguration config,
             @Cached MetaClassNode metaClassNode,
