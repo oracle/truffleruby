@@ -281,6 +281,7 @@ module Truffle
     # always called inside #with_synchronized_features
     def self.get_loaded_features_index
       unless @loaded_features_version == $LOADED_FEATURES.version
+        raise '$LOADED_FEATURES is frozen; cannot append feature' if $LOADED_FEATURES.frozen?
         @loaded_features_index.clear
         $LOADED_FEATURES.map! do |val|
           val = StringValue(val)

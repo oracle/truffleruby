@@ -33,15 +33,15 @@ public abstract class TruffleBindingNodes {
             /* When you use this method you're asking for the binding of the caller at the call site. When we get into
              * this method, that is then the binding of the caller of the caller. */
 
-            final Memo<Integer> frameCount = new Memo<>(0);
+            final int[] frameCount = new int[]{ 0 };
             final Memo<SourceSection> sourceSection = new Memo<>(null);
 
             final MaterializedFrame frame = Truffle.getRuntime().iterateFrames(frameInstance -> {
-                if (frameCount.get() == 2) {
+                if (frameCount[0] == 2) {
                     sourceSection.set(frameInstance.getCallNode().getEncapsulatingSourceSection());
                     return frameInstance.getFrame(FrameAccess.MATERIALIZE).materialize();
                 } else {
-                    frameCount.set(frameCount.get() + 1);
+                    frameCount[0] += 1;
                     return null;
                 }
             });

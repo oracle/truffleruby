@@ -873,16 +873,14 @@ public abstract class KernelNodes {
 
     }
 
-    @ReportPolymorphism
-    @CoreMethod(names = "frozen?")
-    public abstract static class KernelFrozenNode extends CoreMethodArrayArgumentsNode {
-
+    @GenerateUncached
+    @CoreMethod(names = "frozen?", alwaysInlined = true)
+    public abstract static class KernelFrozenNode extends AlwaysInlinedMethodNode {
         @Specialization(limit = "getRubyLibraryCacheLimit()")
-        protected boolean isFrozen(Object self,
+        protected boolean isFrozen(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @CachedLibrary("self") RubyLibrary rubyLibrary) {
             return rubyLibrary.isFrozen(self);
         }
-
     }
 
     /** Keep consistent with {@link org.truffleruby.core.hash.HashingNodes.ToHashByHashCode} */

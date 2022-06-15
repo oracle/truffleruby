@@ -37,6 +37,7 @@ Bug fixes:
 * Fix `String#insert` to not call a subclassed string method (@bjfish).
 * Fix `rb_obj_call_init` to pass any block argument to the `initialize` method (#2675, @aardvark179).
 * Fix issue with feature loading not detecting a previously loaded feature (#2677, @bjfish).
+* Fix `/#{...}/o` to evaluate only once per context when splitting happens (@eregon).
 
 Compatibility:
 
