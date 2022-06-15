@@ -19,7 +19,6 @@ package org.truffleruby.core.format.format;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
-import java.util.concurrent.LinkedBlockingDeque;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -29,8 +28,6 @@ import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
 
 @ImportStatic(Double.class)
 public abstract class FormatEFloatNode extends FormatFloatGenericNode {
-
-    private static final LinkedBlockingDeque<DecimalFormat> formatters = new LinkedBlockingDeque<>();
 
     private final char expSeparator;
 
@@ -58,47 +55,44 @@ public abstract class FormatEFloatNode extends FormatFloatGenericNode {
         }
 
         final byte[] digits;
-        DecimalFormat format = formatters.pollFirst();
+        DecimalFormat format = getLanguage().getCurrentThread().formatEFloat;
         if (format == null) {
             final DecimalFormatSymbols formatSymbols = new DecimalFormatSymbols(Locale.ENGLISH);
             format = new DecimalFormat("0.0E00", formatSymbols);
+            getLanguage().getCurrentThread().formatEFloat = format;
         }
 
-        try {
-            if (hasPlusFlag) {
-                format.setPositivePrefix("+");
-            } else if (hasSpaceFlag) {
-                format.setPositivePrefix(" ");
-            } else {
-                format.setPositivePrefix("");
-            }
-
-            DecimalFormatSymbols symbols = format.getDecimalFormatSymbols();
-            String separator;
-            if (precision == 0 && hasFSharpFlag) {
-                format.setDecimalSeparatorAlwaysShown(true);
-            } else {
-                format.setDecimalSeparatorAlwaysShown(false);
-            }
-
-            separator = Character.toString(expSeparator);
-
-            if (hasPositiveExponent(value)) {
-                separator += '+';
-            }
-
-            symbols.setExponentSeparator(separator);
-
-            format.setDecimalFormatSymbols(symbols);
-
-            format.setMinimumFractionDigits(precision);
-            format.setMaximumFractionDigits(precision);
-            digits = format.format(value).getBytes();
-
-            return digits;
-        } finally {
-            formatters.offerFirst(format);
+        if (hasPlusFlag) {
+            format.setPositivePrefix("+");
+        } else if (hasSpaceFlag) {
+            format.setPositivePrefix(" ");
+        } else {
+            format.setPositivePrefix("");
         }
+
+        DecimalFormatSymbols symbols = format.getDecimalFormatSymbols();
+        String separator;
+        if (precision == 0 && hasFSharpFlag) {
+            format.setDecimalSeparatorAlwaysShown(true);
+        } else {
+            format.setDecimalSeparatorAlwaysShown(false);
+        }
+
+        separator = Character.toString(expSeparator);
+
+        if (hasPositiveExponent(value)) {
+            separator += '+';
+        }
+
+        symbols.setExponentSeparator(separator);
+
+        format.setDecimalFormatSymbols(symbols);
+
+        format.setMinimumFractionDigits(precision);
+        format.setMaximumFractionDigits(precision);
+        digits = format.format(value).getBytes();
+
+        return digits;
     }
 
     private boolean hasPositiveExponent(Object value) {

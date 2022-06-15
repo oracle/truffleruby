@@ -10,6 +10,7 @@
 package org.truffleruby.core.thread;
 
 import java.lang.invoke.VarHandle;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -65,6 +66,17 @@ public final class RubyThread extends RubyDynamicObject implements ObjectGraphNo
     Object threadGroup;
     public String sourceLocation;
     Object name = Nil.INSTANCE;
+
+    // Decimal formats are not thread safe, so we'll create them on the thread as we need them.
+
+    public DecimalFormat noExpFormat;
+    public DecimalFormat smallExpFormat;
+    public DecimalFormat largeExpFormat;
+
+    public DecimalFormat formatFFloat;
+    public DecimalFormat formatEFloat;
+    public DecimalFormat formatGFloatSimple;
+    public DecimalFormat formatGFloatExponential;
 
     public RubyThread(
             RubyClass rubyClass,

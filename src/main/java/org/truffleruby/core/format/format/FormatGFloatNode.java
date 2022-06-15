@@ -20,19 +20,16 @@ import java.math.BigInteger;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
-import java.util.concurrent.LinkedBlockingDeque;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 
 import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
+import org.truffleruby.core.thread.RubyThread;
 
 @ImportStatic(Double.class)
 public abstract class FormatGFloatNode extends FormatFloatGenericNode {
-
-    private static final LinkedBlockingDeque<DecimalFormat> simpleFormatters = new LinkedBlockingDeque<>();
-    private static final LinkedBlockingDeque<DecimalFormat> exponentialFormatters = new LinkedBlockingDeque<>();
 
     private final char expSeparator;
 
@@ -82,59 +79,59 @@ public abstract class FormatGFloatNode extends FormatFloatGenericNode {
     protected byte[] doFormat(int precision, Object value) {
         final boolean simple = inSimpleRange(precision, value);
         final byte[] digits;
-        DecimalFormat format = (simple ? simpleFormatters : exponentialFormatters).pollFirst();
+        RubyThread currentThread = getLanguage().getCurrentThread();
+        DecimalFormat format = simple ? currentThread.formatGFloatSimple : currentThread.formatGFloatExponential;
 
         if (format == null) {
             if (simple) {
                 final DecimalFormatSymbols formatSymbols = new DecimalFormatSymbols(Locale.ENGLISH);
                 format = new DecimalFormat("0.0", formatSymbols);
+                currentThread.formatGFloatSimple = format;
             } else {
                 final DecimalFormatSymbols formatSymbols = new DecimalFormatSymbols(Locale.ENGLISH);
                 format = new DecimalFormat("0.0E00", formatSymbols);
+                currentThread.formatGFloatExponential = format;
             }
+
         }
 
-        try {
-            if (hasPlusFlag) {
-                format.setPositivePrefix("+");
-            } else if (hasSpaceFlag) {
-                format.setPositivePrefix(" ");
+        if (hasPlusFlag) {
+            format.setPositivePrefix("+");
+        } else if (hasSpaceFlag) {
+            format.setPositivePrefix(" ");
+        } else {
+            format.setPositivePrefix("");
+        }
+
+        format.setDecimalSeparatorAlwaysShown(hasFSharpFlag);
+
+        if (!simple) {
+            DecimalFormatSymbols symbols = format.getDecimalFormatSymbols();
+            boolean positiveExp = !(value instanceof Double && Math.abs((double) value) < 1.0);
+            if (expSeparator == 'g') {
+                symbols.setExponentSeparator(positiveExp ? "e+" : "e");
             } else {
-                format.setPositivePrefix("");
+                symbols.setExponentSeparator(positiveExp ? "E+" : "E");
             }
+            format.setDecimalFormatSymbols(symbols);
+        }
 
-            format.setDecimalSeparatorAlwaysShown(hasFSharpFlag);
-
-            if (!simple) {
-                DecimalFormatSymbols symbols = format.getDecimalFormatSymbols();
-                boolean positiveExp = !(value instanceof Double && Math.abs((double) value) < 1.0);
-                if (expSeparator == 'g') {
-                    symbols.setExponentSeparator(positiveExp ? "e+" : "e");
-                } else {
-                    symbols.setExponentSeparator(positiveExp ? "E+" : "E");
-                }
-                format.setDecimalFormatSymbols(symbols);
-            }
-
-            format.setMinimumIntegerDigits(1);
-            if (!simple) {
-                format.setMaximumFractionDigits(Math.max(0, precision - 1));
+        format.setMinimumIntegerDigits(1);
+        if (!simple) {
+            format.setMaximumFractionDigits(Math.max(0, precision - 1));
+            format.setMinimumFractionDigits(0);
+        } else {
+            int intDigits = getIntDigits(value);
+            if (hasFSharpFlag) {
+                format.setMinimumFractionDigits(precision - intDigits);
+            } else {
                 format.setMinimumFractionDigits(0);
-            } else {
-                int intDigits = getIntDigits(value);
-                if (hasFSharpFlag) {
-                    format.setMinimumFractionDigits(precision - intDigits);
-                } else {
-                    format.setMinimumFractionDigits(0);
-                }
-                format.setMaximumFractionDigits(precision - intDigits);
             }
-            digits = format.format(value).getBytes();
-
-            return digits;
-        } finally {
-            (simple ? simpleFormatters : exponentialFormatters).offerFirst(format);
+            format.setMaximumFractionDigits(precision - intDigits);
         }
+        digits = format.format(value).getBytes();
+
+        return digits;
     }
 
     private int getIntDigits(Object value) {

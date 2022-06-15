@@ -20,7 +20,6 @@ import java.math.BigInteger;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
-import java.util.concurrent.LinkedBlockingDeque;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -31,8 +30,6 @@ import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
 
 @ImportStatic(Double.class)
 public abstract class FormatFFloatNode extends FormatFloatGenericNode {
-
-    private static final LinkedBlockingDeque<DecimalFormat> formatters = new LinkedBlockingDeque<>();
 
     public FormatFFloatNode(
             boolean hasSpaceFlag,
@@ -56,56 +53,53 @@ public abstract class FormatFFloatNode extends FormatFloatGenericNode {
     @Override
     protected byte[] doFormat(int precision, Object value) {
         final byte[] digits;
-        DecimalFormat format = formatters.pollFirst();
+        DecimalFormat format = getLanguage().getCurrentThread().formatFFloat;
         if (format == null) {
             final DecimalFormatSymbols formatSymbols = new DecimalFormatSymbols(Locale.ENGLISH);
             format = new DecimalFormat("", formatSymbols);
+            getLanguage().getCurrentThread().formatFFloat = format;
         }
 
-        try {
-            format.setGroupingSize(0);
-            if (hasPlusFlag) {
-                format.setPositivePrefix("+");
-            } else if (hasSpaceFlag) {
-                format.setPositivePrefix(" ");
-            } else {
-                format.setPositivePrefix("");
-            }
+        format.setGroupingSize(0);
+        if (hasPlusFlag) {
+            format.setPositivePrefix("+");
+        } else if (hasSpaceFlag) {
+            format.setPositivePrefix(" ");
+        } else {
+            format.setPositivePrefix("");
+        }
 
-            if (precision == 0 && hasFSharpFlag) {
-                format.setPositiveSuffix(".");
-                format.setNegativeSuffix(".");
-            } else {
-                format.setPositiveSuffix("");
-                format.setNegativeSuffix("");
-            }
+        if (precision == 0 && hasFSharpFlag) {
+            format.setPositiveSuffix(".");
+            format.setNegativeSuffix(".");
+        } else {
+            format.setPositiveSuffix("");
+            format.setNegativeSuffix("");
+        }
 
-            format.setMinimumIntegerDigits(1);
-            format.setMinimumFractionDigits(precision);
-            format.setMaximumFractionDigits(precision);
-            if (value instanceof Double && Math.getExponent((double) value) > 53) {
-                double dval = (double) value;
-                long mantissa = Double.doubleToLongBits(dval) & 0xfffffffffffffL | 0x10000000000000L;
-                BigInteger bi = BigInteger.valueOf(mantissa).shiftLeft(Math.getExponent(dval) - 52);
-                if (dval < 0.0) {
-                    bi = bi.negate();
-                }
-                value = bi;
+        format.setMinimumIntegerDigits(1);
+        format.setMinimumFractionDigits(precision);
+        format.setMaximumFractionDigits(precision);
+        if (value instanceof Double && Math.getExponent((double) value) > 53) {
+            double dval = (double) value;
+            long mantissa = Double.doubleToLongBits(dval) & 0xfffffffffffffL | 0x10000000000000L;
+            BigInteger bi = BigInteger.valueOf(mantissa).shiftLeft(Math.getExponent(dval) - 52);
+            if (dval < 0.0) {
+                bi = bi.negate();
             }
-            digits = format.format(value).getBytes();
+            value = bi;
+        }
+        digits = format.format(value).getBytes();
 
-            if (precision <= 340) {
-                return digits;
-            } else {
-                // Decimal format has a limit of 340 decimal places, and apparently people require more.
+        if (precision <= 340) {
+            return digits;
+        } else {
+            // Decimal format has a limit of 340 decimal places, and apparently people require more.
 
-                final ByteArrayBuilder buf = new ByteArrayBuilder();
-                buf.append(digits);
-                buf.append('0', precision - 340);
-                return buf.getBytes();
-            }
-        } finally {
-            formatters.offerFirst(format);
+            final ByteArrayBuilder buf = new ByteArrayBuilder();
+            buf.append(digits);
+            buf.append('0', precision - 340);
+            return buf.getBytes();
         }
     }
 
