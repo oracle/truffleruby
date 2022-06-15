@@ -404,12 +404,11 @@ module Process
     # until respond_to? can be used to query the implementation of methods attached via FFI
     # atm respond_to returns true if a method is attached but not implemented on the platform
     uid =
-      if Truffle::Type.fits_into_long?(uid) ||
-        (tmp = Truffle::Type.rb_check_convert_type(uid, String, :to_str)).nil?
-        Truffle::Type.rb_num2uint(uid)
-      else
+      if name = Truffle::Type.rb_check_convert_type(uid, String, :to_str)
         require 'etc'
-        Etc.getpwnam(tmp).uid
+        Etc.getpwnam(name).uid
+      else
+        Truffle::Type.rb_num2ulong(uid)
       end
 
     begin
@@ -437,12 +436,11 @@ module Process
 
   def self.egid=(gid)
     gid =
-      if Truffle::Type.fits_into_long?(gid) ||
-        (tmp = Truffle::Type.rb_check_convert_type(gid, String, :to_str)).nil?
-        Truffle::Type.rb_num2uint(gid)
-      else
+      if name = Truffle::Type.rb_check_convert_type(gid, String, :to_str)
         require 'etc'
-        Etc.getgrnam(tmp).gid
+        Etc.getgrnam(name).gid
+      else
+        Truffle::Type.rb_num2ulong(gid)
       end
 
     Process::Sys.setegid gid
