@@ -1055,7 +1055,7 @@ public class BodyTranslator extends Translator {
                 currentNode,
                 rubyWarnings);
 
-        final ModuleBodyDefinitionNode definition = moduleTranslator.compileClassNode(sourceSection, bodyNode, type);
+        final ModuleBodyDefinitionNode definition = moduleTranslator.compileClassNode(sourceSection, bodyNode);
 
         return Translator.withSourceSection(sourceSection, new RunModuleDefinitionNode(definition, defineOrGetNode));
     }
@@ -1067,8 +1067,7 @@ public class BodyTranslator extends Translator {
      * a special method. We run that method with self set to be the newly allocated module or class.
      * </p>
      */
-    private ModuleBodyDefinitionNode compileClassNode(SourceIndexLength sourceSection, ParseNode bodyNode,
-            OpenModule type) {
+    private ModuleBodyDefinitionNode compileClassNode(SourceIndexLength sourceSection, ParseNode bodyNode) {
         RubyNode body = translateNodeOrNil(sourceSection, bodyNode);
 
         body = new InsideModuleDefinitionNode(body);
@@ -1096,7 +1095,6 @@ public class BodyTranslator extends Translator {
                 environment.getSharedMethodInfo().getBacktraceName(),
                 environment.getSharedMethodInfo(),
                 rootNode.getCallTarget(),
-                type == OpenModule.SINGLETON_CLASS,
                 environment.getStaticLexicalScopeOrNull());
     }
 

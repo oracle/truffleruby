@@ -29,7 +29,6 @@ public class ModuleBodyDefinitionNode extends RubyBaseNode {
     private final String name;
     private final SharedMethodInfo sharedMethodInfo;
     private final RootCallTarget callTarget;
-    private final boolean captureBlock;
 
     private final LexicalScope staticLexicalScope;
     private final Map<RubyModule, LexicalScope> dynamicLexicalScopes;
@@ -38,25 +37,15 @@ public class ModuleBodyDefinitionNode extends RubyBaseNode {
             String name,
             SharedMethodInfo sharedMethodInfo,
             RootCallTarget callTarget,
-            boolean captureBlock,
             LexicalScope staticLexicalScope) {
         this.name = name;
         this.sharedMethodInfo = sharedMethodInfo;
         this.callTarget = callTarget;
-        this.captureBlock = captureBlock;
         this.staticLexicalScope = staticLexicalScope;
         this.dynamicLexicalScopes = staticLexicalScope != null ? null : new ConcurrentHashMap<>();
     }
 
     public InternalMethod createMethod(VirtualFrame frame, RubyModule module) {
-        final Object capturedBlock;
-
-        if (captureBlock) {
-            capturedBlock = RubyArguments.getBlock(frame);
-        } else {
-            capturedBlock = nil;
-        }
-
         final LexicalScope parentLexicalScope = RubyArguments.getMethod(frame).getLexicalScope();
         final LexicalScope lexicalScope = prepareLexicalScope(staticLexicalScope, parentLexicalScope, module);
         final DeclarationContext declarationContext = new DeclarationContext(
@@ -75,8 +64,7 @@ public class ModuleBodyDefinitionNode extends RubyBaseNode {
                 null,
                 null,
                 callTarget,
-                null,
-                capturedBlock);
+                null);
     }
 
     @TruffleBoundary

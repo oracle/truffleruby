@@ -29,7 +29,6 @@ import org.truffleruby.core.numeric.FixnumLowerNodeGen;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.language.LexicalScope;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyCoreMethodRootNode;
 import org.truffleruby.language.RubyNode;
@@ -284,8 +283,7 @@ public class CoreMethodNodeManager {
                     alwaysInlinedNodeFactory,
                     null,
                     callTarget,
-                    callTargetSupplier,
-                    Nil.INSTANCE));
+                    callTargetSupplier));
         }
     }
 

@@ -522,8 +522,7 @@ public abstract class ModuleNodes {
                     alwaysInlinedNodeFactory,
                     null,
                     callTarget,
-                    null,
-                    nil);
+                    null);
 
             module.fields.addMethod(getContext(), this, method);
             return getLanguage().getSymbol(method.getName());
