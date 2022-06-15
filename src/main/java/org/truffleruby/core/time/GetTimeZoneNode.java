@@ -81,16 +81,12 @@ public abstract class GetTimeZoneNode extends RubyBaseNode {
 
         if (tz == nil) {
             // $TZ is not set, use the system timezone
-            return new TimeZoneAndName(getSystemTimeZone());
+            return new TimeZoneAndName(getContext().getEnv().getTimeZone());
         } else if (libString.isRubyString(tz)) {
             return parse(tzString);
         } else {
             throw CompilerDirectives.shouldNotReachHere();
         }
-    }
-
-    private static ZoneId getSystemTimeZone() {
-        return ZoneId.systemDefault();
     }
 
     private static final Map<String, String> LONG_TZNAME = Helpers.map(
