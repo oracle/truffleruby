@@ -1955,14 +1955,14 @@ public abstract class StringNodes {
         @Specialization(
                 guards = { "!isEmpty(string.tstring)", "isSingleByteOptimizable(string, singleByteOptimizableNode)" })
         protected Object rstripBangSingleByte(RubyString string,
-                @Cached BytesNode bytesNode,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Cached @Exclusive ConditionProfile noopProfile) {
             // Taken from org.jruby.RubyString#rstrip_bang19 and org.jruby.RubyString#singleByteRStrip19.
 
-            var encoding = string.encoding;
-            final Rope rope = string.rope;
             var tstring = string.tstring;
-            final int lastCodePoint = getCodePointNode.executeGetCodePoint(tstring, encoding, rope.byteLength() - 1);
+            var encoding = string.encoding;
+            var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
+            final int lastCodePoint = getCodePointNode.executeGetCodePoint(tstring, encoding, byteArray.getLength() - 1);
 
             // Check the last code point to see if it's a space or NULL. In the case of strings without leading spaces,
             // this check can avoid having to materialize the entire byte[] (a potentially expensive operation
@@ -1972,11 +1972,10 @@ public abstract class StringNodes {
                 return nil;
             }
 
-            final int end = rope.byteLength();
-            final byte[] bytes = bytesNode.execute(rope);
+            final int end = byteArray.getLength();
 
             int endp = end - 1;
-            while (endp >= 0 && StringSupport.isAsciiSpaceOrNull(bytes[endp])) {
+            while (endp >= 0 && StringSupport.isAsciiSpaceOrNull(byteArray.get(endp))) {
                 endp--;
             }
 
@@ -1989,13 +1988,14 @@ public abstract class StringNodes {
                 guards = { "!isEmpty(string.tstring)", "!isSingleByteOptimizable(string, singleByteOptimizableNode)" })
         protected Object rstripBang(RubyString string,
                 @Cached GetActualEncodingNode getActualEncodingNode,
-                @Cached @Exclusive ConditionProfile dummyEncodingProfile,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
+                @Cached @Exclusive ConditionProfile dummyEncodingProfile) {
             // Taken from org.jruby.RubyString#rstrip_bang19 and org.jruby.RubyString#multiByteRStrip19.
 
-            final Rope rope = string.rope;
             var tstring = string.tstring;
-            final RubyEncoding enc = getActualEncodingNode.execute(rope, strings.getEncoding(string));
+            var encoding = string.encoding;
+            var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
+            final RubyEncoding enc = getActualEncodingNode.execute(tstring, encoding);
 
             if (dummyEncodingProfile.profile(enc.jcoding.isDummy())) {
                 throw new RaiseException(
@@ -2003,9 +2003,9 @@ public abstract class StringNodes {
                         coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc.jcoding, this));
             }
 
-            final byte[] bytes = rope.getBytes();
-            final int start = 0;
-            final int end = rope.byteLength();
+            final byte[] bytes = byteArray.getArray();
+            final int start = byteArray.getOffset();
+            final int end = byteArray.getEnd();
 
             int endp = end;
             int prev;
@@ -2021,6 +2021,7 @@ public abstract class StringNodes {
                 string.setTString(substringNode.execute(tstring, 0, endp - start, enc.tencoding, true));
                 return string;
             }
+
             return nil;
         }
 
