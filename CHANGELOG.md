@@ -8,6 +8,7 @@ Bug fixes:
 
 Compatibility:
 
+* Warn when a global variable is not initialized (#2595, @andrykonchin).
 
 Performance:
 
