@@ -271,7 +271,7 @@ local part_definitions = {
         bench_machine: ["x52"] + self.normal_machine + ["no_frequency_scaling"],
       },
       docker: {
-        image: "phx.ocir.io/oraclelabs2/c_graal/buildslave:buildslave_ol7",
+        image: "buildslave_ol7",
         mount_modules: true,
       },
     },
