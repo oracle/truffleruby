@@ -34,6 +34,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -68,8 +69,7 @@ public abstract class GetTimeZoneNode extends RubyBaseNode {
 
     protected Object getTZ() {
         if (getContext().getEnv().isNativeAccessAllowed()) {
-            return lookupEnvNode.call(coreLibrary().getENV(), "[]",
-                    getLanguage().coreStrings.TZ.createInstance(getContext()));
+            return lookupEnvNode.call(coreLibrary().getENV(), "[]", FrozenStrings.TZ);
         } else {
             return nil;
         }
