@@ -176,7 +176,8 @@ public abstract class Rope implements Comparable<Rope> {
      * inefficient - for debugging only */
     @Override
     public String toString() {
-        assert JAVA_DEBUGGER : "Rope#toString() should only be called by Java debuggers, use RubyStringLibrary or RopeOperations.decodeRope() instead";
+        assert JAVA_DEBUGGER
+                : "Rope#toString() should only be called by Java debuggers, use RubyStringLibrary or RopeOperations.decodeRope() instead";
         return RopeOperations.decode(encoding, RopeOperations.flattenBytes(this));
     }
 

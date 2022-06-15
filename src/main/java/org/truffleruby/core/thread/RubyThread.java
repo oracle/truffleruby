@@ -113,7 +113,8 @@ public final class RubyThread extends RubyDynamicObject implements ObjectGraphNo
     public RubyFiber getCurrentFiber() {
         assert RubyLanguage
                 .getCurrentLanguage()
-                .getCurrentThread() == this : "Trying to read the current Fiber of another Thread which is inherently racy";
+                .getCurrentThread() == this
+                : "Trying to read the current Fiber of another Thread which is inherently racy";
         return currentFiber;
     }
 
