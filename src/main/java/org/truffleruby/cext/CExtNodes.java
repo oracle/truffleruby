@@ -1450,21 +1450,23 @@ public class CExtNodes {
         @Specialization(guards = "strings.isRubyString(string)")
         protected Object rbEncMbLen(RubyEncoding enc, Object string, int p, int e,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @Cached RopeNodes.BytesNode getBytes,
                 @Cached GetByteCodeRangeNode codeRangeNode,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Cached ConditionProfile sameEncodingProfile) {
-            final Encoding encoding = enc.jcoding;
-            final Rope rope = strings.getRope(string);
-            final Encoding ropeEncoding = rope.getEncoding();
+            var encoding = enc.jcoding;
+
+            var tstring = strings.getTString(string);
+            var stringEncoding = strings.getEncoding(string);
+            var byteArray = byteArrayNode.execute(tstring, stringEncoding.tencoding);
 
             return StringSupport.characterLength(
                     encoding,
-                    sameEncodingProfile.profile(encoding == ropeEncoding)
+                    sameEncodingProfile.profile(encoding == stringEncoding.jcoding)
                             ? codeRangeNode.execute(strings.getTString(string), strings.getTEncoding(string))
                             : BROKEN /* UNKNOWN */,
-                    getBytes.execute(strings.getRope(string)),
-                    p,
-                    e,
+                    byteArray.getArray(),
+                    byteArray.getOffset(),
+                    byteArray.getEnd(),
                     true);
         }
     }
