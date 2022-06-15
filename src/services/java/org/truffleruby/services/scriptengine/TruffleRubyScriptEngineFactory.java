@@ -106,7 +106,11 @@ public class TruffleRubyScriptEngineFactory implements ScriptEngineFactory {
 
     @Override
     public ScriptEngine getScriptEngine() {
-        return new TruffleRubyScriptEngine(this);
+        return getScriptEngine(false);
+    }
+
+    public ScriptEngine getScriptEngine(boolean allowAllAccess) {
+        return new TruffleRubyScriptEngine(this, allowAllAccess);
     }
 
     private String query(String expression) {
