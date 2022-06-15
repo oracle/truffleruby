@@ -1016,11 +1016,6 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public RubySyntaxError syntaxErrorInvalidYield(Node currentNode) {
-        return syntaxError("Invalid yield", currentNode, currentNode.getEncapsulatingSourceSection());
-    }
-
-    @TruffleBoundary
     public RubySyntaxError syntaxError(String message, Node currentNode, SourceSection sourceLocation) {
         RubyClass exceptionClass = context.getCoreLibrary().syntaxErrorClass;
         final RubyString messageString = StringOperations

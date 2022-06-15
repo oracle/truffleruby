@@ -16,7 +16,6 @@ import org.truffleruby.core.array.ArrayToObjectArrayNodeGen;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
@@ -30,33 +29,24 @@ import org.truffleruby.language.dispatch.LiteralCallNode;
 
 public class YieldExpressionNode extends LiteralCallNode {
 
-    private final boolean isModuleBody;
-
     @Children private final RubyNode[] arguments;
     @Child private CallBlockNode yieldNode;
     @Child private ArrayToObjectArrayNode unsplatNode;
     @Child private RubyNode readBlockNode;
-    @Child private WarnNode warnNode;
 
     public YieldExpressionNode(
             boolean isSplatted,
             ArgumentsDescriptor descriptor,
             RubyNode[] arguments,
-            RubyNode readBlockNode,
-            boolean isModuleBody) {
+            RubyNode readBlockNode) {
         super(isSplatted, descriptor);
         this.arguments = arguments;
         this.readBlockNode = readBlockNode;
-        this.isModuleBody = isModuleBody;
     }
 
     @ExplodeLoop
     @Override
     public final Object execute(VirtualFrame frame) {
-        if (isModuleBody) {
-            throw new RaiseException(getContext(), coreExceptions().syntaxErrorInvalidYield(this));
-        }
-
         Object[] argumentsObjects = new Object[arguments.length];
 
         for (int i = 0; i < arguments.length; i++) {

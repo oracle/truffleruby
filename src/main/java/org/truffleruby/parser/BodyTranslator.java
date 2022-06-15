@@ -3019,6 +3019,16 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitYieldNode(YieldParseNode node) {
+        if (environment.getSurroundingMethodEnvironment().isModuleBody()) {
+            final RubyContext context = RubyLanguage.getCurrentContext();
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().syntaxError(
+                            "Invalid yield",
+                            currentNode,
+                            node.getPosition().toSourceSection(source)));
+        }
+
         final ParseNode argsNode = node.getArgsNode();
 
         final ArgumentsAndBlockTranslation argumentsAndBlock = translateArgumentsAndBlock(
@@ -3033,8 +3043,7 @@ public class BodyTranslator extends Translator {
                 argumentsAndBlock.isSplatted(),
                 argumentsAndBlock.getArgumentsDescriptor(),
                 argumentsTranslated,
-                readBlock,
-                environment.getSurroundingMethodEnvironment().isModuleBody());
+                readBlock);
 
         ret.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, ret);
