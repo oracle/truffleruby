@@ -128,8 +128,9 @@ public abstract class FormatIntegerBinaryNode extends FormatNode {
         if (isNegative && !(isSpacePadded || hasPlusFlag)) {
             if (formatted.contains("0")) {
                 formatted = formatted.substring(formatted.indexOf('0'), formatted.length());
-                if (formatted.length() + 3 < precision) {
-                    final int addOnes = precision - (formatted.length() + 3);
+                int desiredLength = Math.max(precision, width);
+                if (formatted.length() + 3 < desiredLength) {
+                    final int addOnes = desiredLength - (formatted.length() + 3);
                     for (int i = addOnes; i > 0; i--) {
                         formatted = "1" + formatted;
                     }

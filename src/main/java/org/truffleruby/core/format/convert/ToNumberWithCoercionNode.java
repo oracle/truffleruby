@@ -10,19 +10,36 @@
 package org.truffleruby.core.format.convert;
 
 import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 @NodeChild("value")
-public abstract class ToDoubleWithCoercionNode extends FormatNode {
+public abstract class ToNumberWithCoercionNode extends FormatNode {
 
     @Child private DispatchNode floatNode;
 
     @Specialization
+    protected Object alreadyDouble(VirtualFrame frame, double value) {
+        return value;
+    }
+
+    @Specialization
+    protected Object alreadyLong(VirtualFrame frame, long value) {
+        return value;
+    }
+
+    @Specialization
+    protected Object alreadyBignum(VirtualFrame frame, RubyBignum value) {
+        return value.value;
+    }
+
+    @Fallback
     protected Object toDouble(VirtualFrame frame, Object value) {
         if (floatNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();

@@ -19,11 +19,14 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.LiteralFormatNode;
 import org.truffleruby.core.format.SharedTreeBuilder;
-import org.truffleruby.core.format.convert.ToDoubleWithCoercionNodeGen;
+import org.truffleruby.core.format.convert.ToNumberWithCoercionNodeGen;
 import org.truffleruby.core.format.convert.ToIntegerNodeGen;
 import org.truffleruby.core.format.convert.ToStringNodeGen;
+import org.truffleruby.core.format.format.FormatAFloatNodeGen;
 import org.truffleruby.core.format.format.FormatCharacterNodeGen;
-import org.truffleruby.core.format.format.FormatFloatNodeGen;
+import org.truffleruby.core.format.format.FormatEFloatNodeGen;
+import org.truffleruby.core.format.format.FormatFFloatNodeGen;
+import org.truffleruby.core.format.format.FormatGFloatNodeGen;
 import org.truffleruby.core.format.format.FormatIntegerBinaryNodeGen;
 import org.truffleruby.core.format.format.FormatIntegerNodeGen;
 import org.truffleruby.core.format.read.SourceNode;
@@ -46,7 +49,7 @@ public class PrintfSimpleTreeBuilder {
     private final List<FormatNode> sequence = new ArrayList<>();
     private final List<SprintfConfig> configs;
 
-    public static final int DEFAULT = -1;
+    public static final int DEFAULT = Integer.MIN_VALUE;
 
     private static final LeafRope EMPTY_ROPE = RopeConstants.EMPTY_US_ASCII_ROPE;
 
@@ -82,7 +85,7 @@ public class PrintfSimpleTreeBuilder {
                 } else if (config.isArgWidth()) {
                     widthNode = ReadArgumentIndexValueNodeGen.create(config.getWidth(), new SourceNode());
                 } else {
-                    widthNode = new LiteralFormatNode(config.getWidth() == null ? -1 : config.getWidth());
+                    widthNode = new LiteralFormatNode(config.getWidth() == null ? DEFAULT : config.getWidth());
                 }
 
                 final FormatNode precisionNode;
@@ -91,7 +94,8 @@ public class PrintfSimpleTreeBuilder {
                 } else if (config.isPrecisionArg()) {
                     precisionNode = ReadArgumentIndexValueNodeGen.create(config.getPrecision(), new SourceNode());
                 } else {
-                    precisionNode = new LiteralFormatNode(config.getPrecision() == null ? -1 : config.getPrecision());
+                    precisionNode = new LiteralFormatNode(
+                            config.getPrecision() == null ? DEFAULT : config.getPrecision());
                 }
 
 
@@ -147,13 +151,8 @@ public class PrintfSimpleTreeBuilder {
                         switch (config.getFormat()) {
                             case 'a':
                             case 'A':
-                            case 'f':
-                            case 'e':
-                            case 'E':
-                            case 'g':
-                            case 'G':
                                 node = WriteBytesNodeGen.create(
-                                        FormatFloatNodeGen.create(
+                                        FormatAFloatNodeGen.create(
                                                 config.getFormat(),
                                                 config.isHasSpace(),
                                                 config.isZero(),
@@ -162,7 +161,50 @@ public class PrintfSimpleTreeBuilder {
                                                 config.isFsharp(),
                                                 widthNode,
                                                 precisionNode,
-                                                ToDoubleWithCoercionNodeGen.create(
+                                                ToNumberWithCoercionNodeGen.create(
+                                                        valueNode)));
+                                break;
+                            case 'e':
+                            case 'E':
+                                node = WriteBytesNodeGen.create(
+                                        FormatEFloatNodeGen.create(
+                                                config.getFormat(),
+                                                config.isHasSpace(),
+                                                config.isZero(),
+                                                config.isPlus(),
+                                                config.isMinus(),
+                                                config.isFsharp(),
+                                                widthNode,
+                                                precisionNode,
+                                                ToNumberWithCoercionNodeGen.create(
+                                                        valueNode)));
+                                break;
+                            case 'g':
+                            case 'G':
+                                node = WriteBytesNodeGen.create(
+                                        FormatGFloatNodeGen.create(
+                                                config.getFormat(),
+                                                config.isHasSpace(),
+                                                config.isZero(),
+                                                config.isPlus(),
+                                                config.isMinus(),
+                                                config.isFsharp(),
+                                                widthNode,
+                                                precisionNode,
+                                                ToNumberWithCoercionNodeGen.create(
+                                                        valueNode)));
+                                break;
+                            case 'f':
+                                node = WriteBytesNodeGen.create(
+                                        FormatFFloatNodeGen.create(
+                                                config.isHasSpace(),
+                                                config.isZero(),
+                                                config.isPlus(),
+                                                config.isMinus(),
+                                                config.isFsharp(),
+                                                widthNode,
+                                                precisionNode,
+                                                ToNumberWithCoercionNodeGen.create(
                                                         valueNode)));
                                 break;
                             default:

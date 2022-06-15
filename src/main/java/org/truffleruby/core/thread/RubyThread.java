@@ -73,6 +73,11 @@ public final class RubyThread extends RubyDynamicObject implements ObjectGraphNo
     public DecimalFormat smallExpFormat;
     public DecimalFormat largeExpFormat;
 
+    public DecimalFormat formatFFloat;
+    public DecimalFormat formatEFloat;
+    public DecimalFormat formatGFloatSimple;
+    public DecimalFormat formatGFloatExponential;
+
     public RubyThread(
             RubyClass rubyClass,
             Shape shape,

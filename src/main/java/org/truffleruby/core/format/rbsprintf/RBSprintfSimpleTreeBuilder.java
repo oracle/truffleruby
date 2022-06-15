@@ -13,17 +13,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.LiteralFormatNode;
 import org.truffleruby.core.format.SharedTreeBuilder;
-import org.truffleruby.core.format.convert.ToDoubleWithCoercionNodeGen;
+import org.truffleruby.core.format.convert.ToNumberWithCoercionNodeGen;
 import org.truffleruby.core.format.convert.ToIntegerNodeGen;
 import org.truffleruby.core.format.convert.ToStringNodeGen;
+import org.truffleruby.core.format.format.FormatAFloatNodeGen;
 import org.truffleruby.core.format.format.FormatCharacterNodeGen;
-import org.truffleruby.core.format.format.FormatFloatNodeGen;
+import org.truffleruby.core.format.format.FormatEFloatNodeGen;
+import org.truffleruby.core.format.format.FormatFFloatNodeGen;
+import org.truffleruby.core.format.format.FormatGFloatNodeGen;
 import org.truffleruby.core.format.format.FormatIntegerBinaryNodeGen;
 import org.truffleruby.core.format.format.FormatIntegerNodeGen;
+import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
 import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.format.read.array.ReadArgumentIndexValueNodeGen;
 import org.truffleruby.core.format.read.array.ReadIntegerNodeGen;
@@ -37,17 +40,15 @@ import org.truffleruby.core.rope.RopeConstants;
 
 public class RBSprintfSimpleTreeBuilder {
 
-    private final RubyLanguage language;
     private final List<FormatNode> sequence = new ArrayList<>();
     private final List<RBSprintfConfig> configs;
     private final Object stringReader;
 
-    public static final int DEFAULT = -1;
+    public static final int DEFAULT = PrintfSimpleTreeBuilder.DEFAULT;
 
     private static final LeafRope EMPTY_ROPE = RopeConstants.EMPTY_US_ASCII_ROPE;
 
-    public RBSprintfSimpleTreeBuilder(RubyLanguage language, List<RBSprintfConfig> configs, Object stringReader) {
-        this.language = language;
+    public RBSprintfSimpleTreeBuilder(List<RBSprintfConfig> configs, Object stringReader) {
         this.configs = configs;
         this.stringReader = stringReader;
     }
@@ -162,14 +163,9 @@ public class RBSprintfSimpleTreeBuilder {
                         switch (config.getFormat()) {
                             case 'a':
                             case 'A':
-                            case 'f':
-                            case 'e':
-                            case 'E':
-                            case 'g':
-                            case 'G':
                                 node = WriteBytesNodeGen
                                         .create(
-                                                FormatFloatNodeGen
+                                                FormatAFloatNodeGen
                                                         .create(
                                                                 config.getFormat(),
                                                                 config.isHasSpace(),
@@ -179,7 +175,59 @@ public class RBSprintfSimpleTreeBuilder {
                                                                 config.isFsharp(),
                                                                 widthNode,
                                                                 precisionNode,
-                                                                ToDoubleWithCoercionNodeGen
+                                                                ToNumberWithCoercionNodeGen
+                                                                        .create(
+                                                                                valueNode)));
+                                break;
+                            case 'e':
+                            case 'E':
+                                node = WriteBytesNodeGen
+                                        .create(
+                                                FormatEFloatNodeGen
+                                                        .create(
+                                                                config.getFormat(),
+                                                                config.isHasSpace(),
+                                                                config.isZero(),
+                                                                config.isPlus(),
+                                                                config.isMinus(),
+                                                                config.isFsharp(),
+                                                                widthNode,
+                                                                precisionNode,
+                                                                ToNumberWithCoercionNodeGen
+                                                                        .create(
+                                                                                valueNode)));
+                                break;
+                            case 'g':
+                            case 'G':
+                                node = WriteBytesNodeGen
+                                        .create(
+                                                FormatGFloatNodeGen
+                                                        .create(
+                                                                config.getFormat(),
+                                                                config.isHasSpace(),
+                                                                config.isZero(),
+                                                                config.isPlus(),
+                                                                config.isMinus(),
+                                                                config.isFsharp(),
+                                                                widthNode,
+                                                                precisionNode,
+                                                                ToNumberWithCoercionNodeGen
+                                                                        .create(
+                                                                                valueNode)));
+                                break;
+                            case 'f':
+                                node = WriteBytesNodeGen
+                                        .create(
+                                                FormatFFloatNodeGen
+                                                        .create(
+                                                                config.isHasSpace(),
+                                                                config.isZero(),
+                                                                config.isPlus(),
+                                                                config.isMinus(),
+                                                                config.isFsharp(),
+                                                                widthNode,
+                                                                precisionNode,
+                                                                ToNumberWithCoercionNodeGen
                                                                         .create(
                                                                                 valueNode)));
                                 break;

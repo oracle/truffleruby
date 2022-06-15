@@ -36,7 +36,7 @@ public class RBSprintfCompiler {
     public RootCallTarget compile(Rope format, Object stringReader) {
         final RBSprintfSimpleParser parser = new RBSprintfSimpleParser(bytesToChars(format.getBytes()), false);
         final List<RBSprintfConfig> configs = parser.parse();
-        final RBSprintfSimpleTreeBuilder builder = new RBSprintfSimpleTreeBuilder(language, configs, stringReader);
+        final RBSprintfSimpleTreeBuilder builder = new RBSprintfSimpleTreeBuilder(configs, stringReader);
 
         return new FormatRootNode(
                 language,
