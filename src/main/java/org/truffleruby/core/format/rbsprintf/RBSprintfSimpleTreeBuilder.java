@@ -16,7 +16,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.LiteralFormatNode;
 import org.truffleruby.core.format.SharedTreeBuilder;
-import org.truffleruby.core.format.convert.ToDoubleWithCoercionNodeGen;
+import org.truffleruby.core.format.convert.ToNumberWithCoercionNodeGen;
 import org.truffleruby.core.format.convert.ToIntegerNodeGen;
 import org.truffleruby.core.format.convert.ToStringNodeGen;
 import org.truffleruby.core.format.format.FormatAFloatNodeGen;
@@ -175,7 +175,7 @@ public class RBSprintfSimpleTreeBuilder {
                                                                 config.isFsharp(),
                                                                 widthNode,
                                                                 precisionNode,
-                                                                ToDoubleWithCoercionNodeGen
+                                                                ToNumberWithCoercionNodeGen
                                                                         .create(
                                                                                 valueNode)));
                                 break;
@@ -193,7 +193,7 @@ public class RBSprintfSimpleTreeBuilder {
                                                                 config.isFsharp(),
                                                                 widthNode,
                                                                 precisionNode,
-                                                                ToDoubleWithCoercionNodeGen
+                                                                ToNumberWithCoercionNodeGen
                                                                         .create(
                                                                                 valueNode)));
                                 break;
@@ -211,7 +211,7 @@ public class RBSprintfSimpleTreeBuilder {
                                                                 config.isFsharp(),
                                                                 widthNode,
                                                                 precisionNode,
-                                                                ToDoubleWithCoercionNodeGen
+                                                                ToNumberWithCoercionNodeGen
                                                                         .create(
                                                                                 valueNode)));
                                 break;
@@ -227,7 +227,7 @@ public class RBSprintfSimpleTreeBuilder {
                                                                 config.isFsharp(),
                                                                 widthNode,
                                                                 precisionNode,
-                                                                ToDoubleWithCoercionNodeGen
+                                                                ToNumberWithCoercionNodeGen
                                                                         .create(
                                                                                 valueNode)));
                                 break;

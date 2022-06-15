@@ -20,22 +20,22 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 @NodeChild("value")
-public abstract class ToDoubleWithCoercionNode extends FormatNode {
+public abstract class ToNumberWithCoercionNode extends FormatNode {
 
     @Child private DispatchNode floatNode;
 
     @Specialization
-    protected Object alreadyDoubloe(VirtualFrame frame, double value) {
+    protected Object alreadyDouble(VirtualFrame frame, double value) {
         return value;
     }
 
     @Specialization
-    protected Object alreadyDoubloe(VirtualFrame frame, long value) {
+    protected Object alreadyLong(VirtualFrame frame, long value) {
         return value;
     }
 
     @Specialization
-    protected Object alreadyDoubloe(VirtualFrame frame, RubyBignum value) {
+    protected Object alreadyBignum(VirtualFrame frame, RubyBignum value) {
         return value.value;
     }
 

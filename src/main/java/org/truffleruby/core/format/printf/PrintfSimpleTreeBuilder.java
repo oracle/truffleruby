@@ -19,7 +19,7 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.LiteralFormatNode;
 import org.truffleruby.core.format.SharedTreeBuilder;
-import org.truffleruby.core.format.convert.ToDoubleWithCoercionNodeGen;
+import org.truffleruby.core.format.convert.ToNumberWithCoercionNodeGen;
 import org.truffleruby.core.format.convert.ToIntegerNodeGen;
 import org.truffleruby.core.format.convert.ToStringNodeGen;
 import org.truffleruby.core.format.format.FormatAFloatNodeGen;
@@ -161,7 +161,7 @@ public class PrintfSimpleTreeBuilder {
                                                 config.isFsharp(),
                                                 widthNode,
                                                 precisionNode,
-                                                ToDoubleWithCoercionNodeGen.create(
+                                                ToNumberWithCoercionNodeGen.create(
                                                         valueNode)));
                                 break;
                             case 'e':
@@ -176,7 +176,7 @@ public class PrintfSimpleTreeBuilder {
                                                 config.isFsharp(),
                                                 widthNode,
                                                 precisionNode,
-                                                ToDoubleWithCoercionNodeGen.create(
+                                                ToNumberWithCoercionNodeGen.create(
                                                         valueNode)));
                                 break;
                             case 'g':
@@ -191,7 +191,7 @@ public class PrintfSimpleTreeBuilder {
                                                 config.isFsharp(),
                                                 widthNode,
                                                 precisionNode,
-                                                ToDoubleWithCoercionNodeGen.create(
+                                                ToNumberWithCoercionNodeGen.create(
                                                         valueNode)));
                                 break;
                             case 'f':
@@ -204,7 +204,7 @@ public class PrintfSimpleTreeBuilder {
                                                 config.isFsharp(),
                                                 widthNode,
                                                 precisionNode,
-                                                ToDoubleWithCoercionNodeGen.create(
+                                                ToNumberWithCoercionNodeGen.create(
                                                         valueNode)));
                                 break;
                             default:
