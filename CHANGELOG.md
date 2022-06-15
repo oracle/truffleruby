@@ -19,6 +19,7 @@ Bug fixes:
 * Fix `Float#round` to avoid losing precision during the rounding process (@aardvark179).
 * Fix `String#insert` to not call a subclassed string method (@bjfish).
 * Fix `rb_obj_call_init` to pass any block argument to the `initialize` method (#2675, @aardvark179).
+* Fix `Kernel#sprintf` formatting of floats to be like CRuby (@aardvark179).
 
 Compatibility:
 
