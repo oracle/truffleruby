@@ -68,8 +68,9 @@ public class JSR223InteropTest {
 
     @Test
     public void testCreatingObjects() throws ScriptException, NoSuchMethodException {
-        try (TruffleRubyScriptEngine scriptEngine = new TruffleRubyScriptEngine(new TruffleRubyScriptEngineFactory(),
-                true)) {
+        final ScriptEngineManager m = new ScriptEngineManager();
+        try (TruffleRubyScriptEngine scriptEngine = (TruffleRubyScriptEngine) m
+                .getEngineByName(TruffleRuby.LANGUAGE_ID)) {
             final Object time = ((Invocable) scriptEngine).invokeMethod(scriptEngine.eval("Time"), "new", 2021, 3, 18);
             final Object year = ((Invocable) scriptEngine).invokeMethod(time, "year");
             assertEquals(2021, year);
