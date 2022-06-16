@@ -33,7 +33,7 @@ describe "Process.euid=" do
 
     as_user do
       it "raises Errno::ERPERM if run by a non superuser trying to set the superuser id" do
-        -> { (Process.euid = 0)}.should raise_error(Errno::EPERM)
+        -> { Process.euid = 0 }.should raise_error(Errno::EPERM)
       end
 
       it "raises Errno::ERPERM if run by a non superuser trying to set the superuser id from username" do

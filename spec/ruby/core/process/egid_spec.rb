@@ -44,8 +44,11 @@ describe "Process.egid=" do
     as_superuser do
       context "when ran by a superuser" do
         it "sets the effective group id for the current process if run by a superuser" do
-          Process.egid = 1
-          Process.egid.should == Process.egid
+          code = <<-RUBY
+            Process.egid = 1
+            puts Process.egid
+          RUBY
+          ruby_exe(code).should == "1\n"
         end
       end
     end
