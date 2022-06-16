@@ -230,6 +230,7 @@ class JT
       end
 
       if full_test
+        # lines << 'ENV TRUFFLERUBY_ALL_INTEROP_LIBRARY_METHODS_SPEC=false'
         test_files.each do |path|
           file = File.basename(path)
           lines << "COPY --chown=test #{file} #{file}"
