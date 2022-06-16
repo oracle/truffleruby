@@ -84,11 +84,9 @@ public class PrimitiveManager {
     }
 
     public Set<String> getPrimitiveNames() {
-        var ret = new HashSet<>(primitives.keySet());
-        ret.addAll(lazyPrimitiveClasses.keySet());
-
-        return ret;
+        var allPrimitives = new HashSet<>(primitives.keySet());
+        allPrimitives.addAll(lazyPrimitiveClasses.keySet());
+        return allPrimitives;
     }
-
 
 }
