@@ -36,8 +36,10 @@ describe "Process.egid=" do
         -> { Process.egid = 0 }.should raise_error(Errno::EPERM)
       end
 
-      it "raises Errno::ERPERM if run by a non superuser trying to set the group id from group name" do
-        -> { Process.egid = "root" }.should raise_error(Errno::EPERM)
+      platform_is :linux do
+        it "raises Errno::ERPERM if run by a non superuser trying to set the group id from group name" do
+          -> { Process.egid = "root" }.should raise_error(Errno::EPERM)
+        end
       end
     end
 
