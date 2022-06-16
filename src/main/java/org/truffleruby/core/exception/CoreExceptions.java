@@ -1018,8 +1018,14 @@ public class CoreExceptions {
     @TruffleBoundary
     public RubySyntaxError syntaxError(String message, Node currentNode, SourceSection sourceLocation) {
         RubyClass exceptionClass = context.getCoreLibrary().syntaxErrorClass;
-        final RubyString messageString = StringOperations
-                .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+        String messageWithSourceLocation;
+        if (sourceLocation != null) {
+            messageWithSourceLocation = RubyLanguage.fileLine(sourceLocation) + ": " + message;
+        } else {
+            messageWithSourceLocation = "(unknown):1: " + message;
+        }
+        final RubyString messageString = StringOperations.createUTF8String(context, language,
+                StringOperations.encodeRope(messageWithSourceLocation, UTF8Encoding.INSTANCE));
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
         final Object cause = ThreadGetExceptionNode.getLastException(language);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
