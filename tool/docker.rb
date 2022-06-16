@@ -28,19 +28,31 @@ class JT
       docker_config.each_pair.select { |_name, details| details.key?('base') }.map(&:first).map { |distro| "--#{distro}" }
     end
 
-    private def docker_build(*args)
+    private def default_docker_dir
+      @default_docker_dir ||= "#{TRUFFLERUBY_DIR}/tool/docker-pid#{Process.pid}"
+    end
+
+    private def docker_build(*args, docker_dir: default_docker_dir)
       if args.first.nil? || args.first.start_with?('--')
         image_name = 'truffleruby-test'
       else
         image_name = args.shift
       end
-      docker_dir = File.join(TRUFFLERUBY_DIR, 'tool', 'docker')
-      File.write(File.join(docker_dir, 'Dockerfile'), dockerfile(*args))
-      sh DOCKER, 'build', '-t', image_name, '.', chdir: docker_dir
+      File.write(File.join(docker_dir, 'Dockerfile'), dockerfile(*args, docker_dir: docker_dir))
+      begin
+        sh DOCKER, 'build', '-t', image_name, '.', chdir: docker_dir
+      ensure
+        FileUtils.rm_rf docker_dir
+      end
     end
 
     private def docker_test(*args)
       distros = docker_distros
+      if args.first == '--filter'
+        args.shift
+        filter = args.shift
+        distros = distros.select { |distro| distro.include?(filter) }
+      end
 
       distros.each do |distro|
         puts '**********************************'
@@ -59,7 +71,7 @@ class JT
       end
     end
 
-    private def dockerfile(*args)
+    private def dockerfile(*args, docker_dir: default_docker_dir)
       config = docker_config
 
       distro_name = 'ol7'
@@ -93,6 +105,7 @@ class JT
           root = true
         when '--print'
           print_only = true
+          docker_dir = nil # Make sure it is not used
         else
           abort "unknown option #{arg}"
         end
@@ -137,7 +150,6 @@ class JT
       lines << 'USER test' unless root
 
       unless print_only
-        docker_dir = File.join(TRUFFLERUBY_DIR, 'tool', 'docker')
         FileUtils.rm_rf docker_dir
         Dir.mkdir docker_dir
       end
@@ -230,6 +242,7 @@ class JT
       end
 
       if full_test
+        # lines << 'ENV TRUFFLERUBY_ALL_INTEROP_LIBRARY_METHODS_SPEC=false'
         test_files.each do |path|
           file = File.basename(path)
           lines << "COPY --chown=test #{file} #{file}"

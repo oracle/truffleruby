@@ -5,6 +5,7 @@ Info.plist
 
 # Editors
 *~
+/.vscode
 
 # IntelliJ
 .idea
@@ -101,6 +102,7 @@ doc/user/README.md
 
 # Ignore Seafoam generated illustrations
 /*.pdf
+/*.svg
 
 # Jacoco
 jacoco.exec
