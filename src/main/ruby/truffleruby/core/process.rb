@@ -367,6 +367,14 @@ module Process
   end
 
   def self.uid=(uid)
+    uid =
+      if name = Truffle::Type.rb_check_convert_type(uid, String, :to_str)
+        require 'etc'
+        Etc.getpwnam(name).uid
+      else
+        Truffle::Type.rb_num2ulong(uid)
+      end
+
     # the 4 rescue clauses below are needed
     # until respond_to? can be used to query the implementation of methods attached via FFI
     # atm respond_to returns true if a method is attached but not implemented on the platform
@@ -395,7 +403,14 @@ module Process
   end
 
   def self.gid=(gid)
-    gid = Truffle::Type.coerce_to gid, Integer, :to_int
+    gid =
+      if name = Truffle::Type.rb_check_convert_type(gid, String, :to_str)
+        require 'etc'
+        Etc.getgrnam(name).gid
+      else
+        Truffle::Type.rb_num2ulong(gid)
+      end
+
     Process::Sys.setgid gid
   end
 
@@ -404,11 +419,11 @@ module Process
     # until respond_to? can be used to query the implementation of methods attached via FFI
     # atm respond_to returns true if a method is attached but not implemented on the platform
     uid =
-      if uid.kind_of?(String)
+      if name = Truffle::Type.rb_check_convert_type(uid, String, :to_str)
         require 'etc'
-        Etc.getpwnam(uid).uid
+        Etc.getpwnam(name).uid
       else
-        Truffle::Type.coerce_to uid, Integer, :to_int
+        Truffle::Type.rb_num2ulong(uid)
       end
 
     begin
@@ -435,7 +450,14 @@ module Process
   end
 
   def self.egid=(gid)
-    gid = Truffle::Type.coerce_to gid, Integer, :to_int
+    gid =
+      if name = Truffle::Type.rb_check_convert_type(gid, String, :to_str)
+        require 'etc'
+        Etc.getgrnam(name).gid
+      else
+        Truffle::Type.rb_num2ulong(gid)
+      end
+
     Process::Sys.setegid gid
   end
 

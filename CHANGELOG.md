@@ -39,6 +39,7 @@ Bug fixes:
 * Fix issue with feature loading not detecting a previously loaded feature (#2677, @bjfish).
 * Fix `/#{...}/o` to evaluate only once per context when splitting happens (@eregon).
 * Fix `Kernel#sprintf` formatting of floats to be like CRuby (@aardvark179).
+* Fix `Process.egid=` to accept `String`s (#2615, @ngtban)
 
 Compatibility:
 
