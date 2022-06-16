@@ -2913,6 +2913,7 @@ module Commands
 
       check_source_files if ci?
       check_heap_dump if ci?
+      run_ruby('tool/find_unused_primitives.rb')
     end
   end
 
