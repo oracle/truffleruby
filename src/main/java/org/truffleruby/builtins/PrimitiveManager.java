@@ -9,8 +9,10 @@
  */
 package org.truffleruby.builtins;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.truffleruby.collections.ConcurrentOperations;
@@ -79,6 +81,13 @@ public class PrimitiveManager {
                 addPrimitive(nodeFactory, primitiveAnnotation);
             }
         }
+    }
+
+    public Set<String> getPrimitiveNames() {
+        var ret = new HashSet<>(primitives.keySet());
+        ret.addAll(lazyPrimitiveClasses.keySet());
+
+        return ret;
     }
 
 
