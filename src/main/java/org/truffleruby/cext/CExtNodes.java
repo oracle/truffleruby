@@ -1167,27 +1167,6 @@ public class CExtNodes {
         }
     }
 
-    @Primitive(name = "string_pointer_size")
-    public abstract static class StringPointerSizeNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization(guards = "strings.isRubyString(string)")
-        protected int size(Object string,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @Cached RopeNodes.BytesNode getBytes) {
-            final Rope rope = strings.getRope(string);
-            final byte[] bytes = getBytes.execute(rope);
-            final int byteLength = rope.byteLength();
-            int i = 0;
-            for (; i < byteLength; i++) {
-                if (bytes[i] == 0) {
-                    return i;
-                }
-            }
-            return byteLength;
-        }
-
-    }
-
     public abstract static class StringToNativeNode extends RubyBaseNode {
 
         public static StringToNativeNode create() {
@@ -1271,46 +1250,6 @@ public class CExtNodes {
         @Specialization
         protected boolean isNative(ImmutableRubyString string) {
             return string.isNative();
-        }
-
-    }
-
-    @Primitive(name = "string_pointer_read", lowerFixnum = 1)
-    public abstract static class StringPointerReadNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization(guards = "libString.isRubyString(string)")
-        protected Object read(Object string, int index,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
-                @Cached ConditionProfile nativeRopeProfile,
-                @Cached ConditionProfile inBoundsProfile,
-                @Cached RopeNodes.GetByteNode getByteNode) {
-            final Rope rope = libString.getRope(string);
-
-            if (nativeRopeProfile.profile(rope instanceof NativeRope) ||
-                    inBoundsProfile.profile(index < rope.byteLength())) {
-                return getByteNode.executeGetByte(rope, index);
-            } else {
-                return 0;
-            }
-        }
-
-    }
-
-    @Primitive(name = "string_pointer_write", lowerFixnum = { 1, 2 })
-    public abstract static class StringPointerWriteNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        protected int write(RubyString string, int index, int value,
-                @Cached ConditionProfile newRopeProfile,
-                @Cached RopeNodes.SetByteNode setByteNode) {
-            final Rope rope = string.rope;
-
-            final Rope newRope = setByteNode.executeSetByte(rope, index, value);
-            if (newRopeProfile.profile(newRope != rope)) {
-                string.setRope(newRope);
-            }
-
-            return value;
         }
 
     }
