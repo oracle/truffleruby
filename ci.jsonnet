@@ -363,7 +363,7 @@ local part_definitions = {
       run+: jt(["lint"]) + jt(["spotbugs"]),
     },
 
-    test_mri: { run+: jt(["test", "mri", "--no-sulong", "--", "-j4"]) },
+    test_mri: { run+: jt(["test", "mri", "--no-sulong"]) },
     test_integration: { run+: jt(["test", "integration"]) },
     test_gems: { run+: jt(["test", "gems"]) },
     test_compiler: { run+: jt(["test", "compiler"]) },

@@ -256,7 +256,7 @@ module Truffle::CExt
   end
 
   def ensure_class(obj, klass, message = 'expected class %s, but object class is %s')
-    raise TypeError, format(message, klass, obj.class) unless obj.is_a? klass
+    raise TypeError, format(message, klass, Primitive.object_class(obj)) unless Primitive.object_kind_of?(obj, klass)
   end
 
   def rb_method_boundp(klass, id, ex)
@@ -268,11 +268,11 @@ module Truffle::CExt
   end
 
   def rb_obj_is_instance_of(object, ruby_class)
-    object.class == ruby_class
+    Primitive.object_class(object) == ruby_class
   end
 
   def rb_obj_is_kind_of(object, ruby_class)
-    object.kind_of?(ruby_class)
+    Primitive.object_kind_of?(object, ruby_class)
   end
 
   def SYMBOL_P(value)
@@ -300,7 +300,7 @@ module Truffle::CExt
   end
 
   def RB_FLOAT_TYPE_P(value)
-    value.is_a?(Float)
+    Primitive.object_kind_of?(value, Float)
   end
 
   def rb_require(feature)
@@ -392,7 +392,7 @@ module Truffle::CExt
     if Primitive.nil?(ary) && !raise_error
       return nil
     end
-    if !ary.is_a?(Array) || ary.size != 2
+    if !Primitive.object_kind_of?(ary, Array) || ary.size != 2
       raise TypeError, 'coerce must return [x, y]'
     end
     ary
@@ -743,7 +743,7 @@ module Truffle::CExt
   end
 
   def RB_ENC_CODERANGE(obj)
-    if obj.is_a? String
+    if Primitive.object_kind_of?(obj, String)
       rb_enc_str_coderange(obj)
     else
       raise "Unknown coderange for obj with class `#{obj.class}`"
@@ -805,7 +805,7 @@ module Truffle::CExt
               0
             end
           end
-    enc = rb_enc_to_index(enc) if enc.is_a?(Encoding)
+    enc = rb_enc_to_index(enc) if Primitive.object_kind_of?(enc, Encoding)
     enc
   end
 
@@ -1495,7 +1495,7 @@ module Truffle::CExt
   def test_kwargs(kwargs, raise_error)
     return false if kwargs.nil?
 
-    if kwargs.is_a?(Hash) && kwargs.keys.all? { |k| k.is_a?(Symbol) }
+    if Primitive.object_kind_of?(kwargs, Hash) && kwargs.keys.all? { |k| Primitive.object_kind_of?(k, Symbol) }
       true
     elsif raise_error
       raise ArgumentError, "the value is not a Hash with all keys being Symbols as kwargs requires: #{kwargs}"
@@ -1638,7 +1638,7 @@ module Truffle::CExt
 
   def rb_time_interval_acceptable(time_val)
     # TODO (pitr-ch 09-Mar-2017): more precise error messages
-    raise TypeError, 'cannot be Time' if time_val.is_a? Time
+    raise TypeError, 'cannot be Time' if Primitive.object_kind_of?(time_val, Time)
     raise ArgumentError, 'cannot be negative' if time_val < 0
   end
 
@@ -1729,7 +1729,7 @@ module Truffle::CExt
   end
 
   def rb_class_inherited_p(ruby_module, object)
-    if object.is_a?(Module)
+    if Primitive.object_kind_of?(object, Module)
       ruby_module <= object
     else
       raise TypeError

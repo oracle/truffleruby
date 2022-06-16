@@ -56,7 +56,7 @@ module ObjectSpace
 
   def count_objects_size(hash = {})
     ObjectSpace.each_object do |obj|
-      class_name = obj.class.name
+      class_name = Primitive.object_class(obj).name
       if class_name
         class_name_sym = class_name.to_sym
         hash[class_name_sym] = hash.fetch(class_name_sym, 0) + ObjectSpace.memsize_of(obj)
@@ -69,7 +69,7 @@ module ObjectSpace
 
   def count_tdata_objects(hash = {})
     ObjectSpace.each_object do |object|
-      klass = object.class
+      klass = Primitive.object_class(object)
       hash[klass] ||= 0
       hash[klass] += 1
     end
@@ -82,7 +82,7 @@ module ObjectSpace
       require 'json'
       json = {
         address: '0x' + object.object_id.to_s(16),
-        class: '0x' + object.class.object_id.to_s(16),
+        class: '0x' + Primitive.object_class(object).object_id.to_s(16),
         memsize: memsize_of(object),
         flags: { }
       }
