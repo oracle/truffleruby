@@ -132,6 +132,14 @@ module Utilities
     @darwin ||= RbConfig::CONFIG['host_os'].include?('darwin')
   end
 
+  def amd64?
+    @amd64 ||= RbConfig::CONFIG['host_cpu'] =~ /amd64|x86_64|x64/
+  end
+
+  def aarch64?
+    @aarch64 ||= RbConfig::CONFIG['host_cpu'] =~ /arm64|aarch64/
+  end
+
   def ci?
     ENV.key?('BUILD_URL')
   end
@@ -2230,13 +2238,27 @@ module Commands
   private def install_eclipse
     require 'digest'
     if linux?
-      eclipse_url = 'https://github.com/chrisseaton/eclipse-mirror/releases/download/eclipse-SDK-4.14/eclipse-SDK-4.14-linux-gtk-x86_64.tar.gz'
       eclipse_exe = 'eclipse/eclipse'
-      sha256 = '3f98e2bdf8667b0f4664895b703f0fdd7f59f81821ddebe291d8ce297cc07563'
+      if aarch64?
+        eclipse_url = 'https://github.com/chrisseaton/eclipse-mirror/releases/download/eclipse-SDK-4.23/eclipse-SDK-4.23-linux-gtk-aarch64.tar.gz'
+        sha256 = '148b5d3c46d7e5153ba580ec23913e5c003d0b075241c6a13c395b682b4309d6'
+      elsif amd64?
+        eclipse_url = 'https://github.com/chrisseaton/eclipse-mirror/releases/download/eclipse-SDK-4.23/eclipse-SDK-4.23-linux-gtk-x86_64.tar.gz'
+        sha256 = 'e422548918a3ca1cb5b3990ee35fae7e29f9bcc926f18bfc859f7720ac5cf4d4'
+      else
+        raise 'Only AARCH64 and AMD64 are supported for Eclipse on Linux'
+      end
     elsif darwin?
-      eclipse_url = 'https://github.com/chrisseaton/eclipse-mirror/releases/download/eclipse-SDK-4.14/eclipse-SDK-4.14-macosx-cocoa-x86_64.tar.gz'
       eclipse_exe = 'Eclipse.app/Contents/MacOS/eclipse'
-      sha256 = '17e712f40287aadfe49e2c902d8d59a437bec7f790def7992afe12219e8a9918'
+      if aarch64?
+        eclipse_url = 'https://github.com/chrisseaton/eclipse-mirror/releases/download/eclipse-SDK-4.23/eclipse-SDK-4.23-macosx-cocoa-aarch64.tar.gz'
+        sha256 = '3cae00ac3ff318882aeff11a02d3c5cacd7061ce31c1814184257ac9dd3aabd7'
+      elsif amd64?
+        eclipse_url = 'https://github.com/chrisseaton/eclipse-mirror/releases/download/eclipse-SDK-4.23/eclipse-SDK-4.23-macosx-cocoa-x86_64.tar.gz'
+        sha256 = '34934bcbba8082a7691e68d7b9752d99c300ca74df2dfb5a616f57b84e2ac87c'
+      else
+        raise 'Only AARCH64 and AMD64 are supported for Eclipse on macOS'
+      end
     else
       raise 'Installing Eclipse is only available on Linux and macOS currently'
     end

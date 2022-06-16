@@ -192,7 +192,8 @@ public class DeclarationContext {
 
     @TruffleBoundary
     public RubyModule getModuleToDefineMethods() {
-        assert defaultDefinee != null : "Trying to find the default definee but this method should not have method definitions inside";
+        assert defaultDefinee != null
+                : "Trying to find the default definee but this method should not have method definitions inside";
         return defaultDefinee.getModuleToDefineMethods();
     }
 
