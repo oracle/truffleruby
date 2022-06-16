@@ -896,6 +896,7 @@ public class ParserSupport {
         return one == null ? two.getPosition() : one.getPosition();
     }
 
+
     public AndParseNode newAndNode(SourceIndexLength position, ParseNode left, ParseNode right) {
         value_expr(lexer, left);
 

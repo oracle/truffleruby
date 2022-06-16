@@ -2024,11 +2024,57 @@ case_body       : keyword_when args then compstmt cases {
 
 cases           : opt_else | case_body
 
-p_case_body     : keyword_in args then compstmt p_cases {
-                    $$ = support.newInNode($1, $2, $4, $5);
+p_case_body     : keyword_in {
+                    lexer.setState(EXPR_BEG|EXPR_LABEL);
+                    lexer.commandStart = false;
+                    // Lexcontext object is not used in favour of lexer.inKwarg
+                    // LexContext ctxt = (LexContext) lexer.getLexContext();
+                    $1 = lexer.inKwarg;
+                    lexer.inKwarg = true;
+                    $$ = support.push_pvtbl();
+                } {
+                    $$ = support.push_pktbl();
+                } p_top_expr then {
+                    support.pop_pktbl($<Set>3);
+                    support.pop_pvtbl($<Set>2);
+                    lexer.inKwarg = $<Boolean>1;
+                } compstmt p_cases {
+                    $$ = support.newInNode(support.getPosition($1), $4, $7, $8);
                 }
 
-p_cases         : opt_else | p_case_body
+p_cases         : opt_else
+                | p_case_body {
+                    $$ = $1;
+                }
+
+p_top_expr      : p_top_expr_body
+                | p_top_expr_body modifier_if expr_value {
+                    $$ = new IfParseNode(support.getPosition($1), support.getConditionNode($3), $1, null);
+                    support.fixpos($<Node>$, $3);
+                }
+                | p_top_expr_body modifier_unless expr_value {
+                    $$ = new IfParseNode(support.getPosition($1), support.getConditionNode($3), null, $1);
+                    support.fixpos($<Node>$, $3);
+                }
+
+p_top_expr_body : p_expr
+                | p_expr ',' {
+                    $$ = support.new_array_pattern(support.getPosition($1), null, $1,
+                                                   support.new_array_pattern_tail(support.getPosition($1), null, true, null, null));
+                }
+                | p_expr ',' p_args {
+                    $$ = support.new_array_pattern(@1.start(), null, $1, $3);
+                   support.nd_set_first_loc($<Node>$, @1.start());
+                }
+                | p_find {
+                    $$ = support.new_find_pattern(null, $1);
+                }
+                | p_args_tail {
+                    $$ = support.new_array_pattern(@1.start(), null, null, $1);
+                }
+                | p_kwargs {
+                    $$ = support.new_hash_pattern(null, $1);
+                }
 
 opt_rescue      : keyword_rescue exc_list exc_var then compstmt opt_rescue {
                     ParseNode node;
