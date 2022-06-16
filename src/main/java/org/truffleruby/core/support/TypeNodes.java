@@ -116,8 +116,7 @@ public abstract class TypeNodes {
         @Specialization(limit = "getRubyLibraryCacheLimit()")
         protected Object freeze(Object self,
                 @CachedLibrary("self") RubyLibrary rubyLibrary) {
-            assert !(self instanceof RubyDynamicObject && ((RubyDynamicObject) self)
-                    .getMetaClass().isSingleton)
+            assert !(self instanceof RubyDynamicObject && ((RubyDynamicObject) self).getMetaClass().isSingleton)
                     : "Primitive.object_freeze does not handle instances of singleton classes, see KernelFreezeNode";
             rubyLibrary.freeze(self);
             return self;
