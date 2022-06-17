@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
@@ -57,8 +58,11 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
     /** Array of methods. Different for each context. */
     public InternalMethod[] methodVTable;
 
+    /** Array of assumptions for methodVTable methods */
+    public Assumption[] methodAssumptions;
+
     /** Subclasses of this class. These need to be updated when methods are added or removed. */
-    public final Set<RubyClass> includedBy = Collections
+    public final Set<RubyClass> subclasses = Collections
             .newSetFromMap(Collections.synchronizedMap(new WeakHashMap<>()));
 
     @TruffleBoundary
@@ -91,6 +95,7 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
         } else { // BasicObject (nil superclass)
             assert superclass == nil;
             this.methodVTable = new InternalMethod[0];
+            this.methodAssumptions = new Assumption[0];
             this.superclass = superclass;
             this.ancestorClasses = EMPTY_CLASS_ARRAY;
             this.depth = 0;
@@ -120,6 +125,7 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
         this.depth = superclass.depth + 1;
         fields.setSuperClass(superclass);
         this.methodVTable = new InternalMethod[0];
+        this.methodAssumptions = new Assumption[0];
         this.methodNamesToIndex = new SharedIndicesMap();
         updateMethodVTable(superclass);
     }
@@ -129,6 +135,9 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
         selfMetaClass.methodNamesToIndex = fromMetaClass.methodNamesToIndex.getCopy();
         selfMetaClass.methodVTable = Arrays.copyOf(fromMetaClass.methodVTable,
                 fromMetaClass.methodVTable.length);
+        // REVIEW should assumptions be copied
+        selfMetaClass.methodAssumptions = Arrays.copyOf(fromMetaClass.methodAssumptions,
+                fromMetaClass.methodAssumptions.length);
         for (String name : fromMetaClass.fields.getMethodNames()) {
             final int index = selfMetaClass.methodNamesToIndex.lookup(name);
             final InternalMethod method = selfMetaClass.methodVTable[index];
@@ -160,17 +169,19 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
         // Merge existing and superclass methods by attempting a lookup
         List<Map.Entry<String, Integer>> names = new ArrayList<>(
                 superclass.methodNamesToIndex.nameToIndex.entrySet());
-        names.sort(Map.Entry.comparingByValue());
+
         for (Map.Entry<String, Integer> entry : names) {
             this.methodNamesToIndex.lookup(entry.getKey());
         }
 
         this.methodVTable = new InternalMethod[methodNamesToIndex.size()];
+        this.methodAssumptions = new Assumption[methodNamesToIndex.size()];
         for (Map.Entry<String, Integer> entry : this.methodNamesToIndex.nameToIndex.entrySet()) {
             this.methodVTable[entry.getValue()] = ModuleOperations.lookupMethodUncached(this, entry.getKey());
+            this.methodAssumptions[entry.getValue()] = Assumption.create();
         }
         synchronized (superclass) {
-            superclass.includedBy.add(this);
+            superclass.subclasses.add(this);
         }
     }
 

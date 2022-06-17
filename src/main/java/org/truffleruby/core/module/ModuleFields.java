@@ -565,12 +565,21 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
                 RubyClass rubyClass = (RubyClass) rubyModule;
                 final int index = rubyClass.methodNamesToIndex.lookup(name);
                 final int len = rubyClass.methodVTable.length;
+                assert len == rubyClass.methodAssumptions.length;
                 if (index >= len) {
                     final int newLength = Math.max(10, Math.max(len * 2, index + 1));
                     rubyClass.methodVTable = Arrays.copyOf(rubyClass.methodVTable, newLength);
+                    rubyClass.methodAssumptions = Arrays.copyOf(rubyClass.methodAssumptions, newLength);
                 }
-                rubyClass.methodVTable[index] = ModuleOperations.lookupMethodUncached(rubyClass, name);
-                for (RubyClass subclass : rubyClass.includedBy) {
+                final InternalMethod method = ModuleOperations.lookupMethodUncached(rubyClass, name);
+                if (rubyClass.methodVTable[index] != method) {
+                    rubyClass.methodVTable[index] = method;
+                    if (rubyClass.methodAssumptions[index] != null) {
+                        rubyClass.methodAssumptions[index].invalidate();
+                    }
+                    rubyClass.methodAssumptions[index] = Assumption.create();
+                }
+                for (RubyClass subclass : rubyClass.subclasses) {
                     updateVTableRecursive(subclass, name);
                 }
             } else {
