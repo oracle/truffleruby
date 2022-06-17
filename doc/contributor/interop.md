@@ -130,10 +130,6 @@ using `Truffle::Interop.unbox_without_conversion`.
 
 Import also converts `byte/short/float`, and has a `import_without_conversion` counterpart.
 
-`Truffle::Interop.members` converts Java string member names to Ruby strings, so it
-also has a `Truffle::Interop.members_without_conversion` equivalent.
-TODO remove?
-
 ## Import and export
 
 `Truffle::Interop.export(:name, value)`

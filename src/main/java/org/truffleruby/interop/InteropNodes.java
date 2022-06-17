@@ -1230,7 +1230,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "members_without_conversion", onSingleton = true, required = 1, optional = 1)
+    @CoreMethod(names = "members", onSingleton = true, required = 1, optional = 1)
     public abstract static class GetMembersNode extends PrimitiveArrayArgumentsNode {
 
         protected abstract Object executeMembers(Object receiver, boolean internal);

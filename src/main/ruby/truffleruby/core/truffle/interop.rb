@@ -97,10 +97,6 @@ module Truffle
       Primitive.foreign_to_ruby(import_without_conversion(name))
     end
 
-    def self.members(object, internal = false)
-      members_without_conversion(object, internal).map { |key| from_java_string(key) }
-    end
-
     def self.get_members_implementation(object, internal)
       keys = []
 
@@ -125,7 +121,7 @@ module Truffle
         end
       end
 
-      keys.map { |s| Truffle::Interop.to_java_string(s) }
+      keys
     end
     private_class_method :get_members_implementation
 

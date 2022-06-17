@@ -246,6 +246,14 @@ module Polyglot
     end
     alias_method :to_a, :to_ary
 
+    def ==(other)
+      to_ary == other
+    end
+
+    def index(...)
+      to_a.index(...)
+    end
+
     def reverse
       to_a.reverse
     end
@@ -483,19 +491,19 @@ module Polyglot
 
     def instance_variables
       return [] unless Truffle::Interop.has_members?(self)
-      Truffle::Interop.members_without_conversion(self).filter_map do |member|
+      Truffle::Interop.members(self).filter_map do |member|
         # Ruby does not have the concept of non-readable members, ignore those
         if Truffle::Interop.member_readable?(self, member) &&
             !Truffle::Interop.member_invocable?(self, member)
-          member.to_s.to_sym
+          member.to_sym
         end
       end
     end
 
     def methods(regular = true)
       if regular
-        super() | Truffle::Interop.members_without_conversion(self).filter_map do |member|
-          member.to_s.to_sym if Truffle::Interop.member_invocable?(self, member)
+        super() | Truffle::Interop.members(self).filter_map do |member|
+          member.to_sym if Truffle::Interop.member_invocable?(self, member)
         end
       else
         super(regular)
