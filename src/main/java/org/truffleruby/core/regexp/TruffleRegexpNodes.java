@@ -109,7 +109,6 @@ public class TruffleRegexpNodes {
     }
 
     // MRI: rb_reg_prepare_enc
-    @Primitive(name = "regexp_prepare_encoding")
     public abstract static class PrepareRegexpEncodingNode extends PrimitiveArrayArgumentsNode {
 
         @Child RopeNodes.CodeRangeNode codeRangeNode = RopeNodes.CodeRangeNode.create();

@@ -1695,16 +1695,6 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_get_rope")
-    public abstract static class GetRopeNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected Rope getRope(Object string,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            return strings.getRope(string);
-        }
-    }
-
     public abstract static class StringGetAssociatedNode extends RubyBaseNode {
 
         public static StringNodes.StringGetAssociatedNode create() {

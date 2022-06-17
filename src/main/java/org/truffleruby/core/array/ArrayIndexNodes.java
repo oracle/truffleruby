@@ -10,7 +10,6 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.builtins.CoreModule;
-import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -58,7 +57,6 @@ public abstract class ArrayIndexNodes {
         }
     }
 
-    @Primitive(name = "array_read_normalized", lowerFixnum = { 1 }, argumentNames = { "index" })
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
     public abstract static class ReadNormalizedNode extends PrimitiveArrayArgumentsNode {
@@ -92,7 +90,6 @@ public abstract class ArrayIndexNodes {
         }
     }
 
-    @Primitive(name = "array_read_slice_normalized", lowerFixnum = { 1, 2 }, argumentNames = { "index", "length" })
     @ImportStatic(ArrayGuards.class)
     public abstract static class ReadSliceNormalizedNode extends PrimitiveArrayArgumentsNode {
 
