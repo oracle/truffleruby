@@ -2935,7 +2935,10 @@ module Commands
 
       check_source_files if ci?
       check_heap_dump if ci?
+
+      build
       run_ruby('tool/find_unused_primitives.rb')
+      spotbugs
     end
   end
 
@@ -2985,7 +2988,6 @@ module Commands
     `git diff --cached --name-only #{base_commit}`.lines.map(&:chomp)
   end
 
-  # Separate from lint as it needs to build
   def spotbugs
     mx 'ruby_spotbugs'
   end
