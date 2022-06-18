@@ -46,7 +46,7 @@ local part_definitions = {
       },
 
       packages+: {
-        mx: "HEAD",
+        mx: "6.1.4",
         python3: "==3.8.10", # For mx
         "pip:ninja_syntax": "==1.7.2",  # Required by NFI and mx
       },
