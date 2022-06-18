@@ -90,6 +90,7 @@ import org.truffleruby.parser.ast.XStrParseNode;
 import org.truffleruby.parser.ast.YieldParseNode;
 import org.truffleruby.parser.ast.ZArrayParseNode;
 import org.truffleruby.parser.ast.ZSuperParseNode;
+import org.truffleruby.parser.ast.ArrayPatternParseNode;
 import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.lexer.LexerSource;
 import org.truffleruby.parser.lexer.RubyLexer;

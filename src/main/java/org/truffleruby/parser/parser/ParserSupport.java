@@ -141,6 +141,7 @@ import org.truffleruby.parser.ast.UndefParseNode;
 import org.truffleruby.parser.ast.WhenOneArgParseNode;
 import org.truffleruby.parser.ast.WhenParseNode;
 import org.truffleruby.parser.ast.YieldParseNode;
+import org.truffleruby.parser.ast.ArrayPatternParseNode;
 import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.lexer.LexerSource;
@@ -940,6 +941,21 @@ public class ParserSupport {
         }
 
         return caseNode;
+    }
+
+    // TODO: adding to the node class now.
+    public ArrayPatternParseNode new_array_pattern(SourceIndexLength position, ParseNode constant, ParseNode preArg,
+            ArrayPatternParseNode arrayPattern) {
+        arrayPattern.setConstant(constant);
+
+        if (preArg != null) {
+            ListParseNode preArgs = new ListParseNode(position, preArg);
+            ListParseNode arrayPatternPreArgs = arrayPattern.getPreArgs();
+
+            arrayPattern.setPreArgs(arrayPatternPreArgs != null ? list_concat(preArgs, arrayPatternPreArgs) : preArgs);
+        }
+
+        return arrayPattern;
     }
 
     /* This method exists for us to break up multiple expression when nodes (e.g. when 1,2,3:) into individual
