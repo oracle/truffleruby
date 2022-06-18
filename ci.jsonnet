@@ -368,7 +368,7 @@ local part_definitions = {
         "pip:pylint": "==2.4.4",
         "shellcheck": "==0.6.0",
       },
-      run+: jt(["lint"]) + jt(["spotbugs"]),
+      run+: jt(["lint"]),
     },
 
     test_mri: { run+: jt(["test", "mri", "--no-sulong"]) },
