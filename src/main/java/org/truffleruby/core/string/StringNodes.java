@@ -148,7 +148,6 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.RopeWithEncoding;
 import org.truffleruby.core.rope.TStringNodes.SingleByteOptimizableNode;
 import org.truffleruby.core.rope.TStringWithEncoding;
-import org.truffleruby.core.string.StringNodesFactory.ByteSizeNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.CheckIndexNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.CountRopesNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.DeleteBangNodeFactory;
@@ -904,9 +903,6 @@ public abstract class StringNodes {
     @CoreMethod(names = "bytes", needsBlock = true)
     public abstract static class StringBytesNode extends YieldingCoreMethodNode {
 
-        @Child private TruffleString.GetInternalByteArrayNode getByteArrayNode = TruffleString.GetInternalByteArrayNode
-                .create();
-
         @Specialization
         protected RubyArray bytes(Object string, Nil block,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
@@ -928,22 +924,20 @@ public abstract class StringNodes {
 
         @Specialization
         protected Object bytes(Object string, RubyProc block,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached TruffleString.MaterializeNode materializeNode,
+                @Cached TruffleString.ReadByteNode readByteNode) {
             var tstring = strings.getTString(string);
             var encoding = strings.getEncoding(string).tencoding;
-            var byteArray = getByteArrayNode.execute(tstring, encoding);
+            int arrayLength = tstring.byteLength(encoding);
 
-            var bytes = byteArray.getArray();
-            int offset = byteArray.getOffset();
-            int end = byteArray.getEnd();
-
-            for (int i = offset; i < end; i++) {
-                callBlock(block, bytes[i] & 0xff);
+            materializeNode.execute(tstring, encoding);
+            for (int i = 0; i < arrayLength; i++) {
+                callBlock(block, readByteNode.execute(tstring, i, encoding));
             }
 
             return string;
         }
-
     }
 
     @CoreMethod(names = "bytesize")
