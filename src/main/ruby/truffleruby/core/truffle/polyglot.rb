@@ -426,12 +426,12 @@ module Polyglot
       Primitive.foreign_string_to_ruby_string(self)
     end
 
-    # TruffleString and java.lang.String are both immutable
+    # asTruffleString() and asString() are both immutable and the only way to access a foreign string (isString())
     def freeze
       self
     end
 
-    # TruffleString and java.lang.String are both immutable
+    # asTruffleString() and asString() are both immutable and the only way to access a foreign string (isString())
     def frozen?
       true
     end
