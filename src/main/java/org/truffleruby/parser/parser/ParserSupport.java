@@ -1743,7 +1743,6 @@ public class ParserSupport {
     public RuntimeException compile_error(String message) { // mri: rb_compile_error_with_enc
         String line = lexer.getCurrentLine();
         SourceIndexLength position = lexer.getPosition();
-        String errorMessage = lexer.getFile() + ":" + position.toSourceSection(lexer.getSource()).getStartLine() + ": ";
 
         if (line.length() > 5) {
             boolean addNewline = message != null && !message.endsWith("\n");
@@ -1753,7 +1752,7 @@ public class ParserSupport {
         throw new RaiseException(
                 RubyLanguage.getCurrentContext(),
                 getConfiguration().getContext().getCoreExceptions().syntaxError(
-                        errorMessage + message,
+                        message,
                         null,
                         position.toSourceSection(lexer.getSource())));
     }

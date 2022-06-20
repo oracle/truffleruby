@@ -424,7 +424,7 @@ public class TranslatorDriver {
                     if (context != null) {
                         throw new RaiseException(
                                 context,
-                                context.getCoreExceptions().syntaxError(
+                                context.getCoreExceptions().syntaxErrorAlreadyWithFileLine(
                                         buffer.toString(),
                                         null,
                                         rubySource.getSource().createSection(e.getLine())));
