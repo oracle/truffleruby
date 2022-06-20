@@ -1020,7 +1020,7 @@ public class CoreExceptions {
         RubyClass exceptionClass = context.getCoreLibrary().syntaxErrorClass;
         String messageWithSourceLocation;
         if (sourceLocation != null) {
-            messageWithSourceLocation = RubyLanguage.fileLine(sourceLocation) + ": " + message;
+            messageWithSourceLocation = context.fileLine(sourceLocation) + ": " + message;
         } else {
             messageWithSourceLocation = "(unknown):1: " + message;
         }

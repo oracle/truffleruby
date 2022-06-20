@@ -12,7 +12,6 @@ package org.truffleruby.language;
 import com.oracle.truffle.api.nodes.DenyReplace;
 import com.oracle.truffle.api.nodes.NodeCost;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
@@ -62,7 +61,7 @@ public class WarnNode extends RubyBaseNode {
 
     static void callWarn(RubyContext context, SourceSection sourceSection, String message,
             MakeStringNode makeStringNode, DispatchNode callWarnNode) {
-        final String warningMessage = buildWarningMessage(sourceSection, message);
+        final String warningMessage = buildWarningMessage(context, sourceSection, message);
 
         final RubyString warningString = makeStringNode
                 .executeMake(warningMessage, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
@@ -71,8 +70,8 @@ public class WarnNode extends RubyBaseNode {
     }
 
     @TruffleBoundary
-    private static String buildWarningMessage(SourceSection sourceSection, String message) {
-        final String sourceLocation = sourceSection != null ? RubyLanguage.fileLine(sourceSection) + ": " : "";
+    private static String buildWarningMessage(RubyContext context, SourceSection sourceSection, String message) {
+        final String sourceLocation = sourceSection != null ? context.fileLine(sourceSection) + ": " : "";
         return sourceLocation + "warning: " + message;
     }
 

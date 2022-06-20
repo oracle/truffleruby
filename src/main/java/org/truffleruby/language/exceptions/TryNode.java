@@ -12,7 +12,6 @@ package org.truffleruby.language.exceptions;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.CompilerDirectives;
-import org.truffleruby.RubyLanguage;
 import com.oracle.truffle.api.TruffleSafepoint;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -137,7 +136,7 @@ public class TryNode extends RubyContextSourceNode {
 
     @TruffleBoundary
     private void printBacktraceOnRescue(RescueNode rescue, AbstractTruffleException exception) {
-        String info = "rescued at " + RubyLanguage.fileLine(
+        String info = "rescued at " + getContext().fileLine(
                 getContext().getCallStack().getTopMostUserSourceSection(rescue.getEncapsulatingSourceSection())) +
                 ":\n";
         getContext().getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(info, exception);

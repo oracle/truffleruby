@@ -39,7 +39,7 @@ public class PrimitiveNodeConstructor {
         if (arguments.length != getPrimitiveArity()) {
             throw new Error(
                     "Incorrect number of arguments (expected " + getPrimitiveArity() + ") at " +
-                            RubyLanguage.fileLine(sourceSection.toSourceSection(source)));
+                            RubyLanguage.getCurrentContext().fileLine(sourceSection.toSourceSection(source)));
         }
 
         for (int n = 0; n < arguments.length; n++) {

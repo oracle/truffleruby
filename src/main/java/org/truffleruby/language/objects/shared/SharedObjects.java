@@ -24,7 +24,6 @@ import org.truffleruby.language.objects.ObjectGraph;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 import org.truffleruby.language.objects.classvariables.ClassVariableStorage;
 
@@ -80,10 +79,9 @@ public class SharedObjects {
         }
     }
 
-    public static void shareDeclarationFrame(RubyLanguage language, RubyProc block) {
+    public static void shareDeclarationFrame(RubyLanguage language, RubyProc block, String info) {
         if (language.options.SHARED_OBJECTS_DEBUG) {
-            final SourceSection sourceSection = block.getSharedMethodInfo().getSourceSection();
-            RubyLanguage.LOGGER.info("sharing decl frame of " + RubyLanguage.fileLine(sourceSection));
+            RubyLanguage.LOGGER.info("sharing decl frame of " + info);
         }
 
         final Set<Object> objects = ObjectGraph.newObjectSet();

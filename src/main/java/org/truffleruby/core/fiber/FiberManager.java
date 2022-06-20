@@ -59,7 +59,7 @@ public class FiberManager {
 
     public void initialize(RubyFiber fiber, boolean blocking, RubyProc block, Node currentNode) {
         final SourceSection sourceSection = block.getSharedMethodInfo().getSourceSection();
-        fiber.sourceLocation = RubyLanguage.fileLine(sourceSection);
+        fiber.sourceLocation = context.fileLine(sourceSection);
         fiber.blocking = blocking;
 
         final TruffleContext truffleContext = context.getEnv().getContext();
@@ -101,7 +101,7 @@ public class FiberManager {
         final FiberPoolThread thread = (FiberPoolThread) Thread.currentThread();
         final SourceSection sourceSection = block.getSharedMethodInfo().getSourceSection();
         final String oldName = thread.getName();
-        thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + RubyLanguage.fileLine(sourceSection));
+        thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + context.fileLine(sourceSection));
 
         start(fiber, thread);
 

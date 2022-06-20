@@ -424,7 +424,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         if (context.getOptions().LOG_AUTOLOAD) {
             RubyLanguage.LOGGER.info(() -> String.format(
                     "%s: setting up autoload %s with %s",
-                    RubyLanguage.fileLine(context.getCallStack().getTopMostUserSourceSection()),
+                    context.fileLine(context.getCallStack().getTopMostUserSourceSection()),
                     autoloadConstant,
                     filename));
         }
