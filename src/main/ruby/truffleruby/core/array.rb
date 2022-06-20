@@ -455,12 +455,7 @@ class Array
       left = 0 if left < 0
 
       if !Primitive.undefined?(length) and length
-        begin
-          right = Primitive.rb_num2int length
-        rescue TypeError
-          raise ArgumentError, 'second argument must be an Integer'
-        end
-
+        right = Primitive.rb_num2int length
         return self if right == 0
         right += left
       else
