@@ -949,7 +949,7 @@ public class ParserSupport {
         arrayPattern.setConstant(constant);
 
         if (preArg != null) {
-            ListParseNode preArgs = new ListParseNode(position, preArg);
+            ListParseNode preArgs = new ArrayParseNode(position, preArg);
             ListParseNode arrayPatternPreArgs = arrayPattern.getPreArgs();
 
             arrayPattern.setPreArgs(arrayPatternPreArgs != null ? list_concat(preArgs, arrayPatternPreArgs) : preArgs);
