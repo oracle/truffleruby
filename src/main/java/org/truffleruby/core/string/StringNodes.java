@@ -948,23 +948,15 @@ public abstract class StringNodes {
 
     @CoreMethod(names = "bytesize")
     public abstract static class ByteSizeNode extends CoreMethodArrayArgumentsNode {
-
-        public static ByteSizeNode create() {
-            return ByteSizeNodeFactory.create(null);
-        }
-
-        public abstract int executeByteSize(Object string);
-
         @Specialization
         protected int byteSize(RubyString string) {
-            return string.rope.byteLength();
+            return string.tstring.byteLength(string.getTEncoding());
         }
 
         @Specialization
         protected int immutableByteSize(ImmutableRubyString string) {
-            return string.rope.byteLength();
+            return string.tstring.byteLength(string.getTEncoding());
         }
-
     }
 
     @Primitive(name = "string_casecmp")
