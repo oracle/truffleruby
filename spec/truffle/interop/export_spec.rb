@@ -53,23 +53,7 @@ guard -> { Truffle::Interop.polyglot_bindings_access? } do
     it "does not convert to Java when exporting a Ruby string" do
       ruby_string = 'hello'
       Truffle::Interop.export :exports_a_string_with_conversion, ruby_string
-      imported = Truffle::Interop.import_without_conversion(:exports_a_string_with_conversion)
-      Truffle::Interop.should_not.java_string?(imported)
-      imported.should.equal?(ruby_string)
-    end
-
-    it "can export a string without conversion to Java" do
-      ruby_string = 'hello'
-      Truffle::Interop.export_without_conversion :exports_a_string_without_conversion, ruby_string
-      imported = Truffle::Interop.import_without_conversion(:exports_a_string_without_conversion)
-      Truffle::Interop.should_not.java_string?(imported)
-      imported.should.equal?(ruby_string)
-    end
-
-    it "can import a string without conversion from Java" do
-      ruby_string = 'hello'
-      Truffle::Interop.export :imports_a_string_without_conversion, ruby_string
-      imported = Truffle::Interop.import_without_conversion(:imports_a_string_without_conversion)
+      imported = Truffle::Interop.import(:exports_a_string_with_conversion)
       Truffle::Interop.should_not.java_string?(imported)
       imported.should.equal?(ruby_string)
     end

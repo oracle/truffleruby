@@ -188,16 +188,6 @@ public abstract class InteropNodes {
             return new ProxyForeignObject(delegate, logger);
         }
     }
-
-    @Primitive(name = "foreign_to_ruby")
-    public abstract static class ForeignToRubyPrimitive extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        protected Object foreignToRuby(Object value,
-                @Cached ForeignToRubyNode foreignToRubyNode) {
-            return foreignToRubyNode.executeConvert(value);
-        }
-    }
     // endregion
 
     // region eval
@@ -1518,9 +1508,9 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "import_without_conversion", onSingleton = true, required = 1)
+    @CoreMethod(names = "import", onSingleton = true, required = 1)
     @NodeChild(value = "name", type = RubyNode.class)
-    public abstract static class ImportWithoutConversionNode extends CoreMethodNode {
+    public abstract static class ImportNode extends CoreMethodNode {
 
         @CreateCast("name")
         protected RubyNode coerceNameToString(RubyNode name) {
@@ -1529,10 +1519,11 @@ public abstract class InteropNodes {
 
         @Specialization
         protected Object importObject(String name,
-                @Cached BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile,
+                @Cached ForeignToRubyNode foreignToRubyNode) {
             final Object value = doImport(name);
             if (value != null) {
-                return value;
+                return foreignToRubyNode.executeConvert(value);
             } else {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().nameErrorImportNotFound(name, this));

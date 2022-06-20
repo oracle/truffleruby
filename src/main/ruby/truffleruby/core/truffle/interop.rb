@@ -88,15 +88,6 @@ module Truffle
       export(name.to_s, Object.method(name.to_sym))
     end
 
-    # For compatibility TODO keep or not?
-    def self.export_without_conversion(name, value)
-      export name, value
-    end
-
-    def self.import(name)
-      Primitive.foreign_to_ruby(import_without_conversion(name))
-    end
-
     def self.get_members_implementation(object, internal)
       keys = []
 

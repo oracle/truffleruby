@@ -128,7 +128,7 @@ conversion for `EXECUTE` using `Truffle::Interop.execute_without_conversion`,
 for `READ` using `Truffle::Interop.read_without_conversion`, and for `UNBOX`
 using `Truffle::Interop.unbox_without_conversion`.
 
-Import also converts `byte/short/float`, and has a `import_without_conversion` counterpart.
+`Polyglot.import` also converts `byte/short/float`.
 
 ## Import and export
 
