@@ -2936,6 +2936,8 @@ module Commands
     unless fast
       mx 'gate', '--tags', 'style' # mx eclipseformat, mx checkstyle and a few more checks
 
+      build
+
       check_core_symbols
       check_parser
       check_options
@@ -2947,8 +2949,8 @@ module Commands
       check_source_files if ci?
       check_heap_dump if ci?
 
-      build
       run_ruby('tool/find_unused_primitives.rb')
+
       spotbugs
     end
   end
