@@ -23,12 +23,8 @@ public class RopeConstants {
 
     public static final byte[] EMPTY_BYTES = new byte[0];
 
-    public static final LeafRope EMPTY_ASCII_8BIT_ROPE = withHashCode(
-            new AsciiOnlyLeafRope(EMPTY_BYTES, ASCIIEncoding.INSTANCE));
     public static final LeafRope EMPTY_US_ASCII_ROPE = withHashCode(
             new AsciiOnlyLeafRope(EMPTY_BYTES, USASCIIEncoding.INSTANCE));
-    public static final LeafRope EMPTY_UTF8_ROPE = withHashCode(
-            new AsciiOnlyLeafRope(EMPTY_BYTES, UTF8Encoding.INSTANCE));
 
     @CompilationFinal(dimensions = 1) public static final LeafRope[] UTF8_SINGLE_BYTE_ROPES = new LeafRope[256];
     @CompilationFinal(dimensions = 1) public static final LeafRope[] US_ASCII_SINGLE_BYTE_ROPES = new LeafRope[256];

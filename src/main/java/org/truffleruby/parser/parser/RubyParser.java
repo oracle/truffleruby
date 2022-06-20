@@ -48,8 +48,6 @@ import org.truffleruby.Layouts;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeConstants;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.SourceIndexLength;
@@ -162,7 +160,7 @@ public class RubyParser {
         this.lexer = new RubyLexer(support, source, warnings);
         support.setLexer(lexer);
     }
-// line 129 "-"
+// line 128 "-"
   // %token constants
   public static final int keyword_class = 257;
   public static final int keyword_module = 258;
@@ -3259,7 +3257,7 @@ states[500] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[501] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = lexer.createStr(RopeOperations.emptyRope(lexer.getEncoding()), 0);
+    yyVal = lexer.createStr(lexer.encoding.tencoding.getEmpty(), lexer.encoding, 0);
     return yyVal;
 };
 states[502] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -3373,7 +3371,7 @@ states[525] = (support, lexer, yyVal, yyVals, yyTop) -> {
     /* EvStrNode :"#{some expression}"*/
     /* Ruby 1.9 allows empty strings as symbols*/
     if (((ParseNode)yyVals[-1+yyTop]) == null) {
-        yyVal = support.asSymbol(lexer.getPosition(), RopeConstants.EMPTY_US_ASCII_ROPE);
+        yyVal = support.asSymbol(lexer.getPosition(), TStringConstants.EMPTY_US_ASCII_TSTRING);
     } else if (((ParseNode)yyVals[-1+yyTop]) instanceof DStrParseNode) {
         yyVal = new DSymbolParseNode(((ParseNode)yyVals[-1+yyTop]).getPosition(), ((DStrParseNode)yyVals[-1+yyTop]));
     } else if (((ParseNode)yyVals[-1+yyTop]) instanceof StrParseNode) {
@@ -3986,7 +3984,7 @@ states[671] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 }
-// line 2834 "RubyParser.y"
+// line 2833 "RubyParser.y"
 
     /** The parse method use an lexer stream and parse it to an AST node 
      * structure
@@ -4003,4 +4001,4 @@ states[671] = (support, lexer, yyVal, yyVals, yyTop) -> {
 }
 // CheckStyle: stop generated
 // @formatter:on
-// line 10887 "-"
+// line 10886 "-"

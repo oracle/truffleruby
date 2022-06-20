@@ -59,7 +59,6 @@ import java.util.function.BiConsumer;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
-import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -77,7 +76,6 @@ import org.truffleruby.core.rope.ManagedRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.core.string.StringGuards;
@@ -577,26 +575,26 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     public StrParseNode createStr(RopeBuilder buffer, int flags) {
-        return createStr(buffer.toRope(), flags);
+        return createStr(buffer.toTString(), buffer.getRubyEncoding(), flags);
     }
 
     // STR_NEW3/parser_str_new
-    public StrParseNode createStr(Rope buffer, int flags) {
-        Encoding bufferEncoding = buffer.getEncoding();
+    public StrParseNode createStr(TruffleString bufferTString, RubyEncoding bufferEncoding, int flags) {
+        TStringWithEncoding buffer = new TStringWithEncoding(bufferTString, bufferEncoding);
         CodeRange codeRange = buffer.getCodeRange();
 
-        if ((flags & STR_FUNC_REGEXP) == 0 && bufferEncoding.isAsciiCompatible()) {
+        if ((flags & STR_FUNC_REGEXP) == 0 && bufferEncoding.jcoding.isAsciiCompatible()) {
             // If we have characters outside 7-bit range and we are still ascii then change to binary
             if (codeRange == CodeRange.CR_7BIT) {
                 // Do nothing like MRI
-            } else if (encoding == Encodings.US_ASCII && bufferEncoding != UTF8Encoding.INSTANCE) {
+            } else if (encoding == Encodings.US_ASCII && bufferEncoding != Encodings.UTF_8) {
                 assert !buffer.isAsciiOnly();
-                codeRange = bufferEncoding == ASCIIEncoding.INSTANCE ? codeRange : CR_UNKNOWN;
-                buffer = RopeOperations.create(buffer.getBytes(), ASCIIEncoding.INSTANCE, CodeRange.CR_VALID);
+                codeRange = bufferEncoding == Encodings.BINARY ? codeRange : CR_UNKNOWN;
+                buffer = buffer.forceEncoding(Encodings.BINARY);
             }
         }
 
-        StrParseNode newStr = new StrParseNode(getPosition(), buffer, codeRange);
+        StrParseNode newStr = new StrParseNode(getPosition(), buffer.toRope(), codeRange);
 
         if (parserSupport.getConfiguration().isFrozenStringLiteral()) {
             newStr.setFrozen(true);

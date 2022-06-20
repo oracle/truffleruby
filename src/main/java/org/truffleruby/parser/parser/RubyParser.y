@@ -9,8 +9,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeConstants;
-import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.RubyDeferredWarnings;
@@ -456,10 +455,10 @@ command_asgn    : lhs '=' command_rhs {
 
                     SourceIndexLength pos = $1.getPosition();
                     TruffleString asgnOp = $2;
-                    if (asgnOp == RopeConstants.OR_OR) {
+                    if (asgnOp == TStringConstants.OR_OR) {
                         $1.setValueNode($3);
                         $$ = new OpAsgnOrParseNode(pos, support.gettable2($1), $1);
-                    } else if (asgnOp == RopeConstants.AMPERSAND_AMPERSAND) {
+                    } else if (asgnOp == TStringConstants.AMPERSAND_AMPERSAND) {
                         $1.setValueNode($3);
                         $$ = new OpAsgnAndParseNode(pos, support.gettable2($1), $1);
                     } else {
@@ -513,7 +512,7 @@ expr            : command_call
                     $$ = support.newOrNode(support.getPosition($1), $1, $3);
                 }
                 | keyword_not opt_nl expr {
-                    $$ = support.getOperatorCallNode(support.getConditionNode($3), RopeConstants.BANG);
+                    $$ = support.getOperatorCallNode(support.getConditionNode($3), TStringConstants.BANG);
                 }
                 | tBANG command_call {
                     $$ = support.getOperatorCallNode(support.getConditionNode($2), $1);
@@ -1094,10 +1093,10 @@ arg             : lhs '=' arg_rhs {
 
                     SourceIndexLength pos = $1.getPosition();
                     TruffleString asgnOp = $2;
-                    if (asgnOp == RopeConstants.OR_OR) {
+                    if (asgnOp == TStringConstants.OR_OR) {
                         $1.setValueNode($3);
                         $$ = new OpAsgnOrParseNode(pos, support.gettable2($1), $1);
-                    } else if (asgnOp == RopeConstants.AMPERSAND_AMPERSAND) {
+                    } else if (asgnOp == TStringConstants.AMPERSAND_AMPERSAND) {
                         $1.setValueNode($3);
                         $$ = new OpAsgnAndParseNode(pos, support.gettable2($1), $1);
                     } else {
@@ -1533,10 +1532,10 @@ primary         : literal
                     $$ = support.new_defined($1, $4);
                 }
                 | keyword_not tLPAREN2 expr rparen {
-                    $$ = support.getOperatorCallNode(support.getConditionNode($3), RopeConstants.BANG);
+                    $$ = support.getOperatorCallNode(support.getConditionNode($3), TStringConstants.BANG);
                 }
                 | keyword_not tLPAREN2 rparen {
-                    $$ = support.getOperatorCallNode(NilImplicitParseNode.NIL, RopeConstants.BANG);
+                    $$ = support.getOperatorCallNode(NilImplicitParseNode.NIL, TStringConstants.BANG);
                 }
                 | fcall brace_block {
                     support.frobnicate_fcall_args($1, null, $2);
@@ -1969,10 +1968,10 @@ method_call     : fcall paren_args {
                     $$ = support.new_call($1, $3, null, null);
                 }
                 | primary_value call_op paren_args {
-                    $$ = support.new_call($1, $2, RopeConstants.CALL, $3, null);
+                    $$ = support.new_call($1, $2, TStringConstants.CALL, $3, null);
                 }
                 | primary_value tCOLON2 paren_args {
-                    $$ = support.new_call($1, RopeConstants.CALL, $3, null);
+                    $$ = support.new_call($1, TStringConstants.CALL, $3, null);
                 }
                 | keyword_super paren_args {
                     $$ = support.new_super($1, $2);
@@ -1982,10 +1981,10 @@ method_call     : fcall paren_args {
                 }
                 | primary_value '[' opt_call_args rbracket {
                     if ($1 instanceof SelfParseNode) {
-                        $$ = support.new_fcall(RopeConstants.LBRACKET_RBRACKET);
+                        $$ = support.new_fcall(TStringConstants.LBRACKET_RBRACKET);
                         support.frobnicate_fcall_args($<FCallParseNode>$, $3, null);
                     } else {
-                        $$ = support.new_call($1, RopeConstants.LBRACKET_RBRACKET, $3, null);
+                        $$ = support.new_call($1, TStringConstants.LBRACKET_RBRACKET, $3, null);
                     }
                 }
 
@@ -2035,7 +2034,7 @@ p_cases         : opt_else | p_case_body
 opt_rescue      : keyword_rescue exc_list exc_var then compstmt opt_rescue {
                     ParseNode node;
                     if ($3 != null) {
-                        node = support.appendToBlock(support.node_assign($3, new GlobalVarParseNode($1, support.symbolID(RopeConstants.DOLLAR_BANG))), $5);
+                        node = support.appendToBlock(support.node_assign($3, new GlobalVarParseNode($1, support.symbolID(TStringConstants.DOLLAR_BANG))), $5);
                         if ($5 != null) {
                             node.setPosition($1);
                         }
@@ -2182,7 +2181,7 @@ qsym_list      : /* none */ {
                 }
 
 string_contents : /* none */ {
-                    $$ = lexer.createStr(RopeOperations.emptyRope(lexer.getEncoding()), 0);
+                    $$ = lexer.createStr(lexer.encoding.tencoding.getEmpty(), lexer.encoding, 0);
                 }
                 | string_contents string_content {
                     $$ = support.literal_concat($1, $<ParseNode>2);
@@ -2279,7 +2278,7 @@ dsym            : tSYMBEG xstring_contents tSTRING_END {
                      // EvStrNode :"#{some expression}"
                      // Ruby 1.9 allows empty strings as symbols
                      if ($2 == null) {
-                         $$ = support.asSymbol(lexer.getPosition(), RopeConstants.EMPTY_US_ASCII_ROPE);
+                         $$ = support.asSymbol(lexer.getPosition(), TStringConstants.EMPTY_US_ASCII_TSTRING);
                      } else if ($2 instanceof DStrParseNode) {
                          $$ = new DSymbolParseNode($2.getPosition(), $<DStrParseNode>2);
                      } else if ($2 instanceof StrParseNode) {

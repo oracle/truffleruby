@@ -12,10 +12,12 @@ package org.truffleruby.core.rope;
 import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 
 import com.oracle.truffle.api.strings.InternalByteArray;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.RubyString;
 
 public class RopeBuilder extends ByteArrayBuilder {
@@ -72,6 +74,10 @@ public class RopeBuilder extends ByteArrayBuilder {
         return createRopeBuilder(str.getInternalByteArray(), str.encoding);
     }
 
+    public RubyEncoding getRubyEncoding() {
+        return encoding;
+    }
+
     public Encoding getEncoding() {
         return encoding.jcoding;
     }
@@ -91,6 +97,10 @@ public class RopeBuilder extends ByteArrayBuilder {
     public ManagedRope toRope(CodeRange codeRange) {
         // TODO CS 17-Jan-16 can we take the bytes from the RopeBuilder and set its bytes to null so it can't use them again
         return RopeOperations.create(getBytes(), encoding.jcoding, codeRange);
+    }
+
+    public TruffleString toTString() {
+        return TStringUtils.fromByteArray(getBytes(), encoding);
     }
 
 }

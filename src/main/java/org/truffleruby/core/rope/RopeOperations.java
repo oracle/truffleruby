@@ -109,27 +109,6 @@ public class RopeOperations {
         return create(new byte[]{ b }, encoding, codeRange);
     }
 
-    public static Rope emptyRope(Encoding encoding) {
-        if (encoding == UTF8Encoding.INSTANCE) {
-            return RopeConstants.EMPTY_UTF8_ROPE;
-        }
-
-        if (encoding == USASCIIEncoding.INSTANCE) {
-            return RopeConstants.EMPTY_US_ASCII_ROPE;
-        }
-
-        if (encoding == ASCIIEncoding.INSTANCE) {
-            return RopeConstants.EMPTY_ASCII_8BIT_ROPE;
-        }
-
-        final CodeRange codeRange = encoding.isAsciiCompatible() ? CR_7BIT : CR_VALID;
-        if (codeRange == CR_7BIT) {
-            return new AsciiOnlyLeafRope(RopeConstants.EMPTY_BYTES, encoding);
-        } else {
-            return new ValidLeafRope(RopeConstants.EMPTY_BYTES, encoding, 0);
-        }
-    }
-
     public static LeafRope encodeAscii(String value, Encoding encoding) {
         return create(StringOperations.encodeAsciiBytes(value), encoding, CR_7BIT);
     }
