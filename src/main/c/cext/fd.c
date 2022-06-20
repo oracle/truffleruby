@@ -110,8 +110,9 @@ void rb_fd_dup(rb_fdset_t *dst, const rb_fdset_t *src) {
 void rb_fd_init_copy(rb_fdset_t *dst, rb_fdset_t *src) {
   size_t size = howmany(rb_fd_max(src), NFDBITS) * sizeof(fd_mask);
 
-  if (size < sizeof(fd_set))
-  size = sizeof(fd_set);
+  if (size < sizeof(fd_set)) {
+    size = sizeof(fd_set);
+  }
   dst->maxfd = src->maxfd;
   dst->fdset = xmalloc(size);
   memcpy(dst->fdset, src->fdset, size);
