@@ -26,6 +26,7 @@ module MSpec
   @unload  = nil
   @tagged  = nil
   @current = nil
+  @passed = nil
   @example = nil
   @modes   = []
   @shared  = {}
@@ -243,6 +244,7 @@ module MSpec
   #   :before       before a single spec is run
   #   :add          while a describe block is adding examples to run later
   #   :expectation  before a 'should', 'should_receive', etc.
+  #   :passed       after an example block is run and passes, passed the block, run before :example action
   #   :example      after an example block is run, passed the block
   #   :exception    after an exception is rescued
   #   :after        after a single spec is run
