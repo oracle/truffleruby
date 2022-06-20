@@ -4313,10 +4313,8 @@ public abstract class StringNodes {
             // When single-byte optimizable, the byte length and the codepoint length are the same.
             int stringByteLength = string.byteLength(stringEncoding.tencoding);
 
-            assert codePointOffset +
-                    pattern.byteLength(
-                            patternEncoding.tencoding) <= stringByteLength
-                    : "already checked in the caller, String#index";
+            assert codePointOffset + pattern.byteLength(
+                    patternEncoding.tencoding) <= stringByteLength : "already checked in the caller, String#index";
 
             int found = byteIndexOfStringNode.execute(string, pattern, codePointOffset,
                     stringByteLength,
