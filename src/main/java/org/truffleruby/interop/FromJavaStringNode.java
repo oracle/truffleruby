@@ -29,7 +29,7 @@ public abstract class FromJavaStringNode extends RubyBaseNode {
         return FromJavaStringNodeGen.create();
     }
 
-    public abstract RubyString executeFromJavaString(Object value);
+    public abstract RubyString executeFromJavaString(String value);
 
     @Specialization(guards = "stringsEquals(cachedValue, value)", limit = "getLimit()")
     protected RubyString doCached(String value,
