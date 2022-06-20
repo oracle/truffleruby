@@ -46,7 +46,6 @@ example "ABC_ROPE_USASCII == ABC_ROPE_UTF8", true
 # different rope node instance with a different but compatible encoding
 example "ABC_ROPE_USASCII == 'abc'", true
 
-example "'A' == String.from_codepoint(65, Encoding::US_ASCII)", true
 example "'A' == 65.chr", true
 tagged example "'A'.ord == 65", true
 

@@ -159,10 +159,9 @@ public abstract class TruffleRopesNodes {
     @CoreMethod(names = "create_simple_string", onSingleton = true)
     public abstract static class CreateSimpleStringNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected RubyString createSimpleString() {
-            return createString(
-                    new AsciiOnlyLeafRope(new byte[]{ 't', 'e', 's', 't' }, UTF8Encoding.INSTANCE),
-                    Encodings.UTF_8);
+        protected RubyString createSimpleString(
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
+            return createString(fromByteArrayNode, new byte[]{ 't', 'e', 's', 't' }, Encodings.UTF_8);
         }
     }
 
