@@ -1381,7 +1381,14 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitDefinedNode(DefinedParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        final RubyNode ret = new DefinedNode(node.getExpressionNode().accept(this));
+        final ParseNode expressionNode = node.getExpressionNode();
+
+        // Handle defined?(yield) explicitly otherwise it would raise SyntaxError
+        if (expressionNode instanceof YieldParseNode && isInvalidYield()) {
+            return nilNode(sourceSection);
+        }
+
+        final RubyNode ret = new DefinedNode(expressionNode.accept(this));
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
@@ -3017,7 +3024,7 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitYieldNode(YieldParseNode node) {
-        if (environment.getSurroundingMethodEnvironment().isModuleBody()) {
+        if (isInvalidYield()) {
             final RubyContext context = RubyLanguage.getCurrentContext();
             throw new RaiseException(
                     context,
@@ -3045,6 +3052,10 @@ public class BodyTranslator extends Translator {
 
         ret.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, ret);
+    }
+
+    private boolean isInvalidYield() {
+        return environment.getSurroundingMethodEnvironment().isModuleBody();
     }
 
     @Override
