@@ -1962,7 +1962,8 @@ public abstract class StringNodes {
             var tstring = string.tstring;
             var encoding = string.encoding;
             var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
-            final int lastCodePoint = getCodePointNode.executeGetCodePoint(tstring, encoding, byteArray.getLength() - 1);
+            final int lastCodePoint = getCodePointNode.executeGetCodePoint(tstring, encoding,
+                    byteArray.getLength() - 1);
 
             // Check the last code point to see if it's a space or NULL. In the case of strings without leading spaces,
             // this check can avoid having to materialize the entire byte[] (a potentially expensive operation
@@ -4314,7 +4315,8 @@ public abstract class StringNodes {
 
             assert codePointOffset +
                     pattern.byteLength(
-                            patternEncoding.tencoding) <= stringByteLength : "already checked in the caller, String#index";
+                            patternEncoding.tencoding) <= stringByteLength
+                    : "already checked in the caller, String#index";
 
             int found = byteIndexOfStringNode.execute(string, pattern, codePointOffset,
                     stringByteLength,
