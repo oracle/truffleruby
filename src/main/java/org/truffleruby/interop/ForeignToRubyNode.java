@@ -10,10 +10,8 @@
 package org.truffleruby.interop;
 
 import com.oracle.truffle.api.dsl.Fallback;
-import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.RubyBaseNode;
 
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 
@@ -39,18 +37,6 @@ public abstract class ForeignToRubyNode extends RubyBaseNode {
     @Specialization
     protected double convertFloat(float value) {
         return value;
-    }
-
-    @Specialization
-    protected RubyString convertChar(char value,
-            @Cached FromJavaStringNode fromJavaStringNode) {
-        return fromJavaStringNode.executeFromJavaString(String.valueOf(value));
-    }
-
-    @Specialization
-    protected RubyString convertString(String value,
-            @Cached FromJavaStringNode fromJavaStringNode) {
-        return fromJavaStringNode.executeFromJavaString(value);
     }
 
     @Fallback

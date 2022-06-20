@@ -14,6 +14,17 @@ describe "Polyglot::ForeignArray" do
     @empty = Truffle::Interop.to_java_array([])
   end
 
+  it "compares #== if elements are #==" do
+    foreign = Truffle::Interop.to_java_array([
+      Truffle::Debug.foreign_string("one"),
+      Truffle::Interop.as_string("two"),
+      Truffle::Interop.as_truffle_string("three")])
+    ruby = ["one", "two", "three"]
+
+    foreign.should == ruby
+    ruby.should == foreign
+  end
+
   it "supports #length and #size" do
     @foreign.size.should == 3
     @foreign.length.should == 3

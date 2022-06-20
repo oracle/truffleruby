@@ -10,14 +10,12 @@ require_relative '../../ruby/spec_helper'
 
 describe "Java strings" do
 
-  it "is String" do
+  it "is Interop.string?" do
     Truffle::Interop.string?(Truffle::Interop.to_java_string('test')).should be_true
   end
 
-  it "return the same object if attempted to be unboxed" do
-    unboxed = Truffle::Interop.unbox_without_conversion(Truffle::Interop.to_java_string('test'))
-    Truffle::Interop.java_string?(unboxed).should be_true
-    Truffle::Interop.from_java_string(unboxed).should == 'test'
+  it "is Interop.java_string?" do
+    Truffle::Interop.java_string?(Truffle::Interop.to_java_string('test')).should be_true
   end
 
   it "are converted to Ruby automatically on the LHS of string concatenation" do

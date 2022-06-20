@@ -518,6 +518,16 @@ public abstract class TruffleDebugNodes {
 
     }
 
+    @CoreMethod(names = "java_character", onSingleton = true)
+    public abstract static class JavaCharacterNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        protected Character javaCharacter() {
+            return 'C';
+        }
+    }
+
     @CoreMethod(names = "foreign_null", onSingleton = true)
     public abstract static class ForeignNullNode extends CoreMethodArrayArgumentsNode {
 

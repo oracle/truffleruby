@@ -76,11 +76,11 @@ describe "Truffle::Interop.scope" do
 
     scope["c"].should == :c
     scope["c"] = :d
-    scope["c"].should == "d"
+    scope["c"].should == :d
 
     scope["a"].should == :a
     scope["a"] = :b
-    scope["a"].should == "b"
+    scope["a"].should == :b
 
     -> { scope["missing"] = "missing" }.should raise_error(NameError)
   end

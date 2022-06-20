@@ -88,19 +88,6 @@ module Truffle
       export(name.to_s, Object.method(name.to_sym))
     end
 
-    def self.export(name, value)
-      export_without_conversion name, to_java_string(value)
-      value
-    end
-
-    def self.import(name)
-      from_java_string(import_without_conversion(name))
-    end
-
-    def self.members(object, internal = false)
-      members_without_conversion(object, internal).map { |key| from_java_string(key) }
-    end
-
     def self.get_members_implementation(object, internal)
       keys = []
 
@@ -125,7 +112,7 @@ module Truffle
         end
       end
 
-      keys.map { |s| Truffle::Interop.to_java_string(s) }
+      keys
     end
     private_class_method :get_members_implementation
 
@@ -229,6 +216,10 @@ module Truffle
       ForeignEnumerable.new(foreign)
     end
 
+    def self.from_java_string(string)
+      Primitive.foreign_string_to_ruby_string(string)
+    end
+
     def self.java_array(*array)
       to_java_array(array)
     end
@@ -278,12 +269,11 @@ module Truffle
     end
 
     def self.boxed?(object)
-      boolean?(object) || string?(object) || number?(object)
+      boolean?(object) || number?(object)
     end
 
     def self.unbox(object)
       return as_boolean object if boolean? object
-      return as_string object if string? object
 
       if number?(object)
         return as_int object if fits_in_int? object
@@ -296,7 +286,6 @@ module Truffle
 
     def self.unbox_without_conversion(object)
       return as_boolean object if boolean? object
-      return as_string_without_conversion object if string? object
 
       if number?(object)
         return as_int object if fits_in_int? object

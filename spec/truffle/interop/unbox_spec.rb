@@ -9,7 +9,6 @@
 require_relative '../../ruby/spec_helper'
 
 describe "Truffle::Interop.unbox" do
-
   it "passes through fixnums" do
     Truffle::Interop.unbox(14).should == 14
   end
@@ -26,16 +25,12 @@ describe "Truffle::Interop.unbox" do
     Truffle::Interop.unbox(false).should == false
   end
 
-  it "unboxes a Ruby string to a Java string" do
-    unboxed = Truffle::Interop.unbox_without_conversion('test')
-    Truffle::Interop.java_string?(unboxed).should be_true
-    Truffle::Interop.from_java_string(unboxed).should == 'test'
+  it "is not supported for a Ruby String" do
+    -> { Truffle::Interop.unbox('test') }.should raise_error(ArgumentError)
   end
 
-  it "unboxes a Ruby symbol to a Java string" do
-    unboxed = Truffle::Interop.unbox_without_conversion(:test)
-    Truffle::Interop.java_string?(unboxed).should be_true
-    Truffle::Interop.from_java_string(unboxed).should == 'test'
+  it "is not supported for a Ruby Symbol" do
+    -> { Truffle::Interop.unbox(:test) }.should raise_error(ArgumentError)
   end
 
   it "is not supported for nil" do
@@ -45,5 +40,4 @@ describe "Truffle::Interop.unbox" do
   it "is not supported for objects which cannot be unboxed" do
     -> { Truffle::Interop.unbox(Object.new) }.should raise_error(ArgumentError)
   end
-
 end

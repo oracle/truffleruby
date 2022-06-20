@@ -16,15 +16,19 @@ describe "Truffle::Interop.members" do
     keys.should be_an_instance_of(Array)
   end
 
-  it "returns an array of Ruby strings by default" do
-    keys = Truffle::Interop.members({'a' => 1, 'b' => 2, 'c' => 3})
-    keys[0].should be_an_instance_of(String)
-  end
+  it "returns an array of interop strings" do
+    keys = Truffle::Interop.members(Object.new)
+    keys.each do |key|
+      Truffle::Interop.should.string? key
+      String.should === key # actually Ruby Strings
+    end
 
-  it "returns an array of Java strings if you don't use conversion" do
-    keys = Truffle::Interop.members_without_conversion({'a' => 1, 'b' => 2, 'c' => 3})
-    key = keys[0]
-    Truffle::Interop.java_string?(key).should be_true
+    members = Truffle::Interop.members(Truffle::Debug.foreign_object_with_members)
+    members.should == ["a", "b", "c", "method1", "method2"]
+    members.each do |key|
+      Truffle::Interop.should.string? key
+      Truffle::Interop.should.java_string? key # actually Java Strings
+    end
   end
 
   it "returns an array of public methods for an array" do

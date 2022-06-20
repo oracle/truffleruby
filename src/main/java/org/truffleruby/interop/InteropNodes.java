@@ -141,7 +141,6 @@ public abstract class InteropNodes {
             }
             return methods.toArray(StringUtils.EMPTY_STRING_ARRAY);
         }
-
     }
 
     @Primitive(name = "interop_execute")
@@ -163,7 +162,6 @@ public abstract class InteropNodes {
         protected Object dispatchMissing() {
             return DispatchNode.MISSING;
         }
-
     }
 
     @CoreMethod(names = "foreign?", onSingleton = true, required = 1)
@@ -173,7 +171,6 @@ public abstract class InteropNodes {
         protected boolean isForeign(Object value) {
             return RubyGuards.isForeignObject(value);
         }
-
     }
 
     @CoreMethod(names = "proxy_foreign_object", onSingleton = true, required = 1, optional = 1)
@@ -190,7 +187,6 @@ public abstract class InteropNodes {
         protected Object proxyForeignObject(Object delegate, Object logger) {
             return new ProxyForeignObject(delegate, logger);
         }
-
     }
     // endregion
 
@@ -402,19 +398,14 @@ public abstract class InteropNodes {
     public abstract static class ExceptionMessageNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
-        protected RubyString getExceptionMessage(Object receiver,
-                @Cached FromJavaStringNode fromJavaStringNode,
+        protected Object getExceptionMessage(Object receiver,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @CachedLibrary("receiver") InteropLibrary receivers,
-                @CachedLibrary(limit = "1") InteropLibrary asStrings) {
-            final String string;
+                @CachedLibrary("receiver") InteropLibrary receivers) {
             try {
-                final Object exceptionMessage = receivers.getExceptionMessage(receiver);
-                string = asStrings.asString(exceptionMessage);
+                return receivers.getExceptionMessage(receiver);
             } catch (UnsupportedMessageException e) {
                 throw translateInteropException.execute(e);
             }
-            return fromJavaStringNode.executeFromJavaString(string);
         }
     }
 
@@ -502,42 +493,26 @@ public abstract class InteropNodes {
     public abstract static class ExecutableNameNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
-        protected RubyString getExecutableName(Object receiver,
-                @Cached FromJavaStringNode fromJavaStringNode,
+        protected Object getExecutableName(Object receiver,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @CachedLibrary("receiver") InteropLibrary receivers,
-                @CachedLibrary(limit = "1") InteropLibrary asStrings) {
-            final String string;
+                @CachedLibrary("receiver") InteropLibrary receivers) {
             try {
-                final Object executableName = receivers.getExecutableName(receiver);
-                string = asStrings.asString(executableName);
+                return receivers.getExecutableName(receiver);
             } catch (UnsupportedMessageException e) {
                 throw translateInteropException.execute(e);
             }
-            return fromJavaStringNode.executeFromJavaString(string);
         }
     }
 
-    @GenerateUncached
-    @GenerateNodeFactory
-    @NodeChild(value = "arguments", type = RubyNode[].class)
     @CoreMethod(names = "execute", onSingleton = true, required = 1, rest = true)
-    public abstract static class ExecuteNode extends RubySourceNode {
-
-        abstract Object execute(Object receiver, Object[] args);
-
-        public static ExecuteNode create() {
-            return InteropNodesFactory.ExecuteNodeFactory.create(null);
-        }
+    public abstract static class ExecuteNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object executeForeignCached(Object receiver, Object[] args,
-                @Cached RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ForeignToRubyNode foreignToRubyNode,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
-            final Object[] convertedArgs = rubyToForeignArgumentsNode.executeConvert(args);
-            final Object foreign = InteropNodes.execute(receiver, convertedArgs, receivers, translateInteropException);
+            final Object foreign = InteropNodes.execute(receiver, args, receivers, translateInteropException);
             return foreignToRubyNode.executeConvert(foreign);
         }
     }
@@ -565,28 +540,17 @@ public abstract class InteropNodes {
         }
     }
 
-    @GenerateUncached
-    @GenerateNodeFactory
-    @NodeChild(value = "arguments", type = RubyNode[].class)
     @CoreMethod(names = "instantiate", onSingleton = true, required = 1, rest = true)
-    public abstract static class InstantiateNode extends RubySourceNode {
-
-        public static InstantiateNode create() {
-            return InteropNodesFactory.InstantiateNodeFactory.create(null);
-        }
-
-        abstract Object execute(Object receiver, Object[] args);
+    public abstract static class InstantiateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object newCached(Object receiver, Object[] args,
-                @Cached RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ForeignToRubyNode foreignToRubyNode,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             final Object foreign;
-
             try {
-                foreign = receivers.instantiate(receiver, rubyToForeignArgumentsNode.executeConvert(args));
+                foreign = receivers.instantiate(receiver, args);
             } catch (InteropException e) {
                 throw translateInteropException.execute(e);
             }
@@ -625,17 +589,8 @@ public abstract class InteropNodes {
 
     }
 
-    @GenerateUncached
-    @GenerateNodeFactory
-    @NodeChild(value = "arguments", type = RubyNode[].class)
     @CoreMethod(names = "read_array_element", onSingleton = true, required = 2)
-    public abstract static class ReadArrayElementNode extends RubySourceNode {
-
-        public static ReadArrayElementNode create() {
-            return InteropNodesFactory.ReadArrayElementNodeFactory.create(null);
-        }
-
-        abstract Object execute(Object receiver, Object identifier);
+    public abstract static class ReadArrayElementNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object readArrayElement(Object receiver, long identifier,
@@ -656,30 +611,6 @@ public abstract class InteropNodes {
     @GenerateUncached
     @GenerateNodeFactory
     @NodeChild(value = "arguments", type = RubyNode[].class)
-    @CoreMethod(names = "read_array_element_without_conversion", onSingleton = true, required = 2)
-    public abstract static class ReadArrayElementWithoutConversionNode extends RubySourceNode {
-
-        public static ReadArrayElementNode create() {
-            return InteropNodesFactory.ReadArrayElementNodeFactory.create(null);
-        }
-
-        abstract Object execute(Object receiver, Object identifier);
-
-        @Specialization(limit = "getInteropCacheLimit()")
-        protected Object readArrayElement(Object receiver, long identifier,
-                @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached TranslateInteropExceptionNode translateInteropException) {
-            try {
-                return receivers.readArrayElement(receiver, identifier);
-            } catch (InteropException e) {
-                throw translateInteropException.execute(e);
-            }
-        }
-    }
-
-    @GenerateUncached
-    @GenerateNodeFactory
-    @NodeChild(value = "arguments", type = RubyNode[].class)
     @CoreMethod(names = "write_array_element", onSingleton = true, required = 3)
     public abstract static class WriteArrayElementNode extends RubySourceNode {
 
@@ -692,10 +623,9 @@ public abstract class InteropNodes {
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object write(Object receiver, long identifier, Object value,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached RubyToForeignNode valueToForeignNode,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             try {
-                receivers.writeArrayElement(receiver, identifier, valueToForeignNode.executeConvert(value));
+                receivers.writeArrayElement(receiver, identifier, value);
             } catch (InteropException e) {
                 throw translateInteropException.execute(e);
             }
@@ -846,28 +776,9 @@ public abstract class InteropNodes {
     @CoreMethod(names = "as_string", onSingleton = true, required = 1)
     public abstract static class AsStringNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
-        protected RubyString asString(Object receiver,
-                @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached FromJavaStringNode fromJavaStringNode,
-                @Cached TranslateInteropExceptionNode translateInteropException) {
-            final String string;
-            try {
-                string = receivers.asString(receiver);
-            } catch (InteropException e) {
-                throw translateInteropException.execute(e);
-            }
-            return fromJavaStringNode.executeFromJavaString(string);
-        }
-    }
-
-    @CoreMethod(names = "as_string_without_conversion", onSingleton = true, required = 1)
-    public abstract static class AsStringWithoutConversionNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization(limit = "getInteropCacheLimit()")
         protected String asString(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
-
             try {
                 return receivers.asString(receiver);
             } catch (InteropException e) {
@@ -879,7 +790,21 @@ public abstract class InteropNodes {
     @CoreMethod(names = "as_truffle_string", onSingleton = true, required = 1)
     public abstract static class AsTruffleStringNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
-        protected RubyString asTruffleString(Object receiver,
+        protected TruffleString asTruffleString(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return receivers.asTruffleString(receiver);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+
+    @Primitive(name = "foreign_string_to_ruby_string")
+    public abstract static class ForeignStringToRubyStringNode extends PrimitiveArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
+        protected RubyString foreignStringToRubyString(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @Cached TruffleString.SwitchEncodingNode switchEncodingNode,
@@ -902,42 +827,18 @@ public abstract class InteropNodes {
                 utf8Bytes = ArrayUtils.extractRange(bytes.getArray(), bytes.getOffset(), bytes.getEnd());
             }
 
-            // TODO: should the resulting RubyString be marked as frozen?
-            return makeStringNode.executeMake(utf8Bytes, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
-        }
-    }
-
-    @CoreMethod(names = "as_truffle_string_without_conversion", onSingleton = true, required = 1)
-    public abstract static class AsTruffleStringWithoutConversionNode extends CoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getInteropCacheLimit()")
-        protected TruffleString asTruffleString(Object receiver,
-                @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached TranslateInteropExceptionNode translateInteropException) {
-            try {
-                return receivers.asTruffleString(receiver);
-            } catch (InteropException e) {
-                throw translateInteropException.execute(e);
-            }
+            var rubyString = makeStringNode.executeMake(utf8Bytes, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+            rubyString.freeze();
+            return rubyString;
         }
     }
 
     @CoreMethod(names = "to_display_string", onSingleton = true, required = 1)
     public abstract static class ToDisplayStringNode extends CoreMethodArrayArgumentsNode {
-
         @Specialization(limit = "getInteropCacheLimit()")
-        protected RubyString toDisplayString(Object receiver,
-                @CachedLibrary("receiver") InteropLibrary receivers,
-                @CachedLibrary(limit = "1") InteropLibrary asStrings,
-                @Cached FromJavaStringNode fromJavaStringNode,
-                @Cached TranslateInteropExceptionNode translateInteropException) {
-            final Object displayString = receivers.toDisplayString(receiver, true);
-            final String string;
-            try {
-                string = asStrings.asString(displayString);
-            } catch (InteropException e) {
-                throw translateInteropException.execute(e);
-            }
-            return fromJavaStringNode.executeFromJavaString(string);
+        protected Object toDisplayString(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.toDisplayString(receiver, true);
         }
     }
 
@@ -1319,7 +1220,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "members_without_conversion", onSingleton = true, required = 1, optional = 1)
+    @CoreMethod(names = "members", onSingleton = true, required = 1, optional = 1)
     public abstract static class GetMembersNode extends PrimitiveArrayArgumentsNode {
 
         protected abstract Object executeMembers(Object receiver, boolean internal);
@@ -1404,11 +1305,10 @@ public abstract class InteropNodes {
         protected Object write(Object receiver, Object identifier, Object value,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ToJavaStringNode toJavaStringNode,
-                @Cached RubyToForeignNode valueToForeignNode,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             final String name = toJavaStringNode.executeToJavaString(identifier);
             try {
-                receivers.writeMember(receiver, name, valueToForeignNode.executeConvert(value));
+                receivers.writeMember(receiver, name, value);
             } catch (InteropException e) {
                 throw translateInteropException.execute(e);
             }
@@ -1479,13 +1379,11 @@ public abstract class InteropNodes {
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object invokeCached(Object receiver, Object identifier, Object[] args,
                 @Cached ToJavaStringNode toJavaStringNode,
-                @Cached RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ForeignToRubyNode foreignToRubyNode,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             final String name = toJavaStringNode.executeToJavaString(identifier);
-            final Object[] arguments = rubyToForeignArgumentsNode.executeConvert(args);
-            final Object foreign = invoke(receivers, receiver, name, arguments, translateInteropException);
+            final Object foreign = invoke(receivers, receiver, name, args, translateInteropException);
             return foreignToRubyNode.executeConvert(foreign);
         }
     }
@@ -1592,14 +1490,14 @@ public abstract class InteropNodes {
     // endregion
 
     // region Import/Export
-    @CoreMethod(names = "export_without_conversion", onSingleton = true, required = 2)
+    @CoreMethod(names = "export", onSingleton = true, required = 2)
     @NodeChild(value = "name", type = RubyNode.class)
     @NodeChild(value = "object", type = RubyNode.class)
-    public abstract static class ExportWithoutConversionNode extends CoreMethodNode {
+    public abstract static class ExportNode extends CoreMethodNode {
 
         @CreateCast("name")
-        protected RubyNode coerceNameToString(RubyNode newName) {
-            return ToJavaStringNode.create(newName);
+        protected RubyNode coerceNameToString(RubyNode name) {
+            return ToJavaStringNode.create(name);
         }
 
         @TruffleBoundary
@@ -1608,24 +1506,24 @@ public abstract class InteropNodes {
             getContext().getEnv().exportSymbol(name, object);
             return object;
         }
-
     }
 
-    @CoreMethod(names = "import_without_conversion", onSingleton = true, required = 1)
+    @CoreMethod(names = "import", onSingleton = true, required = 1)
     @NodeChild(value = "name", type = RubyNode.class)
-    public abstract static class ImportWithoutConversionNode extends CoreMethodNode {
+    public abstract static class ImportNode extends CoreMethodNode {
 
         @CreateCast("name")
-        protected RubyNode coerceNameToString(RubyNode newName) {
-            return ToJavaStringNode.create(newName);
+        protected RubyNode coerceNameToString(RubyNode name) {
+            return ToJavaStringNode.create(name);
         }
 
         @Specialization
         protected Object importObject(String name,
-                @Cached BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile,
+                @Cached ForeignToRubyNode foreignToRubyNode) {
             final Object value = doImport(name);
             if (value != null) {
-                return value;
+                return foreignToRubyNode.executeConvert(value);
             } else {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().nameErrorImportNotFound(name, this));
@@ -1741,7 +1639,6 @@ public abstract class InteropNodes {
         protected boolean isJavaString(Object value) {
             return value instanceof String;
         }
-
     }
 
     @CoreMethod(names = "java_instanceof?", onSingleton = true, required = 2)
@@ -1777,24 +1674,11 @@ public abstract class InteropNodes {
 
     @CoreMethod(names = "to_java_string", onSingleton = true, required = 1)
     public abstract static class InteropToJavaStringNode extends CoreMethodArrayArgumentsNode {
-
         @Specialization
-        protected Object toJavaString(Object value,
-                @Cached RubyToForeignNode toForeignNode) {
-            return toForeignNode.executeConvert(value);
+        protected String toJavaString(Object value,
+                @Cached ToJavaStringNode toJavaStringNode) {
+            return toJavaStringNode.executeToJavaString(value);
         }
-
-    }
-
-    @CoreMethod(names = "from_java_string", onSingleton = true, required = 1)
-    public abstract static class InteropFromJavaStringNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected Object fromJavaString(Object value,
-                @Cached ForeignToRubyNode foreignToRubyNode) {
-            return foreignToRubyNode.executeConvert(value);
-        }
-
     }
 
     @Primitive(name = "interop_to_java_array")
@@ -1967,13 +1851,9 @@ public abstract class InteropNodes {
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object getMetaSimpleName(Object metaObject,
                 @CachedLibrary("metaObject") InteropLibrary interop,
-                @CachedLibrary(limit = "1") InteropLibrary asStrings,
-                @Cached FromJavaStringNode fromJavaStringNode,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             try {
-                final Object simpleName = interop.getMetaSimpleName(metaObject);
-                final String string = asStrings.asString(simpleName);
-                return fromJavaStringNode.executeFromJavaString(string);
+                return interop.getMetaSimpleName(metaObject);
             } catch (UnsupportedMessageException e) {
                 throw translateInteropException.execute(e);
             }
@@ -1985,13 +1865,9 @@ public abstract class InteropNodes {
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object getMetaQualifiedName(Object metaObject,
                 @CachedLibrary("metaObject") InteropLibrary interop,
-                @CachedLibrary(limit = "1") InteropLibrary asStrings,
-                @Cached FromJavaStringNode fromJavaStringNode,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             try {
-                final Object qualifiedName = interop.getMetaQualifiedName(metaObject);
-                final String string = asStrings.asString(qualifiedName);
-                return fromJavaStringNode.executeFromJavaString(string);
+                return interop.getMetaQualifiedName(metaObject);
             } catch (UnsupportedMessageException e) {
                 throw translateInteropException.execute(e);
             }

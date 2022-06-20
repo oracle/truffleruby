@@ -40,10 +40,6 @@ public abstract class RubyGuards {
         return CoreLibrary.fitsIntoInteger(value);
     }
 
-    public static boolean isCharacter(Object value) {
-        return value instanceof Character;
-    }
-
     public static boolean isString(Object value) {
         return value instanceof String;
     }
@@ -77,7 +73,7 @@ public abstract class RubyGuards {
 
     public static boolean assertIsValidRubyValue(Object value) {
         assert value != null : "null flowing in Ruby nodes";
-        if (value instanceof Byte || value instanceof Short || value instanceof Float || value instanceof Character) {
+        if (value instanceof Byte || value instanceof Short || value instanceof Float) {
             assert false : "Invalid primitive flowing in Ruby nodes: " + value + " (" +
                     value.getClass().getSimpleName() + ")";
         }
@@ -85,8 +81,8 @@ public abstract class RubyGuards {
         return true;
     }
 
-    /** Does not include {@link Byte}, {@link Short}, {@link Float}, {@link Character} as those are converted as the
-     * interop boundary and are not implicit casts in {@link RubyTypes}. */
+    /** Does not include {@link Byte}, {@link Short}, {@link Float} as those are converted at the interop boundary in
+     * {@link org.truffleruby.interop.ForeignToRubyNode} and are not implicit casts in {@link RubyTypes}. */
     public static boolean isPrimitive(Object value) {
         assert assertIsValidRubyValue(value);
         return value instanceof Boolean || value instanceof Integer || value instanceof Long || value instanceof Double;

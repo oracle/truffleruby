@@ -13,59 +13,49 @@ guard -> { Truffle::Interop.polyglot_bindings_access? } do
     it "exports an object" do
       object = Object.new
       Truffle::Interop.export :exports_an_object, object
-      Truffle::Interop.import(:exports_an_object).should == object
+      Truffle::Interop.import(:exports_an_object).should.equal? object
     end
 
     it "exports a primitive boolean" do
       Truffle::Interop.export :exports_a_primitive_number, true
-      Truffle::Interop.import(:exports_a_primitive_number).should be_true
+      Truffle::Interop.import(:exports_a_primitive_number).should.equal? true
     end
 
     it "exports a primitive number" do
       Truffle::Interop.export :exports_a_primitive_number, 14
-      Truffle::Interop.import(:exports_a_primitive_number).should == 14
+      Truffle::Interop.import(:exports_a_primitive_number).should.equal? 14
     end
 
     it "exports a string" do
-      Truffle::Interop.export :exports_a_string, 'hello'
-      (Truffle::Interop.import(:exports_a_string) == 'hello').should be_true
+      ruby_string = 'hello'
+      Truffle::Interop.export :exports_a_string, ruby_string
+      Truffle::Interop.import(:exports_a_string).should.equal?(ruby_string)
     end
 
-    it "exports a symbol, getting back a string" do
+    it "exports a symbol" do
       Truffle::Interop.export :exports_a_symbol, :hello
-      (Truffle::Interop.import(:exports_a_symbol) == 'hello').should be_true
+      Truffle::Interop.import(:exports_a_symbol).should.equal? :hello
     end
 
     it "exports a foreign object" do
       foreign_object = Truffle::Debug.foreign_object
       Truffle::Interop.export :exports_a_foreign_object, foreign_object
-      Truffle::Interop.import(:exports_a_foreign_object).equal?(foreign_object).should be_true
+      Truffle::Interop.import(:exports_a_foreign_object).should.equal?(foreign_object)
     end
 
     it "exports a Java string" do
-      Truffle::Interop.export :exports_a_java_string, Truffle::Interop.to_java_string('hello')
-      Truffle::Interop.import(:exports_a_java_string).should == 'hello'
+      java_string = Truffle::Interop.to_java_string('hello')
+      Truffle::Interop.export :exports_a_java_string, java_string
+      Truffle::Interop.import(:exports_a_java_string).should.equal?(java_string)
+      java_string.should == 'hello'
     end
 
-    it "converts to Java when exporting a string" do
-      Truffle::Interop.export :exports_a_string_with_conversion, 'hello'
-      imported = Truffle::Interop.import_without_conversion(:exports_a_string_with_conversion)
-      Truffle::Interop.java_string?(imported).should be_true
-      Truffle::Interop.from_java_string(imported).should == 'hello'
-    end
-
-    it "can export a string without conversion to Java" do
-      Truffle::Interop.export_without_conversion :exports_a_string_without_conversion, 'hello'
-      imported = Truffle::Interop.import_without_conversion(:exports_a_string_without_conversion)
-      Truffle::Interop.java_string?(imported).should be_false
-      imported.should == 'hello'
-    end
-
-    it "can import a string without conversion from Java" do
-      Truffle::Interop.export :imports_a_string_without_conversion, 'hello'
-      imported = Truffle::Interop.import_without_conversion(:imports_a_string_without_conversion)
-      Truffle::Interop.java_string?(imported).should be_true
-      Truffle::Interop.from_java_string(imported).should == 'hello'
+    it "does not convert to Java when exporting a Ruby string" do
+      ruby_string = 'hello'
+      Truffle::Interop.export :exports_a_string_with_conversion, ruby_string
+      imported = Truffle::Interop.import(:exports_a_string_with_conversion)
+      Truffle::Interop.should_not.java_string?(imported)
+      imported.should.equal?(ruby_string)
     end
 
     it "can be used with a string name" do
@@ -85,7 +75,7 @@ guard -> { Truffle::Interop.polyglot_bindings_access? } do
 
     it "returns the original exported value" do
       string = 'hello'
-      Truffle::Interop.export(:returns_original_value, string).equal?(string).should be_true
+      Truffle::Interop.export(:returns_original_value, string).should.equal?(string)
     end
   end
 end

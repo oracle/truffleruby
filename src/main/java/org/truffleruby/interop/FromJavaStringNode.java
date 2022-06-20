@@ -29,20 +29,24 @@ public abstract class FromJavaStringNode extends RubyBaseNode {
         return FromJavaStringNodeGen.create();
     }
 
-    public abstract RubyString executeFromJavaString(Object value);
+    public abstract RubyString executeFromJavaString(String value);
 
     @Specialization(guards = "stringsEquals(cachedValue, value)", limit = "getLimit()")
     protected RubyString doCached(String value,
             @Cached("value") String cachedValue,
             @Cached("getRope(value)") Rope cachedRope,
             @Cached StringNodes.MakeStringNode makeStringNode) {
-        return makeStringNode.fromRope(cachedRope, Encodings.UTF_8);
+        var rubyString = makeStringNode.fromRope(cachedRope, Encodings.UTF_8);
+        rubyString.freeze();
+        return rubyString;
     }
 
     @Specialization(replaces = "doCached")
     protected RubyString doGeneric(String value,
             @Cached StringNodes.MakeStringNode makeStringNode) {
-        return makeStringNode.executeMake(value, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+        var rubyString = makeStringNode.executeMake(value, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+        rubyString.freeze();
+        return rubyString;
     }
 
     protected boolean stringsEquals(String a, String b) {

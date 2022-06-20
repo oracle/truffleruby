@@ -246,6 +246,14 @@ module Polyglot
     end
     alias_method :to_a, :to_ary
 
+    def ==(other)
+      to_ary == other
+    end
+
+    def index(...)
+      to_a.index(...)
+    end
+
     def reverse
       to_a.reverse
     end
@@ -283,7 +291,7 @@ module Polyglot
       if Truffle::Interop.has_exception_stack_trace?(self)
         last_user_location = nil
         Truffle::Interop.exception_stack_trace(self).reverse.filter_map do |entry|
-          method_name = Truffle::Interop.has_executable_name?(entry) ? Truffle::Interop.executable_name(entry) : '<unknown>'
+          method_name = Truffle::Interop.has_executable_name?(entry) ? Truffle::Interop.executable_name(entry).to_s : '<unknown>'
 
           source_location = Truffle::Interop.has_source_location?(entry) && Truffle::Interop.source_location(entry)
           if source_location && source_location.user?
@@ -410,13 +418,22 @@ module Polyglot
   end
 
   module StringTrait
-    def to_str
-      Truffle::Interop.as_string(self)
+    def to_s
+      Primitive.foreign_string_to_ruby_string(self)
     end
-    alias_method :to_s, :to_str
 
-    def inspect
-      to_str.inspect
+    def to_str
+      Primitive.foreign_string_to_ruby_string(self)
+    end
+
+    # asTruffleString() and asString() are both immutable and the only way to access a foreign string (isString())
+    def freeze
+      self
+    end
+
+    # asTruffleString() and asString() are both immutable and the only way to access a foreign string (isString())
+    def frozen?
+      true
     end
   end
 
@@ -474,19 +491,19 @@ module Polyglot
 
     def instance_variables
       return [] unless Truffle::Interop.has_members?(self)
-      Truffle::Interop.members_without_conversion(self).filter_map do |member|
+      Truffle::Interop.members(self).filter_map do |member|
         # Ruby does not have the concept of non-readable members, ignore those
         if Truffle::Interop.member_readable?(self, member) &&
             !Truffle::Interop.member_invocable?(self, member)
-          member.to_s.to_sym
+          member.to_sym
         end
       end
     end
 
     def methods(regular = true)
       if regular
-        super() | Truffle::Interop.members_without_conversion(self).filter_map do |member|
-          member.to_s.to_sym if Truffle::Interop.member_invocable?(self, member)
+        super() | Truffle::Interop.members(self).filter_map do |member|
+          member.to_sym if Truffle::Interop.member_invocable?(self, member)
         end
       else
         super(regular)
