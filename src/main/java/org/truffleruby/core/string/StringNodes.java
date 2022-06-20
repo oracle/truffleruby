@@ -93,7 +93,6 @@ import org.jcodings.Config;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -929,10 +928,10 @@ public abstract class StringNodes {
                 @Cached TruffleString.ReadByteNode readByteNode) {
             var tstring = strings.getTString(string);
             var encoding = strings.getEncoding(string).tencoding;
-            int arrayLength = tstring.byteLength(encoding);
 
+            // String#bytes reflects changes by the block to the string's bytes
             materializeNode.execute(tstring, encoding);
-            for (int i = 0; i < arrayLength; i++) {
+            for (int i = 0; i < tstring.byteLength(encoding); i++) {
                 callBlock(block, readByteNode.execute(tstring, i, encoding));
             }
 
@@ -1436,29 +1435,18 @@ public abstract class StringNodes {
     @CoreMethod(names = "each_byte", needsBlock = true, enumeratorSize = "bytesize")
     public abstract static class EachByteNode extends YieldingCoreMethodNode {
 
-        @SuppressFBWarnings("SA")
         @Specialization
         protected Object eachByte(Object string, RubyProc block,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
-                @Cached ConditionProfile stringChangedProfile) {
+                @Cached TruffleString.MaterializeNode materializeNode,
+                @Cached TruffleString.ReadByteNode readByteNode) {
             var tstring = strings.getTString(string);
             var encoding = strings.getEncoding(string).tencoding;
 
-            var byteArray = byteArrayNode.execute(tstring, encoding);
-            var bytes = byteArray.getArray();
-
-            for (int i = 0; i < byteArray.getLength(); i++) {
-                callBlock(block, bytes[i + byteArray.getOffset()] & 0xff);
-
-                // Don't be tempted to extract the rope from the passed string. If the block being yielded to modifies the
-                // source string, you'll get a different rope.
-                var updatedTString = strings.getTString(string);
-                if (stringChangedProfile.profile(tstring != updatedTString)) {
-                    tstring = updatedTString;
-                    byteArray = byteArrayNode.execute(tstring, strings.getEncoding(string).tencoding);
-                    bytes = byteArray.getArray();
-                }
+            // String#each_byte reflects changes by the block to the string's bytes
+            materializeNode.execute(tstring, encoding);
+            for (int i = 0; i < tstring.byteLength(encoding); i++) {
+                callBlock(block, readByteNode.execute(tstring, i, encoding));
             }
 
             return string;
