@@ -902,9 +902,10 @@ public abstract class StringNodes {
     @CoreMethod(names = "bytes", needsBlock = true)
     public abstract static class StringBytesNode extends YieldingCoreMethodNode {
 
-        @Specialization
+        @Specialization(limit = "LIBSTRING_CACHE")
         protected RubyArray bytes(Object string, Nil block,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                // use separate specialization instances for getTString() in the loop
+                @CachedLibrary(/* ^ */"string") RubyStringLibrary strings,
                 @Cached TruffleString.MaterializeNode materializeNode,
                 @Cached TruffleString.ReadByteNode readByteNode) {
             var tstring = strings.getTString(string);
@@ -921,9 +922,10 @@ public abstract class StringNodes {
             return createArray(store);
         }
 
-        @Specialization
+        @Specialization(limit = "LIBSTRING_CACHE")
         protected Object bytes(Object string, RubyProc block,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                // use separate specialization instances for getTString() in the loop
+                @CachedLibrary(/* ^ */"string") RubyStringLibrary strings,
                 @Cached TruffleString.MaterializeNode materializeNode,
                 @Cached TruffleString.ReadByteNode readByteNode) {
             var tstring = strings.getTString(string);
@@ -1439,9 +1441,10 @@ public abstract class StringNodes {
     @CoreMethod(names = "each_byte", needsBlock = true, enumeratorSize = "bytesize")
     public abstract static class EachByteNode extends YieldingCoreMethodNode {
 
-        @Specialization
+        @Specialization(limit = "LIBSTRING_CACHE")
         protected Object eachByte(Object string, RubyProc block,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                // use separate specialization instances for getTString() in the loop
+                @CachedLibrary(/* ^ */ "string") RubyStringLibrary strings,
                 @Cached TruffleString.MaterializeNode materializeNode,
                 @Cached TruffleString.ReadByteNode readByteNode) {
             var tstring = strings.getTString(string);

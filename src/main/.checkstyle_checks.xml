@@ -217,7 +217,7 @@
     </module>
     <module name="RegexpSinglelineJava">
       <property name="format" value='@CachedLibrary\(".+RubyStringLibrary'/>
-      <property name="message" value="Use @CachedLibrary(limit = &quot;2&quot;) RubyStringLibrary instead."/>
+      <property name="message" value="Use @CachedLibrary(limit = &quot;LIBSTRING_CACHE&quot;) RubyStringLibrary instead."/>
     </module>
     <module name="RegexpSinglelineJava">
       <property name="format" value='@CachedLibrary\(".+\.store"\) ArrayStoreLibrary'/>
