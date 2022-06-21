@@ -10,12 +10,9 @@
 package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.strings.TruffleString;
-import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.Encodings;
-import org.truffleruby.core.encoding.TStringUtils;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -36,29 +33,13 @@ public class CoreString {
         this.literal = literal;
     }
 
-    public Rope getRope() {
-        if (rope == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-
-            rope = language.ropeCache.getRope(
-                    StringOperations.encodeAsciiBytes(literal),
-                    // Binary because error message Strings have a ASCII-8BIT encoding on MRI.
-                    // When used for creating a Symbol, the encoding is adapted as needed.
-                    ASCIIEncoding.INSTANCE,
-                    CodeRange.CR_7BIT);
-        }
-
-        return rope;
-    }
-
     public TruffleString getTruffleString() {
         if (tstring == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
 
             // Binary because error message Strings have a ASCII-8BIT encoding on MRI.
             // When used for creating a Symbol, the encoding is adapted as needed.
-            // TODO: use RopeCache equivalent
-            tstring = TStringUtils.fromByteArray(StringOperations.encodeAsciiBytes(literal), Encodings.BINARY);
+            tstring = language.tstringCache.getTString(StringOperations.encodeAsciiBytes(literal), Encodings.BINARY);
         }
 
         return tstring;
