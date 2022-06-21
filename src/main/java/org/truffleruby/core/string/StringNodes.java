@@ -932,7 +932,11 @@ public abstract class StringNodes {
             // String#bytes reflects changes by the block to the string's bytes
             materializeNode.execute(tstring, encoding);
             for (int i = 0; i < tstring.byteLength(encoding); i++) {
-                callBlock(block, readByteNode.execute(tstring, i, encoding));
+                int singleByte = readByteNode.execute(tstring, i, encoding);
+                callBlock(block, singleByte);
+
+                tstring = strings.getTString(string);
+                encoding = strings.getEncoding(string).tencoding;
             }
 
             return string;
@@ -1446,7 +1450,11 @@ public abstract class StringNodes {
             // String#each_byte reflects changes by the block to the string's bytes
             materializeNode.execute(tstring, encoding);
             for (int i = 0; i < tstring.byteLength(encoding); i++) {
-                callBlock(block, readByteNode.execute(tstring, i, encoding));
+                int singleByte = readByteNode.execute(tstring, i, encoding);
+                callBlock(block, singleByte);
+
+                tstring = strings.getTString(string);
+                encoding = strings.getEncoding(string).tencoding;
             }
 
             return string;
