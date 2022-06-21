@@ -59,7 +59,7 @@ public class BuildInformationProcessor extends TruffleRubyProcessor {
             buildName = System.getenv("TRUFFLERUBY_BUILD_NAME");
             fullRevision = runCommand("git rev-parse HEAD");
             shortRevision = fullRevision.substring(0, 8);
-            isDirty = !runCommand("git status --porcelain").isBlank();
+            isDirty = runCommand("git status --porcelain") != null;
             compileDate = runCommand("git log -1 --date=short --pretty=format:%cd");
             copyrightYear = Integer.parseInt(compileDate.split("\\-")[0]);
             kernelMajorVersion = findKernelMajorVersion();
