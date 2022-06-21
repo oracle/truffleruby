@@ -777,7 +777,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         if (path.startsWith(coreLoadPath)) {
             return "<internal:core> " + path.substring(coreLoadPath.length() + 1);
         } else {
-            return getPath(source);
+            return path;
         }
     }
 
