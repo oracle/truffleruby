@@ -47,7 +47,7 @@ public class BuildInformationProcessor extends TruffleRubyProcessor {
     private String shortRevision;
     private String fullRevision;
     private String compileDate;
-    private String copyrightYear;
+    private int copyrightYear;
     private String kernelMajorVersion;
 
     @Override
@@ -59,7 +59,7 @@ public class BuildInformationProcessor extends TruffleRubyProcessor {
             fullRevision = runCommand("git rev-parse HEAD");
             shortRevision = fullRevision.substring(0, 8);
             compileDate = runCommand("git log -1 --date=short --pretty=format:%cd");
-            copyrightYear = compileDate.split("\\-")[0];
+            copyrightYear = Integer.parseInt(compileDate.split("\\-")[0]);
             kernelMajorVersion = findKernelMajorVersion();
         } catch (Throwable e) {
             throw new Error(e);

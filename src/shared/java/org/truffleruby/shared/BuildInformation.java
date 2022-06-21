@@ -20,7 +20,7 @@ public interface BuildInformation {
 
     String getFullRevision();
 
-    String getCopyrightYear();
+    int getCopyrightYear();
 
     String getCompileDate();
 
