@@ -1247,7 +1247,7 @@ class String
     str = frozen? ? self : dup.freeze
     if Primitive.string_interned?(self)
       self
-    elsif !(str.instance_variables).empty?
+    elsif Primitive.any_instance_variable?(str)
       str
     else
       Primitive.string_intern(str)

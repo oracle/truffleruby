@@ -1150,6 +1150,29 @@ public abstract class KernelNodes {
 
     }
 
+    @Primitive(name = "any_instance_variable?")
+    public abstract static class AnyInstanceVariableNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(limit = "getDynamicObjectCacheLimit()")
+        protected boolean any(RubyDynamicObject self,
+                @CachedLibrary("self") DynamicObjectLibrary objectLibrary) {
+            Object[] keys = objectLibrary.getKeyArray(self);
+
+            for (Object key : keys) {
+                if (key instanceof String) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        @Specialization(guards = "!isRubyDynamicObject(self)")
+        protected boolean noVariablesInImmutableObject(Object self) {
+            return false;
+        }
+    }
+
     @CoreMethod(names = { "is_a?", "kind_of?" }, required = 1)
     public abstract static class KernelIsANode extends CoreMethodArrayArgumentsNode {
 
