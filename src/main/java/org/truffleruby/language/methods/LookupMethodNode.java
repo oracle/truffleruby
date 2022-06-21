@@ -64,7 +64,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             @Cached("name") String cachedName,
             @Cached("config") DispatchConfiguration cachedConfig,
             @Cached("metaClass.methodNamesToIndex") SharedIndicesMap cachedMethodNamesToIndex,
-            @Cached("cachedMethodNamesToIndex.lookup(name)") Integer index,
+            @Cached("cachedMethodNamesToIndex.lookup(name)") int index,
             @Cached("lookupCachedVTable(getContext(), frame, cachedMetaClass, config, index)") MethodLookupResult methodLookupResult) {
 
         return methodLookupResult.getMethod();
@@ -82,7 +82,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             @Cached("name") String cachedName,
             @Cached("config") DispatchConfiguration cachedConfig,
             @Cached("metaClass.methodNamesToIndex") SharedIndicesMap cachedMethodNamesToIndex,
-            @Cached("cachedMethodNamesToIndex.lookup(name)") Integer index,
+            @Cached("cachedMethodNamesToIndex.lookup(name)") int index,
             @Cached MetaClassNode metaClassNode,
             @Cached ConditionProfile noCallerMethodProfile,
             @Cached ConditionProfile notFoundProfile,
