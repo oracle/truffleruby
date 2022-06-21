@@ -512,7 +512,7 @@ public class RubyContext {
 
         Signals.restoreDefaultHandlers();
 
-        if (options.ROPE_PRINT_INTERN_STATS) {
+        if (options.PRINT_INTERNED_TSTRING_STATS) {
             RubyLanguage.LOGGER.info("tstrings re-used: " + language.tstringCache.getTStringsReusedCount());
             RubyLanguage.LOGGER.info("tstring byte arrays re-used: " + language.tstringCache.getByteArrayReusedCount());
             RubyLanguage.LOGGER.info("tstring bytes saved: " + language.tstringCache.getTStringBytesSaved());

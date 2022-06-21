@@ -100,7 +100,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> LAZY_TRANSLATION_LOG_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LOG_DYNAMIC_CONSTANT_LOOKUP_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LOG_PENDING_INTERRUPTS_KEY = new OptionKey<>(false);
-    public static final OptionKey<Boolean> ROPE_PRINT_INTERN_STATS_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> PRINT_INTERNED_TSTRING_STATS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> CEXTS_TO_NATIVE_STATS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> CEXTS_TO_NATIVE_COUNT_KEY = new OptionKey<>(CEXTS_TO_NATIVE_STATS_KEY.getDefaultValue());
     public static final OptionKey<Boolean> LAZY_BUILTINS_KEY = new OptionKey<>(LAZY_CALLTARGETS_KEY.getDefaultValue());
@@ -804,9 +804,9 @@ public class OptionsCatalog {
             .usageSyntax("")
             .build();
 
-    public static final OptionDescriptor ROPE_PRINT_INTERN_STATS = OptionDescriptor
-            .newBuilder(ROPE_PRINT_INTERN_STATS_KEY, "ruby.rope-print-intern-stats")
-            .help("Print interned rope stats at application exit")
+    public static final OptionDescriptor PRINT_INTERNED_TSTRING_STATS = OptionDescriptor
+            .newBuilder(PRINT_INTERNED_TSTRING_STATS_KEY, "ruby.print-interned-tstring-stats")
+            .help("Print interned tstring stats at application exit")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
             .usageSyntax("")
@@ -1470,8 +1470,8 @@ public class OptionsCatalog {
                 return LOG_DYNAMIC_CONSTANT_LOOKUP;
             case "ruby.log-pending-interrupts":
                 return LOG_PENDING_INTERRUPTS;
-            case "ruby.rope-print-intern-stats":
-                return ROPE_PRINT_INTERN_STATS;
+            case "ruby.print-interned-tstring-stats":
+                return PRINT_INTERNED_TSTRING_STATS;
             case "ruby.cexts-to-native-stats":
                 return CEXTS_TO_NATIVE_STATS;
             case "ruby.cexts-to-native-count":
@@ -1683,7 +1683,7 @@ public class OptionsCatalog {
             LAZY_TRANSLATION_LOG,
             LOG_DYNAMIC_CONSTANT_LOOKUP,
             LOG_PENDING_INTERRUPTS,
-            ROPE_PRINT_INTERN_STATS,
+            PRINT_INTERNED_TSTRING_STATS,
             CEXTS_TO_NATIVE_STATS,
             CEXTS_TO_NATIVE_COUNT,
             LAZY_BUILTINS,

@@ -160,8 +160,8 @@ public class Options {
     public final boolean BUILDING_CORE_CEXTS;
     /** --log-pending-interrupts=false */
     public final boolean LOG_PENDING_INTERRUPTS;
-    /** --rope-print-intern-stats=false */
-    public final boolean ROPE_PRINT_INTERN_STATS;
+    /** --print-interned-tstring-stats=false */
+    public final boolean PRINT_INTERNED_TSTRING_STATS;
     /** --cexts-to-native-stats=false */
     public final boolean CEXTS_TO_NATIVE_STATS;
     /** --cexts-to-native-count=CEXTS_TO_NATIVE_STATS */
@@ -278,7 +278,7 @@ public class Options {
         ARGV_GLOBAL_FLAGS = options.get(OptionsCatalog.ARGV_GLOBAL_FLAGS_KEY);
         BUILDING_CORE_CEXTS = options.get(OptionsCatalog.BUILDING_CORE_CEXTS_KEY);
         LOG_PENDING_INTERRUPTS = options.get(OptionsCatalog.LOG_PENDING_INTERRUPTS_KEY);
-        ROPE_PRINT_INTERN_STATS = options.get(OptionsCatalog.ROPE_PRINT_INTERN_STATS_KEY);
+        PRINT_INTERNED_TSTRING_STATS = options.get(OptionsCatalog.PRINT_INTERNED_TSTRING_STATS_KEY);
         CEXTS_TO_NATIVE_STATS = options.get(OptionsCatalog.CEXTS_TO_NATIVE_STATS_KEY);
         CEXTS_TO_NATIVE_COUNT = options.hasBeenSet(OptionsCatalog.CEXTS_TO_NATIVE_COUNT_KEY) ? options.get(OptionsCatalog.CEXTS_TO_NATIVE_COUNT_KEY) : CEXTS_TO_NATIVE_STATS;
         BASICOPS_LOG_REWRITE = options.get(OptionsCatalog.BASICOPS_LOG_REWRITE_KEY);
@@ -442,8 +442,8 @@ public class Options {
                 return BUILDING_CORE_CEXTS;
             case "ruby.log-pending-interrupts":
                 return LOG_PENDING_INTERRUPTS;
-            case "ruby.rope-print-intern-stats":
-                return ROPE_PRINT_INTERN_STATS;
+            case "ruby.print-interned-tstring-stats":
+                return PRINT_INTERNED_TSTRING_STATS;
             case "ruby.cexts-to-native-stats":
                 return CEXTS_TO_NATIVE_STATS;
             case "ruby.cexts-to-native-count":
