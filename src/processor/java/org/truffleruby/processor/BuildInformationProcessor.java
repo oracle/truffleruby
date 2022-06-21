@@ -174,7 +174,7 @@ public class BuildInformationProcessor extends TruffleRubyProcessor {
                 if (e instanceof ExecutableElement) {
                     final String name = e.getSimpleName().toString();
 
-                    final String value;
+                    final Object value;
                     switch (name) {
                         case "getBuildName":
                             value = buildName;
@@ -184,6 +184,9 @@ public class BuildInformationProcessor extends TruffleRubyProcessor {
                             break;
                         case "getFullRevision":
                             value = fullRevision;
+                            break;
+                        case "isDirty":
+                            value = isDirty;
                             break;
                         case "getCopyrightYear":
                             value = copyrightYear;
@@ -199,11 +202,13 @@ public class BuildInformationProcessor extends TruffleRubyProcessor {
                     }
 
                     stream.println("    @Override");
-                    stream.println("    public String " + name + "() {");
+                    stream.println("    public " + ((ExecutableElement) e).getReturnType() + " " + name + "() {");
                     if (value == null) {
                         stream.println("        return null;");
-                    } else {
+                    } else if (value instanceof String) {
                         stream.println("        return \"" + value + "\";");
+                    } else {
+                        stream.println("        return " + value + ";");
                     }
                     stream.println("    }");
                     stream.println();
