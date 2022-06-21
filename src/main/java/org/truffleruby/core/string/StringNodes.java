@@ -2777,15 +2777,15 @@ public abstract class StringNodes {
         protected double toF(Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             try {
-                return convertToDouble(strings.getRope(string));
+                return convertToDouble(strings.getTString(string), strings.getEncoding(string));
             } catch (NumberFormatException e) {
                 return 0;
             }
         }
 
         @TruffleBoundary
-        private double convertToDouble(Rope rope) {
-            return new DoubleConverter().parse(rope, false, true);
+        private double convertToDouble(AbstractTruffleString rope, RubyEncoding encoding) {
+            return new DoubleConverter().parse(rope, encoding, false, true);
         }
     }
 
@@ -4182,9 +4182,9 @@ public abstract class StringNodes {
         @Specialization
         protected Object stringToF(Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @Cached FixnumOrBignumNode fixnumOrBignumNode,
-                @Cached BytesNode bytesNode) {
-            final Rope rope = strings.getRope(string);
+                @Cached FixnumOrBignumNode fixnumOrBignumNode) {
+            var rope = strings.getTString(string);
+            var encoding = strings.getEncoding(string);
             if (rope.isEmpty()) {
                 return nil;
             }
@@ -4200,8 +4200,8 @@ public abstract class StringNodes {
                                     getContext(),
                                     this,
                                     fixnumOrBignumNode,
-                                    bytesNode,
                                     rope,
+                                    encoding,
                                     16,
                                     true);
                     if (result instanceof Integer) {
@@ -4216,7 +4216,7 @@ public abstract class StringNodes {
                 }
             }
             try {
-                return new DoubleConverter().parse(rope, true, true);
+                return new DoubleConverter().parse(rope, encoding, true, true);
             } catch (NumberFormatException e) {
                 return nil;
             }
@@ -4604,15 +4604,15 @@ public abstract class StringNodes {
                 @Cached TruffleString.ParseLongNode parseLongNode,
                 @Cached BranchProfile notLazyLongProfile,
                 @Cached FixnumOrBignumNode fixnumOrBignumNode,
-                @Cached BytesNode bytesNode,
                 @Cached BranchProfile exceptionProfile) {
             var tstring = libString.getTString(string);
             try {
                 return parseLongNode.execute(tstring, 10);
             } catch (TruffleString.NumberFormatException e) {
                 notLazyLongProfile.enter();
-                Rope rope = libString.getRope(string);
-                return bytesToInum(rope, base, strict, raiseOnError, fixnumOrBignumNode, bytesNode, exceptionProfile);
+                var rope = libString.getTString(string);
+                var encoding = libString.getEncoding(string);
+                return bytesToInum(rope, encoding, base, strict, raiseOnError, fixnumOrBignumNode, exceptionProfile);
             }
         }
 
@@ -4624,7 +4624,6 @@ public abstract class StringNodes {
                 @Cached ConditionProfile notEmptyProfile,
                 @Cached BranchProfile notLazyLongProfile,
                 @Cached FixnumOrBignumNode fixnumOrBignumNode,
-                @Cached BytesNode bytesNode,
                 @Cached BranchProfile exceptionProfile) {
             var tstring = libString.getTString(string);
             var enc = libString.getEncoding(string);
@@ -4645,8 +4644,9 @@ public abstract class StringNodes {
                 }
             }
 
-            Rope rope = libString.getRope(string);
-            return bytesToInum(rope, base, strict, raiseOnError, fixnumOrBignumNode, bytesNode, exceptionProfile);
+            var rope = libString.getTString(string);
+            var encoding = libString.getEncoding(string);
+            return bytesToInum(rope, encoding, base, strict, raiseOnError, fixnumOrBignumNode, exceptionProfile);
         }
 
         @Specialization(guards = { "base != 10", "base != 0" })
@@ -4655,21 +4655,21 @@ public abstract class StringNodes {
                 @Cached FixnumOrBignumNode fixnumOrBignumNode,
                 @Cached BytesNode bytesNode,
                 @Cached BranchProfile exceptionProfile) {
-            Rope rope = libString.getRope(string);
-            return bytesToInum(rope, base, strict, raiseOnError, fixnumOrBignumNode, bytesNode, exceptionProfile);
+            var rope = libString.getTString(string);
+            var encoding = libString.getEncoding(string);
+            return bytesToInum(rope, encoding, base, strict, raiseOnError, fixnumOrBignumNode, exceptionProfile);
         }
 
-        private Object bytesToInum(Rope rope, int base, boolean strict, boolean raiseOnError,
-                FixnumOrBignumNode fixnumOrBignumNode,
-                BytesNode bytesNode,
+        private Object bytesToInum(AbstractTruffleString rope, RubyEncoding encoding, int base, boolean strict,
+                boolean raiseOnError, FixnumOrBignumNode fixnumOrBignumNode,
                 BranchProfile exceptionProfile) {
             try {
                 return ConvertBytes.bytesToInum(
                         getContext(),
                         this,
                         fixnumOrBignumNode,
-                        bytesNode,
                         rope,
+                        encoding,
                         base,
                         strict);
             } catch (RaiseException e) {

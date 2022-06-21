@@ -17,12 +17,12 @@ import java.math.BigInteger;
 import java.util.Arrays;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
-import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -32,7 +32,7 @@ public class ConvertBytes {
     private final RubyContext context;
     private final Node caller;
     private final FixnumOrBignumNode fixnumOrBignumNode;
-    private final Rope rope;
+    private final AbstractTruffleString rope;
     private int p;
     private int end;
     private byte[] data;
@@ -43,19 +43,21 @@ public class ConvertBytes {
             RubyContext context,
             Node caller,
             FixnumOrBignumNode fixnumOrBignumNode,
-            RopeNodes.BytesNode bytesNode,
-            Rope rope,
+            AbstractTruffleString rope,
+            RubyEncoding encoding,
             int base,
             boolean badcheck) {
         assert rope != null;
+
+        var byteArray = rope.getInternalByteArrayUncached(encoding.tencoding);
 
         this.context = context;
         this.caller = caller;
         this.fixnumOrBignumNode = fixnumOrBignumNode;
         this.rope = rope;
-        this.p = 0;
-        this.data = bytesNode.execute(rope);
-        this.end = data.length;
+        this.p = byteArray.getOffset();
+        this.data = byteArray.getArray();
+        this.end = byteArray.getEnd();
         this.badcheck = badcheck;
         this.base = base;
     }
@@ -70,9 +72,8 @@ public class ConvertBytes {
 
     /** rb_cstr_to_inum */
     public static Object bytesToInum(RubyContext context, Node caller, FixnumOrBignumNode fixnumOrBignumNode,
-            RopeNodes.BytesNode bytesNode,
-            Rope rope, int base, boolean badcheck) {
-        return new ConvertBytes(context, caller, fixnumOrBignumNode, bytesNode, rope, base, badcheck).bytesToInum();
+            AbstractTruffleString rope, RubyEncoding encoding, int base, boolean badcheck) {
+        return new ConvertBytes(context, caller, fixnumOrBignumNode, rope, encoding, base, badcheck).bytesToInum();
     }
 
     /** conv_digit */
@@ -535,7 +536,7 @@ public class ConvertBytes {
     private void invalidString() {
         throw new RaiseException(
                 context,
-                context.getCoreExceptions().argumentErrorInvalidStringToInteger(rope, caller));
+                context.getCoreExceptions().argumentErrorInvalidStringToInteger(rope.toJavaStringUncached(), caller));
     }
 
     public static final byte[] intToBinaryBytes(int i) {

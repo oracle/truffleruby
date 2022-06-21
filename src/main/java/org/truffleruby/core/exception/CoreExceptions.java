@@ -31,7 +31,6 @@ import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
@@ -255,9 +254,8 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public RubyException argumentErrorInvalidStringToInteger(Rope rope, Node currentNode) {
-        final String formattedObject = RopeOperations.decodeRope(rope);
-        return argumentError(StringUtils.format("invalid value for Integer(): %s", formattedObject), currentNode);
+    public RubyException argumentErrorInvalidStringToInteger(String string, Node currentNode) {
+        return argumentError("invalid value for Integer(): " + string, currentNode);
     }
 
     @TruffleBoundary
