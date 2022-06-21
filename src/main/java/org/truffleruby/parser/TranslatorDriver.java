@@ -370,18 +370,15 @@ public class TranslatorDriver {
     }
 
     private String getMethodName(ParserContext parserContext, MaterializedFrame parentFrame) {
-        switch (parserContext) {
-            case TOP_LEVEL_FIRST:
-                return "<main>";
-            case TOP_LEVEL:
-                return "<top (required)>";
-            default:
-                if (parentFrame != null) {
-                    return RubyArguments.getMethod(parentFrame).getName();
-                } else {
-                    throw new UnsupportedOperationException(
-                            "Could not determine the method name for parser context " + parserContext);
-                }
+        if (parserContext.isTopLevel()) {
+            return parserContext.getTopLevelName();
+        } else {
+            if (parentFrame != null) {
+                return RubyArguments.getMethod(parentFrame).getName();
+            } else {
+                throw new UnsupportedOperationException(
+                        "Could not determine the method name for parser context " + parserContext);
+            }
         }
     }
 

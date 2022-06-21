@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.methods;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.RubyModule;
@@ -20,6 +21,8 @@ import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.parser.ArgumentDescriptor;
 
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.parser.OpenModule;
+import org.truffleruby.parser.ParserContext;
 
 /** {@link InternalMethod} objects are copied as properties such as visibility are changed. {@link SharedMethodInfo}
  * stores the state that does not change, such as where the method was defined. */
@@ -124,6 +127,27 @@ public class SharedMethodInfo {
 
     public boolean isBlock() {
         return blockDepth > 0;
+    }
+
+    @TruffleBoundary
+    public boolean isModuleBody() {
+        boolean isModuleBody = isModuleBody(getBacktraceName());
+        assert !(isModuleBody && isBlock()) : this;
+        return isModuleBody;
+    }
+
+    public static boolean isModuleBody(String name) {
+        // Handles cases: <main> | <top (required)> | <module: | <class: | <singleton
+        if (name.startsWith("<")) {
+            assert name.equals(ParserContext.TOP_LEVEL_FIRST.getTopLevelName()) ||
+                    name.equals(ParserContext.TOP_LEVEL.getTopLevelName()) ||
+                    name.startsWith(OpenModule.MODULE.getPrefix()) ||
+                    name.startsWith(OpenModule.CLASS.getPrefix()) ||
+                    name.startsWith(OpenModule.SINGLETON_CLASS.getPrefix()) : name;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public String getBacktraceName() {

@@ -9,7 +9,7 @@
  */
 package org.truffleruby.parser;
 
-enum OpenModule {
+public enum OpenModule {
     MODULE("<module:"),
     CLASS("<class:"),
     SINGLETON_CLASS("<singleton class");
@@ -26,5 +26,9 @@ enum OpenModule {
         } else {
             return prefix + moduleName + ">";
         }
+    }
+
+    public String getPrefix() {
+        return prefix;
     }
 }

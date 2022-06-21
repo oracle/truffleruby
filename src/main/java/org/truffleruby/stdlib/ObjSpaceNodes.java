@@ -29,6 +29,7 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.AllocationTracing.AllocationTrace;
 import org.truffleruby.language.objects.ObjectGraph;
 
@@ -194,7 +195,7 @@ public abstract class ObjSpaceNodes {
                 return nil;
             } else {
                 final String allocatingMethod = trace.allocatingMethod;
-                if (allocatingMethod.startsWith("<")) { // <top (required)> or <main> are hidden in MRI
+                if (SharedMethodInfo.isModuleBody(allocatingMethod)) { // <top (required)> or <main> are hidden in MRI
                     return nil;
                 } else if (allocatingMethod.equals("__allocate__")) { // The allocator function is hidden in MRI
                     return getLanguage().coreSymbols.NEW;
