@@ -1630,8 +1630,10 @@ public abstract class StringNodes {
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyString initializeJavaString(RubyString string, String from, RubyEncoding encoding) {
-            string.setRope(StringOperations.encodeRope(from, encoding.jcoding), encoding);
+        protected RubyString initializeJavaString(RubyString string, String from, RubyEncoding encoding,
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
+            var tstring = fromJavaStringNode.execute(from, encoding.tencoding);
+            string.setTString(tstring, encoding);
             return string;
         }
 
@@ -1647,7 +1649,7 @@ public abstract class StringNodes {
         @Specialization(guards = "stringsFrom.isRubyString(from)")
         protected RubyString initialize(RubyString string, Object from, Object encoding,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsFrom) {
-            string.setRope(stringsFrom.getRope(from), stringsFrom.getEncoding(from));
+            string.setTString(stringsFrom.getTString(from), stringsFrom.getEncoding(from));
             return string;
         }
 
@@ -1656,7 +1658,7 @@ public abstract class StringNodes {
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringLibrary,
                 @Cached ToStrNode toStrNode) {
             final Object stringFrom = toStrNode.execute(from);
-            string.setRope(stringLibrary.getRope(stringFrom), stringLibrary.getEncoding(stringFrom));
+            string.setTString(stringLibrary.getTString(stringFrom), stringLibrary.getEncoding(stringFrom));
             return string;
         }
 

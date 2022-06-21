@@ -187,8 +187,10 @@ public abstract class DigestNodes {
         @Specialization(guards = "strings.isRubyString(message)")
         protected RubyString bubblebabble(Object message,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            final Rope rope = strings.getRope(message);
-            final byte[] bubblebabbleBytes = bubblebabble(rope.getBytes(), 0, rope.byteLength()).getBytes();
+            var rope = strings.getTString(message);
+            var byteArray = rope.getInternalByteArrayUncached(strings.getTEncoding(message));
+            final byte[] bubblebabbleBytes = bubblebabble(byteArray.getArray(), byteArray.getOffset(),
+                    byteArray.getLength()).getBytes();
 
             return makeStringNode.executeMake(bubblebabbleBytes, Encodings.UTF_8, CodeRange.CR_7BIT);
         }

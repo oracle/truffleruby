@@ -617,7 +617,7 @@ public abstract class ModuleNodes {
                                 this));
             }
 
-            if (libFilename.getRope(filename).isEmpty()) {
+            if (libFilename.getTString(filename).isEmpty()) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("empty file name", this));
             }
 
