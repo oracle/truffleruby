@@ -46,6 +46,7 @@ public class BuildInformationProcessor extends TruffleRubyProcessor {
     private String buildName;
     private String shortRevision;
     private String fullRevision;
+    private boolean isDirty;
     private String compileDate;
     private int copyrightYear;
     private String kernelMajorVersion;
@@ -58,6 +59,7 @@ public class BuildInformationProcessor extends TruffleRubyProcessor {
             buildName = System.getenv("TRUFFLERUBY_BUILD_NAME");
             fullRevision = runCommand("git rev-parse HEAD");
             shortRevision = fullRevision.substring(0, 8);
+            isDirty = !runCommand("git status --porcelain").isBlank();
             compileDate = runCommand("git log -1 --date=short --pretty=format:%cd");
             copyrightYear = Integer.parseInt(compileDate.split("\\-")[0]);
             kernelMajorVersion = findKernelMajorVersion();
