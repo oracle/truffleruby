@@ -449,13 +449,15 @@ public class TranslatorDriver {
                     null);
             final MaterializedFrame parent = RubyArguments.getDeclarationFrame(frame);
             assert (blockDepth == 0) == (parent == null);
+            boolean isModuleBody = blockDepth == 0 &&
+                    RubyArguments.getMethod(frame).getSharedMethodInfo().isModuleBody();
 
             return new TranslatorEnvironment(
                     environmentForFrame(context, parent, blockDepth - 1),
                     parseEnvironment,
                     parseEnvironment.allocateReturnID(),
                     true,
-                    false,
+                    isModuleBody,
                     sharedMethodInfo,
                     sharedMethodInfo.getMethodName(),
                     blockDepth,
