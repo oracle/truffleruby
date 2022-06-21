@@ -89,6 +89,10 @@ public class ByteArrayBuilder {
         append(other.getInternalByteArray());
     }
 
+    public void append(TruffleString other, RubyEncoding enc) {
+        append(other.getInternalByteArrayUncached(enc.tencoding));
+    }
+
     public void unsafeReplace(byte[] bytes, int size) {
         this.bytes = bytes;
         this.length = size;

@@ -42,14 +42,12 @@ package org.truffleruby.parser.parser;
 
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.jcodings.Encoding;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.SuppressFBWarnings;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.TStringConstants;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.RubyDeferredWarnings;
 import org.truffleruby.parser.ast.ArgsParseNode;
@@ -137,7 +135,6 @@ import org.truffleruby.parser.lexer.RubyLexer;
 import org.truffleruby.parser.lexer.StrTerm;
 import org.truffleruby.parser.lexer.SyntaxException.PID;
 
-import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_BEG;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_END;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_ENDARG;
@@ -160,7 +157,7 @@ public class RubyParser {
         this.lexer = new RubyLexer(support, source, warnings);
         support.setLexer(lexer);
     }
-// line 128 "-"
+// line 125 "-"
   // %token constants
   public static final int keyword_class = 257;
   public static final int keyword_module = 258;
@@ -3184,9 +3181,9 @@ states[485] = (support, lexer, yyVal, yyVals, yyTop) -> {
     lexer.setHeredocIndent(0);
 
     if (((ParseNode)yyVals[-1+yyTop]) == null) {
-        yyVal = new XStrParseNode(position, null, CodeRange.CR_7BIT);
+        yyVal = new XStrParseNode(position, null);
     } else if (((ParseNode)yyVals[-1+yyTop]) instanceof StrParseNode) {
-        yyVal = new XStrParseNode(position, (Rope) ((StrParseNode)yyVals[-1+yyTop]).getValue(), ((StrParseNode)yyVals[-1+yyTop]).getCodeRange());
+        yyVal = new XStrParseNode(position, ((StrParseNode)yyVals[-1+yyTop]));
     } else if (((ParseNode)yyVals[-1+yyTop]) instanceof DStrParseNode) {
         yyVal = new DXStrParseNode(position, ((DStrParseNode)yyVals[-1+yyTop]));
 
@@ -3443,8 +3440,8 @@ states[540] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[541] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    Encoding encoding = support.getConfiguration().getContext() == null ? UTF8Encoding.INSTANCE : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding().jcoding;
-    yyVal = new FileParseNode(lexer.tokline, StringOperations.encodeRope(lexer.getFile(), encoding, CR_UNKNOWN));
+    RubyEncoding encoding = support.getConfiguration().getContext() == null ? Encodings.UTF_8 : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding();
+    yyVal = new FileParseNode(lexer.tokline, TStringUtils.fromJavaString(lexer.getFile(), encoding), encoding);
     return yyVal;
 };
 states[542] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -3984,7 +3981,7 @@ states[671] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 }
-// line 2833 "RubyParser.y"
+// line 2830 "RubyParser.y"
 
     /** The parse method use an lexer stream and parse it to an AST node 
      * structure
@@ -4001,4 +3998,4 @@ states[671] = (support, lexer, yyVal, yyVals, yyTop) -> {
 }
 // CheckStyle: stop generated
 // @formatter:on
-// line 10886 "-"
+// line 10883 "-"

@@ -3,14 +3,12 @@ package org.truffleruby.parser.parser;
 
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.jcodings.Encoding;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.SuppressFBWarnings;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.TStringConstants;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.RubyDeferredWarnings;
 import org.truffleruby.parser.ast.ArgsParseNode;
@@ -98,7 +96,6 @@ import org.truffleruby.parser.lexer.RubyLexer;
 import org.truffleruby.parser.lexer.StrTerm;
 import org.truffleruby.parser.lexer.SyntaxException.PID;
 
-import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_BEG;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_END;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_ENDARG;
@@ -2112,9 +2109,9 @@ xstring         : tXSTRING_BEG xstring_contents tSTRING_END {
                     lexer.setHeredocIndent(0);
 
                     if ($2 == null) {
-                        $$ = new XStrParseNode(position, null, CodeRange.CR_7BIT);
+                        $$ = new XStrParseNode(position, null);
                     } else if ($2 instanceof StrParseNode) {
-                        $$ = new XStrParseNode(position, (Rope) $<StrParseNode>2.getValue(), $<StrParseNode>2.getCodeRange());
+                        $$ = new XStrParseNode(position, $<StrParseNode>2);
                     } else if ($2 instanceof DStrParseNode) {
                         $$ = new DXStrParseNode(position, $<DStrParseNode>2);
 
@@ -2338,8 +2335,8 @@ var_ref         : /*mri:user_variable*/ tIDENTIFIER {
                     $$ = new FalseParseNode((SourceIndexLength) $$);
                 }
                 | keyword__FILE__ {
-                    Encoding encoding = support.getConfiguration().getContext() == null ? UTF8Encoding.INSTANCE : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding().jcoding;
-                    $$ = new FileParseNode(lexer.tokline, StringOperations.encodeRope(lexer.getFile(), encoding, CR_UNKNOWN));
+                    RubyEncoding encoding = support.getConfiguration().getContext() == null ? Encodings.UTF_8 : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding();
+                    $$ = new FileParseNode(lexer.tokline, TStringUtils.fromJavaString(lexer.getFile(), encoding), encoding);
                 }
                 | keyword__LINE__ {
                     $$ = new FixnumParseNode(lexer.tokline, lexer.tokline.toSourceSection(lexer.getSource()).getStartLine() + lexer.getLineOffset());

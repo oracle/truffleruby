@@ -19,6 +19,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
 import org.joni.NameEntry;
 import org.joni.Regex;
@@ -59,7 +60,6 @@ import org.truffleruby.core.regexp.MatchDataNodes.GetIndexNode;
 import org.truffleruby.core.regexp.RegexWarnDeferredCallback;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.regexp.RubyRegexp;
-import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.ManagedRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.FrozenStrings;
@@ -516,10 +516,8 @@ public class BodyTranslator extends Translator {
         if (receiver instanceof StrParseNode &&
                 (methodName.equals("freeze") || methodName.equals("-@"))) {
             final StrParseNode strNode = (StrParseNode) receiver;
-            final Rope nodeRope = strNode.getValue();
-            final ImmutableRubyString frozenString = language
-                    .getFrozenStringLiteral(nodeRope.getBytes(),
-                            Encodings.getBuiltInEncoding(nodeRope.getEncoding()));
+            final TruffleString nodeRope = strNode.getValue();
+            final ImmutableRubyString frozenString = language.getFrozenStringLiteral(nodeRope, strNode.encoding);
             return addNewlineIfNeeded(node, withSourceSection(
                     sourceSection,
                     new FrozenStringLiteralNode(frozenString, FrozenStrings.METHOD)));
@@ -2955,18 +2953,15 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitStrNode(StrParseNode node) {
-        final Rope nodeRope = node.getValue();
         final RubyNode ret;
-
         if (node.isFrozen()) {
-            final ImmutableRubyString frozenString = language
-                    .getFrozenStringLiteral(nodeRope.getBytes(), Encodings.getBuiltInEncoding(nodeRope.getEncoding()));
+            var frozenString = language.getFrozenStringLiteral(node.getValue(), node.encoding);
             ret = new FrozenStringLiteralNode(frozenString, FrozenStrings.EXPRESSION);
         } else {
-            final LeafRope cachedRope = language.ropeCache
-                    .getRope(nodeRope.getBytes(), nodeRope.getEncoding(), node.getCodeRange());
-            ret = new StringLiteralNode(cachedRope);
+            var cachedTString = language.tstringCache.getTString(node.getValue(), node.encoding);
+            ret = new StringLiteralNode(cachedTString, node.encoding);
         }
+
         ret.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, ret);
     }
@@ -3076,7 +3071,7 @@ public class BodyTranslator extends Translator {
     public RubyNode visitXStrNode(XStrParseNode node) {
         final ParseNode argsNode = buildArrayNode(
                 node.getPosition(),
-                new StrParseNode(node.getPosition(), node.getValue()));
+                new StrParseNode(node.getPosition(), node.getValue(), node.encoding));
         final ParseNode callNode = new FCallParseNode(node.getPosition(), "`", argsNode, null);
         final RubyNode ret = callNode.accept(this);
         return addNewlineIfNeeded(node, ret);

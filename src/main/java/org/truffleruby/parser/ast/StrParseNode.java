@@ -34,45 +34,42 @@ package org.truffleruby.parser.ast;
 
 import java.util.List;
 
-import org.truffleruby.core.encoding.Encodings;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
+import com.oracle.truffle.api.strings.TruffleString;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Representing a simple String literal. */
 public class StrParseNode extends ParseNode implements ILiteralNode, SideEffectFree {
-    private Rope value;
-    private final CodeRange codeRange;
+    private TruffleString value;
+    public final RubyEncoding encoding;
     private boolean frozen;
 
-    public StrParseNode(SourceIndexLength position, Rope value) {
-        this(position, value, value.getCodeRange());
+    public StrParseNode(SourceIndexLength position, TStringWithEncoding tStringWithEnc) {
+        this(position, tStringWithEnc.tstring, tStringWithEnc.encoding);
     }
 
-    public StrParseNode(SourceIndexLength position, Rope value, CodeRange codeRange) {
+    public StrParseNode(SourceIndexLength position, TruffleString value, RubyEncoding encoding) {
         super(position);
 
         this.value = value;
-        this.codeRange = codeRange;
+        this.encoding = encoding;
     }
 
     public StrParseNode(SourceIndexLength position, StrParseNode head, StrParseNode tail) {
         super(position);
 
-        Rope headBL = head.getValue();
-        Rope tailBL = tail.getValue();
-
         RopeBuilder myValue = new RopeBuilder();
-        myValue.setEncoding(Encodings.getBuiltInEncoding(headBL.getEncoding()));
-        myValue.append(headBL);
-        myValue.append(tailBL);
+        myValue.setEncoding(head.encoding);
+        myValue.append(head.value, head.encoding);
+        myValue.append(tail.value, tail.encoding);
 
         frozen = head.isFrozen() && tail.isFrozen();
-        value = myValue.toRope();
-        codeRange = value.getCodeRange();
+        value = myValue.toTString();
+        encoding = head.encoding;
     }
 
     @Override
@@ -91,15 +88,12 @@ public class StrParseNode extends ParseNode implements ILiteralNode, SideEffectF
     /** Gets the value.
      * 
      * @return Returns a String */
-    public Rope getValue() {
+    public TruffleString getValue() {
         return value;
     }
 
-    /** Get the string's coderange.
-     *
-     * @return the string's coderange */
-    public CodeRange getCodeRange() {
-        return codeRange;
+    public TStringWithEncoding getTStringWithEncoding() {
+        return new TStringWithEncoding(value, encoding);
     }
 
     @Override
@@ -115,7 +109,8 @@ public class StrParseNode extends ParseNode implements ILiteralNode, SideEffectF
         this.frozen = frozen;
     }
 
-    public void setValue(Rope value) {
+    public void setValue(TruffleString value) {
+        assert value.isCompatibleTo(encoding.tencoding);
         this.value = value;
     }
 }

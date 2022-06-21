@@ -1248,22 +1248,20 @@ public class ParserSupport {
         return symbolParseNode;
     }
 
-    public ParseNode asSymbol(SourceIndexLength position, Rope value) {
-        final SymbolParseNode symbolParseNode = new SymbolParseNode(position, value);
-        checkSymbolCodeRange(symbolParseNode);
-        return symbolParseNode;
-    }
-
     public ParseNode asSymbol(SourceIndexLength position, TruffleString value) {
         var tstringWithCorrectEncoding = value.switchEncodingUncached(lexer.encoding.tencoding);
-        Rope rope = TStringUtils.toRope(tstringWithCorrectEncoding, lexer.encoding);
-        return asSymbol(position, rope);
+        final SymbolParseNode symbolParseNode = new SymbolParseNode(position, tstringWithCorrectEncoding,
+                lexer.encoding);
+        checkSymbolCodeRange(symbolParseNode);
+        return symbolParseNode;
     }
 
     public ParseNode asSymbol(SourceIndexLength position, ParseNode value) {
         final ParseNode parseNode;
         if (value instanceof StrParseNode) {
-            final SymbolParseNode symbolParseNode = new SymbolParseNode(position, ((StrParseNode) value).getValue());
+            var strParseNode = (StrParseNode) value;
+            final SymbolParseNode symbolParseNode = new SymbolParseNode(position, strParseNode.getValue(),
+                    strParseNode.encoding);
             checkSymbolCodeRange(symbolParseNode);
             parseNode = symbolParseNode;
         } else {
@@ -1306,7 +1304,7 @@ public class ParserSupport {
                 StrParseNode front = (StrParseNode) head;
                 // string_contents always makes an empty strnode...which is sometimes valid but
                 // never if it ever is in literal_concat.
-                if (front.getValue().byteLength() > 0) {
+                if (!front.getValue().isEmpty()) {
                     return new StrParseNode(head.getPosition(), front, (StrParseNode) tail);
                 } else {
                     return tail;
@@ -1330,7 +1328,7 @@ public class ParserSupport {
         if (head instanceof StrParseNode) {
 
             //Do not add an empty string node
-            if (((StrParseNode) head).getValue().byteLength() == 0) {
+            if (((StrParseNode) head).getValue().isEmpty()) {
                 head = createDStrNode(head.getPosition());
             } else {
                 head = createDStrNode(head.getPosition()).add(head);
@@ -1826,9 +1824,7 @@ public class ParserSupport {
             newValue = regexpFragmentCheck(end, newValue);
             return new RegexpParseNode(position, newValue.toRope(), options.withoutOnce());
         } else if (contents instanceof StrParseNode) {
-            Rope rope = ((StrParseNode) contents).getValue();
-            TStringWithEncoding meat = TStringUtils.fromRopeWithEnc((ManagedRope) rope,
-                    Encodings.getBuiltInEncoding(rope.encoding));
+            TStringWithEncoding meat = ((StrParseNode) contents).getTStringWithEncoding();
             meat = regexpFragmentCheck(end, meat);
             checkRegexpSyntax(meat, options.withoutOnce());
             return new RegexpParseNode(contents.getPosition(), meat.toRope(), options.withoutOnce());
@@ -1838,14 +1834,12 @@ public class ParserSupport {
             for (int i = 0; i < dStrNode.size(); i++) {
                 ParseNode fragment = dStrNode.get(i);
                 if (fragment instanceof StrParseNode) {
-                    Rope frag = ((StrParseNode) fragment).getValue();
-                    regexpFragmentCheck(end, TStringUtils.fromRopeWithEnc((ManagedRope) frag,
-                            Encodings.getBuiltInEncoding(frag.getEncoding())));
+                    regexpFragmentCheck(end, ((StrParseNode) fragment).getTStringWithEncoding());
                 }
             }
 
             DRegexpParseNode dRegexpNode = new DRegexpParseNode(position, options, encoding);
-            dRegexpNode.add(new StrParseNode(contents.getPosition(), createMaster(options).toRope()));
+            dRegexpNode.add(new StrParseNode(contents.getPosition(), createMaster(options)));
             dRegexpNode.addAll(dStrNode);
             return dRegexpNode;
         }
@@ -1854,7 +1848,7 @@ public class ParserSupport {
         TStringWithEncoding master = createMaster(options);
         master = regexpFragmentCheck(end, master);
         DRegexpParseNode node = new DRegexpParseNode(position, options, master.encoding.jcoding);
-        node.add(new StrParseNode(contents.getPosition(), master.toRope()));
+        node.add(new StrParseNode(contents.getPosition(), master));
         node.add(contents);
         return node;
     }

@@ -103,4 +103,8 @@ public class RopeBuilder extends ByteArrayBuilder {
         return TStringUtils.fromByteArray(getBytes(), encoding);
     }
 
+    public TStringWithEncoding toTStringWithEnc() {
+        return new TStringWithEncoding(TStringUtils.fromByteArray(getBytes(), encoding), encoding);
+    }
+
 }

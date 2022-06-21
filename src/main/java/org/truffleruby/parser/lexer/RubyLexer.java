@@ -72,10 +72,7 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.rope.BytesKey;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.ManagedRope;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
-import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.core.string.StringGuards;
@@ -327,7 +324,7 @@ public class RubyLexer implements MagicCommentHandler {
         // Other types of string parse nodes do not need dedentation (e.g. EvStrParseNode)
         if (root instanceof StrParseNode) {
             StrParseNode str = (StrParseNode) root;
-            str.setValue(dedent_string(str.getValue(), indent));
+            str.setValue(dedent_string(str.getTStringWithEncoding(), indent));
         } else if (root instanceof ListParseNode) {
             ListParseNode list = (ListParseNode) root;
             int length = list.size();
@@ -341,7 +338,7 @@ public class RubyLexer implements MagicCommentHandler {
                 currentLine = line;
                 if (child instanceof StrParseNode) {
                     final StrParseNode childStrNode = (StrParseNode) child;
-                    childStrNode.setValue(dedent_string(childStrNode.getValue(), indent));
+                    childStrNode.setValue(dedent_string(childStrNode.getTStringWithEncoding(), indent));
                 }
             }
         }
@@ -581,20 +578,18 @@ public class RubyLexer implements MagicCommentHandler {
     // STR_NEW3/parser_str_new
     public StrParseNode createStr(TruffleString bufferTString, RubyEncoding bufferEncoding, int flags) {
         TStringWithEncoding buffer = new TStringWithEncoding(bufferTString, bufferEncoding);
-        CodeRange codeRange = buffer.getCodeRange();
 
         if ((flags & STR_FUNC_REGEXP) == 0 && bufferEncoding.jcoding.isAsciiCompatible()) {
             // If we have characters outside 7-bit range and we are still ascii then change to binary
-            if (codeRange == CodeRange.CR_7BIT) {
+            if (buffer.isAsciiOnly()) {
                 // Do nothing like MRI
             } else if (encoding == Encodings.US_ASCII && bufferEncoding != Encodings.UTF_8) {
                 assert !buffer.isAsciiOnly();
-                codeRange = bufferEncoding == Encodings.BINARY ? codeRange : CR_UNKNOWN;
                 buffer = buffer.forceEncoding(Encodings.BINARY);
             }
         }
 
-        StrParseNode newStr = new StrParseNode(getPosition(), buffer.toRope(), codeRange);
+        StrParseNode newStr = new StrParseNode(getPosition(), buffer);
 
         if (parserSupport.getConfiguration().isFrozenStringLiteral()) {
             newStr.setFrozen(true);
@@ -2207,7 +2202,7 @@ public class RubyLexer implements MagicCommentHandler {
                 }
 
                 setState(EXPR_END);
-                yaccValue = new StrParseNode(getPosition(), oneCharBL.toRope());
+                yaccValue = new StrParseNode(getPosition(), oneCharBL.toTStringWithEnc());
 
                 return RubyParser.tCHAR;
             } else {
@@ -2217,7 +2212,7 @@ public class RubyLexer implements MagicCommentHandler {
             newtok(true);
         }
 
-        yaccValue = new StrParseNode(getPosition(), RopeConstants.ASCII_8BIT_SINGLE_BYTE_ROPES[c]);
+        yaccValue = new StrParseNode(getPosition(), TStringConstants.BINARY_SINGLE_BYTE_TSTRINGS[c], Encodings.BINARY);
         setState(EXPR_END);
         return RubyParser.tCHAR;
     }
@@ -2933,7 +2928,7 @@ public class RubyLexer implements MagicCommentHandler {
 
     /** Returns a substring rope equivalent equivalent to the given rope (which contains a single line), dedented by the
      * given width. */
-    private Rope dedent_string(Rope string, int width) {
+    private TruffleString dedent_string(TStringWithEncoding string, int width) {
         int len = string.byteLength();
         int i, col = 0;
 
@@ -2951,9 +2946,7 @@ public class RubyLexer implements MagicCommentHandler {
             }
         }
 
-        var substring = src.parserRopeOperations.makeShared(TStringUtils.fromRope((ManagedRope) string, encoding), i,
-                len - i);
-        return TStringUtils.toRope(substring, encoding);
+        return src.parserRopeOperations.makeShared(string.tstring, i, len - i);
     }
 
     /** Sets the token start position ({@link #tokp}) to the current position ({@link #lex_p}). */

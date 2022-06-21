@@ -33,22 +33,24 @@ package org.truffleruby.parser.ast;
 
 import java.util.List;
 
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeConstants;
+import com.oracle.truffle.api.strings.TruffleString;
+import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** A Backtick(`) string */
 public class XStrParseNode extends ParseNode implements ILiteralNode {
-    private final Rope value;
-    private CodeRange coderange;
+    private final TruffleString value;
+    public final RubyEncoding encoding;
 
-    public XStrParseNode(SourceIndexLength position, Rope value, CodeRange coderange) {
+    public XStrParseNode(SourceIndexLength position, StrParseNode strParseNode) {
         super(position);
-        this.value = (value == null ? RopeConstants.EMPTY_US_ASCII_ROPE : value);
-        this.coderange = coderange;
+        this.value = (strParseNode.getValue() == null
+                ? TStringConstants.EMPTY_US_ASCII_TSTRING
+                : strParseNode.getValue());
+        this.encoding = strParseNode.encoding;
     }
 
     @Override
@@ -67,12 +69,8 @@ public class XStrParseNode extends ParseNode implements ILiteralNode {
     /** Gets the value.
      * 
      * @return Returns a String */
-    public Rope getValue() {
+    public TruffleString getValue() {
         return value;
-    }
-
-    public CodeRange getCodeRange() {
-        return coderange;
     }
 
     @Override

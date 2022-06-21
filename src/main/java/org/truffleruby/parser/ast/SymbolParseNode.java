@@ -41,8 +41,7 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.ManagedRope;
-import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.string.StringGuards;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.types.INameNode;
@@ -72,16 +71,14 @@ public class SymbolParseNode extends ParseNode implements ILiteralNode, INameNod
     }
 
     // String path (e.g. [':', str_beg, str_content, str_end])
-    public SymbolParseNode(SourceIndexLength position, Rope value) {
+    public SymbolParseNode(SourceIndexLength position, TruffleString value, RubyEncoding rubyEncoding) {
         super(position);
 
-        RubyEncoding rubyEncoding = Encodings.getBuiltInEncoding(value.getEncoding());
-        if (value.isAsciiOnly()) {
-            tstring = TStringUtils.fromRope((ManagedRope) value, rubyEncoding)
-                    .switchEncodingUncached(Encodings.US_ASCII.tencoding);
+        if (StringGuards.is7BitUncached(value, rubyEncoding)) {
+            tstring = value.switchEncodingUncached(Encodings.US_ASCII.tencoding);
             rubyEncoding = Encodings.US_ASCII;
         } else {
-            tstring = TStringUtils.fromRope((ManagedRope) value, rubyEncoding);
+            tstring = value;
         }
         this.encoding = rubyEncoding.jcoding;
 
