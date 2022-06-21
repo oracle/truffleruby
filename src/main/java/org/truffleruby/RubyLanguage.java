@@ -327,7 +327,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         primitiveManager = new PrimitiveManager();
         ropeCache = new RopeCache(coreSymbols);
         tstringCache = new TStringCache(coreSymbols);
-        symbolTable = new SymbolTable(tstringCache, ropeCache, coreSymbols);
+        symbolTable = new SymbolTable(tstringCache, coreSymbols);
         regexpTable = new RegexpTable();
         frozenStringLiterals = new FrozenStringLiterals(tstringCache, ropeCache);
     }

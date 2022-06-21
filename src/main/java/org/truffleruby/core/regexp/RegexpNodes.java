@@ -75,7 +75,7 @@ public abstract class RegexpNodes {
 
         @Specialization
         protected RubyString quoteSymbol(RubySymbol raw) {
-            return doQuoteString(createString(raw.getRope(), raw.encoding));
+            return doQuoteString(createString(raw.tstring, raw.encoding));
         }
 
         @Fallback

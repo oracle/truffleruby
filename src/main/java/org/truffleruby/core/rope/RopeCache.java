@@ -14,7 +14,6 @@ import org.jcodings.Encoding;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.core.symbol.CoreSymbols;
-import org.truffleruby.core.symbol.RubySymbol;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
@@ -28,7 +27,6 @@ public class RopeCache {
 
     public RopeCache(CoreSymbols coreSymbols) {
         addRopeConstants();
-        addCoreSymbolRopes(coreSymbols);
         addFrozenStrings();
     }
 
@@ -50,12 +48,6 @@ public class RopeCache {
         }
         for (LeafRope rope : RopeConstants.ROPE_CONSTANTS.values()) {
             register(rope);
-        }
-    }
-
-    private void addCoreSymbolRopes(CoreSymbols coreSymbols) {
-        for (RubySymbol symbol : coreSymbols.CORE_SYMBOLS) {
-            register(symbol.getRope());
         }
     }
 

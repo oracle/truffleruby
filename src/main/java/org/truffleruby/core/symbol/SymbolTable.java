@@ -17,9 +17,6 @@ import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
-import org.truffleruby.core.rope.LeafRope;
-import org.truffleruby.core.rope.RopeCache;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.TStringCache;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.StringOperations;
@@ -29,7 +26,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 public class SymbolTable {
 
     private final TStringCache tstringCache;
-    private final RopeCache ropeCache;
 
     // A cache for j.l.String to Symbols. Entries are kept as long as the Symbol is alive.
     // However, this doesn't matter as the cache entries will be re-created when used.
@@ -39,9 +35,8 @@ public class SymbolTable {
     // As long as the Symbol is referenced, the entry will stay in the symbolMap.
     private final WeakValueCache<TStringWithEncoding, RubySymbol> symbolMap = new WeakValueCache<>();
 
-    public SymbolTable(TStringCache tstringCache, RopeCache ropeCache, CoreSymbols coreSymbols) {
+    public SymbolTable(TStringCache tstringCache, CoreSymbols coreSymbols) {
         this.tstringCache = tstringCache;
-        this.ropeCache = ropeCache;
         addCoreSymbols(coreSymbols);
     }
 
@@ -98,8 +93,7 @@ public class SymbolTable {
 
         final RubyEncoding symbolEncoding = key.encoding;
         var cachedTString = tstringCache.getTString(key.tstring, symbolEncoding);
-        final LeafRope cachedRope = ropeCache.getRope(key.toRope());
-        final RubySymbol newSymbol = createSymbol(cachedRope, cachedTString, symbolEncoding);
+        final RubySymbol newSymbol = createSymbol(cachedTString, symbolEncoding);
         // Use a TStringWithEncoding with the cached TString in symbolMap, since the Symbol refers to it and so we
         // do not keep the other TString alive unnecessarily.
         return symbolMap.addInCacheIfAbsent(new TStringWithEncoding(cachedTString, symbolEncoding), newSymbol);
@@ -122,9 +116,8 @@ public class SymbolTable {
         return strEnc;
     }
 
-    private RubySymbol createSymbol(LeafRope cachedRope, TruffleString truffleString, RubyEncoding encoding) {
-        final String string = RopeOperations.decodeOrEscapeBinaryRope(cachedRope);
-        return new RubySymbol(string, cachedRope, truffleString, encoding);
+    private RubySymbol createSymbol(TruffleString truffleString, RubyEncoding encoding) {
+        return new RubySymbol(truffleString.toJavaStringUncached(), truffleString, encoding);
     }
 
     @TruffleBoundary

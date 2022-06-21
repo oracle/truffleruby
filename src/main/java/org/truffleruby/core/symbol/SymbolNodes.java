@@ -268,7 +268,7 @@ public abstract class SymbolNodes {
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected RubyString toS(RubySymbol symbol) {
-            return createString(symbol.getRope(), symbol.encoding);
+            return createString(symbol.tstring, symbol.encoding);
         }
     }
 

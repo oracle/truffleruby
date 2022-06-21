@@ -41,7 +41,7 @@ public abstract class ToEncodingNode extends RubyBaseNode {
 
     @Specialization
     protected Encoding symbolToEncoding(RubySymbol value) {
-        return value.getRope().getEncoding();
+        return value.encoding.jcoding;
     }
 
     @Specialization
