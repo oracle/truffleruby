@@ -160,6 +160,17 @@ public abstract class TruffleDebugNodes {
         }
     }
 
+    /* Truffle.create_simple_string creates a string 'test' without any part of the string escaping. Useful for testing
+     * compilation of String because most other ways to construct a string can currently escape. */
+    @CoreMethod(names = "create_simple_string", onSingleton = true)
+    public abstract static class CreateSimpleStringNode extends CoreMethodArrayArgumentsNode {
+        @Specialization
+        protected RubyString createSimpleString(
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
+            return createString(fromByteArrayNode, new byte[]{ 't', 'e', 's', 't' }, Encodings.UTF_8);
+        }
+    }
+
     @CoreMethod(names = "break_handle", onSingleton = true, required = 2, needsBlock = true, lowerFixnum = 2)
     public abstract static class BreakNode extends CoreMethodArrayArgumentsNode {
 

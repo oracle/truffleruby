@@ -13,9 +13,9 @@ ABC_ROPE_UTF8 = 'abc'.force_encoding('utf-8')
 
 simple_string = 'test'
 
-example "Truffle::Ropes.create_simple_string.length", simple_string.length
-example "Truffle::Ropes.create_simple_string.getbyte(0)", simple_string.getbyte(0)
-example "Truffle::Ropes.create_simple_string.ord", simple_string.ord
+example "Truffle::Debug.create_simple_string.length", simple_string.length
+example "Truffle::Debug.create_simple_string.getbyte(0)", simple_string.getbyte(0)
+example "Truffle::Debug.create_simple_string.ord", simple_string.ord
 
 example "'abc'.length", 3
 example "'こにちわ'.length", 4
