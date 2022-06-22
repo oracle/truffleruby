@@ -1017,11 +1017,9 @@ public abstract class StringNodes {
     @Primitive(name = "string_end_with?")
     public abstract static class EndWithNode extends CoreMethodArrayArgumentsNode {
 
-        @Child IsCharacterHeadNode isCharacterHeadNode;
-
         @Specialization
         protected boolean endWithBytes(Object string, Object suffix, RubyEncoding enc,
-                @Cached TruffleString.GetInternalByteArrayNode stringByteArrayNode,
+                @Cached IsCharacterHeadNode isCharacterHeadNode,
                 @Cached TruffleString.RegionEqualByteIndexNode regionEqualByteIndexNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsSuffix,
@@ -1029,12 +1027,10 @@ public abstract class StringNodes {
 
             var stringTString = strings.getTString(string);
             var stringEncoding = strings.getTEncoding(string);
-            var stringByteArray = stringByteArrayNode.execute(stringTString, stringEncoding);
+            final int stringByteLength = stringTString.byteLength(stringEncoding);
 
             var suffixTString = stringsSuffix.getTString(suffix);
             var suffixEncoding = stringsSuffix.getTEncoding(suffix);
-
-            final int stringByteLength = stringByteArray.getLength();
             final int suffixByteLength = suffixTString.byteLength(suffixEncoding);
 
             if (stringByteLength < suffixByteLength) {
@@ -1048,21 +1044,12 @@ public abstract class StringNodes {
 
             final int offset = stringByteLength - suffixByteLength;
 
-            if (isCharacterHeadProfile.profile(!isCharacterHead(enc, stringByteLength, stringByteArray.getArray(),
-                    offset + stringByteArray.getOffset()))) {
+            if (isCharacterHeadProfile.profile(!isCharacterHeadNode.execute(enc, stringTString, offset))) {
                 return false;
             }
 
             return regionEqualByteIndexNode.execute(stringTString, offset, suffixTString, 0, suffixByteLength,
                     enc.tencoding);
-        }
-
-        private boolean isCharacterHead(RubyEncoding enc, int stringByteLength, byte[] stringBytes, int offset) {
-            if (isCharacterHeadNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                isCharacterHeadNode = insert(IsCharacterHeadNode.create());
-            }
-            return isCharacterHeadNode.execute(enc, stringBytes, offset, stringByteLength);
         }
 
     }
