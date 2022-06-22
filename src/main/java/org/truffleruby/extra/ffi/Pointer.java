@@ -17,7 +17,6 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.strings.InternalByteArray;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 
@@ -201,17 +200,6 @@ public final class Pointer implements AutoCloseable, TruffleObject {
 
         UNSAFE.copyMemory(source, Unsafe.ARRAY_BYTE_BASE_OFFSET + sourceByteOffset, null, address + destByteOffset,
                 bytesToCopy);
-    }
-
-    @TruffleBoundary
-    public void writeBytes(long destByteOffset, InternalByteArray source, int sourceByteOffset, int bytesToCopy) {
-        assert address + destByteOffset != 0 || bytesToCopy == 0;
-        assert source != null;
-        assert sourceByteOffset >= 0;
-        assert bytesToCopy >= 0;
-
-        UNSAFE.copyMemory(source.getArray(), Unsafe.ARRAY_BYTE_BASE_OFFSET + sourceByteOffset + source.getOffset(),
-                null, address + destByteOffset, bytesToCopy);
     }
 
     public byte readByte(long offset) {

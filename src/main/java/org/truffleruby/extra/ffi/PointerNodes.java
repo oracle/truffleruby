@@ -330,21 +330,21 @@ public abstract class PointerNodes {
 
         @Specialization(guards = "libString.isRubyString(string)")
         protected Object writeBytes(long address, Object string, int index, int length,
-                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
+                @Cached ConditionProfile nonZeroProfile,
+                @Cached TruffleString.CopyToNativeMemoryNode copyToNativeMemoryNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
             Pointer ptr = new Pointer(address);
             var tstring = libString.getTString(string);
             var encoding = libString.getTEncoding(string);
-            var byteArray = byteArrayNode.execute(tstring, encoding);
 
-            assert index + length <= byteArray.getLength();
+            assert index + length <= tstring.byteLength(encoding);
 
-            if (length != 0) {
+            if (nonZeroProfile.profile(length != 0)) {
                 // No need to check the pointer address if we write nothing
                 checkNull(ptr);
-            }
 
-            ptr.writeBytes(0, byteArray, index, length);
+                copyToNativeMemoryNode.execute(tstring, index, ptr, 0, length, encoding);
+            }
 
             return string;
         }
