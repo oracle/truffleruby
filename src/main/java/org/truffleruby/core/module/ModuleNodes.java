@@ -27,6 +27,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -50,6 +51,7 @@ import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.constant.WarnAlreadyInitializedNode;
 import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.MethodFilter;
@@ -65,10 +67,10 @@ import org.truffleruby.core.module.ModuleNodesFactory.SetMethodVisibilityNodeGen
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringCachingGuards;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
@@ -1011,17 +1013,18 @@ public abstract class ModuleNodes {
                 guards = {
                         "stringsName.isRubyString(name)",
                         "inherit",
-                        "equalNode.execute(stringsName.getRope(name), cachedRope)",
+                        "equalNode.execute(stringsName, name, cachedTString, cachedEncoding)",
                         "!scoped",
                         "checkName == cachedCheckName" },
                 limit = "getLimit()")
         protected Object getConstantStringCached(
                 RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsName,
-                @Cached("stringsName.getRope(name)") Rope cachedRope,
+                @Cached("stringsName.getTString(name)") AbstractTruffleString cachedTString,
+                @Cached("stringsName.getEncoding(name)") RubyEncoding cachedEncoding,
                 @Cached("stringsName.getJavaString(name)") String cachedString,
                 @Cached("checkName") boolean cachedCheckName,
-                @Cached RopeNodes.EqualNode equalNode,
+                @Cached StringNodes.EqualNode equalNode,
                 @Cached("isScoped(cachedString)") boolean scoped) {
             return getConstant(module, cachedString, checkName, lookInObject);
         }

@@ -158,7 +158,6 @@ import org.truffleruby.core.string.StringNodesFactory.NormalizeIndexNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.StringAppendNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.StringAppendPrimitiveNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.StringByteSubstringPrimitiveNodeFactory;
-import org.truffleruby.core.string.StringNodesFactory.StringEqualNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.StringSubstringPrimitiveNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.SumNodeFactory;
 import org.truffleruby.core.string.StringSupport.TrTables;
@@ -388,9 +387,8 @@ public abstract class StringNodes {
     }
 
     @CoreMethod(names = { "==", "===", "eql?" }, required = 1)
-    public abstract static class EqualNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class EqualCoreMethodNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringEqualNode stringEqualNode = StringEqualNodeGen.create();
         @Child private KernelNodes.RespondToNode respondToNode;
         @Child private DispatchNode objectEqualNode;
         @Child private BooleanCastNode booleanCastNode;
@@ -399,14 +397,8 @@ public abstract class StringNodes {
         protected boolean equalString(Object a, Object b,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libA,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libB,
-                @Cached NegotiateCompatibleStringEncodingNode negotiateCompatibleStringEncodingNode) {
-            var stringA = libA.getTString(a);
-            var encodingA = libA.getEncoding(a);
-            var stringB = libB.getTString(b);
-            var encodingB = libB.getEncoding(b);
-            RubyEncoding compatibleEncoding = negotiateCompatibleStringEncodingNode.execute(stringA, encodingA, stringB,
-                    encodingB);
-            return stringEqualNode.executeStringEqual(stringA, stringB, compatibleEncoding);
+                @Cached EqualNode equalNode) {
+            return equalNode.execute(libA.getTString(a), libA.getEncoding(a), libB.getTString(b), libB.getEncoding(b));
         }
 
         @Specialization(guards = "isNotRubyString(b)")
@@ -435,10 +427,57 @@ public abstract class StringNodes {
 
     }
 
-    // compatibleEncoding is RubyEncoding or null in this node
-    public abstract static class StringEqualNode extends RubyBaseNode {
+    /** The node to use for inline caches to compare if two TruffleString are equal. It behaves the same as String#==,
+     * without coercion. Note that the two encodings do no need to be the same for this node to return true. If you need
+     * to ensure the encoding is the same, use {@link EqualSameEncodingNode}. */
+    public abstract static class EqualNode extends RubyBaseNode {
 
-        public abstract boolean executeStringEqual(AbstractTruffleString a, AbstractTruffleString b,
+        public final boolean execute(RubyStringLibrary libString, Object rubyString,
+                AbstractTruffleString cachedString, RubyEncoding cachedEncoding) {
+            return execute(libString.getTString(rubyString), libString.getEncoding(rubyString),
+                    cachedString, cachedEncoding);
+        }
+
+        public abstract boolean execute(AbstractTruffleString a, RubyEncoding encA,
+                AbstractTruffleString b, RubyEncoding encB);
+
+        @Specialization
+        protected boolean equal(AbstractTruffleString a, RubyEncoding encA, AbstractTruffleString b, RubyEncoding encB,
+                @Cached NegotiateCompatibleStringEncodingNode negotiateCompatibleStringEncodingNode,
+                @Cached StringEqualInternalNode stringEqualInternalNode) {
+            var compatibleEncoding = negotiateCompatibleStringEncodingNode.execute(a, encA, b, encB);
+            return stringEqualInternalNode.execute(a, b, compatibleEncoding);
+        }
+    }
+
+    @GenerateUncached
+    public abstract static class EqualSameEncodingNode extends RubyBaseNode {
+
+        public final boolean execute(RubyStringLibrary libString, Object rubyString,
+                AbstractTruffleString cachedString, RubyEncoding cachedEncoding) {
+            return execute(libString.getTString(rubyString), libString.getEncoding(rubyString),
+                    cachedString, cachedEncoding);
+        }
+
+        public abstract boolean execute(AbstractTruffleString a, RubyEncoding encA,
+                AbstractTruffleString b, RubyEncoding encB);
+
+        @Specialization(guards = "encA == encB")
+        protected boolean same(AbstractTruffleString a, RubyEncoding encA, AbstractTruffleString b, RubyEncoding encB,
+                @Cached StringEqualInternalNode stringEqualInternalNode) {
+            return stringEqualInternalNode.execute(a, b, encA);
+        }
+
+        @Specialization(guards = "encA != encB")
+        protected boolean diff(AbstractTruffleString a, RubyEncoding encA, AbstractTruffleString b, RubyEncoding encB) {
+            return false;
+        }
+    }
+
+    @GenerateUncached
+    abstract static class StringEqualInternalNode extends RubyBaseNode {
+        // compatibleEncoding is RubyEncoding or null
+        abstract boolean execute(AbstractTruffleString a, AbstractTruffleString b,
                 RubyEncoding compatibleEncoding);
 
         @Specialization(guards = "a.isEmpty() || b.isEmpty()")
@@ -2814,16 +2853,14 @@ public abstract class StringNodes {
         @Specialization(
                 guards = {
                         "!isBrokenCodeRange(tstring, encoding, codeRangeNode)",
-                        "equalNode.execute(strings.getRope(string), cachedRope)",
-                        "encoding == cachedEncoding" },
+                        "equalNode.execute(tstring, encoding, cachedTString, cachedEncoding)" },
                 limit = "getDefaultCacheLimit()")
         protected RubySymbol toSymCached(Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @Cached("strings.getRope(string)") Rope cachedRope,
                 @Cached("strings.getTString(string)") AbstractTruffleString cachedTString,
                 @Cached("strings.getEncoding(string)") RubyEncoding cachedEncoding,
                 @Cached("getSymbol(cachedTString, cachedEncoding)") RubySymbol cachedSymbol,
-                @Cached RopeNodes.EqualNode equalNode,
+                @Cached StringNodes.EqualSameEncodingNode equalNode,
                 @Bind("strings.getTString(string)") AbstractTruffleString tstring,
                 @Bind("strings.getEncoding(string)") RubyEncoding encoding) {
             return cachedSymbol;

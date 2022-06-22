@@ -1681,17 +1681,16 @@ public abstract class KernelNodes {
         @Specialization(
                 guards = {
                         "libFormat.isRubyString(format)",
-                        "equalNode.execute(libFormat.getRope(format), cachedFormatRope)",
+                        "equalNode.execute(libFormat, format, cachedTString, cachedEncoding)",
                         "isDebug(frame) == cachedIsDebug" })
         protected RubyString formatCached(VirtualFrame frame, Object format, Object[] arguments,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
                 @Cached("isDebug(frame)") boolean cachedIsDebug,
-                @Cached("libFormat.getRope(format)") Rope cachedFormatRope,
                 @Cached("libFormat.getTString(format)") AbstractTruffleString cachedTString,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
                 @Cached("cachedTString.byteLength(cachedEncoding.tencoding)") int cachedFormatLength,
                 @Cached("create(compileFormat(cachedTString, cachedEncoding, arguments, isDebug(frame)))") DirectCallNode callPackNode,
-                @Cached RopeNodes.EqualNode equalNode) {
+                @Cached StringNodes.EqualSameEncodingNode equalNode) {
             final BytesResult result;
             try {
                 result = (BytesResult) callPackNode.call(
