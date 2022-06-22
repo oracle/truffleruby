@@ -13,6 +13,7 @@ Compatibility:
 
 Performance:
 
+* Replace a call of `-"string"` with frozen string literal at parse time (@andrykonchin).
 
 Changes:
 

@@ -509,7 +509,8 @@ public class BodyTranslator extends Translator {
         final ParseNode receiver = node.getReceiverNode();
         final String methodName = node.getName();
 
-        if (receiver instanceof StrParseNode && methodName.equals("freeze")) {
+        if (receiver instanceof StrParseNode &&
+                (methodName.equals("freeze") || methodName.equals("-@"))) {
             final StrParseNode strNode = (StrParseNode) receiver;
             final Rope nodeRope = strNode.getValue();
             final ImmutableRubyString frozenString = language
