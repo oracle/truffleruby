@@ -1676,23 +1676,23 @@ public final class StringSupport {
             bytes = ArrayUtils.extractRange(bytes, byteArray.getOffset(), byteArray.getEnd());
             p = 0;
             end = byteArray.getLength();
-            bytes[p] ^= 0x20;
             modified = true;
+            bytes[p] ^= 0x20;
         }
 
-        int s = p + 1;
-        while (s < end) {
-            if (StringSupport.isAsciiUppercase(bytes[s])) {
+        p++;
+        while (p < end) {
+            if (StringSupport.isAsciiUppercase(bytes[p])) {
                 if (!modified) {
                     bytes = ArrayUtils.extractRange(bytes, byteArray.getOffset(), byteArray.getEnd());
-                    modified = true;
-                    s -= byteArray.getOffset();
+                    p -= byteArray.getOffset();
                     end = byteArray.getLength();
+                    modified = true;
                 }
-                bytes[s] ^= 0x20;
-                s++;
+                bytes[p] ^= 0x20;
+                p++;
             } else {
-                s += StringSupport.characterLength(enc, codeRange, bytes, s, end);
+                p += StringSupport.characterLength(enc, codeRange, bytes, p, end);
             }
         }
 
