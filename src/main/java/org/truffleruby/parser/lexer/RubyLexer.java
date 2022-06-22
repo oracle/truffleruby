@@ -2212,7 +2212,7 @@ public class RubyLexer implements MagicCommentHandler {
             newtok(true);
         }
 
-        yaccValue = new StrParseNode(getPosition(), TStringConstants.BINARY_SINGLE_BYTE_TSTRINGS[c], Encodings.BINARY);
+        yaccValue = new StrParseNode(getPosition(), TStringConstants.BINARY_SINGLE_BYTE[c], Encodings.BINARY);
         setState(EXPR_END);
         return RubyParser.tCHAR;
     }

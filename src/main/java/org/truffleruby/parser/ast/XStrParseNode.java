@@ -48,7 +48,7 @@ public class XStrParseNode extends ParseNode implements ILiteralNode {
     public XStrParseNode(SourceIndexLength position, StrParseNode strParseNode) {
         super(position);
         this.value = (strParseNode.getValue() == null
-                ? TStringConstants.EMPTY_US_ASCII_TSTRING
+                ? TStringConstants.EMPTY_US_ASCII
                 : strParseNode.getValue());
         this.encoding = strParseNode.encoding;
     }

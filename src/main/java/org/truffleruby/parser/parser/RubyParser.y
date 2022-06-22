@@ -2275,7 +2275,7 @@ dsym            : tSYMBEG xstring_contents tSTRING_END {
                      // EvStrNode :"#{some expression}"
                      // Ruby 1.9 allows empty strings as symbols
                      if ($2 == null) {
-                         $$ = support.asSymbol(lexer.getPosition(), TStringConstants.EMPTY_US_ASCII_TSTRING);
+                         $$ = support.asSymbol(lexer.getPosition(), TStringConstants.EMPTY_US_ASCII);
                      } else if ($2 instanceof DStrParseNode) {
                          $$ = new DSymbolParseNode($2.getPosition(), $<DStrParseNode>2);
                      } else if ($2 instanceof StrParseNode) {

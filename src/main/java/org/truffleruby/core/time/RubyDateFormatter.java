@@ -622,7 +622,7 @@ public abstract class RubyDateFormatter {
             TruffleString.FromLongNode fromLongNode,
             TruffleString.CodePointLengthNode codePointLengthNode) {
         final var utf8 = Encodings.UTF_8.tencoding;
-        TruffleString tstring = TStringConstants.EMPTY_UTF8_TSTRING;
+        TruffleString tstring = TStringConstants.EMPTY_UTF8;
 
         for (Token token : compiledPattern) {
             final TruffleString appendTString;

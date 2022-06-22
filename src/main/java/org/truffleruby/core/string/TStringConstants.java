@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.string;
 
-import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
@@ -22,35 +22,27 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+// Must use TruffleString.Encoding and not RubyEncoding to avoid initialization cycle
 public class TStringConstants {
     public static final Map<String, TruffleString> TSTRING_CONSTANTS = new HashMap<>();
 
-    // Must use TruffleString.Encoding to avoid init cycle
-    public static final TruffleString EMPTY_BINARY_TSTRING = withHashCode(TruffleString.Encoding.BYTES.getEmpty());
-    public static final TruffleString EMPTY_US_ASCII_TSTRING = withHashCode(TruffleString.Encoding.US_ASCII.getEmpty());
-    public static final TruffleString EMPTY_UTF8_TSTRING = withHashCode(TruffleString.Encoding.UTF_8.getEmpty());
+    public static final TruffleString EMPTY_BINARY = withHashCode(TruffleString.Encoding.BYTES.getEmpty());
+    public static final TruffleString EMPTY_US_ASCII = withHashCode(TruffleString.Encoding.US_ASCII.getEmpty());
+    public static final TruffleString EMPTY_UTF8 = withHashCode(TruffleString.Encoding.UTF_8.getEmpty());
 
-    @CompilerDirectives.CompilationFinal(dimensions = 1) public static final byte[] EMPTY_BYTES = new byte[0];
-    @CompilerDirectives.CompilationFinal(
-            dimensions = 1) public static final TruffleString[] UTF8_SINGLE_BYTE_TSTRINGS = new TruffleString[256];
-    @CompilerDirectives.CompilationFinal(
-            dimensions = 1) public static final TruffleString[] US_ASCII_SINGLE_BYTE_TSTRINGS = new TruffleString[256];
-    @CompilerDirectives.CompilationFinal(
-            dimensions = 1) public static final TruffleString[] BINARY_SINGLE_BYTE_TSTRINGS = new TruffleString[256];
-    @CompilerDirectives.CompilationFinal(
-            dimensions = 1) private static final TruffleString[] PADDED_NUMBERS = createPaddedNumbersTable();
-    @CompilerDirectives.CompilationFinal(
-            dimensions = 1) private static final TruffleString[] PADDING_ZEROS = createPaddingZeroTable();
+    @CompilationFinal(dimensions = 1) public static final byte[] EMPTY_BYTES = new byte[0];
+    @CompilationFinal(dimensions = 1) public static final TruffleString[] UTF8_SINGLE_BYTE = new TruffleString[256];
+    @CompilationFinal(dimensions = 1) public static final TruffleString[] US_ASCII_SINGLE_BYTE = new TruffleString[256];
+    @CompilationFinal(dimensions = 1) public static final TruffleString[] BINARY_SINGLE_BYTE = new TruffleString[256];
+    @CompilationFinal(dimensions = 1) private static final TruffleString[] PADDED_NUMBERS = createPaddedNumbersTable();
+    @CompilationFinal(dimensions = 1) private static final TruffleString[] PADDING_ZEROS = createPaddingZeroTable();
 
     static {
         for (int i = 0; i < 256; i++) {
             final byte[] bytes = new byte[]{ (byte) i };
-            UTF8_SINGLE_BYTE_TSTRINGS[i] = withHashCode(
-                    TStringUtils.fromByteArray(bytes, TruffleString.Encoding.UTF_8));
-            US_ASCII_SINGLE_BYTE_TSTRINGS[i] = withHashCode(
-                    TStringUtils.fromByteArray(bytes, TruffleString.Encoding.US_ASCII));
-            BINARY_SINGLE_BYTE_TSTRINGS[i] = withHashCode(
-                    TStringUtils.fromByteArray(bytes, TruffleString.Encoding.BYTES));
+            UTF8_SINGLE_BYTE[i] = withHashCode(TStringUtils.fromByteArray(bytes, TruffleString.Encoding.UTF_8));
+            US_ASCII_SINGLE_BYTE[i] = withHashCode(TStringUtils.fromByteArray(bytes, TruffleString.Encoding.US_ASCII));
+            BINARY_SINGLE_BYTE[i] = withHashCode(TStringUtils.fromByteArray(bytes, TruffleString.Encoding.BYTES));
         }
     }
 
@@ -217,7 +209,7 @@ public class TStringConstants {
 
     private static TruffleString ascii(String string) {
         if (string.length() == 1) {
-            return US_ASCII_SINGLE_BYTE_TSTRINGS[string.charAt(0)];
+            return US_ASCII_SINGLE_BYTE[string.charAt(0)];
         } else {
             final byte[] bytes = StringOperations.encodeAsciiBytes(string);
             final LeafRope rope = withHashCode(new AsciiOnlyLeafRope(bytes, USASCIIEncoding.INSTANCE));
@@ -240,7 +232,7 @@ public class TStringConstants {
 
     public static TruffleString lookupUSASCIITString(String string) {
         if (string.length() == 1) {
-            return US_ASCII_SINGLE_BYTE_TSTRINGS[string.charAt(0)];
+            return US_ASCII_SINGLE_BYTE[string.charAt(0)];
         } else {
             return TSTRING_CONSTANTS.get(string);
         }

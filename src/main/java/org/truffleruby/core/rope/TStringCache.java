@@ -43,13 +43,13 @@ public class TStringCache {
     }
 
     private void addTStringConstants() {
-        for (var tstring : TStringConstants.UTF8_SINGLE_BYTE_TSTRINGS) {
+        for (var tstring : TStringConstants.UTF8_SINGLE_BYTE) {
             register(tstring, Encodings.UTF_8);
         }
-        for (var tstring : TStringConstants.US_ASCII_SINGLE_BYTE_TSTRINGS) {
+        for (var tstring : TStringConstants.US_ASCII_SINGLE_BYTE) {
             register(tstring, Encodings.US_ASCII);
         }
-        for (var tstring : TStringConstants.BINARY_SINGLE_BYTE_TSTRINGS) {
+        for (var tstring : TStringConstants.BINARY_SINGLE_BYTE) {
             register(tstring, Encodings.BINARY);
         }
         for (var tstring : TStringConstants.TSTRING_CONSTANTS.values()) {

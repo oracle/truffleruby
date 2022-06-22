@@ -3368,7 +3368,7 @@ states[525] = (support, lexer, yyVal, yyVals, yyTop) -> {
     /* EvStrNode :"#{some expression}"*/
     /* Ruby 1.9 allows empty strings as symbols*/
     if (((ParseNode)yyVals[-1+yyTop]) == null) {
-        yyVal = support.asSymbol(lexer.getPosition(), TStringConstants.EMPTY_US_ASCII_TSTRING);
+        yyVal = support.asSymbol(lexer.getPosition(), TStringConstants.EMPTY_US_ASCII);
     } else if (((ParseNode)yyVals[-1+yyTop]) instanceof DStrParseNode) {
         yyVal = new DSymbolParseNode(((ParseNode)yyVals[-1+yyTop]).getPosition(), ((DStrParseNode)yyVals[-1+yyTop]));
     } else if (((ParseNode)yyVals[-1+yyTop]) instanceof StrParseNode) {

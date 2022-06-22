@@ -1567,7 +1567,7 @@ public class BodyTranslator extends Translator {
         if (node.getBody() == null) { // "#{}"
             final SourceIndexLength sourceSection = node.getPosition();
             ret = new ObjectLiteralNode(
-                    language.getFrozenStringLiteral(TStringConstants.EMPTY_BINARY_TSTRING, Encodings.BINARY));
+                    language.getFrozenStringLiteral(TStringConstants.EMPTY_BINARY, Encodings.BINARY));
             ret.unsafeSetSourceSection(sourceSection);
         } else {
             ret = node.getBody().accept(this);

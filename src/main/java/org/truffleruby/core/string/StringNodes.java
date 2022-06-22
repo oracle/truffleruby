@@ -67,7 +67,7 @@ import static com.oracle.truffle.api.strings.TruffleString.CodeRange.BROKEN;
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.VALID;
 import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
 import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
-import static org.truffleruby.core.string.TStringConstants.EMPTY_BINARY_TSTRING;
+import static org.truffleruby.core.string.TStringConstants.EMPTY_BINARY;
 import static org.truffleruby.core.string.StringSupport.MBCLEN_CHARFOUND_LEN;
 import static org.truffleruby.core.string.StringSupport.MBCLEN_CHARFOUND_P;
 import static org.truffleruby.core.string.StringSupport.MBCLEN_INVALID_P;
@@ -298,7 +298,7 @@ public abstract class StringNodes {
                     rubyClass,
                     getLanguage().stringShape,
                     false,
-                    EMPTY_BINARY_TSTRING,
+                    EMPTY_BINARY,
                     Encodings.BINARY);
             AllocationTracing.trace(string, this);
             return string;
@@ -2028,7 +2028,7 @@ public abstract class StringNodes {
             final Encoding enc = encoding.jcoding;
             var tencoding = encoding.tencoding;
             var cr = codeRangeNode.execute(tstring, tencoding);
-            TruffleString buf = EMPTY_BINARY_TSTRING;
+            TruffleString buf = EMPTY_BINARY;
 
             var byteArray = byteArrayNode.execute(tstring, tencoding);
             final byte[] pBytes = byteArray.getArray();
@@ -2112,7 +2112,7 @@ public abstract class StringNodes {
             final Encoding enc = encoding.jcoding;
             var tencoding = encoding.tencoding;
             var cr = codeRangeNode.execute(tstring, tencoding);
-            TruffleString buf = EMPTY_BINARY_TSTRING;
+            TruffleString buf = EMPTY_BINARY;
 
             var byteArray = byteArrayNode.execute(tstring, tencoding);
             final byte[] pBytes = byteArray.getArray();
@@ -4127,11 +4127,11 @@ public abstract class StringNodes {
                 @Cached TruffleString.FromCodePointNode fromCodePointNode) {
             final TruffleString tstring;
             if (isUTF8Profile.profile(encoding == Encodings.UTF_8)) {
-                tstring = TStringConstants.UTF8_SINGLE_BYTE_TSTRINGS[code];
+                tstring = TStringConstants.UTF8_SINGLE_BYTE[code];
             } else if (isUSAsciiProfile.profile(encoding == Encodings.US_ASCII)) {
-                tstring = TStringConstants.US_ASCII_SINGLE_BYTE_TSTRINGS[code];
+                tstring = TStringConstants.US_ASCII_SINGLE_BYTE[code];
             } else if (isAscii8BitProfile.profile(encoding == Encodings.BINARY)) {
-                tstring = TStringConstants.BINARY_SINGLE_BYTE_TSTRINGS[code];
+                tstring = TStringConstants.BINARY_SINGLE_BYTE[code];
             } else {
                 tstring = fromCodePointNode.execute(code, encoding.tencoding, false);
             }

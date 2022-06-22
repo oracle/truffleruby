@@ -1815,7 +1815,7 @@ public class ParserSupport {
         final Encoding encoding = lexer.getEncoding();
 
         if (contents == null) {
-            TStringWithEncoding newValue = new TStringWithEncoding(TStringConstants.EMPTY_US_ASCII_TSTRING,
+            TStringWithEncoding newValue = new TStringWithEncoding(TStringConstants.EMPTY_US_ASCII,
                     Encodings.US_ASCII);
             if (encoding != null) {
                 newValue = newValue.forceEncoding(Encodings.getBuiltInEncoding(encoding));
@@ -1889,7 +1889,7 @@ public class ParserSupport {
         return new DefinedParseNode(position, makeNullNil(something));
     }
 
-    public static final TruffleString INTERNAL_ID = TStringConstants.EMPTY_US_ASCII_TSTRING;
+    public static final TruffleString INTERNAL_ID = TStringConstants.EMPTY_US_ASCII;
 
     public SourceIndexLength extendedUntil(SourceIndexLength start, SourceIndexLength end) {
         return new SourceIndexLength(start.getCharIndex(), end.getCharEnd() - start.getCharIndex());

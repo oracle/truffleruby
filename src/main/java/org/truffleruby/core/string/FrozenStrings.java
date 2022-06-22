@@ -26,7 +26,7 @@ public class FrozenStrings {
     public static final List<TruffleString> TSTRINGS = new ArrayList<>();
 
     public static final ImmutableRubyString EMPTY_US_ASCII = FrozenStringLiterals.createStringAndCacheLater(
-            TStringConstants.EMPTY_US_ASCII_TSTRING,
+            TStringConstants.EMPTY_US_ASCII,
             RopeConstants.EMPTY_US_ASCII_ROPE,
             Encodings.US_ASCII);
 

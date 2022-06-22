@@ -259,7 +259,7 @@ public abstract class PointerNodes {
 
         @Specialization(guards = "limit == 0")
         protected RubyString readNullPointer(long address, long limit) {
-            return createString(TStringConstants.EMPTY_BINARY_TSTRING, Encodings.BINARY);
+            return createString(TStringConstants.EMPTY_BINARY, Encodings.BINARY);
         }
 
         @Specialization(guards = "limit != 0")
@@ -314,7 +314,7 @@ public abstract class PointerNodes {
             final Pointer ptr = new Pointer(address);
             if (zeroProfile.profile(length == 0)) {
                 // No need to check the pointer address if we read nothing
-                return createString(TStringConstants.EMPTY_BINARY_TSTRING, Encodings.BINARY);
+                return createString(TStringConstants.EMPTY_BINARY, Encodings.BINARY);
             } else {
                 checkNull(ptr);
                 final byte[] bytes = new byte[length];
