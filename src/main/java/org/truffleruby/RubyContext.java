@@ -32,6 +32,7 @@ import com.oracle.truffle.api.TruffleLogger;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.utilities.AssumedValue;
 import org.graalvm.collections.Pair;
 import org.graalvm.options.OptionDescriptor;
@@ -711,6 +712,11 @@ public class RubyContext {
 
     public Map<Source, Integer> getSourceLineOffsets() {
         return sourceLineOffsets;
+    }
+
+    @TruffleBoundary
+    public String fileLine(SourceSection section) {
+        return language.fileLine(this, section);
     }
 
     private static SecureRandom createRandomInstance() {

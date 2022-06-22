@@ -1,1 +1,0 @@
-fails:Using yield in a singleton class literal raises a SyntaxError

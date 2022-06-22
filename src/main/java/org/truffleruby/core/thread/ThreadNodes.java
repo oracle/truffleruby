@@ -424,12 +424,12 @@ public abstract class ThreadNodes {
         @TruffleBoundary
         private Object init(RubyThread thread, RubyProc block, ArgumentsDescriptor descriptor, Object[] args) {
             final SourceSection sourceSection = block.getSharedMethodInfo().getSourceSection();
-            final String info = RubyLanguage.fileLine(sourceSection);
+            final String info = getContext().fileLine(sourceSection);
             final String sharingReason = "creating Ruby Thread " + info;
 
             if (getLanguage().options.SHARED_OBJECTS_ENABLED) {
                 getContext().getThreadManager().startSharing(thread, sharingReason);
-                SharedObjects.shareDeclarationFrame(getLanguage(), block);
+                SharedObjects.shareDeclarationFrame(getLanguage(), block, info);
             }
 
             getContext().getThreadManager().initialize(

@@ -322,37 +322,6 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         return coverageEnabled ? MIME_TYPE_COVERAGE : MIME_TYPE;
     }
 
-    @TruffleBoundary
-    public static String fileLine(SourceSection section) {
-        if (section == null) {
-            return "no source section";
-        } else {
-            final String path = getPath(section.getSource());
-
-            if (section.isAvailable()) {
-                return path + ":" + section.getStartLine();
-            } else {
-                return path;
-            }
-        }
-    }
-
-    @TruffleBoundary
-    public static String filenameLine(SourceSection section) {
-        if (section == null) {
-            return "no source section";
-        } else {
-            final String path = getPath(section.getSource());
-            final String filename = new File(path).getName();
-
-            if (section.isAvailable()) {
-                return filename + ":" + section.getStartLine();
-            } else {
-                return filename;
-            }
-        }
-    }
-
     public RubyLanguage() {
         coreMethodAssumptions = new CoreMethodAssumptions(this);
         coreStrings = new CoreStrings(this);
@@ -808,7 +777,58 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         if (path.startsWith(coreLoadPath)) {
             return "<internal:core> " + path.substring(coreLoadPath.length() + 1);
         } else {
-            return getPath(source);
+            return path;
+        }
+    }
+
+    /** Only use when no language/context is available (e.g. Node#toString). Prefer
+     * {@link RubyContext#fileLine(SourceSection)} as it accounts for coreLoadPath and line offsets. */
+    @TruffleBoundary
+    public static String fileLine(SourceSection section) {
+        if (section == null) {
+            return "no source section";
+        } else {
+            final String path = getPath(section.getSource());
+
+            if (section.isAvailable()) {
+                return path + ":" + section.getStartLine();
+            } else {
+                return path;
+            }
+        }
+    }
+
+    /** Prefer {@link RubyContext#fileLine(SourceSection)} as it is more concise. */
+    @TruffleBoundary
+    String fileLine(RubyContext context, SourceSection section) {
+        if (section == null) {
+            return "no source section";
+        } else {
+            final String path = getSourcePath(section.getSource());
+
+            if (section.isAvailable()) {
+                return path + ":" + RubySource.getStartLineAdjusted(context, section);
+            } else {
+                return path;
+            }
+        }
+    }
+
+    /** Only use when no language/context is available (e.g. Node#toString). Prefer
+     * {@link RubyContext#fileLine(SourceSection)} as it accounts for coreLoadPath and line offsets. */
+    @TruffleBoundary
+    public static String filenameLine(SourceSection section) {
+        if (section == null) {
+            return "no source section";
+        } else {
+            final String path = getPath(section.getSource());
+            final String filename = new File(path).getName();
+
+            if (section.isAvailable()) {
+                return filename + ":" + section.getStartLine();
+            } else {
+                return filename;
+            }
         }
     }
 

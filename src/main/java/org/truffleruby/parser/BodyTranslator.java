@@ -1056,7 +1056,7 @@ public class BodyTranslator extends Translator {
                 currentNode,
                 rubyWarnings);
 
-        final ModuleBodyDefinitionNode definition = moduleTranslator.compileClassNode(sourceSection, bodyNode, type);
+        final ModuleBodyDefinitionNode definition = moduleTranslator.compileClassNode(sourceSection, bodyNode);
 
         return Translator.withSourceSection(sourceSection, new RunModuleDefinitionNode(definition, defineOrGetNode));
     }
@@ -1068,8 +1068,7 @@ public class BodyTranslator extends Translator {
      * a special method. We run that method with self set to be the newly allocated module or class.
      * </p>
      */
-    private ModuleBodyDefinitionNode compileClassNode(SourceIndexLength sourceSection, ParseNode bodyNode,
-            OpenModule type) {
+    private ModuleBodyDefinitionNode compileClassNode(SourceIndexLength sourceSection, ParseNode bodyNode) {
         RubyNode body = translateNodeOrNil(sourceSection, bodyNode);
 
         body = new InsideModuleDefinitionNode(body);
@@ -1097,7 +1096,6 @@ public class BodyTranslator extends Translator {
                 environment.getSharedMethodInfo().getBacktraceName(),
                 environment.getSharedMethodInfo(),
                 rootNode.getCallTarget(),
-                type == OpenModule.SINGLETON_CLASS,
                 environment.getStaticLexicalScopeOrNull());
     }
 
@@ -1234,8 +1232,8 @@ public class BodyTranslator extends Translator {
     private RubyNode getLexicalScopeModuleNode(String kind, SourceIndexLength sourceSection) {
         if (environment.isDynamicConstantLookup()) {
             if (language.options.LOG_DYNAMIC_CONSTANT_LOOKUP) {
-                RubyLanguage.LOGGER
-                        .info(() -> kind + " at " + RubyLanguage.fileLine(sourceSection.toSourceSection(source)));
+                RubyLanguage.LOGGER.info(() -> kind + " at " +
+                        RubyLanguage.getCurrentContext().fileLine(sourceSection.toSourceSection(source)));
             }
             return new DynamicLexicalScopeNode();
         } else {
@@ -1246,8 +1244,8 @@ public class BodyTranslator extends Translator {
     private RubyNode getLexicalScopeNode(String kind, SourceIndexLength sourceSection) {
         if (environment.isDynamicConstantLookup()) {
             if (language.options.LOG_DYNAMIC_CONSTANT_LOOKUP) {
-                RubyLanguage.LOGGER
-                        .info(() -> kind + " at " + RubyLanguage.fileLine(sourceSection.toSourceSection(source)));
+                RubyLanguage.LOGGER.info(() -> kind + " at " +
+                        RubyLanguage.getCurrentContext().fileLine(sourceSection.toSourceSection(source)));
             }
             return new GetDynamicLexicalScopeNode();
         } else {
@@ -1264,9 +1262,8 @@ public class BodyTranslator extends Translator {
         final RubyNode ret;
         if (environment.isDynamicConstantLookup()) {
             if (language.options.LOG_DYNAMIC_CONSTANT_LOOKUP) {
-                RubyLanguage.LOGGER.info(
-                        () -> "dynamic constant lookup at " +
-                                RubyLanguage.fileLine(sourceSection.toSourceSection(source)));
+                RubyLanguage.LOGGER.info(() -> "dynamic constant lookup at " +
+                        RubyLanguage.getCurrentContext().fileLine(sourceSection.toSourceSection(source)));
             }
             ret = new ReadConstantWithDynamicScopeNode(name);
         } else {
@@ -1385,7 +1382,14 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitDefinedNode(DefinedParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        final RubyNode ret = new DefinedNode(node.getExpressionNode().accept(this));
+        final ParseNode expressionNode = node.getExpressionNode();
+
+        // Handle defined?(yield) explicitly otherwise it would raise SyntaxError
+        if (expressionNode instanceof YieldParseNode && isInvalidYield()) {
+            return nilNode(sourceSection);
+        }
+
+        final RubyNode ret = new DefinedNode(expressionNode.accept(this));
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
@@ -2818,9 +2822,8 @@ public class BodyTranslator extends Translator {
         } else {
             // Switch to dynamic constant lookup
             if (language.options.LOG_DYNAMIC_CONSTANT_LOOKUP) {
-                RubyLanguage.LOGGER.info(
-                        () -> "start dynamic constant lookup at " +
-                                RubyLanguage.fileLine(sourceSection.toSourceSection(source)));
+                RubyLanguage.LOGGER.info(() -> "start dynamic constant lookup at " +
+                        RubyLanguage.getCurrentContext().fileLine(sourceSection.toSourceSection(source)));
             }
             return true;
         }
@@ -2853,7 +2856,7 @@ public class BodyTranslator extends Translator {
                 if (language.options.LOG_DYNAMIC_CONSTANT_LOOKUP) {
                     RubyLanguage.LOGGER.info(
                             () -> "start dynamic constant lookup at " +
-                                    RubyLanguage.fileLine(sourceSection.toSourceSection(source)));
+                                    RubyLanguage.getCurrentContext().fileLine(sourceSection.toSourceSection(source)));
                 }
             }
         }
@@ -3022,6 +3025,16 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitYieldNode(YieldParseNode node) {
+        if (isInvalidYield()) {
+            final RubyContext context = RubyLanguage.getCurrentContext();
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().syntaxError(
+                            "Invalid yield",
+                            currentNode,
+                            node.getPosition().toSourceSection(source)));
+        }
+
         final ParseNode argsNode = node.getArgsNode();
 
         final ArgumentsAndBlockTranslation argumentsAndBlock = translateArgumentsAndBlock(
@@ -3036,11 +3049,14 @@ public class BodyTranslator extends Translator {
                 argumentsAndBlock.isSplatted(),
                 argumentsAndBlock.getArgumentsDescriptor(),
                 argumentsTranslated,
-                readBlock,
-                environment.shouldWarnYieldInModuleBody());
+                readBlock);
 
         ret.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, ret);
+    }
+
+    private boolean isInvalidYield() {
+        return environment.getSurroundingMethodEnvironment().isModuleBody();
     }
 
     @Override

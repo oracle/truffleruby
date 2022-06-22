@@ -42,7 +42,7 @@ public abstract class EvalLoader {
                     String.format("%02X", e.getNonAsciiCharacter());
             throw new RaiseException(
                     context,
-                    context.getCoreExceptions().syntaxError(
+                    context.getCoreExceptions().syntaxErrorAlreadyWithFileLine(
                             message,
                             currentNode,
                             currentNode.getEncapsulatingSourceSection()));

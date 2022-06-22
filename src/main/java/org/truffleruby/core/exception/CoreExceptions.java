@@ -1017,9 +1017,21 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubySyntaxError syntaxError(String message, Node currentNode, SourceSection sourceLocation) {
+        String messageWithFileLine;
+        if (sourceLocation != null) {
+            messageWithFileLine = context.fileLine(sourceLocation) + ": " + message;
+        } else {
+            messageWithFileLine = "(unknown):1: " + message;
+        }
+        return syntaxErrorAlreadyWithFileLine(messageWithFileLine, currentNode, sourceLocation);
+    }
+
+    @TruffleBoundary
+    public RubySyntaxError syntaxErrorAlreadyWithFileLine(String message, Node currentNode,
+            SourceSection sourceLocation) {
+        final RubyString messageString = StringOperations.createUTF8String(context, language,
+                StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         RubyClass exceptionClass = context.getCoreLibrary().syntaxErrorClass;
-        final RubyString messageString = StringOperations
-                .createUTF8String(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
         final Object cause = ThreadGetExceptionNode.getLastException(language);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);

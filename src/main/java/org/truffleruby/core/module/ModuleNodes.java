@@ -522,8 +522,7 @@ public abstract class ModuleNodes {
                     alwaysInlinedNodeFactory,
                     null,
                     callTarget,
-                    null,
-                    nil);
+                    null);
 
             module.fields.addMethod(getContext(), this, method);
             return getLanguage().getSymbol(method.getName());
@@ -2326,7 +2325,7 @@ public abstract class ModuleNodes {
                         coreExceptions().runtimeError("Module#using is not called on self", this));
             }
             final InternalMethod callerMethod = RubyArguments.getMethod(callerFrame);
-            if (!isCalledFromClassOrModule(callerMethod)) {
+            if (!callerMethod.getSharedMethodInfo().isModuleBody()) {
                 errorProfile.enter();
                 throw new RaiseException(
                         getContext(),
@@ -2336,12 +2335,6 @@ public abstract class ModuleNodes {
             return self;
         }
 
-        @TruffleBoundary
-        private boolean isCalledFromClassOrModule(InternalMethod callerMethod) {
-            final String name = callerMethod.getSharedMethodInfo().getBacktraceName();
-            // Handles cases: <main> | <top | <class: | <module: | <singleton
-            return name.startsWith("<");
-        }
     }
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)

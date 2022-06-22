@@ -370,18 +370,15 @@ public class TranslatorDriver {
     }
 
     private String getMethodName(ParserContext parserContext, MaterializedFrame parentFrame) {
-        switch (parserContext) {
-            case TOP_LEVEL_FIRST:
-                return "<main>";
-            case TOP_LEVEL:
-                return "<top (required)>";
-            default:
-                if (parentFrame != null) {
-                    return RubyArguments.getMethod(parentFrame).getName();
-                } else {
-                    throw new UnsupportedOperationException(
-                            "Could not determine the method name for parser context " + parserContext);
-                }
+        if (parserContext.isTopLevel()) {
+            return parserContext.getTopLevelName();
+        } else {
+            if (parentFrame != null) {
+                return RubyArguments.getMethod(parentFrame).getName();
+            } else {
+                throw new UnsupportedOperationException(
+                        "Could not determine the method name for parser context " + parserContext);
+            }
         }
     }
 
@@ -424,7 +421,7 @@ public class TranslatorDriver {
                     if (context != null) {
                         throw new RaiseException(
                                 context,
-                                context.getCoreExceptions().syntaxError(
+                                context.getCoreExceptions().syntaxErrorAlreadyWithFileLine(
                                         buffer.toString(),
                                         null,
                                         rubySource.getSource().createSection(e.getLine())));
@@ -452,13 +449,15 @@ public class TranslatorDriver {
                     null);
             final MaterializedFrame parent = RubyArguments.getDeclarationFrame(frame);
             assert (blockDepth == 0) == (parent == null);
+            boolean isModuleBody = blockDepth == 0 &&
+                    RubyArguments.getMethod(frame).getSharedMethodInfo().isModuleBody();
 
             return new TranslatorEnvironment(
                     environmentForFrame(context, parent, blockDepth - 1),
                     parseEnvironment,
                     parseEnvironment.allocateReturnID(),
                     true,
-                    false,
+                    isModuleBody,
                     sharedMethodInfo,
                     sharedMethodInfo.getMethodName(),
                     blockDepth,

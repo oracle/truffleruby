@@ -112,7 +112,7 @@ public abstract class RequireNode extends RubyBaseNode {
                 RubyLanguage.LOGGER
                         .info(() -> String.format(
                                 "%s: requiring %s which is registered as an autoload for %s",
-                                RubyLanguage.fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
+                                getContext().fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
                                 feature,
                                 info));
             }

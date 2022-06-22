@@ -11,28 +11,32 @@ package org.truffleruby.parser;
 
 public enum ParserContext {
     /** The main script */
-    TOP_LEVEL_FIRST(true, false),
+    TOP_LEVEL_FIRST("<main>", false),
     /** required or loaded */
-    TOP_LEVEL(true, false),
+    TOP_LEVEL("<top (required)>", false),
     /** class_eval */
-    MODULE(false, true),
+    MODULE(null, true),
     /** instance_eval */
-    INSTANCE_EVAL(false, true),
+    INSTANCE_EVAL(null, true),
     /** Kernel#eval which is special because it sets new variables in the source in the Binding */
-    EVAL(false, true),
+    EVAL(null, true),
     /** DebugHelpers.eval() or InlineParsingRequest, like EVAL but without the new variables handling */
-    INLINE(false, true);
+    INLINE(null, true);
 
-    private final boolean topLevel;
+    private final String topLevelName;
     private final boolean eval;
 
-    private ParserContext(boolean topLevel, boolean eval) {
-        this.topLevel = topLevel;
+    private ParserContext(String topLevelName, boolean eval) {
+        this.topLevelName = topLevelName;
         this.eval = eval;
     }
 
+    public String getTopLevelName() {
+        return topLevelName;
+    }
+
     public boolean isTopLevel() {
-        return topLevel;
+        return topLevelName != null;
     }
 
     public boolean isEval() {

@@ -20,7 +20,6 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.LexicalScope;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
@@ -29,7 +28,6 @@ import org.truffleruby.language.objects.ObjectGraphNode;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 
-import static org.truffleruby.language.RubyBaseNode.nil;
 
 /** A Ruby method: either a method in a module, a literal module/class body or some meta-information for eval'd code.
  * Blocks capture the method in which they are defined. */
@@ -57,7 +55,6 @@ public class InternalMethod implements ObjectGraphNode {
 
     private final CachedSupplier<RootCallTarget> callTargetSupplier;
     @CompilationFinal private RootCallTarget callTarget;
-    private final Object capturedBlock;
 
     public static InternalMethod fromProc(
             RubyContext context,
@@ -80,8 +77,7 @@ public class InternalMethod implements ObjectGraphNode {
                 null,
                 proc,
                 callTarget,
-                null,
-                nil);
+                null);
     }
 
     public InternalMethod(
@@ -105,8 +101,7 @@ public class InternalMethod implements ObjectGraphNode {
                 null,
                 null,
                 callTarget,
-                null,
-                Nil.INSTANCE);
+                null);
     }
 
     /** Constructor for new methods, computing builtIn from the context */
@@ -122,8 +117,7 @@ public class InternalMethod implements ObjectGraphNode {
             NodeFactory<? extends RubyBaseNode> alwaysInlined,
             RubyProc proc,
             RootCallTarget callTarget,
-            CachedSupplier<RootCallTarget> callTargetSupplier,
-            Object capturedBlock) {
+            CachedSupplier<RootCallTarget> callTargetSupplier) {
         this(
                 sharedMethodInfo,
                 lexicalScope,
@@ -139,8 +133,7 @@ public class InternalMethod implements ObjectGraphNode {
                 null,
                 proc,
                 callTarget,
-                callTargetSupplier,
-                capturedBlock);
+                callTargetSupplier);
     }
 
     private InternalMethod(
@@ -158,13 +151,11 @@ public class InternalMethod implements ObjectGraphNode {
             DeclarationContext activeRefinements,
             RubyProc proc,
             RootCallTarget callTarget,
-            CachedSupplier<RootCallTarget> callTargetSupplier,
-            Object capturedBlock) {
+            CachedSupplier<RootCallTarget> callTargetSupplier) {
         assert declaringModule != null;
         assert lexicalScope != null;
         assert !sharedMethodInfo.isBlock() : sharedMethodInfo;
         assert callTarget == null || RubyRootNode.of(callTarget).getSharedMethodInfo() == sharedMethodInfo;
-        assert capturedBlock instanceof Nil || capturedBlock instanceof RubyProc : capturedBlock;
         this.sharedMethodInfo = sharedMethodInfo;
         this.lexicalScope = lexicalScope;
         this.declarationContext = declarationContext;
@@ -180,7 +171,6 @@ public class InternalMethod implements ObjectGraphNode {
         this.proc = proc;
         this.callTarget = callTarget;
         this.callTargetSupplier = callTargetSupplier;
-        this.capturedBlock = capturedBlock;
     }
 
     public SharedMethodInfo getSharedMethodInfo() {
@@ -263,8 +253,7 @@ public class InternalMethod implements ObjectGraphNode {
                     activeRefinements,
                     proc,
                     callTarget,
-                    callTargetSupplier,
-                    capturedBlock);
+                    callTargetSupplier);
         }
     }
 
@@ -287,8 +276,7 @@ public class InternalMethod implements ObjectGraphNode {
                     activeRefinements,
                     proc,
                     callTarget,
-                    callTargetSupplier,
-                    capturedBlock);
+                    callTargetSupplier);
         }
     }
 
@@ -311,8 +299,7 @@ public class InternalMethod implements ObjectGraphNode {
                     activeRefinements,
                     proc,
                     callTarget,
-                    callTargetSupplier,
-                    capturedBlock);
+                    callTargetSupplier);
         }
     }
 
@@ -335,8 +322,7 @@ public class InternalMethod implements ObjectGraphNode {
                     activeRefinements,
                     proc,
                     callTarget,
-                    callTargetSupplier,
-                    capturedBlock);
+                    callTargetSupplier);
         }
     }
 
@@ -359,8 +345,7 @@ public class InternalMethod implements ObjectGraphNode {
                     context,
                     proc,
                     callTarget,
-                    callTargetSupplier,
-                    capturedBlock);
+                    callTargetSupplier);
         }
     }
 
@@ -383,8 +368,7 @@ public class InternalMethod implements ObjectGraphNode {
                     activeRefinements,
                     proc,
                     callTarget,
-                    callTargetSupplier,
-                    capturedBlock);
+                    callTargetSupplier);
         }
     }
 
@@ -404,8 +388,7 @@ public class InternalMethod implements ObjectGraphNode {
                 activeRefinements,
                 proc,
                 callTarget,
-                callTargetSupplier,
-                capturedBlock);
+                callTargetSupplier);
     }
 
     public InternalMethod unimplemented() {
@@ -424,8 +407,7 @@ public class InternalMethod implements ObjectGraphNode {
                 activeRefinements,
                 proc,
                 callTarget,
-                callTargetSupplier,
-                capturedBlock);
+                callTargetSupplier);
     }
 
     @TruffleBoundary
@@ -455,10 +437,6 @@ public class InternalMethod implements ObjectGraphNode {
         if (proc != null) {
             adjacent.add(proc);
         }
-    }
-
-    public Object getCapturedBlock() {
-        return capturedBlock;
     }
 
     public LexicalScope getLexicalScope() {
