@@ -3,14 +3,14 @@ require_relative 'fixtures/classes'
 
 describe "Array#sample" do
   it "samples evenly" do
-    ArraySpecs.measure_sample_fairness(4, 1, 4000)
-    ArraySpecs.measure_sample_fairness(4, 2, 4000)
-    ArraySpecs.measure_sample_fairness(4, 3, 4000)
-    ArraySpecs.measure_sample_fairness(40, 3, 4000)
-    ArraySpecs.measure_sample_fairness(40, 4, 4000)
-    ArraySpecs.measure_sample_fairness(40, 8, 4000)
-    ArraySpecs.measure_sample_fairness(40, 16, 4000)
-    ArraySpecs.measure_sample_fairness_large_sample_size(100, 80, 40000)
+    ArraySpecs.measure_sample_fairness(4, 1, 400)
+    ArraySpecs.measure_sample_fairness(4, 2, 400)
+    ArraySpecs.measure_sample_fairness(4, 3, 400)
+    ArraySpecs.measure_sample_fairness(40, 3, 400)
+    ArraySpecs.measure_sample_fairness(40, 4, 400)
+    ArraySpecs.measure_sample_fairness(40, 8, 400)
+    ArraySpecs.measure_sample_fairness(40, 16, 400)
+    ArraySpecs.measure_sample_fairness_large_sample_size(100, 80, 4000)
   end
 
   it "returns nil for an empty Array" do
