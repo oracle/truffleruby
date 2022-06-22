@@ -3633,7 +3633,6 @@ public abstract class StringNodes {
 
         @Child private CallBlockNode yieldNode = CallBlockNode.create();
         @Child GetByteCodeRangeNode codeRangeNode = GetByteCodeRangeNode.create();
-        @Child TruffleString.GetInternalByteArrayNode byteArrayNode = TruffleString.GetInternalByteArrayNode.create();
 
         private static final int SUBSTRING_CREATED = -1;
 
@@ -3644,21 +3643,21 @@ public abstract class StringNodes {
                 @Cached ConditionProfile growArrayProfile,
                 @Cached ConditionProfile trailingSubstringProfile,
                 @Cached ConditionProfile trailingEmptyStringProfile,
+                @Cached TruffleString.MaterializeNode materializeNode,
+                @Cached TruffleString.ReadByteNode readByteNode,
                 @Cached TruffleString.SubstringByteIndexNode substringNode,
                 @Bind("strings.getTString(string)") AbstractTruffleString tstring,
                 @Bind("strings.getEncoding(string)") RubyEncoding encoding) {
             Object[] ret = new Object[10];
             int storeIndex = 0;
 
-            var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
-            var bytes = byteArray.getArray();
-            int byteOffset = byteArray.getOffset();
-            int byteLength = byteArray.getLength();
+            int byteLength = tstring.byteLength(encoding.tencoding);
+            materializeNode.execute(tstring, encoding.tencoding);
 
             int substringStart = 0;
             boolean findingSubstringEnd = false;
             for (int i = 0; i < byteLength; i++) {
-                if (StringSupport.isAsciiSpace(bytes[i + byteOffset])) {
+                if (StringSupport.isAsciiSpace(readByteNode.execute(tstring, i, encoding.tencoding))) {
                     if (findingSubstringEnd) {
                         findingSubstringEnd = false;
 
@@ -3691,7 +3690,8 @@ public abstract class StringNodes {
                 ret = addSubstring(ret, storeIndex++, substring, block, executeBlockProfile, growArrayProfile);
             }
 
-            if (trailingEmptyStringProfile.profile(limit < 0 && StringSupport.isAsciiSpace(bytes[byteLength - 1]))) {
+            if (trailingEmptyStringProfile.profile(limit < 0 &&
+                    StringSupport.isAsciiSpace(readByteNode.execute(tstring, byteLength - 1, encoding.tencoding)))) {
                 final RubyString substring = createSubString(substringNode, tstring, encoding, byteLength - 1, 0);
                 ret = addSubstring(ret, storeIndex++, substring, block, executeBlockProfile, growArrayProfile);
             }
@@ -3712,6 +3712,7 @@ public abstract class StringNodes {
                 @Cached ConditionProfile trailingSubstringProfile,
                 @Cached GetCodePointNode getCodePointNode,
                 @Cached TruffleString.SubstringByteIndexNode substringNode,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Bind("strings.getTString(string)") AbstractTruffleString tstring,
                 @Bind("strings.getEncoding(string)") RubyEncoding encoding) {
             Object[] ret = new Object[10];
