@@ -18,8 +18,6 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.core.string.StringUtils;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -28,28 +26,6 @@ import org.truffleruby.language.library.RubyStringLibrary;
 
 @CoreModule("Truffle::Ropes")
 public abstract class TruffleRopesNodes {
-
-    @CoreMethod(names = "dump_string", onSingleton = true, required = 1)
-    public abstract static class DumpStringNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-
-        @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(string)")
-        protected RubyString dumpString(Object string,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            final StringBuilder builder = new StringBuilder();
-
-            final Rope rope = strings.getRope(string);
-
-            for (int i = 0; i < rope.byteLength(); i++) {
-                builder.append(StringUtils.format("\\x%02x", rope.get(i)));
-            }
-
-            return makeStringNode.executeMake(builder.toString(), Encodings.UTF_8, CodeRange.CR_UNKNOWN);
-        }
-
-    }
 
     @CoreMethod(names = "flatten_rope", onSingleton = true, required = 1)
     public abstract static class FlattenRopeNode extends CoreMethodArrayArgumentsNode {
