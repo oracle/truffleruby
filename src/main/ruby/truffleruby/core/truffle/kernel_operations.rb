@@ -85,6 +85,18 @@ module Truffle
 
     $/ = "\n".freeze
 
+    define_hooked_variable(
+      :$\,
+      -> { Primitive.global_variable_get :$\ },
+      -> v {
+        if v && !Primitive.object_kind_of?(v, String)
+          raise TypeError, '$\ must be a String'
+        end
+        Primitive.global_variable_set :$\, v
+      })
+
+    $\ = nil
+
     Truffle::Boot.delay do
       if Truffle::Boot.get_option 'chomp-loop'
         $\ = $/
@@ -121,7 +133,18 @@ module Truffle
 
     $, = nil # It should be defined by the time boot has finished.
 
-    $= = false
+    define_hooked_variable(
+      :$=,
+      -> {
+        warn 'variable $= is no longer effective', uplevel: 1 if Warning[:deprecated]
+        Primitive.global_variable_get :$=
+      },
+      -> v {
+        warn 'variable $= is no longer effective', uplevel: 1 if Warning[:deprecated]
+        Primitive.global_variable_set :$=, v
+      })
+
+    Primitive.global_variable_set :$=, false
 
     define_hooked_variable(
       :$VERBOSE,
@@ -172,6 +195,8 @@ module Truffle
         warn "`$;' is deprecated", uplevel: 1 if !Primitive.nil?(v) && Warning[:deprecated]
         Primitive.global_variable_set :"$;", v
       })
+
+    $; = nil
 
     def self.load_error(name)
       load_error = LoadError.new("cannot load such file -- #{name}")

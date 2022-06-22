@@ -10,6 +10,7 @@ Bug fixes:
 Compatibility:
 
 * Fix `Array#fill` to raise `TypeError` instead of `ArgumentError` when the length argument is not numeric (#2652, @andrykonchin).
+* Warn when a global variable is not initialized (#2595, @andrykonchin).
 
 Performance:
 
