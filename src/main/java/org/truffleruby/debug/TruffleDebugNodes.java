@@ -1275,4 +1275,13 @@ public abstract class TruffleDebugNodes {
         }
     }
 
+    @CoreMethod(names = "cexts_to_native_count", onSingleton = true)
+    public abstract static class HandleCreationCountNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected long handleCount() {
+            return getContext().getValueWrapperManager().totalHandleAllocations();
+        }
+    }
+
 }
