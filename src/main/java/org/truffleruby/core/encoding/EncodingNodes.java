@@ -552,15 +552,15 @@ public abstract class EncodingNodes {
         @TruffleBoundary
         @Specialization(guards = "encoding.jcoding.isDummy()")
         protected RubyEncoding getActualEncodingDummy(AbstractTruffleString tstring, RubyEncoding encoding,
-                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
+                @Cached TruffleString.ReadByteNode readByteNode) {
             if (encoding.jcoding instanceof UnicodeEncoding) {
                 var enc = encoding.tencoding;
-                var byteArray = byteArrayNode.execute(tstring, enc);
+                var byteLength = tstring.byteLength(enc);
 
                 // handle dummy UTF-16 and UTF-32 by scanning for BOM, as in MRI
-                if (encoding == Encodings.UTF16_DUMMY && byteArray.getLength() >= 2) {
-                    int c0 = byteArray.get(0) & 0xff;
-                    int c1 = byteArray.get(1) & 0xff;
+                if (encoding == Encodings.UTF16_DUMMY && byteLength >= 2) {
+                    int c0 = readByteNode.execute(tstring, 0, enc);
+                    int c1 = readByteNode.execute(tstring, 1, enc);
 
                     if (c0 == 0xFE && c1 == 0xFF) {
                         return Encodings.UTF16BE;
@@ -568,11 +568,11 @@ public abstract class EncodingNodes {
                         return Encodings.UTF16LE;
                     }
                     return Encodings.BINARY;
-                } else if (encoding == Encodings.UTF32_DUMMY && byteArray.getLength() >= 4) {
-                    int c0 = byteArray.get(0) & 0xff;
-                    int c1 = byteArray.get(1) & 0xff;
-                    int c2 = byteArray.get(2) & 0xff;
-                    int c3 = byteArray.get(3) & 0xff;
+                } else if (encoding == Encodings.UTF32_DUMMY && byteLength >= 4) {
+                    int c0 = readByteNode.execute(tstring, 0, enc);
+                    int c1 = readByteNode.execute(tstring, 1, enc);
+                    int c2 = readByteNode.execute(tstring, 2, enc);
+                    int c3 = readByteNode.execute(tstring, 3, enc);
 
                     if (c0 == 0 && c1 == 0 && c2 == 0xFE && c3 == 0xFF) {
                         return Encodings.UTF32BE;
