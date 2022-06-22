@@ -11,6 +11,7 @@ package org.truffleruby.core.format.rbsprintf;
 
 import java.util.List;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 
 import com.oracle.truffle.api.strings.TruffleString;
@@ -35,11 +36,11 @@ public class RBSprintfCompiler {
         this.currentNode = currentNode;
     }
 
-    public RootCallTarget compile(Object format, RubyStringLibrary libFormat,
-            TruffleString.GetInternalByteArrayNode byteArrayNode, Object stringReader) {
+    @TruffleBoundary
+    public RootCallTarget compile(Object format, RubyStringLibrary libFormat, Object stringReader) {
         var formatTString = libFormat.getTString(format);
         var formatEncoding = libFormat.getEncoding(format);
-        var byteArray = byteArrayNode.execute(formatTString, formatEncoding.tencoding);
+        var byteArray = formatTString.getInternalByteArrayUncached(formatEncoding.tencoding);
 
         final RBSprintfSimpleParser parser = new RBSprintfSimpleParser(StringSupport.bytesToChars(byteArray), false);
         final List<RBSprintfConfig> configs = parser.parse();
