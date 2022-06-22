@@ -18,6 +18,7 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.RubyString;
@@ -186,13 +187,16 @@ public abstract class ByteArrayNodes {
                 guards = { "!isSingleBytePattern(patternTString, patternEncoding)" })
         protected Object getByte(RubyByteArray byteArray, Object pattern, int start, int length,
                 @Cached TruffleString.CodePointLengthNode codePointLengthNode,
-                @Cached TruffleString.CopyToByteArrayNode copyToByteArrayNode,
+                @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode,
+                @Cached ConditionProfile noCopyProfile,
                 @Cached ConditionProfile notFoundProfile,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libPattern,
                 @Bind("libPattern.getTString(pattern)") AbstractTruffleString patternTString,
                 @Bind("libPattern.getTEncoding(pattern)") TruffleString.Encoding patternEncoding) {
-            // TODO (nirvdrum 09-June-2022): Copying the byte array here is wasteful, but ArrayUtils doesn't have a method that works with an offset or length.
-            final byte[] patternBytes = copyToByteArrayNode.execute(patternTString, patternEncoding);
+            // TODO (nirvdrum 09-June-2022): Copying the byte array here is wasteful, but ArrayUtils.indexOfWithOrMask does not accept an offset or length for the needle.
+            // Another possibility would be to create a MutableTruffleString for the RubyByteArray and use ByteIndexOfStringNode, but that would force computation of the coderange of the byte[]
+            final byte[] patternBytes = TStringUtils.getBytesOrCopy(patternTString, patternEncoding,
+                    getInternalByteArrayNode, noCopyProfile);
 
             final int index = ArrayUtils.indexOfWithOrMask(byteArray.bytes, start, length, patternBytes, null);
 
