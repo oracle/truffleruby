@@ -1802,13 +1802,15 @@ public abstract class StringNodes {
                 guards = { "!isEmpty(string.tstring)", "isSingleByteOptimizable(string, singleByteOptimizableNode)" })
         protected Object lstripBangSingleByte(RubyString string,
                 @Cached SingleByteOptimizableNode singleByteOptimizableNode,
-                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
+                @Cached TruffleString.MaterializeNode materializeNode,
+                @Cached TruffleString.ReadByteNode readByteNode,
                 @Cached ConditionProfile noopProfile) {
             // Taken from org.jruby.RubyString#lstrip_bang19 and org.jruby.RubyString#singleByteLStrip.
 
             var tstring = string.tstring;
-            var encoding = string.encoding;
-            int firstCodePoint = getCodePointNode.executeGetCodePoint(tstring, encoding, 0);
+            var tencoding = string.encoding.tencoding;
+            materializeNode.execute(tstring, tencoding);
+            int firstCodePoint = readByteNode.execute(tstring, 0, tencoding);
 
             // Check the first code point to see if it's a space. In the case of strings without leading spaces,
             // this check can avoid having to compile the while loop.
@@ -1816,17 +1818,14 @@ public abstract class StringNodes {
                 return nil;
             }
 
-            final var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
-            final int byteOffset = byteArray.getOffset();
-            final int end = byteArray.getEnd();
-            final byte[] bytes = byteArray.getArray();
+            final int byteLength = tstring.byteLength(tencoding);
 
-            int p = byteOffset;
-            while (p < end && StringSupport.isAsciiSpaceOrNull(bytes[p])) {
+            int p = 1;
+            while (p < byteLength && StringSupport.isAsciiSpaceOrNull(readByteNode.execute(tstring, p, tencoding))) {
                 p++;
             }
 
-            string.setTString(substringNode.execute(tstring, p - byteOffset, end - p, encoding.tencoding, true));
+            string.setTString(substringNode.execute(tstring, p, byteLength - p, tencoding, true));
 
             return string;
         }
@@ -1841,9 +1840,10 @@ public abstract class StringNodes {
             // Taken from org.jruby.RubyString#lstrip_bang19 and org.jruby.RubyString#multiByteLStrip.
 
             var tstring = string.tstring;
-            final RubyEncoding enc = getActualEncodingNode.execute(tstring, strings.getEncoding(string));
+            var encoding = strings.getEncoding(string);
+            final RubyEncoding enc = getActualEncodingNode.execute(tstring, encoding);
             final int s = 0;
-            final int end = s + tstring.byteLength(strings.getEncoding(string).tencoding);
+            final int end = s + tstring.byteLength(encoding.tencoding);
 
             int p = s;
             while (p < end) {
