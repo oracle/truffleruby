@@ -3901,8 +3901,8 @@ public abstract class StringNodes {
                 @Bind("strings.getTString(string)") AbstractTruffleString originalTString,
                 @Bind("strings.getEncoding(string)") RubyEncoding originalEncoding) {
             final Rope rope = strings.getRope(string);
-            final RubyEncoding actualEncoding = getActualEncodingNode.execute(rope, originalEncoding);
-            var tstring = forceEncodingNode.execute(strings.getTString(string), originalEncoding.tencoding,
+            final RubyEncoding actualEncoding = getActualEncodingNode.execute(originalTString, originalEncoding);
+            var tstring = forceEncodingNode.execute(originalTString, originalEncoding.tencoding,
                     actualEncoding.tencoding);
 
             final int end = rope.byteLength();

@@ -35,7 +35,6 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeGuards;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringGuards;
@@ -531,8 +530,7 @@ public abstract class EncodingNodes {
         protected RubyEncoding getActualEncoding(Object string,
                 @Cached GetActualEncodingNode getActualEncodingNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
-            final Rope rope = libString.getRope(string);
-            return getActualEncodingNode.execute(rope, libString.getEncoding(string));
+            return getActualEncodingNode.execute(libString.getTString(string), libString.getEncoding(string));
         }
 
     }
@@ -544,53 +542,20 @@ public abstract class EncodingNodes {
             return EncodingNodesFactory.GetActualEncodingNodeGen.create();
         }
 
-        public abstract RubyEncoding execute(Object rope, RubyEncoding encoding);
+        public abstract RubyEncoding execute(AbstractTruffleString tstring, RubyEncoding encoding);
 
         @Specialization(guards = "!encoding.jcoding.isDummy()")
-        protected RubyEncoding getActualEncoding(Object rope, RubyEncoding encoding) {
+        protected RubyEncoding getActualEncoding(AbstractTruffleString tstring, RubyEncoding encoding) {
             return encoding;
         }
 
         @TruffleBoundary
         @Specialization(guards = "encoding.jcoding.isDummy()")
-        protected RubyEncoding getActualEncodingDummy(Rope rope, RubyEncoding encoding) {
-            if (encoding.jcoding instanceof UnicodeEncoding) {
-                // handle dummy UTF-16 and UTF-32 by scanning for BOM, as in MRI
-                if (encoding == Encodings.UTF16_DUMMY && rope.byteLength() >= 2) {
-                    int c0 = rope.get(0) & 0xff;
-                    int c1 = rope.get(1) & 0xff;
-
-                    if (c0 == 0xFE && c1 == 0xFF) {
-                        return Encodings.UTF16BE;
-                    } else if (c0 == 0xFF && c1 == 0xFE) {
-                        return Encodings.UTF16LE;
-                    }
-                    return Encodings.BINARY;
-                } else if (encoding == Encodings.UTF32_DUMMY && rope.byteLength() >= 4) {
-                    int c0 = rope.get(0) & 0xff;
-                    int c1 = rope.get(1) & 0xff;
-                    int c2 = rope.get(2) & 0xff;
-                    int c3 = rope.get(3) & 0xff;
-
-                    if (c0 == 0 && c1 == 0 && c2 == 0xFE && c3 == 0xFF) {
-                        return Encodings.UTF32BE;
-                    } else if (c3 == 0 && c2 == 0 && c1 == 0xFE && c0 == 0xFF) {
-                        return Encodings.UTF32LE;
-                    }
-                    return Encodings.BINARY;
-                }
-            }
-
-            return encoding;
-        }
-
-        @TruffleBoundary
-        @Specialization(guards = "encoding.jcoding.isDummy()")
-        protected RubyEncoding getActualEncodingDummy(AbstractTruffleString string, RubyEncoding encoding,
+        protected RubyEncoding getActualEncodingDummy(AbstractTruffleString tstring, RubyEncoding encoding,
                 @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
             if (encoding.jcoding instanceof UnicodeEncoding) {
                 var enc = encoding.tencoding;
-                var byteArray = byteArrayNode.execute(string, enc);
+                var byteArray = byteArrayNode.execute(tstring, enc);
 
                 // handle dummy UTF-16 and UTF-32 by scanning for BOM, as in MRI
                 if (encoding == Encodings.UTF16_DUMMY && byteArray.getLength() >= 2) {
