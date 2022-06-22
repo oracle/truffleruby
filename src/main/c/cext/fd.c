@@ -9,7 +9,9 @@
  */
 #include <truffleruby-impl.h>
 #include <fcntl.h>
+#include <errno.h>
 #include <ruby/thread.h>
+#include <time.h>
 
 // For howmany()
 #ifdef HAVE_SYS_PARAM_H
@@ -105,6 +107,65 @@ void rb_fd_dup(rb_fdset_t *dst, const rb_fdset_t *src) {
   memcpy(dst->fdset, src->fdset, size);
 }
 
+void rb_fd_init_copy(rb_fdset_t *dst, rb_fdset_t *src) {
+  size_t size = howmany(rb_fd_max(src), NFDBITS) * sizeof(fd_mask);
+
+  if (size < sizeof(fd_set)) {
+    size = sizeof(fd_set);
+  }
+  dst->maxfd = src->maxfd;
+  dst->fdset = xmalloc(size);
+  memcpy(dst->fdset, src->fdset, size);
+}
+
+static bool timespec_subtract(struct timespec *result, struct timespec x, struct timespec y) {
+  /* Perform the carry for the later subtraction by updating y. */
+  if (x.tv_nsec < y.tv_nsec) {
+    long nsec = (y.tv_nsec - x.tv_nsec) / 1000000000 + 1;
+    y.tv_nsec -= 1000000000 * nsec;
+    y.tv_sec += nsec;
+  }
+  if (x.tv_nsec - y.tv_nsec > 1000000000) {
+    long nsec = (x.tv_nsec - y.tv_nsec) / 1000000000;
+    y.tv_nsec += 1000000000 * nsec;
+    y.tv_sec -= nsec;
+  }
+
+  /* Compute the time remaining to wait.
+     tv_nsec is certainly positive. */
+  result->tv_sec = x.tv_sec - y.tv_sec;
+  result->tv_nsec = x.tv_nsec - y.tv_nsec;
+
+  /* Return 1 if result is negative. */
+  return x.tv_sec < y.tv_sec;
+}
+
+static bool timeval_subtract(struct timeval *result, struct timeval x, struct timeval y) {
+  /* Perform the carry for the later subtraction by updating y. */
+  if (x.tv_usec < y.tv_usec) {
+    long usec = (y.tv_usec - x.tv_usec) / 1000000 + 1;
+    y.tv_usec -= 1000000 * usec;
+    y.tv_sec += usec;
+  }
+  if (x.tv_usec - y.tv_usec > 1000000) {
+    long usec = (x.tv_usec - y.tv_usec) / 1000000;
+    y.tv_usec += 1000000 * usec;
+    y.tv_sec -= usec;
+  }
+
+  /* Compute the time remaining to wait.
+     tv_usec is certainly positive. */
+  result->tv_sec = x.tv_sec - y.tv_sec;
+  result->tv_usec = x.tv_usec - y.tv_usec;
+
+  /* Return 1 if result is negative. */
+  return x.tv_sec < y.tv_sec;
+}
+
+static int should_retry(int result) {
+  return (result < 0) && (errno == EINTR);
+}
+
 int rb_fd_select(int n, rb_fdset_t *readfds, rb_fdset_t *writefds, rb_fdset_t *exceptfds, struct timeval *timeout) {
   fd_set *r = NULL, *w = NULL, *e = NULL;
   if (readfds) {
@@ -122,19 +183,88 @@ int rb_fd_select(int n, rb_fdset_t *readfds, rb_fdset_t *writefds, rb_fdset_t *e
   return select(n, r, w, e, timeout);
 }
 
+
 // NOTE: MRI's version has more fields
 struct select_set {
   int max;
   rb_fdset_t *rset;
   rb_fdset_t *wset;
   rb_fdset_t *eset;
+  rb_fdset_t *orig_rset;
+  rb_fdset_t *orig_wset;
+  rb_fdset_t *orig_eset;
   struct timeval *timeout;
+  struct timeval *orig_timeout;
 };
+
+static inline void restore_fds(rb_fdset_t *dst, rb_fdset_t *src) {
+  if (dst) {
+    rb_fd_dup(dst, src);
+  }
+}
+
+static bool update_timeout(struct timeval *timeout, struct timeval *orig_timeout, struct timespec *starttime) {
+  struct timespec currenttime;
+  struct timespec difftime;
+  struct timeval difftimeout;
+  bool timeleft = true;
+  if (timeout) {
+    clock_gettime(CLOCK_MONOTONIC, &currenttime);
+    timespec_subtract(&difftime, currenttime, *starttime);
+    difftimeout.tv_sec = difftime.tv_sec;
+    difftimeout.tv_usec = difftime.tv_nsec / 1000;
+    timeleft = timeval_subtract(timeout, *orig_timeout, difftimeout);
+  }
+
+  return timeleft;
+}
 
 static void* rb_thread_fd_select_blocking(void *data) {
   struct select_set *set = (struct select_set*)data;
-  int result = rb_fd_select(set->max, set->rset, set->wset, set->eset, set->timeout);
+  struct timespec starttime;
+
+  if (set->timeout) {
+    clock_gettime(CLOCK_MONOTONIC, &starttime);
+  }
+
+  int result = 0;
+  bool timeleft = true;
+  do {
+    restore_fds(set->rset, set->orig_rset);
+    restore_fds(set->wset, set->orig_wset);
+    restore_fds(set->eset, set->orig_eset);
+    timeleft = update_timeout(set->timeout, set->orig_timeout, &starttime);
+    if (!timeleft) {
+      break;
+    }
+    result = rb_fd_select(set->max, set->rset, set->wset, set->eset, set->timeout);
+  } while (should_retry(result));
   return (void*)(long)result;
+}
+
+static void* rb_thread_fd_select_internal(void *sets) {
+  return rb_thread_call_without_gvl(rb_thread_fd_select_blocking, sets, RUBY_UBF_IO, 0);
+}
+
+static void rb_thread_fd_select_set_free(struct select_set *sets) {
+  if (sets->orig_rset) {
+    rb_fd_term(sets->orig_rset);
+  }
+  if (sets->orig_wset) {
+    rb_fd_term(sets->orig_wset);
+  }
+  if (sets->orig_eset) {
+    rb_fd_term(sets->orig_eset);
+  }
+}
+
+static void fd_init_copy(rb_fdset_t *dst, int max, rb_fdset_t *src) {
+  if (src) {
+    rb_fd_resize(max - 1, src);
+    if (dst != src) {
+      rb_fd_init_copy(dst, src);
+    }
+  }
 }
 
 int rb_thread_fd_select(int max, rb_fdset_t *read, rb_fdset_t *write, rb_fdset_t *except, struct timeval *timeout) {
@@ -145,7 +275,12 @@ int rb_thread_fd_select(int max, rb_fdset_t *read, rb_fdset_t *write, rb_fdset_t
   set.wset = write;
   set.eset = except;
   set.timeout = timeout;
+  fd_init_copy(set.orig_rset, set.max, set.rset);
+  fd_init_copy(set.orig_wset, set.max, set.wset);
+  fd_init_copy(set.orig_eset, set.max, set.eset);
+  struct timeval orig_timeval = *timeout;
+  set.orig_timeout = &orig_timeval;
 
-  void* result = rb_thread_call_without_gvl(rb_thread_fd_select_blocking, (void*)(&set), RUBY_UBF_IO, 0);
+  void* result = rb_ensure(rb_thread_fd_select_internal, (VALUE)&set, rb_thread_fd_select_set_free, (VALUE)&set);
   return (int)(long)result;
 }
