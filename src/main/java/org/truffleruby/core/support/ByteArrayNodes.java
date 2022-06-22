@@ -78,19 +78,18 @@ public abstract class ByteArrayNodes {
         @Specialization(guards = "strings.isRubyString(string)")
         protected RubyByteArray prepend(RubyByteArray byteArray, Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
+                @Cached TruffleString.CopyToByteArrayNode copyToByteArrayNode) {
             final byte[] bytes = byteArray.bytes;
 
             var tstring = strings.getTString(string);
             var encoding = strings.getTEncoding(string);
-            var stringByteArray = byteArrayNode.execute(tstring, encoding);
 
-            final int prependLength = stringByteArray.getLength();
+            final int prependLength = tstring.byteLength(encoding);
             final int originalLength = bytes.length;
             final int newLength = prependLength + originalLength;
             final byte[] prependedBytes = new byte[newLength];
 
-            System.arraycopy(stringByteArray.getArray(), stringByteArray.getOffset(), prependedBytes, 0, prependLength);
+            copyToByteArrayNode.execute(tstring, 0, prependedBytes, 0, prependLength, encoding);
             System.arraycopy(bytes, 0, prependedBytes, prependLength, originalLength);
 
             final RubyByteArray instance = new RubyByteArray(
@@ -99,7 +98,6 @@ public abstract class ByteArrayNodes {
                     prependedBytes);
 
             AllocationTracing.trace(instance, this);
-
             return instance;
         }
 
