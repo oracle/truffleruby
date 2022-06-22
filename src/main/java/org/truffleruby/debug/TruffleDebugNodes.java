@@ -52,6 +52,8 @@ import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.cast.ToCallTargetNode;
 import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
@@ -138,6 +140,23 @@ public abstract class TruffleDebugNodes {
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             return createString(fromJavaStringNode, strings.getTString(string).toStringDebug(), Encodings.US_ASCII);
+        }
+    }
+
+    @CoreMethod(names = "flatten_string", onSingleton = true, required = 1)
+    public abstract static class FlattenStringNode extends CoreMethodArrayArgumentsNode {
+        // Also flattens the original String, but that one might still have an offset
+        @TruffleBoundary
+        @Specialization(guards = "libString.isRubyString(string)")
+        protected RubyString flattenString(Object string,
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
+            final RubyEncoding rubyEncoding = libString.getEncoding(string);
+            var tstring = libString.getTString(string);
+            // Use GetInternalByteArrayNode as a way to flatten the TruffleString.
+            // Ensure the result has offset = 0 and length = byte[].length for image build time checks
+            byte[] byteArray = TStringUtils.getBytesOrCopy(tstring, rubyEncoding);
+            return createString(fromByteArrayNode, byteArray, rubyEncoding);
         }
     }
 
