@@ -13,13 +13,14 @@ import java.util.List;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.format.FormatEncoding;
 import org.truffleruby.core.format.FormatRootNode;
 
 import com.oracle.truffle.api.RootCallTarget;
 import org.truffleruby.core.string.StringSupport;
-import org.truffleruby.language.library.RubyStringLibrary;
 
 public class PrintfCompiler {
 
@@ -32,10 +33,9 @@ public class PrintfCompiler {
     }
 
     @TruffleBoundary
-    public RootCallTarget compile(Object format, RubyStringLibrary libFormat, Object[] arguments, boolean isDebug) {
-        var formatTString = libFormat.getTString(format);
-        var formatEncoding = libFormat.getEncoding(format);
-        var byteArray = formatTString.getInternalByteArrayUncached(formatEncoding.tencoding);
+    public RootCallTarget compile(AbstractTruffleString tstring, RubyEncoding encoding, Object[] arguments,
+            boolean isDebug) {
+        var byteArray = tstring.getInternalByteArrayUncached(encoding.tencoding);
 
         final PrintfSimpleParser parser = new PrintfSimpleParser(StringSupport.bytesToChars(byteArray), arguments,
                 isDebug);
@@ -45,7 +45,7 @@ public class PrintfCompiler {
         return new FormatRootNode(
                 language,
                 currentNode.getEncapsulatingSourceSection(),
-                FormatEncoding.find(formatEncoding.jcoding, currentNode),
+                FormatEncoding.find(encoding.jcoding, currentNode),
                 builder.getNode()).getCallTarget();
     }
 

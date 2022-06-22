@@ -22,6 +22,7 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.object.PropertyGetter;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.utilities.AssumedValue;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
@@ -49,6 +50,7 @@ import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.cast.ToStringOrSymbolNode;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.core.format.BytesResult;
 import org.truffleruby.core.format.FormatExceptionTranslator;
@@ -1685,8 +1687,10 @@ public abstract class KernelNodes {
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
                 @Cached("isDebug(frame)") boolean cachedIsDebug,
                 @Cached("libFormat.getRope(format)") Rope cachedFormatRope,
-                @Cached("cachedFormatRope.byteLength()") int cachedFormatLength,
-                @Cached("create(compileFormat(format, arguments, isDebug(frame), libFormat))") DirectCallNode callPackNode,
+                @Cached("libFormat.getTString(format)") AbstractTruffleString cachedTString,
+                @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
+                @Cached("cachedTString.byteLength(cachedEncoding.tencoding)") int cachedFormatLength,
+                @Cached("create(compileFormat(cachedTString, cachedEncoding, arguments, isDebug(frame)))") DirectCallNode callPackNode,
                 @Cached RopeNodes.EqualNode equalNode) {
             final BytesResult result;
             try {
@@ -1708,16 +1712,18 @@ public abstract class KernelNodes {
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat) {
             final BytesResult result;
             final boolean isDebug = readDebugGlobalNode.execute(frame);
+            var tstring = libFormat.getTString(format);
+            var encoding = libFormat.getEncoding(format);
             try {
                 result = (BytesResult) callPackNode.call(
-                        compileFormat(format, arguments, isDebug, libFormat),
+                        compileFormat(tstring, encoding, arguments, isDebug),
                         new Object[]{ arguments, arguments.length, null });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
-            return finishFormat(libFormat.getRope(format).byteLength(), result);
+            return finishFormat(tstring.byteLength(encoding.tencoding), result);
         }
 
         private RubyString finishFormat(int formatLength, BytesResult result) {
@@ -1739,11 +1745,11 @@ public abstract class KernelNodes {
         }
 
         @TruffleBoundary
-        protected RootCallTarget compileFormat(Object format, Object[] arguments, boolean isDebug,
-                RubyStringLibrary libFormat) {
+        protected RootCallTarget compileFormat(AbstractTruffleString tstring, RubyEncoding encoding, Object[] arguments,
+                boolean isDebug) {
             try {
                 return new PrintfCompiler(getLanguage(), this)
-                        .compile(format, libFormat, arguments, isDebug);
+                        .compile(tstring, encoding, arguments, isDebug);
             } catch (InvalidFormatException e) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }
