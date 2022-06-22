@@ -1022,7 +1022,7 @@ public abstract class StringNodes {
         @Specialization
         protected boolean endWithBytes(Object string, Object suffix, RubyEncoding enc,
                 @Cached TruffleString.GetInternalByteArrayNode stringByteArrayNode,
-                @Cached TruffleString.GetInternalByteArrayNode suffixByteArrayNode,
+                @Cached TruffleString.RegionEqualByteIndexNode regionEqualByteIndexNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsSuffix,
                 @Cached ConditionProfile isCharacterHeadProfile) {
@@ -1033,15 +1033,15 @@ public abstract class StringNodes {
 
             var suffixTString = stringsSuffix.getTString(suffix);
             var suffixEncoding = stringsSuffix.getTEncoding(suffix);
-            var suffixByteArray = suffixByteArrayNode.execute(suffixTString, suffixEncoding);
 
             final int stringByteLength = stringByteArray.getLength();
-            final int suffixByteLength = suffixByteArray.getLength();
+            final int suffixByteLength = suffixTString.byteLength(suffixEncoding);
 
             if (stringByteLength < suffixByteLength) {
                 return false;
             }
 
+            // See truffle-string.md, section Encodings Compatibility
             if (suffixByteLength == 0) {
                 return true;
             }
@@ -1053,8 +1053,8 @@ public abstract class StringNodes {
                 return false;
             }
 
-            return ArrayUtils.regionEquals(stringByteArray.getArray(), offset + stringByteArray.getOffset(),
-                    suffixByteArray.getArray(), suffixByteArray.getOffset(), suffixByteLength);
+            return regionEqualByteIndexNode.execute(stringTString, offset, suffixTString, 0, suffixByteLength,
+                    enc.tencoding);
         }
 
         private boolean isCharacterHead(RubyEncoding enc, int stringByteLength, byte[] stringBytes, int offset) {
