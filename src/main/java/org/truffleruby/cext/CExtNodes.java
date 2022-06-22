@@ -1445,10 +1445,10 @@ public class CExtNodes {
         }
     }
 
-    @CoreMethod(names = "rb_enc_mbclen", onSingleton = true, required = 4, lowerFixnum = { 3, 4 })
+    @CoreMethod(names = "rb_enc_mbclen", onSingleton = true, required = 2)
     public abstract static class RbEncMbLenNode extends CoreMethodArrayArgumentsNode {
         @Specialization(guards = "strings.isRubyString(string)")
-        protected Object rbEncMbLen(RubyEncoding enc, Object string, int p, int e,
+        protected Object rbEncMbLen(RubyEncoding enc, Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached GetByteCodeRangeNode codeRangeNode,
                 @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,

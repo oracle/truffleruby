@@ -261,9 +261,7 @@ int rb_enc_mbclen(const char *p, const char *e, rb_encoding *enc) {
   int length = e-p;
   return polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "rb_enc_mbclen",
       rb_tr_unwrap(rb_enc_from_encoding(enc)),
-      rb_tr_unwrap(rb_str_new(p, length)),
-      0,
-      length));
+      rb_tr_unwrap(rb_str_new(p, length))));
 }
 
 int rb_define_dummy_encoding(const char *name) {
