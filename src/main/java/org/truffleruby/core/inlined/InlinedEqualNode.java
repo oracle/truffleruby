@@ -13,7 +13,7 @@ import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.encoding.EncodingNodes.NegotiateCompatibleRopeEncodingNode;
+import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
@@ -71,13 +71,13 @@ public abstract class InlinedEqualNode extends BinaryInlinedOperationNode {
             @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libA,
             @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libB,
             @Cached LookupMethodOnSelfNode lookupNode,
-            @Cached NegotiateCompatibleRopeEncodingNode negotiateCompatibleRopeEncodingNode,
+            @Cached EncodingNodes.NegotiateCompatibleStringEncodingNode negotiateCompatibleStringEncodingNode,
             @Cached StringNodes.StringEqualNode stringEqualNode) {
         var stringA = libA.getTString(a);
         var encodingA = libA.getEncoding(a);
         var stringB = libB.getTString(b);
         var encodingB = libB.getEncoding(b);
-        var compatibleEncoding = negotiateCompatibleRopeEncodingNode.execute(stringA, encodingA, stringB, encodingB);
+        var compatibleEncoding = negotiateCompatibleStringEncodingNode.execute(stringA, encodingA, stringB, encodingB);
         return stringEqualNode.executeStringEqual(stringA, stringB, compatibleEncoding);
     }
 

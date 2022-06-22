@@ -30,7 +30,7 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.ToEncodingNode;
 import org.truffleruby.core.cast.ToRubyEncodingNode;
 import org.truffleruby.core.encoding.EncodingNodesFactory.NegotiateCompatibleEncodingNodeGen;
-import org.truffleruby.core.encoding.EncodingNodesFactory.NegotiateCompatibleRopeEncodingNodeGen;
+import org.truffleruby.core.encoding.EncodingNodesFactory.NegotiateCompatibleStringEncodingNodeGen;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.regexp.RubyRegexp;
@@ -71,15 +71,15 @@ public abstract class EncodingNodes {
 
     // MRI: enc_compatible_str and enc_compatible_latter
     @ImportStatic({ TruffleString.CodeRange.class, RopeGuards.class })
-    public abstract static class NegotiateCompatibleRopeEncodingNode extends RubyBaseNode {
+    public abstract static class NegotiateCompatibleStringEncodingNode extends RubyBaseNode {
 
         @Child TruffleString.GetByteCodeRangeNode codeRangeNode;
 
         public abstract RubyEncoding execute(AbstractTruffleString first, RubyEncoding firstEncoding,
                 AbstractTruffleString second, RubyEncoding secondEncoding);
 
-        public static NegotiateCompatibleRopeEncodingNode create() {
-            return NegotiateCompatibleRopeEncodingNodeGen.create();
+        public static NegotiateCompatibleStringEncodingNode create() {
+            return NegotiateCompatibleStringEncodingNodeGen.create();
         }
 
         @Specialization(guards = {
@@ -256,7 +256,7 @@ public abstract class EncodingNodes {
         protected RubyEncoding negotiateStringStringEncoding(Object first, Object second,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFirst,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSecond,
-                @Cached NegotiateCompatibleRopeEncodingNode ropeNode) {
+                @Cached NegotiateCompatibleStringEncodingNode ropeNode) {
             final RubyEncoding firstEncoding = libFirst.getEncoding(first);
             final RubyEncoding secondEncoding = libSecond.getEncoding(second);
             return ropeNode.execute(
@@ -432,9 +432,9 @@ public abstract class EncodingNodes {
         protected Object areCompatible(Object first, Object second,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFirst,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSecond,
-                @Cached NegotiateCompatibleRopeEncodingNode negotiateCompatibleRopeEncodingNode,
+                @Cached NegotiateCompatibleStringEncodingNode negotiateCompatibleStringEncodingNode,
                 @Cached ConditionProfile noNegotiatedEncodingProfile) {
-            final RubyEncoding negotiatedEncoding = negotiateCompatibleRopeEncodingNode.execute(
+            final RubyEncoding negotiatedEncoding = negotiateCompatibleStringEncodingNode.execute(
                     libFirst.getTString(first), libFirst.getEncoding(first),
                     libSecond.getTString(second), libSecond.getEncoding(second));
 
@@ -779,11 +779,11 @@ public abstract class EncodingNodes {
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFirst,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSecond,
                 @Cached BranchProfile errorProfile,
-                @Cached NegotiateCompatibleRopeEncodingNode negotiateCompatibleRopeEncodingNode) {
+                @Cached NegotiateCompatibleStringEncodingNode negotiateCompatibleStringEncodingNode) {
             final RubyEncoding firstEncoding = libFirst.getEncoding(first);
             final RubyEncoding secondEncoding = libSecond.getEncoding(second);
 
-            final RubyEncoding negotiatedEncoding = negotiateCompatibleRopeEncodingNode
+            final RubyEncoding negotiatedEncoding = negotiateCompatibleStringEncodingNode
                     .execute(
                             libFirst.getTString(first),
                             firstEncoding,
@@ -819,7 +819,7 @@ public abstract class EncodingNodes {
                 AbstractTruffleString second,
                 RubyEncoding secondEncoding,
                 @Cached BranchProfile errorProfile,
-                @Cached NegotiateCompatibleRopeEncodingNode negotiateCompatibleEncodingNode) {
+                @Cached NegotiateCompatibleStringEncodingNode negotiateCompatibleEncodingNode) {
             var negotiatedEncoding = negotiateCompatibleEncodingNode.execute(first, firstEncoding, second,
                     secondEncoding);
 

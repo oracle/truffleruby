@@ -112,7 +112,7 @@ import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.encoding.EncodingNodes;
-import org.truffleruby.core.encoding.EncodingNodes.NegotiateCompatibleRopeEncodingNode;
+import org.truffleruby.core.encoding.EncodingNodes.NegotiateCompatibleStringEncodingNode;
 import org.truffleruby.core.encoding.IsCharacterHeadNode;
 import org.truffleruby.core.encoding.EncodingNodes.CheckEncodingNode;
 import org.truffleruby.core.encoding.EncodingNodes.GetActualEncodingNode;
@@ -399,12 +399,12 @@ public abstract class StringNodes {
         protected boolean equalString(Object a, Object b,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libA,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libB,
-                @Cached NegotiateCompatibleRopeEncodingNode negotiateCompatibleRopeEncodingNode) {
+                @Cached NegotiateCompatibleStringEncodingNode negotiateCompatibleStringEncodingNode) {
             var stringA = libA.getTString(a);
             var encodingA = libA.getEncoding(a);
             var stringB = libB.getTString(b);
             var encodingB = libB.getEncoding(b);
-            RubyEncoding compatibleEncoding = negotiateCompatibleRopeEncodingNode.execute(stringA, encodingA, stringB,
+            RubyEncoding compatibleEncoding = negotiateCompatibleStringEncodingNode.execute(stringA, encodingA, stringB,
                     encodingB);
             return stringEqualNode.executeStringEqual(stringA, stringB, compatibleEncoding);
         }
