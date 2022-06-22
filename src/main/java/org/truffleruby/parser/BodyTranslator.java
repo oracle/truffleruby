@@ -14,7 +14,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
@@ -2494,10 +2493,15 @@ public class BodyTranslator extends Translator {
         block.add(writeReceiverToTemp);
         block.add(main);
 
+        /* prepareAndThen is going to take an argument, and the action that comes after it, and return a node that does
+         * both of those things. We start off with ret being the block (our final action) and so the first node we
+         * should produce is one that evaluates the last argument, and then the block. The final value of ret should be
+         * a node that evaluates the first argument, and then any other arguments, and then the block. So, we must go
+         * through the argument list in reverse order. */
         RubyNode ret = block.accept(this);
-        Collections.reverse(argValues);
-        for (var arg : argValues) {
-            ret = arg.prepareAndThen(node.getPosition(), ret);
+        var listIterator = argValues.listIterator(argValues.size());
+        while (listIterator.hasPrevious()) {
+            ret = listIterator.previous().prepareAndThen(node.getPosition(), ret);
         }
         return addNewlineIfNeeded(node, ret);
     }
