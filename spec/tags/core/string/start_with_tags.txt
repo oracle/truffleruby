@@ -1,0 +1,1 @@
+fails:String#start_with? does not check that we are not matching part of a character
