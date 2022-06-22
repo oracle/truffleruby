@@ -134,6 +134,7 @@ public class RopeOperations {
         return decode(charset, bytes, byteOffset, byteLength);
     }
 
+    // Replace by TruffleString#toString(), NOT toJavaStringUncached()
     public static String decodeOrEscapeBinaryRope(Rope rope) {
         return decodeOrEscapeBinaryRope(rope, rope.getBytes());
     }

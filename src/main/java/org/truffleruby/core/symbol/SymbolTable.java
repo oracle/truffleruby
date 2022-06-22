@@ -117,7 +117,7 @@ public class SymbolTable {
     }
 
     private RubySymbol createSymbol(TruffleString truffleString, RubyEncoding encoding) {
-        return new RubySymbol(truffleString.toJavaStringUncached(), truffleString, encoding);
+        return new RubySymbol(truffleString.toString(), truffleString, encoding);
     }
 
     @TruffleBoundary
