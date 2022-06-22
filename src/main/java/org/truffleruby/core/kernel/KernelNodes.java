@@ -22,7 +22,6 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.object.PropertyGetter;
-import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.utilities.AssumedValue;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
@@ -1669,9 +1668,6 @@ public abstract class KernelNodes {
         @Child private BooleanCastNode readDebugGlobalNode = BooleanCastNodeGen
                 .create(ReadGlobalVariableNodeGen.create("$DEBUG"));
 
-        @Child protected TruffleString.GetInternalByteArrayNode byteArrayNode = TruffleString.GetInternalByteArrayNode
-                .create();
-
         private final BranchProfile exceptionProfile = BranchProfile.create();
         private final ConditionProfile resizeProfile = ConditionProfile.create();
 
@@ -1690,7 +1686,7 @@ public abstract class KernelNodes {
                 @Cached("isDebug(frame)") boolean cachedIsDebug,
                 @Cached("libFormat.getRope(format)") Rope cachedFormatRope,
                 @Cached("cachedFormatRope.byteLength()") int cachedFormatLength,
-                @Cached("create(compileFormat(format, arguments, isDebug(frame), libFormat, byteArrayNode))") DirectCallNode callPackNode,
+                @Cached("create(compileFormat(format, arguments, isDebug(frame), libFormat))") DirectCallNode callPackNode,
                 @Cached RopeNodes.EqualNode equalNode) {
             final BytesResult result;
             try {
@@ -1714,7 +1710,7 @@ public abstract class KernelNodes {
             final boolean isDebug = readDebugGlobalNode.execute(frame);
             try {
                 result = (BytesResult) callPackNode.call(
-                        compileFormat(format, arguments, isDebug, libFormat, byteArrayNode),
+                        compileFormat(format, arguments, isDebug, libFormat),
                         new Object[]{ arguments, arguments.length, null });
             } catch (FormatException e) {
                 exceptionProfile.enter();
@@ -1744,10 +1740,10 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         protected RootCallTarget compileFormat(Object format, Object[] arguments, boolean isDebug,
-                RubyStringLibrary libFormat, TruffleString.GetInternalByteArrayNode byteArrayNode) {
+                RubyStringLibrary libFormat) {
             try {
                 return new PrintfCompiler(getLanguage(), this)
-                        .compile(format, libFormat, byteArrayNode, arguments, isDebug);
+                        .compile(format, libFormat, arguments, isDebug);
             } catch (InvalidFormatException e) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }

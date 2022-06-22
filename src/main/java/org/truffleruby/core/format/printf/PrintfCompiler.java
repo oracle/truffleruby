@@ -11,8 +11,8 @@ package org.truffleruby.core.format.printf;
 
 import java.util.List;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.format.FormatEncoding;
 import org.truffleruby.core.format.FormatRootNode;
@@ -31,11 +31,11 @@ public class PrintfCompiler {
         this.currentNode = currentNode;
     }
 
-    public RootCallTarget compile(Object format, RubyStringLibrary libFormat,
-            TruffleString.GetInternalByteArrayNode byteArrayNode, Object[] arguments, boolean isDebug) {
+    @TruffleBoundary
+    public RootCallTarget compile(Object format, RubyStringLibrary libFormat, Object[] arguments, boolean isDebug) {
         var formatTString = libFormat.getTString(format);
         var formatEncoding = libFormat.getEncoding(format);
-        var byteArray = byteArrayNode.execute(formatTString, formatEncoding.tencoding);
+        var byteArray = formatTString.getInternalByteArrayUncached(formatEncoding.tencoding);
 
         final PrintfSimpleParser parser = new PrintfSimpleParser(StringSupport.bytesToChars(byteArray), arguments,
                 isDebug);
