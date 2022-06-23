@@ -167,6 +167,7 @@ public abstract class EncodingNodes {
         protected RubyEncoding compatibleEncodingForRopes(AbstractTruffleString firstRope, RubyEncoding firstEncoding,
                 AbstractTruffleString secondRope, RubyEncoding secondEncoding) {
             // MRI: enc_compatible_latter
+            assert firstEncoding != secondEncoding : "this method assumes the encodings are different";
 
             final Encoding firstJCoding = firstEncoding.jcoding;
             final Encoding secondJCoding = secondEncoding.jcoding;
