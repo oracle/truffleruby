@@ -11,14 +11,11 @@ package org.truffleruby.core.rope;
 
 import java.util.Objects;
 
-import org.jcodings.Encoding;
-import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.StringGuards;
 
 import com.oracle.truffle.api.CompilerAsserts;
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleStringIterator;
@@ -115,18 +112,7 @@ abstract class TStringWithEncodingBase {
 
     public String toJavaStringOrThrow() {
         CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
-        if (encoding == Encodings.BINARY && !isAsciiOnly()) {
-            int length = byteLength();
-            for (int i = 0; i < length; i++) {
-                final int b = tstring.readByteUncached(i, encoding.tencoding);
-                if (!Encoding.isAscii(b)) {
-                    throw new CannotConvertBinaryRubyStringToJavaString(b);
-                }
-            }
-            throw CompilerDirectives.shouldNotReachHere();
-        } else {
-            return toJavaString();
-        }
+        return TStringUtils.toJavaStringOrThrow(tstring, encoding);
     }
 
     public TruffleStringIterator createCodePointIterator() {

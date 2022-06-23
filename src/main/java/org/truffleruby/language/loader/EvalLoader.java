@@ -10,13 +10,12 @@
 package org.truffleruby.language.loader;
 
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.rope.CannotConvertBinaryRubyStringToJavaString;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.RubySource;
@@ -29,10 +28,9 @@ import com.oracle.truffle.api.source.Source;
 public abstract class EvalLoader {
 
     @TruffleBoundary
-    public static RubySource createEvalSource(RubyContext context, Rope codeRope, String method, String file, int line,
-            Node currentNode) {
-        var rubyEncoding = Encodings.getBuiltInEncoding(codeRope.getEncoding());
-        var code = TStringUtils.fromRopeWithEnc(codeRope.asManaged(), rubyEncoding);
+    public static RubySource createEvalSource(RubyContext context, AbstractTruffleString codeTString,
+            RubyEncoding encoding, String method, String file, int line, Node currentNode) {
+        var code = new TStringWithEncoding(codeTString.asTruffleStringUncached(encoding.tencoding), encoding);
         var sourceTString = createEvalRope(code);
 
         final String sourceString;

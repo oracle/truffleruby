@@ -739,7 +739,8 @@ public abstract class ModuleNodes {
                 String file, int line, MaterializedFrame callerFrame) {
             final RubySource source = EvalLoader.createEvalSource(
                     getContext(),
-                    RubyStringLibrary.getUncached().getRope(rubySource),
+                    RubyStringLibrary.getUncached().getTString(rubySource),
+                    RubyStringLibrary.getUncached().getEncoding(rubySource),
                     "class/module_eval",
                     file,
                     line,

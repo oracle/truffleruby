@@ -18,6 +18,7 @@ import java.util.Arrays;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.EconomicSet;
 import org.graalvm.collections.Equivalence;
@@ -61,11 +62,9 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RangeNodes.NormalizedStartLengthNode;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringCachingGuards;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -1557,16 +1556,16 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = {
                         "libFormat.isRubyString(format)",
-                        "equalNode.execute(libFormat.getRope(format), cachedFormat)" },
+                        "equalNode.execute(libFormat, format, cachedFormat, cachedEncoding)" },
                 limit = "getCacheLimit()")
         protected RubyString packCached(RubyArray array, Object format,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
-                @Cached("libFormat.getRope(format)") Rope cachedFormat,
-                @Cached("cachedFormat.byteLength()") int cachedFormatLength,
-                @Cached("create(compileFormat(libFormat.getRope(format)))") DirectCallNode callPackNode,
-                @Cached RopeNodes.EqualNode equalNode) {
+                @Cached("libFormat.getTString(format)") AbstractTruffleString cachedFormat,
+                @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
+                @Cached("cachedFormat.byteLength(cachedEncoding.tencoding)") int cachedFormatLength,
+                @Cached("create(compileFormat(libFormat.getJavaString(format)))") DirectCallNode callPackNode,
+                @Cached StringNodes.EqualNode equalNode) {
             final BytesResult result;
-
             try {
                 result = (BytesResult) callPackNode.call(
                         new Object[]{ array.getStore(), array.size, false, null });
@@ -1582,9 +1581,9 @@ public abstract class ArrayNodes {
         protected RubyString packUncached(RubyArray array, Object format,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
                 @Cached IndirectCallNode callPackNode) {
-            final BytesResult result;
+            final String formatRope = libFormat.getJavaString(format);
 
-            final Rope formatRope = libFormat.getRope(format);
+            final BytesResult result;
             try {
                 result = (BytesResult) callPackNode.call(
                         compileFormat(formatRope),
@@ -1594,7 +1593,8 @@ public abstract class ArrayNodes {
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
-            return finishPack(formatRope.byteLength(), result);
+            int formatLength = libFormat.getTString(format).byteLength(libFormat.getTEncoding(format));
+            return finishPack(formatLength, result);
         }
 
         private RubyString finishPack(int formatLength, BytesResult result) {
@@ -1620,10 +1620,9 @@ public abstract class ArrayNodes {
         }
 
         @TruffleBoundary
-        protected RootCallTarget compileFormat(Rope rope) {
-            final String javaString = RopeOperations.decodeRope(rope);
+        protected RootCallTarget compileFormat(String format) {
             try {
-                return new PackCompiler(getLanguage(), this).compile(javaString);
+                return new PackCompiler(getLanguage(), this).compile(format);
             } catch (DeferredRaiseException dre) {
                 throw dre.getException(getContext());
             }

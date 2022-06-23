@@ -165,6 +165,7 @@ public class RopeOperations {
         return builder.toString();
     }
 
+    /** NOTE: replacement is TStringUtils.toJavaStringOrThrow() */
     public static String decodeRope(Rope value) {
         return decodeRopeSegment(value, 0, value.byteLength());
     }

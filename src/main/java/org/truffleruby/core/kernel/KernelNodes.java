@@ -76,9 +76,6 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RangeNodes;
 import org.truffleruby.core.range.RubyIntOrLongRange;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
@@ -734,22 +731,25 @@ public abstract class KernelNodes {
                 guards = {
                         "libSource.isRubyString(source)",
                         "libFile.isRubyString(file)",
-                        "equalNode.execute(libSource.getRope(source), cachedSource)",
-                        "equalNode.execute(libFile.getRope(file), cachedFile)",
+                        "codeEqualNode.execute(libSource, source, cachedSource, cachedSourceEnc)",
+                        "fileEqualNode.execute(libFile, file, cachedFile, cachedFileEnc)",
                         "line == cachedLine",
                         "bindingDescriptor == getBindingDescriptor(binding)" },
                 limit = "getCacheLimit()")
         protected Object evalCached(Object self, Object source, RubyBinding binding, Object file, int line,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSource,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFile,
-                @Cached("libSource.getRope(source)") Rope cachedSource,
-                @Cached("libFile.getRope(file)") Rope cachedFile,
+                @Cached("libSource.getTString(source)") AbstractTruffleString cachedSource,
+                @Cached("libSource.getEncoding(source)") RubyEncoding cachedSourceEnc,
+                @Cached("libFile.getTString(file)") AbstractTruffleString cachedFile,
+                @Cached("libFile.getEncoding(file)") RubyEncoding cachedFileEnc,
                 @Cached("line") int cachedLine,
                 @Cached("getBindingDescriptor(binding)") FrameDescriptor bindingDescriptor,
-                @Cached("parse(cachedSource, binding.getFrame(), cachedFile, cachedLine)") RootCallTarget callTarget,
+                @Cached("parse(cachedSource, cachedSourceEnc, binding.getFrame(), libFile.getJavaString(file), cachedLine)") RootCallTarget callTarget,
                 @Cached("assignsNewUserVariables(getDescriptor(callTarget))") boolean assignsNewUserVariables,
                 @Cached("create(callTarget)") DirectCallNode callNode,
-                @Cached RopeNodes.EqualNode equalNode) {
+                @Cached StringNodes.EqualSameEncodingNode codeEqualNode,
+                @Cached StringNodes.EqualNode fileEqualNode) {
             Object[] rubyArgs = prepareEvalArgs(callTarget, assignsNewUserVariables, self, binding);
             return callNode.call(rubyArgs);
         }
@@ -762,7 +762,8 @@ public abstract class KernelNodes {
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFile,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSource) {
 
-            var callTarget = parse(libSource.getRope(source), binding.getFrame(), libFile.getRope(file), line);
+            var callTarget = parse(libSource.getTString(source), libSource.getEncoding(source), binding.getFrame(),
+                    libFile.getJavaString(file), line);
             boolean assignsNewUserVariables = assignsNewUserVariables(getDescriptor(callTarget));
 
             Object[] rubyArgs = prepareEvalArgs(callTarget, assignsNewUserVariables, self, binding);
@@ -785,11 +786,12 @@ public abstract class KernelNodes {
         }
 
         @TruffleBoundary
-        protected RootCallTarget parse(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line) {
+        protected RootCallTarget parse(AbstractTruffleString sourceText, RubyEncoding encoding,
+                MaterializedFrame parentFrame, String file, int line) {
             //intern() to improve footprint
-            final String sourceFile = RopeOperations.decodeRope(file).intern();
-            final RubySource source = EvalLoader
-                    .createEvalSource(getContext(), sourceText, "eval", sourceFile, line, this);
+            final String sourceFile = file.intern();
+            final RubySource source = EvalLoader.createEvalSource(getContext(), sourceText, encoding, "eval",
+                    sourceFile, line, this);
             final LexicalScope lexicalScope = RubyArguments.getMethod(parentFrame).getLexicalScope();
             return getContext()
                     .getCodeLoader()

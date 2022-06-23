@@ -17,19 +17,17 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.CExtNodes;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.ImmutableRubyObjectCopyable;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -108,9 +106,11 @@ public class ImmutableRubyString extends ImmutableRubyObjectCopyable implements 
         return tstring;
     }
 
+    // TODO: use cached nodes and remove boundary
+    @TruffleBoundary
     @ExportMessage
     protected String getJavaString() {
-        return RopeOperations.decodeRope(rope);
+        return TStringUtils.toJavaStringOrThrow(tstring, encoding);
     }
     // endregion
 
@@ -147,28 +147,19 @@ public class ImmutableRubyString extends ImmutableRubyObjectCopyable implements 
     @ExportMessage
     public static class AsString {
         @Specialization(
-                guards = "equalsNode.execute(string.rope, cachedRope)",
+                guards = "equalNode.execute(string.tstring, string.encoding, cachedTString, cachedEncoding)",
                 limit = "getLimit()")
         protected static String asStringCached(ImmutableRubyString string,
-                @Cached("string.rope") Rope cachedRope,
+                @Cached("string.tstring") TruffleString cachedTString,
+                @Cached("string.encoding") RubyEncoding cachedEncoding,
                 @Cached("string.getJavaString()") String javaString,
-                @Cached RopeNodes.EqualNode equalsNode) {
+                @Cached StringNodes.EqualNode equalNode) {
             return javaString;
         }
 
         @Specialization(replaces = "asStringCached")
-        protected static String asStringUncached(ImmutableRubyString string,
-                @Cached ConditionProfile asciiOnlyProfile,
-                @Cached TruffleString.GetByteCodeRangeNode codeRangeNode,
-                @Cached RopeNodes.BytesNode bytesNode) {
-            final Rope rope = string.rope;
-            final byte[] bytes = bytesNode.execute(rope);
-
-            if (asciiOnlyProfile.profile(StringGuards.is7Bit(string.tstring, string.encoding, codeRangeNode))) {
-                return StringOperations.decodeAscii(bytes);
-            } else {
-                return RopeOperations.decodeNonAscii(rope.getEncoding(), bytes, 0, bytes.length);
-            }
+        protected static String asStringUncached(ImmutableRubyString string) {
+            return string.getJavaString();
         }
 
         protected static int getLimit() {

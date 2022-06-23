@@ -24,6 +24,7 @@ public class StringGuards {
 
     private static final int CASE_FULL_UNICODE = 0;
 
+    // Also known as isAsciiOnly()
     public static boolean is7Bit(AbstractTruffleString tstring, RubyEncoding encoding,
             TruffleString.GetByteCodeRangeNode codeRangeNode) {
         return codeRangeNode.execute(tstring, encoding.tencoding) == ASCII;

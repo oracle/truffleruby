@@ -12,20 +12,22 @@ package org.truffleruby.interop;
 import java.io.IOException;
 
 import com.oracle.truffle.api.TruffleContext;
-import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringCachingGuards;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.control.RaiseException;
@@ -198,23 +200,24 @@ public abstract class PolyglotNodes {
                 "idLib.isRubyString(langId)",
                 "codeLib.isRubyString(code)",
                 "filenameLib.isRubyString(filename)",
-                "idEqualNode.execute(langIdRope, cachedLangId)",
-                "codeEqualNode.execute(codeRope, cachedCode)",
-                "filenameEqualNode.execute(filenameRope, cachedFilename)" }, limit = "getCacheLimit()")
+                "idEqualNode.execute(idLib, langId, cachedLangId, cachedLangIdEnc)",
+                "codeEqualNode.execute(codeLib, code, cachedCode, cachedCodeEnc)",
+                "filenameEqualNode.execute(filenameLib, filename, cachedFilename, cachedFilenameEnc)" },
+                limit = "getCacheLimit()")
         protected Object evalCached(RubyInnerContext rubyInnerContext, Object langId, Object code, Object filename,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary idLib,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary codeLib,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary filenameLib,
-                @Bind("idLib.getRope(langId)") Rope langIdRope,
-                @Bind("codeLib.getRope(code)") Rope codeRope,
-                @Bind("filenameLib.getRope(filename)") Rope filenameRope,
-                @Cached("langIdRope") Rope cachedLangId,
-                @Cached("codeRope") Rope cachedCode,
-                @Cached("filenameRope") Rope cachedFilename,
+                @Cached("idLib.getTString(langId)") AbstractTruffleString cachedLangId,
+                @Cached("idLib.getEncoding(langId)") RubyEncoding cachedLangIdEnc,
+                @Cached("codeLib.getTString(code)") AbstractTruffleString cachedCode,
+                @Cached("codeLib.getEncoding(code)") RubyEncoding cachedCodeEnc,
+                @Cached("filenameLib.getTString(filename)") AbstractTruffleString cachedFilename,
+                @Cached("filenameLib.getEncoding(filename)") RubyEncoding cachedFilenameEnc,
                 @Cached("createSource(idLib.getJavaString(langId), codeLib.getJavaString(code), filenameLib.getJavaString(filename))") Source cachedSource,
-                @Cached RopeNodes.EqualNode idEqualNode,
-                @Cached RopeNodes.EqualNode codeEqualNode,
-                @Cached RopeNodes.EqualNode filenameEqualNode,
+                @Cached StringNodes.EqualNode idEqualNode,
+                @Cached StringNodes.EqualNode codeEqualNode,
+                @Cached StringNodes.EqualNode filenameEqualNode,
                 @Cached ForeignToRubyNode foreignToRubyNode,
                 @Cached BranchProfile errorProfile) {
             return eval(rubyInnerContext, cachedSource, foreignToRubyNode, errorProfile);

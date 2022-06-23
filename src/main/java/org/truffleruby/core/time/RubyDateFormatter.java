@@ -58,9 +58,8 @@ import java.util.Locale;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
-import org.jcodings.Encoding;
-import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -70,7 +69,6 @@ import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.exception.ErrnoErrorNode;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.core.string.StringOperations;
@@ -259,23 +257,22 @@ public abstract class RubyDateFormatter {
     }
 
     @TruffleBoundary
-    public static Token[] compilePattern(Rope pattern, RubyEncoding encoding, boolean dateLibrary, RubyContext context,
-            Node currentNode) {
+    public static Token[] compilePattern(AbstractTruffleString pattern, RubyEncoding encoding, boolean dateLibrary,
+            RubyContext context, Node currentNode) {
         List<Token> compiledPattern = new LinkedList<>();
 
-        Encoding enc = pattern.getEncoding();
-        if (!enc.isAsciiCompatible()) {
+        if (!encoding.jcoding.isAsciiCompatible()) {
             throw new RaiseException(
                     context,
                     context.getCoreExceptions().argumentError(
                             "format should have ASCII compatible encoding",
                             currentNode));
         }
-        if (enc != ASCIIEncoding.INSTANCE) { // default for ByteList
+        if (encoding != Encodings.BINARY) { // default for ByteList
             compiledPattern.add(new Token(Format.FORMAT_ENCODING, encoding));
         }
 
-        StrftimeLexer lexer = new StrftimeLexer(RopeOperations.decodeRope(pattern));
+        StrftimeLexer lexer = new StrftimeLexer(TStringUtils.toJavaStringOrThrow(pattern, encoding));
 
         Token token;
         while ((token = lexer.yylex()) != null) {

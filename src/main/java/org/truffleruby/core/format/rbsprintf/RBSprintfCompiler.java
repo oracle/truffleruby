@@ -14,17 +14,18 @@ import java.util.List;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 
+import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.format.FormatEncoding;
 import org.truffleruby.core.format.FormatRootNode;
 import org.truffleruby.core.format.rbsprintf.RBSprintfConfig.FormatArgumentType;
 
 import com.oracle.truffle.api.RootCallTarget;
 import org.truffleruby.core.string.StringSupport;
-import org.truffleruby.language.library.RubyStringLibrary;
 
 public class RBSprintfCompiler {
 
@@ -37,9 +38,8 @@ public class RBSprintfCompiler {
     }
 
     @TruffleBoundary
-    public RootCallTarget compile(Object format, RubyStringLibrary libFormat, Object stringReader) {
-        var formatTString = libFormat.getTString(format);
-        var formatEncoding = libFormat.getEncoding(format);
+    public RootCallTarget compile(AbstractTruffleString formatTString, RubyEncoding formatEncoding,
+            Object stringReader) {
         var byteArray = formatTString.getInternalByteArrayUncached(formatEncoding.tencoding);
 
         final RBSprintfSimpleParser parser = new RBSprintfSimpleParser(StringSupport.bytesToChars(byteArray), false);
@@ -55,11 +55,9 @@ public class RBSprintfCompiler {
 
     private static int SIGN = 0x10;
 
-    public RubyArray typeList(Object format, RubyStringLibrary libFormat,
+    public RubyArray typeList(AbstractTruffleString formatTString, RubyEncoding formatEncoding,
             TruffleString.GetInternalByteArrayNode byteArrayNode, RubyContext context, RubyLanguage language) {
-        var formatTString = libFormat.getTString(format);
-        var formatEncoding = libFormat.getTEncoding(format);
-        var byteArray = byteArrayNode.execute(formatTString, formatEncoding);
+        var byteArray = byteArrayNode.execute(formatTString, formatEncoding.tencoding);
 
         final RBSprintfSimpleParser parser = new RBSprintfSimpleParser(StringSupport.bytesToChars(byteArray), false);
         final List<RBSprintfConfig> configs = parser.parse();

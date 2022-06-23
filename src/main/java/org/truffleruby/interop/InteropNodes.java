@@ -21,6 +21,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.ExceptionType;
 import com.oracle.truffle.api.interop.NodeLibrary;
 import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreMethod;
@@ -35,9 +36,9 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringCachingGuards;
@@ -232,17 +233,19 @@ public abstract class InteropNodes {
                 guards = {
                         "stringsMimeType.isRubyString(mimeType)",
                         "stringsSource.isRubyString(source)",
-                        "mimeTypeEqualNode.execute(stringsMimeType.getRope(mimeType), cachedMimeType)",
-                        "sourceEqualNode.execute(stringsSource.getRope(source), cachedSource)" },
+                        "mimeTypeEqualNode.execute(stringsMimeType, mimeType, cachedMimeType, cachedMimeTypeEnc)",
+                        "sourceEqualNode.execute(stringsSource, source, cachedSource, cachedSourceEnc)" },
                 limit = "getEvalCacheLimit()")
         protected Object evalCached(Object mimeType, Object source,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsMimeType,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsSource,
-                @Cached("stringsMimeType.getRope(mimeType)") Rope cachedMimeType,
-                @Cached("stringsSource.getRope(source)") Rope cachedSource,
-                @Cached("create(parse(stringsMimeType.getRope(mimeType), stringsSource.getRope(source)))") DirectCallNode callNode,
-                @Cached RopeNodes.EqualNode mimeTypeEqualNode,
-                @Cached RopeNodes.EqualNode sourceEqualNode) {
+                @Cached("stringsMimeType.getTString(mimeType)") AbstractTruffleString cachedMimeType,
+                @Cached("stringsMimeType.getEncoding(mimeType)") RubyEncoding cachedMimeTypeEnc,
+                @Cached("stringsSource.getTString(source)") AbstractTruffleString cachedSource,
+                @Cached("stringsSource.getEncoding(source)") RubyEncoding cachedSourceEnc,
+                @Cached("create(parse(stringsMimeType.getJavaString(mimeType), stringsSource.getJavaString(source)))") DirectCallNode callNode,
+                @Cached StringNodes.EqualNode mimeTypeEqualNode,
+                @Cached StringNodes.EqualNode sourceEqualNode) {
             return callNode.call(EMPTY_ARGUMENTS);
         }
 
@@ -253,14 +256,12 @@ public abstract class InteropNodes {
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsMimeType,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsSource,
                 @Cached IndirectCallNode callNode) {
-            return callNode
-                    .call(parse(stringsMimeType.getRope(mimeType), stringsSource.getRope(source)), EMPTY_ARGUMENTS);
+            return callNode.call(parse(stringsMimeType.getJavaString(mimeType), stringsSource.getJavaString(source)),
+                    EMPTY_ARGUMENTS);
         }
 
         @TruffleBoundary
-        protected CallTarget parse(Rope ropeMimeType, Rope ropeCode) {
-            final String mimeTypeString = RopeOperations.decodeRope(ropeMimeType);
-            final String codeString = RopeOperations.decodeRope(ropeCode);
+        protected CallTarget parse(String mimeTypeString, String codeString) {
             String language = Source.findLanguage(mimeTypeString);
             if (language == null) {
                 // Give the original string to get the nice exception from Truffle

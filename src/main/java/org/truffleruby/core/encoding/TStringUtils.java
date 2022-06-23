@@ -12,6 +12,7 @@
  */
 package org.truffleruby.core.encoding;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -23,6 +24,7 @@ import org.jcodings.Encoding;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.EncodingDB;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.rope.CannotConvertBinaryRubyStringToJavaString;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.ManagedRope;
 import org.truffleruby.core.rope.NativeRope;
@@ -30,6 +32,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.StringAttributes;
+import org.truffleruby.core.string.StringGuards;
 import org.truffleruby.extra.ffi.Pointer;
 
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.ASCII;
@@ -210,6 +213,22 @@ public class TStringUtils {
     public static boolean isSingleByteOptimizable(AbstractTruffleString truffleString, RubyEncoding encoding) {
         return truffleString.getByteCodeRangeUncached(encoding.tencoding) == ASCII ||
                 encoding.jcoding.isSingleByte();
+    }
+
+    public static String toJavaStringOrThrow(AbstractTruffleString tstring, RubyEncoding encoding) {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        if (encoding == Encodings.BINARY && !StringGuards.is7BitUncached(tstring, encoding)) {
+            int length = tstring.byteLength(encoding.tencoding);
+            for (int i = 0; i < length; i++) {
+                final int b = tstring.readByteUncached(i, encoding.tencoding);
+                if (!Encoding.isAscii(b)) {
+                    throw new CannotConvertBinaryRubyStringToJavaString(b);
+                }
+            }
+            throw CompilerDirectives.shouldNotReachHere();
+        } else {
+            return tstring.toJavaStringUncached();
+        }
     }
 
     private static TruffleString.Encoding[] createJCodingToTSEncodingMap() {

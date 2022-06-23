@@ -17,6 +17,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -30,9 +31,7 @@ import org.truffleruby.core.exception.ErrnoErrorNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
-import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
@@ -383,14 +382,14 @@ public abstract class TimeNodes {
         @Child private ErrnoErrorNode errnoErrorNode = ErrnoErrorNode.create();
 
         @Specialization(
-                guards = { "equalNode.execute(libFormat.getRope(format), cachedFormat)" },
+                guards = "equalNode.execute(libFormat, format, cachedFormat, cachedEncoding)",
                 limit = "getLanguage().options.TIME_FORMAT_CACHE")
         protected RubyString timeStrftime(RubyTime time, Object format,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
-                @Cached("libFormat.getRope(format)") Rope cachedFormat,
+                @Cached("libFormat.getTString(format)") AbstractTruffleString cachedFormat,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
                 @Cached(value = "compilePattern(cachedFormat, cachedEncoding)", dimensions = 1) Token[] pattern,
-                @Cached RopeNodes.EqualNode equalNode,
+                @Cached StringNodes.EqualSameEncodingNode equalNode,
                 @Cached("formatCanBeFast(pattern)") boolean canUseFast,
                 @Cached ConditionProfile yearIsFastProfile,
                 @Cached TruffleString.ConcatNode concatNode,
@@ -414,7 +413,7 @@ public abstract class TimeNodes {
                 @Cached TruffleString.FromLongNode fromLongNode,
                 @Cached TruffleString.CodePointLengthNode codePointLengthNode) {
             final RubyEncoding rubyEncoding = libFormat.getEncoding(format);
-            final Token[] pattern = compilePattern(libFormat.getRope(format), rubyEncoding);
+            final Token[] pattern = compilePattern(libFormat.getTString(format), rubyEncoding);
             if (formatCanBeFast(pattern) && yearIsFast(time)) {
                 var tstring = RubyDateFormatter.formatToRopeFast(pattern, time.dateTime, concatNode, fromLongNode,
                         codePointLengthNode);
@@ -435,7 +434,7 @@ public abstract class TimeNodes {
             return year >= 1000 && year <= 9999;
         }
 
-        protected Token[] compilePattern(Rope format, RubyEncoding encoding) {
+        protected Token[] compilePattern(AbstractTruffleString format, RubyEncoding encoding) {
             return RubyDateFormatter.compilePattern(format, encoding, false, getContext(), this);
         }
 
