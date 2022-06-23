@@ -163,6 +163,12 @@ public abstract class EncodingNodes {
             return compatibleEncodingForRopes(first, firstEncoding, second, secondEncoding);
         }
 
+        /** This method returns non-null if either:
+         * <ul>
+         * <li>one side is empty</li>
+         * <li>one side is 7-bit and both encodings are ascii-compatible</li>
+         * </ul>
+         */
         @TruffleBoundary
         protected RubyEncoding compatibleEncodingForRopes(AbstractTruffleString firstRope, RubyEncoding firstEncoding,
                 AbstractTruffleString secondRope, RubyEncoding secondEncoding) {
