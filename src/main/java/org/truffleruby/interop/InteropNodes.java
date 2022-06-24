@@ -37,8 +37,6 @@ import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
@@ -287,13 +285,12 @@ public abstract class InteropNodes {
         protected Object evalNFI(Object code,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary library,
                 @Cached IndirectCallNode callNode) {
-            return callNode.call(parse(library.getRope(code)), EMPTY_ARGUMENTS);
+            return callNode.call(parse(library.getJavaString(code)), EMPTY_ARGUMENTS);
         }
 
         @TruffleBoundary
-        protected CallTarget parse(Rope code) {
-            final String codeString = RopeOperations.decodeRope(code);
-            final Source source = Source.newBuilder("nfi", codeString, "(eval)").build();
+        protected CallTarget parse(String code) {
+            final Source source = Source.newBuilder("nfi", code, "(eval)").build();
 
             try {
                 return getContext().getEnv().parseInternal(source);

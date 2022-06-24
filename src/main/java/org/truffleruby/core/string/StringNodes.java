@@ -83,6 +83,7 @@ import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
+import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.MutableTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.strings.TruffleString.AsTruffleStringNode;
@@ -1178,11 +1179,11 @@ public abstract class StringNodes {
                         "!isEmpty(libString.getTString(string))",
                         "cachedArgs.length == args.length",
                         "argsMatch(cachedArgs, args)",
-                        "encodingsMatch(libString.getRope(string), cachedEncoding)" })
+                        "libString.getEncoding(string) == cachedEncoding" })
         protected int countFast(Object string, TStringWithEncoding[] args,
                 @Cached(value = "args", dimensions = 1) TStringWithEncoding[] cachedArgs,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
-                @Cached("libString.getRope(string).encoding") Encoding cachedEncoding,
+                @Cached("libString.getEncoding(string)") RubyEncoding cachedEncoding,
                 @Cached(value = "squeeze()", dimensions = 1) boolean[] squeeze,
                 @Cached("findEncoding(libString.getTString(string), libString.getEncoding(string), cachedArgs)") RubyEncoding compatEncoding,
                 @Cached("makeTables(cachedArgs, squeeze, compatEncoding)") TrTables tables) {
@@ -1259,10 +1260,6 @@ public abstract class StringNodes {
                                 enc.jcoding, this);
             }
             return tables;
-        }
-
-        protected boolean encodingsMatch(Rope rope, Encoding encoding) {
-            return encoding == rope.getEncoding();
         }
 
         @ExplodeLoop
@@ -1353,11 +1350,11 @@ public abstract class StringNodes {
                         "!isEmpty(string.tstring)",
                         "cachedArgs.length == args.length",
                         "argsMatch(cachedArgs, args)",
-                        "encodingsMatch(libString.getRope(string), cachedEncoding)" })
+                        "libString.getEncoding(string) == cachedEncoding" })
         protected Object deleteBangFast(RubyString string, TStringWithEncoding[] args,
                 @Cached(value = "args", dimensions = 1) TStringWithEncoding[] cachedArgs,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
-                @Cached("libString.getRope(string).encoding") Encoding cachedEncoding,
+                @Cached("libString.getEncoding(string)") RubyEncoding cachedEncoding,
                 @Cached(value = "squeeze()", dimensions = 1) boolean[] squeeze,
                 @Cached("findEncoding(libString.getTString(string), libString.getEncoding(string), cachedArgs)") RubyEncoding compatEncoding,
                 @Cached("makeTables(cachedArgs, squeeze, compatEncoding)") TrTables tables,
@@ -3975,20 +3972,26 @@ public abstract class StringNodes {
 
         @Specialization
         protected RubyString string_escape(Object string,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            final Rope rope = rbStrEscape(strings.getRope(string));
-            return createString(rope, Encodings.US_ASCII);
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
+                @Cached GetByteCodeRangeNode getByteCodeRangeNode) {
+            var tstring = strings.getTString(string);
+            var encoding = strings.getEncoding(string);
+            var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
+            var codeRange = getByteCodeRangeNode.execute(tstring, encoding.tencoding);
+            final TruffleString escaped = rbStrEscape(encoding, byteArray, codeRange);
+            return createString(escaped, Encodings.US_ASCII);
         }
 
         // MRI: rb_str_escape
         @TruffleBoundary
-        private static Rope rbStrEscape(Rope str) {
-            final Encoding enc = str.getEncoding();
-            final byte[] pBytes = str.getBytes();
-            final CodeRange cr = str.getCodeRange();
+        private static TruffleString rbStrEscape(RubyEncoding rubyEncoding, InternalByteArray byteArray,
+                TruffleString.CodeRange cr) {
+            final Encoding enc = rubyEncoding.jcoding;
+            final byte[] pBytes = byteArray.getArray();
 
-            int p = 0;
-            int pend = str.byteLength();
+            int p = byteArray.getOffset();
+            int pend = byteArray.getEnd();
             int prev = p;
             RopeBuilder result = new RopeBuilder();
             boolean unicode_p = enc.isUnicode();
@@ -4073,7 +4076,7 @@ public abstract class StringNodes {
             }
 
             result.setEncoding(Encodings.US_ASCII);
-            return result.toRope(CodeRange.CR_7BIT);
+            return result.toTString(); // CodeRange.CR_7BIT
         }
 
         private static int MBCLEN_CHARFOUND_LEN(int r) {
@@ -4462,7 +4465,7 @@ public abstract class StringNodes {
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached SingleByteOptimizableNode singleByteOptimizableNode,
                 @Cached ConditionProfile firstCharacterProfile) {
-            final Encoding encoding = strings.getRope(string).getEncoding();
+            final Encoding encoding = strings.getEncoding(string).jcoding;
 
             // TODO (nirvdrum 11-Apr-16) Determine whether we need to be bug-for-bug compatible with Rubinius.
             // Implement a bug in Rubinius. We already special-case the index == 0 by returning nil. For all indices
