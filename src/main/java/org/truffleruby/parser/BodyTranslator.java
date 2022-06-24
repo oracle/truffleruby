@@ -2474,58 +2474,98 @@ public class BodyTranslator extends Translator {
                 tempName,
                 0,
                 node.getReceiverNode());
+        final ArrayList<ValueFromNode> argValues = argsToTemp(node);
 
         final String op = node.getOperatorName();
         final boolean logicalOperation = op.equals("&&") || op.equals("||");
 
         if (logicalOperation) {
-            final ParseNode write = write(node, readReceiverFromTemp, value);
-            final ParseNode operation = operation(node, readReceiverFromTemp, op, write);
+            final ParseNode write = write(node, readReceiverFromTemp, argValues, value);
+            final ParseNode operation = operation(node, readReceiverFromTemp, argValues, op, write);
 
-            return block(node, writeReceiverToTemp, operation);
+            return block(node, writeReceiverToTemp, argValues, operation);
         } else {
-            final ParseNode operation = operation(node, readReceiverFromTemp, op, value);
-            final ParseNode write = write(node, readReceiverFromTemp, operation);
+            final ParseNode operation = operation(node, readReceiverFromTemp, argValues, op, value);
+            final ParseNode write = write(node, readReceiverFromTemp, argValues, operation);
 
-            return block(node, writeReceiverToTemp, write);
+            return block(node, writeReceiverToTemp, argValues, write);
         }
     }
 
-    private RubyNode block(OpElementAsgnParseNode node, ParseNode writeReceiverToTemp, ParseNode main) {
+    private RubyNode block(OpElementAsgnParseNode node, ParseNode writeReceiverToTemp,
+            ArrayList<ValueFromNode> argValues, ParseNode main) {
         final BlockParseNode block = new BlockParseNode(node.getPosition());
         block.add(writeReceiverToTemp);
         block.add(main);
 
-        final RubyNode ret = block.accept(this);
+        /* prepareAndThen is going to take an argument, and the action that comes after it, and return a node that does
+         * both of those things. We start off with ret being the block (our final action) and so the first node we
+         * should produce is one that evaluates the last argument, and then the block. The final value of ret should be
+         * a node that evaluates the first argument, and then any other arguments, and then the block. So, we must go
+         * through the argument list in reverse order. */
+        RubyNode ret = block.accept(this);
+        var listIterator = argValues.listIterator(argValues.size());
+        while (listIterator.hasPrevious()) {
+            ret = listIterator.previous().prepareAndThen(node.getPosition(), ret);
+        }
         return addNewlineIfNeeded(node, ret);
     }
 
-    private ParseNode write(OpElementAsgnParseNode node, ParseNode readReceiverFromTemp, ParseNode value) {
-        final ParseNode readArguments = node.getArgsNode();
+    private ParseNode write(OpElementAsgnParseNode node, ParseNode readReceiverFromTemp,
+            ArrayList<ValueFromNode> argValues, ParseNode value) {
         final ParseNode writeArguments;
         // Like ParserSupport#arg_add, but copy the first node
-        if (readArguments instanceof ArrayParseNode) {
+        if (node.getArgsNode() instanceof ArrayParseNode) {
             final ArrayParseNode readArgsCopy = new ArrayParseNode(node.getPosition());
-            readArgsCopy.addAll((ArrayParseNode) readArguments).add(value);
+            for (var arg : argValues) {
+                readArgsCopy.add(arg.get(node.getPosition()));
+            }
+            readArgsCopy.add(value);
             writeArguments = readArgsCopy;
         } else {
-            writeArguments = new ArgsPushParseNode(node.getPosition(), readArguments, value);
+            writeArguments = new ArgsPushParseNode(node.getPosition(), argValues.get(0).get(node.getPosition()), value);
         }
 
         return new AttrAssignParseNode(node.getPosition(), readReceiverFromTemp, "[]=", writeArguments, false);
     }
 
+    private ArrayList<ValueFromNode> argsToTemp(OpElementAsgnParseNode node) {
+        ArrayList<ValueFromNode> argValues = new ArrayList<>();
+
+        final ParseNode readArguments = node.getArgsNode();
+        if (readArguments instanceof ArrayParseNode) {
+            for (ParseNode child : ((ArrayParseNode) readArguments).children()) {
+                argValues.add(ValueFromNode.valueFromNode(this, child));
+            }
+        } else {
+            argValues.add(ValueFromNode.valueFromNode(this, readArguments));
+        }
+
+        return argValues;
+    }
+
     private ParseNode operation(
             OpElementAsgnParseNode node,
             ParseNode readReceiverFromTemp,
+            ArrayList<ValueFromNode> argValues,
             String op,
             ParseNode right) {
+        ParseNode readArguments;
+        if (node.getArgsNode() instanceof ArrayParseNode) {
+            final ArrayParseNode readArgsArray = new ArrayParseNode(node.getPosition());
+            for (var arg : argValues) {
+                readArgsArray.add(arg.get(node.getPosition()));
+            }
+            readArguments = readArgsArray;
+        } else {
+            readArguments = argValues.get(0).get(node.getPosition());
+        }
 
         final ParseNode read = new CallParseNode(
                 node.getPosition(),
                 readReceiverFromTemp,
                 "[]",
-                node.getArgsNode(),
+                readArguments,
                 null);
         ParseNode operation;
         switch (op) {

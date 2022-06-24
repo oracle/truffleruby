@@ -15,6 +15,7 @@ import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.parser.ast.LocalVarParseNode;
 import org.truffleruby.parser.ast.ParseNode;
 import org.truffleruby.parser.ast.SelfParseNode;
+import org.truffleruby.parser.ast.SplatParseNode;
 
 import java.util.Arrays;
 
@@ -80,9 +81,30 @@ public interface ValueFromNode {
 
     }
 
+    class ValueFromSplatNode implements ValueFromNode {
+
+        private final ValueFromNode value;
+
+        public ValueFromSplatNode(BodyTranslator translator, SplatParseNode node) {
+            value = valueFromNode(translator, node.getValue());
+        }
+
+        @Override
+        public RubyNode prepareAndThen(SourceIndexLength sourceSection, RubyNode subsequent) {
+            return value.prepareAndThen(sourceSection, subsequent);
+        }
+
+        @Override
+        public ParseNode get(SourceIndexLength sourceSection) {
+            return new SplatParseNode(sourceSection, value.get(sourceSection));
+        }
+    }
+
     static ValueFromNode valueFromNode(BodyTranslator translator, ParseNode node) {
         if (node instanceof SelfParseNode) {
             return new ValueFromSelfNode();
+        } else if (node instanceof SplatParseNode) {
+            return new ValueFromSplatNode(translator, (SplatParseNode) node);
         } else {
             return new ValueFromEffectNode(translator, node);
         }
