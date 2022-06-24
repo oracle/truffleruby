@@ -84,8 +84,7 @@ int rb_enc_mbc_to_codepoint(char *p, char *e, rb_encoding *enc) {
   int length = e - p;
   return polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "rb_enc_mbc_to_codepoint",
       rb_tr_unwrap(rb_enc_from_encoding(enc)),
-      rb_tr_unwrap(rb_str_new(p, length)),
-      length));
+      rb_tr_unwrap(rb_str_new(p, length))));
 }
 
 int rb_tr_code_to_mbclen(OnigCodePoint code, OnigEncodingType *encoding) {

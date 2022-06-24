@@ -63,7 +63,6 @@ import org.truffleruby.core.rope.ATStringWithEncoding;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
-import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
@@ -248,13 +247,13 @@ public class TruffleRegexpNodes {
     }
 
     @TruffleBoundary
-    private static Matcher getMatcher(Regex regex, byte[] stringBytes, int start) {
-        return regex.matcher(stringBytes, start, stringBytes.length);
+    private static Matcher getMatcher(Regex regex, byte[] stringBytes, int start, int end) {
+        return regex.matcher(stringBytes, start, end);
     }
 
     @TruffleBoundary
-    private static Matcher getMatcherNoRegion(Regex regex, byte[] stringBytes, int start) {
-        return regex.matcherNoRegion(stringBytes, start, stringBytes.length);
+    private static Matcher getMatcherNoRegion(Regex regex, byte[] stringBytes, int start, int end) {
+        return regex.matcherNoRegion(stringBytes, start, end);
     }
 
     @TruffleBoundary
@@ -812,10 +811,10 @@ public class TruffleRegexpNodes {
                 @Cached ConditionProfile createMatchDataProfile,
                 @Cached ConditionProfile encodingMismatchProfile,
                 @Cached PrepareRegexpEncodingNode prepareRegexpEncodingNode,
-                @Cached RopeNodes.BytesNode bytesNode,
+                @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode,
+                @Cached ConditionProfile zeroOffsetProfile,
                 @Cached MatchNode matchNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
-            final Rope rope = libString.getRope(string);
             Regex regex = regexp.regex;
             final RubyEncoding negotiatedEncoding = prepareRegexpEncodingNode.executePrepare(regexp, string);
 
@@ -825,15 +824,25 @@ public class TruffleRegexpNodes {
                         .getOrCreate(negotiatedEncoding, e -> makeRegexpForEncoding(getContext(), regexp, e, this));
             }
 
-            final Matcher matcher;
+            var tstring = libString.getTString(string);
+            var byteArray = getInternalByteArrayNode.execute(tstring, libString.getTEncoding(string));
 
-            if (createMatchDataProfile.profile(createMatchData)) {
-                matcher = getMatcher(regex, bytesNode.execute(rope), startPos);
+            final int offset;
+            if (zeroOffsetProfile.profile(byteArray.getOffset() == 0)) {
+                offset = 0;
             } else {
-                matcher = getMatcherNoRegion(regex, bytesNode.execute(rope), startPos);
+                offset = byteArray.getOffset();
             }
 
-            return matchNode.execute(regexp, string, matcher, fromPos, toPos, atStart, createMatchData);
+            final Matcher matcher;
+            if (createMatchDataProfile.profile(createMatchData)) {
+                matcher = getMatcher(regex, byteArray.getArray(), offset + startPos, byteArray.getEnd());
+            } else {
+                matcher = getMatcherNoRegion(regex, byteArray.getArray(), offset + startPos, byteArray.getEnd());
+            }
+
+            return matchNode.execute(regexp, string, matcher, offset + fromPos, offset + toPos, atStart,
+                    createMatchData);
         }
     }
 

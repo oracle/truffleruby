@@ -1482,13 +1482,15 @@ public class CExtNodes {
         }
     }
 
-    @CoreMethod(names = "rb_enc_mbc_to_codepoint", onSingleton = true, required = 3, lowerFixnum = 3)
+    @CoreMethod(names = "rb_enc_mbc_to_codepoint", onSingleton = true, required = 2)
     public abstract static class RbEncMbcToCodepointNode extends CoreMethodArrayArgumentsNode {
         @Specialization(guards = "strings.isRubyString(string)")
-        protected int rbEncMbcToCodepoint(RubyEncoding enc, Object string, int end,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            final Rope rope = strings.getRope(string);
-            return StringSupport.mbcToCode(enc.jcoding, rope, 0, end);
+        protected int rbEncMbcToCodepoint(RubyEncoding enc, Object string,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
+            var byteArray = byteArrayNode.execute(strings.getTString(string), strings.getTEncoding(string));
+            return StringSupport.mbcToCode(enc.jcoding, byteArray.getArray(), byteArray.getOffset(),
+                    byteArray.getEnd());
         }
     }
 

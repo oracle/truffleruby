@@ -419,8 +419,8 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static int mbcToCode(Encoding encoding, Rope rope, int p, int end) {
-        return encoding.mbcToCode(rope.getBytes(), p, end);
+    public static int mbcToCode(Encoding encoding, byte[] bytes, int p, int end) {
+        return encoding.mbcToCode(bytes, p, end);
     }
 
     public static int offset(int start, int end, int charEnd) {
