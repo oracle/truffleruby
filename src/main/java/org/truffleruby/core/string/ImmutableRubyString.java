@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.string;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -106,10 +107,15 @@ public class ImmutableRubyString extends ImmutableRubyObjectCopyable implements 
         return tstring;
     }
 
-    // TODO: use cached nodes and remove boundary
-    @TruffleBoundary
+    @ExportMessage
+    protected TruffleString asTruffleStringUncached() {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        return tstring;
+    }
+
     @ExportMessage
     protected String getJavaString() {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
         return TStringUtils.toJavaStringOrThrow(tstring, encoding);
     }
     // endregion

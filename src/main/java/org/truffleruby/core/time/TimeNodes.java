@@ -386,7 +386,7 @@ public abstract class TimeNodes {
                 limit = "getLanguage().options.TIME_FORMAT_CACHE")
         protected RubyString timeStrftime(RubyTime time, Object format,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
-                @Cached("libFormat.getTString(format)") AbstractTruffleString cachedFormat,
+                @Cached("libFormat.asTruffleStringUncached(format)") TruffleString cachedFormat,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
                 @Cached(value = "compilePattern(cachedFormat, cachedEncoding)", dimensions = 1) Token[] pattern,
                 @Cached StringNodes.EqualSameEncodingNode equalNode,

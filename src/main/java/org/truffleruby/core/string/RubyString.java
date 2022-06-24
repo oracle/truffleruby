@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.string;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -140,10 +141,15 @@ public final class RubyString extends RubyDynamicObject {
         return tstring;
     }
 
-    // TODO: use cached nodes and remove boundary
-    @TruffleBoundary
+    @ExportMessage
+    protected TruffleString asTruffleStringUncached() {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        return tstring.asTruffleStringUncached(encoding.tencoding);
+    }
+
     @ExportMessage
     protected String getJavaString() {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
         return TStringUtils.toJavaStringOrThrow(tstring, encoding);
     }
     // endregion
@@ -178,16 +184,17 @@ public final class RubyString extends RubyDynamicObject {
                 guards = "equalNode.execute(string.tstring, string.encoding, cachedTString, cachedEncoding)",
                 limit = "getLimit()")
         protected static String asStringCached(RubyString string,
-                @Cached("string.tstring") AbstractTruffleString cachedTString,
+                @Cached("string.asTruffleStringUncached()") TruffleString cachedTString,
                 @Cached("string.encoding") RubyEncoding cachedEncoding,
                 @Cached("string.getJavaString()") String javaString,
                 @Cached StringNodes.EqualNode equalNode) {
             return javaString;
         }
 
+        @TruffleBoundary
         @Specialization(replaces = "asStringCached")
         protected static String asStringUncached(RubyString string) {
-            return string.getJavaString();
+            return TStringUtils.toJavaStringOrThrow(string.tstring, string.encoding);
         }
 
         protected static int getLimit() {

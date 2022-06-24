@@ -9,6 +9,8 @@
  */
 package org.truffleruby.language.library;
 
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.GenerateLibrary;
 import com.oracle.truffle.api.library.Library;
 import com.oracle.truffle.api.library.LibraryFactory;
@@ -39,10 +41,15 @@ public abstract class RubyStringLibrary extends Library {
 
     public abstract AbstractTruffleString getTString(Object object);
 
+    /** Use to initialize {@link Cached} values */
+    public abstract TruffleString asTruffleStringUncached(Object object);
+
     public abstract RubyEncoding getEncoding(Object object);
 
     public abstract TruffleString.Encoding getTEncoding(Object object);
 
+    /** This is an uncached conversion, for optimized cached conversion to java.lang.String use
+     * {@link InteropLibrary#asString(Object)} instead. */
     public abstract String getJavaString(Object receiver);
 
 }

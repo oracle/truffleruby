@@ -23,6 +23,7 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.object.PropertyGetter;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
+import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.utilities.AssumedValue;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
@@ -739,9 +740,9 @@ public abstract class KernelNodes {
         protected Object evalCached(Object self, Object source, RubyBinding binding, Object file, int line,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSource,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFile,
-                @Cached("libSource.getTString(source)") AbstractTruffleString cachedSource,
+                @Cached("libSource.asTruffleStringUncached(source)") TruffleString cachedSource,
                 @Cached("libSource.getEncoding(source)") RubyEncoding cachedSourceEnc,
-                @Cached("libFile.getTString(file)") AbstractTruffleString cachedFile,
+                @Cached("libFile.asTruffleStringUncached(file)") TruffleString cachedFile,
                 @Cached("libFile.getEncoding(file)") RubyEncoding cachedFileEnc,
                 @Cached("line") int cachedLine,
                 @Cached("getBindingDescriptor(binding)") FrameDescriptor bindingDescriptor,
@@ -1688,7 +1689,7 @@ public abstract class KernelNodes {
         protected RubyString formatCached(VirtualFrame frame, Object format, Object[] arguments,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
                 @Cached("isDebug(frame)") boolean cachedIsDebug,
-                @Cached("libFormat.getTString(format)") AbstractTruffleString cachedTString,
+                @Cached("libFormat.asTruffleStringUncached(format)") TruffleString cachedTString,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
                 @Cached("cachedTString.byteLength(cachedEncoding.tencoding)") int cachedFormatLength,
                 @Cached("create(compileFormat(cachedTString, cachedEncoding, arguments, isDebug(frame)))") DirectCallNode callPackNode,

@@ -14,7 +14,7 @@ import java.io.IOException;
 import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.strings.AbstractTruffleString;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -61,9 +61,9 @@ public abstract class PolyglotNodes {
         protected Object evalCached(Object langId, Object code,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary idLib,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary codeLib,
-                @Cached("idLib.getTString(langId)") AbstractTruffleString cachedLangId,
+                @Cached("idLib.asTruffleStringUncached(langId)") TruffleString cachedLangId,
                 @Cached("idLib.getEncoding(langId)") RubyEncoding cachedLangIdEnc,
-                @Cached("codeLib.getTString(code)") AbstractTruffleString cachedCode,
+                @Cached("codeLib.asTruffleStringUncached(code)") TruffleString cachedCode,
                 @Cached("codeLib.getEncoding(code)") RubyEncoding cachedCodeEnc,
                 @Cached("create(parse(idLib.getJavaString(langId), codeLib.getJavaString(code)))") DirectCallNode callNode,
                 @Cached StringNodes.EqualNode idEqualNode,
@@ -206,11 +206,11 @@ public abstract class PolyglotNodes {
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary idLib,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary codeLib,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary filenameLib,
-                @Cached("idLib.getTString(langId)") AbstractTruffleString cachedLangId,
+                @Cached("idLib.asTruffleStringUncached(langId)") TruffleString cachedLangId,
                 @Cached("idLib.getEncoding(langId)") RubyEncoding cachedLangIdEnc,
-                @Cached("codeLib.getTString(code)") AbstractTruffleString cachedCode,
+                @Cached("codeLib.asTruffleStringUncached(code)") TruffleString cachedCode,
                 @Cached("codeLib.getEncoding(code)") RubyEncoding cachedCodeEnc,
-                @Cached("filenameLib.getTString(filename)") AbstractTruffleString cachedFilename,
+                @Cached("filenameLib.asTruffleStringUncached(filename)") TruffleString cachedFilename,
                 @Cached("filenameLib.getEncoding(filename)") RubyEncoding cachedFilenameEnc,
                 @Cached("createSource(idLib.getJavaString(langId), codeLib.getJavaString(code), filenameLib.getJavaString(filename))") Source cachedSource,
                 @Cached StringNodes.EqualNode idEqualNode,

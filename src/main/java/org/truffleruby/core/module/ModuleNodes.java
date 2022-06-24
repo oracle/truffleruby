@@ -27,7 +27,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
-import com.oracle.truffle.api.strings.AbstractTruffleString;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -1021,7 +1021,7 @@ public abstract class ModuleNodes {
         protected Object getConstantStringCached(
                 RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsName,
-                @Cached("stringsName.getTString(name)") AbstractTruffleString cachedTString,
+                @Cached("stringsName.asTruffleStringUncached(name)") TruffleString cachedTString,
                 @Cached("stringsName.getEncoding(name)") RubyEncoding cachedEncoding,
                 @Cached("stringsName.getJavaString(name)") String cachedString,
                 @Cached("checkName") boolean cachedCheckName,

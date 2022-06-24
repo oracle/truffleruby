@@ -18,7 +18,6 @@ import java.util.Arrays;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
-import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.EconomicSet;
 import org.graalvm.collections.Equivalence;
@@ -1560,7 +1559,7 @@ public abstract class ArrayNodes {
                 limit = "getCacheLimit()")
         protected RubyString packCached(RubyArray array, Object format,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
-                @Cached("libFormat.getTString(format)") AbstractTruffleString cachedFormat,
+                @Cached("libFormat.asTruffleStringUncached(format)") TruffleString cachedFormat,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
                 @Cached("cachedFormat.byteLength(cachedEncoding.tencoding)") int cachedFormatLength,
                 @Cached("create(compileFormat(libFormat.getJavaString(format)))") DirectCallNode callPackNode,

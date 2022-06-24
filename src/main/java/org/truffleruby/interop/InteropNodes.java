@@ -21,7 +21,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.ExceptionType;
 import com.oracle.truffle.api.interop.NodeLibrary;
 import com.oracle.truffle.api.source.SourceSection;
-import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreMethod;
@@ -239,9 +238,9 @@ public abstract class InteropNodes {
         protected Object evalCached(Object mimeType, Object source,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsMimeType,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsSource,
-                @Cached("stringsMimeType.getTString(mimeType)") AbstractTruffleString cachedMimeType,
+                @Cached("stringsMimeType.asTruffleStringUncached(mimeType)") TruffleString cachedMimeType,
                 @Cached("stringsMimeType.getEncoding(mimeType)") RubyEncoding cachedMimeTypeEnc,
-                @Cached("stringsSource.getTString(source)") AbstractTruffleString cachedSource,
+                @Cached("stringsSource.asTruffleStringUncached(source)") TruffleString cachedSource,
                 @Cached("stringsSource.getEncoding(source)") RubyEncoding cachedSourceEnc,
                 @Cached("create(parse(stringsMimeType.getJavaString(mimeType), stringsSource.getJavaString(source)))") DirectCallNode callNode,
                 @Cached StringNodes.EqualNode mimeTypeEqualNode,
