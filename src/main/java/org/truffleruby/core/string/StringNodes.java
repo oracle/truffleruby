@@ -2244,27 +2244,27 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
         protected Object swapcaseMultiByteAsciiSimple(RubyString string, int caseMappingOptions,
-                @Cached @Shared("bytesNode") BytesNode bytesNode,
                 @Cached @Shared("codeRangeNode") GetByteCodeRangeNode codeRangeNode,
                 @Cached @Shared("fromByteArrayNode") TruffleString.FromByteArrayNode fromByteArrayNode,
+                @Cached @Shared("byteArrayNode") TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Cached @Shared("dummyEncodingProfile") ConditionProfile dummyEncodingProfile,
                 @Cached @Shared("modifiedProfile") ConditionProfile modifiedProfile) {
             // Taken from org.jruby.RubyString#swapcase_bang19.
 
-            final Rope rope = string.rope;
-            final Encoding enc = rope.getEncoding();
+            var tstring = string.tstring;
+            var enc = string.encoding;
 
-            if (dummyEncodingProfile.profile(enc.isDummy())) {
+            if (dummyEncodingProfile.profile(enc.jcoding.isDummy())) {
                 throw new RaiseException(
                         getContext(),
-                        coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
+                        coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc.jcoding, this));
             }
 
             var cr = codeRangeNode.execute(string.tstring, string.getTEncoding());
-            final byte[] inputBytes = bytesNode.execute(rope);
-            final byte[] outputBytes = StringSupport.swapcaseMultiByteAsciiSimple(enc, cr, inputBytes);
+            var byteArray = byteArrayNode.execute(tstring, enc.tencoding);
+            final byte[] outputBytes = StringSupport.swapcaseMultiByteAsciiSimple(enc.jcoding, cr, byteArray);
 
-            if (modifiedProfile.profile(inputBytes != outputBytes)) {
+            if (modifiedProfile.profile(byteArray.getArray() != outputBytes)) {
                 string.setTString(fromByteArrayNode.execute(outputBytes, string.getTEncoding())); // cr, codePointLengthNode.execute(rope)
                 return string;
             } else {
@@ -2274,26 +2274,30 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
         protected Object swapcaseMultiByteComplex(RubyString string, int caseMappingOptions,
-                @Cached @Shared("bytesNode") BytesNode bytesNode,
                 @Cached @Shared("codeRangeNode") GetByteCodeRangeNode codeRangeNode,
                 @Cached @Shared("fromByteArrayNode") TruffleString.FromByteArrayNode fromByteArrayNode,
+                @Cached @Shared("byteArrayNode") TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Cached @Shared("dummyEncodingProfile") ConditionProfile dummyEncodingProfile,
                 @Cached @Shared("modifiedProfile") ConditionProfile modifiedProfile) {
             // Taken from org.jruby.RubyString#swapcase_bang19.
 
-            final Rope rope = string.rope;
-            final Encoding enc = rope.getEncoding();
+            var tstring = string.tstring;
+            var enc = string.encoding;
 
-            if (dummyEncodingProfile.profile(enc.isDummy())) {
+            if (dummyEncodingProfile.profile(enc.jcoding.isDummy())) {
                 throw new RaiseException(
                         getContext(),
-                        coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
+                        coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc.jcoding, this));
             }
 
-            final RopeBuilder builder = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), string.encoding);
+            var byteArray = byteArrayNode.execute(tstring, enc.tencoding);
+
+            // TODO (nirvdrum 24-Jun-22): Make the byte array builder copy-on-write so we don't eagerly clone the source byte array.
+            var builder = ByteArrayBuilder.create(byteArray);
+
             var cr = codeRangeNode.execute(string.tstring, string.getTEncoding());
             final boolean modified = StringSupport
-                    .swapCaseMultiByteComplex(enc, cr, builder, caseMappingOptions, this);
+                    .swapCaseMultiByteComplex(enc.jcoding, cr, builder, caseMappingOptions, this);
 
             if (modifiedProfile.profile(modified)) {
                 string.setTString(fromByteArrayNode.execute(builder.getBytes(), string.encoding.tencoding));

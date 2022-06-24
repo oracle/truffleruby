@@ -1476,16 +1476,18 @@ public final class StringSupport {
      * doesn't require changes. The encoding must be ASCII-compatible (i.e. represent each ASCII character as a single
      * byte ({@link Encoding#isAsciiCompatible()}). */
     @TruffleBoundary
-    public static byte[] swapcaseMultiByteAsciiSimple(Encoding enc, TruffleString.CodeRange codeRange, byte[] bytes) {
+    public static byte[] swapcaseMultiByteAsciiSimple(Encoding enc, TruffleString.CodeRange codeRange,
+            InternalByteArray byteArray) {
         assert enc.isAsciiCompatible();
         boolean modified = false;
-        int s = 0;
-        final int end = bytes.length;
+        int s = byteArray.getOffset();
+        final int end = byteArray.getEnd();
+        var bytes = byteArray.getArray();
 
         while (s < end) {
             if (isAsciiAlpha(bytes[s])) {
                 if (!modified) {
-                    bytes = bytes.clone();
+                    bytes = ArrayUtils.extractRange(bytes, byteArray.getOffset(), byteArray.getEnd());
                     modified = true;
                 }
                 bytes[s] ^= 0x20;
@@ -1500,7 +1502,7 @@ public final class StringSupport {
 
     @TruffleBoundary
     public static boolean swapCaseMultiByteComplex(Encoding enc, TruffleString.CodeRange originalCodeRange,
-            RopeBuilder builder, int caseMappingOptions, Node node) {
+            ByteArrayBuilder builder, int caseMappingOptions, Node node) {
         byte[] buf = new byte[CASE_MAP_BUFFER_SIZE];
 
         final IntHolder flagP = new IntHolder();
