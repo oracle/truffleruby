@@ -47,7 +47,7 @@ public class RBSprintfCompiler {
 
     private static int SIGN = 0x10;
 
-    public Object typeList(Rope format, RubyContext context, RubyLanguage language) {
+    public RubyArray typeList(Rope format, RubyContext context, RubyLanguage language) {
         final RBSprintfSimpleParser parser = new RBSprintfSimpleParser(bytesToChars(format.getBytes()), false);
         final List<RBSprintfConfig> configs = parser.parse();
         final int[] types = new int[3 * configs.size()]; // Ensure there is enough space for the argument types that might be in the format string.
@@ -76,13 +76,17 @@ public class RBSprintfCompiler {
                 types[config.getWidth()] = FormatArgumentType.INT.ordinal();
                 highWaterMark = Math.max(highWaterMark, config.getWidth());
             }
-            switch (config.getFormat()) {
-                case 'd':
-                case 'i':
-                    typeInt = config.getFormatArgumentType().ordinal() | SIGN;
-                    break;
-                default:
-                    typeInt = config.getFormatArgumentType().ordinal();
+            if (config.getFormatType() == RBSprintfConfig.FormatType.RUBY_VALUE) {
+                typeInt = RBSprintfConfig.FormatArgumentType.VALUE.ordinal();
+            } else {
+                switch (config.getFormat()) {
+                    case 'd':
+                    case 'i':
+                        typeInt = config.getFormatArgumentType().ordinal() | SIGN;
+                        break;
+                    default:
+                        typeInt = config.getFormatArgumentType().ordinal();
+                }
             }
             if (config.getAbsoluteArgumentIndex() != null) {
                 typePos = config.getAbsoluteArgumentIndex() - 1; //Parameters are 1 indexed, but our array is 0 indexed.

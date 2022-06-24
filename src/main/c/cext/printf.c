@@ -118,6 +118,7 @@ enum printf_arg_types {
   TYPE_PTRDIFF_T,
   TYPE_STRING,
   TYPE_POINTER,
+  TYPE_VALUE,
   TYPE_SCHAR = 0x11,
   TYPE_SSHORT,
   TYPE_SINT,
@@ -184,6 +185,9 @@ VALUE rb_tr_get_sprintf_args(va_list args, VALUE types) {
       }
     case TYPE_SLONGLONG:
       val = LL2NUM(va_arg(args, long long));
+      break;
+    case TYPE_VALUE:
+      val = va_arg(args, VALUE);
       break;
     default:
       {

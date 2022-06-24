@@ -1733,19 +1733,19 @@ public class CExtNodes {
         protected Object typesCached(VirtualFrame frame, Object format,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
                 @Cached("libFormat.getRope(format)") Rope cachedFormatRope,
-                @Cached("compileArgTypes(format, libFormat)") Object cachedTypes,
+                @Cached("compileArgTypes(format, libFormat)") RubyArray cachedTypes,
                 @Cached RopeNodes.EqualNode equalNode) {
             return cachedTypes;
         }
 
         @Specialization(guards = "libFormat.isRubyString(format)")
-        protected Object typesUncachd(VirtualFrame frame, Object format,
+        protected RubyArray typesUncachd(VirtualFrame frame, Object format,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat) {
             return compileArgTypes(format, libFormat);
         }
 
         @TruffleBoundary
-        protected Object compileArgTypes(Object format, RubyStringLibrary libFormat) {
+        protected RubyArray compileArgTypes(Object format, RubyStringLibrary libFormat) {
             try {
                 return new RBSprintfCompiler(getLanguage(), this)
                         .typeList(libFormat.getRope(format), getContext(), getLanguage());

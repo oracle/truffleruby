@@ -27,9 +27,11 @@ import org.truffleruby.core.format.format.FormatGFloatNodeGen;
 import org.truffleruby.core.format.format.FormatIntegerBinaryNodeGen;
 import org.truffleruby.core.format.format.FormatIntegerNodeGen;
 import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
+import org.truffleruby.core.format.rbsprintf.RBSprintfConfig.FormatArgumentType;
 import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.format.read.array.ReadArgumentIndexValueNodeGen;
 import org.truffleruby.core.format.read.array.ReadIntegerNodeGen;
+import org.truffleruby.core.format.read.array.ReadStringNodeGen;
 import org.truffleruby.core.format.read.array.ReadCStringNodeGen;
 import org.truffleruby.core.format.read.array.ReadCValueNodeGen;
 import org.truffleruby.core.format.read.array.ReadValueNodeGen;
@@ -266,17 +268,34 @@ public class RBSprintfSimpleTreeBuilder {
                     case RUBY_VALUE: {
                         final String conversionMethodName = config.isPlus() ? "inspect" : "to_s";
                         final FormatNode conversionNode;
-                        conversionNode = ToStringNodeGen
-                                .create(
-                                        true,
-                                        conversionMethodName,
-                                        false,
-                                        EMPTY_ROPE,
-                                        config.isPlus(),
-                                        (config.getAbsoluteArgumentIndex() == null)
-                                                ? (ReadCValueNodeGen
-                                                        .create(ReadIntegerNodeGen.create(new SourceNode())))
-                                                : ReadCValueNodeGen.create(valueNode));
+                        if (config.getFormatArgumentType() == FormatArgumentType.VALUE) {
+                            if (config.getAbsoluteArgumentIndex() == null) {
+                                conversionNode = ReadStringNodeGen
+                                        .create(
+                                                true,
+                                                conversionMethodName,
+                                                false,
+                                                EMPTY_ROPE,
+                                                config.isPlus(),
+                                                new SourceNode());
+                            } else {
+                                conversionNode = ToStringNodeGen
+                                        .create(true, conversionMethodName, false, EMPTY_ROPE, config.isPlus(),
+                                                valueNode);
+                            }
+                        } else {
+                            conversionNode = ToStringNodeGen
+                                    .create(
+                                            true,
+                                            conversionMethodName,
+                                            false,
+                                            EMPTY_ROPE,
+                                            config.isPlus(),
+                                            (config.getAbsoluteArgumentIndex() == null)
+                                                    ? (ReadCValueNodeGen
+                                                            .create(ReadIntegerNodeGen.create(new SourceNode())))
+                                                    : ReadCValueNodeGen.create(valueNode));
+                        }
                         if (config.getWidth() != null || config.isWidthStar() || config.getPrecision() != null ||
                                 config.isPrecisionStar()) {
                             node = WritePaddedBytesNodeGen
