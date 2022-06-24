@@ -21,7 +21,7 @@ import org.truffleruby.language.ImmutableRubyObjectNotCopyable;
 import java.math.BigInteger;
 
 @ExportLibrary(InteropLibrary.class)
-public class RubyBignum extends ImmutableRubyObjectNotCopyable {
+public final class RubyBignum extends ImmutableRubyObjectNotCopyable {
 
     public final BigInteger value;
 

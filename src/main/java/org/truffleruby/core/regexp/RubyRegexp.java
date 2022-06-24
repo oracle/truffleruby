@@ -33,7 +33,7 @@ import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 @ExportLibrary(InteropLibrary.class)
-public class RubyRegexp extends ImmutableRubyObjectNotCopyable implements TruffleObject, Comparable<RubyRegexp> {
+public final class RubyRegexp extends ImmutableRubyObjectNotCopyable implements TruffleObject, Comparable<RubyRegexp> {
 
     @TruffleBoundary
     public static RubyRegexp create(RubyLanguage language,

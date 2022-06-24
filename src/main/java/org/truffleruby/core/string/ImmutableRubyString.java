@@ -37,7 +37,7 @@ import org.truffleruby.language.library.RubyStringLibrary;
  * {@link FrozenStringLiterals#getFrozenStringLiteral}. */
 @ExportLibrary(InteropLibrary.class)
 @ExportLibrary(RubyStringLibrary.class)
-public class ImmutableRubyString extends ImmutableRubyObjectCopyable implements TruffleObject {
+public final class ImmutableRubyString extends ImmutableRubyObjectCopyable implements TruffleObject {
 
     public final LeafRope rope;
     public final TruffleString tstring;

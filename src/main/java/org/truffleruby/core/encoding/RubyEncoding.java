@@ -33,7 +33,7 @@ import java.util.Objects;
 import java.util.Set;
 
 @ExportLibrary(InteropLibrary.class)
-public class RubyEncoding extends ImmutableRubyObjectNotCopyable implements ObjectGraphNode, Comparable<RubyEncoding> {
+public final class RubyEncoding extends ImmutableRubyObjectNotCopyable implements ObjectGraphNode, Comparable<RubyEncoding> {
 
     public final Encoding jcoding;
     public final TruffleString.Encoding tencoding;
