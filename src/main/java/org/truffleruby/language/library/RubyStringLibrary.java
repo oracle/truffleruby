@@ -48,6 +48,8 @@ public abstract class RubyStringLibrary extends Library {
 
     public abstract TruffleString.Encoding getTEncoding(Object object);
 
+    public abstract int byteLength(Object object);
+
     /** This is an uncached conversion, for optimized cached conversion to java.lang.String use
      * {@link InteropLibrary#asString(Object)} instead. */
     public abstract String getJavaString(Object receiver);

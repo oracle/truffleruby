@@ -144,7 +144,6 @@ import org.truffleruby.core.rope.RopeNodes.BytesNode;
 import org.truffleruby.core.rope.RopeNodes.CalculateCharacterLengthNode;
 import org.truffleruby.core.rope.RopeNodes.GetBytesObjectNode;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.rope.RopeWithEncoding;
 import org.truffleruby.core.rope.TStringNodes.SingleByteOptimizableNode;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.StringNodesFactory.CheckIndexNodeGen;
@@ -1223,10 +1222,6 @@ public abstract class StringNodes {
 
         protected boolean[] squeeze() {
             return new boolean[StringSupport.TRANS_SIZE + 1];
-        }
-
-        protected RopeWithEncoding stringToRopeWithEncoding(RubyStringLibrary strings, Object string) {
-            return new RopeWithEncoding(strings.getRope(string), strings.getEncoding(string));
         }
 
         protected RubyEncoding findEncoding(AbstractTruffleString tstring, RubyEncoding encoding,
@@ -2329,7 +2324,7 @@ public abstract class StringNodes {
             ByteArrayBuilder outputBytes = dumpCommon(libString.getRope(string));
 
             outputBytes.append(FORCE_ENCODING_CALL_BYTES);
-            outputBytes.append(libString.getRope(string).getEncoding().getName());
+            outputBytes.append(libString.getEncoding(string).jcoding.getName());
             outputBytes.append((byte) '"');
             outputBytes.append((byte) ')');
 
@@ -2492,7 +2487,7 @@ public abstract class StringNodes {
             throw new RaiseException(
                     getContext(),
                     getContext().getCoreExceptions().encodingCompatibilityError(
-                            Utils.concat("ASCII incompatible encoding: ", libString.getRope(string).encoding),
+                            Utils.concat("ASCII incompatible encoding: ", libString.getEncoding(string)),
                             this));
         }
 
@@ -3071,7 +3066,7 @@ public abstract class StringNodes {
         protected Object trSBang(RubyString self, Object fromStr, Object toStr,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFromStr,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libToStr) {
-            if (libToStr.getRope(toStr).isEmpty()) {
+            if (libToStr.getTString(toStr).isEmpty()) {
                 if (deleteBangNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
                     deleteBangNode = insert(DeleteBangNode.create());
@@ -3904,7 +3899,7 @@ public abstract class StringNodes {
     public abstract static class StringChrAtPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(
-                guards = { "indexOutOfBounds(strings.getRope(string), byteIndex)" })
+                guards = { "indexOutOfBounds(strings.byteLength(string), byteIndex)" })
         protected Object stringChrAtOutOfBounds(Object string, int byteIndex,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             return nil;
@@ -3912,7 +3907,7 @@ public abstract class StringNodes {
 
         @Specialization(
                 guards = {
-                        "!indexOutOfBounds(strings.getRope(string), byteIndex)",
+                        "!indexOutOfBounds(strings.byteLength(string), byteIndex)",
                         "isSingleByteOptimizable(tstring, encoding, singleByteOptimizableNode)" })
         protected Object stringChrAtSingleByte(Object string, int byteIndex,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
@@ -3925,7 +3920,7 @@ public abstract class StringNodes {
 
         @Specialization(
                 guards = {
-                        "!indexOutOfBounds(strings.getRope(string), byteIndex)",
+                        "!indexOutOfBounds(strings.byteLength(string), byteIndex)",
                         "!isSingleByteOptimizable(originalTString, originalEncoding, singleByteOptimizableNode)" })
         protected Object stringChrAt(Object string, int byteIndex,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
@@ -3938,12 +3933,11 @@ public abstract class StringNodes {
                 @Cached TruffleString.ForceEncodingNode forceEncodingNode,
                 @Bind("strings.getTString(string)") AbstractTruffleString originalTString,
                 @Bind("strings.getEncoding(string)") RubyEncoding originalEncoding) {
-            final Rope rope = strings.getRope(string);
             final RubyEncoding actualEncoding = getActualEncodingNode.execute(originalTString, originalEncoding);
             var tstring = forceEncodingNode.execute(originalTString, originalEncoding.tencoding,
                     actualEncoding.tencoding);
 
-            final int end = rope.byteLength();
+            final int end = strings.byteLength(string);
             var bytes = getInternalByteArrayNode.execute(tstring, actualEncoding.tencoding);
             final int clen = calculateCharacterLengthNode.characterLength(
                     actualEncoding.jcoding,
@@ -3961,8 +3955,8 @@ public abstract class StringNodes {
             return createSubString(substringByteIndexNode, tstring, actualEncoding, byteIndex, clen);
         }
 
-        protected static boolean indexOutOfBounds(Rope rope, int byteIndex) {
-            return ((byteIndex < 0) || (byteIndex >= rope.byteLength()));
+        protected static boolean indexOutOfBounds(int byteLength, int byteIndex) {
+            return byteIndex < 0 || byteIndex >= byteLength;
         }
 
     }
@@ -4121,7 +4115,7 @@ public abstract class StringNodes {
             return nil;
         }
 
-        @Specialization(guards = "offsetTooLarge(strings.getRope(string), offset)")
+        @Specialization(guards = "offsetTooLarge(strings.byteLength(string), offset)")
         protected Object stringFindCharacterOffsetTooLarge(Object string, int offset,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             return nil;
@@ -4130,7 +4124,7 @@ public abstract class StringNodes {
         @Specialization(
                 guards = {
                         "offset >= 0",
-                        "!offsetTooLarge(strings.getRope(string), offset)",
+                        "!offsetTooLarge(strings.byteLength(string), offset)",
                         "isSingleByteOptimizable(strings.getTString(string), strings.getEncoding(string), singleByteOptimizableNode)" })
         protected Object stringFindCharacterSingleByte(Object string, int offset,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
@@ -4143,7 +4137,7 @@ public abstract class StringNodes {
         @Specialization(
                 guards = {
                         "offset >= 0",
-                        "!offsetTooLarge(strings.getRope(string), offset)",
+                        "!offsetTooLarge(strings.byteLength(string), offset)",
                         "!isSingleByteOptimizable(strings.getTString(string), strings.getEncoding(string), singleByteOptimizableNode)" })
         protected Object stringFindCharacter(Object string, int offset,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
@@ -4166,8 +4160,8 @@ public abstract class StringNodes {
             return createSubString(substringNode, strings, string, offset, clen);
         }
 
-        protected static boolean offsetTooLarge(Rope rope, int offset) {
-            return offset >= rope.byteLength();
+        protected static boolean offsetTooLarge(int byteLength, int offset) {
+            return offset >= byteLength;
         }
 
     }

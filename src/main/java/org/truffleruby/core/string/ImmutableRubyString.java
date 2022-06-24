@@ -112,6 +112,11 @@ public final class ImmutableRubyString extends ImmutableRubyObjectCopyable imple
         return tstring;
     }
 
+    @ExportMessage
+    public int byteLength() {
+        return tstring.byteLength(encoding.tencoding);
+    }
+
     @TruffleBoundary
     @ExportMessage
     protected String getJavaString() {

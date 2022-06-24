@@ -93,10 +93,6 @@ public final class RubyString extends RubyDynamicObject {
         this.encoding = encoding;
     }
 
-    public int byteLength() {
-        return tstring.byteLength(encoding.tencoding);
-    }
-
     public void clearCodeRange() {
         ((NativeRope) rope).clearCodeRange();
         assert tstring.isNative();
@@ -144,6 +140,11 @@ public final class RubyString extends RubyDynamicObject {
     @ExportMessage
     protected TruffleString asTruffleStringUncached() {
         return tstring.asTruffleStringUncached(encoding.tencoding);
+    }
+
+    @ExportMessage
+    public int byteLength() {
+        return tstring.byteLength(encoding.tencoding);
     }
 
     @TruffleBoundary
