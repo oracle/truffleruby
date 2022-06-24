@@ -3212,50 +3212,7 @@ public abstract class StringNodes {
             this.upperToLower = upperToLower;
         }
 
-        public abstract byte[] executeInvert(Object bytes, int start);
-
-        @Specialization
-        protected byte[] invertOld(byte[] bytes, int start,
-                @Cached BranchProfile foundLowerCaseCharProfile,
-                @Cached BranchProfile foundUpperCaseCharProfile,
-                @Cached LoopConditionProfile loopProfile) {
-            byte[] modified = null;
-
-            int i = start;
-            try {
-                for (; loopProfile.inject(i < bytes.length); i++) {
-                    final byte b = bytes[i];
-
-                    if (lowerToUpper && StringSupport.isAsciiLowercase(b)) {
-                        foundLowerCaseCharProfile.enter();
-
-                        if (modified == null) {
-                            modified = bytes.clone();
-                        }
-
-                        // Convert lower-case ASCII char to upper-case.
-                        modified[i] ^= 0x20;
-                    }
-
-                    if (upperToLower && StringSupport.isAsciiUppercase(b)) {
-                        foundUpperCaseCharProfile.enter();
-
-                        if (modified == null) {
-                            modified = bytes.clone();
-                        }
-
-                        // Convert upper-case ASCII char to lower-case.
-                        modified[i] ^= 0x20;
-                    }
-
-                    TruffleSafepoint.poll(this);
-                }
-            } finally {
-                profileAndReportLoopCount(loopProfile, i - start);
-            }
-
-            return modified;
-        }
+        public abstract byte[] executeInvert(RubyString string, int start);
 
         @Specialization
         protected byte[] invert(RubyString string, int start,
