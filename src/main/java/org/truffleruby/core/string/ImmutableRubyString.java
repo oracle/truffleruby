@@ -145,6 +145,12 @@ public class ImmutableRubyString extends ImmutableRubyObjectCopyable implements 
     }
 
     @ExportMessage
+    protected TruffleString asTruffleString(
+            @Cached TruffleString.AsTruffleStringNode asTruffleStringNode) {
+        return asTruffleStringNode.execute(tstring, encoding.tencoding);
+    }
+
+    @ExportMessage
     public static class AsString {
         @Specialization(
                 guards = "equalNode.execute(string.tstring, string.encoding, cachedTString, cachedEncoding)",
