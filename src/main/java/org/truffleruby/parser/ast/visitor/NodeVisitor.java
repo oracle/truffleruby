@@ -75,6 +75,7 @@ import org.truffleruby.parser.ast.EnsureParseNode;
 import org.truffleruby.parser.ast.EvStrParseNode;
 import org.truffleruby.parser.ast.FCallParseNode;
 import org.truffleruby.parser.ast.FalseParseNode;
+import org.truffleruby.parser.ast.FindPatternParseNode;
 import org.truffleruby.parser.ast.FixnumParseNode;
 import org.truffleruby.parser.ast.FlipParseNode;
 import org.truffleruby.parser.ast.FloatParseNode;
@@ -234,6 +235,8 @@ public interface NodeVisitor<T> {
     T visitFCallNode(FCallParseNode iVisited);
 
     T visitFalseNode(FalseParseNode iVisited);
+
+    T visitFindPatternNode(FindPatternParseNode iVisited);
 
     T visitFixnumNode(FixnumParseNode iVisited);
 

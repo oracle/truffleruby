@@ -68,6 +68,7 @@ public enum NodeType {
     EVSTRNODE,
     FALSENODE,
     FCALLNODE,
+    FINDPATTERNNODE,
     FIXNUMNODE,
     FLIPNODE,
     FLOATNODE,
