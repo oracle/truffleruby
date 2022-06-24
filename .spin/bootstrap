@@ -4,11 +4,14 @@ set -ex
 
 SCRIPT_PATH=$(dirname "$0")
 SCRIPT_PATH=$(cd "$SCRIPT_PATH" && pwd)
-TRUFFLERUBY_DIR=$SCRIPT_PATH/../..
+TRUFFLERUBY_DIR=$SCRIPT_PATH/..
 
-sudo apt-get install -y cmake libssl-dev libz-dev python
+if [ ! -z "$SPIN" ]; then
+  echo "source '$TRUFFLERUBY_DIR/.spin/env-custom'" > ~/.zshrc.d/truffleruby
+fi
 
-source "$TRUFFLERUBY_DIR"/.spin/bin/env
+export SPIN_INITIALIZING=true
+source "$TRUFFLERUBY_DIR"/.spin/env-custom
 
 mkdir -p ~/.rubies
 
