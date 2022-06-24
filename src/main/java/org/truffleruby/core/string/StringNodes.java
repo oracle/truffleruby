@@ -139,7 +139,6 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
-import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeNodes.BytesNode;
 import org.truffleruby.core.rope.RopeNodes.CalculateCharacterLengthNode;
 import org.truffleruby.core.rope.RopeNodes.GetBytesObjectNode;
@@ -429,7 +428,15 @@ public abstract class StringNodes {
 
     /** The node to use for inline caches to compare if two TruffleString are equal. It behaves the same as String#==,
      * without coercion. Note that the two encodings do no need to be the same for this node to return true. If you need
-     * to ensure the encoding is the same, use {@link EqualSameEncodingNode}. */
+     * to ensure the encoding is the same, use {@link EqualSameEncodingNode}.
+     *
+     * Two strings are considered equal if they are the same byte-by-byte and:
+     * <ul>
+     * <li>Both strings have the same encoding</li>
+     * <li>Both strings are 7-bit (and so both have an ASCII-compatible encoding)</li>
+     * <li>Both strings are empty (regardless of their encodings)</li>
+     * </ul>
+     */
     public abstract static class EqualNode extends RubyBaseNode {
 
         public final boolean execute(RubyStringLibrary libString, Object rubyString,
@@ -3100,14 +3107,15 @@ public abstract class StringNodes {
             return ToStrNodeGen.create(format);
         }
 
-        @Specialization(guards = { "equalNode.execute(libFormat.getRope(format), cachedFormat)" })
+        @Specialization(guards = { "equalNode.execute(libFormat, format, cachedFormat, cachedEncoding)" })
         protected RubyArray unpackCached(Object string, Object format,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
-                @Cached("libFormat.getRope(format)") Rope cachedFormat,
-                @Cached("create(compileFormat(libFormat.getRope(format)))") DirectCallNode callUnpackNode,
+                @Cached("libFormat.getTString(format)") AbstractTruffleString cachedFormat,
+                @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
+                @Cached("create(compileFormat(libFormat.getJavaString(format)))") DirectCallNode callUnpackNode,
                 @Cached BytesNode bytesNode,
-                @Cached RopeNodes.EqualNode equalNode,
+                @Cached StringNodes.EqualNode equalNode,
                 @Cached StringGetAssociatedNode stringGetAssociatedNode) {
             final Rope rope = libString.getRope(string);
 
@@ -3142,7 +3150,7 @@ public abstract class StringNodes {
 
             try {
                 result = (ArrayResult) callUnpackNode.call(
-                        compileFormat(libFormat.getRope(format)),
+                        compileFormat(libFormat.getJavaString(format)),
                         new Object[]{
                                 bytesNode.execute(rope),
                                 rope.byteLength(),
@@ -3160,9 +3168,9 @@ public abstract class StringNodes {
         }
 
         @TruffleBoundary
-        protected RootCallTarget compileFormat(Rope rope) {
+        protected RootCallTarget compileFormat(String format) {
             try {
-                return new UnpackCompiler(getLanguage(), this).compile(RopeOperations.decodeRope(rope));
+                return new UnpackCompiler(getLanguage(), this).compile(format);
             } catch (DeferredRaiseException dre) {
                 throw dre.getException(getContext());
             }

@@ -23,9 +23,6 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
@@ -58,17 +55,19 @@ public abstract class PolyglotNodes {
                 guards = {
                         "idLib.isRubyString(langId)",
                         "codeLib.isRubyString(code)",
-                        "idEqualNode.execute(idLib.getRope(langId), cachedLangId)",
-                        "codeEqualNode.execute(codeLib.getRope(code), cachedCode)" },
+                        "idEqualNode.execute(idLib, langId, cachedLangId, cachedLangIdEnc)",
+                        "codeEqualNode.execute(codeLib, code, cachedCode, cachedCodeEnc)" },
                 limit = "getCacheLimit()")
         protected Object evalCached(Object langId, Object code,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary idLib,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary codeLib,
-                @Cached("idLib.getRope(langId)") Rope cachedLangId,
-                @Cached("codeLib.getRope(code)") Rope cachedCode,
-                @Cached("create(parse(idLib.getRope(langId), codeLib.getRope(code)))") DirectCallNode callNode,
-                @Cached RopeNodes.EqualNode idEqualNode,
-                @Cached RopeNodes.EqualNode codeEqualNode) {
+                @Cached("idLib.getTString(langId)") AbstractTruffleString cachedLangId,
+                @Cached("idLib.getEncoding(langId)") RubyEncoding cachedLangIdEnc,
+                @Cached("codeLib.getTString(code)") AbstractTruffleString cachedCode,
+                @Cached("codeLib.getEncoding(code)") RubyEncoding cachedCodeEnc,
+                @Cached("create(parse(idLib.getJavaString(langId), codeLib.getJavaString(code)))") DirectCallNode callNode,
+                @Cached StringNodes.EqualNode idEqualNode,
+                @Cached StringNodes.EqualNode codeEqualNode) {
             return callNode.call(EMPTY_ARGUMENTS);
         }
 
@@ -79,14 +78,13 @@ public abstract class PolyglotNodes {
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsId,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsSource,
                 @Cached IndirectCallNode callNode) {
-            return callNode.call(parse(stringsId.getRope(langId), stringsSource.getRope(code)), EMPTY_ARGUMENTS);
+            return callNode.call(parse(stringsId.getJavaString(langId), stringsSource.getJavaString(code)),
+                    EMPTY_ARGUMENTS);
         }
 
         @TruffleBoundary
-        protected CallTarget parse(Rope id, Rope code) {
-            final String idString = RopeOperations.decodeRope(id);
-            final String codeString = RopeOperations.decodeRope(code);
-            final Source source = Source.newBuilder(idString, codeString, "(eval)").build();
+        protected CallTarget parse(String langId, String code) {
+            final Source source = Source.newBuilder(langId, code, "(eval)").build();
             try {
                 return getContext().getEnv().parsePublic(source);
             } catch (IllegalStateException e) {

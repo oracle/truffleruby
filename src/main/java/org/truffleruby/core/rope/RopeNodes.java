@@ -14,15 +14,12 @@
 
 package org.truffleruby.core.rope;
 
-import java.util.Arrays;
-
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.language.RubyBaseNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -32,175 +29,6 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public abstract class RopeNodes {
-
-    public abstract static class DebugPrintRopeNode extends RubyBaseNode {
-
-        public abstract Object executeDebugPrint(Rope rope, int currentLevel, boolean printString);
-
-        @TruffleBoundary
-        @Specialization
-        protected Object debugPrintLeafRope(LeafRope rope, int currentLevel, boolean printString) {
-            printPreamble(currentLevel);
-
-            // Converting a rope to a java.lang.String may populate the byte[], so we need to query for the array status beforehand.
-            final boolean bytesAreNull = rope.getRawBytes() == null;
-
-            System.err.println(String.format(
-                    "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; E: %s)",
-                    printString ? RopeOperations.escape(rope) : "<skipped>",
-                    rope.getClass().getSimpleName(),
-                    bytesAreNull,
-                    rope.byteLength(),
-                    rope.characterLength(),
-                    rope.getCodeRange(),
-                    rope.getEncoding()));
-
-            return nil;
-        }
-
-        @TruffleBoundary
-        @Specialization
-        protected Object debugPrintNative(NativeRope rope, int currentLevel, boolean printString) {
-            printPreamble(currentLevel);
-
-            System.err.println(String.format(
-                    "%s (%s; BL: %d; CL: %d; CR: %s; P: 0x%x, S: %d; E: %s)",
-                    printString ? RopeOperations.escape(rope) : "<skipped>",
-                    rope.getClass().getSimpleName(),
-                    rope.byteLength(),
-                    rope.characterLength(),
-                    rope.getCodeRange(),
-                    rope.getNativePointer().getAddress(),
-                    rope.getNativePointer().getSize(),
-                    rope.getEncoding()));
-
-            return nil;
-        }
-
-        private void printPreamble(int level) {
-            if (level > 0) {
-                for (int i = 0; i < level; i++) {
-                    System.err.print("|  ");
-                }
-            }
-        }
-
-    }
-
-    public abstract static class EqualNode extends RubyBaseNode {
-
-        public static EqualNode create() {
-            return RopeNodesFactory.EqualNodeGen.create();
-        }
-
-        public abstract boolean execute(Rope a, Rope b);
-
-        @Specialization(guards = "a == b")
-        protected boolean sameRopeEqual(Rope a, Rope b) {
-            return true;
-        }
-
-        @Specialization
-        protected boolean ropesEqual(Rope a, Rope b,
-                @Cached BranchProfile differentEncodingProfile,
-                @Cached BytesEqualNode bytesEqualNode) {
-            if (a.getEncoding() != b.getEncoding()) {
-                differentEncodingProfile.enter();
-                return false;
-            }
-
-            return bytesEqualNode.execute(a, b);
-        }
-
-    }
-
-    // This node type checks for the equality of the bytes owned by a rope but does not pay
-    // attention to the encoding.
-    public abstract static class BytesEqualNode extends RubyBaseNode {
-
-        public static BytesEqualNode create() {
-            return RopeNodesFactory.BytesEqualNodeGen.create();
-        }
-
-        public abstract boolean execute(Rope a, Rope b);
-
-        @Specialization(guards = "a == b")
-        protected boolean sameRopes(Rope a, Rope b) {
-            return true;
-        }
-
-        @Specialization(guards = { "a == cachedA", "b == cachedB", "canBeCached" }, limit = "getIdentityCacheLimit()")
-        protected boolean cachedRopes(Rope a, Rope b,
-                @Cached("a") Rope cachedA,
-                @Cached("b") Rope cachedB,
-                @Cached("canBeCached(cachedA, cachedB)") boolean canBeCached,
-                @Cached("cachedA.bytesEqual(cachedB)") boolean equal) {
-            return equal;
-        }
-
-        @Specialization(guards = { "a != b", "a.getRawBytes() != null", "a.getRawBytes() == b.getRawBytes()" })
-        protected boolean sameByteArrays(Rope a, Rope b) {
-            return true;
-        }
-
-        @Specialization(
-                guards = {
-                        "a != b",
-                        "a.getRawBytes() != null",
-                        "b.getRawBytes() != null",
-                        "a.byteLength() == 1",
-                        "b.byteLength() == 1" })
-        protected boolean characterEqual(Rope a, Rope b) {
-            return a.getRawBytes()[0] == b.getRawBytes()[0];
-        }
-
-        @Specialization(guards = "a != b", replaces = { "cachedRopes", "sameByteArrays", "characterEqual" })
-        protected boolean fullRopeEqual(Rope a, Rope b,
-                @Cached ConditionProfile aRawBytesProfile,
-                @Cached BranchProfile sameByteArraysProfile,
-                @Cached BranchProfile differentLengthProfile,
-                @Cached ConditionProfile aCalculatedHashProfile,
-                @Cached ConditionProfile bCalculatedHashProfile,
-                @Cached ConditionProfile differentHashProfile,
-                @Cached BytesNode aBytesNode,
-                @Cached BytesNode bBytesNode) {
-            if (aRawBytesProfile.profile(a.getRawBytes() != null) && a.getRawBytes() == b.getRawBytes()) {
-                sameByteArraysProfile.enter();
-                return true;
-            }
-
-            if (a.byteLength() != b.byteLength()) {
-                differentLengthProfile.enter();
-                return false;
-            }
-
-            if (aCalculatedHashProfile.profile(a.isHashCodeCalculated()) &&
-                    bCalculatedHashProfile.profile(b.isHashCodeCalculated()) &&
-                    differentHashProfile.profile(a.calculatedHashCode() != b.calculatedHashCode())) {
-                return false;
-            }
-
-            final byte[] aBytes = aBytesNode.execute(a);
-            final byte[] bBytes = bBytesNode.execute(b);
-
-            // Fold the a.length == b.length condition at compilation in Arrays.equals() since we already know it holds
-            if (aBytes.length != bBytes.length) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                throw new Error("unreachable");
-            }
-            return Arrays.equals(aBytes, bBytes);
-        }
-
-        protected boolean canBeCached(Rope a, Rope b) {
-            if (getContext().isPreInitializing()) {
-                final String home = getLanguage().getRubyHome();
-                return !RopeOperations.anyChildContains(a, home) && !RopeOperations.anyChildContains(b, home);
-            } else {
-                return true;
-            }
-        }
-
-    }
 
     // @Deprecated // Use TruffleString.GetInternalByteArrayNode instead
     @GenerateUncached
