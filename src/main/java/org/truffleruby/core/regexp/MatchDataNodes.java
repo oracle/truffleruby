@@ -36,7 +36,6 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.regexp.MatchDataNodesFactory.ValuesNodeFactory;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.TStringNodes;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringSupport;
@@ -505,7 +504,6 @@ public abstract class MatchDataNodes {
                 @Cached LoopConditionProfile loopProfile,
                 @Cached TruffleString.SubstringByteIndexNode substringNode) {
             final Object source = matchData.source;
-            final Rope sourceRope = strings.getRope(source);
             final Region region = matchData.region;
             final Object[] values = new Object[region.numRegs];
 
@@ -656,10 +654,11 @@ public abstract class MatchDataNodes {
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached TruffleString.SubstringByteIndexNode substringNode) {
             Object source = matchData.source;
-            Rope sourceRope = strings.getRope(source);
+            var tstring = strings.getTString(source);
+            var encoding = strings.getEncoding(source);
             final int start = getEnd(matchData, 0, lazyProfile, interop);
-            int length = sourceRope.byteLength() - start;
-            return createSubString(substringNode, strings, source, start, length);
+            int length = tstring.byteLength(encoding.tencoding) - start;
+            return createSubString(substringNode, tstring, encoding, start, length);
         }
     }
 

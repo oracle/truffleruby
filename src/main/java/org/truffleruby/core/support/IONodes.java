@@ -484,19 +484,18 @@ public abstract class IONodes {
                     throw CompilerDirectives.shouldNotReachHere();
             }
 
-            final Rope rope = strings.getRope(string);
-            final byte[] bytes = rope.getBytes();
+            var byteArray = strings.getTString(string).getInternalByteArrayUncached(strings.getTEncoding(string));
 
             getContext().getThreadManager().runUntilResult(this, () -> {
                 try {
-                    stream.write(bytes);
+                    stream.write(byteArray.getArray(), byteArray.getOffset(), byteArray.getLength());
                 } catch (IOException e) {
                     throw new RaiseException(getContext(), coreExceptions().ioError(e, this));
                 }
                 return BlockingAction.SUCCESS;
             });
 
-            return rope.byteLength();
+            return byteArray.getLength();
         }
 
     }

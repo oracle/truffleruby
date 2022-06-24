@@ -223,14 +223,12 @@ int rb_enc_get_index(VALUE obj) {
 }
 
 char* rb_enc_left_char_head(char *start, char *p, char *end, rb_encoding *enc) {
-  int length = start-end;
+  int length = start - end;
   int position = polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "rb_enc_left_char_head",
       rb_tr_unwrap(rb_enc_from_encoding(enc)),
       rb_tr_unwrap(rb_str_new(start, length)),
-      0,
-      p-start,
-      length));
-  return start+position;
+      p - start));
+  return start + position;
 }
 
 int rb_enc_precise_mbclen(const char *p, const char *e, rb_encoding *enc) {

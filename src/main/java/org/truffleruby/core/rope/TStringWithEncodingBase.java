@@ -68,6 +68,11 @@ abstract class TStringWithEncodingBase {
         return tstring.byteLength(encoding.tencoding);
     }
 
+    public int characterLength() {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        return tstring.codePointLengthUncached(encoding.tencoding);
+    }
+
     public InternalByteArray getInternalByteArray() {
         CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
         return tstring.getInternalByteArrayUncached(encoding.tencoding);

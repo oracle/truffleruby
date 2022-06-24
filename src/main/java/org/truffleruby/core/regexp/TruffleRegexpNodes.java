@@ -104,9 +104,7 @@ public class TruffleRegexpNodes {
         if (collectDetailedStats) {
             final MatchInfoStats stats = ConcurrentOperations
                     .getOrCompute(MATCHED_REGEXP_STATS, matchInfo, x -> new MatchInfoStats());
-            stats.record(
-                    RubyStringLibrary.getUncached().getRope(string),
-                    RubyStringLibrary.getUncached().getEncoding(string));
+            stats.record(new ATStringWithEncoding(RubyStringLibrary.getUncached(), string));
         }
     }
 
@@ -655,21 +653,13 @@ public class TruffleRegexpNodes {
                 ArrayBuilderNode arrayBuilderNode, BuilderState state, int offset) {
             int n = 0;
             for (Entry<MatchInfo, AtomicInteger> entry : group.entrySet()) {
-                arrayBuilderNode
-                        .appendValue(
-                                state,
-                                offset + n,
-                                buildHash(
-                                        hashStoreLibrary,
-                                        arrayBuilderNode,
-                                        isTRegexMatch,
-                                        entry.getKey(),
-                                        entry.getValue()));
+                arrayBuilderNode.appendValue(state, offset + n,
+                        buildHash(hashStoreLibrary, isTRegexMatch, entry.getKey(), entry.getValue()));
                 n++;
             }
         }
 
-        private RubyHash buildHash(HashStoreLibrary hashStoreLibrary, ArrayBuilderNode arrayBuilderNode,
+        private RubyHash buildHash(HashStoreLibrary hashStoreLibrary,
                 boolean isTRegexMatch, MatchInfo matchInfo,
                 AtomicInteger count) {
             final RubyHash regexpInfoHash = CompiledRegexpHashArray.buildRegexInfoHash(
@@ -700,7 +690,7 @@ public class TruffleRegexpNodes {
                         matchInfoHash.store,
                         matchInfoHash,
                         getLanguage().getSymbol("match_stats"),
-                        buildMatchInfoStatsHash(hashStoreLibrary, arrayBuilderNode, matchInfo),
+                        buildMatchInfoStatsHash(hashStoreLibrary, matchInfo),
                         true);
             }
 
@@ -709,18 +699,9 @@ public class TruffleRegexpNodes {
             return matchInfoHash;
         }
 
-        private RubyHash buildMatchInfoStatsHash(HashStoreLibrary hashStoreLibrary, ArrayBuilderNode arrayBuilderNode,
-                MatchInfo matchInfo) {
+        private RubyHash buildMatchInfoStatsHash(HashStoreLibrary hashStoreLibrary, MatchInfo matchInfo) {
             final MatchInfoStats stats = MATCHED_REGEXP_STATS.get(matchInfo);
             final RubyHash ret = HashOperations.newEmptyHash(getContext(), getLanguage());
-
-            buildAndSetDistributionHash(
-                    hashStoreLibrary,
-                    ret,
-                    "byte_array_populated",
-                    stats.byteArrayPopulatedFrequencies,
-                    Optional.empty(),
-                    Optional.of(count -> count.get()));
 
             buildAndSetDistributionHash(
                     hashStoreLibrary,
@@ -1189,29 +1170,26 @@ public class TruffleRegexpNodes {
 
     static final class MatchInfoStats {
 
-        private final ConcurrentHashMap<Boolean, AtomicLong> byteArrayPopulatedFrequencies = new ConcurrentHashMap<>();
         private final ConcurrentHashMap<Integer, AtomicLong> byteLengthFrequencies = new ConcurrentHashMap<>();
         private final ConcurrentHashMap<Integer, AtomicLong> characterLengthFrequencies = new ConcurrentHashMap<>();
         private final ConcurrentHashMap<CodeRange, AtomicLong> codeRangeFrequencies = new ConcurrentHashMap<>();
         private final ConcurrentHashMap<RubyEncoding, AtomicLong> encodingFrequencies = new ConcurrentHashMap<>();
         private final ConcurrentHashMap<String, AtomicLong> ropeClassFrequencies = new ConcurrentHashMap<>();
 
-        private void record(Rope rope, RubyEncoding encoding) {
+        private void record(ATStringWithEncoding string) {
             ConcurrentOperations
-                    .getOrCompute(byteArrayPopulatedFrequencies, rope.getRawBytes() != null, x -> new AtomicLong())
+                    .getOrCompute(byteLengthFrequencies, string.byteLength(), x -> new AtomicLong())
                     .incrementAndGet();
             ConcurrentOperations
-                    .getOrCompute(byteLengthFrequencies, rope.byteLength(), x -> new AtomicLong())
+                    .getOrCompute(characterLengthFrequencies, string.characterLength(), x -> new AtomicLong())
                     .incrementAndGet();
             ConcurrentOperations
-                    .getOrCompute(characterLengthFrequencies, rope.characterLength(), x -> new AtomicLong())
+                    .getOrCompute(codeRangeFrequencies, string.getCodeRange(), x -> new AtomicLong())
+                    .incrementAndGet();
+            ConcurrentOperations.getOrCompute(encodingFrequencies, string.encoding, x -> new AtomicLong())
                     .incrementAndGet();
             ConcurrentOperations
-                    .getOrCompute(codeRangeFrequencies, rope.getCodeRange(), x -> new AtomicLong())
-                    .incrementAndGet();
-            ConcurrentOperations.getOrCompute(encodingFrequencies, encoding, x -> new AtomicLong()).incrementAndGet();
-            ConcurrentOperations
-                    .getOrCompute(ropeClassFrequencies, rope.getClass().getSimpleName(), x -> new AtomicLong())
+                    .getOrCompute(ropeClassFrequencies, string.getClass().getSimpleName(), x -> new AtomicLong())
                     .incrementAndGet();
         }
 

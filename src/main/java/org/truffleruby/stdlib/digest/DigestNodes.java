@@ -11,15 +11,16 @@ package org.truffleruby.stdlib.digest;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.RubyBaseNode;
@@ -104,17 +105,22 @@ public abstract class DigestNodes {
     @CoreMethod(names = "update", onSingleton = true, required = 2)
     public abstract static class UpdateNode extends CoreMethodArrayArgumentsNode {
 
-        @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(message)")
         protected RubyDigest update(RubyDigest digestObject, Object message,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode) {
             final MessageDigest digest = digestObject.digest;
-            final Rope rope = strings.getRope(message);
+            var tstring = strings.getTString(message);
+            var byteArray = getInternalByteArrayNode.execute(tstring, strings.getTEncoding(message));
 
-            digest.update(rope.getBytes());
+            update(digest, byteArray.getArray(), byteArray.getOffset(), byteArray.getLength());
             return digestObject;
         }
 
+        @TruffleBoundary
+        private void update(MessageDigest digest, byte[] input, int offset, int len) {
+            digest.update(input, offset, len);
+        }
     }
 
     @CoreMethod(names = "reset", onSingleton = true, required = 1)

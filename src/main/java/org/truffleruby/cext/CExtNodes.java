@@ -41,6 +41,7 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.HashCastNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.exception.ErrnoErrorNode;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.format.BytesResult;
@@ -66,7 +67,6 @@ import org.truffleruby.core.rope.Bytes;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
@@ -1297,8 +1297,8 @@ public class CExtNodes {
                 final String representation;
 
                 if (libString.isRubyString(object)) {
-                    final Rope rope = libString.getRope(object);
-                    final byte[] bytes = rope.getBytes();
+                    var tstring = libString.getTString(object);
+                    final byte[] bytes = TStringUtils.getBytesOrCopy(tstring, libString.getEncoding(object));
                     final StringBuilder builder = new StringBuilder();
 
                     for (int i = 0; i < bytes.length; i++) {
@@ -1308,7 +1308,7 @@ public class CExtNodes {
                         builder.append(String.format("%02x", bytes[i]));
                     }
 
-                    representation = RopeOperations.decodeRope(rope) + " (" + builder.toString() + ")";
+                    representation = tstring.toString() + " (" + builder.toString() + ")";
                 } else if (RubyGuards.isRubyValue(object)) {
                     representation = object.toString() + " (" +
                             RubyStringLibrary.getUncached().getJavaString(callToS(object)) + ")";
@@ -1470,20 +1470,16 @@ public class CExtNodes {
         }
     }
 
-    @CoreMethod(names = "rb_enc_left_char_head", onSingleton = true, required = 5, lowerFixnum = { 3, 4, 5 })
+    @CoreMethod(names = "rb_enc_left_char_head", onSingleton = true, required = 3, lowerFixnum = 3)
     public abstract static class RbEncLeftCharHeadNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(string)")
-        protected Object rbEncLeftCharHead(RubyEncoding enc, Object string, int start, int p, int end,
+        protected Object rbEncLeftCharHead(RubyEncoding enc, Object string, int p,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            return enc.jcoding.leftAdjustCharHead(
-                    strings.getRope(string).getBytes(),
-                    start,
-                    p,
-                    end);
+            byte[] bytes = TStringUtils.getBytesOrFail(strings.getTString(string), strings.getEncoding(string));
+            return enc.jcoding.leftAdjustCharHead(bytes, 0, p, bytes.length);
         }
-
     }
 
     @CoreMethod(names = "rb_enc_mbc_to_codepoint", onSingleton = true, required = 3, lowerFixnum = 3)
