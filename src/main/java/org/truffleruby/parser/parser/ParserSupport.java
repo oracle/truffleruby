@@ -142,6 +142,7 @@ import org.truffleruby.parser.ast.WhenOneArgParseNode;
 import org.truffleruby.parser.ast.WhenParseNode;
 import org.truffleruby.parser.ast.YieldParseNode;
 import org.truffleruby.parser.ast.ArrayPatternParseNode;
+import org.truffleruby.parser.ast.FindPatternParseNode;
 import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.lexer.LexerSource;
@@ -956,6 +957,12 @@ public class ParserSupport {
         }
 
         return arrayPattern;
+    }
+
+    public ParseNode new_find_pattern(ParseNode constant, FindPatternParseNode findPattern) {
+        findPattern.setConstant(constant);
+
+        return findPattern;
     }
 
     /* This method exists for us to break up multiple expression when nodes (e.g. when 1,2,3:) into individual
