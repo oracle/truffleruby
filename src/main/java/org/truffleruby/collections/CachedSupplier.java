@@ -22,7 +22,7 @@ public class CachedSupplier<T> implements Supplier<T> {
 
     @Override
     public T get() {
-        if (value != null) {
+        if (isAvailable()) {
             return value;
         }
         synchronized (this) {
@@ -33,4 +33,9 @@ public class CachedSupplier<T> implements Supplier<T> {
             return value;
         }
     }
+
+    public boolean isAvailable() {
+        return value != null;
+    }
+
 }
