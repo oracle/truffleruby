@@ -79,7 +79,7 @@ describe :io_readlines_options_19, shared: true do
         (result ? result : ScratchPad.recorded).should == IOSpecs.lines
       end
 
-      ruby_bug "#18767", ""..."3.2" do
+      ruby_bug "#18767", ""..."3.3" do
         describe "when passed limit" do
           it "raises ArgumentError when passed 0 as a limit" do
             -> { IO.send(@method, @name, 0, &@object) }.should raise_error(ArgumentError)
