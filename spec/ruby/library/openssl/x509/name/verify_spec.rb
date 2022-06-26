@@ -12,7 +12,7 @@ describe "OpenSSL::X509::Name.verify" do
     cert.public_key = key.public_key
     cert.not_before = Time.now
     cert.not_after = cert.not_before + 365 * 24 * 60 * 60
-    cert.sign key, OpenSSL::Digest::SHA1.new
+    cert.sign key, OpenSSL::Digest.new('SHA1')
     store = OpenSSL::X509::Store.new
     store.add_cert(cert)
     store.verify(cert).should == true
@@ -28,7 +28,7 @@ describe "OpenSSL::X509::Name.verify" do
     cert.public_key = key.public_key
     cert.not_before = Time.now - 10
     cert.not_after = Time.now - 5
-    cert.sign key, OpenSSL::Digest::SHA1.new
+    cert.sign key, OpenSSL::Digest.new('SHA1')
     store = OpenSSL::X509::Store.new
     store.add_cert(cert)
     store.verify(cert).should == false
@@ -51,7 +51,7 @@ describe "OpenSSL::X509::Name.verify" do
     root_cert.add_extension(ef.create_extension("keyUsage","keyCertSign, cRLSign", true))
     root_cert.add_extension(ef.create_extension("subjectKeyIdentifier","hash",false))
     root_cert.add_extension(ef.create_extension("authorityKeyIdentifier","keyid:always",false))
-    root_cert.sign(root_key, OpenSSL::Digest::SHA256.new)
+    root_cert.sign(root_key, OpenSSL::Digest.new('SHA256'))
 
 
     key = OpenSSL::PKey::RSA.new 2048
@@ -68,7 +68,7 @@ describe "OpenSSL::X509::Name.verify" do
     ef.issuer_certificate = root_cert
     cert.add_extension(ef.create_extension("keyUsage","digitalSignature", true))
     cert.add_extension(ef.create_extension("subjectKeyIdentifier","hash",false))
-    cert.sign(root_key, OpenSSL::Digest::SHA256.new)
+    cert.sign(root_key, OpenSSL::Digest.new('SHA256'))
 
     store = OpenSSL::X509::Store.new
     store.add_cert(root_cert)
