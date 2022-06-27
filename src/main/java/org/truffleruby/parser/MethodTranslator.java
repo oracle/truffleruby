@@ -12,6 +12,7 @@ package org.truffleruby.parser;
 import java.util.Arrays;
 import java.util.function.Supplier;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.CachedSupplier;
 import org.truffleruby.core.IsNilNode;
@@ -423,6 +424,7 @@ public class MethodTranslator extends BodyTranslator {
 
         if (shouldLazyTranslate) {
             return new CachedSupplier<>(() -> {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
                 return translateMethodNode(sourceSection, defNode, bodyNode).getCallTarget();
             });
         } else {

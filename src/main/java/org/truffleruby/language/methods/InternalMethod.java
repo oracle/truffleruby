@@ -11,7 +11,6 @@ package org.truffleruby.language.methods;
 
 import java.util.Set;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import org.truffleruby.RubyContext;
@@ -233,7 +232,6 @@ public class InternalMethod implements ObjectGraphNode {
 
     public RootCallTarget getCallTarget() {
         if (callTarget == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
             callTarget = callTargetSupplier.get();
             assert RubyRootNode.of(callTarget).getSharedMethodInfo() == sharedMethodInfo;
         }

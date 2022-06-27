@@ -262,7 +262,10 @@ public class CoreMethodNodeManager {
             } else {
                 if (context.getLanguageSlow().options.LAZY_CALLTARGETS) {
                     callTarget = null;
-                    callTargetSupplier = new CachedSupplier<>(() -> callTargetFactory.apply(sharedMethodInfo));
+                    callTargetSupplier = new CachedSupplier<>(() -> {
+                        CompilerDirectives.transferToInterpreterAndInvalidate();
+                        return callTargetFactory.apply(sharedMethodInfo);
+                    });
                 } else {
                     callTarget = callTargetFactory.apply(sharedMethodInfo);
                     callTargetSupplier = null;
