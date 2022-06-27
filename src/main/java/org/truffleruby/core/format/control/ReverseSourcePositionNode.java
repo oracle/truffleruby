@@ -30,7 +30,7 @@ public class ReverseSourcePositionNode extends FormatNode {
         final int position = getSourcePosition(frame);
 
         if (star) {
-            final int remaining = getSourceLength(frame) - position;
+            final int remaining = getSourceEnd(frame) - position;
 
             final int target = position - remaining;
 

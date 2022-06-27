@@ -37,11 +37,11 @@ public abstract class ReadUTF8CharacterNode extends FormatNode {
             @Cached BranchProfile errorProfile,
             @Cached ConditionProfile rangeProfile) {
         final int index = getSourcePosition(frame);
-        final int sourceLength = getSourceLength(frame);
+        final int end = getSourceEnd(frame);
 
         assert index != -1;
 
-        if (rangeProfile.profile(index >= sourceLength)) {
+        if (rangeProfile.profile(index >= end)) {
             return MissingValue.INSTANCE;
         }
 
@@ -71,9 +71,9 @@ public abstract class ReadUTF8CharacterNode extends FormatNode {
             length = 1;
         }
 
-        if (index + length > sourceLength) {
+        if (index + length > end) {
             errorProfile.enter();
-            throw new InvalidFormatException(formatError(index, sourceLength, length));
+            throw new InvalidFormatException(formatError(index, end, length));
         }
 
         for (int n = 1; n < length; n++) {
@@ -87,9 +87,8 @@ public abstract class ReadUTF8CharacterNode extends FormatNode {
     }
 
     @TruffleBoundary
-    private String formatError(final int index, final int sourceLength, final int length) {
-        return StringUtils
-                .format("malformed UTF-8 character (expected %d bytes, given %d bytes)", length, sourceLength - index);
+    private String formatError(int index, int end, int length) {
+        return StringUtils.format("malformed UTF-8 character (expected %d bytes, given %d bytes)", length, end - index);
     }
 
 }

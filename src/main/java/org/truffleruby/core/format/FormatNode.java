@@ -36,7 +36,7 @@ public abstract class FormatNode extends RubyBaseNode {
 
     public abstract Object execute(VirtualFrame frame);
 
-    public int getSourceLength(VirtualFrame frame) {
+    public int getSourceEnd(VirtualFrame frame) {
         return frame.getInt(FormatFrameDescriptor.SOURCE_END_POSITION_SLOT);
     }
 
@@ -55,7 +55,7 @@ public abstract class FormatNode extends RubyBaseNode {
     protected int advanceSourcePosition(VirtualFrame frame, int count) {
         final int sourcePosition = getSourcePosition(frame);
 
-        if (tooFewArgumentsProfile.profile(sourcePosition + count > getSourceLength(frame))) {
+        if (tooFewArgumentsProfile.profile(sourcePosition + count > getSourceEnd(frame))) {
             throw new TooFewArgumentsException();
         }
 
@@ -71,11 +71,11 @@ public abstract class FormatNode extends RubyBaseNode {
     protected int advanceSourcePositionNoThrow(VirtualFrame frame, int count, boolean consumePartial) {
         final int sourcePosition = getSourcePosition(frame);
 
-        final int sourceLength = getSourceLength(frame);
+        final int end = getSourceEnd(frame);
 
-        if (sourceRangeProfile.profile(sourcePosition + count > sourceLength)) {
+        if (sourceRangeProfile.profile(sourcePosition + count > end)) {
             if (consumePartial) {
-                setSourcePosition(frame, sourceLength);
+                setSourcePosition(frame, end);
             }
 
             return -1;
@@ -172,9 +172,9 @@ public abstract class FormatNode extends RubyBaseNode {
 
     public ByteBuffer wrapByteBuffer(VirtualFrame frame, byte[] source) {
         final int position = getSourcePosition(frame);
-        final int length = getSourceLength(frame);
+        final int end = getSourceEnd(frame);
         return CompilerDirectives
-                .castExact(wrapByteBuffer(source, position, length - position), HEAP_BYTE_BUFFER_CLASS);
+                .castExact(wrapByteBuffer(source, position, end - position), HEAP_BYTE_BUFFER_CLASS);
     }
 
     @TruffleBoundary

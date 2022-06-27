@@ -28,7 +28,7 @@ public class SetSourcePositionNode extends FormatNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        if (rangeProfile.profile(position > getSourceLength(frame))) {
+        if (rangeProfile.profile(position > getSourceEnd(frame))) {
             throw new OutsideOfStringException();
         }
 

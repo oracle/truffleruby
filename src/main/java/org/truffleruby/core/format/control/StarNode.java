@@ -41,7 +41,7 @@ public class StarNode extends FormatNode {
 
         @Override
         public boolean executeRepeating(VirtualFrame frame) {
-            if (getSourcePosition(frame) >= getSourceLength(frame)) {
+            if (getSourcePosition(frame) >= getSourceEnd(frame)) {
                 return false;
             }
 

@@ -53,13 +53,13 @@ public abstract class ReadMIMEStringNode extends FormatNode {
     protected Object read(VirtualFrame frame, byte[] source,
             @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
         final int position = getSourcePosition(frame);
-        final int sourceLength = getSourceLength(frame);
+        final int end = getSourceEnd(frame);
 
-        final byte[] store = new byte[sourceLength - position];
+        final byte[] store = new byte[end - position];
 
-        final int storeIndex = parseSource(source, position, sourceLength, store);
+        final int storeIndex = parseSource(source, position, end, store);
 
-        setSourcePosition(frame, sourceLength);
+        setSourcePosition(frame, end);
 
         var tstring = fromByteArrayNode.execute(store, 0, storeIndex, Encodings.BINARY.tencoding, true);
         return createString(tstring, Encodings.BINARY);
@@ -68,23 +68,23 @@ public abstract class ReadMIMEStringNode extends FormatNode {
     // Logic from MRI pack.c pack_unpack_internal
     // https://github.com/ruby/ruby/blob/37c2cd3fa47c709570e22ec4dac723ca211f423a/pack.c#L1639
     @TruffleBoundary
-    private int parseSource(byte[] source, int position, int sourceLength, byte[] store) {
-        System.arraycopy(source, position, store, 0, sourceLength - position);
+    private int parseSource(byte[] source, int position, int end, byte[] store) {
+        System.arraycopy(source, position, store, 0, end - position);
 
         int storeIndex = 0;
         int loopIndex = 0;
         if (source.length > 0) {
             int c = source[0] & 0xff;
             int i = position;
-            while (i < sourceLength) {
+            while (i < end) {
 
                 if (c == '=') {
-                    if (++i == sourceLength) {
+                    if (++i == end) {
                         break;
                     }
                     c = source[i] & 0xff;
 
-                    if (i + 1 < sourceLength && c == '\r' && (source[i + 1] & 0xff) == '\n') {
+                    if (i + 1 < end && c == '\r' && (source[i + 1] & 0xff) == '\n') {
                         i++;
                         c = source[i] & 0xff;
                     }
@@ -95,7 +95,7 @@ public abstract class ReadMIMEStringNode extends FormatNode {
                             break;
                         }
 
-                        if (++i == sourceLength) {
+                        if (++i == end) {
                             break;
                         }
                         c = source[i] & 0xff;
@@ -115,7 +115,7 @@ public abstract class ReadMIMEStringNode extends FormatNode {
                     storeIndex++;
                 }
                 i++;
-                if (i < sourceLength) {
+                if (i < end) {
                     c = source[i] & 0xff;
                 }
                 loopIndex = i;
