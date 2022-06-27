@@ -198,7 +198,6 @@ public class RopeOperations {
         return new String(bytes, byteOffset, byteLength, charset);
     }
 
-    /** See {@link RopeNodes.CalculateAttributesNode} */
     // MRI: rb_enc_strlen_cr
     @TruffleBoundary
     public static StringAttributes calculateCodeRangeAndLength(Encoding encoding, byte[] bytes, int start, int end) {
