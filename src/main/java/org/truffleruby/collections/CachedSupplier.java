@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2020, 2022 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -11,7 +11,7 @@ package org.truffleruby.collections;
 
 import java.util.function.Supplier;
 
-public class CachedSupplier<T> implements Supplier<T> {
+public class CachedSupplier<T> {
 
     private volatile T value = null;
     private Supplier<T> supplier;
@@ -20,7 +20,6 @@ public class CachedSupplier<T> implements Supplier<T> {
         this.supplier = supplier;
     }
 
-    @Override
     public T get() {
         if (isAvailable()) {
             return value;
