@@ -60,7 +60,7 @@ import org.truffleruby.parser.parser.RubyParser;
 
 public class StringTerm extends StrTerm {
 
-    // Chanacters that can be escaped in a %r style regexp literal when they are also the terminator.
+    // Characters that can be escaped in a %r style regexp literal when they are also the terminator.
     private static final Set<Character> REGEXP_ESCAPABLE_TERMINATORS = new HashSet<>(
             Arrays.asList(new Character[]{ '!', '"', '#', '%', '&', '\'', ',', '-', ':', ';', '@', '_', '`' }));
 
