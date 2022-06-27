@@ -65,7 +65,6 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.Bytes;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
@@ -654,7 +653,7 @@ public class CExtNodes {
         @Specialization(guards = "strings.isRubyString(string)")
         protected RubyArray rbEncCodePointLen(Object string, RubyEncoding encoding,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
+                @Cached StringNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Cached GetByteCodeRangeNode codeRangeNode,
                 @Cached ConditionProfile sameEncodingProfile,
@@ -1509,7 +1508,7 @@ public class CExtNodes {
         @Specialization(guards = "strings.isRubyString(string)")
         protected int rbEncPreciseMbclen(RubyEncoding enc, Object string, int p, int end,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
+                @Cached StringNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Cached GetByteCodeRangeNode codeRangeNode,
                 @Cached ConditionProfile sameEncodingProfile) {
