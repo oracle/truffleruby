@@ -83,6 +83,7 @@ import org.truffleruby.parser.ast.ForParseNode;
 import org.truffleruby.parser.ast.GlobalAsgnParseNode;
 import org.truffleruby.parser.ast.GlobalVarParseNode;
 import org.truffleruby.parser.ast.HashParseNode;
+import org.truffleruby.parser.ast.HashPatternParseNode;
 import org.truffleruby.parser.ast.IfParseNode;
 import org.truffleruby.parser.ast.InParseNode;
 import org.truffleruby.parser.ast.InstAsgnParseNode;
@@ -251,6 +252,8 @@ public interface NodeVisitor<T> {
     T visitGlobalVarNode(GlobalVarParseNode iVisited);
 
     T visitHashNode(HashParseNode iVisited);
+
+    T visitHashPatternNode(HashPatternParseNode iVisited);
 
     T visitInstAsgnNode(InstAsgnParseNode iVisited);
 

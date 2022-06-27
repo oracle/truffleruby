@@ -102,6 +102,7 @@ import org.truffleruby.parser.ast.FloatParseNode;
 import org.truffleruby.parser.ast.GlobalAsgnParseNode;
 import org.truffleruby.parser.ast.GlobalVarParseNode;
 import org.truffleruby.parser.ast.HashParseNode;
+import org.truffleruby.parser.ast.HashPatternParseNode;
 import org.truffleruby.parser.ast.IArgumentNode;
 import org.truffleruby.parser.ast.IfParseNode;
 import org.truffleruby.parser.ast.InParseNode;
@@ -963,6 +964,12 @@ public class ParserSupport {
         findPattern.setConstant(constant);
 
         return findPattern;
+    }
+
+    public HashPatternParseNode new_hash_pattern(ParseNode constant, HashPatternParseNode hashPatternNode) {
+        hashPatternNode.setConstant(constant);
+
+        return hashPatternNode;
     }
 
     /* This method exists for us to break up multiple expression when nodes (e.g. when 1,2,3:) into individual
