@@ -65,7 +65,6 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.Bytes;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringCachingGuards;
@@ -1511,21 +1510,25 @@ public class CExtNodes {
         protected int rbEncPreciseMbclen(RubyEncoding enc, Object string, int p, int end,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
-                @Cached RopeNodes.GetBytesObjectNode getBytesObject,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Cached GetByteCodeRangeNode codeRangeNode,
                 @Cached ConditionProfile sameEncodingProfile) {
+            var tstring = strings.getTString(string);
+            var stringEncoding = strings.getEncoding(string);
+            var byteArray = byteArrayNode.execute(tstring, stringEncoding.tencoding);
+
             final Encoding encoding = enc.jcoding;
-            final Rope rope = strings.getRope(string);
             final TruffleString.CodeRange cr;
-            if (sameEncodingProfile.profile(encoding == rope.getEncoding())) {
+            if (sameEncodingProfile.profile(encoding == stringEncoding.jcoding)) {
                 cr = codeRangeNode.execute(strings.getTString(string), strings.getTEncoding(string));
             } else {
                 cr = BROKEN /* UNKNOWN */;
             }
 
-            final int length = calculateCharacterLengthNode
-                    .characterLength(encoding, cr, getBytesObject.getRange(rope, p, end));
+            final int length = calculateCharacterLengthNode.characterLength(encoding, cr,
+                    Bytes.fromRange(byteArray, p, end));
             assert end - p >= length; // assert this condition not reached: https://github.com/ruby/ruby/blob/46a5d1b4a63f624f2c5c5b6f710cc1a176c88b02/encoding.c#L1046
+
             return length;
         }
 
