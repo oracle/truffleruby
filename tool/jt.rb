@@ -2158,7 +2158,7 @@ module Commands
           method_glob_pattern = "Isolated:_#{method_glob_pattern}"
         end
 
-        dumps = Dir.glob('graal_dumps/*').select { |path| File.directory?(path) }.sort.last
+        dumps = Dir.glob(Dir.pwd + '/graal_dumps/*').select { |path| File.directory?(path) }.sort.last
         raise 'Could not dump directory under graal_dumps/' unless dumps
         graphs = Dir.glob("#{dumps}/*\\[#{method_glob_pattern}*\\].bgv").sort
         graph = graphs.last
