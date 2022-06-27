@@ -16,7 +16,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleSafepoint;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.collections.CachedSupplier;
+import org.truffleruby.language.methods.CachedLazyCallTargetSupplier;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.DummyNode;
 import org.truffleruby.core.array.ArrayUtils;
@@ -253,7 +253,7 @@ public class CoreMethodNodeManager {
                     arity);
 
             final RootCallTarget callTarget;
-            final CachedSupplier<RootCallTarget> callTargetSupplier;
+            final CachedLazyCallTargetSupplier callTargetSupplier;
             final NodeFactory<? extends RubyBaseNode> alwaysInlinedNodeFactory;
             if (alwaysInlined) {
                 callTarget = callTargetFactory.apply(sharedMethodInfo);
@@ -262,10 +262,8 @@ public class CoreMethodNodeManager {
             } else {
                 if (context.getLanguageSlow().options.LAZY_CALLTARGETS) {
                     callTarget = null;
-                    callTargetSupplier = new CachedSupplier<>(() -> {
-                        CompilerDirectives.transferToInterpreterAndInvalidate();
-                        return callTargetFactory.apply(sharedMethodInfo);
-                    });
+                    callTargetSupplier = new CachedLazyCallTargetSupplier(
+                            () -> callTargetFactory.apply(sharedMethodInfo));
                 } else {
                     callTarget = callTargetFactory.apply(sharedMethodInfo);
                     callTargetSupplier = null;

@@ -14,7 +14,6 @@ import java.util.Set;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import org.truffleruby.RubyContext;
-import org.truffleruby.collections.CachedSupplier;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
@@ -52,7 +51,7 @@ public class InternalMethod implements ObjectGraphNode {
     public final NodeFactory<? extends RubyBaseNode> alwaysInlinedNodeFactory;
     private final RubyProc proc; // only if method is created from a Proc
 
-    private final CachedSupplier<RootCallTarget> callTargetSupplier;
+    private final CachedLazyCallTargetSupplier callTargetSupplier;
     @CompilationFinal private RootCallTarget callTarget;
 
     public static InternalMethod fromProc(
@@ -116,7 +115,7 @@ public class InternalMethod implements ObjectGraphNode {
             NodeFactory<? extends RubyBaseNode> alwaysInlined,
             RubyProc proc,
             RootCallTarget callTarget,
-            CachedSupplier<RootCallTarget> callTargetSupplier) {
+            CachedLazyCallTargetSupplier callTargetSupplier) {
         this(
                 sharedMethodInfo,
                 lexicalScope,
@@ -150,7 +149,7 @@ public class InternalMethod implements ObjectGraphNode {
             DeclarationContext activeRefinements,
             RubyProc proc,
             RootCallTarget callTarget,
-            CachedSupplier<RootCallTarget> callTargetSupplier) {
+            CachedLazyCallTargetSupplier callTargetSupplier) {
         assert declaringModule != null;
         assert lexicalScope != null;
         assert !sharedMethodInfo.isBlock() : sharedMethodInfo;

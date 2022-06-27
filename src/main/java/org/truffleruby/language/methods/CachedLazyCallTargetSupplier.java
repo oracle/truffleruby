@@ -7,23 +7,27 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.collections;
+package org.truffleruby.language.methods;
+
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.RootCallTarget;
 
 import java.util.function.Supplier;
 
-public class CachedSupplier<T> {
+public class CachedLazyCallTargetSupplier {
 
-    private volatile T value = null;
-    private Supplier<T> supplier;
+    private volatile RootCallTarget value = null;
+    private Supplier<RootCallTarget> supplier;
 
-    public CachedSupplier(Supplier<T> supplier) {
+    public CachedLazyCallTargetSupplier(Supplier<RootCallTarget> supplier) {
         this.supplier = supplier;
     }
 
-    public T get() {
+    public RootCallTarget get() {
         if (isAvailable()) {
             return value;
         }
+        CompilerDirectives.transferToInterpreterAndInvalidate();
         synchronized (this) {
             if (value == null) {
                 value = supplier.get();
