@@ -45,10 +45,6 @@ import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_TERM;
 import static org.truffleruby.parser.lexer.RubyLexer.isHexChar;
 import static org.truffleruby.parser.lexer.RubyLexer.isOctChar;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
 import org.jcodings.Encoding;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.rope.Rope;
@@ -59,10 +55,6 @@ import org.truffleruby.parser.ast.RegexpParseNode;
 import org.truffleruby.parser.parser.RubyParser;
 
 public class StringTerm extends StrTerm {
-
-    // Characters that can be escaped in a %r style regexp literal when they are also the terminator.
-    private static final Set<Character> REGEXP_ESCAPABLE_TERMINATORS = new HashSet<>(
-            Arrays.asList(new Character[]{ '!', '"', '#', '%', '&', '\'', ',', '-', ':', ';', '@', '_', '`' }));
 
     // Expand variables, Indentation of final marker
     private int flags;
@@ -356,12 +348,11 @@ public class StringTerm extends StrTerm {
 
                         if (regexp) {
                             if (c == end && !simple_re_meta(c)) {
-                                buffer.append('\\');
                                 buffer.append(c);
                                 continue;
                             }
                             lexer.pushback(c);
-                            parseEscapeIntoBuffer(regexp, lexer, buffer);
+                            parseEscapeIntoBuffer(lexer, buffer);
 
                             if (hasNonAscii && buffer.getEncoding() != enc[0]) {
                                 mixedEscape(lexer, buffer.getEncoding(), enc[0]);
@@ -419,9 +410,6 @@ public class StringTerm extends StrTerm {
     }
 
     private boolean simple_re_meta(int c) {
-        if (c == end) {
-            return true;
-        }
         switch (c) {
             case '$':
             case '*':
@@ -442,12 +430,12 @@ public class StringTerm extends StrTerm {
 
     // Was a goto in original ruby lexer
     @SuppressWarnings("fallthrough")
-    private void escaped(boolean regexp, RubyLexer lexer, RopeBuilder buffer) {
+    private void escaped(RubyLexer lexer, RopeBuilder buffer) {
         int c;
 
         switch (c = lexer.nextc()) {
             case '\\':
-                parseEscapeIntoBuffer(regexp, lexer, buffer);
+                parseEscapeIntoBuffer(lexer, buffer);
                 break;
             case EOF:
                 lexer.compile_error("Invalid escape character syntax");
@@ -457,7 +445,7 @@ public class StringTerm extends StrTerm {
     }
 
     @SuppressWarnings("fallthrough")
-    private void parseEscapeIntoBuffer(boolean regexp, RubyLexer lexer, RopeBuilder buffer) {
+    private void parseEscapeIntoBuffer(RubyLexer lexer, RopeBuilder buffer) {
         int c;
 
         switch (c = lexer.nextc()) {
@@ -505,41 +493,24 @@ public class StringTerm extends StrTerm {
                     lexer.compile_error("Invalid escape character syntax");
                 }
                 buffer.append(new byte[]{ '\\', 'M', '-' });
-                escaped(regexp, lexer, buffer);
+                escaped(lexer, buffer);
                 break;
             case 'C':
                 if ((lexer.nextc()) != '-') {
                     lexer.compile_error("Invalid escape character syntax");
                 }
                 buffer.append(new byte[]{ '\\', 'C', '-' });
-                escaped(regexp, lexer, buffer);
+                escaped(lexer, buffer);
                 break;
             case 'c':
                 buffer.append(new byte[]{ '\\', 'c' });
-                escaped(regexp, lexer, buffer);
+                escaped(lexer, buffer);
                 break;
             case EOF:
                 lexer.compile_error("Invalid escape character syntax");
             default:
-                if (regexp) {
-                    simpleRegexpEscape(buffer, c);
-                } else {
-                    simpleStringEscape(buffer, c);
-                }
+                buffer.append('\\');
+                buffer.append(c);
         }
-    }
-
-    private void simpleRegexpEscape(RopeBuilder buffer, int c) {
-        if (c == end && REGEXP_ESCAPABLE_TERMINATORS.contains((char) c)) {
-            buffer.append(c);
-        } else {
-            buffer.append('\\');
-            buffer.append(c);
-        }
-    }
-
-    private void simpleStringEscape(RopeBuilder buffer, int c) {
-        buffer.append('\\');
-        buffer.append(c);
     }
 }
