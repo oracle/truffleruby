@@ -37,6 +37,7 @@ public class RBSprintfConfig {
         PTRDIFF_T,
         STRING,
         POINTER,
+        VALUE,
     }
 
     private boolean literal = false;

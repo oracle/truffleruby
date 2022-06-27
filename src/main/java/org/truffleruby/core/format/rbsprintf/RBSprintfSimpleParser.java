@@ -10,11 +10,11 @@
 package org.truffleruby.core.format.rbsprintf;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.truffleruby.core.format.exceptions.InvalidFormatException;
 import org.truffleruby.core.format.rbsprintf.RBSprintfConfig.FormatArgumentType;
-import org.truffleruby.language.RubyGuards;
 
 public class RBSprintfSimpleParser {
 
@@ -267,6 +267,7 @@ public class RBSprintfSimpleParser {
                         if (i + 1 < this.source.length && this.source[i + 1] == '\u000B' &&
                                 config.getFormatArgumentType() == FormatArgumentType.LONG) {
                             config.setFormatType(RBSprintfConfig.FormatType.RUBY_VALUE);
+                            config.setFormatArgumentType(RBSprintfConfig.FormatArgumentType.VALUE);
                             i += 2;
                         } else {
                             config.setFormatType(RBSprintfConfig.FormatType.INTEGER);
@@ -328,14 +329,7 @@ public class RBSprintfSimpleParser {
             }
         }
 
-        return configs;
-    }
-
-    private static void checkHash(Object[] arguments) {
-        if (arguments.length != 1 ||
-                !RubyGuards.isRubyHash(arguments[0])) {
-            throw new InvalidFormatException("one hash required");
-        }
+        return normalizeArgumentTypes(configs);
     }
 
     private static void checkNextArg(ArgType argType, int nextArgumentIndex) {
@@ -356,15 +350,6 @@ public class RBSprintfSimpleParser {
         }
         if (nextArgumentIndex < 1) {
             throw new InvalidFormatException("invalid index - " + nextArgumentIndex + "$");
-        }
-    }
-
-    private static void checkNameArg(ArgType argType, char[] name) {
-        if (argType == ArgType.UNNUMBERED) {
-            throw new InvalidFormatException("named" + new String(name) + " after unnumbered(%d)");
-        }
-        if (argType == ArgType.NUMBERED) {
-            throw new InvalidFormatException("named" + new String(name) + " after numbered");
         }
     }
 
@@ -467,4 +452,52 @@ public class RBSprintfSimpleParser {
         return bytes;
     }
 
+    private List<RBSprintfConfig> normalizeArgumentTypes(List<RBSprintfConfig> configs) {
+        // We want to check for any uses of RUBY_VALUEs conflicting with uses of the raw numerical representation.
+        RBSprintfConfig[] inPosition = new RBSprintfConfig[configs.size()];
+        HashSet<RBSprintfConfig> conflicts = new HashSet<>();
+        int pos = 0;
+        for (var config : configs) {
+            int typePos;
+            if (config.getAbsoluteArgumentIndex() != null) {
+                typePos = config.getAbsoluteArgumentIndex() - 1; // Parameters are 1 indexed, but our array is 0 indexed.
+            } else {
+                typePos = pos++;
+            }
+            if (inPosition[typePos] == null) {
+                inPosition[typePos] = config;
+            } else {
+                if (config.getFormatArgumentType() == FormatArgumentType.VALUE) {
+                    inPosition[typePos] = config;
+                }
+                conflicts.add(config);
+                conflicts.add(inPosition[typePos]);
+            }
+        }
+        // If we found any conflicts then change them
+        // This can only happen if all the configs have absolute argument positions.
+        if (conflicts.size() > 0) {
+            for (var config : inPosition) {
+                if (config.getFormatArgumentType() == FormatArgumentType.VALUE &&
+                        conflicts.contains(config)) {
+                    boolean typeConflict = false;
+                    ArrayList<RBSprintfConfig> toFix = new ArrayList<>();
+                    for (var conflict : conflicts) {
+                        if (conflict.getAbsoluteArgumentIndex() == config.getAbsoluteArgumentIndex()) {
+                            toFix.add(conflict);
+                            typeConflict |= conflict.getFormatArgumentType() != config.getFormatArgumentType();
+                        }
+                    }
+                    if (typeConflict) {
+                        for (var fixConfig : toFix) {
+                            fixConfig.setFormatArgumentType(FormatArgumentType.LONG);
+                        }
+                    }
+                }
+            }
+            return configs;
+        } else {
+            return configs;
+        }
+    }
 }
