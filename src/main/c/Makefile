@@ -25,7 +25,7 @@ ABI_VERSION := $(ROOT)/lib/cext/ABI_version.txt
 RBCONFIG := $(ROOT)/lib/truffle/rbconfig.rb
 MKMF := $(ROOT)/lib/mri/mkmf.rb
 LIBTRUFFLERUBY = cext/libtruffleruby.$(SOEXT)
-BASIC_EXTCONF_DEPS := $(SPAWN_HELPER) $(TRUFFLE_POSIX) $(RUBY_HEADERS) $(ABI_VERSION) $(RBCONFIG) $(MKMF)
+BASIC_EXTCONF_DEPS := Makefile $(SPAWN_HELPER) $(TRUFFLE_POSIX) $(RUBY_HEADERS) $(ABI_VERSION) $(RBCONFIG) $(MKMF)
 # C extensions link against libtruffleruby (and might do have_func() checks against it), so it needs to be there before.
 # However, if libtruffleruby is recompiled, there is no need to rebuild C extensions, so it's a order-only-prerequisite.
 EXTCONF_DEPS := $(BASIC_EXTCONF_DEPS) | $(LIBTRUFFLERUBY)
