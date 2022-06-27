@@ -655,25 +655,26 @@ public class CExtNodes {
         @Specialization(guards = "strings.isRubyString(string)")
         protected RubyArray rbEncCodePointLen(Object string, RubyEncoding encoding,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Cached GetByteCodeRangeNode codeRangeNode,
                 @Cached ConditionProfile sameEncodingProfile,
                 @Cached BranchProfile errorProfile) {
-            final Rope rope = strings.getRope(string);
             var tstring = strings.getTString(string);
-            final byte[] bytes = bytesNode.execute(rope);
+            var stringEncoding = strings.getEncoding(string);
+            var byteArray = byteArrayNode.execute(tstring, stringEncoding.tencoding);
+
             var stringCodeRange = codeRangeNode.execute(tstring, strings.getTEncoding(string));
             final Encoding enc = encoding.jcoding;
 
             final TruffleString.CodeRange cr;
-            if (sameEncodingProfile.profile(enc == rope.getEncoding())) {
+            if (sameEncodingProfile.profile(enc == stringEncoding.jcoding)) {
                 cr = stringCodeRange;
             } else {
                 cr = BROKEN /* UNKNOWN */;
             }
 
-            final int r = calculateCharacterLengthNode.characterLength(enc, cr, new Bytes(bytes));
+            final int r = calculateCharacterLengthNode.characterLength(enc, cr, Bytes.from(byteArray));
 
             if (!StringSupport.MBCLEN_CHARFOUND_P(r)) {
                 errorProfile.enter();
@@ -683,7 +684,8 @@ public class CExtNodes {
             }
 
             final int len_p = StringSupport.MBCLEN_CHARFOUND_LEN(r);
-            final int codePoint = StringSupport.preciseCodePoint(enc, stringCodeRange, bytes, 0, bytes.length);
+            final int codePoint = StringSupport.preciseCodePoint(enc, stringCodeRange, byteArray.getArray(),
+                    byteArray.getOffset(), byteArray.getEnd());
 
             return createArray(new Object[]{ len_p, codePoint });
         }
