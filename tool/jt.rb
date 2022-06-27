@@ -160,7 +160,7 @@ module Utilities
       raise unless /"name": "sulong",.+?"version": "(\h{40})"/m =~ suite
       $1
     when :repository
-      raw_sh('git', 'rev-parse', 'HEAD', capture: :out, no_print_cmd: true, chdir: GRAAL_DIR).chomp
+      sh('git', 'rev-parse', 'HEAD', capture: :out, no_print_cmd: true, chdir: GRAAL_DIR).chomp
     else
       raise ArgumentError, from: from
     end
@@ -332,9 +332,8 @@ module Utilities
     name = File.basename url, '.git'
     path = File.expand_path("../#{name}", TRUFFLERUBY_DIR)
     unless Dir.exist? path
-      target = "../#{name}"
-      sh 'git', 'clone', url, target
-      sh 'git', 'checkout', commit, chdir: target if commit
+      git_clone url, path
+      sh 'git', 'checkout', commit, chdir: path if commit
     end
     path
   end
@@ -386,7 +385,7 @@ module Utilities
     `diff -u #{expected} #{actual}`
   end
 
-  def raw_sh_failed_status
+  def sh_failed_status
     `false`
     $?
   end
@@ -404,7 +403,7 @@ module Utilities
     STDERR.puts "Process #{pid} terminated"
   end
 
-  def raw_sh_with_timeout(timeout, pid)
+  def sh_with_timeout(timeout, pid)
     if !timeout
       yield
     else
@@ -423,14 +422,14 @@ module Utilities
     end
   end
 
-  def raw_sh_track_subprocess(pid)
+  def sh_track_subprocess(pid)
     SUBPROCESSES << pid
     yield
   ensure
     SUBPROCESSES.delete(pid)
   end
 
-  def raw_sh(*args)
+  def sh(*args)
     options = args.last.is_a?(Hash) ? args.last : {}
     continue_on_failure = options.delete :continue_on_failure
     use_exec = options.delete :use_exec
@@ -459,17 +458,17 @@ module Utilities
       pid = Process.spawn(*args)
     rescue Errno::ENOENT => no_such_executable
       STDERR.puts bold no_such_executable
-      status = raw_sh_failed_status
+      status = sh_failed_status
     else
-      raw_sh_track_subprocess(pid) do
+      sh_track_subprocess(pid) do
         pipe_w.close if capture
 
-        result = raw_sh_with_timeout(timeout, pid) do
+        result = sh_with_timeout(timeout, pid) do
           out = pipe_r.read if capture
           _, status = Process.waitpid2(pid)
         end
         if result == :timeout
-          status = raw_sh_failed_status
+          status = sh_failed_status
         end
       end
     end
@@ -546,15 +545,8 @@ module Utilities
     end
   end
 
-  def sh(*args)
-    chdir(TRUFFLERUBY_DIR) do
-      raw_sh(*args)
-    end
-  end
-
   def app_open(file)
     cmd = darwin? ? 'open' : 'xdg-open'
-
     sh cmd, file
   end
 
@@ -567,6 +559,12 @@ module Utilities
       ret = Dir.chdir(dir, &block)
       STDERR.puts "$ cd #{Dir.pwd}"
       ret
+    end
+  end
+
+  def in_truffleruby_repo_root!
+    unless File.realpath(Dir.pwd) == TRUFFLERUBY_DIR
+      raise 'This command should be called at the root of the truffleruby repository'
     end
   end
 
@@ -617,7 +615,7 @@ module Utilities
       mx_args.unshift '--java-home', java_home
     end
 
-    raw_sh(env, find_mx, *mx_args, **options)
+    sh(env, find_mx, *mx_args, **options)
   end
 
   def mx_os
@@ -643,7 +641,7 @@ module Utilities
       # Unset $JAVA_HOME, mx sclone should not use it, and $JAVA_HOME might be set to the standalone home in graalvm tests
       mx('sclone', '--kind', 'git', url, path, java_home: :none)
     else
-      raw_sh 'git', 'clone', url, path
+      sh 'git', 'clone', url, path
     end
   end
 
@@ -718,9 +716,9 @@ module Remotes
   def remote_urls(dir = TRUFFLERUBY_DIR)
     @remote_urls ||= Hash.new
     @remote_urls[dir] ||= begin
-      out = raw_sh 'git', '-C', dir, 'remote', capture: :out, no_print_cmd: true
+      out = sh 'git', '-C', dir, 'remote', capture: :out, no_print_cmd: true
       out.split.map do |remote|
-        url = raw_sh 'git', '-C', dir, 'config', '--get', "remote.#{remote}.url", capture: :out, no_print_cmd: true
+        url = sh 'git', '-C', dir, 'config', '--get', "remote.#{remote}.url", capture: :out, no_print_cmd: true
         [remote, url.chomp]
       end
     end
@@ -885,11 +883,12 @@ module Commands
   end
 
   def build(*options)
+    in_truffleruby_repo_root!
     project = options.shift
     case project
     when 'parser'
       jay = "#{TRUFFLERUBY_DIR}/tool/jay"
-      raw_sh 'make', chdir: jay
+      sh 'make', chdir: jay
       ENV['PATH'] = "#{jay}:#{ENV['PATH']}"
       sh 'bash', 'tool/generate_parser'
       yytables = 'src/main/java/org/truffleruby/parser/parser/YyTables.java'
@@ -904,6 +903,7 @@ module Commands
   end
 
   def clean(*options)
+    in_truffleruby_repo_root!
     project = options.shift
     case project
     when 'cexts'
@@ -929,7 +929,7 @@ module Commands
     env_vars.each do |e|
       puts format "%#{column_size}s: %s", e, ENV[e].inspect
     end
-    shell = -> command { raw_sh(*command.split, continue_on_failure: true) }
+    shell = -> command { sh(*command.split, continue_on_failure: true) }
     shell['ruby -v']
     shell['uname -a']
     shell['cc -v']
@@ -1053,7 +1053,7 @@ module Commands
 
     vm_args, ruby_args, options = ruby_options(options, args)
 
-    raw_sh env_vars, ruby_launcher, *(vm_args if truffleruby?), *ruby_args, options
+    sh env_vars, ruby_launcher, *(vm_args if truffleruby?), *ruby_args, options
   end
 
   def ruby(*args)
@@ -1098,7 +1098,7 @@ module Commands
     chdir(ext_dir) do
       run_ruby(env, '-rmkmf', "#{ext_dir}/extconf.rb") # -rmkmf is required for C ext tests
       if File.exist?('Makefile')
-        raw_sh('make')
+        sh('make')
         FileUtils::Verbose.cp("#{name}.#{DLEXT}", target) if target
       else
         STDERR.puts "Makefile not found in #{ext_dir}, skipping make."
@@ -1287,6 +1287,7 @@ module Commands
   end
 
   def retag(*args)
+    in_truffleruby_repo_root!
     require_ruby_launcher!
     options, test_files = args.partition { |a| a.start_with?('-') }
 
@@ -1354,6 +1355,7 @@ module Commands
   end
 
   private def run_single_cexts_test(test_name)
+    in_truffleruby_repo_root!
     time_test("jt test cexts #{test_name}") do
       case test_name
       when 'tools'
@@ -1633,16 +1635,16 @@ module Commands
     # Unset variable set by the pre-commit hook which confuses git
     env = { 'GIT_DIR' => nil, 'GIT_INDEX_FILE' => nil }
 
-    current = raw_sh(env, 'git', '-C', gem_test_pack, 'rev-parse', 'HEAD', capture: :out, no_print_cmd: true).chomp
+    current = sh(env, 'git', '-C', gem_test_pack, 'rev-parse', 'HEAD', capture: :out, no_print_cmd: true).chomp
     unless current == TRUFFLERUBY_GEM_TEST_PACK_VERSION
       if ENV['GEM_TEST_PACK_WIP'] == 'true'
         STDERR.puts 'WARNING: the gem test pack commit is different than TRUFFLERUBY_GEM_TEST_PACK_VERSION in jt.rb'
       else
-        has_commit = raw_sh env, 'git', '-C', gem_test_pack, 'cat-file', '-e', TRUFFLERUBY_GEM_TEST_PACK_VERSION, continue_on_failure: true
+        has_commit = sh env, 'git', '-C', gem_test_pack, 'cat-file', '-e', TRUFFLERUBY_GEM_TEST_PACK_VERSION, continue_on_failure: true
         unless has_commit
-          raw_sh env, 'git', '-C', gem_test_pack, 'fetch', Remotes.bitbucket(gem_test_pack), continue_on_failure: true
+          sh env, 'git', '-C', gem_test_pack, 'fetch', Remotes.bitbucket(gem_test_pack), continue_on_failure: true
         end
-        raw_sh env, 'git', '-C', gem_test_pack, 'checkout', '-q', TRUFFLERUBY_GEM_TEST_PACK_VERSION
+        sh env, 'git', '-C', gem_test_pack, 'checkout', '-q', TRUFFLERUBY_GEM_TEST_PACK_VERSION
       end
     end
 
@@ -1827,11 +1829,11 @@ module Commands
       log '.', "sampling\n"
 
       max_rss_in_mb = if linux?
-                        out = raw_sh('/usr/bin/time', '-v', '--', ruby_launcher, *args, capture: :both, no_print_cmd: true)
+                        out = sh('/usr/bin/time', '-v', '--', ruby_launcher, *args, capture: :both, no_print_cmd: true)
                         out =~ /Maximum resident set size \(kbytes\): (?<max_rss_in_kb>\d+)/m
                         Integer($~[:max_rss_in_kb]) / 1024.0
                       elsif darwin?
-                        out = raw_sh('/usr/bin/time', '-l', '--', ruby_launcher, *args, capture: :both, no_print_cmd: true)
+                        out = sh('/usr/bin/time', '-l', '--', ruby_launcher, *args, capture: :both, no_print_cmd: true)
                         out =~ /(?<max_rss_in_bytes>\d+)\s+maximum resident set size/m
                         Integer($~[:max_rss_in_bytes]) / 1024.0 / 1024.0
                       else
@@ -1869,7 +1871,7 @@ module Commands
 
     use_json = args.delete '--json'
 
-    out = raw_sh('perf', 'stat', '-e', 'instructions', '--', ruby_launcher, *args, capture: :both, no_print_cmd: true)
+    out = sh('perf', 'stat', '-e', 'instructions', '--', ruby_launcher, *args, capture: :both, no_print_cmd: true)
 
     out =~ /(?<instruction_count>[\d,]+)\s+instructions/m
     instruction_count = $~[:instruction_count].gsub(',', '')
@@ -2270,13 +2272,13 @@ module Commands
 
     chdir(CACHE_EXTRA_DIR) do
       unless File.exist?(eclipse_tar)
-        raw_sh 'curl', '-L', eclipse_url, '-o', eclipse_tar
+        sh 'curl', '-L', eclipse_url, '-o', eclipse_tar
       end
       unless File.exist?(eclipse_name)
         computed = Digest::SHA256.file(eclipse_tar).hexdigest
         if computed == sha256
           Dir.mkdir eclipse_name
-          raw_sh 'tar', 'xf', eclipse_tar, '-C', eclipse_name
+          sh 'tar', 'xf', eclipse_tar, '-C', eclipse_name
         else
           raise "Incorrect sha256 for #{eclipse_tar}: #{computed} instead of expected #{sha256}"
         end
@@ -2905,6 +2907,7 @@ module Commands
   end
 
   def lint(*args)
+    in_truffleruby_repo_root!
     fast = args.first == 'fast'
     args.shift if fast
 
@@ -3016,7 +3019,7 @@ module Commands
   end
 
   def visualvm
-    raw_sh "#{graalvm_home}/bin/jvisualvm"
+    sh "#{graalvm_home}/bin/jvisualvm"
   end
 end
 
