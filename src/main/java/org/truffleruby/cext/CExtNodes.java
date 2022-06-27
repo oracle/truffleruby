@@ -1393,19 +1393,27 @@ public class CExtNodes {
         protected Object rbTrEncMbcCaseFold(RubyEncoding enc, int flags, Object string, Object write_p, Object p,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @CachedLibrary("write_p") InteropLibrary receivers,
-                @Cached RopeNodes.BytesNode getBytes,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
-                @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
-            final byte[] bytes = getBytes.execute(strings.getRope(string));
-            final byte[] to = new byte[bytes.length];
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
+            var tstring = strings.getTString(string);
+            var encoding = strings.getTEncoding(string);
+            var byteArray = byteArrayNode.execute(tstring, encoding);
+
+            final byte[] to = new byte[byteArray.getLength()];
             final IntHolder intHolder = new IntHolder();
-            intHolder.value = 0;
-            final int resultLength = enc.jcoding.mbcCaseFold(flags, bytes, intHolder, bytes.length, to);
+            intHolder.value = byteArray.getOffset();
+
+            final int resultLength = enc.jcoding.mbcCaseFold(flags, byteArray.getArray(), intHolder, byteArray.getEnd(),
+                    to);
+
             InteropNodes.execute(write_p, new Object[]{ p, intHolder.value }, receivers, translateInteropExceptionNode);
+
             final byte[] result = new byte[resultLength];
             if (resultLength > 0) {
-                System.arraycopy(to, 0, result, 0, resultLength);
+                System.arraycopy(to, byteArray.getOffset(), result, 0, resultLength);
             }
+
             return createString(fromByteArrayNode, result, Encodings.US_ASCII);
         }
 
