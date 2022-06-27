@@ -161,44 +161,4 @@ public abstract class RopeNodes {
 
     }
 
-    /** Returns a {@link Bytes} object for the given rope and bounds. This will simply get the bytes for the rope and
-     * build the object, except in the case of SubstringRope which is optimized to use the bytes of the child rope
-     * instead - which is better for footprint. */
-    @GenerateUncached
-    public abstract static class GetBytesObjectNode extends RubyBaseNode {
-
-        public static GetBytesObjectNode create() {
-            return RopeNodesFactory.GetBytesObjectNodeGen.create();
-        }
-
-        public static GetBytesObjectNode getUncached() {
-            return RopeNodesFactory.GetBytesObjectNodeGen.getUncached();
-        }
-
-        public abstract Bytes execute(Rope rope, int offset, int length);
-
-        public Bytes getClamped(Rope rope, int offset, int length) {
-            return execute(rope, offset, Math.min(length, rope.byteLength() - offset));
-        }
-
-        public Bytes getRange(Rope rope, int start, int end) {
-            return execute(rope, start, end - start);
-        }
-
-        @Specialization(guards = "rope.getRawBytes() != null")
-        protected Bytes getBytesObjectFromRaw(Rope rope, int offset, int length) {
-            return new Bytes(rope.getRawBytes(), offset, length);
-        }
-
-        @Specialization(guards = { "rope.getRawBytes() == null" })
-        protected Bytes getBytesObject(ManagedRope rope, int offset, int length,
-                @Cached BytesNode bytes) {
-            return new Bytes(bytes.execute(rope), offset, length);
-        }
-
-        @Specialization(guards = "rope.getRawBytes() == null")
-        protected Bytes getBytesObject(NativeRope rope, int offset, int length) {
-            return new Bytes(rope.getBytes(offset, length));
-        }
-    }
 }
