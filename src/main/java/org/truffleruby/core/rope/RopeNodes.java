@@ -30,33 +30,6 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public abstract class RopeNodes {
 
-    // @Deprecated // Use TruffleString.GetInternalByteArrayNode instead
-    @GenerateUncached
-    public abstract static class BytesNode extends RubyBaseNode {
-
-        public static BytesNode create() {
-            return RopeNodesFactory.BytesNodeGen.create();
-        }
-
-        public abstract byte[] execute(Rope rope);
-
-        @Specialization(guards = "rope.getRawBytes() != null")
-        protected byte[] getBytesManaged(ManagedRope rope) {
-            return rope.getRawBytes();
-        }
-
-        @TruffleBoundary
-        @Specialization(guards = "rope.getRawBytes() == null")
-        protected byte[] getBytesManagedAndFlatten(ManagedRope rope) {
-            return rope.getBytes();
-        }
-
-        @Specialization
-        protected byte[] getBytesNative(NativeRope rope) {
-            return rope.getBytes();
-        }
-    }
-
     @ImportStatic(TruffleString.CodeRange.class)
     @GenerateUncached
     public abstract static class CalculateCharacterLengthNode extends RubyBaseNode {

@@ -140,7 +140,6 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
-import org.truffleruby.core.rope.RopeNodes.BytesNode;
 import org.truffleruby.core.rope.RopeNodes.CalculateCharacterLengthNode;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.TStringNodes.SingleByteOptimizableNode;
@@ -4667,7 +4666,6 @@ public abstract class StringNodes {
         protected Object otherBase(Object string, int base, boolean strict, boolean raiseOnError,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @Cached FixnumOrBignumNode fixnumOrBignumNode,
-                @Cached BytesNode bytesNode,
                 @Cached BranchProfile exceptionProfile) {
             var rope = libString.getTString(string);
             var encoding = libString.getEncoding(string);
