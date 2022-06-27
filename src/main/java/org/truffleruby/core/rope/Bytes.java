@@ -56,6 +56,14 @@ public final class Bytes implements TruffleObject {
         return fromRange(array, start, Math.min(array.length, end));
     }
 
+    public static Bytes fromRangeClamped(InternalByteArray byteArray, int start, int length) {
+        int clampedLength = Math.min(byteArray.getLength() - start, length);
+
+        assert 0 <= start && (start + clampedLength <= byteArray.getLength());
+
+        return new Bytes(byteArray.getArray(), start + byteArray.getOffset(), clampedLength);
+    }
+
     /** Returns the end offset, equal to {@link #offset} + {@link #length}. */
     public int end() {
         return offset + length;

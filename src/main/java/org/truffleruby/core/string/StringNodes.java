@@ -142,7 +142,6 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeNodes.BytesNode;
 import org.truffleruby.core.rope.RopeNodes.CalculateCharacterLengthNode;
-import org.truffleruby.core.rope.RopeNodes.GetBytesObjectNode;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.TStringNodes.SingleByteOptimizableNode;
 import org.truffleruby.core.rope.TStringWithEncoding;
@@ -4113,21 +4112,21 @@ public abstract class StringNodes {
                         "!isSingleByteOptimizable(strings.getTString(string), strings.getEncoding(string), singleByteOptimizableNode)" })
         protected Object stringFindCharacter(Object string, int offset,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @Cached GetBytesObjectNode getBytesObject,
                 @Cached CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached GetByteCodeRangeNode codeRangeNode,
                 @Cached SingleByteOptimizableNode singleByteOptimizableNode,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Cached TruffleString.SubstringByteIndexNode substringNode) {
             // Taken from Rubinius's String::find_character.
-
-            final Rope rope = strings.getRope(string);
             var tstring = strings.getTString(string);
             var encoding = strings.getEncoding(string);
+            var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
+
             final Encoding enc = encoding.jcoding;
             var cr = codeRangeNode.execute(tstring, encoding.tencoding);
 
-            final int clen = calculateCharacterLengthNode
-                    .characterLength(enc, cr, getBytesObject.getClamped(rope, offset, enc.maxLength()));
+            var bytes = Bytes.fromRangeClamped(byteArray, offset, enc.maxLength());
+            final int clen = calculateCharacterLengthNode.characterLength(enc, cr, bytes);
 
             return createSubString(substringNode, strings, string, offset, clen);
         }
