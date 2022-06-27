@@ -1765,10 +1765,6 @@ public class ParserSupport {
                         "' differs from source encoding '" + encoding + "'");
     }
 
-    public Encoding getEncoding(Rope name) {
-        return EncodingManager.getEncoding(name);
-    }
-
     // MRI: reg_fragment_setenc_gen
     public TStringWithEncoding setRegexpEncoding(RegexpParseNode end, TStringWithEncoding value) {
         RegexpOptions options = end.getOptions();
