@@ -1481,13 +1481,15 @@ public final class StringSupport {
         assert enc.isAsciiCompatible();
         boolean modified = false;
         int s = byteArray.getOffset();
-        final int end = byteArray.getEnd();
+        int end = byteArray.getEnd();
         var bytes = byteArray.getArray();
 
         while (s < end) {
             if (isAsciiAlpha(bytes[s])) {
                 if (!modified) {
                     bytes = ArrayUtils.extractRange(bytes, byteArray.getOffset(), byteArray.getEnd());
+                    s -= byteArray.getOffset();
+                    end = bytes.length;
                     modified = true;
                 }
                 bytes[s] ^= 0x20;
@@ -1538,13 +1540,15 @@ public final class StringSupport {
         assert enc.isAsciiCompatible();
         boolean modified = false;
         int s = byteArray.getOffset();
-        final int end = byteArray.getEnd();
+        int end = byteArray.getEnd();
         var bytes = byteArray.getArray();
 
         while (s < end) {
             if (isAsciiUppercase(bytes[s])) {
                 if (!modified) {
                     bytes = ArrayUtils.extractRange(bytes, byteArray.getOffset(), byteArray.getEnd());
+                    s -= byteArray.getOffset();
+                    end = bytes.length;
                     modified = true;
                 }
                 bytes[s] ^= 0x20;
@@ -1605,13 +1609,15 @@ public final class StringSupport {
         assert enc.isAsciiCompatible();
         boolean modified = false;
         int s = byteArray.getOffset();
-        final int end = byteArray.getEnd();
+        int end = byteArray.getEnd();
         var bytes = byteArray.getArray();
 
         while (s < end) {
             if (isAsciiLowercase(bytes[s])) {
                 if (!modified) {
                     bytes = ArrayUtils.extractRange(bytes, byteArray.getOffset(), byteArray.getEnd());
+                    s -= byteArray.getOffset();
+                    end = bytes.length;
                     modified = true;
                 }
                 bytes[s] ^= 0x20;
@@ -1681,7 +1687,7 @@ public final class StringSupport {
         if (StringSupport.isAsciiLowercase(bytes[p])) {
             bytes = ArrayUtils.extractRange(bytes, byteArray.getOffset(), byteArray.getEnd());
             p = 0;
-            end = byteArray.getLength();
+            end = bytes.length;
             modified = true;
             bytes[p] ^= 0x20;
         }
@@ -1692,7 +1698,7 @@ public final class StringSupport {
                 if (!modified) {
                     bytes = ArrayUtils.extractRange(bytes, byteArray.getOffset(), byteArray.getEnd());
                     p -= byteArray.getOffset();
-                    end = byteArray.getLength();
+                    end = bytes.length;
                     modified = true;
                 }
                 bytes[p] ^= 0x20;
