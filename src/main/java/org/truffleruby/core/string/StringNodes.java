@@ -3122,18 +3122,19 @@ public abstract class StringNodes {
                 @Cached("libFormat.asTruffleStringUncached(format)") TruffleString cachedFormat,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
                 @Cached("create(compileFormat(libFormat.getJavaString(format)))") DirectCallNode callUnpackNode,
-                @Cached BytesNode bytesNode,
                 @Cached StringNodes.EqualNode equalNode,
-                @Cached StringGetAssociatedNode stringGetAssociatedNode) {
-            final Rope rope = libString.getRope(string);
+                @Cached StringGetAssociatedNode stringGetAssociatedNode,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
+            var byteArray = byteArrayNode.execute(libString.getTString(string), libString.getTEncoding(string));
 
             final ArrayResult result;
 
             try {
                 result = (ArrayResult) callUnpackNode.call(
                         new Object[]{
-                                bytesNode.execute(rope),
-                                rope.byteLength(),
+                                byteArray.getArray(),
+                                byteArray.getEnd(),
+                                byteArray.getOffset(),
                                 stringGetAssociatedNode.execute(string) }); // TODO impl associated for ImmutableRubyString
             } catch (FormatException e) {
                 exceptionProfile.enter();
@@ -3150,9 +3151,9 @@ public abstract class StringNodes {
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
                 @Cached IndirectCallNode callUnpackNode,
-                @Cached BytesNode bytesNode,
-                @Cached StringGetAssociatedNode stringGetAssociatedNode) {
-            final Rope rope = libString.getRope(string);
+                @Cached StringGetAssociatedNode stringGetAssociatedNode,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
+            var byteArray = byteArrayNode.execute(libString.getTString(string), libString.getTEncoding(string));
 
             final ArrayResult result;
 
@@ -3160,8 +3161,9 @@ public abstract class StringNodes {
                 result = (ArrayResult) callUnpackNode.call(
                         compileFormat(libFormat.getJavaString(format)),
                         new Object[]{
-                                bytesNode.execute(rope),
-                                rope.byteLength(),
+                                byteArray.getArray(),
+                                byteArray.getEnd(),
+                                byteArray.getOffset(),
                                 stringGetAssociatedNode.execute(string) });
             } catch (FormatException e) {
                 exceptionProfile.enter();

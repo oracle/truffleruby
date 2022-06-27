@@ -16,7 +16,7 @@ import org.truffleruby.language.Nil;
 public class FormatFrameDescriptor {
 
     public static final int SOURCE_SLOT;
-    public static final int SOURCE_LENGTH_SLOT;
+    public static final int SOURCE_END_POSITION_SLOT;
     public static final int SOURCE_POSITION_SLOT;
     public static final int SOURCE_ASSOCIATED_SLOT;
     public static final int OUTPUT_SLOT;
@@ -28,7 +28,7 @@ public class FormatFrameDescriptor {
     static {
         var builder = FrameDescriptor.newBuilder().defaultValue(Nil.INSTANCE);
         SOURCE_SLOT = builder.addSlot(FrameSlotKind.Object, "source", null);
-        SOURCE_LENGTH_SLOT = builder.addSlot(FrameSlotKind.Int, "source-length", null);
+        SOURCE_END_POSITION_SLOT = builder.addSlot(FrameSlotKind.Int, "source-length", null);
         SOURCE_POSITION_SLOT = builder.addSlot(FrameSlotKind.Int, "source-position", null);
         SOURCE_ASSOCIATED_SLOT = builder.addSlot(FrameSlotKind.Object, "source-associated", null);
         OUTPUT_SLOT = builder.addSlot(FrameSlotKind.Object, "output", null);

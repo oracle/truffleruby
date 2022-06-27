@@ -37,7 +37,7 @@ public abstract class FormatNode extends RubyBaseNode {
     public abstract Object execute(VirtualFrame frame);
 
     public int getSourceLength(VirtualFrame frame) {
-        return frame.getInt(FormatFrameDescriptor.SOURCE_LENGTH_SLOT);
+        return frame.getInt(FormatFrameDescriptor.SOURCE_END_POSITION_SLOT);
     }
 
     protected int getSourcePosition(VirtualFrame frame) {

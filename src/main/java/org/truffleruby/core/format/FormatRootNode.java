@@ -48,7 +48,7 @@ public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode
     @Override
     public Object execute(VirtualFrame frame) {
         frame.setObject(FormatFrameDescriptor.SOURCE_SLOT, frame.getArguments()[0]);
-        frame.setInt(FormatFrameDescriptor.SOURCE_LENGTH_SLOT, (int) frame.getArguments()[1]);
+        frame.setInt(FormatFrameDescriptor.SOURCE_END_POSITION_SLOT, (int) frame.getArguments()[1]);
         frame.setInt(FormatFrameDescriptor.SOURCE_POSITION_SLOT, 0);
         frame.setObject(FormatFrameDescriptor.OUTPUT_SLOT, new byte[expectedLength]);
         frame.setInt(FormatFrameDescriptor.OUTPUT_POSITION_SLOT, 0);
