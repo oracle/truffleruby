@@ -75,7 +75,7 @@ import org.truffleruby.parser.RubyDeferredWarnings;
 public class ClassicRegexp implements ReOptions {
     private final RubyContext context;
     private final Regex pattern;
-    private final Rope str;
+    private final TStringWithEncoding str;
     private RegexpOptions options;
 
     public void setLiteral() {
@@ -136,7 +136,7 @@ public class ClassicRegexp implements ReOptions {
                 options,
                 strEnc.forceEncoding(computedEnc).tstring);
         this.options = optionsArray[0];
-        this.str = strEnc.toRope();
+        this.str = strEnc;
     }
 
     @TruffleBoundary
@@ -843,11 +843,12 @@ public class ClassicRegexp implements ReOptions {
     }
 
     @SuppressWarnings("unused")
-    public RopeBuilder toRopeBuilder() {
+    public ByteArrayBuilder toByteArrayBuilder() {
         RegexpOptions newOptions = (RegexpOptions) options.clone();
-        int p = 0;
-        int len = str.byteLength();
-        byte[] bytes = str.getBytes();
+        var byteArray = str.getInternalByteArray();
+        int p = byteArray.getOffset();
+        int len = byteArray.getLength();
+        byte[] bytes = byteArray.getArray();
 
         RopeBuilder result = RopeBuilder.createRopeBuilder(len);
         result.append((byte) '(');
@@ -901,7 +902,7 @@ public class ClassicRegexp implements ReOptions {
                                 ++p,
                                 p + (len -= 2),
                                 Option.DEFAULT,
-                                str.getEncoding(),
+                                str.encoding.jcoding,
                                 Syntax.DEFAULT,
                                 new RegexWarnCallback());
                         err = false;
@@ -942,13 +943,15 @@ public class ClassicRegexp implements ReOptions {
     }
 
     @TruffleBoundary
-    public void appendRegexpString19(RopeBuilder to, Rope str, int start, int len, Encoding resEnc) {
-        int p = start;
+    public void appendRegexpString19(RopeBuilder to, TStringWithEncoding str, int start, int len, Encoding resEnc) {
+        var byteArray = str.getInternalByteArray();
+        int p = start + byteArray.getOffset();
         int end = p + len;
+        final byte[] bytes = byteArray.getArray();
 
         final CodeRange cr = str.getCodeRange();
-        final Encoding enc = str.getEncoding();
-        final byte[] bytes = str.getBytes();
+        final Encoding enc = str.encoding.jcoding;
+
         boolean needEscape = false;
         while (p < end) {
             final int c;

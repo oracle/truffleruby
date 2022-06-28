@@ -117,19 +117,19 @@ public abstract class RegexpNodes {
         @Specialization(guards = "regexp.regex == cachedRegexp.regex")
         protected RubyString toSCached(RubyRegexp regexp,
                 @Cached("regexp") RubyRegexp cachedRegexp,
-                @Cached("createRope(cachedRegexp)") Rope rope) {
-            return createString(rope, Encodings.getBuiltInEncoding(rope.getEncoding()));
+                @Cached("createTString(cachedRegexp)") TStringWithEncoding string) {
+            return createString(string);
         }
 
         @Specialization
         protected RubyString toS(RubyRegexp regexp) {
-            final Rope rope = createRope(regexp);
-            return createString(rope, Encodings.getBuiltInEncoding(rope.getEncoding()));
+            return createString(createTString(regexp));
         }
 
         @TruffleBoundary
-        protected Rope createRope(RubyRegexp regexp) {
+        protected TStringWithEncoding createTString(RubyRegexp regexp) {
             final ClassicRegexp classicRegexp;
+
             try {
                 classicRegexp = new ClassicRegexp(
                         getContext(),
@@ -138,7 +138,8 @@ public abstract class RegexpNodes {
             } catch (DeferredRaiseException dre) {
                 throw dre.getException(getContext());
             }
-            return classicRegexp.toRopeBuilder().toRope();
+
+            return classicRegexp.toByteArrayBuilder().toTStringWithEnc(regexp.encoding);
         }
     }
 

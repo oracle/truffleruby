@@ -130,6 +130,10 @@ public class ByteArrayBuilder {
         return TStringUtils.fromByteArray(getBytes(), encoding);
     }
 
+    public TStringWithEncoding toTStringWithEnc(RubyEncoding encoding) {
+        return new TStringWithEncoding(TStringUtils.fromByteArray(getBytes(), encoding), encoding);
+    }
+
     // TODO CS 14-Feb-17 review all uses of this method
     public byte[] getUnsafeBytes() {
         return bytes;
