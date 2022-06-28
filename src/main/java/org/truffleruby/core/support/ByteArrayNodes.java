@@ -20,7 +20,6 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.extra.ffi.PointerNodes;
@@ -45,7 +44,8 @@ public abstract class ByteArrayNodes {
         @Specialization
         protected RubyByteArray allocate(RubyClass rubyClass) {
             final Shape shape = getLanguage().byteArrayShape;
-            final RubyByteArray instance = new RubyByteArray(rubyClass, shape, RopeConstants.EMPTY_BYTES);
+            final RubyByteArray instance = new RubyByteArray(rubyClass, shape,
+                    org.truffleruby.core.array.ArrayUtils.EMPTY_BYTES);
             AllocationTracing.trace(instance, this);
             return instance;
         }

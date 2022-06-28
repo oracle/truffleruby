@@ -46,11 +46,13 @@ import static org.truffleruby.parser.lexer.RubyLexer.isHexChar;
 import static org.truffleruby.parser.lexer.RubyLexer.isOctChar;
 
 import org.jcodings.Encoding;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
-import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.KCode;
+import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.parser.ast.RegexpParseNode;
 import org.truffleruby.parser.parser.RubyParser;
 
@@ -102,7 +104,7 @@ public class StringTerm extends StrTerm {
 
         if ((flags & STR_FUNC_REGEXP) != 0) {
             RegexpOptions options = parseRegexpFlags(lexer);
-            Rope regexpRope = RopeConstants.EMPTY_US_ASCII_ROPE;
+            Rope regexpRope = TStringUtils.toRope(TStringConstants.EMPTY_US_ASCII, Encodings.US_ASCII);
             lexer.setState(EXPR_END | EXPR_ENDARG);
             lexer.setValue(new RegexpParseNode(lexer.getPosition(), regexpRope, options));
             return RubyParser.tREGEXP_END;

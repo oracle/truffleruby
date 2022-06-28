@@ -11,9 +11,9 @@ package org.truffleruby.collections;
 
 import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
-import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.TStringWithEncoding;
 
 import java.nio.charset.StandardCharsets;
@@ -21,7 +21,7 @@ import java.util.Arrays;
 
 public class ByteArrayBuilder {
 
-    private static final byte[] EMPTY_BYTES = RopeConstants.EMPTY_BYTES;
+    private static final byte[] EMPTY_BYTES = ArrayUtils.EMPTY_BYTES;
 
     private byte[] bytes = EMPTY_BYTES;
     private int length;

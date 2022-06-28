@@ -35,8 +35,6 @@ import com.oracle.truffle.api.strings.InternalByteArray;
 import org.jcodings.Encoding;
 import org.jcodings.ascii.AsciiTables;
 import org.jcodings.specific.ASCIIEncoding;
-import org.jcodings.specific.USASCIIEncoding;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.collections.IntStack;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.encoding.EncodingManager;
@@ -51,22 +49,6 @@ public class RopeOperations {
 
     @TruffleBoundary
     public static LeafRope create(byte[] bytes, Encoding encoding, CodeRange codeRange) {
-        if (bytes.length == 1) {
-            final int index = bytes[0] & 0xff;
-
-            if (encoding == UTF8Encoding.INSTANCE) {
-                return RopeConstants.UTF8_SINGLE_BYTE_ROPES[index];
-            }
-
-            if (encoding == USASCIIEncoding.INSTANCE) {
-                return RopeConstants.US_ASCII_SINGLE_BYTE_ROPES[index];
-            }
-
-            if (encoding == ASCIIEncoding.INSTANCE) {
-                return RopeConstants.ASCII_8BIT_SINGLE_BYTE_ROPES[index];
-            }
-        }
-
         int characterLength = -1;
 
         if (codeRange == CR_UNKNOWN) {
@@ -89,25 +71,6 @@ public class RopeOperations {
                 throw new RuntimeException(StringUtils.format("Unknown code range type: %d", codeRange));
             }
         }
-    }
-
-    @TruffleBoundary
-    public static LeafRope create(byte b, Encoding encoding, CodeRange codeRange) { // DEAD CODE
-        final int index = b & 0xff;
-
-        if (encoding == UTF8Encoding.INSTANCE) {
-            return RopeConstants.UTF8_SINGLE_BYTE_ROPES[index];
-        }
-
-        if (encoding == USASCIIEncoding.INSTANCE) {
-            return RopeConstants.US_ASCII_SINGLE_BYTE_ROPES[index];
-        }
-
-        if (encoding == ASCIIEncoding.INSTANCE) {
-            return RopeConstants.ASCII_8BIT_SINGLE_BYTE_ROPES[index];
-        }
-
-        return create(new byte[]{ b }, encoding, codeRange);
     }
 
     public static LeafRope encodeAscii(String value, Encoding encoding) {
