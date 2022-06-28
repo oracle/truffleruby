@@ -26,7 +26,6 @@ import org.jcodings.EncodingDB;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.rope.CannotConvertBinaryRubyStringToJavaString;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.ManagedRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.TStringWithEncoding;
@@ -60,18 +59,14 @@ public class TStringUtils {
     }
 
     @TruffleBoundary
-    public static TruffleString fromRope(ManagedRope rope, RubyEncoding rubyEncoding) {
+    public static TruffleString fromRope(Rope rope, RubyEncoding rubyEncoding) {
         assert rope.encoding == rubyEncoding.jcoding;
         final TruffleString truffleString = fromByteArray(rope.getBytes(), rubyEncoding);
         assert assertEqual(rope, truffleString, rubyEncoding);
         return truffleString;
     }
 
-    public static AbstractTruffleString fromRope(Rope rope, RubyEncoding rubyEncoding) {
-        return fromRope((ManagedRope) rope, rubyEncoding);
-    }
-
-    public static TStringWithEncoding fromRopeWithEnc(ManagedRope rope, RubyEncoding rubyEncoding) {
+    public static TStringWithEncoding fromRopeWithEnc(Rope rope, RubyEncoding rubyEncoding) {
         return new TStringWithEncoding(fromRope(rope, rubyEncoding), rubyEncoding);
     }
 

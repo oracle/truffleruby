@@ -90,11 +90,11 @@ public class RopeBuilder extends ByteArrayBuilder {
         append(other.getBytes());
     }
 
-    public ManagedRope toRope() {
+    public Rope toRope() {
         return toRope(CR_UNKNOWN);
     }
 
-    public ManagedRope toRope(CodeRange codeRange) {
+    public Rope toRope(CodeRange codeRange) {
         // TODO CS 17-Jan-16 can we take the bytes from the RopeBuilder and set its bytes to null so it can't use them again
         return RopeOperations.create(getBytes(), encoding.jcoding, codeRange);
     }

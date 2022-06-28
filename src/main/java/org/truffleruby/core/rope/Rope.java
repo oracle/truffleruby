@@ -32,8 +32,6 @@ public abstract class Rope implements Comparable<Rope> {
         this.bytes = bytes;
     }
 
-    public abstract ManagedRope asManaged();
-
     public abstract int characterLength();
 
     public final int byteLength() {

@@ -9,12 +9,21 @@
  */
 package org.truffleruby.core.rope;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import org.jcodings.Encoding;
 
-public abstract class LeafRope extends ManagedRope {
+public abstract class LeafRope extends Rope {
+
+    private final CodeRange codeRange;
+    private final int characterLength;
 
     public LeafRope(byte[] bytes, Encoding encoding, CodeRange codeRange, int characterLength) {
-        super(encoding, codeRange, bytes.length, characterLength, bytes);
+        super(encoding, bytes.length, bytes);
+
+        this.codeRange = codeRange;
+        this.characterLength = characterLength;
+
+        assert !encoding.isSingleByte() || bytes.length == characterLength;
     }
 
     @Override
@@ -22,4 +31,23 @@ public abstract class LeafRope extends ManagedRope {
         return getRawBytes()[index];
     }
 
+    @Override
+    public final CodeRange getCodeRange() {
+        return this.codeRange;
+    }
+
+    @Override
+    public final int characterLength() {
+        return characterLength;
+    }
+
+    @Override
+    public final byte[] getBytes() {
+        CompilerAsserts.neverPartOfCompilation("Use RopeNodes.ByteNodes instead, or add a @TruffleBoundary.");
+        if (bytes == null) {
+            bytes = getBytesSlow();
+        }
+
+        return bytes;
+    }
 }

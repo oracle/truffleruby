@@ -41,7 +41,6 @@ import org.jcodings.Encoding;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
-import org.truffleruby.core.rope.ManagedRope;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.parser.ParserRopeOperations;
 
@@ -68,7 +67,7 @@ public class LexerSource {
 
         final RubyEncoding rubyEncoding;
         if (fromRope) {
-            var rope = (ManagedRope) rubySource.getRope();
+            var rope = rubySource.getRope();
             rubyEncoding = Encodings.getBuiltInEncoding(rope.getEncoding());
             this.sourceBytes = TStringUtils.fromRope(rope, rubyEncoding);
         } else {

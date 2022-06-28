@@ -48,14 +48,11 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
-import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.regexp.ClassicRegexp;
 import org.truffleruby.core.regexp.RegexpOptions;
-import org.truffleruby.core.rope.ManagedRope;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.language.SourceIndexLength;
@@ -1696,7 +1693,7 @@ public class ParserSupport {
         try {
             pattern = new ClassicRegexp(
                     configuration.getContext(),
-                    TStringUtils.fromRopeWithEnc((ManagedRope) regexpNode.getValue(), regexpNode.getRubyEncoding()),
+                    TStringUtils.fromRopeWithEnc(regexpNode.getValue(), regexpNode.getRubyEncoding()),
                     regexpNode.getOptions());
         } catch (DeferredRaiseException dre) {
             throw dre.getException(RubyLanguage.getCurrentContext());
