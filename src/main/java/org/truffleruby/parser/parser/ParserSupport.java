@@ -1916,4 +1916,7 @@ public class ParserSupport {
         return new SourceIndexLength(start.getCharIndex(), end.getCharEnd() - start.getCharIndex());
     }
 
+    public void nd_set_first_loc(ParseNode node, int line) {
+        /* FIXME: IMPL */
+    }
 }

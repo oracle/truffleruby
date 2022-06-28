@@ -2065,8 +2065,8 @@ p_top_expr_body : p_expr
                 }
                 | p_expr ',' p_args {
                     $$ = support.new_array_pattern(support.getPosition($1), null, $1, $3);
-                    // no impl in JRuby yet:
-                    // support.nd_set_first_loc($<ParseNode>$, support.getPosition($1));
+                    // the following line is a no-op. May or many not require an impl
+                    support.nd_set_first_loc($<ParseNode>$, support.getPosition($1));
                 }
                 | p_find {
                     $$ = support.new_find_pattern(null, $1);
@@ -2101,17 +2101,17 @@ p_expr_basic    : p_value
                 | p_const p_lparen p_args rparen {
                     support.pop_pktbl($<Set>2);
                     $$ = support.new_array_pattern(support.getPosition($1), $1, null, $3);
-                    // support.nd_set_first_loc($<ParseNode>$, support.getPosition($1));
+                    support.nd_set_first_loc($<ParseNode>$, support.getPosition($1));
                 }
                 | p_const p_lparen p_find rparen {
                      support.pop_pktbl($<Set>2);
                      $$ = support.new_find_pattern($1, $3);
-                     // support.nd_set_first_loc($<ParseNode>$, support.getPosition($1));
+                     support.nd_set_first_loc($<ParseNode>$, support.getPosition($1));
                 }
                 | p_const p_lparen p_kwargs rparen {
                      support.pop_pktbl($<Set>2);
                      $$ = support.new_hash_pattern($1, $3);
-                     // support.nd_set_first_loc($<ParseNode>$, support.getPosition($1));
+                     support.nd_set_first_loc($<ParseNode>$, support.getPosition($1));
                 }
                 | p_const '(' rparen {
                      $$ = support.new_array_pattern(support.getPosition($1), $1, null,
