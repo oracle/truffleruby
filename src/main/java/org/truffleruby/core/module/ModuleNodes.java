@@ -68,10 +68,8 @@ import org.truffleruby.core.module.ModuleNodesFactory.SetMethodVisibilityNodeGen
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.core.support.TypeNodes;
@@ -985,7 +983,6 @@ public abstract class ModuleNodes {
     @NodeChild(value = "inherit", type = RubyNode.class)
     @NodeChild(value = "look_in_object", type = RubyNode.class)
     @NodeChild(value = "check_name", type = RubyNode.class)
-    @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     public abstract static class ConstGetNode extends PrimitiveNode {
 
         @Child private LookupConstantNode lookupConstantLookInObjectNode = LookupConstantNode.create(true, true);

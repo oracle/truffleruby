@@ -11,8 +11,6 @@ package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.library.CachedLibrary;
-import org.truffleruby.core.string.StringCachingGuards;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
@@ -23,14 +21,12 @@ import org.truffleruby.utils.Utils;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
-import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 /** Converts a method name to a Java String. The exception message below assumes this conversion is done for a method
  * name. */
-@ImportStatic({ StringCachingGuards.class, StringOperations.class })
 @GenerateUncached
 @NodeChild(value = "value", type = RubyBaseNodeWithExecute.class)
 public abstract class NameToJavaStringNode extends RubyBaseNodeWithExecute {

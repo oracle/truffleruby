@@ -1186,7 +1186,7 @@ public abstract class StringNodes {
         }
     }
 
-    @ImportStatic({ StringGuards.class, StringOperations.class })
+    @ImportStatic(StringGuards.class)
     public abstract static class CountRopesNode extends TrTableNode {
 
         public static CountRopesNode create() {
@@ -1363,7 +1363,7 @@ public abstract class StringNodes {
         }
     }
 
-    @ImportStatic({ StringGuards.class, StringOperations.class })
+    @ImportStatic(StringGuards.class)
     public abstract static class DeleteBangRopesNode extends TrTableNode {
 
         public static DeleteBangRopesNode create() {
@@ -2901,7 +2901,7 @@ public abstract class StringNodes {
     }
 
     @CoreMethod(names = { "to_sym", "intern" })
-    @ImportStatic({ StringCachingGuards.class, StringGuards.class, StringOperations.class })
+    @ImportStatic(StringGuards.class)
     public abstract static class ToSymNode extends CoreMethodArrayArgumentsNode {
 
         @Child GetByteCodeRangeNode codeRangeNode = GetByteCodeRangeNode.create();
@@ -3129,7 +3129,6 @@ public abstract class StringNodes {
     @NodeChild(value = "string", type = RubyNode.class)
     @NodeChild(value = "format", type = RubyBaseNodeWithExecute.class)
     @CoreMethod(names = "unpack", required = 1)
-    @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     @ReportPolymorphism
     public abstract static class UnpackNode extends CoreMethodNode {
 

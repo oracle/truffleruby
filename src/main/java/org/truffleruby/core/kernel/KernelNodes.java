@@ -78,10 +78,8 @@ import org.truffleruby.core.range.RangeNodes;
 import org.truffleruby.core.range.RubyIntOrLongRange;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.support.TypeNodes.CheckFrozenNode;
 import org.truffleruby.core.support.TypeNodes.ObjectInstanceVariablesNode;
@@ -725,7 +723,6 @@ public abstract class KernelNodes {
 
     @ReportPolymorphism
     @GenerateUncached
-    @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     public abstract static class EvalInternalNode extends RubyBaseNode {
 
         public abstract Object execute(Object self, Object source, RubyBinding binding, Object file, int line);
@@ -1666,7 +1663,6 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = { "format", "sprintf" }, isModuleFunction = true, rest = true, required = 1)
-    @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     @ReportPolymorphism
     @NodeChild(value = "format", type = RubyBaseNodeWithExecute.class)
     @NodeChild(value = "arguments", type = RubyBaseNodeWithExecute.class)
