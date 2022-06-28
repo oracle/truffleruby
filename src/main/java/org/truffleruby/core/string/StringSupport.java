@@ -559,14 +559,6 @@ public final class StringSupport {
 
     /** rb_str_tr / rb_str_tr_bang */
     public static final class TR {
-        public TR(Rope rope) {
-            p = 0;
-            pend = p + rope.byteLength();
-            buf = rope.getBytes();
-            now = max = 0;
-            gen = false;
-        }
-
         public TR(AbstractTruffleString string, RubyEncoding encoding) {
             var bytes = string.getInternalByteArrayUncached(encoding.tencoding);
             p = bytes.getOffset();
