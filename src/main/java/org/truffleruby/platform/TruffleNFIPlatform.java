@@ -11,7 +11,7 @@ package org.truffleruby.platform;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
-import org.truffleruby.language.library.RubyStringLibrary;
+import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -77,7 +77,7 @@ public class TruffleNFIPlatform {
 
     public String resolveType(NativeConfiguration nativeConfiguration, String type) {
         final Object typedef = resolveTypeRaw(nativeConfiguration, type);
-        return toNFIType(RubyStringLibrary.getUncached().getJavaString(typedef));
+        return toNFIType(RubyGuards.getJavaString(typedef));
     }
 
     private String toNFIType(String type) {

@@ -20,6 +20,7 @@ import org.truffleruby.core.cast.ToCallTargetNode;
 import org.truffleruby.core.proc.ProcCallTargets;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyLambdaRootNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -183,8 +184,9 @@ public abstract class TruffleGraalNodes {
 
         @Specialization(guards = "strings.isRubyString(message)")
         protected Object bailout(Object message,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            CompilerDirectives.bailout(strings.getJavaString(message));
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached ToJavaStringNode toJavaStringNode) {
+            CompilerDirectives.bailout(toJavaStringNode.executeToJavaString(message));
             return nil;
         }
     }

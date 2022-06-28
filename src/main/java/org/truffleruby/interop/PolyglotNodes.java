@@ -27,6 +27,7 @@ import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CallTarget;
@@ -61,11 +62,11 @@ public abstract class PolyglotNodes {
         protected Object evalCached(Object langId, Object code,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary idLib,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary codeLib,
-                @Cached("idLib.asTruffleStringUncached(langId)") TruffleString cachedLangId,
+                @Cached("asTruffleStringUncached(langId)") TruffleString cachedLangId,
                 @Cached("idLib.getEncoding(langId)") RubyEncoding cachedLangIdEnc,
-                @Cached("codeLib.asTruffleStringUncached(code)") TruffleString cachedCode,
+                @Cached("asTruffleStringUncached(code)") TruffleString cachedCode,
                 @Cached("codeLib.getEncoding(code)") RubyEncoding cachedCodeEnc,
-                @Cached("create(parse(idLib.getJavaString(langId), codeLib.getJavaString(code)))") DirectCallNode callNode,
+                @Cached("create(parse(getJavaString(langId), getJavaString(code)))") DirectCallNode callNode,
                 @Cached StringNodes.EqualNode idEqualNode,
                 @Cached StringNodes.EqualNode codeEqualNode) {
             return callNode.call(EMPTY_ARGUMENTS);
@@ -77,9 +78,11 @@ public abstract class PolyglotNodes {
         protected Object evalUncached(Object langId, Object code,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsId,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsSource,
+                @Cached ToJavaStringNode toJavaStringLandNode,
+                @Cached ToJavaStringNode toJavaStringCodeNode,
                 @Cached IndirectCallNode callNode) {
-            return callNode.call(parse(stringsId.getJavaString(langId), stringsSource.getJavaString(code)),
-                    EMPTY_ARGUMENTS);
+            return callNode.call(parse(toJavaStringLandNode.executeToJavaString(langId),
+                    toJavaStringCodeNode.executeToJavaString(code)), EMPTY_ARGUMENTS);
         }
 
         @TruffleBoundary
@@ -113,8 +116,8 @@ public abstract class PolyglotNodes {
         protected Object evalFile(Object fileName, NotProvided id,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             final Source source;
-            //intern() to improve footprint
-            final String path = strings.getJavaString(fileName).intern();
+            // intern() to improve footprint
+            final String path = RubyGuards.getJavaString(fileName).intern();
             try {
                 final TruffleFile file = getContext().getEnv().getPublicTruffleFile(path);
                 String language = Source.findLanguage(file);
@@ -134,15 +137,12 @@ public abstract class PolyglotNodes {
         }
 
         @TruffleBoundary
-        @Specialization(
-                guards = {
-                        "stringsId.isRubyString(id)",
-                        "stringsFileName.isRubyString(fileName)" })
+        @Specialization(guards = { "stringsId.isRubyString(id)", "stringsFileName.isRubyString(fileName)" })
         protected Object evalFile(Object id, Object fileName,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsId,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsFileName) {
-            final String idString = stringsId.getJavaString(id);
-            final Source source = getSource(idString, stringsFileName.getJavaString(fileName));
+            final String idString = RubyGuards.getJavaString(id);
+            final Source source = getSource(idString, RubyGuards.getJavaString(fileName));
             return eval(source);
         }
 
@@ -206,13 +206,13 @@ public abstract class PolyglotNodes {
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary idLib,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary codeLib,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary filenameLib,
-                @Cached("idLib.asTruffleStringUncached(langId)") TruffleString cachedLangId,
+                @Cached("asTruffleStringUncached(langId)") TruffleString cachedLangId,
                 @Cached("idLib.getEncoding(langId)") RubyEncoding cachedLangIdEnc,
-                @Cached("codeLib.asTruffleStringUncached(code)") TruffleString cachedCode,
+                @Cached("asTruffleStringUncached(code)") TruffleString cachedCode,
                 @Cached("codeLib.getEncoding(code)") RubyEncoding cachedCodeEnc,
-                @Cached("filenameLib.asTruffleStringUncached(filename)") TruffleString cachedFilename,
+                @Cached("asTruffleStringUncached(filename)") TruffleString cachedFilename,
                 @Cached("filenameLib.getEncoding(filename)") RubyEncoding cachedFilenameEnc,
-                @Cached("createSource(idLib.getJavaString(langId), codeLib.getJavaString(code), filenameLib.getJavaString(filename))") Source cachedSource,
+                @Cached("createSource(getJavaString(langId), getJavaString(code), getJavaString(filename))") Source cachedSource,
                 @Cached StringNodes.EqualNode idEqualNode,
                 @Cached StringNodes.EqualNode codeEqualNode,
                 @Cached StringNodes.EqualNode filenameEqualNode,
@@ -228,11 +228,14 @@ public abstract class PolyglotNodes {
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary idLib,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary codeLib,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary filenameLib,
+                @Cached ToJavaStringNode toJavaStringIDNode,
+                @Cached ToJavaStringNode toJavaStringCodeNode,
+                @Cached ToJavaStringNode toJavaStringFileNode,
                 @Cached ForeignToRubyNode foreignToRubyNode,
                 @Cached BranchProfile errorProfile) {
-            final String idString = idLib.getJavaString(langId);
-            final String codeString = codeLib.getJavaString(code);
-            final String filenameString = filenameLib.getJavaString(filename);
+            final String idString = toJavaStringIDNode.executeToJavaString(langId);
+            final String codeString = toJavaStringCodeNode.executeToJavaString(code);
+            final String filenameString = toJavaStringFileNode.executeToJavaString(filename);
 
             final Source source = createSource(idString, codeString, filenameString);
 

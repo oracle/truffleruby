@@ -60,6 +60,8 @@ import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.FromJavaStringNode;
+import org.truffleruby.interop.ToJavaStringNode;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.platform.Platform;
@@ -101,9 +103,10 @@ public abstract class TruffleSystemNodes {
         @Specialization(guards = "strings.isRubyString(name)")
         protected Object javaGetEnv(Object name,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached ToJavaStringNode toJavaStringNode,
                 @Cached FromJavaStringNode fromJavaStringNode,
                 @Cached ConditionProfile nullValueProfile) {
-            final String javaName = strings.getJavaString(name);
+            final String javaName = toJavaStringNode.executeToJavaString(name);
             final String value = getEnv(javaName);
 
             if (nullValueProfile.profile(value == null)) {
@@ -129,7 +132,7 @@ public abstract class TruffleSystemNodes {
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsDir) {
             TruffleFile truffleFile = getContext()
                     .getEnv()
-                    .getPublicTruffleFile(stringsDir.getJavaString(dir));
+                    .getPublicTruffleFile(RubyGuards.getJavaString(dir));
             final TruffleFile canonicalFile;
             try {
                 canonicalFile = truffleFile.getCanonicalFile();
@@ -182,8 +185,9 @@ public abstract class TruffleSystemNodes {
 
         @Specialization(guards = "strings.isRubyString(property)")
         protected Object getJavaProperty(Object property,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            String value = getProperty(strings.getJavaString(property));
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached ToJavaStringNode toJavaStringNode) {
+            String value = getProperty(toJavaStringNode.executeToJavaString(property));
             if (value == null) {
                 return nil;
             } else {
@@ -227,16 +231,18 @@ public abstract class TruffleSystemNodes {
         @Specialization(guards = { "strings.isRubyString(message)", "level == cachedLevel" })
         protected Object logCached(RubySymbol level, Object message,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached ToJavaStringNode toJavaStringNode,
                 @Cached("level") RubySymbol cachedLevel,
                 @Cached("getLevel(cachedLevel)") Level javaLevel) {
-            log(javaLevel, strings.getJavaString(message));
+            log(javaLevel, toJavaStringNode.executeToJavaString(message));
             return nil;
         }
 
         @Specialization(guards = "strings.isRubyString(message)", replaces = "logCached")
         protected Object log(RubySymbol level, Object message,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            log(getLevel(level), strings.getJavaString(message));
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached ToJavaStringNode toJavaStringNode) {
+            log(getLevel(level), toJavaStringNode.executeToJavaString(message));
             return nil;
         }
 

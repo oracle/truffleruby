@@ -26,7 +26,7 @@ public class AutoloadConstant {
     AutoloadConstant(Object feature) {
         assert RubyStringLibrary.getUncached().isRubyString(feature);
         this.feature = feature;
-        this.autoloadPath = RubyStringLibrary.getUncached().getJavaString(this.feature);
+        this.autoloadPath = RubyGuards.getJavaString(this.feature);
     }
 
     public String getAutoloadPath() {

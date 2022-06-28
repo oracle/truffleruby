@@ -29,7 +29,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.library.RubyStringLibrary;
 
 @NodeChild("width")
@@ -46,22 +45,23 @@ public abstract class FormatCharacterNode extends FormatNode {
     }
 
     @Specialization(guards = { "width == cachedWidth" }, limit = "getLimit()")
-    protected byte[] formatCached(VirtualFrame frame, int width, Object value,
+    protected byte[] formatCached(int width, Object value,
             @Cached("width") int cachedWidth,
             @Cached("makeFormatString(width)") String cachedFormatString,
             @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
-        final String charString = getCharString(frame, value, libString);
+        final String charString = getCharString(value, libString);
         return StringUtils.formatASCIIBytes(cachedFormatString, charString);
     }
 
     @Specialization(replaces = "formatCached")
-    protected byte[] format(VirtualFrame frame, int width, Object value,
+    protected byte[] format(int width, Object value,
             @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
-        final String charString = getCharString(frame, value, libString);
+        final String charString = getCharString(value, libString);
         return StringUtils.formatASCIIBytes(makeFormatString(width), charString);
     }
 
-    protected String getCharString(VirtualFrame frame, Object value, RubyStringLibrary libString) {
+    @TruffleBoundary
+    protected String getCharString(Object value, RubyStringLibrary libString) {
         if (toStringNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             toStringNode = insert(ToStringNodeGen.create(
@@ -73,7 +73,7 @@ public abstract class FormatCharacterNode extends FormatNode {
         }
         Object toStrResult;
         try {
-            toStrResult = toStringNode.executeToString(frame, value);
+            toStrResult = toStringNode.executeToString(value);
         } catch (NoImplicitConversionException e) {
             toStrResult = null;
         }
@@ -88,7 +88,7 @@ public abstract class FormatCharacterNode extends FormatNode {
             // TODO BJF check char length is > 0
             charString = Character.toString((char) charValue);
         } else if (libString.isRubyString(toStrResult)) {
-            final String resultString = libString.getJavaString(toStrResult);
+            final String resultString = RubyGuards.getJavaString(toStrResult);
             final int size = resultString.length();
             if (size > 1) {
                 throw new RaiseException(

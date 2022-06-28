@@ -40,6 +40,7 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.ReadOwnFrameAndVariablesNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.ReadCallerVariablesIfAvailableNode;
 import org.truffleruby.language.arguments.ReadCallerVariablesNode;
@@ -99,7 +100,7 @@ public abstract class TruffleKernelNodes {
         protected boolean load(Object file, boolean wrap,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached IndirectCallNode callNode) {
-            final String feature = strings.getJavaString(file);
+            final String feature = RubyGuards.getJavaString(file);
             final Pair<Source, Rope> sourceRopePair;
             try {
                 final FileLoader fileLoader = new FileLoader(getContext(), getLanguage());
@@ -332,7 +333,7 @@ public abstract class TruffleKernelNodes {
             final String originalRequire = getContext()
                     .getCoreLibrary()
                     .getOriginalRequires()
-                    .get(strings.getJavaString(string));
+                    .get(RubyGuards.getJavaString(string));
             if (originalRequire == null) {
                 return Nil.INSTANCE;
             } else {

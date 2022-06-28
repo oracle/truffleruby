@@ -22,6 +22,7 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyConstant;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -103,7 +104,7 @@ public abstract class ExceptionOperations {
             final ModuleFields exceptionClass = exception.getLogicalClass().fields;
             return exceptionClass.getName(); // What Exception#message would return if no message is set
         } else if (strings.isRubyString(message)) {
-            return strings.getJavaString(message);
+            return RubyGuards.getJavaString(message);
         } else {
             return message.toString();
         }
@@ -117,9 +118,8 @@ public abstract class ExceptionOperations {
         } catch (Throwable e) {
             // Fall back to the internal message field
         }
-        final RubyStringLibrary libString = RubyStringLibrary.getUncached();
-        if (messageObject != null && libString.isRubyString(messageObject)) {
-            return libString.getJavaString(messageObject);
+        if (messageObject != null && RubyStringLibrary.getUncached().isRubyString(messageObject)) {
+            return RubyGuards.getJavaString(messageObject);
         } else {
             return messageFieldToString(exception);
         }

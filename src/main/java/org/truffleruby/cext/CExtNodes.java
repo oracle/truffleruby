@@ -1310,8 +1310,7 @@ public class CExtNodes {
 
                     representation = tstring.toString() + " (" + builder.toString() + ")";
                 } else if (RubyGuards.isRubyValue(object)) {
-                    representation = object.toString() + " (" +
-                            RubyStringLibrary.getUncached().getJavaString(callToS(object)) + ")";
+                    representation = object.toString() + " (" + RubyGuards.getJavaString(callToS(object)) + ")";
                 } else {
                     representation = object.toString();
                 }
@@ -1749,7 +1748,7 @@ public class CExtNodes {
                 limit = "2")
         protected Object typesCached(VirtualFrame frame, Object format,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
-                @Cached("libFormat.asTruffleStringUncached(format)") TruffleString cachedFormat,
+                @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
                 @Cached("compileArgTypes(cachedFormat, cachedEncoding, byteArrayNode)") RubyArray cachedTypes,
                 @Cached StringNodes.EqualSameEncodingNode equalNode) {
@@ -1795,7 +1794,7 @@ public class CExtNodes {
                 @Cached WrapNode wrapNode,
                 @Cached UnwrapNode unwrapNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
-                @Cached("libFormat.asTruffleStringUncached(format)") TruffleString cachedFormat,
+                @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
                 @Cached("cachedFormat.byteLength(cachedEncoding.tencoding)") int cachedFormatLength,
                 @Cached("create(compileFormat(cachedFormat, cachedEncoding, stringReader))") DirectCallNode formatNode,

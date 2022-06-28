@@ -31,6 +31,7 @@ import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyConstant;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.WarningNode;
 import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.control.RaiseException;
@@ -64,19 +65,20 @@ public abstract class RequireNode extends RubyBaseNode {
     @Specialization(guards = "libExpandedPathString.isRubyString(expandedPathString)")
     protected boolean require(String feature, Object expandedPathString,
             @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libExpandedPathString) {
-        final String expandedPath = libExpandedPathString.getJavaString(expandedPathString);
-        return requireWithMetrics(feature, expandedPath, expandedPathString);
+        return requireWithMetrics(feature, expandedPathString);
     }
 
     @TruffleBoundary
-    private boolean requireWithMetrics(String feature, String expandedPathRaw, Object pathString) {
+    private boolean requireWithMetrics(String feature, Object pathString) {
+        String internedExpandedPath = RubyGuards.getJavaString(pathString).intern();
+
         requireMetric("before-require-" + feature);
         try {
             //intern() to improve footprint
             return getContext().getMetricsProfiler().callWithMetrics(
                     "require",
                     feature,
-                    () -> requireConsideringAutoload(feature, expandedPathRaw.intern(), pathString));
+                    () -> requireConsideringAutoload(feature, internedExpandedPath, pathString));
         } finally {
             requireMetric("after-require-" + feature);
         }
@@ -148,7 +150,7 @@ public abstract class RequireNode extends RubyBaseNode {
             Object relativeFeatureString = relativeFeatureNode
                     .call(coreLibrary().truffleFeatureLoaderModule, "relative_feature", pathString);
             if (RubyStringLibrary.getUncached().isRubyString(relativeFeatureString)) {
-                relativeFeature = RubyStringLibrary.getUncached().getJavaString(relativeFeatureString);
+                relativeFeature = RubyGuards.getJavaString(relativeFeatureString);
             }
         }
         Boolean patchLoaded = patchFiles.get(relativeFeature);

@@ -312,7 +312,7 @@ public abstract class TruffleBootNodes {
         @Specialization(guards = "libOptionName.isRubyString(optionName)")
         protected Object getOption(Object optionName,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libOptionName) {
-            final String optionNameString = libOptionName.getJavaString(optionName);
+            final String optionNameString = RubyGuards.getJavaString(optionName);
             final OptionDescriptor descriptor = OptionsCatalog.fromName("ruby." + optionNameString);
             if (descriptor == null) {
                 throw new RaiseException(

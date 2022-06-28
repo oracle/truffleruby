@@ -71,6 +71,7 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.interop.TranslateInteropExceptionNodeGen;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.RaiseException;
@@ -242,7 +243,7 @@ public class TruffleRegexpNodes {
 
         @TruffleBoundary
         private String getEncodingName(RubyEncoding matchStringEncoding) {
-            return RubyStringLibrary.getUncached().getJavaString(matchStringEncoding.name);
+            return RubyGuards.getJavaString(matchStringEncoding.name);
         }
     }
 

@@ -33,6 +33,7 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.LexicalScope;
@@ -322,6 +323,7 @@ public abstract class BasicObjectNodes {
                 VirtualFrame frame, Object receiver, Object string, Object fileName, int line, Nil block,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsFileName,
+                @Cached ToJavaStringNode toJavaStringNode,
                 @Cached ReadCallerFrameNode callerFrameNode,
                 @Cached IndirectCallNode callNode) {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
@@ -331,7 +333,7 @@ public abstract class BasicObjectNodes {
                     receiver,
                     strings.getTString(string),
                     strings.getEncoding(string),
-                    stringsFileName.getJavaString(fileName),
+                    toJavaStringNode.executeToJavaString(fileName),
                     line,
                     callNode);
         }
@@ -341,6 +343,7 @@ public abstract class BasicObjectNodes {
                 VirtualFrame frame, Object receiver, Object string, Object fileName, NotProvided line, Nil block,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsFileName,
+                @Cached ToJavaStringNode toJavaStringNode,
                 @Cached ReadCallerFrameNode callerFrameNode,
                 @Cached IndirectCallNode callNode) {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
@@ -350,7 +353,7 @@ public abstract class BasicObjectNodes {
                     receiver,
                     strings.getTString(string),
                     strings.getEncoding(string),
-                    stringsFileName.getJavaString(fileName),
+                    toJavaStringNode.executeToJavaString(fileName),
                     1,
                     callNode);
         }

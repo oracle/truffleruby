@@ -46,6 +46,7 @@ import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.interop.ToJavaStringWithDefaultNodeGen;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -86,7 +87,7 @@ public abstract class ReadlineNodes {
         @Specialization(guards = "strings.isRubyString(characters)")
         protected Object setBasicWordBreakCharacters(Object characters,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            final String delimiters = strings.getJavaString(characters);
+            final String delimiters = RubyGuards.getJavaString(characters);
             getContext().getConsoleHolder().getParser().setDelimiters(delimiters);
             return characters;
         }
@@ -298,7 +299,7 @@ public abstract class ReadlineNodes {
                     .createUTF8String(context, language, StringOperations.encodeRope(buffer, UTF8Encoding.INSTANCE));
             RubyArray completions = (RubyArray) DispatchNode.getUncached().call(proc, "call", string);
             for (Object element : ArrayOperations.toIterable(completions)) {
-                final String completion = RubyStringLibrary.getUncached().getJavaString(element);
+                final String completion = RubyGuards.getJavaString(element);
                 candidates.add(new Candidate(completion + after, completion, null, null, null, null, complete));
             }
         }

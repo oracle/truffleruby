@@ -193,7 +193,7 @@ public abstract class InteropNodes {
         @Specialization(guards = "strings.isRubyString(mimeType)")
         protected boolean isMimeTypeSupported(RubyString mimeType,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            return getContext().getEnv().isMimeTypeSupported(strings.getJavaString(mimeType));
+            return getContext().getEnv().isMimeTypeSupported(RubyGuards.getJavaString(mimeType));
         }
 
     }
@@ -209,7 +209,7 @@ public abstract class InteropNodes {
                 //intern() to improve footprint
                 final TruffleFile file = getContext()
                         .getEnv()
-                        .getPublicTruffleFile(strings.getJavaString(fileName).intern());
+                        .getPublicTruffleFile(RubyGuards.getJavaString(fileName).intern());
                 final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, file).build();
                 getContext().getEnv().parsePublic(source).call();
             } catch (IOException e) {
@@ -236,11 +236,11 @@ public abstract class InteropNodes {
         protected Object evalCached(Object mimeType, Object source,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsMimeType,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsSource,
-                @Cached("stringsMimeType.asTruffleStringUncached(mimeType)") TruffleString cachedMimeType,
+                @Cached("asTruffleStringUncached(mimeType)") TruffleString cachedMimeType,
                 @Cached("stringsMimeType.getEncoding(mimeType)") RubyEncoding cachedMimeTypeEnc,
-                @Cached("stringsSource.asTruffleStringUncached(source)") TruffleString cachedSource,
+                @Cached("asTruffleStringUncached(source)") TruffleString cachedSource,
                 @Cached("stringsSource.getEncoding(source)") RubyEncoding cachedSourceEnc,
-                @Cached("create(parse(stringsMimeType.getJavaString(mimeType), stringsSource.getJavaString(source)))") DirectCallNode callNode,
+                @Cached("create(parse(getJavaString(mimeType), getJavaString(source)))") DirectCallNode callNode,
                 @Cached StringNodes.EqualNode mimeTypeEqualNode,
                 @Cached StringNodes.EqualNode sourceEqualNode) {
             return callNode.call(EMPTY_ARGUMENTS);
@@ -252,9 +252,11 @@ public abstract class InteropNodes {
         protected Object evalUncached(Object mimeType, RubyString source,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsMimeType,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsSource,
+                @Cached ToJavaStringNode toJavaStringMimeNode,
+                @Cached ToJavaStringNode toJavaStringSourceNode,
                 @Cached IndirectCallNode callNode) {
-            return callNode.call(parse(stringsMimeType.getJavaString(mimeType), stringsSource.getJavaString(source)),
-                    EMPTY_ARGUMENTS);
+            return callNode.call(parse(toJavaStringMimeNode.executeToJavaString(mimeType),
+                    toJavaStringSourceNode.executeToJavaString(source)), EMPTY_ARGUMENTS);
         }
 
         @TruffleBoundary
@@ -285,12 +287,12 @@ public abstract class InteropNodes {
         protected Object evalNFI(Object code,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary library,
                 @Cached IndirectCallNode callNode) {
-            return callNode.call(parse(library.getJavaString(code)), EMPTY_ARGUMENTS);
+            return callNode.call(parse(code), EMPTY_ARGUMENTS);
         }
 
         @TruffleBoundary
-        protected CallTarget parse(String code) {
-            final Source source = Source.newBuilder("nfi", code, "(eval)").build();
+        protected CallTarget parse(Object code) {
+            final Source source = Source.newBuilder("nfi", RubyGuards.getJavaString(code), "(eval)").build();
 
             try {
                 return getContext().getEnv().parseInternal(source);
@@ -1727,18 +1729,13 @@ public abstract class InteropNodes {
         // TODO CS 17-Mar-18 we should cache this in the future
 
         @Specialization
-        protected Object javaTypeSymbol(RubySymbol name) {
-            return javaType(name.getString());
-        }
-
-        @Specialization(guards = "strings.isRubyString(name)")
-        protected Object javaTypeString(Object name,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            return javaType(strings.getJavaString(name));
+        protected Object javaType(Object name,
+                @Cached ToJavaStringNode toJavaStringNode) {
+            return lookupJavaType(toJavaStringNode.executeToJavaString(name));
         }
 
         @TruffleBoundary
-        private Object javaType(String name) {
+        private Object lookupJavaType(String name) {
             final TruffleLanguage.Env env = getContext().getEnv();
 
             if (!env.isHostLookupAllowed()) {

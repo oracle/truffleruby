@@ -160,6 +160,7 @@ import org.truffleruby.core.string.StringSupport.TrTables;
 import org.truffleruby.core.support.RubyByteArray;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
@@ -1578,8 +1579,9 @@ public abstract class StringNodes {
         @Specialization(guards = "libEncoding.isRubyString(newEncoding)")
         protected RubyString forceEncodingString(RubyString string, Object newEncoding,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libEncoding,
+                @Cached ToJavaStringNode toJavaStringNode,
                 @Cached BranchProfile errorProfile) {
-            final String stringName = libEncoding.getJavaString(newEncoding);
+            final String stringName = toJavaStringNode.executeToJavaString(newEncoding);
             final RubyEncoding rubyEncoding = getContext().getEncodingManager().getRubyEncoding(stringName);
 
             if (rubyEncoding == null) {
@@ -2869,7 +2871,7 @@ public abstract class StringNodes {
                 limit = "getDefaultCacheLimit()")
         protected RubySymbol toSymCached(Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @Cached("strings.asTruffleStringUncached(string)") TruffleString cachedTString,
+                @Cached("asTruffleStringUncached(string)") TruffleString cachedTString,
                 @Cached("strings.getEncoding(string)") RubyEncoding cachedEncoding,
                 @Cached("getSymbol(cachedTString, cachedEncoding)") RubySymbol cachedSymbol,
                 @Cached StringNodes.EqualSameEncodingNode equalNode,
@@ -3116,9 +3118,9 @@ public abstract class StringNodes {
         protected RubyArray unpackCached(Object string, Object format,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
-                @Cached("libFormat.asTruffleStringUncached(format)") TruffleString cachedFormat,
+                @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
-                @Cached("create(compileFormat(libFormat.getJavaString(format)))") DirectCallNode callUnpackNode,
+                @Cached("create(compileFormat(getJavaString(format)))") DirectCallNode callUnpackNode,
                 @Cached StringNodes.EqualNode equalNode,
                 @Cached StringGetAssociatedNode stringGetAssociatedNode,
                 @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
@@ -3147,6 +3149,7 @@ public abstract class StringNodes {
         protected RubyArray unpackUncached(Object string, Object format,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
+                @Cached ToJavaStringNode toJavaStringNode,
                 @Cached IndirectCallNode callUnpackNode,
                 @Cached StringGetAssociatedNode stringGetAssociatedNode,
                 @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
@@ -3156,7 +3159,7 @@ public abstract class StringNodes {
 
             try {
                 result = (ArrayResult) callUnpackNode.call(
-                        compileFormat(libFormat.getJavaString(format)),
+                        compileFormat(toJavaStringNode.executeToJavaString(format)),
                         new Object[]{
                                 byteArray.getArray(),
                                 byteArray.getEnd(),
@@ -4201,7 +4204,7 @@ public abstract class StringNodes {
                 return nil;
             }
 
-            final String javaString = strings.getJavaString(string);
+            final String javaString = RubyGuards.getJavaString(string);
             if (javaString.startsWith("0x")) {
                 try {
                     return Double.parseDouble(javaString);

@@ -41,8 +41,10 @@ import org.truffleruby.core.string.StringGuards;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.string.ImmutableRubyString;
+import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
@@ -599,9 +601,8 @@ public abstract class EncodingNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object getDefaultEncoding(Object name,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringLibrary) {
-            final RubyEncoding encoding = getEncoding(stringLibrary.getJavaString(name));
+        protected Object getDefaultEncoding(Object name) {
+            final RubyEncoding encoding = getEncoding(RubyGuards.getJavaString(name));
             if (encoding == null) {
                 return nil;
             } else {
@@ -717,8 +718,9 @@ public abstract class EncodingNodes {
 
         @Specialization(guards = "strings.isRubyString(nameObject)")
         protected RubyArray encodingReplicate(RubyEncoding object, Object nameObject,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            final String name = strings.getJavaString(nameObject);
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached ToJavaStringNode toJavaStringNode) {
+            final String name = toJavaStringNode.executeToJavaString(nameObject);
 
             final RubyEncoding newEncoding = replicate(name, object);
             return setIndexOrRaiseError(name, newEncoding);
@@ -736,8 +738,9 @@ public abstract class EncodingNodes {
 
         @Specialization(guards = "strings.isRubyString(nameObject)")
         protected RubyArray createDummyEncoding(Object nameObject,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            final String name = strings.getJavaString(nameObject);
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached ToJavaStringNode toJavaStringNode) {
+            final String name = toJavaStringNode.executeToJavaString(nameObject);
 
             final RubyEncoding newEncoding = createDummy(name);
             return setIndexOrRaiseError(name, newEncoding);

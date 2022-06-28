@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.string;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -105,6 +106,16 @@ public final class RubyString extends RubyDynamicObject {
         return rope.toString();
     }
 
+    public TruffleString asTruffleStringUncached() {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        return tstring.asTruffleStringUncached(encoding.tencoding);
+    }
+
+    public String getJavaString() {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        return TStringUtils.toJavaStringOrThrow(tstring, encoding);
+    }
+
     public Encoding getJCoding() {
         assert encoding.jcoding == rope.encoding;
         return encoding.jcoding;
@@ -136,21 +147,9 @@ public final class RubyString extends RubyDynamicObject {
         return tstring;
     }
 
-    @TruffleBoundary
-    @ExportMessage
-    protected TruffleString asTruffleStringUncached() {
-        return tstring.asTruffleStringUncached(encoding.tencoding);
-    }
-
     @ExportMessage
     public int byteLength() {
         return tstring.byteLength(encoding.tencoding);
-    }
-
-    @TruffleBoundary
-    @ExportMessage
-    protected String getJavaString() {
-        return TStringUtils.toJavaStringOrThrow(tstring, encoding);
     }
     // endregion
 

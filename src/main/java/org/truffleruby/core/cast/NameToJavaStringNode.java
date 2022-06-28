@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
@@ -51,13 +52,13 @@ public abstract class NameToJavaStringNode extends RubyBaseNodeWithExecute {
     @Specialization(guards = "strings.isRubyString(value)")
     protected String stringNameToJavaString(Object value,
             @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-            @Cached ToJavaStringNode toJavaStringNode) {
+            @Cached @Shared("toJavaStringNode") ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.executeToJavaString(value);
     }
 
     @Specialization
     protected String symbolNameToJavaString(RubySymbol value,
-            @Cached ToJavaStringNode toJavaStringNode) {
+            @Cached @Shared("toJavaStringNode") ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.executeToJavaString(value);
     }
 
@@ -70,7 +71,8 @@ public abstract class NameToJavaStringNode extends RubyBaseNodeWithExecute {
     protected String nameToJavaString(Object object,
             @Cached BranchProfile errorProfile,
             @Cached DispatchNode toStr,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
+            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
+            @Cached @Shared("toJavaStringNode") ToJavaStringNode toJavaStringNode) {
         final Object coerced;
         try {
             coerced = toStr.call(object, "to_str");
@@ -86,7 +88,7 @@ public abstract class NameToJavaStringNode extends RubyBaseNodeWithExecute {
         }
 
         if (libString.isRubyString(coerced)) {
-            return libString.getJavaString(coerced);
+            return toJavaStringNode.executeToJavaString(coerced);
         } else {
             errorProfile.enter();
             throw new RaiseException(getContext(), coreExceptions().typeErrorBadCoercion(

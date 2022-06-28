@@ -260,8 +260,9 @@ public abstract class KernelNodes {
         protected Object findFile(Object featureString,
                 @Cached BranchProfile notFoundProfile,
                 @Cached MakeStringNode makeStringNode,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFeatureString) {
-            String feature = libFeatureString.getJavaString(featureString);
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFeatureString,
+                @Cached ToJavaStringNode toJavaStringNode) {
+            String feature = toJavaStringNode.executeToJavaString(featureString);
             return findFileString(feature, notFoundProfile, makeStringNode);
         }
 
@@ -288,7 +289,7 @@ public abstract class KernelNodes {
         protected RubyString getCallerPath(Object feature,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFeature,
                 @Cached MakeStringNode makeStringNode) {
-            final String featureString = libFeature.getJavaString(feature);
+            final String featureString = RubyGuards.getJavaString(feature);
             final String featurePath;
             if (new File(featureString).isAbsolute()) {
                 featurePath = featureString;
@@ -330,9 +331,10 @@ public abstract class KernelNodes {
 
         @Specialization(guards = "libFeatureString.isRubyString(featureString)")
         protected boolean loadFeature(Object featureString, Object expandedPathString,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFeatureString) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFeatureString,
+                @Cached ToJavaStringNode toJavaStringNode) {
             return requireNode.executeRequire(
-                    libFeatureString.getJavaString(featureString),
+                    toJavaStringNode.executeToJavaString(featureString),
                     expandedPathString);
         }
 
@@ -400,7 +402,7 @@ public abstract class KernelNodes {
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final String expandedPath = getContext()
                     .getFeatureLoader()
-                    .canonicalize(strings.getJavaString(string));
+                    .canonicalize(RubyGuards.getJavaString(string));
             return makeStringNode.executeMake(expandedPath, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
         }
 
@@ -740,13 +742,13 @@ public abstract class KernelNodes {
         protected Object evalCached(Object self, Object source, RubyBinding binding, Object file, int line,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSource,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFile,
-                @Cached("libSource.asTruffleStringUncached(source)") TruffleString cachedSource,
+                @Cached("asTruffleStringUncached(source)") TruffleString cachedSource,
                 @Cached("libSource.getEncoding(source)") RubyEncoding cachedSourceEnc,
-                @Cached("libFile.asTruffleStringUncached(file)") TruffleString cachedFile,
+                @Cached("asTruffleStringUncached(file)") TruffleString cachedFile,
                 @Cached("libFile.getEncoding(file)") RubyEncoding cachedFileEnc,
                 @Cached("line") int cachedLine,
                 @Cached("getBindingDescriptor(binding)") FrameDescriptor bindingDescriptor,
-                @Cached("parse(cachedSource, cachedSourceEnc, binding.getFrame(), libFile.getJavaString(file), cachedLine)") RootCallTarget callTarget,
+                @Cached("parse(cachedSource, cachedSourceEnc, binding.getFrame(), getJavaString(file), cachedLine)") RootCallTarget callTarget,
                 @Cached("assignsNewUserVariables(getDescriptor(callTarget))") boolean assignsNewUserVariables,
                 @Cached("create(callTarget)") DirectCallNode callNode,
                 @Cached StringNodes.EqualSameEncodingNode codeEqualNode,
@@ -761,10 +763,11 @@ public abstract class KernelNodes {
         protected Object evalBindingUncached(Object self, Object source, RubyBinding binding, Object file, int line,
                 @Cached IndirectCallNode callNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFile,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSource) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSource,
+                @Cached ToJavaStringNode toJavaStringNode) {
 
             var callTarget = parse(libSource.getTString(source), libSource.getEncoding(source), binding.getFrame(),
-                    libFile.getJavaString(file), line);
+                    toJavaStringNode.executeToJavaString(file), line);
             boolean assignsNewUserVariables = assignsNewUserVariables(getDescriptor(callTarget));
 
             Object[] rubyArgs = prepareEvalArgs(callTarget, assignsNewUserVariables, self, binding);
@@ -1689,7 +1692,7 @@ public abstract class KernelNodes {
         protected RubyString formatCached(VirtualFrame frame, Object format, Object[] arguments,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
                 @Cached("isDebug(frame)") boolean cachedIsDebug,
-                @Cached("libFormat.asTruffleStringUncached(format)") TruffleString cachedTString,
+                @Cached("asTruffleStringUncached(format)") TruffleString cachedTString,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
                 @Cached("cachedTString.byteLength(cachedEncoding.tencoding)") int cachedFormatLength,
                 @Cached("create(compileFormat(cachedTString, cachedEncoding, arguments, isDebug(frame)))") DirectCallNode callPackNode,

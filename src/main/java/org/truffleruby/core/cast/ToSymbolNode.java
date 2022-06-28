@@ -66,7 +66,7 @@ public abstract class ToSymbolNode extends RubyBaseNodeWithExecute {
             limit = "getCacheLimit()")
     protected RubySymbol rubyString(Object str,
             @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-            @Cached(value = "strings.asTruffleStringUncached(str)") TruffleString cachedTString,
+            @Cached(value = "asTruffleStringUncached(str)") TruffleString cachedTString,
             @Cached(value = "strings.getEncoding(str)") RubyEncoding cachedEncoding,
             @Cached StringNodes.EqualSameEncodingNode equalNode,
             @Cached(value = "getSymbol(cachedTString, cachedEncoding)") RubySymbol rubySymbol) {

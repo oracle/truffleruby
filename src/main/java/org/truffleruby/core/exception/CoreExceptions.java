@@ -38,6 +38,7 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
@@ -94,7 +95,7 @@ public class CoreExceptions {
                 from = " at " + debugBacktraceFormatter.formatLine(backtrace.getStackTrace(), 0, null);
             }
             if (RubyStringLibrary.getUncached().isRubyString(message)) {
-                message = RubyStringLibrary.getUncached().getJavaString(message);
+                message = RubyGuards.getJavaString(message);
             }
             final String output = "Exception `" + exceptionClass + "'" + from + " - " + message + "\n";
             if (context.getCoreLibrary().isLoaded()) {
@@ -115,14 +116,14 @@ public class CoreExceptions {
     public String inspect(Object value) {
         Object rubyString = DispatchNode.getUncached().call(
                 context.getCoreLibrary().truffleTypeModule, "rb_inspect", value);
-        return RubyStringLibrary.getUncached().getJavaString(rubyString);
+        return RubyGuards.getJavaString(rubyString);
     }
 
     @TruffleBoundary
     public String inspectReceiver(Object receiver) {
         Object rubyString = DispatchNode.getUncached().call(
                 context.getCoreLibrary().truffleExceptionOperationsModule, "receiver_string", receiver);
-        return RubyStringLibrary.getUncached().getJavaString(rubyString);
+        return RubyGuards.getJavaString(rubyString);
     }
 
     // ArgumentError
@@ -681,8 +682,7 @@ public class CoreExceptions {
     @TruffleBoundary
     public RubyException typeErrorUnsupportedTypeException(UnsupportedTypeException exception, Node currentNode) {
         RubyArray rubyArray = createArray(context, language, exception.getSuppliedValues());
-        String formattedValues = RubyStringLibrary.getUncached()
-                .getJavaString(DispatchNode.getUncached().call(rubyArray, "inspect"));
+        String formattedValues = RubyGuards.getJavaString(DispatchNode.getUncached().call(rubyArray, "inspect"));
         return typeError("unsupported type " + formattedValues, currentNode);
     }
 

@@ -32,6 +32,7 @@ import org.truffleruby.core.support.RubyByteArray;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
@@ -90,8 +91,7 @@ public abstract class PointerNodes {
 
         @TruffleBoundary
         @Specialization
-        protected int findTypeSize(RubySymbol type,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringLibrary) {
+        protected int findTypeSize(RubySymbol type) {
             final String typeString = type.getString();
             final int size = typeSize(typeString);
             if (size > 0) {
@@ -100,7 +100,7 @@ public abstract class PointerNodes {
                 final Object typedef = getContext()
                         .getTruffleNFI()
                         .resolveTypeRaw(getContext().getNativeConfiguration(), typeString);
-                final int typedefSize = typeSize(stringLibrary.getJavaString(typedef));
+                final int typedefSize = typeSize(RubyGuards.getJavaString(typedef));
                 assert typedefSize > 0 : typedef;
                 return typedefSize;
             }

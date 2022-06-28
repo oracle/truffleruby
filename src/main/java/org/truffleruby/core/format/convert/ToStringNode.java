@@ -29,7 +29,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.library.RubyStringLibrary;
 
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
@@ -69,7 +68,7 @@ public abstract class ToStringNode extends FormatNode {
         this.specialClassBehaviour = specialClassBehaviour;
     }
 
-    public abstract Object executeToString(VirtualFrame frame, Object object);
+    public abstract Object executeToString(Object object);
 
     @Specialization
     protected Object toStringNil(Nil nil) {

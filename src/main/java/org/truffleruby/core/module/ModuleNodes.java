@@ -76,6 +76,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
@@ -623,7 +624,7 @@ public abstract class ModuleNodes {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("empty file name", this));
             }
 
-            final String javaStringFilename = libFilename.getJavaString(filename);
+            final String javaStringFilename = RubyGuards.getJavaString(filename);
             module.fields.setAutoloadConstant(getContext(), this, name, filename, javaStringFilename);
             return nil;
         }
@@ -683,20 +684,22 @@ public abstract class ModuleNodes {
                 VirtualFrame frame, RubyModule module, Object code, Object file, NotProvided line, Nil block,
                 @Cached IndirectCallNode callNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libCode,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFile) {
-            return classEvalSource(frame, module, code, libFile.getJavaString(file), callNode);
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFile,
+                @Cached ToJavaStringNode toJavaStringNode) {
+            return classEvalSource(frame, module, code, toJavaStringNode.executeToJavaString(file), callNode);
         }
 
         @Specialization(guards = { "libCode.isRubyString(code)", "wasProvided(file)" })
         protected Object classEval(VirtualFrame frame, RubyModule module, Object code, Object file, int line, Nil block,
                 @Cached IndirectCallNode callNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libCode,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFile) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFile,
+                @Cached ToJavaStringNode toJavaStringNode) {
             final CodeLoader.DeferredCall deferredCall = classEvalSource(
                     frame,
                     module,
                     code,
-                    libFile.getJavaString(file),
+                    toJavaStringNode.executeToJavaString(file),
                     line);
             return deferredCall.call(callNode);
         }
@@ -713,10 +716,11 @@ public abstract class ModuleNodes {
         protected Object classEval(
                 VirtualFrame frame, RubyModule module, Object code, Object file, NotProvided line, Nil block,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringLibrary,
+                @Cached ToJavaStringNode toJavaStringNode,
                 @Cached IndirectCallNode callNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libCode,
                 @Cached ToStrNode toStrNode) {
-            final String javaString = stringLibrary.getJavaString(toStrNode.execute(file));
+            final String javaString = toJavaStringNode.executeToJavaString(toStrNode.execute(file));
             return classEvalSource(frame, module, code, javaString, callNode);
         }
 
@@ -1021,9 +1025,9 @@ public abstract class ModuleNodes {
         protected Object getConstantStringCached(
                 RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsName,
-                @Cached("stringsName.asTruffleStringUncached(name)") TruffleString cachedTString,
+                @Cached("asTruffleStringUncached(name)") TruffleString cachedTString,
                 @Cached("stringsName.getEncoding(name)") RubyEncoding cachedEncoding,
-                @Cached("stringsName.getJavaString(name)") String cachedString,
+                @Cached("getJavaString(name)") String cachedString,
                 @Cached("checkName") boolean cachedCheckName,
                 @Cached StringNodes.EqualNode equalNode,
                 @Cached("isScoped(cachedString)") boolean scoped) {
@@ -1035,16 +1039,18 @@ public abstract class ModuleNodes {
                 replaces = "getConstantStringCached")
         protected Object getConstantString(
                 RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsName) {
-            return getConstant(module, stringsName.getJavaString(name), checkName, lookInObject);
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsName,
+                @Cached ToJavaStringNode toJavaStringNode) {
+            return getConstant(module, toJavaStringNode.executeToJavaString(name), checkName, lookInObject);
         }
 
         @Specialization(
                 guards = { "stringsName.isRubyString(name)", "!inherit", "!isScoped(stringsName.getRope(name))" })
         protected Object getConstantNoInheritString(
                 RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsName) {
-            return getConstantNoInherit(module, stringsName.getJavaString(name), checkName);
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsName,
+                @Cached ToJavaStringNode toJavaStringNode) {
+            return getConstantNoInherit(module, toJavaStringNode.executeToJavaString(name), checkName);
         }
 
         // Scoped String
@@ -1137,7 +1143,7 @@ public abstract class ModuleNodes {
         protected Object constSourceLocation(RubyModule module, Object name, boolean inherit,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             final ConstantLookupResult lookupResult = ModuleOperations
-                    .lookupScopedConstant(getContext(), module, strings.getJavaString(name), inherit, this, true);
+                    .lookupScopedConstant(getContext(), module, RubyGuards.getJavaString(name), inherit, this, true);
 
             return getLocation(lookupResult);
         }

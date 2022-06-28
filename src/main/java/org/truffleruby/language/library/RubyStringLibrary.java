@@ -9,8 +9,6 @@
  */
 package org.truffleruby.language.library;
 
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.GenerateLibrary;
 import com.oracle.truffle.api.library.Library;
 import com.oracle.truffle.api.library.LibraryFactory;
@@ -20,6 +18,8 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.language.RubyBaseNode;
 
+/** It is important that all messages of this library can be trivially implemented without needing any @Cached state or
+ * node. That way, the generated library classes are actually global immutable singletons. */
 @GenerateLibrary
 public abstract class RubyStringLibrary extends Library {
 
@@ -41,17 +41,10 @@ public abstract class RubyStringLibrary extends Library {
 
     public abstract AbstractTruffleString getTString(Object object);
 
-    /** Use to initialize {@link Cached} values */
-    public abstract TruffleString asTruffleStringUncached(Object object);
-
     public abstract RubyEncoding getEncoding(Object object);
 
     public abstract TruffleString.Encoding getTEncoding(Object object);
 
     public abstract int byteLength(Object object);
-
-    /** This is an uncached conversion, for optimized cached conversion to java.lang.String use
-     * {@link InteropLibrary#asString(Object)} instead. */
-    public abstract String getJavaString(Object receiver);
 
 }

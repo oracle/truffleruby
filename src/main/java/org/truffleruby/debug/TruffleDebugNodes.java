@@ -70,6 +70,7 @@ import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
@@ -121,7 +122,7 @@ public abstract class TruffleDebugNodes {
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             final String javaString;
             if (strings.isRubyString(string)) {
-                javaString = strings.getJavaString(string);
+                javaString = RubyGuards.getJavaString(string);
             } else {
                 javaString = string.toString();
             }
@@ -178,7 +179,7 @@ public abstract class TruffleDebugNodes {
         @Specialization(guards = "strings.isRubyString(file)")
         protected RubyHandle setBreak(Object file, int line, RubyProc block,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            final String fileString = strings.getJavaString(file);
+            final String fileString = RubyGuards.getJavaString(file);
 
             final SourceSectionFilter filter = SourceSectionFilter
                     .newBuilder()
@@ -262,7 +263,7 @@ public abstract class TruffleDebugNodes {
         protected Object ast(Object code,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached MakeStringNode makeStringNode) {
-            String codeString = strings.getJavaString(code);
+            String codeString = RubyGuards.getJavaString(code);
             String name = "<parse_ast>";
             var source = Source.newBuilder("ruby", codeString, name).build();
             var rubySource = new RubySource(source, name);
@@ -467,7 +468,7 @@ public abstract class TruffleDebugNodes {
         @Specialization(guards = "strings.isRubyString(message)")
         protected Object throwJavaException(Object message,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            callingMethod(strings.getJavaString(message));
+            callingMethod(RubyGuards.getJavaString(message));
             return nil;
         }
 
@@ -491,7 +492,7 @@ public abstract class TruffleDebugNodes {
         protected Object throwJavaExceptionWithCause(Object message,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             throw new RuntimeException(
-                    strings.getJavaString(message),
+                    RubyGuards.getJavaString(message),
                     new RuntimeException("cause 1", new RuntimeException("cause 2")));
         }
 
@@ -504,7 +505,7 @@ public abstract class TruffleDebugNodes {
         @Specialization(guards = "strings.isRubyString(message)")
         protected Object throwAssertionError(Object message,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            throw new AssertionError(strings.getJavaString(message));
+            throw new AssertionError(RubyGuards.getJavaString(message));
         }
 
     }
@@ -1096,7 +1097,7 @@ public abstract class TruffleDebugNodes {
         @Specialization(guards = "strings.isRubyString(string)")
         protected Object foreignString(Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            return new ForeignString(strings.getJavaString(string));
+            return new ForeignString(RubyGuards.getJavaString(string));
         }
     }
 
@@ -1130,7 +1131,7 @@ public abstract class TruffleDebugNodes {
         @Specialization(guards = "strings.isRubyString(message)")
         protected Object foreignException(Object message,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            return new ForeignException(strings.getJavaString(message));
+            return new ForeignException(RubyGuards.getJavaString(message));
         }
     }
 

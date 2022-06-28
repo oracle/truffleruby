@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.string;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -56,6 +57,16 @@ public final class ImmutableRubyString extends ImmutableRubyObjectCopyable imple
     @Override
     public String toString() {
         return rope.toString();
+    }
+
+    public TruffleString asTruffleStringUncached() {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        return tstring;
+    }
+
+    public String getJavaString() {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        return TStringUtils.toJavaStringOrThrow(tstring, encoding);
     }
 
     public boolean isNative() {
@@ -106,21 +117,9 @@ public final class ImmutableRubyString extends ImmutableRubyObjectCopyable imple
         return tstring;
     }
 
-    @TruffleBoundary
-    @ExportMessage
-    protected TruffleString asTruffleStringUncached() {
-        return tstring;
-    }
-
     @ExportMessage
     public int byteLength() {
         return tstring.byteLength(encoding.tencoding);
-    }
-
-    @TruffleBoundary
-    @ExportMessage
-    protected String getJavaString() {
-        return TStringUtils.toJavaStringOrThrow(tstring, encoding);
     }
     // endregion
 
@@ -173,6 +172,7 @@ public final class ImmutableRubyString extends ImmutableRubyObjectCopyable imple
             return javaString;
         }
 
+        @TruffleBoundary
         @Specialization(replaces = "asStringCached")
         protected static String asStringUncached(ImmutableRubyString string) {
             return string.getJavaString();
