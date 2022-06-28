@@ -140,11 +140,6 @@ public final class RubyString extends RubyDynamicObject {
     }
 
     @ExportMessage
-    protected Rope getRope() {
-        return rope;
-    }
-
-    @ExportMessage
     protected AbstractTruffleString getTString() {
         return tstring;
     }

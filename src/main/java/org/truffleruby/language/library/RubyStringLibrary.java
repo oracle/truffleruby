@@ -15,7 +15,6 @@ import com.oracle.truffle.api.library.LibraryFactory;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.language.RubyBaseNode;
 
 /** It is important that all messages of this library can be trivially implemented without needing any @Cached state or
@@ -36,8 +35,6 @@ public abstract class RubyStringLibrary extends Library {
     public boolean isRubyString(Object receiver) {
         return false;
     }
-
-    public abstract Rope getRope(Object object);
 
     public abstract AbstractTruffleString getTString(Object object);
 

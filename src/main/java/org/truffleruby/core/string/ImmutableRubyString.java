@@ -30,7 +30,6 @@ import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.LeafRope;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.language.ImmutableRubyObjectCopyable;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -107,11 +106,6 @@ public final class ImmutableRubyString extends ImmutableRubyObjectCopyable imple
     @ExportMessage
     protected boolean isRubyString() {
         return true;
-    }
-
-    @ExportMessage
-    protected Rope getRope() {
-        return rope;
     }
 
     @ExportMessage
