@@ -1693,7 +1693,7 @@ public class ParserSupport {
         try {
             pattern = new ClassicRegexp(
                     configuration.getContext(),
-                    TStringUtils.fromRopeWithEnc(regexpNode.getValue(), regexpNode.getRubyEncoding()),
+                    regexpNode.getValue(),
                     regexpNode.getOptions());
         } catch (DeferredRaiseException dre) {
             throw dre.getException(RubyLanguage.getCurrentContext());
@@ -1815,12 +1815,12 @@ public class ParserSupport {
             }
 
             newValue = regexpFragmentCheck(end, newValue);
-            return new RegexpParseNode(position, newValue.toRope(), options.withoutOnce());
+            return new RegexpParseNode(position, newValue, options.withoutOnce());
         } else if (contents instanceof StrParseNode) {
             TStringWithEncoding meat = ((StrParseNode) contents).getTStringWithEncoding();
             meat = regexpFragmentCheck(end, meat);
             checkRegexpSyntax(meat, options.withoutOnce());
-            return new RegexpParseNode(contents.getPosition(), meat.toRope(), options.withoutOnce());
+            return new RegexpParseNode(contents.getPosition(), meat, options.withoutOnce());
         } else if (contents instanceof DStrParseNode) {
             DStrParseNode dStrNode = (DStrParseNode) contents;
 

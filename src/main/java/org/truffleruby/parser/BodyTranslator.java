@@ -19,6 +19,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
 import org.joni.NameEntry;
@@ -61,6 +62,7 @@ import org.truffleruby.core.regexp.RegexWarnDeferredCallback;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.core.string.InterpolatedStringNode;
 import org.truffleruby.core.string.TStringConstants;
@@ -2139,21 +2141,20 @@ public class BodyTranslator extends Translator {
 
         if (node.getReceiverNode() instanceof RegexpParseNode) {
             final RegexpParseNode regexpNode = (RegexpParseNode) node.getReceiverNode();
-            final Rope rope = regexpNode.getValue();
-            final byte[] bytes = rope.getBytes();
+            final TStringWithEncoding source = regexpNode.getValue();
+            final InternalByteArray sourceByteArray = source.getInternalByteArray();
             final Regex regex;
             try {
                 regex = new Regex(
-                        bytes,
-                        0,
-                        bytes.length,
+                        sourceByteArray.getArray(),
+                        sourceByteArray.getOffset(),
+                        sourceByteArray.getEnd(),
                         regexpNode.getOptions().toOptions(),
                         regexpNode.getRubyEncoding().jcoding,
                         Syntax.RUBY,
                         new RegexWarnDeferredCallback(rubyWarnings));
             } catch (Exception e) {
-                var tstring = TStringUtils.fromRope(rope, regexpNode.getRubyEncoding());
-                String errorMessage = ClassicRegexp.getRegexErrorMessage(tstring, e, regexpNode.getOptions());
+                String errorMessage = ClassicRegexp.getRegexErrorMessage(source.tstring, e, regexpNode.getOptions());
                 final RubyContext context = RubyLanguage.getCurrentContext();
                 throw new RaiseException(context, context.getCoreExceptions().regexpError(errorMessage, currentNode));
             }
@@ -2730,12 +2731,11 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitRegexpNode(RegexpParseNode node) {
-        final Rope rope = node.getValue();
-        final RubyEncoding encoding = Encodings.getBuiltInEncoding(rope.getEncoding());
+        final TStringWithEncoding source = node.getValue();
         final RegexpOptions options = node.getOptions().setLiteral(true);
-        var tstring = TStringUtils.fromRope(rope, encoding);
         try {
-            final RubyRegexp regexp = RubyRegexp.create(language, tstring, encoding, options, currentNode);
+            final RubyRegexp regexp = RubyRegexp.create(language, source.tstring, source.encoding, options,
+                    currentNode);
             final ObjectLiteralNode literalNode = new ObjectLiteralNode(regexp);
             literalNode.unsafeSetSourceSection(node.getPosition());
             return addNewlineIfNeeded(node, literalNode);

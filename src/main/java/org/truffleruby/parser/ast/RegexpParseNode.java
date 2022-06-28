@@ -33,20 +33,23 @@ package org.truffleruby.parser.ast;
 
 import java.util.List;
 
+import com.oracle.truffle.api.strings.AbstractTruffleString;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Represents a simple regular expression literal. */
 public class RegexpParseNode extends ParseNode implements ILiteralNode {
-    private final Rope value;
+    private final TStringWithEncoding value;
     private final RegexpOptions options;
 
-    public RegexpParseNode(SourceIndexLength position, Rope value, RegexpOptions options) {
+    public RegexpParseNode(SourceIndexLength position, TStringWithEncoding value, RegexpOptions options) {
         super(position);
 
         this.value = value;
@@ -54,7 +57,7 @@ public class RegexpParseNode extends ParseNode implements ILiteralNode {
     }
 
     public RubyEncoding getRubyEncoding() {
-        return Encodings.getBuiltInEncoding(value.getEncoding());
+        return value.encoding;
     }
 
     @Override
@@ -72,10 +75,8 @@ public class RegexpParseNode extends ParseNode implements ILiteralNode {
         return options;
     }
 
-    /** Gets the value.
-     * 
-     * @return Returns a Rope */
-    public Rope getValue() {
+    /** Gets the regexp source string. */
+    public TStringWithEncoding getValue() {
         return value;
     }
 

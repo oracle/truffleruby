@@ -51,6 +51,7 @@ import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.KCode;
 import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.parser.ast.RegexpParseNode;
@@ -104,9 +105,9 @@ public class StringTerm extends StrTerm {
 
         if ((flags & STR_FUNC_REGEXP) != 0) {
             RegexpOptions options = parseRegexpFlags(lexer);
-            Rope regexpRope = TStringUtils.toRope(TStringConstants.EMPTY_US_ASCII, Encodings.US_ASCII);
             lexer.setState(EXPR_END | EXPR_ENDARG);
-            lexer.setValue(new RegexpParseNode(lexer.getPosition(), regexpRope, options));
+            lexer.setValue(new RegexpParseNode(lexer.getPosition(),
+                    new TStringWithEncoding(TStringConstants.EMPTY_US_ASCII, Encodings.US_ASCII), options));
             return RubyParser.tREGEXP_END;
         }
 
