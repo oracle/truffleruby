@@ -1388,9 +1388,9 @@ public class CExtNodes {
     public abstract static class RbTrMbcCaseFoldNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "strings.isRubyString(string)", limit = "getCacheLimit()")
-        protected Object rbTrEncMbcCaseFold(RubyEncoding enc, int flags, Object string, Object write_p, Object p,
+        protected Object rbTrEncMbcCaseFold(RubyEncoding enc, int flags, Object string, Object advance_p, Object p,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @CachedLibrary("write_p") InteropLibrary receivers,
+                @CachedLibrary("advance_p") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
@@ -1405,7 +1405,8 @@ public class CExtNodes {
             final int resultLength = enc.jcoding.mbcCaseFold(flags, byteArray.getArray(), intHolder, byteArray.getEnd(),
                     to);
 
-            InteropNodes.execute(write_p, new Object[]{ p, intHolder.value }, receivers, translateInteropExceptionNode);
+            InteropNodes.execute(advance_p, new Object[]{ p, intHolder.value }, receivers,
+                    translateInteropExceptionNode);
 
             final byte[] result = new byte[resultLength];
             if (resultLength > 0) {
