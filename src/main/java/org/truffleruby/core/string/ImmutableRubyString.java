@@ -18,11 +18,13 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.CExtNodes;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.kernel.KernelNodes;
@@ -172,9 +174,21 @@ public final class ImmutableRubyString extends ImmutableRubyObjectCopyable imple
             return javaString;
         }
 
-        @TruffleBoundary
         @Specialization(replaces = "asStringCached")
-        protected static String asStringUncached(ImmutableRubyString string) {
+        protected static String asStringUncached(ImmutableRubyString string,
+                @Cached TruffleString.GetByteCodeRangeNode codeRangeNode,
+                @Cached TruffleString.ToJavaStringNode toJavaStringNode,
+                @Cached ConditionProfile binaryNonAsciiProfile) {
+            if (binaryNonAsciiProfile.profile(string.encoding == Encodings.BINARY &&
+                    !StringGuards.is7Bit(string.tstring, string.encoding, codeRangeNode))) {
+                return getJavaStringBoundary(string);
+            } else {
+                return toJavaStringNode.execute(string.tstring);
+            }
+        }
+
+        @TruffleBoundary
+        private static String getJavaStringBoundary(ImmutableRubyString string) {
             return string.getJavaString();
         }
 

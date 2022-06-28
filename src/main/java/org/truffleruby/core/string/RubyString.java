@@ -14,11 +14,13 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.MutableTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.klass.RubyClass;
@@ -190,10 +192,22 @@ public final class RubyString extends RubyDynamicObject {
             return javaString;
         }
 
-        @TruffleBoundary
         @Specialization(replaces = "asStringCached")
-        protected static String asStringUncached(RubyString string) {
-            return TStringUtils.toJavaStringOrThrow(string.tstring, string.encoding);
+        protected static String asStringUncached(RubyString string,
+                @Cached TruffleString.GetByteCodeRangeNode codeRangeNode,
+                @Cached TruffleString.ToJavaStringNode toJavaStringNode,
+                @Cached ConditionProfile binaryNonAsciiProfile) {
+            if (binaryNonAsciiProfile.profile(string.encoding == Encodings.BINARY &&
+                    !StringGuards.is7Bit(string.tstring, string.encoding, codeRangeNode))) {
+                return getJavaStringBoundary(string);
+            } else {
+                return toJavaStringNode.execute(string.tstring);
+            }
+        }
+
+        @TruffleBoundary
+        private static String getJavaStringBoundary(RubyString string) {
+            return string.getJavaString();
         }
 
         protected static int getLimit() {
