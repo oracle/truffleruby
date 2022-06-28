@@ -9,16 +9,16 @@
  */
 package org.truffleruby.core.range;
 
-import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.language.ImmutableRubyObject;
 
-public final class RubyLongRange extends RubyRange {
+public final class RubyLongRange extends ImmutableRubyObject {
 
     public final long begin;
     public final long end;
+    public final boolean excludedEnd;
 
-    public RubyLongRange(RubyClass rubyClass, Shape shape, boolean excludedEnd, long begin, long end, boolean frozen) {
-        super(rubyClass, shape, excludedEnd, frozen);
+    public RubyLongRange(boolean excludedEnd, long begin, long end) {
+        this.excludedEnd = excludedEnd;
         this.begin = begin;
         this.end = end;
     }

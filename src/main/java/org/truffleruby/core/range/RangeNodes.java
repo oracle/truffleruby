@@ -160,6 +160,16 @@ public abstract class RangeNodes {
             return range.excludedEnd;
         }
 
+        @Specialization
+        protected boolean excludeEnd(RubyIntRange range) {
+            return range.excludedEnd;
+        }
+
+        @Specialization
+        protected boolean excludeEnd(RubyLongRange range) {
+            return range.excludedEnd;
+        }
+
     }
 
     @CoreMethod(names = "begin")
@@ -189,12 +199,11 @@ public abstract class RangeNodes {
         //   We do copy the logical class (but not the singleton class, to be MRI compatible).
 
         @Specialization
-        protected RubyIntRange dupIntRange(RubyIntRange range) {
+        protected RubyObjectRange dupIntRange(RubyIntRange range) {
             // RubyIntRange means this isn't a Range subclass (cf. NewNode), we can use the shape directly.
-            final Shape shape = getLanguage().intRangeShape;
-            final RubyIntRange copy = new RubyIntRange(
+            final RubyObjectRange copy = new RubyObjectRange(
                     coreLibrary().rangeClass,
-                    shape,
+                    getLanguage().objectRangeShape,
                     range.excludedEnd,
                     range.begin,
                     range.end,
@@ -204,12 +213,11 @@ public abstract class RangeNodes {
         }
 
         @Specialization
-        protected RubyLongRange dupLongRange(RubyLongRange range) {
+        protected RubyObjectRange dupLongRange(RubyLongRange range) {
             // RubyLongRange means this isn't a Range subclass (cf. NewNode), we can use the shape directly.
-            final Shape shape = getLanguage().longRangeShape;
-            final RubyLongRange copy = new RubyLongRange(
+            final RubyObjectRange copy = new RubyObjectRange(
                     coreLibrary().rangeClass,
-                    shape,
+                    getLanguage().objectRangeShape,
                     range.excludedEnd,
                     range.begin,
                     range.end,
@@ -434,28 +442,19 @@ public abstract class RangeNodes {
         protected RubyIntRange intRange(RubyClass rubyClass, int begin, int end, boolean excludeEnd) {
             // Not a Range subclass, we can use the shape directly.
             final RubyIntRange range = new RubyIntRange(
-                    coreLibrary().rangeClass,
-                    getLanguage().intRangeShape,
                     excludeEnd,
                     begin,
-                    end,
-                    true);
-            AllocationTracing.trace(range, this);
+                    end);
             return range;
         }
 
         @Specialization(guards = { "rubyClass == getRangeClass()", "fitsInInteger(begin)", "fitsInInteger(end)" })
         protected RubyIntRange longFittingIntRange(RubyClass rubyClass, long begin, long end, boolean excludeEnd) {
             // Not a Range subclass, we can use the shape directly.
-            final Shape shape = getLanguage().intRangeShape;
             final RubyIntRange range = new RubyIntRange(
-                    coreLibrary().rangeClass,
-                    shape,
                     excludeEnd,
                     (int) begin,
-                    (int) end,
-                    true);
-            AllocationTracing.trace(range, this);
+                    (int) end);
             return range;
         }
 
@@ -463,13 +462,9 @@ public abstract class RangeNodes {
         protected RubyLongRange longRange(RubyClass rubyClass, long begin, long end, boolean excludeEnd) {
             // Not a Range subclass, we can use the shape directly.
             final RubyLongRange range = new RubyLongRange(
-                    coreLibrary().rangeClass,
-                    getLanguage().longRangeShape,
                     excludeEnd,
                     begin,
-                    end,
-                    true);
-            AllocationTracing.trace(range, this);
+                    end);
             return range;
         }
 
@@ -522,7 +517,7 @@ public abstract class RangeNodes {
         @Child NormalizedStartLengthNode startLengthNode = NormalizedStartLengthNode.create();
 
         @Specialization
-        protected RubyArray normalize(RubyRange range, int size) {
+        protected RubyArray normalize(Object range, int size) {
             return createArray(startLengthNode.execute(range, size));
         }
     }
@@ -534,7 +529,7 @@ public abstract class RangeNodes {
             return RangeNodesFactory.NormalizedStartLengthNodeGen.create();
         }
 
-        public abstract int[] execute(RubyRange range, int size);
+        public abstract int[] execute(Object range, int size);
 
         private final BranchProfile overflow = BranchProfile.create();
         private final ConditionProfile notExcluded = ConditionProfile.create();

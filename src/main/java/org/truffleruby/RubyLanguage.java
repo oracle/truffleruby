@@ -260,9 +260,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final Shape handleShape = createShape(RubyHandle.class);
     public final Shape hashShape = createShape(RubyHash.class);
     public final Shape innerContextShape = createShape(RubyInnerContext.class);
-    public final Shape intRangeShape = createShape(RubyIntRange.class);
     public final Shape ioShape = createShape(RubyIO.class);
-    public final Shape longRangeShape = createShape(RubyLongRange.class);
     public final Shape matchDataShape = createShape(RubyMatchData.class);
     public final Shape methodShape = createShape(RubyMethod.class);
     public final Shape mutexShape = createShape(RubyMutex.class);

@@ -59,6 +59,8 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RangeNodes.NormalizedStartLengthNode;
+import org.truffleruby.core.range.RubyIntRange;
+import org.truffleruby.core.range.RubyLongRange;
 import org.truffleruby.core.range.RubyRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -285,6 +287,24 @@ public abstract class ArrayNodes {
             return readSlice.executeReadSlice(array, startLength[0], len);
         }
 
+        @Specialization
+        protected Object indexIntRange(RubyArray array, RubyIntRange range, NotProvided length,
+                @Cached NormalizedStartLengthNode startLengthNode,
+                @Cached ReadSliceNormalizedNode readSlice) {
+            final int[] startLength = startLengthNode.execute(range, array.size);
+            final int len = Math.max(startLength[1], 0); // negative range ending maps to zero length
+            return readSlice.executeReadSlice(array, startLength[0], len);
+        }
+
+        @Specialization
+        protected Object indexLongRange(RubyArray array, RubyLongRange range, NotProvided length,
+                @Cached NormalizedStartLengthNode startLengthNode,
+                @Cached ReadSliceNormalizedNode readSlice) {
+            final int[] startLength = startLengthNode.execute(range, array.size);
+            final int len = Math.max(startLength[1], 0); // negative range ending maps to zero length
+            return readSlice.executeReadSlice(array, startLength[0], len);
+        }
+
         @Specialization(guards = { "isArithmeticSequence(index, isANode)" })
         protected Object indexArithmeticSequence(RubyArray array, Object index, NotProvided length,
                 @Cached IsANode isANode,
@@ -362,6 +382,40 @@ public abstract class ArrayNodes {
 
         @Specialization
         protected Object setRange(RubyArray array, RubyRange range, Object value, NotProvided unused,
+                @Cached NormalizedStartLengthNode normalizedStartLength,
+                @Cached BranchProfile negativeStart) {
+            final int[] startLength = normalizedStartLength.execute(range, array.size);
+            final int start = startLength[0];
+            if (start < 0) {
+                negativeStart.enter();
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().rangeError(Utils.concat("index ", start, " out of bounds"), this));
+            }
+            final int length = Math.max(startLength[1], 0); // negative range ending maps to zero length
+            return executeIntIndices(array, start, length, value);
+        }
+
+
+        @Specialization
+        protected Object setIngRange(RubyArray array, RubyIntRange range, Object value, NotProvided unused,
+                @Cached NormalizedStartLengthNode normalizedStartLength,
+                @Cached BranchProfile negativeStart) {
+            final int[] startLength = normalizedStartLength.execute(range, array.size);
+            final int start = startLength[0];
+            if (start < 0) {
+                negativeStart.enter();
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().rangeError(Utils.concat("index ", start, " out of bounds"), this));
+            }
+            final int length = Math.max(startLength[1], 0); // negative range ending maps to zero length
+            return executeIntIndices(array, start, length, value);
+        }
+
+
+        @Specialization
+        protected Object setLongRange(RubyArray array, RubyLongRange range, Object value, NotProvided unused,
                 @Cached NormalizedStartLengthNode normalizedStartLength,
                 @Cached BranchProfile negativeStart) {
             final int[] startLength = normalizedStartLength.execute(range, array.size);
