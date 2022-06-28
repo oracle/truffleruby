@@ -27,7 +27,6 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.rope.CannotConvertBinaryRubyStringToJavaString;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.ManagedRope;
-import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.TStringWithEncoding;
@@ -68,20 +67,8 @@ public class TStringUtils {
         return truffleString;
     }
 
-    public static MutableTruffleString fromRope(NativeRope rope, RubyEncoding rubyEncoding) {
-        assert rope.encoding == rubyEncoding.jcoding;
-        var tstring = MutableTruffleString.fromNativePointerUncached(rope.getNativePointer(), 0, rope.byteLength(),
-                rubyEncoding.tencoding, false);
-        assert assertEqual(rope, tstring, rubyEncoding);
-        return tstring;
-    }
-
     public static AbstractTruffleString fromRope(Rope rope, RubyEncoding rubyEncoding) {
-        if (rope instanceof ManagedRope) {
-            return fromRope((ManagedRope) rope, rubyEncoding);
-        } else {
-            return fromRope((NativeRope) rope, rubyEncoding);
-        }
+        return fromRope((ManagedRope) rope, rubyEncoding);
     }
 
     public static TStringWithEncoding fromRopeWithEnc(ManagedRope rope, RubyEncoding rubyEncoding) {
@@ -177,14 +164,7 @@ public class TStringUtils {
         assert truffleString.toString() != null;
 
         StringAttributes stringAttributes = null;
-        final CodeRange codeRange;
-        if (rope instanceof NativeRope) { // ignore the cached CodeRange/characterLength which might not match
-            stringAttributes = RopeOperations.calculateCodeRangeAndLength(rope.getEncoding(), rope.getBytes(), 0,
-                    rope.byteLength());
-            codeRange = stringAttributes.getCodeRange();
-        } else {
-            codeRange = rope.getCodeRange();
-        }
+        final CodeRange codeRange = rope.getCodeRange();
 
         // Can't assert for mutable native tstrings as that would have the side effect to cache coderange & characterLength
         // without invalidating. And if we invalidate unconditionally we also have an unintended side effect which can
@@ -192,9 +172,7 @@ public class TStringUtils {
         TruffleString.CodeRange tCodeRange = truffleString.getByteCodeRangeUncached(tencoding);
         assert toCodeRange(tCodeRange) == codeRange : codeRange + " vs " + tCodeRange;
 
-        final int characterLength = rope instanceof NativeRope
-                ? stringAttributes.getCharacterLength()
-                : rope.characterLength();
+        final int characterLength = rope.characterLength();
         assert truffleString.codePointLengthUncached(tencoding) == characterLength;
         return true;
     }

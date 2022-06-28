@@ -211,10 +211,6 @@ public class RopeOperations {
             return rope.getRawBytes();
         }
 
-        if (rope instanceof NativeRope) {
-            return rope.getBytes();
-        }
-
         int bufferPosition = 0;
         int byteOffset = 0;
 

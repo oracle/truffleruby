@@ -138,7 +138,6 @@ import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.ATStringWithEncoding;
 import org.truffleruby.core.rope.Bytes;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
@@ -1869,10 +1868,6 @@ public abstract class StringNodes {
 
                 writeAssociatedNode.execute(self, Layouts.ASSOCIATED_IDENTIFIER, associated);
             }
-        }
-
-        protected boolean isNativeRope(Rope other) {
-            return other instanceof NativeRope;
         }
     }
 

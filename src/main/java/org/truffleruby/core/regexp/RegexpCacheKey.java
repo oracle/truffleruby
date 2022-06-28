@@ -12,7 +12,6 @@ package org.truffleruby.core.regexp;
 import java.util.Objects;
 
 import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
@@ -37,7 +36,6 @@ public final class RegexpCacheKey {
     public final RegexpOptions options;
 
     private RegexpCacheKey(Rope rope, RubyEncoding encoding, RegexpOptions options) {
-        assert !(rope instanceof NativeRope);
         this.rope = rope;
         this.encoding = encoding;
         this.options = options;
