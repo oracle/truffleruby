@@ -135,6 +135,7 @@ import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.range.RubyLongRange;
 import org.truffleruby.core.range.RubyObjectRange;
 import org.truffleruby.core.regexp.RubyRegexp;
+import org.truffleruby.core.rope.ATStringWithEncoding;
 import org.truffleruby.core.rope.Bytes;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.NativeRope;
@@ -1173,43 +1174,52 @@ public abstract class StringNodes {
         @Specialization(
                 guards = {
                         "cachedArgs.length > 0",
-                        "!isEmpty(libString.getTString(string))",
+                        "!isEmpty(tstring)",
                         "cachedArgs.length == args.length",
                         "argsMatch(cachedArgs, args)",
-                        "libString.getEncoding(string) == cachedEncoding" })
+                        "encoding == cachedEncoding" })
         protected int countFast(Object string, TStringWithEncoding[] args,
                 @Cached(value = "args", dimensions = 1) TStringWithEncoding[] cachedArgs,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
+                @Bind("libString.getTString(string)") AbstractTruffleString tstring,
+                @Bind("libString.getEncoding(string)") RubyEncoding encoding,
                 @Cached("libString.getEncoding(string)") RubyEncoding cachedEncoding,
                 @Cached(value = "squeeze()", dimensions = 1) boolean[] squeeze,
                 @Cached("findEncoding(libString.getTString(string), libString.getEncoding(string), cachedArgs)") RubyEncoding compatEncoding,
-                @Cached("makeTables(cachedArgs, squeeze, compatEncoding)") TrTables tables) {
-            return processStr(libString.getRope(string), squeeze, compatEncoding, tables);
-        }
-
-        @TruffleBoundary
-        private int processStr(Rope rope, boolean[] squeeze, RubyEncoding compatEncoding, TrTables tables) {
-            return StringSupport.strCount(rope, squeeze, tables, compatEncoding.jcoding, this);
+                @Cached("makeTables(cachedArgs, squeeze, compatEncoding)") TrTables tables,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
+                @Cached GetByteCodeRangeNode getByteCodeRangeNode) {
+            var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
+            var codeRange = getByteCodeRangeNode.execute(tstring, encoding.tencoding);
+            return StringSupport.strCount(byteArray, codeRange, squeeze, tables, compatEncoding.jcoding, this);
         }
 
         @Specialization(guards = "!isEmpty(libString.getTString(string))")
         protected int count(Object string, TStringWithEncoding[] ropesWithEncs,
                 @Cached BranchProfile errorProfile,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
+                @Cached GetByteCodeRangeNode getByteCodeRangeNode) {
             if (ropesWithEncs.length == 0) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorEmptyVarargs(this));
             }
 
-            RubyEncoding enc = findEncoding(libString.getTString(string), libString.getEncoding(string), ropesWithEncs);
-            return countSlow(libString.getRope(string), ropesWithEncs, enc);
+            var tstring = libString.getTString(string);
+            var encoding = libString.getEncoding(string);
+            var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
+            var codeRange = getByteCodeRangeNode.execute(tstring, encoding.tencoding);
+
+            RubyEncoding enc = findEncoding(tstring, encoding, ropesWithEncs);
+            return countSlow(byteArray, codeRange, ropesWithEncs, enc);
         }
 
         @TruffleBoundary
-        private int countSlow(Rope stringRope, TStringWithEncoding[] ropesWithEncs, RubyEncoding enc) {
+        private int countSlow(InternalByteArray byteArray, TruffleString.CodeRange codeRange,
+                TStringWithEncoding[] ropesWithEncs, RubyEncoding enc) {
             final boolean[] table = squeeze();
             final StringSupport.TrTables tables = makeTables(ropesWithEncs, table, enc);
-            return processStr(stringRope, table, enc, tables);
+            return StringSupport.strCount(byteArray, codeRange, table, tables, enc.jcoding, this);
         }
     }
 
@@ -2318,7 +2328,7 @@ public abstract class StringNodes {
         protected RubyString dumpAsciiCompatible(Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
-            ByteArrayBuilder outputBytes = dumpCommon(libString.getRope(string));
+            ByteArrayBuilder outputBytes = dumpCommon(new ATStringWithEncoding(libString, string));
 
             return createString(fromByteArrayNode, outputBytes.getBytes(), libString.getEncoding(string));
         }
@@ -2328,7 +2338,7 @@ public abstract class StringNodes {
         protected RubyString dump(Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
-            ByteArrayBuilder outputBytes = dumpCommon(libString.getRope(string));
+            ByteArrayBuilder outputBytes = dumpCommon(new ATStringWithEncoding(libString, string));
 
             outputBytes.append(FORCE_ENCODING_CALL_BYTES);
             outputBytes.append(libString.getEncoding(string).jcoding.getName());
@@ -2339,9 +2349,9 @@ public abstract class StringNodes {
         }
 
         // Taken from org.jruby.RubyString#dump
-        private ByteArrayBuilder dumpCommon(Rope rope) {
+        private ByteArrayBuilder dumpCommon(ATStringWithEncoding rope) {
             ByteArrayBuilder buf = null;
-            final Encoding enc = rope.getEncoding();
+            final Encoding enc = rope.encoding.jcoding;
             final CodeRange cr = rope.getCodeRange();
 
             int p = 0;
@@ -3026,15 +3036,7 @@ public abstract class StringNodes {
                 checkEncodingNode = insert(CheckEncodingNode.create());
             }
 
-            return StringNodesHelper.trTransHelper(
-                    checkEncodingNode,
-                    self,
-                    self.rope,
-                    fromStr,
-                    libFromStr.getRope(fromStr),
-                    toStr,
-                    libToStr.getRope(toStr),
-                    false,
+            return StringNodesHelper.trTransHelper(checkEncodingNode, self, libFromStr, fromStr, libToStr, toStr, false,
                     this);
         }
     }
@@ -3087,15 +3089,7 @@ public abstract class StringNodes {
                 checkEncodingNode = insert(CheckEncodingNode.create());
             }
 
-            return StringNodesHelper.trTransHelper(
-                    checkEncodingNode,
-                    self,
-                    self.rope,
-                    fromStr,
-                    libFromStr.getRope(fromStr),
-                    toStr,
-                    libToStr.getRope(toStr),
-                    true,
+            return StringNodesHelper.trTransHelper(checkEncodingNode, self, libFromStr, fromStr, libToStr, toStr, true,
                     this);
         }
     }
@@ -3564,15 +3558,19 @@ public abstract class StringNodes {
     public static class StringNodesHelper {
 
         @TruffleBoundary
-        private static Object trTransHelper(CheckEncodingNode checkEncodingNode, RubyString self, Rope selfRope,
-                Object fromStr, Rope fromStrRope,
-                Object toStr, Rope toStrRope, boolean sFlag, Node node) {
+        private static Object trTransHelper(CheckEncodingNode checkEncodingNode, RubyString self,
+                RubyStringLibrary libFromStr, Object fromStr,
+                RubyStringLibrary libToStr, Object toStr, boolean sFlag, Node node) {
             final RubyEncoding e1 = checkEncodingNode.executeCheckEncoding(self, fromStr);
             final RubyEncoding e2 = checkEncodingNode.executeCheckEncoding(self, toStr);
             final RubyEncoding enc = e1 == e2 ? e1 : checkEncodingNode.executeCheckEncoding(fromStr, toStr);
 
+            var selfTStringWithEnc = new ATStringWithEncoding(self.tstring, self.encoding);
+            var fromStrTStringWithEnc = new ATStringWithEncoding(libFromStr, fromStr);
+            var toStrTStringWithEnc = new ATStringWithEncoding(libToStr, toStr);
             final Rope ret = StringSupport
-                    .trTransHelper(selfRope, fromStrRope, toStrRope, e1.jcoding, enc.jcoding, sFlag, node);
+                    .trTransHelper(selfTStringWithEnc, fromStrTStringWithEnc, toStrTStringWithEnc, e1.jcoding,
+                            enc.jcoding, sFlag, node);
             if (ret == null) {
                 return Nil.INSTANCE;
             }

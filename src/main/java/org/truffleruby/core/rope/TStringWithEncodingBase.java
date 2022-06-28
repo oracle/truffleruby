@@ -11,6 +11,7 @@ package org.truffleruby.core.rope;
 
 import java.util.Objects;
 
+import com.oracle.truffle.api.strings.TruffleString.CopyToByteArrayNode;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.StringGuards;
@@ -125,10 +126,19 @@ abstract class TStringWithEncodingBase {
         return tstring.createCodePointIteratorUncached(encoding.tencoding);
     }
 
-    // TODO: should return InternalByteArray and use that instead
+    public boolean isSingleByteOptimizable() {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        return isAsciiOnly() || encoding.jcoding.isSingleByte();
+    }
+
+    public byte[] getBytesCopy() {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        return CopyToByteArrayNode.getUncached().execute(tstring, encoding.tencoding);
+    }
+
+    /** TODO: should return InternalByteArray and use that instead */
     public byte[] getBytes() {
         CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
         return TStringUtils.getBytesOrCopy(tstring, encoding);
     }
-
 }

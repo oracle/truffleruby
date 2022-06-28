@@ -53,6 +53,7 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
+import org.truffleruby.core.rope.ATStringWithEncoding;
 import org.truffleruby.core.rope.Bytes;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
@@ -516,10 +517,11 @@ public final class StringSupport {
 
     /** rb_str_count */
     @TruffleBoundary
-    public static int strCount(Rope str, boolean[] table, TrTables tables, Encoding enc, Node node) {
-        final byte[] bytes = str.getBytes();
-        int p = 0;
-        final int end = str.byteLength();
+    public static int strCount(InternalByteArray byteArray, TruffleString.CodeRange codeRange, boolean[] table,
+            TrTables tables, Encoding enc, Node node) {
+        final byte[] bytes = byteArray.getArray();
+        int p = byteArray.getOffset();
+        final int end = byteArray.getEnd();
         final boolean asciiCompat = enc.isAsciiCompatible();
 
         int count = 0;
@@ -531,7 +533,7 @@ public final class StringSupport {
                 }
                 p++;
             } else {
-                c = codePoint(enc, str.getCodeRange(), bytes, p, end, node);
+                c = codePoint(enc, codeRange, bytes, p, end, node);
                 int cl = codeLength(enc, c);
                 if (trFind(c, table, tables)) {
                     count++;
@@ -1073,14 +1075,15 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static Rope trTransHelper(Rope self, Rope srcStr, Rope replStr, Encoding e1, Encoding enc, boolean sflag,
-            Node node) {
+    public static Rope trTransHelper(ATStringWithEncoding self, ATStringWithEncoding srcStr,
+            ATStringWithEncoding replStr, Encoding e1, Encoding enc,
+            boolean sflag, Node node) {
         // This method does not handle the cases where either srcStr or replStr are empty.  It is the responsibility
         // of the caller to take the appropriate action in those cases.
 
         CodeRange cr = self.getCodeRange();
 
-        final StringSupport.TR trSrc = new StringSupport.TR(srcStr);
+        final StringSupport.TR trSrc = new StringSupport.TR(srcStr.tstring, srcStr.encoding);
         boolean cflag = false;
         int[] l = { 0 };
 
@@ -1093,7 +1096,7 @@ public final class StringSupport {
 
         int c, c0, last = 0;
         final int[] trans = new int[StringSupport.TRANS_SIZE];
-        final StringSupport.TR trRepl = new StringSupport.TR(replStr);
+        final StringSupport.TR trRepl = new StringSupport.TR(replStr.tstring, replStr.encoding);
         boolean modified = false;
         IntHash<Integer> hash = null;
         boolean singlebyte = self.isSingleByteOptimizable();

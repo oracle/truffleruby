@@ -28,6 +28,7 @@ import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.api.strings.TruffleString.ByteIndexOfStringNode;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -66,14 +67,13 @@ import org.truffleruby.core.module.ModuleNodesFactory.IsSubclassOfOrEqualToNodeF
 import org.truffleruby.core.module.ModuleNodesFactory.SetMethodVisibilityNodeGen;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.ToJavaStringNode;
@@ -991,6 +991,7 @@ public abstract class ModuleNodes {
         @Child private LookupConstantNode lookupConstantLookInObjectNode = LookupConstantNode.create(true, true);
         @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, false);
         @Child private GetConstantNode getConstantNode = GetConstantNode.create();
+        @Child private ByteIndexOfStringNode byteIndexOfStringNode;
 
         @CreateCast("name")
         protected RubyBaseNodeWithExecute coerceToSymbolOrString(RubyBaseNodeWithExecute name) {
@@ -1035,7 +1036,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(
-                guards = { "stringsName.isRubyString(name)", "inherit", "!isScoped(stringsName.getRope(name))" },
+                guards = { "stringsName.isRubyString(name)", "inherit", "!isScoped(stringsName, name)" },
                 replaces = "getConstantStringCached")
         protected Object getConstantString(
                 RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
@@ -1045,7 +1046,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(
-                guards = { "stringsName.isRubyString(name)", "!inherit", "!isScoped(stringsName.getRope(name))" })
+                guards = { "stringsName.isRubyString(name)", "!inherit", "!isScoped(stringsName, name)" })
         protected Object getConstantNoInheritString(
                 RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsName,
@@ -1054,7 +1055,7 @@ public abstract class ModuleNodes {
         }
 
         // Scoped String
-        @Specialization(guards = { "stringsName.isRubyString(name)", "isScoped(stringsName.getRope(name))" })
+        @Specialization(guards = { "stringsName.isRubyString(name)", "isScoped(stringsName, name)" })
         protected Object getConstantScoped(
                 RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsName) {
@@ -1087,12 +1088,19 @@ public abstract class ModuleNodes {
                     .getConstant();
         }
 
-        @TruffleBoundary
-        boolean isScoped(Rope name) {
-            // TODO (eregon, 27 May 2015): Any way to make this efficient?
-            return RopeOperations.decodeRope(name).contains("::");
+        boolean isScoped(RubyStringLibrary libString, Object string) {
+            if (byteIndexOfStringNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                byteIndexOfStringNode = insert(ByteIndexOfStringNode.create());
+            }
+
+            var tstring = libString.getTString(string);
+            var encoding = libString.getTEncoding(string);
+            int byteLength = tstring.byteLength(encoding);
+            return byteIndexOfStringNode.execute(tstring, TStringConstants.COLON_COLON, 0, byteLength, encoding) >= 0;
         }
 
+        @TruffleBoundary
         boolean isScoped(String name) {
             return name.contains("::");
         }
