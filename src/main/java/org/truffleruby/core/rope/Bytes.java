@@ -52,10 +52,6 @@ public final class Bytes implements TruffleObject {
     }
 
     /** Just like {@link #fromRange(byte[], int, int)}, but will clamp the length to stay within the bounds. */
-    public static Bytes fromRangeClamped(byte[] array, int start, int end) {
-        return fromRange(array, start, Math.min(array.length, end));
-    }
-
     public static Bytes fromRangeClamped(InternalByteArray byteArray, int start, int length) {
         int clampedLength = Math.min(byteArray.getLength() - start, length);
 
@@ -71,26 +67,6 @@ public final class Bytes implements TruffleObject {
 
     public boolean isEmpty() {
         return length == 0;
-    }
-
-    public Bytes slice(int offset, int length) {
-        assert offset >= 0 && length >= 0 && offset + length <= this.length;
-        return new Bytes(this.array, this.offset + offset, length);
-    }
-
-    public Bytes sliceRange(int start, int end) {
-        assert start >= 0 && end >= 0 && start <= end && end <= this.length;
-        return new Bytes(this.array, this.offset + start, end - start);
-    }
-
-    /** Just like {@link #slice(int, int)}}, but will clamp the length to stay within the bounds. */
-    public Bytes clampedSlice(int offset, int length) {
-        return slice(offset, Math.min(length, this.length - offset));
-    }
-
-    /** Just like {@link #sliceRange(int, int)}}, but will clamp the end offset to stay within the bounds. */
-    public Bytes clampedRange(int start, int end) {
-        return sliceRange(start, Math.min(end, this.length));
     }
 
     public byte get(int i) {
