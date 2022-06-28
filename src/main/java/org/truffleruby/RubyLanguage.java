@@ -73,7 +73,6 @@ import org.truffleruby.core.regexp.RegexpTable;
 import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.PathToRopeCache;
-import org.truffleruby.core.rope.RopeCache;
 import org.truffleruby.core.rope.TStringCache;
 import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.FrozenStringLiterals;
@@ -211,7 +210,6 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final CoreStrings coreStrings;
     public final CoreSymbols coreSymbols;
     public final PrimitiveManager primitiveManager;
-    public final RopeCache ropeCache;
     public final TStringCache tstringCache;
     public final RegexpTable regexpTable;
     public final SymbolTable symbolTable;
@@ -325,7 +323,6 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         coreStrings = new CoreStrings(this);
         coreSymbols = new CoreSymbols();
         primitiveManager = new PrimitiveManager();
-        ropeCache = new RopeCache(coreSymbols);
         tstringCache = new TStringCache(coreSymbols);
         symbolTable = new SymbolTable(tstringCache, coreSymbols);
         regexpTable = new RegexpTable();

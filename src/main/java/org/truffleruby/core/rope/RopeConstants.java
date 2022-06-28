@@ -9,17 +9,12 @@
  */
 package org.truffleruby.core.rope;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 
 public class RopeConstants {
-
-    public static final Map<String, LeafRope> ROPE_CONSTANTS = new HashMap<>();
 
     public static final byte[] EMPTY_BYTES = new byte[0];
 
@@ -48,14 +43,6 @@ public class RopeConstants {
         }
     }
 
-
-    public static LeafRope lookupUSASCII(String string) {
-        if (string.length() == 1) {
-            return US_ASCII_SINGLE_BYTE_ROPES[string.charAt(0)];
-        } else {
-            return ROPE_CONSTANTS.get(string);
-        }
-    }
 
     private static <T> T withHashCode(T object) {
         object.hashCode();

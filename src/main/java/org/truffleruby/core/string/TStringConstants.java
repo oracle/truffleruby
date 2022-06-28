@@ -11,12 +11,7 @@ package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.strings.TruffleString;
-import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
-import org.truffleruby.core.rope.AsciiOnlyLeafRope;
-import org.truffleruby.core.rope.LeafRope;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeConstants;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -211,19 +206,11 @@ public class TStringConstants {
         if (string.length() == 1) {
             return US_ASCII_SINGLE_BYTE[string.charAt(0)];
         } else {
-            final byte[] bytes = StringOperations.encodeAsciiBytes(string);
-            final LeafRope rope = withHashCode(new AsciiOnlyLeafRope(bytes, USASCIIEncoding.INSTANCE));
-            final Rope existing = RopeConstants.ROPE_CONSTANTS.putIfAbsent(string, rope);
-
-            if (existing != null) {
-                throw new AssertionError("Duplicate Rope in RopeConstants: " + existing);
-            }
-
             final TruffleString tstring = TStringUtils.fromJavaString(string, TruffleString.Encoding.US_ASCII);
             var before = TSTRING_CONSTANTS.putIfAbsent(string, tstring);
 
             if (before != null) {
-                throw new AssertionError("Duplicate TruffleString in RopeConstants: " + before);
+                throw new AssertionError("Duplicate TruffleString in TStringConstants: " + before);
             }
 
             return tstring;

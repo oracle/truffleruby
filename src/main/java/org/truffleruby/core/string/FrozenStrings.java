@@ -13,15 +13,12 @@ import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.LeafRope;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class FrozenStrings {
 
-    public static final List<LeafRope> ROPES = new ArrayList<>();
     public static final List<TruffleString> TSTRINGS = new ArrayList<>();
 
     public static final ImmutableRubyString EMPTY_US_ASCII = FrozenStringLiterals.createStringAndCacheLater(
@@ -50,9 +47,7 @@ public class FrozenStrings {
 
     private static ImmutableRubyString createFrozenStaticString(String string, RubyEncoding encoding) {
         // defined?(...) returns frozen strings with a binary encoding
-        final LeafRope rope = StringOperations.encodeRope(string, encoding.jcoding, CodeRange.CR_7BIT);
-        ROPES.add(rope);
-        var tstring = TStringUtils.fromRope(rope, encoding);
+        var tstring = TStringUtils.fromJavaString(string, encoding);
         TSTRINGS.add(tstring);
         return FrozenStringLiterals.createStringAndCacheLater(tstring, encoding);
     }
