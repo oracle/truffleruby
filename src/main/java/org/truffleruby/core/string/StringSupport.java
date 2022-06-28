@@ -26,6 +26,7 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.core.string;
 
+import static com.oracle.truffle.api.strings.TruffleString.CodeRange.BROKEN;
 import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
 import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
 import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
@@ -305,7 +306,7 @@ public final class StringSupport {
         return c;
     }
 
-    /** See {@link RopeNodes.CalculateAttributesNode#calculateAttributesAsciiCompatibleGeneric} */
+    /** See RopeNodes.CalculateAttributesNode#calculateAttributesAsciiCompatibleGeneric */
     // MRI: rb_enc_strlen_cr
     public static StringAttributes strLengthWithCodeRangeAsciiCompatible(Encoding enc, byte[] bytes, int p, int end) {
         CodeRange cr = CR_UNKNOWN;
@@ -334,7 +335,7 @@ public final class StringSupport {
         return new StringAttributes(c, cr == CR_UNKNOWN ? CR_7BIT : cr);
     }
 
-    /** See {@link RopeNodes.CalculateAttributesNode#calculateAttributesNonAsciiCompatible} */
+    /** See RopeNodes.CalculateAttributesNode#calculateAttributesNonAsciiCompatible */
     // MRI: rb_enc_strlen_cr
     public static StringAttributes strLengthWithCodeRangeNonAsciiCompatible(Encoding enc, byte[] bytes, int p,
             int end) {
@@ -1320,14 +1321,16 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static int multiByteCasecmp(Encoding enc, Rope value, Rope otherValue) {
-        byte[] bytes = value.getBytes();
-        int p = 0;
-        int end = value.byteLength();
+    public static int multiByteCasecmp(Encoding enc, InternalByteArray value, TruffleString.CodeRange selfCodeRange,
+            RubyEncoding selfEncoding, InternalByteArray otherValue, TruffleString.CodeRange otherCodeRange,
+            RubyEncoding otherEncoding) {
+        byte[] bytes = value.getArray();
+        int p = value.getOffset();
+        int end = value.getEnd();
 
-        byte[] obytes = otherValue.getBytes();
-        int op = 0;
-        int oend = otherValue.byteLength();
+        byte[] obytes = otherValue.getArray();
+        int op = otherValue.getOffset();
+        int oend = otherValue.getEnd();
 
         while (p < end && op < oend) {
             final int c, oc;
@@ -1335,8 +1338,8 @@ public final class StringSupport {
                 c = bytes[p] & 0xff;
                 oc = obytes[op] & 0xff;
             } else {
-                c = preciseCodePoint(enc, value.getCodeRange(), bytes, p, end);
-                oc = preciseCodePoint(enc, otherValue.getCodeRange(), obytes, op, oend);
+                c = preciseCodePoint(enc, selfCodeRange, bytes, p, end);
+                oc = preciseCodePoint(enc, otherCodeRange, obytes, op, oend);
             }
 
             int cl, ocl;
@@ -1350,14 +1353,14 @@ public final class StringSupport {
             } else {
                 cl = characterLength(
                         enc,
-                        enc == value.getEncoding() ? value.getCodeRange() : CR_UNKNOWN,
+                        enc == selfEncoding.jcoding ? selfCodeRange : BROKEN /* UNKNOWN */,
                         bytes,
                         p,
                         end,
                         true);
                 ocl = characterLength(
                         enc,
-                        enc == otherValue.getEncoding() ? otherValue.getCodeRange() : CR_UNKNOWN,
+                        enc == otherEncoding.jcoding ? otherCodeRange : BROKEN /* UNKNOWN */,
                         obytes,
                         op,
                         oend,
@@ -1804,7 +1807,8 @@ public final class StringSupport {
     private static final String INVALID_FORMAT_MESSAGE = "invalid dumped string; not wrapped with '\"' nor '\"...\".force_encoding(\"...\")' form";
 
     @TruffleBoundary
-    public static Pair<RopeBuilder, RubyEncoding> undump(Rope rope, RubyEncoding encoding, RubyContext context,
+    public static Pair<RopeBuilder, RubyEncoding> undump(ATStringWithEncoding rope, RubyEncoding encoding,
+            RubyContext context,
             Node currentNode) {
         byte[] bytes = rope.getBytes();
         int start = 0;
@@ -1896,7 +1900,7 @@ public final class StringSupport {
                                 context,
                                 context.getCoreExceptions().runtimeError(INVALID_FORMAT_MESSAGE, currentNode));
                     }
-                    String encnameString = new String(bytes, encname, size, rope.encoding.getCharset());
+                    String encnameString = new String(bytes, encname, size, encoding.jcoding.getCharset());
                     RubyEncoding enc2 = context.getEncodingManager().getRubyEncoding(encnameString);
                     if (enc2 == null) {
                         throw new RaiseException(

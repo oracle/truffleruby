@@ -31,6 +31,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
+import com.oracle.truffle.api.strings.InternalByteArray;
 import org.jcodings.Encoding;
 import org.jcodings.ascii.AsciiTables;
 import org.jcodings.specific.ASCIIEncoding;
@@ -366,20 +367,14 @@ public class RopeOperations {
     }
 
     @TruffleBoundary
-    public static int caseInsensitiveCmp(Rope value, Rope other) {
+    public static int caseInsensitiveCmp(InternalByteArray value, InternalByteArray other) {
         // Taken from org.jruby.util.ByteList#caseInsensitiveCmp.
-
-        if (other == value) {
-            return 0;
-        }
-
-        final int size = value.byteLength();
-        final int len = Math.min(size, other.byteLength());
-        final byte[] other_bytes = other.getBytes();
+        final int size = value.getLength();
+        final int len = Math.min(size, other.getLength());
 
         for (int offset = -1; ++offset < len;) {
-            int myCharIgnoreCase = AsciiTables.ToLowerCaseTable[value.getBytes()[offset] & 0xff] & 0xff;
-            int otherCharIgnoreCase = AsciiTables.ToLowerCaseTable[other_bytes[offset] & 0xff] & 0xff;
+            int myCharIgnoreCase = AsciiTables.ToLowerCaseTable[value.get(offset) & 0xff] & 0xff;
+            int otherCharIgnoreCase = AsciiTables.ToLowerCaseTable[other.get(offset) & 0xff] & 0xff;
             if (myCharIgnoreCase < otherCharIgnoreCase) {
                 return -1;
             } else if (myCharIgnoreCase > otherCharIgnoreCase) {
@@ -387,7 +382,7 @@ public class RopeOperations {
             }
         }
 
-        return size == other.byteLength() ? 0 : size == len ? -1 : 1;
+        return size == other.getLength() ? 0 : size == len ? -1 : 1;
     }
 
     public static Rope ropeFromRopeBuilder(RopeBuilder builder) {

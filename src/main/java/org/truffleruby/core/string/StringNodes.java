@@ -1020,6 +1020,7 @@ public abstract class StringNodes {
                 .create();
         @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
         private final ConditionProfile incompatibleEncodingProfile = ConditionProfile.create();
+        private final ConditionProfile sameProfile = ConditionProfile.create();
 
         @CreateCast("other")
         protected ToStrNode coerceOtherToString(RubyBaseNodeWithExecute other) {
@@ -1027,10 +1028,12 @@ public abstract class StringNodes {
         }
 
         @Specialization(
-                guards = "bothSingleByteOptimizable(strings.getTString(string), stringsOther.getTString(other), strings.getEncoding(string), stringsOther.getEncoding(other))")
+                guards = "bothSingleByteOptimizable(libString.getTString(string), libOther.getTString(other), libString.getEncoding(string), libOther.getEncoding(other))")
         protected Object caseCmpSingleByte(Object string, Object other,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsOther) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libOther,
+                @Cached TruffleString.GetInternalByteArrayNode byteArraySelfNode,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayOtherNode) {
             // Taken from org.jruby.RubyString#casecmp19.
 
             final RubyEncoding encoding = negotiateCompatibleEncodingNode.executeNegotiate(string, other);
@@ -1038,14 +1041,27 @@ public abstract class StringNodes {
                 return nil;
             }
 
-            return RopeOperations.caseInsensitiveCmp(strings.getRope(string), stringsOther.getRope(other));
+            var selfTString = libString.getTString(string);
+            var selfByteArray = byteArraySelfNode.execute(selfTString, libString.getTEncoding(string));
+            var otherTString = libOther.getTString(other);
+            var otherByteArray = byteArrayOtherNode.execute(otherTString, libOther.getTEncoding(other));
+
+            if (sameProfile.profile(selfTString == otherTString)) {
+                return 0;
+            }
+
+            return RopeOperations.caseInsensitiveCmp(selfByteArray, otherByteArray);
         }
 
         @Specialization(
-                guards = "!bothSingleByteOptimizable(strings.getTString(string), stringsOther.getTString(other), strings.getEncoding(string), stringsOther.getEncoding(other))")
+                guards = "!bothSingleByteOptimizable(libString.getTString(string), libOther.getTString(other), libString.getEncoding(string), libOther.getEncoding(other))")
         protected Object caseCmp(Object string, Object other,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsOther) {
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libOther,
+                @Cached TruffleString.GetInternalByteArrayNode byteArraySelfNode,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayOtherNode,
+                @Cached GetByteCodeRangeNode selfCodeRangeNode,
+                @Cached GetByteCodeRangeNode otherCodeRangeNode) {
             // Taken from org.jruby.RubyString#casecmp19 and
 
             final RubyEncoding encoding = negotiateCompatibleEncodingNode.executeNegotiate(string, other);
@@ -1054,8 +1070,22 @@ public abstract class StringNodes {
                 return nil;
             }
 
-            return StringSupport
-                    .multiByteCasecmp(encoding.jcoding, strings.getRope(string), stringsOther.getRope(other));
+            var selfTString = libString.getTString(string);
+            var selfEncoding = libString.getEncoding(string);
+            var selfByteArray = byteArraySelfNode.execute(selfTString, selfEncoding.tencoding);
+            var selfCodeRange = selfCodeRangeNode.execute(selfTString, selfEncoding.tencoding);
+
+            var otherTString = libOther.getTString(other);
+            var otherEncoding = libOther.getEncoding(other);
+            var otherByteArray = byteArrayOtherNode.execute(otherTString, otherEncoding.tencoding);
+            var otherCodeRange = otherCodeRangeNode.execute(otherTString, otherEncoding.tencoding);
+
+            if (sameProfile.profile(selfTString == otherTString)) {
+                return 0;
+            }
+
+            return StringSupport.multiByteCasecmp(encoding.jcoding, selfByteArray, selfCodeRange, selfEncoding,
+                    otherByteArray, otherCodeRange, otherEncoding);
         }
 
         protected boolean bothSingleByteOptimizable(AbstractTruffleString string, AbstractTruffleString other,
@@ -2484,14 +2514,16 @@ public abstract class StringNodes {
     @CoreMethod(names = "undump")
     @ImportStatic(StringGuards.class)
     public abstract static class UndumpNode extends CoreMethodArrayArgumentsNode {
+
         @Specialization(guards = "isAsciiCompatible(libString.getEncoding(string))")
         protected RubyString undumpAsciiCompatible(Object string,
                 @Cached MakeStringNode makeStringNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
             // Taken from org.jruby.RubyString#undump
+            var encoding = libString.getEncoding(string);
             Pair<RopeBuilder, RubyEncoding> outputBytesResult = StringSupport.undump(
-                    libString.getRope(string),
-                    libString.getEncoding(string),
+                    new ATStringWithEncoding(libString.getTString(string), encoding),
+                    encoding,
                     getContext(),
                     this);
             final RubyEncoding rubyEncoding = outputBytesResult.getRight();
@@ -2507,7 +2539,6 @@ public abstract class StringNodes {
                             Utils.concat("ASCII incompatible encoding: ", libString.getEncoding(string)),
                             this));
         }
-
     }
 
     @CoreMethod(names = "setbyte", required = 2, raiseIfNotMutableSelf = true, lowerFixnum = { 1, 2 })
@@ -4450,12 +4481,14 @@ public abstract class StringNodes {
         @TruffleBoundary
         protected Object other(Object string, int index,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @Cached SingleByteOptimizableNode singleByteOptimizableNode) {
-            final Rope rope = strings.getRope(string);
-            final int p = 0;
-            final int end = p + rope.byteLength();
+                @Cached SingleByteOptimizableNode singleByteOptimizableNode,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
+            var encoding = strings.getEncoding(string);
+            var byteArray = byteArrayNode.execute(strings.getTString(string), encoding.tencoding);
+            final int p = byteArray.getOffset();
+            final int end = byteArray.getEnd();
 
-            final int b = rope.getEncoding().prevCharHead(rope.getBytes(), p, p + index, end);
+            final int b = encoding.jcoding.prevCharHead(byteArray.getArray(), p, p + index, end);
 
             if (b == -1) {
                 return nil;
