@@ -279,9 +279,8 @@ public class RBSprintfSimpleTreeBuilder {
                                                 config.isPlus(),
                                                 new SourceNode());
                             } else {
-                                conversionNode = ToStringNodeGen
-                                        .create(true, conversionMethodName, false, EMPTY_ROPE, config.isPlus(),
-                                                valueNode);
+                                conversionNode = ToStringNodeGen.create(true, conversionMethodName, false, EMPTY_STRING,
+                                        config.isPlus(), valueNode);
                             }
                         } else {
                             conversionNode = ToStringNodeGen
