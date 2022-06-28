@@ -1395,22 +1395,21 @@ public class CExtNodes {
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
             var tstring = strings.getTString(string);
-            var encoding = strings.getTEncoding(string);
-            var byteArray = byteArrayNode.execute(tstring, encoding);
+            var encoding = strings.getEncoding(string);
+            var bytes = TStringUtils.getBytesOrFail(tstring, encoding);
 
-            final byte[] to = new byte[byteArray.getLength()];
+            final byte[] to = new byte[bytes.length];
             final IntHolder intHolder = new IntHolder();
-            intHolder.value = byteArray.getOffset();
+            intHolder.value = 0;
 
-            final int resultLength = enc.jcoding.mbcCaseFold(flags, byteArray.getArray(), intHolder, byteArray.getEnd(),
-                    to);
+            final int resultLength = enc.jcoding.mbcCaseFold(flags, bytes, intHolder, bytes.length, to);
 
             InteropNodes.execute(advance_p, new Object[]{ p, intHolder.value }, receivers,
                     translateInteropExceptionNode);
 
             final byte[] result = new byte[resultLength];
             if (resultLength > 0) {
-                System.arraycopy(to, byteArray.getOffset(), result, 0, resultLength);
+                System.arraycopy(to, 0, result, 0, resultLength);
             }
 
             return createString(fromByteArrayNode, result, Encodings.US_ASCII);

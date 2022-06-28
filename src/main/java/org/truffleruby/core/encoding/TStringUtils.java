@@ -139,11 +139,20 @@ public class TStringUtils {
     }
 
     public static byte[] getBytesOrFail(AbstractTruffleString tstring, RubyEncoding encoding) {
-        var bytes = tstring.getInternalByteArrayUncached(encoding.tencoding);
-        if (bytes.getOffset() != 0 || bytes.getLength() != bytes.getArray().length) {
+        var byteArray = tstring.getInternalByteArrayUncached(encoding.tencoding);
+        if (byteArray.getOffset() != 0 || byteArray.getLength() != byteArray.getArray().length) {
             throw CompilerDirectives.shouldNotReachHere();
         }
-        return bytes.getArray();
+        return byteArray.getArray();
+    }
+
+    public static byte[] getBytesOrFail(AbstractTruffleString tstring, RubyEncoding encoding,
+            TruffleString.GetInternalByteArrayNode byteArrayNode) {
+        var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
+        if (byteArray.getOffset() != 0 || byteArray.getLength() != byteArray.getArray().length) {
+            throw CompilerDirectives.shouldNotReachHere();
+        }
+        return byteArray.getArray();
     }
 
     private static boolean assertEqual(Rope rope, AbstractTruffleString truffleString, RubyEncoding rubyEncoding) {
