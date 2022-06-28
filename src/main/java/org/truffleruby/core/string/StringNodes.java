@@ -2376,14 +2376,15 @@ public abstract class StringNodes {
         }
 
         // Taken from org.jruby.RubyString#dump
-        private ByteArrayBuilder dumpCommon(ATStringWithEncoding rope) {
+        private ByteArrayBuilder dumpCommon(ATStringWithEncoding string) {
             ByteArrayBuilder buf = null;
-            final Encoding enc = rope.encoding.jcoding;
-            final CodeRange cr = rope.getCodeRange();
+            final Encoding enc = string.encoding.jcoding;
+            final CodeRange cr = string.getCodeRange();
 
-            int p = 0;
-            int end = rope.byteLength();
-            byte[] bytes = rope.getBytes();
+            var byteArray = string.getInternalByteArray();
+            int p = byteArray.getOffset();
+            int end = byteArray.getEnd();
+            byte[] bytes = byteArray.getArray();
 
             int len = 2;
             while (p < end) {
@@ -2415,7 +2416,7 @@ public abstract class StringNodes {
                                     if (buf == null) {
                                         buf = new ByteArrayBuilder();
                                     }
-                                    int cc = StringSupport.codePoint(enc, rope.getCodeRange(), bytes, p - 1, end, this);
+                                    int cc = StringSupport.codePoint(enc, cr, bytes, p - 1, end, this);
                                     buf.append(StringUtils.formatASCIIBytes("%x", cc));
                                     len += buf.getLength() + 4;
                                     buf.setLength(0);
@@ -2437,8 +2438,8 @@ public abstract class StringNodes {
             outBytes.unsafeEnsureSpace(len);
             byte[] out = outBytes.getUnsafeBytes();
             int q = 0;
-            p = 0;
-            end = rope.byteLength();
+            p = byteArray.getOffset();
+            end = byteArray.getEnd();
 
             out[q++] = '"';
             while (p < end) {
