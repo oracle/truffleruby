@@ -249,7 +249,8 @@ public abstract class RubyGuards {
     }
 
     /** This is an uncached conversion, for optimized cached conversion to java.lang.String use {@link ToJavaStringNode}
-     * instead. */
+     * instead. Note that {@link Object#toString()} should not be used because that would not check clearly that it is
+     * used only behind boundaries, and it would not fail if binary and non-ASCII. */
     public static String getJavaString(Object rubyString) {
         CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
         if (rubyString instanceof RubyString) {

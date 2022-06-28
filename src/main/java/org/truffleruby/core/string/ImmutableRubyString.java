@@ -58,7 +58,7 @@ public final class ImmutableRubyString extends ImmutableRubyObjectCopyable imple
     /** should only be used for debugging */
     @Override
     public String toString() {
-        return rope.toString();
+        return tstring.toString();
     }
 
     public TruffleString asTruffleStringUncached() {
