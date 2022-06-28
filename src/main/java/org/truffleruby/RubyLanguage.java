@@ -66,8 +66,6 @@ import org.truffleruby.core.objectspace.RubyWeakMap;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.queue.RubyQueue;
 import org.truffleruby.core.queue.RubySizedQueue;
-import org.truffleruby.core.range.RubyIntRange;
-import org.truffleruby.core.range.RubyLongRange;
 import org.truffleruby.core.range.RubyObjectRange;
 import org.truffleruby.core.regexp.RegexpCacheKey;
 import org.truffleruby.core.regexp.RegexpTable;

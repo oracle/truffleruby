@@ -85,7 +85,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = "!isIntRange(range)")
-        protected Object mapFallback(RubyRange range, Object block) {
+        protected Object mapFallback(RubyObjectRange range, Object block) {
             return FAILURE;
         }
     }
@@ -156,7 +156,7 @@ public abstract class RangeNodes {
     public abstract static class ExcludeEndNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean excludeEnd(RubyRange range) {
+        protected boolean excludeEnd(RubyObjectRange range) {
             return range.excludedEnd;
         }
 
