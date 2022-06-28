@@ -2051,11 +2051,11 @@ p_cases         : opt_else
 p_top_expr      : p_top_expr_body
                 | p_top_expr_body modifier_if expr_value {
                     $$ = new IfParseNode(support.getPosition($1), support.getConditionNode($3), $1, null);
-                    support.fixpos($<Node>$, $3);
+                    support.fixpos($<ParseNode>$, $3);
                 }
                 | p_top_expr_body modifier_unless expr_value {
                     $$ = new IfParseNode(support.getPosition($1), support.getConditionNode($3), null, $1);
-                    support.fixpos($<Node>$, $3);
+                    support.fixpos($<ParseNode>$, $3);
                 }
 
 p_top_expr_body : p_expr
@@ -2064,8 +2064,9 @@ p_top_expr_body : p_expr
                                                    support.new_array_pattern_tail(support.getPosition($1), null, true, null, null));
                 }
                 | p_expr ',' p_args {
-                    $$ = support.new_array_pattern(@1.start(), null, $1, $3);
-                   support.nd_set_first_loc($<Node>$, @1.start());
+                    $$ = support.new_array_pattern(support.getPosition($1), null, $1, $3);
+                    // no impl in JRuby yet:
+                    // support.nd_set_first_loc($<ParseNode>$, support.getPosition($1));
                 }
                 | p_find {
                     $$ = support.new_find_pattern(null, $1);
@@ -2076,6 +2077,94 @@ p_top_expr_body : p_expr
                 | p_kwargs {
                     $$ = support.new_hash_pattern(null, $1);
                 }
+
+p_expr          : p_as
+
+p_as            : p_expr tASSOC p_variable {
+                    $$ = new HashParseNode(support.getPosition($1), new ParseNodeTuple($1, $3));
+                }
+                | p_alt
+
+p_alt           : p_alt '|' p_expr_basic {
+                    $$ = support.newOrNode($1, $3);
+                }
+                | p_expr_basic
+
+p_lparen        : '(' {
+                    $$ = support.push_pktbl();
+                }
+p_lbracket      : '[' {
+                    $$ = support.push_pktbl();
+                }
+p_expr_basic    : p_value
+                | p_variable
+                | p_const p_lparen p_args rparen {
+                    support.pop_pktbl($<Set>2);
+                    $$ = support.new_array_pattern(support.getPosition($1), $1, null, $3);
+                    // support.nd_set_first_loc($<ParseNode>$, support.getPosition($1));
+                }
+                | p_const p_lparen p_find rparen {
+                     support.pop_pktbl($<Set>2);
+                     $$ = support.new_find_pattern($1, $3);
+                     // support.nd_set_first_loc($<ParseNode>$, support.getPosition($1));
+                }
+                | p_const p_lparen p_kwargs rparen {
+                     support.pop_pktbl($<Set>2);
+                     $$ = support.new_hash_pattern($1, $3);
+                     // support.nd_set_first_loc($<ParseNode>$, support.getPosition($1));
+                }
+                | p_const '(' rparen {
+                     $$ = support.new_array_pattern(support.getPosition($1), $1, null,
+                                                    support.new_array_pattern_tail(support.getPosition($1), null, false, null, null));
+                }
+                | p_const p_lbracket p_args rbracket {
+                     support.pop_pktbl($<Set>2);
+                     $$ = support.new_array_pattern(support.getPosition($1), $1, null, $3);
+                     support.nd_set_first_loc($<ParseNode>$, support.getPosition($1));
+                }
+                | p_const p_lbracket p_find rbracket {
+                    support.pop_pktbl($<Set>2);
+                    $$ = support.new_find_pattern($1, $3);
+                    support.nd_set_first_loc($<ParseNode>$, support.getPosition($1));
+                }
+                | p_const p_lbracket p_kwargs rbracket {
+                    support.pop_pktbl($<Set>2);
+                    $$ = support.new_hash_pattern($1, $3);
+                    support.nd_set_first_loc($<ParseNode>$, support.getPosition($1));
+                }
+                | p_const '[' rbracket {
+                    $$ = support.new_array_pattern(support.getPosition($1), $1, null,
+                            support.new_array_pattern_tail(support.getPosition($1), null, false, null, null));
+                }
+                | tLBRACK p_args rbracket {
+                    $$ = support.new_array_pattern(support.getPosition($1), null, null, $2);
+                }
+                | tLBRACK p_find rbracket {
+                    $$ = support.new_find_pattern(null, $2);
+                }
+                | tLBRACK rbracket {
+                    $$ = support.new_array_pattern(support.getPosition($1), null, null,
+                            support.new_array_pattern_tail(support.getPosition($1), null, false, null, null));
+                }
+                | tLBRACE {
+                    $$ = support.push_pktbl();
+                    $1 = lexer.inKwarg;
+                    lexer.inKwarg = false;
+                } p_kwargs rbrace {
+                    support.pop_pktbl($<Set>2);
+                    lexer.inKwarg = $<Boolean>1;
+                    $$ = support.new_hash_pattern(null, $3);
+                }
+                | tLBRACE rbrace {
+                    $$ = support.new_hash_pattern(null, support.new_hash_pattern_tail(support.getPosition($1), null, null));
+                }
+                | tLPAREN {
+                    $$ = support.push_pktbl();
+                 } p_expr rparen {
+                    support.pop_pktbl($<Set>2);
+                    $$ = $3;
+                }
+
 
 opt_rescue      : keyword_rescue exc_list exc_var then compstmt opt_rescue {
                     ParseNode node;
