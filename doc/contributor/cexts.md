@@ -125,18 +125,10 @@ not a `VALUE`.
 
 See [polyglot.h](https://github.com/oracle/graal/blob/master/sulong/projects/com.oracle.truffle.llvm.libraries.graalvm.llvm/include/graalvm/llvm/polyglot.h) for documentation regarding the `polyglot_*` methods.
 
+##### Native conversion
 
-##### ValueWrapper Long Representation
-When converted to native, the `ValueWrapper` takes the following long values.
-
-| Represented Value | Handle Bits                         | Comments |
-|-------------------|-------------------------------------|----------|
-| false             | 00000000 00000000 00000000 00000000 | |
-| true              | 00000000 00000000 00000000 00000010 | |
-| nil               | 00000000 00000000 00000000 00000100 | |
-| undefined         | 00000000 00000000 00000000 00000110 | |
-| Integer              | xxxxxxxx xxxxxxxx xxxxxxxx xxxxxxx1 | Lowest mask bit set, small longs only, convert to long using >> 1 |
-| Object            | xxxxxxxx xxxxxxxx xxxxxxxx xxxxx000 | No mask bits set and does not equal 0, value is index into handle map |
+See [cext-values.md](cext-values.md) for documentation of the
+conversion and management of native handles.
 
 ### String pointers
 
