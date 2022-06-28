@@ -18,13 +18,11 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.MutableTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
-import org.jcodings.Encoding;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.library.RubyLibrary;
@@ -41,7 +39,6 @@ public final class RubyString extends RubyDynamicObject {
 
     public boolean frozen;
     public boolean locked = false;
-    public Rope rope;
     public AbstractTruffleString tstring;
     public RubyEncoding encoding;
 
@@ -55,8 +52,6 @@ public final class RubyString extends RubyDynamicObject {
         assert tstring.isCompatibleTo(rubyEncoding.tencoding);
         this.frozen = frozen;
         this.tstring = tstring;
-        this.rope = TStringUtils.toRope(tstring, rubyEncoding);
-        assert rope.encoding == rubyEncoding.jcoding;
         this.encoding = rubyEncoding;
     }
 
@@ -65,39 +60,33 @@ public final class RubyString extends RubyDynamicObject {
         super(rubyClass, shape);
         assert rope.encoding == rubyEncoding.jcoding;
         this.frozen = frozen;
-        this.rope = rope;
         this.tstring = TStringUtils.fromRope(rope, rubyEncoding);
         this.encoding = rubyEncoding;
     }
 
     public void setRope(Rope rope) {
         assert rope.encoding == encoding.jcoding : rope.encoding + " does not equal " + encoding.jcoding;
-        this.rope = rope;
         this.tstring = TStringUtils.fromRope(rope, encoding);
     }
 
     public void setRope(Rope rope, RubyEncoding encoding) {
         assert rope.encoding == encoding.jcoding;
-        this.rope = rope;
         this.tstring = TStringUtils.fromRope(rope, encoding);
         this.encoding = encoding;
     }
 
     public void setTString(AbstractTruffleString tstring) {
         assert tstring.isCompatibleTo(encoding.tencoding);
-        this.rope = TStringUtils.toRope(tstring, encoding);
         this.tstring = tstring;
     }
 
     public void setTString(AbstractTruffleString tstring, RubyEncoding encoding) {
         assert tstring.isCompatibleTo(encoding.tencoding);
-        this.rope = TStringUtils.toRope(tstring, encoding);
         this.tstring = tstring;
         this.encoding = encoding;
     }
 
     public void clearCodeRange() {
-        ((NativeRope) rope).clearCodeRange();
         assert tstring.isNative();
         ((MutableTruffleString) tstring).notifyExternalMutation();
     }
@@ -116,11 +105,6 @@ public final class RubyString extends RubyDynamicObject {
     public String getJavaString() {
         CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
         return TStringUtils.toJavaStringOrThrow(tstring, encoding);
-    }
-
-    public Encoding getJCoding() {
-        assert encoding.jcoding == rope.encoding;
-        return encoding.jcoding;
     }
 
     // region RubyStringLibrary messages

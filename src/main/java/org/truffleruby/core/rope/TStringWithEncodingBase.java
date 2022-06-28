@@ -60,10 +60,6 @@ abstract class TStringWithEncodingBase {
         return getClass().getSimpleName() + ":" + tstring.toStringDebug();
     }
 
-    public Rope toRope() {
-        return TStringUtils.toRope(tstring, encoding);
-    }
-
     public int byteLength() {
         CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
         return tstring.byteLength(encoding.tencoding);

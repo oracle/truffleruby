@@ -33,7 +33,6 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringGuards;
-import org.truffleruby.extra.ffi.Pointer;
 
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.ASCII;
 
@@ -54,12 +53,7 @@ public class TStringUtils {
         return TruffleString.fromByteArrayUncached(bytes, 0, bytes.length, rubyEncoding.tencoding, false);
     }
 
-    public static Rope toRope(AbstractTruffleString tstring, RubyEncoding rubyEncoding) {
-        if (tstring.isNative() && tstring.isMutable()) {
-            Pointer pointer = (Pointer) tstring.getInternalNativePointerUncached(rubyEncoding.tencoding);
-            return new NativeRope(pointer, tstring.byteLength(rubyEncoding.tencoding), rubyEncoding.jcoding,
-                    NativeRope.UNKNOWN_CHARACTER_LENGTH, CodeRange.CR_UNKNOWN);
-        }
+    public static Rope toRope(TruffleString tstring, RubyEncoding rubyEncoding) {
         var bytes = getBytesOrCopy(tstring, rubyEncoding);
         final var rope = RopeOperations.create(bytes, rubyEncoding.jcoding, CodeRange.CR_UNKNOWN);
         assert assertEqual(rope, tstring, rubyEncoding);
@@ -218,8 +212,8 @@ public class TStringUtils {
         }
     }
 
-    @TruffleBoundary
     public static boolean isSingleByteOptimizable(AbstractTruffleString truffleString, RubyEncoding encoding) {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
         return truffleString.getByteCodeRangeUncached(encoding.tencoding) == ASCII ||
                 encoding.jcoding.isSingleByte();
     }

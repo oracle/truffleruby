@@ -33,7 +33,7 @@ public abstract class InlinedByteSizeNode extends UnaryInlinedOperationNode {
             limit = "1")
     protected int byteSize(VirtualFrame frame, RubyString self,
             @Cached LookupMethodOnSelfNode lookupNode) {
-        return self.rope.byteLength();
+        return self.byteLength();
     }
 
     @Specialization(

@@ -1434,7 +1434,8 @@ public abstract class StringNodes {
 
         @TruffleBoundary
         private Rope processStr(RubyString string, boolean[] squeeze, RubyEncoding enc, StringSupport.TrTables tables) {
-            return StringSupport.delete_bangCommon19(string.rope, squeeze, tables, enc.jcoding, this);
+            return StringSupport.delete_bangCommon19(new ATStringWithEncoding(string.tstring, string.encoding), squeeze,
+                    tables, enc.jcoding, this);
         }
     }
 
@@ -2670,10 +2671,10 @@ public abstract class StringNodes {
 
         @TruffleBoundary
         @Specialization(guards = { "!isEmpty(string.tstring)", "noArguments(args)" })
-        protected Object squeezeBangZeroArgs(RubyString string, Object[] args) {
+        protected Object squeezeBangZeroArgs(RubyString string, Object[] args,
+                @Cached SingleByteOptimizableNode singleByteOptimizableNode) {
             // Taken from org.jruby.RubyString#squeeze_bang19.
 
-            final Rope rope = string.rope;
             final RopeBuilder buffer = RopeBuilder.createRopeBuilder(string);
 
             final boolean[] squeeze = new boolean[StringSupport.TRANS_SIZE];
@@ -2681,22 +2682,17 @@ public abstract class StringNodes {
                 squeeze[i] = true;
             }
 
-            if (singleByteOptimizableProfile.profile(rope.isSingleByteOptimizable())) {
+            if (singleByteOptimizableProfile
+                    .profile(StringGuards.isSingleByteOptimizable(string, singleByteOptimizableNode))) {
                 if (!StringSupport.singleByteSqueeze(buffer, squeeze)) {
                     return nil;
                 } else {
                     string.setRope(RopeOperations.ropeFromRopeBuilder(buffer));
                 }
             } else {
-                if (!StringSupport
-                        .multiByteSqueeze(
-                                buffer,
-                                rope.getCodeRange(),
-                                squeeze,
-                                null,
-                                string.rope.getEncoding(),
-                                false,
-                                this)) {
+                var codeRange = string.tstring.getByteCodeRangeUncached(string.getTEncoding());
+                if (!StringSupport.multiByteSqueeze(buffer, codeRange, squeeze, null, string.encoding.jcoding, false,
+                        this)) {
                     return nil;
                 } else {
                     string.setRope(RopeOperations.ropeFromRopeBuilder(buffer));
@@ -2727,7 +2723,6 @@ public abstract class StringNodes {
                 checkEncodingNode = insert(CheckEncodingNode.create());
             }
 
-            final Rope rope = string.rope;
             final RopeBuilder buffer = RopeBuilder.createRopeBuilder(string);
 
             Object otherStr = otherStrings[0];
@@ -2736,7 +2731,7 @@ public abstract class StringNodes {
             RubyEncoding enc = checkEncodingNode.executeCheckEncoding(string, otherStr);
             final boolean squeeze[] = new boolean[StringSupport.TRANS_SIZE + 1];
 
-            boolean singlebyte = rope.isSingleByteOptimizable() &&
+            boolean singlebyte = TStringUtils.isSingleByteOptimizable(string.tstring, string.encoding) &&
                     TStringUtils.isSingleByteOptimizable(otherRope, otherEncoding);
 
             if (singlebyte && otherRope.byteLength(otherEncoding.tencoding) == 1 && otherStrings.length == 1) {
@@ -2769,8 +2764,8 @@ public abstract class StringNodes {
                     string.setRope(RopeOperations.ropeFromRopeBuilder(buffer));
                 }
             } else {
-                if (!StringSupport
-                        .multiByteSqueeze(buffer, rope.getCodeRange(), squeeze, tables, enc.jcoding, true, this)) {
+                var codeRange = string.tstring.getByteCodeRangeUncached(string.getTEncoding());
+                if (!StringSupport.multiByteSqueeze(buffer, codeRange, squeeze, tables, enc.jcoding, true, this)) {
                     return nil;
                 } else {
                     string.setRope(RopeOperations.ropeFromRopeBuilder(buffer));
@@ -2787,9 +2782,7 @@ public abstract class StringNodes {
         @Specialization
         protected RubyString succBang(RubyString string,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
-            final Rope rope = string.rope;
-
-            if (!rope.isEmpty()) {
+            if (!string.tstring.isEmpty()) {
                 final RopeBuilder succBuilder = StringSupport.succCommon(string, this);
                 string.setTString(fromByteArrayNode.execute(succBuilder.getBytes(), string.encoding.tencoding));
             }
@@ -4629,7 +4622,7 @@ public abstract class StringNodes {
         }
 
         protected boolean indexAtEndBound(RubyString string, int index) {
-            return index == string.rope.byteLength();
+            return index == string.byteLength();
         }
 
         protected boolean indexAtEitherBounds(RubyString string, int index) {

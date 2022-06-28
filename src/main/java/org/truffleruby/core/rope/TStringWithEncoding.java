@@ -15,6 +15,7 @@ import org.truffleruby.core.encoding.RubyEncoding;
 
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
+import org.truffleruby.core.encoding.TStringUtils;
 
 /** TruffleString with RubyEncoding */
 public final class TStringWithEncoding extends TStringWithEncodingBase {
@@ -31,6 +32,10 @@ public final class TStringWithEncoding extends TStringWithEncodingBase {
             AbstractTruffleString tstring,
             RubyEncoding encoding) {
         this(asTruffleStringNode.execute(tstring, encoding.tencoding), encoding);
+    }
+
+    public Rope toRope() {
+        return TStringUtils.toRope(tstring, encoding);
     }
 
     @Override

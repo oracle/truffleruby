@@ -1023,8 +1023,8 @@ public final class StringSupport {
 
     /** rb_str_delete_bang */
     @TruffleBoundary
-    public static Rope delete_bangCommon19(Rope rubyString, boolean[] squeeze, TrTables tables, Encoding enc,
-            Node node) {
+    public static Rope delete_bangCommon19(ATStringWithEncoding rubyString, boolean[] squeeze, TrTables tables,
+            Encoding enc, Node node) {
         int s = 0;
         int t = s;
         int send = s + rubyString.byteLength();
@@ -1407,8 +1407,8 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean multiByteSqueeze(RopeBuilder value, CodeRange originalCodeRange, boolean[] squeeze,
-            TrTables tables, Encoding enc, boolean isArg, Node node) {
+    public static boolean multiByteSqueeze(RopeBuilder value, TruffleString.CodeRange originalCodeRange,
+            boolean[] squeeze, TrTables tables, Encoding enc, boolean isArg, Node node) {
         int s = 0;
         int t = s;
         int send = s + value.getLength();

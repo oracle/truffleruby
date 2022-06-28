@@ -31,12 +31,12 @@ public abstract class ToEncodingNode extends RubyBaseNode {
 
     @Specialization
     protected Encoding stringToEncoding(RubyString value) {
-        return value.getJCoding();
+        return value.encoding.jcoding;
     }
 
     @Specialization
     protected Encoding immutableStringToEncoding(ImmutableRubyString value) {
-        return value.getEncoding().jcoding;
+        return value.encoding.jcoding;
     }
 
     @Specialization
