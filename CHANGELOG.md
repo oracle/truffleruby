@@ -11,6 +11,7 @@ Compatibility:
 
 * Fix `Array#fill` to raise `TypeError` instead of `ArgumentError` when the length argument is not numeric (#2652, @andrykonchin).
 * Warn when a global variable is not initialized (#2595, @andrykonchin).
+* Range literals are now created at parse time like CRuby (#2622, @aardvark179).
 
 Performance:
 
