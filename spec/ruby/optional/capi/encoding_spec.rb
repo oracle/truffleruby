@@ -630,6 +630,7 @@ describe "C-API Encoding function" do
     it "returns the correct case fold for the given string" do
       @s.ONIGENC_MBC_CASE_FOLD("lower").should == ["l", 1]
       @s.ONIGENC_MBC_CASE_FOLD("Upper").should == ["u", 1]
+      @s.ONIGENC_MBC_CASE_FOLD("ABC"[1..-1]).should == ["b", 1]
     end
 
     it "works with other encodings" do
