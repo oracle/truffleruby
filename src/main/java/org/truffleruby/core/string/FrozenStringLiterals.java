@@ -15,9 +15,6 @@ import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.LeafRope;
-import org.truffleruby.core.rope.RopeCache;
 import org.truffleruby.core.rope.TStringCache;
 import org.truffleruby.core.rope.TStringWithEncoding;
 
@@ -31,12 +28,10 @@ public class FrozenStringLiterals {
     private static final List<ImmutableRubyString> STRINGS_TO_CACHE = new ArrayList<>();
 
     private final TStringCache tstringCache;
-    private final RopeCache ropeCache;
     private final WeakValueCache<TStringWithEncoding, ImmutableRubyString> values = new WeakValueCache<>();
 
-    public FrozenStringLiterals(TStringCache tStringCache, RopeCache ropeCache) {
+    public FrozenStringLiterals(TStringCache tStringCache) {
         this.tstringCache = tStringCache;
-        this.ropeCache = ropeCache;
         for (ImmutableRubyString name : STRINGS_TO_CACHE) {
             addFrozenStringToCache(name);
         }
@@ -61,15 +56,14 @@ public class FrozenStringLiterals {
         if (string != null) {
             return string;
         } else {
-            LeafRope rope = ropeCache.getRope(bytes, encoding.jcoding, CodeRange.CR_UNKNOWN);
             return values.addInCacheIfAbsent(tstringWithEncoding,
-                    new ImmutableRubyString(cachedTString, rope, encoding));
+                    new ImmutableRubyString(cachedTString, encoding));
         }
     }
 
-    public static ImmutableRubyString createStringAndCacheLater(TruffleString name, LeafRope rope,
+    public static ImmutableRubyString createStringAndCacheLater(TruffleString name,
             RubyEncoding encoding) {
-        final ImmutableRubyString string = new ImmutableRubyString(name, rope, encoding);
+        final ImmutableRubyString string = new ImmutableRubyString(name, encoding);
         assert !STRINGS_TO_CACHE.contains(string);
         STRINGS_TO_CACHE.add(string);
         return string;

@@ -1987,16 +1987,17 @@ public abstract class StringNodes {
             return string;
         }
 
-
         @Specialization(guards = { "string != other" })
-        protected RubyString replace(RubyString string, RubyString other) {
-            string.setRope(other.rope, other.encoding);
+        protected RubyString replace(RubyString string, RubyString other,
+                @Cached AsTruffleStringNode asTruffleStringNode) {
+            final TruffleString immutableCopy = asTruffleStringNode.execute(other.tstring, other.encoding.tencoding);
+            string.setTString(immutableCopy, other.encoding);
             return string;
         }
 
         @Specialization
         protected RubyString replace(RubyString string, ImmutableRubyString other) {
-            string.setRope(other.rope, other.getEncoding());
+            string.setTString(other.tstring, other.encoding);
             return string;
         }
 

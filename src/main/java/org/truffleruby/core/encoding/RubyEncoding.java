@@ -20,7 +20,6 @@ import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.FrozenStringLiterals;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.ImmutableRubyObjectNotCopyable;
@@ -41,6 +40,7 @@ public final class RubyEncoding extends ImmutableRubyObjectNotCopyable implement
     public final int index;
 
     public RubyEncoding(Encoding jcoding, ImmutableRubyString name, int index) {
+        assert name.encoding == Encodings.US_ASCII;
         this.jcoding = Objects.requireNonNull(jcoding);
         this.tencoding = Objects.requireNonNull(TStringUtils.jcodingToTEncoding(jcoding));
         this.name = Objects.requireNonNull(name);
@@ -52,8 +52,7 @@ public final class RubyEncoding extends ImmutableRubyObjectNotCopyable implement
         this.jcoding = Objects.requireNonNull(USASCIIEncoding.INSTANCE);
         this.tencoding = Objects.requireNonNull(TruffleString.Encoding.US_ASCII);
         this.name = Objects.requireNonNull(
-                FrozenStringLiterals.createStringAndCacheLater(TStringConstants.US_ASCII,
-                        RopeConstants.ROPE_CONSTANTS.get("US-ASCII"), this));
+                FrozenStringLiterals.createStringAndCacheLater(TStringConstants.US_ASCII, this));
         this.index = index;
     }
 
@@ -96,7 +95,7 @@ public final class RubyEncoding extends ImmutableRubyObjectNotCopyable implement
         if (index != o.index) {
             return index - o.index;
         } else {
-            return name.rope.compareTo(o.name.rope);
+            return name.tstring.compareBytesUncached(o.name.tstring, Encodings.US_ASCII.tencoding);
         }
     }
 }

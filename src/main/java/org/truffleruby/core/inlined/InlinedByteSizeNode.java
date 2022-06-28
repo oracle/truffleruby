@@ -42,7 +42,7 @@ public abstract class InlinedByteSizeNode extends UnaryInlinedOperationNode {
             limit = "1")
     protected int byteSizeImmutable(VirtualFrame frame, ImmutableRubyString self,
             @Cached LookupMethodOnSelfNode lookupNode) {
-        return self.rope.byteLength();
+        return self.byteLength();
     }
 
     @Specialization

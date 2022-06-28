@@ -24,7 +24,6 @@ import org.jcodings.specific.UTF32BEEncoding;
 import org.jcodings.specific.UTF32LEEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.FrozenStringLiterals;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.StringOperations;
@@ -74,9 +73,7 @@ public class Encodings {
                 rubyEncoding = US_ASCII;
             } else {
                 final ImmutableRubyString name = FrozenStringLiterals.createStringAndCacheLater(
-                        TStringConstants.TSTRING_CONSTANTS.get(encoding.toString()),
-                        RopeConstants.ROPE_CONSTANTS.get(encoding.toString()),
-                        US_ASCII);
+                        TStringConstants.TSTRING_CONSTANTS.get(encoding.toString()), US_ASCII);
                 rubyEncoding = new RubyEncoding(encoding, name, encoding.getIndex());
             }
             encodings[encoding.getIndex()] = rubyEncoding;

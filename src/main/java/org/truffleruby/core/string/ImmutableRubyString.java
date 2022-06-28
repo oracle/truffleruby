@@ -29,7 +29,6 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.language.ImmutableRubyObjectCopyable;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -41,15 +40,13 @@ import org.truffleruby.language.library.RubyStringLibrary;
 @ExportLibrary(RubyStringLibrary.class)
 public final class ImmutableRubyString extends ImmutableRubyObjectCopyable implements TruffleObject {
 
-    public final LeafRope rope;
     public final TruffleString tstring;
     public final RubyEncoding encoding;
     private Pointer nativeString = null;
 
-    ImmutableRubyString(TruffleString tstring, LeafRope rope, RubyEncoding encoding) {
+    ImmutableRubyString(TruffleString tstring, RubyEncoding encoding) {
         assert tstring.isCompatibleTo(encoding.tencoding);
         assert tstring.isManaged();
-        this.rope = rope;
         this.tstring = tstring;
         this.encoding = encoding;
     }

@@ -31,8 +31,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.EncodingUtils;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.extra.ffi.Pointer;
@@ -253,7 +251,7 @@ public class EncodingManager {
         ENCODING_LIST_BY_ENCODING_INDEX = Arrays.copyOf(ENCODING_LIST_BY_ENCODING_INDEX, encodingIndex + 1);
         ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] = rubyEncoding;
 
-        addToLookup(RopeOperations.decodeRope(rubyEncoding.name.rope), rubyEncoding);
+        addToLookup(rubyEncoding.name.getJavaString(), rubyEncoding);
         return rubyEncoding;
 
     }

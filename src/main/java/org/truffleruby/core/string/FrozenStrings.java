@@ -15,7 +15,6 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.LeafRope;
-import org.truffleruby.core.rope.RopeConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +26,6 @@ public class FrozenStrings {
 
     public static final ImmutableRubyString EMPTY_US_ASCII = FrozenStringLiterals.createStringAndCacheLater(
             TStringConstants.EMPTY_US_ASCII,
-            RopeConstants.EMPTY_US_ASCII_ROPE,
             Encodings.US_ASCII);
 
     public static final ImmutableRubyString YIELD = createFrozenStaticBinaryString("yield");
@@ -56,7 +54,7 @@ public class FrozenStrings {
         ROPES.add(rope);
         var tstring = TStringUtils.fromRope(rope, encoding);
         TSTRINGS.add(tstring);
-        return FrozenStringLiterals.createStringAndCacheLater(tstring, rope, encoding);
+        return FrozenStringLiterals.createStringAndCacheLater(tstring, encoding);
     }
 
 }

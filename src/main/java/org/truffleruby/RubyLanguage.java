@@ -329,7 +329,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         tstringCache = new TStringCache(coreSymbols);
         symbolTable = new SymbolTable(tstringCache, coreSymbols);
         regexpTable = new RegexpTable();
-        frozenStringLiterals = new FrozenStringLiterals(tstringCache, ropeCache);
+        frozenStringLiterals = new FrozenStringLiterals(tstringCache);
     }
 
     public RubyThread getCurrentThread() {

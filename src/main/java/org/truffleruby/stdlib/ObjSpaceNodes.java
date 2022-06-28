@@ -55,12 +55,12 @@ public abstract class ObjSpaceNodes {
 
         @Specialization
         protected int memsizeOfString(RubyString object) {
-            return memsizeOfObject(object) + object.rope.byteLength();
+            return memsizeOfObject(object) + object.byteLength();
         }
 
         @Specialization
         protected int memsizeOfString(ImmutableRubyString object) {
-            return 1 + object.rope.byteLength();
+            return 1 + object.byteLength();
         }
 
         @Specialization
