@@ -462,7 +462,7 @@ public class RubyLexer implements MagicCommentHandler {
             throw argumentError(context, nameString + " is not ASCII compatible");
         }
 
-        if (!src.isFromRope() && !isUTF8Subset(newEncoding)) {
+        if (!src.isFromTruffleString() && !isUTF8Subset(newEncoding)) {
             /* The source we are lexing came in via a String (or Reader, or File) from the Polyglot API, so we only have
              * the String - we don't have any access to the original bytes, so we cannot re-interpret them in another
              * encoding without risking errors. */

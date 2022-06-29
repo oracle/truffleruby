@@ -26,7 +26,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.RubyBaseNode;
@@ -219,7 +219,7 @@ public abstract class RequireNode extends RubyBaseNode {
             requireCExtension(feature, expandedPath, this);
         } else {
             // All other files are assumed to be Ruby, the file type detection is not enough
-            final Pair<Source, Rope> sourceRopePair;
+            final Pair<Source, TStringWithEncoding> sourceRopePair;
             try {
                 final FileLoader fileLoader = new FileLoader(getContext(), getLanguage());
                 sourceRopePair = fileLoader.loadFile(expandedPath);

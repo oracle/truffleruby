@@ -14,7 +14,7 @@ import org.graalvm.collections.Pair;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.RubyModule;
-import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyNode;
@@ -52,9 +52,9 @@ public class CodeLoader {
     }
 
     @TruffleBoundary
-    public RootCallTarget parseTopLevelWithCache(Pair<Source, Rope> sourceRopePair, Node currentNode) {
+    public RootCallTarget parseTopLevelWithCache(Pair<Source, TStringWithEncoding> sourceRopePair, Node currentNode) {
         final Source source = sourceRopePair.getLeft();
-        final Rope rope = sourceRopePair.getRight();
+        final TStringWithEncoding rope = sourceRopePair.getRight();
 
         final String path = RubyLanguage.getPath(source);
         if (language.singleContext && !alreadyLoadedInContext.add(language.getPathRelativeToHome(path))) {

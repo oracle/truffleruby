@@ -51,7 +51,7 @@ public class LexerSource {
     public ParserRopeOperations parserRopeOperations;
     private final Source source;
     private final String sourcePath;
-    private final boolean fromRope;
+    private final boolean fromTruffleString;
 
     private TruffleString sourceBytes;
     private final int sourceByteLength;
@@ -63,13 +63,12 @@ public class LexerSource {
         this.source = rubySource.getSource();
         this.sourcePath = rubySource.getSourcePath();
 
-        fromRope = rubySource.getRope() != null;
+        fromTruffleString = rubySource.hasTruffleString();
 
         final RubyEncoding rubyEncoding;
-        if (fromRope) {
-            var rope = rubySource.getRope();
-            rubyEncoding = Encodings.getBuiltInEncoding(rope.getEncoding());
-            this.sourceBytes = TStringUtils.fromRope(rope, rubyEncoding);
+        if (fromTruffleString) {
+            rubyEncoding = rubySource.getEncoding();
+            this.sourceBytes = rubySource.getTruffleString();
         } else {
             rubyEncoding = Encodings.UTF_8;
             // TODO CS 5-Sep-17 can we get the bytes directly rather than using getCharacters -> toString -> getBytes?
@@ -144,8 +143,8 @@ public class LexerSource {
         return -1;
     }
 
-    public boolean isFromRope() {
-        return fromRope;
+    public boolean isFromTruffleString() {
+        return fromTruffleString;
     }
 
     public int getLineOffset() {

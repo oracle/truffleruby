@@ -45,7 +45,7 @@ import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.debug.BindingLocalVariablesObject;
 import org.truffleruby.debug.GlobalVariablesObject;
@@ -759,7 +759,7 @@ public class CoreLibrary {
                     state = State.LOADED;
                 }
 
-                final Pair<Source, Rope> sourceRopePair = loadCoreFileSource(language.coreLoadPath + file);
+                var sourceRopePair = loadCoreFileSource(language.coreLoadPath + file);
                 final Source source = sourceRopePair.getLeft();
                 final RootCallTarget callTarget = context.getCodeLoader().parseTopLevelWithCache(sourceRopePair, node);
 
@@ -784,7 +784,7 @@ public class CoreLibrary {
         }
     }
 
-    public Pair<Source, Rope> loadCoreFileSource(String path) throws IOException {
+    public Pair<Source, TStringWithEncoding> loadCoreFileSource(String path) throws IOException {
         if (path.startsWith(RubyLanguage.RESOURCE_SCHEME)) {
             if (TruffleOptions.AOT || ParserCache.INSTANCE != null) {
                 final RootParseNode rootParseNode = ParserCache.INSTANCE.get(path);

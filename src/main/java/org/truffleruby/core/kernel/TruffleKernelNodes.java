@@ -31,7 +31,7 @@ import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.FrameOrVariablesReadingNode;
@@ -101,7 +101,7 @@ public abstract class TruffleKernelNodes {
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached IndirectCallNode callNode) {
             final String feature = RubyGuards.getJavaString(file);
-            final Pair<Source, Rope> sourceRopePair;
+            final Pair<Source, TStringWithEncoding> sourceRopePair;
             try {
                 final FileLoader fileLoader = new FileLoader(getContext(), getLanguage());
                 sourceRopePair = fileLoader.loadFile(feature);

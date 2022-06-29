@@ -52,7 +52,7 @@ public abstract class EvalLoader {
 
         final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, sourceString, file).build();
 
-        final RubySource rubySource = new RubySource(source, file, sourceTString.toRope(), true, line - 1);
+        final RubySource rubySource = new RubySource(source, file, sourceTString, true, line - 1);
 
         context.getSourceLineOffsets().put(source, line - 1);
         return rubySource;

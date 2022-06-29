@@ -508,7 +508,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
             final RubySource rubySource = new RubySource(
                     source,
                     parsingParameters.getPath(),
-                    parsingParameters.getRope());
+                    parsingParameters.getTStringWithEnc());
             final ParserContext parserContext = MIME_TYPE_MAIN_SCRIPT.equals(source.getMimeType())
                     ? ParserContext.TOP_LEVEL_FIRST
                     : ParserContext.TOP_LEVEL;

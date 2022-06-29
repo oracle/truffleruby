@@ -28,7 +28,6 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
@@ -134,7 +133,8 @@ public abstract class TruffleBootNodes {
                 if (getContext().getOptions().SYNTAX_CHECK) {
                     checkSyntax.call(coreLibrary().truffleBootModule, "check_syntax", source);
                 } else {
-                    final Pair<Source, Rope> sourceRopePair = Pair.create(source.getSource(), source.getRope());
+                    var tstringWithEncoding = source.hasTruffleString() ? source.getTStringWithEncoding() : null;
+                    var sourceRopePair = Pair.create(source.getSource(), tstringWithEncoding);
                     final RootCallTarget callTarget = getContext()
                             .getCodeLoader()
                             .parseTopLevelWithCache(sourceRopePair, null);
