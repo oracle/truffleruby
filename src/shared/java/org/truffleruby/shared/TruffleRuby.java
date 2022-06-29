@@ -34,10 +34,11 @@ public class TruffleRuby {
         }
 
         return String.format(
-                "%s%s %s, like ruby %s, %s %s [%s-%s]",
+                "%s%s %s%s, like ruby %s, %s %s [%s-%s]",
                 ENGINE_ID,
                 nameExtra,
                 getEngineVersion(),
+                BuildInformationImpl.INSTANCE.isDirty() ? "*" : "",
                 LANGUAGE_VERSION,
                 implementationName,
                 ImageInfo.inImageCode() ? "Native" : "JVM",
@@ -49,12 +50,7 @@ public class TruffleRuby {
         // The property cannot be read in a static initializer, it's set later
         final String systemVersion = System.getProperty("org.graalvm.version");
 
-        final String revisionString;
-        if (BuildInformationImpl.INSTANCE.isDirty()) {
-            revisionString = BuildInformationImpl.INSTANCE.getShortRevision() + "*";
-        } else {
-            revisionString = BuildInformationImpl.INSTANCE.getShortRevision();
-        }
+        final String revisionString = BuildInformationImpl.INSTANCE.getShortRevision();
 
         // No version information, or just "dev" - use 0.0-commit
         if (systemVersion == null || systemVersion.equals("dev")) {
