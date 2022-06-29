@@ -28,7 +28,6 @@ import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.regexp.RegexpNodesFactory.ToSNodeFactory;
 import org.truffleruby.core.rope.ATStringWithEncoding;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;

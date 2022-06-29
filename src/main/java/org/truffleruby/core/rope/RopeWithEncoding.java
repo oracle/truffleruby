@@ -9,9 +9,7 @@
  */
 package org.truffleruby.core.rope;
 
-import com.oracle.truffle.api.strings.AbstractTruffleString;
 import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.encoding.TStringUtils;
 
 import java.util.Objects;
 

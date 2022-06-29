@@ -33,12 +33,8 @@ package org.truffleruby.parser.ast;
 
 import java.util.List;
 
-import com.oracle.truffle.api.strings.AbstractTruffleString;
-import com.oracle.truffle.api.strings.TruffleString;
-import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.regexp.RegexpOptions;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.ILiteralNode;

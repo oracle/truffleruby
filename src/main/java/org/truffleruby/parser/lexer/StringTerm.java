@@ -47,9 +47,7 @@ import static org.truffleruby.parser.lexer.RubyLexer.isOctChar;
 
 import org.jcodings.Encoding;
 import org.truffleruby.core.encoding.Encodings;
-import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.regexp.RegexpOptions;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.KCode;
