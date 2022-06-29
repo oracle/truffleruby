@@ -20,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.CodeSource;
 import java.util.Calendar;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -57,10 +58,12 @@ public class BuildInformationProcessor extends TruffleRubyProcessor {
         try {
             trufflerubyHome = findHome();
             buildName = System.getenv("TRUFFLERUBY_BUILD_NAME");
-            fullRevision = runCommand("git rev-parse HEAD");
+            fullRevision = runCommand("git rev-parse HEAD")
+                    .orElseThrow(() -> new Error("git rev-parse command failed"));
             shortRevision = fullRevision.substring(0, 8);
-            isDirty = runCommand("git status --porcelain") != null;
-            compileDate = runCommand("git log -1 --date=short --pretty=format:%cd");
+            isDirty = runCommand("git diff --quiet").isEmpty();
+            compileDate = runCommand("git log -1 --date=short --pretty=format:%cd")
+                    .orElseThrow(() -> new Error("git log command failed"));
             copyrightYear = Integer.parseInt(compileDate.split("\\-")[0]);
             kernelMajorVersion = findKernelMajorVersion();
         } catch (Throwable e) {
@@ -100,23 +103,32 @@ public class BuildInformationProcessor extends TruffleRubyProcessor {
     }
 
     private String findKernelMajorVersion() throws IOException, InterruptedException {
-        final String kernelVersion = runCommand("uname -r");
+        final String kernelVersion = runCommand("uname -r").orElseThrow(() -> new Error("uname -r command failed"));
         return kernelVersion.split(Pattern.quote("."))[0];
     }
 
-    private String runCommand(String command) throws IOException, InterruptedException {
+    private Optional<String> runCommand(String command) throws IOException, InterruptedException {
         final Process process = new ProcessBuilder(command.split("\\s+")).directory(trufflerubyHome).start();
-        final String firstLine;
+
+        String firstLine;
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
             firstLine = reader.readLine();
+
+            while (process.isAlive()) {
+                reader.readLine();
+            }
         }
 
-        final int exitCode = process.waitFor();
-        if (exitCode != 0) {
-            throw new Error("Command " + command + " failed with exit code " + exitCode);
+        if (process.waitFor() != 0) {
+            return Optional.empty();
         }
-        return firstLine;
+
+        if (firstLine == null) {
+            firstLine = "";
+        }
+
+        return Optional.of(firstLine);
     }
 
     @Override
