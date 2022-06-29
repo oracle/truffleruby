@@ -118,6 +118,7 @@ import org.truffleruby.parser.ast.MatchParseNode;
 import org.truffleruby.parser.ast.MultipleAsgnParseNode;
 import org.truffleruby.parser.ast.NilImplicitParseNode;
 import org.truffleruby.parser.ast.NilParseNode;
+import org.truffleruby.parser.ast.NilRestArgParseNode;
 import org.truffleruby.parser.ast.NoKeywordsArgParseNode;
 import org.truffleruby.parser.ast.NthRefParseNode;
 import org.truffleruby.parser.ast.NumericParseNode;
@@ -134,6 +135,7 @@ import org.truffleruby.parser.ast.RestArgParseNode;
 import org.truffleruby.parser.ast.RootParseNode;
 import org.truffleruby.parser.ast.SValueParseNode;
 import org.truffleruby.parser.ast.SplatParseNode;
+import org.truffleruby.parser.ast.StarParseNode;
 import org.truffleruby.parser.ast.StrParseNode;
 import org.truffleruby.parser.ast.SuperParseNode;
 import org.truffleruby.parser.ast.SymbolParseNode;
@@ -960,16 +962,72 @@ public class ParserSupport {
         return arrayPattern;
     }
 
+    public ArrayPatternParseNode new_array_pattern_tail(SourceIndexLength line, ListParseNode preArgs, boolean hasRest,
+            Rope restArg, ListParseNode postArgs) {
+        return new ArrayPatternParseNode(
+                line,
+                preArgs,
+                hasRest
+                        ? restArg != null
+                                ? assignableLabelOrIdentifier(restArg, null)
+                                : new StarParseNode(lexer.getPosition())
+                        : null,
+                postArgs);
+    }
+
+    public void error_duplicate_pattern_key(Rope key) {
+        // This is for bare one-line matches ({a: 1} => a:).
+        if (keyTable == null) {
+            keyTable = new HashSet<>();
+        }
+        if (keyTable.contains(key)) {
+            yyerror("duplicated key name");
+        }
+
+        keyTable.add(key);
+    }
+
     public ParseNode new_find_pattern(ParseNode constant, FindPatternParseNode findPattern) {
         findPattern.setConstant(constant);
 
         return findPattern;
     }
 
+    public ParseNode new_find_pattern_tail(SourceIndexLength line, Rope preRestArg, ListParseNode postArgs,
+            Rope postRestArg) {
+        /* FIXME: in MRI all the StarNodes are the same node and so perhaps source line for them is unimportant. */
+        return new FindPatternParseNode(
+                line,
+                preRestArg != null
+                        ? assignableLabelOrIdentifier(preRestArg, null)
+                        : new StarParseNode(lexer.getPosition()),
+                postArgs,
+                postRestArg != null
+                        ? assignableLabelOrIdentifier(postRestArg, null)
+                        : new StarParseNode(lexer.getPosition()));
+    }
+
     public HashPatternParseNode new_hash_pattern(ParseNode constant, HashPatternParseNode hashPatternNode) {
         hashPatternNode.setConstant(constant);
 
         return hashPatternNode;
+    }
+
+    public static Rope KWNOREST = RopeConstants.EMPTY_US_ASCII_ROPE;
+
+    public HashPatternParseNode new_hash_pattern_tail(SourceIndexLength line, HashParseNode keywordArgs,
+            Rope keywordRestArg) {
+        ParseNode restArg;
+
+        if (keywordRestArg == KWNOREST) {          // '**nil'
+            restArg = new NilRestArgParseNode(line);
+        } else if (keywordRestArg != null) {       // '**something'
+            restArg = assignableLabelOrIdentifier(keywordRestArg, null);
+        } else {                                   // '**'
+            restArg = new StarParseNode(lexer.getPosition());
+        }
+
+        return new HashPatternParseNode(line, restArg, keywordArgs == null ? new HashParseNode(line) : keywordArgs);
     }
 
     /* This method exists for us to break up multiple expression when nodes (e.g. when 1,2,3:) into individual

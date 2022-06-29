@@ -2165,6 +2165,174 @@ p_expr_basic    : p_value
                     $$ = $3;
                 }
 
+p_args          : p_expr {
+                     ListParseNode preArgs = support.newArrayNode($1.getLine(), $1);
+                     $$ = support.new_array_pattern_tail(support.getPosition($1), preArgs, false, null, null);
+                }
+                | p_args_head {
+                     $$ = support.new_array_pattern_tail(support.getPosition($1), $1, true, null, null);
+                }
+                | p_args_head p_arg {
+                     $$ = support.new_array_pattern_tail(support.getPosition($1), support.list_concat($1, $2), false, null, null);
+                }
+                | p_args_head tSTAR tIDENTIFIER {
+                     $$ = support.new_array_pattern_tail(support.getPosition($1), $1, true, $3, null);
+                }
+                | p_args_head tSTAR tIDENTIFIER ',' p_args_post {
+                     $$ = support.new_array_pattern_tail(support.getPosition($1), $1, true, $3, $5);
+                }
+                | p_args_head tSTAR {
+                     $$ = support.new_array_pattern_tail(support.getPosition($1), $1, true, null, null);
+                }
+                | p_args_head tSTAR ',' p_args_post {
+                     $$ = support.new_array_pattern_tail(support.getPosition($1), $1, true, null, $4);
+                }
+                | p_args_tail {
+                     $$ = $1;
+                }
+
+p_args_head     : p_arg ',' {
+                     $$ = $1;
+                }
+                | p_args_head p_arg ',' {
+                     $$ = support.list_concat($1, $2);
+                }
+
+p_args_tail     : p_rest {
+                     $$ = support.new_array_pattern_tail(support.getPosition($1), null, true, $1, null);
+                }
+                | p_rest ',' p_args_post {
+                     $$ = support.new_array_pattern_tail(support.getPosition($1), null, true, $1, $3);
+                }
+                
+p_find          : p_rest ',' p_args_post ',' p_rest {
+                     $$ = support.new_find_pattern_tail(support.getPosition($1), $1, $3, $5);
+                     support.warn(support.getPosition($1), "Find pattern is experimental, and the behavior may change in future versions of Ruby!");
+                }
+
+p_rest          : tSTAR tIDENTIFIER {
+                    $$ = $2;
+                }
+                | tSTAR {
+                    $$ = null;
+                }
+
+// ListNode - [!null]
+p_args_post     : p_arg
+                | p_args_post ',' p_arg {
+                    $$ = support.list_concat($1, $3);
+                }
+
+// ListNode - [!null]
+p_arg           : p_expr {
+                    $$ = support.newArrayNode($1.getLine(), $1);
+                }
+
+// HashPatternNode - [!null]
+p_kwargs        : p_kwarg ',' p_any_kwrest {
+                    $$ = support.new_hash_pattern_tail(support.getPosition($1), $1, $3);
+                }
+		        | p_kwarg {
+                    $$ = support.new_hash_pattern_tail(support.getPosition($1), $1, null);
+                }
+                | p_kwarg ',' {
+                    $$ = support.new_hash_pattern_tail(support.getPosition($1), $1, null);
+                }
+                | p_any_kwrest {
+                    $$ = support.new_hash_pattern_tail(support.getPosition($1), null, $1);
+                }
+                
+// HashNode - [!null]
+p_kwarg         : p_kw {
+                    $$ = new HashNode(support.getPosition($1), $1);
+                }
+                | p_kwarg ',' p_kw {
+                    $1.add($3);
+                    $$ = $1;
+                }   
+                
+// KeyValuePair - [!null]
+p_kw            : p_kw_label p_expr {
+                    support.error_duplicate_pattern_key($1);
+
+                    Node label = support.asSymbol(support.getPosition($1), $1);
+
+                    $$ = new KeyValuePair(label, $2);
+                }
+                | p_kw_label {
+                    support.error_duplicate_pattern_key($1);
+                    if ($1 != null && !support.is_local_id($1)) {
+                        support.yyerror("key must be valid as local variables");
+                    }
+                    support.error_duplicate_pattern_variable($1);
+
+                    Node label = support.asSymbol(support.getPosition($1), $1);
+                    $$ = new KeyValuePair(label, support.assignableLabelOrIdentifier($1, null));
+                }
+
+// Rope
+p_kw_label      : tLABEL
+                | tSTRING_BEG string_contents tLABEL_END {
+                    if ($2 == null || $2 instanceof StrParseNode) {
+                        $$ = $<StrParseNode>2.getValue();
+                    } else {
+                        support.yyerror("symbol literal with interpolation is not allowed");
+                        $$ = null;
+                    }
+                }
+
+p_kwrest        : kwrest_mark tIDENTIFIER {
+                    $$ = $2;
+                }
+                | kwrest_mark {
+                    $$ = null;
+                }
+
+p_kwnorest      : kwrest_mark keyword_nil {
+                    $$ = null;
+                }
+
+p_any_kwrest    : p_kwrest
+                | p_kwnorest {
+                    $$ = support.KWNOREST;
+                }
+
+p_value         : p_primitive
+                | p_primitive tDOT2 p_primitive {
+                    support.value_expr(lexer, $1);
+                    support.value_expr(lexer, $3);
+                    boolean isLiteral = $1 instanceof FixnumParseNode && $3 instanceof FixnumParseNode;
+                    $$ = new DotParseNode(support.getPosition($1), support.makeNullNil($1), support.makeNullNil($3), false, isLiteral);
+                }
+                | p_primitive tDOT3 p_primitive {
+                    support.value_expr(lexer, $1);
+                    support.value_expr(lexer, $3);
+                    boolean isLiteral = $1 instanceof FixnumParseNode && $3 instanceof FixnumParseNode;
+                    $$ = new DotParseNode(support.getPosition($1), support.makeNullNil($1), support.makeNullNil($3), true, isLiteral);
+                }
+                | p_primitive tDOT2 {
+                    support.value_expr(lexer, $1);
+                    boolean isLiteral = $1 instanceof FixnumParseNode;
+                    $$ = new DotParseNode(support.getPosition($1), support.makeNullNil($1), NilImplicitNode.NIL, false, isLiteral);
+                }
+                | p_primitive tDOT3 {
+                    support.value_expr(lexer, $1);
+                    boolean isLiteral = $1 instanceof FixnumParseNode;
+                    $$ = new DotParseNode(support.getPosition($1), support.makeNullNil($1), NilImplicitNode.NIL, true, isLiteral);
+                }
+                | p_var_ref
+                | p_expr_ref
+                | p_const
+                | tBDOT2 p_primitive {
+                    support.value_expr(lexer, $2);
+                    boolean isLiteral = $2 instanceof FixnumParseNode;
+                    $$ = new DotParseNode(support.getPosition($1), NilImplicitNode.NIL, support.makeNullNil($2), false, isLiteral);
+                }
+                | tBDOT3 p_primitive {
+                    support.value_expr(lexer, $2);
+                    boolean isLiteral = $2 instanceof FixnumParseNode;
+                    $$ = new DotParseNode(support.getPosition($1), NilImplicitNode.NIL, support.makeNullNil($2), true, isLiteral);
+                }
 
 opt_rescue      : keyword_rescue exc_list exc_var then compstmt opt_rescue {
                     ParseNode node;
