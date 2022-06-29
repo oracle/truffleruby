@@ -2374,7 +2374,11 @@ module Commands
       remove_shared_compile_artifacts
     end
 
-    FileUtils.touch(Dir.glob('src/**/BuildInformation.java').first) if options.delete('--new-hash')
+    if options.delete('--new-hash')
+      build_information_path = "#{TRUFFLERUBY_DIR}/src/shared/java/org/truffleruby/shared/BuildInformation.java"
+      raise unless File.exist?(build_information_path) # in case the file moves in the future
+      FileUtils.touch(build_information_path)
+    end
 
     env = if (i = options.index('--env') || options.index('-e'))
             options.delete_at i
