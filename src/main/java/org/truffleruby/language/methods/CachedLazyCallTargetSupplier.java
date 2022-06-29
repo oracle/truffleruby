@@ -26,6 +26,12 @@ public class CachedLazyCallTargetSupplier {
 
     public RootCallTarget get() {
         CompilerAsserts.neverPartOfCompilation("Only behind a transfer, must not PE the Supplier");
+
+        RootCallTarget alreadySet = this.callTarget;
+        if (alreadySet != null) {
+            return alreadySet;
+        }
+
         synchronized (this) {
             if (callTarget == null) {
                 callTarget = supplier.get();
