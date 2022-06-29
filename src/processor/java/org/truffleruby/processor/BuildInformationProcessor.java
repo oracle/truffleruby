@@ -105,14 +105,14 @@ public class BuildInformationProcessor extends TruffleRubyProcessor {
     }
 
     private String runCommand(String command) throws IOException, InterruptedException {
-        final Process git = new ProcessBuilder(command.split("\\s+")).directory(trufflerubyHome).start();
+        final Process process = new ProcessBuilder(command.split("\\s+")).directory(trufflerubyHome).start();
         final String firstLine;
         try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(git.getInputStream(), StandardCharsets.UTF_8))) {
+                new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
             firstLine = reader.readLine();
         }
 
-        final int exitCode = git.waitFor();
+        final int exitCode = process.waitFor();
         if (exitCode != 0) {
             throw new Error("Command " + command + " failed with exit code " + exitCode);
         }
