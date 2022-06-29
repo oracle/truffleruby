@@ -11,12 +11,6 @@ ABC_ROPE_2 = 'ab' + 'c'
 ABC_ROPE_USASCII = 'abc'.force_encoding('us-ascii')
 ABC_ROPE_UTF8 = 'abc'.force_encoding('utf-8')
 
-simple_string = 'test'
-
-example "Truffle::Debug.create_simple_string.length", simple_string.length
-example "Truffle::Debug.create_simple_string.getbyte(0)", simple_string.getbyte(0)
-example "Truffle::Debug.create_simple_string.ord", simple_string.ord
-
 example "'abc'.length", 3
 example "'こにちわ'.length", 4
 
@@ -47,7 +41,7 @@ example "ABC_ROPE_USASCII == ABC_ROPE_UTF8", true
 example "ABC_ROPE_USASCII == 'abc'", true
 
 example "'A' == 65.chr", true
-tagged example "'A'.ord == 65", true
+example "'A'.ord == 65", true
 
 example "'aba'[0] == 'aca'[-1]", true
 
@@ -65,8 +59,8 @@ example "'こにちわ'.empty?", false
 
 example "x = 'abc'; y = 'xyz'; x.replace(y) == y", true
 
-tagged example "'abc'.getbyte(0) == 97", true
-tagged example "'abc'.getbyte(-1) == 99", true
+example "'abc'.getbyte(0) == 97", true
+example "'abc'.getbyte(-1) == 99", true
 example "'abc'.getbyte(10_000) == nil", true
 
 example "14.to_s.length", 2
