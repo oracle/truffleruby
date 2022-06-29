@@ -10,7 +10,6 @@
 package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -163,8 +162,7 @@ public abstract class AllocationTracing {
     private static RubyString string(RubyContext context, RubyLanguage language, String value) {
         // No point to use MakeStringNode (which uses AllocateObjectNode) here, as we should not
         // trace the allocation of Strings used for tracing allocations.
-        return StringOperations
-                .createUTF8String(context, language, StringOperations.encodeRope(value, UTF8Encoding.INSTANCE));
+        return StringOperations.createUTF8String(context, language, value);
     }
 
 }

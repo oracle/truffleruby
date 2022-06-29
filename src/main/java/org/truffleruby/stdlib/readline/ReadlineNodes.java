@@ -18,7 +18,6 @@ import org.graalvm.shadowed.org.jline.reader.EndOfFileException;
 import org.graalvm.shadowed.org.jline.reader.LineReader;
 import org.graalvm.shadowed.org.jline.reader.ParsedLine;
 import org.graalvm.shadowed.org.jline.reader.UserInterruptException;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -295,8 +294,7 @@ public abstract class ReadlineNodes {
             String after = commandLine.word().substring(commandLine.wordCursor());
             boolean complete = lineReader.getBuffer().cursor() == lineReader.getBuffer().length();
 
-            RubyString string = StringOperations
-                    .createUTF8String(context, language, StringOperations.encodeRope(buffer, UTF8Encoding.INSTANCE));
+            RubyString string = StringOperations.createUTF8String(context, language, buffer);
             RubyArray completions = (RubyArray) DispatchNode.getUncached().call(proc, "call", string);
             for (Object element : ArrayOperations.toIterable(completions)) {
                 final String completion = RubyGuards.getJavaString(element);

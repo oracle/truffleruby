@@ -11,7 +11,6 @@ package org.truffleruby.core.exception;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Specialization;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
@@ -47,10 +46,9 @@ public abstract class ErrnoErrorNode extends RubyBaseNode {
             } else {
                 errnoClass = getContext().getCoreLibrary().getErrnoClass(errnoName);
             }
-            errnoDescription = StringOperations.createUTF8String(
-                    getContext(),
-                    getLanguage(),
-                    StringOperations.encodeRope(ErrnoDescriptions.getDescription(errnoName), UTF8Encoding.INSTANCE));
+
+            errnoDescription = StringOperations.createUTF8String(getContext(), getLanguage(),
+                    ErrnoDescriptions.getDescription(errnoName));
         }
 
 

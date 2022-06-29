@@ -60,14 +60,12 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.exception.ErrnoErrorNode;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.TStringConstants;
@@ -546,8 +544,8 @@ public abstract class RubyDateFormatter {
                 output = formatter.format(output, value, type);
             } catch (IndexOutOfBoundsException ioobe) {
                 final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-                final Rope messageRope = StringOperations.encodeRope("strftime", UTF8Encoding.INSTANCE);
-                final RubyString message = StringOperations.createUTF8String(context, language, messageRope);
+                final RubyString message = StringOperations.createUTF8String(context, language, "strftime");
+
                 throw new RaiseException(
                         context,
                         errnoErrorNode.execute(null, context.getCoreLibrary().getErrnoValue("ERANGE"), message,

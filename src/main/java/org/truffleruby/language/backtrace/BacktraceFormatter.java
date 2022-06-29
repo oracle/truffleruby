@@ -16,7 +16,6 @@ import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
@@ -206,10 +205,7 @@ public class BacktraceFormatter {
         final Object[] array = new Object[lines.length];
 
         for (int n = 0; n < lines.length; n++) {
-            array[n] = StringOperations.createUTF8String(
-                    context,
-                    language,
-                    StringOperations.encodeRope(lines[n], UTF8Encoding.INSTANCE));
+            array[n] = StringOperations.createUTF8String(context, language, lines[n]);
         }
 
         return ArrayHelpers.createArray(context, language, array);

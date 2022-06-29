@@ -35,7 +35,6 @@ import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.strings.TruffleString.AsTruffleStringNode;
-import org.jcodings.specific.UTF8Encoding;
 import org.joni.Matcher;
 import org.joni.Option;
 import org.joni.Regex;
@@ -61,7 +60,6 @@ import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
 import org.truffleruby.core.regexp.TruffleRegexpNodesFactory.MatchNodeGen;
 import org.truffleruby.core.rope.ATStringWithEncoding;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.RubyString;
@@ -431,9 +429,9 @@ public class TruffleRegexpNodes {
             BuilderState state = arrayBuilderNode.start(arraySize);
             int n = 0;
             for (Entry<T, AtomicInteger> e : map.entrySet()) {
-                Rope key = StringOperations.encodeRope(e.getKey().toString(), UTF8Encoding.INSTANCE);
                 arrayBuilderNode
-                        .appendValue(state, n++, StringOperations.createUTF8String(context, getLanguage(), key));
+                        .appendValue(state, n++,
+                                StringOperations.createUTF8String(context, getLanguage(), e.getKey().toString()));
                 arrayBuilderNode.appendValue(state, n++, e.getValue().get());
             }
             return createArray(arrayBuilderNode.finish(state, n), n);
@@ -526,9 +524,9 @@ public class TruffleRegexpNodes {
             final BuilderState state = arrayBuilderNode.start(unusedRegexps.size());
             int n = 0;
             for (RubyRegexp entry : unusedRegexps) {
-                final Rope key = StringOperations.encodeRope(entry.toString(), UTF8Encoding.INSTANCE);
                 arrayBuilderNode
-                        .appendValue(state, n++, StringOperations.createUTF8String(getContext(), getLanguage(), key));
+                        .appendValue(state, n++,
+                                StringOperations.createUTF8String(getContext(), getLanguage(), entry.toString()));
             }
 
             return createArray(arrayBuilderNode.finish(state, n), n);
@@ -740,11 +738,7 @@ public class TruffleRegexpNodes {
                     ret,
                     "rope_types",
                     stats.ropeClassFrequencies,
-                    Optional.of(
-                            className -> StringOperations.createUTF8String(
-                                    getContext(),
-                                    getLanguage(),
-                                    StringOperations.encodeRope(className, UTF8Encoding.INSTANCE))),
+                    Optional.of(className -> StringOperations.createUTF8String(getContext(), getLanguage(), className)),
                     Optional.of(count -> count.get()));
 
             return ret;

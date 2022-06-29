@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2015, 2021 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
@@ -9,11 +10,11 @@
  */
 package org.truffleruby.language;
 
-import org.jcodings.specific.UTF8Encoding;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.binding.RubyBinding;
-import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.backtrace.InternalRootNode;
 
@@ -23,11 +24,11 @@ import org.truffleruby.language.dispatch.DispatchNode;
 
 public class RubyEvalInteractiveRootNode extends RubyBaseRootNode implements InternalRootNode {
 
-    private final Rope sourceRope;
+    private final TruffleString sourceString;
 
     public RubyEvalInteractiveRootNode(RubyLanguage language, Source source) {
         super(language, null, null);
-        this.sourceRope = StringOperations.encodeRope(source.getCharacters().toString(), UTF8Encoding.INSTANCE);
+        this.sourceString = TStringUtils.utf8TString(source.getCharacters().toString());
     }
 
     @Override
@@ -40,7 +41,7 @@ public class RubyEvalInteractiveRootNode extends RubyBaseRootNode implements Int
         return DispatchNode.getUncached().call(
                 interactiveBinding,
                 "eval",
-                StringOperations.createUTF8String(context, getLanguage(), sourceRope));
+                StringOperations.createUTF8String(context, getLanguage(), sourceString));
     }
 
     @Override

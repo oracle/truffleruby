@@ -28,7 +28,6 @@ import org.truffleruby.core.rope.CannotConvertBinaryRubyStringToJavaString;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringGuards;
 

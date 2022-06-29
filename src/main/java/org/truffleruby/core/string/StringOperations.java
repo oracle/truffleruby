@@ -28,16 +28,15 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 
+import com.oracle.truffle.api.strings.AbstractTruffleString;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.encoding.Encodings;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.LeafRope;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeOperations;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
@@ -51,6 +50,29 @@ public abstract class StringOperations {
                 false,
                 rope,
                 Encodings.UTF_8);
+        return instance;
+    }
+
+    public static RubyString createUTF8String(RubyContext context, RubyLanguage language, String string) {
+        final RubyString instance = new RubyString(
+                context.getCoreLibrary().stringClass,
+                language.stringShape,
+                false,
+                TStringUtils.utf8TString(string),
+                Encodings.UTF_8);
+
+        return instance;
+    }
+
+    public static RubyString createUTF8String(RubyContext context, RubyLanguage language,
+            AbstractTruffleString string) {
+        final RubyString instance = new RubyString(
+                context.getCoreLibrary().stringClass,
+                language.stringShape,
+                false,
+                string,
+                Encodings.UTF_8);
+
         return instance;
     }
 
@@ -80,20 +102,6 @@ public abstract class StringOperations {
         buffer.get(bytes);
 
         return bytes;
-    }
-
-    public static LeafRope encodeRope(String value, Encoding encoding, CodeRange codeRange) {
-        if (codeRange == CodeRange.CR_7BIT) {
-            return RopeOperations.encodeAscii(value, encoding);
-        }
-
-        final byte[] bytes = encodeBytes(value, encoding);
-
-        return RopeOperations.create(bytes, encoding, codeRange);
-    }
-
-    public static LeafRope encodeRope(String value, Encoding encoding) {
-        return encodeRope(value, encoding, CodeRange.CR_UNKNOWN);
     }
 
     public static boolean isAsciiOnly(String string) {

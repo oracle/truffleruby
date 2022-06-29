@@ -23,7 +23,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import org.jcodings.Encoding;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
@@ -435,11 +434,7 @@ public class FeatureLoader {
 
             Metrics.printTime("before-load-cext-support");
             try {
-                final RubyString cextRb = StringOperations
-                        .createUTF8String(
-                                context,
-                                language,
-                                StringOperations.encodeRope("truffle/cext", UTF8Encoding.INSTANCE));
+                final RubyString cextRb = StringOperations.createUTF8String(context, language, "truffle/cext");
                 DispatchNode.getUncached().call(context.getCoreLibrary().mainObject, "gem_original_require", cextRb);
 
                 final RubyModule truffleModule = context.getCoreLibrary().truffleModule;
@@ -526,10 +521,8 @@ public class FeatureLoader {
                 ArrayUtils.EMPTY_ARRAY,
                 abiFunctionInteropLibrary,
                 TranslateInteropExceptionNode.getUncached());
-        return StringOperations.createUTF8String(
-                context,
-                language,
-                StringOperations.encodeRope(abiVersion, UTF8Encoding.INSTANCE));
+
+        return StringOperations.createUTF8String(context, language, abiVersion);
     }
 
     Object findFunctionInLibrary(Object library, String functionName, String path) {

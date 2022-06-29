@@ -22,7 +22,6 @@ import com.oracle.truffle.api.interop.ExceptionType;
 import com.oracle.truffle.api.interop.NodeLibrary;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.TruffleString;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -1576,10 +1575,7 @@ public abstract class InteropNodes {
             final String[] languagesArray = languages.keySet().toArray(StringUtils.EMPTY_STRING_ARRAY);
             final Object[] rubyStringArray = new Object[languagesArray.length];
             for (int i = 0; i < languagesArray.length; i++) {
-                rubyStringArray[i] = StringOperations.createUTF8String(
-                        getContext(),
-                        getLanguage(),
-                        StringOperations.encodeRope(languagesArray[i], UTF8Encoding.INSTANCE));
+                rubyStringArray[i] = StringOperations.createUTF8String(getContext(), getLanguage(), languagesArray[i]);
             }
             return createArray(rubyStringArray);
         }
