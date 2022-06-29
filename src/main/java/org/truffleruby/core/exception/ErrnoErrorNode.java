@@ -10,10 +10,12 @@
 package org.truffleruby.core.exception;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.strings.TruffleString;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.backtrace.Backtrace;
@@ -32,7 +34,8 @@ public abstract class ErrnoErrorNode extends RubyBaseNode {
             Backtrace backtrace);
 
     @Specialization
-    protected RubySystemCallError errnoError(RubyClass rubyClass, int errno, Object extraMessage, Backtrace backtrace) {
+    protected RubySystemCallError errnoError(RubyClass rubyClass, int errno, Object extraMessage, Backtrace backtrace,
+            @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
         final String errnoName = getContext().getCoreLibrary().getErrnoName(errno);
 
         final Object errnoDescription;
@@ -47,8 +50,9 @@ public abstract class ErrnoErrorNode extends RubyBaseNode {
                 errnoClass = getContext().getCoreLibrary().getErrnoClass(errnoName);
             }
 
-            errnoDescription = StringOperations.createUTF8String(getContext(), getLanguage(),
-                    ErrnoDescriptions.getDescription(errnoName));
+
+            errnoDescription = createString(fromJavaStringNode, ErrnoDescriptions.getDescription(errnoName),
+                    Encodings.UTF_8);
         }
 
 

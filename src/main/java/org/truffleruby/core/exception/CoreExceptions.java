@@ -901,6 +901,7 @@ public class CoreExceptions {
         return exception;
     }
 
+    @TruffleBoundary
     public RubyNoMethodError noMethodError(String message, Object receiver, String name, Object[] args,
             Node currentNode) {
         final RubyString messageString = StringOperations.createUTF8String(context, language, message);

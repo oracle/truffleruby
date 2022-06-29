@@ -199,6 +199,7 @@ public class BacktraceFormatter {
         return formatBacktraceAsRubyStringArray(exception, backtrace, Integer.MAX_VALUE);
     }
 
+    @TruffleBoundary
     public RubyArray formatBacktraceAsRubyStringArray(RubyException exception, Backtrace backtrace, int length) {
         final String[] lines = formatBacktraceAsStringArray(exception, backtrace, length);
 

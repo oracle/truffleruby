@@ -43,11 +43,13 @@ public class TStringUtils {
     }
 
     public static TruffleString fromByteArray(byte[] bytes, TruffleString.Encoding tencoding) {
+        CompilerAsserts.neverPartOfCompilation(
+                "Use createString(TruffleString.FromByteArrayNode, byte[], RubyEncoding) instead");
         return TruffleString.fromByteArrayUncached(bytes, 0, bytes.length, tencoding, false);
     }
 
     public static TruffleString fromByteArray(byte[] bytes, RubyEncoding rubyEncoding) {
-        return TruffleString.fromByteArrayUncached(bytes, 0, bytes.length, rubyEncoding.tencoding, false);
+        return fromByteArray(bytes, rubyEncoding.tencoding);
     }
 
     public static Rope toRope(TruffleString tstring, RubyEncoding rubyEncoding) {
@@ -65,28 +67,27 @@ public class TStringUtils {
         return truffleString;
     }
 
-    @TruffleBoundary
     public static TruffleString utf8TString(String javaString) {
-        return TruffleString.fromJavaStringUncached(javaString, TruffleString.Encoding.UTF_8);
+        return fromJavaString(javaString, TruffleString.Encoding.UTF_8);
     }
 
-    @TruffleBoundary
     public static TruffleString usAsciiString(String javaString) {
-        return TruffleString.fromJavaStringUncached(javaString, TruffleString.Encoding.US_ASCII);
+        return fromJavaString(javaString, TruffleString.Encoding.US_ASCII);
     }
 
-    @TruffleBoundary
     public static TruffleString fromJavaString(String javaString, TruffleString.Encoding encoding) {
+        CompilerAsserts.neverPartOfCompilation(
+                "Use createString(TruffleString.FromJavaStringNode, String, RubyEncoding) instead");
         return TruffleString.fromJavaStringUncached(javaString, encoding);
     }
 
-    @TruffleBoundary
     public static TruffleString fromJavaString(String javaString, RubyEncoding encoding) {
-        return TruffleString.fromJavaStringUncached(javaString, encoding.tencoding);
+        return fromJavaString(javaString, encoding.tencoding);
     }
 
     // Should be avoided as much as feasible
     public static byte[] getBytesOrCopy(AbstractTruffleString tstring, RubyEncoding encoding) {
+        CompilerAsserts.neverPartOfCompilation("uncached");
         var bytes = tstring.getInternalByteArrayUncached(encoding.tencoding);
         if (tstring instanceof TruffleString && bytes.getOffset() == 0 &&
                 bytes.getLength() == bytes.getArray().length) {
@@ -100,7 +101,7 @@ public class TStringUtils {
     public static byte[] getBytesOrCopy(AbstractTruffleString tstring, TruffleString.Encoding encoding,
             TruffleString.GetInternalByteArrayNode getInternalByteArrayNode,
             ConditionProfile noCopyProfile) {
-        var bytes = tstring.getInternalByteArrayUncached(encoding);
+        var bytes = getInternalByteArrayNode.execute(tstring, encoding);
         if (noCopyProfile.profile(tstring instanceof TruffleString && bytes.getOffset() == 0 &&
                 bytes.getLength() == bytes.getArray().length)) {
             return bytes.getArray();
@@ -110,6 +111,7 @@ public class TStringUtils {
     }
 
     public static byte[] getBytesOrFail(AbstractTruffleString tstring, RubyEncoding encoding) {
+        CompilerAsserts.neverPartOfCompilation("uncached");
         var byteArray = tstring.getInternalByteArrayUncached(encoding.tencoding);
         if (byteArray.getOffset() != 0 || byteArray.getLength() != byteArray.getArray().length) {
             throw CompilerDirectives.shouldNotReachHere();
@@ -181,13 +183,13 @@ public class TStringUtils {
     }
 
     public static boolean isSingleByteOptimizable(AbstractTruffleString truffleString, RubyEncoding encoding) {
-        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        CompilerAsserts.neverPartOfCompilation("Use SingleByteOptimizableNode instead");
         return truffleString.getByteCodeRangeUncached(encoding.tencoding) == ASCII ||
                 encoding.jcoding.isSingleByte();
     }
 
     public static String toJavaStringOrThrow(AbstractTruffleString tstring, RubyEncoding encoding) {
-        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        CompilerAsserts.neverPartOfCompilation("uncached");
         if (encoding == Encodings.BINARY && !StringGuards.is7BitUncached(tstring, encoding)) {
             int length = tstring.byteLength(encoding.tencoding);
             for (int i = 0; i < length; i++) {

@@ -1392,7 +1392,7 @@ public class CExtNodes {
                 @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
             var tstring = strings.getTString(string);
             var encoding = strings.getEncoding(string);
-            var bytes = TStringUtils.getBytesOrFail(tstring, encoding);
+            var bytes = TStringUtils.getBytesOrFail(tstring, encoding, byteArrayNode);
 
             final byte[] to = new byte[bytes.length];
             final IntHolder intHolder = new IntHolder();
