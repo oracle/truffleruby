@@ -11,6 +11,7 @@ package org.truffleruby.language.methods;
 
 import java.util.Set;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import org.truffleruby.RubyContext;
@@ -172,8 +173,8 @@ public class InternalMethod implements ObjectGraphNode {
 
         /* If the call target supplier has already been run, then don't wait until the first time the InternalMethod is
          * asked for the call target, because this would be a deoptimization in getCallTarget(). */
-        if (callTarget == null && callTargetSupplier != null && callTargetSupplier.isAvailable()) {
-            this.callTarget = callTargetSupplier.get();
+        if (callTarget == null && callTargetSupplier != null) {
+            this.callTarget = callTargetSupplier.getWhenAvailable();
         }
     }
 
@@ -231,6 +232,7 @@ public class InternalMethod implements ObjectGraphNode {
 
     public RootCallTarget getCallTarget() {
         if (callTarget == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
             callTarget = callTargetSupplier.get();
             assert RubyRootNode.of(callTarget).getSharedMethodInfo() == sharedMethodInfo;
         }

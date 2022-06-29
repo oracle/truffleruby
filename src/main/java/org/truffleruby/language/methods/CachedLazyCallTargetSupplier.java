@@ -9,14 +9,14 @@
  */
 package org.truffleruby.language.methods;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
 
 import java.util.function.Supplier;
 
 public class CachedLazyCallTargetSupplier {
 
-    private volatile RootCallTarget value = null;
+    // Volatile, so that writes from another thread will finish publishing the RootCallTarget first
+    private volatile RootCallTarget callTarget = null;
     private Supplier<RootCallTarget> supplier;
 
     public CachedLazyCallTargetSupplier(Supplier<RootCallTarget> supplier) {
@@ -24,21 +24,17 @@ public class CachedLazyCallTargetSupplier {
     }
 
     public RootCallTarget get() {
-        if (isAvailable()) {
-            return value;
-        }
-        CompilerDirectives.transferToInterpreterAndInvalidate();
         synchronized (this) {
-            if (value == null) {
-                value = supplier.get();
+            if (callTarget == null) {
+                callTarget = supplier.get();
                 supplier = null;
             }
-            return value;
+            return callTarget;
         }
     }
 
-    public boolean isAvailable() {
-        return value != null;
+    public RootCallTarget getWhenAvailable() {
+        return callTarget;
     }
 
 }
