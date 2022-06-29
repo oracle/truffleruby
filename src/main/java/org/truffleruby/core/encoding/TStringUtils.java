@@ -66,10 +66,6 @@ public class TStringUtils {
         return truffleString;
     }
 
-    public static TStringWithEncoding fromRopeWithEnc(Rope rope, RubyEncoding rubyEncoding) {
-        return new TStringWithEncoding(fromRope(rope, rubyEncoding), rubyEncoding);
-    }
-
     @TruffleBoundary
     public static TruffleString utf8TString(String javaString) {
         return TruffleString.fromJavaStringUncached(javaString, TruffleString.Encoding.UTF_8);

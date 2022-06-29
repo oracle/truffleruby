@@ -51,12 +51,4 @@ public final class RopeWithEncoding {
         return Objects.hash(rope, encoding);
     }
 
-    public AbstractTruffleString toTString() {
-        return TStringUtils.fromRope(rope, encoding);
-    }
-
-    public ATStringWithEncoding toATStringWithEncoding() {
-        return new ATStringWithEncoding(TStringUtils.fromRope(rope, encoding), encoding);
-    }
-
 }
