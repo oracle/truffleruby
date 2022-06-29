@@ -168,7 +168,7 @@ public abstract class TruffleDebugNodes {
         @Specialization
         protected RubyString createSimpleString(
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
-            return createString(fromByteArrayNode, new byte[]{ 't', 'e', 's', 't' }, Encodings.UTF_8);
+            return createString(fromByteArrayNode, new byte[]{ 't', 'e', 's', 't' }, Encodings.US_ASCII);
         }
     }
 
