@@ -19,6 +19,8 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
+import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.api.strings.TruffleString.CodeRange;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -29,9 +31,6 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.numeric.FloatNodesFactory.ModNodeFactory;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
@@ -883,6 +882,8 @@ public abstract class FloatNodes {
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child protected TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode
+                .create();
 
         /* Ruby has complex custom formatting logic for floats. Our logic meets the specs but we suspect it's possibly
          * still not entirely correct. JRuby seems to be correct, but their logic is tied up in their printf
@@ -890,52 +891,52 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "value == POSITIVE_INFINITY")
         protected RubyString toSPositiveInfinity(double value,
-                @Cached("specialValueRope(POSITIVE_INFINITY)") Rope cachedRope) {
-            return createString(cachedRope, Encodings.US_ASCII);
+                @Cached("specialValueString(POSITIVE_INFINITY, fromJavaStringNode)") TruffleString cachedString) {
+            return createString(cachedString, Encodings.US_ASCII);
         }
 
         @Specialization(guards = "value == NEGATIVE_INFINITY")
         protected RubyString toSNegativeInfinity(double value,
-                @Cached("specialValueRope(NEGATIVE_INFINITY)") Rope cachedRope) {
-            return createString(cachedRope, Encodings.US_ASCII);
+                @Cached("specialValueString(NEGATIVE_INFINITY, fromJavaStringNode)") TruffleString cachedString) {
+            return createString(cachedString, Encodings.US_ASCII);
         }
 
         @Specialization(guards = "isNaN(value)")
         protected RubyString toSNaN(double value,
-                @Cached("specialValueRope(value)") Rope cachedRope) {
-            return createString(cachedRope, Encodings.US_ASCII);
+                @Cached("specialValueString(value, fromJavaStringNode)") TruffleString cachedString) {
+            return createString(cachedString, Encodings.US_ASCII);
         }
 
         @Specialization(guards = "hasNoExp(value)")
         protected RubyString toSNoExp(double value) {
-            return makeStringNode.executeMake(makeRopeNoExp(value, getLanguage().getCurrentThread()),
-                    Encodings.US_ASCII, CodeRange.CR_7BIT);
+            return makeStringNode.executeMake(makeStringNoExp(value, getLanguage().getCurrentThread()),
+                    Encodings.US_ASCII, CodeRange.ASCII);
         }
 
         @Specialization(guards = "hasLargeExp(value)")
         protected RubyString toSLargeExp(double value) {
-            return makeStringNode.executeMake(makeRopeLargeExp(value, getLanguage().getCurrentThread()),
-                    Encodings.US_ASCII, CodeRange.CR_7BIT);
+            return makeStringNode.executeMake(makeStringLargeExp(value, getLanguage().getCurrentThread()),
+                    Encodings.US_ASCII, CodeRange.ASCII);
         }
 
         @Specialization(guards = "hasSmallExp(value)")
         protected RubyString toSSmallExp(double value) {
-            return makeStringNode.executeMake(makeRopeSmallExp(value, getLanguage().getCurrentThread()),
-                    Encodings.US_ASCII, CodeRange.CR_7BIT);
+            return makeStringNode.executeMake(makeStringSmallExp(value, getLanguage().getCurrentThread()),
+                    Encodings.US_ASCII, CodeRange.ASCII);
         }
 
         @TruffleBoundary
-        private String makeRopeNoExp(double value, RubyThread thread) {
+        private String makeStringNoExp(double value, RubyThread thread) {
             return getNoExpFormat(thread).format(value);
         }
 
         @TruffleBoundary
-        private String makeRopeSmallExp(double value, RubyThread thread) {
+        private String makeStringSmallExp(double value, RubyThread thread) {
             return getSmallExpFormat(thread).format(value);
         }
 
         @TruffleBoundary
-        private String makeRopeLargeExp(double value, RubyThread thread) {
+        private String makeStringLargeExp(double value, RubyThread thread) {
             return getLargeExpFormat(thread).format(value);
         }
 
@@ -954,8 +955,9 @@ public abstract class FloatNodes {
             return (abs < 0.0001) && (abs != 0.0);
         }
 
-        protected static Rope specialValueRope(double value) {
-            return RopeOperations.encodeAscii(Double.toString(value), Encodings.US_ASCII.jcoding);
+        protected static TruffleString specialValueString(double value,
+                TruffleString.FromJavaStringNode fromJavaStringNode) {
+            return fromJavaStringNode.execute(Double.toString(value), Encodings.US_ASCII.tencoding);
         }
 
         private DecimalFormat getNoExpFormat(RubyThread thread) {
@@ -1030,7 +1032,7 @@ public abstract class FloatNodes {
             final int sign = value < 0 ? 1 : 0;
 
             return createArray(new Object[]{
-                    makeStringNode.executeMake(string, Encodings.UTF_8, CodeRange.CR_7BIT),
+                    makeStringNode.executeMake(string, Encodings.UTF_8, CodeRange.ASCII),
                     decimal,
                     sign,
                     string.length()

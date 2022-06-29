@@ -251,13 +251,28 @@ public abstract class StringNodes {
         }
 
         @Specialization
-        protected RubyString makeStringFromBytes(byte[] bytes, RubyEncoding encoding, CodeRange codeRange,
+        protected RubyString makeStringFromBytesREMOVE_ME(byte[] bytes, RubyEncoding encoding, CodeRange codeRange,
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
+            return createString(fromByteArrayNode, bytes, encoding);
+        }
+
+        @Specialization
+        protected RubyString makeStringFromBytes(byte[] bytes, RubyEncoding encoding, TruffleString.CodeRange codeRange,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             return createString(fromByteArrayNode, bytes, encoding);
         }
 
         @Specialization(guards = "is7Bit(codeRange)")
-        protected RubyString makeAsciiStringFromString(String string, RubyEncoding encoding, CodeRange codeRange) {
+        protected RubyString makeAsciiStringFromStringREMOVE_ME(
+                String string, RubyEncoding encoding, CodeRange codeRange) {
+            final byte[] bytes = StringOperations.encodeAsciiBytes(string);
+
+            return executeMake(bytes, encoding, codeRange);
+        }
+
+        @Specialization(guards = "is7Bit(codeRange)")
+        protected RubyString makeAsciiStringFromString(
+                String string, RubyEncoding encoding, TruffleString.CodeRange codeRange) {
             final byte[] bytes = StringOperations.encodeAsciiBytes(string);
 
             return executeMake(bytes, encoding, codeRange);
@@ -272,6 +287,10 @@ public abstract class StringNodes {
 
         protected static boolean is7Bit(CodeRange codeRange) {
             return codeRange == CR_7BIT;
+        }
+
+        protected static boolean is7Bit(TruffleString.CodeRange codeRange) {
+            return codeRange == ASCII;
         }
 
     }
