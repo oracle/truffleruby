@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.methods;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.RootCallTarget;
 
 import java.util.function.Supplier;
@@ -24,6 +25,7 @@ public class CachedLazyCallTargetSupplier {
     }
 
     public RootCallTarget get() {
+        CompilerAsserts.neverPartOfCompilation("Only behind a transfer, must not PE the Supplier");
         synchronized (this) {
             if (callTarget == null) {
                 callTarget = supplier.get();
