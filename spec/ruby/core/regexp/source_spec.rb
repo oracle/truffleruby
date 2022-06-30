@@ -10,7 +10,7 @@ describe "Regexp#source" do
   end
 
   it "keeps escape sequences as is" do
-    /\x20\+/.source.should == "\\x20\\+"
+    /\x20\+/.source.should == '\x20\+'
   end
 
   describe "escaping" do

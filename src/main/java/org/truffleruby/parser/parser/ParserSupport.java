@@ -645,7 +645,7 @@ public class ParserSupport {
                 "Useless use of " + useless + " in void context.");
     }
 
-    /** Check to see if current node is a useless statement. If useless a warning if printed.
+    /** Check to see if current node is a useless statement. If useless a warning is printed.
      *
      * @param node to be checked. */
     public void checkUselessStatement(ParseNode node) {
