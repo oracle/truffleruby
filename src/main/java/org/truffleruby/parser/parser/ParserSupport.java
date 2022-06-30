@@ -645,7 +645,7 @@ public class ParserSupport {
                 "Useless use of " + useless + " in void context.");
     }
 
-    /** Check to see if current node is an useless statement. If useless a warning if printed.
+    /** Check to see if current node is a useless statement. If useless a warning is printed.
      *
      * @param node to be checked. */
     public void checkUselessStatement(ParseNode node) {
@@ -1802,7 +1802,7 @@ public class ParserSupport {
 
     protected ClassicRegexp checkRegexpSyntax(Rope value, RegexpOptions options) {
         try {
-            // This is only for syntax checking but this will as a side-effect create an entry in the regexp cache.
+            // This is only for syntax checking but this will as a side effect create an entry in the regexp cache.
             return new ClassicRegexp(
                     getConfiguration().getContext(),
                     value,
