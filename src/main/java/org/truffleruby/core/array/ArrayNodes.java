@@ -104,6 +104,7 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.DirectCallNode;
@@ -280,26 +281,27 @@ public abstract class ArrayNodes {
 
         @Specialization
         protected Object indexRange(RubyArray array, RubyObjectRange range, NotProvided length,
-                @Cached NormalizedStartLengthNode startLengthNode,
-                @Cached ReadSliceNormalizedNode readSlice) {
-            final int[] startLength = startLengthNode.execute(range, array.size);
-            final int len = Math.max(startLength[1], 0); // negative range ending maps to zero length
-            return readSlice.executeReadSlice(array, startLength[0], len);
+                @Cached @Shared("starting") NormalizedStartLengthNode startLengthNode,
+                @Cached @Shared("ending") ReadSliceNormalizedNode readSlice) {
+            return readRange(array, range, startLengthNode, readSlice);
         }
 
         @Specialization
         protected Object indexIntRange(RubyArray array, RubyIntRange range, NotProvided length,
-                @Cached NormalizedStartLengthNode startLengthNode,
-                @Cached ReadSliceNormalizedNode readSlice) {
-            final int[] startLength = startLengthNode.execute(range, array.size);
-            final int len = Math.max(startLength[1], 0); // negative range ending maps to zero length
-            return readSlice.executeReadSlice(array, startLength[0], len);
+                @Cached @Shared("starting") NormalizedStartLengthNode startLengthNode,
+                @Cached @Shared("ending") ReadSliceNormalizedNode readSlice) {
+            return readRange(array, range, startLengthNode, readSlice);
         }
 
         @Specialization
         protected Object indexLongRange(RubyArray array, RubyLongRange range, NotProvided length,
-                @Cached NormalizedStartLengthNode startLengthNode,
-                @Cached ReadSliceNormalizedNode readSlice) {
+                @Cached @Shared("starting") NormalizedStartLengthNode startLengthNode,
+                @Cached @Shared("ending") ReadSliceNormalizedNode readSlice) {
+            return readRange(array, range, startLengthNode, readSlice);
+        }
+
+        private Object readRange(RubyArray array, Object range, NormalizedStartLengthNode startLengthNode,
+                ReadSliceNormalizedNode readSlice) {
             final int[] startLength = startLengthNode.execute(range, array.size);
             final int len = Math.max(startLength[1], 0); // negative range ending maps to zero length
             return readSlice.executeReadSlice(array, startLength[0], len);
@@ -382,42 +384,27 @@ public abstract class ArrayNodes {
 
         @Specialization
         protected Object setRange(RubyArray array, RubyObjectRange range, Object value, NotProvided unused,
-                @Cached NormalizedStartLengthNode normalizedStartLength,
-                @Cached BranchProfile negativeStart) {
-            final int[] startLength = normalizedStartLength.execute(range, array.size);
-            final int start = startLength[0];
-            if (start < 0) {
-                negativeStart.enter();
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().rangeError(Utils.concat("index ", start, " out of bounds"), this));
-            }
-            final int length = Math.max(startLength[1], 0); // negative range ending maps to zero length
-            return executeIntIndices(array, start, length, value);
+                @Cached @Shared("startLength") NormalizedStartLengthNode normalizedStartLength,
+                @Cached @Shared("nagativeStart") BranchProfile negativeStart) {
+            return setRangeInternal(array, range, value, normalizedStartLength, negativeStart);
         }
-
 
         @Specialization
         protected Object setIngRange(RubyArray array, RubyIntRange range, Object value, NotProvided unused,
-                @Cached NormalizedStartLengthNode normalizedStartLength,
-                @Cached BranchProfile negativeStart) {
-            final int[] startLength = normalizedStartLength.execute(range, array.size);
-            final int start = startLength[0];
-            if (start < 0) {
-                negativeStart.enter();
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().rangeError(Utils.concat("index ", start, " out of bounds"), this));
-            }
-            final int length = Math.max(startLength[1], 0); // negative range ending maps to zero length
-            return executeIntIndices(array, start, length, value);
+                @Cached @Shared("startLength") NormalizedStartLengthNode normalizedStartLength,
+                @Cached @Shared("nagativeStart") BranchProfile negativeStart) {
+            return setRangeInternal(array, range, value, normalizedStartLength, negativeStart);
         }
-
 
         @Specialization
         protected Object setLongRange(RubyArray array, RubyLongRange range, Object value, NotProvided unused,
-                @Cached NormalizedStartLengthNode normalizedStartLength,
-                @Cached BranchProfile negativeStart) {
+                @Cached @Shared("startLength") NormalizedStartLengthNode normalizedStartLength,
+                @Cached @Shared("nagativeStart") BranchProfile negativeStart) {
+            return setRangeInternal(array, range, value, normalizedStartLength, negativeStart);
+        }
+
+        private Object setRangeInternal(RubyArray array, Object range, Object value,
+                NormalizedStartLengthNode normalizedStartLength, BranchProfile negativeStart) {
             final int[] startLength = normalizedStartLength.execute(range, array.size);
             final int start = startLength[0];
             if (start < 0) {
