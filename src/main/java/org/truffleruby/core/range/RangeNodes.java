@@ -84,7 +84,7 @@ public abstract class RangeNodes {
             return createArray(arrayBuilder.finish(state, length), length);
         }
 
-        @Specialization(guards = "!isIntRange(range)")
+        @Specialization
         protected Object mapFallback(RubyObjectRange range, Object block) {
             return FAILURE;
         }
