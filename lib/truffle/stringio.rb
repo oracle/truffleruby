@@ -211,7 +211,7 @@ class StringIO
     d = @__data__
     string = d.string
 
-    while d.pos < string.length
+    while d.pos < string.bytesize
       check_readable
       byte = string.getbyte d.pos
       d.pos += 1
@@ -468,7 +468,7 @@ class StringIO
       buffer.replace str if buffer
     end
 
-    d.pos += str.length
+    d.pos += str.bytesize
     str
   end
 

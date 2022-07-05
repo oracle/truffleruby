@@ -41,6 +41,7 @@ Bug fixes:
 * Fix `Kernel#sprintf` formatting of floats to be like CRuby (@aardvark179).
 * Fix `Process.egid=` to accept `String`s (#2615, @ngtban)
 * Fix optional assignment to only evaluate index arguments once (#2658, @aardvark179).
+* Fix `StringIO` to set position correctly after reading multi-byte characters (#2207, @aardvark179).
 
 Compatibility:
 
