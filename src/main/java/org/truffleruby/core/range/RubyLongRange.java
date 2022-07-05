@@ -33,6 +33,12 @@ public final class RubyLongRange extends ImmutableRubyObject {
         this.end = end;
     }
 
+    public RubyLongRange(RubyLongRange other) {
+        this.excludedEnd = other.excludedEnd;
+        this.begin = other.begin;
+        this.end = other.end;
+    }
+
     @ExportMessage
     public boolean hasIterator() {
         return true;

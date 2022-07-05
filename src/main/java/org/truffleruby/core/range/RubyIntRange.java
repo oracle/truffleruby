@@ -31,7 +31,12 @@ public final class RubyIntRange extends ImmutableRubyObject {
         this.excludedEnd = excludedEnd;
         this.begin = begin;
         this.end = end;
+    }
 
+    public RubyIntRange(RubyIntRange other) {
+        this.excludedEnd = other.excludedEnd;
+        this.begin = other.begin;
+        this.end = other.end;
     }
 
     @ExportMessage

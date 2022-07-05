@@ -192,7 +192,7 @@ public abstract class RangeNodes {
 
     }
 
-    @CoreMethod(names = { "dup", "clone" })
+    @CoreMethod(names = "dup")
     public abstract static class DupNode extends UnaryCoreMethodNode {
 
         // NOTE(norswap): This is a hack, as it doesn't copy the ivars.
@@ -236,6 +236,37 @@ public abstract class RangeNodes {
                     range.begin,
                     range.end,
                     false);
+            AllocationTracing.trace(copy, this);
+            return copy;
+        }
+    }
+
+    @CoreMethod(names = "clone")
+    public abstract static class CloneNode extends UnaryCoreMethodNode {
+
+        // NOTE(norswap): This is a hack, as it doesn't copy the ivars.
+        //   We do copy the logical class (but not the singleton class, to be MRI compatible).
+
+        @Specialization
+        protected RubyIntRange cloneIntRange(RubyIntRange range) {
+            return new RubyIntRange(range);
+        }
+
+        @Specialization
+        protected RubyLongRange dupLongRange(RubyLongRange range) {
+            return new RubyLongRange(range);
+        }
+
+        @Specialization
+        protected RubyObjectRange dup(RubyObjectRange range) {
+            final RubyClass logicalClass = range.getLogicalClass();
+            final RubyObjectRange copy = new RubyObjectRange(
+                    logicalClass,
+                    getLanguage().objectRangeShape,
+                    range.excludedEnd,
+                    range.begin,
+                    range.end,
+                    range.frozen);
             AllocationTracing.trace(copy, this);
             return copy;
         }
