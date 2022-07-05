@@ -6,6 +6,7 @@ New features:
 
 Bug fixes:
 
+* Fix `StringIO` to set position correctly after reading multi-byte characters (#2207, @aardvark179).
 
 Compatibility:
 
