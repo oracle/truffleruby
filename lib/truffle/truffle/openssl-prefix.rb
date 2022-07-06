@@ -20,10 +20,9 @@ search_homebrew = -> homebrew {
   end
 }
 
-macOS = RUBY_PLATFORM.include?('darwin')
-
-if macOS && !ENV['OPENSSL_PREFIX']
-  if prefix = search_homebrew.call('/usr/local')
+if Truffle::Platform.darwin? && !ENV['OPENSSL_PREFIX']
+  default_homebrew_prefix = Truffle::System.host_cpu == 'aarch64' ? '/opt/homebrew' : '/usr/local'
+  if prefix = search_homebrew.call(default_homebrew_prefix)
     # found
   else
     homebrew = `brew --prefix 2>/dev/null`.strip
