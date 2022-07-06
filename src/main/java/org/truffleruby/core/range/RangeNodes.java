@@ -471,7 +471,6 @@ public abstract class RangeNodes {
 
         @Specialization(guards = "rubyClass == getRangeClass()")
         protected RubyIntRange intRange(RubyClass rubyClass, int begin, int end, boolean excludeEnd) {
-            // Not a Range subclass, we can use the shape directly.
             final RubyIntRange range = new RubyIntRange(
                     excludeEnd,
                     begin,
@@ -481,7 +480,6 @@ public abstract class RangeNodes {
 
         @Specialization(guards = { "rubyClass == getRangeClass()", "fitsInInteger(begin)", "fitsInInteger(end)" })
         protected RubyIntRange longFittingIntRange(RubyClass rubyClass, long begin, long end, boolean excludeEnd) {
-            // Not a Range subclass, we can use the shape directly.
             final RubyIntRange range = new RubyIntRange(
                     excludeEnd,
                     (int) begin,
@@ -491,7 +489,6 @@ public abstract class RangeNodes {
 
         @Specialization(guards = { "rubyClass == getRangeClass()", "!fitsInInteger(begin) || !fitsInInteger(end)" })
         protected RubyLongRange longRange(RubyClass rubyClass, long begin, long end, boolean excludeEnd) {
-            // Not a Range subclass, we can use the shape directly.
             final RubyLongRange range = new RubyLongRange(
                     excludeEnd,
                     begin,
