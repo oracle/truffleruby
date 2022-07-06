@@ -8,10 +8,6 @@
 
 # Set OPENSSL_PREFIX in ENV to find the OpenSSL headers
 
-module Truffle
-  OPENSSL_PREFIX_WAS_SET = ENV.key?('OPENSSL_PREFIX')
-end
-
 search_homebrew = -> homebrew {
   if prefix = "#{homebrew}/opt/openssl@1.1" and Dir.exist?(prefix)
     prefix
