@@ -65,6 +65,36 @@ module Truffle
     # '=' is only considered if before the first space
     SHELL_META_CHAR_PATTERN = /[*?{}\[\]<>()~&|\\$;'`"\n#]|\A\S*=/n
 
+    def self.coerce_rlimit_resource(resource)
+      case resource
+      when Integer
+        return resource
+      when Symbol, String
+        # do nothing
+      else
+        unless r = Truffle::Type.rb_check_convert_type(resource, String, :to_str)
+          return Truffle::Type.coerce_to resource, Integer, :to_int
+        end
+
+        resource = r
+      end
+
+      constant = "RLIMIT_#{resource}"
+      unless Process::Constants.const_defined? constant
+        raise ArgumentError, "invalid resource name: #{constant}"
+      end
+      Process::Constants.const_get constant
+    end
+
+    @maxgroups = 32
+    def self.maxgroups
+      @maxgroups
+    end
+
+    def self.maxgroups=(maxgroups)
+      @maxgroups = maxgroups
+    end
+
     def self.exec(*args)
       exe = Execute.new
       begin
@@ -73,6 +103,27 @@ module Truffle
         exe.exec
       ensure
         exe.close_files
+      end
+    end
+
+    def self.nanoseconds_to_unit(nanoseconds, unit)
+      case unit # ordered by expected frequency
+      when :float_second, nil
+        nanoseconds / 1e9
+      when :nanosecond
+        nanoseconds
+      when :microsecond
+        nanoseconds / 1_000
+      when :float_microsecond
+        nanoseconds / 1e3
+      when :float_millisecond
+        nanoseconds / 1e6
+      when :second
+        nanoseconds / 1_000_000_000
+      when :millisecond
+        nanoseconds / 1_000_000
+      else
+        raise ArgumentError, "unexpected unit: #{unit}"
       end
     end
 
