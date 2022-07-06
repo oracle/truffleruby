@@ -53,7 +53,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             guards = {
                     "isSingleContext()",
                     "metaClass == cachedMetaClass",
-                    "getRefinements(frame, cachedConfig) == NO_REFINEMENTS",
+                    "hasNoRefinements",
                     "name == cachedName",
                     "config == cachedConfig" },
             assumptions = "methodLookupResult.getAssumptions()",
@@ -63,6 +63,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             @Cached("metaClass") RubyClass cachedMetaClass,
             @Cached("name") String cachedName,
             @Cached("config") DispatchConfiguration cachedConfig,
+            @Cached("getRefinements(frame, config) == NO_REFINEMENTS") boolean hasNoRefinements,
             @Cached("metaClass.methodNamesToIndex") SharedIndicesMap cachedMethodNamesToIndex,
             @Cached("cachedMethodNamesToIndex.lookup(name)") int index,
             @Cached("lookupCachedVTable(getContext(), frame, cachedMetaClass, config, index)") MethodLookupResult methodLookupResult) {
