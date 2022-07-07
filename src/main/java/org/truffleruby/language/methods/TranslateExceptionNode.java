@@ -75,19 +75,9 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
         throw e;
     }
 
-    @Specialization
-    protected RuntimeException translate(UnsupportedSpecializationException e) {
-        throw new RaiseException(getContext(), translateUnsupportedSpecialization(getContext(), e));
-    }
-
-    @Specialization
-    protected RuntimeException translate(StackOverflowError e) {
-        throw new RaiseException(getContext(), translateStackOverflow(getContext(), e));
-    }
-
-    @Specialization
-    protected RuntimeException translate(OutOfMemoryError e) {
-        throw new RaiseException(getContext(), translateOutOfMemory(getContext(), e));
+    @Specialization(guards = "needsSpecialTranslation(e)")
+    protected RuntimeException translateSpecial(Throwable e) {
+        throw doTranslateSpecial(e);
     }
 
     @Fallback
@@ -96,6 +86,23 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
         CompilerDirectives.transferToInterpreterAndInvalidate();
         logUncaughtJavaException(getContext(), this, e);
         throw ExceptionOperations.rethrow(e);
+    }
+
+    protected boolean needsSpecialTranslation(Throwable e) {
+        return e instanceof UnsupportedSpecializationException || e instanceof StackOverflowError ||
+                e instanceof OutOfMemoryError;
+    }
+
+    @TruffleBoundary
+    private RaiseException doTranslateSpecial(Throwable e) {
+        if (e instanceof UnsupportedSpecializationException) {
+            return new RaiseException(getContext(),
+                    translateUnsupportedSpecialization(getContext(), (UnsupportedSpecializationException) e));
+        } else if (e instanceof StackOverflowError) {
+            return new RaiseException(getContext(), translateStackOverflow(getContext(), (StackOverflowError) e));
+        } else {
+            return new RaiseException(getContext(), translateOutOfMemory(getContext(), (OutOfMemoryError) e));
+        }
     }
 
     @TruffleBoundary
