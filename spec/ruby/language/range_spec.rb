@@ -15,7 +15,7 @@ describe "Literal Ranges" do
     2.times do
       ary.push(1..3)
     end
-    ary[0].object_id.should == ary[1].object_id
+    ary[0].should.equal?(ary[1])
   end
 
   it "creates endless ranges" do

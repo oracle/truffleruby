@@ -2,15 +2,19 @@ require_relative '../../spec_helper'
 
 describe "Range#clone" do
   it "duplicates the range" do
-    copy = (1..3).clone
+    original = (1..3)
+    copy = original.clone
     copy.begin.should == 1
     copy.end.should == 3
     copy.should_not.exclude_end?
+    copy.object_id.should_not == original.object_id
 
-    copy = ("a"..."z").clone
+    original = ("a"..."z")
+    copy = original.clone
     copy.begin.should == "a"
     copy.end.should == "z"
     copy.should.exclude_end?
+    copy.object_id.should_not == original.object_id
   end
 
   it "maintains the frozen state" do
