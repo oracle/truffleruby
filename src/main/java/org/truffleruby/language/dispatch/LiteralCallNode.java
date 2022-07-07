@@ -10,6 +10,7 @@
 package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.HostCompilerDirectives.InliningCutoff;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.hash.HashNodes.CopyHashAndSetRuby2KeywordsNode;
 import org.truffleruby.core.hash.RubyHash;
@@ -98,6 +99,7 @@ public abstract class LiteralCallNode extends RubyContextSourceNode {
     }
 
     // NOTE: args is either frame args or user args
+    @InliningCutoff
     public void copyRuby2KeywordsHash(Object[] args, SharedMethodInfo info) {
         if (!info.getArity().hasRest()) { // https://bugs.ruby-lang.org/issues/18625
             if (copyHashAndSetRuby2KeywordsNode == null) {
