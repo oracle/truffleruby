@@ -11,6 +11,7 @@ package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.HostCompilerDirectives.InliningCutoff;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.TypeSystemReference;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.RubyBignum;
@@ -19,6 +20,7 @@ import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.Nil;
+import org.truffleruby.language.NoImplicitCastsToLong;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 
@@ -26,6 +28,7 @@ import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 
 @GenerateUncached
+@TypeSystemReference(NoImplicitCastsToLong.class)
 public abstract class LogicalClassNode extends RubyBaseNode {
 
     public static LogicalClassNode create() {
