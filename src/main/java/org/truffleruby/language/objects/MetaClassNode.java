@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects;
 
+import com.oracle.truffle.api.HostCompilerDirectives.InliningCutoff;
 import com.oracle.truffle.api.dsl.TypeSystemReference;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
@@ -119,6 +120,7 @@ public abstract class MetaClassNode extends RubyBaseNode {
     }
 
     // Foreign object
+    @InliningCutoff
     @Specialization(guards = "isForeignObject(object)")
     protected RubyClass metaClassForeign(Object object,
             @Cached ForeignClassNode foreignClassNode) {

@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects;
 
+import com.oracle.truffle.api.HostCompilerDirectives.InliningCutoff;
 import com.oracle.truffle.api.dsl.Cached;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
@@ -102,6 +103,7 @@ public abstract class LogicalClassNode extends RubyBaseNode {
         return object.getLogicalClass();
     }
 
+    @InliningCutoff
     @Specialization(guards = "isForeignObject(object)")
     protected RubyClass logicalClassForeign(Object object,
             @Cached ForeignClassNode foreignClassNode) {
