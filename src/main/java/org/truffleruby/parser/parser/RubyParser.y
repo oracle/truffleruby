@@ -2334,6 +2334,81 @@ p_value         : p_primitive
                     $$ = new DotParseNode(support.getPosition($1), NilImplicitNode.NIL, support.makeNullNil($2), true, isLiteral);
                 }
 
+p_primitive     : literal
+                | strings
+                | xstring
+                | regexp
+                | words {
+                    $$ = $1;
+                }
+                | qwords {
+                    $$ = $1;
+                }
+                | symbols {
+                    $$ = $1;
+                }
+                | qsymbols {
+                    $$ = $1;
+                }
+                | /*mri:keyword_variable*/ keyword_nil {
+                    $$ = new NilParseNode(lexer.tokline);
+                }
+                | keyword_self {
+                    $$ = new SelfParseNode(lexer.tokline);
+                }
+                | keyword_true {
+                    $$ = new TrueParseNode(lexer.tokline);
+                }
+                | keyword_false {
+                    $$ = new FalseParseNode(lexer.tokline);
+                }
+                | keyword__FILE__ {
+                    $$ = new FileParseNode(lexer.tokline, RopeOperations.create(lexer.getFile().getBytes(),
+                    support.getConfiguration().getRuntime().getEncodingService().getLocaleEncoding()),
+                    CR_UNKNOWN);
+                }
+                | keyword__LINE__ {
+                    $$ = new FixnumParseNode(lexer.tokline, lexer.tokline+1);
+                }
+                | keyword__ENCODING__ {
+                    $$ = new EncodingParseNode(lexer.tokline, lexer.getEncoding());
+                } /*mri:keyword_variable*/
+                | lambda {
+                    $$ = $1;
+                }
+
+p_variable      : tIDENTIFIER {
+                    support.error_duplicate_pattern_variable($1);
+                    $$ = support.assignableInCurr($1, null);
+                }
+
+p_var_ref       : '^' tIDENTIFIER {
+                    ParseNode n = support.gettable($2); // wait for reply about this func.
+                    if (!(n instanceof LocalVarParseNode || n instanceof DVarParseNode)) {
+                        support.compile_error("" + $2 + ": no such local variable");
+                    }
+                    $$ = n;
+                }
+                | '^' nonlocal_var {
+                    $$ = support.gettable($2);
+                    if ($$ == null) $$ = new BeginParseNode(lexer.tokline, NilImplicitParseNode.NIL);
+
+                }
+
+p_expr_ref      : '^' tLPAREN expr_value ')' {
+                    $$ = new BeginParseNode(lexer.tokline, $3);
+                }
+
+p_const         : tCOLON3 cname {
+                    $$ = support.new_colon3(lexer.tokline, $2);
+                }
+                | p_const tCOLON2 cname {
+                    $$ = support.new_colon2(lexer.tokline, $1, $3);
+                }
+                | tCONSTANT {
+                    $$ = new ConstParseNode(lexer.tokline, support.symbolID($1));
+                }
+
 opt_rescue      : keyword_rescue exc_list exc_var then compstmt opt_rescue {
                     ParseNode node;
                     if ($3 != null) {
@@ -2596,6 +2671,10 @@ numeric         : simple_numeric {
                 | tUMINUS_NUM simple_numeric %prec tLOWEST {
                      $$ = support.negateNumeric($2);
                 }
+
+nonlocal_var    : tIVAR
+                | tGVAR
+                | tCVAR
 
 simple_numeric  : tINTEGER {
                     $$ = $1;
@@ -3121,6 +3200,9 @@ rparen          : opt_nl tRPAREN {
                 }
 rbracket        : opt_nl tRBRACK {
                     $$ = $2;
+                }
+rbrace          : opt_nl '}' {
+                    $$ = RCURLY;
                 }
 trailer         : /* none */ | '\n' | ','
 
