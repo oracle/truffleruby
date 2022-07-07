@@ -10,6 +10,7 @@
 package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.HostCompilerDirectives.InliningCutoff;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
@@ -70,6 +71,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
         return callNode.call(RubyArguments.repackForCall(rubyArgs));
     }
 
+    @InliningCutoff
     @Specialization(guards = "!method.alwaysInlined()", replaces = "callCached")
     protected Object callUncached(
             InternalMethod method, Object receiver, Object[] rubyArgs, LiteralCallNode literalCallNode,
@@ -124,6 +126,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
         }
     }
 
+    @InliningCutoff
     @Specialization(guards = "method.alwaysInlined()", replaces = "alwaysInlined")
     protected Object alwaysInlinedUncached(
             Frame frame, InternalMethod method, Object receiver, Object[] rubyArgs, LiteralCallNode literalCallNode) {
