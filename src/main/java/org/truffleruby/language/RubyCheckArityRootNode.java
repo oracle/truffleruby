@@ -57,28 +57,17 @@ public abstract class RubyCheckArityRootNode extends RubyRootNode {
     protected void checkArity(VirtualFrame frame) {
         int given = RubyArguments.getPositionalArgumentsCount(frame, keywordArguments);
 
-        if (!keywordArguments) {
-            if (!arityForCheck.check(given)) {
-                if (!checkArityProfile) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    checkArityProfile = true;
-                }
-
-                throw checkArityError(arityForCheck, given, this);
-            }
-        } else {
-            if (!arityForCheck.basicCheck(given)) {
-                if (!checkArityProfile) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    checkArityProfile = true;
-                }
-
-                throw checkArityError(arityForCheck, given, this);
+        if (!arityForCheck.checkPositionalArguments(given)) {
+            if (!checkArityProfile) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                checkArityProfile = true;
             }
 
-            if (checkKeywordArityNode != null) {
-                checkKeywordArityNode.checkArity(frame);
-            }
+            throw checkArityError(arityForCheck, given, this);
+        }
+
+        if (checkKeywordArityNode != null) {
+            checkKeywordArityNode.checkArity(frame);
         }
     }
 

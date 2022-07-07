@@ -86,16 +86,7 @@ public final class Arity {
                 hasKeywordsRest);
     }
 
-    public boolean check(int given) {
-        assert !acceptsKeywords();
-        CompilerAsserts.partialEvaluationConstant(this);
-
-        int required = getRequired();
-        return given >= required && (hasRest || given <= required + optional);
-    }
-
-    /** Same as above but without the assert for CheckKeywordArityNode */
-    public boolean basicCheck(int given) {
+    public boolean checkPositionalArguments(int given) {
         CompilerAsserts.partialEvaluationConstant(this);
 
         int required = getRequired();
