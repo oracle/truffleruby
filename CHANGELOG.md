@@ -54,6 +54,7 @@ Performance:
 * Improve reference processing by making C object free functions and other finalizers more lightweight (@aardvark179).
 * Improve performance of `RSTRING_PTR` for interned strings (@aardvark179).
 * Cache constant argument formats used with `rb_scan_args_kw` (@aardvark179).
+* Report polymorphism inside `Hash#[]` to recover performance (@aardvark179).
 
 Changes:
 
