@@ -18,6 +18,7 @@ Compatibility:
 Performance:
 
 * Replace a call of `-"string"` with frozen string literal at parse time (@andrykonchin).
+* Report polymorphism inside `Hash#[]` to recover performance (@aardvark179).
 
 Changes:
 
