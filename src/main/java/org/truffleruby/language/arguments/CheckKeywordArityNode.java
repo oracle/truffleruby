@@ -40,14 +40,14 @@ public class CheckKeywordArityNode extends RubyBaseNode {
     public void checkArity(VirtualFrame frame) {
         final RubyHash keywordArguments = readUserKeywordsHashNode.execute(frame);
         if (keywordArguments != null) {
-            checkKeywordArguments(keywordArguments, getLanguage());
+            checkKeywordArguments(keywordArguments);
         }
     }
 
-    private void checkKeywordArguments(RubyHash keywordArguments, RubyLanguage language) {
+    private void checkKeywordArguments(RubyHash keywordArguments) {
         if (checkKeywordArgumentsNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            checkKeywordArgumentsNode = insert(new CheckKeywordArgumentsNode(language, arity));
+            checkKeywordArgumentsNode = insert(new CheckKeywordArgumentsNode(getLanguage(), arity));
         }
         checkKeywordArgumentsNode.check(keywordArguments);
     }
