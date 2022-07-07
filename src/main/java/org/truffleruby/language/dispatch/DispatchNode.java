@@ -11,6 +11,7 @@ package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.HostCompilerDirectives.InliningCutoff;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.interop.TruffleObject;
@@ -315,6 +316,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         return callNode.execute(frame, method, receiver, rubyArgs, literalCallNode);
     }
 
+    @InliningCutoff
     private Object callMethodMissing(Frame frame, Object receiver, String methodName, Object[] rubyArgs,
             LiteralCallNode literalCallNode) {
         // profiles through lazy node creation
@@ -339,6 +341,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         return result;
     }
 
+    @InliningCutoff
     protected Object callForeign(Object receiver, String methodName, Object[] rubyArgs) {
         // profiles through lazy node creation
         final CallForeignMethodNode callForeignMethodNode = getCallForeignMethodNode();
