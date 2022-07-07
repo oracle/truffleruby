@@ -30,7 +30,6 @@ public class CheckKeywordArityNode extends RubyBaseNode {
     public final Arity arity;
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
     @Child private CheckKeywordArgumentsNode checkKeywordArgumentsNode;
-    @Child private HashStoreLibrary hashes;
 
     public CheckKeywordArityNode(Arity arity) {
         assert !arity.hasKeywordsRest() : "no need to create this node";
@@ -46,15 +45,11 @@ public class CheckKeywordArityNode extends RubyBaseNode {
     }
 
     private void checkKeywordArguments(RubyHash keywordArguments, RubyLanguage language) {
-        if (hashes == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            hashes = insert(HashStoreLibrary.createDispatched());
-        }
         if (checkKeywordArgumentsNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             checkKeywordArgumentsNode = insert(new CheckKeywordArgumentsNode(language, arity));
         }
-        hashes.eachEntry(keywordArguments.store, keywordArguments, checkKeywordArgumentsNode, null);
+        checkKeywordArgumentsNode.check(keywordArguments);
     }
 
     private static class CheckKeywordArgumentsNode extends RubyBaseNode implements EachEntryCallback {
@@ -62,10 +57,16 @@ public class CheckKeywordArityNode extends RubyBaseNode {
         @CompilationFinal(dimensions = 1) private final RubySymbol[] allowedKeywords;
 
         private final BranchProfile unknownKeywordProfile = BranchProfile.create();
+        @Child private HashStoreLibrary hashes;
 
         public CheckKeywordArgumentsNode(RubyLanguage language, Arity arity) {
             assert !arity.hasKeywordsRest();
+            hashes = HashStoreLibrary.createDispatched();
             allowedKeywords = keywordsAsSymbols(language, arity);
+        }
+
+        public void check(RubyHash keywordArguments) {
+            hashes.eachEntry(keywordArguments.store, keywordArguments, this, null);
         }
 
         @Override
