@@ -11,6 +11,7 @@ package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -63,7 +64,7 @@ public abstract class RubyCheckArityRootNode extends RubyRootNode {
                     checkArityProfile = true;
                 }
 
-                checkArityError(arityForCheck, given, this);
+                throw checkArityError(arityForCheck, given, this);
             }
         } else {
             if (!arityForCheck.basicCheck(given)) {
@@ -72,7 +73,7 @@ public abstract class RubyCheckArityRootNode extends RubyRootNode {
                     checkArityProfile = true;
                 }
 
-                checkArityError(arityForCheck, given, this);
+                throw checkArityError(arityForCheck, given, this);
             }
 
             if (checkKeywordArityNode != null) {
@@ -81,14 +82,15 @@ public abstract class RubyCheckArityRootNode extends RubyRootNode {
         }
     }
 
-    public static void checkArityError(Arity arity, int given, Node currentNode) {
+    @TruffleBoundary
+    public static RaiseException checkArityError(Arity arity, int given, Node currentNode) {
         final RubyContext context = RubyContext.get(currentNode);
         if (arity.hasRest()) {
-            throw new RaiseException(
+            return new RaiseException(
                     context,
                     context.getCoreExceptions().argumentErrorPlus(given, arity.getRequired(), currentNode));
         } else if (arity.getOptional() > 0) {
-            throw new RaiseException(
+            return new RaiseException(
                     context,
                     context.getCoreExceptions().argumentError(
                             given,
@@ -96,7 +98,7 @@ public abstract class RubyCheckArityRootNode extends RubyRootNode {
                             arity.getOptional(),
                             currentNode));
         } else {
-            throw new RaiseException(
+            return new RaiseException(
                     context,
                     context.getCoreExceptions().argumentError(given, arity.getRequired(), currentNode));
         }
