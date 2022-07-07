@@ -84,8 +84,8 @@ public abstract class RangeNodes {
             return createArray(arrayBuilder.finish(state, length), length);
         }
 
-        @Specialization
-        protected Object mapFallback(RubyObjectRange range, Object block) {
+        @Fallback
+        protected Object mapFallback(Object range, Object block) {
             return FAILURE;
         }
     }

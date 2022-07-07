@@ -59,9 +59,6 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RangeNodes.NormalizedStartLengthNode;
-import org.truffleruby.core.range.RubyIntRange;
-import org.truffleruby.core.range.RubyLongRange;
-import org.truffleruby.core.range.RubyObjectRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
@@ -104,7 +101,6 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.DirectCallNode;
@@ -279,29 +275,10 @@ public abstract class ArrayNodes {
             return readNode.executeRead(array, index);
         }
 
-        @Specialization
-        protected Object indexRange(RubyArray array, RubyObjectRange range, NotProvided length,
-                @Cached @Shared("starting") NormalizedStartLengthNode startLengthNode,
-                @Cached @Shared("ending") ReadSliceNormalizedNode readSlice) {
-            return readRange(array, range, startLengthNode, readSlice);
-        }
-
-        @Specialization
-        protected Object indexIntRange(RubyArray array, RubyIntRange range, NotProvided length,
-                @Cached @Shared("starting") NormalizedStartLengthNode startLengthNode,
-                @Cached @Shared("ending") ReadSliceNormalizedNode readSlice) {
-            return readRange(array, range, startLengthNode, readSlice);
-        }
-
-        @Specialization
-        protected Object indexLongRange(RubyArray array, RubyLongRange range, NotProvided length,
-                @Cached @Shared("starting") NormalizedStartLengthNode startLengthNode,
-                @Cached @Shared("ending") ReadSliceNormalizedNode readSlice) {
-            return readRange(array, range, startLengthNode, readSlice);
-        }
-
-        private Object readRange(RubyArray array, Object range, NormalizedStartLengthNode startLengthNode,
-                ReadSliceNormalizedNode readSlice) {
+        @Specialization(guards = "isRubyRange(range)")
+        protected Object indexRange(RubyArray array, Object range, NotProvided length,
+                @Cached NormalizedStartLengthNode startLengthNode,
+                @Cached ReadSliceNormalizedNode readSlice) {
             final int[] startLength = startLengthNode.execute(range, array.size);
             final int len = Math.max(startLength[1], 0); // negative range ending maps to zero length
             return readSlice.executeReadSlice(array, startLength[0], len);
@@ -382,29 +359,10 @@ public abstract class ArrayNodes {
             return writeNode.executeWrite(array, nIndex, value);
         }
 
-        @Specialization
-        protected Object setRange(RubyArray array, RubyObjectRange range, Object value, NotProvided unused,
-                @Cached @Shared("startLength") NormalizedStartLengthNode normalizedStartLength,
-                @Cached @Shared("nagativeStart") BranchProfile negativeStart) {
-            return setRangeInternal(array, range, value, normalizedStartLength, negativeStart);
-        }
-
-        @Specialization
-        protected Object setIngRange(RubyArray array, RubyIntRange range, Object value, NotProvided unused,
-                @Cached @Shared("startLength") NormalizedStartLengthNode normalizedStartLength,
-                @Cached @Shared("nagativeStart") BranchProfile negativeStart) {
-            return setRangeInternal(array, range, value, normalizedStartLength, negativeStart);
-        }
-
-        @Specialization
-        protected Object setLongRange(RubyArray array, RubyLongRange range, Object value, NotProvided unused,
-                @Cached @Shared("startLength") NormalizedStartLengthNode normalizedStartLength,
-                @Cached @Shared("nagativeStart") BranchProfile negativeStart) {
-            return setRangeInternal(array, range, value, normalizedStartLength, negativeStart);
-        }
-
-        private Object setRangeInternal(RubyArray array, Object range, Object value,
-                NormalizedStartLengthNode normalizedStartLength, BranchProfile negativeStart) {
+        @Specialization(guards = "isRubyRange(range)")
+        protected Object setRange(RubyArray array, Object range, Object value, NotProvided unused,
+                @Cached NormalizedStartLengthNode normalizedStartLength,
+                @Cached BranchProfile negativeStart) {
             final int[] startLength = normalizedStartLength.execute(range, array.size);
             final int start = startLength[0];
             if (start < 0) {
