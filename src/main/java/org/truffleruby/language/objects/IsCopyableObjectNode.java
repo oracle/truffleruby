@@ -13,46 +13,52 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.language.ImmutableRubyObject;
+import org.truffleruby.language.ImmutableRubyObjectCopyable;
+import org.truffleruby.language.ImmutableRubyObjectNotCopyable;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 
-/** Determines if an object is immutable for Kernel#clone, Kernel#dup, and rb_obj_clone. */
+/** Determines if an object is copyable for Kernel#clone, Kernel#dup, and rb_obj_clone. */
 @GenerateUncached
-public abstract class IsImmutableObjectNode extends RubyBaseNode {
+public abstract class IsCopyableObjectNode extends RubyBaseNode {
 
     public abstract boolean execute(Object object);
 
     @Specialization
-    protected boolean isImmutableObject(boolean object) {
+    protected boolean isCopyable(boolean object) {
+        return false;
+    }
+
+    @Specialization
+    protected boolean isCopyable(int object) {
+        return false;
+    }
+
+    @Specialization
+    protected boolean isCopyable(long object) {
+        return false;
+    }
+
+    @Specialization
+    protected boolean isCopyable(double object) {
+        return false;
+    }
+
+    @Specialization
+    protected boolean isCopyable(ImmutableRubyObjectNotCopyable object) {
+        return false;
+    }
+
+    @Specialization
+    protected boolean isCopyable(ImmutableRubyObjectCopyable object) {
         return true;
     }
 
     @Specialization
-    protected boolean isImmutableObject(int object) {
-        return true;
-    }
-
-    @Specialization
-    protected boolean isImmutableObject(long object) {
-        return true;
-    }
-
-    @Specialization
-    protected boolean isImmutableObject(double object) {
-        return true;
-    }
-
-    @Specialization
-    protected boolean isImmutableObject(ImmutableRubyObject object) {
-        return true;
-    }
-
-    @Specialization(guards = "!isRubyBignum(object)")
-    protected boolean isImmutableObject(RubyDynamicObject object,
+    protected boolean isCopyable(RubyDynamicObject object,
             @Cached LogicalClassNode logicalClassNode) {
         final RubyClass logicalClass = logicalClassNode.execute(object);
-        return logicalClass == coreLibrary().rationalClass || logicalClass == coreLibrary().complexClass;
+        return logicalClass != coreLibrary().rationalClass && logicalClass != coreLibrary().complexClass;
     }
 
 }

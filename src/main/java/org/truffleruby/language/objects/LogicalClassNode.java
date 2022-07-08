@@ -13,6 +13,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.RubyBignum;
+import org.truffleruby.core.range.RubyIntOrLongRange;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.string.ImmutableRubyString;
@@ -89,6 +90,11 @@ public abstract class LogicalClassNode extends RubyBaseNode {
     @Specialization
     protected RubyClass logicalClassRegexp(RubyRegexp value) {
         return coreLibrary().regexpClass;
+    }
+
+    @Specialization
+    protected RubyClass logicalClassIntRange(RubyIntOrLongRange value) {
+        return coreLibrary().rangeClass;
     }
 
     @Specialization

@@ -59,7 +59,6 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RangeNodes.NormalizedStartLengthNode;
-import org.truffleruby.core.range.RubyRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
@@ -276,8 +275,8 @@ public abstract class ArrayNodes {
             return readNode.executeRead(array, index);
         }
 
-        @Specialization
-        protected Object indexRange(RubyArray array, RubyRange range, NotProvided length,
+        @Specialization(guards = "isRubyRange(range)")
+        protected Object indexRange(RubyArray array, Object range, NotProvided length,
                 @Cached NormalizedStartLengthNode startLengthNode,
                 @Cached ReadSliceNormalizedNode readSlice) {
             final int[] startLength = startLengthNode.execute(range, array.size);
@@ -360,8 +359,8 @@ public abstract class ArrayNodes {
             return writeNode.executeWrite(array, nIndex, value);
         }
 
-        @Specialization
-        protected Object setRange(RubyArray array, RubyRange range, Object value, NotProvided unused,
+        @Specialization(guards = "isRubyRange(range)")
+        protected Object setRange(RubyArray array, Object range, Object value, NotProvided unused,
                 @Cached NormalizedStartLengthNode normalizedStartLength,
                 @Cached BranchProfile negativeStart) {
             final int[] startLength = normalizedStartLength.execute(range, array.size);

@@ -26,12 +26,12 @@ import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeWithEncoding;
-import org.truffleruby.language.ImmutableRubyObject;
+import org.truffleruby.language.ImmutableRubyObjectNotCopyable;
 import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 @ExportLibrary(InteropLibrary.class)
-public class RubyRegexp extends ImmutableRubyObject implements TruffleObject, Comparable<RubyRegexp> {
+public class RubyRegexp extends ImmutableRubyObjectNotCopyable implements TruffleObject, Comparable<RubyRegexp> {
 
     @TruffleBoundary
     public static RubyRegexp create(RubyLanguage language,

@@ -14,6 +14,7 @@ Compatibility:
 * Fix `Array#fill` to raise `TypeError` instead of `ArgumentError` when the length argument is not numeric (#2652, @andrykonchin).
 * Warn when a global variable is not initialized (#2595, @andrykonchin).
 * Fix escaping of `/` by `Regexp#source` (#2569, @andrykonchin).
+* Range literals of integers are now created at parse time like in CRuby (#2622, @aardvark179).
 
 Performance:
 

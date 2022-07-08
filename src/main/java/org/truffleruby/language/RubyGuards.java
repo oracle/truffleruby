@@ -21,7 +21,8 @@ import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RubyIntRange;
-import org.truffleruby.core.range.RubyRange;
+import org.truffleruby.core.range.RubyLongRange;
+import org.truffleruby.core.range.RubyObjectRange;
 import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.string.ImmutableRubyString;
@@ -103,7 +104,8 @@ public abstract class RubyGuards {
     }
 
     public static boolean isRubyRange(Object value) {
-        return value instanceof RubyRange;
+        return value instanceof RubyObjectRange || value instanceof RubyIntRange ||
+                value instanceof RubyLongRange;
     }
 
     public static boolean isRubyArray(Object value) {

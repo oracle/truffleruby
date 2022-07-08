@@ -9,16 +9,14 @@
  */
 package org.truffleruby.core.range;
 
-import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.core.klass.RubyClass;
 
-public final class RubyIntRange extends RubyRange {
+public final class RubyIntRange extends RubyIntOrLongRange {
 
     public final int begin;
     public final int end;
 
-    public RubyIntRange(RubyClass rubyClass, Shape shape, boolean excludedEnd, int begin, int end, boolean frozen) {
-        super(rubyClass, shape, excludedEnd, frozen);
+    public RubyIntRange(boolean excludedEnd, int begin, int end) {
+        super(excludedEnd);
         this.begin = begin;
         this.end = end;
     }

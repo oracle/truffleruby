@@ -286,7 +286,7 @@ public abstract class FloatNodes {
             return divModNode.execute(a, b.value);
         }
 
-        @Specialization(guards = "!isRubyBignum(b)")
+        @Specialization
         protected Object divModCoerced(double a, RubyDynamicObject b,
                 @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", coreSymbols().DIVMOD, b);

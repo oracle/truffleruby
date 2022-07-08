@@ -19,7 +19,6 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.string.ImmutableRubyString;
-import org.truffleruby.language.ImmutableRubyObject;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -27,12 +26,13 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
+import org.truffleruby.language.ImmutableRubyObjectNotCopyable;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.parser.IdentifierType;
 import org.truffleruby.parser.Identifiers;
 
 @ExportLibrary(InteropLibrary.class)
-public final class RubySymbol extends ImmutableRubyObject implements TruffleObject {
+public final class RubySymbol extends ImmutableRubyObjectNotCopyable implements TruffleObject {
 
     public static final int UNASSIGNED_ID = -1;
 

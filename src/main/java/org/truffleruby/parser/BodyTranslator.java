@@ -50,6 +50,8 @@ import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.module.ModuleNodesFactory;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.range.RangeNodesFactory;
+import org.truffleruby.core.range.RubyIntRange;
+import org.truffleruby.core.range.RubyLongRange;
 import org.truffleruby.core.regexp.ClassicRegexp;
 import org.truffleruby.core.regexp.InterpolatedRegexpNode;
 import org.truffleruby.core.regexp.MatchDataNodes.GetIndexNode;
@@ -1517,12 +1519,25 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitDotNode(DotParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        final RubyNode begin = node.getBeginNode().accept(this);
-        final RubyNode end = node.getEndNode().accept(this);
-        final RubyNode rangeClass = new RangeClassLiteralNode();
-        final RubyNode isExclusive = new ObjectLiteralNode(node.isExclusive());
+        final RubyNode ret;
+        if (node.getBeginNode() instanceof FixnumParseNode && node.getEndNode() instanceof FixnumParseNode) {
+            final long begin = ((FixnumParseNode) node.getBeginNode()).getValue();
+            final long end = ((FixnumParseNode) node.getEndNode()).getValue();
+            final Object range;
+            if (CoreLibrary.fitsIntoInteger(begin) && CoreLibrary.fitsIntoInteger(end)) {
+                range = new RubyIntRange(node.isExclusive(), (int) begin, (int) end);
+            } else {
+                range = new RubyLongRange(node.isExclusive(), begin, end);
+            }
+            ret = new ObjectLiteralNode(range);
+        } else {
+            final RubyNode begin = node.getBeginNode().accept(this);
+            final RubyNode end = node.getEndNode().accept(this);
+            final RubyNode rangeClass = new RangeClassLiteralNode();
+            final RubyNode isExclusive = new ObjectLiteralNode(node.isExclusive());
 
-        final RubyNode ret = RangeNodesFactory.NewNodeFactory.create(rangeClass, begin, end, isExclusive);
+            ret = RangeNodesFactory.NewNodeFactory.create(rangeClass, begin, end, isExclusive);
+        }
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }

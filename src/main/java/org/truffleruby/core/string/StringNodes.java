@@ -79,6 +79,7 @@ import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.graalvm.collections.Pair;
@@ -188,6 +189,7 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerVariablesNode;
 import org.truffleruby.language.control.DeferredRaiseException;
@@ -344,8 +346,17 @@ public abstract class StringNodes {
 
     }
 
+    @GenerateUncached
+    @GenerateNodeFactory
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
-    public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
+    @NodeChild(value = "rubyClass", type = RubyNode.class)
+    public abstract static class AllocateNode extends RubySourceNode {
+
+        public static AllocateNode create() {
+            return StringNodesFactory.AllocateNodeFactory.create(null);
+        }
+
+        public abstract RubyString execute(RubyClass rubyClass);
 
         @Specialization
         protected RubyString allocate(RubyClass rubyClass) {

@@ -1,2 +1,0 @@
-fails:Range#bsearch with Float values with a block returning true or false works with infinity bounds
-fails:Range#bsearch with Float values with a block returning negative, zero, positive numbers works with infinity bounds
