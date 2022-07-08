@@ -88,6 +88,7 @@ import com.oracle.truffle.api.strings.MutableTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.strings.TruffleString.AsTruffleStringNode;
 import com.oracle.truffle.api.strings.TruffleString.CodePointLengthNode;
+import com.oracle.truffle.api.strings.TruffleString.ErrorHandling;
 import com.oracle.truffle.api.strings.TruffleString.GetByteCodeRangeNode;
 import org.graalvm.collections.Pair;
 import org.jcodings.Config;
@@ -4192,7 +4193,8 @@ public abstract class StringNodes {
             } else if (isAscii8BitProfile.profile(encoding == Encodings.BINARY)) {
                 tstring = TStringConstants.BINARY_SINGLE_BYTE[code];
             } else {
-                tstring = fromCodePointNode.execute(code, encoding.tencoding, false);
+                tstring = fromCodePointNode.execute(code, encoding.tencoding, ErrorHandling.RETURN_NEGATIVE);
+                assert tstring != null;
             }
 
             return createString(tstring, encoding);
@@ -4202,10 +4204,8 @@ public abstract class StringNodes {
         protected RubyString stringFromCodepoint(int code, RubyEncoding encoding,
                 @Cached TruffleString.FromCodePointNode fromCodePointNode,
                 @Cached BranchProfile errorProfile) {
-            final TruffleString tstring;
-            try {
-                tstring = fromCodePointNode.execute(code, encoding.tencoding, false);
-            } catch (IllegalArgumentException e) { // TODO check this is efficient enough in TruffleString
+            var tstring = fromCodePointNode.execute(code, encoding.tencoding, ErrorHandling.RETURN_NEGATIVE);
+            if (tstring == null) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().rangeError(code, encoding, this));
             }
