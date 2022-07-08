@@ -2126,8 +2126,6 @@ public abstract class StringNodes {
         @Child private CallBlockNode yieldNode = CallBlockNode.create();
         @Child GetByteCodeRangeNode codeRangeNode = GetByteCodeRangeNode.create();
         @Child private TruffleString.ConcatNode concatNode = TruffleString.ConcatNode.create();
-        @Child private CalculateCharacterLengthNode calculateCharacterLengthNode = CalculateCharacterLengthNode
-                .create();
         @Child private TruffleString.GetInternalByteArrayNode byteArrayNode = TruffleString.GetInternalByteArrayNode
                 .create();
         @Child TruffleString.SubstringByteIndexNode substringNode = TruffleString.SubstringByteIndexNode.create();
@@ -2136,11 +2134,11 @@ public abstract class StringNodes {
                 guards = { "isBrokenCodeRange(tstring, encoding, codeRangeNode)", "isAsciiCompatible(encoding)" })
         protected RubyString scrubAsciiCompat(Object string, RubyProc block,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode,
                 @Bind("strings.getTString(string)") AbstractTruffleString tstring,
                 @Bind("strings.getEncoding(string)") RubyEncoding encoding) {
             final Encoding enc = encoding.jcoding;
             var tencoding = encoding.tencoding;
-            var cr = codeRangeNode.execute(tstring, tencoding);
             TruffleString buf = EMPTY_BINARY;
 
             var byteArray = byteArrayNode.execute(tstring, tencoding);
@@ -2156,7 +2154,8 @@ public abstract class StringNodes {
                 p = e;
             }
             while (p < e) {
-                int clen = calculateCharacterLengthNode.characterLength(enc, BROKEN, Bytes.fromRange(pBytes, p, e));
+                int clen = byteLengthOfCodePointNode.execute(tstring, p - offset, tencoding,
+                        ErrorHandling.RETURN_NEGATIVE);
                 if (MBCLEN_NEEDMORE_P(clen)) {
                     break;
                 } else if (MBCLEN_CHARFOUND_P(clen)) {
@@ -2179,7 +2178,9 @@ public abstract class StringNodes {
                     } else {
                         clen--;
                         for (; clen > 1; clen--) {
-                            int clen2 = StringSupport.characterLength(enc, cr, pBytes, p, p + clen);
+                            var subTString = substringNode.execute(tstring, p - offset, clen, tencoding, true);
+                            int clen2 = byteLengthOfCodePointNode.execute(subTString, 0, tencoding,
+                                    ErrorHandling.RETURN_NEGATIVE);
                             if (MBCLEN_NEEDMORE_P(clen2)) {
                                 break;
                             }
@@ -2219,25 +2220,21 @@ public abstract class StringNodes {
                         "!isAsciiCompatible(encoding)" })
         protected RubyString scrubAsciiIncompatible(Object string, RubyProc block,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @Cached CalculateCharacterLengthNode calculateCharacterLengthNode,
+                @Cached TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode,
                 @Bind("strings.getTString(string)") AbstractTruffleString tstring,
                 @Bind("strings.getEncoding(string)") RubyEncoding encoding) {
             final Encoding enc = encoding.jcoding;
             var tencoding = encoding.tencoding;
-            var cr = codeRangeNode.execute(tstring, tencoding);
             TruffleString buf = EMPTY_BINARY;
 
-            var byteArray = byteArrayNode.execute(tstring, tencoding);
-            final byte[] pBytes = byteArray.getArray();
-            final int e = byteArray.getEnd();
-
-            final int offset = byteArray.getOffset();
-            int p = offset;
+            final int e = tstring.byteLength(tencoding);
+            int p = 0;
             int p1 = p;
             final int mbminlen = enc.minLength();
 
+            // TODO use logical indices
             while (p < e) {
-                int clen = calculateCharacterLengthNode.characterLength(enc, BROKEN, Bytes.fromRange(pBytes, p, e));
+                int clen = byteLengthOfCodePointNode.execute(tstring, p, tencoding, ErrorHandling.RETURN_NEGATIVE);
                 if (MBCLEN_NEEDMORE_P(clen)) {
                     break;
                 } else if (MBCLEN_CHARFOUND_P(clen)) {
@@ -2248,7 +2245,7 @@ public abstract class StringNodes {
 
                     if (p > p1) {
                         buf = concatNode.execute(buf,
-                                substringNode.execute(tstring, p1 - offset, p - p1, tencoding, true),
+                                substringNode.execute(tstring, p1, p - p1, tencoding, true),
                                 tencoding, true);
                     }
 
@@ -2260,8 +2257,9 @@ public abstract class StringNodes {
                     } else {
                         clen -= mbminlen;
                         for (; clen > mbminlen; clen -= mbminlen) {
-                            int clen2 = calculateCharacterLengthNode.characterLength(enc, cr,
-                                    new Bytes(pBytes, q, clen));
+                            var subTString = substringNode.execute(tstring, q, clen, tencoding, true);
+                            int clen2 = byteLengthOfCodePointNode.execute(subTString, 0, tencoding,
+                                    ErrorHandling.RETURN_NEGATIVE);
                             if (MBCLEN_NEEDMORE_P(clen2)) {
                                 break;
                             }
@@ -2269,7 +2267,7 @@ public abstract class StringNodes {
                     }
 
                     RubyString repl = (RubyString) yieldNode.yield(block,
-                            createSubString(substringNode, tstring, encoding, p - offset, clen));
+                            createSubString(substringNode, tstring, encoding, p, clen));
                     buf = concatNode.execute(buf, repl.tstring, tencoding, true);
                     p += clen;
                     p1 = p;
@@ -2277,14 +2275,14 @@ public abstract class StringNodes {
             }
 
             if (p1 < p) {
-                buf = concatNode.execute(buf, substringNode.execute(tstring, p1 - offset, p - p1, tencoding, true),
+                buf = concatNode.execute(buf, substringNode.execute(tstring, p1, p - p1, tencoding, true),
                         tencoding,
                         true);
             }
 
             if (p < e) {
                 RubyString repl = (RubyString) yieldNode.yield(block,
-                        createSubString(substringNode, tstring, encoding, p - offset, e - p));
+                        createSubString(substringNode, tstring, encoding, p, e - p));
                 buf = concatNode.execute(buf, repl.tstring, tencoding, true);
             }
 
