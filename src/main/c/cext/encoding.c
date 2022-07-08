@@ -231,15 +231,12 @@ char* rb_enc_left_char_head(char *start, char *p, char *end, rb_encoding *enc) {
 }
 
 int rb_enc_precise_mbclen(const char *p, const char *e, rb_encoding *enc) {
-  int length = e - p;
   if (e <= p) {
     return ONIGENC_CONSTRUCT_MBCLEN_NEEDMORE(1);
   }
+  int length = e - p;
   return polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "rb_enc_precise_mbclen",
-      rb_tr_unwrap(rb_enc_from_encoding(enc)),
-      rb_tr_unwrap(rb_str_new(p, length)),
-      0,
-      length));
+      rb_tr_unwrap(rb_enc_str_new(p, length, enc))));
 }
 
 int rb_enc_dummy_p(rb_encoding *enc) {

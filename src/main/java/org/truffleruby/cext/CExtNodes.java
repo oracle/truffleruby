@@ -18,6 +18,7 @@ import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.MutableTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.api.strings.TruffleString.ErrorHandling;
 import com.oracle.truffle.api.strings.TruffleString.GetByteCodeRangeNode;
 import org.jcodings.Encoding;
 import org.jcodings.IntHolder;
@@ -1498,33 +1499,16 @@ public class CExtNodes {
         }
     }
 
-    @CoreMethod(names = "rb_enc_precise_mbclen", onSingleton = true, required = 4, lowerFixnum = { 3, 4 })
+    @CoreMethod(names = "rb_enc_precise_mbclen", onSingleton = true, required = 1)
     public abstract static class RbEncPreciseMbclenNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "strings.isRubyString(string)")
-        protected int rbEncPreciseMbclen(RubyEncoding enc, Object string, int p, int end,
+        protected int rbEncPreciseMbclen(Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @Cached StringNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
-                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
-                @Cached GetByteCodeRangeNode codeRangeNode,
-                @Cached ConditionProfile sameEncodingProfile) {
+                @Cached TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode) {
             var tstring = strings.getTString(string);
-            var stringEncoding = strings.getEncoding(string);
-            var byteArray = byteArrayNode.execute(tstring, stringEncoding.tencoding);
-
-            final Encoding encoding = enc.jcoding;
-            final TruffleString.CodeRange cr;
-            if (sameEncodingProfile.profile(encoding == stringEncoding.jcoding)) {
-                cr = codeRangeNode.execute(strings.getTString(string), strings.getTEncoding(string));
-            } else {
-                cr = BROKEN /* UNKNOWN */;
-            }
-
-            final int length = calculateCharacterLengthNode.characterLength(encoding, cr,
-                    Bytes.fromRange(byteArray, p, end));
-            assert end - p >= length; // assert this condition not reached: https://github.com/ruby/ruby/blob/46a5d1b4a63f624f2c5c5b6f710cc1a176c88b02/encoding.c#L1046
-
-            return length;
+            var tencoding = strings.getTEncoding(string);
+            return byteLengthOfCodePointNode.execute(tstring, 0, tencoding, ErrorHandling.RETURN_NEGATIVE);
         }
 
     }
