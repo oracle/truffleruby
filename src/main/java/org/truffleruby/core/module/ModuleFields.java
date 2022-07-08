@@ -567,17 +567,15 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
                 final int len = rubyClass.methodVTable.length;
                 assert len == rubyClass.methodAssumptions.length;
                 if (index >= len) {
-                    final int newLength = Math.max(10, Math.max(len * 2, index + 1));
-                    rubyClass.methodVTable = Arrays.copyOf(rubyClass.methodVTable, newLength);
-                    rubyClass.methodAssumptions = Arrays.copyOf(rubyClass.methodAssumptions, newLength);
+                    growVTable(rubyClass, index, len);
                 }
                 final InternalMethod method = ModuleOperations.lookupMethodUncached(rubyClass, name);
                 if (rubyClass.methodVTable[index] != method) {
                     rubyClass.methodVTable[index] = method;
-                    if (rubyClass.methodAssumptions[index] != null) {
+                    if (index < len) {
                         rubyClass.methodAssumptions[index].invalidate();
+                        rubyClass.methodAssumptions[index] = Assumption.create();
                     }
-                    rubyClass.methodAssumptions[index] = Assumption.create();
                 }
                 for (RubyClass subclass : rubyClass.subclasses) {
                     updateVTableRecursive(subclass, name);
@@ -590,6 +588,16 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
                 }
             }
         }
+    }
+
+    public static void growVTable(RubyClass rubyClass, int index, int len) {
+        final int newLength = Math.max(10, Math.max(len * 2, index + 1));
+        rubyClass.methodVTable = Arrays.copyOf(rubyClass.methodVTable, newLength);
+        Assumption[] methodAssumptions = Arrays.copyOf(rubyClass.methodAssumptions, newLength);
+        for (int i = len; i < newLength; i++) {
+            methodAssumptions[i] = Assumption.create();
+        }
+        rubyClass.methodAssumptions = methodAssumptions;
     }
 
     @TruffleBoundary

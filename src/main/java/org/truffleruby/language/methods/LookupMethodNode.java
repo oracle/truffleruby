@@ -33,7 +33,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-import java.util.Arrays;
 import java.util.Map;
 
 /** Caches {@link ModuleOperations#lookupMethodCached(RubyModule, String, DeclarationContext)} on an actual instance. */
@@ -64,9 +63,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             @Cached("name") String cachedName,
             @Cached("config") DispatchConfiguration cachedConfig,
             @Cached("getRefinements(frame, config) == NO_REFINEMENTS") boolean hasNoRefinements,
-            @Cached("metaClass.methodNamesToIndex") SharedIndicesMap cachedMethodNamesToIndex,
-            @Cached("cachedMethodNamesToIndex.lookup(name)") int index,
-            @Cached("lookupCachedVTable(getContext(), frame, cachedMetaClass, config, index)") MethodLookupResult methodLookupResult) {
+            @Cached("lookupCachedVTable(getContext(), frame, cachedMetaClass, cachedConfig, cachedName)") MethodLookupResult methodLookupResult) {
 
         return methodLookupResult.getMethod();
     }
@@ -199,17 +196,15 @@ public abstract class LookupMethodNode extends RubyBaseNode {
     }
 
     protected static MethodLookupResult lookupCachedVTable(RubyContext context, Frame callingFrame,
-            RubyClass metaClass, DispatchConfiguration config, Integer index) {
+            RubyClass metaClass, DispatchConfiguration config, String name) {
         CompilerAsserts.neverPartOfCompilation("slow-path method lookup should not be compiled");
 
+        final int index = metaClass.methodNamesToIndex.lookup(name);
         final int len = metaClass.methodVTable.length;
         assert len == metaClass.methodAssumptions.length;
 
         if (index >= len) {
-            final int newLength = Math.max(10, Math.max(len * 2, index + 1));
-            metaClass.methodVTable = Arrays.copyOf(metaClass.methodVTable, newLength);
-            metaClass.methodAssumptions = Arrays.copyOf(metaClass.methodAssumptions, newLength);
-            metaClass.methodAssumptions[index] = Assumption.create();
+            ModuleFields.growVTable(metaClass, index, len);
         }
 
         final InternalMethod internalMethod = metaClass.methodVTable[index];
