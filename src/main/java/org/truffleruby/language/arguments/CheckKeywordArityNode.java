@@ -11,6 +11,7 @@ package org.truffleruby.language.arguments;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.hash.library.HashStoreLibrary.EachEntryCallback;
@@ -20,16 +21,22 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.Arity;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.BranchProfile;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /** Check that no extra keyword arguments are given, when there is no **kwrest */
 public class CheckKeywordArityNode extends RubyBaseNode {
 
     public final Arity arity;
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
-    @Child private CheckKeywordArgumentsNode checkKeywordArgumentsNode;
+    @Child private CheckExtraKeywordArgumentsNode checkExtraKeywordArgumentsNode;
 
     public CheckKeywordArityNode(Arity arity) {
         assert !arity.hasKeywordsRest() : "no need to create this node";
@@ -45,37 +52,37 @@ public class CheckKeywordArityNode extends RubyBaseNode {
     }
 
     private void checkKeywordArguments(RubyHash keywordArguments) {
-        if (checkKeywordArgumentsNode == null) {
+        if (checkExtraKeywordArgumentsNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            checkKeywordArgumentsNode = insert(new CheckKeywordArgumentsNode(getLanguage(), arity));
+            checkExtraKeywordArgumentsNode = insert(new CheckExtraKeywordArgumentsNode(getLanguage(), arity));
         }
-        checkKeywordArgumentsNode.check(keywordArguments);
+
+        checkExtraKeywordArgumentsNode.check(keywordArguments);
     }
 
-    private static class CheckKeywordArgumentsNode extends RubyBaseNode implements EachEntryCallback {
+    private static class CheckExtraKeywordArgumentsNode extends RubyBaseNode implements EachEntryCallback {
 
         @CompilationFinal(dimensions = 1) private final RubySymbol[] allowedKeywords;
 
         private final BranchProfile unknownKeywordProfile = BranchProfile.create();
         @Child private HashStoreLibrary hashes;
 
-        public CheckKeywordArgumentsNode(RubyLanguage language, Arity arity) {
+        public CheckExtraKeywordArgumentsNode(RubyLanguage language, Arity arity) {
             assert !arity.hasKeywordsRest();
             hashes = HashStoreLibrary.createDispatched();
             allowedKeywords = keywordsAsSymbols(language, arity);
         }
 
         public void check(RubyHash keywordArguments) {
-            hashes.eachEntry(keywordArguments.store, keywordArguments, this, null);
+            hashes.eachEntry(keywordArguments.store, keywordArguments, this, keywordArguments);
         }
 
         @Override
         public void accept(int index, Object key, Object value, Object state) {
             if (!keywordAllowed(key)) {
                 unknownKeywordProfile.enter();
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().argumentErrorUnknownKeyword(key, this));
+                RubyHash keywordArguments = (RubyHash) state;
+                throw new RaiseException(getContext(), unknownKeywordsError(keywordArguments));
             }
         }
 
@@ -88,6 +95,30 @@ public class CheckKeywordArityNode extends RubyBaseNode {
             }
 
             return false;
+        }
+
+        @TruffleBoundary
+        private RubyException unknownKeywordsError(RubyHash keywordArguments) {
+            Object[] keys = findExtraKeywordArguments(keywordArguments);
+            return coreExceptions().argumentErrorUnknownKeywords(keys, this);
+        }
+
+        @TruffleBoundary
+        @SuppressWarnings("unchecked")
+        private Object[] findExtraKeywordArguments(RubyHash keywordArguments) {
+            final ArrayList<Object> actualKeywordsAsList = new ArrayList<>();
+            hashes.eachEntry(
+                    keywordArguments.store,
+                    keywordArguments,
+                    (index, key, value, state) -> ((ArrayList<Object>) state).add(key),
+                    actualKeywordsAsList);
+
+            final List<RubySymbol> allowedKeywordsAsList = Arrays.asList(allowedKeywords);
+            final List<Object> extraKeywords = actualKeywordsAsList.stream()
+                    .filter(k -> !allowedKeywordsAsList.contains(k))
+                    .collect(Collectors.toList());
+
+            return extraKeywords.toArray();
         }
     }
 

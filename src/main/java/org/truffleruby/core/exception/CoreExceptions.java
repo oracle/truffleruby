@@ -181,8 +181,18 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public RubyException argumentErrorUnknownKeyword(Object key, Node currentNode) {
-        return argumentError("unknown keyword: " + inspect(key), currentNode);
+    public RubyException argumentErrorUnknownKeywords(Object[] keys, Node currentNode) {
+        if (keys.length == 1) {
+            return argumentError("unknown keyword: " + inspect(keys[0]), currentNode);
+        }
+
+        final String[] names = new String[keys.length];
+
+        for (int i = 0; i < keys.length; i++) {
+            names[i] = inspect(keys[i]);
+        }
+
+        return argumentError("unknown keywords: " + String.join(", ", names), currentNode);
     }
 
     @TruffleBoundary

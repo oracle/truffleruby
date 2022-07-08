@@ -58,6 +58,7 @@ ruby_version_is "3.0" do
       m(kw: 1).should == []
       -> { m(kw: 1, kw2: 2) }.should raise_error(ArgumentError, 'unknown keyword: :kw2')
       -> { m(kw: 1, true => false) }.should raise_error(ArgumentError, 'unknown keyword: true')
+      -> { m(kw: 1, a: 1, b: 2, c: 3) }.should raise_error(ArgumentError, 'unknown keywords: :a, :b, :c')
     end
 
     it "handle * and ** at the same call site" do
