@@ -154,7 +154,6 @@ import org.truffleruby.core.string.StringNodesFactory.MakeStringNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.NormalizeIndexNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.StringAppendNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.StringAppendPrimitiveNodeFactory;
-import org.truffleruby.core.string.StringNodesFactory.StringByteSubstringPrimitiveNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.StringSubstringPrimitiveNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.SumNodeFactory;
 import org.truffleruby.core.string.StringSupport.TrTables;
@@ -3855,12 +3854,6 @@ public abstract class StringNodes {
 
         @Child private NormalizeIndexNode normalizeIndexNode = NormalizeIndexNode.create();
 
-        public static StringByteSubstringPrimitiveNode create() {
-            return StringByteSubstringPrimitiveNodeFactory.create(null);
-        }
-
-        public abstract Object executeStringByteSubstring(Object string, Object index, Object length);
-
         @Specialization
         protected Object stringByteSubstring(Object string, int index, NotProvided length,
                 @Cached ConditionProfile indexOutOfBoundsProfile,
@@ -3925,49 +3918,42 @@ public abstract class StringNodes {
 
         @Specialization(
                 guards = {
-                        "!indexOutOfBounds(strings.byteLength(string), byteIndex)",
+                        "!indexOutOfBounds(tstring.byteLength(encoding.tencoding), byteIndex)",
                         "isSingleByteOptimizable(tstring, encoding, singleByteOptimizableNode)" })
         protected Object stringChrAtSingleByte(Object string, int byteIndex,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @Cached StringByteSubstringPrimitiveNode stringByteSubstringNode,
+                @Cached TruffleString.SubstringByteIndexNode substringByteIndexNode,
                 @Cached SingleByteOptimizableNode singleByteOptimizableNode,
                 @Bind("strings.getTString(string)") AbstractTruffleString tstring,
                 @Bind("strings.getEncoding(string)") RubyEncoding encoding) {
-            return stringByteSubstringNode.executeStringByteSubstring(string, byteIndex, 1);
+            return createSubString(substringByteIndexNode, tstring, encoding, byteIndex, 1);
         }
 
         @Specialization(
                 guards = {
-                        "!indexOutOfBounds(strings.byteLength(string), byteIndex)",
+                        "!indexOutOfBounds(originalTString.byteLength(originalEncoding.tencoding), byteIndex)",
                         "!isSingleByteOptimizable(originalTString, originalEncoding, singleByteOptimizableNode)" })
         protected Object stringChrAt(Object string, int byteIndex,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached GetActualEncodingNode getActualEncodingNode,
-                @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode,
-                @Cached CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached SingleByteOptimizableNode singleByteOptimizableNode,
                 @Cached TruffleString.SubstringByteIndexNode substringByteIndexNode,
                 @Cached TruffleString.ForceEncodingNode forceEncodingNode,
+                @Cached TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode,
                 @Bind("strings.getTString(string)") AbstractTruffleString originalTString,
                 @Bind("strings.getEncoding(string)") RubyEncoding originalEncoding) {
             final RubyEncoding actualEncoding = getActualEncodingNode.execute(originalTString, originalEncoding);
             var tstring = forceEncodingNode.execute(originalTString, originalEncoding.tencoding,
                     actualEncoding.tencoding);
 
-            final int end = strings.byteLength(string);
-            var bytes = getInternalByteArrayNode.execute(tstring, actualEncoding.tencoding);
-            final int clen = calculateCharacterLengthNode.characterLength(
-                    actualEncoding.jcoding,
-                    BROKEN /* UNKNOWN */, // with byteIndex != 0 it is not the CodeRange of the string
-                    Bytes.fromRange(bytes, byteIndex, end));
+            final int clen = byteLengthOfCodePointNode.execute(tstring, byteIndex, actualEncoding.tencoding,
+                    ErrorHandling.RETURN_NEGATIVE);
 
             if (!StringSupport.MBCLEN_CHARFOUND_P(clen)) {
                 return nil;
             }
 
-            if (clen + byteIndex > end) {
-                return nil;
-            }
+            assert byteIndex + clen <= tstring.byteLength(actualEncoding.tencoding);
 
             return createSubString(substringByteIndexNode, tstring, actualEncoding, byteIndex, clen);
         }
