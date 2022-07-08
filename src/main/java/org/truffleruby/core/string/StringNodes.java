@@ -3945,7 +3945,6 @@ public abstract class StringNodes {
                 @Cached GetActualEncodingNode getActualEncodingNode,
                 @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode,
                 @Cached CalculateCharacterLengthNode calculateCharacterLengthNode,
-                @Cached GetByteCodeRangeNode codeRangeNode,
                 @Cached SingleByteOptimizableNode singleByteOptimizableNode,
                 @Cached TruffleString.SubstringByteIndexNode substringByteIndexNode,
                 @Cached TruffleString.ForceEncodingNode forceEncodingNode,
@@ -3959,7 +3958,7 @@ public abstract class StringNodes {
             var bytes = getInternalByteArrayNode.execute(tstring, actualEncoding.tencoding);
             final int clen = calculateCharacterLengthNode.characterLength(
                     actualEncoding.jcoding,
-                    codeRangeNode.execute(tstring, actualEncoding.tencoding),
+                    BROKEN /* UNKNOWN */, // with byteIndex != 0 it is not the CodeRange of the string
                     Bytes.fromRange(bytes, byteIndex, end));
 
             if (!StringSupport.MBCLEN_CHARFOUND_P(clen)) {
