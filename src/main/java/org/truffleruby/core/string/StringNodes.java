@@ -4693,11 +4693,11 @@ public abstract class StringNodes {
             var len = tstring.byteLength(tenc);
 
             if (notEmptyProfile.profile(enc.jcoding.isAsciiCompatible() && len >= 1)) {
-                int first = codePointNode.execute(tstring, 0, tenc);
+                int first = codePointNode.execute(tstring, 0, tenc, ErrorHandling.RETURN_NEGATIVE);
                 int second;
-                if ((first >= '1' && first <= '9') ||
-                        (len >= 2 && (first == '-' || first == '+') &&
-                                (second = codePointNode.execute(tstring, 1, tenc)) >= '1' && second <= '9')) {
+                if ((first >= '1' && first <= '9') || (len >= 2 && (first == '-' || first == '+') &&
+                        (second = codePointNode.execute(tstring, 1, tenc, ErrorHandling.RETURN_NEGATIVE)) >= '1' &&
+                        second <= '9')) {
                     try {
                         return parseLongNode.execute(tstring, 10);
                     } catch (TruffleString.NumberFormatException e) {
@@ -4818,7 +4818,6 @@ public abstract class StringNodes {
 
     @ImportStatic(StringGuards.class)
     public abstract static class GetCodePointNode extends RubyBaseNode {
-        @Child protected GetByteCodeRangeNode codeRangeNode = GetByteCodeRangeNode.create();
 
         public static GetCodePointNode create() {
             return StringNodesFactory.GetCodePointNodeGen.create();
@@ -4826,38 +4825,16 @@ public abstract class StringNodes {
 
         public abstract int executeGetCodePoint(AbstractTruffleString string, RubyEncoding encoding, int byteIndex);
 
-        @Specialization(guards = "!isBrokenCodeRange(string, encoding, codeRangeNode)")
-        protected int getCodePointNonBroken(AbstractTruffleString string, RubyEncoding encoding, int byteIndex,
-                @Cached TruffleString.CodePointAtByteIndexNode getCodePointNode) {
-            return getCodePointNode.execute(string, byteIndex, encoding.tencoding);
-        }
-
-        @Specialization(guards = "isBrokenCodeRange(string, encoding, codeRangeNode)")
-        protected int getCodePointBroken(AbstractTruffleString string, RubyEncoding encoding, int byteIndex,
+        @Specialization
+        protected int getCodePoint(AbstractTruffleString string, RubyEncoding encoding, int byteIndex,
                 @Cached TruffleString.CodePointAtByteIndexNode getCodePointNode,
-                @Cached TruffleString.ByteLengthOfCodePointNode codePointLengthNode,
-                @Cached ConditionProfile potentiallyBadCodePointProfile,
-                @Cached ConditionProfile definitelyBadCodePointProfile) {
-            int codePoint = getCodePointNode.execute(string, byteIndex, encoding.tencoding);
-
-            // TruffleString will return the Unicode Replacement Character if a valid code point cannot be read.
-            // Of course, it will also return that code point if the string has that code point at the specified byte index.
-            if (potentiallyBadCodePointProfile.profile(codePoint == 0xfffd)) {
-                int characterLength = codePointLengthNode.execute(string, byteIndex, encoding.tencoding);
-
-                // TruffleString will return a byte length of 1 for invalid code points. We can use that knowledge to
-                // distinguish whether a Unicode Replacement Character appeared in the string or was used as a default
-                // value for a broken byte range. If it appears in the string, it should have the Replacement Character's
-                // true byte length of 3.
-                if (definitelyBadCodePointProfile.profile(characterLength != 3)) {
-                    throw new RaiseException(
-                            getContext(),
-                            getContext().getCoreExceptions().argumentError(
-                                    Utils.concat("invalid byte sequence in ", encoding),
-                                    null));
-                }
+                @Cached ConditionProfile badCodePointProfile) {
+            int codePoint = getCodePointNode.execute(string, byteIndex, encoding.tencoding,
+                    ErrorHandling.RETURN_NEGATIVE);
+            if (badCodePointProfile.profile(codePoint < 0)) {
+                throw new RaiseException(getContext(),
+                        coreExceptions().argumentError(Utils.concat("invalid byte sequence in ", encoding), this));
             }
-
             return codePoint;
         }
 
