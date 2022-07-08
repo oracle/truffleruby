@@ -395,8 +395,7 @@ public class TruffleRegexpNodes {
             }
         }
 
-        // TODO: Currently disabled because of https://github.com/oracle/graal/issues/4588#issuecomment-1140428808
-        @Specialization(guards = { "false", "encoding == BINARY" })
+        @Specialization(guards = "encoding == BINARY")
         protected Object binary(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
             final Object tregex = regexp.tregexCache.getBinaryRegex(atStart);
             if (tregex != null) {
