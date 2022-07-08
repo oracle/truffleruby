@@ -71,8 +71,8 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.ProcNodes.ProcNewNode;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.range.RangeNodes;
 import org.truffleruby.core.range.RubyIntOrLongRange;
-import org.truffleruby.core.range.RubyObjectRange;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -535,14 +535,14 @@ public abstract class KernelNodes {
 
         @Specialization
         protected RubyDynamicObject copy(ImmutableRubyString string,
-                @Cached DispatchNode allocateStringNode) {
-            return (RubyString) allocateStringNode.call(coreLibrary().stringClass, "__allocate__");
+                @Cached StringNodes.AllocateNode allocateStringNode) {
+            return allocateStringNode.execute(coreLibrary().stringClass);
         }
 
         @Specialization
         protected RubyDynamicObject copy(RubyIntOrLongRange range,
-                @Cached DispatchNode allocateRangeNode) {
-            return (RubyObjectRange) allocateRangeNode.call(coreLibrary().rangeClass, "__allocate__");
+                @Cached RangeNodes.AllocateNode allocateRangeNode) {
+            return allocateRangeNode.execute(coreLibrary().rangeClass);
         }
     }
 
