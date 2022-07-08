@@ -7,14 +7,14 @@ describe "Range#clone" do
     copy.begin.should == 1
     copy.end.should == 3
     copy.should_not.exclude_end?
-    copy.object_id.should_not == original.object_id
+    copy.should_not.equal? original
 
     original = ("a"..."z")
     copy = original.clone
     copy.begin.should == "a"
     copy.end.should == "z"
     copy.should.exclude_end?
-    copy.object_id.should_not == original.object_id
+    copy.should_not.equal? original
   end
 
   it "maintains the frozen state" do
