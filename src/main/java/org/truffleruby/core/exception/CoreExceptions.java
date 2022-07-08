@@ -207,8 +207,18 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public RubyException argumentErrorMissingKeyword(String name, Node currentNode) {
-        return argumentError(StringUtils.format("missing keyword: %s", name), currentNode);
+    public RubyException argumentErrorMissingKeywords(Object[] keys, Node currentNode) {
+        if (keys.length == 1) {
+            return argumentError("missing keyword: " + inspect(keys[0]), currentNode);
+        }
+
+        final String[] names = new String[keys.length];
+
+        for (int i = 0; i < keys.length; i++) {
+            names[i] = inspect(keys[i]);
+        }
+
+        return argumentError("missing keywords: " + String.join(", ", names), currentNode);
     }
 
     @TruffleBoundary

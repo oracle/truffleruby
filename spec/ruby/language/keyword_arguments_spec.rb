@@ -61,6 +61,23 @@ ruby_version_is "3.0" do
       -> { m(kw: 1, a: 1, b: 2, c: 3) }.should raise_error(ArgumentError, 'unknown keywords: :a, :b, :c')
     end
 
+    it "raises ArgumentError exception when required keyword argument is not passed" do
+      def m(a:, b:, c:)
+        [a, b, c]
+      end
+
+      -> { m(a: 1, b: 2) }.should raise_error(ArgumentError, /missing keyword: :c/)
+      -> { m() }.should raise_error(ArgumentError, /missing keywords: :a, :b, :c/)
+    end
+
+    it "raises ArgumentError for missing keyword arguments even if there are extra ones" do
+      def m(a:)
+        a
+      end
+
+      -> { m(b: 1) }.should raise_error(ArgumentError, /missing keyword: :a/)
+    end
+
     it "handle * and ** at the same call site" do
       def m(*a)
         a

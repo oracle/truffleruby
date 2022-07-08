@@ -34,6 +34,7 @@
 
 package org.truffleruby.parser.ast;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -125,12 +126,14 @@ public class ArgsParseNode extends ParseNode {
 
     private Arity createArity() {
         final String[] keywordArguments;
-        boolean allKeywordsOptional = true;
+        final int requiredKeywordArgumentsCount;
 
         if (getKeywordCount() > 0) {
+            final List<String> requiredKeywords = new ArrayList<>();
+            final List<String> optionalKeywords = new ArrayList<>();
+
             final ParseNode[] keywordNodes = getKeywords().children();
             final int keywordsCount = keywordNodes.length;
-            keywordArguments = new String[keywordsCount];
 
             for (int i = 0; i < keywordsCount; i++) {
                 final KeywordArgParseNode kwarg = (KeywordArgParseNode) keywordNodes[i];
@@ -138,11 +141,23 @@ public class ArgsParseNode extends ParseNode {
                 if (!(assignableNode instanceof LocalAsgnParseNode || assignableNode instanceof DAsgnParseNode)) {
                     throw new UnsupportedOperationException("unsupported keyword arg " + kwarg);
                 }
-                keywordArguments[i] = ((INameNode) assignableNode).getName();
-                allKeywordsOptional &= !Helpers.isRequiredKeywordArgumentValueNode(assignableNode);
+
+                final String keyword = ((INameNode) assignableNode).getName();
+                if (Helpers.isRequiredKeywordArgumentValueNode(assignableNode)) {
+                    requiredKeywords.add(keyword);
+                } else {
+                    optionalKeywords.add(keyword);
+                }
             }
+
+            final List<String> keywords = new ArrayList<>(requiredKeywords);
+            keywords.addAll(optionalKeywords);
+
+            keywordArguments = keywords.toArray(String[]::new);
+            requiredKeywordArgumentsCount = requiredKeywords.size();
         } else {
             keywordArguments = Arity.NO_KEYWORDS;
+            requiredKeywordArgumentsCount = 0;
         }
 
         return new Arity(
@@ -151,7 +166,7 @@ public class ArgsParseNode extends ParseNode {
                 hasRestArg(),
                 getPostCount(),
                 keywordArguments,
-                allKeywordsOptional,
+                requiredKeywordArgumentsCount,
                 hasKeyRest());
     }
 
