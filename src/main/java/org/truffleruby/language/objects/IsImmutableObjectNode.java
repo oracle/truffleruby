@@ -48,7 +48,7 @@ public abstract class IsImmutableObjectNode extends RubyBaseNode {
         return true;
     }
 
-    @Specialization(guards = "!isRubyBignum(object)")
+    @Specialization
     protected boolean isImmutableObject(RubyDynamicObject object,
             @Cached LogicalClassNode logicalClassNode) {
         final RubyClass logicalClass = logicalClassNode.execute(object);
