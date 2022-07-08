@@ -28,7 +28,7 @@ import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.language.ImmutableRubyObject;
+import org.truffleruby.language.ImmutableRubyObjectCopyable;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 
@@ -36,7 +36,7 @@ import org.truffleruby.language.library.RubyStringLibrary;
  * {@link FrozenStringLiterals#getFrozenStringLiteral(Rope)}. */
 @ExportLibrary(InteropLibrary.class)
 @ExportLibrary(RubyStringLibrary.class)
-public class ImmutableRubyString extends ImmutableRubyObject implements TruffleObject {
+public class ImmutableRubyString extends ImmutableRubyObjectCopyable implements TruffleObject {
 
     public final LeafRope rope;
     public final RubyEncoding encoding;

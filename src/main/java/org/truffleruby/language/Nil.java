@@ -24,7 +24,7 @@ import static org.truffleruby.cext.ValueWrapperManager.NIL_HANDLE;
 
 /** The Ruby {@code nil}, the single instance of NilClass. */
 @ExportLibrary(InteropLibrary.class)
-public final class Nil extends ImmutableRubyObject implements TruffleObject {
+public final class Nil extends ImmutableRubyObjectNotCopyable implements TruffleObject {
 
     public static final Nil INSTANCE = new Nil();
 

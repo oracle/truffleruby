@@ -16,12 +16,12 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.language.ImmutableRubyObject;
+import org.truffleruby.language.ImmutableRubyObjectNotCopyable;
 
 import java.math.BigInteger;
 
 @ExportLibrary(InteropLibrary.class)
-public class RubyBignum extends ImmutableRubyObject {
+public class RubyBignum extends ImmutableRubyObjectNotCopyable {
 
     public final BigInteger value;
 

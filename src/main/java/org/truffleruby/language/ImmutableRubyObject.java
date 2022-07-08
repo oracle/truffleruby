@@ -34,7 +34,10 @@ import org.truffleruby.language.methods.GetMethodObjectNode;
 
 /** A subset of messages from {@link org.truffleruby.language.RubyDynamicObject} for immutable objects. Such objects
  * have no instance variables, so the logic is simpler. We cannot easily reuse RubyDynamicObject messages since the
- * superclass differs. */
+ * superclass differs.
+ * <p>
+ * Should not be subclassed directly, instead subclass {@link ImmutableRubyObjectCopyable} and
+ * {@link ImmutableRubyObjectNotCopyable}. */
 @ExportLibrary(RubyLibrary.class)
 @ExportLibrary(InteropLibrary.class)
 public abstract class ImmutableRubyObject implements TruffleObject {

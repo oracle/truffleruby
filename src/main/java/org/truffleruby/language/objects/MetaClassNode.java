@@ -13,8 +13,7 @@ import com.oracle.truffle.api.dsl.TypeSystemReference;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.core.range.RubyIntRange;
-import org.truffleruby.core.range.RubyLongRange;
+import org.truffleruby.core.range.RubyIntOrLongRange;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.string.ImmutableRubyString;
@@ -99,15 +98,9 @@ public abstract class MetaClassNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected RubyClass metaClassIntRange(RubyIntRange value) {
+    protected RubyClass metaClassIntRange(RubyIntOrLongRange value) {
         return coreLibrary().rangeClass;
     }
-
-    @Specialization
-    protected RubyClass metaClassLongRange(RubyLongRange value) {
-        return coreLibrary().rangeClass;
-    }
-
 
     // Cover all RubyDynamicObject cases with cached and uncached
 

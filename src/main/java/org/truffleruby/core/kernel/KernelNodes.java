@@ -71,6 +71,8 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.ProcNodes.ProcNewNode;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.range.RubyIntOrLongRange;
+import org.truffleruby.core.range.RubyObjectRange;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -125,7 +127,8 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.CheckIVarNameNode;
 import org.truffleruby.language.objects.IsANode;
-import org.truffleruby.language.objects.IsImmutableObjectNode;
+import org.truffleruby.language.objects.IsCopyableObjectNode;
+import org.truffleruby.language.objects.IsCopyableObjectNodeGen;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.ShapeCachingGuards;
@@ -522,7 +525,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected RubyClass copyRubyClass(RubyClass self,
+        protected RubyDynamicObject copyRubyClass(RubyClass self,
                 @Cached CopyInstanceVariablesNode copyInstanceVariablesNode) {
             var newClass = new RubyClass(coreLibrary().classClass, getLanguage(), getEncapsulatingSourceSection(),
                     null, null, false, null, self.superclass);
@@ -531,33 +534,40 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected RubyString copyImmutableString(ImmutableRubyString string,
+        protected RubyDynamicObject copy(ImmutableRubyString string,
                 @Cached DispatchNode allocateStringNode) {
             return (RubyString) allocateStringNode.call(coreLibrary().stringClass, "__allocate__");
         }
+
+        @Specialization
+        protected RubyDynamicObject copy(RubyIntOrLongRange range,
+                @Cached DispatchNode allocateRangeNode) {
+            return (RubyObjectRange) allocateRangeNode.call(coreLibrary().rangeClass, "__allocate__");
+        }
     }
 
-    @Primitive(name = "object_clone")
+    @Primitive(name = "object_clone") // "clone"
     @NodeChild(value = "object", type = RubyNode.class)
     @NodeChild(value = "freeze", type = RubyBaseNodeWithExecute.class)
     public abstract static class CloneNode extends PrimitiveNode {
 
-        @Child private SingletonClassNode singletonClassNode;
+        @Child IsCopyableObjectNode isCopyableObjectNode = IsCopyableObjectNodeGen.create();
+        @Child SingletonClassNode singletonClassNode;
         private final BranchProfile cantUnfreezeErrorProfile = BranchProfile.create();
 
-        @Specialization(limit = "getRubyLibraryCacheLimit()")
-        protected RubyDynamicObject clone(RubyDynamicObject object, Object freeze,
+        @Specialization(guards = "isCopyableObjectNode.execute(object)", limit = "getRubyLibraryCacheLimit()")
+        protected RubyDynamicObject copyable(Object object, Object freeze,
+                @Cached MetaClassNode metaClassNode,
                 @Cached CopyNode copyNode,
                 @Cached DispatchNode initializeCloneNode,
                 @Cached ConditionProfile isSingletonProfile,
-                @Cached ConditionProfile isRubyClass,
                 @Cached HashingNodes.ToHashByHashCode hashNode,
                 @CachedLibrary("object") RubyLibrary rubyLibrary,
                 @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibraryFreeze) {
             final RubyDynamicObject newObject = copyNode.executeCopy(object);
 
             // Copy the singleton class if any.
-            final RubyClass selfMetaClass = object.getMetaClass();
+            final RubyClass selfMetaClass = metaClassNode.execute(object);
             if (isSingletonProfile.profile(selfMetaClass.isSingleton)) {
                 final RubyClass newObjectMetaClass = executeSingletonClass(newObject);
                 newObjectMetaClass.fields.initCopy(selfMetaClass);
@@ -581,56 +591,12 @@ public abstract class KernelNodes {
             return newObject;
         }
 
-        @Specialization
-        protected boolean cloneBoolean(boolean object, Object freeze) {
+        @Specialization(guards = "!isCopyableObjectNode.execute(object)")
+        protected Object notCopyable(Object object, Object freeze) {
             if (forceNotFrozen(freeze)) {
                 raiseCantUnfreezeError(object);
             }
             return object;
-        }
-
-        @Specialization
-        protected int cloneInteger(int object, Object freeze) {
-            if (forceNotFrozen(freeze)) {
-                raiseCantUnfreezeError(object);
-            }
-            return object;
-        }
-
-        @Specialization
-        protected long cloneLong(long object, Object freeze) {
-            if (forceNotFrozen(freeze)) {
-                raiseCantUnfreezeError(object);
-            }
-            return object;
-        }
-
-        @Specialization
-        protected double cloneFloat(double object, Object freeze) {
-            if (forceNotFrozen(freeze)) {
-                raiseCantUnfreezeError(object);
-            }
-            return object;
-        }
-
-        @Specialization(guards = "!isImmutableRubyString(object)")
-        protected ImmutableRubyObject cloneImmutableObject(ImmutableRubyObject object, Object freeze) {
-            if (forceNotFrozen(freeze)) {
-                raiseCantUnfreezeError(object);
-            }
-            return object;
-        }
-
-        @Specialization
-        protected RubyDynamicObject cloneImmutableRubyString(ImmutableRubyString object, Object freeze,
-                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibraryFreeze,
-                @Cached MakeStringNode makeStringNode) {
-            final RubyDynamicObject newObject = makeStringNode.fromRope(object.rope, object.encoding);
-            if (!forceNotFrozen(freeze)) {
-                rubyLibraryFreeze.freeze(newObject);
-            }
-
-            return newObject;
         }
 
         private RubyHash createFreezeBooleanHash(boolean freeze, HashingNodes.ToHashByHashCode hashNode) {
@@ -677,20 +643,19 @@ public abstract class KernelNodes {
     public abstract static class DupNode extends AlwaysInlinedMethodNode {
         @Specialization
         protected Object dup(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
-                @Cached IsImmutableObjectNode isImmutableObjectNode,
-                @Cached ConditionProfile immutableProfile,
+                @Cached IsCopyableObjectNode isCopyableObjectNode,
+                @Cached ConditionProfile isCopyableProfile,
                 @Cached CopyNode copyNode,
                 @Cached DispatchNode initializeDupNode) {
-            if (immutableProfile
-                    .profile(!(self instanceof ImmutableRubyString) && isImmutableObjectNode.execute(self))) {
+            if (isCopyableProfile.profile(isCopyableObjectNode.execute(self))) {
+                final RubyDynamicObject copy = copyNode.executeCopy(self);
+
+                initializeDupNode.call(copy, "initialize_dup", self);
+
+                return copy;
+            } else {
                 return self;
             }
-
-            final RubyDynamicObject newObject = copyNode.executeCopy(self);
-
-            initializeDupNode.call(newObject, "initialize_dup", self);
-
-            return newObject;
         }
     }
 

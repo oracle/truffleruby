@@ -161,12 +161,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization
-        protected boolean excludeEnd(RubyIntRange range) {
-            return range.excludedEnd;
-        }
-
-        @Specialization
-        protected boolean excludeEnd(RubyLongRange range) {
+        protected boolean excludeEnd(RubyIntOrLongRange range) {
             return range.excludedEnd;
         }
 
@@ -190,86 +185,6 @@ public abstract class RangeNodes {
             return range.begin;
         }
 
-    }
-
-    @CoreMethod(names = "dup")
-    public abstract static class DupNode extends UnaryCoreMethodNode {
-
-        // NOTE(norswap): This is a hack, as it doesn't copy the ivars.
-        //   We do copy the logical class (but not the singleton class, to be MRI compatible).
-
-        @Specialization
-        protected RubyObjectRange dupIntRange(RubyIntRange range) {
-            // RubyIntRange means this isn't a Range subclass (cf. NewNode), we can use the shape directly.
-            final RubyObjectRange copy = new RubyObjectRange(
-                    coreLibrary().rangeClass,
-                    getLanguage().objectRangeShape,
-                    range.excludedEnd,
-                    range.begin,
-                    range.end,
-                    false);
-            AllocationTracing.trace(copy, this);
-            return copy;
-        }
-
-        @Specialization
-        protected RubyObjectRange dupLongRange(RubyLongRange range) {
-            // RubyLongRange means this isn't a Range subclass (cf. NewNode), we can use the shape directly.
-            final RubyObjectRange copy = new RubyObjectRange(
-                    coreLibrary().rangeClass,
-                    getLanguage().objectRangeShape,
-                    range.excludedEnd,
-                    range.begin,
-                    range.end,
-                    false);
-            AllocationTracing.trace(copy, this);
-            return copy;
-        }
-
-        @Specialization
-        protected RubyObjectRange dup(RubyObjectRange range) {
-            final RubyClass logicalClass = range.getLogicalClass();
-            final RubyObjectRange copy = new RubyObjectRange(
-                    logicalClass,
-                    getLanguage().objectRangeShape,
-                    range.excludedEnd,
-                    range.begin,
-                    range.end,
-                    false);
-            AllocationTracing.trace(copy, this);
-            return copy;
-        }
-    }
-
-    @CoreMethod(names = "clone")
-    public abstract static class CloneNode extends UnaryCoreMethodNode {
-
-        // NOTE(norswap): This is a hack, as it doesn't copy the ivars.
-        //   We do copy the logical class (but not the singleton class, to be MRI compatible).
-
-        @Specialization
-        protected RubyIntRange cloneIntRange(RubyIntRange range) {
-            return new RubyIntRange(range);
-        }
-
-        @Specialization
-        protected RubyLongRange dupLongRange(RubyLongRange range) {
-            return new RubyLongRange(range);
-        }
-
-        @Specialization
-        protected RubyObjectRange dup(RubyObjectRange range) {
-            final RubyClass logicalClass = range.getLogicalClass();
-            final RubyObjectRange copy = new RubyObjectRange(
-                    logicalClass,
-                    getLanguage().objectRangeShape,
-                    range.excludedEnd,
-                    range.begin,
-                    range.end,
-                    range.frozen);
-            AllocationTracing.trace(copy, this);
-            return copy;
-        }
     }
 
     @CoreMethod(names = "end")
@@ -514,6 +429,34 @@ public abstract class RangeNodes {
             final RubyObjectRange range = new RubyObjectRange(rubyClass, shape, false, nil, nil, false);
             AllocationTracing.trace(range, this);
             return range;
+        }
+    }
+
+    @CoreMethod(names = "initialize_copy", required = 1, raiseIfFrozenSelf = true)
+    public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected RubyObjectRange initializeCopy(RubyObjectRange self, RubyIntRange from) {
+            self.begin = from.begin;
+            self.end = from.end;
+            self.excludedEnd = from.excludedEnd;
+            return self;
+        }
+
+        @Specialization
+        protected RubyObjectRange initializeCopy(RubyObjectRange self, RubyLongRange from) {
+            self.begin = from.begin;
+            self.end = from.end;
+            self.excludedEnd = from.excludedEnd;
+            return self;
+        }
+
+        @Specialization
+        protected RubyObjectRange initializeCopy(RubyObjectRange self, RubyObjectRange from) {
+            self.begin = from.begin;
+            self.end = from.end;
+            self.excludedEnd = from.excludedEnd;
+            return self;
         }
     }
 

@@ -23,8 +23,8 @@ import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.FrozenStringLiterals;
 import org.truffleruby.core.string.ImmutableRubyString;
-import org.truffleruby.language.ImmutableRubyObject;
 
+import org.truffleruby.language.ImmutableRubyObjectNotCopyable;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
@@ -33,7 +33,7 @@ import java.util.Objects;
 import java.util.Set;
 
 @ExportLibrary(InteropLibrary.class)
-public class RubyEncoding extends ImmutableRubyObject implements ObjectGraphNode, Comparable<RubyEncoding> {
+public class RubyEncoding extends ImmutableRubyObjectNotCopyable implements ObjectGraphNode, Comparable<RubyEncoding> {
 
     public final Encoding jcoding;
     public final ImmutableRubyString name;
