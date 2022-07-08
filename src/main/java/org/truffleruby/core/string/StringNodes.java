@@ -557,12 +557,19 @@ public abstract class StringNodes {
                 @Bind("libA.getTString(a)") AbstractTruffleString first,
                 @Bind("libB.getTString(b)") AbstractTruffleString second,
                 @Cached ConditionProfile sameRopeProfile,
-                @Cached TruffleString.CompareBytesNode compareBytesNode) {
+                @Cached TruffleString.CompareBytesNode compareBytesNode,
+                @Cached ConditionProfile equalProfile,
+                @Cached ConditionProfile positiveProfile) {
             if (sameRopeProfile.profile(first == second)) {
                 return 0;
             }
 
-            return compareBytesNode.execute(first, second, compatibleEncoding.tencoding);
+            int result = compareBytesNode.execute(first, second, compatibleEncoding.tencoding);
+            if (equalProfile.profile(result == 0)) {
+                return 0;
+            } else {
+                return positiveProfile.profile(result > 0) ? 1 : -1;
+            }
         }
 
         @Specialization
@@ -574,6 +581,7 @@ public abstract class StringNodes {
                 @Cached TruffleString.ForceEncodingNode forceEncoding1Node,
                 @Cached TruffleString.ForceEncodingNode forceEncoding2Node,
                 @Cached ConditionProfile equalProfile,
+                @Cached ConditionProfile positiveProfile,
                 @Cached ConditionProfile encodingIndexGreaterThanProfile) {
             var first = libA.getTString(a);
             var firstEncoding = libA.getEncoding(a);
@@ -597,7 +605,7 @@ public abstract class StringNodes {
                 }
             }
 
-            return result;
+            return positiveProfile.profile(result > 0) ? 1 : -1;
         }
 
     }
