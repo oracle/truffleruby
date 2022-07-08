@@ -471,29 +471,17 @@ public abstract class RangeNodes {
 
         @Specialization(guards = "rubyClass == getRangeClass()")
         protected RubyIntRange intRange(RubyClass rubyClass, int begin, int end, boolean excludeEnd) {
-            final RubyIntRange range = new RubyIntRange(
-                    excludeEnd,
-                    begin,
-                    end);
-            return range;
+            return new RubyIntRange(excludeEnd, begin, end);
         }
 
         @Specialization(guards = { "rubyClass == getRangeClass()", "fitsInInteger(begin)", "fitsInInteger(end)" })
         protected RubyIntRange longFittingIntRange(RubyClass rubyClass, long begin, long end, boolean excludeEnd) {
-            final RubyIntRange range = new RubyIntRange(
-                    excludeEnd,
-                    (int) begin,
-                    (int) end);
-            return range;
+            return new RubyIntRange(excludeEnd, (int) begin, (int) end);
         }
 
         @Specialization(guards = { "rubyClass == getRangeClass()", "!fitsInInteger(begin) || !fitsInInteger(end)" })
         protected RubyLongRange longRange(RubyClass rubyClass, long begin, long end, boolean excludeEnd) {
-            final RubyLongRange range = new RubyLongRange(
-                    excludeEnd,
-                    begin,
-                    end);
-            return range;
+            return new RubyLongRange(excludeEnd, begin, end);
         }
 
         @Specialization(guards = { "!standardClass || (!isImplicitLong(begin) || !isImplicitLong(end))" })
