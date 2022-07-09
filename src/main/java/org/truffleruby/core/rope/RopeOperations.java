@@ -23,7 +23,6 @@ package org.truffleruby.core.rope;
 
 import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
 import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
-import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import static org.truffleruby.core.rope.CodeRange.CR_VALID;
 
 import java.nio.charset.Charset;
@@ -46,32 +45,6 @@ import org.truffleruby.core.string.StringUtils;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public class RopeOperations {
-
-    @TruffleBoundary
-    public static LeafRope create(byte[] bytes, Encoding encoding, CodeRange codeRange) {
-        int characterLength = -1;
-
-        if (codeRange == CR_UNKNOWN) {
-            final StringAttributes attributes = calculateCodeRangeAndLength(encoding, bytes, 0, bytes.length);
-
-            codeRange = attributes.getCodeRange();
-            characterLength = attributes.getCharacterLength();
-        } else if (codeRange == CR_VALID || codeRange == CR_BROKEN) {
-            characterLength = strLength(encoding, bytes, 0, bytes.length);
-        }
-
-        switch (codeRange) {
-            case CR_7BIT:
-                return new AsciiOnlyLeafRope(bytes, encoding);
-            case CR_VALID:
-                return new ValidLeafRope(bytes, encoding, characterLength);
-            case CR_BROKEN:
-                return new InvalidLeafRope(bytes, encoding, characterLength);
-            default: {
-                throw new RuntimeException(StringUtils.format("Unknown code range type: %d", codeRange));
-            }
-        }
-    }
 
     @TruffleBoundary
     public static String decodeNonAscii(Encoding encoding, byte[] bytes, int byteOffset, int byteLength) {
@@ -170,11 +143,6 @@ public class RopeOperations {
         } else {
             return StringSupport.strLengthWithCodeRangeNonAsciiCompatible(encoding, bytes, start, end);
         }
-    }
-
-    @TruffleBoundary
-    public static int strLength(Encoding enc, byte[] bytes, int p, int end) {
-        return StringSupport.strLength(enc, bytes, p, end);
     }
 
     private static StringAttributes strLengthWithCodeRangeBinaryString(byte[] bytes, int start, int end) {
@@ -338,10 +306,6 @@ public class RopeOperations {
         }
 
         return size == other.getLength() ? 0 : size == len ? -1 : 1;
-    }
-
-    public static Rope ropeFromRopeBuilder(TStringBuilder builder) {
-        return create(builder.getBytes(), builder.getEncoding(), CR_UNKNOWN);
     }
 
     public static boolean isAsciiOnly(byte[] bytes, Encoding encoding) {

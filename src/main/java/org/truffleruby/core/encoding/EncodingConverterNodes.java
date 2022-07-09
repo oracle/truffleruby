@@ -41,7 +41,6 @@ import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.TStringBuilder;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.EncodingUtils;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
@@ -268,9 +267,9 @@ public abstract class EncodingConverterNodes {
                     outBytes.setEncoding(Encodings.getBuiltInEncoding(ec.destinationEncoding));
                 }
 
-                target.setRope(
-                        RopeOperations.ropeFromRopeBuilder(outBytes),
-                        (RubyEncoding) destinationEncodingNode.call(encodingConverter, "destination_encoding"));
+                var destinationEncoding = (RubyEncoding) destinationEncodingNode.call(encodingConverter,
+                        "destination_encoding");
+                target.setTString(outBytes.toTString(), destinationEncoding);
 
                 return getSymbol(res.symbolicName());
             }

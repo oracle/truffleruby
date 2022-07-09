@@ -142,7 +142,7 @@ public final class TRegexCache {
         RubyEncoding[] fixedEnc = new RubyEncoding[]{ null };
         final TStringBuilder tstringBuilder;
         try {
-            TStringBuilder = ClassicRegexp
+            tstringBuilder = ClassicRegexp
                     .preprocess(
                             new TStringWithEncoding(regexp.source, regexp.encoding),
                             enc,
@@ -151,9 +151,9 @@ public final class TRegexCache {
         } catch (DeferredRaiseException dre) {
             throw dre.getException(context);
         }
-        var tstring = TStringBuilder.toTString();
+        var tstring = tstringBuilder.toTString();
         try {
-            processedRegexpSource = TStringUtils.toJavaStringOrThrow(tstring, TStringBuilder.getRubyEncoding());
+            processedRegexpSource = TStringUtils.toJavaStringOrThrow(tstring, tstringBuilder.getRubyEncoding());
         } catch (CannotConvertBinaryRubyStringToJavaString | UnsupportedCharsetException e) {
             // Some strings cannot be converted to Java strings, e.g. strings with the
             // BINARY encoding containing characters higher than 127.

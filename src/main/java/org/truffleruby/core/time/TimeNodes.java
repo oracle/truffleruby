@@ -397,7 +397,7 @@ public abstract class TimeNodes {
                 return createString(tstring, Encodings.UTF_8);
             } else {
                 final TStringBuilder tstringBuilder = formatTime(time, pattern);
-                return makeStringNode.fromBuilderUnsafe(TStringBuilder, cachedEncoding, CodeRange.CR_UNKNOWN);
+                return makeStringNode.fromBuilderUnsafe(tstringBuilder, cachedEncoding, CodeRange.CR_UNKNOWN);
             }
         }
 
@@ -416,7 +416,7 @@ public abstract class TimeNodes {
                 return createString(tstring, Encodings.UTF_8);
             } else {
                 final TStringBuilder tstringBuilder = formatTime(time, pattern);
-                return makeStringNode.fromBuilderUnsafe(TStringBuilder, rubyEncoding, CodeRange.CR_UNKNOWN);
+                return makeStringNode.fromBuilderUnsafe(tstringBuilder, rubyEncoding, CodeRange.CR_UNKNOWN);
             }
         }
 

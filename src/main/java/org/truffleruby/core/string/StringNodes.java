@@ -2705,7 +2705,7 @@ public abstract class StringNodes {
                 if (!StringSupport.singleByteSqueeze(buffer, squeeze)) {
                     return nil;
                 } else {
-                    string.setRope(RopeOperations.ropeFromRopeBuilder(buffer));
+                    string.setTString(buffer.toTString(), buffer.getRubyEncoding());
                 }
             } else {
                 var codeRange = string.tstring.getByteCodeRangeUncached(string.getTEncoding());
@@ -2713,7 +2713,7 @@ public abstract class StringNodes {
                         this)) {
                     return nil;
                 } else {
-                    string.setRope(RopeOperations.ropeFromRopeBuilder(buffer));
+                    string.setTString(buffer.toTString(), buffer.getRubyEncoding());
                 }
             }
 
@@ -2757,7 +2757,7 @@ public abstract class StringNodes {
                 if (!StringSupport.singleByteSqueeze(buffer, squeeze)) {
                     return nil;
                 } else {
-                    string.setRope(RopeOperations.ropeFromRopeBuilder(buffer));
+                    string.setTString(buffer.toTString(), buffer.getRubyEncoding());
                     return string;
                 }
             }
@@ -2779,14 +2779,14 @@ public abstract class StringNodes {
                 if (!StringSupport.singleByteSqueeze(buffer, squeeze)) {
                     return nil;
                 } else {
-                    string.setRope(RopeOperations.ropeFromRopeBuilder(buffer));
+                    string.setTString(buffer.toTString(), buffer.getRubyEncoding());
                 }
             } else {
                 var codeRange = string.tstring.getByteCodeRangeUncached(string.getTEncoding());
                 if (!StringSupport.multiByteSqueeze(buffer, codeRange, squeeze, tables, enc.jcoding, true, this)) {
                     return nil;
                 } else {
-                    string.setRope(RopeOperations.ropeFromRopeBuilder(buffer));
+                    string.setTString(buffer.toTString(), buffer.getRubyEncoding());
                 }
             }
 

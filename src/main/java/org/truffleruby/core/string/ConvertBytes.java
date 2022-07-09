@@ -549,7 +549,7 @@ public class ConvertBytes {
 
     public static final byte[] intToHexBytes(int i, boolean upper) {
         TStringBuilder tstringBuilder = intToUnsignedBytes(i, 4, upper ? UPPER_DIGITS : LOWER_DIGITS);
-        return TStringBuilder.getBytes();
+        return tstringBuilder.getBytes();
     }
 
     public static final byte[] intToByteArray(int i, int radix, boolean upper) {
@@ -570,12 +570,12 @@ public class ConvertBytes {
 
     public static final byte[] longToHexBytes(long i, boolean upper) {
         TStringBuilder tstringBuilder = longToUnsignedBytes(i, 4, upper ? UPPER_DIGITS : LOWER_DIGITS);
-        return TStringBuilder.getBytes();
+        return tstringBuilder.getBytes();
     }
 
     public static final byte[] longToByteArray(long i, int radix, boolean upper) {
         TStringBuilder tstringBuilder = longToBytes(i, radix, upper ? UPPER_DIGITS : LOWER_DIGITS);
-        return TStringBuilder.getBytes();
+        return tstringBuilder.getBytes();
     }
 
     public static final byte[] longToCharBytes(long i) {
