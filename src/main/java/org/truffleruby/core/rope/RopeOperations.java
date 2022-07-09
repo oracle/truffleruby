@@ -73,10 +73,6 @@ public class RopeOperations {
         }
     }
 
-    public static LeafRope encodeAscii(String value, Encoding encoding) {
-        return create(StringOperations.encodeAsciiBytes(value), encoding, CR_7BIT);
-    }
-
     @TruffleBoundary
     public static String decodeNonAscii(Encoding encoding, byte[] bytes, int byteOffset, int byteLength) {
         final Charset charset;
