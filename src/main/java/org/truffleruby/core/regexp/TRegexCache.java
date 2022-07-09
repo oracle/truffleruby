@@ -18,11 +18,10 @@ import com.oracle.truffle.api.source.Source;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.regexp.TruffleRegexpNodes.TRegexCompileNode;
 import org.truffleruby.core.rope.CannotConvertBinaryRubyStringToJavaString;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
@@ -152,9 +151,9 @@ public final class TRegexCache {
         } catch (DeferredRaiseException dre) {
             throw dre.getException(context);
         }
-        Rope rope = ropeBuilder.toRope();
+        var tstring = ropeBuilder.toTString();
         try {
-            processedRegexpSource = RopeOperations.decodeRope(rope);
+            processedRegexpSource = TStringUtils.toJavaStringOrThrow(tstring, ropeBuilder.getRubyEncoding());
         } catch (CannotConvertBinaryRubyStringToJavaString | UnsupportedCharsetException e) {
             // Some strings cannot be converted to Java strings, e.g. strings with the
             // BINARY encoding containing characters higher than 127.

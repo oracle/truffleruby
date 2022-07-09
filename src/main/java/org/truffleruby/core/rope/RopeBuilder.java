@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.rope;
 
-import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
-
 import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
@@ -88,15 +86,6 @@ public class RopeBuilder extends ByteArrayBuilder {
 
     public void append(Rope other) {
         append(other.getBytes());
-    }
-
-    public Rope toRope() {
-        return toRope(CR_UNKNOWN);
-    }
-
-    public Rope toRope(CodeRange codeRange) {
-        // TODO CS 17-Jan-16 can we take the bytes from the RopeBuilder and set its bytes to null so it can't use them again
-        return RopeOperations.create(getBytes(), encoding.jcoding, codeRange);
     }
 
     public TruffleString toTString() {
