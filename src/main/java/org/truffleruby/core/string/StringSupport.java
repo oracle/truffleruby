@@ -34,6 +34,7 @@ import static org.truffleruby.core.rope.CodeRange.CR_VALID;
 
 import java.util.Arrays;
 
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.InternalByteArray;
@@ -235,15 +236,14 @@ public final class StringSupport {
         return 0 < r;
     }
 
+    @CompilationFinal(dimensions = 1) private static final byte[] NON_ASCII_NEEDLE = { (byte) 0b1111_1111 };
+    @CompilationFinal(dimensions = 1) private static final byte[] NON_ASCII_MASK = { 0b0111_1111 };
+
     // MRI: search_nonascii
-    @TruffleBoundary
     public static int searchNonAscii(InternalByteArray byteArray, int start) {
-        for (int p = start; p < byteArray.getLength(); ++p) {
-            if (!Encoding.isAscii(byteArray.get(p))) {
-                return p;
-            }
-        }
-        return -1;
+        int offset = byteArray.getOffset() + start;
+        return com.oracle.truffle.api.ArrayUtils.indexOfWithOrMask(byteArray.getArray(), offset,
+                byteArray.getEnd() - offset, NON_ASCII_NEEDLE, NON_ASCII_MASK) - byteArray.getOffset();
     }
 
     // MRI: search_nonascii
