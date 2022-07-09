@@ -29,7 +29,6 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.CoreExceptions;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.RubyString;
@@ -157,17 +156,6 @@ public abstract class RubyBaseNode extends Node {
 
     protected final RubyArray createEmptyArray() {
         return ArrayHelpers.createEmptyArray(getContext(), getLanguage());
-    }
-
-    protected final RubyString createString(Rope rope, RubyEncoding encoding) {
-        final RubyString instance = new RubyString(
-                coreLibrary().stringClass,
-                getLanguage().stringShape,
-                false,
-                rope,
-                encoding);
-        AllocationTracing.trace(instance, this);
-        return instance;
     }
 
     public final RubyString createString(TruffleString tstring, RubyEncoding encoding) {

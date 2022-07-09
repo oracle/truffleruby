@@ -13,7 +13,6 @@ import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.Encodings;
-import org.truffleruby.core.rope.Rope;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -23,7 +22,6 @@ public class CoreString {
     private final RubyLanguage language;
     private final String literal;
 
-    @CompilationFinal private volatile Rope rope;
     @CompilationFinal private volatile TruffleString tstring;
 
     public CoreString(RubyLanguage language, String literal) {

@@ -23,7 +23,6 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.library.RubyLibrary;
 
@@ -53,26 +52,6 @@ public final class RubyString extends RubyDynamicObject {
         this.frozen = frozen;
         this.tstring = tstring;
         this.encoding = rubyEncoding;
-    }
-
-    @Deprecated
-    public RubyString(RubyClass rubyClass, Shape shape, boolean frozen, Rope rope, RubyEncoding rubyEncoding) {
-        super(rubyClass, shape);
-        assert rope.encoding == rubyEncoding.jcoding;
-        this.frozen = frozen;
-        this.tstring = TStringUtils.fromRope(rope, rubyEncoding);
-        this.encoding = rubyEncoding;
-    }
-
-    public void setRope(Rope rope) {
-        assert rope.encoding == encoding.jcoding : rope.encoding + " does not equal " + encoding.jcoding;
-        this.tstring = TStringUtils.fromRope(rope, encoding);
-    }
-
-    public void setRope(Rope rope, RubyEncoding encoding) {
-        assert rope.encoding == encoding.jcoding;
-        this.tstring = TStringUtils.fromRope(rope, encoding);
-        this.encoding = encoding;
     }
 
     public void setTString(AbstractTruffleString tstring) {

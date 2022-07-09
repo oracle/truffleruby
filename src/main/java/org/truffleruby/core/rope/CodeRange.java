@@ -17,8 +17,8 @@ package org.truffleruby.core.rope;
 import com.oracle.truffle.api.CompilerDirectives;
 
 public enum CodeRange {
-    /** Used for NativeRope, where the bytes can change from real native code. Also used when building a new
-     * {@link Rope} and the code range is unknown. */
+    /** Used for NativeRope, where the bytes can change from real native code. Also used when building a new Rope and
+     * the code range is unknown. */
     CR_UNKNOWN(0),
     /** Only used for ASCII-compatible encodings, when all characters are US-ASCII (7-bit). */
     CR_7BIT(1),

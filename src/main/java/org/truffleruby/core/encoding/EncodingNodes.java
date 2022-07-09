@@ -35,7 +35,6 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.RopeGuards;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringGuards;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
@@ -72,7 +71,7 @@ public abstract class EncodingNodes {
     }
 
     // MRI: enc_compatible_str and enc_compatible_latter
-    @ImportStatic({ TruffleString.CodeRange.class, RopeGuards.class })
+    @ImportStatic(TruffleString.CodeRange.class)
     public abstract static class NegotiateCompatibleStringEncodingNode extends RubyBaseNode {
 
         @Child TruffleString.GetByteCodeRangeNode codeRangeNode;

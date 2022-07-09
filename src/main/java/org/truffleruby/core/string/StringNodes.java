@@ -93,6 +93,7 @@ import com.oracle.truffle.api.strings.TruffleString.GetByteCodeRangeNode;
 import org.graalvm.collections.Pair;
 import org.jcodings.Config;
 import org.jcodings.Encoding;
+import org.jcodings.ascii.AsciiTables;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
@@ -139,7 +140,6 @@ import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.ATStringWithEncoding;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.TStringBuilder;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.TStringNodes.SingleByteOptimizableNode;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.StringNodesFactory.CheckIndexNodeGen;
@@ -1074,7 +1074,7 @@ public abstract class StringNodes {
                 return 0;
             }
 
-            return RopeOperations.caseInsensitiveCmp(selfByteArray, otherByteArray);
+            return caseInsensitiveCmp(selfByteArray, otherByteArray);
         }
 
         @Specialization(
@@ -1117,6 +1117,25 @@ public abstract class StringNodes {
                 RubyEncoding otherEncoding) {
             return singleByteOptimizableNode.execute(string, stringEncoding) &&
                     singleByteOptimizableNode.execute(other, otherEncoding);
+        }
+
+        @TruffleBoundary
+        private static int caseInsensitiveCmp(InternalByteArray value, InternalByteArray other) {
+            // Taken from org.jruby.util.ByteList#caseInsensitiveCmp.
+            final int size = value.getLength();
+            final int len = Math.min(size, other.getLength());
+
+            for (int offset = -1; ++offset < len;) {
+                int myCharIgnoreCase = AsciiTables.ToLowerCaseTable[value.get(offset) & 0xff] & 0xff;
+                int otherCharIgnoreCase = AsciiTables.ToLowerCaseTable[other.get(offset) & 0xff] & 0xff;
+                if (myCharIgnoreCase < otherCharIgnoreCase) {
+                    return -1;
+                } else if (myCharIgnoreCase > otherCharIgnoreCase) {
+                    return 1;
+                }
+            }
+
+            return size == other.getLength() ? 0 : size == len ? -1 : 1;
         }
     }
 

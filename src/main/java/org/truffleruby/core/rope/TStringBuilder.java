@@ -80,10 +80,6 @@ public class TStringBuilder extends ByteArrayBuilder {
         this.encoding = encoding;
     }
 
-    public void append(Rope other) {
-        append(other.getBytes());
-    }
-
     public TruffleString toTString() {
         return TStringUtils.fromByteArray(getBytes(), encoding);
     }

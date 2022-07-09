@@ -36,22 +36,10 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.TStringUtils;
-import org.truffleruby.core.rope.Rope;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public abstract class StringOperations {
-
-    public static RubyString createUTF8String(RubyContext context, RubyLanguage language, Rope rope) {
-        assert rope.getEncoding() == Encodings.UTF_8.jcoding;
-        final RubyString instance = new RubyString(
-                context.getCoreLibrary().stringClass,
-                language.stringShape,
-                false,
-                rope,
-                Encodings.UTF_8);
-        return instance;
-    }
 
     public static RubyString createUTF8String(RubyContext context, RubyLanguage language, String string) {
         final RubyString instance = new RubyString(

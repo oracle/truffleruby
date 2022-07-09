@@ -15,10 +15,8 @@ package org.truffleruby.core.encoding;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
-import com.oracle.truffle.api.strings.MutableTruffleString;
 import org.jcodings.Encoding;
 
 import com.oracle.truffle.api.strings.TruffleString;
@@ -26,8 +24,6 @@ import org.jcodings.EncodingDB;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.rope.CannotConvertBinaryRubyStringToJavaString;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringGuards;
 
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.ASCII;
@@ -49,14 +45,6 @@ public class TStringUtils {
 
     public static TruffleString fromByteArray(byte[] bytes, RubyEncoding rubyEncoding) {
         return fromByteArray(bytes, rubyEncoding.tencoding);
-    }
-
-    @TruffleBoundary
-    public static TruffleString fromRope(Rope rope, RubyEncoding rubyEncoding) {
-        assert rope.encoding == rubyEncoding.jcoding;
-        final TruffleString truffleString = fromByteArray(rope.getBytes(), rubyEncoding);
-        assert assertEqual(rope, truffleString, rubyEncoding);
-        return truffleString;
     }
 
     public static TruffleString utf8TString(String javaString) {
@@ -118,47 +106,6 @@ public class TStringUtils {
             throw CompilerDirectives.shouldNotReachHere();
         }
         return byteArray.getArray();
-    }
-
-    private static boolean assertEqual(Rope rope, AbstractTruffleString truffleString, RubyEncoding rubyEncoding) {
-        var tencoding = rubyEncoding.tencoding;
-        assert truffleString.isCompatibleTo(tencoding);
-
-        assert truffleString.byteLength(tencoding) == rope.byteLength();
-
-        if (truffleString.isMutable()) {
-            // make a copy for mutable strings so anything below that caches the coderange & characterLength doesn't
-            // have the unintended side effect of caching them on the original mutable string,
-            // which would then not be invalidated after these asserts and could report wrong
-            // coderange & characterLength if mutated both before & later this method.
-            // if we invalidate unconditionally we'd also have an unintended side effect which can hide the lack of invalidation.
-
-            if (truffleString.isNative()) {
-                var pointer = truffleString.getInternalNativePointerUncached(tencoding);
-                truffleString = MutableTruffleString.fromNativePointerUncached(pointer, 0,
-                        truffleString.byteLength(tencoding), tencoding, false);
-            } else {
-                var bytes = truffleString.getInternalByteArrayUncached(tencoding);
-                truffleString = MutableTruffleString.fromByteArrayUncached(bytes.getArray(), bytes.getOffset(),
-                        bytes.getLength(), tencoding, false);
-            }
-        }
-
-        // toString() should never throw
-        assert truffleString.toString() != null;
-
-        StringAttributes stringAttributes = null;
-        final CodeRange codeRange = rope.getCodeRange();
-
-        // Can't assert for mutable native tstrings as that would have the side effect to cache coderange & characterLength
-        // without invalidating. And if we invalidate unconditionally we also have an unintended side effect which can
-        // hide the lack of invalidation.
-        TruffleString.CodeRange tCodeRange = truffleString.getByteCodeRangeUncached(tencoding);
-        assert toCodeRange(tCodeRange) == codeRange : codeRange + " vs " + tCodeRange;
-
-        final int characterLength = rope.characterLength();
-        assert truffleString.codePointLengthUncached(tencoding) == characterLength;
-        return true;
     }
 
     public static CodeRange toCodeRange(TruffleString.CodeRange tCodeRange) {
