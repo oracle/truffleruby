@@ -10,7 +10,8 @@ example "[3, 1, 2][1]", 1
 
 example "[3, 1, 2].sort[1]", 2
 
-example "[14].pack('C').getbyte(0)", 14
+# [GR-39718] Relies on PEA of the byte[], but it is allocated by AMD64CalcStringAttributesMacro currently
+tagged example "[14].pack('C').getbyte(0)", 14
 
 example "sum = 0; [1,2,3].each { |x| sum += x }; sum", 6
 
