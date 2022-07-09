@@ -138,7 +138,6 @@ import org.truffleruby.core.range.RubyObjectRange;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.ATStringWithEncoding;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.TStringNodes.SingleByteOptimizableNode;
@@ -1417,13 +1416,13 @@ public abstract class StringNodes {
                 @Cached("findEncoding(libString.getTString(string), libString.getEncoding(string), cachedArgs)") RubyEncoding compatEncoding,
                 @Cached("makeTables(cachedArgs, squeeze, compatEncoding)") TrTables tables,
                 @Cached BranchProfile nullProfile) {
-            final Rope processedRope = processStr(string, squeeze, compatEncoding, tables);
+            var processedRope = processStr(string, squeeze, compatEncoding, tables);
             if (processedRope == null) {
                 nullProfile.enter();
                 return nil;
             }
 
-            string.setRope(processedRope);
+            string.setTString(processedRope);
             return string;
         }
 
@@ -1446,21 +1445,22 @@ public abstract class StringNodes {
 
             final StringSupport.TrTables tables = makeTables(ropesWithEncs, squeeze, enc);
 
-            final Rope processedRope = processStr(string, squeeze, enc, tables);
+            var processedRope = processStr(string, squeeze, enc, tables);
             if (processedRope == null) {
                 return nil;
             }
 
-            string.setRope(processedRope);
+            string.setTString(processedRope);
             // REVIEW encoding set
 
             return string;
         }
 
         @TruffleBoundary
-        private Rope processStr(RubyString string, boolean[] squeeze, RubyEncoding enc, StringSupport.TrTables tables) {
+        private TruffleString processStr(RubyString string, boolean[] squeeze, RubyEncoding enc,
+                StringSupport.TrTables tables) {
             return StringSupport.delete_bangCommon19(new ATStringWithEncoding(string.tstring, string.encoding), squeeze,
-                    tables, enc.jcoding, this);
+                    tables, enc, this);
         }
     }
 

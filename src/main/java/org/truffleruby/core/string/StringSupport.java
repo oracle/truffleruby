@@ -57,9 +57,7 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.rope.ATStringWithEncoding;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
-import org.truffleruby.core.rope.RopeOperations;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.language.control.RaiseException;
@@ -1010,8 +1008,9 @@ public final class StringSupport {
 
     /** rb_str_delete_bang */
     @TruffleBoundary
-    public static Rope delete_bangCommon19(ATStringWithEncoding rubyString, boolean[] squeeze, TrTables tables,
-            Encoding enc, Node node) {
+    public static TruffleString delete_bangCommon19(ATStringWithEncoding rubyString, boolean[] squeeze, TrTables tables,
+            RubyEncoding rubyEncoding, Node node) {
+        Encoding enc = rubyEncoding.jcoding;
         int s = 0;
         int t = s;
         int send = s + rubyString.byteLength();
@@ -1049,7 +1048,9 @@ public final class StringSupport {
             }
         }
 
-        return modified ? RopeOperations.create(ArrayUtils.extractRange(bytes, 0, t), enc, cr) : null;
+        return modified
+                ? TStringUtils.fromByteArray(ArrayUtils.extractRange(bytes, 0, t), rubyEncoding)
+                /* cr */ : null;
     }
 
     /** rb_str_tr / rb_str_tr_bang */
