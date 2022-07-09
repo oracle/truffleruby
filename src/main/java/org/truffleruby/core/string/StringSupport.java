@@ -55,7 +55,6 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.rope.ATStringWithEncoding;
-import org.truffleruby.core.rope.Bytes;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
@@ -237,22 +236,23 @@ public final class StringSupport {
     }
 
     // MRI: search_nonascii
+    @TruffleBoundary
+    public static int searchNonAscii(InternalByteArray byteArray, int start) {
+        for (int p = start; p < byteArray.getLength(); ++p) {
+            if (!Encoding.isAscii(byteArray.get(p))) {
+                return p;
+            }
+        }
+        return -1;
+    }
+
+    // MRI: search_nonascii
     public static int searchNonAscii(byte[] bytes, int p, int end) {
         while (p < end) {
             if (!Encoding.isAscii(bytes[p])) {
                 return p;
             }
             p++;
-        }
-        return -1;
-    }
-
-    // MRI: search_nonascii
-    public static int searchNonAscii(Bytes bytes) {
-        for (int p = 0; p < bytes.length; ++p) {
-            if (!Encoding.isAscii(bytes.get(p))) {
-                return p;
-            }
         }
         return -1;
     }

@@ -2142,19 +2142,17 @@ public abstract class StringNodes {
             TruffleString buf = EMPTY_BINARY;
 
             var byteArray = byteArrayNode.execute(tstring, tencoding);
-            final byte[] pBytes = byteArray.getArray();
-            final int e = byteArray.getEnd();
+            final int e = tstring.byteLength(tencoding);
 
-            final int offset = byteArray.getOffset();
-            int p = offset;
+            int p = 0;
             int p1 = p;
 
-            p = StringSupport.searchNonAscii(pBytes, p, e);
-            if (p == -1) {
+            p = StringSupport.searchNonAscii(byteArray, p);
+            if (p < 0) {
                 p = e;
             }
             while (p < e) {
-                int clen = byteLengthOfCodePointNode.execute(tstring, p - offset, tencoding,
+                int clen = byteLengthOfCodePointNode.execute(tstring, p, tencoding,
                         ErrorHandling.RETURN_NEGATIVE);
                 if (MBCLEN_NEEDMORE_P(clen)) {
                     break;
@@ -2166,7 +2164,7 @@ public abstract class StringNodes {
                     clen = enc.maxLength();
                     if (p > p1) {
                         buf = concatNode.execute(buf,
-                                substringNode.execute(tstring, p1 - offset, p - p1, tencoding, true),
+                                substringNode.execute(tstring, p1, p - p1, tencoding, true),
                                 tencoding, true);
                     }
 
@@ -2178,7 +2176,7 @@ public abstract class StringNodes {
                     } else {
                         clen--;
                         for (; clen > 1; clen--) {
-                            var subTString = substringNode.execute(tstring, p - offset, clen, tencoding, true);
+                            var subTString = substringNode.execute(tstring, p, clen, tencoding, true);
                             int clen2 = byteLengthOfCodePointNode.execute(subTString, 0, tencoding,
                                     ErrorHandling.RETURN_NEGATIVE);
                             if (MBCLEN_NEEDMORE_P(clen2)) {
@@ -2187,12 +2185,12 @@ public abstract class StringNodes {
                         }
                     }
                     Object repl = yieldNode.yield(block,
-                            createSubString(substringNode, tstring, encoding, p - offset, clen));
+                            createSubString(substringNode, tstring, encoding, p, clen));
                     buf = concatNode.execute(buf, strings.getTString(repl), tencoding, true);
                     p += clen;
                     p1 = p;
-                    p = StringSupport.searchNonAscii(pBytes, p, e);
-                    if (p == -1) {
+                    p = StringSupport.searchNonAscii(byteArray, p);
+                    if (p < 0) {
                         p = e;
                         break;
                     }
@@ -2201,13 +2199,13 @@ public abstract class StringNodes {
 
             if (p1 < p) {
                 buf = concatNode.execute(buf,
-                        substringNode.execute(tstring, p1 - offset, p - p1, tencoding, true), tencoding,
+                        substringNode.execute(tstring, p1, p - p1, tencoding, true), tencoding,
                         true);
             }
 
             if (p < e) {
                 Object repl = yieldNode.yield(block,
-                        createSubString(substringNode, tstring, encoding, p - offset, e - p));
+                        createSubString(substringNode, tstring, encoding, p, e - p));
                 buf = concatNode.execute(buf, strings.getTString(repl), tencoding, true);
             }
 
