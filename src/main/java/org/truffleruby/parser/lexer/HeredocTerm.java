@@ -37,7 +37,7 @@ import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_TERM;
 
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
-import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.TStringBuilder;
 import org.truffleruby.parser.parser.RubyParser;
 
 /** A lexing unit for scanning a heredoc element. Example:
@@ -95,7 +95,7 @@ public final class HeredocTerm extends StrTerm {
 
     @Override
     public int parseString(RubyLexer lexer) {
-        RopeBuilder str = null;
+        TStringBuilder str = null;
         boolean indent = (flags & STR_FUNC_INDENT) != 0;
         int c = lexer.nextc();
 
@@ -147,7 +147,7 @@ public final class HeredocTerm extends StrTerm {
                     str.append(bytes.getArray(), bytes.getOffset(), pend);
                 } else {
                     // lazy initialization of string builder
-                    final RopeBuilder builder = RopeBuilder.createRopeBuilder(bytes.getArray(), bytes.getOffset(),
+                    final TStringBuilder builder = TStringBuilder.create(bytes.getArray(), bytes.getOffset(),
                             pend);
                     builder.setEncoding(lexer.encoding);
                     str = builder;
@@ -171,7 +171,7 @@ public final class HeredocTerm extends StrTerm {
         } else {
             // heredoc with string interpolation
 
-            RopeBuilder tok = new RopeBuilder();
+            TStringBuilder tok = new TStringBuilder();
             tok.setEncoding(lexer.encoding);
 
             if (c == '#') {

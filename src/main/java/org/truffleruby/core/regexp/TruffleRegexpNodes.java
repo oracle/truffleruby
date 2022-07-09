@@ -60,7 +60,7 @@ import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
 import org.truffleruby.core.regexp.TruffleRegexpNodesFactory.MatchNodeGen;
 import org.truffleruby.core.rope.ATStringWithEncoding;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.TStringBuilder;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
@@ -262,7 +262,7 @@ public class TruffleRegexpNodes {
         var source = regexp.source;
         var sourceInOtherEncoding = source.forceEncodingUncached(regexp.encoding.tencoding, enc.tencoding);
         try {
-            final RopeBuilder preprocessed = ClassicRegexp
+            final TStringBuilder preprocessed = ClassicRegexp
                     .preprocess(
                             new TStringWithEncoding(sourceInOtherEncoding, enc),
                             enc,
@@ -1210,7 +1210,7 @@ public class TruffleRegexpNodes {
             RegexpOptions[] optionsArray, Node currentNode) throws DeferredRaiseException {
         RubyEncoding enc = bytes.getEncoding();
         RubyEncoding[] fixedEnc = new RubyEncoding[]{ null };
-        RopeBuilder unescaped = ClassicRegexp.preprocess(bytes, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
+        TStringBuilder unescaped = ClassicRegexp.preprocess(bytes, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
         enc = ClassicRegexp.computeRegexpEncoding(optionsArray, enc, fixedEnc);
 
         Regex regexp = ClassicRegexp

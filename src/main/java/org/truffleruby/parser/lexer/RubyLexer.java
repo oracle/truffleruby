@@ -72,7 +72,7 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.rope.BytesKey;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.TStringBuilder;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.core.string.StringGuards;
@@ -571,7 +571,7 @@ public class RubyLexer implements MagicCommentHandler {
         return considerComplex(RubyParser.tINTEGER, suffix);
     }
 
-    public StrParseNode createStr(RopeBuilder buffer, int flags) {
+    public StrParseNode createStr(TStringBuilder buffer, int flags) {
         return createStr(buffer.toTString(), buffer.getRubyEncoding(), flags);
     }
 
@@ -2190,7 +2190,7 @@ public class RubyLexer implements MagicCommentHandler {
         } else if (c == '\\') {
             if (peek('u')) {
                 nextc(); // Eat 'u'
-                RopeBuilder oneCharBL = new RopeBuilder();
+                TStringBuilder oneCharBL = new TStringBuilder();
                 oneCharBL.setEncoding(encoding);
 
                 c = readUTFEscape(oneCharBL, false, false);
@@ -2596,7 +2596,7 @@ public class RubyLexer implements MagicCommentHandler {
 
     // Note: parser_tokadd_utf8 variant just for regexp literal parsing.  This variant is to be
     // called when string_literal and regexp_literal.
-    public void readUTFEscapeRegexpLiteral(RopeBuilder buffer) {
+    public void readUTFEscapeRegexpLiteral(TStringBuilder buffer) {
         buffer.append('\\');
         buffer.append('u');
 
@@ -2620,7 +2620,7 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     // MRI: parser_tokadd_utf8 sans regexp literal parsing
-    public int readUTFEscape(RopeBuilder buffer, boolean stringLiteral, boolean symbolLiteral) {
+    public int readUTFEscape(TStringBuilder buffer, boolean stringLiteral, boolean symbolLiteral) {
         int codepoint;
         int c;
 
@@ -2650,7 +2650,7 @@ public class RubyLexer implements MagicCommentHandler {
         return codepoint;
     }
 
-    private void readUTF8EscapeIntoBuffer(int codepoint, RopeBuilder buffer, boolean stringLiteral) {
+    private void readUTF8EscapeIntoBuffer(int codepoint, TStringBuilder buffer, boolean stringLiteral) {
         if (codepoint >= 0x80) {
             buffer.setEncoding(Encodings.UTF_8);
             if (stringLiteral) {
@@ -2731,7 +2731,7 @@ public class RubyLexer implements MagicCommentHandler {
     /** Read up to count hexadecimal digits and store those digits in a token numberBuffer. If strict is provided then
      * count number of hex digits must be present. If no digits can be read a syntax exception will be thrown. This will
      * also return the codepoint as a value so codepoint ranges can be checked. */
-    private char scanHexLiteral(RopeBuilder buffer, int count, boolean strict, String errorMessage) {
+    private char scanHexLiteral(TStringBuilder buffer, int count, boolean strict, String errorMessage) {
         int i = 0;
         char hexValue = '\0';
 
@@ -3468,11 +3468,11 @@ public class RubyLexer implements MagicCommentHandler {
         return one.regionEqualByteIndexUncached(0, two, 0, length, tencoding);
     }
 
-    public void tokAdd(int first_byte, RopeBuilder buffer) {
+    public void tokAdd(int first_byte, TStringBuilder buffer) {
         buffer.append((byte) first_byte);
     }
 
-    public void tokCopy(int length, RopeBuilder buffer) {
+    public void tokCopy(int length, TStringBuilder buffer) {
         var bytes = lexb.getInternalByteArrayUncached(tencoding);
         buffer.append(ArrayUtils.extractRange(bytes.getArray(), bytes.getOffset() + lex_p - length,
                 bytes.getOffset() + lex_p));
@@ -3513,7 +3513,7 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     // mri: parser_tokadd_mbchar
-    public boolean tokadd_mbchar(int firstByte, RopeBuilder buffer) {
+    public boolean tokadd_mbchar(int firstByte, TStringBuilder buffer) {
         int length = precise_mbclen();
 
         if (length <= 0) {
@@ -3531,7 +3531,7 @@ public class RubyLexer implements MagicCommentHandler {
 
     /** This looks deceptively like tokadd_mbchar(int, ByteArrayView) but it differs in that it uses the bytelists
      * encoding and the first parameter is a full codepoint and not the first byte of a mbc sequence. */
-    public void tokaddmbc(int codepoint, RopeBuilder buffer) {
+    public void tokaddmbc(int codepoint, TStringBuilder buffer) {
         Encoding encoding = buffer.getEncoding();
         int length = encoding.codeToMbcLength(codepoint);
         final byte[] bytes = Arrays.copyOf(buffer.getBytes(), buffer.getLength() + length);

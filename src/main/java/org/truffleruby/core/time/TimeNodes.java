@@ -30,7 +30,7 @@ import org.truffleruby.core.exception.ErrnoErrorNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.TStringBuilder;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
@@ -396,8 +396,8 @@ public abstract class TimeNodes {
                         codePointLengthNode);
                 return createString(tstring, Encodings.UTF_8);
             } else {
-                final RopeBuilder ropeBuilder = formatTime(time, pattern);
-                return makeStringNode.fromBuilderUnsafe(ropeBuilder, cachedEncoding, CodeRange.CR_UNKNOWN);
+                final TStringBuilder tstringBuilder = formatTime(time, pattern);
+                return makeStringNode.fromBuilderUnsafe(TStringBuilder, cachedEncoding, CodeRange.CR_UNKNOWN);
             }
         }
 
@@ -415,8 +415,8 @@ public abstract class TimeNodes {
                         codePointLengthNode);
                 return createString(tstring, Encodings.UTF_8);
             } else {
-                final RopeBuilder ropeBuilder = formatTime(time, pattern);
-                return makeStringNode.fromBuilderUnsafe(ropeBuilder, rubyEncoding, CodeRange.CR_UNKNOWN);
+                final TStringBuilder tstringBuilder = formatTime(time, pattern);
+                return makeStringNode.fromBuilderUnsafe(TStringBuilder, rubyEncoding, CodeRange.CR_UNKNOWN);
             }
         }
 
@@ -436,7 +436,7 @@ public abstract class TimeNodes {
 
         // Optimised for the default Logger::Formatter time format: "%Y-%m-%dT%H:%M:%S.%6N "
 
-        private RopeBuilder formatTime(RubyTime time, Token[] pattern) {
+        private TStringBuilder formatTime(RubyTime time, Token[] pattern) {
             return RubyDateFormatter.formatToRopeBuilder(
                     pattern,
                     time.dateTime,

@@ -21,7 +21,7 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.regexp.TruffleRegexpNodes.TRegexCompileNode;
 import org.truffleruby.core.rope.CannotConvertBinaryRubyStringToJavaString;
-import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.TStringBuilder;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
@@ -140,9 +140,9 @@ public final class TRegexCache {
     private static Object compileTRegex(RubyContext context, RubyRegexp regexp, boolean atStart, RubyEncoding enc) {
         String processedRegexpSource;
         RubyEncoding[] fixedEnc = new RubyEncoding[]{ null };
-        final RopeBuilder ropeBuilder;
+        final TStringBuilder tstringBuilder;
         try {
-            ropeBuilder = ClassicRegexp
+            TStringBuilder = ClassicRegexp
                     .preprocess(
                             new TStringWithEncoding(regexp.source, regexp.encoding),
                             enc,
@@ -151,9 +151,9 @@ public final class TRegexCache {
         } catch (DeferredRaiseException dre) {
             throw dre.getException(context);
         }
-        var tstring = ropeBuilder.toTString();
+        var tstring = TStringBuilder.toTString();
         try {
-            processedRegexpSource = TStringUtils.toJavaStringOrThrow(tstring, ropeBuilder.getRubyEncoding());
+            processedRegexpSource = TStringUtils.toJavaStringOrThrow(tstring, TStringBuilder.getRubyEncoding());
         } catch (CannotConvertBinaryRubyStringToJavaString | UnsupportedCharsetException e) {
             // Some strings cannot be converted to Java strings, e.g. strings with the
             // BINARY encoding containing characters higher than 127.

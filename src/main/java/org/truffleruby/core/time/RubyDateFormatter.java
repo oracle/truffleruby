@@ -66,7 +66,7 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.exception.ErrnoErrorNode;
-import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.TStringBuilder;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.core.string.StringOperations;
@@ -366,10 +366,10 @@ public abstract class RubyDateFormatter {
     }
 
     @TruffleBoundary
-    public static RopeBuilder formatToRopeBuilder(Token[] compiledPattern, ZonedDateTime dt, Object zone,
+    public static TStringBuilder formatToRopeBuilder(Token[] compiledPattern, ZonedDateTime dt, Object zone,
             RubyContext context, RubyLanguage language, Node currentNode, ErrnoErrorNode errnoErrorNode) {
         RubyTimeOutputFormatter formatter = RubyTimeOutputFormatter.DEFAULT_FORMATTER;
-        RopeBuilder toAppendTo = new RopeBuilder();
+        TStringBuilder toAppendTo = new TStringBuilder();
 
         for (Token token : compiledPattern) {
             String output = null;

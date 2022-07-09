@@ -36,7 +36,7 @@ import java.util.List;
 
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.TStringBuilder;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.ILiteralNode;
@@ -62,7 +62,7 @@ public class StrParseNode extends ParseNode implements ILiteralNode, SideEffectF
     public StrParseNode(SourceIndexLength position, StrParseNode head, StrParseNode tail) {
         super(position);
 
-        RopeBuilder myValue = new RopeBuilder();
+        TStringBuilder myValue = new TStringBuilder();
         myValue.setEncoding(head.encoding);
         myValue.append(head.value, head.encoding);
         myValue.append(tail.value, tail.encoding);

@@ -22,7 +22,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
-import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.TStringBuilder;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -548,8 +548,8 @@ public class ConvertBytes {
     }
 
     public static final byte[] intToHexBytes(int i, boolean upper) {
-        RopeBuilder ropeBuilder = intToUnsignedBytes(i, 4, upper ? UPPER_DIGITS : LOWER_DIGITS);
-        return ropeBuilder.getBytes();
+        TStringBuilder tstringBuilder = intToUnsignedBytes(i, 4, upper ? UPPER_DIGITS : LOWER_DIGITS);
+        return TStringBuilder.getBytes();
     }
 
     public static final byte[] intToByteArray(int i, int radix, boolean upper) {
@@ -569,26 +569,26 @@ public class ConvertBytes {
     }
 
     public static final byte[] longToHexBytes(long i, boolean upper) {
-        RopeBuilder ropeBuilder = longToUnsignedBytes(i, 4, upper ? UPPER_DIGITS : LOWER_DIGITS);
-        return ropeBuilder.getBytes();
+        TStringBuilder tstringBuilder = longToUnsignedBytes(i, 4, upper ? UPPER_DIGITS : LOWER_DIGITS);
+        return TStringBuilder.getBytes();
     }
 
     public static final byte[] longToByteArray(long i, int radix, boolean upper) {
-        RopeBuilder ropeBuilder = longToBytes(i, radix, upper ? UPPER_DIGITS : LOWER_DIGITS);
-        return ropeBuilder.getBytes();
+        TStringBuilder tstringBuilder = longToBytes(i, radix, upper ? UPPER_DIGITS : LOWER_DIGITS);
+        return TStringBuilder.getBytes();
     }
 
     public static final byte[] longToCharBytes(long i) {
         return longToBytes(i, 10, LOWER_DIGITS).getBytes();
     }
 
-    public static final RopeBuilder longToBytes(long i, int radix, byte[] digitmap) {
+    public static final TStringBuilder longToBytes(long i, int radix, byte[] digitmap) {
         if (i == 0) {
-            return RopeBuilder.createRopeBuilder(ZERO_BYTES);
+            return TStringBuilder.create(ZERO_BYTES);
         }
 
         if (i == Long.MIN_VALUE) {
-            return RopeBuilder.createRopeBuilder(MIN_VALUE_BYTES[radix]);
+            return TStringBuilder.create(MIN_VALUE_BYTES[radix]);
         }
 
         boolean neg = false;
@@ -609,10 +609,10 @@ public class ConvertBytes {
             buf[--pos] = (byte) '-';
         }
 
-        return RopeBuilder.createRopeBuilder(buf, pos, len - pos);
+        return TStringBuilder.create(buf, pos, len - pos);
     }
 
-    private static final RopeBuilder intToUnsignedBytes(int i, int shift, byte[] digitmap) {
+    private static final TStringBuilder intToUnsignedBytes(int i, int shift, byte[] digitmap) {
         byte[] buf = new byte[32];
         int charPos = 32;
         int radix = 1 << shift;
@@ -621,10 +621,10 @@ public class ConvertBytes {
             buf[--charPos] = digitmap[(int) (i & mask)];
             i >>>= shift;
         } while (i != 0);
-        return RopeBuilder.createRopeBuilder(buf, charPos, (32 - charPos));
+        return TStringBuilder.create(buf, charPos, (32 - charPos));
     }
 
-    private static final RopeBuilder longToUnsignedBytes(long i, int shift, byte[] digitmap) {
+    private static final TStringBuilder longToUnsignedBytes(long i, int shift, byte[] digitmap) {
         byte[] buf = new byte[64];
         int charPos = 64;
         int radix = 1 << shift;
@@ -633,7 +633,7 @@ public class ConvertBytes {
             buf[--charPos] = digitmap[(int) (i & mask)];
             i >>>= shift;
         } while (i != 0);
-        return RopeBuilder.createRopeBuilder(buf, charPos, (64 - charPos));
+        return TStringBuilder.create(buf, charPos, (64 - charPos));
     }
 
     public static final byte[] twosComplementToBinaryBytes(byte[] in) {

@@ -48,7 +48,7 @@ import static org.truffleruby.parser.lexer.RubyLexer.isOctChar;
 import org.jcodings.Encoding;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.regexp.RegexpOptions;
-import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.TStringBuilder;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.KCode;
 import org.truffleruby.core.string.TStringConstants;
@@ -85,8 +85,8 @@ public class StringTerm extends StrTerm {
         return flags;
     }
 
-    protected RopeBuilder createRopeBuilder(RubyLexer lexer) {
-        RopeBuilder builder = new RopeBuilder();
+    protected TStringBuilder createRopeBuilder(RubyLexer lexer) {
+        TStringBuilder builder = new TStringBuilder();
         builder.setEncoding(lexer.encoding);
         return builder;
     }
@@ -158,7 +158,7 @@ public class StringTerm extends StrTerm {
             return ' ';
         }
 
-        RopeBuilder buffer = createRopeBuilder(lexer);
+        TStringBuilder buffer = createRopeBuilder(lexer);
         lexer.newtok(true);
         if ((flags & STR_FUNC_EXPAND) != 0 && c == '#') {
             int token = lexer.peekVariableName(RubyParser.tSTRING_DVAR, RubyParser.tSTRING_DBEG);
@@ -238,7 +238,7 @@ public class StringTerm extends StrTerm {
     }
 
     // mri: parser_tokadd_string
-    public int parseStringIntoBuffer(RubyLexer lexer, RopeBuilder buffer, Encoding enc[]) {
+    public int parseStringIntoBuffer(RubyLexer lexer, TStringBuilder buffer, Encoding enc[]) {
         boolean qwords = (flags & STR_FUNC_QWORDS) != 0;
         boolean expand = (flags & STR_FUNC_EXPAND) != 0;
         boolean escape = (flags & STR_FUNC_ESCAPE) != 0;
@@ -431,7 +431,7 @@ public class StringTerm extends StrTerm {
 
     // Was a goto in original ruby lexer
     @SuppressWarnings("fallthrough")
-    private void escaped(RubyLexer lexer, RopeBuilder buffer) {
+    private void escaped(RubyLexer lexer, TStringBuilder buffer) {
         int c;
 
         switch (c = lexer.nextc()) {
@@ -446,7 +446,7 @@ public class StringTerm extends StrTerm {
     }
 
     @SuppressWarnings("fallthrough")
-    private void parseEscapeIntoBuffer(RubyLexer lexer, RopeBuilder buffer) {
+    private void parseEscapeIntoBuffer(RubyLexer lexer, TStringBuilder buffer) {
         int c;
 
         switch (c = lexer.nextc()) {

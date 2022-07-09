@@ -13,7 +13,7 @@ import java.util.Objects;
 
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.TStringBuilder;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.language.control.DeferredRaiseException;
 
@@ -22,7 +22,7 @@ public final class RegexpCacheKey {
     public static RegexpCacheKey calculate(TStringWithEncoding source, RegexpOptions options)
             throws DeferredRaiseException {
         RubyEncoding[] fixedEnc = new RubyEncoding[]{ null };
-        RopeBuilder processed = ClassicRegexp.preprocess(source, source.getEncoding(), fixedEnc,
+        TStringBuilder processed = ClassicRegexp.preprocess(source, source.getEncoding(), fixedEnc,
                 RegexpSupport.ErrorMode.RAISE);
         RegexpOptions[] optionsArray = new RegexpOptions[]{ options };
         RubyEncoding enc = ClassicRegexp.computeRegexpEncoding(optionsArray, source.getEncoding(), fixedEnc);

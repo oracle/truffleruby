@@ -138,7 +138,7 @@ import org.truffleruby.core.range.RubyObjectRange;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.ATStringWithEncoding;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.TStringBuilder;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.TStringNodes.SingleByteOptimizableNode;
 import org.truffleruby.core.rope.TStringWithEncoding;
@@ -214,14 +214,14 @@ public abstract class StringNodes {
 
         protected abstract RubyString executeInternal(Object payload, RubyEncoding encoding, Object codeRange);
 
-        public RubyString fromBuilder(RopeBuilder builder, RubyEncoding encoding, CodeRange codeRange) {
+        public RubyString fromBuilder(TStringBuilder builder, RubyEncoding encoding, CodeRange codeRange) {
             assert builder.getEncoding() == encoding.jcoding;
             return executeMake(builder.getBytes(), encoding, codeRange);
         }
 
         /** All callers of this factory method must guarantee that the builder's byte array cannot change after this
          * call, otherwise the rope built from the builder will end up in an inconsistent state. */
-        public RubyString fromBuilderUnsafe(RopeBuilder builder, RubyEncoding encoding, CodeRange codeRange) {
+        public RubyString fromBuilderUnsafe(TStringBuilder builder, RubyEncoding encoding, CodeRange codeRange) {
             assert builder.getEncoding() == encoding.jcoding;
             final byte[] unsafeBytes = builder.getUnsafeBytes();
             final byte[] ropeBytes;
@@ -2456,7 +2456,7 @@ public abstract class StringNodes {
                 len += FORCE_ENCODING_CALL_BYTES.length + enc.getName().length + "\")".length();
             }
 
-            RopeBuilder outBytes = new RopeBuilder();
+            TStringBuilder outBytes = new TStringBuilder();
             outBytes.unsafeEnsureSpace(len);
             byte[] out = outBytes.getUnsafeBytes();
             int q = 0;
@@ -2541,7 +2541,7 @@ public abstract class StringNodes {
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
             // Taken from org.jruby.RubyString#undump
             var encoding = libString.getEncoding(string);
-            Pair<RopeBuilder, RubyEncoding> outputBytesResult = StringSupport.undump(
+            Pair<TStringBuilder, RubyEncoding> outputBytesResult = StringSupport.undump(
                     new ATStringWithEncoding(libString.getTString(string), encoding),
                     encoding,
                     getContext(),
@@ -2693,7 +2693,7 @@ public abstract class StringNodes {
                 @Cached SingleByteOptimizableNode singleByteOptimizableNode) {
             // Taken from org.jruby.RubyString#squeeze_bang19.
 
-            final RopeBuilder buffer = RopeBuilder.createRopeBuilder(string);
+            final TStringBuilder buffer = TStringBuilder.create(string);
 
             final boolean[] squeeze = new boolean[StringSupport.TRANS_SIZE];
             for (int i = 0; i < StringSupport.TRANS_SIZE; i++) {
@@ -2741,7 +2741,7 @@ public abstract class StringNodes {
                 checkEncodingNode = insert(CheckEncodingNode.create());
             }
 
-            final RopeBuilder buffer = RopeBuilder.createRopeBuilder(string);
+            final TStringBuilder buffer = TStringBuilder.create(string);
 
             Object otherStr = otherStrings[0];
             var otherRope = RubyStringLibrary.getUncached().getTString(otherStr);
@@ -2801,7 +2801,7 @@ public abstract class StringNodes {
         protected RubyString succBang(RubyString string,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             if (!string.tstring.isEmpty()) {
-                final RopeBuilder succBuilder = StringSupport.succCommon(string, this);
+                final TStringBuilder succBuilder = StringSupport.succCommon(string, this);
                 string.setTString(fromByteArrayNode.execute(succBuilder.getBytes(), string.encoding.tencoding));
             }
 
@@ -3984,7 +3984,7 @@ public abstract class StringNodes {
             int p = byteArray.getOffset();
             int pend = byteArray.getEnd();
             int prev = p;
-            RopeBuilder result = new RopeBuilder();
+            TStringBuilder result = new TStringBuilder();
             boolean unicode_p = enc.isUnicode();
             boolean asciicompat = enc.isAsciiCompatible();
 

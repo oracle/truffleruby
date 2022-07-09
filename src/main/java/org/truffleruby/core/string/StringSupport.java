@@ -57,7 +57,7 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.rope.ATStringWithEncoding;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.TStringBuilder;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.language.control.RaiseException;
@@ -747,14 +747,14 @@ public final class StringSupport {
 
     // MRI: str_succ
     @TruffleBoundary
-    public static RopeBuilder succCommon(RubyString original, Node node) {
+    public static TStringBuilder succCommon(RubyString original, Node node) {
         byte carry[] = new byte[org.jcodings.Config.ENC_CODE_TO_MBC_MAXLEN];
         int carryP = 0;
         carry[0] = 1;
         int carryLen = 1;
 
         Encoding enc = original.encoding.jcoding;
-        RopeBuilder valueCopy = RopeBuilder.createRopeBuilder(original);
+        TStringBuilder valueCopy = TStringBuilder.create(original);
         int p = 0;
         int end = p + valueCopy.getLength();
         int s = end;
@@ -1373,7 +1373,7 @@ public final class StringSupport {
         return end - p > oend - op ? 1 : -1;
     }
 
-    public static boolean singleByteSqueeze(RopeBuilder value, boolean squeeze[]) {
+    public static boolean singleByteSqueeze(TStringBuilder value, boolean squeeze[]) {
         int s = 0;
         int t = s;
         int send = s + value.getLength();
@@ -1396,7 +1396,7 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean multiByteSqueeze(RopeBuilder value, TruffleString.CodeRange originalCodeRange,
+    public static boolean multiByteSqueeze(TStringBuilder value, TruffleString.CodeRange originalCodeRange,
             boolean[] squeeze, TrTables tables, Encoding enc, boolean isArg, Node node) {
         int s = 0;
         int t = s;
@@ -1796,7 +1796,7 @@ public final class StringSupport {
     private static final String INVALID_FORMAT_MESSAGE = "invalid dumped string; not wrapped with '\"' nor '\"...\".force_encoding(\"...\")' form";
 
     @TruffleBoundary
-    public static Pair<RopeBuilder, RubyEncoding> undump(ATStringWithEncoding rope, RubyEncoding encoding,
+    public static Pair<TStringBuilder, RubyEncoding> undump(ATStringWithEncoding rope, RubyEncoding encoding,
             RubyContext context,
             Node currentNode) {
         byte[] bytes = rope.getBytes();
@@ -1806,7 +1806,7 @@ public final class StringSupport {
         Encoding[] enc = { encoding.jcoding };
         boolean[] utf8 = { false };
         boolean[] binary = { false };
-        RopeBuilder undumped = new RopeBuilder();
+        TStringBuilder undumped = new TStringBuilder();
         undumped.setEncoding(encoding);
 
         CodeRange cr = rope.getCodeRange();
@@ -1932,7 +1932,7 @@ public final class StringSupport {
         return Pair.create(undumped, resultEncoding);
     }
 
-    private static Pair<Integer, RubyEncoding> undumpAfterBackslash(RopeBuilder out, RubyEncoding encoding,
+    private static Pair<Integer, RubyEncoding> undumpAfterBackslash(TStringBuilder out, RubyEncoding encoding,
             byte[] bytes, int start, int length, Encoding[] enc,
             boolean[] utf8, boolean[] binary, RubyContext context, Node currentNode) {
         long c;

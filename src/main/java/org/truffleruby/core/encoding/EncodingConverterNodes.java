@@ -40,7 +40,7 @@ import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.TStringBuilder;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.EncodingUtils;
 import org.truffleruby.core.string.RubyString;
@@ -201,7 +201,7 @@ public abstract class EncodingConverterNodes {
             var tencoding = source.encoding.tencoding;
 
             var tstring = source.tstring;
-            final RopeBuilder outBytes = RopeBuilder.createRopeBuilder(target);
+            final TStringBuilder outBytes = TStringBuilder.create(target);
 
             final Ptr inPtr = new Ptr();
             final Ptr outPtr = new Ptr();
@@ -341,13 +341,13 @@ public abstract class EncodingConverterNodes {
             store[0] = eConvResultToSymbol(lastError.getResult());
             store[1] = makeStringNode.executeMake(lastError.getSource(), Encodings.BINARY, CR_UNKNOWN);
             store[2] = makeStringNode.executeMake(lastError.getDestination(), Encodings.BINARY, CR_UNKNOWN);
-            store[3] = makeStringNode.fromBuilderUnsafe(RopeBuilder.createRopeBuilder(
+            store[3] = makeStringNode.fromBuilderUnsafe(TStringBuilder.create(
                     lastError.getErrorBytes(),
                     lastError.getErrorBytesP(),
                     lastError.getErrorBytesP() + lastError.getErrorBytesLength()), Encodings.BINARY, CR_UNKNOWN);
 
             if (readAgain) {
-                store[4] = makeStringNode.fromBuilderUnsafe(RopeBuilder.createRopeBuilder(
+                store[4] = makeStringNode.fromBuilderUnsafe(TStringBuilder.create(
                         lastError.getErrorBytes(),
                         lastError.getErrorBytesLength() + lastError.getErrorBytesP(),
                         lastError.getReadAgainLength()), Encodings.BINARY, CR_UNKNOWN);
@@ -401,14 +401,14 @@ public abstract class EncodingConverterNodes {
             if (ec.lastError.getErrorBytes() != null) {
                 ret[3] = makeStringNode
                         .fromBuilderUnsafe(
-                                RopeBuilder.createRopeBuilder(
+                                TStringBuilder.create(
                                         ec.lastError.getErrorBytes(),
                                         ec.lastError.getErrorBytesP(),
                                         ec.lastError.getErrorBytesLength()),
                                 Encodings.BINARY,
                                 CR_UNKNOWN);
                 ret[4] = makeStringNode.fromBuilderUnsafe(
-                        RopeBuilder.createRopeBuilder(
+                        TStringBuilder.create(
                                 ec.lastError.getErrorBytes(),
                                 ec.lastError.getErrorBytesP() + ec.lastError.getErrorBytesLength(),
                                 ec.lastError.getReadAgainLength()),

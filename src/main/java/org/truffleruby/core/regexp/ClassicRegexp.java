@@ -58,7 +58,7 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.ATStringWithEncoding;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.TStringBuilder;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
@@ -86,7 +86,7 @@ public class ClassicRegexp implements ReOptions {
     }
 
     public static Regex makeRegexp(RubyDeferredWarnings rubyDeferredWarnings,
-            RopeBuilder processedSource, RegexpOptions options,
+            TStringBuilder processedSource, RegexpOptions options,
             RubyEncoding enc, AbstractTruffleString source, Node currentNode) throws DeferredRaiseException {
         try {
             return new Regex(
@@ -109,7 +109,7 @@ public class ClassicRegexp implements ReOptions {
         return BacktraceFormatter.formatJavaThrowableMessage(e) + ": /" + source + "/" + options.toOptionsString();
     }
 
-    private static Regex getRegexpFromCache(RopeBuilder bytes, RubyEncoding encoding, RegexpOptions options,
+    private static Regex getRegexpFromCache(TStringBuilder bytes, RubyEncoding encoding, RegexpOptions options,
             AbstractTruffleString source) throws DeferredRaiseException {
         final Regex newRegex = makeRegexp(null, bytes, options, encoding, source, null);
         newRegex.setUserObject(bytes);
@@ -127,7 +127,7 @@ public class ClassicRegexp implements ReOptions {
 
         RegexpOptions[] optionsArray = new RegexpOptions[]{ originalOptions };
         RubyEncoding[] fixedEnc = new RubyEncoding[]{ null };
-        RopeBuilder unescaped = preprocess(strEnc, strEnc.encoding, fixedEnc, RegexpSupport.ErrorMode.RAISE);
+        TStringBuilder unescaped = preprocess(strEnc, strEnc.encoding, fixedEnc, RegexpSupport.ErrorMode.RAISE);
         final RubyEncoding computedEnc = computeRegexpEncoding(optionsArray, strEnc.encoding, fixedEnc);
         this.pattern = getRegexpFromCache(
                 unescaped,
@@ -140,7 +140,7 @@ public class ClassicRegexp implements ReOptions {
 
     @TruffleBoundary
     @SuppressWarnings("fallthrough")
-    private static boolean unescapeNonAscii(RopeBuilder to, TStringWithEncoding str, RubyEncoding enc,
+    private static boolean unescapeNonAscii(TStringBuilder to, TStringWithEncoding str, RubyEncoding enc,
             RubyEncoding[] encp, RegexpSupport.ErrorMode mode) throws DeferredRaiseException {
         boolean hasProperty = false;
         byte[] buf = null;
@@ -263,7 +263,7 @@ public class ClassicRegexp implements ReOptions {
         return hasProperty;
     }
 
-    private static int unescapeUnicodeBmp(RopeBuilder to, byte[] bytes, int p, int end,
+    private static int unescapeUnicodeBmp(TStringBuilder to, byte[] bytes, int p, int end,
             RubyEncoding[] encp, RegexpSupport.ErrorMode mode) throws DeferredRaiseException {
         if (p + 4 > end) {
             raisePreprocessError("invalid Unicode escape", mode);
@@ -277,7 +277,7 @@ public class ClassicRegexp implements ReOptions {
         return p + 4;
     }
 
-    private static int unescapeUnicodeList(RopeBuilder to, byte[] bytes, int p, int end,
+    private static int unescapeUnicodeList(TStringBuilder to, byte[] bytes, int p, int end,
             RubyEncoding[] encp, RegexpSupport.ErrorMode mode) throws DeferredRaiseException {
         while (p < end && StringSupport.isAsciiSpace(bytes[p] & 0xff)) {
             p++;
@@ -309,7 +309,7 @@ public class ClassicRegexp implements ReOptions {
         return p;
     }
 
-    private static void appendUtf8(RopeBuilder to, int code, RubyEncoding[] enc,
+    private static void appendUtf8(TStringBuilder to, int code, RubyEncoding[] enc,
             RegexpSupport.ErrorMode mode) throws DeferredRaiseException {
         checkUnicodeRange(code, mode);
 
@@ -375,7 +375,7 @@ public class ClassicRegexp implements ReOptions {
         }
     }
 
-    private static int unescapeEscapedNonAscii(RopeBuilder to, byte[] bytes, int p, int end,
+    private static int unescapeEscapedNonAscii(TStringBuilder to, byte[] bytes, int p, int end,
             RubyEncoding enc, RubyEncoding[] encp, RegexpSupport.ErrorMode mode)
             throws DeferredRaiseException {
         byte[] chBuf = new byte[enc.jcoding.maxLength()];
@@ -556,9 +556,9 @@ public class ClassicRegexp implements ReOptions {
                 RegexpSupport.ErrorMode.RAISE);
     }
 
-    public static RopeBuilder preprocess(TStringWithEncoding str, RubyEncoding enc, RubyEncoding[] fixedEnc,
+    public static TStringBuilder preprocess(TStringWithEncoding str, RubyEncoding enc, RubyEncoding[] fixedEnc,
             RegexpSupport.ErrorMode mode) throws DeferredRaiseException {
-        RopeBuilder to = RopeBuilder.createRopeBuilder(str.byteLength());
+        TStringBuilder to = TStringBuilder.create(str.byteLength());
 
         if (enc.jcoding.isAsciiCompatible()) {
             fixedEnc[0] = null;
@@ -829,7 +829,7 @@ public class ClassicRegexp implements ReOptions {
         return enc;
     }
 
-    public static void appendOptions(RopeBuilder to, RegexpOptions options) {
+    public static void appendOptions(TStringBuilder to, RegexpOptions options) {
         if (options.isMultiline()) {
             to.append((byte) 'm');
         }
@@ -849,7 +849,7 @@ public class ClassicRegexp implements ReOptions {
         int len = byteArray.getLength();
         byte[] bytes = byteArray.getArray();
 
-        RopeBuilder result = RopeBuilder.createRopeBuilder(len);
+        TStringBuilder result = TStringBuilder.create(len);
         result.append((byte) '(');
         result.append((byte) '?');
 
@@ -942,7 +942,7 @@ public class ClassicRegexp implements ReOptions {
     }
 
     @TruffleBoundary
-    public void appendRegexpString19(RopeBuilder to, TStringWithEncoding str, int start, int len, Encoding resEnc) {
+    public void appendRegexpString19(TStringBuilder to, TStringWithEncoding str, int start, int len, Encoding resEnc) {
         var byteArray = str.getInternalByteArray();
         int p = start + byteArray.getOffset();
         int end = p + len;

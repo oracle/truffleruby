@@ -340,7 +340,7 @@ public class RopeOperations {
         return size == other.getLength() ? 0 : size == len ? -1 : 1;
     }
 
-    public static Rope ropeFromRopeBuilder(RopeBuilder builder) {
+    public static Rope ropeFromRopeBuilder(TStringBuilder builder) {
         return create(builder.getBytes(), builder.getEncoding(), CR_UNKNOWN);
     }
 
