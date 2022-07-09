@@ -75,9 +75,11 @@ unsigned int rb_enc_codepoint_len(const char *p, const char *e, int *len_p, rb_e
   if (len <= 0) {
     rb_raise(rb_eArgError, "empty string");
   }
-  VALUE array = RUBY_CEXT_INVOKE("rb_enc_codepoint_len", rb_str_new(p, len), rb_enc_from_encoding(encoding));
-  if (len_p) *len_p = polyglot_as_i32(polyglot_invoke(rb_tr_unwrap(array), "[]", 0));
-  return (unsigned int)polyglot_as_i32(polyglot_invoke(rb_tr_unwrap(array), "[]", 1));
+  VALUE array = RUBY_CEXT_INVOKE("rb_enc_codepoint_len", rb_enc_str_new(p, len, encoding));
+  if (len_p) {
+    *len_p = polyglot_as_i32(polyglot_invoke(rb_tr_unwrap(array), "[]", 0));
+  }
+  return (unsigned int) polyglot_as_i32(polyglot_invoke(rb_tr_unwrap(array), "[]", 1));
 }
 
 int rb_enc_mbc_to_codepoint(char *p, char *e, rb_encoding *enc) {

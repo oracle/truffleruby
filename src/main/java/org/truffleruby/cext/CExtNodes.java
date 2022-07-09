@@ -64,7 +64,6 @@ import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.rope.Bytes;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
@@ -645,32 +644,22 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_enc_codepoint_len", onSingleton = true, required = 2)
+    @CoreMethod(names = "rb_enc_codepoint_len", onSingleton = true, required = 1)
     public abstract static class RbEncCodePointLenNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "strings.isRubyString(string)")
-        protected RubyArray rbEncCodePointLen(Object string, RubyEncoding encoding,
+        protected RubyArray rbEncCodePointLen(Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @Cached StringNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
+                @Cached TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode,
                 @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Cached GetByteCodeRangeNode codeRangeNode,
-                @Cached ConditionProfile sameEncodingProfile,
                 @Cached BranchProfile errorProfile) {
             var tstring = strings.getTString(string);
-            var stringEncoding = strings.getEncoding(string);
-            var byteArray = byteArrayNode.execute(tstring, stringEncoding.tencoding);
-
-            var stringCodeRange = codeRangeNode.execute(tstring, strings.getTEncoding(string));
+            var encoding = strings.getEncoding(string);
+            var tencoding = encoding.tencoding;
             final Encoding enc = encoding.jcoding;
 
-            final TruffleString.CodeRange cr;
-            if (sameEncodingProfile.profile(enc == stringEncoding.jcoding)) {
-                cr = stringCodeRange;
-            } else {
-                cr = BROKEN /* UNKNOWN */;
-            }
-
-            final int r = calculateCharacterLengthNode.characterLength(enc, cr, Bytes.from(byteArray));
+            final int r = byteLengthOfCodePointNode.execute(tstring, 0, tencoding, ErrorHandling.RETURN_NEGATIVE);
 
             if (!StringSupport.MBCLEN_CHARFOUND_P(r)) {
                 errorProfile.enter();
@@ -680,7 +669,9 @@ public class CExtNodes {
             }
 
             final int len_p = StringSupport.MBCLEN_CHARFOUND_LEN(r);
-            final int codePoint = StringSupport.preciseCodePoint(enc, stringCodeRange, byteArray.getArray(),
+            var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
+            var cr = codeRangeNode.execute(tstring, strings.getTEncoding(string));
+            final int codePoint = StringSupport.preciseCodePoint(enc, cr, byteArray.getArray(),
                     byteArray.getOffset(), byteArray.getEnd());
 
             return createArray(new Object[]{ len_p, codePoint });
