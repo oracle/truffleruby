@@ -651,8 +651,7 @@ public class CExtNodes {
         protected RubyArray rbEncCodePointLen(Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode,
-                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
-                @Cached GetByteCodeRangeNode codeRangeNode,
+                @Cached TruffleString.CodePointAtByteIndexNode codePointAtByteIndexNode,
                 @Cached BranchProfile errorProfile) {
             var tstring = strings.getTString(string);
             var encoding = strings.getEncoding(string);
@@ -668,13 +667,10 @@ public class CExtNodes {
                         coreExceptions().argumentError(Utils.concat("invalid byte sequence in ", enc), this));
             }
 
-            final int len_p = StringSupport.MBCLEN_CHARFOUND_LEN(r);
-            var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
-            var cr = codeRangeNode.execute(tstring, strings.getTEncoding(string));
-            final int codePoint = StringSupport.preciseCodePoint(enc, cr, byteArray.getArray(),
-                    byteArray.getOffset(), byteArray.getEnd());
+            int codePoint = codePointAtByteIndexNode.execute(tstring, 0, tencoding, ErrorHandling.RETURN_NEGATIVE);
+            assert codePoint >= 0;
 
-            return createArray(new Object[]{ len_p, codePoint });
+            return createArray(new int[]{ StringSupport.MBCLEN_CHARFOUND_LEN(r), codePoint });
         }
     }
 

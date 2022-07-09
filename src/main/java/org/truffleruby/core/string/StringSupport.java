@@ -228,6 +228,7 @@ public final class StringSupport {
 
     // MBCLEN_CHARFOUND_LEN, ONIGENC_MBCLEN_CHARFOUND_LEN
     public static int MBCLEN_CHARFOUND_LEN(int r) {
+        assert MBCLEN_CHARFOUND_P(r);
         return r;
     }
 
