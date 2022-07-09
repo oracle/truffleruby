@@ -1063,12 +1063,13 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static Rope trTransHelper(ATStringWithEncoding self, ATStringWithEncoding srcStr,
-            ATStringWithEncoding replStr, Encoding e1, Encoding enc,
+    public static TruffleString trTransHelper(ATStringWithEncoding self, ATStringWithEncoding srcStr,
+            ATStringWithEncoding replStr, Encoding e1, RubyEncoding rubyEncoding,
             boolean sflag, Node node) {
         // This method does not handle the cases where either srcStr or replStr are empty.  It is the responsibility
         // of the caller to take the appropriate action in those cases.
 
+        final Encoding enc = rubyEncoding.jcoding;
         CodeRange cr = self.getCodeRange();
 
         final StringSupport.TR trSrc = new StringSupport.TR(srcStr.tstring, srcStr.encoding);
@@ -1144,9 +1145,9 @@ public final class StringSupport {
         int s = 0;
         int send = self.byteLength();
 
-        final Rope ret;
+        final TruffleString ret;
         if (sflag) {
-            byte sbytes[] = self.getBytes();
+            byte[] sbytes = self.getBytes();
             int clen, tlen;
             int max = self.byteLength();
             int save = -1;
@@ -1207,9 +1208,9 @@ public final class StringSupport {
                 t += tlen;
             }
 
-            ret = RopeOperations.create(ArrayUtils.extractRange(buf, 0, t), enc, cr);
+            ret = TStringUtils.fromByteArray(ArrayUtils.extractRange(buf, 0, t), rubyEncoding); // cr
         } else if (enc.isSingleByte() || (singlebyte && hash == null)) {
-            byte sbytes[] = self.getBytesCopy();
+            byte[] sbytes = self.getBytesCopy();
             while (s < send) {
                 c = sbytes[s] & 0xff;
                 if (trans[c] != -1) {
@@ -1225,9 +1226,9 @@ public final class StringSupport {
                 s++;
             }
 
-            ret = RopeOperations.create(sbytes, enc, cr);
+            ret = TStringUtils.fromByteArray(sbytes, rubyEncoding); // cr
         } else {
-            byte sbytes[] = self.getBytes();
+            byte[] sbytes = self.getBytes();
             int clen, tlen, max = (int) (self.byteLength() * 1.2);
             byte[] buf = new byte[max];
             int t = 0;
@@ -1282,7 +1283,7 @@ public final class StringSupport {
                 t += tlen;
             }
 
-            ret = RopeOperations.create(ArrayUtils.extractRange(buf, 0, t), enc, cr);
+            ret = TStringUtils.fromByteArray(ArrayUtils.extractRange(buf, 0, t), rubyEncoding); // cr
         }
 
         if (modified) {

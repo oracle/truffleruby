@@ -3610,14 +3610,13 @@ public abstract class StringNodes {
             var selfTStringWithEnc = new ATStringWithEncoding(self.tstring, self.encoding);
             var fromStrTStringWithEnc = new ATStringWithEncoding(libFromStr, fromStr);
             var toStrTStringWithEnc = new ATStringWithEncoding(libToStr, toStr);
-            final Rope ret = StringSupport
-                    .trTransHelper(selfTStringWithEnc, fromStrTStringWithEnc, toStrTStringWithEnc, e1.jcoding,
-                            enc.jcoding, sFlag, node);
+            final TruffleString ret = StringSupport.trTransHelper(selfTStringWithEnc, fromStrTStringWithEnc,
+                    toStrTStringWithEnc, e1.jcoding, enc, sFlag, node);
             if (ret == null) {
                 return Nil.INSTANCE;
             }
 
-            self.setRope(ret, enc);
+            self.setTString(ret, enc);
             return self;
         }
     }
