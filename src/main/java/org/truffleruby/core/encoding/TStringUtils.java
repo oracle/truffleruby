@@ -27,7 +27,6 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.rope.CannotConvertBinaryRubyStringToJavaString;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringGuards;
 
@@ -50,13 +49,6 @@ public class TStringUtils {
 
     public static TruffleString fromByteArray(byte[] bytes, RubyEncoding rubyEncoding) {
         return fromByteArray(bytes, rubyEncoding.tencoding);
-    }
-
-    public static Rope toRope(TruffleString tstring, RubyEncoding rubyEncoding) {
-        var bytes = getBytesOrCopy(tstring, rubyEncoding);
-        final var rope = RopeOperations.create(bytes, rubyEncoding.jcoding, CodeRange.CR_UNKNOWN);
-        assert assertEqual(rope, tstring, rubyEncoding);
-        return rope;
     }
 
     @TruffleBoundary

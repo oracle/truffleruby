@@ -259,7 +259,7 @@ public class TruffleRegexpNodes {
     private static Regex makeRegexpForEncoding(RubyContext context, RubyRegexp regexp, RubyEncoding enc,
             Node currentNode) {
         final RubyEncoding[] fixedEnc = new RubyEncoding[]{ null };
-        var source = regexp.sourceTString;
+        var source = regexp.source;
         var sourceInOtherEncoding = source.forceEncodingUncached(regexp.encoding.tencoding, enc.tencoding);
         try {
             final RopeBuilder preprocessed = ClassicRegexp

@@ -26,7 +26,6 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.language.ImmutableRubyObjectNotCopyable;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.language.control.DeferredRaiseException;
@@ -69,8 +68,7 @@ public final class RubyRegexp extends ImmutableRubyObjectNotCopyable implements 
     }
 
     public final Regex regex;
-    public final Rope source;
-    public final TruffleString sourceTString;
+    public final TruffleString source;
     public final RubyEncoding encoding;
     public final RegexpOptions options;
     public final EncodingCache cachedEncodings;
@@ -82,8 +80,7 @@ public final class RubyRegexp extends ImmutableRubyObjectNotCopyable implements 
         // constructing the final regexp.
         this.regex = regex;
         final TStringWithEncoding ropeWithEncoding = (TStringWithEncoding) regex.getUserObject();
-        this.sourceTString = ropeWithEncoding.tstring;
-        this.source = ropeWithEncoding.toRope();
+        this.source = ropeWithEncoding.tstring;
         this.encoding = ropeWithEncoding.getEncoding();
         this.options = options;
         this.cachedEncodings = new EncodingCache();
@@ -116,7 +113,11 @@ public final class RubyRegexp extends ImmutableRubyObjectNotCopyable implements 
 
     @Override
     public int compareTo(RubyRegexp o) {
-        final int sourceCompare = source.compareTo(o.source);
+        // Compare as binary as CRuby compares bytes regardless of the encodings
+        var a = source.forceEncodingUncached(encoding.tencoding, Encodings.BINARY.tencoding);
+        var b = o.source.forceEncodingUncached(encoding.tencoding, Encodings.BINARY.tencoding);
+
+        final int sourceCompare = a.compareBytesUncached(b, Encodings.BINARY.tencoding);
         if (sourceCompare != 0) {
             return sourceCompare;
         } else {

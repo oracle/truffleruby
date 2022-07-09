@@ -145,7 +145,7 @@ public final class TRegexCache {
         try {
             ropeBuilder = ClassicRegexp
                     .preprocess(
-                            new TStringWithEncoding(regexp.sourceTString, regexp.encoding),
+                            new TStringWithEncoding(regexp.source, regexp.encoding),
                             enc,
                             fixedEnc,
                             RegexpSupport.ErrorMode.RAISE);

@@ -50,7 +50,7 @@ public abstract class RegexpNodes {
         @Specialization
         protected int hash(RubyRegexp regexp) {
             int options = regexp.regex.getOptions() & ~32 /* option n, NO_ENCODING in common/regexp.rb */;
-            return options ^ regexp.sourceTString.hashCode();
+            return options ^ regexp.source.hashCode();
         }
     }
 
@@ -100,7 +100,7 @@ public abstract class RegexpNodes {
     public abstract static class SourceNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected RubyString source(RubyRegexp regexp) {
-            return createString(regexp.sourceTString, regexp.encoding);
+            return createString(regexp.source, regexp.encoding);
         }
     }
 
@@ -132,7 +132,7 @@ public abstract class RegexpNodes {
             try {
                 classicRegexp = new ClassicRegexp(
                         getContext(),
-                        new TStringWithEncoding(regexp.sourceTString, regexp.encoding),
+                        new TStringWithEncoding(regexp.source, regexp.encoding),
                         RegexpOptions.fromEmbeddedOptions(regexp.regex.getOptions()));
             } catch (DeferredRaiseException dre) {
                 throw dre.getException(getContext());
