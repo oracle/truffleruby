@@ -4140,22 +4140,14 @@ public abstract class StringNodes {
                         "!isSingleByteOptimizable(strings.getTString(string), strings.getEncoding(string), singleByteOptimizableNode)" })
         protected Object stringFindCharacter(Object string, int offset,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @Cached CalculateCharacterLengthNode calculateCharacterLengthNode,
-                @Cached GetByteCodeRangeNode codeRangeNode,
+                @Cached TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode,
                 @Cached SingleByteOptimizableNode singleByteOptimizableNode,
-                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Cached TruffleString.SubstringByteIndexNode substringNode) {
             // Taken from Rubinius's String::find_character.
             var tstring = strings.getTString(string);
-            var encoding = strings.getEncoding(string);
-            var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
+            var tencoding = strings.getTEncoding(string);
 
-            final Encoding enc = encoding.jcoding;
-            var cr = codeRangeNode.execute(tstring, encoding.tencoding);
-
-            var bytes = Bytes.fromRangeClamped(byteArray, offset, enc.maxLength());
-            final int clen = calculateCharacterLengthNode.characterLength(enc, cr, bytes);
-
+            int clen = byteLengthOfCodePointNode.execute(tstring, offset, tencoding, ErrorHandling.BEST_EFFORT);
             return createSubString(substringNode, strings, string, offset, clen);
         }
 
