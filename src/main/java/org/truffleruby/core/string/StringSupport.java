@@ -240,21 +240,15 @@ public final class StringSupport {
     @CompilationFinal(dimensions = 1) private static final byte[] NON_ASCII_MASK = { 0b0111_1111 };
 
     // MRI: search_nonascii
+    /** NOTE: this returns a logical offset, not the offset in the byteArray. */
     public static int searchNonAscii(InternalByteArray byteArray, int start) {
-        int offset = byteArray.getOffset() + start;
-        return com.oracle.truffle.api.ArrayUtils.indexOfWithOrMask(byteArray.getArray(), offset,
-                byteArray.getEnd() - offset, NON_ASCII_NEEDLE, NON_ASCII_MASK) - byteArray.getOffset();
+        final int offset = byteArray.getOffset();
+        return searchNonAscii(byteArray.getArray(), offset + start, byteArray.getEnd()) - offset;
     }
 
     // MRI: search_nonascii
     public static int searchNonAscii(byte[] bytes, int p, int end) {
-        while (p < end) {
-            if (!Encoding.isAscii(bytes[p])) {
-                return p;
-            }
-            p++;
-        }
-        return -1;
+        return com.oracle.truffle.api.ArrayUtils.indexOfWithOrMask(bytes, p, end - p, NON_ASCII_NEEDLE, NON_ASCII_MASK);
     }
 
     // MRI: rb_enc_strlen
