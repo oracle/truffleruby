@@ -59,6 +59,7 @@ import java.util.function.BiConsumer;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.api.strings.TruffleString.ErrorHandling;
 import org.jcodings.Encoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -3767,7 +3768,7 @@ public class RubyLexer implements MagicCommentHandler {
         if (ropeEncoding.isAsciiCompatible() && isASCII(firstByte)) {
             return StringSupport.isAsciiUppercase((byte) firstByte);
         } else {
-            int firstCharacter = rope.codePointAtByteIndexUncached(0, tencoding);
+            int firstCharacter = rope.codePointAtByteIndexUncached(0, tencoding, ErrorHandling.BEST_EFFORT);
             return ropeEncoding.isUpper(firstCharacter);
         }
     }
