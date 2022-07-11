@@ -373,13 +373,12 @@ public abstract class TimeNodes {
     @Primitive(name = "time_strftime")
     public abstract static class TimeStrftimePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
         @Child private ErrnoErrorNode errnoErrorNode = ErrnoErrorNode.create();
 
         @Specialization(
                 guards = "equalNode.execute(libFormat, format, cachedFormat, cachedEncoding)",
                 limit = "getLanguage().options.TIME_FORMAT_CACHE")
-        protected RubyString timeStrftime(RubyTime time, Object format,
+        protected RubyString timeStrftimeCached(RubyTime time, Object format,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
                 @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
@@ -389,24 +388,26 @@ public abstract class TimeNodes {
                 @Cached ConditionProfile yearIsFastProfile,
                 @Cached TruffleString.ConcatNode concatNode,
                 @Cached TruffleString.FromLongNode fromLongNode,
-                @Cached TruffleString.CodePointLengthNode codePointLengthNode) {
+                @Cached TruffleString.CodePointLengthNode codePointLengthNode,
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             if (canUseFast && yearIsFastProfile.profile(yearIsFast(time))) {
                 var tstring = RubyDateFormatter.formatToRopeFast(pattern, time.dateTime, concatNode, fromLongNode,
                         codePointLengthNode);
                 return createString(tstring, Encodings.UTF_8);
             } else {
                 final TStringBuilder tstringBuilder = formatTime(time, pattern);
-                return makeStringNode.fromBuilderUnsafe(tstringBuilder, cachedEncoding);
+                return createString(tstringBuilder.toTStringUnsafe(fromByteArrayNode), cachedEncoding);
             }
         }
 
         @TruffleBoundary
-        @Specialization(guards = "libFormat.isRubyString(format)")
+        @Specialization(guards = "libFormat.isRubyString(format)", replaces = "timeStrftimeCached")
         protected RubyString timeStrftime(RubyTime time, Object format,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
                 @Cached TruffleString.ConcatNode concatNode,
                 @Cached TruffleString.FromLongNode fromLongNode,
-                @Cached TruffleString.CodePointLengthNode codePointLengthNode) {
+                @Cached TruffleString.CodePointLengthNode codePointLengthNode,
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             final RubyEncoding rubyEncoding = libFormat.getEncoding(format);
             final Token[] pattern = compilePattern(libFormat.getTString(format), rubyEncoding);
             if (formatCanBeFast(pattern) && yearIsFast(time)) {
@@ -415,7 +416,7 @@ public abstract class TimeNodes {
                 return createString(tstring, Encodings.UTF_8);
             } else {
                 final TStringBuilder tstringBuilder = formatTime(time, pattern);
-                return makeStringNode.fromBuilderUnsafe(tstringBuilder, rubyEncoding);
+                return createString(tstringBuilder.toTStringUnsafe(fromByteArrayNode), rubyEncoding);
             }
         }
 

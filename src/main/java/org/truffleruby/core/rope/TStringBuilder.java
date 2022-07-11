@@ -84,6 +84,12 @@ public class TStringBuilder extends ByteArrayBuilder {
         return TStringUtils.fromByteArray(getBytes(), encoding);
     }
 
+    /** All callers of this method must guarantee that the builder's byte array cannot change after this call, otherwise
+     * the TruffleString built from the builder will end up in an inconsistent state. */
+    public TruffleString toTStringUnsafe(TruffleString.FromByteArrayNode fromByteArrayNode) {
+        return fromByteArrayNode.execute(getUnsafeBytes(), 0, getLength(), encoding.tencoding, false);
+    }
+
     public TStringWithEncoding toTStringWithEnc() {
         return new TStringWithEncoding(TStringUtils.fromByteArray(getBytes(), encoding), encoding);
     }

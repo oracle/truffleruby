@@ -320,7 +320,8 @@ public abstract class EncodingConverterNodes {
         @TruffleBoundary
         @Specialization
         protected Object encodingConverterLastError(RubyEncodingConverter encodingConverter,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached StringNodes.MakeStringNode makeStringNode,
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             final EConv ec = encodingConverter.econv;
             final EConv.LastError lastError = ec.lastError;
 
@@ -337,16 +338,18 @@ public abstract class EncodingConverterNodes {
             store[0] = eConvResultToSymbol(lastError.getResult());
             store[1] = makeStringNode.executeMake(lastError.getSource(), Encodings.BINARY);
             store[2] = makeStringNode.executeMake(lastError.getDestination(), Encodings.BINARY);
-            store[3] = makeStringNode.fromBuilderUnsafe(TStringBuilder.create(
+            var errorTString = TStringBuilder.create(
                     lastError.getErrorBytes(),
                     lastError.getErrorBytesP(),
-                    lastError.getErrorBytesP() + lastError.getErrorBytesLength()), Encodings.BINARY);
+                    lastError.getErrorBytesLength()).toTStringUnsafe(fromByteArrayNode);
+            store[3] = createString(errorTString, Encodings.BINARY);
 
             if (readAgain) {
-                store[4] = makeStringNode.fromBuilderUnsafe(TStringBuilder.create(
+                var readAgainTString = TStringBuilder.create(
                         lastError.getErrorBytes(),
-                        lastError.getErrorBytesLength() + lastError.getErrorBytesP(),
-                        lastError.getReadAgainLength()), Encodings.BINARY);
+                        lastError.getErrorBytesP() + lastError.getErrorBytesLength(),
+                        lastError.getReadAgainLength()).toTStringUnsafe(fromByteArrayNode);
+                store[4] = createString(readAgainTString, Encodings.BINARY);
             }
 
             return createArray(store);
@@ -381,33 +384,33 @@ public abstract class EncodingConverterNodes {
         @TruffleBoundary
         @Specialization
         protected RubyArray encodingConverterLastError(RubyEncodingConverter encodingConverter,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached StringNodes.MakeStringNode makeStringNode,
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             final EConv ec = encodingConverter.econv;
+            final EConv.LastError lastError = ec.lastError;
 
-            final Object[] ret = { getSymbol(ec.lastError.getResult().symbolicName()), nil, nil, nil, nil };
+            final Object[] ret = { getSymbol(lastError.getResult().symbolicName()), nil, nil, nil, nil };
 
-            if (ec.lastError.getSource() != null) {
-                ret[1] = makeStringNode.executeMake(ec.lastError.getSource(), Encodings.BINARY);
+            if (lastError.getSource() != null) {
+                ret[1] = makeStringNode.executeMake(lastError.getSource(), Encodings.BINARY);
             }
 
-            if (ec.lastError.getDestination() != null) {
-                ret[2] = makeStringNode.executeMake(ec.lastError.getDestination(), Encodings.BINARY);
+            if (lastError.getDestination() != null) {
+                ret[2] = makeStringNode.executeMake(lastError.getDestination(), Encodings.BINARY);
             }
 
-            if (ec.lastError.getErrorBytes() != null) {
-                ret[3] = makeStringNode
-                        .fromBuilderUnsafe(
-                                TStringBuilder.create(
-                                        ec.lastError.getErrorBytes(),
-                                        ec.lastError.getErrorBytesP(),
-                                        ec.lastError.getErrorBytesLength()),
-                                Encodings.BINARY);
-                ret[4] = makeStringNode.fromBuilderUnsafe(
-                        TStringBuilder.create(
-                                ec.lastError.getErrorBytes(),
-                                ec.lastError.getErrorBytesP() + ec.lastError.getErrorBytesLength(),
-                                ec.lastError.getReadAgainLength()),
-                        Encodings.BINARY);
+            if (lastError.getErrorBytes() != null) {
+                var errorTString = TStringBuilder.create(
+                        lastError.getErrorBytes(),
+                        lastError.getErrorBytesP(),
+                        lastError.getErrorBytesLength()).toTStringUnsafe(fromByteArrayNode);
+                ret[3] = createString(errorTString, Encodings.BINARY);
+
+                var readAgainTString = TStringBuilder.create(
+                        lastError.getErrorBytes(),
+                        lastError.getErrorBytesP() + lastError.getErrorBytesLength(),
+                        lastError.getReadAgainLength()).toTStringUnsafe(fromByteArrayNode);
+                ret[4] = createString(readAgainTString, Encodings.BINARY);
             }
 
             return createArray(ret);

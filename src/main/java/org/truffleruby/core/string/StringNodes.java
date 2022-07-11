@@ -212,27 +212,6 @@ public abstract class StringNodes {
 
         protected abstract RubyString executeInternal(Object payload, RubyEncoding encoding);
 
-        /** All callers of this factory method must guarantee that the builder's byte array cannot change after this
-         * call, otherwise the rope built from the builder will end up in an inconsistent state. */
-        public RubyString fromBuilderUnsafe(TStringBuilder builder, RubyEncoding encoding) {
-            assert builder.getEncoding() == encoding.jcoding;
-            final byte[] unsafeBytes = builder.getUnsafeBytes();
-            final byte[] ropeBytes;
-
-            // While the caller must guarantee the builder's byte[] cannot change after this call, it's possible
-            // the builder has allocated more space than it needs. Ropes require that the backing byte array
-            // is the exact length required. If the builder doesn't satisfy this constraint, we must make a copy.
-            // Alternatively, we could make a leaf rope and then take a substring of it, but that would complicate
-            // the specializations here.
-            if (unsafeBytes.length == builder.getLength()) {
-                ropeBytes = unsafeBytes;
-            } else {
-                ropeBytes = builder.getBytes();
-            }
-
-            return executeMake(ropeBytes, encoding);
-        }
-
         public static MakeStringNode create() {
             return MakeStringNodeGen.create();
         }
@@ -2550,7 +2529,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isAsciiCompatible(libString.getEncoding(string))")
         protected RubyString undumpAsciiCompatible(Object string,
-                @Cached MakeStringNode makeStringNode,
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
             // Taken from org.jruby.RubyString#undump
             var encoding = libString.getEncoding(string);
@@ -2560,7 +2539,7 @@ public abstract class StringNodes {
                     getContext(),
                     this);
             final RubyEncoding rubyEncoding = outputBytesResult.getRight();
-            return makeStringNode.fromBuilderUnsafe(outputBytesResult.getLeft(), rubyEncoding);
+            return createString(outputBytesResult.getLeft().toTStringUnsafe(fromByteArrayNode), rubyEncoding);
         }
 
         @Specialization(guards = "!isAsciiCompatible(libString.getEncoding(string))")
