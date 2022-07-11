@@ -57,6 +57,7 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 
 import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
 import org.jcodings.specific.USASCIIEncoding;
@@ -1121,26 +1122,26 @@ public class RubyLexer implements MagicCommentHandler {
         return c;
     }
 
-    private static boolean hasShebangLine(byte[] bytes) {
-        return bytes.length > 2 && bytes[0] == '#' && bytes[1] == '!';
+    private static boolean hasShebangLine(InternalByteArray bytes) {
+        return bytes.getLength() > 2 && bytes.get(0) == '#' && bytes.get(1) == '!';
     }
 
-    private static int newLineIndex(byte[] bytes, int start) {
+    private static int newLineIndex(InternalByteArray bytes, int start) {
         // TODO: Try com.oracle.truffle.api.ArrayUtils.indexOf(bytes, start, bytes.length, (byte) '\n');
-        for (int i = start; i < bytes.length; i++) {
-            if (bytes[i] == '\n') {
+        for (int i = start; i < bytes.getLength(); i++) {
+            if (bytes.get(i) == '\n') {
                 return i;
             }
         }
 
-        return bytes.length;
+        return bytes.getLength();
     }
 
     /** Peak in source to see if there is a magic comment. This is used by eval() & friends to know the actual encoding
      * of the source code, and be able to convert to a Java String faithfully. */
     public static void parseMagicComment(TStringWithEncoding source, BiConsumer<String, String> magicCommentHandler) {
-        final byte[] bytes = source.getBytes();
-        final int length = source.byteLength();
+        var bytes = source.getInternalByteArray();
+        final int length = bytes.getLength();
         int start = 0;
 
         if (hasShebangLine(bytes)) {
@@ -1148,11 +1149,11 @@ public class RubyLexer implements MagicCommentHandler {
         }
 
         // Skip leading spaces but don't jump to another line
-        while (start < length && isAsciiSpace(bytes[start]) && bytes[start] != '\n') {
+        while (start < length && isAsciiSpace(bytes.get(start)) && bytes.get(start) != '\n') {
             start++;
         }
 
-        if (start < length && bytes[start] == '#') {
+        if (start < length && bytes.get(start) == '#') {
             start++;
 
             final int magicLineStart = start;
@@ -1329,13 +1330,13 @@ public class RubyLexer implements MagicCommentHandler {
 
     /* MRI: magic_comment_marker Find -*-, as in emacs "file local variable" (special comment at the top of the file) */
     private static int findEmacsStyleMarker(TStringWithEncoding str, int begin, int end) {
-        final byte[] bytes = str.getBytes();
+        var bytes = str.getInternalByteArray();
         int i = begin;
 
         while (i < end) {
-            switch (bytes[i]) {
+            switch (bytes.get(i)) {
                 case '-':
-                    if (i >= 2 && bytes[i - 1] == '*' && bytes[i - 2] == '-') {
+                    if (i >= 2 && bytes.get(i - 1) == '*' && bytes.get(i - 2) == '-') {
                         return i + 1;
                     }
                     i += 2;
@@ -1345,9 +1346,9 @@ public class RubyLexer implements MagicCommentHandler {
                         return -1;
                     }
 
-                    if (bytes[i + 1] != '-') {
+                    if (bytes.get(i + 1) != '-') {
                         i += 4;
-                    } else if (bytes[i - 1] != '-') {
+                    } else if (bytes.get(i - 1) != '-') {
                         i += 2;
                     } else {
                         return i + 2;
