@@ -65,6 +65,7 @@ import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.string.StringHelperNodes;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.support.TypeNodes;
@@ -1717,7 +1718,7 @@ public class CExtNodes {
                 @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
                 @Cached("compileArgTypes(cachedFormat, cachedEncoding, byteArrayNode)") RubyArray cachedTypes,
-                @Cached StringNodes.EqualSameEncodingNode equalNode) {
+                @Cached StringHelperNodes.EqualSameEncodingNode equalNode) {
             return cachedTypes;
         }
 
@@ -1763,7 +1764,7 @@ public class CExtNodes {
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
                 @Cached("cachedFormat.byteLength(cachedEncoding.tencoding)") int cachedFormatLength,
                 @Cached("create(compileFormat(cachedFormat, cachedEncoding, stringReader))") DirectCallNode formatNode,
-                @Cached StringNodes.EqualSameEncodingNode equalNode) {
+                @Cached StringHelperNodes.EqualSameEncodingNode equalNode) {
             final BytesResult result;
             final Object[] arguments = arrayToObjectArrayNode.executeToObjectArray(argArray);
             try {

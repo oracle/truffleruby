@@ -62,7 +62,7 @@ import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RangeNodes.NormalizedStartLengthNode;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringHelperNodes;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.extra.ffi.Pointer;
@@ -1560,7 +1560,7 @@ public abstract class ArrayNodes {
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
                 @Cached("cachedFormat.byteLength(cachedEncoding.tencoding)") int cachedFormatLength,
                 @Cached("create(compileFormat(getJavaString(format)))") DirectCallNode callPackNode,
-                @Cached StringNodes.EqualNode equalNode) {
+                @Cached StringHelperNodes.EqualNode equalNode) {
             final BytesResult result;
             try {
                 result = (BytesResult) callPackNode.call(

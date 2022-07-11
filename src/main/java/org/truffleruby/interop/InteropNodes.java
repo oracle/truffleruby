@@ -36,6 +36,7 @@ import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.string.StringHelperNodes;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
@@ -237,8 +238,8 @@ public abstract class InteropNodes {
                 @Cached("asTruffleStringUncached(source)") TruffleString cachedSource,
                 @Cached("stringsSource.getEncoding(source)") RubyEncoding cachedSourceEnc,
                 @Cached("create(parse(getJavaString(mimeType), getJavaString(source)))") DirectCallNode callNode,
-                @Cached StringNodes.EqualNode mimeTypeEqualNode,
-                @Cached StringNodes.EqualNode sourceEqualNode) {
+                @Cached StringHelperNodes.EqualNode mimeTypeEqualNode,
+                @Cached StringHelperNodes.EqualNode sourceEqualNode) {
             return callNode.call(EMPTY_ARGUMENTS);
         }
 

@@ -146,7 +146,7 @@ public final class RubyString extends RubyDynamicObject {
                 @Cached("string.asTruffleStringUncached()") TruffleString cachedTString,
                 @Cached("string.encoding") RubyEncoding cachedEncoding,
                 @Cached("string.getJavaString()") String javaString,
-                @Cached StringNodes.EqualNode equalNode) {
+                @Cached StringHelperNodes.EqualNode equalNode) {
             return javaString;
         }
 

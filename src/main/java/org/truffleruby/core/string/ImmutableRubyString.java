@@ -161,7 +161,7 @@ public final class ImmutableRubyString extends ImmutableRubyObjectCopyable imple
                 @Cached("string.tstring") TruffleString cachedTString,
                 @Cached("string.encoding") RubyEncoding cachedEncoding,
                 @Cached("string.getJavaString()") String javaString,
-                @Cached StringNodes.EqualNode equalNode) {
+                @Cached StringHelperNodes.EqualNode equalNode) {
             return javaString;
         }
 

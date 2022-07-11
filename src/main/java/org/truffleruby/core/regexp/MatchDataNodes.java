@@ -36,8 +36,8 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.regexp.MatchDataNodesFactory.ValuesNodeFactory;
-import org.truffleruby.core.rope.TStringNodes;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.string.StringHelperNodes.SingleByteOptimizableNode;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -453,7 +453,7 @@ public abstract class MatchDataNodes {
                 @Cached ConditionProfile lazyProfile,
                 @Cached ConditionProfile negativeBeginProfile,
                 @Cached ConditionProfile multiByteCharacterProfile,
-                @Cached TStringNodes.SingleByteOptimizableNode singleByteOptimizableNode,
+                @Cached SingleByteOptimizableNode singleByteOptimizableNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop) {
             final int begin = getStart(matchData, index, lazyProfile, interop);
@@ -538,7 +538,7 @@ public abstract class MatchDataNodes {
                 @Cached ConditionProfile lazyProfile,
                 @Cached ConditionProfile negativeEndProfile,
                 @Cached ConditionProfile multiByteCharacterProfile,
-                @Cached TStringNodes.SingleByteOptimizableNode singleByteOptimizableNode,
+                @Cached SingleByteOptimizableNode singleByteOptimizableNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop) {
             final int end = getEnd(matchData, index, lazyProfile, interop);

@@ -67,7 +67,7 @@ import org.truffleruby.core.module.ModuleNodesFactory.IsSubclassOfOrEqualToNodeF
 import org.truffleruby.core.module.ModuleNodesFactory.SetMethodVisibilityNodeGen;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringHelperNodes;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.string.TStringConstants;
@@ -1026,7 +1026,7 @@ public abstract class ModuleNodes {
                 @Cached("stringsName.getEncoding(name)") RubyEncoding cachedEncoding,
                 @Cached("getJavaString(name)") String cachedString,
                 @Cached("checkName") boolean cachedCheckName,
-                @Cached StringNodes.EqualNode equalNode,
+                @Cached StringHelperNodes.EqualNode equalNode,
                 @Cached("isScoped(cachedString)") boolean scoped) {
             return getConstant(module, cachedString, checkName, lookInObject);
         }

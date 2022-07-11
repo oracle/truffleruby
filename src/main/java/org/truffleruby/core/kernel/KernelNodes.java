@@ -77,6 +77,7 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RangeNodes;
 import org.truffleruby.core.range.RubyIntOrLongRange;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.string.StringHelperNodes;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.support.TypeNodes;
@@ -746,8 +747,8 @@ public abstract class KernelNodes {
                 @Cached("parse(cachedSource, cachedSourceEnc, binding.getFrame(), getJavaString(file), cachedLine)") RootCallTarget callTarget,
                 @Cached("assignsNewUserVariables(getDescriptor(callTarget))") boolean assignsNewUserVariables,
                 @Cached("create(callTarget)") DirectCallNode callNode,
-                @Cached StringNodes.EqualSameEncodingNode codeEqualNode,
-                @Cached StringNodes.EqualNode fileEqualNode) {
+                @Cached StringHelperNodes.EqualSameEncodingNode codeEqualNode,
+                @Cached StringHelperNodes.EqualNode fileEqualNode) {
             Object[] rubyArgs = prepareEvalArgs(callTarget, assignsNewUserVariables, self, binding);
             return callNode.call(rubyArgs);
         }
@@ -889,13 +890,13 @@ public abstract class KernelNodes {
 
         @Specialization
         protected long hashString(RubyString value,
-                @Cached StringNodes.HashStringNode stringHashNode) {
+                @Cached StringHelperNodes.HashStringNode stringHashNode) {
             return stringHashNode.execute(value);
         }
 
         @Specialization
         protected long hashImmutableString(ImmutableRubyString value,
-                @Cached StringNodes.HashStringNode stringHashNode) {
+                @Cached StringHelperNodes.HashStringNode stringHashNode) {
             return stringHashNode.execute(value);
         }
 
@@ -1690,7 +1691,7 @@ public abstract class KernelNodes {
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
                 @Cached("cachedTString.byteLength(cachedEncoding.tencoding)") int cachedFormatLength,
                 @Cached("create(compileFormat(cachedTString, cachedEncoding, arguments, isDebug(frame)))") DirectCallNode callPackNode,
-                @Cached StringNodes.EqualSameEncodingNode equalNode) {
+                @Cached StringHelperNodes.EqualSameEncodingNode equalNode) {
             final BytesResult result;
             try {
                 result = (BytesResult) callPackNode.call(

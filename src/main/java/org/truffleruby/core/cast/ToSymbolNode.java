@@ -15,7 +15,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringHelperNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -68,7 +68,7 @@ public abstract class ToSymbolNode extends RubyBaseNodeWithExecute {
             @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
             @Cached(value = "asTruffleStringUncached(str)") TruffleString cachedTString,
             @Cached(value = "strings.getEncoding(str)") RubyEncoding cachedEncoding,
-            @Cached StringNodes.EqualSameEncodingNode equalNode,
+            @Cached StringHelperNodes.EqualSameEncodingNode equalNode,
             @Cached(value = "getSymbol(cachedTString, cachedEncoding)") RubySymbol rubySymbol) {
         return rubySymbol;
     }

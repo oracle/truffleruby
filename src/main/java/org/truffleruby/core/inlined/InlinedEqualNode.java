@@ -14,7 +14,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.EncodingNodes;
-import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringHelperNodes;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 import com.oracle.truffle.api.dsl.Specialization;
@@ -72,7 +72,7 @@ public abstract class InlinedEqualNode extends BinaryInlinedOperationNode {
             @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libB,
             @Cached LookupMethodOnSelfNode lookupNode,
             @Cached EncodingNodes.NegotiateCompatibleStringEncodingNode negotiateCompatibleStringEncodingNode,
-            @Cached StringNodes.StringEqualInternalNode stringEqualInternalNode) {
+            @Cached StringHelperNodes.StringEqualInternalNode stringEqualInternalNode) {
         var tstringA = libA.getTString(a);
         var encA = libA.getEncoding(a);
         var tstringB = libB.getTString(b);

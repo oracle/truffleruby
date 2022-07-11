@@ -23,7 +23,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringHelperNodes;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
@@ -63,8 +63,8 @@ public abstract class PolyglotNodes {
                 @Cached("asTruffleStringUncached(code)") TruffleString cachedCode,
                 @Cached("codeLib.getEncoding(code)") RubyEncoding cachedCodeEnc,
                 @Cached("create(parse(getJavaString(langId), getJavaString(code)))") DirectCallNode callNode,
-                @Cached StringNodes.EqualNode idEqualNode,
-                @Cached StringNodes.EqualNode codeEqualNode) {
+                @Cached StringHelperNodes.EqualNode idEqualNode,
+                @Cached StringHelperNodes.EqualNode codeEqualNode) {
             return callNode.call(EMPTY_ARGUMENTS);
         }
 
@@ -209,9 +209,9 @@ public abstract class PolyglotNodes {
                 @Cached("asTruffleStringUncached(filename)") TruffleString cachedFilename,
                 @Cached("filenameLib.getEncoding(filename)") RubyEncoding cachedFilenameEnc,
                 @Cached("createSource(getJavaString(langId), getJavaString(code), getJavaString(filename))") Source cachedSource,
-                @Cached StringNodes.EqualNode idEqualNode,
-                @Cached StringNodes.EqualNode codeEqualNode,
-                @Cached StringNodes.EqualNode filenameEqualNode,
+                @Cached StringHelperNodes.EqualNode idEqualNode,
+                @Cached StringHelperNodes.EqualNode codeEqualNode,
+                @Cached StringHelperNodes.EqualNode filenameEqualNode,
                 @Cached ForeignToRubyNode foreignToRubyNode,
                 @Cached BranchProfile errorProfile) {
             return eval(rubyInnerContext, cachedSource, foreignToRubyNode, errorProfile);
