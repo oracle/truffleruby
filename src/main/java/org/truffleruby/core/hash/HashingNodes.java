@@ -12,6 +12,7 @@ package org.truffleruby.core.hash;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.cast.ToRubyIntegerNode;
@@ -57,6 +58,7 @@ public abstract class HashingNodes {
     // MRI: any_hash
     /** Keep consistent with {@link org.truffleruby.core.kernel.KernelNodes.HashNode} */
     @GenerateUncached
+    @ReportPolymorphism
     public abstract static class ToHashByHashCode extends RubyBaseNode {
 
         public static ToHashByHashCode create() {
