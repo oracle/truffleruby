@@ -4191,7 +4191,7 @@ public abstract class StringNodes {
             } else if (isAscii8BitProfile.profile(encoding == Encodings.BINARY)) {
                 tstring = TStringConstants.BINARY_SINGLE_BYTE[code];
             } else {
-                tstring = fromCodePointNode.execute(code, encoding.tencoding, ErrorHandling.RETURN_NEGATIVE);
+                tstring = fromCodePointNode.execute(code, encoding.tencoding, false);
                 assert tstring != null;
             }
 
@@ -4202,7 +4202,7 @@ public abstract class StringNodes {
         protected RubyString stringFromCodepoint(int code, RubyEncoding encoding,
                 @Cached TruffleString.FromCodePointNode fromCodePointNode,
                 @Cached BranchProfile errorProfile) {
-            var tstring = fromCodePointNode.execute(code, encoding.tencoding, ErrorHandling.RETURN_NEGATIVE);
+            var tstring = fromCodePointNode.execute(code, encoding.tencoding, false);
             if (tstring == null) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().rangeError(code, encoding, this));
