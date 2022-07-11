@@ -34,7 +34,6 @@ import org.truffleruby.core.encoding.EncodingNodesFactory.NegotiateCompatibleStr
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.regexp.RubyRegexp;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringGuards;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
@@ -512,8 +511,7 @@ public abstract class EncodingNodes {
                 var entry = iterator.next();
                 final RubyString aliasName = makeStringNode.executeMake(
                         ArrayUtils.extractRange(entry.bytes, entry.p, entry.end),
-                        Encodings.US_ASCII,
-                        CodeRange.CR_7BIT);
+                        Encodings.US_ASCII); // CR_7BIT
                 yieldNode.yield(
                         block,
                         aliasName,

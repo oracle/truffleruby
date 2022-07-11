@@ -24,7 +24,6 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.regexp.MatchDataNodes.ValuesNode;
 import org.truffleruby.core.regexp.RubyMatchData;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
@@ -155,7 +154,7 @@ public abstract class ObjSpaceNodes {
                 if (className.isEmpty()) {
                     return nil;
                 } else {
-                    return makeStringNode.executeMake(className, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                    return makeStringNode.executeMake(className, Encodings.UTF_8);
                 }
             }
         }
@@ -222,7 +221,7 @@ public abstract class ObjSpaceNodes {
                 return nil;
             } else {
                 final String sourcePath = getLanguage().getSourcePath(trace.allocatingSourceSection.getSource());
-                return makeStringNode.executeMake(sourcePath, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                return makeStringNode.executeMake(sourcePath, Encodings.UTF_8);
             }
         }
 

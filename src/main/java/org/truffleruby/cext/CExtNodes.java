@@ -64,7 +64,6 @@ import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringSupport;
@@ -1003,7 +1002,7 @@ public class CExtNodes {
             final SourceSection sourceSection = getTopUserSourceSection("rb_sourcefile");
             final String file = getLanguage().getSourcePath(sourceSection.getSource());
 
-            return makeStringNode.executeMake(file, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(file, Encodings.UTF_8);
         }
 
         @TruffleBoundary
@@ -1814,11 +1813,7 @@ public class CExtNodes {
                 makeStringNode = insert(StringNodes.MakeStringNode.create());
             }
 
-            return makeStringNode
-                    .executeMake(
-                            bytes,
-                            result.getEncoding().getEncodingForLength(formatLength),
-                            result.getStringCodeRange());
+            return makeStringNode.executeMake(bytes, result.getEncoding().getEncodingForLength(formatLength)); // result.getStringCodeRange()
         }
 
         @TruffleBoundary

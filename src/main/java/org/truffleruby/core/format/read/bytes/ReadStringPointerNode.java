@@ -14,7 +14,6 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.format.FormatFrameDescriptor;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.MissingValue;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.extra.ffi.Pointer;
@@ -59,7 +58,7 @@ public abstract class ReadStringPointerNode extends FormatNode {
                 interop,
                 0,
                 limit);
-        return makeStringNode.executeMake(bytes, Encodings.US_ASCII, CodeRange.CR_7BIT);
+        return makeStringNode.executeMake(bytes, Encodings.US_ASCII);
     }
 
     private void checkAssociated(Pointer[] associated, Pointer reading) {

@@ -17,7 +17,6 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.Encodings;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.control.RaiseException;
 
@@ -84,8 +83,7 @@ public abstract class CoverageNodes {
                 results.put(path, createArray(new Object[]{
                         makeStringNode.executeMake(
                                 path,
-                                Encodings.UTF_8,
-                                CodeRange.CR_UNKNOWN),
+                                Encodings.UTF_8),
                         createArray(countsStore)
                 }));
             }

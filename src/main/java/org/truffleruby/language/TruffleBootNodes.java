@@ -27,7 +27,6 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.Encodings;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
@@ -71,7 +70,7 @@ public abstract class TruffleBootNodes {
             if (home == null) {
                 return nil;
             } else {
-                return makeStringNode.executeMake(home, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                return makeStringNode.executeMake(home, Encodings.UTF_8);
             }
         }
 
@@ -206,7 +205,7 @@ public abstract class TruffleBootNodes {
         }
 
         private RubyString utf8(String string) {
-            return makeStringNode.executeMake(string, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(string, Encodings.UTF_8);
         }
 
     }
@@ -225,8 +224,7 @@ public abstract class TruffleBootNodes {
             for (int n = 0; n < array.length; n++) {
                 array[n] = makeStringNode.executeMake(
                         argv[n],
-                        getContext().getEncodingManager().getDefaultExternalEncoding(),
-                        CodeRange.CR_UNKNOWN);
+                        getContext().getEncodingManager().getDefaultExternalEncoding());
             }
 
             return createArray(array);
@@ -246,7 +244,7 @@ public abstract class TruffleBootNodes {
             final Object[] array = new Object[paths.length];
 
             for (int n = 0; n < array.length; n++) {
-                array[n] = makeStringNode.executeMake(paths[n], Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                array[n] = makeStringNode.executeMake(paths[n], Encodings.UTF_8);
             }
 
             return createArray(array);
@@ -278,7 +276,7 @@ public abstract class TruffleBootNodes {
             }
 
             return makeStringNode
-                    .executeMake(getLanguage().getSourcePath(source), Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                    .executeMake(getLanguage().getSourcePath(source), Encodings.UTF_8);
         }
 
     }
@@ -340,7 +338,7 @@ public abstract class TruffleBootNodes {
             } else if (value instanceof Enum) {
                 return getSymbol(value.toString());
             } else if (value instanceof String) {
-                return makeStringNode.executeMake((String) value, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                return makeStringNode.executeMake((String) value, Encodings.UTF_8);
             } else if (value instanceof String[]) {
                 return toRubyArray((String[]) value);
             } else {
@@ -352,7 +350,7 @@ public abstract class TruffleBootNodes {
         private RubyArray toRubyArray(String[] strings) {
             final Object[] objects = new Object[strings.length];
             for (int n = 0; n < strings.length; n++) {
-                objects[n] = makeStringNode.executeMake(strings[n], Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                objects[n] = makeStringNode.executeMake(strings[n], Encodings.UTF_8);
             }
             return createArray(objects);
         }
@@ -392,7 +390,7 @@ public abstract class TruffleBootNodes {
             final Toolchain toolchain = getToolchain(getContext(), this);
             final TruffleFile path = toolchain.getToolPath(name);
             if (path != null) {
-                return makeStringNode.executeMake(path.getPath(), Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                return makeStringNode.executeMake(path.getPath(), Encodings.UTF_8);
             } else {
                 throw new RaiseException(
                         getContext(),
@@ -417,7 +415,7 @@ public abstract class TruffleBootNodes {
                         .stream()
                         .map(file -> file.getPath())
                         .collect(Collectors.joining(File.pathSeparator));
-                return makeStringNode.executeMake(path, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                return makeStringNode.executeMake(path, Encodings.UTF_8);
             } else {
                 throw new RaiseException(
                         getContext(),
@@ -463,7 +461,7 @@ public abstract class TruffleBootNodes {
             }
 
             String basicVersion = StringOperations.decodeAscii(bytes).strip();
-            return makeStringNode.executeMake(basicVersion, Encodings.UTF_8, CodeRange.CR_7BIT);
+            return makeStringNode.executeMake(basicVersion, Encodings.UTF_8);
         }
 
     }

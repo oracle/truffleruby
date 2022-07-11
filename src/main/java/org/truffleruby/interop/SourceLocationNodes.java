@@ -16,7 +16,6 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.encoding.Encodings;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 
@@ -117,7 +116,7 @@ public class SourceLocationNodes {
         protected RubyString language(RubySourceLocation location,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             return makeStringNode.executeMake(location.sourceSection.getSource().getLanguage(),
-                    Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                    Encodings.UTF_8);
         }
     }
 

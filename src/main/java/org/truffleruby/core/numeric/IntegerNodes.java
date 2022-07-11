@@ -35,7 +35,6 @@ import org.truffleruby.core.numeric.IntegerNodesFactory.MulNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodesFactory.PowNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodesFactory.RightShiftNodeFactory;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.NoImplicitCastsToLong;
@@ -1509,8 +1508,7 @@ public abstract class IntegerNodes {
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             return makeStringNode.executeMake(
                     BigIntegerOps.toString(value.value),
-                    Encodings.US_ASCII,
-                    CodeRange.CR_7BIT);
+                    Encodings.US_ASCII); // CR_7BIT
         }
 
         @Specialization(guards = "base == 10")
@@ -1527,7 +1525,7 @@ public abstract class IntegerNodes {
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorInvalidRadix(base, this));
             }
 
-            return makeStringNode.executeMake(Long.toString(n, base), Encodings.US_ASCII, CodeRange.CR_7BIT);
+            return makeStringNode.executeMake(Long.toString(n, base), Encodings.US_ASCII); // CR_7BIT
         }
 
         @TruffleBoundary
@@ -1540,8 +1538,7 @@ public abstract class IntegerNodes {
 
             return makeStringNode.executeMake(
                     BigIntegerOps.toString(value.value, base),
-                    Encodings.US_ASCII,
-                    CodeRange.CR_7BIT);
+                    Encodings.US_ASCII); // CR_7BIT
         }
 
     }

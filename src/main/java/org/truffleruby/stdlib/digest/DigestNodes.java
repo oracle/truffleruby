@@ -20,7 +20,6 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.encoding.Encodings;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.RubyBaseNode;
@@ -144,7 +143,7 @@ public abstract class DigestNodes {
         protected RubyString digest(RubyDigest digestObject) {
             final MessageDigest digest = digestObject.digest;
 
-            return makeStringNode.executeMake(cloneAndDigest(digest), Encodings.BINARY, CodeRange.CR_VALID);
+            return makeStringNode.executeMake(cloneAndDigest(digest), Encodings.BINARY);
         }
 
         // TODO CS 10-Apr-17 the Ruby code for digest also clones in some cases! Are we cloning redundantly?
@@ -196,9 +195,9 @@ public abstract class DigestNodes {
             var rope = strings.getTString(message);
             var byteArray = rope.getInternalByteArrayUncached(strings.getTEncoding(message));
             final byte[] bubblebabbleBytes = bubblebabble(byteArray.getArray(), byteArray.getOffset(),
-                    byteArray.getLength()).getBytes();
+                    byteArray.getLength()).getBytes(); // CR_7BIT
 
-            return makeStringNode.executeMake(bubblebabbleBytes, Encodings.UTF_8, CodeRange.CR_7BIT);
+            return makeStringNode.executeMake(bubblebabbleBytes, Encodings.UTF_8);
         }
 
         /** Ported from OpenSSH

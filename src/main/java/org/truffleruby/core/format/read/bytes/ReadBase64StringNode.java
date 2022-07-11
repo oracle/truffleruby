@@ -53,7 +53,6 @@ import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.InvalidFormatException;
 import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.format.write.bytes.EncodeUM;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -80,7 +79,7 @@ public abstract class ReadBase64StringNode extends FormatNode {
 
         setSourcePosition(frame, encode.position());
 
-        return makeStringNode.executeMake(result, Encodings.BINARY, CodeRange.CR_UNKNOWN);
+        return makeStringNode.executeMake(result, Encodings.BINARY);
     }
 
     @TruffleBoundary

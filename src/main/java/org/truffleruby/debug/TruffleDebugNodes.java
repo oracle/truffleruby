@@ -58,7 +58,6 @@ import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -228,7 +227,7 @@ public abstract class TruffleDebugNodes {
         @Specialization
         protected RubyString javaClassOf(Object value) {
             return makeStringNode
-                    .executeMake(value.getClass().getSimpleName(), Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                    .executeMake(value.getClass().getSimpleName(), Encodings.UTF_8);
         }
 
     }
@@ -263,7 +262,7 @@ public abstract class TruffleDebugNodes {
             var rootParseNode = TranslatorDriver
                     .parseToJRubyAST(getContext(), rubySource, staticScope, parserConfiguration, rubyWarnings);
 
-            return makeStringNode.executeMake(rootParseNode.toString(), Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(rootParseNode.toString(), Encodings.UTF_8);
         }
     }
 
@@ -327,7 +326,7 @@ public abstract class TruffleDebugNodes {
         @Specialization
         protected RubyString shape(RubyDynamicObject object) {
             return makeStringNode
-                    .executeMake(object.getShape().toString(), Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                    .executeMake(object.getShape().toString(), Encodings.UTF_8);
         }
 
     }
@@ -341,7 +340,7 @@ public abstract class TruffleDebugNodes {
         @Specialization
         protected RubyString arrayStorage(RubyArray array) {
             String storage = ArrayStoreLibrary.getFactory().getUncached().toString(array.getStore());
-            return makeStringNode.executeMake(storage, Encodings.US_ASCII, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(storage, Encodings.US_ASCII);
         }
 
     }
@@ -369,7 +368,7 @@ public abstract class TruffleDebugNodes {
         protected RubyString hashStorage(RubyHash hash) {
             Object store = hash.store;
             String storage = store == null ? "null" : store.getClass().toString();
-            return makeStringNode.executeMake(storage, Encodings.US_ASCII, CodeRange.CR_7BIT);
+            return makeStringNode.executeMake(storage, Encodings.US_ASCII);
         }
 
     }
@@ -1199,7 +1198,7 @@ public abstract class TruffleDebugNodes {
         protected RubyString getDeclarationContextToString(VirtualFrame frame) {
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             return makeStringNode
-                    .executeMake(declarationContext.toString(), Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                    .executeMake(declarationContext.toString(), Encodings.UTF_8);
         }
     }
 
@@ -1279,7 +1278,7 @@ public abstract class TruffleDebugNodes {
 
         protected RubyString parseName(InternalMethod method) {
             String parseName = method.getSharedMethodInfo().getParseName();
-            return makeStringNode.executeMake(parseName, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(parseName, Encodings.UTF_8);
         }
 
     }

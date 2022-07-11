@@ -30,7 +30,6 @@ import org.truffleruby.core.kernel.TruffleKernelNodesFactory.GetSpecialVariableS
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -337,7 +336,7 @@ public abstract class TruffleKernelNodes {
             if (originalRequire == null) {
                 return Nil.INSTANCE;
             } else {
-                return makeStringNode.executeMake(originalRequire, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                return makeStringNode.executeMake(originalRequire, Encodings.UTF_8);
             }
         }
     }

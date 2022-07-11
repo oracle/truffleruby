@@ -48,7 +48,6 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.language.Visibility;
@@ -225,7 +224,7 @@ public abstract class PRNGRandomizerNodes {
                 }
             }
 
-            return makeStringNode.executeMake(bytes, Encodings.BINARY, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(bytes, Encodings.BINARY);
         }
     }
 

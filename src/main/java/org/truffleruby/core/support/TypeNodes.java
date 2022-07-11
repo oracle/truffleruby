@@ -32,7 +32,6 @@ import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodes.ToSNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.RubyModule;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
@@ -343,7 +342,7 @@ public abstract class TypeNodes {
         @Specialization
         protected RubyString moduleName(RubyModule module) {
             final String name = module.fields.getName();
-            return makeStringNode.executeMake(name, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(name, Encodings.UTF_8);
         }
 
     }

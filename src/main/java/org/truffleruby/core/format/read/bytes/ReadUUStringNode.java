@@ -51,7 +51,6 @@ import java.util.Arrays;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.read.SourceNode;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -72,7 +71,7 @@ public abstract class ReadUUStringNode extends FormatNode {
 
         setSourcePosition(frame, encode.position());
 
-        return makeStringNode.executeMake(bytes, Encodings.BINARY, CodeRange.CR_UNKNOWN);
+        return makeStringNode.executeMake(bytes, Encodings.BINARY);
     }
 
     @TruffleBoundary

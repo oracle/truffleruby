@@ -13,7 +13,6 @@ import com.oracle.truffle.api.nodes.DenyReplace;
 import com.oracle.truffle.api.nodes.NodeCost;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.encoding.Encodings;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -64,7 +63,7 @@ public class WarnNode extends RubyBaseNode {
         final String warningMessage = buildWarningMessage(context, sourceSection, message);
 
         final RubyString warningString = makeStringNode
-                .executeMake(warningMessage, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                .executeMake(warningMessage, Encodings.UTF_8);
 
         callWarnNode.call(context.getCoreLibrary().kernelModule, "warn", warningString);
     }

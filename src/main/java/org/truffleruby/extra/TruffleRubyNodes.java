@@ -24,7 +24,6 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.mutex.MutexOperations;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -49,7 +48,7 @@ public abstract class TruffleRubyNodes {
             if (value == null) {
                 return nil;
             } else {
-                return makeStringNode.executeMake(value, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                return makeStringNode.executeMake(value, Encodings.UTF_8);
             }
         }
 

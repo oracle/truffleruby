@@ -30,7 +30,6 @@ import org.truffleruby.core.proc.ProcCallTargets;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -224,8 +223,7 @@ public abstract class MethodNodes {
             } else {
                 RubyString file = makeStringNode.executeMake(
                         getLanguage().getSourcePath(sourceSection.getSource()),
-                        Encodings.UTF_8,
-                        CodeRange.CR_UNKNOWN);
+                        Encodings.UTF_8);
                 return createArray(new Object[]{ file, sourceSection.getStartLine() });
             }
         }

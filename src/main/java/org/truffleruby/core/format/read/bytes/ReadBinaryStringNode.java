@@ -14,7 +14,6 @@ import java.util.Arrays;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.read.SourceNode;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 
@@ -109,8 +108,7 @@ public abstract class ReadBinaryStringNode extends FormatNode {
 
         return makeStringNode.executeMake(
                 Arrays.copyOfRange(source, start, start + usedLength),
-                Encodings.BINARY,
-                CodeRange.CR_UNKNOWN);
+                Encodings.BINARY);
     }
 
     private int indexOfFirstNull(byte[] bytes, int start, int length) {

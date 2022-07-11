@@ -78,7 +78,6 @@ import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
@@ -577,8 +576,7 @@ public abstract class ThreadNodes {
                     return false;
                 }
             }
-            return makeStringNode
-                    .executeMake(StringUtils.toLowerCase(status.name()), Encodings.US_ASCII, CodeRange.CR_7BIT);
+            return makeStringNode.executeMake(StringUtils.toLowerCase(status.name()), Encodings.US_ASCII); // CR_7BIT
         }
 
     }
@@ -879,8 +877,7 @@ public abstract class ThreadNodes {
 
         @Specialization
         protected RubyString sourceLocation(RubyThread thread) {
-            return makeStringNode
-                    .executeMake(thread.sourceLocation, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(thread.sourceLocation, Encodings.UTF_8);
         }
     }
 

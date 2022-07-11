@@ -65,8 +65,6 @@ package org.truffleruby.core.string;
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.ASCII;
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.BROKEN;
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.VALID;
-import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
-import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import static org.truffleruby.core.string.TStringConstants.EMPTY_BINARY;
 import static org.truffleruby.core.string.StringSupport.MBCLEN_CHARFOUND_LEN;
 import static org.truffleruby.core.string.StringSupport.MBCLEN_CHARFOUND_P;
@@ -204,24 +202,19 @@ public abstract class StringNodes {
     @GenerateUncached
     public abstract static class MakeStringNode extends RubyBaseNode {
 
-        public final RubyString executeMake(String javaString, RubyEncoding encoding, Object codeRange) {
-            return executeInternal(javaString, encoding, codeRange);
+        public final RubyString executeMake(String javaString, RubyEncoding encoding) {
+            return executeInternal(javaString, encoding);
         }
 
-        public final RubyString executeMake(byte[] bytes, RubyEncoding encoding, Object codeRange) {
-            return executeInternal(bytes, encoding, codeRange);
+        public final RubyString executeMake(byte[] bytes, RubyEncoding encoding) {
+            return executeInternal(bytes, encoding);
         }
 
-        protected abstract RubyString executeInternal(Object payload, RubyEncoding encoding, Object codeRange);
-
-        public RubyString fromBuilder(TStringBuilder builder, RubyEncoding encoding, CodeRange codeRange) {
-            assert builder.getEncoding() == encoding.jcoding;
-            return executeMake(builder.getBytes(), encoding, codeRange);
-        }
+        protected abstract RubyString executeInternal(Object payload, RubyEncoding encoding);
 
         /** All callers of this factory method must guarantee that the builder's byte array cannot change after this
          * call, otherwise the rope built from the builder will end up in an inconsistent state. */
-        public RubyString fromBuilderUnsafe(TStringBuilder builder, RubyEncoding encoding, CodeRange codeRange) {
+        public RubyString fromBuilderUnsafe(TStringBuilder builder, RubyEncoding encoding) {
             assert builder.getEncoding() == encoding.jcoding;
             final byte[] unsafeBytes = builder.getUnsafeBytes();
             final byte[] ropeBytes;
@@ -237,7 +230,7 @@ public abstract class StringNodes {
                 ropeBytes = builder.getBytes();
             }
 
-            return executeMake(ropeBytes, encoding, codeRange);
+            return executeMake(ropeBytes, encoding);
         }
 
         public static MakeStringNode create() {
@@ -249,48 +242,16 @@ public abstract class StringNodes {
         }
 
         @Specialization
-        protected RubyString makeStringFromBytesREMOVE_ME(byte[] bytes, RubyEncoding encoding, CodeRange codeRange,
+        protected RubyString makeStringFromBytes(byte[] bytes, RubyEncoding encoding,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             return createString(fromByteArrayNode, bytes, encoding);
         }
 
         @Specialization
-        protected RubyString makeStringFromBytes(byte[] bytes, RubyEncoding encoding, TruffleString.CodeRange codeRange,
-                @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
-            return createString(fromByteArrayNode, bytes, encoding);
+        protected RubyString makeStringFromString(String string, RubyEncoding encoding,
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
+            return createString(fromJavaStringNode, string, encoding);
         }
-
-        @Specialization(guards = "is7Bit(codeRange)")
-        protected RubyString makeAsciiStringFromStringREMOVE_ME(
-                String string, RubyEncoding encoding, CodeRange codeRange) {
-            final byte[] bytes = StringOperations.encodeAsciiBytes(string);
-
-            return executeMake(bytes, encoding, codeRange);
-        }
-
-        @Specialization(guards = "is7Bit(codeRange)")
-        protected RubyString makeAsciiStringFromString(
-                String string, RubyEncoding encoding, TruffleString.CodeRange codeRange) {
-            final byte[] bytes = StringOperations.encodeAsciiBytes(string);
-
-            return executeMake(bytes, encoding, codeRange);
-        }
-
-        @Specialization(guards = "!is7Bit(codeRange)")
-        protected RubyString makeStringFromString(String string, RubyEncoding encoding, CodeRange codeRange) {
-            final byte[] bytes = StringOperations.encodeBytes(string, encoding.jcoding);
-
-            return executeMake(bytes, encoding, codeRange);
-        }
-
-        protected static boolean is7Bit(CodeRange codeRange) {
-            return codeRange == CR_7BIT;
-        }
-
-        protected static boolean is7Bit(TruffleString.CodeRange codeRange) {
-            return codeRange == ASCII;
-        }
-
     }
 
     @GenerateUncached
@@ -2599,7 +2560,7 @@ public abstract class StringNodes {
                     getContext(),
                     this);
             final RubyEncoding rubyEncoding = outputBytesResult.getRight();
-            return makeStringNode.fromBuilder(outputBytesResult.getLeft(), rubyEncoding, CR_UNKNOWN);
+            return makeStringNode.fromBuilderUnsafe(outputBytesResult.getLeft(), rubyEncoding);
         }
 
         @Specialization(guards = "!isAsciiCompatible(libString.getEncoding(string))")
@@ -4834,7 +4795,7 @@ public abstract class StringNodes {
             final byte[] bytes = byteArray.bytes;
             final byte[] array = ArrayUtils.extractRange(bytes, start, start + count);
 
-            return makeStringNode.executeMake(array, rubyEncoding, CR_UNKNOWN);
+            return makeStringNode.executeMake(array, rubyEncoding);
         }
 
     }

@@ -26,7 +26,6 @@ import org.truffleruby.core.fiber.FiberNodesFactory.FiberTransferNodeFactory;
 import org.truffleruby.core.fiber.RubyFiber.FiberStatus;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.thread.RubyThread;
@@ -348,7 +347,7 @@ public abstract class FiberNodes {
         @Specialization
         protected RubyString sourceLocation(RubyFiber fiber,
                 @Cached MakeStringNode makeStringNode) {
-            return makeStringNode.executeMake(fiber.sourceLocation, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(fiber.sourceLocation, Encodings.UTF_8);
         }
     }
 
@@ -357,7 +356,7 @@ public abstract class FiberNodes {
         @Specialization
         protected RubyString status(RubyFiber fiber,
                 @Cached MakeStringNode makeStringNode) {
-            return makeStringNode.executeMake(fiber.status.label, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(fiber.status.label, Encodings.UTF_8);
         }
     }
 

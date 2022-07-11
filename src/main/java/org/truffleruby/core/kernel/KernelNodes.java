@@ -76,7 +76,6 @@ import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RangeNodes;
 import org.truffleruby.core.range.RubyIntOrLongRange;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
@@ -274,7 +273,7 @@ public abstract class KernelNodes {
                 return nil;
             }
             return makeStringNode
-                    .executeMake(expandedPath, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                    .executeMake(expandedPath, Encodings.UTF_8);
         }
 
     }
@@ -316,8 +315,7 @@ public abstract class KernelNodes {
             return makeStringNode
                     .executeMake(
                             Paths.get(featurePath).normalize().toString(),
-                            Encodings.UTF_8,
-                            CodeRange.CR_UNKNOWN);
+                            Encodings.UTF_8);
         }
 
     }
@@ -401,7 +399,7 @@ public abstract class KernelNodes {
             final String expandedPath = getContext()
                     .getFeatureLoader()
                     .canonicalize(RubyGuards.getJavaString(string));
-            return makeStringNode.executeMake(expandedPath, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(expandedPath, Encodings.UTF_8);
         }
 
     }
@@ -1739,10 +1737,7 @@ public abstract class KernelNodes {
                 makeStringNode = insert(MakeStringNode.create());
             }
 
-            return makeStringNode.executeMake(
-                    bytes,
-                    result.getEncoding().getEncodingForLength(formatLength),
-                    result.getStringCodeRange());
+            return makeStringNode.executeMake(bytes, result.getEncoding().getEncodingForLength(formatLength)); // result.getStringCodeRange()
         }
 
         @TruffleBoundary
@@ -1902,8 +1897,7 @@ public abstract class KernelNodes {
 
             return makeStringNode.executeMake(
                     javaString,
-                    Encodings.UTF_8,
-                    CodeRange.CR_UNKNOWN);
+                    Encodings.UTF_8);
         }
 
         @TruffleBoundary

@@ -50,7 +50,6 @@ import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.interop.ToJavaStringNode;
@@ -107,8 +106,7 @@ public abstract class ReadlineHistoryNodes {
             final String lastLine = consoleHolder.getHistory().removeLast().line();
             return makeStringNode.executeMake(
                     lastLine,
-                    getLocaleEncoding(),
-                    CodeRange.CR_UNKNOWN);
+                    getLocaleEncoding());
         }
 
     }
@@ -130,8 +128,7 @@ public abstract class ReadlineHistoryNodes {
             final String lastLine = consoleHolder.getHistory().removeFirst().line();
             return makeStringNode.executeMake(
                     lastLine,
-                    getLocaleEncoding(),
-                    CodeRange.CR_UNKNOWN);
+                    getLocaleEncoding());
         }
 
     }
@@ -176,8 +173,7 @@ public abstract class ReadlineHistoryNodes {
                 final RubyString line = makeStringNode
                         .executeMake(
                                 historyEntryToString(e),
-                                getLocaleEncoding(),
-                                CodeRange.CR_UNKNOWN);
+                                getLocaleEncoding());
                 callBlock(block, line);
             }
 
@@ -207,8 +203,7 @@ public abstract class ReadlineHistoryNodes {
                 final String line = consoleHolder.getHistory().get(normalizedIndex);
                 return makeStringNode.executeMake(
                         line,
-                        getLocaleEncoding(),
-                        CodeRange.CR_UNKNOWN);
+                        getLocaleEncoding());
             } catch (IndexOutOfBoundsException e) {
                 throw new RaiseException(getContext(), coreExceptions().indexErrorInvalidIndex(this));
             }
@@ -262,8 +257,7 @@ public abstract class ReadlineHistoryNodes {
                 final String line = consoleHolder.getHistory().remove(normalizedIndex).line();
                 return makeStringNode.executeMake(
                         line,
-                        getLocaleEncoding(),
-                        CodeRange.CR_UNKNOWN);
+                        getLocaleEncoding());
             } catch (IndexOutOfBoundsException e) {
                 throw new RaiseException(getContext(), coreExceptions().indexErrorInvalidIndex(this));
             }

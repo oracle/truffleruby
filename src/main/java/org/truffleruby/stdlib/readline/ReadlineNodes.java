@@ -36,7 +36,6 @@ import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
@@ -68,7 +67,7 @@ public abstract class ReadlineNodes {
         @Specialization
         protected RubyString basicWordBreakCharacters() {
             final String delimiters = getContext().getConsoleHolder().getParser().getDelimiters();
-            return makeStringNode.executeMake(delimiters, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(delimiters, Encodings.UTF_8);
         }
 
     }
@@ -171,8 +170,7 @@ public abstract class ReadlineNodes {
 
                 return makeStringNode.executeMake(
                         value,
-                        getContext().getEncodingManager().getDefaultExternalEncoding(),
-                        CodeRange.CR_UNKNOWN);
+                        getContext().getEncodingManager().getDefaultExternalEncoding());
             }
         }
 
@@ -233,8 +231,7 @@ public abstract class ReadlineNodes {
             return makeStringNode
                     .executeMake(
                             buffer.toString(),
-                            getLocaleEncoding(),
-                            CodeRange.CR_UNKNOWN);
+                            getLocaleEncoding());
         }
 
     }

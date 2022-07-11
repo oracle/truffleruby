@@ -35,7 +35,6 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
@@ -118,7 +117,7 @@ public abstract class InteropNodes {
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             Object[] store = new Object[METHODS.length];
             for (int i = 0; i < METHODS.length; i++) {
-                store[i] = makeStringNode.executeMake(METHODS[i], Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                store[i] = makeStringNode.executeMake(METHODS[i], Encodings.UTF_8);
             }
             return createArray(store);
         }
@@ -832,7 +831,7 @@ public abstract class InteropNodes {
         @TruffleBoundary
         @Specialization
         protected RubyString toString(Object value) {
-            return makeStringNode.executeMake(String.valueOf(value), Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(String.valueOf(value), Encodings.UTF_8);
         }
 
     }

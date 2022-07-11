@@ -20,7 +20,6 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 import com.oracle.truffle.api.strings.TruffleString;
-import com.oracle.truffle.api.strings.TruffleString.CodeRange;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -910,19 +909,19 @@ public abstract class FloatNodes {
         @Specialization(guards = "hasNoExp(value)")
         protected RubyString toSNoExp(double value) {
             return makeStringNode.executeMake(makeStringNoExp(value, getLanguage().getCurrentThread()),
-                    Encodings.US_ASCII, CodeRange.ASCII);
+                    Encodings.US_ASCII); // CR_7BIT
         }
 
         @Specialization(guards = "hasLargeExp(value)")
         protected RubyString toSLargeExp(double value) {
             return makeStringNode.executeMake(makeStringLargeExp(value, getLanguage().getCurrentThread()),
-                    Encodings.US_ASCII, CodeRange.ASCII);
+                    Encodings.US_ASCII); // CR_7BIT
         }
 
         @Specialization(guards = "hasSmallExp(value)")
         protected RubyString toSSmallExp(double value) {
             return makeStringNode.executeMake(makeStringSmallExp(value, getLanguage().getCurrentThread()),
-                    Encodings.US_ASCII, CodeRange.ASCII);
+                    Encodings.US_ASCII); // CR_7BIT
         }
 
         @TruffleBoundary
@@ -1032,7 +1031,7 @@ public abstract class FloatNodes {
             final int sign = value < 0 ? 1 : 0;
 
             return createArray(new Object[]{
-                    makeStringNode.executeMake(string, Encodings.UTF_8, CodeRange.ASCII),
+                    makeStringNode.executeMake(string, Encodings.UTF_8), // CR_7BIT
                     decimal,
                     sign,
                     string.length()

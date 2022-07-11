@@ -64,7 +64,6 @@ import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -408,8 +407,7 @@ public abstract class VMPrimitiveNodes {
             for (Entry<String, Object> entry : getContext()
                     .getNativeConfiguration()
                     .getSection(RubyGuards.getJavaString(section))) {
-                final RubyString key = makeStringNode
-                        .executeMake(entry.getKey(), Encodings.UTF_8, CodeRange.CR_7BIT);
+                final RubyString key = makeStringNode.executeMake(entry.getKey(), Encodings.UTF_8); // CR_7BIT
                 yieldNode.yield(block, key, entry.getValue());
             }
 
@@ -441,7 +439,7 @@ public abstract class VMPrimitiveNodes {
                 @Cached MakeStringNode makeStringNode) {
             final byte[] bytes = getContext().getRandomSeedBytes(count);
 
-            return makeStringNode.executeMake(bytes, Encodings.BINARY, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(bytes, Encodings.BINARY);
         }
 
         @Specialization(guards = "count < 0")

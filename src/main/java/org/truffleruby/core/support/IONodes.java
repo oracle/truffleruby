@@ -77,7 +77,6 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
@@ -462,7 +461,7 @@ public abstract class IONodes {
                 bytes = Arrays.copyOf(buffer, bytesRead);
             }
 
-            return makeStringNode.executeMake(bytes, Encodings.BINARY, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(bytes, Encodings.BINARY);
         }
 
     }

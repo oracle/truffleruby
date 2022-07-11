@@ -26,7 +26,6 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.UnboundMethodNodes.MethodRuby2KeywordsNode;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.SymbolNodes;
@@ -270,8 +269,7 @@ public abstract class ProcNodes {
             } else {
                 final RubyString file = makeStringNode.executeMake(
                         sourcePath,
-                        Encodings.UTF_8,
-                        CodeRange.CR_UNKNOWN);
+                        Encodings.UTF_8);
 
                 return createArray(new Object[]{ file, sourceSection.getStartLine() });
             }

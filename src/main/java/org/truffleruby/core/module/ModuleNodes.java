@@ -66,7 +66,6 @@ import org.truffleruby.core.module.ModuleNodesFactory.GeneratedWriterNodeFactory
 import org.truffleruby.core.module.ModuleNodesFactory.IsSubclassOfOrEqualToNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.SetMethodVisibilityNodeGen;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
@@ -1173,8 +1172,7 @@ public abstract class ModuleNodes {
             } else {
                 final RubyString file = makeStringNode.executeMake(
                         getLanguage().getSourcePath(sourceSection.getSource()),
-                        Encodings.UTF_8,
-                        CodeRange.CR_UNKNOWN);
+                        Encodings.UTF_8);
                 return createArray(new Object[]{ file, sourceSection.getStartLine() });
             }
         }
@@ -2135,7 +2133,7 @@ public abstract class ModuleNodes {
             } else {
                 moduleName = module.fields.getName();
             }
-            return makeStringNode.executeMake(moduleName, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(moduleName, Encodings.UTF_8);
         }
     }
 

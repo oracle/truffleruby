@@ -29,7 +29,6 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.ErrnoErrorNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.TStringBuilder;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
@@ -53,7 +52,7 @@ public abstract class TimeNodes {
     public static RubyString getShortZoneName(StringNodes.MakeStringNode makeStringNode, ZonedDateTime dt,
             TimeZoneAndName zoneAndName) {
         final String shortZoneName = zoneAndName.getName(dt);
-        return makeStringNode.executeMake(shortZoneName, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+        return makeStringNode.executeMake(shortZoneName, Encodings.UTF_8);
     }
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
@@ -397,7 +396,7 @@ public abstract class TimeNodes {
                 return createString(tstring, Encodings.UTF_8);
             } else {
                 final TStringBuilder tstringBuilder = formatTime(time, pattern);
-                return makeStringNode.fromBuilderUnsafe(tstringBuilder, cachedEncoding, CodeRange.CR_UNKNOWN);
+                return makeStringNode.fromBuilderUnsafe(tstringBuilder, cachedEncoding);
             }
         }
 
@@ -416,7 +415,7 @@ public abstract class TimeNodes {
                 return createString(tstring, Encodings.UTF_8);
             } else {
                 final TStringBuilder tstringBuilder = formatTime(time, pattern);
-                return makeStringNode.fromBuilderUnsafe(tstringBuilder, rubyEncoding, CodeRange.CR_UNKNOWN);
+                return makeStringNode.fromBuilderUnsafe(tstringBuilder, rubyEncoding);
             }
         }
 

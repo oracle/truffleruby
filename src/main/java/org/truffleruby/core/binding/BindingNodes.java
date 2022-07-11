@@ -33,7 +33,6 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.language.CallStackManager;
@@ -485,8 +484,7 @@ public abstract class BindingNodes {
             } else {
                 final RubyString file = makeStringNode.executeMake(
                         getLanguage().getSourcePath(sourceSection.getSource()),
-                        Encodings.UTF_8,
-                        CodeRange.CR_UNKNOWN);
+                        Encodings.UTF_8);
                 return createArray(new Object[]{ file, sourceSection.getStartLine() });
             }
         }
