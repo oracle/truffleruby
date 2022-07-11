@@ -1175,7 +1175,7 @@ public class TruffleRegexpNodes {
 
         private final ConcurrentHashMap<Integer, AtomicLong> byteLengthFrequencies = new ConcurrentHashMap<>();
         private final ConcurrentHashMap<Integer, AtomicLong> characterLengthFrequencies = new ConcurrentHashMap<>();
-        private final ConcurrentHashMap<CodeRange, AtomicLong> codeRangeFrequencies = new ConcurrentHashMap<>();
+        private final ConcurrentHashMap<TruffleString.CodeRange, AtomicLong> codeRangeFrequencies = new ConcurrentHashMap<>();
         private final ConcurrentHashMap<RubyEncoding, AtomicLong> encodingFrequencies = new ConcurrentHashMap<>();
         private final ConcurrentHashMap<String, AtomicLong> ropeClassFrequencies = new ConcurrentHashMap<>();
 
@@ -1187,7 +1187,7 @@ public class TruffleRegexpNodes {
                     .getOrCompute(characterLengthFrequencies, string.characterLength(), x -> new AtomicLong())
                     .incrementAndGet();
             ConcurrentOperations
-                    .getOrCompute(codeRangeFrequencies, string.getCodeRange(), x -> new AtomicLong())
+                    .getOrCompute(codeRangeFrequencies, string.getTCodeRange(), x -> new AtomicLong())
                     .incrementAndGet();
             ConcurrentOperations.getOrCompute(encodingFrequencies, string.encoding, x -> new AtomicLong())
                     .incrementAndGet();

@@ -948,8 +948,8 @@ public class ClassicRegexp implements ReOptions {
         int end = p + len;
         final byte[] bytes = byteArray.getArray();
 
-        final CodeRange cr = str.getCodeRange();
-        final Encoding enc = str.encoding.jcoding;
+        final var cr = str.getTCodeRange();
+        final var enc = str.encoding.jcoding;
 
         boolean needEscape = false;
         while (p < end) {

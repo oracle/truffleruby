@@ -575,14 +575,13 @@ public final class StringSupport {
 
     @TruffleBoundary
     public static TrTables trSetupTable(AbstractTruffleString str, RubyEncoding encoding, boolean[] stable,
-            TrTables tables, boolean first, Encoding enc,
-            Node node) {
+            TrTables tables, boolean first, Encoding enc, Node node) {
         int i, l[] = { 0 };
         final boolean cflag;
 
         final TR tr = new TR(str, encoding);
 
-        CodeRange codeRange = TStringUtils.toCodeRange(str.getByteCodeRangeUncached(encoding.tencoding));
+        var codeRange = str.getByteCodeRangeUncached(encoding.tencoding);
         if (str.byteLength(encoding.tencoding) > 1 &&
                 EncodingUtils.encAscget(tr.buf, tr.p, tr.pend, l, enc, codeRange) == '^') {
             cflag = true;
@@ -683,7 +682,7 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static int trNext(TR tr, Encoding enc, CodeRange codeRange, Node node) {
+    public static int trNext(TR tr, Encoding enc, TruffleString.CodeRange codeRange, Node node) {
         for (;;) {
             if (!tr.gen) {
                 return trNext_nextpart(tr, enc, codeRange, node);
@@ -704,7 +703,7 @@ public final class StringSupport {
         }
     }
 
-    private static int trNext_nextpart(TR tr, Encoding enc, CodeRange codeRange, Node node) {
+    private static int trNext_nextpart(TR tr, Encoding enc, TruffleString.CodeRange codeRange, Node node) {
         final int[] n = { 0 };
 
         if (tr.p == tr.pend) {
@@ -1031,7 +1030,7 @@ public final class StringSupport {
                 }
                 s++;
             } else {
-                c = codePoint(enc, rubyString.getCodeRange(), bytes, s, send, node);
+                c = codePoint(enc, rubyString.getTCodeRange(), bytes, s, send, node);
                 int cl = codeLength(enc, c);
                 if (trFind(c, squeeze, tables)) {
                     modified = true;
@@ -1055,9 +1054,9 @@ public final class StringSupport {
 
     /** rb_str_tr / rb_str_tr_bang */
 
-    private static CodeRange CHECK_IF_ASCII(int c, CodeRange currentCodeRange) {
-        if (currentCodeRange == CR_7BIT && !Encoding.isAscii(c)) {
-            return CR_VALID;
+    private static TruffleString.CodeRange CHECK_IF_ASCII(int c, TruffleString.CodeRange currentCodeRange) {
+        if (currentCodeRange == TruffleString.CodeRange.ASCII && !Encoding.isAscii(c)) {
+            return TruffleString.CodeRange.VALID;
         }
 
         return currentCodeRange;
@@ -1071,14 +1070,14 @@ public final class StringSupport {
         // of the caller to take the appropriate action in those cases.
 
         final Encoding enc = rubyEncoding.jcoding;
-        CodeRange cr = self.getCodeRange();
+        var cr = self.getTCodeRange();
 
         final StringSupport.TR trSrc = new StringSupport.TR(srcStr.tstring, srcStr.encoding);
         boolean cflag = false;
         int[] l = { 0 };
 
         if (srcStr.byteLength() > 1 &&
-                EncodingUtils.encAscget(trSrc.buf, trSrc.p, trSrc.pend, l, enc, srcStr.getCodeRange()) == '^' &&
+                EncodingUtils.encAscget(trSrc.buf, trSrc.p, trSrc.pend, l, enc, srcStr.getTCodeRange()) == '^' &&
                 trSrc.p + 1 < trSrc.pend) {
             cflag = true;
             trSrc.p++;
@@ -1096,7 +1095,7 @@ public final class StringSupport {
                 trans[i] = 1;
             }
 
-            while ((c = StringSupport.trNext(trSrc, enc, srcStr.getCodeRange(), node)) != -1) {
+            while ((c = StringSupport.trNext(trSrc, enc, srcStr.getTCodeRange(), node)) != -1) {
                 if (c < StringSupport.TRANS_SIZE) {
                     trans[c] = -1;
                 } else {
@@ -1106,7 +1105,7 @@ public final class StringSupport {
                     hash.put(c, 1); // QTRUE
                 }
             }
-            while ((c = StringSupport.trNext(trRepl, enc, replStr.getCodeRange(), node)) != -1) {
+            while ((c = StringSupport.trNext(trRepl, enc, replStr.getTCodeRange(), node)) != -1) {
                 /* retrieve last replacer */
             }
             last = trRepl.now;
@@ -1120,8 +1119,8 @@ public final class StringSupport {
                 trans[i] = -1;
             }
 
-            while ((c = StringSupport.trNext(trSrc, enc, srcStr.getCodeRange(), node)) != -1) {
-                int r = StringSupport.trNext(trRepl, enc, replStr.getCodeRange(), node);
+            while ((c = StringSupport.trNext(trSrc, enc, srcStr.getTCodeRange(), node)) != -1) {
+                int r = StringSupport.trNext(trRepl, enc, replStr.getTCodeRange(), node);
                 if (r == -1) {
                     r = trRepl.now;
                 }
@@ -1139,8 +1138,8 @@ public final class StringSupport {
             }
         }
 
-        if (cr == CR_VALID && enc.isAsciiCompatible()) {
-            cr = CR_7BIT;
+        if (cr == TruffleString.CodeRange.VALID && enc.isAsciiCompatible()) {
+            cr = TruffleString.CodeRange.ASCII;
         }
 
         int s = 0;
@@ -1809,8 +1808,8 @@ public final class StringSupport {
         TStringBuilder undumped = new TStringBuilder();
         undumped.setEncoding(encoding);
 
-        CodeRange cr = rope.getCodeRange();
-        if (cr != CR_7BIT) {
+        var cr = rope.getTCodeRange();
+        if (cr != TruffleString.CodeRange.ASCII) {
             throw new RaiseException(
                     context,
                     context.getCoreExceptions().runtimeError("non-ASCII character detected", currentNode));

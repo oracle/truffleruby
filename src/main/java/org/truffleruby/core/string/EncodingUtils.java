@@ -32,11 +32,11 @@ import java.util.List;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
 import org.jcodings.ascii.AsciiTables;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.language.control.RaiseException;
 
 public class EncodingUtils {
@@ -135,7 +135,8 @@ public class EncodingUtils {
 
 
     // rb_enc_ascget
-    public static int encAscget(byte[] pBytes, int p, int e, int[] len, Encoding enc, CodeRange codeRange) {
+    public static int encAscget(byte[] pBytes, int p, int e, int[] len, Encoding enc,
+            TruffleString.CodeRange codeRange) {
         int c;
         int l;
 
@@ -169,7 +170,8 @@ public class EncodingUtils {
 
     // rb_enc_codepoint_len
     @TruffleBoundary
-    public static int encCodepointLength(byte[] pBytes, int p, int e, int[] len_p, Encoding enc, CodeRange codeRange,
+    public static int encCodepointLength(byte[] pBytes, int p, int e, int[] len_p, Encoding enc,
+            TruffleString.CodeRange codeRange,
             Node node) {
         int r;
         if (e <= p) {

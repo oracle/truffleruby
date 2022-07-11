@@ -2059,8 +2059,8 @@ public abstract class StringNodes {
         // Taken from org.jruby.RubyString#dump
         private ByteArrayBuilder dumpCommon(ATStringWithEncoding string) {
             ByteArrayBuilder buf = null;
-            final Encoding enc = string.encoding.jcoding;
-            final CodeRange cr = string.getCodeRange();
+            final var enc = string.encoding.jcoding;
+            final var cr = string.getTCodeRange();
 
             var byteArray = string.getInternalByteArray();
             int p = byteArray.getOffset();

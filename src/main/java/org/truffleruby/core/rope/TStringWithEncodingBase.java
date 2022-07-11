@@ -11,6 +11,7 @@ package org.truffleruby.core.rope;
 
 import java.util.Objects;
 
+import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.strings.TruffleString.CopyToByteArrayNode;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
@@ -78,6 +79,11 @@ abstract class TStringWithEncodingBase {
     public CodeRange getCodeRange() {
         CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
         return TStringUtils.toCodeRange(tstring.getByteCodeRangeUncached(encoding.tencoding));
+    }
+
+    public TruffleString.CodeRange getTCodeRange() {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        return tstring.getByteCodeRangeUncached(encoding.tencoding);
     }
 
     public TStringWithEncoding forceEncoding(RubyEncoding newEncoding) {
