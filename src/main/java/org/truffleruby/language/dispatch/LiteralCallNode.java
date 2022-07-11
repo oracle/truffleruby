@@ -99,17 +99,21 @@ public abstract class LiteralCallNode extends RubyContextSourceNode {
     }
 
     // NOTE: args is either frame args or user args
-    @InliningCutoff
     public void copyRuby2KeywordsHash(Object[] args, SharedMethodInfo info) {
         if (!info.getArity().hasRest()) { // https://bugs.ruby-lang.org/issues/18625
-            if (copyHashAndSetRuby2KeywordsNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                copyHashAndSetRuby2KeywordsNode = insert(CopyHashAndSetRuby2KeywordsNode.create());
-            }
-
-            final RubyHash lastArgument = (RubyHash) ArrayUtils.getLast(args);
-            ArrayUtils.setLast(args, copyHashAndSetRuby2KeywordsNode.execute(lastArgument, false));
+            copyRuby2KeywordsHashBoundary(args);
         }
+    }
+
+    @InliningCutoff
+    private void copyRuby2KeywordsHashBoundary(Object[] args) {
+        if (copyHashAndSetRuby2KeywordsNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            copyHashAndSetRuby2KeywordsNode = insert(CopyHashAndSetRuby2KeywordsNode.create());
+        }
+
+        final RubyHash lastArgument = (RubyHash) ArrayUtils.getLast(args);
+        ArrayUtils.setLast(args, copyHashAndSetRuby2KeywordsNode.execute(lastArgument, false));
     }
 
 }
