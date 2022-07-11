@@ -1120,7 +1120,8 @@ class String
 
   def start_with?(*prefixes)
     if prefixes.size == 1 and prefix = prefixes[0] and String === prefix
-      return self[0, prefix.length] == prefix
+      enc = Primitive.encoding_ensure_compatible_str self, prefix
+      return Primitive.string_start_with?(self, prefix, enc)
     end
 
     # This is the workaround because `Primitive.caller_special_variables` doesn't work inside blocks yet.
@@ -1133,11 +1134,9 @@ class String
         Primitive.regexp_last_match_set(storage, match_data)
         return true if match_data
       else
-        prefix = Truffle::Type.rb_check_convert_type original_prefix, String, :to_str
-        unless prefix
-          raise TypeError, "no implicit conversion of #{original_prefix.class} into String"
-        end
-        return true if self[0, prefix.length] == prefix
+        prefix = Truffle::Type.rb_convert_type original_prefix, String, :to_str
+        enc = Primitive.encoding_ensure_compatible_str self, prefix
+        return true if Primitive.string_start_with?(self, prefix, enc)
       end
     end
     false

@@ -1139,9 +1139,42 @@ public abstract class StringNodes {
         }
     }
 
+    /** Returns true if the first bytes in string are equal to the bytes in prefix. */
+    @Primitive(name = "string_start_with?")
+    public abstract static class StartWithNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected boolean startWithBytes(Object string, Object prefix, RubyEncoding enc,
+                @Cached TruffleString.RegionEqualByteIndexNode regionEqualByteIndexNode,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsSuffix) {
+
+            var stringTString = strings.getTString(string);
+            var stringEncoding = strings.getTEncoding(string);
+            final int stringByteLength = stringTString.byteLength(stringEncoding);
+
+            var prefixTString = stringsSuffix.getTString(prefix);
+            var prefixEncoding = stringsSuffix.getTEncoding(prefix);
+            final int prefixByteLength = prefixTString.byteLength(prefixEncoding);
+
+            if (stringByteLength < prefixByteLength) {
+                return false;
+            }
+
+            // See truffle-string.md, section Encodings Compatibility
+            if (prefixByteLength == 0) {
+                return true;
+            }
+
+            return regionEqualByteIndexNode.execute(stringTString, 0, prefixTString, 0, prefixByteLength,
+                    enc.tencoding);
+        }
+
+    }
+
     /** Returns true if the last bytes in string are equal to the bytes in suffix. */
     @Primitive(name = "string_end_with?")
-    public abstract static class EndWithNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class EndWithNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected boolean endWithBytes(Object string, Object suffix, RubyEncoding enc,
