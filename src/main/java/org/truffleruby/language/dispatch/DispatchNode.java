@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.dispatch;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.HostCompilerDirectives.InliningCutoff;
@@ -66,6 +67,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
     }
 
     public static DispatchNode getUncached(DispatchConfiguration config) {
+        CompilerAsserts.neverPartOfCompilation("uncached");
         return Uncached.UNCACHED_NODES[config.ordinal()];
     }
 
