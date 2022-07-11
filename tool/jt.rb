@@ -768,7 +768,7 @@ module Commands
                                               it is also linked in your ruby manager (if found) under the same name,
                                               by default it is the name of the mx env file,
                                               the named build stays until it is rebuilt or deleted manually
-              --new-hash                      update the Git hash in RUBY_DESCRIPTION
+              --new-hash                      update the git commit hash in RUBY_DESCRIPTION
             mx options:                       options passed directly to mx
               -d                              start the Java debugger and enables assertions when running truffleruby to configure C extensions
             mx build options                  options passed to the 'build' command of mx
