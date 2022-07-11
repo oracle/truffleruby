@@ -299,57 +299,6 @@ public final class StringSupport {
         return c;
     }
 
-    /** See RopeNodes.CalculateAttributesNode#calculateAttributesAsciiCompatibleGeneric */
-    // MRI: rb_enc_strlen_cr
-    public static StringAttributes strLengthWithCodeRangeAsciiCompatible(Encoding enc, byte[] bytes, int p, int end) {
-        CodeRange cr = CR_UNKNOWN;
-        int c = 0;
-        while (p < end) {
-            if (Encoding.isAscii(bytes[p])) {
-                int q = searchNonAscii(bytes, p, end);
-                if (q == -1) {
-                    return new StringAttributes(c + (end - p), cr == CR_UNKNOWN ? CR_7BIT : cr);
-                }
-                c += q - p;
-                p = q;
-            }
-            int cl = preciseLength(enc, bytes, p, end);
-            if (cl > 0) {
-                if (cr != CR_BROKEN) {
-                    cr = CR_VALID;
-                }
-                p += cl;
-            } else {
-                cr = CR_BROKEN;
-                p++;
-            }
-            c++;
-        }
-        return new StringAttributes(c, cr == CR_UNKNOWN ? CR_7BIT : cr);
-    }
-
-    /** See RopeNodes.CalculateAttributesNode#calculateAttributesNonAsciiCompatible */
-    // MRI: rb_enc_strlen_cr
-    public static StringAttributes strLengthWithCodeRangeNonAsciiCompatible(Encoding enc, byte[] bytes, int p,
-            int end) {
-        CodeRange cr = CR_UNKNOWN;
-        int c;
-        for (c = 0; p < end; c++) {
-            int cl = preciseLength(enc, bytes, p, end);
-            if (cl > 0) {
-                if (cr != CR_BROKEN) {
-                    cr = CR_VALID;
-                }
-                p += cl;
-            } else {
-                cr = CR_BROKEN;
-                p += enc.minLength();
-            }
-        }
-
-        return new StringAttributes(c, cr == CR_UNKNOWN ? CR_7BIT : cr);
-    }
-
     @TruffleBoundary
     public static int codePoint(Encoding enc, CodeRange codeRange, byte[] bytes, int p, int end, Node node) {
         if (p >= end) {
@@ -388,20 +337,6 @@ public final class StringSupport {
     @TruffleBoundary
     public static int codeLength(Encoding enc, int c) {
         return enc.codeToMbcLength(c);
-    }
-
-    @TruffleBoundary
-    public static int codeToMbc(Encoding encoding, int code, byte[] bytes, int p) {
-        return encoding.codeToMbc(code, bytes, p);
-    }
-
-    @TruffleBoundary
-    public static int preciseCodePoint(Encoding enc, CodeRange codeRange, byte[] bytes, int p, int end) {
-        int l = characterLength(enc, codeRange, bytes, p, end);
-        if (l > 0) {
-            return enc.mbcToCode(bytes, p, end);
-        }
-        return -1;
     }
 
     @TruffleBoundary
