@@ -416,11 +416,15 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
     private static final class Uncached extends DispatchNode {
 
         static final Uncached[] UNCACHED_NODES = new Uncached[DispatchConfiguration.values().length];
+
         static {
             for (DispatchConfiguration config : DispatchConfiguration.values()) {
                 UNCACHED_NODES[config.ordinal()] = new Uncached(config);
             }
         }
+
+        public static final DispatchNode UNCACHED_METHOD_MISSING_NODE = DispatchNode
+                .getUncached(DispatchConfiguration.PRIVATE_RETURN_MISSING_IGNORE_REFINEMENTS);
 
         protected Uncached(DispatchConfiguration config) {
             super(config, null, null, null, null);
@@ -443,7 +447,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
 
         @Override
         protected DispatchNode getMethodMissingNode() {
-            return DispatchNode.getUncached(DispatchConfiguration.PRIVATE_RETURN_MISSING_IGNORE_REFINEMENTS);
+            return UNCACHED_METHOD_MISSING_NODE;
         }
 
         @Override
