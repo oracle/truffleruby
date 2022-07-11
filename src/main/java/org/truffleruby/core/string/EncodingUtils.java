@@ -26,6 +26,7 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.core.string;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -84,7 +85,7 @@ public class EncodingUtils {
         boolean isValid = false;
         if (s >= end) {
             isValid = true;
-            names.add(StringOperations.decodeAscii(name, p, end));
+            names.add(new String(name, p, end - p, StandardCharsets.US_ASCII));
         }
 
         if (!isValid || hasLower) {
@@ -115,7 +116,7 @@ public class EncodingUtils {
                     }
                 }
                 if (hasUpper) {
-                    names.add(StringOperations.decodeAscii(constName));
+                    names.add(new String(constName, StandardCharsets.US_ASCII));
                 }
             }
             if (hasLower) {
@@ -125,7 +126,7 @@ public class EncodingUtils {
                         constName[s] = AsciiTables.ToUpperCaseTable[code];
                     }
                 }
-                names.add(StringOperations.decodeAscii(constName));
+                names.add(new String(constName, StandardCharsets.US_ASCII));
             }
         }
 

@@ -13,6 +13,7 @@
 package org.truffleruby.core.encoding;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Map;
@@ -89,7 +90,7 @@ public class EncodingManager {
             // The alias name should be exactly the one in the encodings DB.
             final Encoding encoding = encodingEntry.getEncoding();
             final RubyEncoding rubyEncoding = defineAlias(encoding,
-                    StringOperations.decodeAscii(entry.bytes, entry.p, entry.end));
+                    new String(entry.bytes, entry.p, entry.end - entry.p, StandardCharsets.US_ASCII));
 
             // The constant names must be treated by the the <code>encodingNames</code> helper.
             for (String constName : EncodingUtils.encodingNames(entry.bytes, entry.p, entry.end)) {
@@ -157,7 +158,7 @@ public class EncodingManager {
                     context,
                     InteropLibrary.getUncached(),
                     0);
-            localeEncodingName = StringOperations.decodeAscii(bytes);
+            localeEncodingName = new String(bytes, StandardCharsets.US_ASCII);
         } else {
             localeEncodingName = Charset.defaultCharset().name();
         }

@@ -11,6 +11,7 @@ package org.truffleruby.language;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,7 +30,6 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -460,7 +460,7 @@ public abstract class TruffleBootNodes {
                 throw CompilerDirectives.shouldNotReachHere(e);
             }
 
-            String basicVersion = StringOperations.decodeAscii(bytes).strip();
+            String basicVersion = new String(bytes, StandardCharsets.US_ASCII).strip();
             return makeStringNode.executeMake(basicVersion, Encodings.UTF_8);
         }
 

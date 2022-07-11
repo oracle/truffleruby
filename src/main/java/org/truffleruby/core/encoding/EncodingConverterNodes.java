@@ -41,7 +41,6 @@ import org.truffleruby.core.rope.TStringBuilder;
 import org.truffleruby.core.string.EncodingUtils;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.NotProvided;
@@ -110,7 +109,8 @@ public abstract class EncodingConverterNodes {
                 }
 
                 final byte[] segmentSource = transcoder.getSource();
-                ret[retIndex++] = getSymbol(StringUtils.toUpperCase(StringOperations.decodeAscii(segmentSource)));
+                ret[retIndex++] = getSymbol(
+                        StringUtils.toUpperCase(new String(segmentSource, StandardCharsets.US_ASCII)));
             }
 
             final int retSize = retIndex + 1;
@@ -121,7 +121,7 @@ public abstract class EncodingConverterNodes {
             }
 
             final byte[] destinationName = destinationEncoding.getName();
-            ret[retIndex] = getSymbol(StringUtils.toUpperCase(StringOperations.decodeAscii(destinationName)));
+            ret[retIndex] = getSymbol(StringUtils.toUpperCase(new String(destinationName, StandardCharsets.US_ASCII)));
 
             return createArray(ret);
         }
