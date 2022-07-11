@@ -132,7 +132,6 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
         }
     }
 
-    @InliningCutoff
     @Specialization(guards = "method.alwaysInlined()", replaces = "alwaysInlined")
     protected Object alwaysInlinedUncached(
             Frame frame, InternalMethod method, Object receiver, Object[] rubyArgs, LiteralCallNode literalCallNode) {
