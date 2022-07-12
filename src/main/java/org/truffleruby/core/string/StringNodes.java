@@ -1163,44 +1163,28 @@ public abstract class StringNodes {
     public abstract static class StringDowncaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
+        private final ConditionProfile dummyEncodingProfile = ConditionProfile.createBinaryProfile();
 
-        @Specialization(guards = { "isSingleByteCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
-        protected Object downcaseSingleByte(RubyString string, int caseMappingOptions,
+        @Specialization(guards = { "!isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
+        protected Object downcaseAsciiCodePoints(RubyString string, int caseMappingOptions,
                 @Cached("createUpperToLower()") StringHelperNodes.InvertAsciiCaseNode invertAsciiCaseNode) {
-            return invertAsciiCaseNode.executeInvert(string);
-        }
+            var encoding = string.encoding.jcoding;
 
-        @Specialization(guards = { "isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
-        protected Object downcaseMultiByteAsciiSimple(RubyString string, int caseMappingOptions,
-                @Cached @Shared("fromByteArrayNode") TruffleString.FromByteArrayNode fromByteArrayNode,
-                @Cached @Shared("dummyEncodingProfile") ConditionProfile dummyEncodingProfile,
-                @Cached @Shared("modifiedProfile") ConditionProfile modifiedProfile) {
-            var tstring = string.tstring;
-            var encoding = string.encoding;
-
-            if (dummyEncodingProfile.profile(encoding.jcoding.isDummy())) {
+            if (dummyEncodingProfile.profile(encoding.isDummy())) {
                 throw new RaiseException(
                         getContext(),
-                        coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding.jcoding, this));
+                        coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
             }
 
-            final byte[] outputBytes = StringSupport.downcaseMultiByteAsciiSimple(tstring, encoding);
-
-            if (modifiedProfile.profile(outputBytes != null)) {
-                string.setTString(fromByteArrayNode.execute(outputBytes, string.getTEncoding())); // cr, codePointLengthNode.execute(rope)
-                return string;
-            } else {
-                return nil;
-            }
+            return invertAsciiCaseNode.executeInvert(string);
         }
 
         @Specialization(guards = { "isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
         protected Object downcaseMultiByteComplex(RubyString string, int caseMappingOptions,
                 @Cached GetByteCodeRangeNode codeRangeNode,
-                @Cached @Shared("fromByteArrayNode") TruffleString.FromByteArrayNode fromByteArrayNode,
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
-                @Cached @Shared("dummyEncodingProfile") ConditionProfile dummyEncodingProfile,
-                @Cached @Shared("modifiedProfile") ConditionProfile modifiedProfile) {
+                @Cached ConditionProfile modifiedProfile) {
             var tstring = string.tstring;
             var encoding = string.encoding;
 
@@ -1943,46 +1927,28 @@ public abstract class StringNodes {
     public abstract static class StringSwapcaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
+        private final ConditionProfile dummyEncodingProfile = ConditionProfile.createBinaryProfile();
 
-        @Specialization(guards = { "isSingleByteCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
-        protected Object swapcaseSingleByte(RubyString string, int caseMappingOptions,
+        @Specialization(guards = { "!isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
+        protected Object swapcaseAsciiCodePoints(RubyString string, int caseMappingOptions,
                 @Cached("createSwapCase()") StringHelperNodes.InvertAsciiCaseNode invertAsciiCaseNode) {
-            return invertAsciiCaseNode.executeInvert(string);
-        }
+            var enc = string.encoding.jcoding;
 
-        @Specialization(guards = { "isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
-        protected Object swapcaseMultiByteAsciiSimple(RubyString string, int caseMappingOptions,
-                @Cached @Shared("fromByteArrayNode") TruffleString.FromByteArrayNode fromByteArrayNode,
-                @Cached @Shared("dummyEncodingProfile") ConditionProfile dummyEncodingProfile,
-                @Cached @Shared("modifiedProfile") ConditionProfile modifiedProfile) {
-            // Taken from org.jruby.RubyString#swapcase_bang19.
-
-            var tstring = string.tstring;
-            var enc = string.encoding;
-
-            if (dummyEncodingProfile.profile(enc.jcoding.isDummy())) {
+            if (dummyEncodingProfile.profile(enc.isDummy())) {
                 throw new RaiseException(
                         getContext(),
-                        coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc.jcoding, this));
+                        coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
             }
 
-            final byte[] outputBytes = StringSupport.swapcaseMultiByteAsciiSimple(tstring, enc);
-
-            if (modifiedProfile.profile(outputBytes != null)) {
-                string.setTString(fromByteArrayNode.execute(outputBytes, string.getTEncoding())); // cr, codePointLengthNode.execute(rope)
-                return string;
-            } else {
-                return nil;
-            }
+            return invertAsciiCaseNode.executeInvert(string);
         }
 
         @Specialization(guards = "isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
         protected Object swapcaseMultiByteComplex(RubyString string, int caseMappingOptions,
                 @Cached GetByteCodeRangeNode codeRangeNode,
-                @Cached @Shared("fromByteArrayNode") TruffleString.FromByteArrayNode fromByteArrayNode,
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
-                @Cached @Shared("dummyEncodingProfile") ConditionProfile dummyEncodingProfile,
-                @Cached @Shared("modifiedProfile") ConditionProfile modifiedProfile) {
+                @Cached ConditionProfile modifiedProfile) {
             // Taken from org.jruby.RubyString#swapcase_bang19.
 
             var tstring = string.tstring;
@@ -2830,44 +2796,28 @@ public abstract class StringNodes {
     public abstract static class StringUpcaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
+        private final ConditionProfile dummyEncodingProfile = ConditionProfile.createBinaryProfile();
 
-        @Specialization(guards = { "isSingleByteCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
-        protected Object upcaseSingleByte(RubyString string, int caseMappingOptions,
+        @Specialization(guards = { "!isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
+        protected Object upcaseAsciiCodePoints(RubyString string, int caseMappingOptions,
                 @Cached("createLowerToUpper()") StringHelperNodes.InvertAsciiCaseNode invertAsciiCaseNode) {
-            return invertAsciiCaseNode.executeInvert(string);
-        }
+            var encoding = string.encoding.jcoding;
 
-        @Specialization(guards = { "isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
-        protected Object upcaseMultiByteAsciiSimple(RubyString string, int caseMappingOptions,
-                @Cached @Shared("fromByteArrayNode") TruffleString.FromByteArrayNode fromByteArrayNode,
-                @Cached @Shared("dummyEncodingProfile") ConditionProfile dummyEncodingProfile,
-                @Cached @Shared("modifiedProfile") ConditionProfile modifiedProfile) {
-            var tstring = string.tstring;
-            var encoding = string.encoding;
-
-            if (dummyEncodingProfile.profile(encoding.jcoding.isDummy())) {
+            if (dummyEncodingProfile.profile(encoding.isDummy())) {
                 throw new RaiseException(
                         getContext(),
-                        coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding.jcoding, this));
+                        coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
             }
 
-            final byte[] outputBytes = StringSupport.upcaseMultiByteAsciiSimple(tstring, encoding);
-
-            if (modifiedProfile.profile(outputBytes != null)) {
-                string.setTString(fromByteArrayNode.execute(outputBytes, string.encoding.tencoding)); // cr, codePointLengthNode.execute(rope)
-                return string;
-            } else {
-                return nil;
-            }
+            return invertAsciiCaseNode.executeInvert(string);
         }
 
         @Specialization(guards = { "isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
         protected Object upcaseMultiByteComplex(RubyString string, int caseMappingOptions,
                 @Cached GetByteCodeRangeNode codeRangeNode,
-                @Cached @Shared("fromByteArrayNode") TruffleString.FromByteArrayNode fromByteArrayNode,
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
-                @Cached @Shared("dummyEncodingProfile") ConditionProfile dummyEncodingProfile,
-                @Cached @Shared("modifiedProfile") ConditionProfile modifiedProfile) {
+                @Cached ConditionProfile modifiedProfile) {
             var tstring = string.tstring;
             var encoding = string.encoding;
 
@@ -2918,23 +2868,29 @@ public abstract class StringNodes {
         @Child private TruffleString.CopyToByteArrayNode copyToByteArrayNode;
         @Child private TruffleString.FromByteArrayNode fromByteArrayNode;
         @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
+        private final ConditionProfile dummyEncodingProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile emptyStringProfile = ConditionProfile.createBinaryProfile();
 
-        @Specialization(guards = "isSingleByteCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
-        protected Object capitalizeSingleByte(RubyString string, int caseMappingOptions,
+        @Specialization(guards = "!isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
+        protected Object capitalizeAsciiCodePoints(RubyString string, int caseMappingOptions,
                 @Cached("createUpperToLower()") StringHelperNodes.InvertAsciiCaseBytesNode invertAsciiCaseNode,
-                @Cached @Shared("emptyStringProfile") ConditionProfile emptyStringProfile,
                 @Cached @Exclusive ConditionProfile firstCharIsLowerProfile,
                 @Cached @Exclusive ConditionProfile otherCharsAlreadyLowerProfile,
                 @Cached @Exclusive ConditionProfile mustCapitalizeFirstCharProfile) {
             var tstring = string.tstring;
-            var encoding = string.encoding.tencoding;
+            var encoding = string.encoding;
 
             if (emptyStringProfile.profile(tstring.isEmpty())) {
                 return nil;
             }
 
-            var byteArray = byteArrayNode.execute(tstring, encoding);
-            final byte[] sourceBytes = byteArray.getArray();
+            if (dummyEncodingProfile.profile(encoding.jcoding.isDummy())) {
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding.jcoding, this));
+            }
+
+            var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
             final byte[] finalBytes;
 
             final byte[] processedBytes = invertAsciiCaseNode.executeInvert(string, 1);
@@ -2942,10 +2898,10 @@ public abstract class StringNodes {
             if (otherCharsAlreadyLowerProfile.profile(processedBytes == null)) {
                 // Bytes 1..N are either not letters or already lowercased. Time to check the first byte.
 
-                if (firstCharIsLowerProfile.profile(StringSupport.isAsciiLowercase(sourceBytes[0]))) {
+                if (firstCharIsLowerProfile.profile(StringSupport.isAsciiLowercase(byteArray.get(0)))) {
                     // The first char requires capitalization, but the remaining bytes in the original string are
                     // already properly cased.
-                    finalBytes = copyByteArray(tstring, encoding);
+                    finalBytes = copyByteArray(tstring, encoding.tencoding);
                 } else {
                     // The string is already capitalized.
                     return nil;
@@ -2955,55 +2911,22 @@ public abstract class StringNodes {
                 finalBytes = processedBytes;
             }
 
-            if (mustCapitalizeFirstCharProfile.profile(StringSupport.isAsciiLowercase(sourceBytes[0]))) {
+            if (mustCapitalizeFirstCharProfile.profile(StringSupport.isAsciiLowercase(byteArray.get(0)))) {
                 finalBytes[0] ^= 0x20;
             }
 
-            string.setTString(makeTString(finalBytes, encoding));
+            string.setTString(makeTString(finalBytes, encoding.tencoding));
 
             return string;
         }
 
-        @Specialization(guards = "isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
-        protected Object capitalizeMultiByteAsciiSimple(RubyString string, int caseMappingOptions,
-                @Cached @Shared("dummyEncodingProfile") BranchProfile dummyEncodingProfile,
-                @Cached @Shared("emptyStringProfile") ConditionProfile emptyStringProfile,
-                @Cached @Shared("modifiedProfile") ConditionProfile modifiedProfile) {
-            // Taken from org.jruby.RubyString#capitalize_bang19.
-            var tstring = string.tstring;
-            var encoding = string.encoding;
-
-            if (encoding.jcoding.isDummy()) {
-                dummyEncodingProfile.enter();
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding.jcoding, this));
-            }
-
-            if (emptyStringProfile.profile(tstring.isEmpty())) {
-                return nil;
-            }
-
-            final byte[] outputBytes = StringSupport.capitalizeMultiByteAsciiSimple(tstring, encoding);
-
-            if (modifiedProfile.profile(outputBytes != null)) {
-                string.setTString(makeTString(outputBytes, encoding.tencoding));
-                return string;
-            }
-
-            return nil;
-        }
-
         @Specialization(guards = "isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
         protected Object capitalizeMultiByteComplex(RubyString string, int caseMappingOptions,
-                @Cached @Shared("dummyEncodingProfile") BranchProfile dummyEncodingProfile,
-                @Cached @Shared("emptyStringProfile") ConditionProfile emptyStringProfile,
-                @Cached @Shared("modifiedProfile") ConditionProfile modifiedProfile) {
+                @Cached ConditionProfile modifiedProfile) {
             var tstring = string.tstring;
             var encoding = string.encoding;
 
-            if (encoding.jcoding.isDummy()) {
-                dummyEncodingProfile.enter();
+            if (dummyEncodingProfile.profile(encoding.jcoding.isDummy())) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding.jcoding, this));

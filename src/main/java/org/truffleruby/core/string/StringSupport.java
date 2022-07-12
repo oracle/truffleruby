@@ -1349,34 +1349,6 @@ public final class StringSupport {
         return newByteLength;
     }
 
-    /** Returns a copy of {@code bytes} but with ASCII characters' case swapped, or {@code bytes} itself if the string
-     * doesn't require changes. The encoding must be ASCII-compatible (i.e. represent each ASCII character as a single
-     * byte ({@link Encoding#isAsciiCompatible()}). */
-    @TruffleBoundary
-    public static byte[] swapcaseMultiByteAsciiSimple(AbstractTruffleString tstring, RubyEncoding enc) {
-        assert enc.jcoding.isAsciiCompatible();
-
-        byte[] bytes = null;
-
-        var tencoding = enc.tencoding;
-        var iterator = tstring.createCodePointIteratorUncached(tencoding);
-
-        while (iterator.hasNext()) {
-            final int p = iterator.getByteIndex();
-            int c = iterator.nextUncached();
-
-            if (StringSupport.isAsciiAlpha(c)) {
-                if (bytes == null) {
-                    bytes = CopyToByteArrayNode.getUncached().execute(tstring, tencoding);
-                }
-
-                bytes[p] ^= 0x20;
-            }
-        }
-
-        return bytes;
-    }
-
     @TruffleBoundary
     public static boolean swapCaseMultiByteComplex(Encoding enc, TruffleString.CodeRange originalCodeRange,
             ByteArrayBuilder builder, int caseMappingOptions, Node node) {
@@ -1404,34 +1376,6 @@ public final class StringSupport {
         }
 
         return modified;
-    }
-
-    /** Returns a copy of {@code bytes} but with ASCII characters downcased, or {@code bytes} itself if no ASCII
-     * characters need upcasing. The encoding must be ASCII-compatible (i.e. represent each ASCII character as a single
-     * byte ({@link Encoding#isAsciiCompatible()}). */
-    @TruffleBoundary
-    public static byte[] downcaseMultiByteAsciiSimple(AbstractTruffleString tstring, RubyEncoding enc) {
-        assert enc.jcoding.isAsciiCompatible();
-
-        byte[] bytes = null;
-
-        var tencoding = enc.tencoding;
-        var iterator = tstring.createCodePointIteratorUncached(tencoding);
-
-        while (iterator.hasNext()) {
-            final int p = iterator.getByteIndex();
-            int c = iterator.nextUncached();
-
-            if (StringSupport.isAsciiUppercase(c)) {
-                if (bytes == null) {
-                    bytes = CopyToByteArrayNode.getUncached().execute(tstring, tencoding);
-                }
-
-                bytes[p] ^= 0x20;
-            }
-        }
-
-        return bytes;
     }
 
     @TruffleBoundary
@@ -1473,34 +1417,6 @@ public final class StringSupport {
         return modified;
     }
 
-    /** Returns a copy of {@code bytes} but with ASCII characters upcased, or {@code bytes} itself if no ASCII
-     * characters need upcasing. The encoding must be ASCII-compatible (i.e. represent each ASCII character as a single
-     * byte ( {@link Encoding#isAsciiCompatible()}). */
-    @TruffleBoundary
-    public static byte[] upcaseMultiByteAsciiSimple(AbstractTruffleString tstring, RubyEncoding enc) {
-        assert enc.jcoding.isAsciiCompatible();
-
-        byte[] bytes = null;
-
-        var tencoding = enc.tencoding;
-        var iterator = tstring.createCodePointIteratorUncached(tencoding);
-
-        while (iterator.hasNext()) {
-            final int p = iterator.getByteIndex();
-            int c = iterator.nextUncached();
-
-            if (StringSupport.isAsciiLowercase(c)) {
-                if (bytes == null) {
-                    bytes = CopyToByteArrayNode.getUncached().execute(tstring, tencoding);
-                }
-
-                bytes[p] ^= 0x20;
-            }
-        }
-
-        return bytes;
-    }
-
     @TruffleBoundary
     public static boolean upcaseMultiByteComplex(Encoding enc, TruffleString.CodeRange originalCodeRange,
             ByteArrayBuilder builder, int caseMappingOptions, Node node) {
@@ -1536,42 +1452,6 @@ public final class StringSupport {
         }
 
         return modified;
-    }
-
-    /** Returns a copy of {@code bytes} but capitalized (affecting only ASCII characters), or {@code null} if the string
-     * doesn't require changes. The encoding must be ASCII-compatible (i.e. represent each ASCII character as a single
-     * byte ({@link Encoding#isAsciiCompatible()}). */
-    @TruffleBoundary
-    public static byte[] capitalizeMultiByteAsciiSimple(AbstractTruffleString tstring, RubyEncoding enc) {
-        assert enc.jcoding.isAsciiCompatible();
-
-        byte[] bytes = null;
-
-        var tencoding = enc.tencoding;
-        var iterator = tstring.createCodePointIteratorUncached(tencoding);
-
-        if (!iterator.hasNext()) {
-            return null;
-        }
-        int c = iterator.nextUncached();
-
-        if (StringSupport.isAsciiLowercase(c)) {
-            bytes = CopyToByteArrayNode.getUncached().execute(tstring, tencoding);
-            bytes[0] ^= 0x20;
-        }
-
-        while (iterator.hasNext()) {
-            final int p = iterator.getByteIndex();
-            c = iterator.nextUncached();
-            if (StringSupport.isAsciiUppercase(c)) {
-                if (bytes == null) {
-                    bytes = CopyToByteArrayNode.getUncached().execute(tstring, tencoding);
-                }
-                bytes[p] ^= 0x20;
-            }
-        }
-
-        return bytes;
     }
 
     @TruffleBoundary

@@ -26,6 +26,7 @@ import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.api.strings.TruffleStringIterator;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.core.encoding.EncodingNodes;
@@ -477,38 +478,37 @@ public abstract class StringHelperNodes {
 
         @Specialization
         protected byte[] invert(RubyString string, int start,
+                @Cached TruffleString.CreateCodePointIteratorNode createCodePointIteratorNode,
+                @Cached TruffleStringIterator.NextNode nextNode,
                 @Cached TruffleString.CopyToByteArrayNode copyToByteArrayNode,
-                @Cached TruffleString.MaterializeNode materializeNode,
-                @Cached TruffleString.ReadByteNode readByteNode,
+                @Cached TruffleString.SubstringByteIndexNode substringNode,
                 @Cached BranchProfile caseSwapProfile,
-                @Cached LoopConditionProfile loopProfile) {
+                @Cached ConditionProfile usesOffsetProfile) {
             var tstring = string.tstring;
             var encoding = string.encoding.tencoding;
-            final int byteLength = tstring.byteLength(encoding);
 
             byte[] modified = null;
-            int i = start;
-            materializeNode.execute(tstring, encoding);
-            try {
-                for (; loopProfile.inject(i < byteLength); i++) {
-                    final byte b = (byte) readByteNode.execute(tstring, i, encoding);
 
-                    if ((lowerToUpper && StringSupport.isAsciiLowercase(b)) ||
-                            (upperToLower && StringSupport.isAsciiUppercase(b))) {
-                        caseSwapProfile.enter();
+            var iterator = createCodePointIteratorNode.execute(tstring, encoding);
+            while (iterator.hasNext()) {
+                int p = iterator.getByteIndex();
+                int c = nextNode.execute(iterator);
 
-                        if (modified == null) {
-                            modified = copyToByteArrayNode.execute(tstring, encoding);
-                        }
+                if (usesOffsetProfile.profile(p < start)) {
+                    continue;
+                }
 
-                        // Convert lower-case ASCII code point to upper-case or upper-case ASCII code point to lower-case.
-                        modified[i] ^= 0x20;
+                if ((lowerToUpper && StringSupport.isAsciiLowercase(c)) ||
+                        (upperToLower && StringSupport.isAsciiUppercase(c))) {
+                    caseSwapProfile.enter();
+
+                    if (modified == null) {
+                        modified = copyToByteArrayNode.execute(tstring, encoding);
                     }
 
-                    TruffleSafepoint.poll(this);
+                    // Convert lower-case ASCII code point to upper-case or upper-case ASCII code point to lower-case.
+                    modified[p] ^= 0x20;
                 }
-            } finally {
-                profileAndReportLoopCount(loopProfile, i - start);
             }
 
             return modified;
