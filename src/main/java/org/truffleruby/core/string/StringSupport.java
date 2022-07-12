@@ -118,6 +118,12 @@ public final class StringSupport {
         }
     }
 
+    public static int characterLength(RubyEncoding encoding, byte[] bytes, int byteOffset, int byteEnd) {
+        assert byteOffset >= 0 && byteOffset < byteEnd && byteEnd <= bytes.length;
+
+        return preciseLength(encoding.jcoding, bytes, byteOffset, byteEnd);
+    }
+
     public static int characterLength(Encoding encoding, byte[] bytes, int byteOffset, int byteEnd) {
         assert byteOffset >= 0 && byteOffset < byteEnd && byteEnd <= bytes.length;
 
@@ -743,7 +749,7 @@ public final class StringSupport {
         if (!alnumSeen) {
             s = end;
             while ((s = enc.prevCharHead(bytes, p, s, end)) != -1) {
-                int cl = characterLength(original.encoding, null, bytes, s, end);
+                int cl = characterLength(original.encoding, bytes, s, end);
                 if (cl <= 0) {
                     continue;
                 }
@@ -751,7 +757,7 @@ public final class StringSupport {
                 if (neighbor == NeighborChar.FOUND) {
                     return valueCopy;
                 }
-                if (characterLength(original.encoding, null, bytes, s, s + 1) != cl) {
+                if (characterLength(original.encoding, bytes, s, s + 1) != cl) {
                     succChar(enc, bytes, s, cl, node); /* wrapped to \0...\0. search next valid char. */
                 }
                 if (!enc.isAsciiCompatible()) {

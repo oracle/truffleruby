@@ -144,19 +144,15 @@ public class ClassicRegexp implements ReOptions {
         byte[] buf = null;
 
         var byteArray = str.getInternalByteArray();
-        int p = byteArray.getOffset();
+        final int offset = byteArray.getOffset();
+        int p = offset;
         int end = byteArray.getEnd();
         final byte[] bytes = byteArray.getArray();
 
+        var strInEnc = str.forceEncoding(enc);
 
         while (p < end) {
-            final int cl = StringSupport
-                    .characterLength(
-                            enc,
-                            enc.jcoding == str.encoding.jcoding ? str.getCodeRange() : null,
-                            bytes,
-                            p,
-                            end);
+            final int cl = strInEnc.characterLength(p - offset);
             if (cl <= 0) {
                 raisePreprocessError("invalid multibyte character", mode);
             }
@@ -381,12 +377,11 @@ public class ClassicRegexp implements ReOptions {
 
         p = readEscapedByte(chBuf, chLen++, bytes, p, end, mode);
         while (chLen < enc.jcoding.maxLength() &&
-                StringSupport
-                        .MBCLEN_NEEDMORE_P(StringSupport.characterLength(enc, null, chBuf, 0, chLen))) {
+                StringSupport.MBCLEN_NEEDMORE_P(StringSupport.characterLength(enc, chBuf, 0, chLen))) {
             p = readEscapedByte(chBuf, chLen++, bytes, p, end, mode);
         }
 
-        int cl = StringSupport.characterLength(enc, null, chBuf, 0, chLen);
+        int cl = StringSupport.characterLength(enc, chBuf, 0, chLen);
         if (cl == -1) {
             raisePreprocessError("invalid multibyte escape", mode); // MBCLEN_INVALID_P
         }
