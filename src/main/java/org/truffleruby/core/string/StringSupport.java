@@ -102,11 +102,6 @@ public final class StringSupport {
         return preciseLength(encoding.jcoding, bytes, byteOffset, byteEnd);
     }
 
-    public static int characterLength(RubyEncoding encoding, TruffleString.CodeRange codeRange, byte[] bytes,
-            int byteOffset, int byteEnd) {
-        return characterLength(encoding.jcoding, codeRange, bytes, byteOffset, byteEnd, false);
-    }
-
     public static int characterLength(Encoding encoding, TruffleString.CodeRange codeRange, byte[] bytes,
             int byteOffset, int byteEnd) {
         return characterLength(encoding, codeRange, bytes, byteOffset, byteEnd, false);

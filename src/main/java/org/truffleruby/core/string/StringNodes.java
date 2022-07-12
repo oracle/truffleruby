@@ -71,8 +71,6 @@ import static org.truffleruby.core.string.StringSupport.MBCLEN_CHARFOUND_P;
 import static org.truffleruby.core.string.StringSupport.MBCLEN_INVALID_P;
 import static org.truffleruby.core.string.StringSupport.MBCLEN_NEEDMORE_P;
 
-import java.nio.charset.StandardCharsets;
-
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
@@ -3419,52 +3417,40 @@ public abstract class StringNodes {
         @Specialization
         protected RubyString string_escape(Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
-                @Cached GetByteCodeRangeNode getByteCodeRangeNode) {
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
             var tstring = strings.getTString(string);
             var encoding = strings.getEncoding(string);
             var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
-            var codeRange = getByteCodeRangeNode.execute(tstring, encoding.tencoding);
-            final TruffleString escaped = rbStrEscape(encoding, byteArray, codeRange);
+            final TruffleString escaped = rbStrEscape(tstring, encoding, byteArray);
             return createString(escaped, Encodings.US_ASCII);
         }
 
         // MRI: rb_str_escape
         @TruffleBoundary
-        private static TruffleString rbStrEscape(RubyEncoding rubyEncoding, InternalByteArray byteArray,
-                TruffleString.CodeRange cr) {
+        private static TruffleString rbStrEscape(AbstractTruffleString tstring, RubyEncoding rubyEncoding,
+                InternalByteArray byteArray) {
             final Encoding enc = rubyEncoding.jcoding;
-            final byte[] pBytes = byteArray.getArray();
+            var tencoding = rubyEncoding.tencoding;
+            var str = new ATStringWithEncoding(tstring, rubyEncoding);
 
-            int p = byteArray.getOffset();
-            int pend = byteArray.getEnd();
-            int prev = p;
             TStringBuilder result = new TStringBuilder();
             boolean unicode_p = enc.isUnicode();
             boolean asciicompat = enc.isAsciiCompatible();
+            var iterator = tstring.createCodePointIteratorUncached(tencoding);
 
-            while (p < pend) {
-                int c, cc;
-                int n = StringSupport.characterLength(enc, cr, pBytes, p, pend, false);
-                if (!MBCLEN_CHARFOUND_P(n)) {
-                    if (p > prev) {
-                        result.append(pBytes, prev, p - prev);
-                    }
-                    n = enc.minLength();
-                    if (pend < p + n) {
-                        n = (pend - p);
-                    }
-                    while ((n--) > 0) {
-                        result.append(
-                                String.format("\\x%02X", (long) (pBytes[p] & 0377)).getBytes(
-                                        StandardCharsets.US_ASCII));
-                        prev = ++p;
+            while (iterator.hasNext()) {
+                final int p = iterator.getByteIndex();
+                int c = iterator.nextUncached();
+
+                if (str.isBrokenCodePointAt(p)) {
+                    int n = iterator.getByteIndex() - p;
+                    for (int i = 0; i < n; i++) {
+                        result.append(StringUtils.formatASCIIBytes("\\x%02X", (long) (byteArray.get(p + i) & 0377)));
                     }
                     continue;
                 }
-                n = MBCLEN_CHARFOUND_LEN(n);
-                c = enc.mbcToCode(pBytes, p, pend);
-                p += n;
+
+                final int cc;
                 switch (c) {
                     case '\n':
                         cc = 'n';
@@ -3494,19 +3480,13 @@ public abstract class StringNodes {
                         cc = 0;
                         break;
                 }
+
                 if (cc != 0) {
-                    if (p - n > prev) {
-                        result.append(pBytes, prev, p - n - prev);
-                    }
                     result.append('\\');
                     result.append((byte) cc);
-                    prev = p;
                 } else if (asciicompat && Encoding.isAscii(c) && (c < 0x7F && c > 31 /* ISPRINT(c) */)) {
+                    result.append(byteArray, p, p - iterator.getByteIndex());
                 } else {
-                    if (p - n > prev) {
-                        result.append(pBytes, prev, p - n - prev);
-                    }
-
                     if (unicode_p && (c & 0xFFFFFFFFL) < 0x7F && Encoding.isAscii(c) &&
                             ASCIIEncoding.INSTANCE.isPrint(c)) {
                         result.append(StringUtils.formatASCIIBytes("%c", (char) (c & 0xFFFFFFFFL)));
@@ -3514,11 +3494,7 @@ public abstract class StringNodes {
                         result.append(StringUtils.formatASCIIBytes(escapedCharFormat(c, unicode_p), c & 0xFFFFFFFFL));
                     }
 
-                    prev = p;
                 }
-            }
-            if (p > prev) {
-                result.append(pBytes, prev, p - prev);
             }
 
             result.setEncoding(Encodings.US_ASCII);
