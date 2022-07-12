@@ -2845,9 +2845,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
         protected Object upcaseMultiByteAsciiSimple(RubyString string, int caseMappingOptions,
-                @Cached @Shared("codeRangeNode") GetByteCodeRangeNode codeRangeNode,
                 @Cached @Shared("fromByteArrayNode") TruffleString.FromByteArrayNode fromByteArrayNode,
-                @Cached @Shared("byteArrayNode") TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Cached @Shared("dummyEncodingProfile") ConditionProfile dummyEncodingProfile,
                 @Cached @Shared("modifiedProfile") ConditionProfile modifiedProfile) {
             var tstring = string.tstring;
@@ -2859,11 +2857,9 @@ public abstract class StringNodes {
                         coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding.jcoding, this));
             }
 
-            var cr = codeRangeNode.execute(string.tstring, string.getTEncoding());
-            var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
-            final byte[] outputBytes = StringSupport.upcaseMultiByteAsciiSimple(encoding, cr, byteArray);
+            final byte[] outputBytes = StringSupport.upcaseMultiByteAsciiSimple(tstring, encoding);
 
-            if (modifiedProfile.profile(byteArray.getArray() != outputBytes)) {
+            if (modifiedProfile.profile(outputBytes != null)) {
                 string.setTString(fromByteArrayNode.execute(outputBytes, string.encoding.tencoding)); // cr, codePointLengthNode.execute(rope)
                 return string;
             } else {
@@ -2873,9 +2869,9 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
         protected Object upcaseMultiByteComplex(RubyString string, int caseMappingOptions,
-                @Cached @Shared("codeRangeNode") GetByteCodeRangeNode codeRangeNode,
+                @Cached GetByteCodeRangeNode codeRangeNode,
                 @Cached @Shared("fromByteArrayNode") TruffleString.FromByteArrayNode fromByteArrayNode,
-                @Cached @Shared("byteArrayNode") TruffleString.GetInternalByteArrayNode byteArrayNode,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Cached @Shared("dummyEncodingProfile") ConditionProfile dummyEncodingProfile,
                 @Cached @Shared("modifiedProfile") ConditionProfile modifiedProfile) {
             var tstring = string.tstring;

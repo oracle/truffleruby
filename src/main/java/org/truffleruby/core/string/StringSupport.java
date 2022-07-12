@@ -1484,26 +1484,24 @@ public final class StringSupport {
      * characters need upcasing. The encoding must be ASCII-compatible (i.e. represent each ASCII character as a single
      * byte ( {@link Encoding#isAsciiCompatible()}). */
     @TruffleBoundary
-    public static byte[] upcaseMultiByteAsciiSimple(RubyEncoding enc, TruffleString.CodeRange codeRange,
-            InternalByteArray byteArray) {
+    public static byte[] upcaseMultiByteAsciiSimple(AbstractTruffleString tstring, RubyEncoding enc) {
         assert enc.jcoding.isAsciiCompatible();
-        boolean modified = false;
-        int s = byteArray.getOffset();
-        int end = byteArray.getEnd();
-        var bytes = byteArray.getArray();
 
-        while (s < end) {
-            if (isAsciiLowercase(bytes[s])) {
-                if (!modified) {
-                    bytes = ArrayUtils.extractRange(bytes, byteArray.getOffset(), byteArray.getEnd());
-                    s -= byteArray.getOffset();
-                    end = bytes.length;
-                    modified = true;
+        byte[] bytes = null;
+
+        var tencoding = enc.tencoding;
+        var iterator = tstring.createCodePointIteratorUncached(tencoding);
+
+        while (iterator.hasNext()) {
+            final int p = iterator.getByteIndex();
+            int c = iterator.nextUncached();
+
+            if (StringSupport.isAsciiLowercase(c)) {
+                if (bytes == null) {
+                    bytes = CopyToByteArrayNode.getUncached().execute(tstring, tencoding);
                 }
-                bytes[s] ^= 0x20;
-                s++;
-            } else {
-                s += characterLength(enc, codeRange, bytes, s, end);
+
+                bytes[p] ^= 0x20;
             }
         }
 
