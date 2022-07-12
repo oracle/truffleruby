@@ -132,7 +132,6 @@ import org.truffleruby.core.range.RubyLongRange;
 import org.truffleruby.core.range.RubyObjectRange;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.ATStringWithEncoding;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.TStringBuilder;
 import org.truffleruby.core.string.StringHelperNodes.SingleByteOptimizableNode;
 import org.truffleruby.core.rope.TStringWithEncoding;
@@ -2060,7 +2059,7 @@ public abstract class StringNodes {
         private ByteArrayBuilder dumpCommon(ATStringWithEncoding string) {
             ByteArrayBuilder buf = null;
             final var enc = string.encoding.jcoding;
-            final var cr = string.getTCodeRange();
+            final var cr = string.getCodeRange();
 
             var byteArray = string.getInternalByteArray();
             int p = byteArray.getOffset();

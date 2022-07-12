@@ -59,7 +59,6 @@ import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
 import org.truffleruby.core.regexp.TruffleRegexpNodesFactory.MatchNodeGen;
 import org.truffleruby.core.rope.ATStringWithEncoding;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.TStringBuilder;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.RubyString;
@@ -1187,7 +1186,7 @@ public class TruffleRegexpNodes {
                     .getOrCompute(characterLengthFrequencies, string.characterLength(), x -> new AtomicLong())
                     .incrementAndGet();
             ConcurrentOperations
-                    .getOrCompute(codeRangeFrequencies, string.getTCodeRange(), x -> new AtomicLong())
+                    .getOrCompute(codeRangeFrequencies, string.getCodeRange(), x -> new AtomicLong())
                     .incrementAndGet();
             ConcurrentOperations.getOrCompute(encodingFrequencies, string.encoding, x -> new AtomicLong())
                     .incrementAndGet();

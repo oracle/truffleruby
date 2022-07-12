@@ -153,7 +153,7 @@ public class ClassicRegexp implements ReOptions {
             final int cl = StringSupport
                     .characterLength(
                             enc,
-                            enc.jcoding == str.encoding.jcoding ? str.getTCodeRange() : null,
+                            enc.jcoding == str.encoding.jcoding ? str.getCodeRange() : null,
                             bytes,
                             p,
                             end);
@@ -946,7 +946,7 @@ public class ClassicRegexp implements ReOptions {
         int end = p + len;
         final byte[] bytes = byteArray.getArray();
 
-        final var cr = str.getTCodeRange();
+        final var cr = str.getCodeRange();
         final var enc = str.encoding.jcoding;
 
         boolean needEscape = false;

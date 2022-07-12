@@ -959,7 +959,7 @@ public final class StringSupport {
                 }
                 s++;
             } else {
-                c = codePoint(enc, rubyString.getTCodeRange(), bytes, s, send, node);
+                c = codePoint(enc, rubyString.getCodeRange(), bytes, s, send, node);
                 int cl = codeLength(enc, c);
                 if (trFind(c, squeeze, tables)) {
                     modified = true;
@@ -999,14 +999,14 @@ public final class StringSupport {
         // of the caller to take the appropriate action in those cases.
 
         final Encoding enc = rubyEncoding.jcoding;
-        var cr = self.getTCodeRange();
+        var cr = self.getCodeRange();
 
         final StringSupport.TR trSrc = new StringSupport.TR(srcStr.tstring, srcStr.encoding);
         boolean cflag = false;
         int[] l = { 0 };
 
         if (srcStr.byteLength() > 1 &&
-                EncodingUtils.encAscget(trSrc.buf, trSrc.p, trSrc.pend, l, enc, srcStr.getTCodeRange()) == '^' &&
+                EncodingUtils.encAscget(trSrc.buf, trSrc.p, trSrc.pend, l, enc, srcStr.getCodeRange()) == '^' &&
                 trSrc.p + 1 < trSrc.pend) {
             cflag = true;
             trSrc.p++;
@@ -1024,7 +1024,7 @@ public final class StringSupport {
                 trans[i] = 1;
             }
 
-            while ((c = StringSupport.trNext(trSrc, enc, srcStr.getTCodeRange(), node)) != -1) {
+            while ((c = StringSupport.trNext(trSrc, enc, srcStr.getCodeRange(), node)) != -1) {
                 if (c < StringSupport.TRANS_SIZE) {
                     trans[c] = -1;
                 } else {
@@ -1034,7 +1034,7 @@ public final class StringSupport {
                     hash.put(c, 1); // QTRUE
                 }
             }
-            while ((c = StringSupport.trNext(trRepl, enc, replStr.getTCodeRange(), node)) != -1) {
+            while ((c = StringSupport.trNext(trRepl, enc, replStr.getCodeRange(), node)) != -1) {
                 /* retrieve last replacer */
             }
             last = trRepl.now;
@@ -1048,8 +1048,8 @@ public final class StringSupport {
                 trans[i] = -1;
             }
 
-            while ((c = StringSupport.trNext(trSrc, enc, srcStr.getTCodeRange(), node)) != -1) {
-                int r = StringSupport.trNext(trRepl, enc, replStr.getTCodeRange(), node);
+            while ((c = StringSupport.trNext(trSrc, enc, srcStr.getCodeRange(), node)) != -1) {
+                int r = StringSupport.trNext(trRepl, enc, replStr.getCodeRange(), node);
                 if (r == -1) {
                     r = trRepl.now;
                 }
@@ -1737,7 +1737,7 @@ public final class StringSupport {
         TStringBuilder undumped = new TStringBuilder();
         undumped.setEncoding(encoding);
 
-        var cr = rope.getTCodeRange();
+        var cr = rope.getCodeRange();
         if (cr != ASCII) {
             throw new RaiseException(
                     context,

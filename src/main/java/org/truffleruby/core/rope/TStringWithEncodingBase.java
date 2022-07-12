@@ -76,7 +76,7 @@ abstract class TStringWithEncodingBase {
         return tstring.getInternalByteArrayUncached(encoding.tencoding);
     }
 
-    public TruffleString.CodeRange getTCodeRange() {
+    public TruffleString.CodeRange getCodeRange() {
         CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
         return tstring.getByteCodeRangeUncached(encoding.tencoding);
     }
