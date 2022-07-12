@@ -38,6 +38,7 @@ import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.strings.TruffleString.ErrorHandling;
+import com.oracle.truffle.api.strings.TruffleString.FromByteArrayNode;
 import org.graalvm.collections.Pair;
 import org.jcodings.Config;
 import org.jcodings.Encoding;
@@ -69,27 +70,6 @@ public final class StringSupport {
     // exceeding the buffer size.
     private static final int CASE_MAP_BUFFER_SIZE = 32;
 
-    // Should probably use ByteLengthOfCodePointNode instead longer-term for recoverIfBroken=true cases
-    public static int characterLength(RubyEncoding encoding, TruffleString.CodeRange codeRange, byte[] bytes,
-            int byteOffset, int byteEnd, boolean recoverIfBroken) {
-        assert byteOffset >= 0 && byteOffset < byteEnd && byteEnd <= bytes.length;
-
-        if (codeRange == null) {
-            var substring = TruffleString.FromByteArrayNode.getUncached().execute(bytes, byteOffset,
-                    byteEnd - byteOffset, encoding.tencoding, false);
-
-            if (recoverIfBroken) {
-                return TruffleString.ByteLengthOfCodePointNode.getUncached().execute(substring, 0, encoding.tencoding,
-                        ErrorHandling.BEST_EFFORT);
-            } else {
-                return TruffleString.ByteLengthOfCodePointNode.getUncached().execute(substring, 0, encoding.tencoding,
-                        ErrorHandling.RETURN_NEGATIVE);
-            }
-        }
-
-        return characterLength(encoding.jcoding, codeRange, bytes, byteOffset, byteEnd, recoverIfBroken);
-    }
-
     public static int characterLength(Encoding encoding, TruffleString.CodeRange codeRange, byte[] bytes,
             int byteOffset, int byteEnd, boolean recoverIfBroken) {
         assert byteOffset >= 0 && byteOffset < byteEnd && byteEnd <= bytes.length;
@@ -118,10 +98,14 @@ public final class StringSupport {
         }
     }
 
+    /** recoverIfBroken=false */
     public static int characterLength(RubyEncoding encoding, byte[] bytes, int byteOffset, int byteEnd) {
         assert byteOffset >= 0 && byteOffset < byteEnd && byteEnd <= bytes.length;
 
-        return preciseLength(encoding.jcoding, bytes, byteOffset, byteEnd);
+        var tstring = TruffleString.FromByteArrayNode.getUncached().execute(bytes, byteOffset,
+                byteEnd - byteOffset, encoding.tencoding, false);
+        return TruffleString.ByteLengthOfCodePointNode.getUncached().execute(tstring, 0, encoding.tencoding,
+                ErrorHandling.RETURN_NEGATIVE);
     }
 
     public static int characterLength(Encoding encoding, byte[] bytes, int byteOffset, int byteEnd) {
@@ -131,11 +115,6 @@ public final class StringSupport {
     }
 
     public static int characterLength(Encoding encoding, TruffleString.CodeRange codeRange, byte[] bytes,
-            int byteOffset, int byteEnd) {
-        return characterLength(encoding, codeRange, bytes, byteOffset, byteEnd, false);
-    }
-
-    public static int characterLength(RubyEncoding encoding, TruffleString.CodeRange codeRange, byte[] bytes,
             int byteOffset, int byteEnd) {
         return characterLength(encoding, codeRange, bytes, byteOffset, byteEnd, false);
     }
@@ -281,60 +260,16 @@ public final class StringSupport {
         return com.oracle.truffle.api.ArrayUtils.indexOfWithOrMask(bytes, p, end - p, NON_ASCII_NEEDLE, NON_ASCII_MASK);
     }
 
-    // MRI: rb_enc_strlen
-    public static int strLength(RubyEncoding enc, byte[] bytes, int p, int end) {
-        return strLength(enc, bytes, p, end, null);
-    }
-
-    // MRI: enc_strlen
+    // MRI: rb_enc_strlen / enc_strlen
     @TruffleBoundary
-    public static int strLength(RubyEncoding encoding, byte[] bytes, int p, int e, TruffleString.CodeRange cr) {
-        int c;
-        var enc = encoding.jcoding;
-        if (enc.isFixedWidth()) {
-            return (e - p + enc.minLength() - 1) / enc.minLength();
-        } else if (enc.isAsciiCompatible()) {
-            c = 0;
-            if (cr == ASCII || cr == VALID) {
-                while (p < e) {
-                    if (Encoding.isAscii(bytes[p])) {
-                        int q = searchNonAscii(bytes, p, e);
-                        if (q == -1) {
-                            return c + (e - p);
-                        }
-                        c += q - p;
-                        p = q;
-                    }
-                    p += characterLength(encoding, cr, bytes, p, e);
-                    c++;
-                }
-            } else {
-                while (p < e) {
-                    if (Encoding.isAscii(bytes[p])) {
-                        int q = searchNonAscii(bytes, p, e);
-                        if (q == -1) {
-                            return c + (e - p);
-                        }
-                        c += q - p;
-                        p = q;
-                    }
-                    p += characterLength(encoding, cr, bytes, p, e, true);
-                    c++;
-                }
-            }
-            return c;
-        }
-
-        for (c = 0; p < e; c++) {
-            p += characterLength(encoding, cr, bytes, p, e, true);
-        }
-        return c;
+    public static int strLength(RubyEncoding encoding, byte[] bytes, int p, int e) {
+        var tstring = FromByteArrayNode.getUncached().execute(bytes, p, e - p, encoding.tencoding, false);
+        return tstring.codePointLengthUncached(encoding.tencoding);
     }
 
     public static int codePoint(Encoding enc, byte[] bytes, int p, int end, Node node) {
         return codePoint(enc, null, bytes, p, end, node);
     }
-
 
     @TruffleBoundary
     public static int codePoint(Encoding enc, TruffleString.CodeRange codeRange, byte[] bytes, int p, int end,
