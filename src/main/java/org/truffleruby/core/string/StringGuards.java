@@ -19,6 +19,7 @@ import org.truffleruby.core.string.StringHelperNodes.SingleByteOptimizableNode;
 
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.ASCII;
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.BROKEN;
+import static com.oracle.truffle.api.strings.TruffleString.CodeRange.VALID;
 
 public class StringGuards {
 
@@ -33,6 +34,16 @@ public class StringGuards {
     public static boolean is7BitUncached(AbstractTruffleString tstring, RubyEncoding encoding) {
         CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
         return tstring.getByteCodeRangeUncached(encoding.tencoding) == ASCII;
+    }
+
+    public static boolean isValid(AbstractTruffleString tstring, RubyEncoding encoding,
+            TruffleString.GetByteCodeRangeNode codeRangeNode) {
+        return codeRangeNode.execute(tstring, encoding.tencoding) == VALID;
+    }
+
+    public static boolean isBrokenCodeRange(AbstractTruffleString string, RubyEncoding encoding,
+            TruffleString.GetByteCodeRangeNode codeRangeNode) {
+        return codeRangeNode.execute(string, encoding.tencoding) == BROKEN;
     }
 
     public static boolean isSingleByteOptimizable(RubyString string,
@@ -59,11 +70,6 @@ public class StringGuards {
 
     public static boolean isEmpty(AbstractTruffleString string) {
         return string.isEmpty();
-    }
-
-    public static boolean isBrokenCodeRange(AbstractTruffleString string, RubyEncoding encoding,
-            TruffleString.GetByteCodeRangeNode codeRangeNode) {
-        return codeRangeNode.execute(string, encoding.tencoding) == BROKEN;
     }
 
     /** The case mapping is simple (ASCII-only or full Unicode): no complex option like Turkic, case-folding, etc. */

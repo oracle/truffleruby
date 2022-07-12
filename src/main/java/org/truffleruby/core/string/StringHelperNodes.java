@@ -34,7 +34,6 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
-import org.truffleruby.utils.Utils;
 
 public abstract class StringHelperNodes {
 
@@ -585,7 +584,7 @@ public abstract class StringHelperNodes {
                     TruffleString.ErrorHandling.RETURN_NEGATIVE);
             if (badCodePointProfile.profile(codePoint < 0)) {
                 throw new RaiseException(getContext(),
-                        coreExceptions().argumentError(Utils.concat("invalid byte sequence in ", encoding), this));
+                        coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
             }
             return codePoint;
         }

@@ -85,6 +85,7 @@ import com.oracle.truffle.api.strings.TruffleString.AsTruffleStringNode;
 import com.oracle.truffle.api.strings.TruffleString.CodePointLengthNode;
 import com.oracle.truffle.api.strings.TruffleString.ErrorHandling;
 import com.oracle.truffle.api.strings.TruffleString.GetByteCodeRangeNode;
+import com.oracle.truffle.api.strings.TruffleStringIterator;
 import org.graalvm.collections.Pair;
 import org.jcodings.Config;
 import org.jcodings.Encoding;
@@ -3215,16 +3216,15 @@ public abstract class StringNodes {
             }
         }
 
-        @TruffleBoundary
-        @Specialization(guards = "!is7Bit(tstring, encoding, codeRangeNode)")
+        @Specialization(guards = "isValid(tstring, encoding, codeRangeNode)")
         protected Object stringAwkSplit(Object string, int limit, Object block,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached ConditionProfile executeBlockProfile,
                 @Cached ConditionProfile growArrayProfile,
                 @Cached ConditionProfile trailingSubstringProfile,
-                @Cached StringHelperNodes.GetCodePointNode getCodePointNode,
+                @Cached TruffleString.CreateCodePointIteratorNode createCodePointIteratorNode,
+                @Cached TruffleStringIterator.NextNode nextNode,
                 @Cached TruffleString.SubstringByteIndexNode substringNode,
-                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Bind("strings.getTString(string)") AbstractTruffleString tstring,
                 @Bind("strings.getEncoding(string)") RubyEncoding encoding) {
             Object[] ret = new Object[10];
@@ -3233,29 +3233,23 @@ public abstract class StringNodes {
             final boolean limitPositive = limit > 0;
             int i = limit > 0 ? 1 : 0;
 
-            var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
-            final byte[] bytes = byteArray.getArray();
-            int byteOffset = byteArray.getOffset();
+            var tencoding = encoding.tencoding;
+            final int len = tstring.byteLength(tencoding);
 
-            int p = byteOffset;
-            int ptr = p;
-            int len = byteArray.getLength();
-            int end = p + len;
+            // TODO error if broken like getCodePointNode.executeGetCodePoint(tstring, encoding, p - byteOffset);
+            var iterator = createCodePointIteratorNode.execute(tstring, tencoding);
 
-            final Encoding enc = encoding.jcoding;
-            final TruffleString.CodeRange cr = codeRangeNode.execute(tstring, encoding.tencoding);
             boolean skip = true;
-
             int e = 0, b = 0;
-            while (p < end) {
-                int c = getCodePointNode.executeGetCodePoint(tstring, encoding, p - byteOffset);
-                p += StringSupport.characterLength(enc, cr, bytes, p, end, true);
+            while (iterator.hasNext()) {
+                int c = nextNode.execute(iterator);
+                int p = iterator.getByteIndex();
 
                 if (skip) {
                     if (StringSupport.isAsciiSpace(c)) {
-                        b = p - ptr;
+                        b = p;
                     } else {
-                        e = p - ptr;
+                        e = p;
                         skip = false;
                         if (limitPositive && limit <= i) {
                             break;
@@ -3272,12 +3266,12 @@ public abstract class StringNodes {
                                 executeBlockProfile,
                                 growArrayProfile);
                         skip = true;
-                        b = p - ptr;
+                        b = p;
                         if (limitPositive) {
                             i++;
                         }
                     } else {
-                        e = p - ptr;
+                        e = p;
                     }
                 }
             }
@@ -3292,6 +3286,14 @@ public abstract class StringNodes {
             } else {
                 return string;
             }
+        }
+
+        @Specialization(guards = "isBrokenCodeRange(tstring, encoding, codeRangeNode)")
+        protected Object broken(Object string, int limit, Object block,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Bind("strings.getTString(string)") AbstractTruffleString tstring,
+                @Bind("strings.getEncoding(string)") RubyEncoding encoding) {
+            throw new RaiseException(getContext(), coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
         }
 
         private Object[] addSubstring(Object[] store, int index, RubyString substring,

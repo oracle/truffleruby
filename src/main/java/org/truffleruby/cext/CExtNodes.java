@@ -106,7 +106,6 @@ import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.supercall.CallSuperMethodNode;
 import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.IdentifierType;
-import org.truffleruby.utils.Utils;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -664,7 +663,7 @@ public class CExtNodes {
                 errorProfile.enter();
                 throw new RaiseException(
                         getContext(),
-                        coreExceptions().argumentError(Utils.concat("invalid byte sequence in ", enc), this));
+                        coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
             }
 
             int codePoint = codePointAtByteIndexNode.execute(tstring, 0, tencoding, ErrorHandling.RETURN_NEGATIVE);
