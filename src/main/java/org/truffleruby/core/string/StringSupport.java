@@ -28,7 +28,6 @@ package org.truffleruby.core.string;
 
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.BROKEN;
 import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
-import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import static org.truffleruby.core.rope.CodeRange.CR_VALID;
 
 import java.util.Arrays;
@@ -70,27 +69,6 @@ public final class StringSupport {
     // exceeding the buffer size.
     private static final int CASE_MAP_BUFFER_SIZE = 32;
 
-    public static int characterLength(Encoding encoding, CodeRange codeRange, byte[] bytes,
-            int byteOffset, int byteEnd, boolean recoverIfBroken) {
-        assert byteOffset >= 0 && byteOffset < byteEnd && byteEnd <= bytes.length;
-
-        switch (codeRange) {
-            case CR_7BIT:
-                return 1;
-            case CR_VALID:
-                return characterLengthValid(encoding, bytes, byteOffset, byteEnd);
-            case CR_BROKEN:
-            case CR_UNKNOWN:
-                if (recoverIfBroken) {
-                    return length(encoding, bytes, byteOffset, byteEnd);
-                } else {
-                    return preciseLength(encoding, bytes, byteOffset, byteEnd);
-                }
-            default:
-                throw Utils.unsupportedOperation("unknown code range value: ", codeRange);
-        }
-    }
-
     // Should probably use ByteLengthOfCodePointNode instead longer-term for recoverIfBroken=true cases
     public static int characterLength(RubyEncoding encoding, TruffleString.CodeRange codeRange, byte[] bytes,
             int byteOffset, int byteEnd, boolean recoverIfBroken) {
@@ -111,6 +89,14 @@ public final class StringSupport {
             int byteOffset, int byteEnd, boolean recoverIfBroken) {
         assert byteOffset >= 0 && byteOffset < byteEnd && byteEnd <= bytes.length;
 
+        if (codeRange == null) {
+            if (recoverIfBroken) {
+                return length(encoding, bytes, byteOffset, byteEnd);
+            } else {
+                return preciseLength(encoding, bytes, byteOffset, byteEnd);
+            }
+        }
+
         switch (codeRange) {
             case ASCII:
                 return 1;
@@ -127,9 +113,10 @@ public final class StringSupport {
         }
     }
 
-    public static int characterLength(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset,
-            int byteEnd) {
-        return characterLength(encoding, codeRange, bytes, byteOffset, byteEnd, false);
+    public static int characterLength(Encoding encoding, byte[] bytes, int byteOffset, int byteEnd) {
+        assert byteOffset >= 0 && byteOffset < byteEnd && byteEnd <= bytes.length;
+
+        return preciseLength(encoding, bytes, byteOffset, byteEnd);
     }
 
     public static int characterLength(Encoding encoding, TruffleString.CodeRange codeRange, byte[] bytes,
@@ -318,21 +305,10 @@ public final class StringSupport {
         return c;
     }
 
-    @TruffleBoundary
-    public static int codePoint(Encoding enc, CodeRange codeRange, byte[] bytes, int p, int end, Node node) {
-        if (p >= end) {
-            final RubyContext context = RubyContext.get(node);
-            throw new RaiseException(context, context.getCoreExceptions().argumentError("empty string", node));
-        }
-        int cl = characterLength(enc, codeRange, bytes, p, end);
-        if (cl <= 0) {
-            final RubyContext context = RubyContext.get(node);
-            throw new RaiseException(
-                    context,
-                    context.getCoreExceptions().argumentError("invalid byte sequence in " + enc, node));
-        }
-        return enc.mbcToCode(bytes, p, end);
+    public static int codePoint(Encoding enc, byte[] bytes, int p, int end, Node node) {
+        return codePoint(enc, null, bytes, p, end, node);
     }
+
 
     @TruffleBoundary
     public static int codePoint(Encoding enc, TruffleString.CodeRange codeRange, byte[] bytes, int p, int end,
@@ -706,7 +682,7 @@ public final class StringSupport {
         carry[0] = 1;
         int carryLen = 1;
 
-        Encoding enc = original.encoding.jcoding;
+        final Encoding enc = original.encoding.jcoding;
         TStringBuilder valueCopy = TStringBuilder.create(original);
         int p = 0;
         int end = p + valueCopy.getLength();
@@ -727,7 +703,7 @@ public final class StringSupport {
                 }
             }
 
-            int cl = characterLength(enc, CR_UNKNOWN, bytes, s, end);
+            int cl = characterLength(enc, bytes, s, end);
             if (cl <= 0) {
                 continue;
             }
@@ -747,7 +723,7 @@ public final class StringSupport {
         if (!alnumSeen) {
             s = end;
             while ((s = enc.prevCharHead(bytes, p, s, end)) != -1) {
-                int cl = characterLength(enc, CR_UNKNOWN, bytes, s, end);
+                int cl = characterLength(original.encoding, null, bytes, s, end);
                 if (cl <= 0) {
                     continue;
                 }
@@ -755,7 +731,7 @@ public final class StringSupport {
                 if (neighbor == NeighborChar.FOUND) {
                     return valueCopy;
                 }
-                if (characterLength(enc, CR_UNKNOWN, bytes, s, s + 1) != cl) {
+                if (characterLength(original.encoding, null, bytes, s, s + 1) != cl) {
                     succChar(enc, bytes, s, cl, node); /* wrapped to \0...\0. search next valid char. */
                 }
                 if (!enc.isAsciiCompatible()) {
@@ -783,11 +759,11 @@ public final class StringSupport {
         int l;
         if (enc.minLength() > 1) {
             /* wchar, trivial case */
-            int r = characterLength(enc, CR_UNKNOWN, bytes, p, p + len), c;
+            int r = characterLength(enc, bytes, p, p + len), c;
             if (!MBCLEN_CHARFOUND_P(r)) {
                 return NeighborChar.NOT_CHAR;
             }
-            c = codePoint(enc, CR_UNKNOWN, bytes, p, p + len, node) + 1;
+            c = codePoint(enc, bytes, p, p + len, node) + 1;
             l = codeLength(enc, c);
             if (l == 0) {
                 return NeighborChar.NOT_CHAR;
@@ -796,7 +772,7 @@ public final class StringSupport {
                 return NeighborChar.WRAPPED;
             }
             EncodingUtils.encMbcput(c, bytes, p, enc);
-            r = characterLength(enc, CR_UNKNOWN, bytes, p, p + len);
+            r = characterLength(enc, bytes, p, p + len);
             if (!MBCLEN_CHARFOUND_P(r)) {
                 return NeighborChar.NOT_CHAR;
             }
@@ -812,7 +788,7 @@ public final class StringSupport {
                 return NeighborChar.WRAPPED;
             }
             bytes[p + i] = (byte) ((bytes[p + i] & 0xff) + 1);
-            l = characterLength(enc, CR_UNKNOWN, bytes, p, p + len);
+            l = characterLength(enc, bytes, p, p + len);
             if (MBCLEN_CHARFOUND_P(l)) {
                 l = MBCLEN_CHARFOUND_LEN(l);
                 if (l == len) {
@@ -827,7 +803,7 @@ public final class StringSupport {
                 int len2;
                 int l2;
                 for (len2 = len - 1; 0 < len2; len2--) {
-                    l2 = characterLength(enc, CR_UNKNOWN, bytes, p, p + len2);
+                    l2 = characterLength(enc, bytes, p, p + len2);
                     if (!MBCLEN_INVALID_P(l2)) {
                         break;
                     }
@@ -900,11 +876,11 @@ public final class StringSupport {
         int l;
         if (enc.minLength() > 1) {
             /* wchar, trivial case */
-            int r = characterLength(enc, CR_UNKNOWN, bytes, p, p + len), c;
+            int r = characterLength(enc, bytes, p, p + len), c;
             if (!MBCLEN_CHARFOUND_P(r)) {
                 return NeighborChar.NOT_CHAR;
             }
-            c = codePoint(enc, CR_UNKNOWN, bytes, p, p + len, node);
+            c = codePoint(enc, bytes, p, p + len, node);
             if (c == 0) {
                 return NeighborChar.NOT_CHAR;
             }
@@ -917,7 +893,7 @@ public final class StringSupport {
                 return NeighborChar.WRAPPED;
             }
             EncodingUtils.encMbcput(c, bytes, p, enc);
-            r = characterLength(enc, CR_UNKNOWN, bytes, p, p + len);
+            r = characterLength(enc, bytes, p, p + len);
             if (!MBCLEN_CHARFOUND_P(r)) {
                 return NeighborChar.NOT_CHAR;
             }
@@ -932,7 +908,7 @@ public final class StringSupport {
                 return NeighborChar.WRAPPED;
             }
             bytes[p + i] = (byte) ((bytes[p + i] & 0xff) - 1);
-            l = characterLength(enc, CR_UNKNOWN, bytes, p, p + len);
+            l = characterLength(enc, bytes, p, p + len);
             if (MBCLEN_CHARFOUND_P(l)) {
                 l = MBCLEN_CHARFOUND_LEN(l);
                 if (l == len) {
@@ -947,7 +923,7 @@ public final class StringSupport {
                 int len2;
                 int l2;
                 for (len2 = len - 1; 0 < len2; len2--) {
-                    l2 = characterLength(enc, CR_UNKNOWN, bytes, p, p + len2);
+                    l2 = characterLength(enc, bytes, p, p + len2);
                     if (!MBCLEN_INVALID_P(l2)) {
                         break;
                     }
@@ -1109,7 +1085,7 @@ public final class StringSupport {
             int t = 0;
             while (s < send) {
                 boolean mayModify = false;
-                c0 = c = codePoint(e1, CR_UNKNOWN, sbytes, s, send, node);
+                c0 = c = codePoint(e1, sbytes, s, send, node);
                 clen = codeLength(e1, c);
                 tlen = enc == e1 ? clen : codeLength(enc, c);
                 s += clen;
@@ -1189,7 +1165,7 @@ public final class StringSupport {
 
             while (s < send) {
                 boolean mayModify = false;
-                c0 = c = codePoint(e1, CR_UNKNOWN, sbytes, s, send, node);
+                c0 = c = codePoint(e1, sbytes, s, send, node);
                 clen = codeLength(e1, c);
                 tlen = enc == e1 ? clen : codeLength(enc, c);
 

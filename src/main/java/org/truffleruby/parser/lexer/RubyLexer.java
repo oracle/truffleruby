@@ -3295,7 +3295,7 @@ public class RubyLexer implements MagicCommentHandler {
 
         // Barring all else, we must inspect the bytes for the substring.
         var bytes = substring.getInternalByteArrayUncached(tencoding);
-        var cr = TStringUtils.toCodeRange(substring.getByteCodeRangeUncached(tencoding));
+        var cr = substring.getByteCodeRangeUncached(tencoding);
         return StringSupport.characterLength(src.getEncoding(), cr, bytes.getArray(), bytes.getOffset(),
                 bytes.getEnd());
     }
