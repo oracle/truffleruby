@@ -56,7 +56,6 @@ import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.string.ATStringWithEncoding;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.TStringBuilder;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.string.StringSupport;
@@ -927,7 +926,7 @@ public class ClassicRegexp implements ReOptions {
                 }
             }
             result.append((byte) ':');
-            appendRegexpString(result, str, p - offset, len, null);
+            appendRegexpString(result, str, p - offset, len);
 
             result.append((byte) ')');
             result.setEncoding(Encodings.getBuiltInEncoding(getEncoding()));
@@ -937,8 +936,7 @@ public class ClassicRegexp implements ReOptions {
     }
 
     @TruffleBoundary
-    public void appendRegexpString(TStringBuilder to, TStringWithEncoding fullStr, int start, int len,
-            Encoding resEnc) {
+    public void appendRegexpString(TStringBuilder to, TStringWithEncoding fullStr, int start, int len) {
         var str = fullStr.substring(start, len);
 
         final var enc = str.encoding.jcoding;
@@ -971,9 +969,6 @@ public class ClassicRegexp implements ReOptions {
                     int l = str.characterLength(p);
                     if (l <= 0) {
                         to.append(StringUtils.formatASCIIBytes("\\x%02X", c));
-                    } else if (resEnc != null) {
-                        String escaped = String.format(StringSupport.escapedCharFormat(c, enc.isUnicode()), c);
-                        to.append(StringOperations.encodeAsciiBytes(escaped));
                     } else {
                         to.append(str, p, iterator.getByteIndex() - p);
                     }
