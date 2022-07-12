@@ -49,7 +49,7 @@ public class SourceLocationNodes {
             if (!sourceSection.isAvailable()) {
                 return coreStrings().UNKNOWN.createInstance(getContext());
             } else {
-                var path = getLanguage().getPathToRopeCache().getCachedPath(sourceSection.getSource());
+                var path = getLanguage().getPathToTStringCache().getCachedPath(sourceSection.getSource());
                 return createString(path, Encodings.UTF_8);
             }
         }

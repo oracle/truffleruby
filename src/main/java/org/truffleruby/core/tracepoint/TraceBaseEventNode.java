@@ -44,7 +44,7 @@ public class TraceBaseEventNode extends ExecutionEventNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             final Source source = eventContext.getInstrumentedSourceSection().getSource();
             file = new RubyString(context.getCoreLibrary().stringClass, language.stringShape, false,
-                    language.getPathToRopeCache().getCachedPath(source), Encodings.UTF_8);
+                    language.getPathToTStringCache().getCachedPath(source), Encodings.UTF_8);
         }
         return file;
     }

@@ -7,7 +7,7 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.core.rope;
+package org.truffleruby.core.string;
 
 import java.util.WeakHashMap;
 import java.util.concurrent.locks.Lock;
@@ -22,15 +22,15 @@ import org.truffleruby.core.encoding.TStringUtils;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.source.Source;
 
-/** A cache from {@link RubyLanguage#getPath(Source) the Source path} to a Rope. The Rope is kept alive as long as the
- * Source is reachable. */
-public class PathToRopeCache {
+/** A cache from {@link RubyLanguage#getPath(Source) the Source path} to a TruffleString. The TruffleString is kept
+ * alive as long as the Source is reachable. */
+public class PathToTStringCache {
 
     private final RubyLanguage language;
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private final WeakHashMap<String, TruffleString> javaStringToTString = new WeakHashMap<>();
 
-    public PathToRopeCache(RubyLanguage language) {
+    public PathToTStringCache(RubyLanguage language) {
         this.language = language;
     }
 

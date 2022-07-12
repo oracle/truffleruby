@@ -72,7 +72,7 @@ import org.truffleruby.core.regexp.RegexpCacheKey;
 import org.truffleruby.core.regexp.RegexpTable;
 import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.regexp.RubyRegexp;
-import org.truffleruby.core.rope.PathToRopeCache;
+import org.truffleruby.core.string.PathToTStringCache;
 import org.truffleruby.core.rope.TStringCache;
 import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.FrozenStringLiterals;
@@ -229,7 +229,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     @CompilationFinal public CoverageManager coverageManager;
 
     private final AtomicLong nextObjectID = new AtomicLong(ObjectSpaceManager.INITIAL_LANGUAGE_OBJECT_ID);
-    private final PathToRopeCache pathToRopeCache = new PathToRopeCache(this);
+    private final PathToTStringCache pathToTStringCache = new PathToTStringCache(this);
 
     public final SharedIndicesMap globalVariablesMap = new SharedIndicesMap();
     private final LanguageArray<Assumption> globalVariableNeverAliasedAssumptions = new LanguageArray<>(
@@ -719,8 +719,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         return id;
     }
 
-    public PathToRopeCache getPathToRopeCache() {
-        return pathToRopeCache;
+    public PathToTStringCache getPathToTStringCache() {
+        return pathToTStringCache;
     }
 
     private static Shape createShape(Class<? extends RubyDynamicObject> layoutClass) {

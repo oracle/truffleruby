@@ -71,7 +71,7 @@ public class ThreadBacktraceLocationNodes {
                             Encodings.UTF_8);
                     return node.createString(cachedRope, Encodings.UTF_8);
                 } else { // eval()
-                    var cachedPath = language.getPathToRopeCache().getCachedPath(source);
+                    var cachedPath = language.getPathToTStringCache().getCachedPath(source);
                     return node.createString(cachedPath, Encodings.UTF_8);
                 }
             }
@@ -90,7 +90,7 @@ public class ThreadBacktraceLocationNodes {
             if (sourceSection == null) {
                 return coreStrings().UNKNOWN.createInstance(getContext());
             } else {
-                var path = getLanguage().getPathToRopeCache().getCachedPath(sourceSection.getSource());
+                var path = getLanguage().getPathToTStringCache().getCachedPath(sourceSection.getSource());
                 return createString(path, Encodings.UTF_8);
             }
         }
