@@ -1,7 +1,13 @@
 %{
 package org.truffleruby.parser.parser;
 
+
 import com.oracle.truffle.api.strings.TruffleString;
+
+
+import java.util.Set
+import org.jcodings.Encoding;
+import org.jcodings.specific.UTF8Encoding;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.annotations.SuppressFBWarnings;
@@ -125,7 +131,7 @@ public class RubyParser {
   keyword_begin keyword_rescue keyword_ensure keyword_end keyword_if
   keyword_unless keyword_then keyword_elsif keyword_else keyword_case
   keyword_when keyword_while keyword_until keyword_for keyword_break
-  keyword_next keyword_redo keyword_retry keyword_in keyword_do
+  keyword_next keyword_redo keyword_retry keyword_do
   keyword_do_cond keyword_do_block keyword_return keyword_yield keyword_super
   keyword_self keyword_nil keyword_true keyword_false keyword_and keyword_or
   keyword_not modifier_if modifier_unless modifier_while modifier_until
@@ -210,7 +216,7 @@ public class RubyParser {
 %type <ParseNode> string_dvar backref
 %type <ArgsParseNode> f_args f_args_any f_larglist block_param block_param_def opt_block_param
 %type <Object> f_arglist
-%type <ParseNode> mrhs mlhs_item mlhs_node arg_value case_body p_case_body exc_list aref_args
+%type <ParseNode> mrhs mlhs_item mlhs_node arg_value case_body exc_list aref_args
 %type <ParseNode> lhs none args
 %type <ListParseNode> qword_list word_list
 %type <ListParseNode> f_arg f_optarg
@@ -254,6 +260,23 @@ public class RubyParser {
 %type <FCallParseNode> fcall
 %token <TruffleString> tLABEL_END
 %type <SourceIndexLength> k_return k_class k_module
+%type <InParseNode> p_case_body
+%type <ParseNode> p_cases p_top_expr p_top_expr_body
+%type <ParseNode> p_expr p_as p_alt p_expr_basic
+%type <FindPatternParseNode> p_find
+%type <ArrayPatternParseNode> p_args
+%type <ListParseNode> p_args_head
+%type <ArrayPatternParseNode> p_args_tail
+%type <ListParseNode> p_args_post p_arg
+%type <ParseNode> p_value p_primitive p_variable p_var_ref p_expr_ref p_const
+%type <HashPatternParseNode> p_kwargs
+%type <HashParseNode> p_kwarg
+%type <KeyValuePair> p_kw
+%type <Rope> p_rest p_kwrest p_kwnorest p_any_kwrest p_kw_label
+%type <ParseNode> p_lparen p_lbracket
+%type <Rope> nonlocal_var
+%token <Object> keyword_in
+
 
 /*
  *    precedence table
@@ -2040,7 +2063,7 @@ p_case_body     : keyword_in {
                     support.pop_pvtbl($<Set>2);
                     lexer.inKwarg = $<Boolean>1;
                 } compstmt p_cases {
-                    $$ = support.newInNode(support.getPosition($1), $4, $7, $8);
+                    $$ = support.newInNode(support.getPosition($<ParseNode>1), $4, $7, $8);
                 }
 
 p_cases         : opt_else
@@ -3202,7 +3225,7 @@ rbracket        : opt_nl tRBRACK {
                     $$ = $2;
                 }
 rbrace          : opt_nl '}' {
-                    $$ = RCURLY;
+                    $<Rope>$ = RCURLY;
                 }
 trailer         : /* none */ | '\n' | ','
 
