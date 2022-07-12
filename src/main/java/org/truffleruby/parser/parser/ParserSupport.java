@@ -1235,16 +1235,6 @@ public class ParserSupport {
         return new ParseNodeTuple(key, value);
     }
 
-    public ParseNode asSymbol(SourceIndexLength position, String value) {
-        final SymbolParseNode symbolParseNode = new SymbolParseNode(
-                position,
-                value,
-                lexer.getEncoding(),
-                lexer.getTokenCR());
-        checkSymbolCodeRange(symbolParseNode);
-        return symbolParseNode;
-    }
-
     public ParseNode asSymbol(SourceIndexLength position, TruffleString value) {
         var tstringWithCorrectEncoding = value.switchEncodingUncached(lexer.encoding.tencoding);
         final SymbolParseNode symbolParseNode = new SymbolParseNode(position, tstringWithCorrectEncoding,

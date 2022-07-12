@@ -44,8 +44,6 @@
 package org.truffleruby.parser.lexer;
 
 import static com.oracle.truffle.api.strings.TruffleString.Encoding.US_ASCII;
-import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
-import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import static org.truffleruby.core.string.StringSupport.isAsciiSpace;
 
 import java.math.BigDecimal;
@@ -73,11 +71,9 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.rope.BytesKey;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.TStringBuilder;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.TStringConstants;
-import org.truffleruby.core.string.StringGuards;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.control.RaiseException;
@@ -2859,8 +2855,6 @@ public class RubyLexer implements MagicCommentHandler {
     private int tokp = 0;
     /** Value of last token which had a value associated with it. */
     private Object yaccValue;
-    /** The character code range for the last token. */
-    private CodeRange tokenCR;
     /** Snapshot of {@link #ruby_sourceline} for the last token. */
     private int ruby_sourceline_when_tokline_created;
     /** Source span for the whole line of the last token. */
@@ -3003,25 +2997,6 @@ public class RubyLexer implements MagicCommentHandler {
 
     public int getState() {
         return lex_state;
-    }
-
-    public CodeRange getTokenCR() {
-        if (tokenCR != null) {
-            return tokenCR;
-        } else {
-            // The CR is null if the yaccValue is hard-coded inside the lexer, rather than determined by a token scan.
-            // This can happen, for instance, if the lexer is consuming tokens that might correspond to operators and
-            // then determines the characters are actually part of an identifier (see <code>lessThan</code> for such
-            // a case).
-
-            if (StringGuards.is7BitUncached(lexb, encoding)) {
-                // We don't know which substring of lexb was used for the token at this point, but if the source string
-                // is CR_7BIT, all substrings must be CR_7BIT by definition.
-                return CR_7BIT;
-            } else {
-                return CR_UNKNOWN;
-            }
-        }
     }
 
     public int incrementParenNest() {
@@ -3190,9 +3165,6 @@ public class RubyLexer implements MagicCommentHandler {
 
         tokline = getPosition();
         ruby_sourceline_when_tokline_created = ruby_sourceline;
-
-        // We assume all idents are valid (or 7BIT if ASCII-compatible), until they aren't.
-        tokenCR = src.getEncoding().isAsciiCompatible() ? CodeRange.CR_7BIT : CodeRange.CR_VALID;
 
         tokp = lex_p - (unreadOnce ? 1 : 0);
     }
@@ -3502,11 +3474,8 @@ public class RubyLexer implements MagicCommentHandler {
      * token it will just get the bytes directly from source directly. */
     public boolean tokadd_mbchar(int firstByte) {
         int length = precise_mbclen();
-
         if (length <= 0) {
             compile_error("invalid multibyte char (" + getEncoding() + ")");
-        } else if (length > 1 || (tokenCR == CR_7BIT && !isASCII(firstByte))) {
-            tokenCR = CodeRange.CR_VALID;
         }
 
         lex_p += length - 1;  // we already read first byte so advance pointer for remainder

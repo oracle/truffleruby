@@ -40,7 +40,6 @@ import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringGuards;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.ILiteralNode;
@@ -55,18 +54,15 @@ public class SymbolParseNode extends ParseNode implements ILiteralNode, INameNod
     private final Encoding encoding;
 
     // Interned ident path (e.g. [':', ident]).
-    public SymbolParseNode(SourceIndexLength position, String name, Encoding encoding, CodeRange cr) {
+    public SymbolParseNode(SourceIndexLength position, String name, Encoding encoding) {
         super(position);
         this.name = name;  // Assumed all names are already intern'd by lexer.
 
-        assert cr != CodeRange.CR_UNKNOWN;
-
-        if (cr == CodeRange.CR_7BIT) {
-            encoding = USASCIIEncoding.INSTANCE;
-        }
-
         RubyEncoding rubyEncoding = Encodings.getBuiltInEncoding(encoding);
         this.tstring = TStringUtils.fromJavaString(name, rubyEncoding);
+        if (StringGuards.is7BitUncached(tstring, rubyEncoding)) {
+            encoding = USASCIIEncoding.INSTANCE;
+        }
         this.encoding = encoding;
     }
 
