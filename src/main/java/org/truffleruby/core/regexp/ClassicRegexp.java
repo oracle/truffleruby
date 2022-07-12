@@ -966,8 +966,7 @@ public class ClassicRegexp implements ReOptions {
                     to.append((byte) '\\');
                     to.append(str, p, iterator.getByteIndex() - p);
                 } else if (!Encoding.isAscii(c)) {
-                    int l = str.characterLength(p);
-                    if (l <= 0) {
+                    if (str.isBrokenCodePointAt(p)) {
                         to.append(StringUtils.formatASCIIBytes("\\x%02X", c));
                     } else {
                         to.append(str, p, iterator.getByteIndex() - p);

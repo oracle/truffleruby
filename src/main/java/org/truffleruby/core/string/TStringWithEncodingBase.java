@@ -139,9 +139,15 @@ abstract class TStringWithEncodingBase {
         return TStringUtils.getBytesOrCopy(tstring, encoding);
     }
 
-    /** start is logical, recoverIfBroken=false */
-    public int characterLength(int start) {
+    /** byteOffset is logical, recoverIfBroken=false */
+    public int characterLength(int byteOffset) {
         CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
-        return tstring.byteLengthOfCodePointUncached(start, encoding.tencoding, ErrorHandling.RETURN_NEGATIVE);
+        return tstring.byteLengthOfCodePointUncached(byteOffset, encoding.tencoding, ErrorHandling.RETURN_NEGATIVE);
+    }
+
+    /** byteOffset is logical */
+    public boolean isBrokenCodePointAt(int byteOffset) {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        return tstring.byteLengthOfCodePointUncached(byteOffset, encoding.tencoding, ErrorHandling.RETURN_NEGATIVE) < 0;
     }
 }
