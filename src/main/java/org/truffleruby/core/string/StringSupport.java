@@ -37,6 +37,7 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.api.strings.TruffleString.CopyToByteArrayNode;
 import com.oracle.truffle.api.strings.TruffleString.FromByteArrayNode;
 import org.graalvm.collections.Pair;
 import org.jcodings.Config;
@@ -1548,44 +1549,36 @@ public final class StringSupport {
         return modified;
     }
 
-    /** Returns a copy of {@code bytes} but capitalized (affecting only ASCII characters), or {@code bytes} itself if
-     * the string doesn't require changes. The encoding must be ASCII-compatible (i.e. represent each ASCII character as
-     * a single byte ({@link Encoding#isAsciiCompatible()}). */
+    /** Returns a copy of {@code bytes} but capitalized (affecting only ASCII characters), or {@code null} if the string
+     * doesn't require changes. The encoding must be ASCII-compatible (i.e. represent each ASCII character as a single
+     * byte ({@link Encoding#isAsciiCompatible()}). */
     @TruffleBoundary
-    public static byte[] capitalizeMultiByteAsciiSimple(Encoding enc, TruffleString.CodeRange codeRange,
-            InternalByteArray byteArray) {
-        assert enc.isAsciiCompatible();
-        boolean modified = false;
+    public static byte[] capitalizeMultiByteAsciiSimple(AbstractTruffleString tstring, RubyEncoding enc) {
+        assert enc.jcoding.isAsciiCompatible();
 
-        int p = byteArray.getOffset();
-        int end = byteArray.getEnd();
-        var bytes = byteArray.getArray();
+        byte[] bytes = null;
 
-        if (byteArray.getLength() == 0) {
-            return bytes;
+        var tencoding = enc.tencoding;
+        var iterator = tstring.createCodePointIteratorUncached(tencoding);
+
+        if (!iterator.hasNext()) {
+            return null;
+        }
+        int c = iterator.nextUncached();
+
+        if (StringSupport.isAsciiLowercase(c)) {
+            bytes = CopyToByteArrayNode.getUncached().execute(tstring, tencoding);
+            bytes[0] ^= 0x20;
         }
 
-        if (StringSupport.isAsciiLowercase(bytes[p])) {
-            bytes = ArrayUtils.extractRange(bytes, byteArray.getOffset(), byteArray.getEnd());
-            p = 0;
-            end = bytes.length;
-            modified = true;
-            bytes[p] ^= 0x20;
-        }
-
-        p++;
-        while (p < end) {
-            if (StringSupport.isAsciiUppercase(bytes[p])) {
-                if (!modified) {
-                    bytes = ArrayUtils.extractRange(bytes, byteArray.getOffset(), byteArray.getEnd());
-                    p -= byteArray.getOffset();
-                    end = bytes.length;
-                    modified = true;
+        while (iterator.hasNext()) {
+            final int p = iterator.getByteIndex();
+            c = iterator.nextUncached();
+            if (StringSupport.isAsciiUppercase(c)) {
+                if (bytes == null) {
+                    bytes = CopyToByteArrayNode.getUncached().execute(tstring, tencoding);
                 }
                 bytes[p] ^= 0x20;
-                p++;
-            } else {
-                p += StringSupport.characterLength(enc, codeRange, bytes, p, end);
             }
         }
 
@@ -1640,8 +1633,16 @@ public final class StringSupport {
     //endregion
     //region Predicates
 
+    public static boolean isAsciiLowercase(int c) {
+        return c >= 'a' && c <= 'z';
+    }
+
     public static boolean isAsciiLowercase(byte c) {
         return c >= 'a' && c <= 'z';
+    }
+
+    public static boolean isAsciiUppercase(int c) {
+        return c >= 'A' && c <= 'Z';
     }
 
     public static boolean isAsciiUppercase(byte c) {

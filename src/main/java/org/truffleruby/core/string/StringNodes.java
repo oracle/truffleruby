@@ -2998,13 +2998,10 @@ public abstract class StringNodes {
                 return nil;
             }
 
-            var cr = getCodeRange(tstring, encoding.tencoding);
-            var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
-            final byte[] outputBytes = StringSupport.capitalizeMultiByteAsciiSimple(encoding.jcoding, cr, byteArray);
+            final byte[] outputBytes = StringSupport.capitalizeMultiByteAsciiSimple(tstring, encoding);
 
-            if (modifiedProfile.profile(byteArray.getArray() != outputBytes)) {
-                string.setTString(
-                        makeTString(outputBytes, encoding.tencoding, 0, byteArray.getLength()));
+            if (modifiedProfile.profile(outputBytes != null)) {
+                string.setTString(makeTString(outputBytes, encoding.tencoding));
                 return string;
             }
 
@@ -3065,20 +3062,14 @@ public abstract class StringNodes {
             return codeRangeNode.execute(string, encoding);
         }
 
-        private AbstractTruffleString makeTString(byte[] bytes, TruffleString.Encoding encoding, int byteOffset,
-                int byteLength) {
+        private AbstractTruffleString makeTString(byte[] bytes, TruffleString.Encoding encoding) {
             if (fromByteArrayNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 fromByteArrayNode = insert(TruffleString.FromByteArrayNode.create());
             }
 
-            return fromByteArrayNode.execute(bytes, byteOffset, byteLength, encoding, false);
+            return fromByteArrayNode.execute(bytes, 0, bytes.length, encoding, false);
         }
-
-        private AbstractTruffleString makeTString(byte[] bytes, TruffleString.Encoding encoding) {
-            return makeTString(bytes, encoding, 0, bytes.length);
-        }
-
     }
 
     @CoreMethod(names = "clear", raiseIfNotMutableSelf = true)
