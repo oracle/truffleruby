@@ -37,7 +37,6 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
-import com.oracle.truffle.api.strings.TruffleString.ErrorHandling;
 import com.oracle.truffle.api.strings.TruffleString.FromByteArrayNode;
 import org.graalvm.collections.Pair;
 import org.jcodings.Config;
@@ -99,11 +98,7 @@ public final class StringSupport {
     /** recoverIfBroken=false */
     public static int characterLength(RubyEncoding encoding, byte[] bytes, int byteOffset, int byteEnd) {
         assert byteOffset >= 0 && byteOffset < byteEnd && byteEnd <= bytes.length;
-
-        var tstring = TruffleString.FromByteArrayNode.getUncached().execute(bytes, byteOffset,
-                byteEnd - byteOffset, encoding.tencoding, false);
-        return TruffleString.ByteLengthOfCodePointNode.getUncached().execute(tstring, 0, encoding.tencoding,
-                ErrorHandling.RETURN_NEGATIVE);
+        return preciseLength(encoding.jcoding, bytes, byteOffset, byteEnd);
     }
 
     public static int characterLength(RubyEncoding encoding, TruffleString.CodeRange codeRange, byte[] bytes,
