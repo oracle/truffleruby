@@ -1353,26 +1353,24 @@ public final class StringSupport {
      * doesn't require changes. The encoding must be ASCII-compatible (i.e. represent each ASCII character as a single
      * byte ({@link Encoding#isAsciiCompatible()}). */
     @TruffleBoundary
-    public static byte[] swapcaseMultiByteAsciiSimple(Encoding enc, TruffleString.CodeRange codeRange,
-            InternalByteArray byteArray) {
-        assert enc.isAsciiCompatible();
-        boolean modified = false;
-        int s = byteArray.getOffset();
-        int end = byteArray.getEnd();
-        var bytes = byteArray.getArray();
+    public static byte[] swapcaseMultiByteAsciiSimple(AbstractTruffleString tstring, RubyEncoding enc) {
+        assert enc.jcoding.isAsciiCompatible();
 
-        while (s < end) {
-            if (isAsciiAlpha(bytes[s])) {
-                if (!modified) {
-                    bytes = ArrayUtils.extractRange(bytes, byteArray.getOffset(), byteArray.getEnd());
-                    s -= byteArray.getOffset();
-                    end = bytes.length;
-                    modified = true;
+        byte[] bytes = null;
+
+        var tencoding = enc.tencoding;
+        var iterator = tstring.createCodePointIteratorUncached(tencoding);
+
+        while (iterator.hasNext()) {
+            final int p = iterator.getByteIndex();
+            int c = iterator.nextUncached();
+
+            if (StringSupport.isAsciiAlpha(c)) {
+                if (bytes == null) {
+                    bytes = CopyToByteArrayNode.getUncached().execute(tstring, tencoding);
                 }
-                bytes[s] ^= 0x20;
-                s++;
-            } else {
-                s += characterLength(enc, codeRange, bytes, s, end);
+
+                bytes[p] ^= 0x20;
             }
         }
 
@@ -1651,6 +1649,10 @@ public final class StringSupport {
 
     public static boolean isAsciiPrintable(int c) {
         return c == ' ' || (c >= '!' && c <= '~');
+    }
+
+    public static boolean isAsciiAlpha(int c) {
+        return isAsciiUppercase(c) || isAsciiLowercase(c);
     }
 
     public static boolean isAsciiAlpha(byte c) {
