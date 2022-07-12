@@ -19,7 +19,6 @@ import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.MutableTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.strings.TruffleString.ErrorHandling;
-import com.oracle.truffle.api.strings.TruffleString.GetByteCodeRangeNode;
 import org.jcodings.Encoding;
 import org.jcodings.IntHolder;
 import org.truffleruby.Layouts;
@@ -128,8 +127,6 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
-
-import static com.oracle.truffle.api.strings.TruffleString.CodeRange.BROKEN;
 
 @CoreModule("Truffle::CExt")
 public class CExtNodes {
@@ -1435,29 +1432,27 @@ public class CExtNodes {
         }
     }
 
-    @CoreMethod(names = "rb_enc_mbclen", onSingleton = true, required = 2)
+    @CoreMethod(names = "rb_enc_mbclen", onSingleton = true, required = 1)
     public abstract static class RbEncMbLenNode extends CoreMethodArrayArgumentsNode {
         @Specialization(guards = "strings.isRubyString(string)")
-        protected Object rbEncMbLen(RubyEncoding enc, Object string,
+        protected Object rbEncMbLen(Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @Cached GetByteCodeRangeNode codeRangeNode,
-                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
-                @Cached ConditionProfile sameEncodingProfile) {
-            var encoding = enc.jcoding;
-
+                @Cached TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode) {
             var tstring = strings.getTString(string);
-            var stringEncoding = strings.getEncoding(string);
-            var byteArray = byteArrayNode.execute(tstring, stringEncoding.tencoding);
+            var tencoding = strings.getTEncoding(string);
+            return byteLengthOfCodePointNode.execute(tstring, 0, tencoding, ErrorHandling.BEST_EFFORT);
+        }
+    }
 
-            return StringSupport.characterLength(
-                    encoding,
-                    sameEncodingProfile.profile(encoding == stringEncoding.jcoding)
-                            ? codeRangeNode.execute(strings.getTString(string), strings.getTEncoding(string))
-                            : BROKEN /* UNKNOWN */,
-                    byteArray.getArray(),
-                    byteArray.getOffset(),
-                    byteArray.getEnd(),
-                    true);
+    @CoreMethod(names = "rb_enc_precise_mbclen", onSingleton = true, required = 1)
+    public abstract static class RbEncPreciseMbclenNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(guards = "strings.isRubyString(string)")
+        protected int rbEncPreciseMbclen(Object string,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode) {
+            var tstring = strings.getTString(string);
+            var tencoding = strings.getTEncoding(string);
+            return byteLengthOfCodePointNode.execute(tstring, 0, tencoding, ErrorHandling.RETURN_NEGATIVE);
         }
     }
 
@@ -1483,20 +1478,6 @@ public class CExtNodes {
             return StringSupport.mbcToCode(enc.jcoding, byteArray.getArray(), byteArray.getOffset(),
                     byteArray.getEnd());
         }
-    }
-
-    @CoreMethod(names = "rb_enc_precise_mbclen", onSingleton = true, required = 1)
-    public abstract static class RbEncPreciseMbclenNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization(guards = "strings.isRubyString(string)")
-        protected int rbEncPreciseMbclen(Object string,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @Cached TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode) {
-            var tstring = strings.getTString(string);
-            var tencoding = strings.getTEncoding(string);
-            return byteLengthOfCodePointNode.execute(tstring, 0, tencoding, ErrorHandling.RETURN_NEGATIVE);
-        }
-
     }
 
     @Primitive(name = "cext_wrap")
