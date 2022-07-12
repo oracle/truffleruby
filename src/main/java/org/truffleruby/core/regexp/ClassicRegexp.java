@@ -36,7 +36,6 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.core.regexp;
 
-import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import static org.truffleruby.core.string.StringUtils.EMPTY_STRING_ARRAY;
 
 import java.nio.charset.StandardCharsets;
@@ -57,7 +56,6 @@ import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.ATStringWithEncoding;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.TStringBuilder;
 import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.core.string.StringSupport;
@@ -154,8 +152,8 @@ public class ClassicRegexp implements ReOptions {
         while (p < end) {
             final int cl = StringSupport
                     .characterLength(
-                            enc.jcoding,
-                            enc.jcoding == str.encoding.jcoding ? str.getCodeRange() : CR_UNKNOWN,
+                            enc,
+                            enc.jcoding == str.encoding.jcoding ? str.getTCodeRange() : null,
                             bytes,
                             p,
                             end);
@@ -384,11 +382,11 @@ public class ClassicRegexp implements ReOptions {
         p = readEscapedByte(chBuf, chLen++, bytes, p, end, mode);
         while (chLen < enc.jcoding.maxLength() &&
                 StringSupport
-                        .MBCLEN_NEEDMORE_P(StringSupport.characterLength(enc.jcoding, CR_UNKNOWN, chBuf, 0, chLen))) {
+                        .MBCLEN_NEEDMORE_P(StringSupport.characterLength(enc, null, chBuf, 0, chLen))) {
             p = readEscapedByte(chBuf, chLen++, bytes, p, end, mode);
         }
 
-        int cl = StringSupport.characterLength(enc.jcoding, CR_UNKNOWN, chBuf, 0, chLen);
+        int cl = StringSupport.characterLength(enc, null, chBuf, 0, chLen);
         if (cl == -1) {
             raisePreprocessError("invalid multibyte escape", mode); // MBCLEN_INVALID_P
         }
