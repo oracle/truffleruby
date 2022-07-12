@@ -15,7 +15,6 @@ public class BytesResult {
 
     private final byte[] output;
     private final int outputLength;
-    private final int stringLength;
     private final FormatEncoding encoding;
 
     private final Pointer[] associated;
@@ -23,12 +22,10 @@ public class BytesResult {
     public BytesResult(
             byte[] output,
             int outputLength,
-            int stringLength,
             FormatEncoding encoding,
             Pointer[] associated) {
         this.output = output;
         this.outputLength = outputLength;
-        this.stringLength = stringLength;
         this.encoding = encoding;
         this.associated = associated;
     }
@@ -39,10 +36,6 @@ public class BytesResult {
 
     public int getOutputLength() {
         return outputLength;
-    }
-
-    public int getStringLength() {
-        return stringLength;
     }
 
     public FormatEncoding getEncoding() {

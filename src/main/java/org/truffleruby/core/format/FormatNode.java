@@ -100,24 +100,11 @@ public abstract class FormatNode extends RubyBaseNode {
         frame.setInt(FormatFrameDescriptor.OUTPUT_POSITION_SLOT, position);
     }
 
-    protected int getStringLength(VirtualFrame frame) {
-        return frame.getInt(FormatFrameDescriptor.STRING_LENGTH_SLOT);
-    }
-
-    protected void setStringLength(VirtualFrame frame, int length) {
-        frame.setInt(FormatFrameDescriptor.STRING_LENGTH_SLOT, length);
-    }
-
-    protected void increaseStringLength(VirtualFrame frame, int additionalLength) {
-        setStringLength(frame, getStringLength(frame) + additionalLength);
-    }
-
     protected void writeByte(VirtualFrame frame, byte value) {
         final byte[] output = ensureCapacity(frame, 1);
         final int outputPosition = getOutputPosition(frame);
         output[outputPosition] = value;
         setOutputPosition(frame, outputPosition + 1);
-        increaseStringLength(frame, 1);
     }
 
     protected void writeBytes(VirtualFrame frame, byte[] values) {
@@ -129,7 +116,6 @@ public abstract class FormatNode extends RubyBaseNode {
         final int outputPosition = getOutputPosition(frame);
         System.arraycopy(values, valuesOffset, output, outputPosition, valuesLength);
         setOutputPosition(frame, outputPosition + valuesLength);
-        increaseStringLength(frame, valuesLength);
     }
 
     protected void writeNullBytes(VirtualFrame frame, int length) {
@@ -137,7 +123,6 @@ public abstract class FormatNode extends RubyBaseNode {
             ensureCapacity(frame, length);
             final int outputPosition = getOutputPosition(frame);
             setOutputPosition(frame, outputPosition + length);
-            increaseStringLength(frame, length);
         }
     }
 

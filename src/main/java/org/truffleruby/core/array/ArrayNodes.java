@@ -1602,7 +1602,7 @@ public abstract class ArrayNodes {
             }
 
             final RubyEncoding rubyEncoding = result.getEncoding().getEncodingForLength(formatLength);
-            final RubyString string = createString(fromByteArrayNode, bytes, rubyEncoding); // result.getStringCodeRange(), result.getStringLength()
+            final RubyString string = createString(fromByteArrayNode, bytes, rubyEncoding);
 
             if (result.getAssociated() != null) {
                 if (writeAssociatedNode == null) {

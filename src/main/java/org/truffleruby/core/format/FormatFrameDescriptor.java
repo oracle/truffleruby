@@ -21,7 +21,6 @@ public class FormatFrameDescriptor {
     public static final int SOURCE_ASSOCIATED_SLOT;
     public static final int OUTPUT_SLOT;
     public static final int OUTPUT_POSITION_SLOT;
-    public static final int STRING_LENGTH_SLOT;
     public static final int ASSOCIATED_SLOT;
     public static final FrameDescriptor FRAME_DESCRIPTOR;
     static {
@@ -32,7 +31,6 @@ public class FormatFrameDescriptor {
         SOURCE_ASSOCIATED_SLOT = builder.addSlot(FrameSlotKind.Object, "source-associated", null);
         OUTPUT_SLOT = builder.addSlot(FrameSlotKind.Object, "output", null);
         OUTPUT_POSITION_SLOT = builder.addSlot(FrameSlotKind.Int, "output-position", null);
-        STRING_LENGTH_SLOT = builder.addSlot(FrameSlotKind.Int, "string-length", null);
         ASSOCIATED_SLOT = builder.addSlot(FrameSlotKind.Object, "associated", null);
 
         FRAME_DESCRIPTOR = builder.build();

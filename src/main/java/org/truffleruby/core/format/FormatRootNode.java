@@ -51,7 +51,6 @@ public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode
         frame.setInt(FormatFrameDescriptor.SOURCE_POSITION_SLOT, 0);
         frame.setObject(FormatFrameDescriptor.OUTPUT_SLOT, new byte[expectedLength]);
         frame.setInt(FormatFrameDescriptor.OUTPUT_POSITION_SLOT, 0);
-        frame.setInt(FormatFrameDescriptor.STRING_LENGTH_SLOT, 0);
         frame.setObject(FormatFrameDescriptor.ASSOCIATED_SLOT, null);
 
         child.execute(frame);
@@ -69,26 +68,17 @@ public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode
         }
 
         final byte[] output = (byte[]) frame.getObject(FormatFrameDescriptor.OUTPUT_SLOT);
-        final int stringLength;
-        if (encoding == FormatEncoding.UTF_8) {
-            stringLength = frame.getInt(FormatFrameDescriptor.STRING_LENGTH_SLOT);
-        } else {
-            stringLength = outputLength;
-        }
 
-        final List<Pointer> associated;
-
-        associated = (List<Pointer>) frame.getObject(FormatFrameDescriptor.ASSOCIATED_SLOT);
+        final List<Pointer> associated = (List<Pointer>) frame.getObject(FormatFrameDescriptor.ASSOCIATED_SLOT);
 
         final Pointer[] associatedArray;
-
         if (associated != null) {
             associatedArray = associatedToArray(associated);
         } else {
             associatedArray = null;
         }
 
-        return new BytesResult(output, outputLength, stringLength, encoding, associatedArray);
+        return new BytesResult(output, outputLength, encoding, associatedArray);
     }
 
     @TruffleBoundary

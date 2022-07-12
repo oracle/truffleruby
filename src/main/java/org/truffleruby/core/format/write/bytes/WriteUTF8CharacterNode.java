@@ -69,7 +69,6 @@ public abstract class WriteUTF8CharacterNode extends FormatNode {
         };
 
         writeBytes(frame, bytes);
-        increaseStringLength(frame, -2 + 1);
         return null;
     }
 
@@ -82,7 +81,6 @@ public abstract class WriteUTF8CharacterNode extends FormatNode {
         };
 
         writeBytes(frame, bytes);
-        increaseStringLength(frame, -3 + 1);
         return null;
     }
 
@@ -96,7 +94,6 @@ public abstract class WriteUTF8CharacterNode extends FormatNode {
         };
 
         writeBytes(frame, bytes);
-        increaseStringLength(frame, -4 + 1);
         return null;
     }
 
@@ -111,7 +108,6 @@ public abstract class WriteUTF8CharacterNode extends FormatNode {
         };
 
         writeBytes(frame, bytes);
-        increaseStringLength(frame, -5 + 1);
         return null;
     }
 
@@ -127,7 +123,6 @@ public abstract class WriteUTF8CharacterNode extends FormatNode {
         };
 
         writeBytes(frame, bytes);
-        increaseStringLength(frame, -6 + 1);
         return null;
     }
 

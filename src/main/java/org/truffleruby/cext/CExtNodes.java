@@ -1814,7 +1814,7 @@ public class CExtNodes {
                 makeStringNode = insert(StringNodes.MakeStringNode.create());
             }
 
-            return makeStringNode.executeMake(bytes, result.getEncoding().getEncodingForLength(formatLength)); // result.getStringCodeRange()
+            return makeStringNode.executeMake(bytes, result.getEncoding().getEncodingForLength(formatLength));
         }
 
         @TruffleBoundary
