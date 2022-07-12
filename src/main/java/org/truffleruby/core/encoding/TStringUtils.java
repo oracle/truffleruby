@@ -89,22 +89,33 @@ public class TStringUtils {
         }
     }
 
+    private static final boolean DEBUG_NON_ZERO_OFFSET = Boolean
+            .getBoolean("truffle.strings.debug-non-zero-offset-arrays");
+
     public static byte[] getBytesOrFail(AbstractTruffleString tstring, RubyEncoding encoding) {
         CompilerAsserts.neverPartOfCompilation("uncached");
-        var byteArray = tstring.getInternalByteArrayUncached(encoding.tencoding);
-        if (byteArray.getOffset() != 0 || byteArray.getLength() != byteArray.getArray().length) {
-            throw CompilerDirectives.shouldNotReachHere();
+        if (DEBUG_NON_ZERO_OFFSET) {
+            return getBytesOrCopy(tstring, encoding);
+        } else {
+            var byteArray = tstring.getInternalByteArrayUncached(encoding.tencoding);
+            if (byteArray.getOffset() != 0 || byteArray.getLength() != byteArray.getArray().length) {
+                throw CompilerDirectives.shouldNotReachHere();
+            }
+            return byteArray.getArray();
         }
-        return byteArray.getArray();
     }
 
     public static byte[] getBytesOrFail(AbstractTruffleString tstring, RubyEncoding encoding,
             TruffleString.GetInternalByteArrayNode byteArrayNode) {
-        var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
-        if (byteArray.getOffset() != 0 || byteArray.getLength() != byteArray.getArray().length) {
-            throw CompilerDirectives.shouldNotReachHere();
+        if (DEBUG_NON_ZERO_OFFSET) {
+            return getBytesOrCopy(tstring, encoding);
+        } else {
+            var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
+            if (byteArray.getOffset() != 0 || byteArray.getLength() != byteArray.getArray().length) {
+                throw CompilerDirectives.shouldNotReachHere();
+            }
+            return byteArray.getArray();
         }
-        return byteArray.getArray();
     }
 
     public static boolean isSingleByteOptimizable(AbstractTruffleString truffleString, RubyEncoding encoding) {
