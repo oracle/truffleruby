@@ -37,7 +37,7 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.rope.TStringBuilder;
+import org.truffleruby.core.string.TStringBuilder;
 import org.truffleruby.core.string.EncodingUtils;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;

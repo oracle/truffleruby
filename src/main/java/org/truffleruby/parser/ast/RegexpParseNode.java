@@ -35,7 +35,7 @@ import java.util.List;
 
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.regexp.RegexpOptions;
-import org.truffleruby.core.rope.TStringWithEncoding;
+import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;

@@ -13,8 +13,8 @@ import java.util.Objects;
 
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.rope.TStringBuilder;
-import org.truffleruby.core.rope.TStringWithEncoding;
+import org.truffleruby.core.string.TStringBuilder;
+import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.language.control.DeferredRaiseException;
 
 public final class RegexpCacheKey {

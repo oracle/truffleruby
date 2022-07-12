@@ -17,8 +17,8 @@ import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
-import org.truffleruby.core.rope.TStringCache;
-import org.truffleruby.core.rope.TStringWithEncoding;
+import org.truffleruby.core.string.TStringCache;
+import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.string.StringOperations;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;

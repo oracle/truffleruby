@@ -7,7 +7,7 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.core.rope;
+package org.truffleruby.core.string;
 
 import java.util.Objects;
 
@@ -16,7 +16,6 @@ import com.oracle.truffle.api.strings.TruffleString.CopyToByteArrayNode;
 import com.oracle.truffle.api.strings.TruffleString.ErrorHandling;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
-import org.truffleruby.core.string.StringGuards;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.strings.AbstractTruffleString;

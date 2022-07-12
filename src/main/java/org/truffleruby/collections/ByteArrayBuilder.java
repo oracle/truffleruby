@@ -14,7 +14,7 @@ import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
-import org.truffleruby.core.rope.TStringWithEncoding;
+import org.truffleruby.core.string.TStringWithEncoding;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;

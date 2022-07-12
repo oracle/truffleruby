@@ -29,7 +29,7 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.CoreExceptions;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.core.rope.TStringWithEncoding;
+import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.CoreSymbols;

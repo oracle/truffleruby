@@ -20,7 +20,7 @@ import org.jcodings.Encoding;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.TStringUtils;
-import org.truffleruby.core.rope.TStringWithEncoding;
+import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.parser.lexer.RubyLexer;
 
 import com.oracle.truffle.api.TruffleFile;

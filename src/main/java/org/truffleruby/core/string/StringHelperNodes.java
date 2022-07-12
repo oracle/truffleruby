@@ -30,8 +30,6 @@ import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.rope.ATStringWithEncoding;
-import org.truffleruby.core.rope.TStringWithEncoding;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;

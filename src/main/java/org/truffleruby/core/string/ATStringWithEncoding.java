@@ -7,7 +7,7 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.core.rope;
+package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import org.truffleruby.core.encoding.RubyEncoding;

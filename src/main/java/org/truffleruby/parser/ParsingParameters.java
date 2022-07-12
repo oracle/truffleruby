@@ -12,7 +12,7 @@ package org.truffleruby.parser;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.rope.TStringWithEncoding;
+import org.truffleruby.core.string.TStringWithEncoding;
 
 public final class ParsingParameters {
 

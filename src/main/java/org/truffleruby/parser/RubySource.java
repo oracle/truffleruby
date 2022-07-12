@@ -18,7 +18,7 @@ import org.truffleruby.RubyLanguage;
 
 import com.oracle.truffle.api.source.Source;
 import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.rope.TStringWithEncoding;
+import org.truffleruby.core.string.TStringWithEncoding;
 
 public class RubySource {
 

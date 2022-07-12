@@ -15,8 +15,6 @@ import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
-import org.truffleruby.core.rope.TStringCache;
-import org.truffleruby.core.rope.TStringWithEncoding;
 
 import java.util.ArrayList;
 import java.util.Collection;

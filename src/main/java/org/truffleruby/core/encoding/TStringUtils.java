@@ -22,7 +22,7 @@ import org.jcodings.Encoding;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.EncodingDB;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.rope.CannotConvertBinaryRubyStringToJavaString;
+import org.truffleruby.core.string.CannotConvertBinaryRubyStringToJavaString;
 import org.truffleruby.core.string.StringGuards;
 
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.ASCII;

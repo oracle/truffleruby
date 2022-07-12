@@ -37,7 +37,7 @@ import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_TERM;
 
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
-import org.truffleruby.core.rope.TStringBuilder;
+import org.truffleruby.core.string.TStringBuilder;
 import org.truffleruby.parser.parser.RubyParser;
 
 /** A lexing unit for scanning a heredoc element. Example:
