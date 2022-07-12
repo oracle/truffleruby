@@ -56,6 +56,7 @@ import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.string.ATStringWithEncoding;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.TStringBuilder;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.string.StringSupport;
@@ -925,7 +926,7 @@ public class ClassicRegexp implements ReOptions {
                 }
             }
             result.append((byte) ':');
-            appendRegexpString19(result, str, p, len, null);
+            appendRegexpString(result, str, p, len, null);
 
             result.append((byte) ')');
             result.setEncoding(Encodings.getBuiltInEncoding(getEncoding()));
@@ -935,83 +936,53 @@ public class ClassicRegexp implements ReOptions {
     }
 
     @TruffleBoundary
-    public void appendRegexpString19(TStringBuilder to, TStringWithEncoding str, int start, int len, Encoding resEnc) {
-        var byteArray = str.getInternalByteArray();
-        int p = start + byteArray.getOffset();
-        int end = p + len;
-        final byte[] bytes = byteArray.getArray();
+    public void appendRegexpString(TStringBuilder to, TStringWithEncoding fullStr, int start, int len,
+            Encoding resEnc) {
+        var str = fullStr.substring(start, len);
 
-        final var cr = str.getCodeRange();
         final var enc = str.encoding.jcoding;
+        var iterator = str.createCodePointIterator();
 
         boolean needEscape = false;
-        while (p < end) {
-            final int c;
-            final int cl;
-            if (enc.isAsciiCompatible()) {
-                cl = 1;
-                c = bytes[p] & 0xff;
-            } else {
-                cl = StringSupport.characterLength(enc, cr, bytes, p, end);
-                c = enc.mbcToCode(bytes, p, end);
-            }
-
-            if (!Encoding.isAscii(c)) {
-                p += StringSupport.characterLength(enc, cr, bytes, p, end, true);
-            } else if (c != '/' && enc.isPrint(c)) {
-                p += cl;
-            } else {
+        while (iterator.hasNext()) {
+            final int c = iterator.nextUncached();
+            if (Encoding.isAscii(c) && (c == '/' || !enc.isPrint(c))) {
                 needEscape = true;
                 break;
             }
         }
-        if (!needEscape) {
-            to.append(bytes, start, len);
-        } else {
-            p = start;
-            while (p < end) {
-                final int c;
-                final int cl;
-                if (enc.isAsciiCompatible()) {
-                    cl = 1;
-                    c = bytes[p] & 0xff;
-                } else {
-                    cl = StringSupport.characterLength(enc, cr, bytes, p, end);
-                    c = enc.mbcToCode(bytes, p, end);
-                }
 
-                if (c == '\\' && p + cl < end) {
-                    int n = cl + StringSupport.characterLength(enc, cr, bytes, p + cl, end);
-                    to.append(bytes, p, n);
-                    p += n;
-                    continue;
+        if (!needEscape) {
+            to.append(str);
+        } else {
+            iterator = str.createCodePointIterator();
+            while (iterator.hasNext()) {
+                final int p = iterator.getByteIndex();
+                final int c = iterator.nextUncached();
+
+                if (c == '\\' && iterator.hasNext()) {
+                    iterator.nextUncached();
+                    to.append(str, p, iterator.getByteIndex() - p);
                 } else if (c == '/') {
                     to.append((byte) '\\');
-                    to.append(bytes, p, cl);
+                    to.append(str, p, iterator.getByteIndex() - p);
                 } else if (!Encoding.isAscii(c)) {
-                    int l = StringSupport.characterLength(enc, cr, bytes, p, end);
+                    int l = str.characterLength(p);
                     if (l <= 0) {
-                        l = 1;
                         to.append(StringUtils.formatASCIIBytes("\\x%02X", c));
                     } else if (resEnc != null) {
-                        int code = enc.mbcToCode(bytes, p, end);
-                        to.append(
-                                String.format(StringSupport.escapedCharFormat(code, enc.isUnicode()), code).getBytes(
-                                        StandardCharsets.US_ASCII));
+                        String escaped = String.format(StringSupport.escapedCharFormat(c, enc.isUnicode()), c);
+                        to.append(StringOperations.encodeAsciiBytes(escaped));
                     } else {
-                        to.append(bytes, p, l);
+                        to.append(str, p, iterator.getByteIndex() - p);
                     }
-                    p += l;
-
-                    continue;
                 } else if (enc.isPrint(c)) {
-                    to.append(bytes, p, cl);
+                    to.append(str, p, iterator.getByteIndex() - p);
                 } else if (!enc.isSpace(c)) {
                     to.append(StringUtils.formatASCIIBytes("\\x%02X", c));
                 } else {
-                    to.append(bytes, p, cl);
+                    to.append(str, p, iterator.getByteIndex() - p);
                 }
-                p += cl;
             }
         }
     }

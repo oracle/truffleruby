@@ -189,7 +189,7 @@
     </module>
     <module name="RegexpSinglelineJava">
       <property name="format" value='\.getBytes\(StandardCharsets\.US_ASCII\)'/>
-      <property name="message" value='Use RopeOperations.encodeAsciiBytes() instead.'/>
+      <property name="message" value='Use StringOperations.encodeAsciiBytes() instead.'/>
     </module>
     <module name="RegexpSinglelineJava">
       <property name="format" value='\.toArray\(new \w+\[\w+\.size\(\)\]\)'/>

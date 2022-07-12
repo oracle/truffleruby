@@ -85,8 +85,16 @@ public class ByteArrayBuilder {
         append(bytes.getArray(), bytes.getOffset(), bytes.getLength());
     }
 
+    public void append(InternalByteArray bytes, int appendStart, int appendLength) {
+        append(bytes.getArray(), bytes.getOffset() + appendStart, appendLength);
+    }
+
     public void append(TStringWithEncoding other) {
         append(other.getInternalByteArray());
+    }
+
+    public void append(TStringWithEncoding other, int appendStart, int appendLength) {
+        append(other.getInternalByteArray(), appendStart, appendLength);
     }
 
     public void append(TruffleString other, RubyEncoding enc) {
