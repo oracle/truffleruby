@@ -136,7 +136,7 @@ public final class StringSupport {
 
     private static int characterLengthValid(Encoding encoding, byte[] bytes, int byteOffset, int byteEnd) {
         if (encoding.isUTF8()) {
-            return UTF8Operations.charWidth(bytes[byteOffset]);
+            return utf8CharWidth(bytes[byteOffset]);
         } else if (encoding.isAsciiCompatible()) {
             if (bytes[byteOffset] >= 0) {
                 return 1;
@@ -149,6 +149,21 @@ public final class StringSupport {
             return width;
         } else {
             return encLength(encoding, bytes, byteOffset, byteEnd);
+        }
+    }
+
+    public static int utf8CharWidth(byte b) {
+        if (b >= 0) {
+            return 1;
+        } else {
+            switch (b & 0xf0) {
+                case 0xe0:
+                    return 3;
+                case 0xf0:
+                    return 4;
+                default:
+                    return 2;
+            }
         }
     }
 

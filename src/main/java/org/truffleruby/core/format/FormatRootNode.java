@@ -12,7 +12,6 @@ package org.truffleruby.core.format;
 import java.util.List;
 
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.RubyBaseRootNode;
 import org.truffleruby.language.backtrace.InternalRootNode;
@@ -53,7 +52,6 @@ public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode
         frame.setObject(FormatFrameDescriptor.OUTPUT_SLOT, new byte[expectedLength]);
         frame.setInt(FormatFrameDescriptor.OUTPUT_POSITION_SLOT, 0);
         frame.setInt(FormatFrameDescriptor.STRING_LENGTH_SLOT, 0);
-        frame.setInt(FormatFrameDescriptor.STRING_CODE_RANGE_SLOT, CodeRange.CR_UNKNOWN.toInt());
         frame.setObject(FormatFrameDescriptor.ASSOCIATED_SLOT, null);
 
         child.execute(frame);
@@ -78,8 +76,6 @@ public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode
             stringLength = outputLength;
         }
 
-        final CodeRange stringCodeRange = CodeRange.fromInt(frame.getInt(FormatFrameDescriptor.STRING_CODE_RANGE_SLOT));
-
         final List<Pointer> associated;
 
         associated = (List<Pointer>) frame.getObject(FormatFrameDescriptor.ASSOCIATED_SLOT);
@@ -92,7 +88,7 @@ public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode
             associatedArray = null;
         }
 
-        return new BytesResult(output, outputLength, stringLength, stringCodeRange, encoding, associatedArray);
+        return new BytesResult(output, outputLength, stringLength, encoding, associatedArray);
     }
 
     @TruffleBoundary

@@ -14,7 +14,6 @@ import java.util.Arrays;
 
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.format.exceptions.TooFewArgumentsException;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.language.RubyBaseNode;
 
@@ -32,7 +31,6 @@ public abstract class FormatNode extends RubyBaseNode {
     private final ConditionProfile writeMoreThanZeroBytes = ConditionProfile.create();
     private final ConditionProfile tooFewArgumentsProfile = ConditionProfile.create();
     private final ConditionProfile sourceRangeProfile = ConditionProfile.create();
-    private final ConditionProfile codeRangeIncreasedProfile = ConditionProfile.create();
 
     public abstract Object execute(VirtualFrame frame);
 
@@ -112,14 +110,6 @@ public abstract class FormatNode extends RubyBaseNode {
 
     protected void increaseStringLength(VirtualFrame frame, int additionalLength) {
         setStringLength(frame, getStringLength(frame) + additionalLength);
-    }
-
-    protected void setStringCodeRange(VirtualFrame frame, CodeRange codeRange) {
-        final int existingCodeRange = frame.getInt(FormatFrameDescriptor.STRING_CODE_RANGE_SLOT);
-
-        if (codeRangeIncreasedProfile.profile(codeRange.toInt() > existingCodeRange)) {
-            frame.setInt(FormatFrameDescriptor.STRING_CODE_RANGE_SLOT, codeRange.toInt());
-        }
     }
 
     protected void writeByte(VirtualFrame frame, byte value) {
