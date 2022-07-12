@@ -3256,20 +3256,8 @@ public class RubyLexer implements MagicCommentHandler {
 
         // we subtract one since we have read past first byte by time we are calling this.
         final int start = lex_p - 1;
-        final int end = lex_pend;
-        final int length = end - start;
 
-        // Otherwise, take the substring and see if that new string is single-byte optimizable.
-        final TruffleString substring = src.parserRopeOperations.makeShared(lexb, start, length);
-        if (TStringUtils.isSingleByteOptimizable(substring, encoding)) {
-            return 1;
-        }
-
-        // Barring all else, we must inspect the bytes for the substring.
-        var bytes = substring.getInternalByteArrayUncached(tencoding);
-        var cr = substring.getByteCodeRangeUncached(tencoding);
-        return StringSupport.characterLength(src.getEncoding(), cr, bytes.getArray(), bytes.getOffset(),
-                bytes.getEnd());
+        return lexb.byteLengthOfCodePointUncached(start, tencoding, ErrorHandling.RETURN_NEGATIVE);
     }
 
     public void pushback(int c) {
