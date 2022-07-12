@@ -26,9 +26,9 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.core.string;
 
+import static com.oracle.truffle.api.strings.TruffleString.CodeRange.ASCII;
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.BROKEN;
-import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
-import static org.truffleruby.core.rope.CodeRange.CR_VALID;
+import static com.oracle.truffle.api.strings.TruffleString.CodeRange.VALID;
 
 import java.util.Arrays;
 
@@ -54,7 +54,6 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.rope.ATStringWithEncoding;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.TStringBuilder;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -269,7 +268,7 @@ public final class StringSupport {
             return (e - p + enc.minLength() - 1) / enc.minLength();
         } else if (enc.isAsciiCompatible()) {
             c = 0;
-            if (cr == TruffleString.CodeRange.ASCII || cr == TruffleString.CodeRange.VALID) {
+            if (cr == ASCII || cr == VALID) {
                 while (p < e) {
                     if (Encoding.isAscii(bytes[p])) {
                         int q = searchNonAscii(bytes, p, e);
@@ -946,7 +945,7 @@ public final class StringSupport {
         byte[] bytes = rubyString.getBytesCopy();
         boolean modified = false;
         boolean asciiCompatible = enc.isAsciiCompatible();
-        CodeRange cr = asciiCompatible ? CR_7BIT : CR_VALID;
+        var cr = asciiCompatible ? ASCII : VALID;
         while (s < send) {
             int c;
             if (asciiCompatible && Encoding.isAscii(c = bytes[s] & 0xff)) {
@@ -969,8 +968,8 @@ public final class StringSupport {
                         enc.codeToMbc(c, bytes, t);
                     }
                     t += cl;
-                    if (cr == CR_7BIT) {
-                        cr = CR_VALID;
+                    if (cr == ASCII) {
+                        cr = VALID;
                     }
                 }
                 s += cl;
@@ -985,8 +984,8 @@ public final class StringSupport {
     /** rb_str_tr / rb_str_tr_bang */
 
     private static TruffleString.CodeRange CHECK_IF_ASCII(int c, TruffleString.CodeRange currentCodeRange) {
-        if (currentCodeRange == TruffleString.CodeRange.ASCII && !Encoding.isAscii(c)) {
-            return TruffleString.CodeRange.VALID;
+        if (currentCodeRange == ASCII && !Encoding.isAscii(c)) {
+            return VALID;
         }
 
         return currentCodeRange;
@@ -1068,8 +1067,8 @@ public final class StringSupport {
             }
         }
 
-        if (cr == TruffleString.CodeRange.VALID && enc.isAsciiCompatible()) {
-            cr = TruffleString.CodeRange.ASCII;
+        if (cr == VALID && enc.isAsciiCompatible()) {
+            cr = ASCII;
         }
 
         int s = 0;
@@ -1739,7 +1738,7 @@ public final class StringSupport {
         undumped.setEncoding(encoding);
 
         var cr = rope.getTCodeRange();
-        if (cr != TruffleString.CodeRange.ASCII) {
+        if (cr != ASCII) {
             throw new RaiseException(
                     context,
                     context.getCoreExceptions().runtimeError("non-ASCII character detected", currentNode));
