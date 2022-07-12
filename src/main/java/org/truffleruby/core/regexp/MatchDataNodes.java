@@ -157,7 +157,7 @@ public abstract class MatchDataNodes {
 
         for (Pair pair : pairs) {
             int q = s + pair.bytePos;
-            c += StringSupport.strLength(encoding.jcoding, bytes, p, q);
+            c += StringSupport.strLength(encoding, bytes, p, q);
             pair.charPos = c;
             p = q;
         }

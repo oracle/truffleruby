@@ -28,7 +28,6 @@ package org.truffleruby.core.string;
 
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.BROKEN;
 import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
-import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
 import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import static org.truffleruby.core.rope.CodeRange.CR_VALID;
 
@@ -93,6 +92,21 @@ public final class StringSupport {
     }
 
     // Should probably use ByteLengthOfCodePointNode instead longer-term for recoverIfBroken=true cases
+    public static int characterLength(RubyEncoding encoding, TruffleString.CodeRange codeRange, byte[] bytes,
+            int byteOffset, int byteEnd, boolean recoverIfBroken) {
+        assert byteOffset >= 0 && byteOffset < byteEnd && byteEnd <= bytes.length;
+
+        if (codeRange == null) {
+            var substring = TruffleString.FromByteArrayNode.getUncached().execute(bytes, byteOffset,
+                    byteEnd - byteOffset, encoding.tencoding, false);
+
+            return TruffleString.ByteLengthOfCodePointNode.getUncached().execute(substring, 0, encoding.tencoding,
+                    TruffleString.ErrorHandling.RETURN_NEGATIVE);
+        }
+
+        return characterLength(encoding.jcoding, codeRange, bytes, byteOffset, byteEnd, recoverIfBroken);
+    }
+
     public static int characterLength(Encoding encoding, TruffleString.CodeRange codeRange, byte[] bytes,
             int byteOffset, int byteEnd, boolean recoverIfBroken) {
         assert byteOffset >= 0 && byteOffset < byteEnd && byteEnd <= bytes.length;
@@ -119,8 +133,12 @@ public final class StringSupport {
     }
 
     public static int characterLength(Encoding encoding, TruffleString.CodeRange codeRange, byte[] bytes,
-            int byteOffset,
-            int byteEnd) {
+            int byteOffset, int byteEnd) {
+        return characterLength(encoding, codeRange, bytes, byteOffset, byteEnd, false);
+    }
+
+    public static int characterLength(RubyEncoding encoding, TruffleString.CodeRange codeRange, byte[] bytes,
+            int byteOffset, int byteEnd) {
         return characterLength(encoding, codeRange, bytes, byteOffset, byteEnd, false);
     }
 
@@ -251,19 +269,20 @@ public final class StringSupport {
     }
 
     // MRI: rb_enc_strlen
-    public static int strLength(Encoding enc, byte[] bytes, int p, int end) {
-        return strLength(enc, bytes, p, end, CR_UNKNOWN);
+    public static int strLength(RubyEncoding enc, byte[] bytes, int p, int end) {
+        return strLength(enc, bytes, p, end, null);
     }
 
     // MRI: enc_strlen
     @TruffleBoundary
-    public static int strLength(Encoding enc, byte[] bytes, int p, int e, CodeRange cr) {
+    public static int strLength(RubyEncoding encoding, byte[] bytes, int p, int e, TruffleString.CodeRange cr) {
         int c;
+        var enc = encoding.jcoding;
         if (enc.isFixedWidth()) {
             return (e - p + enc.minLength() - 1) / enc.minLength();
         } else if (enc.isAsciiCompatible()) {
             c = 0;
-            if (cr == CR_7BIT || cr == CR_VALID) {
+            if (cr == TruffleString.CodeRange.ASCII || cr == TruffleString.CodeRange.VALID) {
                 while (p < e) {
                     if (Encoding.isAscii(bytes[p])) {
                         int q = searchNonAscii(bytes, p, e);
@@ -273,7 +292,7 @@ public final class StringSupport {
                         c += q - p;
                         p = q;
                     }
-                    p += characterLength(enc, cr, bytes, p, e);
+                    p += characterLength(encoding, cr, bytes, p, e);
                     c++;
                 }
             } else {
@@ -286,7 +305,7 @@ public final class StringSupport {
                         c += q - p;
                         p = q;
                     }
-                    p += characterLength(enc, cr, bytes, p, e, true);
+                    p += characterLength(encoding, cr, bytes, p, e, true);
                     c++;
                 }
             }
@@ -294,7 +313,7 @@ public final class StringSupport {
         }
 
         for (c = 0; p < e; c++) {
-            p += characterLength(enc, cr, bytes, p, e, true);
+            p += characterLength(encoding, cr, bytes, p, e, true);
         }
         return c;
     }
