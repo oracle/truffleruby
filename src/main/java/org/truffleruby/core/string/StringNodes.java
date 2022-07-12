@@ -2867,7 +2867,7 @@ public abstract class StringNodes {
 
             var cr = codeRangeNode.execute(string.tstring, string.getTEncoding());
             var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
-            final byte[] outputBytes = StringSupport.upcaseMultiByteAsciiSimple(encoding.jcoding, cr, byteArray);
+            final byte[] outputBytes = StringSupport.upcaseMultiByteAsciiSimple(encoding, cr, byteArray);
 
             if (modifiedProfile.profile(byteArray.getArray() != outputBytes)) {
                 string.setTString(fromByteArrayNode.execute(outputBytes, string.encoding.tencoding)); // cr, codePointLengthNode.execute(rope)

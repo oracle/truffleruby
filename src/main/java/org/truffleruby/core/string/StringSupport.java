@@ -108,10 +108,9 @@ public final class StringSupport {
                 ErrorHandling.RETURN_NEGATIVE);
     }
 
-    public static int characterLength(Encoding encoding, byte[] bytes, int byteOffset, int byteEnd) {
-        assert byteOffset >= 0 && byteOffset < byteEnd && byteEnd <= bytes.length;
-
-        return preciseLength(encoding, bytes, byteOffset, byteEnd);
+    public static int characterLength(RubyEncoding encoding, TruffleString.CodeRange codeRange, byte[] bytes,
+            int byteOffset, int byteEnd) {
+        return characterLength(encoding.jcoding, codeRange, bytes, byteOffset, byteEnd, false);
     }
 
     public static int characterLength(Encoding encoding, TruffleString.CodeRange codeRange, byte[] bytes,
@@ -643,7 +642,8 @@ public final class StringSupport {
         carry[0] = 1;
         int carryLen = 1;
 
-        final Encoding enc = original.encoding.jcoding;
+        final RubyEncoding encoding = original.encoding;
+        final Encoding enc = encoding.jcoding;
         TStringBuilder valueCopy = TStringBuilder.create(original);
         int p = 0;
         int end = p + valueCopy.getLength();
@@ -664,11 +664,11 @@ public final class StringSupport {
                 }
             }
 
-            int cl = characterLength(enc, bytes, s, end);
+            int cl = characterLength(encoding, bytes, s, end);
             if (cl <= 0) {
                 continue;
             }
-            switch (neighbor = succAlnumChar(enc, bytes, s, cl, carry, 0, node)) {
+            switch (neighbor = succAlnumChar(encoding, bytes, s, cl, carry, 0, node)) {
                 case NOT_CHAR:
                     continue;
                 case FOUND:
@@ -684,16 +684,16 @@ public final class StringSupport {
         if (!alnumSeen) {
             s = end;
             while ((s = enc.prevCharHead(bytes, p, s, end)) != -1) {
-                int cl = characterLength(original.encoding, bytes, s, end);
+                int cl = characterLength(encoding, bytes, s, end);
                 if (cl <= 0) {
                     continue;
                 }
-                neighbor = succChar(enc, bytes, s, cl, node);
+                neighbor = succChar(encoding, bytes, s, cl, node);
                 if (neighbor == NeighborChar.FOUND) {
                     return valueCopy;
                 }
-                if (characterLength(original.encoding, bytes, s, s + 1) != cl) {
-                    succChar(enc, bytes, s, cl, node); /* wrapped to \0...\0. search next valid char. */
+                if (characterLength(encoding, bytes, s, s + 1) != cl) {
+                    succChar(encoding, bytes, s, cl, node); /* wrapped to \0...\0. search next valid char. */
                 }
                 if (!enc.isAsciiCompatible()) {
                     System.arraycopy(bytes, s, carry, 0, cl);
@@ -716,11 +716,12 @@ public final class StringSupport {
     }
 
     // MRI: enc_succ_char
-    public static NeighborChar succChar(Encoding enc, byte[] bytes, int p, int len, Node node) {
+    public static NeighborChar succChar(RubyEncoding encoding, byte[] bytes, int p, int len, Node node) {
+        Encoding enc = encoding.jcoding;
         int l;
         if (enc.minLength() > 1) {
             /* wchar, trivial case */
-            int r = characterLength(enc, bytes, p, p + len), c;
+            int r = characterLength(encoding, bytes, p, p + len), c;
             if (!MBCLEN_CHARFOUND_P(r)) {
                 return NeighborChar.NOT_CHAR;
             }
@@ -733,7 +734,7 @@ public final class StringSupport {
                 return NeighborChar.WRAPPED;
             }
             EncodingUtils.encMbcput(c, bytes, p, enc);
-            r = characterLength(enc, bytes, p, p + len);
+            r = characterLength(encoding, bytes, p, p + len);
             if (!MBCLEN_CHARFOUND_P(r)) {
                 return NeighborChar.NOT_CHAR;
             }
@@ -749,7 +750,7 @@ public final class StringSupport {
                 return NeighborChar.WRAPPED;
             }
             bytes[p + i] = (byte) ((bytes[p + i] & 0xff) + 1);
-            l = characterLength(enc, bytes, p, p + len);
+            l = characterLength(encoding, bytes, p, p + len);
             if (MBCLEN_CHARFOUND_P(l)) {
                 l = MBCLEN_CHARFOUND_LEN(l);
                 if (l == len) {
@@ -764,7 +765,7 @@ public final class StringSupport {
                 int len2;
                 int l2;
                 for (len2 = len - 1; 0 < len2; len2--) {
-                    l2 = characterLength(enc, bytes, p, p + len2);
+                    l2 = characterLength(encoding, bytes, p, p + len2);
                     if (!MBCLEN_INVALID_P(l2)) {
                         break;
                     }
@@ -777,8 +778,9 @@ public final class StringSupport {
     }
 
     // MRI: enc_succ_alnum_char
-    private static NeighborChar succAlnumChar(Encoding enc, byte[] bytes, int p, int len, byte[] carry, int carryP,
-            Node node) {
+    private static NeighborChar succAlnumChar(RubyEncoding encoding, byte[] bytes, int p, int len, byte[] carry,
+            int carryP, Node node) {
+        Encoding enc = encoding.jcoding;
         byte save[] = new byte[org.jcodings.Config.ENC_CODE_TO_MBC_MAXLEN];
         int c = enc.mbcToCode(bytes, p, p + len);
 
@@ -792,7 +794,7 @@ public final class StringSupport {
         }
 
         System.arraycopy(bytes, p, save, 0, len);
-        NeighborChar ret = succChar(enc, bytes, p, len, node);
+        NeighborChar ret = succChar(encoding, bytes, p, len, node);
         if (ret == NeighborChar.FOUND) {
             c = enc.mbcToCode(bytes, p, p + len);
             if (enc.isCodeCType(c, cType)) {
@@ -805,7 +807,7 @@ public final class StringSupport {
 
         while (true) {
             System.arraycopy(bytes, p, save, 0, len);
-            ret = predChar(enc, bytes, p, len, node);
+            ret = predChar(encoding, bytes, p, len, node);
             if (ret == NeighborChar.FOUND) {
                 c = enc.mbcToCode(bytes, p, p + len);
                 if (!enc.isCodeCType(c, cType)) {
@@ -829,15 +831,16 @@ public final class StringSupport {
         }
 
         System.arraycopy(bytes, p, carry, carryP, len);
-        succChar(enc, carry, carryP, len, node);
+        succChar(encoding, carry, carryP, len, node);
         return NeighborChar.WRAPPED;
     }
 
-    private static NeighborChar predChar(Encoding enc, byte[] bytes, int p, int len, Node node) {
+    private static NeighborChar predChar(RubyEncoding encoding, byte[] bytes, int p, int len, Node node) {
+        Encoding enc = encoding.jcoding;
         int l;
         if (enc.minLength() > 1) {
             /* wchar, trivial case */
-            int r = characterLength(enc, bytes, p, p + len), c;
+            int r = characterLength(encoding, bytes, p, p + len), c;
             if (!MBCLEN_CHARFOUND_P(r)) {
                 return NeighborChar.NOT_CHAR;
             }
@@ -854,7 +857,7 @@ public final class StringSupport {
                 return NeighborChar.WRAPPED;
             }
             EncodingUtils.encMbcput(c, bytes, p, enc);
-            r = characterLength(enc, bytes, p, p + len);
+            r = characterLength(encoding, bytes, p, p + len);
             if (!MBCLEN_CHARFOUND_P(r)) {
                 return NeighborChar.NOT_CHAR;
             }
@@ -869,7 +872,7 @@ public final class StringSupport {
                 return NeighborChar.WRAPPED;
             }
             bytes[p + i] = (byte) ((bytes[p + i] & 0xff) - 1);
-            l = characterLength(enc, bytes, p, p + len);
+            l = characterLength(encoding, bytes, p, p + len);
             if (MBCLEN_CHARFOUND_P(l)) {
                 l = MBCLEN_CHARFOUND_LEN(l);
                 if (l == len) {
@@ -884,7 +887,7 @@ public final class StringSupport {
                 int len2;
                 int l2;
                 for (len2 = len - 1; 0 < len2; len2--) {
-                    l2 = characterLength(enc, bytes, p, p + len2);
+                    l2 = characterLength(encoding, bytes, p, p + len2);
                     if (!MBCLEN_INVALID_P(l2)) {
                         break;
                     }
@@ -1489,9 +1492,9 @@ public final class StringSupport {
      * characters need upcasing. The encoding must be ASCII-compatible (i.e. represent each ASCII character as a single
      * byte ( {@link Encoding#isAsciiCompatible()}). */
     @TruffleBoundary
-    public static byte[] upcaseMultiByteAsciiSimple(Encoding enc, TruffleString.CodeRange codeRange,
+    public static byte[] upcaseMultiByteAsciiSimple(RubyEncoding enc, TruffleString.CodeRange codeRange,
             InternalByteArray byteArray) {
-        assert enc.isAsciiCompatible();
+        assert enc.jcoding.isAsciiCompatible();
         boolean modified = false;
         int s = byteArray.getOffset();
         int end = byteArray.getEnd();
