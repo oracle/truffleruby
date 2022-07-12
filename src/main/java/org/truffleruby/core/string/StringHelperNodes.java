@@ -480,8 +480,7 @@ public abstract class StringHelperNodes {
                 @Cached TruffleString.CopyToByteArrayNode copyToByteArrayNode,
                 @Cached TruffleString.MaterializeNode materializeNode,
                 @Cached TruffleString.ReadByteNode readByteNode,
-                @Cached BranchProfile foundLowerCaseCharProfile,
-                @Cached BranchProfile foundUpperCaseCharProfile,
+                @Cached BranchProfile caseSwapProfile,
                 @Cached LoopConditionProfile loopProfile) {
             var tstring = string.tstring;
             var encoding = string.encoding.tencoding;
@@ -494,25 +493,15 @@ public abstract class StringHelperNodes {
                 for (; loopProfile.inject(i < byteLength); i++) {
                     final byte b = (byte) readByteNode.execute(tstring, i, encoding);
 
-                    if (lowerToUpper && StringSupport.isAsciiLowercase(b)) {
-                        foundLowerCaseCharProfile.enter();
+                    if ((lowerToUpper && StringSupport.isAsciiLowercase(b)) ||
+                            (upperToLower && StringSupport.isAsciiUppercase(b))) {
+                        caseSwapProfile.enter();
 
                         if (modified == null) {
                             modified = copyToByteArrayNode.execute(tstring, encoding);
                         }
 
-                        // Convert lower-case ASCII char to upper-case.
-                        modified[i] ^= 0x20;
-                    }
-
-                    if (upperToLower && StringSupport.isAsciiUppercase(b)) {
-                        foundUpperCaseCharProfile.enter();
-
-                        if (modified == null) {
-                            modified = copyToByteArrayNode.execute(tstring, encoding);
-                        }
-
-                        // Convert upper-case ASCII char to lower-case.
+                        // Convert lower-case ASCII code point to upper-case or upper-case ASCII code point to lower-case.
                         modified[i] ^= 0x20;
                     }
 
