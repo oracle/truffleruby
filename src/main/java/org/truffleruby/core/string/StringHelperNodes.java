@@ -549,7 +549,7 @@ public abstract class StringHelperNodes {
             if (noopProfile.profile(modified == null)) {
                 return nil;
             } else {
-                string.setTString(fromByteArrayNode.execute(modified, string.encoding.tencoding)); // codeRangeNode.execute(rope), codePointLengthNode.execute(rope)
+                string.setTString(fromByteArrayNode.execute(modified, string.encoding.tencoding, false)); // codeRangeNode.execute(rope), codePointLengthNode.execute(rope)
                 return string;
             }
         }
