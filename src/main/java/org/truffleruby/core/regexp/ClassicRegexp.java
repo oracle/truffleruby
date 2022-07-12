@@ -839,7 +839,8 @@ public class ClassicRegexp implements ReOptions {
     public ByteArrayBuilder toByteArrayBuilder() {
         RegexpOptions newOptions = (RegexpOptions) options.clone();
         var byteArray = str.getInternalByteArray();
-        int p = byteArray.getOffset();
+        final int offset = byteArray.getOffset();
+        int p = offset;
         int len = byteArray.getLength();
         byte[] bytes = byteArray.getArray();
 
@@ -926,7 +927,7 @@ public class ClassicRegexp implements ReOptions {
                 }
             }
             result.append((byte) ':');
-            appendRegexpString(result, str, p, len, null);
+            appendRegexpString(result, str, p - offset, len, null);
 
             result.append((byte) ')');
             result.setEncoding(Encodings.getBuiltInEncoding(getEncoding()));
