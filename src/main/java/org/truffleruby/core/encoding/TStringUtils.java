@@ -23,7 +23,6 @@ import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.EncodingDB;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.rope.CannotConvertBinaryRubyStringToJavaString;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringGuards;
 
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.ASCII;
@@ -106,19 +105,6 @@ public class TStringUtils {
             throw CompilerDirectives.shouldNotReachHere();
         }
         return byteArray.getArray();
-    }
-
-    public static CodeRange toCodeRange(TruffleString.CodeRange tCodeRange) {
-        switch (tCodeRange) {
-            case ASCII:
-                return CodeRange.CR_7BIT;
-            case VALID:
-                return CodeRange.CR_VALID;
-            case BROKEN:
-                return CodeRange.CR_BROKEN;
-            default:
-                throw CompilerDirectives.shouldNotReachHere(tCodeRange.name());
-        }
     }
 
     public static boolean isSingleByteOptimizable(AbstractTruffleString truffleString, RubyEncoding encoding) {
