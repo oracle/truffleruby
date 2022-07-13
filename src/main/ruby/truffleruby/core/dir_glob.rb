@@ -31,13 +31,15 @@
 
 class Dir
   module Glob
-    no_meta_chars = '[^*?\\[\\]{}\\\\]'
+    no_meta_chars = /[^*?\[\]{}\\]/
+    no_meta_chars_unescaped = /(?:#{no_meta_chars}|\\\\|\\\*|\\\?|\\\[|\\\]|\\\{|\\\})/
     NO_GLOB_META_CHARS = /\A#{no_meta_chars}+\z/
-    TRAILING_BRACES = /\A(#{no_meta_chars}+)(?:\{(#{no_meta_chars}*)\})?\z/
+    NO_GLOB_META_CHARS_UNESCAPED = /\A#{no_meta_chars_unescaped}+\z/
+    TRAILING_BRACES = /\A(#{no_meta_chars_unescaped}+)(?:\{(#{no_meta_chars_unescaped}*)\})?\z/
 
     class Node
       def initialize(nxt, flags)
-        @flags = flags
+        @flags = flags | File::FNM_EXTGLOB
         @next = nxt
         @separator = nil
       end
@@ -349,6 +351,10 @@ class Dir
       end
     end
 
+    def self.unescape(pattern)
+      pattern.gsub(/\\(.)/, '\\1')
+    end
+
     def self.path_split(str)
       start = 0
       ret = []
@@ -383,7 +389,10 @@ class Dir
     end
 
     def self.single_compile(glob, flags=0)
-      if glob.getbyte(-1) != 47 && NO_GLOB_META_CHARS.match?(glob) # byte value 47 = ?/
+      escape = (flags & File::FNM_NOESCAPE) == 0
+      if escape && glob.getbyte(-1) != 47 && NO_GLOB_META_CHARS_UNESCAPED.match?(glob) # byte value 47 = ?/
+        return ConstantEntry.new nil, flags, unescape(glob)
+      elsif !escape && glob.getbyte(-1) != 47 && NO_GLOB_META_CHARS.match?(glob) # byte value 47 = ?/
         return ConstantEntry.new nil, flags, glob
       end
 
@@ -393,8 +402,10 @@ class Dir
         last = DirectoriesOnly.new nil, flags
       else
         file = parts.pop
-        if NO_GLOB_META_CHARS.match?(file)
+        if !escape && NO_GLOB_META_CHARS.match?(file)
           last = ConstantEntry.new nil, flags, file
+        elsif escape && NO_GLOB_META_CHARS_UNESCAPED.match?(file)
+          last = ConstantEntry.new nil, flags, unescape(file)
         elsif file == '*'
           last = AllNameEntryMatch.new nil, flags, file
         elsif file && file[0] == '*' && NO_GLOB_META_CHARS.match?(file[1..])
@@ -414,10 +425,21 @@ class Dir
           else
             last = RecursiveDirectories.new last, flags
           end
-        elsif NO_GLOB_META_CHARS.match?(dir)
+        elsif !escape && NO_GLOB_META_CHARS.match?(dir)
           while NO_GLOB_META_CHARS.match?(parts[-2])
             next_sep = parts.pop
             next_sect = parts.pop
+
+            dir = next_sect << next_sep << dir
+          end
+
+          last = ConstantDirectory.new last, flags, dir
+        elsif escape && NO_GLOB_META_CHARS_UNESCAPED.match?(dir)
+
+          dir = unescape(dir)
+          while NO_GLOB_META_CHARS_UNESCAPED.match?(parts[-2])
+            next_sep = parts.pop
+            next_sect = unescape(parts.pop)
 
             dir = next_sect << next_sep << dir
           end
@@ -466,9 +488,10 @@ class Dir
         # only as a suffix.
 
         if braces = m[2]
-          stem = m[1]
+          stem = unescape(m[1])
 
           braces.split(',').each do |s|
+            s = unescape(s)
             path = "#{stem}#{s}"
             if Truffle::FileOperations.exist? path_join(base_dir, path)
               matches << path
@@ -480,6 +503,7 @@ class Dir
             matches << stem if Truffle::FileOperations.exist? path_join(base_dir, stem)
           end
         else
+          pattern = unescape(pattern)
           matches << pattern if Truffle::FileOperations.exist?(path_join(base_dir, pattern))
         end
 
