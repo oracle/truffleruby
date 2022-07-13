@@ -605,4 +605,32 @@ public abstract class StringHelperNodes {
             return createString(result, compatibleEncoding);
         }
     }
+
+    @ImportStatic(StringGuards.class)
+    public abstract static class IsBrokenCodePointNode extends RubyBaseNode {
+
+        @Child protected TruffleString.GetByteCodeRangeNode codeRangeNode = TruffleString.GetByteCodeRangeNode.create();
+
+        public static IsBrokenCodePointNode create() {
+            return StringHelperNodesFactory.IsBrokenCodePointNodeGen.create();
+        }
+
+        public abstract boolean executeIsBroken(AbstractTruffleString tstring, TruffleString.Encoding encoding,
+                int byteOffset);
+
+        @Specialization(guards = "!isBrokenCodeRange(tstring, encoding, codeRangeNode)")
+        protected boolean isNeverBroken(
+                AbstractTruffleString tstring, TruffleString.Encoding encoding, int byteOffset) {
+            return false;
+        }
+
+        @Specialization(guards = "isBrokenCodeRange(tstring, encoding, codeRangeNode)")
+        protected boolean isPossiblyBroken(
+                AbstractTruffleString tstring, TruffleString.Encoding encoding, int byteOffset,
+                @Cached TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode) {
+            return byteLengthOfCodePointNode.execute(tstring, byteOffset, encoding,
+                    TruffleString.ErrorHandling.RETURN_NEGATIVE) < 0;
+        }
+
+    }
 }
