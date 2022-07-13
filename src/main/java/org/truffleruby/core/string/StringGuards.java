@@ -46,6 +46,11 @@ public class StringGuards {
         return codeRangeNode.execute(string, encoding.tencoding) == BROKEN;
     }
 
+    public static boolean isBrokenCodeRange(AbstractTruffleString string, TruffleString.Encoding encoding,
+            TruffleString.GetByteCodeRangeNode codeRangeNode) {
+        return codeRangeNode.execute(string, encoding) == BROKEN;
+    }
+
     public static boolean isSingleByteOptimizable(RubyString string,
             SingleByteOptimizableNode singleByteOptimizableNode) {
         return singleByteOptimizableNode.execute(string.tstring, string.encoding);
