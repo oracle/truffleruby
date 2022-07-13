@@ -2,9 +2,6 @@
 package org.truffleruby.parser.parser;
 
 
-import com.oracle.truffle.api.strings.TruffleString;
-
-
 import java.util.Set
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -20,6 +17,7 @@ import org.truffleruby.parser.RubyDeferredWarnings;
 import org.truffleruby.parser.ast.ArgsParseNode;
 import org.truffleruby.parser.ast.ArgumentParseNode;
 import org.truffleruby.parser.ast.ArrayParseNode;
+import org.truffleruby.parser.ast.ArrayPatternParseNode;
 import org.truffleruby.parser.ast.AssignableParseNode;
 import org.truffleruby.parser.ast.BackRefParseNode;
 import org.truffleruby.parser.ast.BeginParseNode;
@@ -40,19 +38,23 @@ import org.truffleruby.parser.ast.DXStrParseNode;
 import org.truffleruby.parser.ast.DefnParseNode;
 import org.truffleruby.parser.ast.DefsParseNode;
 import org.truffleruby.parser.ast.DotParseNode;
+import org.truffleruby.parser.ast.DVarParseNode;
 import org.truffleruby.parser.ast.EncodingParseNode;
 import org.truffleruby.parser.ast.EnsureParseNode;
 import org.truffleruby.parser.ast.EvStrParseNode;
 import org.truffleruby.parser.ast.FCallParseNode;
 import org.truffleruby.parser.ast.FalseParseNode;
 import org.truffleruby.parser.ast.FileParseNode;
+import org.truffleruby.parser.ast.FindPatternParseNode;
 import org.truffleruby.parser.ast.FixnumParseNode;
 import org.truffleruby.parser.ast.FloatParseNode;
 import org.truffleruby.parser.ast.ForParseNode;
 import org.truffleruby.parser.ast.GlobalAsgnParseNode;
 import org.truffleruby.parser.ast.GlobalVarParseNode;
 import org.truffleruby.parser.ast.HashParseNode;
+import org.truffleruby.parser.ast.HashPatternParseNode;
 import org.truffleruby.parser.ast.IfParseNode;
+import org.truffleruby.parser.ast.InParseNode;
 import org.truffleruby.parser.ast.InstAsgnParseNode;
 import org.truffleruby.parser.ast.InstVarParseNode;
 import org.truffleruby.parser.ast.IterParseNode;
@@ -96,7 +98,6 @@ import org.truffleruby.parser.ast.XStrParseNode;
 import org.truffleruby.parser.ast.YieldParseNode;
 import org.truffleruby.parser.ast.ZArrayParseNode;
 import org.truffleruby.parser.ast.ZSuperParseNode;
-import org.truffleruby.parser.ast.ArrayPatternParseNode;
 import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.lexer.LexerSource;
 import org.truffleruby.parser.lexer.RubyLexer;
@@ -169,9 +170,15 @@ public class RubyParser {
 %token <SourceIndexLength> tLPAREN2      /* ( Is just '(' in ruby and not a token */
 %token <TruffleString> tRPAREN        /* ) */
 %token <SourceIndexLength> tLPAREN_ARG    /* ( */
+<<<<<<< HEAD
 %token <TruffleString> tLBRACK        /* [ */
 %token <TruffleString> tRBRACK        /* ] */
 %token <SourceIndexLength> tLBRACE        /* { */
+=======
+%token <Rope> tLBRACK        /* [ */
+%token <Rope> tRBRACK        /* ] */
+%token <Object> tLBRACE        /* { Changed to Object for Ruby 3.0 pattern match */
+>>>>>>> 72f86abb09 (remove all major type errors and fix missed untranslated segments)
 %token <SourceIndexLength> tLBRACE_ARG    /* { */
 %token <TruffleString> tSTAR          /* * */
 %token <TruffleString> tSTAR2         /* *  Is just '*' in ruby and not a token */
@@ -271,7 +278,7 @@ public class RubyParser {
 %type <ParseNode> p_value p_primitive p_variable p_var_ref p_expr_ref p_const
 %type <HashPatternParseNode> p_kwargs
 %type <HashParseNode> p_kwarg
-%type <KeyValuePair> p_kw
+%type <ParseNodeTuple> p_kw
 %type <Rope> p_rest p_kwrest p_kwnorest p_any_kwrest p_kw_label
 %type <ParseNode> p_lparen p_lbracket
 %type <Rope> nonlocal_var
@@ -1266,7 +1273,7 @@ arg             : lhs '=' arg_rhs {
                     $$ = support.newAndNode($1.getPosition(), $1, $3);
                 }
                 | arg tOROP arg {
-                    $$ = support.newOrNode($1.getPosition(), $1, $3);
+                    $$ = support.newOrNode(support.getPosition($1), $1, $3);
                 }
                 | keyword_defined opt_nl arg {
                     $$ = support.new_defined($1, $3);
@@ -2083,11 +2090,11 @@ p_top_expr      : p_top_expr_body
 
 p_top_expr_body : p_expr
                 | p_expr ',' {
-                    $$ = support.new_array_pattern(support.getPosition($1), null, $1,
-                                                   support.new_array_pattern_tail(support.getPosition($1), null, true, null, null));
+                    $$ = support.new_array_pattern(support.getPosition($<ParseNode>1), null, $1,
+                                                   support.new_array_pattern_tail(support.getPosition($<ParseNode>1), null, true, null, null));
                 }
                 | p_expr ',' p_args {
-                    $$ = support.new_array_pattern(support.getPosition($1), null, $1, $3);
+                    $$ = support.new_array_pattern(support.getPosition($<ParseNode>1), null, $1, $3);
                     // the following line is a no-op. May or many not require an impl
                     support.nd_set_first_loc($<ParseNode>$, support.getPosition($1));
                 }
@@ -2095,7 +2102,11 @@ p_top_expr_body : p_expr
                     $$ = support.new_find_pattern(null, $1);
                 }
                 | p_args_tail {
+<<<<<<< HEAD
                     $$ = support.new_array_pattern(@1.start(), null, null, $1);
+=======
+                    $$ = support.new_array_pattern(support.getPosition($<ParseNode>1), null, null, $1);
+>>>>>>> 72f86abb09 (remove all major type errors and fix missed untranslated segments)
                 }
                 | p_kwargs {
                     $$ = support.new_hash_pattern(null, $1);
@@ -2109,7 +2120,7 @@ p_as            : p_expr tASSOC p_variable {
                 | p_alt
 
 p_alt           : p_alt '|' p_expr_basic {
-                    $$ = support.newOrNode($1, $3);
+                    $$ = support.newOrNode(support.getPosition($1), $1, $3);
                 }
                 | p_expr_basic
 
@@ -2123,7 +2134,7 @@ p_expr_basic    : p_value
                 | p_variable
                 | p_const p_lparen p_args rparen {
                     support.pop_pktbl($<Set>2);
-                    $$ = support.new_array_pattern(support.getPosition($1), $1, null, $3);
+                    $$ = support.new_array_pattern(support.getPosition($<ParseNode>1), $1, null, $3);
                     support.nd_set_first_loc($<ParseNode>$, support.getPosition($1));
                 }
                 | p_const p_lparen p_find rparen {
@@ -2137,12 +2148,12 @@ p_expr_basic    : p_value
                      support.nd_set_first_loc($<ParseNode>$, support.getPosition($1));
                 }
                 | p_const '(' rparen {
-                     $$ = support.new_array_pattern(support.getPosition($1), $1, null,
-                                                    support.new_array_pattern_tail(support.getPosition($1), null, false, null, null));
+                     $$ = support.new_array_pattern(support.getPosition($<ParseNode>1), $1, null,
+                                                    support.new_array_pattern_tail(support.getPosition($<ParseNode>1), null, false, null, null));
                 }
                 | p_const p_lbracket p_args rbracket {
                      support.pop_pktbl($<Set>2);
-                     $$ = support.new_array_pattern(support.getPosition($1), $1, null, $3);
+                     $$ = support.new_array_pattern(support.getPosition($<ParseNode>1), $1, null, $3);
                      support.nd_set_first_loc($<ParseNode>$, support.getPosition($1));
                 }
                 | p_const p_lbracket p_find rbracket {
@@ -2160,14 +2171,14 @@ p_expr_basic    : p_value
                             support.new_array_pattern_tail(support.getPosition($1), null, false, null, null));
                 }
                 | tLBRACK p_args rbracket {
-                    $$ = support.new_array_pattern(support.getPosition($1), null, null, $2);
+                    $$ = support.new_array_pattern(support.getPosition($<ParseNode>1), null, null, $2);
                 }
                 | tLBRACK p_find rbracket {
                     $$ = support.new_find_pattern(null, $2);
                 }
                 | tLBRACK rbracket {
-                    $$ = support.new_array_pattern(support.getPosition($1), null, null,
-                            support.new_array_pattern_tail(support.getPosition($1), null, false, null, null));
+                    $$ = support.new_array_pattern(support.getPosition($<ParseNode>1), null, null,
+                            support.new_array_pattern_tail(support.getPosition($<ParseNode>1), null, false, null, null));
                 }
                 | tLBRACE {
                     $$ = support.push_pktbl();
@@ -2179,7 +2190,7 @@ p_expr_basic    : p_value
                     $$ = support.new_hash_pattern(null, $3);
                 }
                 | tLBRACE rbrace {
-                    $$ = support.new_hash_pattern(null, support.new_hash_pattern_tail(support.getPosition($1), null, null));
+                    $$ = support.new_hash_pattern(null, support.new_hash_pattern_tail(support.getPosition($<ParseNode>1), null, null));
                 }
                 | tLPAREN {
                     $$ = support.push_pktbl();
@@ -2189,7 +2200,7 @@ p_expr_basic    : p_value
                 }
 
 p_args          : p_expr {
-                     ListParseNode preArgs = support.newArrayNode($1.getLine(), $1);
+                     ListParseNode preArgs = support.newArrayNode(support.getPosition($1), $1);
                      $$ = support.new_array_pattern_tail(support.getPosition($1), preArgs, false, null, null);
                 }
                 | p_args_head {
@@ -2222,15 +2233,15 @@ p_args_head     : p_arg ',' {
                 }
 
 p_args_tail     : p_rest {
-                     $$ = support.new_array_pattern_tail(support.getPosition($1), null, true, $1, null);
+                     $$ = support.new_array_pattern_tail(support.getPosition($<ParseNode>1), null, true, $1, null);
                 }
                 | p_rest ',' p_args_post {
-                     $$ = support.new_array_pattern_tail(support.getPosition($1), null, true, $1, $3);
+                     $$ = support.new_array_pattern_tail(support.getPosition($<ParseNode>1), null, true, $1, $3);
                 }
                 
 p_find          : p_rest ',' p_args_post ',' p_rest {
-                     $$ = support.new_find_pattern_tail(support.getPosition($1), $1, $3, $5);
-                     support.warn(support.getPosition($1), "Find pattern is experimental, and the behavior may change in future versions of Ruby!");
+                     $$ = support.new_find_pattern_tail(support.getPosition($<ParseNode>1), $1, $3, $5);
+                     support.warn(support.getPosition($<ParseNode>1), "Find pattern is experimental, and the behavior may change in future versions of Ruby!");
                 }
 
 p_rest          : tSTAR tIDENTIFIER {
@@ -2248,7 +2259,7 @@ p_args_post     : p_arg
 
 // ListNode - [!null]
 p_arg           : p_expr {
-                    $$ = support.newArrayNode($1.getLine(), $1);
+                    $$ = support.newArrayNode($1.getPosition(), $1);
                 }
 
 // HashPatternNode - [!null]
@@ -2262,12 +2273,12 @@ p_kwargs        : p_kwarg ',' p_any_kwrest {
                     $$ = support.new_hash_pattern_tail(support.getPosition($1), $1, null);
                 }
                 | p_any_kwrest {
-                    $$ = support.new_hash_pattern_tail(support.getPosition($1), null, $1);
+                    $$ = support.new_hash_pattern_tail(support.getPosition($<ParseNode>1), null, $1);
                 }
                 
-// HashNode - [!null]
+// HashParseNode - [!null]
 p_kwarg         : p_kw {
-                    $$ = new HashNode(support.getPosition($1), $1);
+                    $$ = new HashParseNode(support.getPosition($<ParseNode>1), $1);
                 }
                 | p_kwarg ',' p_kw {
                     $1.add($3);
@@ -2278,9 +2289,9 @@ p_kwarg         : p_kw {
 p_kw            : p_kw_label p_expr {
                     support.error_duplicate_pattern_key($1);
 
-                    Node label = support.asSymbol(support.getPosition($1), $1);
+                    ParseNode label = support.asSymbol(support.getPosition($<ParseNode>1), $1);
 
-                    $$ = new KeyValuePair(label, $2);
+                    $$ = new ParseNodeTuple(label, $2);
                 }
                 | p_kw_label {
                     support.error_duplicate_pattern_key($1);
@@ -2289,8 +2300,8 @@ p_kw            : p_kw_label p_expr {
                     }
                     support.error_duplicate_pattern_variable($1);
 
-                    Node label = support.asSymbol(support.getPosition($1), $1);
-                    $$ = new KeyValuePair(label, support.assignableLabelOrIdentifier($1, null));
+                    ParseNode label = support.asSymbol(support.getPosition($<ParseNode>1), $1);
+                    $$ = new ParseNodeTuple(label, support.assignableLabelOrIdentifier($1, null));
                 }
 
 // Rope
@@ -2336,12 +2347,12 @@ p_value         : p_primitive
                 | p_primitive tDOT2 {
                     support.value_expr(lexer, $1);
                     boolean isLiteral = $1 instanceof FixnumParseNode;
-                    $$ = new DotParseNode(support.getPosition($1), support.makeNullNil($1), NilImplicitNode.NIL, false, isLiteral);
+                    $$ = new DotParseNode(support.getPosition($1), support.makeNullNil($1), NilImplicitParseNode.NIL, false, isLiteral);
                 }
                 | p_primitive tDOT3 {
                     support.value_expr(lexer, $1);
                     boolean isLiteral = $1 instanceof FixnumParseNode;
-                    $$ = new DotParseNode(support.getPosition($1), support.makeNullNil($1), NilImplicitNode.NIL, true, isLiteral);
+                    $$ = new DotParseNode(support.getPosition($1), support.makeNullNil($1), NilImplicitParseNode.NIL, true, isLiteral);
                 }
                 | p_var_ref
                 | p_expr_ref
@@ -2349,12 +2360,12 @@ p_value         : p_primitive
                 | tBDOT2 p_primitive {
                     support.value_expr(lexer, $2);
                     boolean isLiteral = $2 instanceof FixnumParseNode;
-                    $$ = new DotParseNode(support.getPosition($1), NilImplicitNode.NIL, support.makeNullNil($2), false, isLiteral);
+                    $$ = new DotParseNode(support.getPosition($<ParseNode>1), NilImplicitParseNode.NIL, support.makeNullNil($2), false, isLiteral);
                 }
                 | tBDOT3 p_primitive {
                     support.value_expr(lexer, $2);
                     boolean isLiteral = $2 instanceof FixnumParseNode;
-                    $$ = new DotParseNode(support.getPosition($1), NilImplicitNode.NIL, support.makeNullNil($2), true, isLiteral);
+                    $$ = new DotParseNode(support.getPosition($<ParseNode>1), NilImplicitParseNode.NIL, support.makeNullNil($2), true, isLiteral);
                 }
 
 p_primitive     : literal
@@ -2386,12 +2397,12 @@ p_primitive     : literal
                     $$ = new FalseParseNode(lexer.tokline);
                 }
                 | keyword__FILE__ {
-                    $$ = new FileParseNode(lexer.tokline, RopeOperations.create(lexer.getFile().getBytes(),
-                    support.getConfiguration().getRuntime().getEncodingService().getLocaleEncoding()),
-                    CR_UNKNOWN);
+                    // TODO: make a helper for this since it is used twice now
+                    Encoding encoding = support.getConfiguration().getContext() == null ? UTF8Encoding.INSTANCE : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding().jcoding;
+                    $$ = new FileParseNode(lexer.tokline, StringOperations.encodeRope(lexer.getFile(), encoding, CR_UNKNOWN));
                 }
                 | keyword__LINE__ {
-                    $$ = new FixnumParseNode(lexer.tokline, lexer.tokline+1);
+                    $$ = new FixnumParseNode(lexer.tokline, lexer.getRubySourceLine());
                 }
                 | keyword__ENCODING__ {
                     $$ = new EncodingParseNode(lexer.tokline, lexer.getEncoding());
@@ -3225,7 +3236,7 @@ rbracket        : opt_nl tRBRACK {
                     $$ = $2;
                 }
 rbrace          : opt_nl '}' {
-                    $<Rope>$ = RCURLY;
+                    $$ = RopeConstants.RCURLY;
                 }
 trailer         : /* none */ | '\n' | ','
 
