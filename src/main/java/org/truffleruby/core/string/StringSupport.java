@@ -268,16 +268,6 @@ public final class StringSupport {
         return enc.codeToMbcLength(c);
     }
 
-    /** Returns -1 if broken character */
-    @TruffleBoundary
-    public static int preciseCodePoint(Encoding enc, TruffleString.CodeRange codeRange, byte[] bytes, int p, int end) {
-        int l = characterLength(enc, codeRange, bytes, p, end);
-        if (l > 0) {
-            return enc.mbcToCode(bytes, p, end);
-        }
-        return -1;
-    }
-
     @TruffleBoundary
     public static int mbcToCode(Encoding encoding, byte[] bytes, int p, int end) {
         return encoding.mbcToCode(bytes, p, end);
