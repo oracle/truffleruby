@@ -1204,7 +1204,7 @@ public abstract class StringNodes {
                     .downcaseMultiByteComplex(encoding.jcoding, cr, builder, caseMappingOptions, this);
 
             if (modifiedProfile.profile(modified)) {
-                string.setTString(fromByteArrayNode.execute(builder.getBytes(), string.encoding.tencoding));
+                string.setTString(fromByteArrayNode.execute(builder.getBytes(), string.encoding.tencoding, false));
                 return string;
             } else {
                 return nil;
@@ -1970,7 +1970,7 @@ public abstract class StringNodes {
                     .swapCaseMultiByteComplex(enc.jcoding, cr, builder, caseMappingOptions, this);
 
             if (modifiedProfile.profile(modified)) {
-                string.setTString(fromByteArrayNode.execute(builder.getBytes(), string.encoding.tencoding));
+                string.setTString(fromByteArrayNode.execute(builder.getBytes(), string.encoding.tencoding, false));
                 return string;
             } else {
                 return nil;
@@ -2365,7 +2365,7 @@ public abstract class StringNodes {
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             if (!string.tstring.isEmpty()) {
                 final TStringBuilder succBuilder = StringSupport.succCommon(string, this);
-                string.setTString(fromByteArrayNode.execute(succBuilder.getBytes(), string.encoding.tencoding));
+                string.setTString(fromByteArrayNode.execute(succBuilder.getBytes(), string.encoding.tencoding, false));
             }
 
             return string;
@@ -2542,7 +2542,7 @@ public abstract class StringNodes {
                 reversedBytes[len - i - 1] = byteArray.get(i);
             }
 
-            string.setTString(fromByteArrayNode.execute(reversedBytes, encoding)); // codeRangeNode.execute(rope), codePointLengthNode.execute(rope)
+            string.setTString(fromByteArrayNode.execute(reversedBytes, encoding, false)); // codeRangeNode.execute(rope), codePointLengthNode.execute(rope)
             return string;
         }
 
@@ -2580,7 +2580,7 @@ public abstract class StringNodes {
                 }
             }
 
-            string.setTString(fromByteArrayNode.execute(reversedBytes, encoding)); // codeRangeNode.execute(rope), codePointLengthNode.execute(rope)
+            string.setTString(fromByteArrayNode.execute(reversedBytes, encoding, false)); // codeRangeNode.execute(rope), codePointLengthNode.execute(rope)
             return string;
         }
 
@@ -2837,7 +2837,7 @@ public abstract class StringNodes {
                             codeRangeNode.execute(string.tstring, string.getTEncoding()),
                             builder, caseMappingOptions, this);
             if (modifiedProfile.profile(modified)) {
-                string.setTString(fromByteArrayNode.execute(builder.getBytes(), string.getTEncoding()));
+                string.setTString(fromByteArrayNode.execute(builder.getBytes(), string.getTEncoding(), false));
                 return string;
             } else {
                 return nil;

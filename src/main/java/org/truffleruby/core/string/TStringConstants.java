@@ -231,7 +231,8 @@ public class TStringConstants {
         for (int n = 0; n < table.length; n++) {
             table[n] = TruffleString.fromByteArrayUncached(
                     new byte[]{ (byte) ('0' + n / 10), (byte) ('0' + n % 10) },
-                    TruffleString.Encoding.UTF_8);
+                    TruffleString.Encoding.UTF_8,
+                    false);
         }
 
         return table;
@@ -250,7 +251,7 @@ public class TStringConstants {
 
             Arrays.fill(bytes, (byte) '0');
 
-            table[n] = TruffleString.fromByteArrayUncached(bytes, TruffleString.Encoding.UTF_8);
+            table[n] = TruffleString.fromByteArrayUncached(bytes, TruffleString.Encoding.UTF_8, false);
         }
 
         return table;

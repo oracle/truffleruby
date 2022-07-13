@@ -1601,7 +1601,7 @@ public class RubyLexer implements MagicCommentHandler {
             case '<': /* $<: reading filename */
             case '>': /* $>: default output handle */
             case '\"': /* $": already loaded files */
-                yaccValue = TruffleString.fromByteArrayUncached(new byte[]{ '$', (byte) c }, US_ASCII);
+                yaccValue = TruffleString.fromByteArrayUncached(new byte[]{ '$', (byte) c }, US_ASCII, false);
                 return RubyParser.tGVAR;
 
             case '-':
@@ -1625,7 +1625,7 @@ public class RubyLexer implements MagicCommentHandler {
             case '+': /* $+: string matches last paren. */
                 // Explicit reference to these vars as symbols...
                 if (isLexState(last_state, EXPR_FNAME)) {
-                    yaccValue = TruffleString.fromByteArrayUncached(new byte[]{ '$', (byte) c }, US_ASCII);
+                    yaccValue = TruffleString.fromByteArrayUncached(new byte[]{ '$', (byte) c }, US_ASCII, false);
                     return RubyParser.tGVAR;
                 }
 
@@ -3645,13 +3645,13 @@ public class RubyLexer implements MagicCommentHandler {
     public static final int EOF = -1; // 0 in MRI
 
     public static final TruffleString END_MARKER = TruffleString.fromByteArrayUncached(
-            new byte[]{ '_', '_', 'E', 'N', 'D', '_', '_' }, TruffleString.Encoding.BYTES);
+            new byte[]{ '_', '_', 'E', 'N', 'D', '_', '_' }, TruffleString.Encoding.BYTES, false);
     public static final TruffleString BEGIN_DOC_MARKER = TruffleString.fromByteArrayUncached(
-            new byte[]{ 'b', 'e', 'g', 'i', 'n' }, TruffleString.Encoding.BYTES);
+            new byte[]{ 'b', 'e', 'g', 'i', 'n' }, TruffleString.Encoding.BYTES, false);
     public static final TruffleString END_DOC_MARKER = TruffleString.fromByteArrayUncached(
-            new byte[]{ 'e', 'n', 'd' }, TruffleString.Encoding.BYTES);
+            new byte[]{ 'e', 'n', 'd' }, TruffleString.Encoding.BYTES, false);
     public static final TruffleString CODING = TruffleString.fromByteArrayUncached(
-            new byte[]{ 'c', 'o', 'd', 'i', 'n', 'g' }, TruffleString.Encoding.BYTES);
+            new byte[]{ 'c', 'o', 'd', 'i', 'n', 'g' }, TruffleString.Encoding.BYTES, false);
 
     public static final int SUFFIX_R = 1 << 0;
     public static final int SUFFIX_I = 1 << 1;

@@ -59,7 +59,7 @@ public class TBytesKey {
     @Override
     public String toString() {
         var encoding = this.encoding != null ? this.encoding.tencoding : TruffleString.Encoding.BYTES;
-        return TruffleString.fromByteArrayUncached(bytes, encoding).toString();
+        return TruffleString.fromByteArrayUncached(bytes, encoding, false).toString();
     }
 
 }

@@ -62,7 +62,8 @@ public class BackRefParseNode extends ParseNode {
     }
 
     public TruffleString getByteName() {
-        return TruffleString.fromByteArrayUncached(new byte[]{ '$', (byte) type }, TruffleString.Encoding.US_ASCII);
+        return TruffleString.fromByteArrayUncached(new byte[]{ '$', (byte) type }, TruffleString.Encoding.US_ASCII,
+                false);
     }
 
     /** Gets the type
