@@ -1723,7 +1723,7 @@ public abstract class StringNodes {
             int endp = end;
             int prev;
             while ((prev = prevCharHead(enc.jcoding, bytes, start, endp, end)) != -1) {
-                int point = getCodePointNode.executeGetCodePoint(tstring, enc, prev);
+                int point = getCodePointNode.executeGetCodePoint(tstring, enc, prev - start);
                 if (!StringSupport.isAsciiSpaceOrNull(point)) {
                     break;
                 }
