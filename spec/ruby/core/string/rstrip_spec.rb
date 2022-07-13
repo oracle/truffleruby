@@ -11,6 +11,14 @@ describe "String#rstrip" do
     "  hello world \n\r\t\n\v\r".rstrip.should == "  hello world"
     "hello".rstrip.should == "hello"
     "hello\x00".rstrip.should == "hello"
+    "こにちわ ".rstrip.should == "こにちわ"
+  end
+
+  it "works with lazy substrings" do
+    "  hello  "[1...-1].rstrip.should == " hello"
+    "  hello world  "[1...-1].rstrip.should == " hello world"
+    "  hello world \n\r\t\n\v\r"[1...-1].rstrip.should == " hello world"
+    " こにちわ  "[1...-1].rstrip.should == "こにちわ"
   end
 
   it "returns a copy of self with all trailing whitespace and NULL bytes removed" do

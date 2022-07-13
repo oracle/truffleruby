@@ -10,6 +10,14 @@ describe "String#lstrip" do
    "  hello world  ".lstrip.should == "hello world  "
    "\n\r\t\n\v\r hello world  ".lstrip.should == "hello world  "
    "hello".lstrip.should == "hello"
+   " こにちわ".lstrip.should == "こにちわ"
+  end
+
+  it "works with lazy substrings" do
+    "  hello  "[1...-1].lstrip.should == "hello "
+    "  hello world  "[1...-1].lstrip.should == "hello world "
+    "\n\r\t\n\v\r hello world  "[1...-1].lstrip.should == "hello world "
+    "   こにちわ "[1...-1].lstrip.should == "こにちわ"
   end
 
   ruby_version_is '3.0' do
