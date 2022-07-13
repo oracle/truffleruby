@@ -65,16 +65,13 @@ public final class StringSupport {
     // exceeding the buffer size.
     private static final int CASE_MAP_BUFFER_SIZE = 32;
 
+    /** codeRange==null means unknown. recoverIfBroken=false so can return negative values. */
     public static int characterLength(Encoding encoding, TruffleString.CodeRange codeRange, byte[] bytes,
-            int byteOffset, int byteEnd, boolean recoverIfBroken) {
+            int byteOffset, int byteEnd) {
         assert byteOffset >= 0 && byteOffset < byteEnd && byteEnd <= bytes.length;
 
         if (codeRange == null) {
-            if (recoverIfBroken) {
-                return length(encoding, bytes, byteOffset, byteEnd);
-            } else {
-                return preciseLength(encoding, bytes, byteOffset, byteEnd);
-            }
+            return preciseLength(encoding, bytes, byteOffset, byteEnd);
         }
 
         switch (codeRange) {
@@ -83,25 +80,16 @@ public final class StringSupport {
             case VALID:
                 return characterLengthValid(encoding, bytes, byteOffset, byteEnd);
             case BROKEN:
-                if (recoverIfBroken) {
-                    return length(encoding, bytes, byteOffset, byteEnd);
-                } else {
-                    return preciseLength(encoding, bytes, byteOffset, byteEnd);
-                }
+                return preciseLength(encoding, bytes, byteOffset, byteEnd);
             default:
                 throw Utils.unsupportedOperation("unknown code range value: ", codeRange);
         }
     }
 
-    /** recoverIfBroken=false */
+    /** recoverIfBroken=false so can return negative values */
     public static int characterLength(RubyEncoding encoding, byte[] bytes, int byteOffset, int byteEnd) {
         assert byteOffset >= 0 && byteOffset < byteEnd && byteEnd <= bytes.length;
         return preciseLength(encoding.jcoding, bytes, byteOffset, byteEnd);
-    }
-
-    public static int characterLength(Encoding encoding, TruffleString.CodeRange codeRange, byte[] bytes,
-            int byteOffset, int byteEnd) {
-        return characterLength(encoding, codeRange, bytes, byteOffset, byteEnd, false);
     }
 
     private static int characterLengthValid(Encoding encoding, byte[] bytes, int byteOffset, int byteEnd) {
