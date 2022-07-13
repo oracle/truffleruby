@@ -30,30 +30,15 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
 import org.jcodings.ascii.AsciiTables;
 import org.jcodings.specific.ASCIIEncoding;
-import org.truffleruby.RubyContext;
-import org.truffleruby.language.control.RaiseException;
 
 public class EncodingUtils {
 
     // rb_enc_asciicompat
     public static boolean encAsciicompat(Encoding enc) {
-        return encMbminlen(enc) == 1 && !encDummy(enc);
-    }
-
-    // rb_enc_mbminlen
-    public static int encMbminlen(Encoding encoding) {
-        return encoding.minLength();
-    }
-
-    // rb_enc_dummy_p
-    public static boolean encDummy(Encoding enc) {
-        return enc.isDummy();
+        return enc.minLength() == 1 && !enc.isDummy();
     }
 
     public static boolean DECORATOR_P(byte[] sname, byte[] dname) {
@@ -133,67 +118,5 @@ public class EncodingUtils {
         return names;
     }
 
-
-    // rb_enc_ascget
-    public static int encAscget(byte[] pBytes, int p, int e, int[] len, Encoding enc,
-            TruffleString.CodeRange codeRange) {
-        int c;
-        int l;
-
-        if (e <= p) {
-            return -1;
-        }
-
-        if (encAsciicompat(enc)) {
-            c = pBytes[p] & 0xFF;
-            if (!Encoding.isAscii((byte) c)) {
-                return -1;
-            }
-            if (len != null) {
-                len[0] = 1;
-            }
-            return c;
-        }
-        l = StringSupport.characterLength(enc, codeRange, pBytes, p, e);
-        if (!StringSupport.MBCLEN_CHARFOUND_P(l)) {
-            return -1;
-        }
-        c = enc.mbcToCode(pBytes, p, e);
-        if (!Encoding.isAscii(c)) {
-            return -1;
-        }
-        if (len != null) {
-            len[0] = l;
-        }
-        return c;
-    }
-
-    // rb_enc_codepoint_len
-    @TruffleBoundary
-    public static int encCodepointLength(byte[] pBytes, int p, int e, int[] len_p, Encoding enc,
-            TruffleString.CodeRange codeRange,
-            Node node) {
-        int r;
-        if (e <= p) {
-            final RubyContext context = RubyContext.get(node);
-            throw new RaiseException(context, context.getCoreExceptions().argumentError("empty string", node));
-        }
-        r = StringSupport.characterLength(enc, codeRange, pBytes, p, e);
-        if (!StringSupport.MBCLEN_CHARFOUND_P(r)) {
-            final RubyContext context = RubyContext.get(node);
-            throw new RaiseException(
-                    context,
-                    context.getCoreExceptions().argumentError("invalid byte sequence in " + enc, node));
-        }
-        if (len_p != null) {
-            len_p[0] = StringSupport.MBCLEN_CHARFOUND_LEN(r);
-        }
-        return StringSupport.codePoint(enc, codeRange, pBytes, p, e, node);
-    }
-
-    // rb_enc_mbcput
-    public static int encMbcput(int c, byte[] buf, int p, Encoding enc) {
-        return enc.codeToMbc(c, buf, p);
-    }
 
 }

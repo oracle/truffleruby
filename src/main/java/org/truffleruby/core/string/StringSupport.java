@@ -66,7 +66,7 @@ public final class StringSupport {
     private static final int CASE_MAP_BUFFER_SIZE = 32;
 
     /** codeRange==null means unknown. recoverIfBroken=false so can return negative values. */
-    public static int characterLength(Encoding encoding, TruffleString.CodeRange codeRange, byte[] bytes,
+    private static int characterLength(Encoding encoding, TruffleString.CodeRange codeRange, byte[] bytes,
             int byteOffset, int byteEnd) {
         assert byteOffset >= 0 && byteOffset < byteEnd && byteEnd <= bytes.length;
 
@@ -395,6 +395,62 @@ public final class StringSupport {
         return chars;
     }
 
+    // rb_enc_ascget
+    private static int encAscget(byte[] pBytes, int p, int e, int[] len, Encoding enc,
+            TruffleString.CodeRange codeRange) {
+        int c;
+        int l;
+
+        if (e <= p) {
+            return -1;
+        }
+
+        if (EncodingUtils.encAsciicompat(enc)) {
+            c = pBytes[p] & 0xFF;
+            if (!Encoding.isAscii((byte) c)) {
+                return -1;
+            }
+            if (len != null) {
+                len[0] = 1;
+            }
+            return c;
+        }
+        l = characterLength(enc, codeRange, pBytes, p, e);
+        if (!MBCLEN_CHARFOUND_P(l)) {
+            return -1;
+        }
+        c = enc.mbcToCode(pBytes, p, e);
+        if (!Encoding.isAscii(c)) {
+            return -1;
+        }
+        if (len != null) {
+            len[0] = l;
+        }
+        return c;
+    }
+
+    // rb_enc_codepoint_len
+    @TruffleBoundary
+    private static int encCodepointLength(byte[] pBytes, int p, int e, int[] len_p, Encoding enc,
+            TruffleString.CodeRange codeRange, Node node) {
+        int r;
+        if (e <= p) {
+            final RubyContext context = RubyContext.get(node);
+            throw new RaiseException(context, context.getCoreExceptions().argumentError("empty string", node));
+        }
+        r = characterLength(enc, codeRange, pBytes, p, e);
+        if (!MBCLEN_CHARFOUND_P(r)) {
+            final RubyContext context = RubyContext.get(node);
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().argumentError("invalid byte sequence in " + enc, node));
+        }
+        if (len_p != null) {
+            len_p[0] = MBCLEN_CHARFOUND_LEN(r);
+        }
+        return codePoint(enc, codeRange, pBytes, p, e, node);
+    }
+
     /** rb_str_tr / rb_str_tr_bang */
     public static final class TR {
         public TR(AbstractTruffleString string, RubyEncoding encoding) {
@@ -428,7 +484,7 @@ public final class StringSupport {
 
         var codeRange = str.getByteCodeRangeUncached(encoding.tencoding);
         if (str.byteLength(encoding.tencoding) > 1 &&
-                EncodingUtils.encAscget(tr.buf, tr.p, tr.pend, l, enc, codeRange) == '^') {
+                encAscget(tr.buf, tr.p, tr.pend, l, enc, codeRange) == '^') {
             cflag = true;
             tr.p += l[0];
         } else {
@@ -554,15 +610,15 @@ public final class StringSupport {
         if (tr.p == tr.pend) {
             return -1;
         }
-        if (EncodingUtils.encAscget(tr.buf, tr.p, tr.pend, n, enc, codeRange) == '\\' && tr.p + n[0] < tr.pend) {
+        if (encAscget(tr.buf, tr.p, tr.pend, n, enc, codeRange) == '\\' && tr.p + n[0] < tr.pend) {
             tr.p += n[0];
         }
-        tr.now = EncodingUtils.encCodepointLength(tr.buf, tr.p, tr.pend, n, enc, codeRange, node);
+        tr.now = encCodepointLength(tr.buf, tr.p, tr.pend, n, enc, codeRange, node);
         tr.p += n[0];
-        if (EncodingUtils.encAscget(tr.buf, tr.p, tr.pend, n, enc, codeRange) == '-' && tr.p + n[0] < tr.pend) {
+        if (encAscget(tr.buf, tr.p, tr.pend, n, enc, codeRange) == '-' && tr.p + n[0] < tr.pend) {
             tr.p += n[0];
             if (tr.p < tr.pend) {
-                int c = EncodingUtils.encCodepointLength(tr.buf, tr.p, tr.pend, n, enc, codeRange, node);
+                int c = encCodepointLength(tr.buf, tr.p, tr.pend, n, enc, codeRange, node);
                 tr.p += n[0];
                 if (tr.now > c) {
                     final RubyContext context = RubyContext.get(node);
@@ -688,7 +744,7 @@ public final class StringSupport {
             if (l != len) {
                 return NeighborChar.WRAPPED;
             }
-            EncodingUtils.encMbcput(c, bytes, p, enc);
+            enc.codeToMbc(c, bytes, p);
             r = characterLength(encoding, bytes, p, p + len);
             if (!MBCLEN_CHARFOUND_P(r)) {
                 return NeighborChar.NOT_CHAR;
@@ -811,7 +867,7 @@ public final class StringSupport {
             if (l != len) {
                 return NeighborChar.WRAPPED;
             }
-            EncodingUtils.encMbcput(c, bytes, p, enc);
+            enc.codeToMbc(c, bytes, p);
             r = characterLength(encoding, bytes, p, p + len);
             if (!MBCLEN_CHARFOUND_P(r)) {
                 return NeighborChar.NOT_CHAR;
@@ -926,7 +982,7 @@ public final class StringSupport {
         int[] l = { 0 };
 
         if (srcStr.byteLength() > 1 &&
-                EncodingUtils.encAscget(trSrc.buf, trSrc.p, trSrc.pend, l, enc, srcStr.getCodeRange()) == '^' &&
+                encAscget(trSrc.buf, trSrc.p, trSrc.pend, l, enc, srcStr.getCodeRange()) == '^' &&
                 trSrc.p + 1 < trSrc.pend) {
             cflag = true;
             trSrc.p++;
@@ -1733,7 +1789,7 @@ public final class StringSupport {
                                     context,
                                     context.getCoreExceptions().runtimeError("invalid Unicode codepoint", currentNode));
                         }
-                        codelen = EncodingUtils.encMbcput((int) c, buf, 0, enc[0]);
+                        codelen = enc[0].codeToMbc((int) c, buf, 0);
                         out.append(buf, 0, codelen);
                         start += hexlen[0];
                     }
@@ -1749,7 +1805,7 @@ public final class StringSupport {
                                 context,
                                 context.getCoreExceptions().runtimeError("invalid Unicode codepoint", currentNode));
                     }
-                    codelen = EncodingUtils.encMbcput((int) c, buf, 0, enc[0]);
+                    codelen = enc[0].codeToMbc((int) c, buf, 0);
                     out.append(buf, 0, codelen);
                     start += hexlen[0];
                 }
