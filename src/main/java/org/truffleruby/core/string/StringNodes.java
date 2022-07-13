@@ -2873,7 +2873,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "!isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
         protected Object capitalizeAsciiCodePoints(RubyString string, int caseMappingOptions,
-                @Cached("createUpperToLower()") StringHelperNodes.InvertAsciiCaseBytesNode invertAsciiCaseNode,
+                @Cached("createUpperToLower()") StringHelperNodes.InvertAsciiCaseHelperNode invertAsciiCaseNode,
                 @Cached @Exclusive ConditionProfile firstCharIsLowerProfile,
                 @Cached @Exclusive ConditionProfile otherCharsAlreadyLowerProfile,
                 @Cached @Exclusive ConditionProfile mustCapitalizeFirstCharProfile) {

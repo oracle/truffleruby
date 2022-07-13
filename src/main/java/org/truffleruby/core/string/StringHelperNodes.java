@@ -450,24 +450,24 @@ public abstract class StringHelperNodes {
 
     }
 
-    public abstract static class InvertAsciiCaseBytesNode extends RubyBaseNode {
+    public abstract static class InvertAsciiCaseHelperNode extends RubyBaseNode {
 
         private final boolean lowerToUpper;
         private final boolean upperToLower;
 
-        public static InvertAsciiCaseBytesNode createLowerToUpper() {
-            return StringHelperNodesFactory.InvertAsciiCaseBytesNodeGen.create(true, false);
+        public static InvertAsciiCaseHelperNode createLowerToUpper() {
+            return StringHelperNodesFactory.InvertAsciiCaseHelperNodeGen.create(true, false);
         }
 
-        public static InvertAsciiCaseBytesNode createUpperToLower() {
-            return StringHelperNodesFactory.InvertAsciiCaseBytesNodeGen.create(false, true);
+        public static InvertAsciiCaseHelperNode createUpperToLower() {
+            return StringHelperNodesFactory.InvertAsciiCaseHelperNodeGen.create(false, true);
         }
 
-        public static InvertAsciiCaseBytesNode createSwapCase() {
-            return StringHelperNodesFactory.InvertAsciiCaseBytesNodeGen.create(true, true);
+        public static InvertAsciiCaseHelperNode createSwapCase() {
+            return StringHelperNodesFactory.InvertAsciiCaseHelperNodeGen.create(true, true);
         }
 
-        protected InvertAsciiCaseBytesNode(boolean lowerToUpper, boolean upperToLower) {
+        protected InvertAsciiCaseHelperNode(boolean lowerToUpper, boolean upperToLower) {
             this.lowerToUpper = lowerToUpper;
             this.upperToLower = upperToLower;
         }
@@ -516,23 +516,23 @@ public abstract class StringHelperNodes {
 
     public abstract static class InvertAsciiCaseNode extends RubyBaseNode {
 
-        @Child private InvertAsciiCaseBytesNode invertNode;
+        @Child private InvertAsciiCaseHelperNode invertNode;
 
         public static InvertAsciiCaseNode createLowerToUpper() {
             return StringHelperNodesFactory.InvertAsciiCaseNodeGen
-                    .create(InvertAsciiCaseBytesNode.createLowerToUpper());
+                    .create(InvertAsciiCaseHelperNode.createLowerToUpper());
         }
 
         public static InvertAsciiCaseNode createUpperToLower() {
             return StringHelperNodesFactory.InvertAsciiCaseNodeGen
-                    .create(InvertAsciiCaseBytesNode.createUpperToLower());
+                    .create(InvertAsciiCaseHelperNode.createUpperToLower());
         }
 
         public static InvertAsciiCaseNode createSwapCase() {
-            return StringHelperNodesFactory.InvertAsciiCaseNodeGen.create(InvertAsciiCaseBytesNode.createSwapCase());
+            return StringHelperNodesFactory.InvertAsciiCaseNodeGen.create(InvertAsciiCaseHelperNode.createSwapCase());
         }
 
-        public InvertAsciiCaseNode(InvertAsciiCaseBytesNode invertNode) {
+        public InvertAsciiCaseNode(InvertAsciiCaseHelperNode invertNode) {
             this.invertNode = invertNode;
         }
 
