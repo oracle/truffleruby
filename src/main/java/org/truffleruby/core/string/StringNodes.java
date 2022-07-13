@@ -2008,8 +2008,9 @@ public abstract class StringNodes {
             final var cr = string.getCodeRange();
 
             var byteArray = string.getInternalByteArray();
-            int p = byteArray.getOffset();
-            int end = byteArray.getEnd();
+            final int offset = byteArray.getOffset();
+            int p = offset;
+            final int end = byteArray.getEnd();
             byte[] bytes = byteArray.getArray();
 
             int len = 2;
@@ -2037,7 +2038,7 @@ public abstract class StringNodes {
                             len++;
                         } else {
                             if (enc.isUTF8()) {
-                                int n = StringSupport.characterLength(enc, cr, bytes, p - 1, end) - 1;
+                                int n = string.characterLength(p - 1 - offset) - 1;
                                 if (n > 0) {
                                     if (buf == null) {
                                         buf = new ByteArrayBuilder();
@@ -2064,8 +2065,7 @@ public abstract class StringNodes {
             outBytes.unsafeEnsureSpace(len);
             byte[] out = outBytes.getUnsafeBytes();
             int q = 0;
-            p = byteArray.getOffset();
-            end = byteArray.getEnd();
+            p = offset;
 
             out[q++] = '"';
             while (p < end) {
@@ -2107,7 +2107,7 @@ public abstract class StringNodes {
                 } else {
                     out[q++] = '\\';
                     if (enc.isUTF8()) {
-                        int n = StringSupport.characterLength(enc, cr, bytes, p - 1, end) - 1;
+                        int n = string.characterLength(p - 1 - offset) - 1;
                         if (n > 0) {
                             int cc = StringSupport.codePoint(enc, cr, bytes, p - 1, end, this);
                             p += n;
