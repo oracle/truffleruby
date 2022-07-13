@@ -196,7 +196,7 @@ public class RubyLexer implements MagicCommentHandler {
                 final Map<BytesKey, Keyword> fromBytes = new HashMap<>();
                 for (Keyword keyword : Keyword.values()) {
                     fromString.put(keyword.name, keyword);
-                    fromBytes.put(new BytesKey(TStringUtils.getBytesOrCopy(keyword.bytes, Encodings.US_ASCII), null),
+                    fromBytes.put(new BytesKey(TStringUtils.getBytesOrFail(keyword.bytes, Encodings.US_ASCII), null),
                             keyword);
                 }
                 FROM_STRING = Collections.unmodifiableMap(fromString);

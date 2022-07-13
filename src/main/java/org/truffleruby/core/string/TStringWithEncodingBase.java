@@ -133,8 +133,7 @@ abstract class TStringWithEncodingBase {
         return CopyToByteArrayNode.getUncached().execute(tstring, encoding.tencoding);
     }
 
-    /** TODO: should return InternalByteArray and use that instead */
-    public byte[] getBytes() {
+    public byte[] getBytesOrCopy() {
         CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
         return TStringUtils.getBytesOrCopy(tstring, encoding);
     }

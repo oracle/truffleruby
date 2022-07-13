@@ -1052,7 +1052,7 @@ public final class StringSupport {
 
         final TruffleString ret;
         if (sflag) {
-            byte[] sbytes = self.getBytes();
+            byte[] sbytes = self.getBytesOrCopy();
             int clen, tlen;
             int max = self.byteLength();
             int save = -1;
@@ -1133,7 +1133,7 @@ public final class StringSupport {
 
             ret = TStringUtils.fromByteArray(sbytes, rubyEncoding); // cr
         } else {
-            byte[] sbytes = self.getBytes();
+            byte[] sbytes = self.getBytesOrCopy();
             int clen, tlen, max = (int) (self.byteLength() * 1.2);
             byte[] buf = new byte[max];
             int t = 0;
@@ -1573,9 +1573,10 @@ public final class StringSupport {
     public static Pair<TStringBuilder, RubyEncoding> undump(ATStringWithEncoding rope, RubyEncoding encoding,
             RubyContext context,
             Node currentNode) {
-        byte[] bytes = rope.getBytes();
-        int start = 0;
-        int length = bytes.length;
+        var byteArray = rope.getInternalByteArray();
+        byte[] bytes = byteArray.getArray();
+        int start = byteArray.getOffset();
+        final int end = byteArray.getEnd();
         RubyEncoding resultEncoding = encoding;
         Encoding[] enc = { encoding.jcoding };
         boolean[] utf8 = { false };
@@ -1590,12 +1591,12 @@ public final class StringSupport {
                     context.getCoreExceptions().runtimeError("non-ASCII character detected", currentNode));
         }
 
-        if (ArrayUtils.memchr(bytes, start, bytes.length, (byte) '\0') != -1) {
+        if (ArrayUtils.memchr(bytes, start, byteArray.getLength(), (byte) '\0') != -1) {
             throw new RaiseException(
                     context,
                     context.getCoreExceptions().runtimeError("string contains null byte", currentNode));
         }
-        if (length < 2) {
+        if (end - start < 2) {
             throw new RaiseException(
                     context,
                     context.getCoreExceptions().runtimeError(INVALID_FORMAT_MESSAGE, currentNode));
@@ -1609,7 +1610,7 @@ public final class StringSupport {
         start++;
 
         for (;;) {
-            if (start >= length) {
+            if (start >= end) {
                 throw new RaiseException(
                         context,
                         context.getCoreExceptions().runtimeError("unterminated dumped string", currentNode));
@@ -1618,7 +1619,7 @@ public final class StringSupport {
             if (bytes[start] == '"') {
                 /* epilogue */
                 start++;
-                if (start == length) {
+                if (start == end) {
                     /* ascii compatible dumped string */
                     break;
                 } else {
@@ -1633,7 +1634,7 @@ public final class StringSupport {
                     }
 
                     size = FORCE_ENCODING_BYTES.length;
-                    if (length - start <= size) {
+                    if (end - start <= size) {
                         throw new RaiseException(
                                 context,
                                 context.getCoreExceptions().runtimeError(INVALID_FORMAT_MESSAGE, currentNode));
@@ -1646,14 +1647,14 @@ public final class StringSupport {
                     start += size;
 
                     int encname = start;
-                    start = ArrayUtils.memchr(bytes, start, length - start, (byte) '"');
+                    start = ArrayUtils.memchr(bytes, start, end - start, (byte) '"');
                     size = start - encname;
                     if (start == -1) {
                         throw new RaiseException(
                                 context,
                                 context.getCoreExceptions().runtimeError(INVALID_FORMAT_MESSAGE, currentNode));
                     }
-                    if (length - start != 2) {
+                    if (end - start != 2) {
                         throw new RaiseException(
                                 context,
                                 context.getCoreExceptions().runtimeError(INVALID_FORMAT_MESSAGE, currentNode));
@@ -1680,7 +1681,7 @@ public final class StringSupport {
 
             if (bytes[start] == '\\') {
                 start++;
-                if (start >= length) {
+                if (start >= end) {
                     throw new RaiseException(
                             context,
                             context.getCoreExceptions().runtimeError("invalid escape", currentNode));
@@ -1690,7 +1691,7 @@ public final class StringSupport {
                         resultEncoding,
                         bytes,
                         start,
-                        length,
+                        end,
                         enc,
                         utf8,
                         binary,
@@ -1707,7 +1708,7 @@ public final class StringSupport {
     }
 
     private static Pair<Integer, RubyEncoding> undumpAfterBackslash(TStringBuilder out, RubyEncoding encoding,
-            byte[] bytes, int start, int length, Encoding[] enc,
+            byte[] bytes, int start, int end, Encoding[] enc,
             boolean[] utf8, boolean[] binary, RubyContext context, Node currentNode) {
         long c;
         int codelen;
@@ -1743,7 +1744,7 @@ public final class StringSupport {
                                     currentNode));
                 }
                 utf8[0] = true;
-                if (++start >= length) {
+                if (++start >= end) {
                     throw new RaiseException(
                             context,
                             context.getCoreExceptions().runtimeError("invalid Unicode escape", currentNode));
@@ -1756,7 +1757,7 @@ public final class StringSupport {
                 if (bytes[start] == '{') { /* handle u{...} form */
                     start++;
                     for (;;) {
-                        if (start >= length) {
+                        if (start >= end) {
                             throw new RaiseException(
                                     context,
                                     context.getCoreExceptions().runtimeError(
@@ -1771,7 +1772,7 @@ public final class StringSupport {
                             start++;
                             continue;
                         }
-                        c = scanHex(bytes, start, length - start, hexlen);
+                        c = scanHex(bytes, start, end - start, hexlen);
                         if (hexlen[0] == 0 || hexlen[0] > 6) {
                             throw new RaiseException(
                                     context,
@@ -1819,7 +1820,7 @@ public final class StringSupport {
                                     currentNode));
                 }
                 binary[0] = true;
-                if (++start >= length) {
+                if (++start >= end) {
                     throw new RaiseException(
                             context,
                             context.getCoreExceptions().runtimeError("invalid hex escape", currentNode));

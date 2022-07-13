@@ -701,10 +701,6 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         return allocationReporter;
     }
 
-    public ImmutableRubyString getFrozenStringLiteral(byte[] bytes, RubyEncoding encoding) {
-        return frozenStringLiterals.getFrozenStringLiteral(bytes, encoding);
-    }
-
     public ImmutableRubyString getFrozenStringLiteral(TruffleString tstring, RubyEncoding encoding) {
         return frozenStringLiterals.getFrozenStringLiteral(tstring, encoding);
     }
