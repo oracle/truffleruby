@@ -922,12 +922,8 @@ public abstract class StringNodes {
                 guards = "!bothSingleByteOptimizable(libString.getTString(string), libOther.getTString(other), libString.getEncoding(string), libOther.getEncoding(other))")
         protected Object caseCmp(Object string, Object other,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libOther,
-                @Cached TruffleString.GetInternalByteArrayNode byteArraySelfNode,
-                @Cached TruffleString.GetInternalByteArrayNode byteArrayOtherNode,
-                @Cached GetByteCodeRangeNode selfCodeRangeNode,
-                @Cached GetByteCodeRangeNode otherCodeRangeNode) {
-            // Taken from org.jruby.RubyString#casecmp19 and
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libOther) {
+            // Taken from org.jruby.RubyString#casecmp19
 
             final RubyEncoding encoding = negotiateCompatibleEncodingNode.executeNegotiate(string, other);
 
@@ -936,21 +932,17 @@ public abstract class StringNodes {
             }
 
             var selfTString = libString.getTString(string);
-            var selfEncoding = libString.getEncoding(string);
-            var selfByteArray = byteArraySelfNode.execute(selfTString, selfEncoding.tencoding);
-            var selfCodeRange = selfCodeRangeNode.execute(selfTString, selfEncoding.tencoding);
+            var selfEncoding = libString.getTEncoding(string);
 
             var otherTString = libOther.getTString(other);
-            var otherEncoding = libOther.getEncoding(other);
-            var otherByteArray = byteArrayOtherNode.execute(otherTString, otherEncoding.tencoding);
-            var otherCodeRange = otherCodeRangeNode.execute(otherTString, otherEncoding.tencoding);
+            var otherEncoding = libOther.getTEncoding(other);
 
             if (sameProfile.profile(selfTString == otherTString)) {
                 return 0;
             }
 
-            return StringSupport.multiByteCasecmp(encoding.jcoding, selfByteArray, selfCodeRange, selfEncoding,
-                    otherByteArray, otherCodeRange, otherEncoding);
+            return StringSupport.multiByteCasecmp(encoding.jcoding, selfTString, selfEncoding,
+                    otherTString, otherEncoding);
         }
 
         protected boolean bothSingleByteOptimizable(AbstractTruffleString string, AbstractTruffleString other,

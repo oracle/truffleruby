@@ -27,7 +27,6 @@
 package org.truffleruby.core.string;
 
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.ASCII;
-import static com.oracle.truffle.api.strings.TruffleString.CodeRange.BROKEN;
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.VALID;
 
 import java.util.Arrays;
@@ -281,6 +280,7 @@ public final class StringSupport {
         return enc.codeToMbcLength(c);
     }
 
+    /** Returns -1 if broken character */
     @TruffleBoundary
     public static int preciseCodePoint(Encoding enc, TruffleString.CodeRange codeRange, byte[] bytes, int p, int end) {
         int l = characterLength(enc, codeRange, bytes, p, end);
@@ -297,16 +297,6 @@ public final class StringSupport {
 
     public static int offset(int start, int end, int charEnd) {
         return charEnd == -1 ? end - start : Math.min(end, charEnd) - start;
-    }
-
-    public static int caseCmp(byte[] bytes1, int p1, byte[] bytes2, int p2, int len) {
-        int i = -1;
-        for (; ++i < len && bytes1[p1 + i] == bytes2[p2 + i];) {
-        }
-        if (i < len) {
-            return (bytes1[p1 + i] & 0xff) > (bytes2[p2 + i] & 0xff) ? 1 : -1;
-        }
-        return 0;
     }
 
     public static int scanHex(byte[] bytes, int p, int len) {
@@ -1190,52 +1180,32 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static int multiByteCasecmp(Encoding enc, InternalByteArray value, TruffleString.CodeRange selfCodeRange,
-            RubyEncoding selfEncoding, InternalByteArray otherValue, TruffleString.CodeRange otherCodeRange,
-            RubyEncoding otherEncoding) {
-        byte[] bytes = value.getArray();
-        int p = value.getOffset();
-        int end = value.getEnd();
+    public static int multiByteCasecmp(Encoding enc, AbstractTruffleString selfTString,
+            TruffleString.Encoding selfEncoding, AbstractTruffleString otherTString,
+            TruffleString.Encoding otherEncoding) {
+        var selfIterator = selfTString.createCodePointIteratorUncached(selfEncoding);
+        var otherIterator = otherTString.createCodePointIteratorUncached(otherEncoding);
 
-        byte[] obytes = otherValue.getArray();
-        int op = otherValue.getOffset();
-        int oend = otherValue.getEnd();
+        while (selfIterator.hasNext() && otherIterator.hasNext()) {
+            final int selfPos = selfIterator.getByteIndex();
+            final int c = selfIterator.nextUncached();
 
-        while (p < end && op < oend) {
-            final int c, oc;
-            if (enc.isAsciiCompatible()) {
-                c = bytes[p] & 0xff;
-                oc = obytes[op] & 0xff;
-            } else {
-                c = preciseCodePoint(enc, selfCodeRange, bytes, p, end);
-                oc = preciseCodePoint(enc, otherCodeRange, obytes, op, oend);
-            }
+            final int otherPos = otherIterator.getByteIndex();
+            final int oc = otherIterator.nextUncached();
 
-            int cl, ocl;
             if (enc.isAsciiCompatible() && Encoding.isAscii(c) && Encoding.isAscii(oc)) {
                 byte uc = AsciiTables.ToUpperCaseTable[c];
                 byte uoc = AsciiTables.ToUpperCaseTable[oc];
                 if (uc != uoc) {
                     return uc < uoc ? -1 : 1;
                 }
-                cl = ocl = 1;
             } else {
-                cl = characterLength(
-                        enc,
-                        enc == selfEncoding.jcoding ? selfCodeRange : BROKEN /* UNKNOWN */,
-                        bytes,
-                        p,
-                        end,
-                        true);
-                ocl = characterLength(
-                        enc,
-                        enc == otherEncoding.jcoding ? otherCodeRange : BROKEN /* UNKNOWN */,
-                        obytes,
-                        op,
-                        oend,
-                        true);
+                final int cl = selfIterator.getByteIndex() - selfPos;
+                final int ocl = otherIterator.getByteIndex() - otherPos;
+
                 // TODO: opt for 2 and 3 ?
-                int ret = caseCmp(bytes, p, obytes, op, cl < ocl ? cl : ocl);
+                int ret = caseCmp(selfTString, selfEncoding, otherTString, otherEncoding, selfPos, otherPos,
+                        Math.min(cl, ocl));
                 if (ret != 0) {
                     return ret < 0 ? -1 : 1;
                 }
@@ -1244,13 +1214,25 @@ public final class StringSupport {
                 }
             }
 
-            p += cl;
-            op += ocl;
         }
-        if (end - p == oend - op) {
+
+        if (!selfIterator.hasNext() && !otherIterator.hasNext()) {
             return 0;
         }
-        return end - p > oend - op ? 1 : -1;
+        return selfIterator.hasNext() ? 1 : -1;
+    }
+
+    private static int caseCmp(AbstractTruffleString a, TruffleString.Encoding aEncoding,
+            AbstractTruffleString b, TruffleString.Encoding bEncoding, int aPos, int bPos, int len) {
+        int i = 0;
+        while (i < len && a.readByteUncached(aPos + i, aEncoding) == b.readByteUncached(bPos + i, bEncoding)) {
+            i++;
+        }
+        if (i < len) {
+            return a.readByteUncached(aPos + i, aEncoding) > b.readByteUncached(bPos + i,
+                    bEncoding) ? 1 : -1;
+        }
+        return 0;
     }
 
     public static boolean singleByteSqueeze(TStringBuilder value, boolean squeeze[]) {
