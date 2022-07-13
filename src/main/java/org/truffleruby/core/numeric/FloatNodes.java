@@ -29,6 +29,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.numeric.FloatNodesFactory.ModNodeFactory;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
@@ -881,8 +882,6 @@ public abstract class FloatNodes {
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-        @Child protected TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode
-                .create();
 
         /* Ruby has complex custom formatting logic for floats. Our logic meets the specs but we suspect it's possibly
          * still not entirely correct. JRuby seems to be correct, but their logic is tied up in their printf
@@ -890,19 +889,19 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "value == POSITIVE_INFINITY")
         protected RubyString toSPositiveInfinity(double value,
-                @Cached("specialValueString(POSITIVE_INFINITY, fromJavaStringNode)") TruffleString cachedString) {
+                @Cached("specialValueString(POSITIVE_INFINITY)") TruffleString cachedString) {
             return createString(cachedString, Encodings.US_ASCII);
         }
 
         @Specialization(guards = "value == NEGATIVE_INFINITY")
         protected RubyString toSNegativeInfinity(double value,
-                @Cached("specialValueString(NEGATIVE_INFINITY, fromJavaStringNode)") TruffleString cachedString) {
+                @Cached("specialValueString(NEGATIVE_INFINITY)") TruffleString cachedString) {
             return createString(cachedString, Encodings.US_ASCII);
         }
 
         @Specialization(guards = "isNaN(value)")
         protected RubyString toSNaN(double value,
-                @Cached("specialValueString(value, fromJavaStringNode)") TruffleString cachedString) {
+                @Cached("specialValueString(value)") TruffleString cachedString) {
             return createString(cachedString, Encodings.US_ASCII);
         }
 
@@ -954,9 +953,8 @@ public abstract class FloatNodes {
             return (abs < 0.0001) && (abs != 0.0);
         }
 
-        protected static TruffleString specialValueString(double value,
-                TruffleString.FromJavaStringNode fromJavaStringNode) {
-            return fromJavaStringNode.execute(Double.toString(value), Encodings.US_ASCII.tencoding);
+        protected static TruffleString specialValueString(double value) {
+            return TStringUtils.fromJavaString(Double.toString(value), Encodings.US_ASCII);
         }
 
         private DecimalFormat getNoExpFormat(RubyThread thread) {
