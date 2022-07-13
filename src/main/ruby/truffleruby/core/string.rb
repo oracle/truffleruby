@@ -921,7 +921,7 @@ class String
       begin
         replace = "\xEF\xBF\xBD".encode(self.encoding, :undef => :replace, :replace => '?')
       rescue Encoding::ConverterNotFoundError
-        replace = '?'.encode(encoding)
+        replace = '?'.encode(self.encoding)
       end
     end
 
@@ -934,7 +934,7 @@ class String
       if str.ascii_only? ? !encoding.ascii_compatible? : encoding != str.encoding
         raise Encoding::CompatibilityError, 'incompatible character encodings'
       end
-      str
+      str.dup.force_encoding(self.encoding)
     }
 
     if replace

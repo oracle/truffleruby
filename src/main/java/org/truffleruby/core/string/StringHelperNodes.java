@@ -585,7 +585,9 @@ public abstract class StringHelperNodes {
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libOther,
                 @Cached EncodingNodes.CheckStringEncodingNode checkEncodingNode,
-                @Cached TruffleString.ConcatNode concatNode) {
+                @Cached TruffleString.ConcatNode concatNode,
+                @Cached TruffleString.ForceEncodingNode forceEncodingNodeLeft,
+                @Cached TruffleString.ForceEncodingNode forceEncodingNodeRight) {
 
             var left = libString.getTString(string);
             var leftEncoding = libString.getEncoding(string);
@@ -595,7 +597,11 @@ public abstract class StringHelperNodes {
             final RubyEncoding compatibleEncoding = checkEncodingNode.executeCheckEncoding(left, leftEncoding,
                     right, rightEncoding);
 
-            var result = concatNode.execute(left, right, compatibleEncoding.tencoding, true);
+            var result = concatNode.execute(
+                    forceEncodingNodeLeft.execute(left, leftEncoding.tencoding, compatibleEncoding.tencoding),
+                    forceEncodingNodeRight.execute(right, rightEncoding.tencoding, compatibleEncoding.tencoding),
+                    compatibleEncoding.tencoding,
+                    true);
             return createString(result, compatibleEncoding);
         }
     }

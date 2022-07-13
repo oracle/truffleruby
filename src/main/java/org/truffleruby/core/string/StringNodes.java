@@ -3877,10 +3877,12 @@ public abstract class StringNodes {
                 RubyString string, Object other, int spliceByteIndex, int byteCountToReplace, RubyEncoding rubyEncoding,
                 @Cached TruffleString.SubstringByteIndexNode prependSubstringNode,
                 @Cached TruffleString.ConcatNode prependConcatNode,
+                @Cached TruffleString.ForceEncodingNode forceEncodingNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libOther) {
             var original = string.tstring;
             var originalTEncoding = string.encoding.tencoding;
-            var left = libOther.getTString(other);
+            var left = forceEncodingNode.execute(libOther.getTString(other), libOther.getTEncoding(other),
+                    rubyEncoding.tencoding);
             var right = prependSubstringNode.execute(original, byteCountToReplace,
                     original.byteLength(originalTEncoding) - byteCountToReplace, originalTEncoding, true);
 
@@ -3894,9 +3896,12 @@ public abstract class StringNodes {
         protected Object spliceAppend(
                 RubyString string, Object other, int spliceByteIndex, int byteCountToReplace, RubyEncoding rubyEncoding,
                 @Cached TruffleString.ConcatNode appendConcatNode,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libOther) {
-            var left = string.tstring;
-            var right = libOther.getTString(other);
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libOther,
+                @Cached TruffleString.ForceEncodingNode forceEncodingNodeLeft,
+                @Cached TruffleString.ForceEncodingNode forceEncodingNodeRight) {
+            var left = forceEncodingNodeLeft.execute(string.tstring, string.getTEncoding(), rubyEncoding.tencoding);
+            var right = forceEncodingNodeRight.execute(libOther.getTString(other), libOther.getTEncoding(other),
+                    rubyEncoding.tencoding);
 
             var concatResult = appendConcatNode.execute(left, right, rubyEncoding.tencoding, true);
             string.setTString(concatResult, rubyEncoding);
@@ -3914,6 +3919,7 @@ public abstract class StringNodes {
                 @Cached TruffleString.ConcatNode leftConcatNode,
                 @Cached TruffleString.ConcatNode rightConcatNode,
                 @Cached TruffleString.ForceEncodingNode forceEncodingNode,
+                @Cached TruffleString.ForceEncodingNode forceEncodingNodeOther,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libOther) {
             var sourceTEncoding = string.encoding.tencoding;
             var resultTEncoding = rubyEncoding.tencoding;
@@ -3929,7 +3935,9 @@ public abstract class StringNodes {
             if (insertStringIsEmptyProfile.profile(insert.isEmpty())) {
                 joinedLeft = forceEncodingNode.execute(splitLeft, sourceTEncoding, resultTEncoding);
             } else {
-                joinedLeft = leftConcatNode.execute(splitLeft, insert, resultTEncoding, true);
+                joinedLeft = leftConcatNode.execute(splitLeft,
+                        forceEncodingNodeOther.execute(insert, libOther.getTEncoding(other), resultTEncoding),
+                        resultTEncoding, true);
             }
 
             final TruffleString joinedRight; // always in resultTEncoding
@@ -4055,11 +4063,11 @@ public abstract class StringNodes {
                 @Cached TruffleString.ForceEncodingNode forceEncodingNode) {
             // The semantics of this primitive are such that the original string's byte[] should be extended without
             // negotiating the encoding.
-            var encoding = string.encoding;
+            var leftEncoding = string.encoding;
             var left = string.tstring;
-            var right = forceEncodingNode.execute(libOther.getTString(other), libOther.getEncoding(other).tencoding,
-                    encoding.tencoding);
-            string.setTString(concatNode.execute(left, right, encoding.tencoding, true), encoding);
+            var right = forceEncodingNode.execute(libOther.getTString(other), libOther.getTEncoding(other),
+                    leftEncoding.tencoding);
+            string.setTString(concatNode.execute(left, right, leftEncoding.tencoding, true), leftEncoding);
             return string;
         }
     }
