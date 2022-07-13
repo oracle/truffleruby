@@ -472,29 +472,21 @@ public abstract class StringHelperNodes {
             this.upperToLower = upperToLower;
         }
 
-        public abstract byte[] executeInvert(RubyString string, int start);
+        public abstract byte[] executeInvert(RubyString string, TruffleStringIterator iterator, byte[] initialBytes);
 
         @Specialization
-        protected byte[] invert(RubyString string, int start,
-                @Cached TruffleString.CreateCodePointIteratorNode createCodePointIteratorNode,
+        protected byte[] invert(RubyString string, TruffleStringIterator iterator, byte[] initialBytes,
                 @Cached TruffleStringIterator.NextNode nextNode,
                 @Cached TruffleString.CopyToByteArrayNode copyToByteArrayNode,
-                @Cached TruffleString.SubstringByteIndexNode substringNode,
-                @Cached BranchProfile caseSwapProfile,
-                @Cached ConditionProfile usesOffsetProfile) {
+                @Cached BranchProfile caseSwapProfile) {
             var tstring = string.tstring;
             var encoding = string.encoding.tencoding;
 
-            byte[] modified = null;
+            byte[] modified = initialBytes;
 
-            var iterator = createCodePointIteratorNode.execute(tstring, encoding);
             while (iterator.hasNext()) {
                 int p = iterator.getByteIndex();
                 int c = nextNode.execute(iterator);
-
-                if (usesOffsetProfile.profile(p < start)) {
-                    continue;
-                }
 
                 if ((lowerToUpper && StringSupport.isAsciiLowercase(c)) ||
                         (upperToLower && StringSupport.isAsciiUppercase(c))) {
@@ -511,7 +503,6 @@ public abstract class StringHelperNodes {
 
             return modified;
         }
-
     }
 
     public abstract static class InvertAsciiCaseNode extends RubyBaseNode {
@@ -540,14 +531,17 @@ public abstract class StringHelperNodes {
 
         @Specialization
         protected Object invert(RubyString string,
+                @Cached TruffleString.CreateCodePointIteratorNode createCodePointIteratorNode,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached ConditionProfile noopProfile) {
-            byte[] modified = invertNode.executeInvert(string, 0);
+            var tencoding = string.getTEncoding();
+            var iterator = createCodePointIteratorNode.execute(string.tstring, tencoding);
+            byte[] modified = invertNode.executeInvert(string, iterator, null);
 
             if (noopProfile.profile(modified == null)) {
                 return nil;
             } else {
-                string.setTString(fromByteArrayNode.execute(modified, string.encoding.tencoding, false)); // codeRangeNode.execute(rope), codePointLengthNode.execute(rope)
+                string.setTString(fromByteArrayNode.execute(modified, tencoding, false)); // codeRangeNode.execute(rope), codePointLengthNode.execute(rope)
                 return string;
             }
         }

@@ -2863,8 +2863,6 @@ public abstract class StringNodes {
     public abstract static class StringCapitalizeBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private GetByteCodeRangeNode codeRangeNode;
-        @Child private TruffleString.GetInternalByteArrayNode byteArrayNode = TruffleString.GetInternalByteArrayNode
-                .create();
         @Child private TruffleString.CopyToByteArrayNode copyToByteArrayNode;
         @Child private TruffleString.FromByteArrayNode fromByteArrayNode;
         @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
@@ -2874,11 +2872,13 @@ public abstract class StringNodes {
         @Specialization(guards = "!isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
         protected Object capitalizeAsciiCodePoints(RubyString string, int caseMappingOptions,
                 @Cached("createUpperToLower()") StringHelperNodes.InvertAsciiCaseHelperNode invertAsciiCaseNode,
+                @Cached TruffleString.CreateCodePointIteratorNode createCodePointIteratorNode,
+                @Cached TruffleStringIterator.NextNode nextNode,
                 @Cached @Exclusive ConditionProfile firstCharIsLowerProfile,
-                @Cached @Exclusive ConditionProfile otherCharsAlreadyLowerProfile,
-                @Cached @Exclusive ConditionProfile mustCapitalizeFirstCharProfile) {
+                @Cached @Exclusive ConditionProfile modifiedProfile) {
             var tstring = string.tstring;
             var encoding = string.encoding;
+            var tencoding = encoding.tencoding;
 
             if (emptyStringProfile.profile(tstring.isEmpty())) {
                 return nil;
@@ -2890,39 +2890,29 @@ public abstract class StringNodes {
                         coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding.jcoding, this));
             }
 
-            var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
-            final byte[] finalBytes;
+            byte[] bytes = null;
 
-            final byte[] processedBytes = invertAsciiCaseNode.executeInvert(string, 1);
+            var iterator = createCodePointIteratorNode.execute(tstring, tencoding);
+            int firstCodePoint = nextNode.execute(iterator);
+            if (firstCharIsLowerProfile.profile(StringSupport.isAsciiLowercase(firstCodePoint))) {
+                bytes = copyByteArray(tstring, tencoding);
+                bytes[0] ^= 0x20;
+            }
 
-            if (otherCharsAlreadyLowerProfile.profile(processedBytes == null)) {
-                // Bytes 1..N are either not letters or already lowercased. Time to check the first byte.
+            bytes = invertAsciiCaseNode.executeInvert(string, iterator, bytes);
 
-                if (firstCharIsLowerProfile.profile(StringSupport.isAsciiLowercase(byteArray.get(0)))) {
-                    // The first char requires capitalization, but the remaining bytes in the original string are
-                    // already properly cased.
-                    finalBytes = copyByteArray(tstring, encoding.tencoding);
-                } else {
-                    // The string is already capitalized.
-                    return nil;
-                }
+            if (modifiedProfile.profile(bytes != null)) {
+                string.setTString(makeTString(bytes, tencoding));
+                return string;
             } else {
-                // At least one char was lowercased when looking at bytes 1..N. We still must check the first byte.
-                finalBytes = processedBytes;
+                return nil;
             }
-
-            if (mustCapitalizeFirstCharProfile.profile(StringSupport.isAsciiLowercase(byteArray.get(0)))) {
-                finalBytes[0] ^= 0x20;
-            }
-
-            string.setTString(makeTString(finalBytes, encoding.tencoding));
-
-            return string;
         }
 
         @Specialization(guards = "isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
         protected Object capitalizeMultiByteComplex(RubyString string, int caseMappingOptions,
-                @Cached ConditionProfile modifiedProfile) {
+                @Cached ConditionProfile modifiedProfile,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
             var tstring = string.tstring;
             var encoding = string.encoding;
 
