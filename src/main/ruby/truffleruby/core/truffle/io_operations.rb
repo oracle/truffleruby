@@ -139,11 +139,11 @@ module Truffle
       buffer, readables_pointer, writables_pointer, errorables_pointer =
           Truffle::FFI::Pool.stack_alloc(readables.size * SIZEOF_INT, writables.size * SIZEOF_INT, errorables.size * SIZEOF_INT)
       begin
-        to_fds(readable_ios, readables_pointer)
-        to_fds(writable_ios, writables_pointer)
-        to_fds(errorable_ios, errorables_pointer)
-
         begin
+          to_fds(readable_ios, readables_pointer)
+          to_fds(writable_ios, writables_pointer)
+          to_fds(errorable_ios, errorables_pointer)
+
           primitive_result = Primitive.thread_run_blocking_nfi_system_call(Truffle::POSIX::SELECT, [
               readables.size, readables_pointer,
               writables.size, writables_pointer,

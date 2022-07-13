@@ -112,7 +112,8 @@ end
 
 # TruffleRuby: do not perform all checks again if extconf.h already exists
 extconf_h = "#{__dir__}/extconf.h"
-if File.exist?(extconf_h) && File.mtime(extconf_h) >= File.mtime(__FILE__ ) && !Truffle::OPENSSL_PREFIX_WAS_SET
+in_development = ENV.key?('MX_HOME')
+if in_development && File.exist?(extconf_h) && File.mtime(extconf_h) >= File.mtime(__FILE__)
   $extconf_h = extconf_h
 else
 ### START of checks

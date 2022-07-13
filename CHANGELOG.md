@@ -1,20 +1,3 @@
-# 22.3.0
-
-New features:
-
-
-Bug fixes:
-
-
-Compatibility:
-
-
-Performance:
-
-
-Changes:
-
-
 # 22.2.0
 
 New features:
@@ -40,6 +23,8 @@ Bug fixes:
 * Fix `/#{...}/o` to evaluate only once per context when splitting happens (@eregon).
 * Fix `Kernel#sprintf` formatting of floats to be like CRuby (@aardvark179).
 * Fix `Process.egid=` to accept `String`s (#2615, @ngtban)
+* Fix optional assignment to only evaluate index arguments once (#2658, @aardvark179).
+* Fix `StringIO` to set position correctly after reading multi-byte characters (#2207, @aardvark179).
 
 Compatibility:
 
@@ -61,6 +46,7 @@ Compatibility:
 * Use `$PAGER` for `--help` and `--help*`, similar to CRuby (#2542, @Strech).
 * Ensure all headers are warnings-free (#2662, @eregon).
 * All `IO` instances should have `T_FILE` as their `rb_type()`, not only `File` instances (#2662, @eregon).
+* Make `rb_fd_select` retry on `EINTR` (#1584, @aardvark179).
 
 Performance:
 
@@ -68,6 +54,7 @@ Performance:
 * Improve reference processing by making C object free functions and other finalizers more lightweight (@aardvark179).
 * Improve performance of `RSTRING_PTR` for interned strings (@aardvark179).
 * Cache constant argument formats used with `rb_scan_args_kw` (@aardvark179).
+* Report polymorphism inside `Hash#[]` to recover performance (@aardvark179).
 
 Changes:
 
