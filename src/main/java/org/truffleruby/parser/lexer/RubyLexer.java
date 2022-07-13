@@ -1302,8 +1302,7 @@ public class RubyLexer implements MagicCommentHandler {
             }
 
             final String name = magicLine.substring(nameBegin, nameEnd - nameBegin).toJavaString().replace('-', '_');
-            final TruffleString value = parserRopeOperations.makeShared(magicLine.tstring, valueBegin,
-                    valueEnd - valueBegin);
+            final TruffleString value = magicLine.substringAsTString(valueBegin, valueEnd - valueBegin);
 
             if (!magicCommentHandler.onMagicComment(name, value)) {
                 return false;
@@ -2942,7 +2941,7 @@ public class RubyLexer implements MagicCommentHandler {
             }
         }
 
-        return src.parserRopeOperations.makeShared(string.tstring, i, len - i);
+        return string.substringAsTString(i, len - i);
     }
 
     /** Sets the token start position ({@link #tokp}) to the current position ({@link #lex_p}). */

@@ -108,6 +108,11 @@ abstract class TStringWithEncodingBase {
                 encoding);
     }
 
+    public TruffleString substringAsTString(int byteOffset, int length) {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        return tstring.substringByteIndexUncached(byteOffset, length, encoding.tencoding, true);
+    }
+
     public String toJavaString() {
         CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
         return tstring.toJavaStringUncached();
