@@ -33,11 +33,11 @@ import static com.oracle.truffle.api.strings.TruffleString.CodeRange.VALID;
 import java.util.Arrays;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
-import com.oracle.truffle.api.strings.TruffleString.CopyToByteArrayNode;
 import com.oracle.truffle.api.strings.TruffleString.FromByteArrayNode;
 import org.graalvm.collections.Pair;
 import org.jcodings.Config;
@@ -55,8 +55,6 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
-
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.utils.Utils;
 
