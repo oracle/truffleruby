@@ -1538,7 +1538,6 @@ public abstract class StringNodes {
         protected Object lstripBangSingleByte(RubyString string,
                 @Cached GetActualEncodingNode getActualEncodingNode,
                 @Cached StringHelperNodes.IsBrokenCodePointNode isBrokenCodePointNode,
-                @Cached SingleByteOptimizableNode singleByteOptimizableNode,
                 @Cached TruffleString.CreateCodePointIteratorNode createCodePointIteratorNode,
                 @Cached TruffleStringIterator.NextNode nextNode,
                 @Cached BranchProfile allWhitespaceProfile,
@@ -1659,8 +1658,6 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class RstripBangNode extends CoreMethodArrayArgumentsNode {
 
-        @Child StringHelperNodes.GetCodePointNode getCodePointNode = StringHelperNodes.GetCodePointNode.create();
-        @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
         @Child TruffleString.SubstringByteIndexNode substringNode = TruffleString.SubstringByteIndexNode.create();
 
         @Specialization(guards = "isEmpty(string.tstring)")
@@ -1668,84 +1665,73 @@ public abstract class StringNodes {
             return nil;
         }
 
-        @Specialization(
-                guards = { "!isEmpty(string.tstring)", "isSingleByteOptimizable(string, singleByteOptimizableNode)" })
-        protected Object rstripBangSingleByte(RubyString string,
-                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
+        @Specialization(guards = "!isEmpty(string.tstring)")
+        protected Object rstripBangNonEmptyString(RubyString string,
+                @Cached GetActualEncodingNode getActualEncodingNode,
+                @Cached StringHelperNodes.IsBrokenCodePointNode isBrokenCodePointNode,
+                @Cached TruffleString.CreateBackwardCodePointIteratorNode createBackwardCodePointIteratorNode,
+                @Cached TruffleStringIterator.PreviousNode previousNode,
+                @Cached BranchProfile allWhitespaceProfile,
+                @Cached BranchProfile nonSpaceCodePointProfile,
+                @Cached ConditionProfile badCodePointProfile,
                 @Cached @Exclusive ConditionProfile noopProfile) {
-            // Taken from org.jruby.RubyString#rstrip_bang19 and org.jruby.RubyString#singleByteRStrip19.
-
             var tstring = string.tstring;
-            var encoding = string.encoding;
-            var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
-            final int lastCodePoint = getCodePointNode.executeGetCodePoint(tstring, encoding,
-                    byteArray.getLength() - 1);
+            var encoding = getActualEncodingNode.execute(tstring, string.encoding);
+            var tencoding = encoding.tencoding;
 
-            // Check the last code point to see if it's a space or NULL. In the case of strings without leading spaces,
-            // this check can avoid having to materialize the entire byte[] (a potentially expensive operation
-            // for ropes) and can avoid having to compile the while loop.
-            final boolean willStrip = StringSupport.isAsciiSpaceOrNull(lastCodePoint);
-            if (noopProfile.profile(!willStrip)) {
+            var iterator = createBackwardCodePointIteratorNode.execute(tstring, tencoding);
+            int codePoint = previousNode.execute(iterator);
+
+            // Check the last code point to see if it's broken. In the case of strings without trailing spaces,
+            // this check can avoid having to compile the while loop.
+            if (badCodePointProfile
+                    .profile(isBrokenCodePointNode.executeIsBroken(tstring, tencoding, iterator.getByteIndex()))) {
+                throw new RaiseException(getContext(),
+                        coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
+            }
+
+            // Check the last code point to see if it's a space. In the case of strings without trailing spaces,
+            // this check can avoid having to compile the while loop.
+            if (noopProfile.profile(!StringSupport.isAsciiSpaceOrNull(codePoint))) {
                 return nil;
             }
 
-            final int end = byteArray.getLength();
+            while (iterator.hasPrevious()) {
+                int byteIndex = iterator.getByteIndex();
+                codePoint = previousNode.execute(iterator);
 
-            int endp = end - 1;
-            while (endp >= 0 && StringSupport.isAsciiSpaceOrNull(byteArray.get(endp))) {
-                endp--;
+                if (badCodePointProfile
+                        .profile(isBrokenCodePointNode.executeIsBroken(tstring, tencoding, iterator.getByteIndex()))) {
+                    throw new RaiseException(getContext(),
+                            coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
+                }
+
+                if (!StringSupport.isAsciiSpaceOrNull(codePoint)) {
+                    nonSpaceCodePointProfile.enter();
+                    string.setTString(makeSubstring(tstring, tencoding, byteIndex));
+
+                    return string;
+                }
             }
 
-            string.setTString(substringNode.execute(tstring, 0, endp + 1, encoding.tencoding, true));
+            // If we've made it this far, the string must consist only of whitespace. Otherwise, we would have exited
+            // early in the first code point check or in the iterator when the first non-space character was encountered.
+            allWhitespaceProfile.enter();
+            string.setTString(tencoding.getEmpty());
+
             return string;
         }
 
-        @TruffleBoundary
-        @Specialization(
-                guards = { "!isEmpty(string.tstring)", "!isSingleByteOptimizable(string, singleByteOptimizableNode)" })
-        protected Object rstripBang(RubyString string,
-                @Cached GetActualEncodingNode getActualEncodingNode,
-                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
-                @Cached @Exclusive ConditionProfile dummyEncodingProfile) {
-            // Taken from org.jruby.RubyString#rstrip_bang19 and org.jruby.RubyString#multiByteRStrip19.
-
-            var tstring = string.tstring;
-            var encoding = string.encoding;
-            var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
-            final RubyEncoding enc = getActualEncodingNode.execute(tstring, encoding);
-
-            if (dummyEncodingProfile.profile(enc.jcoding.isDummy())) {
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc.jcoding, this));
+        private AbstractTruffleString makeSubstring(AbstractTruffleString base, TruffleString.Encoding encoding,
+                int byteEnd) {
+            if (substringNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                substringNode = insert(TruffleString.SubstringByteIndexNode.create());
             }
 
-            final byte[] bytes = byteArray.getArray();
-            final int start = byteArray.getOffset();
-            final int end = byteArray.getEnd();
-
-            int endp = end;
-            int prev;
-            while ((prev = prevCharHead(enc.jcoding, bytes, start, endp, end)) != -1) {
-                int point = getCodePointNode.executeGetCodePoint(tstring, enc, prev - start);
-                if (!StringSupport.isAsciiSpaceOrNull(point)) {
-                    break;
-                }
-                endp = prev;
-            }
-
-            if (endp < end) {
-                string.setTString(substringNode.execute(tstring, 0, endp - start, enc.tencoding, true));
-                return string;
-            }
-
-            return nil;
+            return substringNode.execute(base, 0, byteEnd, encoding, true);
         }
 
-        @TruffleBoundary
-        private int prevCharHead(Encoding enc, byte[] bytes, int p, int s, int end) {
-            return enc.prevCharHead(bytes, p, s, end);
-        }
     }
 
     @Primitive(name = "string_scrub")
