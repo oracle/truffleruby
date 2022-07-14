@@ -40,6 +40,7 @@
  */
 package org.truffleruby.stdlib.readline;
 
+import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.shadowed.org.jline.reader.History;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -51,7 +52,6 @@ import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyNode;
@@ -92,7 +92,7 @@ public abstract class ReadlineHistoryNodes {
     @CoreMethod(names = "pop", needsSelf = false)
     public abstract static class PopNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @TruffleBoundary
         @Specialization
@@ -104,7 +104,8 @@ public abstract class ReadlineHistoryNodes {
             }
 
             final String lastLine = consoleHolder.getHistory().removeLast().line();
-            return makeStringNode.executeMake(
+            return createString(
+                    fromJavaStringNode,
                     lastLine,
                     getLocaleEncoding());
         }
@@ -114,7 +115,7 @@ public abstract class ReadlineHistoryNodes {
     @CoreMethod(names = "shift", needsSelf = false)
     public abstract static class ShiftNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @TruffleBoundary
         @Specialization
@@ -126,7 +127,8 @@ public abstract class ReadlineHistoryNodes {
             }
 
             final String lastLine = consoleHolder.getHistory().removeFirst().line();
-            return makeStringNode.executeMake(
+            return createString(
+                    fromJavaStringNode,
                     lastLine,
                     getLocaleEncoding());
         }
@@ -163,17 +165,17 @@ public abstract class ReadlineHistoryNodes {
     @CoreMethod(names = "each", needsBlock = true)
     public abstract static class EachNode extends YieldingCoreMethodNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @Specialization
         protected RubyBasicObject each(RubyBasicObject history, RubyProc block) {
             final ConsoleHolder consoleHolder = getContext().getConsoleHolder();
 
             for (final History.Entry e : BoundaryIterable.wrap(consoleHolder.getHistory())) {
-                final RubyString line = makeStringNode
-                        .executeMake(
-                                historyEntryToString(e),
-                                getLocaleEncoding());
+                final RubyString line = createString(
+                        fromJavaStringNode,
+                        historyEntryToString(e),
+                        getLocaleEncoding());
                 callBlock(block, line);
             }
 
@@ -190,7 +192,7 @@ public abstract class ReadlineHistoryNodes {
     @CoreMethod(names = "[]", needsSelf = false, required = 1, lowerFixnum = 1)
     public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @TruffleBoundary
         @Specialization
@@ -201,7 +203,8 @@ public abstract class ReadlineHistoryNodes {
 
             try {
                 final String line = consoleHolder.getHistory().get(normalizedIndex);
-                return makeStringNode.executeMake(
+                return createString(
+                        fromJavaStringNode,
                         line,
                         getLocaleEncoding());
             } catch (IndexOutOfBoundsException e) {
@@ -246,7 +249,7 @@ public abstract class ReadlineHistoryNodes {
     @CoreMethod(names = "delete_at", needsSelf = false, required = 1, lowerFixnum = 1)
     public abstract static class DeleteAtNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @TruffleBoundary
         @Specialization
@@ -255,7 +258,8 @@ public abstract class ReadlineHistoryNodes {
             final int normalizedIndex = index < 0 ? index + consoleHolder.getHistory().size() : index;
             try {
                 final String line = consoleHolder.getHistory().remove(normalizedIndex).line();
-                return makeStringNode.executeMake(
+                return createString(
+                        fromJavaStringNode,
                         line,
                         getLocaleEncoding());
             } catch (IndexOutOfBoundsException e) {

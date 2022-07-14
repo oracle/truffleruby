@@ -36,7 +36,6 @@ import org.truffleruby.core.numeric.IntegerNodesFactory.PowNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodesFactory.RightShiftNodeFactory;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.NoImplicitCastsToLong;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
@@ -1505,8 +1504,9 @@ public abstract class IntegerNodes {
         @TruffleBoundary
         @Specialization
         protected RubyString toS(RubyBignum value, NotProvided base,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
-            return makeStringNode.executeMake(
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
+            return createString(
+                    fromJavaStringNode,
                     BigIntegerOps.toString(value.value),
                     Encodings.US_ASCII); // CR_7BIT
         }
@@ -1520,23 +1520,24 @@ public abstract class IntegerNodes {
         @TruffleBoundary
         @Specialization(guards = "base != 10")
         protected RubyString toS(long n, int base,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             if (base < 2 || base > 36) {
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorInvalidRadix(base, this));
             }
 
-            return makeStringNode.executeMake(Long.toString(n, base), Encodings.US_ASCII); // CR_7BIT
+            return createString(fromJavaStringNode, Long.toString(n, base), Encodings.US_ASCII); // CR_7BIT
         }
 
         @TruffleBoundary
         @Specialization
         protected RubyString toS(RubyBignum value, int base,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             if (base < 2 || base > 36) {
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorInvalidRadix(base, this));
             }
 
-            return makeStringNode.executeMake(
+            return createString(
+                    fromJavaStringNode,
                     BigIntegerOps.toString(value.value, base),
                     Encodings.US_ASCII); // CR_7BIT
         }

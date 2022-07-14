@@ -11,11 +11,11 @@ package org.truffleruby.core.format.read.bytes;
 
 import java.util.Arrays;
 
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -58,7 +58,7 @@ public abstract class ReadBinaryStringNode extends FormatNode {
 
     @Specialization
     protected RubyString read(VirtualFrame frame, byte[] source,
-            @Cached StringNodes.MakeStringNode makeStringNode) {
+            @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
         final int start = getSourcePosition(frame);
         final int end = getSourceEnd(frame);
 
@@ -106,7 +106,8 @@ public abstract class ReadBinaryStringNode extends FormatNode {
 
         setSourcePosition(frame, start + length);
 
-        return makeStringNode.executeMake(
+        return createString(
+                fromByteArrayNode,
                 Arrays.copyOfRange(source, start, start + usedLength),
                 Encodings.BINARY);
     }

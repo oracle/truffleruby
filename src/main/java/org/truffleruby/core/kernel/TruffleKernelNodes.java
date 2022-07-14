@@ -15,6 +15,7 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
@@ -31,7 +32,6 @@ import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.TStringWithEncoding;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.FrameOrVariablesReadingNode;
 import org.truffleruby.language.LexicalScope;
@@ -323,7 +323,7 @@ public abstract class TruffleKernelNodes {
     @ImportStatic(Layouts.class)
     public abstract static class GetOriginalRequireNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @TruffleBoundary
         @Specialization
@@ -336,7 +336,7 @@ public abstract class TruffleKernelNodes {
             if (originalRequire == null) {
                 return Nil.INSTANCE;
             } else {
-                return makeStringNode.executeMake(originalRequire, Encodings.UTF_8);
+                return createString(fromJavaStringNode, originalRequire, Encodings.UTF_8);
             }
         }
     }

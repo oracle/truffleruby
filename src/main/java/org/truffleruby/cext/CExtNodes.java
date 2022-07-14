@@ -65,7 +65,6 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringHelperNodes;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -991,7 +990,7 @@ public class CExtNodes {
     @CoreMethod(names = "rb_sourcefile", onSingleton = true)
     public abstract static class SourceFileNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @TruffleBoundary
         @Specialization
@@ -999,7 +998,7 @@ public class CExtNodes {
             final SourceSection sourceSection = getTopUserSourceSection("rb_sourcefile");
             final String file = getLanguage().getSourcePath(sourceSection.getSource());
 
-            return makeStringNode.executeMake(file, Encodings.UTF_8);
+            return createString(fromJavaStringNode, file, Encodings.UTF_8);
         }
 
         @TruffleBoundary
@@ -1724,7 +1723,7 @@ public class CExtNodes {
     @ReportPolymorphism
     public abstract static class RBSprintfNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode;
+        @Child private TruffleString.FromByteArrayNode fromByteArrayNode;
 
         private final BranchProfile exceptionProfile = BranchProfile.create();
         private final ConditionProfile resizeProfile = ConditionProfile.create();
@@ -1789,12 +1788,12 @@ public class CExtNodes {
                 bytes = Arrays.copyOf(bytes, result.getOutputLength());
             }
 
-            if (makeStringNode == null) {
+            if (fromByteArrayNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                makeStringNode = insert(StringNodes.MakeStringNode.create());
+                fromByteArrayNode = insert(TruffleString.FromByteArrayNode.create());
             }
 
-            return makeStringNode.executeMake(bytes, result.getEncoding().getEncodingForLength(formatLength));
+            return createString(fromByteArrayNode, bytes, result.getEncoding().getEncodingForLength(formatLength));
         }
 
         @TruffleBoundary

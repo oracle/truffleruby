@@ -11,6 +11,7 @@ package org.truffleruby.stdlib.readline;
 
 import java.util.List;
 
+import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.shadowed.org.jline.reader.Buffer;
 import org.graalvm.shadowed.org.jline.reader.Candidate;
 import org.graalvm.shadowed.org.jline.reader.Completer;
@@ -37,7 +38,6 @@ import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.RubyIO;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
@@ -61,13 +61,13 @@ public abstract class ReadlineNodes {
     @CoreMethod(names = "basic_word_break_characters", onSingleton = true)
     public abstract static class BasicWordBreakCharactersNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @TruffleBoundary
         @Specialization
         protected RubyString basicWordBreakCharacters() {
             final String delimiters = getContext().getConsoleHolder().getParser().getDelimiters();
-            return makeStringNode.executeMake(delimiters, Encodings.UTF_8);
+            return createString(fromJavaStringNode, delimiters, Encodings.UTF_8);
         }
 
     }
@@ -127,7 +127,7 @@ public abstract class ReadlineNodes {
     @NodeChild(value = "addToHistory", type = RubyBaseNodeWithExecute.class)
     public abstract static class ReadlineNode extends CoreMethodNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @CreateCast("prompt")
         protected RubyNode coercePromptToJavaString(RubyNode prompt) {
@@ -168,7 +168,8 @@ public abstract class ReadlineNodes {
                     readline.getHistory().add(value);
                 }
 
-                return makeStringNode.executeMake(
+                return createString(
+                        fromJavaStringNode,
                         value,
                         getContext().getEncodingManager().getDefaultExternalEncoding());
             }
@@ -221,17 +222,17 @@ public abstract class ReadlineNodes {
     @CoreMethod(names = "line_buffer", onSingleton = true)
     public abstract static class LineBufferNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @TruffleBoundary
         @Specialization
         protected Object lineBuffer() {
             final Buffer buffer = getContext().getConsoleHolder().getReadline().getBuffer();
 
-            return makeStringNode
-                    .executeMake(
-                            buffer.toString(),
-                            getLocaleEncoding());
+            return createString(
+                    fromJavaStringNode,
+                    buffer.toString(),
+                    getLocaleEncoding());
         }
 
     }

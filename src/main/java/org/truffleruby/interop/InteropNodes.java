@@ -37,7 +37,6 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringHelperNodes;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -115,10 +114,10 @@ public abstract class InteropNodes {
         @TruffleBoundary
         @Specialization
         protected RubyArray allMethodsOfInteropLibrary(
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             Object[] store = new Object[METHODS.length];
             for (int i = 0; i < METHODS.length; i++) {
-                store[i] = makeStringNode.executeMake(METHODS[i], Encodings.UTF_8);
+                store[i] = createString(fromJavaStringNode, METHODS[i], Encodings.UTF_8);
             }
             return createArray(store);
         }
@@ -827,12 +826,12 @@ public abstract class InteropNodes {
     @CoreMethod(names = "to_string", onSingleton = true, required = 1)
     public abstract static class ToStringNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @TruffleBoundary
         @Specialization
         protected RubyString toString(Object value) {
-            return makeStringNode.executeMake(String.valueOf(value), Encodings.UTF_8);
+            return createString(fromJavaStringNode, String.valueOf(value), Encodings.UTF_8);
         }
 
     }

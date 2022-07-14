@@ -12,12 +12,12 @@ package org.truffleruby.interop;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
 
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.core.thread.ThreadBacktraceLocationNodes;
@@ -114,8 +114,8 @@ public class SourceLocationNodes {
         @TruffleBoundary
         @Specialization
         protected RubyString language(RubySourceLocation location,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
-            return makeStringNode.executeMake(location.sourceSection.getSource().getLanguage(),
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
+            return createString(fromJavaStringNode, location.sourceSection.getSource().getLanguage(),
                     Encodings.UTF_8);
         }
     }

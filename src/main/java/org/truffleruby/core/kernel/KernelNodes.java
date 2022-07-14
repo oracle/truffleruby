@@ -79,7 +79,6 @@ import org.truffleruby.core.range.RubyIntOrLongRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringHelperNodes;
 import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.support.TypeNodes.CheckFrozenNode;
 import org.truffleruby.core.support.TypeNodes.ObjectInstanceVariablesNode;
@@ -257,24 +256,23 @@ public abstract class KernelNodes {
         @Specialization(guards = "libFeatureString.isRubyString(featureString)")
         protected Object findFile(Object featureString,
                 @Cached BranchProfile notFoundProfile,
-                @Cached MakeStringNode makeStringNode,
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFeatureString,
                 @Cached ToJavaStringNode toJavaStringNode) {
             String feature = toJavaStringNode.executeToJavaString(featureString);
-            return findFileString(feature, notFoundProfile, makeStringNode);
+            return findFileString(feature, notFoundProfile, fromJavaStringNode);
         }
 
         @Specialization
         protected Object findFileString(String featureString,
                 @Cached BranchProfile notFoundProfile,
-                @Cached MakeStringNode makeStringNode) {
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             final String expandedPath = getContext().getFeatureLoader().findFeature(featureString);
             if (expandedPath == null) {
                 notFoundProfile.enter();
                 return nil;
             }
-            return makeStringNode
-                    .executeMake(expandedPath, Encodings.UTF_8);
+            return createString(fromJavaStringNode, expandedPath, Encodings.UTF_8);
         }
 
     }
@@ -286,7 +284,7 @@ public abstract class KernelNodes {
         @TruffleBoundary
         protected RubyString getCallerPath(Object feature,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFeature,
-                @Cached MakeStringNode makeStringNode) {
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             final String featureString = RubyGuards.getJavaString(feature);
             final String featurePath;
             if (new File(featureString).isAbsolute()) {
@@ -313,10 +311,7 @@ public abstract class KernelNodes {
             // symlinks. MRI does this for #require_relative always, but not for #require, so we
             // need to do it to be compatible in the case the path does not exist, so the
             // LoadError's #path is the same as MRI's.
-            return makeStringNode
-                    .executeMake(
-                            Paths.get(featurePath).normalize().toString(),
-                            Encodings.UTF_8);
+            return createString(fromJavaStringNode, Paths.get(featurePath).normalize().toString(), Encodings.UTF_8);
         }
 
     }
@@ -396,11 +391,11 @@ public abstract class KernelNodes {
         @TruffleBoundary
         protected RubyString canonicalPath(Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             final String expandedPath = getContext()
                     .getFeatureLoader()
                     .canonicalize(RubyGuards.getJavaString(string));
-            return makeStringNode.executeMake(expandedPath, Encodings.UTF_8);
+            return createString(fromJavaStringNode, expandedPath, Encodings.UTF_8);
         }
 
     }
@@ -1667,7 +1662,7 @@ public abstract class KernelNodes {
     @NodeChild(value = "arguments", type = RubyBaseNodeWithExecute.class)
     public abstract static class SprintfNode extends CoreMethodNode {
 
-        @Child private MakeStringNode makeStringNode;
+        @Child private TruffleString.FromByteArrayNode fromByteArrayNode;
         @Child private BooleanCastNode readDebugGlobalNode = BooleanCastNodeGen
                 .create(ReadGlobalVariableNodeGen.create("$DEBUG"));
 
@@ -1733,12 +1728,12 @@ public abstract class KernelNodes {
                 bytes = Arrays.copyOf(bytes, result.getOutputLength());
             }
 
-            if (makeStringNode == null) {
+            if (fromByteArrayNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                makeStringNode = insert(MakeStringNode.create());
+                fromByteArrayNode = insert(TruffleString.FromByteArrayNode.create());
             }
 
-            return makeStringNode.executeMake(bytes, result.getEncoding().getEncodingForLength(formatLength));
+            return createString(fromByteArrayNode, bytes, result.getEncoding().getEncodingForLength(formatLength));
         }
 
         @TruffleBoundary
@@ -1887,7 +1882,7 @@ public abstract class KernelNodes {
         @Specialization
         protected RubyString toS(Object self,
                 @Cached LogicalClassNode classNode,
-                @Cached MakeStringNode makeStringNode,
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode,
                 @Cached ObjectIDNode objectIDNode,
                 @Cached ToHexStringNode toHexStringNode) {
             String className = classNode.execute(self).fields.getName();
@@ -1896,7 +1891,8 @@ public abstract class KernelNodes {
 
             String javaString = Utils.concat("#<", className, ":0x", hexID, ">");
 
-            return makeStringNode.executeMake(
+            return createString(
+                    fromJavaStringNode,
                     javaString,
                     Encodings.UTF_8);
         }

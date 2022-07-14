@@ -11,10 +11,10 @@ package org.truffleruby.language;
 
 import com.oracle.truffle.api.nodes.DenyReplace;
 import com.oracle.truffle.api.nodes.NodeCost;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.globals.ReadSimpleGlobalVariableNode;
 
@@ -30,7 +30,7 @@ public class WarnNode extends RubyBaseNode {
     @Child protected ReadSimpleGlobalVariableNode readVerboseNode = ReadSimpleGlobalVariableNode.create("$VERBOSE");
 
     @Child private DispatchNode callWarnNode;
-    @Child private MakeStringNode makeStringNode;
+    @Child private TruffleString.FromJavaStringNode fromJavaStringNode;
 
     public boolean shouldWarn() {
         final Object verbosity = readVerboseNode.execute();
@@ -46,24 +46,22 @@ public class WarnNode extends RubyBaseNode {
     public void warningMessage(SourceSection sourceSection, String message) {
         assert shouldWarn();
 
-        if (makeStringNode == null) {
+        if (fromJavaStringNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            makeStringNode = insert(MakeStringNode.create());
+            fromJavaStringNode = insert(TruffleString.FromJavaStringNode.create());
         }
         if (callWarnNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callWarnNode = insert(DispatchNode.create());
         }
 
-        callWarn(getContext(), sourceSection, message, makeStringNode, callWarnNode);
+        callWarn(this, getContext(), sourceSection, message, fromJavaStringNode, callWarnNode);
     }
 
-    static void callWarn(RubyContext context, SourceSection sourceSection, String message,
-            MakeStringNode makeStringNode, DispatchNode callWarnNode) {
+    static void callWarn(RubyBaseNode node, RubyContext context, SourceSection sourceSection, String message,
+            TruffleString.FromJavaStringNode fromJavaStringNode, DispatchNode callWarnNode) {
         final String warningMessage = buildWarningMessage(context, sourceSection, message);
-
-        final RubyString warningString = makeStringNode
-                .executeMake(warningMessage, Encodings.UTF_8);
+        final RubyString warningString = node.createString(fromJavaStringNode, warningMessage, Encodings.UTF_8);
 
         callWarnNode.call(context.getCoreLibrary().kernelModule, "warn", warningString);
     }
@@ -81,10 +79,11 @@ public class WarnNode extends RubyBaseNode {
         public void warningMessage(SourceSection sourceSection, String message) {
             assert shouldWarn();
             WarnNode.callWarn(
+                    this,
                     getContext(),
                     sourceSection,
                     message,
-                    MakeStringNode.getUncached(),
+                    TruffleString.FromJavaStringNode.getUncached(),
                     DispatchNode.getUncached());
         }
 

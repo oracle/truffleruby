@@ -18,6 +18,7 @@ import java.util.Arrays;
 
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -30,7 +31,6 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.Encodings;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.control.RaiseException;
 
 @CoreModule("GC")
@@ -195,7 +195,7 @@ public abstract class GCNodes {
         @TruffleBoundary
         @Specialization
         protected RubyArray heapStats(
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             String[] memoryPoolNames = new String[0];
             Object[] memoryPools;
 
@@ -224,8 +224,7 @@ public abstract class GCNodes {
 
             Object[] memoryPoolNamesCast = new Object[memoryPoolNames.length];
             for (int i = 0; i < memoryPoolNames.length; i++) {
-                memoryPoolNamesCast[i] = makeStringNode
-                        .executeMake(memoryPoolNames[i], Encodings.UTF_8);
+                memoryPoolNamesCast[i] = createString(fromJavaStringNode, memoryPoolNames[i], Encodings.UTF_8);
             }
 
 

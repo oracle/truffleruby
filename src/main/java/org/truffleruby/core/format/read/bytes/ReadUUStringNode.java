@@ -48,10 +48,10 @@ package org.truffleruby.core.format.read.bytes;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.read.SourceNode;
-import org.truffleruby.core.string.StringNodes;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -61,7 +61,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 @NodeChild(value = "source", type = SourceNode.class)
 public abstract class ReadUUStringNode extends FormatNode {
 
-    @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+    @Child private TruffleString.FromByteArrayNode fromByteArrayNode = TruffleString.FromByteArrayNode.create();
 
     @Specialization
     protected Object encode(VirtualFrame frame, byte[] source) {
@@ -71,7 +71,7 @@ public abstract class ReadUUStringNode extends FormatNode {
 
         setSourcePosition(frame, encode.position());
 
-        return makeStringNode.executeMake(bytes, Encodings.BINARY);
+        return createString(fromByteArrayNode, bytes, Encodings.BINARY);
     }
 
     @TruffleBoundary

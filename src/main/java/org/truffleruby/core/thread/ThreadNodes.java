@@ -49,6 +49,7 @@ import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.TruffleSafepoint.Interrupter;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -79,7 +80,6 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.RubyPRNGRandomizer;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -563,7 +563,7 @@ public abstract class ThreadNodes {
     @CoreMethod(names = "status")
     public abstract static class StatusNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @Specialization
         protected Object status(RubyThread self) {
@@ -576,7 +576,7 @@ public abstract class ThreadNodes {
                     return false;
                 }
             }
-            return makeStringNode.executeMake(StringUtils.toLowerCase(status.name()), Encodings.US_ASCII); // CR_7BIT
+            return createString(fromJavaStringNode, StringUtils.toLowerCase(status.name()), Encodings.US_ASCII); // CR_7BIT
         }
 
     }
@@ -873,11 +873,11 @@ public abstract class ThreadNodes {
     @Primitive(name = "thread_source_location")
     public abstract static class ThreadSourceLocationNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @Specialization
         protected RubyString sourceLocation(RubyThread thread) {
-            return makeStringNode.executeMake(thread.sourceLocation, Encodings.UTF_8);
+            return createString(fromJavaStringNode, thread.sourceLocation, Encodings.UTF_8);
         }
     }
 

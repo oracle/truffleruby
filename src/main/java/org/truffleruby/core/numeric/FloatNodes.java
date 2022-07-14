@@ -32,7 +32,6 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.numeric.FloatNodesFactory.ModNodeFactory;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.language.RubyDynamicObject;
@@ -881,7 +880,7 @@ public abstract class FloatNodes {
     @ImportStatic(Double.class)
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         /* Ruby has complex custom formatting logic for floats. Our logic meets the specs but we suspect it's possibly
          * still not entirely correct. JRuby seems to be correct, but their logic is tied up in their printf
@@ -907,19 +906,19 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "hasNoExp(value)")
         protected RubyString toSNoExp(double value) {
-            return makeStringNode.executeMake(makeStringNoExp(value, getLanguage().getCurrentThread()),
+            return createString(fromJavaStringNode, makeStringNoExp(value, getLanguage().getCurrentThread()),
                     Encodings.US_ASCII); // CR_7BIT
         }
 
         @Specialization(guards = "hasLargeExp(value)")
         protected RubyString toSLargeExp(double value) {
-            return makeStringNode.executeMake(makeStringLargeExp(value, getLanguage().getCurrentThread()),
+            return createString(fromJavaStringNode, makeStringLargeExp(value, getLanguage().getCurrentThread()),
                     Encodings.US_ASCII); // CR_7BIT
         }
 
         @Specialization(guards = "hasSmallExp(value)")
         protected RubyString toSSmallExp(double value) {
-            return makeStringNode.executeMake(makeStringSmallExp(value, getLanguage().getCurrentThread()),
+            return createString(fromJavaStringNode, makeStringSmallExp(value, getLanguage().getCurrentThread()),
                     Encodings.US_ASCII); // CR_7BIT
         }
 
@@ -989,7 +988,7 @@ public abstract class FloatNodes {
     @CoreMethod(names = "dtoa", visibility = Visibility.PRIVATE)
     public abstract static class DToANode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @TruffleBoundary
         @Specialization
@@ -1029,7 +1028,7 @@ public abstract class FloatNodes {
             final int sign = value < 0 ? 1 : 0;
 
             return createArray(new Object[]{
-                    makeStringNode.executeMake(string, Encodings.UTF_8), // CR_7BIT
+                    createString(fromJavaStringNode, string, Encodings.UTF_8), // CR_7BIT
                     decimal,
                     sign,
                     string.length()

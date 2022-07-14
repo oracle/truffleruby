@@ -12,7 +12,6 @@ package org.truffleruby.interop;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -40,8 +39,8 @@ public abstract class FromJavaStringNode extends RubyBaseNode {
 
     @Specialization(replaces = "doCached")
     protected RubyString doGeneric(String value,
-            @Cached StringNodes.MakeStringNode makeStringNode) {
-        var rubyString = makeStringNode.executeMake(value, Encodings.UTF_8);
+            @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
+        var rubyString = createString(fromJavaStringNode, value, Encodings.UTF_8);
         rubyString.freeze();
         return rubyString;
     }

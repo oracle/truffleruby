@@ -46,6 +46,7 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreModule;
@@ -65,7 +66,6 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.extra.ffi.Pointer;
@@ -402,12 +402,12 @@ public abstract class VMPrimitiveNodes {
         @TruffleBoundary
         @Specialization
         protected Object getSection(Object section, RubyProc block,
-                @Cached MakeStringNode makeStringNode,
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode,
                 @Cached CallBlockNode yieldNode) {
             for (Entry<String, Object> entry : getContext()
                     .getNativeConfiguration()
                     .getSection(RubyGuards.getJavaString(section))) {
-                final RubyString key = makeStringNode.executeMake(entry.getKey(), Encodings.UTF_8); // CR_7BIT
+                final RubyString key = createString(fromJavaStringNode, entry.getKey(), Encodings.UTF_8); // CR_7BIT
                 yieldNode.yield(block, key, entry.getValue());
             }
 
@@ -436,10 +436,10 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization(guards = "count >= 0")
         protected RubyString readRandomBytes(int count,
-                @Cached MakeStringNode makeStringNode) {
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             final byte[] bytes = getContext().getRandomSeedBytes(count);
 
-            return makeStringNode.executeMake(bytes, Encodings.BINARY);
+            return createString(fromByteArrayNode, bytes, Encodings.BINARY);
         }
 
         @Specialization(guards = "count < 0")

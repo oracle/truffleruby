@@ -68,7 +68,6 @@ import org.truffleruby.core.module.ModuleNodesFactory.SetMethodVisibilityNodeGen
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringHelperNodes;
-import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.core.support.TypeNodes;
@@ -1130,7 +1129,7 @@ public abstract class ModuleNodes {
     @NodeChild(value = "inherit", type = RubyBaseNodeWithExecute.class)
     public abstract static class ConstSourceLocationNode extends CoreMethodNode {
 
-        @Child private MakeStringNode makeStringNode = MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @CreateCast("name")
         protected RubyBaseNodeWithExecute coerceToStringOrSymbol(RubyBaseNodeWithExecute name) {
@@ -1170,7 +1169,8 @@ public abstract class ModuleNodes {
             if (!BacktraceFormatter.isAvailable(sourceSection)) {
                 return createEmptyArray();
             } else {
-                final RubyString file = makeStringNode.executeMake(
+                final RubyString file = createString(
+                        fromJavaStringNode,
                         getLanguage().getSourcePath(sourceSection.getSource()),
                         Encodings.UTF_8);
                 return createArray(new Object[]{ file, sourceSection.getStartLine() });
@@ -2126,14 +2126,14 @@ public abstract class ModuleNodes {
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected RubyString toS(RubyModule module,
-                @Cached MakeStringNode makeStringNode) {
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             final String moduleName;
             if (module.fields.isRefinement()) {
                 moduleName = module.fields.getRefinementName();
             } else {
                 moduleName = module.fields.getName();
             }
-            return makeStringNode.executeMake(moduleName, Encodings.UTF_8);
+            return createString(fromJavaStringNode, moduleName, Encodings.UTF_8);
         }
     }
 

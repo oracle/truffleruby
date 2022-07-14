@@ -35,6 +35,7 @@ package org.truffleruby.core.support;
 
 import java.math.BigInteger;
 
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.algorithms.Randomizer;
@@ -49,7 +50,6 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.language.Visibility;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -206,7 +206,7 @@ public abstract class PRNGRandomizerNodes {
         @TruffleBoundary
         @Specialization
         protected RubyString genRandBytes(RubyPRNGRandomizer randomizer, int length,
-                @Cached MakeStringNode makeStringNode) {
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             final byte[] bytes = new byte[length];
             int idx = 0;
             for (; length >= 4; length -= 4) {
@@ -224,7 +224,7 @@ public abstract class PRNGRandomizerNodes {
                 }
             }
 
-            return makeStringNode.executeMake(bytes, Encodings.BINARY);
+            return createString(fromByteArrayNode, bytes, Encodings.BINARY);
         }
     }
 

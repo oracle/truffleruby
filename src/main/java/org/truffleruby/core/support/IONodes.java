@@ -77,7 +77,6 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.extra.ffi.Pointer;
@@ -439,7 +438,7 @@ public abstract class IONodes {
         @TruffleBoundary
         @Specialization
         protected Object read(int length,
-                @Cached MakeStringNode makeStringNode) {
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             final InputStream stream = getContext().getEnv().in();
             final byte[] buffer = new byte[length];
             final int bytesRead = getContext().getThreadManager().runUntilResult(this, () -> {
@@ -461,7 +460,7 @@ public abstract class IONodes {
                 bytes = Arrays.copyOf(buffer, bytesRead);
             }
 
-            return makeStringNode.executeMake(bytes, Encodings.BINARY);
+            return createString(fromByteArrayNode, bytes, Encodings.BINARY);
         }
 
     }

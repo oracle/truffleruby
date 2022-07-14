@@ -36,7 +36,6 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringGuards;
-import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.interop.ToJavaStringNode;
@@ -501,7 +500,7 @@ public abstract class EncodingNodes {
     public abstract static class EachAliasNode extends PrimitiveArrayArgumentsNode {
 
         @Child private CallBlockNode yieldNode = CallBlockNode.create();
-        @Child private MakeStringNode makeStringNode = MakeStringNode.create();
+        @Child private TruffleString.FromByteArrayNode fromByteArrayNode = TruffleString.FromByteArrayNode.create();
 
         @TruffleBoundary
         @Specialization
@@ -509,7 +508,8 @@ public abstract class EncodingNodes {
             var iterator = EncodingDB.getAliases().entryIterator();
             while (iterator.hasNext()) {
                 var entry = iterator.next();
-                final RubyString aliasName = makeStringNode.executeMake(
+                final RubyString aliasName = createString(
+                        fromByteArrayNode,
                         ArrayUtils.extractRange(entry.bytes, entry.p, entry.end),
                         Encodings.US_ASCII); // CR_7BIT
                 yieldNode.yield(

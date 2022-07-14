@@ -32,7 +32,6 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.string.TStringBuilder;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringHelperNodes;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.time.RubyDateFormatter.Token;
 import org.truffleruby.language.Nil;
@@ -49,12 +48,6 @@ import java.time.ZonedDateTime;
 
 @CoreModule(value = "Time", isClass = true)
 public abstract class TimeNodes {
-
-    public static RubyString getShortZoneName(StringNodes.MakeStringNode makeStringNode, ZonedDateTime dt,
-            TimeZoneAndName zoneAndName) {
-        final String shortZoneName = zoneAndName.getName(dt);
-        return makeStringNode.executeMake(shortZoneName, Encodings.UTF_8);
-    }
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
@@ -90,10 +83,11 @@ public abstract class TimeNodes {
 
         @Specialization
         protected RubyTime localtime(RubyTime time, Nil offset,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             final TimeZoneAndName timeZoneAndName = getTimeZoneNode.executeGetTimeZone();
             final ZonedDateTime newDateTime = withZone(time.dateTime, timeZoneAndName.getZone());
-            final RubyString zone = getShortZoneName(makeStringNode, newDateTime, timeZoneAndName);
+            final String shortZoneName = timeZoneAndName.getName(newDateTime);
+            final RubyString zone = createString(fromJavaStringNode, shortZoneName, Encodings.UTF_8);
 
             time.isUtc = false;
             time.relativeOffset = false;
@@ -171,13 +165,14 @@ public abstract class TimeNodes {
     public abstract static class TimeNowNode extends CoreMethodArrayArgumentsNode {
 
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @Specialization
         protected RubyTime timeNow(RubyClass timeClass) {
             final TimeZoneAndName zoneAndName = getTimeZoneNode.executeGetTimeZone();
             final ZonedDateTime dt = now(zoneAndName.getZone());
-            final RubyString zone = getShortZoneName(makeStringNode, dt, zoneAndName);
+            final String shortZoneName = zoneAndName.getName(dt);
+            final RubyString zone = createString(fromJavaStringNode, shortZoneName, Encodings.UTF_8);
             final RubyTime instance = new RubyTime(timeClass, getLanguage().timeShape, dt, zone, nil, false, false);
             AllocationTracing.trace(instance, this);
             return instance;
@@ -195,13 +190,14 @@ public abstract class TimeNodes {
     public abstract static class TimeAtPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @Specialization
         protected RubyTime timeAt(RubyClass timeClass, long seconds, int nanoseconds) {
             final TimeZoneAndName zoneAndName = getTimeZoneNode.executeGetTimeZone();
             final ZonedDateTime dateTime = getDateTime(seconds, nanoseconds, zoneAndName.getZone());
-            final RubyString zone = getShortZoneName(makeStringNode, dateTime, zoneAndName);
+            final String shortZoneName = zoneAndName.getName(dateTime);
+            final RubyString zone = createString(fromJavaStringNode, shortZoneName, Encodings.UTF_8);
 
             final Shape shape = getLanguage().timeShape;
             final RubyTime instance = new RubyTime(timeClass, shape, dateTime, zone, nil, false, false);
@@ -464,7 +460,7 @@ public abstract class TimeNodes {
     public abstract static class TimeSFromArrayPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
-        @Child private StringNodes.MakeStringNode makeStringNode;
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode;
 
         @Specialization(guards = "(isutc || !isRubyDynamicObject(utcoffset)) || isNil(utcoffset)")
         protected RubyTime timeSFromArray(
@@ -521,9 +517,9 @@ public abstract class TimeNodes {
                 relativeOffset = false;
                 zoneToStore = language.coreStrings.UTC.createInstance(getContext());
             } else if (utcoffset == nil) {
-                if (makeStringNode == null) {
+                if (fromJavaStringNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    makeStringNode = insert(StringNodes.MakeStringNode.create());
+                    fromJavaStringNode = insert(TruffleString.FromJavaStringNode.create());
                 }
 
                 envZone = getTimeZoneNode.executeGetTimeZone();
@@ -574,7 +570,8 @@ public abstract class TimeNodes {
             }
 
             if (envZone != null) {
-                zoneToStore = getShortZoneName(makeStringNode, dt, envZone);
+                final String shortZoneName = envZone.getName(dt);
+                zoneToStore = createString(fromJavaStringNode, shortZoneName, Encodings.UTF_8);
             }
 
             final Shape shape = getLanguage().timeShape;

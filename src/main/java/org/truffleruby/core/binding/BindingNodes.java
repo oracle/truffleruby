@@ -20,6 +20,7 @@ import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -34,7 +35,6 @@ import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.language.CallStackManager;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
@@ -476,13 +476,13 @@ public abstract class BindingNodes {
         @TruffleBoundary
         @Specialization
         protected Object sourceLocation(RubyBinding binding,
-                @Cached MakeStringNode makeStringNode) {
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             final SourceSection sourceSection = binding.sourceSection;
 
             if (sourceSection == null) {
                 return nil;
             } else {
-                final RubyString file = makeStringNode.executeMake(
+                final RubyString file = createString(fromJavaStringNode,
                         getLanguage().getSourcePath(sourceSection.getSource()),
                         Encodings.UTF_8);
                 return createArray(new Object[]{ file, sourceSection.getStartLine() });

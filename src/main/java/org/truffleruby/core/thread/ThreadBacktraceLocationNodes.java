@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.thread;
 
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreModule;
@@ -16,7 +17,6 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.backtrace.Backtrace;
 
@@ -102,13 +102,13 @@ public class ThreadBacktraceLocationNodes {
 
         @Specialization
         protected RubyString label(RubyBacktraceLocation threadBacktraceLocation,
-                @Cached MakeStringNode makeStringNode) {
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             final Backtrace backtrace = threadBacktraceLocation.backtrace;
             final int index = threadBacktraceLocation.activationIndex;
             final TruffleStackTraceElement element = backtrace.getStackTrace()[index];
 
             final String label = Backtrace.labelFor(element);
-            return makeStringNode.executeMake(label, Encodings.UTF_8);
+            return createString(fromJavaStringNode, label, Encodings.UTF_8);
         }
     }
 
@@ -116,13 +116,13 @@ public class ThreadBacktraceLocationNodes {
     public abstract static class BaseLabelNode extends UnaryCoreMethodNode {
         @Specialization
         protected RubyString label(RubyBacktraceLocation threadBacktraceLocation,
-                @Cached MakeStringNode makeStringNode) {
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             final Backtrace backtrace = threadBacktraceLocation.backtrace;
             final int index = threadBacktraceLocation.activationIndex;
             final TruffleStackTraceElement element = backtrace.getStackTrace()[index];
 
             final String baseLabel = Backtrace.baseLabelFor(element);
-            return makeStringNode.executeMake(baseLabel, Encodings.UTF_8);
+            return createString(fromJavaStringNode, baseLabel, Encodings.UTF_8);
         }
     }
 
@@ -142,7 +142,7 @@ public class ThreadBacktraceLocationNodes {
     @CoreMethod(names = "to_s")
     public abstract static class ToSNode extends UnaryCoreMethodNode {
 
-        @Child private MakeStringNode makeStringNode = MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @Specialization
         protected RubyString toS(RubyBacktraceLocation threadBacktraceLocation) {
@@ -152,7 +152,7 @@ public class ThreadBacktraceLocationNodes {
             final String description = getContext()
                     .getUserBacktraceFormatter()
                     .formatLine(backtrace.getStackTrace(), index, null);
-            return makeStringNode.executeMake(description, Encodings.UTF_8);
+            return createString(fromJavaStringNode, description, Encodings.UTF_8);
         }
 
     }

@@ -132,7 +132,6 @@ import org.truffleruby.core.range.RubyObjectRange;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.string.StringHelperNodes.SingleByteOptimizableNode;
 import org.truffleruby.core.string.StringNodesFactory.DeleteBangNodeFactory;
-import org.truffleruby.core.string.StringNodesFactory.MakeStringNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.StringAppendPrimitiveNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.StringSubstringPrimitiveNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.SumNodeFactory;
@@ -142,7 +141,6 @@ import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -180,41 +178,6 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule(value = "String", isClass = true)
 public abstract class StringNodes {
-
-    // TODO: replace it by FromByteArrayNode/FromJavaStringNode directly
-    @GenerateUncached
-    public abstract static class MakeStringNode extends RubyBaseNode {
-
-        public final RubyString executeMake(String javaString, RubyEncoding encoding) {
-            return executeInternal(javaString, encoding);
-        }
-
-        public final RubyString executeMake(byte[] bytes, RubyEncoding encoding) {
-            return executeInternal(bytes, encoding);
-        }
-
-        protected abstract RubyString executeInternal(Object payload, RubyEncoding encoding);
-
-        public static MakeStringNode create() {
-            return MakeStringNodeGen.create();
-        }
-
-        public static MakeStringNode getUncached() {
-            return MakeStringNodeGen.getUncached();
-        }
-
-        @Specialization
-        protected RubyString makeStringFromBytes(byte[] bytes, RubyEncoding encoding,
-                @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
-            return createString(fromByteArrayNode, bytes, encoding);
-        }
-
-        @Specialization
-        protected RubyString makeStringFromString(String string, RubyEncoding encoding,
-                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
-            return createString(fromJavaStringNode, string, encoding);
-        }
-    }
 
     @GenerateUncached
     @GenerateNodeFactory
@@ -4144,11 +4107,11 @@ public abstract class StringNodes {
         @Specialization
         protected RubyString stringFromByteArray(
                 RubyByteArray byteArray, int start, int count, RubyEncoding rubyEncoding,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             final byte[] bytes = byteArray.bytes;
             final byte[] array = ArrayUtils.extractRange(bytes, start, start + count);
 
-            return makeStringNode.executeMake(array, rubyEncoding);
+            return createString(fromByteArrayNode, array, rubyEncoding);
         }
 
     }

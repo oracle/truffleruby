@@ -12,12 +12,12 @@ package org.truffleruby.stdlib;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.Encodings;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -52,7 +52,7 @@ public abstract class CoverageNodes {
     @CoreMethod(names = "result_array", onSingleton = true)
     public abstract static class CoverageResultNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @TruffleBoundary
         @Specialization
@@ -81,7 +81,7 @@ public abstract class CoverageNodes {
                 final String path = getLanguage().getSourcePath(source.getKey());
                 assert !results.containsKey(path) : "path already exists in coverage results";
                 results.put(path, createArray(new Object[]{
-                        makeStringNode.executeMake(
+                        createString(fromJavaStringNode,
                                 path,
                                 Encodings.UTF_8),
                         createArray(countsStore)

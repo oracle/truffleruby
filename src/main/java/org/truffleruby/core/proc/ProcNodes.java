@@ -12,6 +12,7 @@ package org.truffleruby.core.proc;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -27,7 +28,6 @@ import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.UnboundMethodNodes.MethodRuby2KeywordsNode;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.SymbolNodes;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.Visibility;
@@ -256,7 +256,7 @@ public abstract class ProcNodes {
     @CoreMethod(names = "source_location")
     public abstract static class SourceLocationNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @TruffleBoundary
         @Specialization
@@ -267,7 +267,8 @@ public abstract class ProcNodes {
             if (!sourceSection.isAvailable() || sourcePath.endsWith("/lib/truffle/truffle/cext.rb")) {
                 return nil;
             } else {
-                final RubyString file = makeStringNode.executeMake(
+                final RubyString file = createString(
+                        fromJavaStringNode,
                         sourcePath,
                         Encodings.UTF_8);
 

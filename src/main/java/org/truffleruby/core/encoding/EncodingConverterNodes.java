@@ -40,7 +40,6 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.TStringBuilder;
 import org.truffleruby.core.string.EncodingUtils;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.NotProvided;
@@ -276,7 +275,7 @@ public abstract class EncodingConverterNodes {
     @CoreMethod(names = "putback", optional = 1, lowerFixnum = 1)
     public abstract static class EncodingConverterPutbackNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromByteArrayNode fromByteArrayNode = TruffleString.FromByteArrayNode.create();
 
         @Specialization
         protected RubyString encodingConverterPutback(RubyEncodingConverter encodingConverter, int maxBytes,
@@ -310,7 +309,7 @@ public abstract class EncodingConverterNodes {
 
             final Object sourceEncoding = (RubyEncoding) sourceEncodingNode.call(encodingConverter, "source_encoding");
             final RubyEncoding rubyEncoding = sourceEncoding == nil ? Encodings.BINARY : (RubyEncoding) sourceEncoding;
-            return makeStringNode.executeMake(bytes, rubyEncoding);
+            return createString(fromByteArrayNode, bytes, rubyEncoding);
         }
     }
 
@@ -320,7 +319,6 @@ public abstract class EncodingConverterNodes {
         @TruffleBoundary
         @Specialization
         protected Object encodingConverterLastError(RubyEncodingConverter encodingConverter,
-                @Cached StringNodes.MakeStringNode makeStringNode,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             final EConv ec = encodingConverter.econv;
             final EConv.LastError lastError = ec.lastError;
@@ -336,8 +334,8 @@ public abstract class EncodingConverterNodes {
             final Object[] store = new Object[size];
 
             store[0] = eConvResultToSymbol(lastError.getResult());
-            store[1] = makeStringNode.executeMake(lastError.getSource(), Encodings.BINARY);
-            store[2] = makeStringNode.executeMake(lastError.getDestination(), Encodings.BINARY);
+            store[1] = createString(fromByteArrayNode, lastError.getSource(), Encodings.BINARY);
+            store[2] = createString(fromByteArrayNode, lastError.getDestination(), Encodings.BINARY);
             var errorTString = TStringBuilder.create(
                     lastError.getErrorBytes(),
                     lastError.getErrorBytesP(),
@@ -384,7 +382,6 @@ public abstract class EncodingConverterNodes {
         @TruffleBoundary
         @Specialization
         protected RubyArray encodingConverterLastError(RubyEncodingConverter encodingConverter,
-                @Cached StringNodes.MakeStringNode makeStringNode,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             final EConv ec = encodingConverter.econv;
             final EConv.LastError lastError = ec.lastError;
@@ -392,11 +389,11 @@ public abstract class EncodingConverterNodes {
             final Object[] ret = { getSymbol(lastError.getResult().symbolicName()), nil, nil, nil, nil };
 
             if (lastError.getSource() != null) {
-                ret[1] = makeStringNode.executeMake(lastError.getSource(), Encodings.BINARY);
+                ret[1] = createString(fromByteArrayNode, lastError.getSource(), Encodings.BINARY);
             }
 
             if (lastError.getDestination() != null) {
-                ret[2] = makeStringNode.executeMake(lastError.getDestination(), Encodings.BINARY);
+                ret[2] = createString(fromByteArrayNode, lastError.getDestination(), Encodings.BINARY);
             }
 
             if (lastError.getErrorBytes() != null) {
@@ -421,7 +418,7 @@ public abstract class EncodingConverterNodes {
     @CoreMethod(names = "replacement")
     public abstract static class EncodingConverterReplacementNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromByteArrayNode fromByteArrayNode = TruffleString.FromByteArrayNode.create();
 
         @TruffleBoundary
         @Specialization
@@ -439,7 +436,7 @@ public abstract class EncodingConverterNodes {
             final String encodingName = new String(ec.replacementEncoding, StandardCharsets.US_ASCII);
             final RubyEncoding encoding = getContext().getEncodingManager().getRubyEncoding(encodingName);
 
-            return makeStringNode.executeMake(bytes, encoding);
+            return createString(fromByteArrayNode, bytes, encoding);
         }
 
     }

@@ -160,7 +160,7 @@ public abstract class AllocationTracing {
     }
 
     private static RubyString string(RubyContext context, RubyLanguage language, String value) {
-        // No point to use MakeStringNode (which uses AllocateObjectNode) here, as we should not
+        // No point to use RubyBaseNode.createString (which uses AllocateObjectNode) here, as we should not
         // trace the allocation of Strings used for tracing allocations.
         return StringOperations.createUTF8String(context, language, value);
     }

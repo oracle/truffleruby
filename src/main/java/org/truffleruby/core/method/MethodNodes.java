@@ -11,6 +11,7 @@ package org.truffleruby.core.method;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -31,7 +32,6 @@ import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyLambdaRootNode;
@@ -211,7 +211,7 @@ public abstract class MethodNodes {
     @CoreMethod(names = "source_location")
     public abstract static class SourceLocationNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @TruffleBoundary
         @Specialization
@@ -221,7 +221,8 @@ public abstract class MethodNodes {
             if (!sourceSection.isAvailable()) {
                 return nil;
             } else {
-                RubyString file = makeStringNode.executeMake(
+                RubyString file = createString(
+                        fromJavaStringNode,
                         getLanguage().getSourcePath(sourceSection.getSource()),
                         Encodings.UTF_8);
                 return createArray(new Object[]{ file, sourceSection.getStartLine() });
