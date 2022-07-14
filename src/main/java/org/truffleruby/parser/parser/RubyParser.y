@@ -170,15 +170,9 @@ public class RubyParser {
 %token <SourceIndexLength> tLPAREN2      /* ( Is just '(' in ruby and not a token */
 %token <TruffleString> tRPAREN        /* ) */
 %token <SourceIndexLength> tLPAREN_ARG    /* ( */
-<<<<<<< HEAD
 %token <TruffleString> tLBRACK        /* [ */
 %token <TruffleString> tRBRACK        /* ] */
 %token <SourceIndexLength> tLBRACE        /* { */
-=======
-%token <Rope> tLBRACK        /* [ */
-%token <Rope> tRBRACK        /* ] */
-%token <Object> tLBRACE        /* { Changed to Object for Ruby 3.0 pattern match */
->>>>>>> 72f86abb09 (remove all major type errors and fix missed untranslated segments)
 %token <SourceIndexLength> tLBRACE_ARG    /* { */
 %token <TruffleString> tSTAR          /* * */
 %token <TruffleString> tSTAR2         /* *  Is just '*' in ruby and not a token */
@@ -2102,11 +2096,7 @@ p_top_expr_body : p_expr
                     $$ = support.new_find_pattern(null, $1);
                 }
                 | p_args_tail {
-<<<<<<< HEAD
-                    $$ = support.new_array_pattern(@1.start(), null, null, $1);
-=======
                     $$ = support.new_array_pattern(support.getPosition($<ParseNode>1), null, null, $1);
->>>>>>> 72f86abb09 (remove all major type errors and fix missed untranslated segments)
                 }
                 | p_kwargs {
                     $$ = support.new_hash_pattern(null, $1);
