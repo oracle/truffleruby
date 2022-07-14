@@ -1766,7 +1766,7 @@ module Truffle::CExt
   end
 
   def rb_reg_match(re, str)
-    result = str ? Truffle::RegexpOperations.match(re, str, 0) : nil
+    result = Truffle::RegexpOperations.match(re, str, 0)
     Primitive.regexp_last_match_set(rb_get_special_vars(), result)
 
     result.begin(0) if result
