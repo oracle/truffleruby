@@ -10,4 +10,9 @@ describe "String#start_with?" do
   it "does not check that we are not starting to match at the head of a character" do
     "\xA9".should.start_with?("\xA9") # A9 is not a character head for UTF-8
   end
+
+  it "does not check we are matching only part of a character" do
+    "\xe3\x81\x82".size.should == 1
+    "\xe3\x81\x82".should.start_with?("\xe3")
+  end
 end
