@@ -20,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.CodeSource;
 import java.util.Calendar;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -46,8 +47,9 @@ public class BuildInformationProcessor extends TruffleRubyProcessor {
     private String buildName;
     private String shortRevision;
     private String fullRevision;
+    private boolean isDirty;
     private String compileDate;
-    private String copyrightYear;
+    private int copyrightYear;
     private String kernelMajorVersion;
 
     @Override
@@ -56,10 +58,13 @@ public class BuildInformationProcessor extends TruffleRubyProcessor {
         try {
             trufflerubyHome = findHome();
             buildName = System.getenv("TRUFFLERUBY_BUILD_NAME");
-            fullRevision = runCommand("git rev-parse HEAD");
+            fullRevision = runCommand("git rev-parse HEAD")
+                    .orElseThrow(() -> new Error("git rev-parse command failed"));
             shortRevision = fullRevision.substring(0, 8);
-            compileDate = runCommand("git log -1 --date=short --pretty=format:%cd");
-            copyrightYear = compileDate.split("\\-")[0];
+            isDirty = runCommand("git diff --quiet").isEmpty();
+            compileDate = runCommand("git log -1 --date=short --pretty=format:%cd")
+                    .orElseThrow(() -> new Error("git log command failed"));
+            copyrightYear = Integer.parseInt(compileDate.split("\\-")[0]);
             kernelMajorVersion = findKernelMajorVersion();
         } catch (Throwable e) {
             throw new Error(e);
@@ -98,23 +103,32 @@ public class BuildInformationProcessor extends TruffleRubyProcessor {
     }
 
     private String findKernelMajorVersion() throws IOException, InterruptedException {
-        final String kernelVersion = runCommand("uname -r");
+        final String kernelVersion = runCommand("uname -r").orElseThrow(() -> new Error("uname -r command failed"));
         return kernelVersion.split(Pattern.quote("."))[0];
     }
 
-    private String runCommand(String command) throws IOException, InterruptedException {
-        final Process git = new ProcessBuilder(command.split("\\s+")).directory(trufflerubyHome).start();
-        final String firstLine;
+    private Optional<String> runCommand(String command) throws IOException, InterruptedException {
+        final Process process = new ProcessBuilder(command.split("\\s+")).directory(trufflerubyHome).start();
+
+        String firstLine;
         try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(git.getInputStream(), StandardCharsets.UTF_8))) {
+                new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
             firstLine = reader.readLine();
+
+            while (process.isAlive()) {
+                reader.readLine();
+            }
         }
 
-        final int exitCode = git.waitFor();
-        if (exitCode != 0) {
-            throw new Error("Command " + command + " failed with exit code " + exitCode);
+        if (process.waitFor() != 0) {
+            return Optional.empty();
         }
-        return firstLine;
+
+        if (firstLine == null) {
+            firstLine = "";
+        }
+
+        return Optional.of(firstLine);
     }
 
     @Override
@@ -174,7 +188,7 @@ public class BuildInformationProcessor extends TruffleRubyProcessor {
                 if (e instanceof ExecutableElement) {
                     final String name = e.getSimpleName().toString();
 
-                    final String value;
+                    final Object value;
                     switch (name) {
                         case "getBuildName":
                             value = buildName;
@@ -184,6 +198,9 @@ public class BuildInformationProcessor extends TruffleRubyProcessor {
                             break;
                         case "getFullRevision":
                             value = fullRevision;
+                            break;
+                        case "isDirty":
+                            value = isDirty;
                             break;
                         case "getCopyrightYear":
                             value = copyrightYear;
@@ -199,11 +216,13 @@ public class BuildInformationProcessor extends TruffleRubyProcessor {
                     }
 
                     stream.println("    @Override");
-                    stream.println("    public String " + name + "() {");
+                    stream.println("    public " + ((ExecutableElement) e).getReturnType() + " " + name + "() {");
                     if (value == null) {
                         stream.println("        return null;");
-                    } else {
+                    } else if (value instanceof String) {
                         stream.println("        return \"" + value + "\";");
+                    } else {
+                        stream.println("        return " + value + ";");
                     }
                     stream.println("    }");
                     stream.println();
