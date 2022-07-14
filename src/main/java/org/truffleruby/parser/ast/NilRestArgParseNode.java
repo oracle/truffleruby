@@ -45,7 +45,7 @@ public class NilRestArgParseNode extends ParseNode {
 
     @Override
     public <T> T accept(NodeVisitor<T> visitor) {
-        return visitor.visitNilRestArgParseNode(this);
+        return visitor.visitNilRestArgNode(this);
     }
 
     @Override
