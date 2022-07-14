@@ -35,18 +35,24 @@ describe "String#lstrip!" do
     a.should == "hello  "
   end
 
-  ruby_version_is '3.0' do
-    it "strips leading \\0" do
-      a = "\000 \000hello\000 \000"
-      a.lstrip!
-      a.should == "hello\000 \000"
-    end
-  end
-
   it "returns nil if no modifications were made" do
     a = "hello"
     a.lstrip!.should == nil
     a.should == "hello"
+  end
+
+  it "makes a string empty if it is only whitespace" do
+    "".lstrip!.should == nil
+    " ".lstrip.should == ""
+    "  ".lstrip.should == ""
+  end
+
+  ruby_version_is '3.0' do
+    it "removes leading NULL bytes and whitespace" do
+      a = "\000 \000hello\000 \000"
+      a.lstrip!
+      a.should == "hello\000 \000"
+    end
   end
 
   it "raises a FrozenError on a frozen instance that is modified" do

@@ -45,6 +45,20 @@ describe "String#rstrip!" do
     a.should == "hello"
   end
 
+  it "makes a string empty if it is only whitespace" do
+    "".rstrip!.should == nil
+    " ".rstrip.should == ""
+    "  ".rstrip.should == ""
+  end
+
+  ruby_version_is '3.0' do
+    it "removes trailing NULL bytes and whitespace" do
+      a = "\000 goodbye \000"
+      a.rstrip!
+      a.should == "\000 goodbye"
+    end
+  end
+
   it "raises a FrozenError on a frozen instance that is modified" do
     -> { "  hello  ".freeze.rstrip! }.should raise_error(FrozenError)
   end
@@ -63,5 +77,10 @@ describe "String#rstrip!" do
     s = "abc\xDF   ".force_encoding(Encoding::UTF_8)
     s.valid_encoding?.should be_false
     -> { s.rstrip! }.should raise_error(ArgumentError)
+  end
+
+  it "removes broken codepoints" do
+    " abc \x80 ".rstrip!.should == " abc"
+    " abc \x80".rstrip!.should == " abc"
   end
 end
