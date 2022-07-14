@@ -380,5 +380,5 @@ public interface NodeVisitor<T> {
 
     T visitOther(ParseNode iVisited);
 
-    T visitNilRestArgParseNode(NilRestArgParseNode nilRestArgParseNode);
+    T visitNilRestArgNode(NilRestArgParseNode nilRestArgParseNode);
 }

@@ -90,7 +90,6 @@ public enum NodeType {
     MODULENODE,
     NEXTNODE,
     NILNODE,
-
     NILRESTARG,
     NTHREFNODE,
     OPASGNANDNODE,

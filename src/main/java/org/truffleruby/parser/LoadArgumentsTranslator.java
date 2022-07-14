@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.IsNilNode;
 import org.truffleruby.core.array.ArrayIndexNodes;
@@ -42,14 +43,18 @@ import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.parser.ast.ArgsParseNode;
 import org.truffleruby.parser.ast.ArgumentParseNode;
 import org.truffleruby.parser.ast.ArrayParseNode;
+import org.truffleruby.parser.ast.ArrayPatternParseNode;
 import org.truffleruby.parser.ast.AssignableParseNode;
 import org.truffleruby.parser.ast.BlockArgParseNode;
 import org.truffleruby.parser.ast.DAsgnParseNode;
+import org.truffleruby.parser.ast.FindPatternParseNode;
+import org.truffleruby.parser.ast.HashPatternParseNode;
 import org.truffleruby.parser.ast.KeywordArgParseNode;
 import org.truffleruby.parser.ast.KeywordRestArgParseNode;
 import org.truffleruby.parser.ast.LocalAsgnParseNode;
 import org.truffleruby.parser.ast.MultipleAsgnParseNode;
 import org.truffleruby.parser.ast.NilImplicitParseNode;
+import org.truffleruby.parser.ast.NilRestArgParseNode;
 import org.truffleruby.parser.ast.NoKeywordsArgParseNode;
 import org.truffleruby.parser.ast.OptArgParseNode;
 import org.truffleruby.parser.ast.ParseNode;
@@ -263,6 +268,11 @@ public class LoadArgumentsTranslator extends Translator {
     }
 
     @Override
+    public RubyNode visitNilRestArgNode(NilRestArgParseNode node) {
+        throw CompilerDirectives.shouldNotReachHere("TODO"); // TODO
+    }
+
+    @Override
     public RubyNode visitKeywordArgNode(KeywordArgParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
 
@@ -431,6 +441,11 @@ public class LoadArgumentsTranslator extends Translator {
         } else {
             return defaultVisit(node);
         }
+    }
+
+    @Override
+    public RubyNode visitArrayPatternNode(ArrayPatternParseNode node) {
+        throw CompilerDirectives.shouldNotReachHere("TODO"); // TODO
     }
 
     @Override
@@ -607,5 +622,16 @@ public class LoadArgumentsTranslator extends Translator {
         node.unsafeSetSourceSection(sourceSection);
         return node;
     }
+
+    @Override
+    public RubyNode visitFindPatternNode(FindPatternParseNode node) {
+        throw CompilerDirectives.shouldNotReachHere("TODO");
+    }
+
+    @Override
+    public RubyNode visitHashPatternNode(HashPatternParseNode node) {
+        throw CompilerDirectives.shouldNotReachHere("TODO");
+    }
+
 
 }

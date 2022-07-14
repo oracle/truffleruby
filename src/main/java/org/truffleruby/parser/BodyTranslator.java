@@ -160,6 +160,7 @@ import org.truffleruby.parser.ast.ArgsParseNode;
 import org.truffleruby.parser.ast.ArgsPushParseNode;
 import org.truffleruby.parser.ast.ArgumentParseNode;
 import org.truffleruby.parser.ast.ArrayParseNode;
+import org.truffleruby.parser.ast.ArrayPatternParseNode;
 import org.truffleruby.parser.ast.AssignableParseNode;
 import org.truffleruby.parser.ast.AttrAssignParseNode;
 import org.truffleruby.parser.ast.BackRefParseNode;
@@ -197,6 +198,7 @@ import org.truffleruby.parser.ast.EnsureParseNode;
 import org.truffleruby.parser.ast.EvStrParseNode;
 import org.truffleruby.parser.ast.FCallParseNode;
 import org.truffleruby.parser.ast.FalseParseNode;
+import org.truffleruby.parser.ast.FindPatternParseNode;
 import org.truffleruby.parser.ast.FixnumParseNode;
 import org.truffleruby.parser.ast.FlipParseNode;
 import org.truffleruby.parser.ast.FloatParseNode;
@@ -204,6 +206,7 @@ import org.truffleruby.parser.ast.ForParseNode;
 import org.truffleruby.parser.ast.GlobalAsgnParseNode;
 import org.truffleruby.parser.ast.GlobalVarParseNode;
 import org.truffleruby.parser.ast.HashParseNode;
+import org.truffleruby.parser.ast.HashPatternParseNode;
 import org.truffleruby.parser.ast.IArgumentNode;
 import org.truffleruby.parser.ast.IfParseNode;
 import org.truffleruby.parser.ast.InParseNode;
@@ -224,6 +227,7 @@ import org.truffleruby.parser.ast.MultipleAsgnParseNode;
 import org.truffleruby.parser.ast.NextParseNode;
 import org.truffleruby.parser.ast.NilImplicitParseNode;
 import org.truffleruby.parser.ast.NilParseNode;
+import org.truffleruby.parser.ast.NilRestArgParseNode;
 import org.truffleruby.parser.ast.NodeType;
 import org.truffleruby.parser.ast.NthRefParseNode;
 import org.truffleruby.parser.ast.OpAsgnAndParseNode;
@@ -408,6 +412,11 @@ public class BodyTranslator extends Translator {
         final RubyNode ret = ArrayLiteralNode.create(language, translatedValues);
         ret.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, ret);
+    }
+
+    @Override
+    public RubyNode visitArrayPatternNode(ArrayPatternParseNode node) {
+        throw CompilerDirectives.shouldNotReachHere("TODO"); // TODO
     }
 
     @Override
@@ -1604,6 +1613,11 @@ public class BodyTranslator extends Translator {
     }
 
     @Override
+    public RubyNode visitFindPatternNode(FindPatternParseNode node) {
+        throw CompilerDirectives.shouldNotReachHere("TODO");
+    }
+
+    @Override
     public RubyNode visitFixnumNode(FixnumParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
         final long value = node.getValue();
@@ -1916,6 +1930,11 @@ public class BodyTranslator extends Translator {
         final RubyNode ret = new ConcatHashLiteralNode(hashConcats.toArray(RubyNode.EMPTY_ARRAY));
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
+    }
+
+    @Override
+    public RubyNode visitHashPatternNode(HashPatternParseNode node) {
+        throw CompilerDirectives.shouldNotReachHere("TODO");
     }
 
     @Override
@@ -2311,6 +2330,10 @@ public class BodyTranslator extends Translator {
         SourceIndexLength sourceSection = node.getPosition();
         final RubyNode ret = nilNode(sourceSection);
         return addNewlineIfNeeded(node, ret);
+    }
+
+    public RubyNode visitNilRestArgNode(NilRestArgParseNode node) {
+        throw CompilerDirectives.shouldNotReachHere("TODO"); // TODO
     }
 
     @Override
