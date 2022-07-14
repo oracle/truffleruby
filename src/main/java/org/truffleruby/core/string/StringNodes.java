@@ -3528,9 +3528,27 @@ public abstract class StringNodes {
             return createString(tstring, encoding);
         }
 
-        @Specialization(guards = "!fitsInInteger(code)")
-        protected RubyString stringFromCodepoint(long code, RubyEncoding encoding) {
+        @Specialization(guards = "isCodepoint(code)")
+        protected RubyString stringFromLongCodepoint(long code, RubyEncoding encoding,
+                @Cached TruffleString.FromCodePointNode fromCodePointNode,
+                @Cached BranchProfile errorProfile) {
+            var tstring = fromCodePointNode.execute((int) code, encoding.tencoding, false);
+            if (tstring == null) {
+                errorProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().rangeError(code, encoding, this));
+            }
+
+            return createString(tstring, encoding);
+        }
+
+        @Specialization(guards = "!isCodepoint(code)")
+        protected RubyString tooBig(long code, RubyEncoding encoding) {
             throw new RaiseException(getContext(), coreExceptions().rangeError(code, encoding, this));
+        }
+
+        protected boolean isCodepoint(long code) {
+            // Fits in an unsigned int
+            return code >= 0 && code < (1L << 32);
         }
 
         protected boolean isSimple(int codepoint, RubyEncoding encoding) {
@@ -3539,7 +3557,6 @@ public abstract class StringNodes {
             return (enc.isAsciiCompatible() && codepoint >= 0x00 && codepoint < 0x80) ||
                     (encoding == Encodings.BINARY && codepoint >= 0x00 && codepoint <= 0xFF);
         }
-
     }
 
     @Primitive(name = "string_to_f")
