@@ -114,7 +114,7 @@ class String
   def delete_prefix!(prefix)
     Primitive.check_mutable_string self
     prefix = Truffle::Type.coerce_to(prefix, String, :to_str)
-    if !prefix.empty? && start_with?(prefix)
+    if !prefix.empty? && self[0, prefix.size] == prefix
       self[0, prefix.size] = ''
       self
     else
@@ -130,7 +130,7 @@ class String
   def delete_suffix!(suffix)
     Primitive.check_mutable_string self
     suffix = Truffle::Type.coerce_to(suffix, String, :to_str)
-    if !suffix.empty? && end_with?(suffix)
+    if !suffix.empty? && self[-suffix.size, suffix.size] == suffix
       self[size - suffix.size, suffix.size] = ''
       self
     else
