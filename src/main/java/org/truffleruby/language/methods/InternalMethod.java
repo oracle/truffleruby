@@ -15,7 +15,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import org.truffleruby.RubyContext;
-import org.truffleruby.collections.CachedSupplier;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
@@ -53,7 +52,7 @@ public class InternalMethod implements ObjectGraphNode {
     public final NodeFactory<? extends RubyBaseNode> alwaysInlinedNodeFactory;
     private final RubyProc proc; // only if method is created from a Proc
 
-    private final CachedSupplier<RootCallTarget> callTargetSupplier;
+    private final CachedLazyCallTargetSupplier callTargetSupplier;
     @CompilationFinal private RootCallTarget callTarget;
 
     public static InternalMethod fromProc(
@@ -117,7 +116,7 @@ public class InternalMethod implements ObjectGraphNode {
             NodeFactory<? extends RubyBaseNode> alwaysInlined,
             RubyProc proc,
             RootCallTarget callTarget,
-            CachedSupplier<RootCallTarget> callTargetSupplier) {
+            CachedLazyCallTargetSupplier callTargetSupplier) {
         this(
                 sharedMethodInfo,
                 lexicalScope,
@@ -151,7 +150,7 @@ public class InternalMethod implements ObjectGraphNode {
             DeclarationContext activeRefinements,
             RubyProc proc,
             RootCallTarget callTarget,
-            CachedSupplier<RootCallTarget> callTargetSupplier) {
+            CachedLazyCallTargetSupplier callTargetSupplier) {
         assert declaringModule != null;
         assert lexicalScope != null;
         assert !sharedMethodInfo.isBlock() : sharedMethodInfo;
@@ -171,6 +170,12 @@ public class InternalMethod implements ObjectGraphNode {
         this.proc = proc;
         this.callTarget = callTarget;
         this.callTargetSupplier = callTargetSupplier;
+
+        /* If the call target supplier has already been run, then don't wait until the first time the InternalMethod is
+         * asked for the call target, because this would be a deoptimization in getCallTarget(). */
+        if (callTarget == null && callTargetSupplier != null) {
+            this.callTarget = callTargetSupplier.getWhenAvailable();
+        }
     }
 
     public SharedMethodInfo getSharedMethodInfo() {

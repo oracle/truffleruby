@@ -13,14 +13,12 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.instrumentation.InstrumentableNode;
 import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.instrumentation.Tag;
-import org.truffleruby.collections.CachedSupplier;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 
-import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 import java.util.Set;
@@ -32,7 +30,7 @@ public class LiteralMethodDefinitionNode extends RubyContextSourceNode {
     private final String name;
     private final SharedMethodInfo sharedMethodInfo;
     private final boolean isDefSingleton;
-    private final CachedSupplier<RootCallTarget> callTargetSupplier;
+    private final CachedLazyCallTargetSupplier callTargetSupplier;
 
     @Child private RubyNode moduleNode;
 
@@ -41,7 +39,7 @@ public class LiteralMethodDefinitionNode extends RubyContextSourceNode {
             String name,
             SharedMethodInfo sharedMethodInfo,
             boolean isDefSingleton,
-            CachedSupplier<RootCallTarget> callTargetSupplier) {
+            CachedLazyCallTargetSupplier callTargetSupplier) {
         this.name = name;
         this.sharedMethodInfo = sharedMethodInfo;
         this.isDefSingleton = isDefSingleton;

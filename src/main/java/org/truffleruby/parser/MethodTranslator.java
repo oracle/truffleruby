@@ -13,7 +13,7 @@ import java.util.Arrays;
 import java.util.function.Supplier;
 
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.collections.CachedSupplier;
+import org.truffleruby.language.methods.CachedLazyCallTargetSupplier;
 import org.truffleruby.core.IsNilNode;
 import org.truffleruby.core.cast.SplatCastNode;
 import org.truffleruby.core.cast.SplatCastNode.NilBehavior;
@@ -418,16 +418,15 @@ public class MethodTranslator extends BodyTranslator {
                 argsNode.getArity());
     }
 
-    public CachedSupplier<RootCallTarget> buildMethodNodeCompiler(SourceIndexLength sourceSection,
+    public CachedLazyCallTargetSupplier buildMethodNodeCompiler(SourceIndexLength sourceSection,
             MethodDefParseNode defNode, ParseNode bodyNode) {
 
         if (shouldLazyTranslate) {
-            return new CachedSupplier<>(() -> {
-                return translateMethodNode(sourceSection, defNode, bodyNode).getCallTarget();
-            });
+            return new CachedLazyCallTargetSupplier(
+                    () -> translateMethodNode(sourceSection, defNode, bodyNode).getCallTarget());
         } else {
             final RubyMethodRootNode root = translateMethodNode(sourceSection, defNode, bodyNode);
-            return new CachedSupplier<>(() -> root.getCallTarget());
+            return new CachedLazyCallTargetSupplier(() -> root.getCallTarget());
         }
     }
 
