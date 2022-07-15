@@ -1200,24 +1200,56 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class EachCharNode extends YieldingCoreMethodNode {
 
+        @Child private TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode;
+        @Child private TruffleString.SubstringByteIndexNode substringNode;
+
         @Specialization
         protected Object eachChar(Object string, RubyProc block,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @Cached TruffleString.SubstringByteIndexNode substringNode,
-                @Cached TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode) {
+                @Cached CreateCodePointIteratorNode createCodePointIteratorNode,
+                @Cached TruffleStringIterator.NextNode nextNode,
+                @Cached TruffleString.FromCodePointNode fromCodePointNode,
+                @Cached BranchProfile invalidCodePointProfile) {
             // Unlike String#each_byte, String#each_char does not make
             // modifications to the string visible to the rest of the iteration.
             var tstring = strings.getTString(string);
             var encoding = strings.getEncoding(string);
-            final int len = tstring.byteLength(encoding.tencoding);
+            var tencoding = encoding.tencoding;
+            var iterator = createCodePointIteratorNode.execute(tstring, tencoding, ErrorHandling.RETURN_NEGATIVE);
 
-            int clen;
-            for (int i = 0; i < len; i += clen) {
-                clen = byteLengthOfCodePointNode.execute(tstring, i, encoding.tencoding);
-                callBlock(block, createSubString(substringNode, tstring, encoding, i, clen));
+            while (iterator.hasNext()) {
+                int codePointPosition = iterator.getByteIndex();
+                int codePoint = nextNode.execute(iterator);
+
+                final RubyString yield;
+                if (codePoint == -1) {
+                    invalidCodePointProfile.enter();
+
+                    yield = makeBrokenSubstring(tstring, encoding, codePointPosition);
+                } else {
+                    yield = createString(fromCodePointNode.execute(codePoint, tencoding), encoding);
+                }
+
+                callBlock(block, yield);
             }
 
             return string;
+        }
+
+        private RubyString makeBrokenSubstring(AbstractTruffleString string, RubyEncoding encoding, int byteOffset) {
+            if (byteLengthOfCodePointNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                byteLengthOfCodePointNode = insert(TruffleString.ByteLengthOfCodePointNode.create());
+            }
+
+            if (substringNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                substringNode = insert(TruffleString.SubstringByteIndexNode.create());
+            }
+
+            int clen = byteLengthOfCodePointNode.execute(string, byteOffset, encoding.tencoding);
+
+            return createSubString(substringNode, string, encoding, byteOffset, clen);
         }
 
     }
