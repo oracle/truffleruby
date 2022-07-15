@@ -12,7 +12,14 @@ As a result, to use TruffleString equality nodes, one needs to:
 1. Compute the compatible encoding with `NegotiateCompatibleStringEncodingNode` or `Primitive.encoding_ensure_compatible_str`.
 2. Check if both sides are empty, and if so return true before using TruffleString equality nodes.
 
-`StringNodes.StringEqualNode` is a good example showing what is needed.
+`StringHelperNodes.StringEqualInternalNode` is a good example showing what is needed.
+
+An example which would throw without empty checks is comparing an empty ISO-2022-JP (a dummy, non-ascii-compatible, fixed-width encoding) string with an empty US-ASCII string:
+
+```bash
+$ jt ruby -e '"".force_encoding("ISO-2022-JP") == ""'
+the given string is not compatible to the expected encoding "ISO_2022_JP", did you forget to convert it? (java.lang.IllegalArgumentException)
+```
 
 ## Logical vs Physical Byte Offsets
 
