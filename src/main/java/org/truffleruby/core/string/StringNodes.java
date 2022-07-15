@@ -3612,14 +3612,23 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class StringIndexPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization
+        @Specialization(guards = "patternTString.isEmpty()")
+        protected int stringIndexEmptyPattern(Object rubyString, Object rubyPattern, int byteOffset,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libPattern,
+                @Bind("libPattern.getTString(rubyPattern)") AbstractTruffleString patternTString) {
+            assert byteOffset >= 0;
+            return byteOffset;
+        }
+
+        @Specialization(guards = "!patternTString.isEmpty()")
         protected Object findStringByteIndex(Object rubyString, Object rubyPattern, int byteOffset,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libPattern,
                 @Cached CheckEncodingNode checkEncodingNode,
                 @Cached TruffleString.ByteIndexOfStringNode indexOfStringNode,
                 @Cached ConditionProfile offsetTooLargeProfile,
-                @Cached ConditionProfile notFoundProfile) {
+                @Cached ConditionProfile notFoundProfile,
+                @Bind("libPattern.getTString(rubyPattern)") AbstractTruffleString patternTString) {
             assert byteOffset >= 0;
 
             var compatibleEncoding = checkEncodingNode.executeCheckEncoding(rubyString, rubyPattern);
@@ -3631,8 +3640,8 @@ public abstract class StringNodes {
                 return nil;
             }
 
-            int patternByteIndex = indexOfStringNode.execute(string, libPattern.getTString(rubyPattern), byteOffset,
-                    stringByteLength, compatibleEncoding.tencoding);
+            int patternByteIndex = indexOfStringNode.execute(string, patternTString, byteOffset, stringByteLength,
+                    compatibleEncoding.tencoding);
 
             if (notFoundProfile.profile(patternByteIndex < 0)) {
                 return nil;
