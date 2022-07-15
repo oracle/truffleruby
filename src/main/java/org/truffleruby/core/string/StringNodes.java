@@ -3622,19 +3622,17 @@ public abstract class StringNodes {
                 @Cached ConditionProfile notFoundProfile) {
             assert byteOffset >= 0;
 
-            // Throw an exception if the encodings are not compatible.
-            checkEncodingNode.executeCheckEncoding(rubyString, rubyPattern);
+            var compatibleEncoding = checkEncodingNode.executeCheckEncoding(rubyString, rubyPattern);
 
             var string = libString.getTString(rubyString);
-            var stringEncoding = libString.getEncoding(rubyString).tencoding;
-            int stringByteLength = string.byteLength(stringEncoding);
+            int stringByteLength = string.byteLength(libString.getTEncoding(rubyString));
 
             if (offsetTooLargeProfile.profile(byteOffset >= stringByteLength)) {
                 return nil;
             }
 
             int patternByteIndex = indexOfStringNode.execute(string, libPattern.getTString(rubyPattern), byteOffset,
-                    stringByteLength, stringEncoding);
+                    stringByteLength, compatibleEncoding.tencoding);
 
             if (notFoundProfile.profile(patternByteIndex < 0)) {
                 return nil;
