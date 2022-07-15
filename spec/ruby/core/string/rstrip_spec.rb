@@ -69,8 +69,12 @@ describe "String#rstrip!" do
     -> { "".freeze.rstrip!      }.should raise_error(FrozenError)
   end
 
-  it "raises an ArgumentError if the last codepoint is invalid" do
+  it "raises an ArgumentError if the last non-space codepoint is invalid" do
     s = "abc\xDF".force_encoding(Encoding::UTF_8)
+    s.valid_encoding?.should be_false
+    -> { s.rstrip! }.should raise_error(ArgumentError)
+
+    s = "abc\xDF   ".force_encoding(Encoding::UTF_8)
     s.valid_encoding?.should be_false
     -> { s.rstrip! }.should raise_error(ArgumentError)
   end
