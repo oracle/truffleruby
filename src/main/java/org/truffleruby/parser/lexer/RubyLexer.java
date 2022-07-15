@@ -1124,14 +1124,16 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     private static int newLineIndex(InternalByteArray bytes, int start) {
-        // TODO: Try com.oracle.truffle.api.ArrayUtils.indexOf(bytes, start, bytes.length, (byte) '\n');
-        for (int i = start; i < bytes.getLength(); i++) {
-            if (bytes.get(i) == '\n') {
-                return i;
-            }
+        int index = com.oracle.truffle.api.ArrayUtils.indexOf(
+                bytes.getArray(),
+                bytes.getOffset() + start,
+                bytes.getEnd(),
+                (byte) '\n');
+        if (index < 0) {
+            return bytes.getLength();
+        } else {
+            return index - bytes.getOffset();
         }
-
-        return bytes.getLength();
     }
 
     /** Peak in source to see if there is a magic comment. This is used by eval() & friends to know the actual encoding
