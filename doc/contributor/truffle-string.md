@@ -28,3 +28,10 @@ A physical byte offset includes the offset from the `InternalByteArray` (`Intern
 A logical byte offset does not include that and is the semantic byte offset from the start of the string.
 Physical offsets are quite difficult to use and they are error-prone as they can be passed by mistake to a method taking a logical offset.
 So avoid physical offsets as much as possible, and therefore avoid `InternalByteArray#getArray()`.
+
+## Tests
+
+This is a good set of tests to run when touching String code:
+```
+jt test integration strict-encoding-checks
+```
