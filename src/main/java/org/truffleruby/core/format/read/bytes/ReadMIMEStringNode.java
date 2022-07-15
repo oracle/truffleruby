@@ -71,11 +71,12 @@ public abstract class ReadMIMEStringNode extends FormatNode {
     private int parseSource(byte[] source, int position, int end, byte[] store) {
         System.arraycopy(source, position, store, 0, end - position);
 
+        int sourceLength = end - position;
         int storeIndex = 0;
         int loopIndex = 0;
-        if (source.length > 0) {
-            int c = source[0] & 0xff;
+        if (sourceLength > 0) {
             int i = position;
+            int c = source[i] & 0xff;
             while (i < end) {
 
                 if (c == '=') {
@@ -118,14 +119,15 @@ public abstract class ReadMIMEStringNode extends FormatNode {
                 if (i < end) {
                     c = source[i] & 0xff;
                 }
-                loopIndex = i;
+                loopIndex = i - position;
             }
         }
 
         final int storeLength = store.length;
         if (loopIndex < storeLength) {
-            System.arraycopy(source, loopIndex, store, storeIndex, storeLength - loopIndex);
-            storeIndex += storeLength - loopIndex;
+            final int left = storeLength - loopIndex;
+            System.arraycopy(source, position + loopIndex, store, storeIndex, left);
+            storeIndex += left;
         }
         return storeIndex;
     }
