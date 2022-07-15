@@ -193,7 +193,8 @@ public abstract class IONodes {
                 switch (c) {
                     case '?':
                         if (s >= send || (pathname && isdirsep(string[s])) ||
-                                (period && string[s] == '.' && (s == 0 || (pathname && isdirsep(string[s - 1]))))) {
+                                (period && string[s] == '.' &&
+                                        (s == sstart || (pathname && isdirsep(string[s - 1]))))) {
                             return FNM_NOMATCH;
                         }
                         s++;
@@ -202,7 +203,8 @@ public abstract class IONodes {
                         while (pat < pend && (c = (char) (bytes[pat++] & 0xFF)) == '*') {
                         }
                         if (s < send &&
-                                (period && string[s] == '.' && (s == 0 || (pathname && isdirsep(string[s - 1]))))) {
+                                (period && string[s] == '.' &&
+                                        (s == sstart || (pathname && isdirsep(string[s - 1]))))) {
                             return FNM_NOMATCH;
                         }
                         if (pat > pend || (pat == pend && c == '*')) {
@@ -234,7 +236,8 @@ public abstract class IONodes {
                         return FNM_NOMATCH;
                     case '[':
                         if (s >= send || (pathname && isdirsep(string[s]) ||
-                                (period && string[s] == '.' && (s == 0 || (pathname && isdirsep(string[s - 1])))))) {
+                                (period && string[s] == '.' &&
+                                        (s == sstart || (pathname && isdirsep(string[s - 1])))))) {
                             return FNM_NOMATCH;
                         }
                         pat = range(bytes, pat, pend, (char) (string[s] & 0xFF), flags);
