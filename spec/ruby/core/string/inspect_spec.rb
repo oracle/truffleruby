@@ -311,6 +311,11 @@ describe "String#inspect" do
     "\xF0\x9F".inspect.should == '"\\xF0\\x9F"'
   end
 
+  it "works for broken US-ASCII strings" do
+    s = "©".force_encoding("US-ASCII")
+    s.inspect.should == '"\xC2\xA9"'
+  end
+
   describe "when default external is UTF-8" do
     before :each do
       @extenc, Encoding.default_external = Encoding.default_external, Encoding::UTF_8
