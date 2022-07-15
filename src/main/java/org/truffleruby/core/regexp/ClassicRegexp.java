@@ -906,7 +906,7 @@ public class ClassicRegexp implements ReOptions {
 
                 if (err) {
                     newOptions = options;
-                    p = 0;
+                    p = offset;
                     len = str.byteLength();
                 }
             }
