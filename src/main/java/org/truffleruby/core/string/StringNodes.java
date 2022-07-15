@@ -3207,6 +3207,7 @@ public abstract class StringNodes {
 
     }
 
+    /** Like {@code string.byteslice(byteIndex)} but returns nil if the character is broken. */
     @Primitive(name = "string_chr_at", lowerFixnum = 1)
     @ImportStatic(StringGuards.class)
     public abstract static class StringChrAtPrimitiveNode extends CoreMethodArrayArgumentsNode {
@@ -3221,11 +3222,11 @@ public abstract class StringNodes {
         @Specialization(
                 guards = {
                         "!indexOutOfBounds(tstring.byteLength(encoding.tencoding), byteIndex)",
-                        "isSingleByteOptimizable(tstring, encoding, singleByteOptimizableNode)" })
+                        "is7Bit(tstring, encoding, codeRangeNode)" })
         protected Object stringChrAtSingleByte(Object string, int byteIndex,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached TruffleString.GetByteCodeRangeNode codeRangeNode,
                 @Cached TruffleString.SubstringByteIndexNode substringByteIndexNode,
-                @Cached SingleByteOptimizableNode singleByteOptimizableNode,
                 @Bind("strings.getTString(string)") AbstractTruffleString tstring,
                 @Bind("strings.getEncoding(string)") RubyEncoding encoding) {
             return createSubString(substringByteIndexNode, tstring, encoding, byteIndex, 1);
@@ -3234,14 +3235,15 @@ public abstract class StringNodes {
         @Specialization(
                 guards = {
                         "!indexOutOfBounds(originalTString.byteLength(originalEncoding.tencoding), byteIndex)",
-                        "!isSingleByteOptimizable(originalTString, originalEncoding, singleByteOptimizableNode)" })
+                        "!is7Bit(originalTString, originalEncoding, codeRangeNode)" })
         protected Object stringChrAt(Object string, int byteIndex,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached TruffleString.GetByteCodeRangeNode codeRangeNode,
                 @Cached GetActualEncodingNode getActualEncodingNode,
-                @Cached SingleByteOptimizableNode singleByteOptimizableNode,
                 @Cached TruffleString.SubstringByteIndexNode substringByteIndexNode,
                 @Cached TruffleString.ForceEncodingNode forceEncodingNode,
                 @Cached TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode,
+                @Cached ConditionProfile brokenProfile,
                 @Bind("strings.getTString(string)") AbstractTruffleString originalTString,
                 @Bind("strings.getEncoding(string)") RubyEncoding originalEncoding) {
             final RubyEncoding actualEncoding = getActualEncodingNode.execute(originalTString, originalEncoding);
@@ -3251,7 +3253,7 @@ public abstract class StringNodes {
             final int clen = byteLengthOfCodePointNode.execute(tstring, byteIndex, actualEncoding.tencoding,
                     ErrorHandling.RETURN_NEGATIVE);
 
-            if (!StringSupport.MBCLEN_CHARFOUND_P(clen)) {
+            if (brokenProfile.profile(!StringSupport.MBCLEN_CHARFOUND_P(clen))) {
                 return nil;
             }
 
