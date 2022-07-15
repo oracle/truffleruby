@@ -24,6 +24,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.api.strings.TruffleString.ErrorHandling;
 import com.oracle.truffle.api.strings.TruffleStringIterator;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -535,7 +536,8 @@ public abstract class StringHelperNodes {
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached ConditionProfile noopProfile) {
             var tencoding = string.getTEncoding();
-            var iterator = createCodePointIteratorNode.execute(string.tstring, tencoding);
+            var iterator = createCodePointIteratorNode.execute(string.tstring, tencoding,
+                    ErrorHandling.RETURN_NEGATIVE);
             byte[] modified = invertNode.executeInvert(string, iterator, null);
 
             if (noopProfile.profile(modified == null)) {
@@ -562,7 +564,7 @@ public abstract class StringHelperNodes {
                 @Cached TruffleString.CodePointAtByteIndexNode getCodePointNode,
                 @Cached ConditionProfile badCodePointProfile) {
             int codePoint = getCodePointNode.execute(string, byteIndex, encoding.tencoding,
-                    TruffleString.ErrorHandling.RETURN_NEGATIVE);
+                    ErrorHandling.RETURN_NEGATIVE);
             if (badCodePointProfile.profile(codePoint < 0)) {
                 throw new RaiseException(getContext(),
                         coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
@@ -606,31 +608,4 @@ public abstract class StringHelperNodes {
         }
     }
 
-    @ImportStatic(StringGuards.class)
-    public abstract static class IsBrokenCodePointNode extends RubyBaseNode {
-
-        @Child protected TruffleString.GetByteCodeRangeNode codeRangeNode = TruffleString.GetByteCodeRangeNode.create();
-
-        public static IsBrokenCodePointNode create() {
-            return StringHelperNodesFactory.IsBrokenCodePointNodeGen.create();
-        }
-
-        public abstract boolean executeIsBroken(AbstractTruffleString tstring, TruffleString.Encoding encoding,
-                int byteOffset);
-
-        @Specialization(guards = "!isBrokenCodeRange(tstring, encoding, codeRangeNode)")
-        protected boolean isNeverBroken(
-                AbstractTruffleString tstring, TruffleString.Encoding encoding, int byteOffset) {
-            return false;
-        }
-
-        @Specialization(guards = "isBrokenCodeRange(tstring, encoding, codeRangeNode)")
-        protected boolean isPossiblyBroken(
-                AbstractTruffleString tstring, TruffleString.Encoding encoding, int byteOffset,
-                @Cached TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode) {
-            return byteLengthOfCodePointNode.execute(tstring, byteOffset, encoding,
-                    TruffleString.ErrorHandling.RETURN_NEGATIVE) < 0;
-        }
-
-    }
 }

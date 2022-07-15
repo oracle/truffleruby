@@ -741,7 +741,7 @@ public class ClassicRegexp implements ReOptions {
         while (iterator.hasNext()) {
             final int c = iterator.nextUncached();
 
-            if (!Encoding.isAscii(c)) {
+            if (!(c >= 0 && Encoding.isAscii(c))) {
                 builder.appendCodePointUncached(c);
                 continue;
             }
@@ -944,7 +944,7 @@ public class ClassicRegexp implements ReOptions {
         boolean needEscape = false;
         while (iterator.hasNext()) {
             final int c = iterator.nextUncached();
-            if (Encoding.isAscii(c) && (c == '/' || !enc.isPrint(c))) {
+            if ((c >= 0 && Encoding.isAscii(c)) && (c == '/' || !enc.isPrint(c))) {
                 needEscape = true;
                 break;
             }
@@ -964,8 +964,8 @@ public class ClassicRegexp implements ReOptions {
                 } else if (c == '/') {
                     to.append((byte) '\\');
                     to.append(str, p, iterator.getByteIndex() - p);
-                } else if (!Encoding.isAscii(c)) {
-                    if (str.isBrokenCodePointAt(p)) {
+                } else if (!(c >= 0 && Encoding.isAscii(c))) {
+                    if (c == -1) {
                         to.append(StringUtils.formatASCIIBytes("\\x%02X", c));
                     } else {
                         to.append(str, p, iterator.getByteIndex() - p);

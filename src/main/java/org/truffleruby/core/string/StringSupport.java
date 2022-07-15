@@ -37,6 +37,8 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.api.strings.TruffleString.CreateCodePointIteratorNode;
+import com.oracle.truffle.api.strings.TruffleString.ErrorHandling;
 import com.oracle.truffle.api.strings.TruffleString.FromByteArrayNode;
 import org.graalvm.collections.Pair;
 import org.jcodings.Config;
@@ -1217,8 +1219,10 @@ public final class StringSupport {
     public static int multiByteCasecmp(Encoding enc, AbstractTruffleString selfTString,
             TruffleString.Encoding selfEncoding, AbstractTruffleString otherTString,
             TruffleString.Encoding otherEncoding) {
-        var selfIterator = selfTString.createCodePointIteratorUncached(selfEncoding);
-        var otherIterator = otherTString.createCodePointIteratorUncached(otherEncoding);
+        var selfIterator = CreateCodePointIteratorNode.getUncached().execute(selfTString, selfEncoding,
+                ErrorHandling.RETURN_NEGATIVE);
+        var otherIterator = CreateCodePointIteratorNode.getUncached().execute(otherTString, otherEncoding,
+                ErrorHandling.RETURN_NEGATIVE);
 
         while (selfIterator.hasNext() && otherIterator.hasNext()) {
             final int selfPos = selfIterator.getByteIndex();
@@ -1227,7 +1231,7 @@ public final class StringSupport {
             final int otherPos = otherIterator.getByteIndex();
             final int oc = otherIterator.nextUncached();
 
-            if (enc.isAsciiCompatible() && Encoding.isAscii(c) && Encoding.isAscii(oc)) {
+            if (enc.isAsciiCompatible() && c >= 0 && Encoding.isAscii(c) && oc >= 0 && Encoding.isAscii(oc)) {
                 byte uc = AsciiTables.ToUpperCaseTable[c];
                 byte uoc = AsciiTables.ToUpperCaseTable[oc];
                 if (uc != uoc) {

@@ -13,6 +13,7 @@ import java.util.Objects;
 
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.strings.TruffleString.CopyToByteArrayNode;
+import com.oracle.truffle.api.strings.TruffleString.CreateCodePointIteratorNode;
 import com.oracle.truffle.api.strings.TruffleString.ErrorHandling;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
@@ -125,7 +126,8 @@ abstract class TStringWithEncodingBase {
 
     public TruffleStringIterator createCodePointIterator() {
         CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
-        return tstring.createCodePointIteratorUncached(encoding.tencoding);
+        return CreateCodePointIteratorNode.getUncached().execute(tstring, encoding.tencoding,
+                ErrorHandling.RETURN_NEGATIVE);
     }
 
     public boolean isSingleByteOptimizable() {
@@ -149,9 +151,4 @@ abstract class TStringWithEncodingBase {
         return tstring.byteLengthOfCodePointUncached(byteOffset, encoding.tencoding, ErrorHandling.RETURN_NEGATIVE);
     }
 
-    /** byteOffset is logical */
-    public boolean isBrokenCodePointAt(int byteOffset) {
-        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
-        return tstring.byteLengthOfCodePointUncached(byteOffset, encoding.tencoding, ErrorHandling.RETURN_NEGATIVE) < 0;
-    }
 }

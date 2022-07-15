@@ -81,6 +81,7 @@ import com.oracle.truffle.api.strings.MutableTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.strings.TruffleString.AsTruffleStringNode;
 import com.oracle.truffle.api.strings.TruffleString.CodePointLengthNode;
+import com.oracle.truffle.api.strings.TruffleString.CreateCodePointIteratorNode;
 import com.oracle.truffle.api.strings.TruffleString.ErrorHandling;
 import com.oracle.truffle.api.strings.TruffleString.GetByteCodeRangeNode;
 import com.oracle.truffle.api.strings.TruffleStringIterator;
@@ -1500,8 +1501,7 @@ public abstract class StringNodes {
         @Specialization(guards = "!isEmpty(string.tstring)")
         protected Object lstripBangSingleByte(RubyString string,
                 @Cached GetActualEncodingNode getActualEncodingNode,
-                @Cached StringHelperNodes.IsBrokenCodePointNode isBrokenCodePointNode,
-                @Cached TruffleString.CreateCodePointIteratorNode createCodePointIteratorNode,
+                @Cached CreateCodePointIteratorNode createCodePointIteratorNode,
                 @Cached TruffleStringIterator.NextNode nextNode,
                 @Cached BranchProfile allWhitespaceProfile,
                 @Cached BranchProfile nonSpaceCodePointProfile,
@@ -1512,7 +1512,6 @@ public abstract class StringNodes {
             var tencoding = encoding.tencoding;
 
             var iterator = createCodePointIteratorNode.execute(tstring, tencoding, ErrorHandling.RETURN_NEGATIVE);
-            int byteIndex = iterator.getByteIndex();
             int codePoint = nextNode.execute(iterator);
 
             // Check the first code point to see if it's broken. In the case of strings without leading spaces,
@@ -1529,7 +1528,7 @@ public abstract class StringNodes {
             }
 
             while (iterator.hasNext()) {
-                byteIndex = iterator.getByteIndex();
+                int byteIndex = iterator.getByteIndex();
                 codePoint = nextNode.execute(iterator);
 
                 if (badCodePointProfile.profile(MBCLEN_INVALID_P(codePoint))) {
@@ -2814,7 +2813,7 @@ public abstract class StringNodes {
         @Specialization(guards = "!isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
         protected Object capitalizeAsciiCodePoints(RubyString string, int caseMappingOptions,
                 @Cached("createUpperToLower()") StringHelperNodes.InvertAsciiCaseHelperNode invertAsciiCaseNode,
-                @Cached TruffleString.CreateCodePointIteratorNode createCodePointIteratorNode,
+                @Cached CreateCodePointIteratorNode createCodePointIteratorNode,
                 @Cached TruffleStringIterator.NextNode nextNode,
                 @Cached @Exclusive ConditionProfile firstCharIsLowerProfile,
                 @Cached @Exclusive ConditionProfile modifiedProfile) {
@@ -2834,7 +2833,7 @@ public abstract class StringNodes {
 
             byte[] bytes = null;
 
-            var iterator = createCodePointIteratorNode.execute(tstring, tencoding);
+            var iterator = createCodePointIteratorNode.execute(tstring, tencoding, ErrorHandling.RETURN_NEGATIVE);
             int firstCodePoint = nextNode.execute(iterator);
             if (firstCharIsLowerProfile.profile(StringSupport.isAsciiLowercase(firstCodePoint))) {
                 bytes = copyByteArray(tstring, tencoding);
@@ -3059,7 +3058,7 @@ public abstract class StringNodes {
                 @Cached ConditionProfile executeBlockProfile,
                 @Cached ConditionProfile growArrayProfile,
                 @Cached ConditionProfile trailingSubstringProfile,
-                @Cached TruffleString.CreateCodePointIteratorNode createCodePointIteratorNode,
+                @Cached CreateCodePointIteratorNode createCodePointIteratorNode,
                 @Cached TruffleStringIterator.NextNode nextNode,
                 @Cached TruffleString.SubstringByteIndexNode substringNode,
                 @Bind("strings.getTString(string)") AbstractTruffleString tstring,
@@ -3073,7 +3072,7 @@ public abstract class StringNodes {
             var tencoding = encoding.tencoding;
             final int len = tstring.byteLength(tencoding);
 
-            var iterator = createCodePointIteratorNode.execute(tstring, tencoding);
+            var iterator = createCodePointIteratorNode.execute(tstring, tencoding, ErrorHandling.RETURN_NEGATIVE);
 
             boolean skip = true;
             int e = 0, b = 0;
@@ -3293,13 +3292,14 @@ public abstract class StringNodes {
             TStringBuilder result = new TStringBuilder();
             boolean unicode_p = enc.isUnicode();
             boolean asciicompat = enc.isAsciiCompatible();
-            var iterator = tstring.createCodePointIteratorUncached(tencoding);
+            var iterator = CreateCodePointIteratorNode.getUncached().execute(tstring, tencoding,
+                    ErrorHandling.RETURN_NEGATIVE);
 
             while (iterator.hasNext()) {
                 final int p = iterator.getByteIndex();
                 int c = iterator.nextUncached();
 
-                if (str.isBrokenCodePointAt(p)) {
+                if (c == -1) {
                     int n = iterator.getByteIndex() - p;
                     for (int i = 0; i < n; i++) {
                         result.append(StringUtils.formatASCIIBytes("\\x%02X", (long) (byteArray.get(p + i) & 0377)));
