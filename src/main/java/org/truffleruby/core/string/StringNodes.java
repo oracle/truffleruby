@@ -1631,7 +1631,6 @@ public abstract class StringNodes {
         @Specialization(guards = "!isEmpty(string.tstring)")
         protected Object rstripBangNonEmptyString(RubyString string,
                 @Cached GetActualEncodingNode getActualEncodingNode,
-                @Cached StringHelperNodes.IsBrokenCodePointNode isBrokenCodePointNode,
                 @Cached TruffleString.CreateBackwardCodePointIteratorNode createBackwardCodePointIteratorNode,
                 @Cached TruffleStringIterator.PreviousNode previousNode,
                 @Cached BranchProfile allWhitespaceProfile,
@@ -1642,13 +1641,13 @@ public abstract class StringNodes {
             var encoding = getActualEncodingNode.execute(tstring, string.encoding);
             var tencoding = encoding.tencoding;
 
-            var iterator = createBackwardCodePointIteratorNode.execute(tstring, tencoding);
+            var iterator = createBackwardCodePointIteratorNode.execute(tstring, tencoding,
+                    ErrorHandling.RETURN_NEGATIVE);
             int codePoint = previousNode.execute(iterator);
 
             // Check the last code point to see if it's broken. In the case of strings without trailing spaces,
             // this check can avoid having to compile the while loop.
-            if (badCodePointProfile
-                    .profile(isBrokenCodePointNode.executeIsBroken(tstring, tencoding, iterator.getByteIndex()))) {
+            if (badCodePointProfile.profile(MBCLEN_INVALID_P(codePoint))) {
                 throw new RaiseException(getContext(),
                         coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
             }
@@ -1663,8 +1662,7 @@ public abstract class StringNodes {
                 int byteIndex = iterator.getByteIndex();
                 codePoint = previousNode.execute(iterator);
 
-                if (badCodePointProfile
-                        .profile(isBrokenCodePointNode.executeIsBroken(tstring, tencoding, iterator.getByteIndex()))) {
+                if (badCodePointProfile.profile(MBCLEN_INVALID_P(codePoint))) {
                     throw new RaiseException(getContext(),
                             coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
                 }
