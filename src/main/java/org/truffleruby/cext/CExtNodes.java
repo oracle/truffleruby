@@ -663,7 +663,7 @@ public class CExtNodes {
             }
 
             int codePoint = codePointAtByteIndexNode.execute(tstring, 0, tencoding, ErrorHandling.RETURN_NEGATIVE);
-            assert codePoint >= 0;
+            assert codePoint != -1;
 
             return createArray(new int[]{ StringSupport.MBCLEN_CHARFOUND_LEN(r), codePoint });
         }

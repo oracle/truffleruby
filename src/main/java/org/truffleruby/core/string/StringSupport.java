@@ -1231,7 +1231,7 @@ public final class StringSupport {
             final int otherPos = otherIterator.getByteIndex();
             final int oc = otherIterator.nextUncached();
 
-            if (enc.isAsciiCompatible() && c >= 0 && Encoding.isAscii(c) && oc >= 0 && Encoding.isAscii(oc)) {
+            if (enc.isAsciiCompatible() && (c >= 0 && Encoding.isAscii(c)) && (oc >= 0 && Encoding.isAscii(oc))) {
                 byte uc = AsciiTables.ToUpperCaseTable[c];
                 byte uoc = AsciiTables.ToUpperCaseTable[oc];
                 if (uc != uoc) {

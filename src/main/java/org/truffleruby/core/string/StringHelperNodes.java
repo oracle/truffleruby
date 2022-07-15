@@ -562,10 +562,11 @@ public abstract class StringHelperNodes {
         @Specialization
         protected int getCodePoint(AbstractTruffleString string, RubyEncoding encoding, int byteIndex,
                 @Cached TruffleString.CodePointAtByteIndexNode getCodePointNode,
-                @Cached ConditionProfile badCodePointProfile) {
+                @Cached BranchProfile badCodePointProfile) {
             int codePoint = getCodePointNode.execute(string, byteIndex, encoding.tencoding,
                     ErrorHandling.RETURN_NEGATIVE);
-            if (badCodePointProfile.profile(codePoint < 0)) {
+            if (codePoint == -1) {
+                badCodePointProfile.enter();
                 throw new RaiseException(getContext(),
                         coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
             }

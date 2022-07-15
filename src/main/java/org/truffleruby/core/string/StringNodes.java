@@ -1505,7 +1505,7 @@ public abstract class StringNodes {
                 @Cached TruffleStringIterator.NextNode nextNode,
                 @Cached BranchProfile allWhitespaceProfile,
                 @Cached BranchProfile nonSpaceCodePointProfile,
-                @Cached ConditionProfile badCodePointProfile,
+                @Cached BranchProfile badCodePointProfile,
                 @Cached ConditionProfile noopProfile) {
             var tstring = string.tstring;
             var encoding = getActualEncodingNode.execute(tstring, string.encoding);
@@ -1516,7 +1516,8 @@ public abstract class StringNodes {
 
             // Check the first code point to see if it's broken. In the case of strings without leading spaces,
             // this check can avoid having to compile the while loop.
-            if (badCodePointProfile.profile(MBCLEN_INVALID_P(codePoint))) {
+            if (codePoint == -1) {
+                badCodePointProfile.enter();
                 throw new RaiseException(getContext(),
                         coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
             }
@@ -1531,7 +1532,8 @@ public abstract class StringNodes {
                 int byteIndex = iterator.getByteIndex();
                 codePoint = nextNode.execute(iterator);
 
-                if (badCodePointProfile.profile(MBCLEN_INVALID_P(codePoint))) {
+                if (codePoint == -1) {
+                    badCodePointProfile.enter();
                     throw new RaiseException(getContext(),
                             coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
                 }
@@ -1634,7 +1636,7 @@ public abstract class StringNodes {
                 @Cached TruffleStringIterator.PreviousNode previousNode,
                 @Cached BranchProfile allWhitespaceProfile,
                 @Cached BranchProfile nonSpaceCodePointProfile,
-                @Cached ConditionProfile badCodePointProfile,
+                @Cached BranchProfile badCodePointProfile,
                 @Cached @Exclusive ConditionProfile noopProfile) {
             var tstring = string.tstring;
             var encoding = getActualEncodingNode.execute(tstring, string.encoding);
@@ -1646,7 +1648,8 @@ public abstract class StringNodes {
 
             // Check the last code point to see if it's broken. In the case of strings without trailing spaces,
             // this check can avoid having to compile the while loop.
-            if (badCodePointProfile.profile(MBCLEN_INVALID_P(codePoint))) {
+            if (codePoint == -1) {
+                badCodePointProfile.enter();
                 throw new RaiseException(getContext(),
                         coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
             }
@@ -1661,7 +1664,8 @@ public abstract class StringNodes {
                 int byteIndex = iterator.getByteIndex();
                 codePoint = previousNode.execute(iterator);
 
-                if (badCodePointProfile.profile(MBCLEN_INVALID_P(codePoint))) {
+                if (codePoint == -1) {
+                    badCodePointProfile.enter();
                     throw new RaiseException(getContext(),
                             coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
                 }
@@ -2929,13 +2933,14 @@ public abstract class StringNodes {
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached ConditionProfile is7BitProfile,
                 @Cached TruffleString.CodePointAtByteIndexNode getCodePointNode,
-                @Cached ConditionProfile badCodePointProfile,
+                @Cached BranchProfile badCodePointProfile,
                 @Cached GetByteCodeRangeNode getCodeRangeNode) {
             final RubyEncoding encoding = strings.getEncoding(character);
             final var tstring = strings.getTString(character);
 
             int codePoint = getCodePointNode.execute(tstring, 0, encoding.tencoding, ErrorHandling.RETURN_NEGATIVE);
-            if (badCodePointProfile.profile(codePoint < 0)) {
+            if (codePoint == -1) {
+                badCodePointProfile.enter();
                 return false;
             }
 
