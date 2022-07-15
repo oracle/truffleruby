@@ -1500,8 +1500,6 @@ public abstract class StringNodes {
         @Specialization(guards = "!isEmpty(string.tstring)")
         protected Object lstripBangSingleByte(RubyString string,
                 @Cached GetActualEncodingNode getActualEncodingNode,
-                @Cached StringHelperNodes.IsBrokenCodePointNode isBrokenCodePointNode,
-                @Cached SingleByteOptimizableNode singleByteOptimizableNode,
                 @Cached TruffleString.CreateCodePointIteratorNode createCodePointIteratorNode,
                 @Cached TruffleStringIterator.NextNode nextNode,
                 @Cached BranchProfile allWhitespaceProfile,
@@ -1512,13 +1510,13 @@ public abstract class StringNodes {
             var encoding = getActualEncodingNode.execute(tstring, string.encoding);
             var tencoding = encoding.tencoding;
 
-            var iterator = createCodePointIteratorNode.execute(tstring, tencoding);
+            var iterator = createCodePointIteratorNode.execute(tstring, tencoding, ErrorHandling.RETURN_NEGATIVE);
             int byteIndex = iterator.getByteIndex();
             int codePoint = nextNode.execute(iterator);
 
             // Check the first code point to see if it's broken. In the case of strings without leading spaces,
             // this check can avoid having to compile the while loop.
-            if (badCodePointProfile.profile(isBrokenCodePointNode.executeIsBroken(tstring, tencoding, byteIndex))) {
+            if (badCodePointProfile.profile(MBCLEN_INVALID_P(codePoint))) {
                 throw new RaiseException(getContext(),
                         coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
             }
@@ -1533,7 +1531,7 @@ public abstract class StringNodes {
                 byteIndex = iterator.getByteIndex();
                 codePoint = nextNode.execute(iterator);
 
-                if (badCodePointProfile.profile(isBrokenCodePointNode.executeIsBroken(tstring, tencoding, byteIndex))) {
+                if (badCodePointProfile.profile(MBCLEN_INVALID_P(codePoint))) {
                     throw new RaiseException(getContext(),
                             coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
                 }
