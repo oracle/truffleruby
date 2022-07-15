@@ -14,13 +14,11 @@ package org.truffleruby.core.encoding;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import org.jcodings.Encoding;
 
 import com.oracle.truffle.api.strings.TruffleString;
-import org.jcodings.EncodingDB;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.string.CannotConvertBinaryRubyStringToJavaString;
 import org.truffleruby.core.string.StringGuards;
@@ -29,11 +27,19 @@ import static com.oracle.truffle.api.strings.TruffleString.CodeRange.ASCII;
 
 public class TStringUtils {
 
-    @CompilationFinal(
-            dimensions = 1) private static final TruffleString.Encoding[] JCODING_TO_TSTRING_ENCODINGS = createJCodingToTSEncodingTable();
-
     public static TruffleString.Encoding jcodingToTEncoding(Encoding jcoding) {
-        return JCODING_TO_TSTRING_ENCODINGS[jcoding.getIndex()];
+        var jcodingName = jcoding.toString();
+        if (jcodingName.equals("UTF-16")) {
+            // We use UTF_16BE because JCodings resolves UTF-16 to UTF16BEEncoding(dummy=true)
+            // See org.jcodings.EncodingDB.dummy_unicode
+            return TruffleString.Encoding.UTF_16BE;
+        } else if (jcodingName.equals("UTF-32")) {
+            // We use UTF_32BE because JCodings resolves UTF-32 to UTF32BEEncoding(dummy=true)
+            // See org.jcodings.EncodingDB.dummy_unicode
+            return TruffleString.Encoding.UTF_32BE;
+        } else {
+            return TruffleString.Encoding.fromJCodingName(jcodingName);
+        }
     }
 
     public static TruffleString fromByteArray(byte[] bytes, TruffleString.Encoding tencoding) {
@@ -138,27 +144,5 @@ public class TStringUtils {
         } else {
             return tstring.toJavaStringUncached();
         }
-    }
-
-    private static TruffleString.Encoding[] createJCodingToTSEncodingTable() {
-        var map = new TruffleString.Encoding[EncodingDB.getEncodings().size()];
-        for (var entry : EncodingDB.getEncodings()) {
-            var jcoding = entry.getEncoding();
-            var jcodingName = jcoding.toString();
-            final TruffleString.Encoding tsEncoding;
-            if (jcodingName.equals("UTF-16")) {
-                // We use UTF_16BE because JCodings resolves UTF-16 to UTF16BEEncoding(dummy=true)
-                // See org.jcodings.EncodingDB.dummy_unicode
-                tsEncoding = TruffleString.Encoding.UTF_16BE;
-            } else if (jcodingName.equals("UTF-32")) {
-                // We use UTF_32BE because JCodings resolves UTF-32 to UTF32BEEncoding(dummy=true)
-                // See org.jcodings.EncodingDB.dummy_unicode
-                tsEncoding = TruffleString.Encoding.UTF_32BE;
-            } else {
-                tsEncoding = TruffleString.Encoding.fromJCodingName(jcodingName);
-            }
-            map[jcoding.getIndex()] = tsEncoding;
-        }
-        return map;
     }
 }
