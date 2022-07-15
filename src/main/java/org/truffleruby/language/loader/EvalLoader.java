@@ -31,7 +31,14 @@ public abstract class EvalLoader {
     public static RubySource createEvalSource(RubyContext context, AbstractTruffleString codeTString,
             RubyEncoding encoding, String method, String file, int line, Node currentNode) {
         var code = new TStringWithEncoding(codeTString.asTruffleStringUncached(encoding.tencoding), encoding);
+
         var sourceTString = createEvalRope(code);
+        var sourceEncoding = sourceTString.encoding;
+
+        if (!sourceEncoding.jcoding.isAsciiCompatible()) {
+            throw new RaiseException(context, context.getCoreExceptions()
+                    .argumentError(sourceEncoding + " is not ASCII compatible", currentNode));
+        }
 
         final String sourceString;
         try {
