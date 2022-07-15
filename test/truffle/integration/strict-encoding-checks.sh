@@ -10,4 +10,4 @@ if [[ $ruby_version =~ "Native" ]]; then
 fi
 
 jt test fast :all -- --vm.Dtruffle.strings.debug-strict-encoding-checks=true --vm.Dtruffle.strings.debug-non-zero-offset-arrays=true
-jt test mri test/mri/tests/ruby/test_string* test/mri/tests/ruby/test_m17n* --vm.Dtruffle.strings.debug-strict-encoding-checks=true --vm.Dtruffle.strings.debug-non-zero-offset-arrays=true
+jt test mri test/mri/tests/ruby/test_string* test/mri/tests/ruby/test_m17n* test/mri/tests/ruby/enc --vm.Dtruffle.strings.debug-strict-encoding-checks=true --vm.Dtruffle.strings.debug-non-zero-offset-arrays=true
