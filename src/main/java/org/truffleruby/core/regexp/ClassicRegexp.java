@@ -838,26 +838,24 @@ public class ClassicRegexp implements ReOptions {
     public ByteArrayBuilder toByteArrayBuilder() {
         RegexpOptions newOptions = (RegexpOptions) options.clone();
         var byteArray = str.getInternalByteArray();
-        final int offset = byteArray.getOffset();
-        int p = offset;
+        int p = 0;
         int len = byteArray.getLength();
-        byte[] bytes = byteArray.getArray();
 
         TStringBuilder result = TStringBuilder.create(len);
         result.append((byte) '(');
         result.append((byte) '?');
 
         again: do {
-            if (len >= 4 && bytes[p] == '(' && bytes[p + 1] == '?') {
+            if (len >= 4 && byteArray.get(p) == '(' && byteArray.get(p + 1) == '?') {
                 boolean err = true;
                 p += 2;
                 if ((len -= 2) > 0) {
                     do {
-                        if (bytes[p] == 'm') {
+                        if (byteArray.get(p) == 'm') {
                             newOptions = newOptions.setMultiline(true);
-                        } else if (bytes[p] == 'i') {
+                        } else if (byteArray.get(p) == 'i') {
                             newOptions = newOptions.setIgnorecase(true);
-                        } else if (bytes[p] == 'x') {
+                        } else if (byteArray.get(p) == 'x') {
                             newOptions = newOptions.setExtended(true);
                         } else {
                             break;
@@ -865,15 +863,15 @@ public class ClassicRegexp implements ReOptions {
                         p++;
                     } while (--len > 0);
                 }
-                if (len > 1 && bytes[p] == '-') {
+                if (len > 1 && byteArray.get(p) == '-') {
                     ++p;
                     --len;
                     do {
-                        if (bytes[p] == 'm') {
+                        if (byteArray.get(p) == 'm') {
                             newOptions = newOptions.setMultiline(false);
-                        } else if (bytes[p] == 'i') {
+                        } else if (byteArray.get(p) == 'i') {
                             newOptions = newOptions.setIgnorecase(false);
-                        } else if (bytes[p] == 'x') {
+                        } else if (byteArray.get(p) == 'x') {
                             newOptions = newOptions.setExtended(false);
                         } else {
                             break;
@@ -882,18 +880,19 @@ public class ClassicRegexp implements ReOptions {
                     } while (--len > 0);
                 }
 
-                if (bytes[p] == ')') {
+                if (byteArray.get(p) == ')') {
                     --len;
                     ++p;
                     continue again;
                 }
 
-                if (bytes[p] == ':' && bytes[p + len - 1] == ')') {
+                if (byteArray.get(p) == ':' && byteArray.get(p + len - 1) == ')') {
+                    p++;
                     try {
                         new Regex(
-                                bytes,
-                                ++p,
-                                p + (len -= 2),
+                                byteArray.getArray(),
+                                p + byteArray.getOffset(),
+                                p + byteArray.getOffset() + (len -= 2),
                                 Option.DEFAULT,
                                 str.encoding.jcoding,
                                 Syntax.DEFAULT,
@@ -906,7 +905,7 @@ public class ClassicRegexp implements ReOptions {
 
                 if (err) {
                     newOptions = options;
-                    p = offset;
+                    p = 0;
                     len = str.byteLength();
                 }
             }
@@ -926,7 +925,7 @@ public class ClassicRegexp implements ReOptions {
                 }
             }
             result.append((byte) ':');
-            appendRegexpString(result, str, p - offset, len);
+            appendRegexpString(result, str, p, len);
 
             result.append((byte) ')');
             result.setEncoding(Encodings.getBuiltInEncoding(getEncoding()));
