@@ -323,14 +323,6 @@ class String
     str.tr_s!(source, replacement) || str
   end
 
-  # TODO: could use TruffleStringIterator
-  def each_codepoint
-    return to_enum(:each_codepoint) { size } unless block_given?
-
-    each_char { |c| yield c.ord }
-    self
-  end
-
   def each_grapheme_cluster
     return to_enum(:each_grapheme_cluster) { size } unless block_given?
 

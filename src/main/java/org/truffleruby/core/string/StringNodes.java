@@ -1254,6 +1254,40 @@ public abstract class StringNodes {
 
     }
 
+    @CoreMethod(names = "each_codepoint", needsBlock = true, enumeratorSize = "size")
+    @ImportStatic(StringGuards.class)
+    public abstract static class EachCodePointNode extends YieldingCoreMethodNode {
+
+        @Specialization
+        protected Object eachCodePoint(Object string, RubyProc block,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached CreateCodePointIteratorNode createCodePointIteratorNode,
+                @Cached TruffleStringIterator.NextNode nextNode,
+                @Cached BranchProfile invalidCodePointProfile) {
+            // Unlike String#each_byte, String#each_codepoint does not make
+            // modifications to the string visible to the rest of the iteration.
+            var tstring = strings.getTString(string);
+            var encoding = strings.getEncoding(string);
+            var tencoding = encoding.tencoding;
+            var iterator = createCodePointIteratorNode.execute(tstring, tencoding, ErrorHandling.RETURN_NEGATIVE);
+
+            while (iterator.hasNext()) {
+                int codePoint = nextNode.execute(iterator);
+
+                if (codePoint == -1) {
+                    invalidCodePointProfile.enter();
+                    throw new RaiseException(getContext(),
+                            coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
+                }
+
+                callBlock(block, codePoint);
+            }
+
+            return string;
+        }
+
+    }
+
     @ImportStatic(StringGuards.class)
     @CoreMethod(names = "force_encoding", required = 1, raiseIfNotMutableSelf = true)
     public abstract static class ForceEncodingNode extends CoreMethodArrayArgumentsNode {
