@@ -296,7 +296,7 @@ CODE
     assert_raise(RangeError, bug) {S("a".force_encoding(Encoding::UTF_8)) << -2}
     assert_raise(RangeError, bug) {S("a".force_encoding(Encoding::UTF_8)) << -1}
     assert_raise(RangeError, bug) {S("a".force_encoding(Encoding::UTF_8)) << 0x81308130}
-    # assert_nothing_raised {S("a".force_encoding(Encoding::GB18030)) << 0x81308130} # GR-39354
+    assert_nothing_raised {S("a".force_encoding(Encoding::GB18030)) << 0x81308130}
   end
 
   def test_MATCH # '=~'
