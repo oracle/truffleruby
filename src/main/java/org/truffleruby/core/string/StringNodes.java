@@ -1018,8 +1018,8 @@ public abstract class StringNodes {
                 @Cached ConditionProfile isCharacterHeadProfile) {
 
             var stringTString = strings.getTString(string);
-            var stringEncoding = strings.getTEncoding(string);
-            final int stringByteLength = stringTString.byteLength(stringEncoding);
+            var stringEncoding = strings.getEncoding(string);
+            final int stringByteLength = stringTString.byteLength(stringEncoding.tencoding);
 
             var suffixTString = stringsSuffix.getTString(suffix);
             var suffixEncoding = stringsSuffix.getTEncoding(suffix);
@@ -1036,7 +1036,7 @@ public abstract class StringNodes {
 
             final int offset = stringByteLength - suffixByteLength;
 
-            if (isCharacterHeadProfile.profile(!isCharacterHeadNode.execute(enc, stringTString, offset))) {
+            if (isCharacterHeadProfile.profile(!isCharacterHeadNode.execute(stringEncoding, stringTString, offset))) {
                 return false;
             }
 
