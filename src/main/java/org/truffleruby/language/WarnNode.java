@@ -55,10 +55,10 @@ public class WarnNode extends RubyBaseNode {
             callWarnNode = insert(DispatchNode.create());
         }
 
-        callWarn(this, getContext(), sourceSection, message, fromJavaStringNode, callWarnNode);
+        callWarn(getContext(), sourceSection, message, this, fromJavaStringNode, callWarnNode);
     }
 
-    static void callWarn(RubyBaseNode node, RubyContext context, SourceSection sourceSection, String message,
+    static void callWarn(RubyContext context, SourceSection sourceSection, String message, RubyBaseNode node,
             TruffleString.FromJavaStringNode fromJavaStringNode, DispatchNode callWarnNode) {
         final String warningMessage = buildWarningMessage(context, sourceSection, message);
         final RubyString warningString = node.createString(fromJavaStringNode, warningMessage, Encodings.UTF_8);
@@ -79,10 +79,7 @@ public class WarnNode extends RubyBaseNode {
         public void warningMessage(SourceSection sourceSection, String message) {
             assert shouldWarn();
             WarnNode.callWarn(
-                    this,
-                    getContext(),
-                    sourceSection,
-                    message,
+                    getContext(), sourceSection, message, this,
                     TruffleString.FromJavaStringNode.getUncached(),
                     DispatchNode.getUncached());
         }
