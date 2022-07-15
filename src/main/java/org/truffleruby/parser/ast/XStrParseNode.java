@@ -34,6 +34,7 @@ package org.truffleruby.parser.ast;
 import java.util.List;
 
 import com.oracle.truffle.api.strings.TruffleString;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.language.SourceIndexLength;
@@ -47,10 +48,8 @@ public class XStrParseNode extends ParseNode implements ILiteralNode {
 
     public XStrParseNode(SourceIndexLength position, StrParseNode strParseNode) {
         super(position);
-        this.value = (strParseNode.getValue() == null
-                ? TStringConstants.EMPTY_US_ASCII
-                : strParseNode.getValue());
-        this.encoding = strParseNode.encoding;
+        this.value = strParseNode == null ? TStringConstants.EMPTY_US_ASCII : strParseNode.getValue();
+        this.encoding = strParseNode == null ? Encodings.US_ASCII : strParseNode.encoding;
     }
 
     @Override
