@@ -34,13 +34,13 @@ public class ReverseSourcePositionNode extends FormatNode {
 
             final int target = position - remaining;
 
-            if (rangeProfile.profile(target < 0)) {
+            if (rangeProfile.profile(target < getSourceStart(frame))) {
                 throw new OutsideOfStringException();
             }
 
             setSourcePosition(frame, target);
         } else {
-            if (rangeProfile.profile(position == 0)) {
+            if (rangeProfile.profile(position == getSourceStart(frame))) {
                 throw new OutsideOfStringException();
             }
 
