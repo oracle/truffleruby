@@ -28,15 +28,17 @@ public class SetSourcePositionNode extends FormatNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        if (rangeProfile.profile(position > getSourceEnd(frame))) {
+        int positionWithStartOffset = getSourceStart(frame) + position;
+
+        if (rangeProfile.profile(positionWithStartOffset > getSourceEnd(frame))) {
             throw new OutsideOfStringException();
         }
 
-        if (rangeProfile.profile(position < 0)) {
+        if (position < 0) {
             throw new RangeException("pack length too big");
         }
 
-        setSourcePosition(frame, position);
+        setSourcePosition(frame, positionWithStartOffset);
         return null;
     }
 

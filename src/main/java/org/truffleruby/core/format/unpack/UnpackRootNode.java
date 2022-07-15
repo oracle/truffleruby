@@ -42,6 +42,7 @@ public class UnpackRootNode extends RubyBaseRootNode implements InternalRootNode
 
         frame.setObject(FormatFrameDescriptor.SOURCE_SLOT, arguments[0]);
         frame.setInt(FormatFrameDescriptor.SOURCE_END_POSITION_SLOT, (int) arguments[1]);
+        frame.setInt(FormatFrameDescriptor.SOURCE_START_POSITION_SLOT, (int) arguments[2]);
         frame.setInt(FormatFrameDescriptor.SOURCE_POSITION_SLOT, (int) arguments[2]);
         frame.setObject(FormatFrameDescriptor.SOURCE_ASSOCIATED_SLOT, arguments[3]);
         frame.setObject(FormatFrameDescriptor.OUTPUT_SLOT, new Object[expectedLength]);
