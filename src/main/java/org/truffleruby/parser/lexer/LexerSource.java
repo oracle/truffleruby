@@ -41,6 +41,7 @@ import org.jcodings.Encoding;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
+import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.parser.ParserRopeOperations;
 
@@ -129,18 +130,13 @@ public class LexerSource {
     }
 
     private int nextNewLine() {
-        // TODO: Try indexOf
-        int n = byteOffset;
-
-        while (n < sourceByteLength) {
-            if (sourceBytes.readByteUncached(n, encoding.tencoding) == '\n') {
-                return n;
-            }
-
-            n++;
+        int index = sourceBytes.byteIndexOfAnyByteUncached(byteOffset, sourceByteLength,
+                TStringConstants.NEWLINE_BYTE_ARRAY, encoding.tencoding);
+        if (index < 0) {
+            return -1;
+        } else {
+            return index;
         }
-
-        return -1;
     }
 
     public boolean isFromTruffleString() {

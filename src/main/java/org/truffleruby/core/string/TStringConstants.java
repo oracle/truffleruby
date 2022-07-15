@@ -26,6 +26,8 @@ public class TStringConstants {
     public static final TruffleString EMPTY_UTF8 = withHashCode(TruffleString.Encoding.UTF_8.getEmpty());
 
     @CompilationFinal(dimensions = 1) public static final byte[] EMPTY_BYTES = new byte[0];
+    @CompilationFinal(dimensions = 1) public static final byte[] NEWLINE_BYTE_ARRAY = new byte[]{ '\n' };
+
     @CompilationFinal(dimensions = 1) public static final TruffleString[] UTF8_SINGLE_BYTE = new TruffleString[256];
     @CompilationFinal(dimensions = 1) public static final TruffleString[] US_ASCII_SINGLE_BYTE = new TruffleString[256];
     @CompilationFinal(dimensions = 1) public static final TruffleString[] BINARY_SINGLE_BYTE = new TruffleString[256];
