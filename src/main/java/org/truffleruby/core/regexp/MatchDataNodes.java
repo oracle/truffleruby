@@ -422,7 +422,7 @@ public abstract class MatchDataNodes {
                 return regexp.regex.nameToBackrefNumber(
                         byteArray.getArray(),
                         byteArray.getOffset(),
-                        byteArray.getLength(),
+                        byteArray.getEnd(),
                         matchData.region);
             } catch (ValueException e) {
                 throw new RaiseException(
