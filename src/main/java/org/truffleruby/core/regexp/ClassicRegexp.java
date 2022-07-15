@@ -43,8 +43,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 import com.oracle.truffle.api.strings.AbstractTruffleString;
-import com.oracle.truffle.api.strings.TruffleString.CreateCodePointIteratorNode;
-import com.oracle.truffle.api.strings.TruffleString.ErrorHandling;
 import com.oracle.truffle.api.strings.TruffleStringBuilder;
 import org.jcodings.Encoding;
 import org.joni.NameEntry;
@@ -739,10 +737,18 @@ public class ClassicRegexp implements ReOptions {
         var resultEncoding = asciiOnly ? Encodings.US_ASCII : bs.encoding;
         var builder = TruffleStringBuilder.create(resultEncoding.tencoding, bs.byteLength() * 2);
 
-        iterator = CreateCodePointIteratorNode.getUncached().execute(bs.tstring, bs.encoding.tencoding,
-                ErrorHandling.BEST_EFFORT); // BEST_EFFORT here to copy broken codepoints as-is as much as possible
+        iterator = bs.createCodePointIterator();
         while (iterator.hasNext()) {
+            int p = iterator.getByteIndex();
             final int c = iterator.nextUncached();
+
+            if (c == -1) {
+                int after = iterator.getByteIndex();
+                for (int i = p; i < after; i++) {
+                    builder.appendByteUncached(bs.getByte(i));
+                }
+                continue;
+            }
 
             if (!(c >= 0 && Encoding.isAscii(c))) {
                 builder.appendCodePointUncached(c);

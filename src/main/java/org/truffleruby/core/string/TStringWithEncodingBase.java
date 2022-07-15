@@ -98,7 +98,7 @@ abstract class TStringWithEncodingBase {
         return tstring.readByteUncached(index, encoding.tencoding);
     }
 
-    public int getByte(int index) {
+    public byte getByte(int index) {
         CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
         return (byte) tstring.readByteUncached(index, encoding.tencoding);
     }
