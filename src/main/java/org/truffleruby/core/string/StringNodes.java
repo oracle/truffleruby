@@ -2929,13 +2929,18 @@ public abstract class StringNodes {
         protected boolean isCharacterPrintable(Object character,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached ConditionProfile is7BitProfile,
-                @Cached StringHelperNodes.GetCodePointNode getCodePointNode,
+                @Cached TruffleString.CodePointAtByteIndexNode getCodePointNode,
+                @Cached ConditionProfile badCodePointProfile,
                 @Cached GetByteCodeRangeNode getCodeRangeNode) {
             final RubyEncoding encoding = strings.getEncoding(character);
-            final var tString = strings.getTString(character);
+            final var tstring = strings.getTString(character);
 
-            final int codePoint = getCodePointNode.executeGetCodePoint(tString, encoding, 0);
-            final boolean asciiOnly = StringGuards.is7Bit(tString, encoding, getCodeRangeNode);
+            int codePoint = getCodePointNode.execute(tstring, 0, encoding.tencoding, ErrorHandling.RETURN_NEGATIVE);
+            if (badCodePointProfile.profile(codePoint < 0)) {
+                return false;
+            }
+
+            final boolean asciiOnly = StringGuards.is7Bit(tstring, encoding, getCodeRangeNode);
 
             if (is7BitProfile.profile(asciiOnly)) {
                 return StringSupport.isAsciiPrintable(codePoint);
