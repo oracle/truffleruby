@@ -1475,7 +1475,7 @@ public abstract class StringNodes {
             var encoding = stringsFrom.getEncoding(from);
             var tencoding = encoding.tencoding;
             int byteLength = tstring.byteLength(tencoding);
-            // TODO Should the copy be a MutableTruffleString too, or TruffleString with AsTruffleStringNode?
+            // TODO (eregon, 2022): Should the copy be a MutableTruffleString too, or TruffleString with AsTruffleStringNode?
             MutableTruffleString copy = copyMutableTruffleStringNode.execute(tstring, 0, byteLength, tencoding);
             self.setTString(copy, encoding);
 
@@ -1497,7 +1497,7 @@ public abstract class StringNodes {
             final Pointer newPointer = Pointer.mallocAutoRelease(fromPointer.getSize(), getLanguage());
             newPointer.writeBytes(0, fromPointer, 0, fromPointer.getSize());
 
-            // TODO should we have the copy be native too, or rather take the opportunity of having to copy to be managed?
+            // TODO (eregon, 2022): should we have the copy be native too, or rather take the opportunity of having to copy to be managed?
             assert tstring.isMutable();
             var copy = fromNativePointerNode.execute(newPointer, 0, tstring.byteLength(tencoding), tencoding, false);
             self.setTString(copy, encoding);
@@ -1859,7 +1859,6 @@ public abstract class StringNodes {
             int p1 = p;
             final int mbminlen = enc.minLength();
 
-            // TODO use logical indices
             while (p < e) {
                 int clen = byteLengthOfCodePointNode.execute(tstring, p, tencoding, ErrorHandling.RETURN_NEGATIVE);
                 if (MBCLEN_NEEDMORE_P(clen)) {
@@ -3122,7 +3121,6 @@ public abstract class StringNodes {
             var tencoding = encoding.tencoding;
             final int len = tstring.byteLength(tencoding);
 
-            // TODO error if broken like getCodePointNode.executeGetCodePoint(tstring, encoding, p - byteOffset);
             var iterator = createCodePointIteratorNode.execute(tstring, tencoding);
 
             boolean skip = true;

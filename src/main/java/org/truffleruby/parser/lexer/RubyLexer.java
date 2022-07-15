@@ -3239,7 +3239,6 @@ public class RubyLexer implements MagicCommentHandler {
         return lex_p + n < lex_pend && p(lex_p + n) == c;
     }
 
-    // TODO: can do this better with TruffleString?
     public int precise_mbclen() {
         // A broken string has at least one character with an invalid byte sequence. It doesn't matter which one we
         // report as invalid because the error reported to the user will only note the start position of the string.
