@@ -340,14 +340,6 @@ class String
     end
   end
 
-  def codepoints(&block)
-    if block_given?
-      each_codepoint(&block)
-    else
-      each_codepoint.to_a
-    end
-  end
-
   def encode!(to=undefined, from=undefined, **options)
     Primitive.check_mutable_string self
 

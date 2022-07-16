@@ -1288,6 +1288,59 @@ public abstract class StringNodes {
 
     }
 
+    @CoreMethod(names = "codepoints", needsBlock = true)
+    @ImportStatic({ StringGuards.class })
+    public abstract static class CodePointsNode extends YieldingCoreMethodNode {
+
+        @Specialization
+        protected Object codePointsWithBlock(Object string, Object maybeBlock,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached CreateCodePointIteratorNode createCodePointIteratorNode,
+                @Cached TruffleStringIterator.NextNode nextNode,
+                @Cached TruffleString.CodePointLengthNode codePointLengthNode,
+                @Cached BranchProfile invalidCodePointProfile,
+                @Cached ConditionProfile noBlockProfile) {
+            // Unlike String#each_byte, String#codepoints does not make
+            // modifications to the string visible to the rest of the iteration.
+            var tstring = strings.getTString(string);
+            var encoding = strings.getEncoding(string);
+            var tencoding = encoding.tencoding;
+
+            int codePointLength = codePointLengthNode.execute(tstring, tencoding);
+            int[] codePoints = null;
+
+            if (noBlockProfile.profile(maybeBlock == nil)) {
+                codePoints = new int[codePointLength];
+            }
+
+            var iterator = createCodePointIteratorNode.execute(tstring, tencoding, ErrorHandling.RETURN_NEGATIVE);
+
+            int i = 0;
+            while (iterator.hasNext()) {
+                int codePoint = nextNode.execute(iterator);
+
+                if (codePoint == -1) {
+                    invalidCodePointProfile.enter();
+                    throw new RaiseException(getContext(),
+                            coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
+                }
+
+                if (noBlockProfile.profile(maybeBlock == nil)) {
+                    codePoints[i++] = codePoint;
+                } else {
+                    callBlock((RubyProc) maybeBlock, codePoint);
+                }
+            }
+
+            if (noBlockProfile.profile(maybeBlock == nil)) {
+                return createArray(codePoints);
+            } else {
+                return string;
+            }
+        }
+
+    }
+
     @ImportStatic(StringGuards.class)
     @CoreMethod(names = "force_encoding", required = 1, raiseIfNotMutableSelf = true)
     public abstract static class ForceEncodingNode extends CoreMethodArrayArgumentsNode {
