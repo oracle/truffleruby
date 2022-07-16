@@ -332,14 +332,6 @@ class String
     self
   end
 
-  def chars(&block)
-    if block_given?
-      each_char(&block)
-    else
-      each_char.to_a
-    end
-  end
-
   def encode!(to=undefined, from=undefined, **options)
     Primitive.check_mutable_string self
 
