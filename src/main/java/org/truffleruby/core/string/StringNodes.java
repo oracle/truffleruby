@@ -1258,6 +1258,12 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class EachCodePointNode extends YieldingCoreMethodNode {
 
+        public static EachCodePointNode create() {
+            return StringNodesFactory.EachCodePointNodeFactory.create(null);
+        }
+
+        public abstract Object execute(Object string, RubyProc block);
+
         @Specialization
         protected Object eachCodePoint(Object string, RubyProc block,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
@@ -1293,13 +1299,12 @@ public abstract class StringNodes {
     public abstract static class CodePointsNode extends YieldingCoreMethodNode {
 
         @Specialization
-        protected Object codePointsWithBlock(Object string, Object maybeBlock,
+        protected Object codePointsWithoutBlock(Object string, Nil unusedBlock,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached CreateCodePointIteratorNode createCodePointIteratorNode,
                 @Cached TruffleStringIterator.NextNode nextNode,
                 @Cached TruffleString.CodePointLengthNode codePointLengthNode,
-                @Cached BranchProfile invalidCodePointProfile,
-                @Cached ConditionProfile noBlockProfile) {
+                @Cached BranchProfile invalidCodePointProfile) {
             // Unlike String#each_byte, String#codepoints does not make
             // modifications to the string visible to the rest of the iteration.
             var tstring = strings.getTString(string);
@@ -1307,11 +1312,7 @@ public abstract class StringNodes {
             var tencoding = encoding.tencoding;
 
             int codePointLength = codePointLengthNode.execute(tstring, tencoding);
-            int[] codePoints = null;
-
-            if (noBlockProfile.profile(maybeBlock == nil)) {
-                codePoints = new int[codePointLength];
-            }
+            int[] codePoints = new int[codePointLength];
 
             var iterator = createCodePointIteratorNode.execute(tstring, tencoding, ErrorHandling.RETURN_NEGATIVE);
 
@@ -1325,18 +1326,16 @@ public abstract class StringNodes {
                             coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
                 }
 
-                if (noBlockProfile.profile(maybeBlock == nil)) {
-                    codePoints[i++] = codePoint;
-                } else {
-                    callBlock((RubyProc) maybeBlock, codePoint);
-                }
+                codePoints[i++] = codePoint;
             }
 
-            if (noBlockProfile.profile(maybeBlock == nil)) {
-                return createArray(codePoints);
-            } else {
-                return string;
-            }
+            return createArray(codePoints);
+        }
+
+        @Specialization
+        protected Object codePointsWithBlock(Object string, RubyProc block,
+                @Cached EachCodePointNode eachCodePointNode) {
+            return eachCodePointNode.execute(string, block);
         }
 
     }
