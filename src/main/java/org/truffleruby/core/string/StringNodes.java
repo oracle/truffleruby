@@ -781,52 +781,6 @@ public abstract class StringNodes {
 
     }
 
-    @CoreMethod(names = "bytes", needsBlock = true)
-    public abstract static class StringBytesNode extends YieldingCoreMethodNode {
-
-        @Specialization(limit = "LIBSTRING_CACHE")
-        protected RubyArray bytes(Object string, Nil block,
-                // use separate specialization instances for getTString() in the loop
-                @CachedLibrary(/* ^ */"string") RubyStringLibrary strings,
-                @Cached TruffleString.MaterializeNode materializeNode,
-                @Cached TruffleString.ReadByteNode readByteNode) {
-            var tstring = strings.getTString(string);
-            var encoding = strings.getEncoding(string).tencoding;
-            int arrayLength = tstring.byteLength(encoding);
-
-            final int[] store = new int[arrayLength];
-
-            materializeNode.execute(tstring, encoding);
-            for (int i = 0; i < arrayLength; i++) {
-                store[i] = readByteNode.execute(tstring, i, encoding);
-            }
-
-            return createArray(store);
-        }
-
-        @Specialization(limit = "LIBSTRING_CACHE")
-        protected Object bytes(Object string, RubyProc block,
-                // use separate specialization instances for getTString() in the loop
-                @CachedLibrary(/* ^ */"string") RubyStringLibrary strings,
-                @Cached TruffleString.MaterializeNode materializeNode,
-                @Cached TruffleString.ReadByteNode readByteNode) {
-            var tstring = strings.getTString(string);
-            var encoding = strings.getEncoding(string).tencoding;
-
-            // String#bytes reflects changes by the block to the string's bytes
-            materializeNode.execute(tstring, encoding);
-            for (int i = 0; i < tstring.byteLength(encoding); i++) {
-                int singleByte = readByteNode.execute(tstring, i, encoding);
-                callBlock(block, singleByte);
-
-                tstring = strings.getTString(string);
-                encoding = strings.getEncoding(string).tencoding;
-            }
-
-            return string;
-        }
-    }
-
     @CoreMethod(names = "bytesize")
     public abstract static class ByteSizeNode extends CoreMethodArrayArgumentsNode {
         @Specialization
@@ -1172,6 +1126,12 @@ public abstract class StringNodes {
     @CoreMethod(names = "each_byte", needsBlock = true, enumeratorSize = "bytesize")
     public abstract static class EachByteNode extends YieldingCoreMethodNode {
 
+        public static EachByteNode create() {
+            return StringNodesFactory.EachByteNodeFactory.create(null);
+        }
+
+        public abstract Object execute(Object string, RubyProc block);
+
         @Specialization(limit = "LIBSTRING_CACHE")
         protected Object eachByte(Object string, RubyProc block,
                 // use separate specialization instances for getTString() in the loop
@@ -1193,7 +1153,36 @@ public abstract class StringNodes {
 
             return string;
         }
+    }
 
+    @CoreMethod(names = "bytes", needsBlock = true)
+    public abstract static class StringBytesNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(limit = "LIBSTRING_CACHE")
+        protected RubyArray bytesWithoutBlock(Object string, Nil block,
+                // use separate specialization instances for getTString() in the loop
+                @CachedLibrary(/* ^ */"string") RubyStringLibrary strings,
+                @Cached TruffleString.MaterializeNode materializeNode,
+                @Cached TruffleString.ReadByteNode readByteNode) {
+            var tstring = strings.getTString(string);
+            var encoding = strings.getEncoding(string).tencoding;
+            int arrayLength = tstring.byteLength(encoding);
+
+            final int[] store = new int[arrayLength];
+
+            materializeNode.execute(tstring, encoding);
+            for (int i = 0; i < arrayLength; i++) {
+                store[i] = readByteNode.execute(tstring, i, encoding);
+            }
+
+            return createArray(store);
+        }
+
+        @Specialization
+        protected Object bytesWithBlock(Object string, RubyProc block,
+                @Cached EachByteNode eachByteNode) {
+            return eachByteNode.execute(string, block);
+        }
     }
 
     @CoreMethod(names = "each_char", needsBlock = true, enumeratorSize = "size")
