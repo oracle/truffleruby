@@ -121,6 +121,7 @@ public class ThreadManager {
     public void dispose() {
         if (nativeInterrupt) {
             nativeInterruptTimer.cancel();
+            nativeInterruptTimer = null;
         }
     }
 
