@@ -13,21 +13,27 @@ def str(n)
   Array.new(n, 'a'.ord).pack('C*')
 end
 
+def are_equal?(a, b)
+  a == b
+end
+
 s1_small = str(small)
 s2_small = str(small)
 
 s1_large = str(large)
 s2_large = str(large)
 
-equal = s1_small == s2_small
-raise unless equal
-equal = s1_large == s2_large
-raise unless equal
+equal = false
+
+[[s1_small, s2_small], [s1_large, s2_large]].each do |a, b|
+  equal = are_equal?(a, b) # prevent splitting and identity caching
+  raise unless equal
+end
 
 benchmark "core-string-equal-#{small}" do
-  equal = s1_small == s2_small
+  equal = are_equal?(s1_small, s2_small)
 end
 
 benchmark "core-string-equal-#{large}" do
-  equal = s1_large == s2_large
+  equal = are_equal?(s1_large, s2_large)
 end
