@@ -468,74 +468,71 @@ class String
 
   private def inspect_char(enc, result_encoding, ascii, unicode, index, char, result)
     consumed = char.bytesize
+    codepoint = char.ord
 
-    if (ascii or unicode) and consumed == 1
+    if (ascii or unicode) and (codepoint >= 7 and codepoint <= 92)
       escaped = nil
 
-      byte = getbyte(index)
-      if byte >= 7 and byte <= 92
-        case byte
-        when 7  # \a
-          escaped = '\a'
-        when 8  # \b
-          escaped = '\b'
-        when 9  # \t
-          escaped = '\t'
-        when 10 # \n
-          escaped = '\n'
-        when 11 # \v
-          escaped = '\v'
-        when 12 # \f
-          escaped = '\f'
-        when 13 # \r
-          escaped = '\r'
-        when 27 # \e
-          escaped = '\e'
-        when 34 # \"
-          escaped = '\"'
-        when 35 # #
-          case getbyte(index + 1)
-          when 36   # $
-            escaped = '\#$'
-            consumed += 1
-          when 64   # @
-            escaped = '\#@'
-            consumed += 1
-          when 123  # {
-            escaped = '\#{'
-            consumed += 1
-          end
-        when 92 # \\
-          escaped = '\\\\'
+      case codepoint
+      when 7  # \a
+        escaped = '\a'
+      when 8  # \b
+        escaped = '\b'
+      when 9  # \t
+        escaped = '\t'
+      when 10 # \n
+        escaped = '\n'
+      when 11 # \v
+        escaped = '\v'
+      when 12 # \f
+        escaped = '\f'
+      when 13 # \r
+        escaped = '\r'
+      when 27 # \e
+        escaped = '\e'
+      when 34 # \"
+        escaped = '\"'
+      when 35 # #
+        case getbyte(index + 1)
+        when 36   # $
+          escaped = '\#$'
+          consumed += 1
+        when 64   # @
+          escaped = '\#@'
+          consumed += 1
+        when 123  # {
+          escaped = '\#{'
+          consumed += 1
         end
+      when 92 # \\
+        escaped = '\\\\'
+      end
 
-        if escaped
-          result << escaped
-          return consumed
-        end
+      if escaped
+        result << escaped
+        return consumed
       end
     end
 
-    printable = Primitive.character_printable_p(char)
+    printable = Primitive.character_printable?(codepoint, enc)
     if printable && (enc == result_encoding || (ascii && char.ascii_only?))
       result << char
     # < 0x7F from https://github.com/ruby/ruby/blob/12f7ba5ed4a07855d6a9429aa627211db3655ca7/string.c#L6049-L6050
     # Exclude UTF-8 (unicode && ascii) because it was already checked just above
-    elsif printable && unicode && !ascii && (codepoint = char.ord) < 0x7F
+    elsif printable && unicode && !ascii && codepoint < 0x7F
       result << codepoint
     else
-      code = char.ord
-      escaped = code.to_s(16).upcase
+      escaped = codepoint.to_s(16).upcase
 
       if unicode
-        if code < 0x10000
+        if codepoint < 0x10000
           pad = '0' * (4 - escaped.bytesize)
           result << "\\u#{pad}#{escaped}"
         else
           result << "\\u{#{escaped}}"
         end
       else
-        if code < 0x100
+        if codepoint < 0x100
           pad = '0' * (2 - escaped.bytesize)
           result << "\\x#{pad}#{escaped}"
         else

@@ -3041,31 +3041,19 @@ public abstract class StringNodes {
         }
     }
 
-    @Primitive(name = "character_printable_p")
+    @Primitive(name = "character_printable?", lowerFixnum = 0)
     public abstract static class CharacterPrintablePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected boolean isCharacterPrintable(Object character,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @Cached ConditionProfile is7BitProfile,
-                @Cached TruffleString.CodePointAtByteIndexNode getCodePointNode,
-                @Cached BranchProfile badCodePointProfile,
-                @Cached GetByteCodeRangeNode getCodeRangeNode) {
-            final RubyEncoding encoding = strings.getEncoding(character);
-            final var tstring = strings.getTString(character);
+        protected boolean isCharacterPrintable(int codepoint, RubyEncoding encoding,
+                @Cached ConditionProfile asciiPrintableProfile) {
+            assert codepoint >= 0;
 
-            int codePoint = getCodePointNode.execute(tstring, 0, encoding.tencoding, ErrorHandling.RETURN_NEGATIVE);
-            if (codePoint == -1) {
-                badCodePointProfile.enter();
-                return false;
-            }
-
-            final boolean asciiOnly = StringGuards.is7Bit(tstring, encoding, getCodeRangeNode);
-
-            if (is7BitProfile.profile(asciiOnly)) {
-                return StringSupport.isAsciiPrintable(codePoint);
+            if (asciiPrintableProfile.profile(encoding.jcoding.isAsciiCompatible() &&
+                    StringSupport.isAsciiPrintable(codepoint))) {
+                return true;
             } else {
-                return isMBCPrintable(encoding.jcoding, codePoint);
+                return isMBCPrintable(encoding.jcoding, codepoint);
             }
         }
 
@@ -3073,7 +3061,6 @@ public abstract class StringNodes {
         protected boolean isMBCPrintable(Encoding encoding, int codePoint) {
             return encoding.isPrint(codePoint);
         }
-
     }
 
     @Primitive(name = "string_append")

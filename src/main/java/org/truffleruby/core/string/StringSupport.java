@@ -1520,6 +1520,11 @@ public final class StringSupport {
     //endregion
     //region Predicates
 
+    /** Like {@link Encoding#isAscii(int)} but correct */
+    public static boolean isAscii(int c) {
+        return c >= 0 && c < 128;
+    }
+
     public static boolean isAsciiLowercase(int c) {
         return c >= 'a' && c <= 'z';
     }
