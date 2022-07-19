@@ -19,6 +19,21 @@ describe "String#inspect" do
     ].should be_computed_by(:inspect)
   end
 
+  it "returns a string with special characters replaced with \\<char> notation for UTF-16" do
+    pairs = [
+      ["\a", '"\\a"'],
+      ["\b", '"\\b"'],
+      ["\t", '"\\t"'],
+      ["\n", '"\\n"'],
+      ["\v", '"\\v"'],
+      ["\f", '"\\f"'],
+      ["\r", '"\\r"'],
+      ["\e", '"\\e"']
+    ].map { |str, result| [str.encode('UTF-16LE'), result] }
+
+    pairs.should be_computed_by(:inspect)
+  end
+
   it "returns a string with \" and \\ escaped with a backslash" do
     [ ["\"", '"\\""'],
       ["\\", '"\\\\"']
