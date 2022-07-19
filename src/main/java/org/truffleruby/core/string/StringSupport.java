@@ -1551,7 +1551,7 @@ public final class StringSupport {
     }
 
     public static boolean isAsciiPrintable(int c) {
-        return c == ' ' || (c >= '!' && c <= '~');
+        return c >= ' ' && c <= '~';
     }
 
     public static boolean isAsciiAlpha(int c) {
