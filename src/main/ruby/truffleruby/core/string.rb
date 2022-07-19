@@ -432,6 +432,7 @@ class String
     unless result_encoding.ascii_compatible?
       result_encoding = Encoding::US_ASCII
     end
+    # result_encoding is always Encoding#ascii_compatible?
 
     enc = encoding
     ascii = enc.ascii_compatible?
@@ -464,10 +465,6 @@ class String
 
     result.force_encoding(result_encoding)
   end
-
-  # https://github.com/ruby/ruby/blob/12f7ba5ed4a07855d6a9429aa627211db3655ca7/string.c#L6049-L6050
-  MAX_PRINTABLE_UNICODE_CHAR = 0x7F
-  private_constant :MAX_PRINTABLE_UNICODE_CHAR
 
   private def inspect_char(enc, result_encoding, ascii, unicode, index, char, result)
     consumed = char.bytesize
@@ -519,10 +516,13 @@ class String
       end
     end
 
-    if Primitive.character_printable_p(char) && unicode && char.ord < MAX_PRINTABLE_UNICODE_CHAR
-      result << char.encode(result_encoding)
-    elsif Primitive.character_printable_p(char) && (enc == result_encoding || (ascii && char.ascii_only?))
+    printable = Primitive.character_printable_p(char)
+    if printable && (enc == result_encoding || (ascii && char.ascii_only?))
       result << char
+    # < 0x7F from https://github.com/ruby/ruby/blob/12f7ba5ed4a07855d6a9429aa627211db3655ca7/string.c#L6049-L6050
+    # Exclude UTF-8 (unicode && ascii) because it was already checked just above
+    elsif printable && unicode && !ascii && (codepoint = char.ord) < 0x7F
+      result << codepoint
     else
       code = char.ord
       escaped = code.to_s(16).upcase
