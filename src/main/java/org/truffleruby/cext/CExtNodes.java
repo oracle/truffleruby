@@ -1483,11 +1483,20 @@ public class CExtNodes {
         @Specialization(guards = "strings.isRubyString(string)")
         protected int rbEncMbcToCodepoint(Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
+                @Cached TruffleString.CodePointAtByteIndexNode codePointAtByteIndexNode,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
+                @Cached ConditionProfile brokenProfile) {
+            var tstring = strings.getTString(string);
             var encoding = strings.getEncoding(string);
-            var byteArray = byteArrayNode.execute(strings.getTString(string), encoding.tencoding);
-            return StringSupport.mbcToCode(encoding.jcoding, byteArray.getArray(), byteArray.getOffset(),
-                    byteArray.getEnd());
+            int codepoint = codePointAtByteIndexNode.execute(tstring, 0, encoding.tencoding,
+                    ErrorHandling.RETURN_NEGATIVE);
+            if (brokenProfile.profile(codepoint == -1)) {
+                var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
+                return StringSupport.mbcToCode(encoding.jcoding, byteArray.getArray(), byteArray.getOffset(),
+                        byteArray.getEnd());
+            } else {
+                return codepoint;
+            }
         }
     }
 
