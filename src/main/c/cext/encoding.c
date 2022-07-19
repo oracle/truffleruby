@@ -84,6 +84,9 @@ unsigned int rb_enc_codepoint_len(const char *p, const char *e, int *len_p, rb_e
 
 int rb_enc_mbc_to_codepoint(char *p, char *e, rb_encoding *enc) {
   int length = e - p;
+  if (length <= 0) {
+    return 0;
+  }
   return polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "rb_enc_mbc_to_codepoint",
       rb_tr_unwrap(rb_enc_from_encoding(enc)),
       rb_tr_unwrap(rb_str_new(p, length))));

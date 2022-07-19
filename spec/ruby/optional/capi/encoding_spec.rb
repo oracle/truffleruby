@@ -133,6 +133,10 @@ describe "C-API Encoding function" do
        @s.rb_enc_mbc_to_codepoint("éa", 1).should == 0xC3
        @s.rb_enc_mbc_to_codepoint("éa", 3).should == 0x00E9
     end
+
+    it "returns 0 if p == e" do
+      @s.rb_enc_mbc_to_codepoint("", 0).should == 0
+    end
   end
 
   describe "rb_enc_mbcput" do
