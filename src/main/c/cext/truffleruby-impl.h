@@ -20,4 +20,12 @@
 
 #define rb_boolean(c) ((c) ? Qtrue : Qfalse)
 
+// Private functions
+
 extern bool (*rb_tr_is_native_object)(VALUE value);
+
+// Create a native MutableTruffleString from ptr and len without copying.
+// The returned RubyString is only valid as long as ptr is valid (typically only as long as the caller is on the stack),
+// so this must be only used as an argument to an internal Truffle::CExt method which does not return or store
+// the RubyString but only run some operation on it.
+VALUE rb_tr_temporary_native_string(const char *ptr, long len, rb_encoding *enc);

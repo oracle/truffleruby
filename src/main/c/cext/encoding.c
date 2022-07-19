@@ -75,7 +75,7 @@ unsigned int rb_enc_codepoint_len(const char *p, const char *e, int *len_p, rb_e
   if (len <= 0) {
     rb_raise(rb_eArgError, "empty string");
   }
-  VALUE array = RUBY_CEXT_INVOKE("rb_enc_codepoint_len", rb_enc_str_new(p, len, encoding));
+  VALUE array = RUBY_CEXT_INVOKE("rb_enc_codepoint_len", rb_tr_temporary_native_string(p, len, encoding));
   if (len_p) {
     *len_p = polyglot_as_i32(polyglot_invoke(rb_tr_unwrap(array), "[]", 0));
   }
@@ -87,9 +87,7 @@ int rb_enc_mbc_to_codepoint(char *p, char *e, rb_encoding *enc) {
   if (length <= 0) {
     return 0;
   }
-  return polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "rb_enc_mbc_to_codepoint",
-      rb_tr_unwrap(rb_enc_from_encoding(enc)),
-      rb_tr_unwrap(rb_str_new(p, length))));
+  return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_enc_mbc_to_codepoint", rb_tr_temporary_native_string(p, length, enc)));
 }
 
 int rb_tr_code_to_mbclen(OnigCodePoint code, OnigEncodingType *encoding) {
@@ -97,7 +95,7 @@ int rb_tr_code_to_mbclen(OnigCodePoint code, OnigEncodingType *encoding) {
 }
 
 int rb_enc_codelen(int c, rb_encoding *enc) {
-  int n = ONIGENC_CODE_TO_MBCLEN(enc,c);
+  int n = ONIGENC_CODE_TO_MBCLEN(enc, c);
   if (n == 0) {
     rb_raise(rb_eArgError, "invalid codepoint 0x%x in %s", c, rb_enc_name(enc));
   }
@@ -237,8 +235,7 @@ char* rb_enc_left_char_head(char *start, char *p, char *end, rb_encoding *enc) {
 
 int rb_enc_mbclen(const char *p, const char *e, rb_encoding *enc) {
   int length = e-p;
-  return polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "rb_enc_mbclen",
-      rb_tr_unwrap(rb_enc_str_new(p, length, enc))));
+  return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_enc_mbclen", rb_tr_temporary_native_string(p, length, enc)));
 }
 
 int rb_enc_precise_mbclen(const char *p, const char *e, rb_encoding *enc) {
@@ -246,8 +243,7 @@ int rb_enc_precise_mbclen(const char *p, const char *e, rb_encoding *enc) {
     return ONIGENC_CONSTRUCT_MBCLEN_NEEDMORE(1);
   }
   int length = e - p;
-  return polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "rb_enc_precise_mbclen",
-      rb_tr_unwrap(rb_enc_str_new(p, length, enc))));
+  return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_enc_precise_mbclen", rb_tr_temporary_native_string(p, length, enc)));
 }
 
 int rb_enc_dummy_p(rb_encoding *enc) {
@@ -271,9 +267,14 @@ int rb_enc_str_asciionly_p(VALUE str) {
   return polyglot_as_boolean(RUBY_INVOKE_NO_WRAP(str, "ascii_only?"));
 }
 
+VALUE rb_tr_temporary_native_string(const char *ptr, long len, rb_encoding *enc) {
+  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT,
+    "rb_tr_temporary_native_string", ptr, len, rb_tr_unwrap(rb_enc_from_encoding(enc))));
+}
+
 #undef rb_enc_str_new
 VALUE rb_enc_str_new(const char *ptr, long len, rb_encoding *enc) {
-  return RUBY_INVOKE(rb_str_new(ptr, len), "force_encoding", rb_enc_from_encoding(enc));
+  return RUBY_INVOKE(rb_str_new(ptr, len), "force_encoding", rb_enc_from_encoding(enc)); // TODO: do it more directly
 }
 
 #undef rb_enc_str_new_cstr
@@ -302,9 +303,9 @@ VALUE rb_enc_str_new_static(const char *ptr, long len, rb_encoding *enc) {
 void rb_enc_raise(rb_encoding *enc, VALUE exc, const char *fmt, ...) {
   va_list args;
   va_start(args, fmt);
-  VALUE mesg = rb_vsprintf(fmt, args);
+  VALUE mesg = rb_enc_vsprintf(enc, fmt, args);
   va_end(args);
-  rb_exc_raise(rb_exc_new_str(exc, RUBY_INVOKE(mesg, "force_encoding", rb_enc_from_encoding(enc))));
+  rb_exc_raise(rb_exc_new_str(exc, mesg));
 }
 
 #define castchar(from) (char)((from) & 0xff)
@@ -360,9 +361,8 @@ static void advance_p(const UChar** p, int offset) {
 int rb_tr_enc_mbc_case_fold(rb_encoding *enc, int flag, const UChar** p, const UChar* end, UChar* result) {
   int length = end - *p;
   VALUE result_str = rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_tr_enc_mbc_case_fold",
-          rb_tr_unwrap(rb_enc_from_encoding(enc)),
           flag,
-          rb_tr_unwrap(rb_str_new((char *)*p, length)),
+          rb_tr_unwrap(rb_tr_temporary_native_string((char *)*p, length, enc)),
           advance_p,
           p));
    int result_len = RSTRING_LEN(result_str);

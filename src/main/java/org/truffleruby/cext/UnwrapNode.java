@@ -85,17 +85,17 @@ public abstract class UnwrapNode extends RubyBaseNode {
             return wrapper.getObject();
         }
 
-        @TruffleBoundary
-        private void raiseError(long handle) {
-            throw CompilerDirectives.shouldNotReachHere("dead handle 0x" + Long.toHexString(handle));
-        }
-
         @Fallback
-        @TruffleBoundary
         protected ValueWrapper unWrapUnexpectedHandle(long handle) {
             // Avoid throwing a specialization exception when given an uninitialized or corrupt
             // handle.
+            CompilerDirectives.transferToInterpreterAndInvalidate();
             throw CompilerDirectives.shouldNotReachHere("corrupt handle 0x" + Long.toHexString(handle));
+        }
+
+        @TruffleBoundary
+        private void raiseError(long handle) {
+            throw CompilerDirectives.shouldNotReachHere("dead handle 0x" + Long.toHexString(handle));
         }
 
         public static UnwrapNativeNode create() {

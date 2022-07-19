@@ -20,15 +20,15 @@ ID rb_to_id(VALUE name) {
 
 #undef rb_intern
 ID rb_intern(const char *string) {
-  return SYM2ID(RUBY_CEXT_INVOKE("rb_intern", rb_str_new_cstr(string)));
+  return rb_intern2(string, strlen(string));
 }
 
 ID rb_intern2(const char *string, long length) {
-  return SYM2ID(RUBY_CEXT_INVOKE("rb_intern", rb_str_new(string, length)));
+  return SYM2ID(RUBY_INVOKE(rb_tr_temporary_native_string(string, length, rb_ascii8bit_encoding()), "intern"));
 }
 
 ID rb_intern3(const char *name, long len, rb_encoding *enc) {
-  return SYM2ID(RUBY_CEXT_INVOKE("rb_intern3", rb_str_new(name, len), rb_enc_from_encoding(enc)));
+  return SYM2ID(RUBY_INVOKE(rb_tr_temporary_native_string(name, len, enc), "intern"));
 }
 
 VALUE rb_sym2str(VALUE string) {
@@ -72,8 +72,7 @@ ID rb_check_id(volatile VALUE *namep) {
 }
 
 VALUE rb_check_symbol_cstr(const char *ptr, long len, rb_encoding *enc) {
-  VALUE str = rb_enc_str_new(ptr, len, enc);
-  return RUBY_CEXT_INVOKE("rb_check_symbol_cstr", str);
+  return RUBY_CEXT_INVOKE("rb_check_symbol_cstr", rb_tr_temporary_native_string(ptr, len, enc));
 }
 
 VALUE rb_sym_to_s(VALUE sym) {

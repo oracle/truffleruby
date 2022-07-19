@@ -705,6 +705,17 @@ public class CExtNodes {
 
     }
 
+    @CoreMethod(names = "rb_tr_temporary_native_string", onSingleton = true, required = 3, lowerFixnum = 2)
+    public abstract static class TemporaryNativeStringNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected RubyString temporaryNativeString(Object pointer, int byteLength, RubyEncoding encoding,
+                @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode) {
+            var nativeTString = fromNativePointerNode.execute(pointer, 0, byteLength, encoding.tencoding, false);
+            return createMutableString(nativeTString, encoding);
+        }
+    }
+
     @CoreMethod(names = "rb_str_capacity", onSingleton = true, required = 1)
     public abstract static class RbStrCapacityNode extends CoreMethodArrayArgumentsNode {
 
@@ -1363,11 +1374,11 @@ public class CExtNodes {
         }
     }
 
-    @CoreMethod(names = "rb_tr_enc_mbc_case_fold", onSingleton = true, required = 5, lowerFixnum = 2)
+    @CoreMethod(names = "rb_tr_enc_mbc_case_fold", onSingleton = true, required = 4, lowerFixnum = 1)
     public abstract static class RbTrMbcCaseFoldNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "strings.isRubyString(string)", limit = "getCacheLimit()")
-        protected Object rbTrEncMbcCaseFold(RubyEncoding enc, int flags, Object string, Object advance_p, Object p,
+        protected Object rbTrEncMbcCaseFold(int flags, Object string, Object advance_p, Object p,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @CachedLibrary("advance_p") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
@@ -1381,7 +1392,7 @@ public class CExtNodes {
             final IntHolder intHolder = new IntHolder();
             intHolder.value = 0;
 
-            final int resultLength = enc.jcoding.mbcCaseFold(flags, bytes, intHolder, bytes.length, to);
+            final int resultLength = encoding.jcoding.mbcCaseFold(flags, bytes, intHolder, bytes.length, to);
 
             InteropNodes.execute(advance_p, new Object[]{ p, intHolder.value }, receivers,
                     translateInteropExceptionNode);
@@ -1467,14 +1478,15 @@ public class CExtNodes {
         }
     }
 
-    @CoreMethod(names = "rb_enc_mbc_to_codepoint", onSingleton = true, required = 2)
+    @CoreMethod(names = "rb_enc_mbc_to_codepoint", onSingleton = true, required = 1)
     public abstract static class RbEncMbcToCodepointNode extends CoreMethodArrayArgumentsNode {
         @Specialization(guards = "strings.isRubyString(string)")
-        protected int rbEncMbcToCodepoint(RubyEncoding enc, Object string,
+        protected int rbEncMbcToCodepoint(Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
-            var byteArray = byteArrayNode.execute(strings.getTString(string), strings.getTEncoding(string));
-            return StringSupport.mbcToCode(enc.jcoding, byteArray.getArray(), byteArray.getOffset(),
+            var encoding = strings.getEncoding(string);
+            var byteArray = byteArrayNode.execute(strings.getTString(string), encoding.tencoding);
+            return StringSupport.mbcToCode(encoding.jcoding, byteArray.getArray(), byteArray.getOffset(),
                     byteArray.getEnd());
         }
     }
