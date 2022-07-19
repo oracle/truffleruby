@@ -3049,9 +3049,9 @@ public abstract class StringNodes {
                 @Cached ConditionProfile asciiPrintableProfile) {
             assert codepoint >= 0;
 
-            if (asciiPrintableProfile.profile(encoding.jcoding.isAsciiCompatible() &&
-                    StringSupport.isAsciiPrintable(codepoint))) {
-                return true;
+            if (asciiPrintableProfile
+                    .profile(encoding.jcoding.isAsciiCompatible() && StringSupport.isAscii(codepoint))) {
+                return StringSupport.isAsciiPrintable(codepoint);
             } else {
                 return isMBCPrintable(encoding.jcoding, codepoint);
             }
