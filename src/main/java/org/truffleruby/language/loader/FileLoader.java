@@ -77,7 +77,7 @@ public class FileLoader {
         return Pair.create(source, sourceRope);
     }
 
-    static TruffleFile getSafeTruffleFile(RubyLanguage language, RubyContext context, String path) {
+    public static TruffleFile getSafeTruffleFile(RubyLanguage language, RubyContext context, String path) {
         final Env env = context.getEnv();
         final TruffleFile file;
         try {
