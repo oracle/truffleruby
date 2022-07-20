@@ -32,7 +32,6 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.IntValueProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
-import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.strings.TruffleString.AsTruffleStringNode;
 import org.joni.Matcher;
@@ -904,7 +903,7 @@ public class TruffleRegexpNodes {
             }
 
             int fromIndex = fromPos;
-            final AbstractTruffleString tstringToMatch;
+            final TruffleString tstringToMatch;
             final String execMethod;
 
             if (createMatchDataProfile.profile(createMatchData)) {
