@@ -12,7 +12,6 @@ package org.truffleruby.core.string;
 import java.util.Objects;
 
 import com.oracle.truffle.api.strings.TruffleString;
-import com.oracle.truffle.api.strings.TruffleString.CopyToByteArrayNode;
 import com.oracle.truffle.api.strings.TruffleString.CreateCodePointIteratorNode;
 import com.oracle.truffle.api.strings.TruffleString.ErrorHandling;
 import org.truffleruby.core.encoding.RubyEncoding;
@@ -137,7 +136,7 @@ abstract class TStringWithEncodingBase {
 
     public byte[] getBytesCopy() {
         CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
-        return CopyToByteArrayNode.getUncached().execute(tstring, encoding.tencoding);
+        return tstring.copyToByteArrayUncached(encoding.tencoding);
     }
 
     public byte[] getBytesOrCopy() {
