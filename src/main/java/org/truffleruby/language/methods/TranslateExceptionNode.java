@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.methods;
 
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.VMPrimitiveNodes.InitStackOverflowClassesEagerlyNode;
@@ -24,14 +25,11 @@ import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
 import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import org.truffleruby.language.control.TerminationException;
 
 @GenerateUncached
 public abstract class TranslateExceptionNode extends RubyBaseNode {
@@ -63,49 +61,47 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected RuntimeException translate(Throwable throwable,
-            @Cached BranchProfile controlProfile,
-            @Cached BranchProfile raiseProfile,
-            @Cached BranchProfile terminationProfile,
-            @Cached BranchProfile foreignProfile,
-            @Cached BranchProfile unsupportedProfile,
-            @Cached BranchProfile errorProfile) {
-        try {
-            // Only throwing to use the pattern matching of catch
-            throw throwable;
-        } catch (ControlFlowException exception) {
-            controlProfile.enter();
-            return exception;
-        } catch (RaiseException exception) {
-            raiseProfile.enter();
-            return exception;
-        } catch (TerminationException exception) {
-            terminationProfile.enter();
-            return exception;
-        } catch (AbstractTruffleException exception) { // A foreign exception
-            foreignProfile.enter();
-            logJavaException(getContext(), this, exception);
-            return exception;
-        } catch (UnsupportedSpecializationException exception) {
-            unsupportedProfile.enter();
-            return new RaiseException(
-                    getContext(),
-                    translateUnsupportedSpecialization(getContext(), exception));
-        } catch (StackOverflowError error) {
-            errorProfile.enter();
-            return new RaiseException(getContext(), translateStackOverflow(getContext(), error));
-        } catch (OutOfMemoryError error) {
-            errorProfile.enter();
-            return new RaiseException(getContext(), translateOutOfMemory(getContext(), error));
-        } catch (ThreadDeath exception) {
-            errorProfile.enter();
-            // it cannot be returned and we want to propagate it always anyway
-            throw exception;
-        } catch (Throwable exception) {
-            // An internal exception
-            CompilerDirectives.transferToInterpreter(/* internal exceptions are fatal */);
-            logUncaughtJavaException(getContext(), this, exception);
-            throw ExceptionOperations.rethrow(exception);
+    protected RuntimeException translate(ControlFlowException e) {
+        throw e;
+    }
+
+    @Specialization
+    protected RuntimeException translate(AbstractTruffleException e) {
+        throw e;
+    }
+
+    @Specialization
+    protected RuntimeException translate(ThreadDeath e) {
+        throw e;
+    }
+
+    @Specialization(guards = "needsSpecialTranslation(e)")
+    protected RuntimeException translateSpecial(Throwable e) {
+        throw doTranslateSpecial(e);
+    }
+
+    @Fallback
+    protected RuntimeException translate(Throwable e) {
+        // An internal exception
+        CompilerDirectives.transferToInterpreterAndInvalidate();
+        logUncaughtJavaException(getContext(), this, e);
+        throw ExceptionOperations.rethrow(e);
+    }
+
+    protected boolean needsSpecialTranslation(Throwable e) {
+        return e instanceof UnsupportedSpecializationException || e instanceof StackOverflowError ||
+                e instanceof OutOfMemoryError;
+    }
+
+    @TruffleBoundary
+    private RaiseException doTranslateSpecial(Throwable e) {
+        if (e instanceof UnsupportedSpecializationException) {
+            return new RaiseException(getContext(),
+                    translateUnsupportedSpecialization(getContext(), (UnsupportedSpecializationException) e));
+        } else if (e instanceof StackOverflowError) {
+            return new RaiseException(getContext(), translateStackOverflow(getContext(), (StackOverflowError) e));
+        } else {
+            return new RaiseException(getContext(), translateOutOfMemory(getContext(), (OutOfMemoryError) e));
         }
     }
 

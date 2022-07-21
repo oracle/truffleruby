@@ -10,6 +10,7 @@
 package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.HostCompilerDirectives.InliningCutoff;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
@@ -70,6 +71,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
         return callNode.call(RubyArguments.repackForCall(rubyArgs));
     }
 
+    @InliningCutoff
     @Specialization(guards = "!method.alwaysInlined()", replaces = "callCached")
     protected Object callUncached(
             InternalMethod method, Object receiver, Object[] rubyArgs, LiteralCallNode literalCallNode,
@@ -90,10 +92,10 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
             limit = "getCacheLimit()")
     protected Object alwaysInlined(
             Frame frame, InternalMethod method, Object receiver, Object[] rubyArgs, LiteralCallNode literalCallNode,
-            @Cached(value = "method.getCallTarget()") RootCallTarget cachedCallTarget,
+            @Cached("method.getCallTarget()") RootCallTarget cachedCallTarget,
             @Cached("method") InternalMethod cachedMethod,
             @Cached("createAlwaysInlinedMethodNode(cachedMethod)") AlwaysInlinedMethodNode alwaysInlinedNode,
-            @Cached(value = "cachedMethod.getSharedMethodInfo().getArity()") Arity cachedArity,
+            @Cached("cachedMethod.getSharedMethodInfo().getArity()") Arity cachedArity,
             @Cached BranchProfile checkArityProfile,
             @Cached BranchProfile exceptionProfile) {
         assert !cachedArity.acceptsKeywords()
@@ -106,21 +108,27 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
 
         try {
             int given = RubyArguments.getPositionalArgumentsCount(rubyArgs, false);
-            if (!cachedArity.check(given)) {
+            if (!cachedArity.checkPositionalArguments(given)) {
                 checkArityProfile.enter();
-                RubyCheckArityRootNode.checkArityError(cachedArity, given, alwaysInlinedNode);
+                throw RubyCheckArityRootNode.checkArityError(cachedArity, given, alwaysInlinedNode);
             }
 
             return alwaysInlinedNode.execute(frame, receiver, RubyArguments.repackForCall(rubyArgs), cachedCallTarget);
         } catch (RaiseException e) {
             exceptionProfile.enter();
-            final Node location = e.getLocation();
-            if (location != null && location.getRootNode() == alwaysInlinedNode.getRootNode()) {
-                // if the error originates from the inlined node, rethrow it through the CallTarget to get a proper backtrace
-                return RubyContext.indirectCallWithCallNode(this, cachedCallTarget, e);
-            } else {
-                throw e;
-            }
+            return alwaysInlinedException(e, alwaysInlinedNode, cachedCallTarget);
+        }
+    }
+
+    @InliningCutoff
+    private Object alwaysInlinedException(RaiseException e, AlwaysInlinedMethodNode alwaysInlinedNode,
+            RootCallTarget cachedCallTarget) {
+        final Node location = e.getLocation();
+        if (location != null && location.getRootNode() == alwaysInlinedNode.getRootNode()) {
+            // if the error originates from the inlined node, rethrow it through the CallTarget to get a proper backtrace
+            return RubyContext.indirectCallWithCallNode(this, cachedCallTarget, e);
+        } else {
+            throw e;
         }
     }
 

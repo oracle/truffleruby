@@ -20,6 +20,7 @@ Performance:
 
 * Replace a call of `-"string"` with frozen string literal at parse time (@andrykonchin).
 * Report polymorphism inside `Hash#[]` to recover performance (@aardvark179).
+* Improved interpreter performance by optimizing for better host inlining (@eregon).
 
 Changes:
 

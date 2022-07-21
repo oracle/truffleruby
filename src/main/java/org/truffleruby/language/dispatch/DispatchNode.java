@@ -11,13 +11,13 @@ package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.HostCompilerDirectives.InliningCutoff;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.DenyReplace;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.NodeCost;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.exception.ExceptionOperations.ExceptionFormatter;
@@ -90,8 +90,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
             MetaClassNode metaclassNode,
             LookupMethodNode methodLookup,
             CallInternalMethodNode callNode,
-            ConditionProfile methodMissing,
-            BranchProfile methodMissingMissing) {
+            ConditionProfile methodMissing) {
         this.config = config;
         this.metaclassNode = metaclassNode;
         this.methodLookup = methodLookup;
@@ -105,8 +104,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
                 MetaClassNode.create(),
                 LookupMethodNode.create(),
                 CallInternalMethodNode.create(),
-                ConditionProfile.create(),
-                BranchProfile.create());
+                ConditionProfile.create());
     }
 
     public Object call(Object receiver, String method) {
@@ -318,6 +316,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         return callNode.execute(frame, method, receiver, rubyArgs, literalCallNode);
     }
 
+    @InliningCutoff
     private Object callMethodMissing(Frame frame, Object receiver, String methodName, Object[] rubyArgs,
             LiteralCallNode literalCallNode) {
         // profiles through lazy node creation
@@ -342,6 +341,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         return result;
     }
 
+    @InliningCutoff
     protected Object callForeign(Object receiver, String methodName, Object[] rubyArgs) {
         // profiles through lazy node creation
         final CallForeignMethodNode callForeignMethodNode = getCallForeignMethodNode();
@@ -421,7 +421,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         }
 
         protected Uncached(DispatchConfiguration config) {
-            super(config, null, null, null, null, null);
+            super(config, null, null, null, null);
         }
 
         @Override

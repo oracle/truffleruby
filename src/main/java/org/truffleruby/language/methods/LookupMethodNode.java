@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.methods;
 
+import com.oracle.truffle.api.HostCompilerDirectives.InliningCutoff;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.MethodLookupResult;
@@ -59,6 +60,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
         return methodLookupResult.getMethod();
     }
 
+    @InliningCutoff
     @Specialization(replaces = "lookupMethodCached")
     protected InternalMethod lookupMethodUncached(
             Frame frame, RubyClass metaClass, String name, DispatchConfiguration config,

@@ -26,7 +26,7 @@ import org.truffleruby.parser.ParserContext;
 
 /** {@link InternalMethod} objects are copied as properties such as visibility are changed. {@link SharedMethodInfo}
  * stores the state that does not change, such as where the method was defined. */
-public class SharedMethodInfo {
+public final class SharedMethodInfo {
 
     private final SourceSection sourceSection;
     /** LexicalScope if it can be determined statically at parse time, otherwise null */

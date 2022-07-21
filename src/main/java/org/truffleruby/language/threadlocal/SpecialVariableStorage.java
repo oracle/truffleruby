@@ -26,8 +26,6 @@ import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.arguments.RubyArguments;
 
-import java.util.Objects;
-
 @ExportLibrary(InteropLibrary.class)
 public final class SpecialVariableStorage implements TruffleObject {
 
@@ -49,7 +47,7 @@ public final class SpecialVariableStorage implements TruffleObject {
 
     public static Assumption getAssumption(FrameDescriptor descriptor) {
         assert hasSpecialVariableStorageSlot(descriptor);
-        return Objects.requireNonNull((Assumption) descriptor.getInfo());
+        return (Assumption) descriptor.getInfo();
     }
 
     public static boolean hasSpecialVariableStorageSlot(Frame frame) {

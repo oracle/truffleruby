@@ -30,7 +30,7 @@ import com.oracle.truffle.api.RootCallTarget;
 
 /** A Ruby method: either a method in a module, a literal module/class body or some meta-information for eval'd code.
  * Blocks capture the method in which they are defined. */
-public class InternalMethod implements ObjectGraphNode {
+public final class InternalMethod implements ObjectGraphNode {
 
     private final SharedMethodInfo sharedMethodInfo;
     /** Contains the "dynamic" lexical scope in case this method is under a class << expr; HERE; end */
