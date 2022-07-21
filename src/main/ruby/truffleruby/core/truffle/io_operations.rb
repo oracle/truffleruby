@@ -99,6 +99,8 @@ module Truffle
       io
     end
 
+    CLASS_NEW = Class.instance_method(:new)
+
     def self.create_pipe(read_class, write_class, external = nil, internal = nil, options = nil)
       fds = Truffle::FFI::MemoryPointer.new(:int, 2) do |ptr|
         res = Truffle::POSIX.pipe(ptr)
@@ -106,8 +108,8 @@ module Truffle
         ptr.read_array_of_int(2)
       end
 
-      lhs = pipe_end_setup(read_class.new(fds[0], IO::RDONLY))
-      rhs = pipe_end_setup(write_class.new(fds[1], IO::WRONLY))
+      lhs = pipe_end_setup(CLASS_NEW.bind_call(read_class, fds[0], IO::RDONLY))
+      rhs = pipe_end_setup(CLASS_NEW.bind_call(write_class, fds[1], IO::WRONLY))
 
       lhs.set_encoding external || Encoding.default_external,
                        internal || Encoding.default_internal, options

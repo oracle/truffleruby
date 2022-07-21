@@ -283,7 +283,6 @@ public abstract class ClassNodes {
         }
     }
 
-
     @CoreMethod(names = "initialize", optional = 1)
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
         @Specialization
