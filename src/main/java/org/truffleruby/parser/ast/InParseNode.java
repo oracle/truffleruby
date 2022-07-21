@@ -57,7 +57,9 @@ public class InParseNode extends ParseNode {
             ParseNode nextCase) {
         super(position);
 
-        expressionNodes = ((ArrayParseNode) expressionNodes).get(0);
+        if (expressionNodes instanceof ArrayParseNode) {
+            expressionNodes = ((ArrayParseNode) expressionNodes).get(0);
+        }
 
         this.expressionNodes = expressionNodes;
         this.bodyNode = bodyNode;
