@@ -11,6 +11,7 @@ package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.VMPrimitiveNodes.InitStackOverflowClassesEagerlyNode;
 import org.truffleruby.core.exception.ExceptionOperations;
@@ -89,20 +90,16 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
     }
 
     protected boolean needsSpecialTranslation(Throwable e) {
-        return e instanceof IllegalArgumentException || e instanceof UnsupportedSpecializationException ||
-                e instanceof StackOverflowError || e instanceof OutOfMemoryError;
+        return e instanceof TruffleString.IllegalByteArrayLengthException ||
+                e instanceof UnsupportedSpecializationException ||
+                e instanceof StackOverflowError ||
+                e instanceof OutOfMemoryError;
     }
 
     @TruffleBoundary
     private RaiseException doTranslateSpecial(Throwable e) {
-        if (e instanceof IllegalArgumentException) {
-            final String message = e.getMessage();
-            if (message.equals("UTF-32 string byte length is not a multiple of 4") ||
-                    message.equals("UTF-16 string byte length is not a multiple of 2")) { // HACK
-                throw new RaiseException(getContext(), coreExceptions().argumentError(message, this));
-            } else {
-                throw (IllegalArgumentException) e;
-            }
+        if (e instanceof TruffleString.IllegalByteArrayLengthException) {
+            return new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
         } else if (e instanceof UnsupportedSpecializationException) {
             return new RaiseException(getContext(),
                     translateUnsupportedSpecialization(getContext(), (UnsupportedSpecializationException) e));
