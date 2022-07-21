@@ -692,7 +692,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-benchmarks-warmup-svm-graal-enterprise-multi-tier": shared + warmup + svm_configurations["svm-graal-enterprise"] + $.use.multi_tier,
       "ruby-benchmarks-warmup-svm-graal-enterprise-multi-tier-3threads": shared + warmup + svm_configurations["svm-graal-enterprise"] + $.use.multi_tier + $.use.three_threads,
 
-      local micro = $.benchmark.runner + $.benchmark.micro + { timelimit: "01:00:00" },
+      local micro = $.benchmark.runner + $.benchmark.micro + { timelimit: "01:30:00" },
       "ruby-benchmarks-micro-mri": shared + micro + other_rubies.mri,
       "ruby-benchmarks-micro-jruby": shared + micro + other_rubies.jruby,
       "ruby-benchmarks-micro-graal-core": shared + micro + graal_configurations["graal-core"] + $.use.no_multi_tier,
