@@ -24,11 +24,14 @@ lines = lines.map { |line| line.sub(indent, '') }
 lines = lines.map { |line| line.sub(/^ {2}/, '') }
 lines = lines.reject { |line|
   line.include?(' com.oracle.truffle.api.CompilerDirectives.transferToInterpreterAndInvalidate()') or
-    line.include?(' com.oracle.truffle.api.CompilerDirectives.inInterpreter()') or
-    line.include?(' org.truffleruby.language.RubyBaseNode.coreLibrary()')
+  line.include?(' com.oracle.truffle.api.CompilerDirectives.inInterpreter()')
 }
 
 if simplify
+  lines = lines.reject { |line|
+    line.include?(' org.truffleruby.language.RubyBaseNode.coreLibrary()')
+  }
+
   lines = lines.reject { |line|
     line.include?('CUTOFF') and (
       line.include?('reason protected by inInterpreter()') or
