@@ -3738,4 +3738,8 @@ public class RubyLexer implements MagicCommentHandler {
     public String toString() {
         return super.toString() + " @ " + getLocation();
     }
+
+    public int getRubySourceLine() {
+        return ruby_sourceline;
+    }
 }
