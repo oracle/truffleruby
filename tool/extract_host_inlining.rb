@@ -1,3 +1,5 @@
+simplify = ARGV.delete '--simplify'
+
 raise unless ARGV.size == 2
 method, file = ARGV
 
@@ -25,5 +27,20 @@ lines = lines.reject { |line|
     line.include?(' com.oracle.truffle.api.CompilerDirectives.inInterpreter()') or
     line.include?(' org.truffleruby.language.RubyBaseNode.coreLibrary()')
 }
+
+if simplify
+  lines = lines.reject { |line|
+    line.include?('CUTOFF') and (
+      line.include?('reason protected by inInterpreter()') or
+      line.include?('reason dominated by transferToInterpreter()') or
+      line.include?('reason truffle boundary') or
+      line.include?('reason method annotated with @InliningCutoff')
+    )
+  }
+
+  lines = lines.reject { |line|
+    line.include?('DEAD') and line.include?('reason the invoke is dead code')
+  }
+end
 
 puts lines.join
