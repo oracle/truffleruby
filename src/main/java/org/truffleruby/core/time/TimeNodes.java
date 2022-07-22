@@ -13,7 +13,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
@@ -376,7 +375,7 @@ public abstract class TimeNodes {
                 guards = "equalNode.execute(libFormat, format, cachedFormat, cachedEncoding)",
                 limit = "getLanguage().options.TIME_FORMAT_CACHE")
         protected RubyString timeStrftimeCached(RubyTime time, Object format,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
+                @Cached RubyStringLibrary libFormat,
                 @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
                 @Cached(value = "compilePattern(cachedFormat, cachedEncoding)", dimensions = 1) Token[] pattern,
@@ -398,9 +397,9 @@ public abstract class TimeNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "libFormat.isRubyString(format)", replaces = "timeStrftimeCached")
+        @Specialization(guards = "libFormat.isRubyString(format)", replaces = "timeStrftimeCached", limit = "1")
         protected RubyString timeStrftime(RubyTime time, Object format,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
+                @Cached RubyStringLibrary libFormat,
                 @Cached TruffleString.ConcatNode concatNode,
                 @Cached TruffleString.FromLongNode fromLongNode,
                 @Cached TruffleString.CodePointLengthNode codePointLengthNode,

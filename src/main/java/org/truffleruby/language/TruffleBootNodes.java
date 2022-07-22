@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
@@ -307,9 +306,9 @@ public abstract class TruffleBootNodes {
         @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @TruffleBoundary
-        @Specialization(guards = "libOptionName.isRubyString(optionName)")
+        @Specialization(guards = "libOptionName.isRubyString(optionName)", limit = "1")
         protected Object getOption(Object optionName,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libOptionName) {
+                @Cached RubyStringLibrary libOptionName) {
             final String optionNameString = RubyGuards.getJavaString(optionName);
             final OptionDescriptor descriptor = OptionsCatalog.fromName("ruby." + optionNameString);
             if (descriptor == null) {

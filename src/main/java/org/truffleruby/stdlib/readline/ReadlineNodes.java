@@ -11,6 +11,7 @@ package org.truffleruby.stdlib.readline;
 
 import java.util.List;
 
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.shadowed.org.jline.reader.Buffer;
 import org.graalvm.shadowed.org.jline.reader.Candidate;
@@ -51,7 +52,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 
@@ -82,9 +82,9 @@ public abstract class ReadlineNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(characters)")
+        @Specialization(guards = "strings.isRubyString(characters)", limit = "1")
         protected Object setBasicWordBreakCharacters(Object characters,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
+                @Cached RubyStringLibrary strings) {
             final String delimiters = RubyGuards.getJavaString(characters);
             getContext().getConsoleHolder().getParser().setDelimiters(delimiters);
             return characters;

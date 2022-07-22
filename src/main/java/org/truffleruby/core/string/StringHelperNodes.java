@@ -170,7 +170,7 @@ public abstract class StringHelperNodes {
 
         @Specialization(guards = "isEmpty(strings.getTString(string))")
         protected int count(Object string, Object[] args,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
+                @Cached RubyStringLibrary strings) {
             return 0;
         }
 
@@ -183,7 +183,7 @@ public abstract class StringHelperNodes {
                         "encoding == cachedEncoding" })
         protected int countFast(Object string, TStringWithEncoding[] args,
                 @Cached(value = "args", dimensions = 1) TStringWithEncoding[] cachedArgs,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
+                @Cached RubyStringLibrary libString,
                 @Bind("libString.getTString(string)") AbstractTruffleString tstring,
                 @Bind("libString.getEncoding(string)") RubyEncoding encoding,
                 @Cached("libString.getEncoding(string)") RubyEncoding cachedEncoding,
@@ -200,7 +200,7 @@ public abstract class StringHelperNodes {
         @Specialization(guards = "!isEmpty(libString.getTString(string))")
         protected int count(Object string, TStringWithEncoding[] ropesWithEncs,
                 @Cached BranchProfile errorProfile,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
+                @Cached RubyStringLibrary libString,
                 @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Cached TruffleString.GetByteCodeRangeNode getByteCodeRangeNode) {
             if (ropesWithEncs.length == 0) {
@@ -306,7 +306,7 @@ public abstract class StringHelperNodes {
                         "libString.getEncoding(string) == cachedEncoding" })
         protected Object deleteBangFast(RubyString string, TStringWithEncoding[] args,
                 @Cached(value = "args", dimensions = 1) TStringWithEncoding[] cachedArgs,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
+                @Cached RubyStringLibrary libString,
                 @Cached("libString.getEncoding(string)") RubyEncoding cachedEncoding,
                 @Cached(value = "squeeze()", dimensions = 1) boolean[] squeeze,
                 @Cached("findEncoding(libString.getTString(string), libString.getEncoding(string), cachedArgs)") RubyEncoding compatEncoding,
@@ -324,7 +324,7 @@ public abstract class StringHelperNodes {
 
         @Specialization(guards = "!isEmpty(string.tstring)", replaces = "deleteBangFast")
         protected Object deleteBangSlow(RubyString string, TStringWithEncoding[] args,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
+                @Cached RubyStringLibrary libString,
                 @Cached BranchProfile errorProfile) {
             if (args.length == 0) {
                 errorProfile.enter();
@@ -374,7 +374,7 @@ public abstract class StringHelperNodes {
 
         @Specialization
         protected long hash(Object string,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached RubyStringLibrary strings,
                 @Cached TruffleString.HashCodeNode hashCodeNode) {
             int hashCode = hashCodeNode.execute(strings.getTString(string), strings.getTEncoding(string));
             return getContext().getHashing(this).hash(CLASS_SALT, hashCode);
@@ -478,7 +478,7 @@ public abstract class StringHelperNodes {
 
         @Specialization
         protected byte[] invert(RubyString string, TruffleStringIterator iterator, byte[] initialBytes,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
+                @Cached RubyStringLibrary libString,
                 @Cached TruffleStringIterator.NextNode nextNode,
                 @Cached TruffleString.CopyToByteArrayNode copyToByteArrayNode,
                 @Cached BranchProfile caseSwapProfile) {
@@ -534,7 +534,7 @@ public abstract class StringHelperNodes {
 
         @Specialization
         protected Object invert(RubyString string,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
+                @Cached RubyStringLibrary libString,
                 @Cached TruffleString.CreateCodePointIteratorNode createCodePointIteratorNode,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached ConditionProfile noopProfile) {
@@ -586,10 +586,10 @@ public abstract class StringHelperNodes {
 
         public abstract RubyString executeStringAppend(Object string, Object other);
 
-        @Specialization(guards = "libOther.isRubyString(other)")
+        @Specialization(guards = "libOther.isRubyString(other)", limit = "1")
         protected RubyString stringAppend(Object string, Object other,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libOther,
+                @Cached RubyStringLibrary libString,
+                @Cached RubyStringLibrary libOther,
                 @Cached EncodingNodes.CheckStringEncodingNode checkEncodingNode,
                 @Cached TruffleString.ConcatNode concatNode,
                 @Cached TruffleString.ForceEncodingNode forceEncodingNodeLeft,

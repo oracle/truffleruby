@@ -12,7 +12,6 @@ package org.truffleruby.core.regexp;
 import java.util.Arrays;
 import java.util.Iterator;
 
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.joni.NameEntry;
@@ -66,9 +65,9 @@ public abstract class RegexpNodes {
             return RegexpNodesFactory.QuoteNodeFactory.create(null);
         }
 
-        @Specialization(guards = "libRaw.isRubyString(raw)")
+        @Specialization(guards = "libRaw.isRubyString(raw)", limit = "1")
         protected RubyString quoteString(Object raw,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libRaw) {
+                @Cached RubyStringLibrary libRaw) {
             return createString(ClassicRegexp.quote19(new ATStringWithEncoding(libRaw, raw)));
         }
 
@@ -195,11 +194,11 @@ public abstract class RegexpNodes {
     @Primitive(name = "regexp_compile", lowerFixnum = 1)
     public abstract static class RegexpCompileNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "libPattern.isRubyString(pattern)")
+        @Specialization(guards = "libPattern.isRubyString(pattern)", limit = "1")
         protected RubyRegexp initialize(Object pattern, int options,
                 @Cached BranchProfile errorProfile,
                 @Cached TruffleString.AsTruffleStringNode asTruffleStringNode,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libPattern) {
+                @Cached RubyStringLibrary libPattern) {
             var encoding = libPattern.getEncoding(pattern);
             try {
                 return RubyRegexp.create(

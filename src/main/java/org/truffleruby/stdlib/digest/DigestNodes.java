@@ -13,7 +13,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -103,9 +102,9 @@ public abstract class DigestNodes {
     @CoreMethod(names = "update", onSingleton = true, required = 2)
     public abstract static class UpdateNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "strings.isRubyString(message)")
+        @Specialization(guards = "strings.isRubyString(message)", limit = "1")
         protected RubyDigest update(RubyDigest digestObject, Object message,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached RubyStringLibrary strings,
                 @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode) {
             final MessageDigest digest = digestObject.digest;
             var tstring = strings.getTString(message);
@@ -188,9 +187,9 @@ public abstract class DigestNodes {
         @Child private TruffleString.FromByteArrayNode fromByteArrayNode = TruffleString.FromByteArrayNode.create();
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(message)")
+        @Specialization(guards = "strings.isRubyString(message)", limit = "1")
         protected RubyString bubblebabble(Object message,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
+                @Cached RubyStringLibrary strings) {
             var rope = strings.getTString(message);
             var byteArray = rope.getInternalByteArrayUncached(strings.getTEncoding(message));
             final byte[] bubblebabbleBytes = bubblebabble(byteArray.getArray(), byteArray.getOffset(),

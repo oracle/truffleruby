@@ -10,7 +10,6 @@
 package org.truffleruby.extra;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -182,9 +181,9 @@ public abstract class TruffleGraalNodes {
     @NodeChild(value = "value", type = RubyNode.class)
     public abstract static class BailoutNode extends PrimitiveNode {
 
-        @Specialization(guards = "strings.isRubyString(message)")
+        @Specialization(guards = "strings.isRubyString(message)", limit = "1")
         protected Object bailout(Object message,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached RubyStringLibrary strings,
                 @Cached ToJavaStringNode toJavaStringNode) {
             CompilerDirectives.bailout(toJavaStringNode.executeToJavaString(message));
             return nil;

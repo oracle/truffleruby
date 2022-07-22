@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.format.write.bytes;
 
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.RubyEncoding;
@@ -38,9 +37,9 @@ public abstract class WritePaddedBytesNode extends FormatNode {
         this.leftJustified = leftJustified;
     }
 
-    @Specialization(guards = "libString.isRubyString(string)")
+    @Specialization(guards = "libString.isRubyString(string)", limit = "1")
     protected Object write(VirtualFrame frame, int padding, int precision, Object string,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
+            @Cached RubyStringLibrary libString,
             @Cached TruffleString.CodePointLengthNode codePointLengthNode,
             @Cached TruffleString.CodePointIndexToByteIndexNode codePointIndexToByteIndexNode,
             @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {

@@ -10,7 +10,6 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
-import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.string.ImmutableRubyString;
@@ -54,7 +53,7 @@ public abstract class ToStringOrSymbolNode extends RubyBaseNodeWithExecute {
     protected Object coerceObject(Object object,
             @Cached DispatchNode toStr,
             @Cached BranchProfile errorProfile,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
+            @Cached RubyStringLibrary libString) {
         final Object coerced;
         try {
             coerced = toStr.call(object, "to_str");

@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.cast;
 
-import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.ImmutableRubyString;
@@ -41,7 +40,7 @@ public abstract class ToSNode extends RubyBaseNodeWithExecute {
     @Specialization(guards = "isNotRubyString(object)")
     protected Object toSFallback(VirtualFrame frame, Object object,
             @Cached DispatchNode callToSNode,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
+            @Cached RubyStringLibrary libString) {
         final Object value = callToSNode.callWithFrame(frame, object, "to_s");
 
         if (libString.isRubyString(value)) {

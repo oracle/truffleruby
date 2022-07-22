@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.inlined;
 
-import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.ImmutableRubyString;
@@ -35,7 +34,7 @@ public abstract class InlinedByteSizeNode extends UnaryInlinedOperationNode {
             limit = "1")
     protected int byteSize(VirtualFrame frame, RubyString self,
             @Cached LookupMethodOnSelfNode lookupNode,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
+            @Cached RubyStringLibrary libString) {
         return libString.byteLength(self);
     }
 
@@ -45,7 +44,7 @@ public abstract class InlinedByteSizeNode extends UnaryInlinedOperationNode {
             limit = "1")
     protected int byteSizeImmutable(VirtualFrame frame, ImmutableRubyString self,
             @Cached LookupMethodOnSelfNode lookupNode,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
+            @Cached RubyStringLibrary libString) {
         return libString.byteLength(self);
     }
 

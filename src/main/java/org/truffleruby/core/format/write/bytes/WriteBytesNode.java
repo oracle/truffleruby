@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.format.write.bytes;
 
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.format.FormatNode;
 
@@ -28,9 +27,9 @@ public abstract class WriteBytesNode extends FormatNode {
         return null;
     }
 
-    @Specialization(guards = "libString.isRubyString(string)")
+    @Specialization(guards = "libString.isRubyString(string)", limit = "1")
     protected Object writeString(VirtualFrame frame, Object string,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
+            @Cached RubyStringLibrary libString,
             @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode) {
         var tstring = libString.getTString(string);
         var byteArray = getInternalByteArrayNode.execute(tstring, libString.getTEncoding(string));

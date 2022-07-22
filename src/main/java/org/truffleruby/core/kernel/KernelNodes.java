@@ -253,11 +253,11 @@ public abstract class KernelNodes {
     @Primitive(name = "find_file")
     public abstract static class FindFileNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "libFeatureString.isRubyString(featureString)")
+        @Specialization(guards = "libFeatureString.isRubyString(featureString)", limit = "1")
         protected Object findFile(Object featureString,
                 @Cached BranchProfile notFoundProfile,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFeatureString,
+                @Cached RubyStringLibrary libFeatureString,
                 @Cached ToJavaStringNode toJavaStringNode) {
             String feature = toJavaStringNode.executeToJavaString(featureString);
             return findFileString(feature, notFoundProfile, fromJavaStringNode);
@@ -280,10 +280,10 @@ public abstract class KernelNodes {
     @Primitive(name = "get_caller_path")
     public abstract static class GetCallerPathNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "libFeature.isRubyString(feature)")
+        @Specialization(guards = "libFeature.isRubyString(feature)", limit = "1")
         @TruffleBoundary
         protected RubyString getCallerPath(Object feature,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFeature,
+                @Cached RubyStringLibrary libFeature,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             final String featureString = RubyGuards.getJavaString(feature);
             final String featurePath;
@@ -321,9 +321,9 @@ public abstract class KernelNodes {
 
         @Child private RequireNode requireNode = RequireNodeGen.create();
 
-        @Specialization(guards = "libFeatureString.isRubyString(featureString)")
+        @Specialization(guards = "libFeatureString.isRubyString(featureString)", limit = "1")
         protected boolean loadFeature(Object featureString, Object expandedPathString,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFeatureString,
+                @Cached RubyStringLibrary libFeatureString,
                 @Cached ToJavaStringNode toJavaStringNode) {
             return requireNode.executeRequire(
                     toJavaStringNode.executeToJavaString(featureString),
@@ -387,10 +387,10 @@ public abstract class KernelNodes {
     @Primitive(name = "canonicalize_path")
     public abstract static class CanonicalizePathNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "strings.isRubyString(string)")
+        @Specialization(guards = "strings.isRubyString(string)", limit = "1")
         @TruffleBoundary
         protected RubyString canonicalPath(Object string,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached RubyStringLibrary strings,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             final String expandedPath = getContext()
                     .getFeatureLoader()
@@ -731,8 +731,8 @@ public abstract class KernelNodes {
                         "bindingDescriptor == getBindingDescriptor(binding)" },
                 limit = "getCacheLimit()")
         protected Object evalCached(Object self, Object source, RubyBinding binding, Object file, int line,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSource,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFile,
+                @Cached RubyStringLibrary libSource,
+                @Cached RubyStringLibrary libFile,
                 @Cached("asTruffleStringUncached(source)") TruffleString cachedSource,
                 @Cached("libSource.getEncoding(source)") RubyEncoding cachedSourceEnc,
                 @Cached("asTruffleStringUncached(file)") TruffleString cachedFile,
@@ -750,11 +750,11 @@ public abstract class KernelNodes {
 
         @Specialization(
                 guards = { "libSource.isRubyString(source)", "libFile.isRubyString(file)" },
-                replaces = "evalCached")
+                replaces = "evalCached", limit = "1")
         protected Object evalBindingUncached(Object self, Object source, RubyBinding binding, Object file, int line,
                 @Cached IndirectCallNode callNode,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFile,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSource,
+                @Cached RubyStringLibrary libFile,
+                @Cached RubyStringLibrary libSource,
                 @Cached ToJavaStringNode toJavaStringNode) {
 
             var callTarget = parse(libSource.getTString(source), libSource.getEncoding(source), binding.getFrame(),
@@ -1678,9 +1678,10 @@ public abstract class KernelNodes {
                 guards = {
                         "libFormat.isRubyString(format)",
                         "equalNode.execute(libFormat, format, cachedTString, cachedEncoding)",
-                        "isDebug(frame) == cachedIsDebug" })
+                        "isDebug(frame) == cachedIsDebug" },
+                limit = "3")
         protected RubyString formatCached(VirtualFrame frame, Object format, Object[] arguments,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
+                @Cached RubyStringLibrary libFormat,
                 @Cached("isDebug(frame)") boolean cachedIsDebug,
                 @Cached("asTruffleStringUncached(format)") TruffleString cachedTString,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
@@ -1701,10 +1702,10 @@ public abstract class KernelNodes {
 
         @Specialization(
                 guards = "libFormat.isRubyString(format)",
-                replaces = "formatCached")
+                replaces = "formatCached", limit = "1")
         protected RubyString formatUncached(VirtualFrame frame, Object format, Object[] arguments,
                 @Cached IndirectCallNode callPackNode,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat) {
+                @Cached RubyStringLibrary libFormat) {
             final BytesResult result;
             final boolean isDebug = readDebugGlobalNode.execute(frame);
             var tstring = libFormat.getTString(format);

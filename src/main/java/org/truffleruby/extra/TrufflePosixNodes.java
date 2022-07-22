@@ -9,7 +9,7 @@
  */
 package org.truffleruby.extra;
 
-import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.dsl.Cached;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
@@ -34,9 +34,9 @@ public abstract class TrufflePosixNodes {
     public abstract static class InvalidateEnvNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "libEnvVar.isRubyString(envVar)")
+        @Specialization(guards = "libEnvVar.isRubyString(envVar)", limit = "1")
         protected Object invalidate(Object envVar,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libEnvVar) {
+                @Cached RubyStringLibrary libEnvVar) {
             invalidateENV(RubyGuards.getJavaString(envVar));
             return envVar;
         }

@@ -11,7 +11,6 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
-import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
@@ -48,7 +47,7 @@ public abstract class ToStrNode extends RubyBaseNodeWithExecute {
     protected Object coerceObject(Object object,
             @Cached BranchProfile errorProfile,
             @Cached DispatchNode toStrNode,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
+            @Cached RubyStringLibrary libString) {
         final Object coerced;
         try {
             coerced = toStrNode.call(object, "to_str");

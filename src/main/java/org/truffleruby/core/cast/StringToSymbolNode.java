@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
-import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.dsl.Cached;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -24,7 +24,7 @@ public abstract class StringToSymbolNode extends RubyContextSourceNode {
 
     @Specialization
     protected RubySymbol doString(Object string,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
+            @Cached RubyStringLibrary libString) {
         return getSymbol(libString.getTString(string), libString.getEncoding(string));
     }
 

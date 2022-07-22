@@ -20,7 +20,6 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -39,7 +38,6 @@ import org.truffleruby.language.library.RubyStringLibrary;
 /** All ImmutableRubyString are interned and must be created through
  * {@link FrozenStringLiterals#getFrozenStringLiteral}. */
 @ExportLibrary(InteropLibrary.class)
-@ExportLibrary(RubyStringLibrary.class)
 public final class ImmutableRubyString extends ImmutableRubyObjectCopyable implements TruffleObject {
 
     public final TruffleString tstring;
@@ -97,22 +95,9 @@ public final class ImmutableRubyString extends ImmutableRubyObjectCopyable imple
         return encoding;
     }
 
-    // region RubyStringLibrary messages
-    @ExportMessage
-    protected boolean isRubyString() {
-        return true;
-    }
-
-    @ExportMessage
-    protected AbstractTruffleString getTString() {
-        return tstring;
-    }
-
-    @ExportMessage
-    protected RubyEncoding getEncoding() {
+    public RubyEncoding getEncodingUnprofiled() {
         return encoding;
     }
-    // endregion
 
     // region InteropLibrary messages
     @ExportMessage
@@ -157,7 +142,7 @@ public final class ImmutableRubyString extends ImmutableRubyObjectCopyable imple
                 guards = "equalNode.execute(string.tstring, libString.getEncoding(string), cachedTString, cachedEncoding)",
                 limit = "getLimit()")
         protected static String asStringCached(ImmutableRubyString string,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
+                @Cached RubyStringLibrary libString,
                 @Cached("string.asTruffleStringUncached()") TruffleString cachedTString,
                 @Cached("string.getEncodingUncached()") RubyEncoding cachedEncoding,
                 @Cached("string.getJavaString()") String javaString,
@@ -167,7 +152,7 @@ public final class ImmutableRubyString extends ImmutableRubyObjectCopyable imple
 
         @Specialization(replaces = "asStringCached")
         protected static String asStringUncached(ImmutableRubyString string,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
+                @Cached RubyStringLibrary libString,
                 @Cached TruffleString.GetByteCodeRangeNode codeRangeNode,
                 @Cached TruffleString.ToJavaStringNode toJavaStringNode,
                 @Cached ConditionProfile binaryNonAsciiProfile) {

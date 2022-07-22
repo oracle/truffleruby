@@ -11,7 +11,6 @@ package org.truffleruby.core.inlined;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.string.StringHelperNodes;
@@ -66,10 +65,10 @@ public abstract class InlinedEqualNode extends BinaryInlinedOperationNode {
                     "libB.isRubyString(b)",
                     "lookupNode.lookupProtected(frame, a, METHOD) == coreMethods().STRING_EQUAL"
             },
-            assumptions = "assumptions")
+            assumptions = "assumptions", limit = "1")
     protected boolean stringEqual(VirtualFrame frame, Object a, Object b,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libA,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libB,
+            @Cached RubyStringLibrary libA,
+            @Cached RubyStringLibrary libB,
             @Cached LookupMethodOnSelfNode lookupNode,
             @Cached EncodingNodes.NegotiateCompatibleStringEncodingNode negotiateCompatibleStringEncodingNode,
             @Cached StringHelperNodes.StringEqualInternalNode stringEqualInternalNode) {

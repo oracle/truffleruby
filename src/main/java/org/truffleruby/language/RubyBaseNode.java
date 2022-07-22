@@ -50,8 +50,6 @@ public abstract class RubyBaseNode extends Node {
 
     public static final int MAX_EXPLODE_SIZE = 16;
 
-    public static final int LIBSTRING_CACHE = 3;
-
     public boolean isSingleContext() {
         return getLanguage().singleContext;
     }

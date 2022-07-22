@@ -47,7 +47,6 @@ package org.truffleruby.core.format.write.bytes;
 
 import java.nio.ByteOrder;
 
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.format.FormatNode;
@@ -69,9 +68,9 @@ public abstract class WriteHexStringNode extends FormatNode {
         this.length = length;
     }
 
-    @Specialization(guards = "libString.isRubyString(string)")
+    @Specialization(guards = "libString.isRubyString(string)", limit = "1")
     protected Object write(VirtualFrame frame, Object string,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
+            @Cached RubyStringLibrary libString,
             @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
         var tstring = libString.getTString(string);
         var encoding = libString.getTEncoding(string);

@@ -14,7 +14,6 @@ package org.truffleruby.core.encoding;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
@@ -189,7 +188,7 @@ public abstract class EncodingConverterNodes {
                 int offset,
                 int size,
                 int options,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
+                @Cached RubyStringLibrary libString,
                 @Cached DispatchNode destinationEncodingNode,
                 @Cached TruffleString.SubstringByteIndexNode substringNode,
                 @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode) {
@@ -453,11 +452,11 @@ public abstract class EncodingConverterNodes {
             return ToStrNodeGen.create(replacement);
         }
 
-        @Specialization(guards = "libReplacement.isRubyString(replacement)")
+        @Specialization(guards = "libReplacement.isRubyString(replacement)", limit = "1")
         protected Object setReplacement(RubyEncodingConverter encodingConverter, Object replacement,
                 @Cached BranchProfile errorProfile,
                 @Cached TruffleString.GetInternalByteArrayNode bytesNode,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libReplacement) {
+                @Cached RubyStringLibrary libReplacement) {
             var tstring = libReplacement.getTString(replacement);
             var encoding = libReplacement.getEncoding(replacement);
 

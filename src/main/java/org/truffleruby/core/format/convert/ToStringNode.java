@@ -12,7 +12,6 @@ package org.truffleruby.core.format.convert;
 import java.nio.charset.StandardCharsets;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.Encodings;
@@ -92,7 +91,7 @@ public abstract class ToStringNode extends FormatNode {
     @TruffleBoundary
     @Specialization(guards = "specialClassBehaviour")
     protected Object toStringSpecialClass(RubyClass rubyClass,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
+            @Cached RubyStringLibrary libString) {
         if (rubyClass == getContext().getCoreLibrary().trueClass) {
             return createString(TStringConstants.TRUE, Encodings.US_ASCII);
         } else if (rubyClass == getContext().getCoreLibrary().falseClass) {
@@ -104,10 +103,10 @@ public abstract class ToStringNode extends FormatNode {
         }
     }
 
-    @Specialization(guards = "libString.isRubyString(string)")
+    @Specialization(guards = "libString.isRubyString(string)", limit = "1")
     protected Object toStringString(Object string,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libValue,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
+            @Cached RubyStringLibrary libValue,
+            @Cached RubyStringLibrary libString) {
         if ("inspect".equals(conversionMethod)) {
             final Object value = getToStrNode().call(string, conversionMethod);
 
@@ -122,7 +121,7 @@ public abstract class ToStringNode extends FormatNode {
 
     @Specialization
     protected Object toString(RubyArray array,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
+            @Cached RubyStringLibrary libString) {
         if (toSNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             toSNode = insert(DispatchNode.create(PRIVATE_RETURN_MISSING));
@@ -140,7 +139,7 @@ public abstract class ToStringNode extends FormatNode {
     @Specialization(
             guards = { "isNotRubyString(object)", "!isRubyArray(object)", "!isForeignObject(object)" })
     protected Object toString(Object object,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
+            @Cached RubyStringLibrary libString) {
         final Object value = getToStrNode().call(object, conversionMethod);
 
         if (libString.isRubyString(value)) {

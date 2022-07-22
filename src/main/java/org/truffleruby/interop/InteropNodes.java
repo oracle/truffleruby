@@ -187,9 +187,9 @@ public abstract class InteropNodes {
     public abstract static class MimeTypeSupportedNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(mimeType)")
+        @Specialization(guards = "strings.isRubyString(mimeType)", limit = "1")
         protected boolean isMimeTypeSupported(RubyString mimeType,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
+                @Cached RubyStringLibrary strings) {
             return getContext().getEnv().isMimeTypeSupported(RubyGuards.getJavaString(mimeType));
         }
 
@@ -199,9 +199,9 @@ public abstract class InteropNodes {
     public abstract static class ImportFileNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(fileName)")
+        @Specialization(guards = "strings.isRubyString(fileName)", limit = "1")
         protected Object importFile(Object fileName,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
+                @Cached RubyStringLibrary strings) {
             try {
                 //intern() to improve footprint
                 final TruffleFile file = getContext()
@@ -230,8 +230,8 @@ public abstract class InteropNodes {
                         "sourceEqualNode.execute(stringsSource, source, cachedSource, cachedSourceEnc)" },
                 limit = "getEvalCacheLimit()")
         protected Object evalCached(Object mimeType, Object source,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsMimeType,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsSource,
+                @Cached RubyStringLibrary stringsMimeType,
+                @Cached RubyStringLibrary stringsSource,
                 @Cached("asTruffleStringUncached(mimeType)") TruffleString cachedMimeType,
                 @Cached("stringsMimeType.getEncoding(mimeType)") RubyEncoding cachedMimeTypeEnc,
                 @Cached("asTruffleStringUncached(source)") TruffleString cachedSource,
@@ -244,10 +244,10 @@ public abstract class InteropNodes {
 
         @Specialization(
                 guards = { "stringsMimeType.isRubyString(mimeType)", "stringsSource.isRubyString(source)" },
-                replaces = "evalCached")
+                replaces = "evalCached", limit = "1")
         protected Object evalUncached(Object mimeType, RubyString source,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsMimeType,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsSource,
+                @Cached RubyStringLibrary stringsMimeType,
+                @Cached RubyStringLibrary stringsSource,
                 @Cached ToJavaStringNode toJavaStringMimeNode,
                 @Cached ToJavaStringNode toJavaStringSourceNode,
                 @Cached IndirectCallNode callNode) {
@@ -279,9 +279,9 @@ public abstract class InteropNodes {
     @Primitive(name = "interop_eval_nfi")
     public abstract static class InteropEvalNFINode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "library.isRubyString(code)")
+        @Specialization(guards = "library.isRubyString(code)", limit = "1")
         protected Object evalNFI(Object code,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary library,
+                @Cached RubyStringLibrary library,
                 @Cached IndirectCallNode callNode) {
             return callNode.call(parse(code), EMPTY_ARGUMENTS);
         }

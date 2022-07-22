@@ -12,7 +12,6 @@
 package org.truffleruby.core.encoding;
 
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.EncodingDB;
@@ -248,10 +247,10 @@ public abstract class EncodingNodes {
             return getEncoding(first);
         }
 
-        @Specialization(guards = { "libFirst.isRubyString(first)", "libSecond.isRubyString(second)" })
+        @Specialization(guards = { "libFirst.isRubyString(first)", "libSecond.isRubyString(second)" }, limit = "1")
         protected RubyEncoding negotiateStringStringEncoding(Object first, Object second,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFirst,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSecond,
+                @Cached RubyStringLibrary libFirst,
+                @Cached RubyStringLibrary libSecond,
                 @Cached NegotiateCompatibleStringEncodingNode ropeNode) {
             final RubyEncoding firstEncoding = libFirst.getEncoding(first);
             final RubyEncoding secondEncoding = libSecond.getEncoding(second);
@@ -272,8 +271,8 @@ public abstract class EncodingNodes {
                         "firstEncoding != secondEncoding" },
                 limit = "getCacheLimit()")
         protected RubyEncoding negotiateStringObjectCached(Object first, Object second,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFirst,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSecond,
+                @Cached RubyStringLibrary libFirst,
+                @Cached RubyStringLibrary libSecond,
                 @Cached("getEncoding(first)") RubyEncoding firstEncoding,
                 @Cached("getEncoding(second)") RubyEncoding secondEncoding,
                 @Cached("getCodeRange(first, libFirst)") TruffleString.CodeRange codeRange,
@@ -286,9 +285,9 @@ public abstract class EncodingNodes {
                         "libFirst.isRubyString(first)",
                         "getEncoding(first) != getEncoding(second)",
                         "isNotRubyString(second)" },
-                replaces = "negotiateStringObjectCached")
+                replaces = "negotiateStringObjectCached", limit = "1")
         protected RubyEncoding negotiateStringObjectUncached(Object first, Object second,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFirst) {
+                @Cached RubyStringLibrary libFirst) {
             final RubyEncoding firstEncoding = getEncoding(first);
             final RubyEncoding secondEncoding = getEncoding(second);
 
@@ -315,9 +314,10 @@ public abstract class EncodingNodes {
                 guards = {
                         "libSecond.isRubyString(second)",
                         "getEncoding(first) != getEncoding(second)",
-                        "isNotRubyString(first)" })
+                        "isNotRubyString(first)" },
+                limit = "1")
         protected RubyEncoding negotiateObjectString(Object first, Object second,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSecond) {
+                @Cached RubyStringLibrary libSecond) {
             return negotiateStringObjectUncached(second, first, libSecond);
         }
 
@@ -426,8 +426,8 @@ public abstract class EncodingNodes {
 
         @Specialization
         protected Object areCompatible(Object first, Object second,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFirst,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSecond,
+                @Cached RubyStringLibrary libFirst,
+                @Cached RubyStringLibrary libSecond,
                 @Cached NegotiateCompatibleStringEncodingNode negotiateCompatibleStringEncodingNode,
                 @Cached ConditionProfile noNegotiatedEncodingProfile) {
             final RubyEncoding negotiatedEncoding = negotiateCompatibleStringEncodingNode.execute(
@@ -522,10 +522,10 @@ public abstract class EncodingNodes {
     @Primitive(name = "get_actual_encoding")
     public abstract static class GetActualEncodingPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "libString.isRubyString(string)")
+        @Specialization(guards = "libString.isRubyString(string)", limit = "1")
         protected RubyEncoding getActualEncoding(Object string,
                 @Cached GetActualEncodingNode getActualEncodingNode,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
+                @Cached RubyStringLibrary libString) {
             return getActualEncodingNode.execute(libString.getTString(string), libString.getEncoding(string));
         }
 
@@ -683,9 +683,9 @@ public abstract class EncodingNodes {
     @Primitive(name = "encoding_replicate")
     public abstract static class EncodingReplicateNode extends EncodingCreationNode {
 
-        @Specialization(guards = "strings.isRubyString(nameObject)")
+        @Specialization(guards = "strings.isRubyString(nameObject)", limit = "1")
         protected RubyArray encodingReplicate(RubyEncoding object, Object nameObject,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached RubyStringLibrary strings,
                 @Cached ToJavaStringNode toJavaStringNode) {
             final String name = toJavaStringNode.executeToJavaString(nameObject);
 
@@ -703,9 +703,9 @@ public abstract class EncodingNodes {
     @Primitive(name = "encoding_create_dummy")
     public abstract static class DummyEncodingNode extends EncodingCreationNode {
 
-        @Specialization(guards = "strings.isRubyString(nameObject)")
+        @Specialization(guards = "strings.isRubyString(nameObject)", limit = "1")
         protected RubyArray createDummyEncoding(Object nameObject,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached RubyStringLibrary strings,
                 @Cached ToJavaStringNode toJavaStringNode) {
             final String name = toJavaStringNode.executeToJavaString(nameObject);
 
@@ -751,10 +751,10 @@ public abstract class EncodingNodes {
     // MRI: rb_enc_check_str / rb_encoding_check (with Ruby String arguments)
     @Primitive(name = "encoding_ensure_compatible_str")
     public abstract static class CheckStringEncodingPrimitiveNode extends PrimitiveArrayArgumentsNode {
-        @Specialization(guards = { "libFirst.isRubyString(first)", "libSecond.isRubyString(second)", })
+        @Specialization(guards = { "libFirst.isRubyString(first)", "libSecond.isRubyString(second)", }, limit = "1")
         protected RubyEncoding checkEncodingStringString(Object first, Object second,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFirst,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSecond,
+                @Cached RubyStringLibrary libFirst,
+                @Cached RubyStringLibrary libSecond,
                 @Cached BranchProfile errorProfile,
                 @Cached NegotiateCompatibleStringEncodingNode negotiateCompatibleStringEncodingNode) {
             final RubyEncoding firstEncoding = libFirst.getEncoding(first);

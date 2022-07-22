@@ -19,7 +19,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.source.Source;
 import org.graalvm.collections.Pair;
 import org.truffleruby.RubyLanguage;
@@ -62,9 +62,9 @@ public abstract class RequireNode extends RubyBaseNode {
 
     public abstract boolean executeRequire(String feature, Object expandedPath);
 
-    @Specialization(guards = "libExpandedPathString.isRubyString(expandedPathString)")
+    @Specialization(guards = "libExpandedPathString.isRubyString(expandedPathString)", limit = "1")
     protected boolean require(String feature, Object expandedPathString,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libExpandedPathString) {
+            @Cached RubyStringLibrary libExpandedPathString) {
         return requireWithMetrics(feature, expandedPathString);
     }
 

@@ -43,7 +43,6 @@ import java.nio.file.NoSuchFileException;
 import java.util.Set;
 import java.util.logging.Level;
 
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -99,9 +98,9 @@ public abstract class TruffleSystemNodes {
     @Primitive(name = "java_get_env")
     public abstract static class JavaGetEnv extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "strings.isRubyString(name)")
+        @Specialization(guards = "strings.isRubyString(name)", limit = "1")
         protected Object javaGetEnv(Object name,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached RubyStringLibrary strings,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached FromJavaStringNode fromJavaStringNode,
                 @Cached ConditionProfile nullValueProfile) {
@@ -126,9 +125,9 @@ public abstract class TruffleSystemNodes {
     public abstract static class SetTruffleWorkingDirNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "stringsDir.isRubyString(dir)")
+        @Specialization(guards = "stringsDir.isRubyString(dir)", limit = "1")
         protected Object setTruffleWorkingDir(Object dir,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsDir) {
+                @Cached RubyStringLibrary stringsDir) {
             TruffleFile truffleFile = getContext()
                     .getEnv()
                     .getPublicTruffleFile(RubyGuards.getJavaString(dir));
@@ -182,9 +181,9 @@ public abstract class TruffleSystemNodes {
 
         @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
-        @Specialization(guards = "strings.isRubyString(property)")
+        @Specialization(guards = "strings.isRubyString(property)", limit = "1")
         protected Object getJavaProperty(Object property,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached RubyStringLibrary strings,
                 @Cached ToJavaStringNode toJavaStringNode) {
             String value = getProperty(toJavaStringNode.executeToJavaString(property));
             if (value == null) {
@@ -227,9 +226,9 @@ public abstract class TruffleSystemNodes {
     @CoreMethod(names = "log", onSingleton = true, required = 2)
     public abstract static class LogNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = { "strings.isRubyString(message)", "level == cachedLevel" })
+        @Specialization(guards = { "strings.isRubyString(message)", "level == cachedLevel" }, limit = "3")
         protected Object logCached(RubySymbol level, Object message,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached RubyStringLibrary strings,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached("level") RubySymbol cachedLevel,
                 @Cached("getLevel(cachedLevel)") Level javaLevel) {
@@ -237,9 +236,9 @@ public abstract class TruffleSystemNodes {
             return nil;
         }
 
-        @Specialization(guards = "strings.isRubyString(message)", replaces = "logCached")
+        @Specialization(guards = "strings.isRubyString(message)", replaces = "logCached", limit = "1")
         protected Object log(RubySymbol level, Object message,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached RubyStringLibrary strings,
                 @Cached ToJavaStringNode toJavaStringNode) {
             log(getLevel(level), toJavaStringNode.executeToJavaString(message));
             return nil;

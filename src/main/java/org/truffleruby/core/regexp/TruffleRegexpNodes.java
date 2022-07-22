@@ -115,9 +115,9 @@ public class TruffleRegexpNodes {
 
         public abstract RubyEncoding executePrepare(RubyRegexp regexp, Object matchString);
 
-        @Specialization(guards = "stringLibrary.isRubyString(matchString)")
+        @Specialization(guards = "stringLibrary.isRubyString(matchString)", limit = "1")
         protected RubyEncoding regexpPrepareEncoding(RubyRegexp regexp, Object matchString,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringLibrary,
+                @Cached RubyStringLibrary stringLibrary,
                 @Cached TruffleString.GetByteCodeRangeNode codeRangeNode,
                 @Cached BranchProfile asciiOnlyProfile,
                 @Cached BranchProfile asciiIncompatibleFixedRegexpEncodingProfile,
@@ -283,8 +283,8 @@ public class TruffleRegexpNodes {
         @Child ToSNode toSNode = ToSNode.create();
         @Child DispatchNode copyNode = DispatchNode.create();
         @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
-        @Child private RubyStringLibrary rubyStringLibrary = RubyStringLibrary.createDispatched();
-        @Child private RubyStringLibrary regexpStringLibrary = RubyStringLibrary.createDispatched();
+        private final RubyStringLibrary rubyStringLibrary = RubyStringLibrary.create();
+        private final RubyStringLibrary regexpStringLibrary = RubyStringLibrary.create();
 
         @Specialization(
                 guards = "argsMatch(frame, cachedArgs, args)",
@@ -789,7 +789,7 @@ public class TruffleRegexpNodes {
          *
          * @param createMatchData Whether to create a Ruby `MatchData` object with the results of the match or return a
          *            simple Boolean value indicating a successful match (true: match; false: mismatch). */
-        @Specialization(guards = "libString.isRubyString(string)")
+        @Specialization(guards = "libString.isRubyString(string)", limit = "1")
         protected Object matchInRegion(
                 RubyRegexp regexp,
                 Object string,
@@ -804,7 +804,7 @@ public class TruffleRegexpNodes {
                 @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode,
                 @Cached ConditionProfile zeroOffsetProfile,
                 @Cached MatchNode matchNode,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
+                @Cached RubyStringLibrary libString) {
             Regex regex = regexp.regex;
             final RubyEncoding negotiatedEncoding = prepareRegexpEncodingNode.executePrepare(regexp, string);
 
@@ -847,7 +847,7 @@ public class TruffleRegexpNodes {
 
         @Child TruffleString.SubstringByteIndexNode substringByteIndexNode;
 
-        @Specialization(guards = "libString.isRubyString(string)")
+        @Specialization(guards = "libString.isRubyString(string)", limit = "1")
         protected Object matchInRegionTRegex(
                 RubyRegexp regexp,
                 Object string,
@@ -867,7 +867,7 @@ public class TruffleRegexpNodes {
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary resultInterop,
                 @Cached PrepareRegexpEncodingNode prepareRegexpEncodingNode,
                 @Cached TRegexCompileNode tRegexCompileNode,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
+                @Cached RubyStringLibrary libString,
                 @Cached IntValueProfile groupCountProfile) {
             final Object tRegex;
             final RubyEncoding negotiatedEncoding = prepareRegexpEncodingNode.executePrepare(regexp, string);

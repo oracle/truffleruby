@@ -1555,7 +1555,7 @@ public abstract class ArrayNodes {
                         "equalNode.execute(libFormat, format, cachedFormat, cachedEncoding)" },
                 limit = "getCacheLimit()")
         protected RubyString packCached(RubyArray array, Object format,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
+                @Cached RubyStringLibrary libFormat,
                 @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
                 @Cached("cachedFormat.byteLength(cachedEncoding.tencoding)") int cachedFormatLength,
@@ -1573,9 +1573,9 @@ public abstract class ArrayNodes {
             return finishPack(cachedFormatLength, result);
         }
 
-        @Specialization(guards = { "libFormat.isRubyString(format)" }, replaces = "packCached")
+        @Specialization(guards = { "libFormat.isRubyString(format)" }, replaces = "packCached", limit = "1")
         protected RubyString packUncached(RubyArray array, Object format,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
+                @Cached RubyStringLibrary libFormat,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached IndirectCallNode callPackNode) {
             final String formatRope = toJavaStringNode.executeToJavaString(format);

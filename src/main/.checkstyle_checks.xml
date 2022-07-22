@@ -216,10 +216,6 @@
       <property name="message" value="Type the argument as Nil instead of using a positive isNil() guard."/>
     </module>
     <module name="RegexpSinglelineJava">
-      <property name="format" value='@CachedLibrary\(".+RubyStringLibrary'/>
-      <property name="message" value="Use @CachedLibrary(limit = &quot;LIBSTRING_CACHE&quot;) RubyStringLibrary instead."/>
-    </module>
-    <module name="RegexpSinglelineJava">
       <property name="format" value='@CachedLibrary\(".+\.store"\) ArrayStoreLibrary'/>
       <property name="message" value="Bind array stores to avoid races between threads causing dispatch errors."/>
     </module>
@@ -246,10 +242,6 @@
     <module name="RegexpSinglelineJava">
       <property name="format" value='Double\.compare'/>
       <property name="message" value="Double.compare() does not match Ruby semantics, use FloatNodes.CompareNode.compareDoubles instead."/>
-    </module>
-    <module name="RegexpSinglelineJava">
-      <property name="format" value='@CachedLibrary\(limit = "\d+"\) RubyStringLibrary'/>
-      <property name="message" value='Use @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary instead.'/>
     </module>
     <module name="RegexpSinglelineJava">
       <property name="format" value='GetCodeRangeNode'/>

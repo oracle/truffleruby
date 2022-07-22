@@ -11,7 +11,6 @@ package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.RubyEncoding;
@@ -65,7 +64,7 @@ public abstract class ToSymbolNode extends RubyBaseNodeWithExecute {
             guards = { "strings.isRubyString(str)", "equalNode.execute(strings, str, cachedTString, cachedEncoding)" },
             limit = "getCacheLimit()")
     protected RubySymbol rubyString(Object str,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+            @Cached RubyStringLibrary strings,
             @Cached(value = "asTruffleStringUncached(str)") TruffleString cachedTString,
             @Cached(value = "strings.getEncoding(str)") RubyEncoding cachedEncoding,
             @Cached StringHelperNodes.EqualSameEncodingNode equalNode,
@@ -73,9 +72,9 @@ public abstract class ToSymbolNode extends RubyBaseNodeWithExecute {
         return rubySymbol;
     }
 
-    @Specialization(guards = "strings.isRubyString(str)", replaces = "rubyString")
+    @Specialization(guards = "strings.isRubyString(str)", replaces = "rubyString", limit = "1")
     protected RubySymbol rubyStringUncached(Object str,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
+            @Cached RubyStringLibrary strings) {
         return getSymbol(strings.getTString(str), strings.getEncoding(str));
     }
 
@@ -83,7 +82,7 @@ public abstract class ToSymbolNode extends RubyBaseNodeWithExecute {
     protected RubySymbol toStr(Object object,
             @Cached BranchProfile errorProfile,
             @Cached DispatchNode toStr,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
+            @Cached RubyStringLibrary libString,
             @Cached ToSymbolNode toSymbolNode) {
         final Object coerced;
         try {

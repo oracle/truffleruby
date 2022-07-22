@@ -13,7 +13,6 @@ import java.io.IOException;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
@@ -95,9 +94,9 @@ public abstract class TruffleKernelNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(file)")
+        @Specialization(guards = "strings.isRubyString(file)", limit = "1")
         protected boolean load(Object file, boolean wrap,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached RubyStringLibrary strings,
                 @Cached IndirectCallNode callNode) {
             final String feature = RubyGuards.getJavaString(file);
             final Pair<Source, TStringWithEncoding> sourceRopePair;
@@ -328,7 +327,7 @@ public abstract class TruffleKernelNodes {
         @TruffleBoundary
         @Specialization
         protected Object getOriginalRequire(Object string,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
+                @Cached RubyStringLibrary strings) {
             final String originalRequire = getContext()
                     .getCoreLibrary()
                     .getOriginalRequires()

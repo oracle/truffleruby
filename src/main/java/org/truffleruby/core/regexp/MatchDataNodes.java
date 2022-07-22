@@ -249,7 +249,7 @@ public abstract class MatchDataNodes {
 
         @Specialization
         protected Object getIndex(RubyMatchData matchData, int index, NotProvided length,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached RubyStringLibrary strings,
                 @Cached ConditionProfile normalizedIndexProfile,
                 @Cached ConditionProfile indexOutOfBoundsProfile,
                 @Cached ConditionProfile lazyProfile,
@@ -335,9 +335,9 @@ public abstract class MatchDataNodes {
                     NotProvided.INSTANCE);
         }
 
-        @Specialization(guards = "libIndex.isRubyString(index)")
+        @Specialization(guards = "libIndex.isRubyString(index)", limit = "1")
         protected Object getIndexString(RubyMatchData matchData, Object index, NotProvided length,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libIndex,
+                @Cached RubyStringLibrary libIndex,
                 @Cached ConditionProfile lazyProfile,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary libInterop) {
             return executeGetIndex(
@@ -454,7 +454,7 @@ public abstract class MatchDataNodes {
                 @Cached ConditionProfile negativeBeginProfile,
                 @Cached ConditionProfile multiByteCharacterProfile,
                 @Cached SingleByteOptimizableNode singleByteOptimizableNode,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached RubyStringLibrary strings,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop) {
             final int begin = getStart(matchData, index, lazyProfile, interop);
 
@@ -497,7 +497,7 @@ public abstract class MatchDataNodes {
 
         @Specialization
         protected Object[] getValues(RubyMatchData matchData,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached RubyStringLibrary strings,
                 @Cached ConditionProfile lazyProfile,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop,
                 @Cached ConditionProfile hasValueProfile,
@@ -539,7 +539,7 @@ public abstract class MatchDataNodes {
                 @Cached ConditionProfile negativeEndProfile,
                 @Cached ConditionProfile multiByteCharacterProfile,
                 @Cached SingleByteOptimizableNode singleByteOptimizableNode,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached RubyStringLibrary strings,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop) {
             final int end = getEnd(matchData, index, lazyProfile, interop);
 
@@ -634,7 +634,7 @@ public abstract class MatchDataNodes {
         protected RubyString preMatch(RubyMatchData matchData,
                 @Cached ConditionProfile lazyProfile,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached RubyStringLibrary strings,
                 @Cached TruffleString.SubstringByteIndexNode substringNode) {
             Object source = matchData.source;
             final int length = getStart(matchData, 0, lazyProfile, interop);
@@ -651,7 +651,7 @@ public abstract class MatchDataNodes {
         protected RubyString postMatch(RubyMatchData matchData,
                 @Cached ConditionProfile lazyProfile,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached RubyStringLibrary strings,
                 @Cached TruffleString.SubstringByteIndexNode substringNode) {
             Object source = matchData.source;
             var tstring = strings.getTString(source);

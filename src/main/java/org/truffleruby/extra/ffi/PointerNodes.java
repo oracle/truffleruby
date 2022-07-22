@@ -328,11 +328,11 @@ public abstract class PointerNodes {
     @Primitive(name = "pointer_write_bytes", lowerFixnum = { 2, 3 })
     public abstract static class PointerWriteBytesNode extends PointerPrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "libString.isRubyString(string)")
+        @Specialization(guards = "libString.isRubyString(string)", limit = "1")
         protected Object writeBytes(long address, Object string, int index, int length,
                 @Cached ConditionProfile nonZeroProfile,
                 @Cached TruffleString.CopyToNativeMemoryNode copyToNativeMemoryNode,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
+                @Cached RubyStringLibrary libString) {
             Pointer ptr = new Pointer(address);
             var tstring = libString.getTString(string);
             var encoding = libString.getTEncoding(string);

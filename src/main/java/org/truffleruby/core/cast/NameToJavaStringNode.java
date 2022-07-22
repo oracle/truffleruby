@@ -10,7 +10,6 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.Cached.Shared;
-import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
@@ -45,9 +44,9 @@ public abstract class NameToJavaStringNode extends RubyBaseNodeWithExecute {
 
     public abstract String execute(Object name);
 
-    @Specialization(guards = "strings.isRubyString(value)")
+    @Specialization(guards = "strings.isRubyString(value)", limit = "1")
     protected String stringNameToJavaString(Object value,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+            @Cached RubyStringLibrary strings,
             @Cached @Shared("toJavaStringNode") ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.executeToJavaString(value);
     }
@@ -67,7 +66,7 @@ public abstract class NameToJavaStringNode extends RubyBaseNodeWithExecute {
     protected String nameToJavaString(Object object,
             @Cached BranchProfile errorProfile,
             @Cached DispatchNode toStr,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
+            @Cached RubyStringLibrary libString,
             @Cached @Shared("toJavaStringNode") ToJavaStringNode toJavaStringNode) {
         final Object coerced;
         try {

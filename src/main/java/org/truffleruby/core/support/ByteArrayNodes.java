@@ -10,7 +10,6 @@
 package org.truffleruby.core.support;
 
 import com.oracle.truffle.api.dsl.Bind;
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
@@ -76,9 +75,9 @@ public abstract class ByteArrayNodes {
     @CoreMethod(names = "prepend", required = 1)
     public abstract static class PrependNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "strings.isRubyString(string)")
+        @Specialization(guards = "strings.isRubyString(string)", limit = "1")
         protected RubyByteArray prepend(RubyByteArray byteArray, Object string,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached RubyStringLibrary strings,
                 @Cached TruffleString.CopyToByteArrayNode copyToByteArrayNode) {
             final byte[] bytes = byteArray.bytes;
 
@@ -128,7 +127,7 @@ public abstract class ByteArrayNodes {
         @Specialization
         protected Object fillFromString(
                 RubyByteArray destByteArray, int dstStart, RubyString source, int srcStart, int length,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
+                @Cached RubyStringLibrary libString,
                 @Cached TruffleString.CopyToByteArrayNode copyToByteArrayNode) {
             var tstring = source.tstring;
             var encoding = libString.getTEncoding(source);
@@ -162,7 +161,7 @@ public abstract class ByteArrayNodes {
                 @Cached TruffleString.ReadByteNode readByteNode,
                 @Cached BranchProfile tooSmallStartProfile,
                 @Cached BranchProfile tooLargeStartProfile,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libPattern,
+                @Cached RubyStringLibrary libPattern,
                 @Bind("libPattern.getTString(pattern)") AbstractTruffleString patternTString,
                 @Bind("libPattern.getTEncoding(pattern)") TruffleString.Encoding patternEncoding) {
 
@@ -191,7 +190,7 @@ public abstract class ByteArrayNodes {
                 @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode,
                 @Cached ConditionProfile noCopyProfile,
                 @Cached ConditionProfile notFoundProfile,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libPattern,
+                @Cached RubyStringLibrary libPattern,
                 @Bind("libPattern.getTString(pattern)") AbstractTruffleString patternTString,
                 @Bind("libPattern.getTEncoding(pattern)") TruffleString.Encoding patternEncoding) {
             // TODO (nirvdrum 09-June-2022): Copying the byte array here is wasteful, but ArrayUtils.indexOfWithOrMask does not accept an offset or length for the needle.

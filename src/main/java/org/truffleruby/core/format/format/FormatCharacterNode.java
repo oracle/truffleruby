@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.format.format;
 
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToIntNodeGen;
@@ -48,14 +47,14 @@ public abstract class FormatCharacterNode extends FormatNode {
     protected byte[] formatCached(int width, Object value,
             @Cached("width") int cachedWidth,
             @Cached("makeFormatString(width)") String cachedFormatString,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
+            @Cached RubyStringLibrary libString) {
         final String charString = getCharString(value, libString);
         return StringUtils.formatASCIIBytes(cachedFormatString, charString);
     }
 
     @Specialization(replaces = "formatCached")
     protected byte[] format(int width, Object value,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
+            @Cached RubyStringLibrary libString) {
         final String charString = getCharString(value, libString);
         return StringUtils.formatASCIIBytes(makeFormatString(width), charString);
     }

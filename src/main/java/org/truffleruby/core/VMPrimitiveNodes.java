@@ -268,10 +268,11 @@ public abstract class VMPrimitiveNodes {
     public abstract static class VMWatchSignalNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = { "libSignalString.isRubyString(signalString)", "libAction.isRubyString(action)" })
+        @Specialization(guards = { "libSignalString.isRubyString(signalString)", "libAction.isRubyString(action)" },
+                limit = "1")
         protected boolean watchSignalString(Object signalString, boolean isRubyDefaultHandler, Object action,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSignalString,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libAction) {
+                @Cached RubyStringLibrary libSignalString,
+                @Cached RubyStringLibrary libAction) {
             final String actionString = RubyGuards.getJavaString(action);
             final String signalName = RubyGuards.getJavaString(signalString);
 
@@ -288,9 +289,9 @@ public abstract class VMPrimitiveNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "libSignalString.isRubyString(signalString)")
+        @Specialization(guards = "libSignalString.isRubyString(signalString)", limit = "1")
         protected boolean watchSignalProc(Object signalString, boolean isRubyDefaultHandler, RubyProc action,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSignalString) {
+                @Cached RubyStringLibrary libSignalString) {
             final RubyContext context = getContext();
 
             if (getLanguage().getCurrentThread() != context.getThreadManager().getRootThread()) {
@@ -560,9 +561,9 @@ public abstract class VMPrimitiveNodes {
     @Primitive(name = "should_not_reach_here")
     public abstract static class ShouldNotReachHereNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "libString.isRubyString(message)")
+        @Specialization(guards = "libString.isRubyString(message)", limit = "1")
         protected Object shouldNotReachHere(Object message,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
+                @Cached RubyStringLibrary libString) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             throw CompilerDirectives.shouldNotReachHere(RubyGuards.getJavaString(message));
         }

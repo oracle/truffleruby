@@ -66,7 +66,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -131,10 +130,11 @@ public abstract class IONodes {
     @Primitive(name = "file_fnmatch", lowerFixnum = 2)
     public abstract static class FileFNMatchPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = { "stringsPattern.isRubyString(pattern)", "stringsPath.isRubyString(path)" })
+        @Specialization(guards = { "stringsPattern.isRubyString(pattern)", "stringsPath.isRubyString(path)" },
+                limit = "1")
         protected boolean fnmatch(Object pattern, Object path, int flags,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsPattern,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsPath,
+                @Cached RubyStringLibrary stringsPattern,
+                @Cached RubyStringLibrary stringsPath,
                 @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayPatternNode,
                 @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayPathNode) {
             var patternByteArray = getInternalByteArrayPatternNode.execute(stringsPattern.getTString(pattern),
@@ -472,9 +472,9 @@ public abstract class IONodes {
     public abstract static class IOWritePolyglotNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(string)")
+        @Specialization(guards = "strings.isRubyString(string)", limit = "1")
         protected int write(int fd, Object string,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
+                @Cached RubyStringLibrary strings) {
             final OutputStream stream;
 
             switch (fd) {

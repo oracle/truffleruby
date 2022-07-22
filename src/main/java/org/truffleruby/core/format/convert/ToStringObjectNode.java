@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.format.convert;
 
-import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
@@ -33,9 +32,9 @@ public abstract class ToStringObjectNode extends FormatNode {
         return nil;
     }
 
-    @Specialization(guards = "strings.isRubyString(string)")
+    @Specialization(guards = "strings.isRubyString(string)", limit = "1")
     protected Object toStringString(Object string,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
+            @Cached RubyStringLibrary strings) {
         return string;
     }
 
