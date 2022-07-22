@@ -129,6 +129,7 @@ public abstract class ArrayStoreLibrary extends Library {
     /** Do any work required to start sharing elements across threads in the range from {@code start} (inclusive) to
      * {@code end} (exclusive). */
     public void shareElements(Object store, int start, int end) {
+        assert isPrimitive(store);
     }
 
     /** Return a description of {@code store} for debugging output. */
