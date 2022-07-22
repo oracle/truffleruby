@@ -4008,12 +4008,10 @@ public abstract class StringNodes {
                 @Cached RubyStringLibrary libString,
                 @Cached RubyStringLibrary libOther,
                 @Cached TruffleString.SubstringByteIndexNode prependSubstringNode,
-                @Cached TruffleString.ConcatNode prependConcatNode,
-                @Cached TruffleString.ForceEncodingNode forceEncodingNode) {
+                @Cached TruffleString.ConcatNode prependConcatNode) {
             var original = string.tstring;
             var originalTEncoding = libString.getTEncoding(string);
-            var left = forceEncodingNode.execute(libOther.getTString(other), libOther.getTEncoding(other),
-                    rubyEncoding.tencoding);
+            var left = libOther.getTString(other);
             var right = prependSubstringNode.execute(original, byteCountToReplace,
                     original.byteLength(originalTEncoding) - byteCountToReplace, originalTEncoding, true);
 
@@ -4029,13 +4027,9 @@ public abstract class StringNodes {
                 @Cached RubyStringLibrary libString,
                 @Cached RubyStringLibrary libOther,
                 @Cached TruffleString.ConcatNode appendConcatNode,
-                @Cached TruffleString.ForceEncodingNode forceEncodingNodeLeft,
-                @Cached TruffleString.ForceEncodingNode forceEncodingNodeRight,
                 @Bind("libString.byteLength(string)") int byteLength) {
-            var left = forceEncodingNodeLeft.execute(string.tstring, libString.getTEncoding(string),
-                    rubyEncoding.tencoding);
-            var right = forceEncodingNodeRight.execute(libOther.getTString(other), libOther.getTEncoding(other),
-                    rubyEncoding.tencoding);
+            var left = string.tstring;
+            var right = libOther.getTString(other);
 
             var concatResult = appendConcatNode.execute(left, right, rubyEncoding.tencoding, true);
             string.setTString(concatResult, rubyEncoding);
@@ -4055,7 +4049,6 @@ public abstract class StringNodes {
                 @Cached TruffleString.ConcatNode leftConcatNode,
                 @Cached TruffleString.ConcatNode rightConcatNode,
                 @Cached TruffleString.ForceEncodingNode forceEncodingNode,
-                @Cached TruffleString.ForceEncodingNode forceEncodingNodeOther,
                 @Bind("libString.byteLength(string)") int byteLength) {
             var sourceTEncoding = libString.getTEncoding(string);
             var resultTEncoding = rubyEncoding.tencoding;
@@ -4071,9 +4064,7 @@ public abstract class StringNodes {
             if (insertStringIsEmptyProfile.profile(insert.isEmpty())) {
                 joinedLeft = forceEncodingNode.execute(splitLeft, sourceTEncoding, resultTEncoding);
             } else {
-                joinedLeft = leftConcatNode.execute(splitLeft,
-                        forceEncodingNodeOther.execute(insert, libOther.getTEncoding(other), resultTEncoding),
-                        resultTEncoding, true);
+                joinedLeft = leftConcatNode.execute(splitLeft, insert, resultTEncoding, true);
             }
 
             final TruffleString joinedRight; // always in resultTEncoding
