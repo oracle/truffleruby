@@ -27,16 +27,13 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.cast.ToEncodingNode;
 import org.truffleruby.core.cast.ToRubyEncodingNode;
 import org.truffleruby.core.encoding.EncodingNodesFactory.NegotiateCompatibleEncodingNodeGen;
 import org.truffleruby.core.encoding.EncodingNodesFactory.NegotiateCompatibleStringEncodingNodeGen;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringGuards;
-import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.Nil;
@@ -50,7 +47,6 @@ import org.truffleruby.language.yield.CallBlockNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -663,36 +659,16 @@ public abstract class EncodingNodes {
     public abstract static class EncodingGetObjectEncodingNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected RubyEncoding encodingGetObjectEncodingString(RubyString object) {
-            return object.encoding;
+        protected Object getObjectEncoding(Object object,
+                @Cached ToRubyEncodingNode toRubyEncodingNode,
+                @Cached ConditionProfile nullProfile) {
+            var rubyEncoding = toRubyEncodingNode.executeToEncoding(object);
+            if (nullProfile.profile(rubyEncoding == null)) {
+                return nil;
+            } else {
+                return rubyEncoding;
+            }
         }
-
-        @Specialization
-        protected RubyEncoding encodingGetObjectEncodingImmutableString(ImmutableRubyString object) {
-            return object.encoding;
-        }
-
-        @Specialization
-        protected RubyEncoding encodingGetObjectEncodingSymbol(RubySymbol object) {
-            return object.encoding;
-        }
-
-        @Specialization
-        protected RubyEncoding encodingGetObjectEncoding(RubyEncoding object) {
-            return object;
-        }
-
-        @Specialization
-        protected RubyEncoding encodingGetObjectEncodingRegexp(RubyRegexp object) {
-            return object.encoding;
-        }
-
-        @Fallback
-        protected Object encodingGetObjectEncodingNil(Object object) {
-            // TODO(CS, 26 Jan 15) something to do with __encoding__ here?
-            return nil;
-        }
-
     }
 
     public abstract static class EncodingCreationNode extends PrimitiveArrayArgumentsNode {
@@ -799,10 +775,8 @@ public abstract class EncodingNodes {
 
             if (negotiatedEncoding == null) {
                 errorProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatible(
-                        firstEncoding.jcoding,
-                        secondEncoding.jcoding,
-                        this));
+                throw new RaiseException(getContext(),
+                        coreExceptions().encodingCompatibilityErrorIncompatible(firstEncoding, secondEncoding, this));
             }
 
             return negotiatedEncoding;
@@ -832,10 +806,8 @@ public abstract class EncodingNodes {
 
             if (negotiatedEncoding == null) {
                 errorProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatible(
-                        firstEncoding.jcoding,
-                        secondEncoding.jcoding,
-                        this));
+                throw new RaiseException(getContext(),
+                        coreExceptions().encodingCompatibilityErrorIncompatible(firstEncoding, secondEncoding, this));
             }
 
             return negotiatedEncoding;
@@ -848,7 +820,7 @@ public abstract class EncodingNodes {
     public abstract static class CheckEncodingNode extends PrimitiveArrayArgumentsNode {
 
         @Child private NegotiateCompatibleEncodingNode negotiateCompatibleEncodingNode;
-        @Child private ToEncodingNode toEncodingNode;
+        @Child private ToRubyEncodingNode toRubyEncodingNode;
 
         public static CheckEncodingNode create() {
             return EncodingNodesFactory.CheckEncodingNodeFactory.create(null);
@@ -878,14 +850,14 @@ public abstract class EncodingNodes {
         }
 
         private void raiseException(Object first, Object second) {
-            if (toEncodingNode == null) {
+            if (toRubyEncodingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toEncodingNode = insert(ToEncodingNode.create());
+                toRubyEncodingNode = insert(ToRubyEncodingNode.create());
             }
 
             throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatible(
-                    toEncodingNode.executeToEncoding(first),
-                    toEncodingNode.executeToEncoding(second),
+                    toRubyEncodingNode.executeToEncoding(first),
+                    toRubyEncodingNode.executeToEncoding(second),
                     this));
         }
 

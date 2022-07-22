@@ -655,7 +655,7 @@ public final class StringSupport {
         carry[0] = 1;
         int carryLen = 1;
 
-        final RubyEncoding encoding = original.encoding;
+        final RubyEncoding encoding = original.getEncodingUncached();
         final Encoding enc = encoding.jcoding;
         TStringBuilder valueCopy = TStringBuilder.create(original);
         int p = 0;

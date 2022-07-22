@@ -41,7 +41,7 @@ public class TStringBuilder extends ByteArrayBuilder {
     }
 
     public static TStringBuilder create(RubyString rubyString) {
-        final RubyEncoding enc = rubyString.encoding;
+        final RubyEncoding enc = rubyString.getEncodingUncached();
         return create(rubyString.tstring.getInternalByteArrayUncached(enc.tencoding), enc);
     }
 

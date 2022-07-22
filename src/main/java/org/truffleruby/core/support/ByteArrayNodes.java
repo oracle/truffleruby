@@ -128,9 +128,10 @@ public abstract class ByteArrayNodes {
         @Specialization
         protected Object fillFromString(
                 RubyByteArray destByteArray, int dstStart, RubyString source, int srcStart, int length,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @Cached TruffleString.CopyToByteArrayNode copyToByteArrayNode) {
             var tstring = source.tstring;
-            var encoding = source.encoding.tencoding;
+            var encoding = libString.getTEncoding(source);
             copyToByteArrayNode.execute(tstring, srcStart, destByteArray.bytes, dstStart, length, encoding);
             return source;
         }

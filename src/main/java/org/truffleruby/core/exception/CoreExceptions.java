@@ -17,7 +17,6 @@ import java.util.EnumSet;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.interop.InvalidBufferOffsetException;
 import com.oracle.truffle.api.interop.UnknownKeyException;
-import org.jcodings.Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.RubyArray;
@@ -1150,14 +1149,15 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public RubyException encodingCompatibilityErrorIncompatible(Encoding a, Encoding b, Node currentNode) {
+    public RubyException encodingCompatibilityErrorIncompatible(RubyEncoding a, RubyEncoding b, Node currentNode) {
         return encodingCompatibilityError(
                 StringUtils.format("incompatible character encodings: %s and %s", a, b),
                 currentNode);
     }
 
     @TruffleBoundary
-    public RubyException encodingCompatibilityErrorRegexpIncompatible(Encoding a, Encoding b, Node currentNode) {
+    public RubyException encodingCompatibilityErrorRegexpIncompatible(RubyEncoding a, RubyEncoding b,
+            Node currentNode) {
         return encodingCompatibilityError(
                 StringUtils.format("incompatible encoding regexp match (%s regexp with %s string)", a, b),
                 currentNode);
@@ -1165,7 +1165,7 @@ public class CoreExceptions {
 
 
     @TruffleBoundary
-    public RubyException encodingCompatibilityErrorIncompatibleWithOperation(Encoding encoding, Node currentNode) {
+    public RubyException encodingCompatibilityErrorIncompatibleWithOperation(RubyEncoding encoding, Node currentNode) {
         return encodingCompatibilityError(
                 StringUtils.format("incompatible encoding with this operation: %s", encoding),
                 currentNode);

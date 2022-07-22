@@ -1192,12 +1192,13 @@ public class CExtNodes {
 
         @Specialization
         protected Pointer toNative(RubyString string,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @Cached ConditionProfile convertProfile,
                 @Cached TruffleString.CopyToNativeMemoryNode copyToNativeMemoryNode,
                 @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode,
                 @Cached TruffleString.GetInternalNativePointerNode getInternalNativePointerNode) {
             var tstring = string.tstring;
-            var tencoding = string.encoding.tencoding;
+            var tencoding = libString.getTEncoding(string);
 
             final Pointer pointer;
 

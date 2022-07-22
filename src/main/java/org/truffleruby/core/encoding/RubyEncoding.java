@@ -41,7 +41,7 @@ public final class RubyEncoding extends ImmutableRubyObjectNotCopyable
     public final int index;
 
     public RubyEncoding(Encoding jcoding, ImmutableRubyString name, int index) {
-        assert name.encoding == Encodings.US_ASCII;
+        assert name.getEncodingUncached() == Encodings.US_ASCII;
         this.jcoding = Objects.requireNonNull(jcoding);
         this.tencoding = Objects.requireNonNull(TStringUtils.jcodingToTEncoding(jcoding));
         this.name = Objects.requireNonNull(name);

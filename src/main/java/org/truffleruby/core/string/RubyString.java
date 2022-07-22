@@ -11,8 +11,10 @@ package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
@@ -23,6 +25,7 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.library.RubyLibrary;
 
@@ -34,12 +37,13 @@ import org.truffleruby.language.library.RubyStringLibrary;
 @ExportLibrary(RubyLibrary.class)
 @ExportLibrary(InteropLibrary.class)
 @ExportLibrary(RubyStringLibrary.class)
+@ImportStatic(RubyBaseNode.class)
 public final class RubyString extends RubyDynamicObject {
 
     public boolean frozen;
     public boolean locked = false;
     public AbstractTruffleString tstring;
-    public RubyEncoding encoding;
+    private RubyEncoding encoding;
 
     public RubyString(
             RubyClass rubyClass,
@@ -55,7 +59,7 @@ public final class RubyString extends RubyDynamicObject {
     }
 
     public void setTString(AbstractTruffleString tstring) {
-        assert tstring.isCompatibleTo(encoding.tencoding);
+        assert tstring.isCompatibleTo(getEncodingUncached().tencoding);
         this.tstring = tstring;
     }
 
@@ -70,10 +74,6 @@ public final class RubyString extends RubyDynamicObject {
         ((MutableTruffleString) tstring).notifyExternalMutation();
     }
 
-    public int byteLengthUncached() {
-        return tstring.byteLength(encoding.tencoding);
-    }
-
     /** should only be used for debugging */
     @Override
     public String toString() {
@@ -82,12 +82,26 @@ public final class RubyString extends RubyDynamicObject {
 
     public TruffleString asTruffleStringUncached() {
         CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
-        return tstring.asTruffleStringUncached(encoding.tencoding);
+        return tstring.asTruffleStringUncached(getEncodingUncached().tencoding);
     }
 
     public String getJavaString() {
         CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
-        return TStringUtils.toJavaStringOrThrow(tstring, encoding);
+        return TStringUtils.toJavaStringOrThrow(tstring, getEncodingUncached());
+    }
+
+    public int byteLengthUncached() {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        return tstring.byteLength(getEncodingUncached().tencoding);
+    }
+
+    public RubyEncoding getEncodingUncached() {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        return encoding;
+    }
+
+    public RubyEncoding getEncodingUnprofiled() {
+        return encoding;
     }
 
     // region RubyStringLibrary messages
@@ -102,7 +116,7 @@ public final class RubyString extends RubyDynamicObject {
     }
 
     @ExportMessage
-    public RubyEncoding getEncoding() {
+    protected RubyEncoding getEncoding() {
         return encoding;
     }
     // endregion
@@ -127,18 +141,21 @@ public final class RubyString extends RubyDynamicObject {
 
     @ExportMessage
     protected TruffleString asTruffleString(
+            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
             @Cached TruffleString.AsTruffleStringNode asTruffleStringNode) {
-        return asTruffleStringNode.execute(tstring, encoding.tencoding);
+        return asTruffleStringNode.execute(tstring, libString.getTEncoding(this));
     }
 
+    @ImportStatic(RubyBaseNode.class)
     @ExportMessage
     public static class AsString {
         @Specialization(
-                guards = "equalNode.execute(string.tstring, string.encoding, cachedTString, cachedEncoding)",
+                guards = "equalNode.execute(string.tstring, libString.getEncoding(string), cachedTString, cachedEncoding)",
                 limit = "getLimit()")
         protected static String asStringCached(RubyString string,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @Cached("string.asTruffleStringUncached()") TruffleString cachedTString,
-                @Cached("string.encoding") RubyEncoding cachedEncoding,
+                @Cached("string.getEncodingUncached()") RubyEncoding cachedEncoding,
                 @Cached("string.getJavaString()") String javaString,
                 @Cached StringHelperNodes.EqualNode equalNode) {
             return javaString;
@@ -146,11 +163,13 @@ public final class RubyString extends RubyDynamicObject {
 
         @Specialization(replaces = "asStringCached")
         protected static String asStringUncached(RubyString string,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @Cached TruffleString.GetByteCodeRangeNode codeRangeNode,
                 @Cached TruffleString.ToJavaStringNode toJavaStringNode,
                 @Cached ConditionProfile binaryNonAsciiProfile) {
-            if (binaryNonAsciiProfile.profile(string.encoding == Encodings.BINARY &&
-                    !StringGuards.is7Bit(string.tstring, string.encoding, codeRangeNode))) {
+            var encoding = libString.getEncoding(string);
+            if (binaryNonAsciiProfile.profile(encoding == Encodings.BINARY &&
+                    !StringGuards.is7Bit(string.tstring, encoding, codeRangeNode))) {
                 return getJavaStringBoundary(string);
             } else {
                 return toJavaStringNode.execute(string.tstring);

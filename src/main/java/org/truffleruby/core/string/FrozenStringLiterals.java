@@ -68,9 +68,10 @@ public class FrozenStringLiterals {
     }
 
     private void addFrozenStringToCache(ImmutableRubyString string) {
-        var cachedTString = tstringCache.getTString(string.tstring, string.encoding);
+        var encoding = string.getEncodingUncached();
+        var cachedTString = tstringCache.getTString(string.tstring, encoding);
         assert cachedTString == string.tstring;
-        var tstringWithEncoding = new TStringWithEncoding(cachedTString, string.encoding);
+        var tstringWithEncoding = new TStringWithEncoding(cachedTString, encoding);
         final ImmutableRubyString existing = values.addInCacheIfAbsent(tstringWithEncoding, string);
         if (existing != string) {
             throw CompilerDirectives

@@ -51,18 +51,9 @@ public class StringGuards {
         return codeRangeNode.execute(string, encoding) == BROKEN;
     }
 
-    public static boolean isSingleByteOptimizable(RubyString string,
-            SingleByteOptimizableNode singleByteOptimizableNode) {
-        return singleByteOptimizableNode.execute(string.tstring, string.encoding);
-    }
-
     public static boolean isSingleByteOptimizable(AbstractTruffleString tString, RubyEncoding encoding,
             SingleByteOptimizableNode singleByteOptimizableNode) {
         return singleByteOptimizableNode.execute(tString, encoding);
-    }
-
-    public static boolean isAsciiCompatible(RubyString string) {
-        return string.encoding.jcoding.isAsciiCompatible();
     }
 
     public static boolean isAsciiCompatible(RubyEncoding encoding) {
@@ -78,29 +69,20 @@ public class StringGuards {
     }
 
     /** The case mapping is simple (ASCII-only or full Unicode): no complex option like Turkic, case-folding, etc. */
-    public static boolean isAsciiCompatMapping(int caseMappingOptions) {
+    private static boolean isAsciiCompatMapping(int caseMappingOptions) {
         return caseMappingOptions == CASE_FULL_UNICODE || caseMappingOptions == Config.CASE_ASCII_ONLY;
     }
 
-    /** The string can be optimized to single-byte representation and is a simple case mapping (ASCII-only or full
-     * Unicode). */
-    public static boolean isSingleByteCaseMapping(RubyString string, int caseMappingOptions,
-            SingleByteOptimizableNode singleByteOptimizableNode) {
-        return isSingleByteOptimizable(string, singleByteOptimizableNode) && isAsciiCompatMapping(caseMappingOptions);
+    /** The mapping is ASCII-only or effectively ASCII-only based on the string properties. */
+    private static boolean isAsciiCodePointsMapping(AbstractTruffleString tstring, RubyEncoding encoding,
+            int caseMappingOptions, SingleByteOptimizableNode singleByteOptimizableNode) {
+        return isSingleByteOptimizable(tstring, encoding, singleByteOptimizableNode)
+                ? isAsciiCompatMapping(caseMappingOptions)
+                : caseMappingOptions == Config.CASE_ASCII_ONLY && isAsciiCompatible(encoding);
     }
 
-    /** The string's encoding is ASCII-compatible, the mapping is ASCII-only and {@link #isSingleByteCaseMapping} is not
-     * applicable. */
-    public static boolean isSimpleAsciiCaseMapping(RubyString string, int caseMappingOptions,
-            SingleByteOptimizableNode singleByteOptimizableNode) {
-        return !isSingleByteOptimizable(string, singleByteOptimizableNode) &&
-                caseMappingOptions == Config.CASE_ASCII_ONLY && isAsciiCompatible(string);
-    }
-
-    /** Both {@link #isSingleByteCaseMapping} and {@link #isSimpleAsciiCaseMapping} are not applicable. */
-    public static boolean isComplexCaseMapping(RubyString string, int caseMappingOptions,
-            SingleByteOptimizableNode singleByteOptimizableNode) {
-        return !isSingleByteCaseMapping(string, caseMappingOptions, singleByteOptimizableNode) &&
-                !isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode);
+    public static boolean isComplexCaseMapping(AbstractTruffleString tstring, RubyEncoding encoding,
+            int caseMappingOptions, SingleByteOptimizableNode singleByteOptimizableNode) {
+        return !isAsciiCodePointsMapping(tstring, encoding, caseMappingOptions, singleByteOptimizableNode);
     }
 }

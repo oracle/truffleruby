@@ -189,14 +189,15 @@ public abstract class EncodingConverterNodes {
                 int offset,
                 int size,
                 int options,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @Cached DispatchNode destinationEncodingNode,
                 @Cached TruffleString.SubstringByteIndexNode substringNode,
                 @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode) {
             // Taken from org.jruby.RubyConverter#primitive_convert.
 
-            var tencoding = source.encoding.tencoding;
-
+            var tencoding = libString.getTEncoding(source);
             var tstring = source.tstring;
+
             final TStringBuilder outBytes = TStringBuilder.create(target);
 
             final Ptr inPtr = new Ptr();

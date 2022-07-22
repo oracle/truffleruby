@@ -214,12 +214,8 @@ public class TruffleRegexpNodes {
 
         // MRI: reg_enc_error
         private RubyEncoding raiseEncodingCompatibilityError(RubyRegexp regexp, RubyEncoding matchStringEncoding) {
-            throw new RaiseException(
-                    getContext(),
-                    coreExceptions().encodingCompatibilityErrorRegexpIncompatible(
-                            regexp.encoding.jcoding,
-                            matchStringEncoding.jcoding,
-                            this));
+            throw new RaiseException(getContext(), coreExceptions()
+                    .encodingCompatibilityErrorRegexpIncompatible(regexp.encoding, matchStringEncoding, this));
         }
 
         private void warnHistoricalBinaryRegexpMatch(RubyEncoding matchStringEncoding) {
@@ -288,6 +284,7 @@ public class TruffleRegexpNodes {
         @Child DispatchNode copyNode = DispatchNode.create();
         @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
         @Child private RubyStringLibrary rubyStringLibrary = RubyStringLibrary.createDispatched();
+        @Child private RubyStringLibrary regexpStringLibrary = RubyStringLibrary.createDispatched();
 
         @Specialization(
                 guards = "argsMatch(frame, cachedArgs, args)",
@@ -316,9 +313,10 @@ public class TruffleRegexpNodes {
                     regexpString = appendNode.executeStringAppend(regexpString, string(arg));
                 }
             }
-            var truffleString = asTruffleStringNode.execute(regexpString.tstring, regexpString.encoding.tencoding);
+            var encoding = regexpStringLibrary.getEncoding(regexpString);
+            var truffleString = asTruffleStringNode.execute(regexpString.tstring, encoding.tencoding);
             try {
-                return createRegexp(truffleString, regexpString.encoding);
+                return createRegexp(truffleString, encoding);
             } catch (DeferredRaiseException dre) {
                 errorProfile.enter();
                 throw dre.getException(getContext());

@@ -45,7 +45,7 @@ public abstract class StringHelperNodes {
         final RubyEncoding e2 = checkEncodingNode.executeCheckEncoding(self, toStr);
         final RubyEncoding enc = e1 == e2 ? e1 : checkEncodingNode.executeCheckEncoding(fromStr, toStr);
 
-        var selfTStringWithEnc = new ATStringWithEncoding(self.tstring, self.encoding);
+        var selfTStringWithEnc = new ATStringWithEncoding(self.tstring, self.getEncodingUncached());
         var fromStrTStringWithEnc = new ATStringWithEncoding(libFromStr, fromStr);
         var toStrTStringWithEnc = new ATStringWithEncoding(libToStr, toStr);
         final TruffleString ret = StringSupport.trTransHelper(selfTStringWithEnc, fromStrTStringWithEnc,
@@ -322,15 +322,16 @@ public abstract class StringHelperNodes {
             return string;
         }
 
-        @Specialization(guards = "!isEmpty(string.tstring)")
-        protected Object deleteBang(RubyString string, TStringWithEncoding[] args,
+        @Specialization(guards = "!isEmpty(string.tstring)", replaces = "deleteBangFast")
+        protected Object deleteBangSlow(RubyString string, TStringWithEncoding[] args,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @Cached BranchProfile errorProfile) {
             if (args.length == 0) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorEmptyVarargs(this));
             }
 
-            RubyEncoding enc = findEncoding(string.tstring, string.encoding, args);
+            RubyEncoding enc = findEncoding(string.tstring, libString.getEncoding(string), args);
 
             return deleteBangSlow(string, args, enc);
         }
@@ -355,8 +356,8 @@ public abstract class StringHelperNodes {
         @TruffleBoundary
         private TruffleString processStr(RubyString string, boolean[] squeeze, RubyEncoding enc,
                 StringSupport.TrTables tables) {
-            return StringSupport.delete_bangCommon19(new ATStringWithEncoding(string.tstring, string.encoding), squeeze,
-                    tables, enc, this);
+            return StringSupport.delete_bangCommon19(
+                    new ATStringWithEncoding(string.tstring, string.getEncodingUncached()), squeeze, tables, enc, this);
         }
     }
 
@@ -477,11 +478,12 @@ public abstract class StringHelperNodes {
 
         @Specialization
         protected byte[] invert(RubyString string, TruffleStringIterator iterator, byte[] initialBytes,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @Cached TruffleStringIterator.NextNode nextNode,
                 @Cached TruffleString.CopyToByteArrayNode copyToByteArrayNode,
                 @Cached BranchProfile caseSwapProfile) {
             var tstring = string.tstring;
-            var encoding = string.encoding.tencoding;
+            var encoding = libString.getTEncoding(string);
 
             byte[] modified = initialBytes;
 
