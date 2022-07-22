@@ -260,7 +260,7 @@ public abstract class RubyDateFormatter {
             RubyContext context, Node currentNode) {
         List<Token> compiledPattern = new LinkedList<>();
 
-        if (!encoding.jcoding.isAsciiCompatible()) {
+        if (!encoding.isAsciiCompatible) {
             throw new RaiseException(
                     context,
                     context.getCoreExceptions().argumentError(

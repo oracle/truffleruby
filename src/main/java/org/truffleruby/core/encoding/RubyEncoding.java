@@ -40,12 +40,25 @@ public final class RubyEncoding extends ImmutableRubyObjectNotCopyable
     public final ImmutableRubyString name;
     public final int index;
 
+    // Copy these properties here for faster access and to make the fields final (most of these fields are not final in JCodings)
+    public final boolean isDummy;
+    public final boolean isAsciiCompatible;
+    public final boolean isFixedWidth;
+    public final boolean isSingleByte;
+    public final boolean isUnicode;
+
     public RubyEncoding(Encoding jcoding, ImmutableRubyString name, int index) {
         assert name.getEncodingUncached() == Encodings.US_ASCII;
         this.jcoding = Objects.requireNonNull(jcoding);
         this.tencoding = Objects.requireNonNull(TStringUtils.jcodingToTEncoding(jcoding));
         this.name = Objects.requireNonNull(name);
         this.index = index;
+
+        this.isDummy = jcoding.isDummy();
+        this.isAsciiCompatible = jcoding.isAsciiCompatible();
+        this.isFixedWidth = jcoding.isFixedWidth();
+        this.isSingleByte = jcoding.isSingleByte();
+        this.isUnicode = jcoding.isUnicode();
     }
 
     // Special constructor to define US-ASCII encoding which is used for RubyEncoding names
@@ -55,6 +68,13 @@ public final class RubyEncoding extends ImmutableRubyObjectNotCopyable
         this.name = Objects.requireNonNull(
                 FrozenStringLiterals.createStringAndCacheLater(TStringConstants.US_ASCII, this));
         this.index = index;
+
+        var jcoding = this.jcoding;
+        this.isDummy = jcoding.isDummy();
+        this.isAsciiCompatible = jcoding.isAsciiCompatible();
+        this.isFixedWidth = jcoding.isFixedWidth();
+        this.isSingleByte = jcoding.isSingleByte();
+        this.isUnicode = jcoding.isUnicode();
     }
 
     @Override

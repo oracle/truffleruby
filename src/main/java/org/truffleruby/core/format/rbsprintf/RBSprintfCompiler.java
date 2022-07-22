@@ -49,7 +49,7 @@ public class RBSprintfCompiler {
         return new FormatRootNode(
                 language,
                 currentNode.getEncapsulatingSourceSection(),
-                FormatEncoding.find(formatEncoding.jcoding, currentNode),
+                FormatEncoding.find(formatEncoding, currentNode),
                 builder.getNode()).getCallTarget();
     }
 

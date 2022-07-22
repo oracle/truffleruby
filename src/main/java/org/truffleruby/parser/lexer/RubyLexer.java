@@ -577,7 +577,7 @@ public class RubyLexer implements MagicCommentHandler {
     public StrParseNode createStr(TruffleString bufferTString, RubyEncoding bufferEncoding, int flags) {
         TStringWithEncoding buffer = new TStringWithEncoding(bufferTString, bufferEncoding);
 
-        if ((flags & STR_FUNC_REGEXP) == 0 && bufferEncoding.jcoding.isAsciiCompatible()) {
+        if ((flags & STR_FUNC_REGEXP) == 0 && bufferEncoding.isAsciiCompatible) {
             // If we have characters outside 7-bit range and we are still ascii then change to binary
             if (buffer.isAsciiOnly()) {
                 // Do nothing like MRI

@@ -708,7 +708,7 @@ public final class StringSupport {
                 if (characterLength(encoding, bytes, s, s + 1) != cl) {
                     succChar(encoding, bytes, s, cl, node); /* wrapped to \0...\0. search next valid char. */
                 }
-                if (!enc.isAsciiCompatible()) {
+                if (!encoding.isAsciiCompatible) {
                     System.arraycopy(bytes, s, carry, 0, cl);
                     carryLen = cl;
                 }
@@ -915,14 +915,14 @@ public final class StringSupport {
     /** rb_str_delete_bang */
     @TruffleBoundary
     public static TruffleString delete_bangCommon19(ATStringWithEncoding rubyString, boolean[] squeeze, TrTables tables,
-            RubyEncoding rubyEncoding, Node node) {
-        Encoding enc = rubyEncoding.jcoding;
+            RubyEncoding encoding, Node node) {
+        Encoding enc = encoding.jcoding;
         int s = 0;
         int t = s;
         int send = s + rubyString.byteLength();
         byte[] bytes = rubyString.getBytesCopy();
         boolean modified = false;
-        boolean asciiCompatible = enc.isAsciiCompatible();
+        boolean asciiCompatible = encoding.isAsciiCompatible;
         var cr = asciiCompatible ? ASCII : VALID;
         while (s < send) {
             int c;
@@ -955,7 +955,7 @@ public final class StringSupport {
         }
 
         return modified
-                ? TStringUtils.fromByteArray(ArrayUtils.extractRange(bytes, 0, t), rubyEncoding)
+                ? TStringUtils.fromByteArray(ArrayUtils.extractRange(bytes, 0, t), encoding)
                 /* cr */ : null;
     }
 
@@ -1045,7 +1045,7 @@ public final class StringSupport {
             }
         }
 
-        if (cr == VALID && enc.isAsciiCompatible()) {
+        if (cr == VALID && rubyEncoding.isAsciiCompatible) {
             cr = ASCII;
         }
 
@@ -1116,7 +1116,7 @@ public final class StringSupport {
             }
 
             ret = TStringUtils.fromByteArray(ArrayUtils.extractRange(buf, 0, t), rubyEncoding); // cr
-        } else if (enc.isSingleByte() || (singlebyte && hash == null)) {
+        } else if (rubyEncoding.isSingleByte || (singlebyte && hash == null)) {
             byte[] sbytes = self.getBytesCopy();
             while (s < send) {
                 c = sbytes[s] & 0xff;
@@ -1216,7 +1216,7 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static int multiByteCasecmp(Encoding enc, AbstractTruffleString selfTString,
+    public static int multiByteCasecmp(RubyEncoding enc, AbstractTruffleString selfTString,
             TruffleString.Encoding selfEncoding, AbstractTruffleString otherTString,
             TruffleString.Encoding otherEncoding) {
         var selfIterator = CreateCodePointIteratorNode.getUncached().execute(selfTString, selfEncoding,
@@ -1231,7 +1231,7 @@ public final class StringSupport {
             final int otherPos = otherIterator.getByteIndex();
             final int oc = otherIterator.nextUncached();
 
-            if (enc.isAsciiCompatible() && (c >= 0 && Encoding.isAscii(c)) && (oc >= 0 && Encoding.isAscii(oc))) {
+            if (enc.isAsciiCompatible && (c >= 0 && Encoding.isAscii(c)) && (oc >= 0 && Encoding.isAscii(oc))) {
                 byte uc = AsciiTables.ToUpperCaseTable[c];
                 byte uoc = AsciiTables.ToUpperCaseTable[oc];
                 if (uc != uoc) {
@@ -1552,23 +1552,6 @@ public final class StringSupport {
 
     public static boolean isAsciiPrintable(int c) {
         return c >= ' ' && c <= '~';
-    }
-
-    public static boolean isAsciiAlpha(int c) {
-        return isAsciiUppercase(c) || isAsciiLowercase(c);
-    }
-
-    public static boolean isAsciiAlpha(byte c) {
-        return isAsciiUppercase(c) || isAsciiLowercase(c);
-    }
-
-    @TruffleBoundary
-    public static boolean isSpace(Encoding encoding, int c) {
-        return encoding.isSpace(c);
-    }
-
-    public static boolean isAsciiCodepoint(int value) {
-        return value >= 0 && value < 128;
     }
 
     //endregion

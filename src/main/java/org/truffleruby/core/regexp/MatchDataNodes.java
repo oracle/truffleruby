@@ -103,7 +103,7 @@ public abstract class MatchDataNodes {
             RubyEncoding encoding) {
         // Taken from org.jruby.RubyMatchData
 
-        assert !encoding.jcoding.isSingleByte() : "Should be checked by callers";
+        assert !encoding.isSingleByte : "Should be checked by callers";
 
         final Region regs = matchData.region;
         int numRegs = regs.numRegs;

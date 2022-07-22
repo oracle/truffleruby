@@ -119,7 +119,7 @@ public class ClassicRegexp implements ReOptions {
         this.context = context;
         this.options = originalOptions;
 
-        if (strEnc.encoding.jcoding.isDummy()) {
+        if (strEnc.encoding.isDummy) {
             throw new UnsupportedOperationException("can't make regexp with dummy encoding");
         }
 
@@ -318,7 +318,7 @@ public class ClassicRegexp implements ReOptions {
             }
             if (enc[0] == null) {
                 enc[0] = Encodings.UTF_8;
-            } else if (!(enc[0].jcoding.isUTF8())) {
+            } else if (enc[0] != Encodings.UTF_8) {
                 raisePreprocessError("UTF-8 character in non UTF-8 regexp", mode);
             }
         }
@@ -553,7 +553,7 @@ public class ClassicRegexp implements ReOptions {
             RegexpSupport.ErrorMode mode) throws DeferredRaiseException {
         TStringBuilder to = TStringBuilder.create(str.byteLength());
 
-        if (enc.jcoding.isAsciiCompatible()) {
+        if (enc.isAsciiCompatible) {
             fixedEnc[0] = null;
         } else {
             fixedEnc[0] = enc;
@@ -572,7 +572,7 @@ public class ClassicRegexp implements ReOptions {
 
     private static void preprocessLight(TStringWithEncoding str, RubyEncoding enc, RubyEncoding[] fixedEnc)
             throws DeferredRaiseException {
-        if (enc.jcoding.isAsciiCompatible()) {
+        if (enc.isAsciiCompatible) {
             fixedEnc[0] = null;
         } else {
             fixedEnc[0] = enc;

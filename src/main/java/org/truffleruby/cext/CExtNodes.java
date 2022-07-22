@@ -651,7 +651,6 @@ public class CExtNodes {
             var tstring = strings.getTString(string);
             var encoding = strings.getEncoding(string);
             var tencoding = encoding.tencoding;
-            final Encoding enc = encoding.jcoding;
 
             final int r = byteLengthOfCodePointNode.execute(tstring, 0, tencoding, ErrorHandling.RETURN_NEGATIVE);
 

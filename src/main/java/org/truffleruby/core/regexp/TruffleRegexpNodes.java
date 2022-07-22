@@ -185,14 +185,14 @@ public class TruffleRegexpNodes {
                 asciiOnlyProfile.enter();
 
                 return Encodings.US_ASCII;
-            } else if (!matchStringEncoding.jcoding.isAsciiCompatible()) {
+            } else if (!matchStringEncoding.isAsciiCompatible) {
                 asciiIncompatibleMatchStringEncodingProfile.enter();
 
                 return raiseEncodingCompatibilityError(regexp, matchStringEncoding);
             } else if (regexp.options.isFixed()) {
                 fixedRegexpEncodingProfile.enter();
 
-                if (!regexpEncoding.jcoding.isAsciiCompatible() || matchStringCodeRange != ASCII) {
+                if (!regexpEncoding.isAsciiCompatible || matchStringCodeRange != ASCII) {
                     asciiIncompatibleFixedRegexpEncodingProfile.enter();
 
                     return raiseEncodingCompatibilityError(regexp, matchStringEncoding);

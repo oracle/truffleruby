@@ -72,7 +72,7 @@ public abstract class StringHelperNodes {
             if (asciiOnlyProfile.profile(StringGuards.is7Bit(string, encoding, getByteCodeRangeNode))) {
                 return true;
             } else {
-                return encoding.jcoding.isSingleByte();
+                return encoding.isSingleByte;
             }
         }
     }

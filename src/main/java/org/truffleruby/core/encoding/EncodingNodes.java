@@ -15,10 +15,7 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
-import org.jcodings.Encoding;
 import org.jcodings.EncodingDB;
-import org.jcodings.specific.USASCIIEncoding;
-import org.jcodings.unicode.UnicodeEncoding;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -60,7 +57,7 @@ public abstract class EncodingNodes {
     public abstract static class AsciiCompatibleNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected boolean isAsciiCompatible(RubyEncoding encoding) {
-            return encoding.jcoding.isAsciiCompatible();
+            return encoding.isAsciiCompatible;
         }
     }
 
@@ -170,20 +167,17 @@ public abstract class EncodingNodes {
             // MRI: enc_compatible_latter
             assert firstEncoding != secondEncoding : "this method assumes the encodings are different";
 
-            final Encoding firstJCoding = firstEncoding.jcoding;
-            final Encoding secondJCoding = secondEncoding.jcoding;
-
             if (secondRope.isEmpty()) {
                 return firstEncoding;
             }
             if (firstRope.isEmpty()) {
-                return (firstJCoding.isAsciiCompatible() &&
+                return (firstEncoding.isAsciiCompatible &&
                         StringGuards.is7Bit(secondRope, secondEncoding, getCodeRangeNode()))
                                 ? firstEncoding
                                 : secondEncoding;
             }
 
-            if (!firstJCoding.isAsciiCompatible() || !secondJCoding.isAsciiCompatible()) {
+            if (!firstEncoding.isAsciiCompatible || !secondEncoding.isAsciiCompatible) {
                 return null;
             }
 
@@ -302,11 +296,11 @@ public abstract class EncodingNodes {
                 return null;
             }
 
-            if (!firstEncoding.jcoding.isAsciiCompatible() || !secondEncoding.jcoding.isAsciiCompatible()) {
+            if (!firstEncoding.isAsciiCompatible || !secondEncoding.isAsciiCompatible) {
                 return null;
             }
 
-            if (secondEncoding.jcoding == USASCIIEncoding.INSTANCE) {
+            if (secondEncoding == Encodings.US_ASCII) {
                 return firstEncoding;
             }
 
@@ -366,14 +360,14 @@ public abstract class EncodingNodes {
                 return null;
             }
 
-            if (!enc1.jcoding.isAsciiCompatible() || !enc2.jcoding.isAsciiCompatible()) {
+            if (!enc1.isAsciiCompatible || !enc2.isAsciiCompatible) {
                 return null;
             }
 
-            if (enc2.jcoding == USASCIIEncoding.INSTANCE) {
+            if (enc2 == Encodings.US_ASCII) {
                 return enc1;
             }
-            if (enc1.jcoding == USASCIIEncoding.INSTANCE) {
+            if (enc1 == Encodings.US_ASCII) {
                 return enc2;
             }
 
@@ -472,7 +466,7 @@ public abstract class EncodingNodes {
     public abstract static class DummyNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected boolean isDummy(RubyEncoding encoding) {
-            return encoding.jcoding.isDummy();
+            return encoding.isDummy;
         }
     }
 
@@ -521,7 +515,7 @@ public abstract class EncodingNodes {
     public abstract static class IsUnicodeNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         protected boolean isUnicode(RubyEncoding encoding) {
-            return encoding.jcoding.isUnicode();
+            return encoding.isUnicode;
         }
     }
 
@@ -546,16 +540,16 @@ public abstract class EncodingNodes {
 
         public abstract RubyEncoding execute(AbstractTruffleString tstring, RubyEncoding encoding);
 
-        @Specialization(guards = "!encoding.jcoding.isDummy()")
+        @Specialization(guards = "!encoding.isDummy")
         protected RubyEncoding getActualEncoding(AbstractTruffleString tstring, RubyEncoding encoding) {
             return encoding;
         }
 
         @TruffleBoundary
-        @Specialization(guards = "encoding.jcoding.isDummy()")
+        @Specialization(guards = "encoding.isDummy")
         protected RubyEncoding getActualEncodingDummy(AbstractTruffleString tstring, RubyEncoding encoding,
                 @Cached TruffleString.ReadByteNode readByteNode) {
-            if (encoding.jcoding instanceof UnicodeEncoding) {
+            if (encoding.isUnicode) {
                 var enc = encoding.tencoding;
                 var byteLength = tstring.byteLength(enc);
 

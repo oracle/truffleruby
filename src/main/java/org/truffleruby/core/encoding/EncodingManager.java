@@ -27,7 +27,6 @@ import org.graalvm.nativeimage.ProcessProperties;
 import org.jcodings.Encoding;
 import org.jcodings.EncodingDB;
 import org.jcodings.specific.ASCIIEncoding;
-import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
@@ -168,7 +167,7 @@ public class EncodingManager {
             rubyEncoding = Encodings.US_ASCII;
         }
 
-        if (context.getOptions().WARN_LOCALE && rubyEncoding.jcoding == USASCIIEncoding.INSTANCE) {
+        if (context.getOptions().WARN_LOCALE && rubyEncoding == Encodings.US_ASCII) {
             if ("C".equals(System.getenv("LANG")) && "C".equals(System.getenv("LC_ALL"))) {
                 // The parent process seems to explicitly want a C locale (e.g. EnvUtil#invoke_ruby in the MRI test harness), so only warn at config level in this case.
                 RubyLanguage.LOGGER.config(
@@ -238,7 +237,7 @@ public class EncodingManager {
         assert ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] == null;
         ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] = rubyEncoding;
 
-        addToLookup(rubyEncoding.jcoding.toString(), rubyEncoding);
+        addToLookup(rubyEncoding.toString(), rubyEncoding);
         return rubyEncoding;
 
     }

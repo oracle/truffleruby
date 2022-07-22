@@ -131,7 +131,7 @@ abstract class TStringWithEncodingBase {
 
     public boolean isSingleByteOptimizable() {
         CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
-        return isAsciiOnly() || encoding.jcoding.isSingleByte();
+        return isAsciiOnly() || encoding.isSingleByte;
     }
 
     public byte[] getBytesCopy() {

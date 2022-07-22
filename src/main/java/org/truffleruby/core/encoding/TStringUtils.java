@@ -126,8 +126,7 @@ public class TStringUtils {
 
     public static boolean isSingleByteOptimizable(AbstractTruffleString truffleString, RubyEncoding encoding) {
         CompilerAsserts.neverPartOfCompilation("Use SingleByteOptimizableNode instead");
-        return truffleString.getByteCodeRangeUncached(encoding.tencoding) == ASCII ||
-                encoding.jcoding.isSingleByte();
+        return truffleString.getByteCodeRangeUncached(encoding.tencoding) == ASCII || encoding.isSingleByte;
     }
 
     public static String toJavaStringOrThrow(AbstractTruffleString tstring, RubyEncoding encoding) {

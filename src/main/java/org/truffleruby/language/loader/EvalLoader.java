@@ -35,7 +35,7 @@ public abstract class EvalLoader {
         var sourceTString = createEvalRope(code);
         var sourceEncoding = sourceTString.encoding;
 
-        if (!sourceEncoding.jcoding.isAsciiCompatible()) {
+        if (!sourceEncoding.isAsciiCompatible) {
             throw new RaiseException(context, context.getCoreExceptions()
                     .argumentError(sourceEncoding + " is not ASCII compatible", currentNode));
         }

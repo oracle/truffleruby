@@ -57,11 +57,11 @@ public class StringGuards {
     }
 
     public static boolean isAsciiCompatible(RubyEncoding encoding) {
-        return encoding.jcoding.isAsciiCompatible();
+        return encoding.isAsciiCompatible;
     }
 
     public static boolean isFixedWidthEncoding(RubyEncoding encoding) {
-        return encoding.jcoding.isFixedWidth();
+        return encoding.isFixedWidth;
     }
 
     public static boolean isEmpty(AbstractTruffleString string) {

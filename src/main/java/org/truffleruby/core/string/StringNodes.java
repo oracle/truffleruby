@@ -857,8 +857,7 @@ public abstract class StringNodes {
                 return 0;
             }
 
-            return StringSupport.multiByteCasecmp(encoding.jcoding, selfTString, selfEncoding,
-                    otherTString, otherEncoding);
+            return StringSupport.multiByteCasecmp(encoding, selfTString, selfEncoding, otherTString, otherEncoding);
         }
 
         protected boolean bothSingleByteOptimizable(AbstractTruffleString string, AbstractTruffleString other,
@@ -1080,7 +1079,7 @@ public abstract class StringNodes {
                 @Cached("createUpperToLower()") StringHelperNodes.InvertAsciiCaseNode invertAsciiCaseNode,
                 @Bind("string.tstring") AbstractTruffleString tstring,
                 @Bind("libString.getEncoding(string)") RubyEncoding encoding) {
-            if (dummyEncodingProfile.profile(encoding.jcoding.isDummy())) {
+            if (dummyEncodingProfile.profile(encoding.isDummy)) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
@@ -1099,7 +1098,7 @@ public abstract class StringNodes {
                 @Cached ConditionProfile modifiedProfile,
                 @Bind("string.tstring") AbstractTruffleString tstring,
                 @Bind("libString.getEncoding(string)") RubyEncoding encoding) {
-            if (dummyEncodingProfile.profile(encoding.jcoding.isDummy())) {
+            if (dummyEncodingProfile.profile(encoding.isDummy)) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
@@ -2010,7 +2009,7 @@ public abstract class StringNodes {
                 @Cached("createSwapCase()") StringHelperNodes.InvertAsciiCaseNode invertAsciiCaseNode,
                 @Bind("string.tstring") AbstractTruffleString tstring,
                 @Bind("libString.getEncoding(string)") RubyEncoding encoding) {
-            if (dummyEncodingProfile.profile(encoding.jcoding.isDummy())) {
+            if (dummyEncodingProfile.profile(encoding.isDummy)) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
@@ -2030,7 +2029,7 @@ public abstract class StringNodes {
                 @Bind("string.tstring") AbstractTruffleString tstring,
                 @Bind("libString.getEncoding(string)") RubyEncoding encoding) {
             // Taken from org.jruby.RubyString#swapcase_bang19.
-            if (dummyEncodingProfile.profile(encoding.jcoding.isDummy())) {
+            if (dummyEncodingProfile.profile(encoding.isDummy)) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
@@ -2895,7 +2894,7 @@ public abstract class StringNodes {
                 @Cached("createLowerToUpper()") StringHelperNodes.InvertAsciiCaseNode invertAsciiCaseNode,
                 @Bind("string.tstring") AbstractTruffleString tstring,
                 @Bind("libString.getEncoding(string)") RubyEncoding encoding) {
-            if (dummyEncodingProfile.profile(encoding.jcoding.isDummy())) {
+            if (dummyEncodingProfile.profile(encoding.isDummy)) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
@@ -2916,7 +2915,7 @@ public abstract class StringNodes {
                 @Bind("libString.getEncoding(string)") RubyEncoding encoding) {
             var tencoding = encoding.tencoding;
 
-            if (dummyEncodingProfile.profile(encoding.jcoding.isDummy())) {
+            if (dummyEncodingProfile.profile(encoding.isDummy)) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
@@ -2981,7 +2980,7 @@ public abstract class StringNodes {
                 return nil;
             }
 
-            if (dummyEncodingProfile.profile(encoding.jcoding.isDummy())) {
+            if (dummyEncodingProfile.profile(encoding.isDummy)) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
@@ -3015,7 +3014,7 @@ public abstract class StringNodes {
                 @Bind("string.tstring") AbstractTruffleString tstring,
                 @Bind("libString.getEncoding(string)") RubyEncoding encoding) {
 
-            if (dummyEncodingProfile.profile(encoding.jcoding.isDummy())) {
+            if (dummyEncodingProfile.profile(encoding.isDummy)) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
@@ -3089,7 +3088,7 @@ public abstract class StringNodes {
             assert codepoint >= 0;
 
             if (asciiPrintableProfile
-                    .profile(encoding.jcoding.isAsciiCompatible() && StringSupport.isAscii(codepoint))) {
+                    .profile(encoding.isAsciiCompatible && StringSupport.isAscii(codepoint))) {
                 return StringSupport.isAsciiPrintable(codepoint);
             } else {
                 return isMBCPrintable(encoding.jcoding, codepoint);
@@ -3430,15 +3429,13 @@ public abstract class StringNodes {
 
         // MRI: rb_str_escape
         @TruffleBoundary
-        private static TruffleString rbStrEscape(AbstractTruffleString tstring, RubyEncoding rubyEncoding,
+        private static TruffleString rbStrEscape(AbstractTruffleString tstring, RubyEncoding encoding,
                 InternalByteArray byteArray) {
-            final Encoding enc = rubyEncoding.jcoding;
-            var tencoding = rubyEncoding.tencoding;
-            var str = new ATStringWithEncoding(tstring, rubyEncoding);
+            var tencoding = encoding.tencoding;
 
             TStringBuilder result = new TStringBuilder();
-            boolean unicode_p = enc.isUnicode();
-            boolean asciicompat = enc.isAsciiCompatible();
+            boolean unicode_p = encoding.isUnicode;
+            boolean asciicompat = encoding.isAsciiCompatible;
             var iterator = CreateCodePointIteratorNode.getUncached().execute(tstring, tencoding,
                     ErrorHandling.RETURN_NEGATIVE);
 
@@ -3651,9 +3648,7 @@ public abstract class StringNodes {
         }
 
         protected boolean isSimple(int codepoint, RubyEncoding encoding) {
-            final Encoding enc = encoding.jcoding;
-
-            return (enc.isAsciiCompatible() && codepoint >= 0x00 && codepoint < 0x80) ||
+            return (encoding.isAsciiCompatible && codepoint >= 0x00 && codepoint < 0x80) ||
                     (encoding == Encodings.BINARY && codepoint >= 0x00 && codepoint <= 0xFF);
         }
     }
@@ -4125,7 +4120,7 @@ public abstract class StringNodes {
             var tenc = enc.tencoding;
             var len = tstring.byteLength(tenc);
 
-            if (notEmptyProfile.profile(enc.jcoding.isAsciiCompatible() && len >= 1)) {
+            if (notEmptyProfile.profile(enc.isAsciiCompatible && len >= 1)) {
                 int first = codePointNode.execute(tstring, 0, tenc, ErrorHandling.RETURN_NEGATIVE);
                 int second;
                 if ((first >= '1' && first <= '9') || (len >= 2 && (first == '-' || first == '+') &&

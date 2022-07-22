@@ -45,7 +45,7 @@ public class PrintfCompiler {
         return new FormatRootNode(
                 language,
                 currentNode.getEncapsulatingSourceSection(),
-                FormatEncoding.find(encoding.jcoding, currentNode),
+                FormatEncoding.find(encoding, currentNode),
                 builder.getNode()).getCallTarget();
     }
 
