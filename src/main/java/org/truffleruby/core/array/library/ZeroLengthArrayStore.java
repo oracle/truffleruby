@@ -46,33 +46,6 @@ public class ZeroLengthArrayStore {
     }
 
     @ExportMessage
-    static class IsSameStorage {
-
-        @Specialization
-        protected static boolean sameZeroLength(ZeroLengthArrayStore store, ZeroLengthArrayStore other) {
-            return true;
-        }
-
-        @Specialization
-        protected static boolean sameDelegated(ZeroLengthArrayStore store, DelegatedArrayStorage other,
-                @CachedLibrary(limit = "1") ArrayStoreLibrary others) {
-            return others.isSameStorage(other, store);
-        }
-
-        @Specialization
-        protected static boolean sameShared(ZeroLengthArrayStore store, SharedArrayStorage other,
-                @CachedLibrary(limit = "1") ArrayStoreLibrary others) {
-            return others.isSameStorage(other, store);
-        }
-
-        @Fallback
-        protected static boolean sameShared(ZeroLengthArrayStore store, Object other) {
-            return false;
-        }
-
-    }
-
-    @ExportMessage
     protected static String toString(ZeroLengthArrayStore store) {
         return "empty";
     }

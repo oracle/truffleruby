@@ -91,33 +91,6 @@ public class LongArrayStore {
     }
 
     @ExportMessage
-    static class IsSameStorage {
-
-        @Specialization
-        protected static boolean sameLongStore(long[] store, long[] other) {
-            return store == other;
-        }
-
-        @Specialization
-        protected static boolean sameDelegated(long[] store, DelegatedArrayStorage other,
-                @CachedLibrary(limit = "1") ArrayStoreLibrary others) {
-            return others.isSameStorage(other, store);
-        }
-
-        @Specialization
-        protected static boolean sameShared(long[] store, SharedArrayStorage other,
-                @CachedLibrary(limit = "1") ArrayStoreLibrary others) {
-            return others.isSameStorage(other, store);
-        }
-
-        @Fallback
-        protected static boolean sameShared(long[] store, Object other) {
-            return false;
-        }
-
-    }
-
-    @ExportMessage
     protected static String toString(long[] store) {
         return "long[]";
     }

@@ -15,7 +15,6 @@ import java.util.NoSuchElementException;
 
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.core.array.ArrayGuards;
@@ -53,33 +52,6 @@ public class ObjectArrayStore {
     @ExportMessage
     protected static boolean isMutable(Object[] store) {
         return true;
-    }
-
-    @ExportMessage
-    static class IsSameStorage {
-
-        @Specialization
-        protected static boolean sameObjectStore(Object[] store, Object[] other) {
-            return store == other;
-        }
-
-        @Specialization
-        protected static boolean sameDelegated(Object[] store, DelegatedArrayStorage other,
-                @CachedLibrary(limit = "1") ArrayStoreLibrary others) {
-            return others.isSameStorage(other, store);
-        }
-
-        @Specialization
-        protected static boolean sameShared(Object[] store, SharedArrayStorage other,
-                @CachedLibrary(limit = "1") ArrayStoreLibrary others) {
-            return others.isSameStorage(other, store);
-        }
-
-        @Fallback
-        protected static boolean sameShared(Object[] store, Object other) {
-            return false;
-        }
-
     }
 
     @ExportMessage

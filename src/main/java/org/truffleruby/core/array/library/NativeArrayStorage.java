@@ -31,7 +31,6 @@ import org.truffleruby.language.objects.ObjectGraphNode;
 import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -81,33 +80,6 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     @ExportMessage
     protected boolean isNative() {
         return true;
-    }
-
-    @ExportMessage
-    static class IsSameStorage {
-
-        @Specialization
-        protected static boolean sameNativeStore(NativeArrayStorage store, NativeArrayStorage other) {
-            return store == other;
-        }
-
-        @Specialization
-        protected static boolean sameDelegated(NativeArrayStorage store, DelegatedArrayStorage other,
-                @CachedLibrary(limit = "1") ArrayStoreLibrary others) {
-            return others.isSameStorage(other, store);
-        }
-
-        @Specialization
-        protected static boolean sameShared(NativeArrayStorage store, SharedArrayStorage other,
-                @CachedLibrary(limit = "1") ArrayStoreLibrary others) {
-            return others.isSameStorage(other, store);
-        }
-
-        @Fallback
-        protected static boolean sameShared(NativeArrayStorage store, Object other) {
-            return false;
-        }
-
     }
 
     @ExportMessage

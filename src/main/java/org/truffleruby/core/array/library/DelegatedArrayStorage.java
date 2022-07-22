@@ -14,7 +14,6 @@ import java.util.Set;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
@@ -25,7 +24,6 @@ import org.truffleruby.language.objects.ObjectGraphNode;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
@@ -55,30 +53,6 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     protected boolean isPrimitive(
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
         return stores.isPrimitive(storage);
-    }
-
-    @ExportMessage
-    @ImportStatic(ArrayGuards.class)
-    static class IsSameStorage {
-
-        @Specialization
-        protected static boolean sameDelegated(DelegatedArrayStorage store, DelegatedArrayStorage other,
-                @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
-            return store.offset == other.offset && stores.isSameStorage(store.storage, other.storage);
-        }
-
-        @Specialization
-        protected static boolean sameShared(DelegatedArrayStorage store, SharedArrayStorage other,
-                @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
-            return stores.isSameStorage(other.storage, store);
-        }
-
-        @Fallback
-        protected static boolean sameOther(DelegatedArrayStorage store, Object other,
-                @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
-            return store.offset == 0 && stores.isSameStorage(store.storage, other);
-        }
-
     }
 
     @ExportMessage

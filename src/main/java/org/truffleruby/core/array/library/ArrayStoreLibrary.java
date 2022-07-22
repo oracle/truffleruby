@@ -115,9 +115,6 @@ public abstract class ArrayStoreLibrary extends Library {
         return INITIAL_STORE;
     }
 
-    /** Return whether {@code store} and {@code other} share the same underlying array storage. */
-    public abstract boolean isSameStorage(Object store, Object other);
-
     /** Return the underlying storage used by this array, which may be behind multiple wrappers. Stores which wrap some
      * array store should always recursively unwrap that store using this same library call. */
     public Object backingStore(Object store) {
@@ -203,7 +200,8 @@ public abstract class ArrayStoreLibrary extends Library {
      * {@code newStore}. */
     public abstract ArrayAllocator generalizeForStore(Object store, Object newStore);
 
-    /** Return an allocator that can accept all the values of {@code store} and will propagate sharing. */
+    /** Return an allocator that can accept all the values of {@code store} and will share values stored in storage
+     * created by it. */
     public abstract ArrayAllocator generalizeForSharing(Object store);
 
     /** Return a new store of length {@code length} that can accept all the values of {@code store} and {@code newValue}

@@ -86,33 +86,6 @@ public class DoubleArrayStore {
     }
 
     @ExportMessage
-    static class IsSameStorage {
-
-        @Specialization
-        protected static boolean sameDoubleStore(double[] store, double[] other) {
-            return store == other;
-        }
-
-        @Specialization
-        protected static boolean sameDelegated(double[] store, DelegatedArrayStorage other,
-                @CachedLibrary(limit = "1") ArrayStoreLibrary others) {
-            return others.isSameStorage(other, store);
-        }
-
-        @Specialization
-        protected static boolean sameShared(double[] store, SharedArrayStorage other,
-                @CachedLibrary(limit = "1") ArrayStoreLibrary others) {
-            return others.isSameStorage(other, store);
-        }
-
-        @Fallback
-        protected static boolean sameShared(double[] store, Object other) {
-            return false;
-        }
-
-    }
-
-    @ExportMessage
     protected static String toString(double[] store) {
         return "double[]";
     }
