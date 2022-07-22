@@ -43,7 +43,7 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
             guards = { "stores.acceptsValue(store, value)" },
             limit = "storageStrategyLimit()")
     protected RubyArray appendOneSameType(RubyArray array, Object value,
-            @Bind("array.store") Object store,
+            @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {
         final int oldSize = array.size;
@@ -65,10 +65,10 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
     // Append forcing a generalization
 
     @Specialization(
-            guards = "!currentStores.acceptsValue(array.store, value)",
+            guards = "!currentStores.acceptsValue(array.getStore(), value)",
             limit = "storageStrategyLimit()")
     protected RubyArray appendOneGeneralizeNonMutable(RubyArray array, Object value,
-            @Bind("array.store") Object currentStore,
+            @Bind("array.getStore()") Object currentStore,
             @CachedLibrary("currentStore") ArrayStoreLibrary currentStores,
             @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary newStores) {
         final int oldSize = array.size;

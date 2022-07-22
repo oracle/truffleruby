@@ -21,7 +21,7 @@ public class ArrayGuards {
     // Storage strategies
 
     public static boolean isObjectArray(RubyArray array) {
-        final Object store = array.store;
+        final Object store = array.getStore();
         return store.getClass() == Object[].class;
     }
 

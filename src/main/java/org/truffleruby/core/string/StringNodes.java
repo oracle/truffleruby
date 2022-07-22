@@ -845,7 +845,7 @@ public abstract class StringNodes {
                 variables.setLastMatch(nil, getContext(), unsetProfile, sameThreadProfile);
                 return nil;
             } else {
-                final Object[] array = (Object[]) ((RubyArray) matchStrPair).store;
+                final Object[] array = (Object[]) ((RubyArray) matchStrPair).getStore();
                 final Object matchData = array[0];
                 final Object captureStringOrNil = array[1];
                 variables.setLastMatch(matchData, getContext(), unsetProfile, sameThreadProfile);

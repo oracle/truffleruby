@@ -49,14 +49,14 @@ public abstract class ArrayPrepareForCopyNode extends RubyBaseNode {
             guards = "start > dst.size",
             limit = "storageStrategyLimit()")
     protected Object nilPad(RubyArray dst, RubyArray src, int start, int length,
-            @Bind("dst.store") Object dstStore,
+            @Bind("dst.getStore()") Object dstStore,
             @CachedLibrary("dstStore") ArrayStoreLibrary dstStores) {
 
         final int oldSize = dst.size;
         final Object[] newStore = new Object[ArrayUtils.capacity(getLanguage(), oldSize, start + length)];
         dstStores.copyContents(dstStore, 0, newStore, 0, oldSize); // copy the original store
         Arrays.fill(newStore, oldSize, start, nil); // nil-pad the new empty part
-        dst.store = newStore;
+        dst.setStore(newStore);
         dst.size = start + length;
         return newStore;
     }
@@ -65,8 +65,8 @@ public abstract class ArrayPrepareForCopyNode extends RubyBaseNode {
             guards = { "length > 0", "start <= dst.size", "compatible(dstStores, dstStore, srcStore)" },
             limit = "storageStrategyLimit()")
     protected Object resizeCompatible(RubyArray dst, RubyArray src, int start, int length,
-            @Bind("dst.store") Object dstStore,
-            @Bind("src.store") Object srcStore,
+            @Bind("dst.getStore()") Object dstStore,
+            @Bind("src.getStore()") Object srcStore,
             @Cached ArrayEnsureCapacityNode ensureCapacityNode,
             @CachedLibrary("dstStore") ArrayStoreLibrary dstStores) {
 
@@ -82,8 +82,8 @@ public abstract class ArrayPrepareForCopyNode extends RubyBaseNode {
             guards = { "length > 0", "start <= dst.size", "!compatible(dstStores, dstStore, srcStore)" },
             limit = "storageStrategyLimit()")
     protected Object resizeGeneralize(RubyArray dst, RubyArray src, int start, int length,
-            @Bind("dst.store") Object dstStore,
-            @Bind("src.store") Object srcStore,
+            @Bind("dst.getStore()") Object dstStore,
+            @Bind("src.getStore()") Object srcStore,
             @CachedLibrary("dstStore") ArrayStoreLibrary dstStores) {
 
         final int oldDstSize = dst.size;
@@ -97,7 +97,7 @@ public abstract class ArrayPrepareForCopyNode extends RubyBaseNode {
         //  It's not clear that even in that case much would be gained by splitting the copy in two parts, unless
         //  `length` is truly big.
         dstStores.copyContents(dstStore, 0, newDstStore, 0, oldDstSize);
-        dst.store = newDstStore;
+        dst.setStore(newDstStore);
         if (newDstSize > oldDstSize) {
             dst.size = newDstSize;
         }

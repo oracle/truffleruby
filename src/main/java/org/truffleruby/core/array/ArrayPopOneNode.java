@@ -35,7 +35,7 @@ public abstract class ArrayPopOneNode extends RubyBaseNode {
 
     @Specialization(guards = "!isEmptyArray(array)", limit = "storageStrategyLimit()")
     protected Object popOne(RubyArray array,
-            @Bind("array.store") Object store,
+            @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores) {
         final int size = array.size;
         final Object value = stores.read(store, size - 1);

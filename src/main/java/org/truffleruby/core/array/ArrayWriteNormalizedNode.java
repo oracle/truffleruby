@@ -36,7 +36,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
             guards = { "isInBounds(array, index)", "stores.acceptsValue(store, value)" },
             limit = "storageStrategyLimit()")
     protected Object writeWithin(RubyArray array, int index, Object value,
-            @Bind("array.store") Object store,
+            @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores) {
         stores.write(store, index, value);
         return value;
@@ -51,14 +51,14 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
             },
             limit = "storageStrategyLimit()")
     protected Object writeWithinGeneralizeNonMutable(RubyArray array, int index, Object value,
-            @Bind("array.store") Object store,
+            @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores,
             @CachedLibrary(limit = "1") ArrayStoreLibrary newStores) {
         final int size = array.size;
         final Object newStore = stores.allocateForNewValue(store, value, size);
         stores.copyContents(store, 0, newStore, 0, size);
         newStores.write(newStore, index, value);
-        array.store = newStore;
+        array.setStore(newStore);
         return value;
     }
 
@@ -79,7 +79,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
                     "stores.isPrimitive(store)" },
             limit = "storageStrategyLimit()")
     protected Object writeBeyondPrimitive(RubyArray array, int index, Object value,
-            @Bind("array.store") Object store,
+            @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores,
             @CachedLibrary(limit = "1") ArrayStoreLibrary newStores,
             @Cached LoopConditionProfile loopProfile) {
@@ -108,7 +108,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
                     "!stores.isPrimitive(store)" },
             limit = "storageStrategyLimit()")
     protected Object writeBeyondObject(RubyArray array, int index, Object value,
-            @Bind("array.store") Object store,
+            @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores,
             @CachedLibrary(limit = "1") ArrayStoreLibrary newStores,
             @Cached ArrayEnsureCapacityNode ensureCapacityNode,

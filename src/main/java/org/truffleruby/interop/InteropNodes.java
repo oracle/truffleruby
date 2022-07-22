@@ -1685,11 +1685,11 @@ public abstract class InteropNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class InteropToJavaArrayNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "stores.accepts(array.store)")
+        @Specialization(guards = "stores.accepts(array.getStore())")
         protected Object toJavaArray(RubyArray array,
                 @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
             return getContext().getEnv().asGuestValue(stores.toJavaArrayCopy(
-                    array.store,
+                    array.getStore(),
                     array.size));
         }
 
@@ -1704,11 +1704,11 @@ public abstract class InteropNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class InteropToJavaListNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "stores.accepts(array.store)")
+        @Specialization(guards = "stores.accepts(array.getStore())")
         protected Object toJavaList(RubyArray array,
                 @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
             int size = array.size;
-            Object[] copy = stores.boxedCopyOfRange(array.store, 0, size);
+            Object[] copy = stores.boxedCopyOfRange(array.getStore(), 0, size);
             return getContext().getEnv().asGuestValue(ArrayUtils.asList(copy));
         }
 

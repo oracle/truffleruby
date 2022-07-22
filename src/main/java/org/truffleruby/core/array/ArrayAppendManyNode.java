@@ -37,11 +37,11 @@ public abstract class ArrayAppendManyNode extends RubyBaseNode {
     }
 
     @Specialization(
-            guards = { "!isEmptyArray(other)", "stores.acceptsAllValues(array.store, other.store)" },
+            guards = { "!isEmptyArray(other)", "stores.acceptsAllValues(array.getStore(), other.getStore())" },
             limit = "storageStrategyLimit()")
     protected RubyArray appendManySameType(RubyArray array, RubyArray other,
-            @Bind("array.store") Object store,
-            @Bind("other.store") Object otherStore,
+            @Bind("array.getStore()") Object store,
+            @Bind("other.getStore()") Object otherStore,
             @CachedLibrary("store") ArrayStoreLibrary stores,
             @CachedLibrary("otherStore") ArrayStoreLibrary otherStores,
             @Cached ConditionProfile extendProfile) {
@@ -65,11 +65,11 @@ public abstract class ArrayAppendManyNode extends RubyBaseNode {
     // Generalizations
 
     @Specialization(
-            guards = { "!isEmptyArray(other)", "!stores.acceptsAllValues(array.store, other.store)" },
+            guards = { "!isEmptyArray(other)", "!stores.acceptsAllValues(array.getStore(), other.getStore())" },
             limit = "storageStrategyLimit()")
     protected RubyArray appendManyGeneralize(RubyArray array, RubyArray other,
-            @Bind("array.store") Object store,
-            @Bind("other.store") Object otherStore,
+            @Bind("array.getStore()") Object store,
+            @Bind("other.getStore()") Object otherStore,
             @CachedLibrary("store") ArrayStoreLibrary stores,
             @CachedLibrary("otherStore") ArrayStoreLibrary otherStores) {
         final int oldSize = array.size;

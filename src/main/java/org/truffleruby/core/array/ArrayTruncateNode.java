@@ -33,7 +33,7 @@ public abstract class ArrayTruncateNode extends RubyBaseNode {
             guards = { "array.size > size", "stores.isMutable(store)" },
             limit = "storageStrategyLimit()")
     protected void truncate(RubyArray array, int size,
-            @Bind("array.store") Object store,
+            @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores) {
 
         final int oldSize = array.size;
@@ -45,7 +45,7 @@ public abstract class ArrayTruncateNode extends RubyBaseNode {
             guards = { "array.size > size", "!stores.isMutable(store)" },
             limit = "storageStrategyLimit()")
     protected void truncateCopy(RubyArray array, int size,
-            @Bind("array.store") Object store,
+            @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores) {
 
         final Object newStore = stores.allocateForNewStore(store, store, size);

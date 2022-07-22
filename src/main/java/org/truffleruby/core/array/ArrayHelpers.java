@@ -18,7 +18,7 @@ public abstract class ArrayHelpers {
 
     public static void setStoreAndSize(RubyArray array, Object store, int size) {
         assert (store instanceof SharedArrayStorage) == (array.getShape().isShared());
-        array.store = store;
+        array.setStore(store);
         setSize(array, size);
     }
 

@@ -256,7 +256,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
             final RubyArray array = cachedCreateArray(
                     storeSpecialisedFromObjects(executedValues),
                     executedValues.length);
-            final Object store = array.store;
+            final Object store = array.getStore();
 
             final RubyNode newNode;
 

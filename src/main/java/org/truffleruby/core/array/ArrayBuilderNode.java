@@ -250,11 +250,11 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         public abstract void executeAppend(BuilderState state, int index, RubyArray value);
 
         @Specialization(
-                guards = { "arrays.acceptsAllValues(state.store, other.store)" },
+                guards = { "arrays.acceptsAllValues(state.store, other.getStore())" },
                 limit = "storageStrategyLimit()")
         protected void appendCompatibleStrategy(BuilderState state, int index, RubyArray other,
                 @Bind("state.store") Object store,
-                @Bind("other.store") Object otherStore,
+                @Bind("other.getStore()") Object otherStore,
                 @CachedLibrary("store") ArrayStoreLibrary arrays,
                 @CachedLibrary("otherStore") ArrayStoreLibrary others) {
             assert state.nextIndex == index;
@@ -275,7 +275,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         }
 
         @Specialization(
-                guards = { "!arrayLibrary.acceptsAllValues(state.store, other.store)" },
+                guards = { "!arrayLibrary.acceptsAllValues(state.store, other.getStore())" },
                 limit = "1")
         protected void appendNewStrategy(BuilderState state, int index, RubyArray other,
                 @Bind("state.store") Object store,
@@ -298,13 +298,13 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
                 }
 
                 ArrayAllocator allocator = replaceNodes(
-                        newArrayLibrary.generalizeForStore(state.store, other.store),
+                        newArrayLibrary.generalizeForStore(state.store, other.getStore()),
                         neededCapacity);
                 newStore = allocator.allocate(neededCapacity);
 
                 newArrayLibrary.copyContents(state.store, 0, newStore, 0, index);
 
-                final Object otherStore = other.store;
+                final Object otherStore = other.getStore();
                 newArrayLibrary.copyContents(otherStore, 0, newStore, index, otherSize);
 
                 state.store = newStore;

@@ -30,7 +30,7 @@ public abstract class ArrayEnsureCapacityNode extends RubyBaseNode {
 
     @Specialization(guards = "!stores.isMutable(store)", limit = "storageStrategyLimit()")
     protected Object ensureCapacityAndMakeMutable(RubyArray array, int requiredCapacity,
-            @Bind("array.store") Object store,
+            @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {
         final int currentCapacity = stores.capacity(store);
@@ -43,20 +43,20 @@ public abstract class ArrayEnsureCapacityNode extends RubyBaseNode {
 
         final Object newStore = stores.allocator(store).allocate(capacity);
         stores.copyContents(store, 0, newStore, 0, currentCapacity);
-        array.store = newStore;
+        array.setStore(newStore);
         return newStore;
     }
 
     @Specialization(guards = "stores.isMutable(store)", limit = "storageStrategyLimit()")
     protected Object ensureCapacity(RubyArray array, int requiredCapacity,
-            @Bind("array.store") Object store,
+            @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {
         final int length = stores.capacity(store);
         if (extendProfile.profile(length < requiredCapacity)) {
             final int capacity = ArrayUtils.capacity(getLanguage(), length, requiredCapacity);
             Object newStore = stores.expand(store, capacity);
-            array.store = newStore;
+            array.setStore(newStore);
             return newStore;
         } else {
             return store;

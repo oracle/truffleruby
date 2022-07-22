@@ -15,6 +15,8 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.interop.StopIterationException;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
+
+import org.truffleruby.core.array.library.SharedArrayStorage;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
@@ -38,13 +40,22 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 @ExportLibrary(InteropLibrary.class)
 public final class RubyArray extends RubyDynamicObject implements ObjectGraphNode {
 
-    public Object store;
+    private Object store;
     public int size;
 
     public RubyArray(RubyClass rubyClass, Shape shape, Object store, int size) {
         super(rubyClass, shape);
         this.store = store;
         this.size = size;
+    }
+
+    public Object getStore() {
+        return store;
+    }
+
+    public void setStore(Object store) {
+        assert (store instanceof SharedArrayStorage) == (getShape().isShared());
+        this.store = store;
     }
 
     @TruffleBoundary

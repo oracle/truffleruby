@@ -303,8 +303,8 @@ public abstract class TypeNodes {
 
         @Specialization(
                 guards = {
-                        "stores.accepts(array.store)",
-                        "stores.isPrimitive(array.store)" })
+                        "stores.accepts(array.getStore())",
+                        "stores.isPrimitive(array.getStore())" })
         protected boolean primitiveArray(RubyArray array,
                 @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
             return false;
@@ -312,8 +312,8 @@ public abstract class TypeNodes {
 
         @Specialization(
                 guards = {
-                        "stores.accepts(array.store)",
-                        "!stores.isPrimitive(array.store)" })
+                        "stores.accepts(array.getStore())",
+                        "!stores.isPrimitive(array.getStore())" })
         protected boolean objectArray(RubyArray array,
                 @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
             return true;

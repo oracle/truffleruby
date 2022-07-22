@@ -18,7 +18,7 @@ public abstract class ArrayOperations {
 
     public static boolean isPrimitiveStorage(RubyArray array) {
         ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
-        Object store = stores.backingStore(array.store);
+        Object store = stores.backingStore(array.getStore());
         return stores.isPrimitive(store);
     }
 
@@ -38,19 +38,19 @@ public abstract class ArrayOperations {
         return ArrayStoreLibrary
                 .getFactory()
                 .getUncached()
-                .getIterable(array.store, 0, array.size);
+                .getIterable(array.getStore(), 0, array.size);
     }
 
     @TruffleBoundary
     private static Object getBackingStore(RubyArray array) {
         ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
-        return stores.backingStore(array.store);
+        return stores.backingStore(array.getStore());
     }
 
     @TruffleBoundary
     public static int getStoreCapacity(RubyArray array) {
         ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
-        return stores.capacity(array.store);
+        return stores.capacity(array.getStore());
     }
 
 }
