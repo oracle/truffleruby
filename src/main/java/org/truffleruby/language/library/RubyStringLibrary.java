@@ -52,6 +52,9 @@ public abstract class RubyStringLibrary {
     static final class Cached extends RubyStringLibrary {
 
         @CompilationFinal private boolean seenMutable, seenImmutable, seenOther;
+        @CompilationFinal private Object cachedEncoding;
+
+        private static final Object GENERIC = new Object();
 
         @Override
         public boolean seen(Object object) {
@@ -122,26 +125,46 @@ public abstract class RubyStringLibrary {
 
         @Override
         public RubyEncoding getEncoding(Object object) {
+            final RubyEncoding encoding;
             if (seenMutable && object instanceof RubyString) {
-                return ((RubyString) object).getEncodingUnprofiled();
+                encoding = ((RubyString) object).getEncodingUnprofiled();
             } else if (seenImmutable && object instanceof ImmutableRubyString) {
-                return ((ImmutableRubyString) object).getEncodingUnprofiled();
+                encoding = ((ImmutableRubyString) object).getEncodingUnprofiled();
+            } else {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                return specializeGetEncoding(object);
             }
 
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            return specializeGetEncoding(object);
+            var localCachedEncoding = this.cachedEncoding;
+            if (encoding == localCachedEncoding) {
+                return (RubyEncoding) localCachedEncoding;
+            } else if (localCachedEncoding == GENERIC) {
+                return encoding;
+            } else {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                return specializeGetEncoding(object);
+            }
         }
 
         private RubyEncoding specializeGetEncoding(Object object) {
+            final RubyEncoding encoding;
             if (object instanceof RubyString) {
                 seenMutable = true;
-                return ((RubyString) object).getEncodingUnprofiled();
+                encoding = ((RubyString) object).getEncodingUnprofiled();
             } else if (object instanceof ImmutableRubyString) {
                 seenImmutable = true;
-                return ((ImmutableRubyString) object).getEncodingUnprofiled();
+                encoding = ((ImmutableRubyString) object).getEncodingUnprofiled();
             } else {
                 throw CompilerDirectives.shouldNotReachHere();
             }
+
+            var localCachedEncoding = this.cachedEncoding;
+            if (localCachedEncoding == null) {
+                this.cachedEncoding = encoding;
+            } else if (encoding != localCachedEncoding) {
+                this.cachedEncoding = GENERIC;
+            }
+            return encoding;
         }
 
         @Override

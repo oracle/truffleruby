@@ -10,6 +10,8 @@ ABC_ROPE_1 = 'abc'
 ABC_ROPE_USASCII = 'abc'.force_encoding('us-ascii')
 ABC_ROPE_UTF8 = 'abc'.force_encoding('utf-8')
 
+example "'abc'.encoding", Encoding::UTF_8
+
 example "'abc'.length", 3
 example "'こにちわ'.length", 4
 
