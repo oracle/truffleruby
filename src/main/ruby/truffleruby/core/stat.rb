@@ -131,14 +131,14 @@ class File
     end
 
     def executable?
-      return true if superuser?
+      return mode & S_IXUGO != 0 if superuser?
       return mode & S_IXUSR != 0 if owned?
       return mode & S_IXGRP != 0 if grpowned?
       mode & S_IXOTH != 0
     end
 
     def executable_real?
-      return true if rsuperuser?
+      return mode & S_IXUGO != 0 if rsuperuser?
       return mode & S_IXUSR != 0 if rowned?
       return mode & S_IXGRP != 0 if rgrpowned?
       mode & S_IXOTH != 0
