@@ -42,6 +42,35 @@ public abstract class ArrayStoreLibrary extends Library {
         return FACTORY;
     }
 
+    public static Object initialStorage(boolean shared) {
+        if (shared) {
+            return SHARED_INITIAL_STORE;
+        } else {
+            return INITIAL_STORE;
+        }
+    }
+
+    public static ArrayAllocator initialAllocator(boolean shared) {
+        if (shared) {
+            return SHARED_INITIAL_ALLOCATOR;
+        } else {
+            return INITIAL_ALLOCATOR;
+        }
+    }
+
+    /** Return an allocator for storage that can hold {@code value}. */
+    public static ArrayAllocator allocatorForValue(Object value) {
+        if (value instanceof Integer) {
+            return IntegerArrayStore.INTEGER_ARRAY_ALLOCATOR;
+        } else if (value instanceof Long) {
+            return LongArrayStore.LONG_ARRAY_ALLOCATOR;
+        } else if (value instanceof Double) {
+            return DoubleArrayStore.DOUBLE_ARRAY_ALLOCATOR;
+        } else {
+            return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR;
+        }
+    }
+
     /** Read the value from {@code index} of {@code store}. */
     public abstract Object read(Object store, int index);
 
@@ -84,22 +113,6 @@ public abstract class ArrayStoreLibrary extends Library {
     /** Return an initial store with the appropriate sharing. */
     public Object initialStore(Object store) {
         return INITIAL_STORE;
-    }
-
-    public static Object initialStorage(boolean shared) {
-        if (shared) {
-            return SHARED_INITIAL_STORE;
-        } else {
-            return INITIAL_STORE;
-        }
-    }
-
-    public static ArrayAllocator initialAllocator(boolean shared) {
-        if (shared) {
-            return SHARED_INITIAL_ALLOCATOR;
-        } else {
-            return INITIAL_ALLOCATOR;
-        }
     }
 
     /** Return whether {@code store} and {@code other} share the same underlying array storage. */
@@ -217,19 +230,6 @@ public abstract class ArrayStoreLibrary extends Library {
 
     /** Return whether the {@code store}'s default value is {@code value}. */
     public abstract boolean isDefaultValue(Object store, Object value);
-
-    /** Return an allocator for storage that can hold {@code value}. */
-    public static ArrayAllocator allocatorForValue(Object value) {
-        if (value instanceof Integer) {
-            return IntegerArrayStore.INTEGER_ARRAY_ALLOCATOR;
-        } else if (value instanceof Long) {
-            return LongArrayStore.LONG_ARRAY_ALLOCATOR;
-        } else if (value instanceof Double) {
-            return DoubleArrayStore.DOUBLE_ARRAY_ALLOCATOR;
-        } else {
-            return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR;
-        }
-    }
 
     /** Class for allocating array stores and querying properties related to that. */
     public abstract static class ArrayAllocator {
