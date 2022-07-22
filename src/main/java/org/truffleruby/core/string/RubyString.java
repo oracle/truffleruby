@@ -70,6 +70,10 @@ public final class RubyString extends RubyDynamicObject {
         ((MutableTruffleString) tstring).notifyExternalMutation();
     }
 
+    public int byteLengthUncached() {
+        return tstring.byteLength(encoding.tencoding);
+    }
+
     /** should only be used for debugging */
     @Override
     public String toString() {
@@ -88,16 +92,6 @@ public final class RubyString extends RubyDynamicObject {
 
     // region RubyStringLibrary messages
     @ExportMessage
-    public RubyEncoding getEncoding() {
-        return encoding;
-    }
-
-    @ExportMessage
-    public TruffleString.Encoding getTEncoding() {
-        return encoding.tencoding;
-    }
-
-    @ExportMessage
     protected boolean isRubyString() {
         return true;
     }
@@ -108,8 +102,8 @@ public final class RubyString extends RubyDynamicObject {
     }
 
     @ExportMessage
-    public int byteLength() {
-        return tstring.byteLength(encoding.tencoding);
+    public RubyEncoding getEncoding() {
+        return encoding;
     }
     // endregion
 

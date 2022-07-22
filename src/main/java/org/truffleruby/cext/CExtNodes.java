@@ -731,14 +731,15 @@ public class CExtNodes {
 
         @Specialization
         protected RubyString strSetLen(RubyString string, int newByteLength,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @Cached StringToNativeNode stringToNativeNode,
                 @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode) {
             var pointer = stringToNativeNode.executeToNative(string);
 
             pointer.writeByte(newByteLength, (byte) 0); // Like MRI
 
-            var newNativeTString = fromNativePointerNode.execute(pointer, 0, newByteLength, string.getTEncoding(),
-                    false);
+            var newNativeTString = fromNativePointerNode.execute(pointer, 0, newByteLength,
+                    libString.getTEncoding(string), false);
             string.setTString(newNativeTString);
 
             return string;
@@ -750,10 +751,11 @@ public class CExtNodes {
 
         @Specialization
         protected RubyString rbStrResize(RubyString string, int newByteLength,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @Cached StringToNativeNode stringToNativeNode,
                 @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode) {
             var pointer = stringToNativeNode.executeToNative(string);
-            var tencoding = string.getTEncoding();
+            var tencoding = libString.getTEncoding(string);
             int byteLength = string.tstring.byteLength(tencoding);
 
             if (byteLength == newByteLength) {
@@ -778,10 +780,11 @@ public class CExtNodes {
 
         @Specialization
         protected RubyString trStrCapaResize(RubyString string, int newCapacity,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @Cached StringToNativeNode stringToNativeNode,
                 @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode) {
             var pointer = stringToNativeNode.executeToNative(string);
-            var tencoding = string.getTEncoding();
+            var tencoding = libString.getTEncoding(string);
 
             if (getNativeStringCapacity(pointer) == newCapacity) {
                 return string;

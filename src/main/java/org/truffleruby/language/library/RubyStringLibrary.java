@@ -18,7 +18,10 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.language.RubyBaseNode;
 
 /** It is important that all messages of this library can be trivially implemented without needing any @Cached state or
- * node. That way, the generated library classes are actually global immutable singletons. */
+ * node. That way, the generated library classes are actually global immutable singletons.
+ * <p>
+ * Implemented by {@link org.truffleruby.core.string.RubyString} and
+ * {@link org.truffleruby.core.string.ImmutableRubyString} */
 @GenerateLibrary
 public abstract class RubyStringLibrary extends Library {
 
@@ -40,8 +43,12 @@ public abstract class RubyStringLibrary extends Library {
 
     public abstract RubyEncoding getEncoding(Object object);
 
-    public abstract TruffleString.Encoding getTEncoding(Object object);
+    public TruffleString.Encoding getTEncoding(Object object) {
+        return getEncoding(object).tencoding;
+    }
 
-    public abstract int byteLength(Object object);
+    public int byteLength(Object object) {
+        return getTString(object).byteLength(getTEncoding(object));
+    }
 
 }

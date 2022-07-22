@@ -532,10 +532,11 @@ public abstract class StringHelperNodes {
 
         @Specialization
         protected Object invert(RubyString string,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @Cached TruffleString.CreateCodePointIteratorNode createCodePointIteratorNode,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached ConditionProfile noopProfile) {
-            var tencoding = string.getTEncoding();
+            var tencoding = libString.getTEncoding(string);
             var iterator = createCodePointIteratorNode.execute(string.tstring, tencoding,
                     ErrorHandling.RETURN_NEGATIVE);
             byte[] modified = invertNode.executeInvert(string, iterator, null);

@@ -11,6 +11,7 @@ package org.truffleruby.stdlib;
 
 import java.util.Set;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.Layouts;
@@ -28,6 +29,7 @@ import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.AllocationTracing.AllocationTrace;
 import org.truffleruby.language.objects.ObjectGraph;
@@ -53,13 +55,15 @@ public abstract class ObjSpaceNodes {
         }
 
         @Specialization
-        protected int memsizeOfString(RubyString object) {
-            return memsizeOfObject(object) + object.byteLength();
+        protected int memsizeOfString(RubyString object,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
+            return memsizeOfObject(object) + libString.byteLength(object);
         }
 
         @Specialization
-        protected int memsizeOfString(ImmutableRubyString object) {
-            return 1 + object.byteLength();
+        protected int memsizeOfString(ImmutableRubyString object,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
+            return 1 + libString.byteLength(object);
         }
 
         @Specialization

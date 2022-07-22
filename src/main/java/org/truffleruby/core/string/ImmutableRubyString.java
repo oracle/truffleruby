@@ -91,16 +91,6 @@ public final class ImmutableRubyString extends ImmutableRubyObjectCopyable imple
 
     // region RubyStringLibrary messages
     @ExportMessage
-    public RubyEncoding getEncoding() {
-        return encoding;
-    }
-
-    @ExportMessage
-    public TruffleString.Encoding getTEncoding() {
-        return encoding.tencoding;
-    }
-
-    @ExportMessage
     protected boolean isRubyString() {
         return true;
     }
@@ -111,8 +101,8 @@ public final class ImmutableRubyString extends ImmutableRubyObjectCopyable imple
     }
 
     @ExportMessage
-    public int byteLength() {
-        return tstring.byteLength(encoding.tencoding);
+    public RubyEncoding getEncoding() {
+        return encoding;
     }
     // endregion
 

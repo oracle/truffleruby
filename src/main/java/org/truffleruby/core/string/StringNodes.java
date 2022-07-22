@@ -784,13 +784,9 @@ public abstract class StringNodes {
     @CoreMethod(names = "bytesize")
     public abstract static class ByteSizeNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected int byteSize(RubyString string) {
-            return string.tstring.byteLength(string.getTEncoding());
-        }
-
-        @Specialization
-        protected int immutableByteSize(ImmutableRubyString string) {
-            return string.tstring.byteLength(string.getTEncoding());
+        protected int byteSize(Object string,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
+            return libString.byteLength(string);
         }
     }
 
@@ -1091,6 +1087,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
         protected Object downcaseMultiByteComplex(RubyString string, int caseMappingOptions,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @Cached GetByteCodeRangeNode codeRangeNode,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
@@ -1109,7 +1106,7 @@ public abstract class StringNodes {
             // TODO (nirvdrum 24-Jun-22): Make the byte array builder copy-on-write so we don't eagerly clone the source byte array.
             var builder = ByteArrayBuilder.create(byteArray);
 
-            var cr = codeRangeNode.execute(string.tstring, string.getTEncoding());
+            var cr = codeRangeNode.execute(string.tstring, libString.getTEncoding(string));
             final boolean modified = StringSupport
                     .downcaseMultiByteComplex(encoding.jcoding, cr, builder, caseMappingOptions, this);
 
@@ -2006,6 +2003,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
         protected Object swapcaseMultiByteComplex(RubyString string, int caseMappingOptions,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @Cached GetByteCodeRangeNode codeRangeNode,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
@@ -2026,7 +2024,7 @@ public abstract class StringNodes {
             // TODO (nirvdrum 24-Jun-22): Make the byte array builder copy-on-write so we don't eagerly clone the source byte array.
             var builder = ByteArrayBuilder.create(byteArray);
 
-            var cr = codeRangeNode.execute(string.tstring, string.getTEncoding());
+            var cr = codeRangeNode.execute(string.tstring, libString.getTEncoding(string));
             final boolean modified = StringSupport
                     .swapCaseMultiByteComplex(enc.jcoding, cr, builder, caseMappingOptions, this);
 
@@ -2304,7 +2302,6 @@ public abstract class StringNodes {
     public abstract static class SqueezeBangNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CheckEncodingNode checkEncodingNode;
-        private final ConditionProfile singleByteOptimizableProfile = ConditionProfile.create();
 
         @Specialization(guards = "isEmpty(string.tstring)")
         protected Object squeezeBangEmptyString(RubyString string, Object[] args) {
@@ -2324,15 +2321,15 @@ public abstract class StringNodes {
                 squeeze[i] = true;
             }
 
-            if (singleByteOptimizableProfile
-                    .profile(StringGuards.isSingleByteOptimizable(string, singleByteOptimizableNode))) {
+            if (StringGuards.isSingleByteOptimizable(string, singleByteOptimizableNode)) {
                 if (!StringSupport.singleByteSqueeze(buffer, squeeze)) {
                     return nil;
                 } else {
                     string.setTString(buffer.toTString(), buffer.getRubyEncoding());
                 }
             } else {
-                var codeRange = string.tstring.getByteCodeRangeUncached(string.getTEncoding());
+                var codeRange = string.tstring
+                        .getByteCodeRangeUncached(RubyStringLibrary.getUncached().getTEncoding(string));
                 if (!StringSupport.multiByteSqueeze(buffer, codeRange, squeeze, null, string.encoding.jcoding, false,
                         this)) {
                     return nil;
@@ -2399,14 +2396,15 @@ public abstract class StringNodes {
                         this);
             }
 
-            if (singleByteOptimizableProfile.profile(singlebyte)) {
+            if (singlebyte) {
                 if (!StringSupport.singleByteSqueeze(buffer, squeeze)) {
                     return nil;
                 } else {
                     string.setTString(buffer.toTString(), buffer.getRubyEncoding());
                 }
             } else {
-                var codeRange = string.tstring.getByteCodeRangeUncached(string.getTEncoding());
+                var codeRange = string.tstring
+                        .getByteCodeRangeUncached(RubyStringLibrary.getUncached().getTEncoding(string));
                 if (!StringSupport.multiByteSqueeze(buffer, codeRange, squeeze, tables, enc.jcoding, true, this)) {
                     return nil;
                 } else {
@@ -2875,12 +2873,14 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
         protected Object upcaseMultiByteComplex(RubyString string, int caseMappingOptions,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @Cached GetByteCodeRangeNode codeRangeNode,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Cached ConditionProfile modifiedProfile) {
             var tstring = string.tstring;
-            var encoding = string.encoding;
+            var encoding = libString.getEncoding(string);
+            var tencoding = encoding.tencoding;
 
             if (dummyEncodingProfile.profile(encoding.jcoding.isDummy())) {
                 throw new RaiseException(
@@ -2895,10 +2895,10 @@ public abstract class StringNodes {
 
             final boolean modified = StringSupport
                     .upcaseMultiByteComplex(encoding.jcoding,
-                            codeRangeNode.execute(string.tstring, string.getTEncoding()),
+                            codeRangeNode.execute(string.tstring, tencoding),
                             builder, caseMappingOptions, this);
             if (modifiedProfile.profile(modified)) {
-                string.setTString(fromByteArrayNode.execute(builder.getBytes(), string.getTEncoding(), false));
+                string.setTString(fromByteArrayNode.execute(builder.getBytes(), tencoding, false));
                 return string;
             } else {
                 return nil;
@@ -3960,13 +3960,13 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class StringSplicePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = { "libOther.isRubyString(other)", "indexAtStartBound(spliceByteIndex)" })
+        @Specialization(guards = { "libOther.isRubyString(other)", "spliceByteIndex == 0" })
         protected Object splicePrepend(
                 RubyString string, Object other, int spliceByteIndex, int byteCountToReplace, RubyEncoding rubyEncoding,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libOther,
                 @Cached TruffleString.SubstringByteIndexNode prependSubstringNode,
                 @Cached TruffleString.ConcatNode prependConcatNode,
-                @Cached TruffleString.ForceEncodingNode forceEncodingNode,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libOther) {
+                @Cached TruffleString.ForceEncodingNode forceEncodingNode) {
             var original = string.tstring;
             var originalTEncoding = string.encoding.tencoding;
             var left = forceEncodingNode.execute(libOther.getTString(other), libOther.getTEncoding(other),
@@ -3980,14 +3980,17 @@ public abstract class StringNodes {
             return string;
         }
 
-        @Specialization(guards = { "libOther.isRubyString(other)", "indexAtEndBound(string, spliceByteIndex)" })
+        @Specialization(guards = { "libOther.isRubyString(other)", "spliceByteIndex == byteLength" })
         protected Object spliceAppend(
                 RubyString string, Object other, int spliceByteIndex, int byteCountToReplace, RubyEncoding rubyEncoding,
-                @Cached TruffleString.ConcatNode appendConcatNode,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libOther,
+                @Cached TruffleString.ConcatNode appendConcatNode,
                 @Cached TruffleString.ForceEncodingNode forceEncodingNodeLeft,
-                @Cached TruffleString.ForceEncodingNode forceEncodingNodeRight) {
-            var left = forceEncodingNodeLeft.execute(string.tstring, string.getTEncoding(), rubyEncoding.tencoding);
+                @Cached TruffleString.ForceEncodingNode forceEncodingNodeRight,
+                @Bind("libString.byteLength(string)") int byteLength) {
+            var left = forceEncodingNodeLeft.execute(string.tstring, libString.getTEncoding(string),
+                    rubyEncoding.tencoding);
             var right = forceEncodingNodeRight.execute(libOther.getTString(other), libOther.getTEncoding(other),
                     rubyEncoding.tencoding);
 
@@ -3997,9 +4000,12 @@ public abstract class StringNodes {
             return string;
         }
 
-        @Specialization(guards = { "libOther.isRubyString(other)", "!indexAtEitherBounds(string, spliceByteIndex)" })
+        @Specialization(
+                guards = { "libOther.isRubyString(other)", "spliceByteIndex != 0", "spliceByteIndex != byteLength" })
         protected RubyString splice(
                 RubyString string, Object other, int spliceByteIndex, int byteCountToReplace, RubyEncoding rubyEncoding,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libOther,
                 @Cached ConditionProfile insertStringIsEmptyProfile,
                 @Cached ConditionProfile splitRightIsEmptyProfile,
                 @Cached TruffleString.SubstringByteIndexNode leftSubstringNode,
@@ -4008,8 +4014,8 @@ public abstract class StringNodes {
                 @Cached TruffleString.ConcatNode rightConcatNode,
                 @Cached TruffleString.ForceEncodingNode forceEncodingNode,
                 @Cached TruffleString.ForceEncodingNode forceEncodingNodeOther,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libOther) {
-            var sourceTEncoding = string.encoding.tencoding;
+                @Bind("libString.byteLength(string)") int byteLength) {
+            var sourceTEncoding = libString.getTEncoding(string);
             var resultTEncoding = rubyEncoding.tencoding;
             var source = string.tstring;
             var insert = libOther.getTString(other);
@@ -4037,18 +4043,6 @@ public abstract class StringNodes {
 
             string.setTString(joinedRight, rubyEncoding);
             return string;
-        }
-
-        protected boolean indexAtStartBound(int index) {
-            return index == 0;
-        }
-
-        protected boolean indexAtEndBound(RubyString string, int index) {
-            return index == string.byteLength();
-        }
-
-        protected boolean indexAtEitherBounds(RubyString string, int index) {
-            return indexAtStartBound(index) || indexAtEndBound(string, index);
         }
     }
 
@@ -4268,32 +4262,32 @@ public abstract class StringNodes {
     @Primitive(name = "string_truncate", lowerFixnum = 1)
     public abstract static class TruncateNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "newByteLength < 0")
         @TruffleBoundary
+        @Specialization(guards = "newByteLength < 0")
         protected RubyString truncateLengthNegative(RubyString string, int newByteLength) {
             throw new RaiseException(
                     getContext(),
                     getContext().getCoreExceptions().argumentError(formatNegativeError(newByteLength), this));
         }
 
-        @Specialization(guards = { "newByteLength >= 0", "isNewLengthTooLarge(string, newByteLength)" })
         @TruffleBoundary
-        protected RubyString truncateLengthTooLong(RubyString string, int newByteLength) {
+        @Specialization(guards = { "newByteLength >= 0", "newByteLength > byteLength" })
+        protected RubyString truncateLengthTooLong(RubyString string, int newByteLength,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
+                @Bind("libString.byteLength(string)") int byteLength) {
             throw new RaiseException(
                     getContext(),
                     coreExceptions().argumentError(formatTooLongError(newByteLength, string), this));
         }
 
-        @Specialization(guards = { "newByteLength >= 0", "!isNewLengthTooLarge(string, newByteLength)" })
+        @Specialization(guards = { "newByteLength >= 0", "newByteLength <= byteLength" })
         protected RubyString tuncate(RubyString string, int newByteLength,
-                @Cached TruffleString.SubstringByteIndexNode substringNode) {
-            var tencoding = string.encoding.tencoding;
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
+                @Cached TruffleString.SubstringByteIndexNode substringNode,
+                @Bind("libString.byteLength(string)") int byteLength) {
+            var tencoding = libString.getTEncoding(string);
             string.setTString(substringNode.execute(string.tstring, 0, newByteLength, tencoding, true));
             return string;
-        }
-
-        protected static boolean isNewLengthTooLarge(RubyString string, int newByteLength) {
-            return newByteLength > string.byteLength();
         }
 
         @TruffleBoundary
@@ -4304,7 +4298,8 @@ public abstract class StringNodes {
         @TruffleBoundary
         private String formatTooLongError(int count, RubyString string) {
             return StringUtils
-                    .format("Invalid byte count: %d exceeds string size of %d bytes", count, string.byteLength());
+                    .format("Invalid byte count: %d exceeds string size of %d bytes", count,
+                            string.byteLengthUncached());
         }
 
     }

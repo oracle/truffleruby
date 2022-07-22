@@ -179,6 +179,7 @@ public abstract class EncodingConverterNodes {
 
     @Primitive(name = "encoding_converter_primitive_convert", lowerFixnum = { 3, 4, 5 })
     public abstract static class PrimitiveConvertNode extends PrimitiveArrayArgumentsNode {
+
         @TruffleBoundary
         @Specialization
         protected Object encodingConverterPrimitiveConvert(
@@ -208,7 +209,7 @@ public abstract class EncodingConverterNodes {
 
             if (size == -1) {
                 int minSize = 16; // in MRI, this is RSTRING_EMBED_LEN_MAX
-                size = Math.max(minSize, source.byteLength());
+                size = Math.max(minSize, source.byteLengthUncached());
             }
 
             while (true) {
@@ -245,7 +246,7 @@ public abstract class EncodingConverterNodes {
                 outBytes.setLength(outPtr.p);
 
                 int inputOffset = inPtr.p - sourceBytes.getOffset();
-                tstring = substringNode.execute(source.tstring, inputOffset, source.byteLength() - inputOffset,
+                tstring = substringNode.execute(source.tstring, inputOffset, source.byteLengthUncached() - inputOffset,
                         tencoding, true);
                 source.setTString(tstring);
 
