@@ -1357,11 +1357,13 @@ public abstract class StringNodes {
         @Specialization(guards = { "encoding != newEncoding", "tstring.isImmutable()" })
         protected RubyString immutable(RubyString string, RubyEncoding newEncoding,
                 @Cached RubyStringLibrary libString,
+                @Cached RubyStringLibrary profileEncoding,
                 @Cached TruffleString.ForceEncodingNode forceEncodingNode,
                 @Bind("string.tstring") AbstractTruffleString tstring,
                 @Bind("libString.getEncoding(string)") RubyEncoding encoding) {
-            var newTString = forceEncodingNode.execute(tstring, encoding.tencoding, newEncoding.tencoding);
-            string.setTString(newTString, newEncoding);
+            var newEncodingProfiled = profileEncoding.profileEncoding(newEncoding);
+            var newTString = forceEncodingNode.execute(tstring, encoding.tencoding, newEncodingProfiled.tencoding);
+            string.setTString(newTString, newEncodingProfiled);
             return string;
         }
 
@@ -1369,11 +1371,13 @@ public abstract class StringNodes {
                 guards = { "encoding != newEncoding", "!tstring.isImmutable()", "!tstring.isNative()" })
         protected RubyString mutableManaged(RubyString string, RubyEncoding newEncoding,
                 @Cached RubyStringLibrary libString,
+                @Cached RubyStringLibrary profileEncoding,
                 @Cached MutableTruffleString.ForceEncodingNode forceEncodingNode,
                 @Bind("string.tstring") AbstractTruffleString tstring,
                 @Bind("libString.getEncoding(string)") RubyEncoding encoding) {
-            var newTString = forceEncodingNode.execute(tstring, encoding.tencoding, newEncoding.tencoding);
-            string.setTString(newTString, newEncoding);
+            var newEncodingProfiled = profileEncoding.profileEncoding(newEncoding);
+            var newTString = forceEncodingNode.execute(tstring, encoding.tencoding, newEncodingProfiled.tencoding);
+            string.setTString(newTString, newEncodingProfiled);
             return string;
         }
 
@@ -1381,15 +1385,18 @@ public abstract class StringNodes {
                 guards = { "encoding != newEncoding", "!tstring.isImmutable()", "tstring.isNative()" })
         protected RubyString mutableNative(RubyString string, RubyEncoding newEncoding,
                 @Cached RubyStringLibrary libString,
+                @Cached RubyStringLibrary profileEncoding,
                 @Cached TruffleString.GetInternalNativePointerNode getInternalNativePointerNode,
                 @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode,
                 @Bind("string.tstring") AbstractTruffleString tstring,
                 @Bind("libString.getEncoding(string)") RubyEncoding encoding) {
+            var newEncodingProfiled = profileEncoding.profileEncoding(newEncoding);
             var currentEncoding = encoding.tencoding;
             var pointer = (Pointer) getInternalNativePointerNode.execute(tstring, currentEncoding);
             var byteLength = tstring.byteLength(currentEncoding);
-            var newTString = fromNativePointerNode.execute(pointer, 0, byteLength, newEncoding.tencoding, false);
-            string.setTString(newTString, newEncoding);
+            var newTString = fromNativePointerNode.execute(pointer, 0, byteLength, newEncodingProfiled.tencoding,
+                    false);
+            string.setTString(newTString, newEncodingProfiled);
             return string;
         }
 

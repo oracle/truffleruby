@@ -49,6 +49,8 @@ public abstract class RubyStringLibrary {
 
     public abstract int byteLength(Object object);
 
+    public abstract RubyEncoding profileEncoding(RubyEncoding encoding);
+
     static final class Cached extends RubyStringLibrary {
 
         @CompilationFinal private boolean seenMutable, seenImmutable, seenOther;
@@ -123,6 +125,28 @@ public abstract class RubyStringLibrary {
             }
         }
 
+        public RubyEncoding profileEncoding(RubyEncoding encoding) {
+            var localCachedEncoding = this.cachedEncoding;
+            if (encoding == localCachedEncoding) {
+                return (RubyEncoding) localCachedEncoding;
+            } else if (localCachedEncoding == GENERIC) {
+                return encoding;
+            } else {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                return specializeProfileEncoding(encoding);
+            }
+        }
+
+        private RubyEncoding specializeProfileEncoding(RubyEncoding encoding) {
+            var localCachedEncoding = this.cachedEncoding;
+            if (localCachedEncoding == null) {
+                this.cachedEncoding = encoding;
+            } else if (encoding != localCachedEncoding) {
+                this.cachedEncoding = GENERIC;
+            }
+            return encoding;
+        }
+
         @Override
         public RubyEncoding getEncoding(Object object) {
             final RubyEncoding encoding;
@@ -135,15 +159,7 @@ public abstract class RubyStringLibrary {
                 return specializeGetEncoding(object);
             }
 
-            var localCachedEncoding = this.cachedEncoding;
-            if (encoding == localCachedEncoding) {
-                return (RubyEncoding) localCachedEncoding;
-            } else if (localCachedEncoding == GENERIC) {
-                return encoding;
-            } else {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                return specializeGetEncoding(object);
-            }
+            return profileEncoding(encoding);
         }
 
         private RubyEncoding specializeGetEncoding(Object object) {
@@ -158,13 +174,7 @@ public abstract class RubyStringLibrary {
                 throw CompilerDirectives.shouldNotReachHere();
             }
 
-            var localCachedEncoding = this.cachedEncoding;
-            if (localCachedEncoding == null) {
-                this.cachedEncoding = encoding;
-            } else if (encoding != localCachedEncoding) {
-                this.cachedEncoding = GENERIC;
-            }
-            return encoding;
+            return specializeProfileEncoding(encoding);
         }
 
         @Override
@@ -193,6 +203,7 @@ public abstract class RubyStringLibrary {
 
         @Override
         public boolean seen(Object object) {
+            CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
             assert object instanceof RubyString || object instanceof ImmutableRubyString;
             return true;
         }
@@ -213,6 +224,12 @@ public abstract class RubyStringLibrary {
             } else {
                 throw CompilerDirectives.shouldNotReachHere();
             }
+        }
+
+        @Override
+        public RubyEncoding profileEncoding(RubyEncoding encoding) {
+            CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+            return encoding;
         }
 
         @Override
