@@ -197,7 +197,7 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     }
 
     public boolean hasObjectArrayStorage() {
-        return storage != null && storage.getClass() == Object[].class;
+        return storage.getClass() == Object[].class;
     }
 
     @Override

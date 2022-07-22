@@ -1206,9 +1206,7 @@ public abstract class ArrayNodes {
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary allocatedStores,
                 @Cached ConditionProfile needsFill,
-                @Cached LoopConditionProfile loopProfile,
-                @Cached IsSharedNode isSharedNode,
-                @Cached ConditionProfile sharedProfile) {
+                @Cached LoopConditionProfile loopProfile) {
             final Object allocatedStore = stores.allocateForNewValue(store, fillingValue, size);
             if (needsFill.profile(!allocatedStores.isDefaultValue(allocatedStore, fillingValue))) {
                 int i = 0;
@@ -1221,14 +1219,7 @@ public abstract class ArrayNodes {
                     profileAndReportLoopCount(loopProfile, i);
                 }
             }
-
-            final Object finalStore;
-            if (sharedProfile.profile(isSharedNode.executeIsShared(array))) {
-                finalStore = allocatedStores.makeShared(allocatedStore);
-            } else {
-                finalStore = allocatedStore;
-            }
-            setStoreAndSize(array, finalStore, size);
+            setStoreAndSize(array, allocatedStore, size);
             return array;
         }
 

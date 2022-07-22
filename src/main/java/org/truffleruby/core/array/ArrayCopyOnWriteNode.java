@@ -35,6 +35,7 @@ public abstract class ArrayCopyOnWriteNode extends RubyBaseNode {
             @CachedLibrary("store") ArrayStoreLibrary stores) {
         int size = array.size;
         Object cowStore = stores.extractRange(store, 0, size);
+        /* This new store should not be shared because the RubyArray object which will own it is not yet shared. */
         Object range = stores.extractRangeAndUnshare(store, start, start + length);
         array.store = cowStore;
         return range;
