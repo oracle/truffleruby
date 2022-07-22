@@ -70,7 +70,7 @@ public class LongArrayStore {
 
         @Specialization
         protected static boolean acceptsSharedValues(long[] store, SharedArrayStorage otherStore,
-                @CachedLibrary("store") ArrayStoreLibrary stores) {
+                @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
             return stores.acceptsAllValues(store, otherStore.storage);
         }
 

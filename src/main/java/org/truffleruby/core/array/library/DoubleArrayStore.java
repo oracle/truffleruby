@@ -65,7 +65,7 @@ public class DoubleArrayStore {
 
         @Specialization
         protected static boolean acceptsSharedValues(double[] store, SharedArrayStorage otherStore,
-                @CachedLibrary("store") ArrayStoreLibrary stores) {
+                @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
             return stores.acceptsAllValues(store, otherStore.storage);
         }
 
