@@ -17,6 +17,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.core.array.library.SharedArrayStorage;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.thread.RubyThread;
@@ -135,7 +136,14 @@ public class SharedObjects {
     public static void writeBarrier(RubyLanguage language, Object value) {
         if (language.options.SHARED_OBJECTS_ENABLED && value instanceof RubyDynamicObject && !isShared(value)) {
             shareObject((RubyDynamicObject) value);
+            assert !(value instanceof RubyArray) || validateArray((RubyArray) value);
         }
+    }
+
+    private static boolean validateArray(RubyArray value) {
+        Object storage = value.getStore();
+        assert storage instanceof SharedArrayStorage;
+        return ((SharedArrayStorage) storage).allElementsShared();
     }
 
     public static void propagate(RubyLanguage language, RubyDynamicObject source, Object value) {

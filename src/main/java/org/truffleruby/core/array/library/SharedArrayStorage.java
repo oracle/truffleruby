@@ -17,8 +17,10 @@ import com.oracle.truffle.api.dsl.Cached.Shared;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
+import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 import com.oracle.truffle.api.TruffleSafepoint;
@@ -41,6 +43,28 @@ public class SharedArrayStorage implements ObjectGraphNode {
     public SharedArrayStorage(Object storage) {
         assert !(storage instanceof SharedArrayStorage);
         this.storage = storage;
+    }
+
+    /* Method for checking that all elements in this array are correctly shared. This can only be called after the whole
+     * stack of adjacent objects have been shared, which may not be true at the point the storage is converted to shared
+     * storage. */
+    @TruffleBoundary
+    public boolean allElementsShared() {
+        if (storage == null || storage instanceof ZeroLengthArrayStore) {
+            return true;
+        }
+        ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory()
+                .getUncached(storage);
+        var elements = stores.getIterable(storage, 0, stores.capacity(storage));
+        for (var e : elements) {
+            if (e == null || !(e instanceof RubyDynamicObject) || SharedObjects.isShared(e)) {
+                continue;
+            } else {
+                System.err.printf("Unshared element %s.\n", e);
+                return false;
+            }
+        }
+        return true;
     }
 
     @ExportMessage
