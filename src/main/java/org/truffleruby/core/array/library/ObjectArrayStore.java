@@ -84,7 +84,7 @@ public class ObjectArrayStore {
     @ExportMessage
     protected static Object makeShared(Object[] store,
             @CachedLibrary("store") ArrayStoreLibrary stores) {
-        stores.shareElements(store);
+        stores.shareElements(store, 0, stores.capacity(store));
         return new SharedArrayStorage(store);
     }
 
@@ -92,13 +92,13 @@ public class ObjectArrayStore {
     static class ShareElements {
 
         @Specialization
-        protected static void shareElements(Object[] store,
+        protected static void shareElements(Object[] store, int start, int end,
                 @CachedLibrary("store") ArrayStoreLibrary node,
                 @Cached @Exclusive LoopConditionProfile loopProfile,
                 @Cached WriteBarrierNode writeBarrierNode) {
-            int i = 0;
+            int i = start;
             try {
-                for (; loopProfile.inject(i < store.length); i++) {
+                for (; loopProfile.inject(i < end); i++) {
                     writeBarrierNode.executeWriteBarrier(store[i]);
                 }
             } finally {

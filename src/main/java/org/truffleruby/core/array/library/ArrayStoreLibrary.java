@@ -126,8 +126,9 @@ public abstract class ArrayStoreLibrary extends Library {
         return new SharedArrayStorage(store);
     }
 
-    /** Do any work required to start sharing elements across threads. */
-    public void shareElements(Object store) {
+    /** Do any work required to start sharing elements across threads in the range from {@code start} (inclusive) to
+     * {@code end} (exclusive). */
+    public void shareElements(Object store, int start, int end) {
     }
 
     /** Return a description of {@code store} for debugging output. */

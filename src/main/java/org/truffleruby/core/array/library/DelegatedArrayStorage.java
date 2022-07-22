@@ -64,14 +64,14 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     @ExportMessage
     protected Object makeShared(
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
-        stores.shareElements(this);
+        stores.shareElements(this, 0, length);
         return new SharedArrayStorage(this);
     }
 
     @ExportMessage
-    protected void shareElements(
+    protected void shareElements(int start, int end,
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
-        stores.shareElements(storage);
+        stores.shareElements(storage, offset + start, offset + end);
     }
 
     @ExportMessage
