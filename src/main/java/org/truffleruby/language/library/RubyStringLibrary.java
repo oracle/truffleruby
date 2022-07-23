@@ -9,9 +9,9 @@
  */
 package org.truffleruby.language.library;
 
-import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.RubyEncoding;
@@ -202,22 +202,22 @@ public abstract class RubyStringLibrary {
 
         static final Uncached INSTANCE = new Uncached();
 
+        @TruffleBoundary
         @Override
         public boolean seen(Object object) {
-            CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
             assert object instanceof RubyString || object instanceof ImmutableRubyString;
             return true;
         }
 
+        @TruffleBoundary
         @Override
         public boolean isRubyString(Object object) {
-            CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
             return object instanceof RubyString || object instanceof ImmutableRubyString;
         }
 
+        @TruffleBoundary
         @Override
         public AbstractTruffleString getTString(Object object) {
-            CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
             if (object instanceof RubyString) {
                 return ((RubyString) object).tstring;
             } else if (object instanceof ImmutableRubyString) {
@@ -227,15 +227,15 @@ public abstract class RubyStringLibrary {
             }
         }
 
+        @TruffleBoundary
         @Override
         public RubyEncoding profileEncoding(RubyEncoding encoding) {
-            CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
             return encoding;
         }
 
+        @TruffleBoundary
         @Override
         public RubyEncoding getEncoding(Object object) {
-            CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
             if (object instanceof RubyString) {
                 return ((RubyString) object).getEncodingUncached();
             } else if (object instanceof ImmutableRubyString) {
@@ -245,9 +245,9 @@ public abstract class RubyStringLibrary {
             }
         }
 
+        @TruffleBoundary
         @Override
         public int byteLength(Object object) {
-            CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
             return getTString(object).byteLength(getTEncoding(object));
         }
     }
