@@ -125,6 +125,7 @@ public abstract class RubyStringLibrary {
             }
         }
 
+        @Override
         public RubyEncoding profileEncoding(RubyEncoding encoding) {
             var localCachedEncoding = this.cachedEncoding;
             if (encoding == localCachedEncoding) {
