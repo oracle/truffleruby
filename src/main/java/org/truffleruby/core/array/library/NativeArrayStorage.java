@@ -28,11 +28,14 @@ import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
+import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -140,9 +143,35 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
+    protected static Object makeShared(NativeArrayStorage store,
+            @CachedLibrary("store") ArrayStoreLibrary stores) {
+        stores.shareElements(store, 0, stores.capacity(store));
+        return new SharedArrayStorage(store);
+    }
+
+    @ExportMessage
+    static class ShareElements {
+
+        @Specialization
+        protected static void shareElements(NativeArrayStorage store, int start, int end,
+                @CachedLibrary("store") ArrayStoreLibrary node,
+                @Cached @Exclusive LoopConditionProfile loopProfile,
+                @Cached WriteBarrierNode writeBarrierNode) {
+            int i = start;
+            try {
+                for (; loopProfile.inject(i < end); i++) {
+                    writeBarrierNode.executeWriteBarrier(node.read(store, i));
+                }
+            } finally {
+                RubyBaseNode.profileAndReportLoopCount(node, loopProfile, i);
+            }
+        }
+    }
+
+    @ExportMessage
     protected void copyContents(int srcStart, Object destStore, int destStart, int length,
             @CachedLibrary("this") ArrayStoreLibrary srcStores,
-            @Cached LoopConditionProfile loopProfile,
+            @Cached @Exclusive LoopConditionProfile loopProfile,
             @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary destStores) {
         int i = 0;
         try {
@@ -228,6 +257,11 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     @ExportMessage
     protected ArrayAllocator generalizeForStore(Object newStore) {
         return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR;
+    }
+
+    @ExportMessage
+    public ArrayAllocator generalizeForSharing() {
+        return SharedArrayStorage.SHARED_OBJECT_ARRAY_ALLOCATOR;
     }
 
     @ExportMessage

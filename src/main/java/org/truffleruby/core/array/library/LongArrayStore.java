@@ -68,6 +68,12 @@ public class LongArrayStore {
             return otherStore.storage instanceof int[] || otherStore.storage instanceof long[];
         }
 
+        @Specialization
+        protected static boolean acceptsSharedValues(long[] store, SharedArrayStorage otherStore,
+                @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            return stores.acceptsAllValues(store, otherStore.storage);
+        }
+
         @Fallback
         protected static boolean acceptsOtherValues(long[] store, Object otherStore) {
             return false;
@@ -148,6 +154,10 @@ public class LongArrayStore {
         protected static boolean isLongStore(Object store) {
             return store instanceof long[];
         }
+    }
+
+    @ExportMessage
+    protected static void clear(long[] store, int start, int length) {
     }
 
     @ExportMessage
@@ -284,8 +294,18 @@ public class LongArrayStore {
     }
 
     @ExportMessage
+    protected static ArrayAllocator generalizeForSharing(long[] store) {
+        return SharedArrayStorage.SHARED_LONG_ARRAY_ALLOCATOR;
+    }
+
+    @ExportMessage
     @ImportStatic(ArrayGuards.class)
     static class AllocateForNewStore {
+
+        @Specialization
+        protected static Object allocate(long[] store, ZeroLengthArrayStore newStore, int length) {
+            return LongArrayStore.LONG_ARRAY_ALLOCATOR.allocate(length);
+        }
 
         @Specialization
         protected static Object allocate(long[] store, int[] newStore, int length) {
@@ -307,10 +327,11 @@ public class LongArrayStore {
             return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
         }
 
-        @Specialization(guards = "!basicStore(newStore)", limit = "storageStrategyLimit()")
+        @Specialization(guards = { "!basicStore(newStore)", "!zeroLengthStore(newStore)" },
+                limit = "storageStrategyLimit()")
         protected static Object allocate(long[] store, Object newStore, int length,
                 @CachedLibrary("newStore") ArrayStoreLibrary newStores) {
-            return newStores.allocateForNewValue(newStore, store, length);
+            return newStores.unsharedAllocateForNewStore(newStore, store, length);
         }
     }
 

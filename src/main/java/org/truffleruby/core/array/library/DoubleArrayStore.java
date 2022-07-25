@@ -63,6 +63,12 @@ public class DoubleArrayStore {
             return otherStore.storage instanceof double[];
         }
 
+        @Specialization
+        protected static boolean acceptsSharedValues(double[] store, SharedArrayStorage otherStore,
+                @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            return stores.acceptsAllValues(store, otherStore.storage);
+        }
+
         @Fallback
         protected static boolean acceptsOtherValues(double[] store, Object otherStore) {
             return false;
@@ -136,6 +142,10 @@ public class DoubleArrayStore {
         protected static boolean isDoubleStore(Object store) {
             return store instanceof double[];
         }
+    }
+
+    @ExportMessage
+    protected static void clear(double[] store, int start, int length) {
     }
 
     @ExportMessage
@@ -230,6 +240,11 @@ public class DoubleArrayStore {
     }
 
     @ExportMessage
+    protected static ArrayAllocator generalizeForSharing(double[] store) {
+        return SharedArrayStorage.SHARED_DOUBLE_ARRAY_ALLOCATOR;
+    }
+
+    @ExportMessage
     static class AllocateForNewValue {
 
         @Specialization
@@ -246,6 +261,11 @@ public class DoubleArrayStore {
     @ExportMessage
     @ImportStatic(ArrayGuards.class)
     static class AllocateForNewStore {
+
+        @Specialization
+        protected static Object allocate(double[] store, ZeroLengthArrayStore newStore, int length) {
+            return DoubleArrayStore.DOUBLE_ARRAY_ALLOCATOR.allocate(length);
+        }
 
         @Specialization
         protected static Object allocate(double[] store, int[] newStore, int length) {
@@ -267,10 +287,11 @@ public class DoubleArrayStore {
             return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
         }
 
-        @Specialization(guards = "!basicStore(newStore)", limit = "storageStrategyLimit()")
+        @Specialization(guards = { "!basicStore(newStore)", "!zeroLengthStore(newStore)" },
+                limit = "storageStrategyLimit()")
         protected static Object allocate(double[] store, Object newStore, int length,
                 @CachedLibrary("newStore") ArrayStoreLibrary newStores) {
-            return newStores.allocateForNewStore(newStore, store, length);
+            return newStores.unsharedAllocateForNewStore(newStore, store, length);
         }
     }
 

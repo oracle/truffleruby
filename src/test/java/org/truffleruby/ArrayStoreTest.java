@@ -21,7 +21,7 @@ public class ArrayStoreTest {
 
     @Test
     public void zeroLengthGeneralisesToInteger() {
-        Object store = ArrayStoreLibrary.INITIAL_STORE;
+        Object store = ArrayStoreLibrary.initialStorage(false);
         ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
 
         int newValue = 7;
@@ -32,7 +32,7 @@ public class ArrayStoreTest {
 
     @Test
     public void zeroLengthGeneralisesToLong() {
-        Object store = ArrayStoreLibrary.INITIAL_STORE;
+        Object store = ArrayStoreLibrary.initialStorage(false);
         ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
 
         long newValue = 7;
@@ -43,7 +43,7 @@ public class ArrayStoreTest {
 
     @Test
     public void zeroLengthGeneralisesToDouble() {
-        Object store = ArrayStoreLibrary.INITIAL_STORE;
+        Object store = ArrayStoreLibrary.initialStorage(false);
         ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
 
         double newValue = 7.2;
@@ -54,7 +54,7 @@ public class ArrayStoreTest {
 
     @Test
     public void zeroLengthGeneralisesToObject() {
-        Object store = ArrayStoreLibrary.INITIAL_STORE;
+        Object store = ArrayStoreLibrary.initialStorage(false);
         ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
 
         Object newValue = new Object();
@@ -146,6 +146,7 @@ public class ArrayStoreTest {
     @Test
     public void extractRangeOnZeroLengthArrayReturnssZeroLengthArray() {
         ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
-        assertEquals(stores.extractRange(ArrayStoreLibrary.INITIAL_STORE, 0, 0), ArrayStoreLibrary.INITIAL_STORE);
+        assertEquals(stores.extractRange(ArrayStoreLibrary.initialStorage(false), 0, 0),
+                ArrayStoreLibrary.initialStorage(false));
     }
 }

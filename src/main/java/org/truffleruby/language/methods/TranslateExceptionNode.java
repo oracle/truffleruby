@@ -166,10 +166,10 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
                     final RubyArray array = (RubyArray) value;
                     builder.append("[");
 
-                    if (array.store == null) {
+                    if (array.getStore() == null) {
                         builder.append("null");
                     } else {
-                        builder.append(array.store.getClass().getName());
+                        builder.append(array.getStore().getClass().getName());
                     }
 
                     builder.append(",");

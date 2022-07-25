@@ -308,7 +308,7 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization
         protected RubyString arrayStorage(RubyArray array) {
-            String storage = ArrayStoreLibrary.getFactory().getUncached().toString(array.store);
+            String storage = ArrayStoreLibrary.getFactory().getUncached().toString(array.getStore());
             return makeStringNode.executeMake(storage, Encodings.US_ASCII, CodeRange.CR_UNKNOWN);
         }
 
@@ -320,7 +320,7 @@ public abstract class TruffleDebugNodes {
 
         @Specialization(limit = "storageStrategyLimit()")
         protected long arrayStorage(RubyArray array,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores) {
             return stores.capacity(store);
         }

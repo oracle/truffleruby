@@ -58,7 +58,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
 
     private static class ArrayBuilderProxyNode extends ArrayBuilderNode {
 
-        @Child StartNode startNode = new StartNode(ArrayStoreLibrary.INITIAL_ALLOCATOR, 0);
+        @Child StartNode startNode = new StartNode(ArrayStoreLibrary.initialAllocator(false), 0);
         @Child AppendArrayNode appendArrayNode;
         @Child AppendOneNode appendOneNode;
 
@@ -160,7 +160,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         }
 
         public BuilderState start() {
-            if (allocator == ArrayStoreLibrary.INITIAL_ALLOCATOR) {
+            if (allocator == ArrayStoreLibrary.initialAllocator(false)) {
                 return new BuilderState(allocator.allocate(0), expectedLength);
             } else {
                 return new BuilderState(allocator.allocate(expectedLength), expectedLength);
@@ -172,13 +172,12 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 replaceNodes(allocator, length);
             }
-            if (allocator == ArrayStoreLibrary.INITIAL_ALLOCATOR) {
+            if (allocator == ArrayStoreLibrary.initialAllocator(false)) {
                 return new BuilderState(allocator.allocate(0), length);
             } else {
                 return new BuilderState(allocator.allocate(length), length);
             }
         }
-
     }
 
     @ImportStatic(ArrayGuards.class)
@@ -251,11 +250,11 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         public abstract void executeAppend(BuilderState state, int index, RubyArray value);
 
         @Specialization(
-                guards = { "arrays.acceptsAllValues(state.store, other.store)" },
+                guards = { "arrays.acceptsAllValues(state.store, other.getStore())" },
                 limit = "storageStrategyLimit()")
         protected void appendCompatibleStrategy(BuilderState state, int index, RubyArray other,
                 @Bind("state.store") Object store,
-                @Bind("other.store") Object otherStore,
+                @Bind("other.getStore()") Object otherStore,
                 @CachedLibrary("store") ArrayStoreLibrary arrays,
                 @CachedLibrary("otherStore") ArrayStoreLibrary others) {
             assert state.nextIndex == index;
@@ -276,7 +275,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         }
 
         @Specialization(
-                guards = { "!arrayLibrary.acceptsAllValues(state.store, other.store)" },
+                guards = { "!arrayLibrary.acceptsAllValues(state.store, other.getStore())" },
                 limit = "1")
         protected void appendNewStrategy(BuilderState state, int index, RubyArray other,
                 @Bind("state.store") Object store,
@@ -299,13 +298,13 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
                 }
 
                 ArrayAllocator allocator = replaceNodes(
-                        newArrayLibrary.generalizeForStore(state.store, other.store),
+                        newArrayLibrary.generalizeForStore(state.store, other.getStore()),
                         neededCapacity);
                 newStore = allocator.allocate(neededCapacity);
 
                 newArrayLibrary.copyContents(state.store, 0, newStore, 0, index);
 
-                final Object otherStore = other.store;
+                final Object otherStore = other.getStore();
                 newArrayLibrary.copyContents(otherStore, 0, newStore, index, otherSize);
 
                 state.store = newStore;

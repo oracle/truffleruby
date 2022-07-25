@@ -31,20 +31,21 @@ public abstract class ArrayCopyOnWriteNode extends RubyBaseNode {
 
     @Specialization(guards = "stores.isMutable(store)", limit = "storageStrategyLimit()")
     protected Object extractFromMutableArray(RubyArray array, int start, int length,
-            @Bind("array.store") Object store,
+            @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores) {
         int size = array.size;
         Object cowStore = stores.extractRange(store, 0, size);
-        Object range = stores.extractRange(store, start, start + length);
-        array.store = cowStore;
+        /* This new store should not be shared because the RubyArray object which will own it is not yet shared. */
+        Object range = stores.extractRangeAndUnshare(store, start, start + length);
+        array.setStore(cowStore);
         return range;
     }
 
     @Specialization(guards = "!stores.isMutable(store)", limit = "storageStrategyLimit()")
     protected Object extractFromNonMutableArray(RubyArray array, int start, int length,
-            @Bind("array.store") Object store,
+            @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores) {
-        Object range = stores.extractRange(store, start, start + length);
+        Object range = stores.extractRangeAndUnshare(store, start, start + length);
         return range;
     }
 }

@@ -29,6 +29,7 @@ Changes:
 * Removed `Truffle::Interop.{import_without_conversion,export_without_conversion}` (use `Polyglot.{import,export}` instead).
 * Removed `Truffle::Interop.members_without_conversion` (use `Truffle::Interop.members` instead).
 * Refactored internals of `rb_sprintf` to simplify handling of `VALUE`s in common cases (@aardvark179).
+* Refactored sharing of array objects between threads using new `SharedArrayStorage` (@aardvark179).
 
 # 22.2.0
 

@@ -28,6 +28,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 @ExportLibrary(value = ArrayStoreLibrary.class, receiverType = Object[].class)
 @GenerateUncached
@@ -78,6 +79,32 @@ public class ObjectArrayStore {
         Object[] result = new Object[length];
         System.arraycopy(store, start, result, 0, length);
         return result;
+    }
+
+    @ExportMessage
+    protected static Object makeShared(Object[] store,
+            @CachedLibrary("store") ArrayStoreLibrary stores) {
+        stores.shareElements(store, 0, stores.capacity(store));
+        return new SharedArrayStorage(store);
+    }
+
+    @ExportMessage
+    static class ShareElements {
+
+        @Specialization
+        protected static void shareElements(Object[] store, int start, int end,
+                @CachedLibrary("store") ArrayStoreLibrary node,
+                @Cached @Exclusive LoopConditionProfile loopProfile,
+                @Cached WriteBarrierNode writeBarrierNode) {
+            int i = start;
+            try {
+                for (; loopProfile.inject(i < end); i++) {
+                    writeBarrierNode.executeWriteBarrier(store[i]);
+                }
+            } finally {
+                RubyBaseNode.profileAndReportLoopCount(node, loopProfile, i);
+            }
+        }
     }
 
     @ExportMessage
@@ -167,6 +194,11 @@ public class ObjectArrayStore {
     @ExportMessage
     protected static ArrayAllocator generalizeForStore(Object[] store, Object newValue) {
         return OBJECT_ARRAY_ALLOCATOR;
+    }
+
+    @ExportMessage
+    protected static ArrayAllocator generalizeForSharing(Object[] store) {
+        return SharedArrayStorage.SHARED_OBJECT_ARRAY_ALLOCATOR;
     }
 
     @ExportMessage

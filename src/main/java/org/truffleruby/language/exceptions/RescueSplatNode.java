@@ -46,7 +46,7 @@ public class RescueSplatNode extends RescueNode {
         int i = 0;
         try {
             for (; loopProfile.inject(i < handlingClasses.size); ++i) {
-                if (matches(exceptionObject, stores.read(handlingClasses.store, i))) {
+                if (matches(exceptionObject, stores.read(handlingClasses.getStore(), i))) {
                     return true;
                 }
                 TruffleSafepoint.poll(this);

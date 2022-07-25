@@ -12,11 +12,13 @@ package org.truffleruby.core.array;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.core.array.library.SharedArrayStorage;
 
 public abstract class ArrayHelpers {
 
     public static void setStoreAndSize(RubyArray array, Object store, int size) {
-        array.store = store;
+        assert (store instanceof SharedArrayStorage) == (array.getShape().isShared());
+        array.setStore(store);
         setSize(array, size);
     }
 
@@ -35,6 +37,7 @@ public abstract class ArrayHelpers {
 
     public static RubyArray createArray(RubyContext context, RubyLanguage language, Object store, int size) {
         assert !(store instanceof Object[]) || store.getClass() == Object[].class;
+        assert !(store instanceof SharedArrayStorage);
         assert assertValidElements(store, size);
         return new RubyArray(context.getCoreLibrary().arrayClass, language.arrayShape, store, size);
     }
@@ -56,7 +59,7 @@ public abstract class ArrayHelpers {
         return new RubyArray(
                 context.getCoreLibrary().arrayClass,
                 language.arrayShape,
-                ArrayStoreLibrary.INITIAL_STORE,
+                ArrayStoreLibrary.initialStorage(false),
                 0);
     }
 

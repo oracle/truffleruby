@@ -51,7 +51,7 @@ public class TruffleThreadNodes {
         @TruffleBoundary
         @Specialization(limit = "storageStrategyLimit()")
         protected Object findRubyCaller(RubyArray modules,
-                @Bind("modules.store") Object store,
+                @Bind("modules.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached GetSpecialVariableStorage storageNode) {
             final int modulesSize = modules.size;

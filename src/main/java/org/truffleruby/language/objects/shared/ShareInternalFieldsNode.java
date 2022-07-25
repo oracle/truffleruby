@@ -12,10 +12,8 @@ package org.truffleruby.language.objects.shared;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.core.array.ArrayGuards;
-import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
-import org.truffleruby.core.array.library.DelegatedArrayStorage;
 import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.queue.RubyQueue;
 import org.truffleruby.core.queue.UnsizedQueue;
@@ -45,31 +43,11 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
 
     public abstract void executeShare(RubyDynamicObject object);
 
-    @Specialization(guards = "isObjectArray(array)")
-    protected void shareCachedObjectArray(RubyArray array,
-            @Cached("createWriteBarrierNode()") @Exclusive WriteBarrierNode writeBarrierNode) {
-        final int size = array.size;
-        final Object[] store = (Object[]) array.store;
-        for (int i = 0; i < size; i++) {
-            writeBarrierNode.executeWriteBarrier(store[i]);
-        }
-    }
-
-    @Specialization(guards = "isDelegatedObjectArray(array)")
-    protected void shareCachedDelegatedArray(RubyArray array,
-            @Cached("createWriteBarrierNode()") @Exclusive WriteBarrierNode writeBarrierNode) {
-        final DelegatedArrayStorage delegated = (DelegatedArrayStorage) array.store;
-        final Object[] store = (Object[]) delegated.storage;
-        for (int i = delegated.offset; i < delegated.offset + delegated.length; i++) {
-            writeBarrierNode.executeWriteBarrier(store[i]);
-        }
-    }
-
-    @Specialization(guards = "stores.isPrimitive(store)", limit = "storageStrategyLimit()")
-    protected void shareCachedPrimitiveArray(RubyArray array,
-            @Bind("array.store") Object store,
+    @Specialization(limit = "CACHE_LIMIT")
+    protected void shareArray(RubyArray array,
+            @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores) {
-        assert ArrayOperations.isPrimitiveStorage(array);
+        array.setStore(stores.makeShared(store));
     }
 
     @Specialization
@@ -91,18 +69,11 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
 
     @Specialization(
             replaces = {
-                    "shareCachedObjectArray",
-                    "shareCachedDelegatedArray",
-                    "shareCachedPrimitiveArray",
+                    "shareArray",
                     "shareCachedQueue",
                     "shareCachedBasicObject" })
     protected void shareUncached(RubyDynamicObject object) {
         SharedObjects.shareInternalFields(object);
-    }
-
-    protected static boolean isDelegatedObjectArray(RubyArray array) {
-        final Object store = array.store;
-        return store instanceof DelegatedArrayStorage && ((DelegatedArrayStorage) store).hasObjectArrayStorage();
     }
 
     protected WriteBarrierNode createWriteBarrierNode() {

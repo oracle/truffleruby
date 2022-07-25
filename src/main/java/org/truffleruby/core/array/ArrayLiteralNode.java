@@ -101,7 +101,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
         @Override
         public RubyArray execute(VirtualFrame frame) {
-            return cachedCreateArray(ArrayStoreLibrary.INITIAL_STORE, 0);
+            return cachedCreateArray(ArrayStoreLibrary.initialStorage(false), 0);
         }
 
     }
@@ -256,11 +256,11 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
             final RubyArray array = cachedCreateArray(
                     storeSpecialisedFromObjects(executedValues),
                     executedValues.length);
-            final Object store = array.store;
+            final Object store = array.getStore();
 
             final RubyNode newNode;
 
-            if (store == ArrayStoreLibrary.INITIAL_STORE) {
+            if (store == ArrayStoreLibrary.initialStorage(false)) {
                 newNode = new EmptyArrayLiteralNode(language, values);
             } else if (store instanceof int[]) {
                 newNode = new IntegerArrayLiteralNode(language, values);
@@ -280,7 +280,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
         public Object storeSpecialisedFromObjects(Object... objects) {
             if (objects.length == 0) {
-                return ArrayStoreLibrary.INITIAL_STORE;
+                return ArrayStoreLibrary.initialStorage(false);
             }
 
             boolean canUseInteger = true;

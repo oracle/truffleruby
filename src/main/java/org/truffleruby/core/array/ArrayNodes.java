@@ -38,6 +38,7 @@ import org.truffleruby.core.array.ArrayIndexNodes.ReadSliceNormalizedNode;
 import org.truffleruby.core.array.ArrayNodesFactory.ReplaceNodeFactory;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.library.NativeArrayStorage;
+import org.truffleruby.core.array.library.SharedArrayStorage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.CmpIntNode;
 import org.truffleruby.core.cast.ToAryNode;
@@ -86,8 +87,8 @@ import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
-import org.truffleruby.language.objects.shared.IsSharedNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
+import org.truffleruby.language.objects.shared.IsSharedNode;
 import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.utils.Utils;
 
@@ -119,7 +120,7 @@ public abstract class ArrayNodes {
         @Specialization
         protected RubyArray allocate(RubyClass rubyClass) {
             final Shape shape = getLanguage().arrayShape;
-            final RubyArray array = new RubyArray(rubyClass, shape, ArrayStoreLibrary.INITIAL_STORE, 0);
+            final RubyArray array = new RubyArray(rubyClass, shape, ArrayStoreLibrary.initialStorage(false), 0);
             AllocationTracing.trace(array, this);
             return array;
         }
@@ -140,8 +141,8 @@ public abstract class ArrayNodes {
         @Specialization(
                 limit = "storageStrategyLimit()")
         protected RubyArray addGeneralize(RubyArray a, RubyArray b,
-                @Bind("a.store") Object aStore,
-                @Bind("b.store") Object bStore,
+                @Bind("a.getStore()") Object aStore,
+                @Bind("b.getStore()") Object bStore,
                 @CachedLibrary("aStore") ArrayStoreLibrary as,
                 @CachedLibrary("bStore") ArrayStoreLibrary bs,
                 @Cached IntValueProfile aSizeProfile,
@@ -149,7 +150,7 @@ public abstract class ArrayNodes {
             final int aSize = aSizeProfile.profile(a.size);
             final int bSize = bSizeProfile.profile(b.size);
             final int combinedSize = aSize + bSize;
-            Object newStore = as.allocateForNewStore(aStore, bStore, combinedSize);
+            Object newStore = as.unsharedAllocateForNewStore(aStore, bStore, combinedSize);
             as.copyContents(aStore, 0, newStore, 0, aSize);
             bs.copyContents(bStore, 0, newStore, aSize, bSize);
             return createArray(newStore, combinedSize);
@@ -171,7 +172,7 @@ public abstract class ArrayNodes {
                 guards = { "!isEmptyArray(array)", "count > 0" },
                 limit = "storageStrategyLimit()")
         protected RubyArray mulOther(RubyArray array, int count,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary arrays,
                 @Cached IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loopProfile) {
@@ -183,7 +184,7 @@ public abstract class ArrayNodes {
             } catch (ArithmeticException e) {
                 throw new RaiseException(getContext(), coreExceptions().rangeError("new array size too large", this));
             }
-            final Object newStore = arrays.allocator(store).allocate(newSize);
+            final Object newStore = arrays.unsharedAllocator(store).allocate(newSize);
             int n = 0;
             try {
                 for (; loopProfile.inject(n < count); n++) {
@@ -390,8 +391,6 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "length >= 0")
         protected Object setTernary(RubyArray array, int start, int length, RubyArray replacement,
-                @Cached IsSharedNode isArrayShared,
-                @Cached IsSharedNode isReplacementShared,
                 @Cached ConditionProfile negativeDenormalizedIndex,
                 @Cached BranchProfile negativeNormalizedIndex,
                 @Cached ConditionProfile moveNeeded,
@@ -402,12 +401,10 @@ public abstract class ArrayNodes {
 
             final int originalSize = array.size;
             start = normalize(originalSize, start, negativeDenormalizedIndex, negativeNormalizedIndex);
-            final Object replacementStore = replacement.store;
+            final Object replacementStore = replacement.getStore();
             final int replacementSize = replacement.size;
             final int overwrittenAreaEnd = start + length;
             final int tailSize = originalSize - overwrittenAreaEnd;
-            final boolean arrayShared = isArrayShared.executeIsShared(array);
-            final boolean replacementShared = isReplacementShared.executeIsShared(replacement);
 
             if (moveNeeded.profile(tailSize > 0)) {
                 // There is a tail (the part of the array to the right of the overwritten area) to be moved.
@@ -423,11 +420,9 @@ public abstract class ArrayNodes {
                         newStore,
                         writtenAreaEnd,
                         overwrittenAreaEnd,
-                        tailSize,
-                        arrayShared,
-                        arrayShared);
+                        tailSize);
                 copyRange
-                        .execute(newStore, replacementStore, start, 0, replacementSize, arrayShared, replacementShared);
+                        .execute(newStore, replacementStore, start, 0, replacementSize);
                 truncate.execute(array, newSize);
 
             } else {
@@ -435,7 +430,7 @@ public abstract class ArrayNodes {
 
                 final Object newStore = prepareToCopy.execute(array, replacement, start, replacementSize);
                 copyRange
-                        .execute(newStore, replacementStore, start, 0, replacementSize, arrayShared, replacementShared);
+                        .execute(newStore, replacementStore, start, 0, replacementSize);
                 truncate.execute(array, start + replacementSize);
             }
 
@@ -482,8 +477,12 @@ public abstract class ArrayNodes {
     public abstract static class ClearNode extends ArrayCoreMethodNode {
 
         @Specialization
-        protected RubyArray clear(RubyArray array) {
-            setStoreAndSize(array, ArrayStoreLibrary.INITIAL_STORE, 0);
+        protected RubyArray clear(RubyArray array,
+                @Cached IsSharedNode isSharedNode,
+                @Cached ConditionProfile sharedProfile) {
+            setStoreAndSize(array,
+                    ArrayStoreLibrary.initialStorage(sharedProfile.profile(isSharedNode.executeIsShared(array))),
+                    0);
             return array;
         }
 
@@ -496,7 +495,7 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "stores.isPrimitive(store)", limit = "storageStrategyLimit()")
         protected RubyArray compactPrimitive(RubyArray array,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached ArrayCopyOnWriteNode cowNode) {
             final int size = array.size;
@@ -505,7 +504,7 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "!stores.isPrimitive(store)", limit = "storageStrategyLimit()")
         protected Object compactObjects(RubyArray array,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @Cached IntValueProfile arraySizeProfile,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached ArrayBuilderNode arrayBuilder,
@@ -540,14 +539,14 @@ public abstract class ArrayNodes {
         @Specialization(guards = "stores.isPrimitive(store)", limit = "storageStrategyLimit()")
         @ReportPolymorphism.Exclude
         protected Object compactNotObjects(RubyArray array,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores) {
             return nil;
         }
 
         @Specialization(guards = "!stores.isPrimitive(store)", limit = "storageStrategyLimit()")
-        protected Object compactObjectsNonMutable(RubyArray array,
-                @Bind("array.store") Object store,
+        protected Object compactObjects(RubyArray array,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary mutableStores,
                 @Cached IntValueProfile arraySizeProfile,
@@ -578,8 +577,7 @@ public abstract class ArrayNodes {
 
             stores.clear(oldStore, m, size - m);
 
-            array.store = newStore;
-            array.size = m;
+            setStoreAndSize(array, newStore, m);
 
             if (m == size) {
                 return nil;
@@ -678,7 +676,7 @@ public abstract class ArrayNodes {
                 guards = "stores.isMutable(store)",
                 limit = "storageStrategyLimit()")
         protected Object delete(RubyArray array, Object value, Object maybeBlock,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loopProfile) {
@@ -690,7 +688,7 @@ public abstract class ArrayNodes {
                 guards = "!stores.isMutable(store)",
                 limit = "storageStrategyLimit()")
         protected Object delete(RubyArray array, Object value, Object maybeBlock,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary newStores,
                 @Cached IntValueProfile arraySizeProfile,
@@ -741,8 +739,7 @@ public abstract class ArrayNodes {
                 if (sameStores) {
                     oldStores.clear(oldStore, i, size - i);
                 }
-                array.store = newStore;
-                array.size = i;
+                setStoreAndSize(array, newStore, i);
                 return found;
             } else {
                 if (maybeBlock == nil) {
@@ -778,7 +775,7 @@ public abstract class ArrayNodes {
                 guards = "stores.isMutable(store)",
                 limit = "storageStrategyLimit()")
         protected Object deleteAt(RubyArray array, int index,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached IntValueProfile arraySizeProfile,
                 @Cached ConditionProfile negativeIndexProfile,
@@ -795,8 +792,7 @@ public abstract class ArrayNodes {
                 final Object value = stores.read(store, i);
                 stores.copyContents(store, i + 1, store, i, size - i - 1);
                 stores.clear(store, size - 1, 1);
-                array.store = store;
-                array.size = size - 1;
+                setStoreAndSize(array, store, size - 1);
                 return value;
             }
         }
@@ -805,7 +801,7 @@ public abstract class ArrayNodes {
                 guards = "!stores.isMutable(store)",
                 limit = "storageStrategyLimit()")
         protected Object deleteAtCopying(RubyArray array, int index,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached IntValueProfile arraySizeProfile,
                 @Cached ConditionProfile negativeIndexProfile,
@@ -823,8 +819,7 @@ public abstract class ArrayNodes {
                 stores.copyContents(store, 0, mutableStore, 0, i);
                 final Object value = stores.read(store, i);
                 stores.copyContents(store, i + 1, mutableStore, i, size - i - 1);
-                array.store = mutableStore;
-                array.size = size - 1;
+                setStoreAndSize(array, mutableStore, size - 1);
                 return value;
             }
         }
@@ -879,8 +874,8 @@ public abstract class ArrayNodes {
                 guards = { "stores.accepts(bStore)", "stores.isPrimitive(aStore)" },
                 limit = "storageStrategyLimit()")
         protected boolean equalSamePrimitiveType(RubyArray a, RubyArray b,
-                @Bind("a.store") Object aStore,
-                @Bind("b.store") Object bStore,
+                @Bind("a.getStore()") Object aStore,
+                @Bind("b.getStore()") Object bStore,
                 @CachedLibrary("aStore") ArrayStoreLibrary stores,
                 @Cached ConditionProfile sameProfile,
                 @Cached IntValueProfile arraySizeProfile,
@@ -919,8 +914,8 @@ public abstract class ArrayNodes {
                 guards = { "!stores.accepts(bStore)", "stores.isPrimitive(aStore)" },
                 limit = "storageStrategyLimit()")
         protected Object equalDifferentPrimitiveType(RubyArray a, RubyArray b,
-                @Bind("a.store") Object aStore,
-                @Bind("b.store") Object bStore,
+                @Bind("a.getStore()") Object aStore,
+                @Bind("b.getStore()") Object bStore,
                 @CachedLibrary("aStore") ArrayStoreLibrary stores) {
             return FAILURE;
         }
@@ -929,8 +924,8 @@ public abstract class ArrayNodes {
                 guards = { "stores.accepts(aStore)", "!stores.isPrimitive(aStore)" },
                 limit = "storageStrategyLimit()")
         protected Object equalNotPrimitiveType(RubyArray a, RubyArray b,
-                @Bind("a.store") Object aStore,
-                @Bind("b.store") Object bStore,
+                @Bind("a.getStore()") Object aStore,
+                @Bind("b.getStore()") Object bStore,
                 @CachedLibrary("aStore") ArrayStoreLibrary stores) {
             return FAILURE;
         }
@@ -952,8 +947,8 @@ public abstract class ArrayNodes {
                 guards = { "stores.accepts(bStore)", "stores.isPrimitive(aStore)" },
                 limit = "storageStrategyLimit()")
         protected boolean eqlSamePrimitiveType(RubyArray a, RubyArray b,
-                @Bind("a.store") Object aStore,
-                @Bind("b.store") Object bStore,
+                @Bind("a.getStore()") Object aStore,
+                @Bind("b.getStore()") Object bStore,
                 @CachedLibrary("aStore") ArrayStoreLibrary stores,
                 @Cached ConditionProfile sameProfile,
                 @Cached IntValueProfile arraySizeProfile,
@@ -993,8 +988,8 @@ public abstract class ArrayNodes {
                 guards = { "!stores.accepts(bStore)", "stores.isPrimitive(aStore)" },
                 limit = "storageStrategyLimit()")
         protected Object eqlDifferentPrimitiveType(RubyArray a, RubyArray b,
-                @Bind("a.store") Object aStore,
-                @Bind("b.store") Object bStore,
+                @Bind("a.getStore()") Object aStore,
+                @Bind("b.getStore()") Object bStore,
                 @CachedLibrary("aStore") ArrayStoreLibrary stores) {
             return FAILURE;
         }
@@ -1003,7 +998,7 @@ public abstract class ArrayNodes {
                 guards = { "!stores.isPrimitive(aStore)" },
                 limit = "storageStrategyLimit()")
         protected Object eqlNotPrimitiveType(RubyArray a, RubyArray b,
-                @Bind("a.store") Object aStore,
+                @Bind("a.getStore()") Object aStore,
                 @CachedLibrary("aStore") ArrayStoreLibrary stores) {
             return FAILURE;
         }
@@ -1023,13 +1018,11 @@ public abstract class ArrayNodes {
                 guards = { "args.length == 1", "stores.acceptsValue(store, value(args))" },
                 limit = "storageStrategyLimit()")
         protected RubyArray fill(RubyArray array, Object[] args, Nil block,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached PropagateSharingNode propagateSharingNode,
                 @Cached IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loopProfile) {
             final Object value = args[0];
-            propagateSharingNode.executePropagate(array, value);
 
             final int size = arraySizeProfile.profile(array.size);
 
@@ -1072,7 +1065,7 @@ public abstract class ArrayNodes {
 
         @Specialization(limit = "storageStrategyLimit()")
         protected long hash(VirtualFrame frame, RubyArray array,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached DispatchNode toHashNode,
                 @Cached ToLongNode toLongNode,
@@ -1107,7 +1100,7 @@ public abstract class ArrayNodes {
 
         @Specialization(limit = "storageStrategyLimit()")
         protected boolean include(RubyArray array, Object value,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loopProfile) {
@@ -1146,18 +1139,24 @@ public abstract class ArrayNodes {
         @Child private KernelNodes.RespondToNode respondToToAryNode;
 
         protected abstract RubyArray executeInitialize(RubyArray array, Object size, Object fillingValue,
-                Nil block);
+                Object block);
 
         @Specialization
-        protected RubyArray initializeNoArgs(RubyArray array, NotProvided size, NotProvided fillingValue, Nil block) {
-            setStoreAndSize(array, ArrayStoreLibrary.INITIAL_STORE, 0);
+        protected RubyArray initializeNoArgs(RubyArray array, NotProvided size, NotProvided fillingValue, Nil block,
+                @Cached IsSharedNode isSharedNode,
+                @Cached ConditionProfile sharedProfile) {
+            setStoreAndSize(array,
+                    ArrayStoreLibrary.initialStorage(sharedProfile.profile(isSharedNode.executeIsShared(array))), 0);
             return array;
         }
 
         @Specialization
         protected RubyArray initializeOnlyBlock(
-                RubyArray array, NotProvided size, NotProvided fillingValue, RubyProc block) {
-            setStoreAndSize(array, ArrayStoreLibrary.INITIAL_STORE, 0);
+                RubyArray array, NotProvided size, NotProvided fillingValue, RubyProc block,
+                @Cached IsSharedNode isShared,
+                @Cached ConditionProfile sharedProfile) {
+            setStoreAndSize(array,
+                    ArrayStoreLibrary.initialStorage(sharedProfile.profile(isShared.executeIsShared(array))), 0);
             return array;
         }
 
@@ -1184,9 +1183,17 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = "size >= 0")
-        protected RubyArray initializeWithSizeNoValue(RubyArray array, int size, NotProvided fillingValue, Nil block) {
-            final Object[] store = new Object[size];
-            Arrays.fill(store, nil);
+        protected RubyArray initializeWithSizeNoValue(RubyArray array, int size, NotProvided fillingValue, Nil block,
+                @Cached IsSharedNode isShared,
+                @Cached ConditionProfile sharedProfile,
+                @CachedLibrary(limit = "2") ArrayStoreLibrary stores) {
+            final Object store;
+            if (sharedProfile.profile(isShared.executeIsShared(array))) {
+                store = new SharedArrayStorage(new Object[size]);
+            } else {
+                store = new Object[size];
+            }
+            stores.fill(store, 0, size, nil);
             setStoreAndSize(array, store, size);
             return array;
         }
@@ -1195,15 +1202,13 @@ public abstract class ArrayNodes {
                 guards = { "size >= 0", "wasProvided(fillingValue)" },
                 limit = "storageStrategyLimit()")
         protected RubyArray initializeWithSizeAndValue(RubyArray array, int size, Object fillingValue, Nil block,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary allocatedStores,
                 @Cached ConditionProfile needsFill,
-                @Cached PropagateSharingNode propagateSharingNode,
                 @Cached LoopConditionProfile loopProfile) {
             final Object allocatedStore = stores.allocateForNewValue(store, fillingValue, size);
             if (needsFill.profile(!allocatedStores.isDefaultValue(allocatedStore, fillingValue))) {
-                propagateSharingNode.executePropagate(array, fillingValue);
                 int i = 0;
                 try {
                     for (; loopProfile.inject(i < size); i++) {
@@ -1230,7 +1235,9 @@ public abstract class ArrayNodes {
         @Specialization(guards = "size >= 0")
         protected Object initializeBlock(RubyArray array, int size, Object unusedFillingValue, RubyProc block,
                 @Cached ArrayBuilderNode arrayBuilder,
-                @Cached PropagateSharingNode propagateSharingNode,
+                @CachedLibrary(limit = "2") ArrayStoreLibrary stores,
+                @Cached IsSharedNode isSharedNode,
+                @Cached ConditionProfile sharedProfile,
                 @Cached LoopConditionProfile loopProfile) {
             BuilderState state = arrayBuilder.start(size);
 
@@ -1238,12 +1245,15 @@ public abstract class ArrayNodes {
             try {
                 for (; loopProfile.inject(n < size); n++) {
                     final Object value = callBlock(block, n);
-                    propagateSharingNode.executePropagate(array, value);
                     arrayBuilder.appendValue(state, n, value);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, n);
-                setStoreAndSize(array, arrayBuilder.finish(state, n), n);
+                Object store = arrayBuilder.finish(state, n);
+                if (sharedProfile.profile(isSharedNode.executeIsShared(array))) {
+                    store = stores.makeShared(store);
+                }
+                setStoreAndSize(array, store, n);
             }
 
             return array;
@@ -1353,7 +1363,7 @@ public abstract class ArrayNodes {
                         "wasProvided(initialOrSymbol)" },
                 limit = "storageStrategyLimit()")
         protected Object injectWithInitial(RubyArray array, Object initialOrSymbol, NotProvided symbol, RubyProc block,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loopProfile) {
@@ -1365,7 +1375,7 @@ public abstract class ArrayNodes {
                 limit = "storageStrategyLimit()")
         protected Object injectNoInitial(
                 RubyArray array, NotProvided initialOrSymbol, NotProvided symbol, RubyProc block,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loopProfile) {
@@ -1411,7 +1421,7 @@ public abstract class ArrayNodes {
                 limit = "storageStrategyLimit()")
         protected Object injectSymbolNoInitial(
                 VirtualFrame frame, RubyArray array, RubySymbol initialOrSymbol, NotProvided symbol, Nil block,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loopProfile,
@@ -1435,7 +1445,7 @@ public abstract class ArrayNodes {
                 limit = "storageStrategyLimit()")
         protected Object injectSymbolWithInitial(
                 VirtualFrame frame, RubyArray array, Object initialOrSymbol, RubySymbol symbol, Object block,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loopProfile,
@@ -1485,7 +1495,7 @@ public abstract class ArrayNodes {
 
         @Specialization(limit = "storageStrategyLimit()")
         protected Object map(RubyArray array, RubyProc block,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached ArrayBuilderNode arrayBuilder,
                 @Cached IntValueProfile arraySizeProfile,
@@ -1560,7 +1570,7 @@ public abstract class ArrayNodes {
 
             try {
                 result = (BytesResult) callPackNode.call(
-                        new Object[]{ array.store, array.size, false, null });
+                        new Object[]{ array.getStore(), array.size, false, null });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
@@ -1579,7 +1589,7 @@ public abstract class ArrayNodes {
             try {
                 result = (BytesResult) callPackNode.call(
                         compileFormat(formatRope),
-                        new Object[]{ array.store, array.size, false, null });
+                        new Object[]{ array.getStore(), array.size, false, null });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
@@ -1674,17 +1684,17 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(
-                guards = { "n > 0", "!isEmptyArray(array)", "!stores.isMutable(array.store)" },
+                guards = { "n > 0", "!isEmptyArray(array)", "!stores.isMutable(array.getStore())" },
                 limit = "storageStrategyLimit()")
         protected RubyArray popNotEmptySharedStorage(RubyArray array, int n,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached IntValueProfile arraySizeProfile,
                 @Cached ConditionProfile minProfile) {
             final int size = arraySizeProfile.profile(array.size);
             final int numPop = minProfile.profile(size < n) ? size : n;
 
-            final Object popped = stores.extractRange(store, size - numPop, size); // copy on write
+            final Object popped = stores.extractRangeAndUnshare(store, size - numPop, size); // copy on write
             final Object prefix = stores.extractRange(store, 0, size - numPop);    // copy on write
             // NOTE(norswap): if one of these two arrays outlives the other, you get a memory leak
 
@@ -1693,10 +1703,10 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(
-                guards = { "n > 0", "!isEmptyArray(array)", "stores.isMutable(array.store)" },
+                guards = { "n > 0", "!isEmptyArray(array)", "stores.isMutable(array.getStore())" },
                 limit = "storageStrategyLimit()")
         protected RubyArray popNotEmptyUnsharedStorage(RubyArray array, int n,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached IntValueProfile arraySizeProfile,
                 @Cached ConditionProfile minProfile) {
@@ -1704,7 +1714,7 @@ public abstract class ArrayNodes {
             final int numPop = minProfile.profile(size < n) ? size : n;
 
             // Extract values in a new array
-            final Object popped = stores.allocator(store).allocate(numPop);
+            final Object popped = stores.unsharedAllocator(store).allocate(numPop);
             stores.copyContents(store, size - numPop, popped, 0, numPop);
 
             // Remove the end from the original array.
@@ -1775,7 +1785,7 @@ public abstract class ArrayNodes {
 
         @Specialization(limit = "storageStrategyLimit()")
         protected Object reject(RubyArray array, RubyProc block,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached ArrayBuilderNode arrayBuilder,
                 @Cached BooleanCastNode booleanCastNode,
@@ -1819,7 +1829,7 @@ public abstract class ArrayNodes {
                 guards = { "array.size > 0", "stores.isMutable(store)" },
                 limit = "storageStrategyLimit()")
         protected Object rejectInPlaceMutableStore(RubyArray array, RubyProc block,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary mutablestores,
                 @Cached IntValueProfile arraySizeProfile,
@@ -1833,7 +1843,7 @@ public abstract class ArrayNodes {
                 guards = { "array.size > 0", "!stores.isMutable(store)" },
                 limit = "storageStrategyLimit()")
         protected Object rejectInPlaceImmutableStore(RubyArray array, RubyProc block,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary mutablestores,
                 @Cached IntValueProfile arraySizeProfile,
@@ -1842,7 +1852,7 @@ public abstract class ArrayNodes {
             final int size = arraySizeProfile.profile(array.size);
             final Object mutableStore = stores.allocator(store).allocate(size);
             stores.copyContents(store, 0, mutableStore, 0, size);
-            array.store = mutableStore;
+            array.setStore(mutableStore);
             return rejectInPlaceInternal(array, block, mutablestores, mutableStore, arraySizeProfile, loop1Profile,
                     loop2Profile);
         }
@@ -1902,8 +1912,6 @@ public abstract class ArrayNodes {
             return ReplaceNodeFactory.create(null, null);
         }
 
-        @Child private PropagateSharingNode propagateSharingNode = PropagateSharingNode.create();
-
         public abstract RubyArray executeReplace(RubyArray array, RubyArray other);
 
         @CreateCast("other")
@@ -1913,13 +1921,16 @@ public abstract class ArrayNodes {
 
         @Specialization
         protected RubyArray replace(RubyArray array, RubyArray other,
-                @Cached ArrayCopyOnWriteNode cowNode) {
-            propagateSharingNode.executePropagate(array, other);
-
+                @Cached ArrayCopyOnWriteNode cowNode,
+                @Cached IsSharedNode isSharedNode,
+                @Cached ConditionProfile sharedProfile,
+                @CachedLibrary(limit = "2") ArrayStoreLibrary stores) {
             final int size = other.size;
-
-            array.store = cowNode.execute(other, 0, size);
-            array.size = size;
+            Object store = cowNode.execute(other, 0, size);
+            if (sharedProfile.profile(isSharedNode.executeIsShared(array))) {
+                store = stores.makeShared(store);
+            }
+            setStoreAndSize(array, store, size);
             return array;
         }
 
@@ -1932,7 +1943,7 @@ public abstract class ArrayNodes {
 
         @Specialization(limit = "storageStrategyLimit()")
         protected RubyArray rotate(RubyArray array, int rotation,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached IntValueProfile arraySizeProfile,
                 @Cached IntValueProfile rotationProfile) {
@@ -1961,7 +1972,7 @@ public abstract class ArrayNodes {
                 guards = "stores.isMutable(store)",
                 limit = "storageStrategyLimit()")
         protected RubyArray rotate(RubyArray array, int rotation,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached IntValueProfile arraySizeProfile,
                 @Cached IntValueProfile rotationProfile,
@@ -1994,7 +2005,7 @@ public abstract class ArrayNodes {
                 guards = { "!stores.isMutable(store)" },
                 limit = "storageStrategyLimit()")
         protected RubyArray rotateStorageNotMutable(RubyArray array, int rotation,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached IntValueProfile arraySizeProfile,
                 @Cached IntValueProfile rotationProfile) {
@@ -2065,7 +2076,7 @@ public abstract class ArrayNodes {
 
         @Specialization(limit = "storageStrategyLimit()")
         protected Object select(RubyArray array, RubyProc block,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loopProfile,
@@ -2112,13 +2123,12 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "!isEmptyArray(array)", limit = "storageStrategyLimit()")
         protected Object shiftOther(RubyArray array, NotProvided n,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores) {
             final int size = array.size;
             final Object value = stores.read(store, 0);
             stores.clear(store, 0, 1);
-            array.store = stores.extractRange(store, 1, size);
-            setSize(array, size - 1);
+            setStoreAndSize(array, stores.extractRange(store, 1, size), size - 1);
             return value;
         }
 
@@ -2143,14 +2153,14 @@ public abstract class ArrayNodes {
                 guards = { "n > 0", "!isEmptyArray(array)" },
                 limit = "storageStrategyLimit()")
         protected Object shiftMany(RubyArray array, int n,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached ConditionProfile minProfile) {
             final int size = array.size;
             final int numShift = minProfile.profile(size < n) ? size : n;
-            final Object result = stores.extractRange(store, 0, numShift);
-            array.store = stores.extractRange(store, numShift, size);
-            setSize(array, size - numShift);
+            final Object result = stores.extractRangeAndUnshare(store, 0, numShift);
+            final Object newStore = stores.extractRange(store, numShift, size);
+            setStoreAndSize(array, newStore, size - numShift);
             return createArray(result, numShift);
         }
 
@@ -2186,14 +2196,14 @@ public abstract class ArrayNodes {
                 guards = { "!isEmptyArray(array)", "isSmall(array)" },
                 limit = "storageStrategyLimit()")
         protected RubyArray sortVeryShort(VirtualFrame frame, RubyArray array, Nil block,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary newStores,
                 @Cached IntValueProfile arraySizeProfile,
                 @Cached DispatchNode compareDispatchNode,
                 @Cached CmpIntNode cmpIntNode) {
             final Object newStore = stores
-                    .allocator(store)
+                    .unsharedAllocator(store)
                     .allocate(getContext().getOptions().ARRAY_SMALL);
             final int size = arraySizeProfile.profile(array.size);
 
@@ -2236,7 +2246,7 @@ public abstract class ArrayNodes {
                         "getLanguage().coreMethodAssumptions.floatCmpAssumption" },
                 limit = "storageStrategyLimit()")
         protected Object sortPrimitiveArrayNoBlock(RubyArray array, Nil block,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary mutableStores,
                 @Cached IntValueProfile arraySizeProfile) {
@@ -2251,7 +2261,7 @@ public abstract class ArrayNodes {
                 guards = { "!isEmptyArray(array)", "!isSmall(array)" },
                 limit = "storageStrategyLimit()")
         protected Object sortArrayWithoutBlock(RubyArray array, Nil block,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached DispatchNode fallbackNode) {
             return fallbackNode.call(array, "sort_fallback");
@@ -2280,15 +2290,14 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "array != other")
         protected RubyArray stealStorage(RubyArray array, RubyArray other,
+                @CachedLibrary(limit = "2") ArrayStoreLibrary stores,
                 @Cached PropagateSharingNode propagateSharingNode) {
             propagateSharingNode.executePropagate(array, other);
 
             final int size = other.size;
-            final Object store = other.store;
-            array.store = store;
-            array.size = size;
-            other.store = ArrayStoreLibrary.INITIAL_STORE;
-            other.size = 0;
+            final Object store = other.getStore();
+            setStoreAndSize(array, store, size);
+            setStoreAndSize(other, stores.initialStore(store), 0);
 
             return array;
         }
@@ -2302,8 +2311,8 @@ public abstract class ArrayNodes {
 
         @Specialization(limit = "storageStrategyLimit()")
         protected RubyArray zipToPairs(RubyArray array, RubyArray other,
-                @Bind("array.store") Object a,
-                @Bind("other.store") Object b,
+                @Bind("array.getStore()") Object a,
+                @Bind("other.getStore()") Object b,
                 @CachedLibrary("a") ArrayStoreLibrary aStores,
                 @CachedLibrary("b") ArrayStoreLibrary bStores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary pairs,
@@ -2320,7 +2329,7 @@ public abstract class ArrayNodes {
             try {
                 for (; loopProfile.inject(n < zippedLength); n++) {
                     if (bNotSmallerProfile.profile(n < bSize)) {
-                        final Object pair = aStores.allocateForNewStore(a, b, 2);
+                        final Object pair = aStores.unsharedAllocateForNewStore(a, b, 2);
                         pairs.write(pair, 0, aStores.read(a, n));
                         pairs.write(pair, 1, bStores.read(b, n));
                         zipped[n] = createArray(pair, 2);
@@ -2344,23 +2353,30 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "!stores.isNative(store)", limit = "storageStrategyLimit()")
         protected RubyArray storeToNative(RubyArray array,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached IntValueProfile arraySizeProfile) {
+                @Cached IntValueProfile arraySizeProfile,
+                @Cached IsSharedNode isSharedNode,
+                @Cached ConditionProfile sharedProfile) {
             final int size = arraySizeProfile.profile(array.size);
             Pointer pointer = Pointer.mallocAutoRelease(size * Pointer.SIZE, getLanguage());
-            NativeArrayStorage newStore = new NativeArrayStorage(pointer, size);
+            Object newStore = new NativeArrayStorage(pointer, size);
             stores.copyContents(store, 0, newStore, 0, size);
             getContext().getMarkingService().addMarker(
                     newStore,
                     (aStore) -> ((NativeArrayStorage) aStore).preserveMembers());
-            array.store = newStore;
+            /* The array elements here are already shared, because they came from an existing `SharedArrayStorage`
+             * object, so we only need to wrap the native storage in a new `SharedArrayStorage` object. */
+            if (sharedProfile.profile(isSharedNode.executeIsShared(array))) {
+                newStore = new SharedArrayStorage(newStore);
+            }
+            array.setStore(newStore);
             return array;
         }
 
         @Specialization(guards = "stores.isNative(store)", limit = "storageStrategyLimit()")
         protected RubyArray storeIsNative(RubyArray array,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores) {
             return array;
         }
@@ -2372,7 +2388,7 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "stores.isNative(store)", limit = "storageStrategyLimit()")
         protected long storeIsNative(RubyArray array,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores) {
             NativeArrayStorage storage = (NativeArrayStorage) store;
             return storage.getAddress();
@@ -2381,7 +2397,7 @@ public abstract class ArrayNodes {
         /** See {@link RubyDynamicObject#asPointer} **/
         @Specialization(guards = "!stores.isNative(store)", limit = "storageStrategyLimit()")
         protected Object storeNotNative(RubyArray array,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores) {
             return DispatchNode.MISSING; // for UnsupportedMessageException
         }
@@ -2393,7 +2409,7 @@ public abstract class ArrayNodes {
 
         @Specialization(limit = "storageStrategyLimit()")
         protected boolean isStoreNative(RubyArray array,
-                @Bind("array.store") Object store,
+                @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores) {
             return stores.isNative(store);
         }

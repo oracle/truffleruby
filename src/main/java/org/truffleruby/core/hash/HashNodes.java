@@ -79,7 +79,7 @@ public abstract class HashNodes {
                 @Cached HashingNodes.ToHashByHashCode hashNode) {
             final RubyArray array = (RubyArray) args[0];
 
-            final Object[] store = (Object[]) array.store;
+            final Object[] store = (Object[]) array.getStore();
 
             final int size = array.size;
             final Object[] newStore = PackedHashStoreLibrary.createStore();
@@ -94,7 +94,7 @@ public abstract class HashNodes {
                     }
 
                     final RubyArray pairArray = (RubyArray) pair;
-                    final Object pairStore = pairArray.store;
+                    final Object pairStore = pairArray.getStore();
 
                     if (pairStore.getClass() != Object[].class || pairArray.size != 2) {
                         return fallback(hashClass, args);
@@ -140,7 +140,7 @@ public abstract class HashNodes {
             }
 
             final RubyArray array = (RubyArray) arg;
-            final Object store = array.store;
+            final Object store = array.getStore();
 
             if (store == null || store.getClass() != Object[].class) {
                 return false;

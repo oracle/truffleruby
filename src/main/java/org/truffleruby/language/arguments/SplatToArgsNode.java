@@ -28,7 +28,7 @@ public class SplatToArgsNode extends RubyBaseNode {
 
     public Object[] execute(Object receiver, RubyArray splatted) {
         int size = splatSizeProfile.profile(splatted.size);
-        Object store = splatted.store;
+        Object store = splatted.getStore();
         final Object[] newArgs = RubyArguments.allocate(size);
         RubyArguments.setSelf(newArgs, receiver);
         stores.copyContents(store, 0, newArgs, RubyArguments.RUNTIME_ARGUMENT_COUNT, size);

@@ -56,6 +56,25 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
+    public Object backingStore(
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+        return stores.backingStore(storage);
+    }
+
+    @ExportMessage
+    protected Object makeShared(
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+        stores.shareElements(this, 0, length);
+        return new SharedArrayStorage(this);
+    }
+
+    @ExportMessage
+    protected void shareElements(int start, int end,
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+        stores.shareElements(storage, offset + start, offset + end);
+    }
+
+    @ExportMessage
     @TruffleBoundary
     protected String toString(
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
@@ -101,6 +120,10 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
+    protected void clear(int start, int length) {
+    }
+
+    @ExportMessage
     protected Object toJavaArrayCopy(int length,
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
         Object newStore = stores.allocator(storage).allocate(length);
@@ -133,6 +156,12 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
+    public ArrayAllocator generalizeForSharing(
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+        return stores.generalizeForSharing(storage);
+    }
+
+    @ExportMessage
     protected Object allocateForNewValue(Object newValue, int length,
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
         return stores.allocateForNewValue(storage, newValue, length);
@@ -160,13 +189,15 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
         assert offset >= 0;
         assert length >= 0;
         assert !(storage instanceof DelegatedArrayStorage);
+        assert !(storage instanceof NativeArrayStorage);
+        assert !(storage instanceof SharedArrayStorage);
         this.storage = storage;
         this.offset = offset;
         this.length = length;
     }
 
     public boolean hasObjectArrayStorage() {
-        return storage != null && storage.getClass() == Object[].class;
+        return storage.getClass() == Object[].class;
     }
 
     @Override

@@ -544,7 +544,7 @@ public class CoreLibrary {
         // Create some key objects
 
         mainObject = new RubyBasicObject(objectClass, language.basicObjectShape);
-        argv = new RubyArray(arrayClass, language.arrayShape, ArrayStoreLibrary.INITIAL_STORE, 0);
+        argv = new RubyArray(arrayClass, language.arrayShape, ArrayStoreLibrary.initialStorage(false), 0);
 
         globalVariables = new GlobalVariables(context);
         interactiveBindingLocalVariablesObject = new BindingLocalVariablesObject();

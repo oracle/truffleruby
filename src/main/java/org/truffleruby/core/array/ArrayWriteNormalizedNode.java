@@ -16,7 +16,6 @@ import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
@@ -29,8 +28,6 @@ import com.oracle.truffle.api.library.CachedLibrary;
 @ReportPolymorphism
 public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
 
-    @Child private PropagateSharingNode propagateSharingNode = PropagateSharingNode.create();
-
     public abstract Object executeWrite(RubyArray array, int index, Object value);
 
     // Writing within an existing array with a compatible type
@@ -39,9 +36,8 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
             guards = { "isInBounds(array, index)", "stores.acceptsValue(store, value)" },
             limit = "storageStrategyLimit()")
     protected Object writeWithin(RubyArray array, int index, Object value,
-            @Bind("array.store") Object store,
+            @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores) {
-        propagateSharingNode.executePropagate(array, value);
         stores.write(store, index, value);
         return value;
     }
@@ -55,15 +51,14 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
             },
             limit = "storageStrategyLimit()")
     protected Object writeWithinGeneralizeNonMutable(RubyArray array, int index, Object value,
-            @Bind("array.store") Object store,
+            @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores,
             @CachedLibrary(limit = "1") ArrayStoreLibrary newStores) {
         final int size = array.size;
         final Object newStore = stores.allocateForNewValue(store, value, size);
         stores.copyContents(store, 0, newStore, 0, size);
-        propagateSharingNode.executePropagate(array, value);
         newStores.write(newStore, index, value);
-        array.store = newStore;
+        array.setStore(newStore);
         return value;
     }
 
@@ -84,7 +79,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
                     "stores.isPrimitive(store)" },
             limit = "storageStrategyLimit()")
     protected Object writeBeyondPrimitive(RubyArray array, int index, Object value,
-            @Bind("array.store") Object store,
+            @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores,
             @CachedLibrary(limit = "1") ArrayStoreLibrary newStores,
             @Cached LoopConditionProfile loopProfile) {
@@ -101,7 +96,6 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
         } finally {
             profileAndReportLoopCount(loopProfile, n - oldSize);
         }
-        propagateSharingNode.executePropagate(array, value);
         newStores.write(objectStore, index, value);
         setStoreAndSize(array, objectStore, newSize);
         return value;
@@ -114,7 +108,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
                     "!stores.isPrimitive(store)" },
             limit = "storageStrategyLimit()")
     protected Object writeBeyondObject(RubyArray array, int index, Object value,
-            @Bind("array.store") Object store,
+            @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores,
             @CachedLibrary(limit = "1") ArrayStoreLibrary newStores,
             @Cached ArrayEnsureCapacityNode ensureCapacityNode,
@@ -129,7 +123,6 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
         } finally {
             profileAndReportLoopCount(loopProfile, n - array.size);
         }
-        propagateSharingNode.executePropagate(array, value);
         newStores.write(newStore, index, value);
         setSize(array, index + 1);
         return value;

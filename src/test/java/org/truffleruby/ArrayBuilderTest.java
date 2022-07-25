@@ -44,7 +44,7 @@ public class ArrayBuilderTest {
         testInContext(() -> {
             ArrayBuilderNode builder = createBuilder();
             BuilderState state = builder.start();
-            assertEquals(ArrayStoreLibrary.INITIAL_STORE, builder.finish(state, 0));
+            assertEquals(ArrayStoreLibrary.initialStorage(false), builder.finish(state, 0));
         });
     }
 
@@ -53,7 +53,7 @@ public class ArrayBuilderTest {
         testInContext(() -> {
             ArrayBuilderNode builder = createBuilder();
             BuilderState state = builder.start(10);
-            assertEquals(ArrayStoreLibrary.INITIAL_STORE, builder.finish(state, 0));
+            assertEquals(ArrayStoreLibrary.initialStorage(false), builder.finish(state, 0));
         });
     }
 
@@ -113,10 +113,10 @@ public class ArrayBuilderTest {
             RubyArray otherStore = new RubyArray(
                     RubyLanguage.getCurrentContext().getCoreLibrary().arrayClass,
                     RubyLanguage.getCurrentLanguage().arrayShape,
-                    ArrayStoreLibrary.INITIAL_STORE,
+                    ArrayStoreLibrary.initialStorage(false),
                     0);
             builder.appendArray(state, 0, otherStore);
-            assertEquals(ArrayStoreLibrary.INITIAL_STORE, builder.finish(state, 0));
+            assertEquals(ArrayStoreLibrary.initialStorage(false), builder.finish(state, 0));
         });
     }
 

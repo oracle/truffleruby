@@ -34,7 +34,7 @@ public abstract class ArrayDupNode extends RubyBaseNode {
                     "cachedSize <= MAX_EXPLODE_SIZE" },
             limit = "getCacheLimit()")
     protected RubyArray dupProfiledSize(RubyArray from,
-            @Bind("from.store") Object fromStore,
+            @Bind("from.getStore()") Object fromStore,
             @CachedLibrary("fromStore") ArrayStoreLibrary fromStores,
             @CachedLibrary(limit = "1") ArrayStoreLibrary toStores,
             @Cached("from.size") int cachedSize) {
@@ -47,7 +47,7 @@ public abstract class ArrayDupNode extends RubyBaseNode {
             ArrayStoreLibrary toStores,
             Object fromStore,
             int cachedSize) {
-        final Object copy = fromStores.allocator(fromStore).allocate(cachedSize);
+        final Object copy = fromStores.unsharedAllocator(fromStore).allocate(cachedSize);
         for (int i = 0; i < cachedSize; i++) {
             toStores.write(copy, i, fromStores.read(fromStore, i));
         }
@@ -56,7 +56,7 @@ public abstract class ArrayDupNode extends RubyBaseNode {
 
     @Specialization(replaces = "dupProfiledSize")
     protected RubyArray dup(RubyArray from,
-            @Bind("from.store") Object fromStore,
+            @Bind("from.getStore()") Object fromStore,
             @Cached ArrayCopyOnWriteNode cowNode) {
         final int size = from.size;
         final Object copy = cowNode.execute(from, 0, from.size);
