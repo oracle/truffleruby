@@ -54,6 +54,7 @@ import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
+import org.truffleruby.language.loader.FileLoader;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.shared.TruffleRuby;
 
@@ -1765,6 +1766,27 @@ public abstract class InteropNodes {
             }
 
             return env.lookupHostSymbol(name);
+        }
+
+    }
+
+    @Primitive(name = "java_add_to_classpath")
+    public abstract static class JavaAddToClasspathNode extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = "strings.isRubyString(path)")
+        protected boolean javaAddToClasspath(Object path,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
+            TruffleLanguage.Env env = getContext().getEnv();
+            try {
+                TruffleFile file = FileLoader.getSafeTruffleFile(getLanguage(), getContext(),
+                        strings.getJavaString(path));
+                env.addToHostClassPath(file);
+                return true;
+            } catch (SecurityException e) {
+                throw new RaiseException(getContext(),
+                        coreExceptions().securityError("unable to add to classpath", this), e);
+            }
         }
 
     }

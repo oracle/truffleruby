@@ -535,6 +535,10 @@ module Polyglot
 end
 
 module Java
+  def self.add_to_classpath(path)
+    Primitive.java_add_to_classpath(path)
+  end
+
   def self.type(name)
     Truffle::Interop.java_type(name)
   end
