@@ -116,7 +116,7 @@ VALUE rb_str_inspect(VALUE string) {
 }
 
 ID rb_intern_str(VALUE string) {
-  return SYM2ID(RUBY_CEXT_INVOKE("rb_intern_str", string));
+  return SYM2ID(RUBY_INVOKE(string, "intern"));
 }
 
 VALUE rb_str_cat(VALUE string, const char *to_concat, long length) {
@@ -140,8 +140,7 @@ VALUE rb_str_buf_append(VALUE string, VALUE other) {
 }
 
 VALUE rb_enc_str_buf_cat(VALUE str, const char *ptr, long len, rb_encoding *enc) {
-  VALUE other = rb_enc_str_new(ptr, len, enc);
-  return rb_str_concat(str, other);
+  return rb_str_concat(str, rb_tr_temporary_native_string(ptr, len, enc));
 }
 
 #undef rb_str_cat_cstr
@@ -317,7 +316,7 @@ VALUE rb_str_encode(VALUE str, VALUE to, int ecflags, VALUE ecopts) {
 }
 
 VALUE rb_usascii_str_new(const char *ptr, long len) {
-  return RUBY_INVOKE(rb_str_new(ptr, len), "force_encoding", rb_enc_from_encoding(rb_usascii_encoding()));
+  return rb_enc_str_new(ptr, len, rb_usascii_encoding());
 }
 
 VALUE rb_usascii_str_new_static(const char *ptr, long len) {
@@ -325,7 +324,7 @@ VALUE rb_usascii_str_new_static(const char *ptr, long len) {
 }
 
 VALUE rb_usascii_str_new_cstr(const char *ptr) {
-  return RUBY_INVOKE(rb_str_new_cstr(ptr), "force_encoding", rb_enc_from_encoding(rb_usascii_encoding()));
+  return rb_usascii_str_new(ptr, strlen(ptr));
 }
 
 VALUE rb_str_times(VALUE string, VALUE times) {

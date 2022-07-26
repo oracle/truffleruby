@@ -9,18 +9,22 @@
  */
 package org.truffleruby.core.string;
 
-import org.jcodings.specific.ASCIIEncoding;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.LeafRope;
+import com.oracle.truffle.api.strings.TruffleString;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.TStringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.truffleruby.core.encoding.Encodings.BINARY;
-
 public class FrozenStrings {
 
-    public static final List<LeafRope> ROPES = new ArrayList<>();
+    public static final List<TruffleString> TSTRINGS = new ArrayList<>();
+
+    public static final ImmutableRubyString EMPTY_US_ASCII = FrozenStringLiterals.createStringAndCacheLater(
+            TStringConstants.EMPTY_US_ASCII,
+            Encodings.US_ASCII);
+
     public static final ImmutableRubyString YIELD = createFrozenStaticBinaryString("yield");
     public static final ImmutableRubyString ASSIGNMENT = createFrozenStaticBinaryString("assignment");
     public static final ImmutableRubyString CLASS_VARIABLE = createFrozenStaticBinaryString("class variable");
@@ -38,10 +42,14 @@ public class FrozenStrings {
 
     private static ImmutableRubyString createFrozenStaticBinaryString(String string) {
         // defined?(...) returns frozen strings with a binary encoding
-        final LeafRope rope = StringOperations.encodeRope(string, ASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
-        ROPES.add(rope);
-        return FrozenStringLiterals.createStringAndCacheLater(rope, BINARY);
+        return createFrozenStaticString(string, Encodings.BINARY);
     }
 
+    private static ImmutableRubyString createFrozenStaticString(String string, RubyEncoding encoding) {
+        // defined?(...) returns frozen strings with a binary encoding
+        var tstring = TStringUtils.fromJavaString(string, encoding);
+        TSTRINGS.add(tstring);
+        return FrozenStringLiterals.createStringAndCacheLater(tstring, encoding);
+    }
 
 }

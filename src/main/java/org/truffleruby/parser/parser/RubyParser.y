@@ -1,15 +1,14 @@
 %{
 package org.truffleruby.parser.parser;
 
-import org.jcodings.Encoding;
-import org.jcodings.specific.UTF8Encoding;
+import com.oracle.truffle.api.strings.TruffleString;
+
 import org.truffleruby.Layouts;
 import org.truffleruby.SuppressFBWarnings;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeConstants;
-import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.TStringUtils;
+import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.RubyDeferredWarnings;
 import org.truffleruby.parser.ast.ArgsParseNode;
@@ -97,7 +96,6 @@ import org.truffleruby.parser.lexer.RubyLexer;
 import org.truffleruby.parser.lexer.StrTerm;
 import org.truffleruby.parser.lexer.SyntaxException.PID;
 
-import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_BEG;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_END;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_ENDARG;
@@ -133,61 +131,61 @@ public class RubyParser {
   modifier_rescue keyword_alias keyword_defined keyword_BEGIN keyword_END
   keyword__LINE__ keyword__FILE__ keyword__ENCODING__ keyword_do_lambda 
 
-%token <Rope> tIDENTIFIER tFID tGVAR tIVAR tCONSTANT tCVAR tLABEL
+%token <TruffleString> tIDENTIFIER tFID tGVAR tIVAR tCONSTANT tCVAR tLABEL
 %token <StrParseNode> tCHAR
-%type <Rope> sym symbol operation operation2 operation3 op fname cname
-%type <Rope> f_norm_arg restarg_mark
-%type <Rope> dot_or_colon  blkarg_mark
-%token <Rope> tUPLUS         /* unary+ */
-%token <Rope> tUMINUS        /* unary- */
-%token <Rope> tUMINUS_NUM    /* unary- */
-%token <Rope> tPOW           /* ** */
-%token <Rope> tCMP           /* <=> */
-%token <Rope> tEQ            /* == */
-%token <Rope> tEQQ           /* === */
-%token <Rope> tNEQ           /* != */
-%token <Rope> tGEQ           /* >= */
-%token <Rope> tLEQ           /* <= */
-%token <Rope> tANDOP tOROP   /* && and || */
-%token <Rope> tMATCH tNMATCH /* =~ and !~ */
-%token <Rope> tDOT           /* Is just '.' in ruby and not a token */
-%token <Rope> tDOT2 tDOT3    /* .. and ... */
-%token <Rope> tBDOT2 tBDOT3    /* (.. and (... */
-%token <Rope> tAREF tASET    /* [] and []= */
-%token <Rope> tLSHFT tRSHFT  /* << and >> */
-%token <Rope> tANDDOT        /* &. */
-%token <Rope> tCOLON2        /* :: */
-%token <Rope> tCOLON3        /* :: at EXPR_BEG */
-%token <Rope> tOP_ASGN       /* +=, -=  etc. */
-%token <Rope> tASSOC         /* => */
+%type <TruffleString> sym symbol operation operation2 operation3 op fname cname
+%type <TruffleString> f_norm_arg restarg_mark
+%type <TruffleString> dot_or_colon  blkarg_mark
+%token <TruffleString> tUPLUS         /* unary+ */
+%token <TruffleString> tUMINUS        /* unary- */
+%token <TruffleString> tUMINUS_NUM    /* unary- */
+%token <TruffleString> tPOW           /* ** */
+%token <TruffleString> tCMP           /* <=> */
+%token <TruffleString> tEQ            /* == */
+%token <TruffleString> tEQQ           /* === */
+%token <TruffleString> tNEQ           /* != */
+%token <TruffleString> tGEQ           /* >= */
+%token <TruffleString> tLEQ           /* <= */
+%token <TruffleString> tANDOP tOROP   /* && and || */
+%token <TruffleString> tMATCH tNMATCH /* =~ and !~ */
+%token <TruffleString> tDOT           /* Is just '.' in ruby and not a token */
+%token <TruffleString> tDOT2 tDOT3    /* .. and ... */
+%token <TruffleString> tBDOT2 tBDOT3    /* (.. and (... */
+%token <TruffleString> tAREF tASET    /* [] and []= */
+%token <TruffleString> tLSHFT tRSHFT  /* << and >> */
+%token <TruffleString> tANDDOT        /* &. */
+%token <TruffleString> tCOLON2        /* :: */
+%token <TruffleString> tCOLON3        /* :: at EXPR_BEG */
+%token <TruffleString> tOP_ASGN       /* +=, -=  etc. */
+%token <TruffleString> tASSOC         /* => */
 %token <SourceIndexLength> tLPAREN       /* ( */
 %token <SourceIndexLength> tLPAREN2      /* ( Is just '(' in ruby and not a token */
-%token <Rope> tRPAREN        /* ) */
+%token <TruffleString> tRPAREN        /* ) */
 %token <SourceIndexLength> tLPAREN_ARG    /* ( */
-%token <Rope> tLBRACK        /* [ */
-%token <Rope> tRBRACK        /* ] */
+%token <TruffleString> tLBRACK        /* [ */
+%token <TruffleString> tRBRACK        /* ] */
 %token <SourceIndexLength> tLBRACE        /* { */
 %token <SourceIndexLength> tLBRACE_ARG    /* { */
-%token <Rope> tSTAR          /* * */
-%token <Rope> tSTAR2         /* *  Is just '*' in ruby and not a token */
-%token <Rope> tAMPER         /* & */
-%token <Rope> tAMPER2        /* &  Is just '&' in ruby and not a token */
-%token <Rope> tTILDE         /* ` is just '`' in ruby and not a token */
-%token <Rope> tPERCENT       /* % is just '%' in ruby and not a token */
-%token <Rope> tDIVIDE        /* / is just '/' in ruby and not a token */
-%token <Rope> tPLUS          /* + is just '+' in ruby and not a token */
-%token <Rope> tMINUS         /* - is just '-' in ruby and not a token */
-%token <Rope> tLT            /* < is just '<' in ruby and not a token */
-%token <Rope> tGT            /* > is just '>' in ruby and not a token */
-%token <Rope> tPIPE          /* | is just '|' in ruby and not a token */
-%token <Rope> tBANG          /* ! is just '!' in ruby and not a token */
-%token <Rope> tCARET         /* ^ is just '^' in ruby and not a token */
+%token <TruffleString> tSTAR          /* * */
+%token <TruffleString> tSTAR2         /* *  Is just '*' in ruby and not a token */
+%token <TruffleString> tAMPER         /* & */
+%token <TruffleString> tAMPER2        /* &  Is just '&' in ruby and not a token */
+%token <TruffleString> tTILDE         /* ` is just '`' in ruby and not a token */
+%token <TruffleString> tPERCENT       /* % is just '%' in ruby and not a token */
+%token <TruffleString> tDIVIDE        /* / is just '/' in ruby and not a token */
+%token <TruffleString> tPLUS          /* + is just '+' in ruby and not a token */
+%token <TruffleString> tMINUS         /* - is just '-' in ruby and not a token */
+%token <TruffleString> tLT            /* < is just '<' in ruby and not a token */
+%token <TruffleString> tGT            /* > is just '>' in ruby and not a token */
+%token <TruffleString> tPIPE          /* | is just '|' in ruby and not a token */
+%token <TruffleString> tBANG          /* ! is just '!' in ruby and not a token */
+%token <TruffleString> tCARET         /* ^ is just '^' in ruby and not a token */
 %token <SourceIndexLength> tLCURLY        /* { is just '{' in ruby and not a token */
-%token <Rope> tRCURLY        /* } is just '}' in ruby and not a token */
-%token <Rope> tBACK_REF2     /* { is just '`' in ruby and not a token */
-%token <Rope> tSYMBEG tSTRING_BEG tXSTRING_BEG tREGEXP_BEG tWORDS_BEG tQWORDS_BEG
-%token <Rope> tSTRING_DBEG tSTRING_DVAR tSTRING_END
-%token <Rope> tLAMBDA tLAMBEG
+%token <TruffleString> tRCURLY        /* } is just '}' in ruby and not a token */
+%token <TruffleString> tBACK_REF2     /* { is just '`' in ruby and not a token */
+%token <TruffleString> tSYMBEG tSTRING_BEG tXSTRING_BEG tREGEXP_BEG tWORDS_BEG tQWORDS_BEG
+%token <TruffleString> tSTRING_DBEG tSTRING_DVAR tSTRING_END
+%token <TruffleString> tLAMBDA tLAMBEG
 %token <ParseNode> tNTH_REF tBACK_REF tSTRING_CONTENT tINTEGER tIMAGINARY
 %token <FloatParseNode> tFLOAT  
 %token <RationalParseNode> tRATIONAL
@@ -240,20 +238,20 @@ public class RubyParser {
 %type <LambdaParseNode> lambda
 %type <ParseNode> mlhs_inner f_block_opt for_var
 %type <ParseNode> opt_call_args f_marg f_margs
-%type <Rope> bvar
-%type <Rope> reswords f_bad_arg relop
-%type <Rope> rparen rbracket 
+%type <TruffleString> bvar
+%type <TruffleString> reswords f_bad_arg relop
+%type <TruffleString> rparen rbracket
 %type <ParseNode> top_compstmt top_stmts top_stmt
-%token <Rope> tSYMBOLS_BEG
-%token <Rope> tQSYMBOLS_BEG
-%token <Rope> tDSTAR
-%token <Rope> tSTRING_DEND
-%type <Rope> kwrest_mark f_kwrest f_label
-%type <Rope> args_forward
-%type <Rope> call_op call_op2
+%token <TruffleString> tSYMBOLS_BEG
+%token <TruffleString> tQSYMBOLS_BEG
+%token <TruffleString> tDSTAR
+%token <TruffleString> tSTRING_DEND
+%type <TruffleString> kwrest_mark f_kwrest f_label
+%type <TruffleString> args_forward
+%type <TruffleString> call_op call_op2
 %type <ArgumentParseNode> f_arg_asgn
 %type <FCallParseNode> fcall
-%token <Rope> tLABEL_END
+%token <TruffleString> tLABEL_END
 %type <SourceIndexLength> k_return k_class k_module
 
 /*
@@ -453,11 +451,11 @@ command_asgn    : lhs '=' command_rhs {
                     value_expr(lexer, $3);
 
                     SourceIndexLength pos = $1.getPosition();
-                    Rope asgnOp = $2;
-                    if (asgnOp == RopeConstants.OR_OR) {
+                    TruffleString asgnOp = $2;
+                    if (asgnOp == TStringConstants.OR_OR) {
                         $1.setValueNode($3);
                         $$ = new OpAsgnOrParseNode(pos, support.gettable2($1), $1);
-                    } else if (asgnOp == RopeConstants.AMPERSAND_AMPERSAND) {
+                    } else if (asgnOp == TStringConstants.AMPERSAND_AMPERSAND) {
                         $1.setValueNode($3);
                         $$ = new OpAsgnAndParseNode(pos, support.gettable2($1), $1);
                     } else {
@@ -511,7 +509,7 @@ expr            : command_call
                     $$ = support.newOrNode(support.getPosition($1), $1, $3);
                 }
                 | keyword_not opt_nl expr {
-                    $$ = support.getOperatorCallNode(support.getConditionNode($3), RopeConstants.BANG);
+                    $$ = support.getOperatorCallNode(support.getConditionNode($3), TStringConstants.BANG);
                 }
                 | tBANG command_call {
                     $$ = support.getOperatorCallNode(support.getConditionNode($2), $1);
@@ -706,7 +704,7 @@ mlhs_node       : /*mri:user_variable*/ tIDENTIFIER {
 
                     SourceIndexLength position = support.getPosition($1);
 
-                    $$ = new ConstDeclParseNode(position, (Rope) null, support.new_colon2(position, $1, $3), NilImplicitParseNode.NIL);
+                    $$ = new ConstDeclParseNode(position, (TruffleString) null, support.new_colon2(position, $1, $3), NilImplicitParseNode.NIL);
                 }
                 | tCOLON3 tCONSTANT {
                     if (support.isInDef()) {
@@ -715,7 +713,7 @@ mlhs_node       : /*mri:user_variable*/ tIDENTIFIER {
 
                     SourceIndexLength position = lexer.tokline;
 
-                    $$ = new ConstDeclParseNode(position, (Rope) null, support.new_colon3(position, $2), NilImplicitParseNode.NIL);
+                    $$ = new ConstDeclParseNode(position, (TruffleString) null, support.new_colon3(position, $2), NilImplicitParseNode.NIL);
                 }
                 | backref {
                     support.backrefAssignError($1);
@@ -786,7 +784,7 @@ lhs             : /*mri:user_variable*/ tIDENTIFIER {
 
                     SourceIndexLength position = support.getPosition($1);
 
-                    $$ = new ConstDeclParseNode(position, (Rope) null, support.new_colon2(position, $1, $3), NilImplicitParseNode.NIL);
+                    $$ = new ConstDeclParseNode(position, (TruffleString) null, support.new_colon2(position, $1, $3), NilImplicitParseNode.NIL);
                 }
                 | tCOLON3 tCONSTANT {
                     if (support.isInDef()) {
@@ -795,7 +793,7 @@ lhs             : /*mri:user_variable*/ tIDENTIFIER {
 
                     SourceIndexLength position = lexer.tokline;
 
-                    $$ = new ConstDeclParseNode(position, (Rope) null, support.new_colon3(position, $2), NilImplicitParseNode.NIL);
+                    $$ = new ConstDeclParseNode(position, (TruffleString) null, support.new_colon3(position, $2), NilImplicitParseNode.NIL);
                 }
                 | backref {
                     support.backrefAssignError($1);
@@ -1091,11 +1089,11 @@ arg             : lhs '=' arg_rhs {
                     value_expr(lexer, $3);
 
                     SourceIndexLength pos = $1.getPosition();
-                    Rope asgnOp = $2;
-                    if (asgnOp == RopeConstants.OR_OR) {
+                    TruffleString asgnOp = $2;
+                    if (asgnOp == TStringConstants.OR_OR) {
                         $1.setValueNode($3);
                         $$ = new OpAsgnOrParseNode(pos, support.gettable2($1), $1);
-                    } else if (asgnOp == RopeConstants.AMPERSAND_AMPERSAND) {
+                    } else if (asgnOp == TStringConstants.AMPERSAND_AMPERSAND) {
                         $1.setValueNode($3);
                         $$ = new OpAsgnAndParseNode(pos, support.gettable2($1), $1);
                     } else {
@@ -1278,7 +1276,7 @@ rel_expr        : arg relop arg   %prec tGT {
                      $$ = support.getOperatorCallNode($1, $2, $3, lexer.getPosition());
                 }
                 | rel_expr relop arg   %prec tGT {
-                     support.warning(lexer.getPosition(), "comparison '" + $2.getJavaString() + "' after comparison");
+                     support.warning(lexer.getPosition(), "comparison '" + $2.toJavaStringUncached() + "' after comparison");
                      $$ = support.getOperatorCallNode($1, $2, $3, lexer.getPosition());
                 }
  
@@ -1531,10 +1529,10 @@ primary         : literal
                     $$ = support.new_defined($1, $4);
                 }
                 | keyword_not tLPAREN2 expr rparen {
-                    $$ = support.getOperatorCallNode(support.getConditionNode($3), RopeConstants.BANG);
+                    $$ = support.getOperatorCallNode(support.getConditionNode($3), TStringConstants.BANG);
                 }
                 | keyword_not tLPAREN2 rparen {
-                    $$ = support.getOperatorCallNode(NilImplicitParseNode.NIL, RopeConstants.BANG);
+                    $$ = support.getOperatorCallNode(NilImplicitParseNode.NIL, TStringConstants.BANG);
                 }
                 | fcall brace_block {
                     support.frobnicate_fcall_args($1, null, $2);
@@ -1646,7 +1644,7 @@ primary         : literal
                     $$ = new DefnParseNode(support.extendedUntil($1, $7), support.symbolID($2), (ArgsParseNode) $5, support.getCurrentScope(), body);
                     support.popCurrentScope();
                     support.setInDef($<Boolean>4.booleanValue());
-                    lexer.setCurrentArg($<Rope>3);
+                    lexer.setCurrentArg($<TruffleString>3);
                 }
                 | keyword_def singleton dot_or_colon {
                     lexer.setState(EXPR_FNAME); 
@@ -1665,7 +1663,7 @@ primary         : literal
                     $$ = new DefsParseNode(support.extendedUntil($1, $9), $2, support.symbolID($5), (ArgsParseNode) $7, support.getCurrentScope(), body);
                     support.popCurrentScope();
                     support.setInDef($<Boolean>4.booleanValue());
-                    lexer.setCurrentArg($<Rope>6);
+                    lexer.setCurrentArg($<TruffleString>6);
                 }
                 | keyword_break {
                     $$ = new BreakParseNode($1, NilImplicitParseNode.NIL);
@@ -1770,7 +1768,7 @@ block_args_tail : f_block_kwarg ',' f_kwrest opt_f_block_arg {
                     $$ = support.new_args_tail($1.getPosition(), $1, $3, $4);
                 }
                 | f_block_kwarg opt_f_block_arg {
-                    $$ = support.new_args_tail($1.getPosition(), $1, (Rope) null, $2);
+                    $$ = support.new_args_tail($1.getPosition(), $1, (TruffleString) null, $2);
                 }
                 | f_kwrest opt_f_block_arg {
                     $$ = support.new_args_tail(lexer.getPosition(), null, $1, $2);
@@ -1779,14 +1777,14 @@ block_args_tail : f_block_kwarg ',' f_kwrest opt_f_block_arg {
                     $$ = support.new_args_tail(lexer.getPosition(), null, RubyLexer.Keyword.NIL.bytes, $2);
                 }
                 | f_block_arg {
-                    $$ = support.new_args_tail($1.getPosition(), null, (Rope) null, $1);
+                    $$ = support.new_args_tail($1.getPosition(), null, (TruffleString) null, $1);
                 }
 
 opt_block_args_tail : ',' block_args_tail {
                     $$ = $2;
                 }
                 | /* none */ {
-                    $$ = support.new_args_tail(lexer.getPosition(), null, (Rope) null, null);
+                    $$ = support.new_args_tail(lexer.getPosition(), null, (TruffleString) null, null);
                 }
 
 // [!null]
@@ -1967,10 +1965,10 @@ method_call     : fcall paren_args {
                     $$ = support.new_call($1, $3, null, null);
                 }
                 | primary_value call_op paren_args {
-                    $$ = support.new_call($1, $2, RopeConstants.CALL, $3, null);
+                    $$ = support.new_call($1, $2, TStringConstants.CALL, $3, null);
                 }
                 | primary_value tCOLON2 paren_args {
-                    $$ = support.new_call($1, RopeConstants.CALL, $3, null);
+                    $$ = support.new_call($1, TStringConstants.CALL, $3, null);
                 }
                 | keyword_super paren_args {
                     $$ = support.new_super($1, $2);
@@ -1980,10 +1978,10 @@ method_call     : fcall paren_args {
                 }
                 | primary_value '[' opt_call_args rbracket {
                     if ($1 instanceof SelfParseNode) {
-                        $$ = support.new_fcall(RopeConstants.LBRACKET_RBRACKET);
+                        $$ = support.new_fcall(TStringConstants.LBRACKET_RBRACKET);
                         support.frobnicate_fcall_args($<FCallParseNode>$, $3, null);
                     } else {
-                        $$ = support.new_call($1, RopeConstants.LBRACKET_RBRACKET, $3, null);
+                        $$ = support.new_call($1, TStringConstants.LBRACKET_RBRACKET, $3, null);
                     }
                 }
 
@@ -2033,7 +2031,7 @@ p_cases         : opt_else | p_case_body
 opt_rescue      : keyword_rescue exc_list exc_var then compstmt opt_rescue {
                     ParseNode node;
                     if ($3 != null) {
-                        node = support.appendToBlock(support.node_assign($3, new GlobalVarParseNode($1, support.symbolID(RopeConstants.DOLLAR_BANG))), $5);
+                        node = support.appendToBlock(support.node_assign($3, new GlobalVarParseNode($1, support.symbolID(TStringConstants.DOLLAR_BANG))), $5);
                         if ($5 != null) {
                             node.setPosition($1);
                         }
@@ -2111,9 +2109,9 @@ xstring         : tXSTRING_BEG xstring_contents tSTRING_END {
                     lexer.setHeredocIndent(0);
 
                     if ($2 == null) {
-                        $$ = new XStrParseNode(position, null, CodeRange.CR_7BIT);
+                        $$ = new XStrParseNode(position, null);
                     } else if ($2 instanceof StrParseNode) {
-                        $$ = new XStrParseNode(position, (Rope) $<StrParseNode>2.getValue(), $<StrParseNode>2.getCodeRange());
+                        $$ = new XStrParseNode(position, $<StrParseNode>2);
                     } else if ($2 instanceof DStrParseNode) {
                         $$ = new DXStrParseNode(position, $<DStrParseNode>2);
 
@@ -2180,7 +2178,7 @@ qsym_list      : /* none */ {
                 }
 
 string_contents : /* none */ {
-                    $$ = lexer.createStr(RopeOperations.emptyRope(lexer.getEncoding()), 0);
+                    $$ = lexer.createStr(lexer.encoding.tencoding.getEmpty(), lexer.encoding, 0);
                 }
                 | string_contents string_content {
                     $$ = support.literal_concat($1, $<ParseNode>2);
@@ -2277,7 +2275,7 @@ dsym            : tSYMBEG xstring_contents tSTRING_END {
                      // EvStrNode :"#{some expression}"
                      // Ruby 1.9 allows empty strings as symbols
                      if ($2 == null) {
-                         $$ = support.asSymbol(lexer.getPosition(), RopeConstants.EMPTY_US_ASCII_ROPE);
+                         $$ = support.asSymbol(lexer.getPosition(), TStringConstants.EMPTY_US_ASCII);
                      } else if ($2 instanceof DStrParseNode) {
                          $$ = new DSymbolParseNode($2.getPosition(), $<DStrParseNode>2);
                      } else if ($2 instanceof StrParseNode) {
@@ -2337,8 +2335,8 @@ var_ref         : /*mri:user_variable*/ tIDENTIFIER {
                     $$ = new FalseParseNode((SourceIndexLength) $$);
                 }
                 | keyword__FILE__ {
-                    Encoding encoding = support.getConfiguration().getContext() == null ? UTF8Encoding.INSTANCE : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding().jcoding;
-                    $$ = new FileParseNode(lexer.tokline, StringOperations.encodeRope(lexer.getFile(), encoding, CR_UNKNOWN));
+                    RubyEncoding encoding = support.getConfiguration().getContext() == null ? Encodings.UTF_8 : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding();
+                    $$ = new FileParseNode(lexer.tokline, TStringUtils.fromJavaString(lexer.getFile(), encoding), encoding);
                 }
                 | keyword__LINE__ {
                     $$ = new FixnumParseNode(lexer.tokline, lexer.tokline.toSourceSection(lexer.getSource()).getStartLine() + lexer.getLineOffset());
@@ -2434,7 +2432,7 @@ args_tail       : f_kwarg ',' f_kwrest opt_f_block_arg {
                     $$ = support.new_args_tail($1.getPosition(), $1, $3, $4);
                 }
                 | f_kwarg opt_f_block_arg {
-                    $$ = support.new_args_tail($1.getPosition(), $1, (Rope) null, $2);
+                    $$ = support.new_args_tail($1.getPosition(), $1, (TruffleString) null, $2);
                 }
                 | f_kwrest opt_f_block_arg {
                     $$ = support.new_args_tail(lexer.getPosition(), null, $1, $2);
@@ -2443,14 +2441,14 @@ args_tail       : f_kwarg ',' f_kwrest opt_f_block_arg {
                     $$ = support.new_args_tail(lexer.getPosition(), null, RubyLexer.Keyword.NIL.bytes, $2);
                 }
                 | f_block_arg {
-                    $$ = support.new_args_tail($1.getPosition(), null, (Rope) null, $1);
+                    $$ = support.new_args_tail($1.getPosition(), null, (TruffleString) null, $1);
                 }
 
 opt_args_tail   : ',' args_tail {
                     $$ = $2;
                 }
                 | /* none */ {
-                    $$ = support.new_args_tail(lexer.getPosition(), null, (Rope) null, null);
+                    $$ = support.new_args_tail(lexer.getPosition(), null, (TruffleString) null, null);
                 }
 
 f_args          : f_args_any {
@@ -2507,14 +2505,14 @@ f_args_any      : f_arg ',' f_optarg ',' f_rest_arg opt_args_tail {
                     SourceIndexLength position = support.getPosition(null);
                     RestArgParseNode splat = new RestArgParseNode(position, ParserSupport.FORWARD_ARGS_REST_VAR, 0);
                     BlockArgParseNode block = new BlockArgParseNode(position, 1, ParserSupport.FORWARD_ARGS_BLOCK_VAR);
-                    ArgsTailHolder argsTail = support.new_args_tail(position, null, ParserSupport.FORWARD_ARGS_KWREST_VAR_ROPE, block);
+                    ArgsTailHolder argsTail = support.new_args_tail(position, null, ParserSupport.FORWARD_ARGS_KWREST_VAR_TSTRING, block);
                     $$ = support.new_args(position, $1, null, splat, null, argsTail);
                 }
                 | args_forward {
                     SourceIndexLength position = support.getPosition(null);
                     RestArgParseNode splat = new RestArgParseNode(position, ParserSupport.FORWARD_ARGS_REST_VAR, 0);
                     BlockArgParseNode block = new BlockArgParseNode(position, 1, ParserSupport.FORWARD_ARGS_BLOCK_VAR);
-                    ArgsTailHolder argsTail = support.new_args_tail(position, null, ParserSupport.FORWARD_ARGS_KWREST_VAR_ROPE, block);
+                    ArgsTailHolder argsTail = support.new_args_tail(position, null, ParserSupport.FORWARD_ARGS_KWREST_VAR_TSTRING, block);
                     $$ = support.new_args(position, null, null, splat, null, argsTail);
                 }
 

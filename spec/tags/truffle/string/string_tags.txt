@@ -1,2 +1,0 @@
-slow:String has critical methods of under 100 AST nodes
-

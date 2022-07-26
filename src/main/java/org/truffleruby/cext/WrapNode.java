@@ -12,10 +12,9 @@ package org.truffleruby.cext;
 import static org.truffleruby.cext.ValueWrapperManager.LONG_TAG;
 import static org.truffleruby.cext.ValueWrapperManager.UNSET_HANDLE;
 
-import org.jcodings.specific.UTF8Encoding;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.encoding.Encodings;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
@@ -71,13 +70,10 @@ public abstract class WrapNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected ValueWrapper wrapWrappedValue(ValueWrapper value) {
-        throw new RaiseException(
-                getContext(),
-                coreExceptions().argumentError(
-                        RopeOperations.encodeAscii("Wrapping wrapped object", UTF8Encoding.INSTANCE),
-                        Encodings.UTF_8,
-                        this));
+    protected ValueWrapper wrapWrappedValue(ValueWrapper value,
+            @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
+        var message = createString(fromJavaStringNode, "Wrapping wrapped object", Encodings.UTF_8);
+        throw new RaiseException(getContext(), coreExceptions().argumentError(message, this, null));
     }
 
     @Specialization

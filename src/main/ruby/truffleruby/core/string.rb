@@ -114,7 +114,7 @@ class String
   def delete_prefix!(prefix)
     Primitive.check_mutable_string self
     prefix = Truffle::Type.coerce_to(prefix, String, :to_str)
-    if !prefix.empty? && start_with?(prefix)
+    if !prefix.empty? && self[0, prefix.size] == prefix
       self[0, prefix.size] = ''
       self
     else
@@ -130,7 +130,7 @@ class String
   def delete_suffix!(suffix)
     Primitive.check_mutable_string self
     suffix = Truffle::Type.coerce_to(suffix, String, :to_str)
-    if !suffix.empty? && end_with?(suffix)
+    if !suffix.empty? && self[-suffix.size, suffix.size] == suffix
       self[size - suffix.size, suffix.size] = ''
       self
     else
@@ -323,13 +323,6 @@ class String
     str.tr_s!(source, replacement) || str
   end
 
-  def each_codepoint
-    return to_enum(:each_codepoint) { size } unless block_given?
-
-    each_char { |c| yield c.ord }
-    self
-  end
-
   def each_grapheme_cluster
     return to_enum(:each_grapheme_cluster) { size } unless block_given?
 
@@ -337,22 +330,6 @@ class String
     # scan(regex, &block) would leak the $ vars in the user block which is probably unwanted
     scan(regex) { |e| yield e }
     self
-  end
-
-  def chars(&block)
-    if block_given?
-      each_char(&block)
-    else
-      each_char.to_a
-    end
-  end
-
-  def codepoints(&block)
-    if block_given?
-      each_codepoint(&block)
-    else
-      each_codepoint.to_a
-    end
   end
 
   def encode!(to=undefined, from=undefined, **options)
@@ -455,6 +432,7 @@ class String
     unless result_encoding.ascii_compatible?
       result_encoding = Encoding::US_ASCII
     end
+    # result_encoding is always Encoding#ascii_compatible?
 
     enc = encoding
     ascii = enc.ascii_compatible?
@@ -488,77 +466,73 @@ class String
     result.force_encoding(result_encoding)
   end
 
-  # https://github.com/ruby/ruby/blob/12f7ba5ed4a07855d6a9429aa627211db3655ca7/string.c#L6049-L6050
-  MAX_PRINTABLE_UNICODE_CHAR = 0x7F
-  private_constant :MAX_PRINTABLE_UNICODE_CHAR
-
   private def inspect_char(enc, result_encoding, ascii, unicode, index, char, result)
     consumed = char.bytesize
+    codepoint = char.ord
 
-    if (ascii or unicode) and consumed == 1
+    if (ascii or unicode) and (codepoint >= 7 and codepoint <= 92)
       escaped = nil
 
-      byte = getbyte(index)
-      if byte >= 7 and byte <= 92
-        case byte
-        when 7  # \a
-          escaped = '\a'
-        when 8  # \b
-          escaped = '\b'
-        when 9  # \t
-          escaped = '\t'
-        when 10 # \n
-          escaped = '\n'
-        when 11 # \v
-          escaped = '\v'
-        when 12 # \f
-          escaped = '\f'
-        when 13 # \r
-          escaped = '\r'
-        when 27 # \e
-          escaped = '\e'
-        when 34 # \"
-          escaped = '\"'
-        when 35 # #
-          case getbyte(index + 1)
-          when 36   # $
-            escaped = '\#$'
-            consumed += 1
-          when 64   # @
-            escaped = '\#@'
-            consumed += 1
-          when 123  # {
-            escaped = '\#{'
-            consumed += 1
-          end
-        when 92 # \\
-          escaped = '\\\\'
+      case codepoint
+      when 7  # \a
+        escaped = '\a'
+      when 8  # \b
+        escaped = '\b'
+      when 9  # \t
+        escaped = '\t'
+      when 10 # \n
+        escaped = '\n'
+      when 11 # \v
+        escaped = '\v'
+      when 12 # \f
+        escaped = '\f'
+      when 13 # \r
+        escaped = '\r'
+      when 27 # \e
+        escaped = '\e'
+      when 34 # \"
+        escaped = '\"'
+      when 35 # #
+        case getbyte(index + 1)
+        when 36   # $
+          escaped = '\#$'
+          consumed += 1
+        when 64   # @
+          escaped = '\#@'
+          consumed += 1
+        when 123  # {
+          escaped = '\#{'
+          consumed += 1
         end
+      when 92 # \\
+        escaped = '\\\\'
+      end
 
-        if escaped
-          result << escaped
-          return consumed
-        end
+      if escaped
+        result << escaped
+        return consumed
       end
     end
 
-    if Primitive.character_printable_p(char) && unicode && char.ord < MAX_PRINTABLE_UNICODE_CHAR
-      result << char.encode(result_encoding)
-    elsif Primitive.character_printable_p(char) && (enc == result_encoding || (ascii && char.ascii_only?))
+    printable = Primitive.character_printable?(codepoint, enc)
+    if printable && (enc == result_encoding || (ascii && char.ascii_only?))
       result << char
+    # < 0x7F from https://github.com/ruby/ruby/blob/12f7ba5ed4a07855d6a9429aa627211db3655ca7/string.c#L6049-L6050
+    # Exclude UTF-8 (unicode && ascii) because it was already checked just above
+    elsif printable && unicode && !ascii && codepoint < 0x7F
+      result << codepoint
     else
-      code = char.ord
-      escaped = code.to_s(16).upcase
+      escaped = codepoint.to_s(16).upcase
 
       if unicode
-        if code < 0x10000
+        if codepoint < 0x10000
           pad = '0' * (4 - escaped.bytesize)
           result << "\\u#{pad}#{escaped}"
         else
           result << "\\u{#{escaped}}"
         end
       else
-        if code < 0x100
+        if codepoint < 0x100
           pad = '0' * (2 - escaped.bytesize)
           result << "\\x#{pad}#{escaped}"
         else
@@ -704,7 +678,7 @@ class String
       end
     end
 
-    Truffle::StringOperations.truncate(self, bytes)
+    Primitive.string_truncate(self, bytes)
 
     self
   end
@@ -766,7 +740,7 @@ class String
       bytes = bytesize - sep_bytesize
     end
 
-    Truffle::StringOperations.truncate(self, bytes)
+    Primitive.string_truncate(self, bytes)
 
     self
   end
@@ -1119,7 +1093,8 @@ class String
 
   def start_with?(*prefixes)
     if prefixes.size == 1 and prefix = prefixes[0] and String === prefix
-      return self[0, prefix.length] == prefix
+      enc = Primitive.encoding_ensure_compatible_str self, prefix
+      return Primitive.string_start_with?(self, prefix, enc)
     end
 
     # This is the workaround because `Primitive.caller_special_variables` doesn't work inside blocks yet.
@@ -1132,11 +1107,9 @@ class String
         Primitive.regexp_last_match_set(storage, match_data)
         return true if match_data
       else
-        prefix = Truffle::Type.rb_check_convert_type original_prefix, String, :to_str
-        unless prefix
-          raise TypeError, "no implicit conversion of #{original_prefix.class} into String"
-        end
-        return true if self[0, prefix.length] == prefix
+        prefix = Truffle::Type.rb_convert_type original_prefix, String, :to_str
+        enc = Primitive.encoding_ensure_compatible_str self, prefix
+        return true if Primitive.string_start_with?(self, prefix, enc)
       end
     end
     false
@@ -1260,7 +1233,7 @@ class String
 
   def <=>(other)
     if String === other
-      return Primitive.string_cmp self, other
+      return Primitive.string_cmp(self, other, Primitive.strings_compatible?(self, other))
     end
 
     Truffle::ThreadOperations.detect_pair_recursion self, other do

@@ -512,11 +512,11 @@ public class RubyContext {
 
         Signals.restoreDefaultHandlers();
 
-        if (options.ROPE_PRINT_INTERN_STATS) {
-            RubyLanguage.LOGGER.info("ropes re-used: " + language.ropeCache.getRopesReusedCount());
-            RubyLanguage.LOGGER.info("rope byte arrays re-used: " + language.ropeCache.getByteArrayReusedCount());
-            RubyLanguage.LOGGER.info("rope bytes saved: " + language.ropeCache.getRopeBytesSaved());
-            RubyLanguage.LOGGER.info("total ropes interned: " + language.ropeCache.totalRopes());
+        if (options.PRINT_INTERNED_TSTRING_STATS) {
+            RubyLanguage.LOGGER.info("tstrings re-used: " + language.tstringCache.getTStringsReusedCount());
+            RubyLanguage.LOGGER.info("tstring byte arrays re-used: " + language.tstringCache.getByteArrayReusedCount());
+            RubyLanguage.LOGGER.info("tstring bytes saved: " + language.tstringCache.getTStringBytesSaved());
+            RubyLanguage.LOGGER.info("total tstrings interned: " + language.tstringCache.totalTStrings());
         }
 
         if (options.CEXTS_TO_NATIVE_STATS) {

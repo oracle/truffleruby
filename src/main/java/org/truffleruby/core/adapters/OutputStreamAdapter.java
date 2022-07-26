@@ -14,9 +14,8 @@ import java.io.OutputStream;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.encoding.TStringUtils;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.support.RubyIO;
 import org.truffleruby.language.dispatch.DispatchNode;
 
@@ -36,8 +35,15 @@ public class OutputStreamAdapter extends OutputStream {
 
     @Override
     public void write(int bite) {
-        DispatchNode.getUncached().call(object, "write", StringOperations.createString(context, language,
-                RopeOperations.create((byte) bite, encoding.jcoding, CodeRange.CR_UNKNOWN), encoding));
+        DispatchNode.getUncached().call(
+                object,
+                "write",
+                new RubyString(
+                        context.getCoreLibrary().stringClass,
+                        language.stringShape,
+                        false,
+                        TStringUtils.fromByteArray(new byte[]{ (byte) bite }, encoding),
+                        encoding));
     }
 
 }

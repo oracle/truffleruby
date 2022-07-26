@@ -24,6 +24,7 @@ import org.truffleruby.language.RubyGuards;
 public abstract class ArrayUtils {
 
     public static final Object[] EMPTY_ARRAY = new Object[0];
+    public static final byte[] EMPTY_BYTES = new byte[0];
 
     public static boolean assertValidElements(Object[] array, int start, int count) {
         assert start <= array.length;

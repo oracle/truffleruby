@@ -9,18 +9,20 @@
  */
 package org.truffleruby.parser.parser;
 
-import org.jcodings.Encoding;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeNodesFactory;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
+import com.oracle.truffle.api.strings.TruffleString;
+import org.truffleruby.core.encoding.RubyEncoding;
 
 public class ParserRopeOperations {
 
-    public Rope withEncoding(Rope rope, Encoding encoding) {
-        return RopeNodesFactory.WithEncodingNodeGen.getUncached().executeWithEncoding(rope, encoding);
+    private final TruffleString.Encoding tencoding;
+
+    public ParserRopeOperations(RubyEncoding encoding) {
+        tencoding = encoding.tencoding;
     }
 
-    public Rope makeShared(Rope rope, int sharedStart, int sharedLength) {
-        return RopeNodesFactory.SubstringNodeGen.getUncached().executeSubstring(rope, sharedStart, sharedLength);
+    public TruffleString makeShared(AbstractTruffleString rope, int sharedStart, int sharedLength) {
+        return rope.substringByteIndexUncached(sharedStart, sharedLength, tencoding, true);
     }
 
 }

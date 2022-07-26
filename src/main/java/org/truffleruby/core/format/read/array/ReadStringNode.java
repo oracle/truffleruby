@@ -61,10 +61,10 @@ public abstract class ReadStringNode extends FormatNode {
     @Specialization(limit = "storageStrategyLimit()")
     protected Object read(VirtualFrame frame, Object source,
             @CachedLibrary("source") ArrayStoreLibrary sources) {
-        return readAndConvert(frame, sources.read(source, advanceSourcePosition(frame)));
+        return readAndConvert(sources.read(source, advanceSourcePosition(frame)));
     }
 
-    private Object readAndConvert(VirtualFrame frame, Object value) {
+    private Object readAndConvert(Object value) {
         if (toStringNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             toStringNode = insert(ToStringNodeGen.create(
@@ -76,7 +76,7 @@ public abstract class ReadStringNode extends FormatNode {
                     WriteByteNodeGen.create(new LiteralFormatNode((byte) 0))));
         }
 
-        return toStringNode.executeToString(frame, value);
+        return toStringNode.executeToString(value);
     }
 
 }

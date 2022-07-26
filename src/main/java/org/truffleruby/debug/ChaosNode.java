@@ -13,7 +13,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyContextSourceNode;
 
@@ -39,7 +38,7 @@ public abstract class ChaosNode extends RubyContextSourceNode {
         }
     }
 
-    @Specialization(guards = "fitsIntoInteger(value)")
+    @Specialization(guards = "fitsInInteger(value)")
     protected Object chaos(long value) {
         if (randomBoolean()) {
             return value;
@@ -48,13 +47,9 @@ public abstract class ChaosNode extends RubyContextSourceNode {
         }
     }
 
-    @Specialization(guards = "!fitsIntoInteger(value)")
+    @Specialization(guards = "!fitsInInteger(value)")
     protected long passThrough(long value) {
         return value;
-    }
-
-    protected static boolean fitsIntoInteger(long value) {
-        return CoreLibrary.fitsIntoInteger(value);
     }
 
     @Fallback

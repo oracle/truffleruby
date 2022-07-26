@@ -32,7 +32,7 @@ package org.truffleruby.parser.ast;
  * Base class for DefnParseNode and DefsParseNode
  */
 
-import org.truffleruby.core.rope.Rope;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.scope.StaticScope;
@@ -45,7 +45,7 @@ public abstract class MethodDefParseNode extends ParseNode implements INameNode,
 
     public MethodDefParseNode(
             SourceIndexLength position,
-            Rope name,
+            TruffleString name,
             ArgsParseNode argsNode,
             StaticScope scope,
             ParseNode bodyNode) {
@@ -53,7 +53,7 @@ public abstract class MethodDefParseNode extends ParseNode implements INameNode,
 
         assert bodyNode != null : "bodyNode must not be null";
 
-        this.name = name.getJavaString();
+        this.name = name.toJavaStringUncached();
         this.argsNode = argsNode;
         this.scope = scope;
         this.bodyNode = bodyNode;

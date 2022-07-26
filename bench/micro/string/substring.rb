@@ -9,7 +9,7 @@
 side = 512 * 1024
 big_string = ("a".b * side + "é".b + "z".b * side)[1...-1]
 result = big_string.byteslice(4, 8)
-# Truffle::Ropes.debug_print_rope(big_string, false)
+# Truffle::Debug.tstring_to_debug_string(big_string)
 
 benchmark "core-string-many-substrings-of-large-substring" do
   i = 0

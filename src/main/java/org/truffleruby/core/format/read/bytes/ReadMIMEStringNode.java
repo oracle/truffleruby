@@ -35,14 +35,12 @@
  */
 package org.truffleruby.core.format.read.bytes;
 
-import java.util.Arrays;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.read.SourceNode;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.string.StringNodes;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -51,43 +49,41 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 @NodeChild(value = "source", type = SourceNode.class)
 public abstract class ReadMIMEStringNode extends FormatNode {
 
-    @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-
     @Specialization
-    protected Object read(VirtualFrame frame, byte[] source) {
+    protected Object read(VirtualFrame frame, byte[] source,
+            @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
         final int position = getSourcePosition(frame);
-        final int sourceLength = getSourceLength(frame);
+        final int end = getSourceEnd(frame);
 
-        final byte[] store = new byte[sourceLength - position];
+        final byte[] store = new byte[end - position];
 
-        final int storeIndex = parseSource(source, position, sourceLength, store);
+        final int storeIndex = parseSource(source, position, end, store);
 
-        setSourcePosition(frame, sourceLength);
+        setSourcePosition(frame, end);
 
-        return makeStringNode
-                .executeMake(Arrays.copyOfRange(store, 0, storeIndex), Encodings.BINARY, CodeRange.CR_UNKNOWN);
+        var tstring = fromByteArrayNode.execute(store, 0, storeIndex, Encodings.BINARY.tencoding, true);
+        return createString(tstring, Encodings.BINARY);
     }
 
     // Logic from MRI pack.c pack_unpack_internal
     // https://github.com/ruby/ruby/blob/37c2cd3fa47c709570e22ec4dac723ca211f423a/pack.c#L1639
     @TruffleBoundary
-    private int parseSource(byte[] source, int position, int sourceLength, byte[] store) {
-        System.arraycopy(source, position, store, 0, sourceLength - position);
-
+    private int parseSource(byte[] source, int position, int end, byte[] store) {
+        int sourceLength = end - position;
         int storeIndex = 0;
         int loopIndex = 0;
-        if (source.length > 0) {
-            int c = source[0] & 0xff;
+        if (sourceLength > 0) {
             int i = position;
-            while (i < sourceLength) {
+            int c = source[i] & 0xff;
+            while (i < end) {
 
                 if (c == '=') {
-                    if (++i == sourceLength) {
+                    if (++i == end) {
                         break;
                     }
                     c = source[i] & 0xff;
 
-                    if (i + 1 < sourceLength && c == '\r' && (source[i + 1] & 0xff) == '\n') {
+                    if (i + 1 < end && c == '\r' && (source[i + 1] & 0xff) == '\n') {
                         i++;
                         c = source[i] & 0xff;
                     }
@@ -98,7 +94,7 @@ public abstract class ReadMIMEStringNode extends FormatNode {
                             break;
                         }
 
-                        if (++i == sourceLength) {
+                        if (++i == end) {
                             break;
                         }
                         c = source[i] & 0xff;
@@ -118,17 +114,18 @@ public abstract class ReadMIMEStringNode extends FormatNode {
                     storeIndex++;
                 }
                 i++;
-                if (i < sourceLength) {
+                if (i < end) {
                     c = source[i] & 0xff;
                 }
-                loopIndex = i;
+                loopIndex = i - position;
             }
         }
 
         final int storeLength = store.length;
         if (loopIndex < storeLength) {
-            System.arraycopy(source, loopIndex, store, storeIndex, storeLength - loopIndex);
-            storeIndex += storeLength - loopIndex;
+            final int left = storeLength - loopIndex;
+            System.arraycopy(source, position + loopIndex, store, storeIndex, left);
+            storeIndex += left;
         }
         return storeIndex;
     }

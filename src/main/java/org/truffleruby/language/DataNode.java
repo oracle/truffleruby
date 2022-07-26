@@ -9,10 +9,9 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -21,7 +20,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class DataNode extends RubyContextSourceNode {
 
-    @Child private StringNodes.MakeStringNode makeStringNode;
+    @Child private TruffleString.FromJavaStringNode fromJavaStringNode;
     @Child private DispatchNode callHelperNode;
 
     private final int endPosition;
@@ -32,9 +31,9 @@ public class DataNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        if (makeStringNode == null) {
+        if (fromJavaStringNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            makeStringNode = insert(StringNodes.MakeStringNode.create());
+            fromJavaStringNode = insert(TruffleString.FromJavaStringNode.create());
         }
 
         if (callHelperNode == null) {
@@ -44,7 +43,7 @@ public class DataNode extends RubyContextSourceNode {
 
         final String path = getPath();
         final RubyEncoding rubyLocaleEncoding = getContext().getEncodingManager().getLocaleEncoding();
-        final RubyString pathString = makeStringNode.executeMake(path, rubyLocaleEncoding, CodeRange.CR_UNKNOWN);
+        final RubyString pathString = createString(fromJavaStringNode, path, rubyLocaleEncoding);
         final Object data = callHelperNode
                 .call(coreLibrary().truffleInternalModule, "get_data", pathString, endPosition);
 

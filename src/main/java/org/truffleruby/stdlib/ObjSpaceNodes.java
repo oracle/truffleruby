@@ -12,6 +12,7 @@ package org.truffleruby.stdlib;
 import java.util.Set;
 
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
@@ -24,11 +25,10 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.regexp.MatchDataNodes.ValuesNode;
 import org.truffleruby.core.regexp.RubyMatchData;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.ImmutableRubyString;
-import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.AllocationTracing.AllocationTrace;
 import org.truffleruby.language.objects.ObjectGraph;
@@ -54,13 +54,15 @@ public abstract class ObjSpaceNodes {
         }
 
         @Specialization
-        protected int memsizeOfString(RubyString object) {
-            return memsizeOfObject(object) + object.rope.byteLength();
+        protected int memsizeOfString(RubyString object,
+                @Cached RubyStringLibrary libString) {
+            return memsizeOfObject(object) + libString.byteLength(object);
         }
 
         @Specialization
-        protected int memsizeOfString(ImmutableRubyString object) {
-            return 1 + object.rope.byteLength();
+        protected int memsizeOfString(ImmutableRubyString object,
+                @Cached RubyStringLibrary libString) {
+            return 1 + libString.byteLength(object);
         }
 
         @Specialization
@@ -146,7 +148,7 @@ public abstract class ObjSpaceNodes {
         @TruffleBoundary
         @Specialization
         protected Object allocationInfo(RubyDynamicObject object,
-                @Cached MakeStringNode makeStringNode) {
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             AllocationTrace trace = getAllocationTrace(getContext(), object);
             if (trace == null) {
                 return nil;
@@ -155,7 +157,7 @@ public abstract class ObjSpaceNodes {
                 if (className.isEmpty()) {
                     return nil;
                 } else {
-                    return makeStringNode.executeMake(className, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                    return createString(fromJavaStringNode, className, Encodings.UTF_8);
                 }
             }
         }
@@ -216,13 +218,13 @@ public abstract class ObjSpaceNodes {
         @TruffleBoundary
         @Specialization
         protected Object allocationInfo(RubyDynamicObject object,
-                @Cached MakeStringNode makeStringNode) {
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             AllocationTrace trace = getAllocationTrace(getContext(), object);
             if (trace == null) {
                 return nil;
             } else {
                 final String sourcePath = getLanguage().getSourcePath(trace.allocatingSourceSection.getSource());
-                return makeStringNode.executeMake(sourcePath, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                return createString(fromJavaStringNode, sourcePath, Encodings.UTF_8);
             }
         }
 

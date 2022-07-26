@@ -12,7 +12,6 @@ package org.truffleruby.core.format;
 import java.util.List;
 
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.RubyBaseRootNode;
 import org.truffleruby.language.backtrace.InternalRootNode;
@@ -48,12 +47,11 @@ public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode
     @Override
     public Object execute(VirtualFrame frame) {
         frame.setObject(FormatFrameDescriptor.SOURCE_SLOT, frame.getArguments()[0]);
-        frame.setInt(FormatFrameDescriptor.SOURCE_LENGTH_SLOT, (int) frame.getArguments()[1]);
+        frame.setInt(FormatFrameDescriptor.SOURCE_END_POSITION_SLOT, (int) frame.getArguments()[1]);
+        frame.setInt(FormatFrameDescriptor.SOURCE_START_POSITION_SLOT, 0);
         frame.setInt(FormatFrameDescriptor.SOURCE_POSITION_SLOT, 0);
         frame.setObject(FormatFrameDescriptor.OUTPUT_SLOT, new byte[expectedLength]);
         frame.setInt(FormatFrameDescriptor.OUTPUT_POSITION_SLOT, 0);
-        frame.setInt(FormatFrameDescriptor.STRING_LENGTH_SLOT, 0);
-        frame.setInt(FormatFrameDescriptor.STRING_CODE_RANGE_SLOT, CodeRange.CR_UNKNOWN.toInt());
         frame.setObject(FormatFrameDescriptor.ASSOCIATED_SLOT, null);
 
         child.execute(frame);
@@ -71,28 +69,17 @@ public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode
         }
 
         final byte[] output = (byte[]) frame.getObject(FormatFrameDescriptor.OUTPUT_SLOT);
-        final int stringLength;
-        if (encoding == FormatEncoding.UTF_8) {
-            stringLength = frame.getInt(FormatFrameDescriptor.STRING_LENGTH_SLOT);
-        } else {
-            stringLength = outputLength;
-        }
 
-        final CodeRange stringCodeRange = CodeRange.fromInt(frame.getInt(FormatFrameDescriptor.STRING_CODE_RANGE_SLOT));
-
-        final List<Pointer> associated;
-
-        associated = (List<Pointer>) frame.getObject(FormatFrameDescriptor.ASSOCIATED_SLOT);
+        final List<Pointer> associated = (List<Pointer>) frame.getObject(FormatFrameDescriptor.ASSOCIATED_SLOT);
 
         final Pointer[] associatedArray;
-
         if (associated != null) {
             associatedArray = associatedToArray(associated);
         } else {
             associatedArray = null;
         }
 
-        return new BytesResult(output, outputLength, stringLength, stringCodeRange, encoding, associatedArray);
+        return new BytesResult(output, outputLength, encoding, associatedArray);
     }
 
     @TruffleBoundary

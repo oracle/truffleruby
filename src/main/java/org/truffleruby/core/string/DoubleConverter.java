@@ -28,7 +28,8 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.core.string;
 
-import org.truffleruby.core.rope.Rope;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.parser.SafeDoubleParser;
 
 public class DoubleConverter {
@@ -58,16 +59,17 @@ public class DoubleConverter {
     public DoubleConverter() {
     }
 
-    public void init(Rope rope, boolean isStrict) {
-        bytes = rope.getBytes();
-        index = 0;
-        endIndex = index + rope.byteLength();
+    public void init(AbstractTruffleString rope, RubyEncoding encoding, boolean isStrict) {
+        var byteArray = rope.getInternalByteArrayUncached(encoding.tencoding);
+        bytes = byteArray.getArray();
+        index = byteArray.getOffset();
+        endIndex = byteArray.getEnd();
         this.isStrict = isStrict;
         // +2 for added exponent: E...
         // The algorithm trades digits for inc/dec exponent.
         // Worse case is adding E-1 when no exponent,
         // it trades one digit for 3 chars.
-        chars = new char[Math.min(rope.byteLength() + 2, MAX_LENGTH)];
+        chars = new char[Math.min(byteArray.getLength() + 2, MAX_LENGTH)];
         charsIndex = 0;
         significantDigitsProcessed = 0;
         adjustExponent = 0;
@@ -175,8 +177,8 @@ public class DoubleConverter {
 
     /** Everything runs in 1.9+ mode now, so the `is19` parameter is vestigial. However, in order to maintain binary
      * compatibility with extensions we can't just change the signature either. */
-    public double parse(Rope rope, boolean strict, boolean is19) {
-        init(rope, strict);
+    public double parse(AbstractTruffleString rope, RubyEncoding encoding, boolean strict, boolean is19) {
+        init(rope, encoding, strict);
 
         if (skipWhitespace()) {
             return completeCalculation();

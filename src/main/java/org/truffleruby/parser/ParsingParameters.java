@@ -12,18 +12,18 @@ package org.truffleruby.parser;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.string.TStringWithEncoding;
 
 public final class ParsingParameters {
 
     /** For exceptions during parsing */
     private final Node currentNode;
-    private final Rope rope;
+    private final TStringWithEncoding tstringWithEnc;
     private final Source source;
 
-    public ParsingParameters(Node currentNode, Rope rope, Source source) {
+    public ParsingParameters(Node currentNode, TStringWithEncoding tstringWithEnc, Source source) {
         this.currentNode = currentNode;
-        this.rope = rope;
+        this.tstringWithEnc = tstringWithEnc;
         this.source = source;
     }
 
@@ -35,8 +35,8 @@ public final class ParsingParameters {
         return RubyLanguage.getPath(source);
     }
 
-    public Rope getRope() {
-        return rope;
+    public TStringWithEncoding getTStringWithEnc() {
+        return tstringWithEnc;
     }
 
     public Source getSource() {

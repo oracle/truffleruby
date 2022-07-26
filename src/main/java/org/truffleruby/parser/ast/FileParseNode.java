@@ -28,12 +28,13 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
-import org.truffleruby.core.rope.Rope;
+import com.oracle.truffle.api.strings.TruffleString;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.language.SourceIndexLength;
 
 /** Represents __FILE__ nodes */
 public class FileParseNode extends StrParseNode implements SideEffectFree {
-    public FileParseNode(SourceIndexLength position, Rope value) {
-        super(position, value);
+    public FileParseNode(SourceIndexLength position, TruffleString value, RubyEncoding encoding) {
+        super(position, value, encoding);
     }
 }

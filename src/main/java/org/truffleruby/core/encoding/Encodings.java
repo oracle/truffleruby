@@ -24,12 +24,10 @@ import org.jcodings.specific.UTF32BEEncoding;
 import org.jcodings.specific.UTF32LEEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeConstants;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.FrozenStringLiterals;
 import org.truffleruby.core.string.ImmutableRubyString;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.string.TStringConstants;
 
 public class Encodings {
 
@@ -46,12 +44,12 @@ public class Encodings {
     public static final RubyEncoding ISO_8859_1 = BUILT_IN_ENCODINGS[ISO8859_1Encoding.INSTANCE.getIndex()];
     public static final RubyEncoding UTF16_DUMMY = BUILT_IN_ENCODINGS[EncodingDB
             .getEncodings()
-            .get(RopeOperations.encodeAsciiBytes("UTF-16"))
+            .get(StringOperations.encodeAsciiBytes("UTF-16"))
             .getEncoding()
             .getIndex()];
     public static final RubyEncoding UTF32_DUMMY = BUILT_IN_ENCODINGS[EncodingDB
             .getEncodings()
-            .get(RopeOperations.encodeAsciiBytes("UTF-32"))
+            .get(StringOperations.encodeAsciiBytes("UTF-32"))
             .getEncoding()
             .getIndex()];
 
@@ -75,8 +73,7 @@ public class Encodings {
                 rubyEncoding = US_ASCII;
             } else {
                 final ImmutableRubyString name = FrozenStringLiterals.createStringAndCacheLater(
-                        RopeConstants.ROPE_CONSTANTS.get(encoding.toString()),
-                        US_ASCII);
+                        TStringConstants.TSTRING_CONSTANTS.get(encoding.toString()), US_ASCII);
                 rubyEncoding = new RubyEncoding(encoding, name, encoding.getIndex());
             }
             encodings[encoding.getIndex()] = rubyEncoding;
@@ -91,14 +88,17 @@ public class Encodings {
 
     @TruffleBoundary
     public static RubyEncoding newRubyEncoding(RubyLanguage language, Encoding encoding, int index, byte[] name) {
-        final Rope rope = RopeOperations.create(name, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
-        final ImmutableRubyString string = language.getFrozenStringLiteral(rope);
+        var tstring = TStringUtils.fromByteArray(name, Encodings.US_ASCII);
+        final ImmutableRubyString string = language.getFrozenStringLiteral(tstring, Encodings.US_ASCII);
 
         return new RubyEncoding(encoding, string, index);
     }
 
-    public static RubyEncoding getBuiltInEncoding(int index) {
-        return BUILT_IN_ENCODINGS[index];
+    /** Should only be used when there is no other way, because this will ignore replicated and dummy encodings */
+    public static RubyEncoding getBuiltInEncoding(Encoding jcoding) {
+        var rubyEncoding = BUILT_IN_ENCODINGS[jcoding.getIndex()];
+        assert rubyEncoding.jcoding == jcoding;
+        return rubyEncoding;
     }
 
 }

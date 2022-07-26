@@ -10,6 +10,7 @@
 package org.truffleruby.core.fiber;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -26,9 +27,7 @@ import org.truffleruby.core.fiber.FiberNodesFactory.FiberTransferNodeFactory;
 import org.truffleruby.core.fiber.RubyFiber.FiberStatus;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.Visibility;
@@ -347,8 +346,8 @@ public abstract class FiberNodes {
     public abstract static class FiberSourceLocationNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         protected RubyString sourceLocation(RubyFiber fiber,
-                @Cached MakeStringNode makeStringNode) {
-            return makeStringNode.executeMake(fiber.sourceLocation, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
+            return createString(fromJavaStringNode, fiber.sourceLocation, Encodings.UTF_8);
         }
     }
 
@@ -356,8 +355,8 @@ public abstract class FiberNodes {
     public abstract static class FiberStatusNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         protected RubyString status(RubyFiber fiber,
-                @Cached MakeStringNode makeStringNode) {
-            return makeStringNode.executeMake(fiber.status.label, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
+            return createString(fromJavaStringNode, fiber.status.label, Encodings.UTF_8);
         }
     }
 

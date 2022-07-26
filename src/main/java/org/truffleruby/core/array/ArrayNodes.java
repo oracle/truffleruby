@@ -18,6 +18,7 @@ import java.util.Arrays;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.EconomicSet;
 import org.graalvm.collections.Equivalence;
 import org.truffleruby.Layouts;
@@ -60,13 +61,8 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RangeNodes.NormalizedStartLengthNode;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringCachingGuards;
-import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.string.StringHelperNodes;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.extra.ffi.Pointer;
@@ -1539,12 +1535,10 @@ public abstract class ArrayNodes {
     @NodeChild(value = "array", type = RubyNode.class)
     @NodeChild(value = "format", type = RubyBaseNodeWithExecute.class)
     @CoreMethod(names = "pack", required = 1)
-    @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     @ReportPolymorphism
     public abstract static class PackNode extends CoreMethodNode {
 
-        @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode;
-        @Child private StringNodes.MakeStringNode makeStringNode;
+        @Child private TruffleString.FromByteArrayNode fromByteArrayNode = TruffleString.FromByteArrayNode.create();
         @Child private WriteObjectFieldNode writeAssociatedNode;
 
         private final BranchProfile exceptionProfile = BranchProfile.create();
@@ -1558,16 +1552,16 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = {
                         "libFormat.isRubyString(format)",
-                        "equalNode.execute(libFormat.getRope(format), cachedFormat)" },
+                        "equalNode.execute(libFormat, format, cachedFormat, cachedEncoding)" },
                 limit = "getCacheLimit()")
         protected RubyString packCached(RubyArray array, Object format,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
-                @Cached("libFormat.getRope(format)") Rope cachedFormat,
-                @Cached("cachedFormat.byteLength()") int cachedFormatLength,
-                @Cached("create(compileFormat(libFormat.getRope(format)))") DirectCallNode callPackNode,
-                @Cached RopeNodes.EqualNode equalNode) {
+                @Cached RubyStringLibrary libFormat,
+                @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
+                @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
+                @Cached("cachedFormat.byteLength(cachedEncoding.tencoding)") int cachedFormatLength,
+                @Cached("create(compileFormat(getJavaString(format)))") DirectCallNode callPackNode,
+                @Cached StringHelperNodes.EqualNode equalNode) {
             final BytesResult result;
-
             try {
                 result = (BytesResult) callPackNode.call(
                         new Object[]{ array.getStore(), array.size, false, null });
@@ -1579,13 +1573,14 @@ public abstract class ArrayNodes {
             return finishPack(cachedFormatLength, result);
         }
 
-        @Specialization(guards = { "libFormat.isRubyString(format)" }, replaces = "packCached")
+        @Specialization(guards = { "libFormat.isRubyString(format)" }, replaces = "packCached", limit = "1")
         protected RubyString packUncached(RubyArray array, Object format,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
+                @Cached RubyStringLibrary libFormat,
+                @Cached ToJavaStringNode toJavaStringNode,
                 @Cached IndirectCallNode callPackNode) {
-            final BytesResult result;
+            final String formatRope = toJavaStringNode.executeToJavaString(format);
 
-            final Rope formatRope = libFormat.getRope(format);
+            final BytesResult result;
             try {
                 result = (BytesResult) callPackNode.call(
                         compileFormat(formatRope),
@@ -1595,7 +1590,8 @@ public abstract class ArrayNodes {
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
-            return finishPack(formatRope.byteLength(), result);
+            int formatLength = libFormat.getTString(format).byteLength(libFormat.getTEncoding(format));
+            return finishPack(formatLength, result);
         }
 
         private RubyString finishPack(int formatLength, BytesResult result) {
@@ -1605,24 +1601,8 @@ public abstract class ArrayNodes {
                 bytes = Arrays.copyOf(bytes, result.getOutputLength());
             }
 
-            if (makeLeafRopeNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                makeLeafRopeNode = insert(RopeNodes.MakeLeafRopeNode.create());
-            }
-
-            if (makeStringNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                makeStringNode = insert(StringNodes.MakeStringNode.create());
-            }
-
             final RubyEncoding rubyEncoding = result.getEncoding().getEncodingForLength(formatLength);
-            final RubyString string = makeStringNode.fromRope(
-                    makeLeafRopeNode.executeMake(
-                            bytes,
-                            rubyEncoding.jcoding,
-                            result.getStringCodeRange(),
-                            result.getStringLength()),
-                    rubyEncoding);
+            final RubyString string = createString(fromByteArrayNode, bytes, rubyEncoding);
 
             if (result.getAssociated() != null) {
                 if (writeAssociatedNode == null) {
@@ -1637,10 +1617,9 @@ public abstract class ArrayNodes {
         }
 
         @TruffleBoundary
-        protected RootCallTarget compileFormat(Rope rope) {
-            final String javaString = RopeOperations.decodeRope(rope);
+        protected RootCallTarget compileFormat(String format) {
             try {
-                return new PackCompiler(getLanguage(), this).compile(javaString);
+                return new PackCompiler(getLanguage(), this).compile(format);
             } catch (DeferredRaiseException dre) {
                 throw dre.getException(getContext());
             }

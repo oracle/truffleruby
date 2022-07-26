@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.dispatch;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.nodes.DenyReplace;
 import com.oracle.truffle.api.nodes.NodeCost;
@@ -42,6 +43,7 @@ public class InternalRespondToNode extends RubyBaseNode {
     }
 
     public static InternalRespondToNode getUncached(DispatchConfiguration config) {
+        CompilerAsserts.neverPartOfCompilation("uncached");
         return Uncached.UNCACHED_NODES[config.ordinal()];
     }
 

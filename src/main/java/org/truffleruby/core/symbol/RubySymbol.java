@@ -12,12 +12,12 @@ package org.truffleruby.core.symbol;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.string.ImmutableRubyString;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -40,7 +40,7 @@ public final class RubySymbol extends ImmutableRubyObjectNotCopyable implements 
 
     public final RubyEncoding encoding;
     private final String string;
-    private final LeafRope rope;
+    public final TruffleString tstring;
     private final int javaStringHashCode;
     private final long id;
     private ImmutableRubyString name;
@@ -48,18 +48,19 @@ public final class RubySymbol extends ImmutableRubyObjectNotCopyable implements 
 
     private volatile RootCallTarget callTargetNoRefinements = null;
 
-    RubySymbol(String string, LeafRope rope, RubyEncoding encoding, long id) {
-        assert rope.encoding == encoding.jcoding;
+    RubySymbol(String string, TruffleString tstring, RubyEncoding encoding, long id) {
+        assert tstring.isManaged();
+        assert tstring.isCompatibleTo(encoding.tencoding);
         this.encoding = encoding;
         this.string = string;
-        this.rope = rope;
+        this.tstring = tstring;
         this.javaStringHashCode = string.hashCode();
         this.id = id;
         this.type = Identifiers.stringToType(string);
     }
 
-    RubySymbol(String string, LeafRope rope, RubyEncoding encoding) {
-        this(string, rope, encoding, UNASSIGNED_ID);
+    RubySymbol(String string, TruffleString tstring, RubyEncoding encoding) {
+        this(string, tstring, encoding, UNASSIGNED_ID);
     }
 
     public long getId() {
@@ -68,10 +69,6 @@ public final class RubySymbol extends ImmutableRubyObjectNotCopyable implements 
 
     public String getString() {
         return string;
-    }
-
-    public LeafRope getRope() {
-        return rope;
     }
 
     public IdentifierType getType() {
@@ -104,7 +101,7 @@ public final class RubySymbol extends ImmutableRubyObjectNotCopyable implements 
 
     public ImmutableRubyString getName(RubyLanguage language) {
         if (name == null) {
-            name = language.getFrozenStringLiteral(this.getRope());
+            name = language.getFrozenStringLiteral(tstring, encoding);
         }
         return name;
     }

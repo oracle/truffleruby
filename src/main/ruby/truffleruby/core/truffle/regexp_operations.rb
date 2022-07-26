@@ -36,6 +36,7 @@ module Truffle
       str = Primitive.object_kind_of?(str, Symbol) ? str.to_s : StringValue(str)
 
       pos = pos < 0 ? pos + str.size : pos
+      return nil if pos < 0 or pos > str.size
       pos = Primitive.string_byte_index_from_char_index(str, pos)
 
       search_region(re, str, pos, str.bytesize, true, true)
@@ -48,6 +49,7 @@ module Truffle
       str = Primitive.object_kind_of?(str, Symbol) ? str.to_s : StringValue(str)
 
       pos = pos < 0 ? pos + str.size : pos
+      return false if pos < 0 or pos > str.size
       pos = Primitive.string_byte_index_from_char_index(str, pos)
 
       search_region(re, str, pos, str.bytesize, true, false)

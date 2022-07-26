@@ -12,11 +12,13 @@ package org.truffleruby.parser;
 import java.util.Objects;
 
 import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.rope.Rope;
 
 import com.oracle.truffle.api.source.Source;
+import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.string.TStringWithEncoding;
 
 public class RubySource {
 
@@ -25,7 +27,8 @@ public class RubySource {
      * {@link RubyLanguage#getPath(Source)}. Kept separate as we might want to change Source#getName() for non-file
      * Sources in the future (but then we'll need to still use this path in Ruby backtraces). */
     private final String sourcePath;
-    private final Rope sourceRope;
+    private final TruffleString code;
+    private final RubyEncoding encoding;
     private final boolean isEval;
     private final int lineOffset;
 
@@ -33,20 +36,21 @@ public class RubySource {
         this(source, sourcePath, null, false);
     }
 
-    public RubySource(Source source, String sourcePath, Rope sourceRope) {
-        this(source, sourcePath, sourceRope, false);
+    public RubySource(Source source, String sourcePath, TStringWithEncoding code) {
+        this(source, sourcePath, code, false);
     }
 
-    public RubySource(Source source, String sourcePath, Rope sourceRope, boolean isEval) {
-        this(source, sourcePath, sourceRope, isEval, 0);
+    public RubySource(Source source, String sourcePath, TStringWithEncoding code, boolean isEval) {
+        this(source, sourcePath, code, isEval, 0);
     }
 
-    public RubySource(Source source, String sourcePath, Rope sourceRope, boolean isEval, int lineOffset) {
+    public RubySource(Source source, String sourcePath, TStringWithEncoding code, boolean isEval, int lineOffset) {
         assert RubyLanguage.getPath(source).equals(sourcePath) : RubyLanguage.getPath(source) + " vs " + sourcePath;
         this.source = Objects.requireNonNull(source);
         //intern() to improve footprint
         this.sourcePath = Objects.requireNonNull(sourcePath).intern();
-        this.sourceRope = sourceRope;
+        this.code = code != null ? code.tstring : null;
+        this.encoding = code != null ? code.encoding : null;
         this.isEval = isEval;
         this.lineOffset = lineOffset;
     }
@@ -59,8 +63,22 @@ public class RubySource {
         return sourcePath;
     }
 
-    public Rope getRope() {
-        return sourceRope;
+    public boolean hasTruffleString() {
+        return code != null;
+    }
+
+    public TruffleString getTruffleString() {
+        return code;
+    }
+
+    public TStringWithEncoding getTStringWithEncoding() {
+        assert hasTruffleString();
+        return new TStringWithEncoding(code, encoding);
+    }
+
+    public RubyEncoding getEncoding() {
+        assert hasTruffleString();
+        return encoding;
     }
 
     public boolean isEval() {

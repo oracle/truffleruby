@@ -10,15 +10,12 @@
 package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
-import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -158,13 +155,6 @@ public abstract class AllocationTracing {
 
         // The object was just allocated and is not published/shared yet
         DynamicObjectLibrary.getUncached().put(object, Layouts.ALLOCATION_TRACE_IDENTIFIER, trace);
-    }
-
-    private static RubyString string(RubyContext context, RubyLanguage language, String value) {
-        // No point to use MakeStringNode (which uses AllocateObjectNode) here, as we should not
-        // trace the allocation of Strings used for tracing allocations.
-        return StringOperations
-                .createUTF8String(context, language, StringOperations.encodeRope(value, UTF8Encoding.INSTANCE));
     }
 
 }

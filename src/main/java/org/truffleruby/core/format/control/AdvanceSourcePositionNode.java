@@ -28,11 +28,11 @@ public class AdvanceSourcePositionNode extends FormatNode {
     @Override
     public Object execute(VirtualFrame frame) {
         if (toEnd) {
-            setSourcePosition(frame, getSourceLength(frame));
+            setSourcePosition(frame, getSourceEnd(frame));
         } else {
             final int position = getSourcePosition(frame);
 
-            if (rangeProfile.profile(position + 1 > getSourceLength(frame))) {
+            if (rangeProfile.profile(position + 1 > getSourceEnd(frame))) {
                 throw new OutsideOfStringException();
             }
 

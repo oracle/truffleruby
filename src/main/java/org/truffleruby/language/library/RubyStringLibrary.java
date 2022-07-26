@@ -9,33 +9,247 @@
  */
 package org.truffleruby.language.library;
 
-import com.oracle.truffle.api.library.GenerateLibrary;
-import com.oracle.truffle.api.library.Library;
-import com.oracle.truffle.api.library.LibraryFactory;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.string.ImmutableRubyString;
+import org.truffleruby.core.string.RubyString;
+import org.truffleruby.language.RubyGuards;
 
-@GenerateLibrary
-public abstract class RubyStringLibrary extends Library {
+/** It is important that all messages of this library can be trivially implemented without needing any @Cached state or
+ * node. That way, the generated library classes are actually global immutable singletons.
+ * <p>
+ * Implemented by {@link org.truffleruby.core.string.RubyString} and
+ * {@link org.truffleruby.core.string.ImmutableRubyString} */
+public abstract class RubyStringLibrary {
 
-    private static final LibraryFactory<RubyStringLibrary> FACTORY = LibraryFactory.resolve(RubyStringLibrary.class);
-
-    public static LibraryFactory<RubyStringLibrary> getFactory() {
-        return FACTORY;
+    public static RubyStringLibrary create() {
+        return new Cached();
     }
 
     public static RubyStringLibrary getUncached() {
-        return FACTORY.getUncached();
+        return Uncached.INSTANCE;
     }
 
-    public boolean isRubyString(Object receiver) {
-        return false;
-    }
+    /** Used to create separate specialization instances for RubyString and ImmutableRubyString */
+    public abstract boolean seen(Object object);
 
-    public abstract Rope getRope(Object object);
+    public abstract boolean isRubyString(Object object);
+
+    public abstract AbstractTruffleString getTString(Object object);
 
     public abstract RubyEncoding getEncoding(Object object);
 
-    public abstract String getJavaString(Object receiver);
+    public final TruffleString.Encoding getTEncoding(Object object) {
+        return getEncoding(object).tencoding;
+    }
+
+    public abstract int byteLength(Object object);
+
+    public abstract RubyEncoding profileEncoding(RubyEncoding encoding);
+
+    static final class Cached extends RubyStringLibrary {
+
+        @CompilationFinal private boolean seenMutable, seenImmutable, seenOther;
+        @CompilationFinal private Object cachedEncoding;
+
+        private static final Object GENERIC = new Object();
+
+        @Override
+        public boolean seen(Object object) {
+            assert object instanceof RubyString || object instanceof ImmutableRubyString;
+            if (seenMutable) {
+                return object instanceof RubyString;
+            } else if (seenImmutable) {
+                return object instanceof ImmutableRubyString;
+            } else {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                getTString(object); // specialize
+                return true;
+            }
+        }
+
+        @Override
+        public boolean isRubyString(Object object) {
+            if (seenMutable && object instanceof RubyString) {
+                return true;
+            } else if (seenImmutable && object instanceof ImmutableRubyString) {
+                return true;
+            } else if (seenOther && RubyGuards.isNotRubyString(object)) {
+                return false;
+            }
+
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            return specializeIsRubyString(object);
+        }
+
+        private boolean specializeIsRubyString(Object object) {
+            if (object instanceof RubyString) {
+                seenMutable = true;
+                return true;
+            } else if (object instanceof ImmutableRubyString) {
+                seenImmutable = true;
+                return true;
+            } else if (RubyGuards.isNotRubyString(object)) {
+                seenOther = true;
+                return false;
+            } else {
+                throw CompilerDirectives.shouldNotReachHere();
+            }
+        }
+
+        @Override
+        public AbstractTruffleString getTString(Object object) {
+            if (seenMutable && object instanceof RubyString) {
+                return ((RubyString) object).tstring;
+            } else if (seenImmutable && object instanceof ImmutableRubyString) {
+                return ((ImmutableRubyString) object).tstring;
+            }
+
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            return specializeGetTString(object);
+        }
+
+        private AbstractTruffleString specializeGetTString(Object object) {
+            if (object instanceof RubyString) {
+                seenMutable = true;
+                return ((RubyString) object).tstring;
+            } else if (object instanceof ImmutableRubyString) {
+                seenImmutable = true;
+                return ((ImmutableRubyString) object).tstring;
+            } else {
+                throw CompilerDirectives.shouldNotReachHere();
+            }
+        }
+
+        @Override
+        public RubyEncoding profileEncoding(RubyEncoding encoding) {
+            var localCachedEncoding = this.cachedEncoding;
+            if (encoding == localCachedEncoding) {
+                return (RubyEncoding) localCachedEncoding;
+            } else if (localCachedEncoding == GENERIC) {
+                return encoding;
+            } else {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                return specializeProfileEncoding(encoding);
+            }
+        }
+
+        private RubyEncoding specializeProfileEncoding(RubyEncoding encoding) {
+            var localCachedEncoding = this.cachedEncoding;
+            if (localCachedEncoding == null) {
+                this.cachedEncoding = encoding;
+            } else if (encoding != localCachedEncoding) {
+                this.cachedEncoding = GENERIC;
+            }
+            return encoding;
+        }
+
+        @Override
+        public RubyEncoding getEncoding(Object object) {
+            final RubyEncoding encoding;
+            if (seenMutable && object instanceof RubyString) {
+                encoding = ((RubyString) object).getEncodingUnprofiled();
+            } else if (seenImmutable && object instanceof ImmutableRubyString) {
+                encoding = ((ImmutableRubyString) object).getEncodingUnprofiled();
+            } else {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                return specializeGetEncoding(object);
+            }
+
+            return profileEncoding(encoding);
+        }
+
+        private RubyEncoding specializeGetEncoding(Object object) {
+            final RubyEncoding encoding;
+            if (object instanceof RubyString) {
+                seenMutable = true;
+                encoding = ((RubyString) object).getEncodingUnprofiled();
+            } else if (object instanceof ImmutableRubyString) {
+                seenImmutable = true;
+                encoding = ((ImmutableRubyString) object).getEncodingUnprofiled();
+            } else {
+                throw CompilerDirectives.shouldNotReachHere();
+            }
+
+            return specializeProfileEncoding(encoding);
+        }
+
+        @Override
+        public int byteLength(Object object) {
+            if (seenMutable && object instanceof RubyString) {
+                var mutable = (RubyString) object;
+                return getTString(mutable).byteLength(getTEncoding(mutable));
+            } else if (seenImmutable && object instanceof ImmutableRubyString) {
+                var immutable = (ImmutableRubyString) object;
+                return getTString(immutable).byteLength(getTEncoding(immutable));
+            }
+
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            return specializeByteLength(object);
+        }
+
+        private int specializeByteLength(Object object) {
+            // getTString() and getTEncoding() will specialize as needed
+            return getTString(object).byteLength(getTEncoding(object));
+        }
+    }
+
+    static final class Uncached extends RubyStringLibrary {
+
+        static final Uncached INSTANCE = new Uncached();
+
+        @TruffleBoundary
+        @Override
+        public boolean seen(Object object) {
+            assert object instanceof RubyString || object instanceof ImmutableRubyString;
+            return true;
+        }
+
+        @TruffleBoundary
+        @Override
+        public boolean isRubyString(Object object) {
+            return object instanceof RubyString || object instanceof ImmutableRubyString;
+        }
+
+        @TruffleBoundary
+        @Override
+        public AbstractTruffleString getTString(Object object) {
+            if (object instanceof RubyString) {
+                return ((RubyString) object).tstring;
+            } else if (object instanceof ImmutableRubyString) {
+                return ((ImmutableRubyString) object).tstring;
+            } else {
+                throw CompilerDirectives.shouldNotReachHere();
+            }
+        }
+
+        @TruffleBoundary
+        @Override
+        public RubyEncoding profileEncoding(RubyEncoding encoding) {
+            return encoding;
+        }
+
+        @TruffleBoundary
+        @Override
+        public RubyEncoding getEncoding(Object object) {
+            if (object instanceof RubyString) {
+                return ((RubyString) object).getEncodingUncached();
+            } else if (object instanceof ImmutableRubyString) {
+                return ((ImmutableRubyString) object).getEncodingUncached();
+            } else {
+                throw CompilerDirectives.shouldNotReachHere();
+            }
+        }
+
+        @TruffleBoundary
+        @Override
+        public int byteLength(Object object) {
+            return getTString(object).byteLength(getTEncoding(object));
+        }
+    }
 
 }

@@ -9,12 +9,11 @@
  */
 package org.truffleruby.language;
 
-import org.jcodings.specific.UTF8Encoding;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.binding.RubyBinding;
-import org.truffleruby.core.encoding.Encodings;
-import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.backtrace.InternalRootNode;
 
@@ -24,14 +23,12 @@ import org.truffleruby.language.dispatch.DispatchNode;
 
 public class RubyEvalInteractiveRootNode extends RubyBaseRootNode implements InternalRootNode {
 
-    private final Rope sourceRope;
-
-    private final RubyLanguage language;
+    private final TruffleString sourceString;
+    @Child DispatchNode callEvalNode = DispatchNode.create();
 
     public RubyEvalInteractiveRootNode(RubyLanguage language, Source source) {
         super(language, null, null);
-        this.language = language;
-        this.sourceRope = StringOperations.encodeRope(source.getCharacters().toString(), UTF8Encoding.INSTANCE);
+        this.sourceString = TStringUtils.utf8TString(source.getCharacters().toString());
     }
 
     @Override
@@ -41,8 +38,10 @@ public class RubyEvalInteractiveRootNode extends RubyBaseRootNode implements Int
         // Just do Truffle::Boot::INTERACTIVE_BINDING.eval(code) for interactive sources.
         // It's the semantics we want and takes care of caching correctly based on the Binding's FrameDescriptor.
         final RubyBinding interactiveBinding = context.getCoreLibrary().interactiveBinding;
-        return DispatchNode.getUncached().call(interactiveBinding, "eval",
-                StringOperations.createString(this, sourceRope, Encodings.UTF_8));
+        return callEvalNode.call(
+                interactiveBinding,
+                "eval",
+                StringOperations.createUTF8String(context, getLanguage(), sourceString));
     }
 
     @Override

@@ -19,6 +19,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.strings.InternalByteArray;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
 import org.joni.NameEntry;
 import org.joni.Regex;
@@ -43,7 +45,6 @@ import org.truffleruby.core.cast.ToProcNodeGen;
 import org.truffleruby.core.cast.ToSNode;
 import org.truffleruby.core.cast.ToSNodeGen;
 import org.truffleruby.core.encoding.Encodings;
-import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.hash.ConcatHashLiteralNode;
 import org.truffleruby.core.hash.HashLiteralNode;
 import org.truffleruby.core.kernel.KernelNodesFactory;
@@ -58,11 +59,10 @@ import org.truffleruby.core.regexp.MatchDataNodes.GetIndexNode;
 import org.truffleruby.core.regexp.RegexWarnDeferredCallback;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.regexp.RubyRegexp;
-import org.truffleruby.core.rope.LeafRope;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeConstants;
+import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.core.string.InterpolatedStringNode;
+import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.string.ImmutableRubyString;
@@ -514,9 +514,8 @@ public class BodyTranslator extends Translator {
         if (receiver instanceof StrParseNode &&
                 (methodName.equals("freeze") || methodName.equals("-@"))) {
             final StrParseNode strNode = (StrParseNode) receiver;
-            final Rope nodeRope = strNode.getValue();
-            final ImmutableRubyString frozenString = language
-                    .getFrozenStringLiteral(nodeRope.getBytes(), nodeRope.getEncoding(), strNode.getCodeRange());
+            final TruffleString nodeRope = strNode.getValue();
+            final ImmutableRubyString frozenString = language.getFrozenStringLiteral(nodeRope, strNode.encoding);
             return addNewlineIfNeeded(node, withSourceSection(
                     sourceSection,
                     new FrozenStringLiteralNode(frozenString, FrozenStrings.METHOD)));
@@ -1545,8 +1544,7 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitEncodingNode(EncodingParseNode node) {
         SourceIndexLength sourceSection = node.getPosition();
-        final RubyNode ret = new ObjectLiteralNode(
-                Encodings.getBuiltInEncoding(node.getEncoding().getIndex()));
+        final RubyNode ret = new ObjectLiteralNode(Encodings.getBuiltInEncoding(node.getEncoding()));
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
@@ -1566,7 +1564,8 @@ public class BodyTranslator extends Translator {
 
         if (node.getBody() == null) { // "#{}"
             final SourceIndexLength sourceSection = node.getPosition();
-            ret = new ObjectLiteralNode(language.getFrozenStringLiteral(RopeConstants.EMPTY_ASCII_8BIT_ROPE));
+            ret = new ObjectLiteralNode(
+                    language.getFrozenStringLiteral(TStringConstants.EMPTY_BINARY, Encodings.BINARY));
             ret.unsafeSetSourceSection(sourceSection);
         } else {
             ret = node.getBody().accept(this);
@@ -2139,20 +2138,20 @@ public class BodyTranslator extends Translator {
 
         if (node.getReceiverNode() instanceof RegexpParseNode) {
             final RegexpParseNode regexpNode = (RegexpParseNode) node.getReceiverNode();
-            final byte[] bytes = regexpNode.getValue().getBytes();
+            final TStringWithEncoding source = regexpNode.getValue();
+            final InternalByteArray sourceByteArray = source.getInternalByteArray();
             final Regex regex;
             try {
                 regex = new Regex(
-                        bytes,
-                        0,
-                        bytes.length,
+                        sourceByteArray.getArray(),
+                        sourceByteArray.getOffset(),
+                        sourceByteArray.getEnd(),
                         regexpNode.getOptions().toOptions(),
-                        regexpNode.getEncoding(),
+                        regexpNode.getRubyEncoding().jcoding,
                         Syntax.RUBY,
                         new RegexWarnDeferredCallback(rubyWarnings));
             } catch (Exception e) {
-                String errorMessage = ClassicRegexp
-                        .getRegexErrorMessage(regexpNode.getValue(), e, regexpNode.getOptions());
+                String errorMessage = ClassicRegexp.getRegexErrorMessage(source.tstring, e, regexpNode.getOptions());
                 final RubyContext context = RubyLanguage.getCurrentContext();
                 throw new RaiseException(context, context.getCoreExceptions().regexpError(errorMessage, currentNode));
             }
@@ -2729,11 +2728,11 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitRegexpNode(RegexpParseNode node) {
-        final Rope rope = node.getValue();
-        final RubyEncoding encoding = Encodings.getBuiltInEncoding(rope.getEncoding().getIndex());
+        final TStringWithEncoding source = node.getValue();
         final RegexpOptions options = node.getOptions().setLiteral(true);
         try {
-            final RubyRegexp regexp = RubyRegexp.create(language, rope, encoding, options, currentNode);
+            final RubyRegexp regexp = RubyRegexp.create(language, source.tstring, source.encoding, options,
+                    currentNode);
             final ObjectLiteralNode literalNode = new ObjectLiteralNode(regexp);
             literalNode.unsafeSetSourceSection(node.getPosition());
             return addNewlineIfNeeded(node, literalNode);
@@ -2950,27 +2949,23 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitStrNode(StrParseNode node) {
-        final Rope nodeRope = node.getValue();
         final RubyNode ret;
-
         if (node.isFrozen()) {
-            final ImmutableRubyString frozenString = language
-                    .getFrozenStringLiteral(nodeRope.getBytes(), nodeRope.getEncoding(), node.getCodeRange());
+            var frozenString = language.getFrozenStringLiteral(node.getValue(), node.encoding);
             ret = new FrozenStringLiteralNode(frozenString, FrozenStrings.EXPRESSION);
         } else {
-            final LeafRope cachedRope = language.ropeCache
-                    .getRope(nodeRope.getBytes(), nodeRope.getEncoding(), node.getCodeRange());
-            ret = new StringLiteralNode(cachedRope);
+            var cachedTString = language.tstringCache.getTString(node.getValue(), node.encoding);
+            ret = new StringLiteralNode(cachedTString, node.encoding);
         }
+
         ret.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, ret);
     }
 
     @Override
     public RubyNode visitSymbolNode(SymbolParseNode node) {
-        final RubyNode ret = new ObjectLiteralNode(language.getSymbol(
-                node.getRope(),
-                Encodings.getBuiltInEncoding(node.getRope().getEncoding().getIndex())));
+        var encoding = Encodings.getBuiltInEncoding(node.getEncoding());
+        final RubyNode ret = new ObjectLiteralNode(language.getSymbol(node.getTString(), encoding));
         ret.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, ret);
     }
@@ -3072,7 +3067,7 @@ public class BodyTranslator extends Translator {
     public RubyNode visitXStrNode(XStrParseNode node) {
         final ParseNode argsNode = buildArrayNode(
                 node.getPosition(),
-                new StrParseNode(node.getPosition(), node.getValue()));
+                new StrParseNode(node.getPosition(), node.getValue(), node.encoding));
         final ParseNode callNode = new FCallParseNode(node.getPosition(), "`", argsNode, null);
         final RubyNode ret = callNode.accept(this);
         return addNewlineIfNeeded(node, ret);

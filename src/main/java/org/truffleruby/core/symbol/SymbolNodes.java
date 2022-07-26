@@ -29,7 +29,6 @@ import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyLambdaRootNode;
@@ -75,12 +74,10 @@ public abstract class SymbolNodes {
 
     @CoreMethod(names = { "==", "eql?" }, required = 1)
     public abstract static class EqualNode extends CoreMethodArrayArgumentsNode {
-
         @Specialization
         protected boolean equal(RubySymbol a, Object b) {
             return a == b;
         }
-
     }
 
     @GenerateUncached
@@ -269,33 +266,26 @@ public abstract class SymbolNodes {
 
     @CoreMethod(names = "to_s")
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
-
         @Specialization
-        protected RubyString toS(RubySymbol symbol,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
-            return makeStringNode.fromRope(symbol.getRope(), symbol.encoding);
+        protected RubyString toS(RubySymbol symbol) {
+            return createString(symbol.tstring, symbol.encoding);
         }
-
     }
 
     @CoreMethod(names = "name")
     public abstract static class NameNode extends CoreMethodArrayArgumentsNode {
-
         @Specialization
         protected ImmutableRubyString toS(RubySymbol symbol) {
             return symbol.getName(getLanguage());
         }
-
     }
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends UnaryCoreMethodNode {
-
         @Specialization
         protected Object allocate(RubyClass rubyClass) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
-
     }
 
 }

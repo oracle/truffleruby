@@ -11,53 +11,56 @@ package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import org.jcodings.Encoding;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.collections.WeakValueCache;
-import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.LeafRope;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeCache;
+import org.truffleruby.core.encoding.TStringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+// TODO: should rename to ImmutableStrings
 public class FrozenStringLiterals {
 
     private static final List<ImmutableRubyString> STRINGS_TO_CACHE = new ArrayList<>();
 
-    private final RopeCache ropeCache;
-    private final WeakValueCache<LeafRope, ImmutableRubyString> values = new WeakValueCache<>();
+    private final TStringCache tstringCache;
+    private final WeakValueCache<TStringWithEncoding, ImmutableRubyString> values = new WeakValueCache<>();
 
-    public FrozenStringLiterals(RopeCache ropeCache) {
-        this.ropeCache = ropeCache;
+    public FrozenStringLiterals(TStringCache tStringCache) {
+        this.tstringCache = tStringCache;
         for (ImmutableRubyString name : STRINGS_TO_CACHE) {
             addFrozenStringToCache(name);
         }
     }
 
     @TruffleBoundary
-    public ImmutableRubyString getFrozenStringLiteral(Rope rope) {
-        return getFrozenStringLiteral(rope.getBytes(), rope.getEncoding(), rope.getCodeRange());
+    public ImmutableRubyString getFrozenStringLiteral(TruffleString tstring, RubyEncoding encoding) {
+        if (tstring.isNative()) {
+            throw CompilerDirectives.shouldNotReachHere();
+        }
+
+        return getFrozenStringLiteral(TStringUtils.getBytesOrCopy(tstring, encoding), encoding);
     }
 
     @TruffleBoundary
-    public ImmutableRubyString getFrozenStringLiteral(byte[] bytes, Encoding encoding, CodeRange codeRange) {
-        // Ensure all ImmutableRubyString have a Rope from the RopeCache
-        final LeafRope cachedRope = ropeCache.getRope(bytes, encoding, codeRange);
+    public ImmutableRubyString getFrozenStringLiteral(byte[] bytes, RubyEncoding encoding) {
+        // Ensure all ImmutableRubyString have a TruffleString from the TStringCache
+        var cachedTString = tstringCache.getTString(bytes, encoding);
+        var tstringWithEncoding = new TStringWithEncoding(cachedTString, encoding);
 
-        final ImmutableRubyString string = values.get(cachedRope);
+        final ImmutableRubyString string = values.get(tstringWithEncoding);
         if (string != null) {
             return string;
         } else {
-            final RubyEncoding rubyEncoding = Encodings.getBuiltInEncoding(encoding.getIndex());
-            return values.addInCacheIfAbsent(cachedRope, new ImmutableRubyString(cachedRope, rubyEncoding));
+            return values.addInCacheIfAbsent(tstringWithEncoding,
+                    new ImmutableRubyString(cachedTString, encoding));
         }
     }
 
-    public static ImmutableRubyString createStringAndCacheLater(LeafRope name, RubyEncoding encoding) {
+    public static ImmutableRubyString createStringAndCacheLater(TruffleString name,
+            RubyEncoding encoding) {
         final ImmutableRubyString string = new ImmutableRubyString(name, encoding);
         assert !STRINGS_TO_CACHE.contains(string);
         STRINGS_TO_CACHE.add(string);
@@ -65,9 +68,11 @@ public class FrozenStringLiterals {
     }
 
     private void addFrozenStringToCache(ImmutableRubyString string) {
-        final LeafRope cachedRope = ropeCache.getRope(string.rope);
-        assert cachedRope == string.rope;
-        final ImmutableRubyString existing = values.addInCacheIfAbsent(string.rope, string);
+        var encoding = string.getEncodingUncached();
+        var cachedTString = tstringCache.getTString(string.tstring, encoding);
+        assert cachedTString == string.tstring;
+        var tstringWithEncoding = new TStringWithEncoding(cachedTString, encoding);
+        final ImmutableRubyString existing = values.addInCacheIfAbsent(tstringWithEncoding, string);
         if (existing != string) {
             throw CompilerDirectives
                     .shouldNotReachHere("Duplicate ImmutableRubyString in FrozenStringLiterals: " + existing);

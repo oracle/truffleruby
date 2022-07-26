@@ -15,19 +15,14 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.source.Source;
-import org.jcodings.Encoding;
-import org.jcodings.specific.ASCIIEncoding;
-import org.jcodings.specific.ISO8859_1Encoding;
-import org.jcodings.specific.USASCIIEncoding;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.regexp.TruffleRegexpNodes.TRegexCompileNode;
-import org.truffleruby.core.rope.CannotConvertBinaryRubyStringToJavaString;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeBuilder;
-import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.CannotConvertBinaryRubyStringToJavaString;
+import org.truffleruby.core.string.TStringBuilder;
+import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.Nil;
@@ -127,14 +122,14 @@ public final class TRegexCache {
                 TranslateInteropExceptionNode.getUncached());
     }
 
-    public static String toTRegexEncoding(Encoding encoding) {
-        if (encoding == UTF8Encoding.INSTANCE) {
+    public static String toTRegexEncoding(RubyEncoding encoding) {
+        if (encoding == Encodings.UTF_8) {
             return "UTF-8";
-        } else if (encoding == USASCIIEncoding.INSTANCE) {
+        } else if (encoding == Encodings.US_ASCII) {
             return "ASCII";
-        } else if (encoding == ISO8859_1Encoding.INSTANCE) {
+        } else if (encoding == Encodings.ISO_8859_1) {
             return "LATIN-1";
-        } else if (encoding == ASCIIEncoding.INSTANCE) {
+        } else if (encoding == Encodings.BINARY) {
             return "BYTES";
         } else {
             return null;
@@ -145,20 +140,20 @@ public final class TRegexCache {
     private static Object compileTRegex(RubyContext context, RubyRegexp regexp, boolean atStart, RubyEncoding enc) {
         String processedRegexpSource;
         RubyEncoding[] fixedEnc = new RubyEncoding[]{ null };
-        final RopeBuilder ropeBuilder;
+        final TStringBuilder tstringBuilder;
         try {
-            ropeBuilder = ClassicRegexp
+            tstringBuilder = ClassicRegexp
                     .preprocess(
-                            regexp.source,
+                            new TStringWithEncoding(regexp.source, regexp.encoding),
                             enc,
                             fixedEnc,
                             RegexpSupport.ErrorMode.RAISE);
         } catch (DeferredRaiseException dre) {
             throw dre.getException(context);
         }
-        Rope rope = ropeBuilder.toRope();
+        var tstring = tstringBuilder.toTString();
         try {
-            processedRegexpSource = RopeOperations.decodeRope(rope);
+            processedRegexpSource = TStringUtils.toJavaStringOrThrow(tstring, tstringBuilder.getRubyEncoding());
         } catch (CannotConvertBinaryRubyStringToJavaString | UnsupportedCharsetException e) {
             // Some strings cannot be converted to Java strings, e.g. strings with the
             // BINARY encoding containing characters higher than 127.
@@ -169,7 +164,7 @@ public final class TRegexCache {
 
         String flags = optionsToFlags(regexp.options, atStart);
 
-        String tRegexEncoding = TRegexCache.toTRegexEncoding(enc.jcoding);
+        String tRegexEncoding = TRegexCache.toTRegexEncoding(enc);
         if (tRegexEncoding == null) {
             return null;
         }

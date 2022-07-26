@@ -1,0 +1,1 @@
+fails:String#rstrip! removes broken codepoints

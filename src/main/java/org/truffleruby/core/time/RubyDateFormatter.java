@@ -58,22 +58,19 @@ import java.util.Locale;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import org.jcodings.Encoding;
-import org.jcodings.specific.ASCIIEncoding;
-import org.jcodings.specific.UTF8Encoding;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.exception.ErrnoErrorNode;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.LazyIntRope;
-import org.truffleruby.core.rope.LeafRope;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeBuilder;
-import org.truffleruby.core.rope.RopeConstants;
-import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.TStringBuilder;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.RaiseException;
 
@@ -187,7 +184,7 @@ public abstract class RubyDateFormatter {
     public static class Token {
         private final Format format;
         private final Object data;
-        private final LeafRope rope;
+        private final TruffleString tstring;
 
         protected Token(Format format) {
             this(format, null);
@@ -197,17 +194,14 @@ public abstract class RubyDateFormatter {
             this(formatString, data, null);
         }
 
-        protected Token(Format formatString, Object data, LeafRope rope) {
+        protected Token(Format formatString, Object data, TruffleString tstring) {
             this.format = formatString;
             this.data = data;
-            this.rope = rope;
+            this.tstring = tstring;
         }
 
         public static Token str(String str) {
-            return new Token(
-                    Format.FORMAT_STRING,
-                    str,
-                    StringOperations.encodeRope(str, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
+            return new Token(Format.FORMAT_STRING, str, TStringUtils.utf8TString(str));
         }
 
         public static Token format(char c) {
@@ -233,8 +227,8 @@ public abstract class RubyDateFormatter {
             return data;
         }
 
-        public LeafRope getRope() {
-            return rope;
+        public TruffleString getTString() {
+            return tstring;
         }
 
         /** Gets the format.
@@ -262,22 +256,22 @@ public abstract class RubyDateFormatter {
     }
 
     @TruffleBoundary
-    public static Token[] compilePattern(Rope pattern, boolean dateLibrary, RubyContext context, Node currentNode) {
+    public static Token[] compilePattern(AbstractTruffleString pattern, RubyEncoding encoding, boolean dateLibrary,
+            RubyContext context, Node currentNode) {
         List<Token> compiledPattern = new LinkedList<>();
 
-        Encoding enc = pattern.getEncoding();
-        if (!enc.isAsciiCompatible()) {
+        if (!encoding.isAsciiCompatible) {
             throw new RaiseException(
                     context,
                     context.getCoreExceptions().argumentError(
                             "format should have ASCII compatible encoding",
                             currentNode));
         }
-        if (enc != ASCIIEncoding.INSTANCE) { // default for ByteList
-            compiledPattern.add(new Token(Format.FORMAT_ENCODING, enc));
+        if (encoding != Encodings.BINARY) { // default for ByteList
+            compiledPattern.add(new Token(Format.FORMAT_ENCODING, encoding));
         }
 
-        StrftimeLexer lexer = new StrftimeLexer(RopeOperations.decodeRope(pattern));
+        StrftimeLexer lexer = new StrftimeLexer(TStringUtils.toJavaStringOrThrow(pattern, encoding));
 
         Token token;
         while ((token = lexer.yylex()) != null) {
@@ -372,10 +366,10 @@ public abstract class RubyDateFormatter {
     }
 
     @TruffleBoundary
-    public static RopeBuilder formatToRopeBuilder(Token[] compiledPattern, ZonedDateTime dt, Object zone,
+    public static TStringBuilder formatToRopeBuilder(Token[] compiledPattern, ZonedDateTime dt, Object zone,
             RubyContext context, RubyLanguage language, Node currentNode, ErrnoErrorNode errnoErrorNode) {
         RubyTimeOutputFormatter formatter = RubyTimeOutputFormatter.DEFAULT_FORMATTER;
-        RopeBuilder toAppendTo = new RopeBuilder();
+        TStringBuilder toAppendTo = new TStringBuilder();
 
         for (Token token : compiledPattern) {
             String output = null;
@@ -385,7 +379,7 @@ public abstract class RubyDateFormatter {
 
             switch (format) {
                 case FORMAT_ENCODING:
-                    toAppendTo.setEncoding((Encoding) token.getData());
+                    toAppendTo.setEncoding((RubyEncoding) token.getData());
                     continue; // go to next token
                 case FORMAT_OUTPUT:
                     formatter = (RubyTimeOutputFormatter) token.getData();
@@ -550,8 +544,8 @@ public abstract class RubyDateFormatter {
                 output = formatter.format(output, value, type);
             } catch (IndexOutOfBoundsException ioobe) {
                 final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-                final Rope messageRope = StringOperations.encodeRope("strftime", UTF8Encoding.INSTANCE);
-                final RubyString message = StringOperations.createUTF8String(context, language, messageRope);
+                final RubyString message = StringOperations.createUTF8String(context, language, "strftime");
+
                 throw new RaiseException(
                         context,
                         errnoErrorNode.execute(null, context.getCoreLibrary().getErrnoValue("ERANGE"), message,
@@ -576,7 +570,7 @@ public abstract class RubyDateFormatter {
             switch (format) {
                 case FORMAT_ENCODING:
                     // Only handle UTF-8 for fast formats
-                    if (token.getData() != UTF8Encoding.INSTANCE) {
+                    if (token.getData() != Encodings.UTF_8) {
                         return false;
                     }
                     break;
@@ -619,12 +613,15 @@ public abstract class RubyDateFormatter {
     }
 
     @ExplodeLoop
-    public static Rope formatToRopeFast(Token[] compiledPattern, ZonedDateTime dt,
-            RopeNodes.ConcatNode concatNode) {
-        Rope rope = null;
+    public static TruffleString formatToRopeFast(Token[] compiledPattern, ZonedDateTime dt,
+            TruffleString.ConcatNode concatNode,
+            TruffleString.FromLongNode fromLongNode,
+            TruffleString.CodePointLengthNode codePointLengthNode) {
+        final var utf8 = Encodings.UTF_8.tencoding;
+        TruffleString tstring = TStringConstants.EMPTY_UTF8;
 
         for (Token token : compiledPattern) {
-            final Rope appendRope;
+            final TruffleString appendTString;
 
             switch (token.getFormat()) {
                 case FORMAT_ENCODING:
@@ -632,22 +629,22 @@ public abstract class RubyDateFormatter {
                     continue;
 
                 case FORMAT_STRING:
-                    appendRope = token.getRope();
+                    appendTString = token.getTString();
                     break;
                 case FORMAT_DAY:
-                    appendRope = RopeConstants.paddedNumber(dt.getDayOfMonth());
+                    appendTString = TStringConstants.paddedNumber(dt.getDayOfMonth());
                     break;
                 case FORMAT_HOUR:
-                    appendRope = RopeConstants.paddedNumber(dt.getHour());
+                    appendTString = TStringConstants.paddedNumber(dt.getHour());
                     break;
                 case FORMAT_MINUTES:
-                    appendRope = RopeConstants.paddedNumber(dt.getMinute());
+                    appendTString = TStringConstants.paddedNumber(dt.getMinute());
                     break;
                 case FORMAT_MONTH:
-                    appendRope = RopeConstants.paddedNumber(dt.getMonthValue());
+                    appendTString = TStringConstants.paddedNumber(dt.getMonthValue());
                     break;
                 case FORMAT_SECONDS:
-                    appendRope = RopeConstants.paddedNumber(dt.getSecond());
+                    appendTString = TStringConstants.paddedNumber(dt.getSecond());
                     break;
 
                 case FORMAT_YEAR_LONG: {
@@ -655,29 +652,27 @@ public abstract class RubyDateFormatter {
                     assert value >= 1000;
                     assert value <= 9999;
 
-                    appendRope = new LazyIntRope(value, UTF8Encoding.INSTANCE, 4);
+                    appendTString = fromLongNode.execute(value, utf8, true);
                 }
                     break;
 
                 case FORMAT_NANOSEC: { // always %6N, checked by formatCanBeFast()
                     final int nano = dt.getNano();
-                    final LazyIntRope microSecondRope = new LazyIntRope(nano / 1000, UTF8Encoding.INSTANCE);
+
+                    var microSecondTString = fromLongNode.execute(nano / 1000, utf8, true);
 
                     // This fast-path only handles the '%6N' format, so output will always be 6 characters long.
                     final int length = 6;
-                    final int padding = length - microSecondRope.characterLength();
+                    final int padding = length - codePointLengthNode.execute(microSecondTString, utf8);
 
                     // `padding` is guaranteed to be >= 0 because `nano` can be at most 9 digits long before the
                     // conversion to microseconds. The division further constrains the rope to be at most 6 digits long.
-                    assert padding >= 0 : microSecondRope;
+                    assert padding >= 0 : microSecondTString;
                     if (padding == 0) {
-                        appendRope = microSecondRope;
+                        appendTString = microSecondTString;
                     } else {
-                        appendRope = concatNode
-                                .executeConcat(
-                                        RopeConstants.paddingZeros(padding),
-                                        microSecondRope,
-                                        UTF8Encoding.INSTANCE);
+                        appendTString = concatNode.execute(TStringConstants.paddingZeros(padding), microSecondTString,
+                                utf8, true);
                     }
                 }
                     break;
@@ -686,18 +681,10 @@ public abstract class RubyDateFormatter {
                     throw CompilerDirectives.shouldNotReachHere();
             }
 
-            if (rope == null) {
-                rope = appendRope;
-            } else {
-                rope = concatNode.executeConcat(rope, appendRope, UTF8Encoding.INSTANCE);
-            }
+            tstring = concatNode.execute(tstring, appendTString, utf8, true);
         }
 
-        if (rope == null) {
-            rope = RopeConstants.EMPTY_UTF8_ROPE;
-        }
-
-        return rope;
+        return tstring;
     }
 
     private static int formatWeekOfYear(ZonedDateTime dt, int firstDayOfWeek) {
@@ -778,7 +765,7 @@ public abstract class RubyDateFormatter {
     private static String getRubyTimeZoneName(ZonedDateTime dt, Object zone) {
         RubyStringLibrary strings = RubyStringLibrary.getUncached();
         if (strings.isRubyString(zone)) {
-            return strings.getJavaString(zone);
+            return RubyGuards.getJavaString(zone);
         } else {
             return "";
         }

@@ -9,13 +9,9 @@
  */
 package org.truffleruby.interop;
 
-import org.jcodings.specific.UTF8Encoding;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.Encodings;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -34,17 +30,17 @@ public abstract class FromJavaStringNode extends RubyBaseNode {
     @Specialization(guards = "stringsEquals(cachedValue, value)", limit = "getLimit()")
     protected RubyString doCached(String value,
             @Cached("value") String cachedValue,
-            @Cached("getRope(value)") Rope cachedRope,
-            @Cached StringNodes.MakeStringNode makeStringNode) {
-        var rubyString = makeStringNode.fromRope(cachedRope, Encodings.UTF_8);
+            @Cached TruffleString.FromJavaStringNode tstringFromJavaStringNode,
+            @Cached("getTString(cachedValue, tstringFromJavaStringNode)") TruffleString cachedRope) {
+        var rubyString = createString(cachedRope, Encodings.UTF_8);
         rubyString.freeze();
         return rubyString;
     }
 
     @Specialization(replaces = "doCached")
     protected RubyString doGeneric(String value,
-            @Cached StringNodes.MakeStringNode makeStringNode) {
-        var rubyString = makeStringNode.executeMake(value, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+            @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
+        var rubyString = createString(fromJavaStringNode, value, Encodings.UTF_8);
         rubyString.freeze();
         return rubyString;
     }
@@ -53,8 +49,8 @@ public abstract class FromJavaStringNode extends RubyBaseNode {
         return a.equals(b);
     }
 
-    protected Rope getRope(String value) {
-        return StringOperations.encodeRope(value, UTF8Encoding.INSTANCE);
+    protected TruffleString getTString(String value, TruffleString.FromJavaStringNode tstringFromJavaStringNode) {
+        return tstringFromJavaStringNode.execute(value, TruffleString.Encoding.UTF_8);
     }
 
     protected int getLimit() {

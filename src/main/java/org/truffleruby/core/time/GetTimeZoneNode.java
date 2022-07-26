@@ -36,6 +36,7 @@ import java.util.regex.Pattern;
 import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
@@ -76,7 +77,7 @@ public abstract class GetTimeZoneNode extends RubyBaseNode {
         String tzString = "";
         final RubyStringLibrary libString = RubyStringLibrary.getUncached();
         if (libString.isRubyString(tz)) {
-            tzString = libString.getJavaString(tz);
+            tzString = RubyGuards.getJavaString(tz);
         }
 
         if (tz == nil) {

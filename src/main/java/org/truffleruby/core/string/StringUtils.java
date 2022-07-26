@@ -11,8 +11,6 @@ package org.truffleruby.core.string;
 
 import java.util.Locale;
 
-import org.truffleruby.core.rope.RopeOperations;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public abstract class StringUtils {
@@ -35,7 +33,7 @@ public abstract class StringUtils {
     }
 
     public static byte[] formatASCIIBytes(String format, Object... args) {
-        return RopeOperations.encodeAsciiBytes(format(format, args));
+        return StringOperations.encodeAsciiBytes(format(format, args));
     }
 
     @TruffleBoundary

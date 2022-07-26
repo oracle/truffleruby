@@ -11,12 +11,13 @@ package org.truffleruby.language;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeUtil;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
 import org.graalvm.options.OptionDescriptor;
 import org.truffleruby.RubyContext;
@@ -27,11 +28,7 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.Encodings;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -63,7 +60,7 @@ public abstract class TruffleBootNodes {
     @CoreMethod(names = "ruby_home", onSingleton = true)
     public abstract static class RubyHomeNode extends CoreMethodNode {
 
-        @Child private MakeStringNode makeStringNode = MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @TruffleBoundary
         @Specialization
@@ -72,7 +69,7 @@ public abstract class TruffleBootNodes {
             if (home == null) {
                 return nil;
             } else {
-                return makeStringNode.executeMake(home, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                return createString(fromJavaStringNode, home, Encodings.UTF_8);
             }
         }
 
@@ -112,7 +109,7 @@ public abstract class TruffleBootNodes {
         @Child DispatchNode checkSyntax = DispatchNode.create();
         @Child IndirectCallNode callNode = IndirectCallNode.create();
         @Child DispatchNode requireNode = DispatchNode.create();
-        @Child MakeStringNode makeStringNode = MakeStringNode.create();
+        @Child TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @TruffleBoundary
         @Specialization
@@ -134,7 +131,8 @@ public abstract class TruffleBootNodes {
                 if (getContext().getOptions().SYNTAX_CHECK) {
                     checkSyntax.call(coreLibrary().truffleBootModule, "check_syntax", source);
                 } else {
-                    final Pair<Source, Rope> sourceRopePair = Pair.create(source.getSource(), source.getRope());
+                    var tstringWithEncoding = source.hasTruffleString() ? source.getTStringWithEncoding() : null;
+                    var sourceRopePair = Pair.create(source.getSource(), tstringWithEncoding);
                     final RootCallTarget callTarget = getContext()
                             .getCodeLoader()
                             .parseTopLevelWithCache(sourceRopePair, null);
@@ -206,7 +204,7 @@ public abstract class TruffleBootNodes {
         }
 
         private RubyString utf8(String string) {
-            return makeStringNode.executeMake(string, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+            return createString(fromJavaStringNode, string, Encodings.UTF_8);
         }
 
     }
@@ -214,7 +212,7 @@ public abstract class TruffleBootNodes {
     @CoreMethod(names = "original_argv", onSingleton = true)
     public abstract static class OriginalArgvNode extends CoreMethodNode {
 
-        @Child private MakeStringNode makeStringNode = MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @TruffleBoundary
         @Specialization
@@ -223,10 +221,10 @@ public abstract class TruffleBootNodes {
             final Object[] array = new Object[argv.length];
 
             for (int n = 0; n < array.length; n++) {
-                array[n] = makeStringNode.executeMake(
+                array[n] = createString(
+                        fromJavaStringNode,
                         argv[n],
-                        getContext().getEncodingManager().getDefaultExternalEncoding(),
-                        CodeRange.CR_UNKNOWN);
+                        getContext().getEncodingManager().getDefaultExternalEncoding());
             }
 
             return createArray(array);
@@ -237,7 +235,7 @@ public abstract class TruffleBootNodes {
     @CoreMethod(names = "extra_load_paths", onSingleton = true)
     public abstract static class ExtraLoadPathsNode extends CoreMethodNode {
 
-        @Child private MakeStringNode makeStringNode = MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @TruffleBoundary
         @Specialization
@@ -246,7 +244,7 @@ public abstract class TruffleBootNodes {
             final Object[] array = new Object[paths.length];
 
             for (int n = 0; n < array.length; n++) {
-                array[n] = makeStringNode.executeMake(paths[n], Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                array[n] = createString(fromJavaStringNode, paths[n], Encodings.UTF_8);
             }
 
             return createArray(array);
@@ -257,7 +255,7 @@ public abstract class TruffleBootNodes {
     @CoreMethod(names = "source_of_caller", onSingleton = true)
     public abstract static class SourceOfCallerNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private MakeStringNode makeStringNode = MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @TruffleBoundary
         @Specialization
@@ -277,8 +275,7 @@ public abstract class TruffleBootNodes {
                 return nil;
             }
 
-            return makeStringNode
-                    .executeMake(getLanguage().getSourcePath(source), Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+            return createString(fromJavaStringNode, getLanguage().getSourcePath(source), Encodings.UTF_8);
         }
 
     }
@@ -306,13 +303,13 @@ public abstract class TruffleBootNodes {
     @CoreMethod(names = "get_option", onSingleton = true, required = 1)
     public abstract static class GetOptionNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private MakeStringNode makeStringNode = MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @TruffleBoundary
-        @Specialization(guards = "libOptionName.isRubyString(optionName)")
+        @Specialization(guards = "libOptionName.isRubyString(optionName)", limit = "1")
         protected Object getOption(Object optionName,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libOptionName) {
-            final String optionNameString = libOptionName.getJavaString(optionName);
+                @Cached RubyStringLibrary libOptionName) {
+            final String optionNameString = RubyGuards.getJavaString(optionName);
             final OptionDescriptor descriptor = OptionsCatalog.fromName("ruby." + optionNameString);
             if (descriptor == null) {
                 throw new RaiseException(
@@ -340,7 +337,7 @@ public abstract class TruffleBootNodes {
             } else if (value instanceof Enum) {
                 return getSymbol(value.toString());
             } else if (value instanceof String) {
-                return makeStringNode.executeMake(value, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                return createString(fromJavaStringNode, (String) value, Encodings.UTF_8);
             } else if (value instanceof String[]) {
                 return toRubyArray((String[]) value);
             } else {
@@ -352,7 +349,7 @@ public abstract class TruffleBootNodes {
         private RubyArray toRubyArray(String[] strings) {
             final Object[] objects = new Object[strings.length];
             for (int n = 0; n < strings.length; n++) {
-                objects[n] = makeStringNode.executeMake(strings[n], Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                objects[n] = createString(fromJavaStringNode, strings[n], Encodings.UTF_8);
             }
             return createArray(objects);
         }
@@ -387,12 +384,12 @@ public abstract class TruffleBootNodes {
         @TruffleBoundary
         @Specialization
         protected Object toolchainExecutable(RubySymbol executable,
-                @Cached MakeStringNode makeStringNode) {
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             final String name = executable.getString();
             final Toolchain toolchain = getToolchain(getContext(), this);
             final TruffleFile path = toolchain.getToolPath(name);
             if (path != null) {
-                return makeStringNode.executeMake(path.getPath(), Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                return createString(fromJavaStringNode, path.getPath(), Encodings.UTF_8);
             } else {
                 throw new RaiseException(
                         getContext(),
@@ -408,7 +405,7 @@ public abstract class TruffleBootNodes {
         @TruffleBoundary
         @Specialization
         protected Object toolchainPaths(RubySymbol pathName,
-                @Cached MakeStringNode makeStringNode) {
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             final String name = pathName.getString();
             final Toolchain toolchain = getToolchain(getContext(), this);
             final List<TruffleFile> paths = toolchain.getPaths(name);
@@ -417,7 +414,7 @@ public abstract class TruffleBootNodes {
                         .stream()
                         .map(file -> file.getPath())
                         .collect(Collectors.joining(File.pathSeparator));
-                return makeStringNode.executeMake(path, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                return createString(fromJavaStringNode, path, Encodings.UTF_8);
             } else {
                 throw new RaiseException(
                         getContext(),
@@ -453,7 +450,7 @@ public abstract class TruffleBootNodes {
         @TruffleBoundary
         @Specialization
         protected RubyString basicABIVersion(
-                @Cached MakeStringNode makeStringNode) {
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             TruffleFile file = getLanguage().getRubyHomeTruffleFile().resolve(ABI_VERSION_FILE);
             byte[] bytes;
             try {
@@ -462,8 +459,8 @@ public abstract class TruffleBootNodes {
                 throw CompilerDirectives.shouldNotReachHere(e);
             }
 
-            String basicVersion = RopeOperations.decodeAscii(bytes).strip();
-            return makeStringNode.executeMake(basicVersion, Encodings.UTF_8, CodeRange.CR_7BIT);
+            String basicVersion = new String(bytes, StandardCharsets.US_ASCII).strip();
+            return createString(fromJavaStringNode, basicVersion, Encodings.UTF_8);
         }
 
     }

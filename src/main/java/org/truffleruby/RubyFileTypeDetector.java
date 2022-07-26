@@ -17,10 +17,10 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 
 import org.jcodings.Encoding;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.core.encoding.EncodingManager;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.TStringUtils;
+import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.parser.lexer.RubyLexer;
 
 import com.oracle.truffle.api.TruffleFile;
@@ -76,9 +76,10 @@ public class RubyFileTypeDetector implements TruffleFile.FileTypeDetector {
                     encodingCommentLine = firstLine;
                 }
                 if (encodingCommentLine != null) {
-                    Rope encodingCommentRope = StringOperations.encodeRope(encodingCommentLine, UTF8Encoding.INSTANCE);
+                    var encodingComment = new TStringWithEncoding(TStringUtils.utf8TString(encodingCommentLine),
+                            Encodings.UTF_8);
                     Charset[] encodingHolder = new Charset[1];
-                    RubyLexer.parseMagicComment(encodingCommentRope, (name, value) -> {
+                    RubyLexer.parseMagicComment(encodingComment, (name, value) -> {
                         if (RubyLexer.isMagicEncodingComment(name)) {
                             Encoding encoding = EncodingManager.getEncoding(value);
                             if (encoding != null) {

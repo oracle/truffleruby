@@ -11,17 +11,15 @@ package org.truffleruby.stdlib.digest;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.encoding.Encodings;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.objects.AllocationTracing;
@@ -104,17 +102,22 @@ public abstract class DigestNodes {
     @CoreMethod(names = "update", onSingleton = true, required = 2)
     public abstract static class UpdateNode extends CoreMethodArrayArgumentsNode {
 
-        @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(message)")
+        @Specialization(guards = "strings.isRubyString(message)", limit = "1")
         protected RubyDigest update(RubyDigest digestObject, Object message,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
+                @Cached RubyStringLibrary strings,
+                @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode) {
             final MessageDigest digest = digestObject.digest;
-            final Rope rope = strings.getRope(message);
+            var tstring = strings.getTString(message);
+            var byteArray = getInternalByteArrayNode.execute(tstring, strings.getTEncoding(message));
 
-            digest.update(rope.getBytes());
+            update(digest, byteArray.getArray(), byteArray.getOffset(), byteArray.getLength());
             return digestObject;
         }
 
+        @TruffleBoundary
+        private void update(MessageDigest digest, byte[] input, int offset, int len) {
+            digest.update(input, offset, len);
+        }
     }
 
     @CoreMethod(names = "reset", onSingleton = true, required = 1)
@@ -132,13 +135,13 @@ public abstract class DigestNodes {
     @CoreMethod(names = "digest", onSingleton = true, required = 1)
     public abstract static class DigestNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromByteArrayNode fromByteArrayNode = TruffleString.FromByteArrayNode.create();
 
         @Specialization
         protected RubyString digest(RubyDigest digestObject) {
             final MessageDigest digest = digestObject.digest;
 
-            return makeStringNode.executeMake(cloneAndDigest(digest), Encodings.BINARY, CodeRange.CR_VALID);
+            return createString(fromByteArrayNode, cloneAndDigest(digest), Encodings.BINARY);
         }
 
         // TODO CS 10-Apr-17 the Ruby code for digest also clones in some cases! Are we cloning redundantly?
@@ -181,16 +184,18 @@ public abstract class DigestNodes {
     @CoreMethod(names = "bubblebabble", onSingleton = true, required = 1)
     public abstract static class BubbleBabbleNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromByteArrayNode fromByteArrayNode = TruffleString.FromByteArrayNode.create();
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(message)")
+        @Specialization(guards = "strings.isRubyString(message)", limit = "1")
         protected RubyString bubblebabble(Object message,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            final Rope rope = strings.getRope(message);
-            final byte[] bubblebabbleBytes = bubblebabble(rope.getBytes(), 0, rope.byteLength()).getBytes();
+                @Cached RubyStringLibrary strings) {
+            var rope = strings.getTString(message);
+            var byteArray = rope.getInternalByteArrayUncached(strings.getTEncoding(message));
+            final byte[] bubblebabbleBytes = bubblebabble(byteArray.getArray(), byteArray.getOffset(),
+                    byteArray.getLength()).getBytes(); // CR_7BIT
 
-            return makeStringNode.executeMake(bubblebabbleBytes, Encodings.UTF_8, CodeRange.CR_7BIT);
+            return createString(fromByteArrayNode, bubblebabbleBytes, Encodings.UTF_8);
         }
 
         /** Ported from OpenSSH

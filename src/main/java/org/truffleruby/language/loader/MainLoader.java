@@ -12,12 +12,11 @@ package org.truffleruby.language.loader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.TStringUtils;
+import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.shared.TruffleRuby;
 
@@ -49,23 +48,23 @@ public class MainLoader {
 
     public RubySource loadFromStandardIn(Node currentNode, String path) throws IOException {
         byte[] sourceBytes = readAllOfStandardIn();
-        final Rope sourceRope = transformScript(currentNode, path, sourceBytes);
+        var sourceRope = transformScript(currentNode, path, sourceBytes);
 
         final Source source = Source
-                .newBuilder(TruffleRuby.LANGUAGE_ID, RopeOperations.decodeOrEscapeBinaryRope(sourceRope), path)
+                .newBuilder(TruffleRuby.LANGUAGE_ID, sourceRope.toString(), path)
                 .mimeType(RubyLanguage.MIME_TYPE_MAIN_SCRIPT)
                 .build();
         return new RubySource(source, path, sourceRope);
     }
 
-    private Rope transformScript(Node currentNode, String path, byte[] sourceBytes) {
+    private TStringWithEncoding transformScript(Node currentNode, String path, byte[] sourceBytes) {
         final EmbeddedScript embeddedScript = new EmbeddedScript(context);
 
         if (embeddedScript.shouldTransform(sourceBytes)) {
             sourceBytes = embeddedScript.transformForExecution(currentNode, sourceBytes, path);
         }
 
-        return RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        return new TStringWithEncoding(TStringUtils.fromByteArray(sourceBytes, Encodings.UTF_8), Encodings.UTF_8);
     }
 
     private byte[] readAllOfStandardIn() throws IOException {
@@ -97,11 +96,11 @@ public class MainLoader {
          * and pass them down to the lexer and to the Source. */
 
         byte[] sourceBytes = file.readAllBytes();
-        final Rope sourceRope = transformScript(currentNode, mainPath, sourceBytes);
+        var sourceTString = transformScript(currentNode, mainPath, sourceBytes);
 
-        final Source mainSource = fileLoader.buildSource(file, mainPath, sourceRope, false, true);
+        final Source mainSource = fileLoader.buildSource(file, mainPath, sourceTString, false, true);
 
-        return new RubySource(mainSource, mainPath, sourceRope);
+        return new RubySource(mainSource, mainPath, sourceTString);
     }
 
 }

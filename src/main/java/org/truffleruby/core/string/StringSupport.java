@@ -26,14 +26,20 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.core.string;
 
-import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
-import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
-import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
-import static org.truffleruby.core.rope.CodeRange.CR_VALID;
+import static com.oracle.truffle.api.strings.TruffleString.CodeRange.ASCII;
+import static com.oracle.truffle.api.strings.TruffleString.CodeRange.VALID;
 
 import java.util.Arrays;
 
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
+import com.oracle.truffle.api.strings.InternalByteArray;
+import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.api.strings.TruffleString.CreateCodePointIteratorNode;
+import com.oracle.truffle.api.strings.TruffleString.ErrorHandling;
+import com.oracle.truffle.api.strings.TruffleString.FromByteArrayNode;
 import org.graalvm.collections.Pair;
 import org.jcodings.Config;
 import org.jcodings.Encoding;
@@ -44,17 +50,12 @@ import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.jcodings.util.IntHash;
 import org.truffleruby.RubyContext;
+import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.collections.IntHashMap;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.rope.Bytes;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeBuilder;
-import org.truffleruby.core.rope.RopeOperations;
-
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.utils.Utils;
 
@@ -66,35 +67,36 @@ public final class StringSupport {
     // exceeding the buffer size.
     private static final int CASE_MAP_BUFFER_SIZE = 32;
 
-    public static int characterLength(Encoding encoding, CodeRange codeRange, byte[] bytes,
-            int byteOffset, int byteEnd, boolean recoverIfBroken) {
+    /** codeRange==null means unknown. recoverIfBroken=false so can return negative values. */
+    private static int characterLength(Encoding encoding, TruffleString.CodeRange codeRange, byte[] bytes,
+            int byteOffset, int byteEnd) {
         assert byteOffset >= 0 && byteOffset < byteEnd && byteEnd <= bytes.length;
 
+        if (codeRange == null) {
+            return preciseLength(encoding, bytes, byteOffset, byteEnd);
+        }
+
         switch (codeRange) {
-            case CR_7BIT:
+            case ASCII:
                 return 1;
-            case CR_VALID:
+            case VALID:
                 return characterLengthValid(encoding, bytes, byteOffset, byteEnd);
-            case CR_BROKEN:
-            case CR_UNKNOWN:
-                if (recoverIfBroken) {
-                    return length(encoding, bytes, byteOffset, byteEnd);
-                } else {
-                    return preciseLength(encoding, bytes, byteOffset, byteEnd);
-                }
+            case BROKEN:
+                return preciseLength(encoding, bytes, byteOffset, byteEnd);
             default:
                 throw Utils.unsupportedOperation("unknown code range value: ", codeRange);
         }
     }
 
-    public static int characterLength(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset,
-            int byteEnd) {
-        return characterLength(encoding, codeRange, bytes, byteOffset, byteEnd, false);
+    /** recoverIfBroken=false so can return negative values */
+    public static int characterLength(RubyEncoding encoding, byte[] bytes, int byteOffset, int byteEnd) {
+        assert byteOffset >= 0 && byteOffset < byteEnd && byteEnd <= bytes.length;
+        return preciseLength(encoding.jcoding, bytes, byteOffset, byteEnd);
     }
 
     private static int characterLengthValid(Encoding encoding, byte[] bytes, int byteOffset, int byteEnd) {
         if (encoding.isUTF8()) {
-            return UTF8Operations.charWidth(bytes[byteOffset]);
+            return utf8CharWidth(bytes[byteOffset]);
         } else if (encoding.isAsciiCompatible()) {
             if (bytes[byteOffset] >= 0) {
                 return 1;
@@ -107,6 +109,21 @@ public final class StringSupport {
             return width;
         } else {
             return encLength(encoding, bytes, byteOffset, byteEnd);
+        }
+    }
+
+    public static int utf8CharWidth(byte b) {
+        if (b >= 0) {
+            return 1;
+        } else {
+            switch (b & 0xf0) {
+                case 0xe0:
+                    return 3;
+                case 0xf0:
+                    return 4;
+                default:
+                    return 2;
+            }
         }
     }
 
@@ -194,6 +211,7 @@ public final class StringSupport {
 
     // MBCLEN_CHARFOUND_LEN, ONIGENC_MBCLEN_CHARFOUND_LEN
     public static int MBCLEN_CHARFOUND_LEN(int r) {
+        assert MBCLEN_CHARFOUND_P(r);
         return r;
     }
 
@@ -202,129 +220,35 @@ public final class StringSupport {
         return 0 < r;
     }
 
+    @CompilationFinal(dimensions = 1) private static final byte[] NON_ASCII_NEEDLE = { (byte) 0b1111_1111 };
+    @CompilationFinal(dimensions = 1) private static final byte[] NON_ASCII_MASK = { 0b0111_1111 };
+
+    // MRI: search_nonascii
+    /** NOTE: this returns a logical offset, not the offset in the byteArray. */
+    public static int searchNonAscii(InternalByteArray byteArray, int start) {
+        final int offset = byteArray.getOffset();
+        return searchNonAscii(byteArray.getArray(), offset + start, byteArray.getEnd()) - offset;
+    }
+
     // MRI: search_nonascii
     public static int searchNonAscii(byte[] bytes, int p, int end) {
-        while (p < end) {
-            if (!Encoding.isAscii(bytes[p])) {
-                return p;
-            }
-            p++;
-        }
-        return -1;
+        return com.oracle.truffle.api.ArrayUtils.indexOfWithOrMask(bytes, p, end - p, NON_ASCII_NEEDLE, NON_ASCII_MASK);
     }
 
-    // MRI: search_nonascii
-    public static int searchNonAscii(Bytes bytes) {
-        for (int p = 0; p < bytes.length; ++p) {
-            if (!Encoding.isAscii(bytes.get(p))) {
-                return p;
-            }
-        }
-        return -1;
-    }
-
-    // MRI: rb_enc_strlen
-    public static int strLength(Encoding enc, byte[] bytes, int p, int end) {
-        return strLength(enc, bytes, p, end, CR_UNKNOWN);
-    }
-
-    // MRI: enc_strlen
+    // MRI: rb_enc_strlen / enc_strlen
     @TruffleBoundary
-    public static int strLength(Encoding enc, byte[] bytes, int p, int e, CodeRange cr) {
-        int c;
-        if (enc.isFixedWidth()) {
-            return (e - p + enc.minLength() - 1) / enc.minLength();
-        } else if (enc.isAsciiCompatible()) {
-            c = 0;
-            if (cr == CR_7BIT || cr == CR_VALID) {
-                while (p < e) {
-                    if (Encoding.isAscii(bytes[p])) {
-                        int q = searchNonAscii(bytes, p, e);
-                        if (q == -1) {
-                            return c + (e - p);
-                        }
-                        c += q - p;
-                        p = q;
-                    }
-                    p += characterLength(enc, cr, bytes, p, e);
-                    c++;
-                }
-            } else {
-                while (p < e) {
-                    if (Encoding.isAscii(bytes[p])) {
-                        int q = searchNonAscii(bytes, p, e);
-                        if (q == -1) {
-                            return c + (e - p);
-                        }
-                        c += q - p;
-                        p = q;
-                    }
-                    p += characterLength(enc, cr, bytes, p, e, true);
-                    c++;
-                }
-            }
-            return c;
-        }
-
-        for (c = 0; p < e; c++) {
-            p += characterLength(enc, cr, bytes, p, e, true);
-        }
-        return c;
+    public static int strLength(RubyEncoding encoding, byte[] bytes, int p, int e) {
+        var tstring = FromByteArrayNode.getUncached().execute(bytes, p, e - p, encoding.tencoding, false);
+        return tstring.codePointLengthUncached(encoding.tencoding);
     }
 
-    /** See {@link RopeNodes.CalculateAttributesNode#calculateAttributesAsciiCompatibleGeneric} */
-    // MRI: rb_enc_strlen_cr
-    public static StringAttributes strLengthWithCodeRangeAsciiCompatible(Encoding enc, byte[] bytes, int p, int end) {
-        CodeRange cr = CR_UNKNOWN;
-        int c = 0;
-        while (p < end) {
-            if (Encoding.isAscii(bytes[p])) {
-                int q = searchNonAscii(bytes, p, end);
-                if (q == -1) {
-                    return new StringAttributes(c + (end - p), cr == CR_UNKNOWN ? CR_7BIT : cr);
-                }
-                c += q - p;
-                p = q;
-            }
-            int cl = preciseLength(enc, bytes, p, end);
-            if (cl > 0) {
-                if (cr != CR_BROKEN) {
-                    cr = CR_VALID;
-                }
-                p += cl;
-            } else {
-                cr = CR_BROKEN;
-                p++;
-            }
-            c++;
-        }
-        return new StringAttributes(c, cr == CR_UNKNOWN ? CR_7BIT : cr);
-    }
-
-    /** See {@link RopeNodes.CalculateAttributesNode#calculateAttributesNonAsciiCompatible} */
-    // MRI: rb_enc_strlen_cr
-    public static StringAttributes strLengthWithCodeRangeNonAsciiCompatible(Encoding enc, byte[] bytes, int p,
-            int end) {
-        CodeRange cr = CR_UNKNOWN;
-        int c;
-        for (c = 0; p < end; c++) {
-            int cl = preciseLength(enc, bytes, p, end);
-            if (cl > 0) {
-                if (cr != CR_BROKEN) {
-                    cr = CR_VALID;
-                }
-                p += cl;
-            } else {
-                cr = CR_BROKEN;
-                p += enc.minLength();
-            }
-        }
-
-        return new StringAttributes(c, cr == CR_UNKNOWN ? CR_7BIT : cr);
+    public static int codePoint(Encoding enc, byte[] bytes, int p, int end, Node node) {
+        return codePoint(enc, null, bytes, p, end, node);
     }
 
     @TruffleBoundary
-    public static int codePoint(Encoding enc, CodeRange codeRange, byte[] bytes, int p, int end, Node node) {
+    public static int codePoint(Encoding enc, TruffleString.CodeRange codeRange, byte[] bytes, int p, int end,
+            Node node) {
         if (p >= end) {
             final RubyContext context = RubyContext.get(node);
             throw new RaiseException(context, context.getCoreExceptions().argumentError("empty string", node));
@@ -347,36 +271,12 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static int codeToMbc(Encoding encoding, int code, byte[] bytes, int p) {
-        return encoding.codeToMbc(code, bytes, p);
-    }
-
-    @TruffleBoundary
-    public static int preciseCodePoint(Encoding enc, CodeRange codeRange, byte[] bytes, int p, int end) {
-        int l = characterLength(enc, codeRange, bytes, p, end);
-        if (l > 0) {
-            return enc.mbcToCode(bytes, p, end);
-        }
-        return -1;
-    }
-
-    @TruffleBoundary
-    public static int mbcToCode(Encoding encoding, Rope rope, int p, int end) {
-        return encoding.mbcToCode(rope.getBytes(), p, end);
+    public static int mbcToCode(Encoding encoding, byte[] bytes, int p, int end) {
+        return encoding.mbcToCode(bytes, p, end);
     }
 
     public static int offset(int start, int end, int charEnd) {
         return charEnd == -1 ? end - start : Math.min(end, charEnd) - start;
-    }
-
-    public static int caseCmp(byte[] bytes1, int p1, byte[] bytes2, int p2, int len) {
-        int i = -1;
-        for (; ++i < len && bytes1[p1 + i] == bytes2[p2 + i];) {
-        }
-        if (i < len) {
-            return (bytes1[p1 + i] & 0xff) > (bytes2[p2 + i] & 0xff) ? 1 : -1;
-        }
-        return 0;
     }
 
     public static int scanHex(byte[] bytes, int p, int len) {
@@ -458,10 +358,11 @@ public final class StringSupport {
 
     /** rb_str_count */
     @TruffleBoundary
-    public static int strCount(Rope str, boolean[] table, TrTables tables, Encoding enc, Node node) {
-        final byte[] bytes = str.getBytes();
-        int p = 0;
-        final int end = str.byteLength();
+    public static int strCount(InternalByteArray byteArray, TruffleString.CodeRange codeRange, boolean[] table,
+            TrTables tables, Encoding enc, Node node) {
+        final byte[] bytes = byteArray.getArray();
+        int p = byteArray.getOffset();
+        final int end = byteArray.getEnd();
         final boolean asciiCompat = enc.isAsciiCompatible();
 
         int count = 0;
@@ -473,7 +374,7 @@ public final class StringSupport {
                 }
                 p++;
             } else {
-                c = codePoint(enc, str.getCodeRange(), bytes, p, end, node);
+                c = codePoint(enc, codeRange, bytes, p, end, node);
                 int cl = codeLength(enc, c);
                 if (trFind(c, table, tables)) {
                     count++;
@@ -485,12 +386,80 @@ public final class StringSupport {
         return count;
     }
 
+    public static char[] bytesToChars(InternalByteArray byteArray) {
+        final int byteLength = byteArray.getLength();
+        final char[] chars = new char[byteLength];
+
+        for (int n = 0; n < byteLength; n++) {
+            chars[n] = (char) byteArray.get(n);
+        }
+
+        return chars;
+    }
+
+    // rb_enc_ascget
+    private static int encAscget(byte[] pBytes, int p, int e, int[] len, Encoding enc,
+            TruffleString.CodeRange codeRange) {
+        int c;
+        int l;
+
+        if (e <= p) {
+            return -1;
+        }
+
+        if (EncodingUtils.encAsciicompat(enc)) {
+            c = pBytes[p] & 0xFF;
+            if (!Encoding.isAscii((byte) c)) {
+                return -1;
+            }
+            if (len != null) {
+                len[0] = 1;
+            }
+            return c;
+        }
+        l = characterLength(enc, codeRange, pBytes, p, e);
+        if (!MBCLEN_CHARFOUND_P(l)) {
+            return -1;
+        }
+        c = enc.mbcToCode(pBytes, p, e);
+        if (!Encoding.isAscii(c)) {
+            return -1;
+        }
+        if (len != null) {
+            len[0] = l;
+        }
+        return c;
+    }
+
+    // rb_enc_codepoint_len
+    @TruffleBoundary
+    private static int encCodepointLength(byte[] pBytes, int p, int e, int[] len_p, Encoding enc,
+            TruffleString.CodeRange codeRange, Node node) {
+        int r;
+        if (e <= p) {
+            final RubyContext context = RubyContext.get(node);
+            throw new RaiseException(context, context.getCoreExceptions().argumentError("empty string", node));
+        }
+        r = characterLength(enc, codeRange, pBytes, p, e);
+        if (!MBCLEN_CHARFOUND_P(r)) {
+            final RubyContext context = RubyContext.get(node);
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().argumentError("invalid byte sequence in " + enc, node));
+        }
+        if (len_p != null) {
+            len_p[0] = MBCLEN_CHARFOUND_LEN(r);
+        }
+        return codePoint(enc, codeRange, pBytes, p, e, node);
+    }
+
     /** rb_str_tr / rb_str_tr_bang */
     public static final class TR {
-        public TR(Rope bytes) {
-            p = 0;
-            pend = bytes.byteLength() + p;
-            buf = bytes.getBytes();
+        public TR(AbstractTruffleString string, RubyEncoding encoding) {
+            var bytes = string.getInternalByteArrayUncached(encoding.tencoding);
+            p = bytes.getOffset();
+            pend = bytes.getEnd();
+            buf = bytes.getArray();
             now = max = 0;
             gen = false;
         }
@@ -508,14 +477,16 @@ public final class StringSupport {
     private static final Object DUMMY_VALUE = "";
 
     @TruffleBoundary
-    public static TrTables trSetupTable(Rope str, boolean[] stable, TrTables tables, boolean first, Encoding enc,
-            Node node) {
+    public static TrTables trSetupTable(AbstractTruffleString str, RubyEncoding encoding, boolean[] stable,
+            TrTables tables, boolean first, Encoding enc, Node node) {
         int i, l[] = { 0 };
         final boolean cflag;
 
-        final TR tr = new TR(str);
+        final TR tr = new TR(str, encoding);
 
-        if (str.byteLength() > 1 && EncodingUtils.encAscget(tr.buf, tr.p, tr.pend, l, enc, str.getCodeRange()) == '^') {
+        var codeRange = str.getByteCodeRangeUncached(encoding.tencoding);
+        if (str.byteLength(encoding.tencoding) > 1 &&
+                encAscget(tr.buf, tr.p, tr.pend, l, enc, codeRange) == '^') {
             cflag = true;
             tr.p += l[0];
         } else {
@@ -539,7 +510,7 @@ public final class StringSupport {
         IntHashMap<Object> table = null, ptable = null;
 
         int c;
-        while ((c = trNext(tr, enc, str.getCodeRange(), node)) != -1) {
+        while ((c = trNext(tr, enc, codeRange, node)) != -1) {
             if (c < TRANS_SIZE) {
                 if (buf == null) { // initialize buf
                     buf = new byte[TRANS_SIZE];
@@ -614,7 +585,7 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static int trNext(TR tr, Encoding enc, CodeRange codeRange, Node node) {
+    public static int trNext(TR tr, Encoding enc, TruffleString.CodeRange codeRange, Node node) {
         for (;;) {
             if (!tr.gen) {
                 return trNext_nextpart(tr, enc, codeRange, node);
@@ -635,21 +606,21 @@ public final class StringSupport {
         }
     }
 
-    private static int trNext_nextpart(TR tr, Encoding enc, CodeRange codeRange, Node node) {
+    private static int trNext_nextpart(TR tr, Encoding enc, TruffleString.CodeRange codeRange, Node node) {
         final int[] n = { 0 };
 
         if (tr.p == tr.pend) {
             return -1;
         }
-        if (EncodingUtils.encAscget(tr.buf, tr.p, tr.pend, n, enc, codeRange) == '\\' && tr.p + n[0] < tr.pend) {
+        if (encAscget(tr.buf, tr.p, tr.pend, n, enc, codeRange) == '\\' && tr.p + n[0] < tr.pend) {
             tr.p += n[0];
         }
-        tr.now = EncodingUtils.encCodepointLength(tr.buf, tr.p, tr.pend, n, enc, codeRange, node);
+        tr.now = encCodepointLength(tr.buf, tr.p, tr.pend, n, enc, codeRange, node);
         tr.p += n[0];
-        if (EncodingUtils.encAscget(tr.buf, tr.p, tr.pend, n, enc, codeRange) == '-' && tr.p + n[0] < tr.pend) {
+        if (encAscget(tr.buf, tr.p, tr.pend, n, enc, codeRange) == '-' && tr.p + n[0] < tr.pend) {
             tr.p += n[0];
             if (tr.p < tr.pend) {
-                int c = EncodingUtils.encCodepointLength(tr.buf, tr.p, tr.pend, n, enc, codeRange, node);
+                int c = encCodepointLength(tr.buf, tr.p, tr.pend, n, enc, codeRange, node);
                 tr.p += n[0];
                 if (tr.now > c) {
                     final RubyContext context = RubyContext.get(node);
@@ -678,14 +649,15 @@ public final class StringSupport {
 
     // MRI: str_succ
     @TruffleBoundary
-    public static RopeBuilder succCommon(Rope original, Node node) {
+    public static TStringBuilder succCommon(RubyString original, Node node) {
         byte carry[] = new byte[org.jcodings.Config.ENC_CODE_TO_MBC_MAXLEN];
         int carryP = 0;
         carry[0] = 1;
         int carryLen = 1;
 
-        Encoding enc = original.getEncoding();
-        RopeBuilder valueCopy = RopeBuilder.createRopeBuilder(original.getBytes(), enc);
+        final RubyEncoding encoding = original.getEncodingUncached();
+        final Encoding enc = encoding.jcoding;
+        TStringBuilder valueCopy = TStringBuilder.create(original);
         int p = 0;
         int end = p + valueCopy.getLength();
         int s = end;
@@ -705,11 +677,11 @@ public final class StringSupport {
                 }
             }
 
-            int cl = characterLength(enc, CR_UNKNOWN, bytes, s, end);
+            int cl = characterLength(encoding, bytes, s, end);
             if (cl <= 0) {
                 continue;
             }
-            switch (neighbor = succAlnumChar(enc, bytes, s, cl, carry, 0, node)) {
+            switch (neighbor = succAlnumChar(encoding, bytes, s, cl, carry, 0, node)) {
                 case NOT_CHAR:
                     continue;
                 case FOUND:
@@ -725,18 +697,18 @@ public final class StringSupport {
         if (!alnumSeen) {
             s = end;
             while ((s = enc.prevCharHead(bytes, p, s, end)) != -1) {
-                int cl = characterLength(enc, CR_UNKNOWN, bytes, s, end);
+                int cl = characterLength(encoding, bytes, s, end);
                 if (cl <= 0) {
                     continue;
                 }
-                neighbor = succChar(enc, bytes, s, cl, node);
+                neighbor = succChar(encoding, bytes, s, cl, node);
                 if (neighbor == NeighborChar.FOUND) {
                     return valueCopy;
                 }
-                if (characterLength(enc, CR_UNKNOWN, bytes, s, s + 1) != cl) {
-                    succChar(enc, bytes, s, cl, node); /* wrapped to \0...\0. search next valid char. */
+                if (characterLength(encoding, bytes, s, s + 1) != cl) {
+                    succChar(encoding, bytes, s, cl, node); /* wrapped to \0...\0. search next valid char. */
                 }
-                if (!enc.isAsciiCompatible()) {
+                if (!encoding.isAsciiCompatible) {
                     System.arraycopy(bytes, s, carry, 0, cl);
                     carryLen = cl;
                 }
@@ -757,15 +729,16 @@ public final class StringSupport {
     }
 
     // MRI: enc_succ_char
-    public static NeighborChar succChar(Encoding enc, byte[] bytes, int p, int len, Node node) {
+    public static NeighborChar succChar(RubyEncoding encoding, byte[] bytes, int p, int len, Node node) {
+        Encoding enc = encoding.jcoding;
         int l;
         if (enc.minLength() > 1) {
             /* wchar, trivial case */
-            int r = characterLength(enc, CR_UNKNOWN, bytes, p, p + len), c;
+            int r = characterLength(encoding, bytes, p, p + len), c;
             if (!MBCLEN_CHARFOUND_P(r)) {
                 return NeighborChar.NOT_CHAR;
             }
-            c = codePoint(enc, CR_UNKNOWN, bytes, p, p + len, node) + 1;
+            c = codePoint(enc, bytes, p, p + len, node) + 1;
             l = codeLength(enc, c);
             if (l == 0) {
                 return NeighborChar.NOT_CHAR;
@@ -773,8 +746,8 @@ public final class StringSupport {
             if (l != len) {
                 return NeighborChar.WRAPPED;
             }
-            EncodingUtils.encMbcput(c, bytes, p, enc);
-            r = characterLength(enc, CR_UNKNOWN, bytes, p, p + len);
+            enc.codeToMbc(c, bytes, p);
+            r = characterLength(encoding, bytes, p, p + len);
             if (!MBCLEN_CHARFOUND_P(r)) {
                 return NeighborChar.NOT_CHAR;
             }
@@ -790,7 +763,7 @@ public final class StringSupport {
                 return NeighborChar.WRAPPED;
             }
             bytes[p + i] = (byte) ((bytes[p + i] & 0xff) + 1);
-            l = characterLength(enc, CR_UNKNOWN, bytes, p, p + len);
+            l = characterLength(encoding, bytes, p, p + len);
             if (MBCLEN_CHARFOUND_P(l)) {
                 l = MBCLEN_CHARFOUND_LEN(l);
                 if (l == len) {
@@ -805,7 +778,7 @@ public final class StringSupport {
                 int len2;
                 int l2;
                 for (len2 = len - 1; 0 < len2; len2--) {
-                    l2 = characterLength(enc, CR_UNKNOWN, bytes, p, p + len2);
+                    l2 = characterLength(encoding, bytes, p, p + len2);
                     if (!MBCLEN_INVALID_P(l2)) {
                         break;
                     }
@@ -818,8 +791,9 @@ public final class StringSupport {
     }
 
     // MRI: enc_succ_alnum_char
-    private static NeighborChar succAlnumChar(Encoding enc, byte[] bytes, int p, int len, byte[] carry, int carryP,
-            Node node) {
+    private static NeighborChar succAlnumChar(RubyEncoding encoding, byte[] bytes, int p, int len, byte[] carry,
+            int carryP, Node node) {
+        Encoding enc = encoding.jcoding;
         byte save[] = new byte[org.jcodings.Config.ENC_CODE_TO_MBC_MAXLEN];
         int c = enc.mbcToCode(bytes, p, p + len);
 
@@ -833,7 +807,7 @@ public final class StringSupport {
         }
 
         System.arraycopy(bytes, p, save, 0, len);
-        NeighborChar ret = succChar(enc, bytes, p, len, node);
+        NeighborChar ret = succChar(encoding, bytes, p, len, node);
         if (ret == NeighborChar.FOUND) {
             c = enc.mbcToCode(bytes, p, p + len);
             if (enc.isCodeCType(c, cType)) {
@@ -846,7 +820,7 @@ public final class StringSupport {
 
         while (true) {
             System.arraycopy(bytes, p, save, 0, len);
-            ret = predChar(enc, bytes, p, len, node);
+            ret = predChar(encoding, bytes, p, len, node);
             if (ret == NeighborChar.FOUND) {
                 c = enc.mbcToCode(bytes, p, p + len);
                 if (!enc.isCodeCType(c, cType)) {
@@ -870,19 +844,20 @@ public final class StringSupport {
         }
 
         System.arraycopy(bytes, p, carry, carryP, len);
-        succChar(enc, carry, carryP, len, node);
+        succChar(encoding, carry, carryP, len, node);
         return NeighborChar.WRAPPED;
     }
 
-    private static NeighborChar predChar(Encoding enc, byte[] bytes, int p, int len, Node node) {
+    private static NeighborChar predChar(RubyEncoding encoding, byte[] bytes, int p, int len, Node node) {
+        Encoding enc = encoding.jcoding;
         int l;
         if (enc.minLength() > 1) {
             /* wchar, trivial case */
-            int r = characterLength(enc, CR_UNKNOWN, bytes, p, p + len), c;
+            int r = characterLength(encoding, bytes, p, p + len), c;
             if (!MBCLEN_CHARFOUND_P(r)) {
                 return NeighborChar.NOT_CHAR;
             }
-            c = codePoint(enc, CR_UNKNOWN, bytes, p, p + len, node);
+            c = codePoint(enc, bytes, p, p + len, node);
             if (c == 0) {
                 return NeighborChar.NOT_CHAR;
             }
@@ -894,8 +869,8 @@ public final class StringSupport {
             if (l != len) {
                 return NeighborChar.WRAPPED;
             }
-            EncodingUtils.encMbcput(c, bytes, p, enc);
-            r = characterLength(enc, CR_UNKNOWN, bytes, p, p + len);
+            enc.codeToMbc(c, bytes, p);
+            r = characterLength(encoding, bytes, p, p + len);
             if (!MBCLEN_CHARFOUND_P(r)) {
                 return NeighborChar.NOT_CHAR;
             }
@@ -910,7 +885,7 @@ public final class StringSupport {
                 return NeighborChar.WRAPPED;
             }
             bytes[p + i] = (byte) ((bytes[p + i] & 0xff) - 1);
-            l = characterLength(enc, CR_UNKNOWN, bytes, p, p + len);
+            l = characterLength(encoding, bytes, p, p + len);
             if (MBCLEN_CHARFOUND_P(l)) {
                 l = MBCLEN_CHARFOUND_LEN(l);
                 if (l == len) {
@@ -925,7 +900,7 @@ public final class StringSupport {
                 int len2;
                 int l2;
                 for (len2 = len - 1; 0 < len2; len2--) {
-                    l2 = characterLength(enc, CR_UNKNOWN, bytes, p, p + len2);
+                    l2 = characterLength(encoding, bytes, p, p + len2);
                     if (!MBCLEN_INVALID_P(l2)) {
                         break;
                     }
@@ -939,15 +914,16 @@ public final class StringSupport {
 
     /** rb_str_delete_bang */
     @TruffleBoundary
-    public static Rope delete_bangCommon19(Rope rubyString, boolean[] squeeze, TrTables tables, Encoding enc,
-            Node node) {
+    public static TruffleString delete_bangCommon19(ATStringWithEncoding rubyString, boolean[] squeeze, TrTables tables,
+            RubyEncoding encoding, Node node) {
+        Encoding enc = encoding.jcoding;
         int s = 0;
         int t = s;
         int send = s + rubyString.byteLength();
         byte[] bytes = rubyString.getBytesCopy();
         boolean modified = false;
-        boolean asciiCompatible = enc.isAsciiCompatible();
-        CodeRange cr = asciiCompatible ? CR_7BIT : CR_VALID;
+        boolean asciiCompatible = encoding.isAsciiCompatible;
+        var cr = asciiCompatible ? ASCII : VALID;
         while (s < send) {
             int c;
             if (asciiCompatible && Encoding.isAscii(c = bytes[s] & 0xff)) {
@@ -970,41 +946,45 @@ public final class StringSupport {
                         enc.codeToMbc(c, bytes, t);
                     }
                     t += cl;
-                    if (cr == CR_7BIT) {
-                        cr = CR_VALID;
+                    if (cr == ASCII) {
+                        cr = VALID;
                     }
                 }
                 s += cl;
             }
         }
 
-        return modified ? RopeOperations.create(ArrayUtils.extractRange(bytes, 0, t), enc, cr) : null;
+        return modified
+                ? TStringUtils.fromByteArray(ArrayUtils.extractRange(bytes, 0, t), encoding)
+                /* cr */ : null;
     }
 
     /** rb_str_tr / rb_str_tr_bang */
 
-    private static CodeRange CHECK_IF_ASCII(int c, CodeRange currentCodeRange) {
-        if (currentCodeRange == CR_7BIT && !Encoding.isAscii(c)) {
-            return CR_VALID;
+    private static TruffleString.CodeRange CHECK_IF_ASCII(int c, TruffleString.CodeRange currentCodeRange) {
+        if (currentCodeRange == ASCII && !Encoding.isAscii(c)) {
+            return VALID;
         }
 
         return currentCodeRange;
     }
 
     @TruffleBoundary
-    public static Rope trTransHelper(Rope self, Rope srcStr, Rope replStr, Encoding e1, Encoding enc, boolean sflag,
-            Node node) {
+    public static TruffleString trTransHelper(ATStringWithEncoding self, ATStringWithEncoding srcStr,
+            ATStringWithEncoding replStr, Encoding e1, RubyEncoding rubyEncoding,
+            boolean sflag, Node node) {
         // This method does not handle the cases where either srcStr or replStr are empty.  It is the responsibility
         // of the caller to take the appropriate action in those cases.
 
-        CodeRange cr = self.getCodeRange();
+        final Encoding enc = rubyEncoding.jcoding;
+        var cr = self.getCodeRange();
 
-        final StringSupport.TR trSrc = new StringSupport.TR(srcStr);
+        final StringSupport.TR trSrc = new StringSupport.TR(srcStr.tstring, srcStr.encoding);
         boolean cflag = false;
         int[] l = { 0 };
 
         if (srcStr.byteLength() > 1 &&
-                EncodingUtils.encAscget(trSrc.buf, trSrc.p, trSrc.pend, l, enc, srcStr.getCodeRange()) == '^' &&
+                encAscget(trSrc.buf, trSrc.p, trSrc.pend, l, enc, srcStr.getCodeRange()) == '^' &&
                 trSrc.p + 1 < trSrc.pend) {
             cflag = true;
             trSrc.p++;
@@ -1012,7 +992,7 @@ public final class StringSupport {
 
         int c, c0, last = 0;
         final int[] trans = new int[StringSupport.TRANS_SIZE];
-        final StringSupport.TR trRepl = new StringSupport.TR(replStr);
+        final StringSupport.TR trRepl = new StringSupport.TR(replStr.tstring, replStr.encoding);
         boolean modified = false;
         IntHash<Integer> hash = null;
         boolean singlebyte = self.isSingleByteOptimizable();
@@ -1065,16 +1045,16 @@ public final class StringSupport {
             }
         }
 
-        if (cr == CR_VALID && enc.isAsciiCompatible()) {
-            cr = CR_7BIT;
+        if (cr == VALID && rubyEncoding.isAsciiCompatible) {
+            cr = ASCII;
         }
 
         int s = 0;
         int send = self.byteLength();
 
-        final Rope ret;
+        final TruffleString ret;
         if (sflag) {
-            byte sbytes[] = self.getBytes();
+            byte[] sbytes = self.getBytesOrCopy();
             int clen, tlen;
             int max = self.byteLength();
             int save = -1;
@@ -1082,7 +1062,7 @@ public final class StringSupport {
             int t = 0;
             while (s < send) {
                 boolean mayModify = false;
-                c0 = c = codePoint(e1, CR_UNKNOWN, sbytes, s, send, node);
+                c0 = c = codePoint(e1, sbytes, s, send, node);
                 clen = codeLength(e1, c);
                 tlen = enc == e1 ? clen : codeLength(enc, c);
                 s += clen;
@@ -1135,9 +1115,9 @@ public final class StringSupport {
                 t += tlen;
             }
 
-            ret = RopeOperations.create(ArrayUtils.extractRange(buf, 0, t), enc, cr);
-        } else if (enc.isSingleByte() || (singlebyte && hash == null)) {
-            byte sbytes[] = self.getBytesCopy();
+            ret = TStringUtils.fromByteArray(ArrayUtils.extractRange(buf, 0, t), rubyEncoding); // cr
+        } else if (rubyEncoding.isSingleByte || (singlebyte && hash == null)) {
+            byte[] sbytes = self.getBytesCopy();
             while (s < send) {
                 c = sbytes[s] & 0xff;
                 if (trans[c] != -1) {
@@ -1153,16 +1133,16 @@ public final class StringSupport {
                 s++;
             }
 
-            ret = RopeOperations.create(sbytes, enc, cr);
+            ret = TStringUtils.fromByteArray(sbytes, rubyEncoding); // cr
         } else {
-            byte sbytes[] = self.getBytes();
+            byte[] sbytes = self.getBytesOrCopy();
             int clen, tlen, max = (int) (self.byteLength() * 1.2);
             byte[] buf = new byte[max];
             int t = 0;
 
             while (s < send) {
                 boolean mayModify = false;
-                c0 = c = codePoint(e1, CR_UNKNOWN, sbytes, s, send, node);
+                c0 = c = codePoint(e1, sbytes, s, send, node);
                 clen = codeLength(e1, c);
                 tlen = enc == e1 ? clen : codeLength(enc, c);
 
@@ -1210,7 +1190,7 @@ public final class StringSupport {
                 t += tlen;
             }
 
-            ret = RopeOperations.create(ArrayUtils.extractRange(buf, 0, t), enc, cr);
+            ret = TStringUtils.fromByteArray(ArrayUtils.extractRange(buf, 0, t), rubyEncoding); // cr
         }
 
         if (modified) {
@@ -1236,50 +1216,34 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static int multiByteCasecmp(Encoding enc, Rope value, Rope otherValue) {
-        byte[] bytes = value.getBytes();
-        int p = 0;
-        int end = value.byteLength();
+    public static int multiByteCasecmp(RubyEncoding enc, AbstractTruffleString selfTString,
+            TruffleString.Encoding selfEncoding, AbstractTruffleString otherTString,
+            TruffleString.Encoding otherEncoding) {
+        var selfIterator = CreateCodePointIteratorNode.getUncached().execute(selfTString, selfEncoding,
+                ErrorHandling.RETURN_NEGATIVE);
+        var otherIterator = CreateCodePointIteratorNode.getUncached().execute(otherTString, otherEncoding,
+                ErrorHandling.RETURN_NEGATIVE);
 
-        byte[] obytes = otherValue.getBytes();
-        int op = 0;
-        int oend = otherValue.byteLength();
+        while (selfIterator.hasNext() && otherIterator.hasNext()) {
+            final int selfPos = selfIterator.getByteIndex();
+            final int c = selfIterator.nextUncached();
 
-        while (p < end && op < oend) {
-            final int c, oc;
-            if (enc.isAsciiCompatible()) {
-                c = bytes[p] & 0xff;
-                oc = obytes[op] & 0xff;
-            } else {
-                c = preciseCodePoint(enc, value.getCodeRange(), bytes, p, end);
-                oc = preciseCodePoint(enc, otherValue.getCodeRange(), obytes, op, oend);
-            }
+            final int otherPos = otherIterator.getByteIndex();
+            final int oc = otherIterator.nextUncached();
 
-            int cl, ocl;
-            if (enc.isAsciiCompatible() && Encoding.isAscii(c) && Encoding.isAscii(oc)) {
+            if (enc.isAsciiCompatible && (c >= 0 && Encoding.isAscii(c)) && (oc >= 0 && Encoding.isAscii(oc))) {
                 byte uc = AsciiTables.ToUpperCaseTable[c];
                 byte uoc = AsciiTables.ToUpperCaseTable[oc];
                 if (uc != uoc) {
                     return uc < uoc ? -1 : 1;
                 }
-                cl = ocl = 1;
             } else {
-                cl = characterLength(
-                        enc,
-                        enc == value.getEncoding() ? value.getCodeRange() : CR_UNKNOWN,
-                        bytes,
-                        p,
-                        end,
-                        true);
-                ocl = characterLength(
-                        enc,
-                        enc == otherValue.getEncoding() ? otherValue.getCodeRange() : CR_UNKNOWN,
-                        obytes,
-                        op,
-                        oend,
-                        true);
+                final int cl = selfIterator.getByteIndex() - selfPos;
+                final int ocl = otherIterator.getByteIndex() - otherPos;
+
                 // TODO: opt for 2 and 3 ?
-                int ret = caseCmp(bytes, p, obytes, op, cl < ocl ? cl : ocl);
+                int ret = caseCmp(selfTString, selfEncoding, otherTString, otherEncoding, selfPos, otherPos,
+                        Math.min(cl, ocl));
                 if (ret != 0) {
                     return ret < 0 ? -1 : 1;
                 }
@@ -1288,16 +1252,28 @@ public final class StringSupport {
                 }
             }
 
-            p += cl;
-            op += ocl;
         }
-        if (end - p == oend - op) {
+
+        if (!selfIterator.hasNext() && !otherIterator.hasNext()) {
             return 0;
         }
-        return end - p > oend - op ? 1 : -1;
+        return selfIterator.hasNext() ? 1 : -1;
     }
 
-    public static boolean singleByteSqueeze(RopeBuilder value, boolean squeeze[]) {
+    private static int caseCmp(AbstractTruffleString a, TruffleString.Encoding aEncoding,
+            AbstractTruffleString b, TruffleString.Encoding bEncoding, int aPos, int bPos, int len) {
+        int i = 0;
+        while (i < len && a.readByteUncached(aPos + i, aEncoding) == b.readByteUncached(bPos + i, bEncoding)) {
+            i++;
+        }
+        if (i < len) {
+            return a.readByteUncached(aPos + i, aEncoding) > b.readByteUncached(bPos + i,
+                    bEncoding) ? 1 : -1;
+        }
+        return 0;
+    }
+
+    public static boolean singleByteSqueeze(TStringBuilder value, boolean squeeze[]) {
         int s = 0;
         int t = s;
         int send = s + value.getLength();
@@ -1320,8 +1296,8 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean multiByteSqueeze(RopeBuilder value, CodeRange originalCodeRange, boolean[] squeeze,
-            TrTables tables, Encoding enc, boolean isArg, Node node) {
+    public static boolean multiByteSqueeze(TStringBuilder value, TruffleString.CodeRange originalCodeRange,
+            boolean[] squeeze, TrTables tables, Encoding enc, boolean isArg, Node node) {
         int s = 0;
         int t = s;
         int send = s + value.getLength();
@@ -1361,7 +1337,7 @@ public final class StringSupport {
 
     @TruffleBoundary
     private static int caseMapChar(int codePoint, Encoding enc, byte[] stringBytes, int stringByteOffset,
-            RopeBuilder builder, IntHolder flags, byte[] workBuffer) {
+            ByteArrayBuilder builder, IntHolder flags, byte[] workBuffer) {
         final IntHolder fromP = new IntHolder();
         fromP.value = stringByteOffset;
 
@@ -1391,35 +1367,9 @@ public final class StringSupport {
         return newByteLength;
     }
 
-    /** Returns a copy of {@code bytes} but with ASCII characters' case swapped, or {@code bytes} itself if the string
-     * doesn't require changes. The encoding must be ASCII-compatible (i.e. represent each ASCII character as a single
-     * byte ({@link Encoding#isAsciiCompatible()}). */
     @TruffleBoundary
-    public static byte[] swapcaseMultiByteAsciiSimple(Encoding enc, CodeRange codeRange, byte[] bytes) {
-        assert enc.isAsciiCompatible();
-        boolean modified = false;
-        int s = 0;
-        final int end = bytes.length;
-
-        while (s < end) {
-            if (isAsciiAlpha(bytes[s])) {
-                if (!modified) {
-                    bytes = bytes.clone();
-                    modified = true;
-                }
-                bytes[s] ^= 0x20;
-                s++;
-            } else {
-                s += characterLength(enc, codeRange, bytes, s, end);
-            }
-        }
-
-        return bytes;
-    }
-
-    @TruffleBoundary
-    public static boolean swapCaseMultiByteComplex(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder,
-            int caseMappingOptions, Node node) {
+    public static boolean swapCaseMultiByteComplex(Encoding enc, TruffleString.CodeRange originalCodeRange,
+            ByteArrayBuilder builder, int caseMappingOptions, Node node) {
         byte[] buf = new byte[CASE_MAP_BUFFER_SIZE];
 
         final IntHolder flagP = new IntHolder();
@@ -1446,35 +1396,9 @@ public final class StringSupport {
         return modified;
     }
 
-    /** Returns a copy of {@code bytes} but with ASCII characters downcased, or {@code bytes} itself if no ASCII
-     * characters need upcasing. The encoding must be ASCII-compatible (i.e. represent each ASCII character as a single
-     * byte ({@link Encoding#isAsciiCompatible()}). */
     @TruffleBoundary
-    public static byte[] downcaseMultiByteAsciiSimple(Encoding enc, CodeRange codeRange, byte[] bytes) {
-        assert enc.isAsciiCompatible();
-        boolean modified = false;
-        int s = 0;
-        final int end = bytes.length;
-
-        while (s < end) {
-            if (isAsciiUppercase(bytes[s])) {
-                if (!modified) {
-                    bytes = bytes.clone();
-                    modified = true;
-                }
-                bytes[s] ^= 0x20;
-                s++;
-            } else {
-                s += characterLength(enc, codeRange, bytes, s, end);
-            }
-        }
-
-        return bytes;
-    }
-
-    @TruffleBoundary
-    public static boolean downcaseMultiByteComplex(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder,
-            int caseMappingOptions, Node node) {
+    public static boolean downcaseMultiByteComplex(Encoding enc, TruffleString.CodeRange originalCodeRange,
+            ByteArrayBuilder builder, int caseMappingOptions, Node node) {
         byte[] buf = new byte[CASE_MAP_BUFFER_SIZE];
 
         final IntHolder flagP = new IntHolder();
@@ -1511,35 +1435,9 @@ public final class StringSupport {
         return modified;
     }
 
-    /** Returns a copy of {@code bytes} but with ASCII characters upcased, or {@code bytes} itself if no ASCII
-     * characters need upcasing. The encoding must be ASCII-compatible (i.e. represent each ASCII character as a single
-     * byte ( {@link Encoding#isAsciiCompatible()}). */
     @TruffleBoundary
-    public static byte[] upcaseMultiByteAsciiSimple(Encoding enc, CodeRange codeRange, byte[] bytes) {
-        assert enc.isAsciiCompatible();
-        boolean modified = false;
-        int s = 0;
-        final int end = bytes.length;
-
-        while (s < end) {
-            if (isAsciiLowercase(bytes[s])) {
-                if (!modified) {
-                    bytes = bytes.clone();
-                    modified = true;
-                }
-                bytes[s] ^= 0x20;
-                s++;
-            } else {
-                s += characterLength(enc, codeRange, bytes, s, end);
-            }
-        }
-
-        return bytes;
-    }
-
-    @TruffleBoundary
-    public static boolean upcaseMultiByteComplex(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder,
-            int caseMappingOptions, Node node) {
+    public static boolean upcaseMultiByteComplex(Encoding enc, TruffleString.CodeRange originalCodeRange,
+            ByteArrayBuilder builder, int caseMappingOptions, Node node) {
         byte[] buf = new byte[CASE_MAP_BUFFER_SIZE];
 
         final IntHolder flagP = new IntHolder();
@@ -1574,44 +1472,9 @@ public final class StringSupport {
         return modified;
     }
 
-    /** Returns a copy of {@code bytes} but capitalized (affecting only ASCII characters), or {@code bytes} itself if
-     * the string doesn't require changes. The encoding must be ASCII-compatible (i.e. represent each ASCII character as
-     * a single byte ({@link Encoding#isAsciiCompatible()}). */
     @TruffleBoundary
-    public static byte[] capitalizeMultiByteAsciiSimple(Encoding enc, CodeRange codeRange, byte[] bytes) {
-        assert enc.isAsciiCompatible();
-        boolean modified = false;
-        final int end = bytes.length;
-
-        if (end == 0) {
-            return bytes;
-        }
-
-        if (StringSupport.isAsciiLowercase(bytes[0])) {
-            bytes = bytes.clone();
-            bytes[0] ^= 0x20;
-            modified = true;
-        }
-
-        int s = 1;
-        while (s < end) {
-            if (StringSupport.isAsciiUppercase(bytes[s])) {
-                if (!modified) {
-                    bytes = bytes.clone();
-                    modified = true;
-                }
-                bytes[s] ^= 0x20;
-                s++;
-            } else {
-                s += StringSupport.characterLength(enc, codeRange, bytes, s, end);
-            }
-        }
-
-        return bytes;
-    }
-
-    @TruffleBoundary
-    public static boolean capitalizeMultiByteComplex(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder,
+    public static boolean capitalizeMultiByteComplex(Encoding enc, TruffleString.CodeRange originalCodeRange,
+            ByteArrayBuilder builder,
             int caseMappingOptions, Node node) {
         byte[] buf = new byte[CASE_MAP_BUFFER_SIZE];
 
@@ -1657,8 +1520,21 @@ public final class StringSupport {
     //endregion
     //region Predicates
 
+    /** Like {@link Encoding#isAscii(int)} but correct */
+    public static boolean isAscii(int c) {
+        return c >= 0 && c < 128;
+    }
+
+    public static boolean isAsciiLowercase(int c) {
+        return c >= 'a' && c <= 'z';
+    }
+
     public static boolean isAsciiLowercase(byte c) {
         return c >= 'a' && c <= 'z';
+    }
+
+    public static boolean isAsciiUppercase(int c) {
+        return c >= 'A' && c <= 'Z';
     }
 
     public static boolean isAsciiUppercase(byte c) {
@@ -1675,55 +1551,44 @@ public final class StringSupport {
     }
 
     public static boolean isAsciiPrintable(int c) {
-        return c == ' ' || (c >= '!' && c <= '~');
-    }
-
-    public static boolean isAsciiAlpha(byte c) {
-        return isAsciiUppercase(c) || isAsciiLowercase(c);
-    }
-
-    @TruffleBoundary
-    public static boolean isSpace(Encoding encoding, int c) {
-        return encoding.isSpace(c);
-    }
-
-    public static boolean isAsciiCodepoint(int value) {
-        return value >= 0 && value < 128;
+        return c >= ' ' && c <= '~';
     }
 
     //endregion
     //region undump helpers
 
-    private static final byte[] FORCE_ENCODING_BYTES = RopeOperations.encodeAsciiBytes(".force_encoding(\"");
-    private static final byte[] HEXDIGIT = RopeOperations.encodeAsciiBytes("0123456789abcdef0123456789ABCDEF");
+    private static final byte[] FORCE_ENCODING_BYTES = StringOperations.encodeAsciiBytes(".force_encoding(\"");
+    private static final byte[] HEXDIGIT = StringOperations.encodeAsciiBytes("0123456789abcdef0123456789ABCDEF");
     private static final String INVALID_FORMAT_MESSAGE = "invalid dumped string; not wrapped with '\"' nor '\"...\".force_encoding(\"...\")' form";
 
     @TruffleBoundary
-    public static Pair<RopeBuilder, RubyEncoding> undump(Rope rope, RubyEncoding encoding, RubyContext context,
+    public static Pair<TStringBuilder, RubyEncoding> undump(ATStringWithEncoding rope, RubyEncoding encoding,
+            RubyContext context,
             Node currentNode) {
-        byte[] bytes = rope.getBytes();
-        int start = 0;
-        int length = bytes.length;
+        var byteArray = rope.getInternalByteArray();
+        byte[] bytes = byteArray.getArray();
+        int start = byteArray.getOffset();
+        final int end = byteArray.getEnd();
         RubyEncoding resultEncoding = encoding;
         Encoding[] enc = { encoding.jcoding };
         boolean[] utf8 = { false };
         boolean[] binary = { false };
-        RopeBuilder undumped = new RopeBuilder();
-        undumped.setEncoding(enc[0]);
+        TStringBuilder undumped = new TStringBuilder();
+        undumped.setEncoding(encoding);
 
-        CodeRange cr = rope.getCodeRange();
-        if (cr != CR_7BIT) {
+        var cr = rope.getCodeRange();
+        if (cr != ASCII) {
             throw new RaiseException(
                     context,
                     context.getCoreExceptions().runtimeError("non-ASCII character detected", currentNode));
         }
 
-        if (ArrayUtils.memchr(bytes, start, bytes.length, (byte) '\0') != -1) {
+        if (ArrayUtils.memchr(bytes, start, byteArray.getLength(), (byte) '\0') != -1) {
             throw new RaiseException(
                     context,
                     context.getCoreExceptions().runtimeError("string contains null byte", currentNode));
         }
-        if (length < 2) {
+        if (end - start < 2) {
             throw new RaiseException(
                     context,
                     context.getCoreExceptions().runtimeError(INVALID_FORMAT_MESSAGE, currentNode));
@@ -1737,7 +1602,7 @@ public final class StringSupport {
         start++;
 
         for (;;) {
-            if (start >= length) {
+            if (start >= end) {
                 throw new RaiseException(
                         context,
                         context.getCoreExceptions().runtimeError("unterminated dumped string", currentNode));
@@ -1746,7 +1611,7 @@ public final class StringSupport {
             if (bytes[start] == '"') {
                 /* epilogue */
                 start++;
-                if (start == length) {
+                if (start == end) {
                     /* ascii compatible dumped string */
                     break;
                 } else {
@@ -1761,7 +1626,7 @@ public final class StringSupport {
                     }
 
                     size = FORCE_ENCODING_BYTES.length;
-                    if (length - start <= size) {
+                    if (end - start <= size) {
                         throw new RaiseException(
                                 context,
                                 context.getCoreExceptions().runtimeError(INVALID_FORMAT_MESSAGE, currentNode));
@@ -1774,14 +1639,14 @@ public final class StringSupport {
                     start += size;
 
                     int encname = start;
-                    start = ArrayUtils.memchr(bytes, start, length - start, (byte) '"');
+                    start = ArrayUtils.memchr(bytes, start, end - start, (byte) '"');
                     size = start - encname;
                     if (start == -1) {
                         throw new RaiseException(
                                 context,
                                 context.getCoreExceptions().runtimeError(INVALID_FORMAT_MESSAGE, currentNode));
                     }
-                    if (length - start != 2) {
+                    if (end - start != 2) {
                         throw new RaiseException(
                                 context,
                                 context.getCoreExceptions().runtimeError(INVALID_FORMAT_MESSAGE, currentNode));
@@ -1791,7 +1656,7 @@ public final class StringSupport {
                                 context,
                                 context.getCoreExceptions().runtimeError(INVALID_FORMAT_MESSAGE, currentNode));
                     }
-                    String encnameString = new String(bytes, encname, size, rope.encoding.getCharset());
+                    String encnameString = new String(bytes, encname, size, encoding.jcoding.getCharset());
                     RubyEncoding enc2 = context.getEncodingManager().getRubyEncoding(encnameString);
                     if (enc2 == null) {
                         throw new RaiseException(
@@ -1800,7 +1665,7 @@ public final class StringSupport {
                                         "dumped string has unknown encoding name",
                                         currentNode));
                     }
-                    undumped.setEncoding(enc2.jcoding);
+                    undumped.setEncoding(enc2);
                     resultEncoding = enc2;
                 }
                 break;
@@ -1808,7 +1673,7 @@ public final class StringSupport {
 
             if (bytes[start] == '\\') {
                 start++;
-                if (start >= length) {
+                if (start >= end) {
                     throw new RaiseException(
                             context,
                             context.getCoreExceptions().runtimeError("invalid escape", currentNode));
@@ -1818,7 +1683,7 @@ public final class StringSupport {
                         resultEncoding,
                         bytes,
                         start,
-                        length,
+                        end,
                         enc,
                         utf8,
                         binary,
@@ -1834,8 +1699,8 @@ public final class StringSupport {
         return Pair.create(undumped, resultEncoding);
     }
 
-    private static Pair<Integer, RubyEncoding> undumpAfterBackslash(RopeBuilder out, RubyEncoding encoding,
-            byte[] bytes, int start, int length, Encoding[] enc,
+    private static Pair<Integer, RubyEncoding> undumpAfterBackslash(TStringBuilder out, RubyEncoding encoding,
+            byte[] bytes, int start, int end, Encoding[] enc,
             boolean[] utf8, boolean[] binary, RubyContext context, Node currentNode) {
         long c;
         int codelen;
@@ -1871,20 +1736,20 @@ public final class StringSupport {
                                     currentNode));
                 }
                 utf8[0] = true;
-                if (++start >= length) {
+                if (++start >= end) {
                     throw new RaiseException(
                             context,
                             context.getCoreExceptions().runtimeError("invalid Unicode escape", currentNode));
                 }
                 if (enc[0] != UTF8Encoding.INSTANCE) {
                     enc[0] = UTF8Encoding.INSTANCE;
-                    out.setEncoding(UTF8Encoding.INSTANCE);
+                    out.setEncoding(Encodings.UTF_8);
                     resultEncoding = Encodings.UTF_8;
                 }
                 if (bytes[start] == '{') { /* handle u{...} form */
                     start++;
                     for (;;) {
-                        if (start >= length) {
+                        if (start >= end) {
                             throw new RaiseException(
                                     context,
                                     context.getCoreExceptions().runtimeError(
@@ -1899,7 +1764,7 @@ public final class StringSupport {
                             start++;
                             continue;
                         }
-                        c = scanHex(bytes, start, length - start, hexlen);
+                        c = scanHex(bytes, start, end - start, hexlen);
                         if (hexlen[0] == 0 || hexlen[0] > 6) {
                             throw new RaiseException(
                                     context,
@@ -1917,7 +1782,7 @@ public final class StringSupport {
                                     context,
                                     context.getCoreExceptions().runtimeError("invalid Unicode codepoint", currentNode));
                         }
-                        codelen = EncodingUtils.encMbcput((int) c, buf, 0, enc[0]);
+                        codelen = enc[0].codeToMbc((int) c, buf, 0);
                         out.append(buf, 0, codelen);
                         start += hexlen[0];
                     }
@@ -1933,7 +1798,7 @@ public final class StringSupport {
                                 context,
                                 context.getCoreExceptions().runtimeError("invalid Unicode codepoint", currentNode));
                     }
-                    codelen = EncodingUtils.encMbcput((int) c, buf, 0, enc[0]);
+                    codelen = enc[0].codeToMbc((int) c, buf, 0);
                     out.append(buf, 0, codelen);
                     start += hexlen[0];
                 }
@@ -1947,7 +1812,7 @@ public final class StringSupport {
                                     currentNode));
                 }
                 binary[0] = true;
-                if (++start >= length) {
+                if (++start >= end) {
                     throw new RaiseException(
                             context,
                             context.getCoreExceptions().runtimeError("invalid hex escape", currentNode));
@@ -2007,4 +1872,5 @@ public final class StringSupport {
                 return -1;
         }
     }
+    // endregion
 }

@@ -12,11 +12,11 @@ package org.truffleruby.core.time;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -28,14 +28,9 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.ErrnoErrorNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeBuilder;
-import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.core.string.TStringBuilder;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringCachingGuards;
-import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.string.StringHelperNodes;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.time.RubyDateFormatter.Token;
 import org.truffleruby.language.Nil;
@@ -52,12 +47,6 @@ import java.time.ZonedDateTime;
 
 @CoreModule(value = "Time", isClass = true)
 public abstract class TimeNodes {
-
-    public static RubyString getShortZoneName(StringNodes.MakeStringNode makeStringNode, ZonedDateTime dt,
-            TimeZoneAndName zoneAndName) {
-        final String shortZoneName = zoneAndName.getName(dt);
-        return makeStringNode.executeMake(shortZoneName, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
-    }
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
@@ -93,10 +82,11 @@ public abstract class TimeNodes {
 
         @Specialization
         protected RubyTime localtime(RubyTime time, Nil offset,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             final TimeZoneAndName timeZoneAndName = getTimeZoneNode.executeGetTimeZone();
             final ZonedDateTime newDateTime = withZone(time.dateTime, timeZoneAndName.getZone());
-            final RubyString zone = getShortZoneName(makeStringNode, newDateTime, timeZoneAndName);
+            final String shortZoneName = timeZoneAndName.getName(newDateTime);
+            final RubyString zone = createString(fromJavaStringNode, shortZoneName, Encodings.UTF_8);
 
             time.isUtc = false;
             time.relativeOffset = false;
@@ -174,13 +164,14 @@ public abstract class TimeNodes {
     public abstract static class TimeNowNode extends CoreMethodArrayArgumentsNode {
 
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @Specialization
         protected RubyTime timeNow(RubyClass timeClass) {
             final TimeZoneAndName zoneAndName = getTimeZoneNode.executeGetTimeZone();
             final ZonedDateTime dt = now(zoneAndName.getZone());
-            final RubyString zone = getShortZoneName(makeStringNode, dt, zoneAndName);
+            final String shortZoneName = zoneAndName.getName(dt);
+            final RubyString zone = createString(fromJavaStringNode, shortZoneName, Encodings.UTF_8);
             final RubyTime instance = new RubyTime(timeClass, getLanguage().timeShape, dt, zone, nil, false, false);
             AllocationTracing.trace(instance, this);
             return instance;
@@ -198,13 +189,14 @@ public abstract class TimeNodes {
     public abstract static class TimeAtPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @Specialization
         protected RubyTime timeAt(RubyClass timeClass, long seconds, int nanoseconds) {
             final TimeZoneAndName zoneAndName = getTimeZoneNode.executeGetTimeZone();
             final ZonedDateTime dateTime = getDateTime(seconds, nanoseconds, zoneAndName.getZone());
-            final RubyString zone = getShortZoneName(makeStringNode, dateTime, zoneAndName);
+            final String shortZoneName = zoneAndName.getName(dateTime);
+            final RubyString zone = createString(fromJavaStringNode, shortZoneName, Encodings.UTF_8);
 
             final Shape shape = getLanguage().timeShape;
             final RubyTime instance = new RubyTime(timeClass, shape, dateTime, zone, nil, false, false);
@@ -375,46 +367,52 @@ public abstract class TimeNodes {
     }
 
     @Primitive(name = "time_strftime")
-    @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     public abstract static class TimeStrftimePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
         @Child private ErrnoErrorNode errnoErrorNode = ErrnoErrorNode.create();
 
         @Specialization(
-                guards = { "equalNode.execute(libFormat.getRope(format), cachedFormat)" },
+                guards = "equalNode.execute(libFormat, format, cachedFormat, cachedEncoding)",
                 limit = "getLanguage().options.TIME_FORMAT_CACHE")
-        protected RubyString timeStrftime(RubyTime time, Object format,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
-                @Cached("libFormat.getRope(format)") Rope cachedFormat,
-                @Cached(value = "compilePattern(cachedFormat)", dimensions = 1) Token[] pattern,
-                @Cached RopeNodes.EqualNode equalNode,
+        protected RubyString timeStrftimeCached(RubyTime time, Object format,
+                @Cached RubyStringLibrary libFormat,
+                @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
+                @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
+                @Cached(value = "compilePattern(cachedFormat, cachedEncoding)", dimensions = 1) Token[] pattern,
+                @Cached StringHelperNodes.EqualSameEncodingNode equalNode,
                 @Cached("formatCanBeFast(pattern)") boolean canUseFast,
                 @Cached ConditionProfile yearIsFastProfile,
-                @Cached RopeNodes.ConcatNode concatNode) {
+                @Cached TruffleString.ConcatNode concatNode,
+                @Cached TruffleString.FromLongNode fromLongNode,
+                @Cached TruffleString.CodePointLengthNode codePointLengthNode,
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             if (canUseFast && yearIsFastProfile.profile(yearIsFast(time))) {
-                final Rope rope = RubyDateFormatter.formatToRopeFast(pattern, time.dateTime, concatNode);
-                return makeStringNode.fromRope(rope, Encodings.UTF_8);
+                var tstring = RubyDateFormatter.formatToRopeFast(pattern, time.dateTime, concatNode, fromLongNode,
+                        codePointLengthNode);
+                return createString(tstring, Encodings.UTF_8);
             } else {
-                final RubyEncoding rubyEncoding = libFormat.getEncoding(format);
-                final RopeBuilder ropeBuilder = formatTime(time, pattern);
-                return makeStringNode.fromBuilderUnsafe(ropeBuilder, rubyEncoding, CodeRange.CR_UNKNOWN);
+                final TStringBuilder tstringBuilder = formatTime(time, pattern);
+                return createString(tstringBuilder.toTStringUnsafe(fromByteArrayNode), cachedEncoding);
             }
         }
 
         @TruffleBoundary
-        @Specialization(guards = "libFormat.isRubyString(format)")
+        @Specialization(guards = "libFormat.isRubyString(format)", replaces = "timeStrftimeCached", limit = "1")
         protected RubyString timeStrftime(RubyTime time, Object format,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
-                @Cached RopeNodes.ConcatNode concatNode) {
-            final Token[] pattern = compilePattern(libFormat.getRope(format));
+                @Cached RubyStringLibrary libFormat,
+                @Cached TruffleString.ConcatNode concatNode,
+                @Cached TruffleString.FromLongNode fromLongNode,
+                @Cached TruffleString.CodePointLengthNode codePointLengthNode,
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
+            final RubyEncoding rubyEncoding = libFormat.getEncoding(format);
+            final Token[] pattern = compilePattern(libFormat.getTString(format), rubyEncoding);
             if (formatCanBeFast(pattern) && yearIsFast(time)) {
-                final Rope rope = RubyDateFormatter.formatToRopeFast(pattern, time.dateTime, concatNode);
-                return makeStringNode.fromRope(rope, Encodings.UTF_8);
+                var tstring = RubyDateFormatter.formatToRopeFast(pattern, time.dateTime, concatNode, fromLongNode,
+                        codePointLengthNode);
+                return createString(tstring, Encodings.UTF_8);
             } else {
-                final RubyEncoding rubyEncoding = libFormat.getEncoding(format);
-                final RopeBuilder ropeBuilder = formatTime(time, pattern);
-                return makeStringNode.fromBuilderUnsafe(ropeBuilder, rubyEncoding, CodeRange.CR_UNKNOWN);
+                final TStringBuilder tstringBuilder = formatTime(time, pattern);
+                return createString(tstringBuilder.toTStringUnsafe(fromByteArrayNode), rubyEncoding);
             }
         }
 
@@ -428,13 +426,13 @@ public abstract class TimeNodes {
             return year >= 1000 && year <= 9999;
         }
 
-        protected Token[] compilePattern(Rope format) {
-            return RubyDateFormatter.compilePattern(format, false, getContext(), this);
+        protected Token[] compilePattern(AbstractTruffleString format, RubyEncoding encoding) {
+            return RubyDateFormatter.compilePattern(format, encoding, false, getContext(), this);
         }
 
         // Optimised for the default Logger::Formatter time format: "%Y-%m-%dT%H:%M:%S.%6N "
 
-        private RopeBuilder formatTime(RubyTime time, Token[] pattern) {
+        private TStringBuilder formatTime(RubyTime time, Token[] pattern) {
             return RubyDateFormatter.formatToRopeBuilder(
                     pattern,
                     time.dateTime,
@@ -461,7 +459,7 @@ public abstract class TimeNodes {
     public abstract static class TimeSFromArrayPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
-        @Child private StringNodes.MakeStringNode makeStringNode;
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode;
 
         @Specialization(guards = "(isutc || !isRubyDynamicObject(utcoffset)) || isNil(utcoffset)")
         protected RubyTime timeSFromArray(
@@ -518,9 +516,9 @@ public abstract class TimeNodes {
                 relativeOffset = false;
                 zoneToStore = language.coreStrings.UTC.createInstance(getContext());
             } else if (utcoffset == nil) {
-                if (makeStringNode == null) {
+                if (fromJavaStringNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    makeStringNode = insert(StringNodes.MakeStringNode.create());
+                    fromJavaStringNode = insert(TruffleString.FromJavaStringNode.create());
                 }
 
                 envZone = getTimeZoneNode.executeGetTimeZone();
@@ -571,7 +569,8 @@ public abstract class TimeNodes {
             }
 
             if (envZone != null) {
-                zoneToStore = getShortZoneName(makeStringNode, dt, envZone);
+                final String shortZoneName = envZone.getName(dt);
+                zoneToStore = createString(fromJavaStringNode, shortZoneName, Encodings.UTF_8);
             }
 
             final Shape shape = getLanguage().timeShape;

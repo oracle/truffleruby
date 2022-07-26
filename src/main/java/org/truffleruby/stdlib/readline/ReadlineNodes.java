@@ -11,6 +11,8 @@ package org.truffleruby.stdlib.readline;
 
 import java.util.List;
 
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.shadowed.org.jline.reader.Buffer;
 import org.graalvm.shadowed.org.jline.reader.Candidate;
 import org.graalvm.shadowed.org.jline.reader.Completer;
@@ -18,7 +20,6 @@ import org.graalvm.shadowed.org.jline.reader.EndOfFileException;
 import org.graalvm.shadowed.org.jline.reader.LineReader;
 import org.graalvm.shadowed.org.jline.reader.ParsedLine;
 import org.graalvm.shadowed.org.jline.reader.UserInterruptException;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -37,22 +38,20 @@ import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.RubyIO;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.interop.ToJavaStringWithDefaultNodeGen;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 
@@ -62,13 +61,13 @@ public abstract class ReadlineNodes {
     @CoreMethod(names = "basic_word_break_characters", onSingleton = true)
     public abstract static class BasicWordBreakCharactersNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @TruffleBoundary
         @Specialization
         protected RubyString basicWordBreakCharacters() {
             final String delimiters = getContext().getConsoleHolder().getParser().getDelimiters();
-            return makeStringNode.executeMake(delimiters, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+            return createString(fromJavaStringNode, delimiters, Encodings.UTF_8);
         }
 
     }
@@ -83,10 +82,10 @@ public abstract class ReadlineNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(characters)")
+        @Specialization(guards = "strings.isRubyString(characters)", limit = "1")
         protected Object setBasicWordBreakCharacters(Object characters,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            final String delimiters = strings.getJavaString(characters);
+                @Cached RubyStringLibrary strings) {
+            final String delimiters = RubyGuards.getJavaString(characters);
             getContext().getConsoleHolder().getParser().setDelimiters(delimiters);
             return characters;
         }
@@ -128,7 +127,7 @@ public abstract class ReadlineNodes {
     @NodeChild(value = "addToHistory", type = RubyBaseNodeWithExecute.class)
     public abstract static class ReadlineNode extends CoreMethodNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @CreateCast("prompt")
         protected RubyNode coercePromptToJavaString(RubyNode prompt) {
@@ -169,10 +168,10 @@ public abstract class ReadlineNodes {
                     readline.getHistory().add(value);
                 }
 
-                return makeStringNode.executeMake(
+                return createString(
+                        fromJavaStringNode,
                         value,
-                        getContext().getEncodingManager().getDefaultExternalEncoding(),
-                        CodeRange.CR_UNKNOWN);
+                        getContext().getEncodingManager().getDefaultExternalEncoding());
             }
         }
 
@@ -223,18 +222,17 @@ public abstract class ReadlineNodes {
     @CoreMethod(names = "line_buffer", onSingleton = true)
     public abstract static class LineBufferNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @TruffleBoundary
         @Specialization
         protected Object lineBuffer() {
             final Buffer buffer = getContext().getConsoleHolder().getReadline().getBuffer();
 
-            return makeStringNode
-                    .executeMake(
-                            buffer.toString(),
-                            getLocaleEncoding(),
-                            CodeRange.CR_UNKNOWN);
+            return createString(
+                    fromJavaStringNode,
+                    buffer.toString(),
+                    getLocaleEncoding());
         }
 
     }
@@ -294,11 +292,10 @@ public abstract class ReadlineNodes {
             String after = commandLine.word().substring(commandLine.wordCursor());
             boolean complete = lineReader.getBuffer().cursor() == lineReader.getBuffer().length();
 
-            RubyString string = StringOperations
-                    .createUTF8String(context, language, StringOperations.encodeRope(buffer, UTF8Encoding.INSTANCE));
+            RubyString string = StringOperations.createUTF8String(context, language, buffer);
             RubyArray completions = (RubyArray) DispatchNode.getUncached().call(proc, "call", string);
             for (Object element : ArrayOperations.toIterable(completions)) {
-                final String completion = RubyStringLibrary.getUncached().getJavaString(element);
+                final String completion = RubyGuards.getJavaString(element);
                 candidates.add(new Candidate(completion + after, completion, null, null, null, null, complete));
             }
         }

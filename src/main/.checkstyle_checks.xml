@@ -2,9 +2,6 @@
 <!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.3//EN" "http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
 
 <!--
-    This configuration file was written by the eclipse-cs plugin configuration editor
--->
-<!--
     Checkstyle-Configuration: Checks
     Description: none
 -->
@@ -192,7 +189,7 @@
     </module>
     <module name="RegexpSinglelineJava">
       <property name="format" value='\.getBytes\(StandardCharsets\.US_ASCII\)'/>
-      <property name="message" value='Use RopeOperations.encodeAsciiBytes() instead.'/>
+      <property name="message" value='Use StringOperations.encodeAsciiBytes() instead.'/>
     </module>
     <module name="RegexpSinglelineJava">
       <property name="format" value='\.toArray\(new \w+\[\w+\.size\(\)\]\)'/>
@@ -217,10 +214,6 @@
     <module name="RegexpSinglelineJava">
       <property name="format" value='"isNil'/>
       <property name="message" value="Type the argument as Nil instead of using a positive isNil() guard."/>
-    </module>
-    <module name="RegexpSinglelineJava">
-      <property name="format" value='@CachedLibrary\(".+RubyStringLibrary'/>
-      <property name="message" value="Use @CachedLibrary(limit = &quot;2&quot;) RubyStringLibrary instead."/>
     </module>
     <module name="RegexpSinglelineJava">
       <property name="format" value='@CachedLibrary\(".+\.store"\) ArrayStoreLibrary'/>
@@ -251,8 +244,12 @@
       <property name="message" value="Double.compare() does not match Ruby semantics, use FloatNodes.CompareNode.compareDoubles instead."/>
     </module>
     <module name="RegexpSinglelineJava">
-      <property name="format" value='@CachedLibrary\(limit = "\d+"\) RubyStringLibrary'/>
-      <property name="message" value='Use @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary instead.'/>
+      <property name="format" value='GetCodeRangeNode'/>
+      <property name="message" value='Use GetByteCodeRangeNode instead.'/>
+    </module>
+    <module name="RegexpSinglelineJava">
+      <property name="format" value='@Cached.+AbstractTruffleString'/>
+      <property name="message" value='Do not cache on AbstractTruffleString (which can be mutable), cache on TruffleString and use RubyStringLibrary#asTruffleStringUncached()'/>
     </module>
     <module name="IllegalType">
       <!-- Use PrintStream instead of PrintWriter, PrintWriter does not consistently flush, even when writing \n.-->

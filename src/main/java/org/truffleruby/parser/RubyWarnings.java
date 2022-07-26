@@ -34,11 +34,9 @@ package org.truffleruby.parser;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-import org.jcodings.specific.UTF8Encoding;
 import org.joni.WarnCallback;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.RaiseException;
@@ -108,9 +106,9 @@ public class RubyWarnings implements WarnCallback {
         RubyContext context = RubyLanguage.getCurrentContext();
         if (context.getCoreLibrary().isLoaded()) {
             final Object warning = context.getCoreLibrary().warningModule;
-            final Rope messageRope = StringOperations.encodeRope(message, UTF8Encoding.INSTANCE);
-            final RubyString messageString = StringOperations
-                    .createUTF8String(context, context.getLanguageSlow(), messageRope);
+            final RubyString messageString = StringOperations.createUTF8String(context, context.getLanguageSlow(),
+                    message);
+
             DispatchNode.getUncached().call(warning, "warn", messageString);
         } else {
             try {

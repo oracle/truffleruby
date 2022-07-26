@@ -13,6 +13,7 @@
 package org.truffleruby.core.encoding;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Map;
@@ -26,14 +27,12 @@ import org.graalvm.nativeimage.ProcessProperties;
 import org.jcodings.Encoding;
 import org.jcodings.EncodingDB;
 import org.jcodings.specific.ASCIIEncoding;
-import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.EncodingUtils;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
@@ -90,7 +89,7 @@ public class EncodingManager {
             // The alias name should be exactly the one in the encodings DB.
             final Encoding encoding = encodingEntry.getEncoding();
             final RubyEncoding rubyEncoding = defineAlias(encoding,
-                    RopeOperations.decodeAscii(entry.bytes, entry.p, entry.end));
+                    new String(entry.bytes, entry.p, entry.end - entry.p, StandardCharsets.US_ASCII));
 
             // The constant names must be treated by the the <code>encodingNames</code> helper.
             for (String constName : EncodingUtils.encodingNames(entry.bytes, entry.p, entry.end)) {
@@ -158,7 +157,7 @@ public class EncodingManager {
                     context,
                     InteropLibrary.getUncached(),
                     0);
-            localeEncodingName = RopeOperations.decodeAscii(bytes);
+            localeEncodingName = new String(bytes, StandardCharsets.US_ASCII);
         } else {
             localeEncodingName = Charset.defaultCharset().name();
         }
@@ -168,7 +167,7 @@ public class EncodingManager {
             rubyEncoding = Encodings.US_ASCII;
         }
 
-        if (context.getOptions().WARN_LOCALE && rubyEncoding.jcoding == USASCIIEncoding.INSTANCE) {
+        if (context.getOptions().WARN_LOCALE && rubyEncoding == Encodings.US_ASCII) {
             if ("C".equals(System.getenv("LANG")) && "C".equals(System.getenv("LC_ALL"))) {
                 // The parent process seems to explicitly want a C locale (e.g. EnvUtil#invoke_ruby in the MRI test harness), so only warn at config level in this case.
                 RubyLanguage.LOGGER.config(
@@ -186,8 +185,8 @@ public class EncodingManager {
     }
 
     @TruffleBoundary
-    public static Encoding getEncoding(Rope name) {
-        EncodingDB.Entry entry = EncodingDB.getEncodings().get(name.getBytes());
+    public static Encoding getEncoding(String name) {
+        EncodingDB.Entry entry = EncodingDB.getEncodings().get(StringOperations.encodeAsciiBytes(name));
 
         if (entry == null) {
             entry = EncodingDB.getAliases().get(name.getBytes());
@@ -225,19 +224,20 @@ public class EncodingManager {
         }
     }
 
-    public RubyEncoding getRubyEncoding(int encodingIndex) {
+    // Should only be used by Primitive.encoding_get_encoding_by_index
+    RubyEncoding getRubyEncoding(int encodingIndex) {
         return ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex];
     }
 
     @TruffleBoundary
     public synchronized RubyEncoding defineBuiltInEncoding(EncodingDB.Entry encodingEntry) {
         final int encodingIndex = encodingEntry.getEncoding().getIndex();
-        final RubyEncoding rubyEncoding = Encodings.getBuiltInEncoding(encodingIndex);
+        final RubyEncoding rubyEncoding = Encodings.getBuiltInEncoding(encodingEntry.getEncoding());
 
         assert ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] == null;
         ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] = rubyEncoding;
 
-        addToLookup(rubyEncoding.jcoding.toString(), rubyEncoding);
+        addToLookup(rubyEncoding.toString(), rubyEncoding);
         return rubyEncoding;
 
     }
@@ -251,14 +251,14 @@ public class EncodingManager {
         ENCODING_LIST_BY_ENCODING_INDEX = Arrays.copyOf(ENCODING_LIST_BY_ENCODING_INDEX, encodingIndex + 1);
         ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] = rubyEncoding;
 
-        addToLookup(RopeOperations.decodeRope(rubyEncoding.name.rope), rubyEncoding);
+        addToLookup(rubyEncoding.name.getJavaString(), rubyEncoding);
         return rubyEncoding;
 
     }
 
     @TruffleBoundary
     public RubyEncoding defineAlias(Encoding encoding, String name) {
-        final RubyEncoding rubyEncoding = Encodings.getBuiltInEncoding(encoding.getIndex());
+        final RubyEncoding rubyEncoding = Encodings.getBuiltInEncoding(encoding);
         addToLookup(name, rubyEncoding);
         return rubyEncoding;
     }
@@ -274,7 +274,7 @@ public class EncodingManager {
             return null;
         }
 
-        final byte[] nameBytes = RopeOperations.encodeAsciiBytes(name);
+        final byte[] nameBytes = StringOperations.encodeAsciiBytes(name);
         return defineDynamicEncoding(Encodings.DUMMY_ENCODING_BASE, nameBytes);
     }
 
@@ -284,7 +284,7 @@ public class EncodingManager {
             return null;
         }
 
-        final byte[] nameBytes = RopeOperations.encodeAsciiBytes(name);
+        final byte[] nameBytes = StringOperations.encodeAsciiBytes(name);
         return defineDynamicEncoding(encoding.jcoding, nameBytes);
     }
 

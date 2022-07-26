@@ -15,6 +15,7 @@ import java.util.List;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
@@ -32,10 +33,8 @@ import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodes.ToSNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.RubyModule;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
@@ -338,12 +337,12 @@ public abstract class TypeNodes {
     @Primitive(name = "module_name")
     public abstract static class ModuleNameNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @Specialization
         protected RubyString moduleName(RubyModule module) {
             final String name = module.fields.getName();
-            return makeStringNode.executeMake(name, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+            return createString(fromJavaStringNode, name, Encodings.UTF_8);
         }
 
     }

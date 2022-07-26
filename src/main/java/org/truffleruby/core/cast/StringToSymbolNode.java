@@ -9,27 +9,23 @@
  */
 package org.truffleruby.core.cast;
 
-import org.truffleruby.core.string.RubyString;
+import com.oracle.truffle.api.dsl.Cached;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import org.truffleruby.language.library.RubyStringLibrary;
 
 /** Creates a symbol from a string. Must be a RubyNode because it's used in the translator. */
 @NodeChild(value = "string", type = RubyNode.class)
 public abstract class StringToSymbolNode extends RubyContextSourceNode {
 
     @Specialization
-    protected RubySymbol doString(RubyString string) {
-        return getSymbol(string.rope, string.encoding);
-    }
-
-    @Specialization
-    protected RubySymbol doString(ImmutableRubyString string) {
-        return getSymbol(string.rope, string.encoding);
+    protected RubySymbol doString(Object string,
+            @Cached RubyStringLibrary libString) {
+        return getSymbol(libString.getTString(string), libString.getEncoding(string));
     }
 
 }

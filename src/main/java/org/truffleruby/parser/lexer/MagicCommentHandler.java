@@ -12,10 +12,10 @@
  */
 package org.truffleruby.parser.lexer;
 
-import org.truffleruby.core.rope.Rope;
+import com.oracle.truffle.api.strings.TruffleString;
 
 public interface MagicCommentHandler {
 
-    boolean onMagicComment(String name, Rope value);
+    boolean onMagicComment(String name, TruffleString value);
 
 }

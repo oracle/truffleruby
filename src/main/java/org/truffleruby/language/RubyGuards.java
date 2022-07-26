@@ -9,6 +9,10 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.RubyEncoding;
@@ -228,6 +232,34 @@ public abstract class RubyGuards {
 
     public static boolean isMetaClass(RubyModule value) {
         return isSingletonClass(value) && ((RubyClass) value).attached instanceof RubyModule;
+    }
+
+    // String uncached methods
+
+    /** Use to initialize {@link Cached} values */
+    public static TruffleString asTruffleStringUncached(Object rubyString) {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        if (rubyString instanceof RubyString) {
+            return ((RubyString) rubyString).asTruffleStringUncached();
+        } else if (rubyString instanceof ImmutableRubyString) {
+            return ((ImmutableRubyString) rubyString).asTruffleStringUncached();
+        } else {
+            throw CompilerDirectives.shouldNotReachHere(rubyString.getClass().getName());
+        }
+    }
+
+    /** This is an uncached conversion, for optimized cached conversion to java.lang.String use {@link ToJavaStringNode}
+     * instead. Note that {@link Object#toString()} should not be used because that would not check clearly that it is
+     * used only behind boundaries, and it would not fail if binary and non-ASCII. */
+    public static String getJavaString(Object rubyString) {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        if (rubyString instanceof RubyString) {
+            return ((RubyString) rubyString).getJavaString();
+        } else if (rubyString instanceof ImmutableRubyString) {
+            return ((ImmutableRubyString) rubyString).getJavaString();
+        } else {
+            throw CompilerDirectives.shouldNotReachHere(rubyString.getClass().getName());
+        }
     }
 
     // Arguments

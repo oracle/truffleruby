@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.format.format;
 
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToIntNodeGen;
 import org.truffleruby.core.format.FormatNode;
@@ -18,8 +19,6 @@ import org.truffleruby.core.format.convert.ToStringNodeGen;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
 import org.truffleruby.core.format.write.bytes.WriteByteNodeGen;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
@@ -29,7 +28,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.library.RubyStringLibrary;
 
 @NodeChild("width")
 @NodeChild("value")
@@ -45,20 +44,23 @@ public abstract class FormatCharacterNode extends FormatNode {
     }
 
     @Specialization(guards = { "width == cachedWidth" }, limit = "getLimit()")
-    protected byte[] formatCached(VirtualFrame frame, int width, Object value,
+    protected byte[] formatCached(int width, Object value,
             @Cached("width") int cachedWidth,
-            @Cached("makeFormatString(width)") String cachedFormatString) {
-        final String charString = getCharString(frame, value);
+            @Cached("makeFormatString(width)") String cachedFormatString,
+            @Cached RubyStringLibrary libString) {
+        final String charString = getCharString(value, libString);
         return StringUtils.formatASCIIBytes(cachedFormatString, charString);
     }
 
     @Specialization(replaces = "formatCached")
-    protected byte[] format(VirtualFrame frame, int width, Object value) {
-        final String charString = getCharString(frame, value);
+    protected byte[] format(int width, Object value,
+            @Cached RubyStringLibrary libString) {
+        final String charString = getCharString(value, libString);
         return StringUtils.formatASCIIBytes(makeFormatString(width), charString);
     }
 
-    protected String getCharString(VirtualFrame frame, Object value) {
+    @TruffleBoundary
+    protected String getCharString(Object value, RubyStringLibrary libString) {
         if (toStringNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             toStringNode = insert(ToStringNodeGen.create(
@@ -70,7 +72,7 @@ public abstract class FormatCharacterNode extends FormatNode {
         }
         Object toStrResult;
         try {
-            toStrResult = toStringNode.executeToString(frame, value);
+            toStrResult = toStringNode.executeToString(value);
         } catch (NoImplicitConversionException e) {
             toStrResult = null;
         }
@@ -84,9 +86,8 @@ public abstract class FormatCharacterNode extends FormatNode {
             final int charValue = toIntegerNode.execute(value);
             // TODO BJF check char length is > 0
             charString = Character.toString((char) charValue);
-        } else {
-            Rope rope = (Rope) toStrResult;
-            final String resultString = RopeOperations.decodeRope(rope);
+        } else if (libString.isRubyString(toStrResult)) {
+            final String resultString = RubyGuards.getJavaString(toStrResult);
             final int size = resultString.length();
             if (size > 1) {
                 throw new RaiseException(
@@ -94,6 +95,14 @@ public abstract class FormatCharacterNode extends FormatNode {
                         getContext().getCoreExceptions().argumentErrorCharacterRequired(this));
             }
             charString = resultString;
+        } else {
+            var tstring = (TruffleString) toStrResult;
+            charString = tstring.toJavaStringUncached();
+            if (charString.length() > 1) {
+                throw new RaiseException(
+                        getContext(),
+                        getContext().getCoreExceptions().argumentErrorCharacterRequired(this));
+            }
         }
         return charString;
     }

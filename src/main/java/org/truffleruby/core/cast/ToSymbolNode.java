@@ -11,11 +11,10 @@ package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.core.string.StringHelperNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -62,31 +61,28 @@ public abstract class ToSymbolNode extends RubyBaseNodeWithExecute {
     }
 
     @Specialization(
-            guards = {
-                    "strings.isRubyString(str)",
-                    "equals.execute(strings.getRope(str), cachedRope)",
-                    "strings.getEncoding(str) == cachedEncoding" },
+            guards = { "strings.isRubyString(str)", "equalNode.execute(strings, str, cachedTString, cachedEncoding)" },
             limit = "getCacheLimit()")
     protected RubySymbol rubyString(Object str,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
-            @Cached(value = "strings.getRope(str)") Rope cachedRope,
+            @Cached RubyStringLibrary strings,
+            @Cached(value = "asTruffleStringUncached(str)") TruffleString cachedTString,
             @Cached(value = "strings.getEncoding(str)") RubyEncoding cachedEncoding,
-            @Cached RopeNodes.EqualNode equals,
-            @Cached(value = "getSymbol(cachedRope, cachedEncoding)") RubySymbol rubySymbol) {
+            @Cached StringHelperNodes.EqualSameEncodingNode equalNode,
+            @Cached(value = "getSymbol(cachedTString, cachedEncoding)") RubySymbol rubySymbol) {
         return rubySymbol;
     }
 
-    @Specialization(guards = "strings.isRubyString(str)", replaces = "rubyString")
+    @Specialization(guards = "strings.isRubyString(str)", replaces = "rubyString", limit = "1")
     protected RubySymbol rubyStringUncached(Object str,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-        return getSymbol(strings.getRope(str), strings.getEncoding(str));
+            @Cached RubyStringLibrary strings) {
+        return getSymbol(strings.getTString(str), strings.getEncoding(str));
     }
 
     @Specialization(guards = { "!isRubySymbol(object)", "!isString(object)", "isNotRubyString(object)" })
     protected RubySymbol toStr(Object object,
             @Cached BranchProfile errorProfile,
             @Cached DispatchNode toStr,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
+            @Cached RubyStringLibrary libString,
             @Cached ToSymbolNode toSymbolNode) {
         final Object coerced;
         try {

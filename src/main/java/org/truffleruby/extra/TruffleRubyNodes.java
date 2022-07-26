@@ -13,6 +13,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -24,8 +25,6 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.mutex.MutexOperations;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.string.StringNodes;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
@@ -44,12 +43,12 @@ public abstract class TruffleRubyNodes {
 
         @Specialization
         protected Object graalvmHome(
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             String value = getProperty("org.graalvm.home");
             if (value == null) {
                 return nil;
             } else {
-                return makeStringNode.executeMake(value, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                return createString(fromJavaStringNode, value, Encodings.UTF_8);
             }
         }
 

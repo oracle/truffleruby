@@ -14,8 +14,7 @@ import java.util.Arrays;
 
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.format.exceptions.TooFewArgumentsException;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.RopeConstants;
+import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -32,12 +31,15 @@ public abstract class FormatNode extends RubyBaseNode {
     private final ConditionProfile writeMoreThanZeroBytes = ConditionProfile.create();
     private final ConditionProfile tooFewArgumentsProfile = ConditionProfile.create();
     private final ConditionProfile sourceRangeProfile = ConditionProfile.create();
-    private final ConditionProfile codeRangeIncreasedProfile = ConditionProfile.create();
 
     public abstract Object execute(VirtualFrame frame);
 
-    public int getSourceLength(VirtualFrame frame) {
-        return frame.getInt(FormatFrameDescriptor.SOURCE_LENGTH_SLOT);
+    public int getSourceEnd(VirtualFrame frame) {
+        return frame.getInt(FormatFrameDescriptor.SOURCE_END_POSITION_SLOT);
+    }
+
+    public int getSourceStart(VirtualFrame frame) {
+        return frame.getInt(FormatFrameDescriptor.SOURCE_START_POSITION_SLOT);
     }
 
     protected int getSourcePosition(VirtualFrame frame) {
@@ -55,7 +57,7 @@ public abstract class FormatNode extends RubyBaseNode {
     protected int advanceSourcePosition(VirtualFrame frame, int count) {
         final int sourcePosition = getSourcePosition(frame);
 
-        if (tooFewArgumentsProfile.profile(sourcePosition + count > getSourceLength(frame))) {
+        if (tooFewArgumentsProfile.profile(sourcePosition + count > getSourceEnd(frame))) {
             throw new TooFewArgumentsException();
         }
 
@@ -71,11 +73,11 @@ public abstract class FormatNode extends RubyBaseNode {
     protected int advanceSourcePositionNoThrow(VirtualFrame frame, int count, boolean consumePartial) {
         final int sourcePosition = getSourcePosition(frame);
 
-        final int sourceLength = getSourceLength(frame);
+        final int end = getSourceEnd(frame);
 
-        if (sourceRangeProfile.profile(sourcePosition + count > sourceLength)) {
+        if (sourceRangeProfile.profile(sourcePosition + count > end)) {
             if (consumePartial) {
-                setSourcePosition(frame, sourceLength);
+                setSourcePosition(frame, end);
             }
 
             return -1;
@@ -102,44 +104,22 @@ public abstract class FormatNode extends RubyBaseNode {
         frame.setInt(FormatFrameDescriptor.OUTPUT_POSITION_SLOT, position);
     }
 
-    protected int getStringLength(VirtualFrame frame) {
-        return frame.getInt(FormatFrameDescriptor.STRING_LENGTH_SLOT);
-    }
-
-    protected void setStringLength(VirtualFrame frame, int length) {
-        frame.setInt(FormatFrameDescriptor.STRING_LENGTH_SLOT, length);
-    }
-
-    protected void increaseStringLength(VirtualFrame frame, int additionalLength) {
-        setStringLength(frame, getStringLength(frame) + additionalLength);
-    }
-
-    protected void setStringCodeRange(VirtualFrame frame, CodeRange codeRange) {
-        final int existingCodeRange = frame.getInt(FormatFrameDescriptor.STRING_CODE_RANGE_SLOT);
-
-        if (codeRangeIncreasedProfile.profile(codeRange.toInt() > existingCodeRange)) {
-            frame.setInt(FormatFrameDescriptor.STRING_CODE_RANGE_SLOT, codeRange.toInt());
-        }
-    }
-
     protected void writeByte(VirtualFrame frame, byte value) {
         final byte[] output = ensureCapacity(frame, 1);
         final int outputPosition = getOutputPosition(frame);
         output[outputPosition] = value;
         setOutputPosition(frame, outputPosition + 1);
-        increaseStringLength(frame, 1);
     }
 
-    protected void writeBytes(VirtualFrame frame, byte... values) {
-        writeBytes(frame, values, values.length);
+    protected void writeBytes(VirtualFrame frame, byte[] values) {
+        writeBytes(frame, values, 0, values.length);
     }
 
-    protected void writeBytes(VirtualFrame frame, byte[] values, int valuesLength) {
+    protected void writeBytes(VirtualFrame frame, byte[] values, int valuesOffset, int valuesLength) {
         byte[] output = ensureCapacity(frame, valuesLength);
         final int outputPosition = getOutputPosition(frame);
-        System.arraycopy(values, 0, output, outputPosition, valuesLength);
+        System.arraycopy(values, valuesOffset, output, outputPosition, valuesLength);
         setOutputPosition(frame, outputPosition + valuesLength);
-        increaseStringLength(frame, valuesLength);
     }
 
     protected void writeNullBytes(VirtualFrame frame, int length) {
@@ -147,7 +127,6 @@ public abstract class FormatNode extends RubyBaseNode {
             ensureCapacity(frame, length);
             final int outputPosition = getOutputPosition(frame);
             setOutputPosition(frame, outputPosition + length);
-            increaseStringLength(frame, length);
         }
     }
 
@@ -167,14 +146,14 @@ public abstract class FormatNode extends RubyBaseNode {
     }
 
     private static final Class<? extends ByteBuffer> HEAP_BYTE_BUFFER_CLASS = ByteBuffer
-            .wrap(RopeConstants.EMPTY_BYTES)
+            .wrap(TStringConstants.EMPTY_BYTES)
             .getClass();
 
     public ByteBuffer wrapByteBuffer(VirtualFrame frame, byte[] source) {
         final int position = getSourcePosition(frame);
-        final int length = getSourceLength(frame);
+        final int end = getSourceEnd(frame);
         return CompilerDirectives
-                .castExact(wrapByteBuffer(source, position, length - position), HEAP_BYTE_BUFFER_CLASS);
+                .castExact(wrapByteBuffer(source, position, end - position), HEAP_BYTE_BUFFER_CLASS);
     }
 
     @TruffleBoundary

@@ -692,10 +692,6 @@ module Truffle::CExt
     Thread.list.count == 1 ? 1 : 0
   end
 
-  def rb_intern(str)
-    str.intern
-  end
-
   def rb_int_positive_pow(a, b)
     a ** b
   end
@@ -807,14 +803,6 @@ module Truffle::CExt
           end
     enc = rb_enc_to_index(enc) if Primitive.object_kind_of?(enc, Encoding)
     enc
-  end
-
-  def rb_intern_str(string)
-    string.intern
-  end
-
-  def rb_intern3(string, enc)
-    string.force_encoding(enc).intern
   end
 
   def rb_str_append(str, to_append)
@@ -1766,7 +1754,7 @@ module Truffle::CExt
   end
 
   def rb_reg_match(re, str)
-    result = str ? Truffle::RegexpOperations.match(re, str, 0) : nil
+    result = Truffle::RegexpOperations.match(re, str, 0)
     Primitive.regexp_last_match_set(rb_get_special_vars(), result)
 
     result.begin(0) if result

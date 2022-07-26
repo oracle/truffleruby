@@ -19,18 +19,19 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.source.Source;
 import org.graalvm.collections.Pair;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyConstant;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.WarningNode;
 import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.control.RaiseException;
@@ -61,22 +62,23 @@ public abstract class RequireNode extends RubyBaseNode {
 
     public abstract boolean executeRequire(String feature, Object expandedPath);
 
-    @Specialization(guards = "libExpandedPathString.isRubyString(expandedPathString)")
+    @Specialization(guards = "libExpandedPathString.isRubyString(expandedPathString)", limit = "1")
     protected boolean require(String feature, Object expandedPathString,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libExpandedPathString) {
-        final String expandedPath = libExpandedPathString.getJavaString(expandedPathString);
-        return requireWithMetrics(feature, expandedPath, expandedPathString);
+            @Cached RubyStringLibrary libExpandedPathString) {
+        return requireWithMetrics(feature, expandedPathString);
     }
 
     @TruffleBoundary
-    private boolean requireWithMetrics(String feature, String expandedPathRaw, Object pathString) {
+    private boolean requireWithMetrics(String feature, Object pathString) {
+        String internedExpandedPath = RubyGuards.getJavaString(pathString).intern();
+
         requireMetric("before-require-" + feature);
         try {
             //intern() to improve footprint
             return getContext().getMetricsProfiler().callWithMetrics(
                     "require",
                     feature,
-                    () -> requireConsideringAutoload(feature, expandedPathRaw.intern(), pathString));
+                    () -> requireConsideringAutoload(feature, internedExpandedPath, pathString));
         } finally {
             requireMetric("after-require-" + feature);
         }
@@ -148,7 +150,7 @@ public abstract class RequireNode extends RubyBaseNode {
             Object relativeFeatureString = relativeFeatureNode
                     .call(coreLibrary().truffleFeatureLoaderModule, "relative_feature", pathString);
             if (RubyStringLibrary.getUncached().isRubyString(relativeFeatureString)) {
-                relativeFeature = RubyStringLibrary.getUncached().getJavaString(relativeFeatureString);
+                relativeFeature = RubyGuards.getJavaString(relativeFeatureString);
             }
         }
         Boolean patchLoaded = patchFiles.get(relativeFeature);
@@ -217,7 +219,7 @@ public abstract class RequireNode extends RubyBaseNode {
             requireCExtension(feature, expandedPath, this);
         } else {
             // All other files are assumed to be Ruby, the file type detection is not enough
-            final Pair<Source, Rope> sourceRopePair;
+            final Pair<Source, TStringWithEncoding> sourceRopePair;
             try {
                 final FileLoader fileLoader = new FileLoader(getContext(), getLanguage());
                 sourceRopePair = fileLoader.loadFile(expandedPath);

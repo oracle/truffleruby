@@ -9,8 +9,10 @@
  */
 package org.truffleruby.core.string;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
@@ -18,83 +20,84 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.cext.CExtNodes;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.rope.LeafRope;
-import org.truffleruby.core.rope.NativeRope;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.ImmutableRubyObjectCopyable;
+import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 
 /** All ImmutableRubyString are interned and must be created through
- * {@link FrozenStringLiterals#getFrozenStringLiteral(Rope)}. */
+ * {@link FrozenStringLiterals#getFrozenStringLiteral}. */
 @ExportLibrary(InteropLibrary.class)
-@ExportLibrary(RubyStringLibrary.class)
-public class ImmutableRubyString extends ImmutableRubyObjectCopyable implements TruffleObject {
+public final class ImmutableRubyString extends ImmutableRubyObjectCopyable implements TruffleObject {
 
-    public final LeafRope rope;
-    public final RubyEncoding encoding;
-    private NativeRope nativeRope = null;
+    public final TruffleString tstring;
+    private final RubyEncoding encoding;
+    private Pointer nativeString = null;
 
-    ImmutableRubyString(LeafRope rope, RubyEncoding encoding) {
-        assert rope.encoding == encoding.jcoding;
-        this.rope = rope;
+    ImmutableRubyString(TruffleString tstring, RubyEncoding encoding) {
+        assert tstring.isCompatibleTo(encoding.tencoding);
+        assert tstring.isManaged();
+        this.tstring = tstring;
         this.encoding = encoding;
     }
 
     /** should only be used for debugging */
     @Override
     public String toString() {
-        return rope.toString();
+        return tstring.toString();
+    }
+
+    public TruffleString asTruffleStringUncached() {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        assert !tstring.isNative();
+        return tstring;
+    }
+
+    public String getJavaString() {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+        return TStringUtils.toJavaStringOrThrow(tstring, getEncodingUncached());
     }
 
     public boolean isNative() {
-        return nativeRope != null;
+        return nativeString != null;
     }
 
-    public NativeRope getNativeRope(RubyLanguage language) {
-        if (nativeRope == null) {
-            return createNativeRope(language);
+    public Pointer getNativeString(RubyLanguage language) {
+        if (nativeString == null) {
+            return createNativeString(language);
         }
-        return nativeRope;
+        return nativeString;
     }
 
     @TruffleBoundary
-    private synchronized NativeRope createNativeRope(RubyLanguage language) {
-        if (nativeRope == null) {
-            nativeRope = new NativeRope(language, rope.getBytes(), rope.getEncoding(), rope.characterLength(),
-                    rope.getCodeRange());
+    private synchronized Pointer createNativeString(RubyLanguage language) {
+        if (nativeString == null) {
+            var tencoding = getEncodingUncached().tencoding;
+            int byteLength = tstring.byteLength(tencoding);
+            nativeString = CExtNodes.StringToNativeNode.allocateAndCopyToNative(tstring, tencoding, byteLength,
+                    TruffleString.CopyToNativeMemoryNode.getUncached(), language);
         }
-        return nativeRope;
+        return nativeString;
     }
 
-    // region RubyStringLibrary messages
-    @ExportMessage
-    public RubyEncoding getEncoding() {
+    public RubyEncoding getEncodingUncached() {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
         return encoding;
     }
 
-    @ExportMessage
-    protected boolean isRubyString() {
-        return true;
+    public RubyEncoding getEncodingUnprofiled() {
+        return encoding;
     }
-
-    @ExportMessage
-    protected Rope getRope() {
-        return rope;
-    }
-
-    @ExportMessage
-    protected String getJavaString() {
-        return RopeOperations.decodeRope(rope);
-    }
-    // endregion
 
     // region InteropLibrary messages
     @ExportMessage
@@ -127,30 +130,44 @@ public class ImmutableRubyString extends ImmutableRubyObjectCopyable implements 
     }
 
     @ExportMessage
+    protected TruffleString asTruffleString() {
+        assert !tstring.isNative();
+        return tstring;
+    }
+
+    @ImportStatic(RubyBaseNode.class)
+    @ExportMessage
     public static class AsString {
         @Specialization(
-                guards = "equalsNode.execute(string.rope, cachedRope)",
+                guards = "equalNode.execute(string.tstring, libString.getEncoding(string), cachedTString, cachedEncoding)",
                 limit = "getLimit()")
         protected static String asStringCached(ImmutableRubyString string,
-                @Cached("string.rope") Rope cachedRope,
+                @Cached RubyStringLibrary libString,
+                @Cached("string.asTruffleStringUncached()") TruffleString cachedTString,
+                @Cached("string.getEncodingUncached()") RubyEncoding cachedEncoding,
                 @Cached("string.getJavaString()") String javaString,
-                @Cached RopeNodes.EqualNode equalsNode) {
+                @Cached StringHelperNodes.EqualNode equalNode) {
             return javaString;
         }
 
         @Specialization(replaces = "asStringCached")
         protected static String asStringUncached(ImmutableRubyString string,
-                @Cached ConditionProfile asciiOnlyProfile,
-                @Cached RopeNodes.AsciiOnlyNode asciiOnlyNode,
-                @Cached RopeNodes.BytesNode bytesNode) {
-            final Rope rope = string.rope;
-            final byte[] bytes = bytesNode.execute(rope);
-
-            if (asciiOnlyProfile.profile(asciiOnlyNode.execute(rope))) {
-                return RopeOperations.decodeAscii(bytes);
+                @Cached RubyStringLibrary libString,
+                @Cached TruffleString.GetByteCodeRangeNode codeRangeNode,
+                @Cached TruffleString.ToJavaStringNode toJavaStringNode,
+                @Cached ConditionProfile binaryNonAsciiProfile) {
+            var encoding = libString.getEncoding(string);
+            if (binaryNonAsciiProfile.profile(encoding == Encodings.BINARY &&
+                    !StringGuards.is7Bit(string.tstring, encoding, codeRangeNode))) {
+                return getJavaStringBoundary(string);
             } else {
-                return RopeOperations.decodeNonAscii(rope.getEncoding(), bytes, 0, bytes.length);
+                return toJavaStringNode.execute(string.tstring);
             }
+        }
+
+        @TruffleBoundary
+        private static String getJavaStringBoundary(ImmutableRubyString string) {
+            return string.getJavaString();
         }
 
         protected static int getLimit() {

@@ -104,12 +104,8 @@ import org.truffleruby.core.regexp.RegexpNodesBuiltins;
 import org.truffleruby.core.regexp.RegexpNodesFactory;
 import org.truffleruby.core.regexp.TruffleRegexpNodesBuiltins;
 import org.truffleruby.core.regexp.TruffleRegexpNodesFactory;
-import org.truffleruby.core.rope.TruffleRopesNodesBuiltins;
-import org.truffleruby.core.rope.TruffleRopesNodesFactory;
 import org.truffleruby.core.string.StringNodesBuiltins;
 import org.truffleruby.core.string.StringNodesFactory;
-import org.truffleruby.core.string.TruffleStringNodesBuiltins;
-import org.truffleruby.core.string.TruffleStringNodesFactory;
 import org.truffleruby.core.support.ByteArrayNodesBuiltins;
 import org.truffleruby.core.support.ByteArrayNodesFactory;
 import org.truffleruby.core.support.CustomRandomizerNodesBuiltins;
@@ -249,9 +245,7 @@ public abstract class BuiltinsClasses {
         TruffleMonitorNodesBuiltins.setup(coreManager);
         TrufflePosixNodesBuiltins.setup(coreManager);
         TruffleRegexpNodesBuiltins.setup(coreManager);
-        TruffleRopesNodesBuiltins.setup(coreManager);
         TruffleRubyNodesBuiltins.setup(coreManager);
-        TruffleStringNodesBuiltins.setup(coreManager);
         TruffleSystemNodesBuiltins.setup(coreManager);
         TruffleThreadNodesBuiltins.setup(coreManager);
         TypeNodesBuiltins.setup(coreManager);
@@ -332,9 +326,7 @@ public abstract class BuiltinsClasses {
         TruffleMonitorNodesBuiltins.setupPrimitives(primitiveManager);
         TrufflePosixNodesBuiltins.setupPrimitives(primitiveManager);
         TruffleRegexpNodesBuiltins.setupPrimitives(primitiveManager);
-        TruffleRopesNodesBuiltins.setupPrimitives(primitiveManager);
         TruffleRubyNodesBuiltins.setupPrimitives(primitiveManager);
-        TruffleStringNodesBuiltins.setupPrimitives(primitiveManager);
         TruffleSystemNodesBuiltins.setupPrimitives(primitiveManager);
         TruffleThreadNodesBuiltins.setupPrimitives(primitiveManager);
         TypeNodesBuiltins.setupPrimitives(primitiveManager);
@@ -416,9 +408,7 @@ public abstract class BuiltinsClasses {
                 TruffleMonitorNodesFactory.getFactories(),
                 TrufflePosixNodesFactory.getFactories(),
                 TruffleRegexpNodesFactory.getFactories(),
-                TruffleRopesNodesFactory.getFactories(),
                 TruffleRubyNodesFactory.getFactories(),
-                TruffleStringNodesFactory.getFactories(),
                 TruffleSystemNodesFactory.getFactories(),
                 TruffleThreadNodesFactory.getFactories(),
                 TypeNodesFactory.getFactories(),

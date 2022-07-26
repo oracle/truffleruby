@@ -13,7 +13,7 @@ import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertTrue;
 
 import org.junit.Test;
-import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringOperations;
 
 public class EmbeddedScriptTest {
 
@@ -66,7 +66,7 @@ public class EmbeddedScriptTest {
     }
 
     private byte[] bytes(String string) {
-        return RopeOperations.encodeAsciiBytes(string);
+        return StringOperations.encodeAsciiBytes(string);
     }
 
 }

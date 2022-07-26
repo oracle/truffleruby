@@ -36,16 +36,17 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.core.format.write.bytes;
 
+import com.oracle.truffle.api.strings.InternalByteArray;
 import org.truffleruby.collections.ByteArrayBuilder;
-import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringOperations;
 
 public class EncodeUM {
 
-    private static final byte[] uu_table = RopeOperations
+    private static final byte[] uu_table = StringOperations
             .encodeAsciiBytes("`!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_");
-    private static final byte[] b64_table = RopeOperations
+    private static final byte[] b64_table = StringOperations
             .encodeAsciiBytes("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
-    public static final byte[] sHexDigits = RopeOperations.encodeAsciiBytes("0123456789abcdef0123456789ABCDEFx");
+    public static final byte[] sHexDigits = StringOperations.encodeAsciiBytes("0123456789abcdef0123456789ABCDEFx");
     public static final int[] b64_xtable = new int[256];
 
     static {
@@ -58,41 +59,39 @@ public class EncodeUM {
         }
     }
 
-    public static void encodeUM(Object runtime, byte[] lCurElemString, int occurrences, boolean ignoreStar, char type,
+    public static void encodeUM(InternalByteArray lCurElemString, int occurrences, boolean ignoreStar, char type,
             ByteArrayBuilder result) {
         if (occurrences == 0 && type == 'm' && !ignoreStar) {
             encodes(
-                    runtime,
                     result,
-                    lCurElemString,
-                    0,
-                    lCurElemString.length,
-                    lCurElemString.length,
+                    lCurElemString.getArray(),
+                    lCurElemString.getOffset(),
+                    lCurElemString.getLength(),
+                    lCurElemString.getLength(),
                     (byte) type,
                     false);
             return;
         }
 
         occurrences = occurrences <= 2 ? 45 : occurrences / 3 * 3;
-        if (lCurElemString.length == 0) {
+        if (lCurElemString.getLength() == 0) {
             return;
         }
 
-        byte[] charsToEncode = lCurElemString;
-        for (int i = 0; i < lCurElemString.length; i += occurrences) {
+        byte[] charsToEncode = lCurElemString.getArray();
+        for (int i = 0; i < lCurElemString.getLength(); i += occurrences) {
             encodes(
-                    runtime,
                     result,
                     charsToEncode,
-                    i,
-                    lCurElemString.length - i,
+                    i + lCurElemString.getOffset(),
+                    lCurElemString.getLength() - i,
                     occurrences,
                     (byte) type,
                     true);
         }
     }
 
-    private static ByteArrayBuilder encodes(Object runtime, ByteArrayBuilder io2Append, byte[] charsToEncode,
+    private static ByteArrayBuilder encodes(ByteArrayBuilder io2Append, byte[] charsToEncode,
             int startIndex, int length, int charCount, byte encodingType, boolean tailLf) {
         charCount = charCount < length ? charCount : length;
 

@@ -10,13 +10,12 @@
 package org.truffleruby.core.format.read.bytes;
 
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.format.FormatFrameDescriptor;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.MissingValue;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.control.RaiseException;
@@ -31,7 +30,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 @NodeChild("value")
 public abstract class ReadStringPointerNode extends FormatNode {
 
-    @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+    @Child private TruffleString.FromByteArrayNode fromByteArrayNode = TruffleString.FromByteArrayNode.create();
 
     private final BranchProfile errorProfile = BranchProfile.create();
     private final int limit;
@@ -59,7 +58,7 @@ public abstract class ReadStringPointerNode extends FormatNode {
                 interop,
                 0,
                 limit);
-        return makeStringNode.executeMake(bytes, Encodings.US_ASCII, CodeRange.CR_7BIT);
+        return createString(fromByteArrayNode, bytes, Encodings.US_ASCII);
     }
 
     private void checkAssociated(Pointer[] associated, Pointer reading) {

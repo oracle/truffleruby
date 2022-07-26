@@ -19,7 +19,7 @@ import org.truffleruby.core.cast.ToRubyIntegerNode;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringHelperNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.symbol.SymbolNodes;
 import org.truffleruby.core.string.ImmutableRubyString;
@@ -94,13 +94,13 @@ public abstract class HashingNodes {
 
         @Specialization
         protected int hashString(RubyString value,
-                @Cached StringNodes.HashStringNode stringHashNode) {
+                @Cached StringHelperNodes.HashStringNode stringHashNode) {
             return (int) stringHashNode.execute(value);
         }
 
         @Specialization
         protected int hashImmutableString(ImmutableRubyString value,
-                @Cached StringNodes.HashStringNode stringHashNode) {
+                @Cached StringHelperNodes.HashStringNode stringHashNode) {
             return (int) stringHashNode.execute(value);
         }
 

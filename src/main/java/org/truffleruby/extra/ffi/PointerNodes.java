@@ -15,7 +15,7 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
-import org.jcodings.specific.ASCIIEncoding;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -26,16 +26,13 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.BigIntegerOps;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeConstants;
-import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.core.support.RubyByteArray;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
@@ -94,8 +91,7 @@ public abstract class PointerNodes {
 
         @TruffleBoundary
         @Specialization
-        protected int findTypeSize(RubySymbol type,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringLibrary) {
+        protected int findTypeSize(RubySymbol type) {
             final String typeString = type.getString();
             final int size = typeSize(typeString);
             if (size > 0) {
@@ -104,7 +100,7 @@ public abstract class PointerNodes {
                 final Object typedef = getContext()
                         .getTruffleNFI()
                         .resolveTypeRaw(getContext().getNativeConfiguration(), typeString);
-                final int typedefSize = typeSize(stringLibrary.getJavaString(typedef));
+                final int typedefSize = typeSize(RubyGuards.getJavaString(typedef));
                 assert typedefSize > 0 : typedef;
                 return typedefSize;
             }
@@ -263,56 +259,27 @@ public abstract class PointerNodes {
 
         @Specialization(guards = "limit == 0")
         protected RubyString readNullPointer(long address, long limit) {
-            final RubyString instance = new RubyString(
-                    coreLibrary().stringClass,
-                    getLanguage().stringShape,
-                    false,
-                    RopeConstants.EMPTY_ASCII_8BIT_ROPE,
-                    Encodings.BINARY);
-            AllocationTracing.trace(instance, this);
-            return instance;
+            return createString(TStringConstants.EMPTY_BINARY, Encodings.BINARY);
         }
 
         @Specialization(guards = "limit != 0")
         protected RubyString readStringToNull(long address, long limit,
-                @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
                 @CachedLibrary(limit = "1") InteropLibrary interop) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
-            final byte[] bytes = ptr
-                    .readZeroTerminatedByteArray(getContext(), interop, 0, limit);
-            final Rope rope = makeLeafRopeNode
-                    .executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
-
-            final RubyString instance = new RubyString(
-                    coreLibrary().stringClass,
-                    getLanguage().stringShape,
-                    false,
-                    rope,
-                    Encodings.BINARY);
-            AllocationTracing.trace(instance, this);
-            return instance;
+            final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), interop, 0, limit);
+            return createString(fromByteArrayNode, bytes, Encodings.BINARY);
         }
 
         @Specialization
         protected RubyString readStringToNull(long address, Nil limit,
-                @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
-                @CachedLibrary(limit = "1") InteropLibrary interop) {
+                @CachedLibrary(limit = "1") InteropLibrary interop,
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
-            final byte[] bytes = ptr
-                    .readZeroTerminatedByteArray(getContext(), interop, 0);
-            final Rope rope = makeLeafRopeNode
-                    .executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
-
-            final RubyString instance = new RubyString(
-                    coreLibrary().stringClass,
-                    getLanguage().stringShape,
-                    false,
-                    rope,
-                    Encodings.BINARY);
-            AllocationTracing.trace(instance, this);
-            return instance;
+            final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), interop, 0);
+            return createString(fromByteArrayNode, bytes, Encodings.BINARY);
         }
 
     }
@@ -322,8 +289,7 @@ public abstract class PointerNodes {
 
         @Specialization
         protected Object readBytes(RubyByteArray array, int arrayOffset, long address, int length,
-                @Cached ConditionProfile zeroProfile,
-                @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode) {
+                @Cached ConditionProfile zeroProfile) {
             final Pointer ptr = new Pointer(address);
             if (zeroProfile.profile(length == 0)) {
                 // No need to check the pointer address if we read nothing
@@ -344,33 +310,16 @@ public abstract class PointerNodes {
         @Specialization
         protected RubyString readBytes(long address, int length,
                 @Cached ConditionProfile zeroProfile,
-                @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode) {
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             final Pointer ptr = new Pointer(address);
             if (zeroProfile.profile(length == 0)) {
                 // No need to check the pointer address if we read nothing
-                final RubyString instance = new RubyString(
-                        coreLibrary().stringClass,
-                        getLanguage().stringShape,
-                        false,
-                        RopeConstants.EMPTY_ASCII_8BIT_ROPE,
-                        Encodings.BINARY);
-                AllocationTracing.trace(instance, this);
-                return instance;
+                return createString(TStringConstants.EMPTY_BINARY, Encodings.BINARY);
             } else {
                 checkNull(ptr);
                 final byte[] bytes = new byte[length];
-                final boolean is8Bit = ptr.readBytesCheck8Bit(bytes, length);
-                final Rope rope = makeLeafRopeNode
-                        .executeMake(bytes, ASCIIEncoding.INSTANCE, is8Bit ? CodeRange.CR_VALID : CodeRange.CR_7BIT,
-                                length);
-                final RubyString instance = new RubyString(
-                        coreLibrary().stringClass,
-                        getLanguage().stringShape,
-                        false,
-                        rope,
-                        Encodings.BINARY);
-                AllocationTracing.trace(instance, this);
-                return instance;
+                ptr.readBytes(0, bytes, 0, length);
+                return createString(fromByteArrayNode, bytes, Encodings.BINARY);
             }
         }
 
@@ -379,19 +328,24 @@ public abstract class PointerNodes {
     @Primitive(name = "pointer_write_bytes", lowerFixnum = { 2, 3 })
     public abstract static class PointerWriteBytesNode extends PointerPrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "libString.isRubyString(string)")
+        @Specialization(guards = "libString.isRubyString(string)", limit = "1")
         protected Object writeBytes(long address, Object string, int index, int length,
-                @Cached RopeNodes.BytesNode bytesNode,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
-            final Pointer ptr = new Pointer(address);
-            final Rope rope = libString.getRope(string);
-            assert index + length <= rope.byteLength();
-            if (length != 0) {
+                @Cached ConditionProfile nonZeroProfile,
+                @Cached TruffleString.CopyToNativeMemoryNode copyToNativeMemoryNode,
+                @Cached RubyStringLibrary libString) {
+            Pointer ptr = new Pointer(address);
+            var tstring = libString.getTString(string);
+            var encoding = libString.getTEncoding(string);
+
+            assert index + length <= tstring.byteLength(encoding);
+
+            if (nonZeroProfile.profile(length != 0)) {
                 // No need to check the pointer address if we write nothing
                 checkNull(ptr);
+
+                copyToNativeMemoryNode.execute(tstring, index, ptr, 0, length, encoding);
             }
 
-            ptr.writeBytes(0, bytesNode.execute(rope), index, length);
             return string;
         }
 

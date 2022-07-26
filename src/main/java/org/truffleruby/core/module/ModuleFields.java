@@ -28,17 +28,16 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.MethodEntry;
 import org.truffleruby.core.method.MethodFilter;
-import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.string.ImmutableRubyString;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
@@ -48,7 +47,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.constants.ConstantEntry;
 import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.loader.ReentrantLockFreeingMap;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.ObjectGraph;
@@ -446,7 +444,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         SharedObjects.propagate(context.getLanguageSlow(), rubyModule, value);
 
         final String autoloadPath = autoload
-                ? RubyStringLibrary.getUncached().getJavaString(value)
+                ? RubyGuards.getJavaString(value)
                 : null;
         RubyConstant previous;
         RubyConstant newConstant;
@@ -721,8 +719,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     private void setName(String name) {
         this.name = name;
         if (hasPartialName()) {
-            LeafRope rope = StringOperations.encodeRope(name, UTF8Encoding.INSTANCE);
-            this.rubyStringName = language.getFrozenStringLiteral(rope);
+            this.rubyStringName = language.getFrozenStringLiteral(TStringUtils.utf8TString(name), Encodings.UTF_8);
         }
     }
 

@@ -14,17 +14,16 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.rope.LeafRope;
-import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.FrozenStringLiterals;
 import org.truffleruby.core.string.ImmutableRubyString;
-
 import org.truffleruby.language.ImmutableRubyObjectNotCopyable;
+import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
@@ -33,24 +32,49 @@ import java.util.Objects;
 import java.util.Set;
 
 @ExportLibrary(InteropLibrary.class)
-public class RubyEncoding extends ImmutableRubyObjectNotCopyable implements ObjectGraphNode, Comparable<RubyEncoding> {
+public final class RubyEncoding extends ImmutableRubyObjectNotCopyable
+        implements ObjectGraphNode, Comparable<RubyEncoding> {
 
     public final Encoding jcoding;
+    public final TruffleString.Encoding tencoding;
     public final ImmutableRubyString name;
     public final int index;
 
+    // Copy these properties here for faster access and to make the fields final (most of these fields are not final in JCodings)
+    public final boolean isDummy;
+    public final boolean isAsciiCompatible;
+    public final boolean isFixedWidth;
+    public final boolean isSingleByte;
+    public final boolean isUnicode;
+
     public RubyEncoding(Encoding jcoding, ImmutableRubyString name, int index) {
+        assert name.getEncodingUncached() == Encodings.US_ASCII;
         this.jcoding = Objects.requireNonNull(jcoding);
+        this.tencoding = Objects.requireNonNull(TStringUtils.jcodingToTEncoding(jcoding));
         this.name = Objects.requireNonNull(name);
         this.index = index;
+
+        this.isDummy = jcoding.isDummy();
+        this.isAsciiCompatible = jcoding.isAsciiCompatible();
+        this.isFixedWidth = jcoding.isFixedWidth();
+        this.isSingleByte = jcoding.isSingleByte();
+        this.isUnicode = jcoding.isUnicode();
     }
 
     // Special constructor to define US-ASCII encoding which is used for RubyEncoding names
     public RubyEncoding(int index) {
         this.jcoding = Objects.requireNonNull(USASCIIEncoding.INSTANCE);
+        this.tencoding = Objects.requireNonNull(TruffleString.Encoding.US_ASCII);
         this.name = Objects.requireNonNull(
-                FrozenStringLiterals.createStringAndCacheLater((LeafRope) RopeConstants.US_ASCII, this));
+                FrozenStringLiterals.createStringAndCacheLater(TStringConstants.US_ASCII, this));
         this.index = index;
+
+        var jcoding = this.jcoding;
+        this.isDummy = jcoding.isDummy();
+        this.isAsciiCompatible = jcoding.isAsciiCompatible();
+        this.isFixedWidth = jcoding.isFixedWidth();
+        this.isSingleByte = jcoding.isSingleByte();
+        this.isUnicode = jcoding.isUnicode();
     }
 
     @Override
@@ -92,7 +116,7 @@ public class RubyEncoding extends ImmutableRubyObjectNotCopyable implements Obje
         if (index != o.index) {
             return index - o.index;
         } else {
-            return name.rope.compareTo(o.name.rope);
+            return name.tstring.compareBytesUncached(o.name.tstring, Encodings.US_ASCII.tencoding);
         }
     }
 }

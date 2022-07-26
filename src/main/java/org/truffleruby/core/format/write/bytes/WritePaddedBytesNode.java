@@ -9,17 +9,18 @@
  */
 package org.truffleruby.core.format.write.bytes;
 
+import com.oracle.truffle.api.strings.AbstractTruffleString;
+import com.oracle.truffle.api.strings.TruffleString;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.string.StringNodes;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.language.library.RubyStringLibrary;
 
 /** Simply write bytes. */
 @NodeChild("width")
@@ -36,52 +37,60 @@ public abstract class WritePaddedBytesNode extends FormatNode {
         this.leftJustified = leftJustified;
     }
 
-    @Specialization
-    protected Object write(VirtualFrame frame, int padding, int precision, Rope rope,
-            @Cached RopeNodes.BytesNode bytesNode,
-            @Cached RopeNodes.CharacterLengthNode charLengthNode,
-            @Cached StringNodes.ByteIndexFromCharIndexNode indexNode) {
+    @Specialization(guards = "libString.isRubyString(string)", limit = "1")
+    protected Object write(VirtualFrame frame, int padding, int precision, Object string,
+            @Cached RubyStringLibrary libString,
+            @Cached TruffleString.CodePointLengthNode codePointLengthNode,
+            @Cached TruffleString.CodePointIndexToByteIndexNode codePointIndexToByteIndexNode,
+            @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
         if (padding == PrintfSimpleTreeBuilder.DEFAULT) {
             padding = 0;
         }
-        final byte[] bytes = bytesNode.execute(rope);
+
+        var tstring = libString.getTString(string);
+        var encoding = libString.getEncoding(string);
         if (leftJustifiedProfile.profile(leftJustified || padding < 0)) {
-            writeStringBytes(frame, precision, rope, bytesNode, indexNode);
-            writePaddingBytes(frame, Math.abs(padding), precision, rope, charLengthNode);
+            writeStringBytes(frame, precision, tstring, encoding, codePointIndexToByteIndexNode, byteArrayNode);
+            writePaddingBytes(frame, Math.abs(padding), precision, tstring, encoding, codePointLengthNode);
         } else {
-            writePaddingBytes(frame, padding, precision, rope, charLengthNode);
-            writeStringBytes(frame, precision, rope, bytesNode, indexNode);
+            writePaddingBytes(frame, padding, precision, tstring, encoding, codePointLengthNode);
+            writeStringBytes(frame, precision, tstring, encoding, codePointIndexToByteIndexNode, byteArrayNode);
         }
+
         return null;
     }
 
-    private void writeStringBytes(VirtualFrame frame, int precision, Rope rope,
-            RopeNodes.BytesNode bytesNode,
-            StringNodes.ByteIndexFromCharIndexNode indexNode) {
-        byte[] bytes = bytesNode.execute(rope);
+    private void writeStringBytes(VirtualFrame frame, int precision,
+            AbstractTruffleString tstring, RubyEncoding encoding,
+            TruffleString.CodePointIndexToByteIndexNode codePointIndexToByteIndexNode,
+            TruffleString.GetInternalByteArrayNode byteArrayNode) {
+        var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
         int length;
-        if (precisionProfile.profile(precision >= 0 && bytes.length > precision)) {
-            int index = indexNode.execute(rope, 0, precision);
+
+        if (precisionProfile.profile(precision >= 0 && byteArray.getLength() > precision)) {
+            int index = codePointIndexToByteIndexNode.execute(tstring, 0, precision, encoding.tencoding);
             if (index >= 0) {
                 length = index;
             } else {
-                length = bytes.length;
+                length = byteArray.getLength();
             }
         } else {
-            length = bytes.length;
+            length = byteArray.getLength();
         }
-        writeBytes(frame, bytes, length);
+
+        writeBytes(frame, byteArray.getArray(), byteArray.getOffset(), length);
     }
 
-    private void writePaddingBytes(VirtualFrame frame, int padding, int precision, Rope rope,
-            RopeNodes.CharacterLengthNode lengthNode) {
+    private void writePaddingBytes(VirtualFrame frame, int padding, int precision, AbstractTruffleString tstring,
+            RubyEncoding encoding,
+            TruffleString.CodePointLengthNode codePointLengthNode) {
         if (paddingProfile.profile(padding > 0)) {
-            int ropeLength = lengthNode.execute(rope);
+            int codePointLength = codePointLengthNode.execute(tstring, encoding.tencoding);
             int padBytes;
-            if (precision > 0 && ropeLength > precision) {
+            if (precision > 0 && codePointLength > precision) {
                 padBytes = padding - precision;
-            } else if (padding > 0 && padding > ropeLength) {
-                padBytes = padding - ropeLength;
+            } else if (padding > 0 && padding > codePointLength) {
+                padBytes = padding - codePointLength;
             } else {
                 padBytes = 0;
             }

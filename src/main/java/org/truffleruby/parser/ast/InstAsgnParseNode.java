@@ -34,7 +34,7 @@ package org.truffleruby.parser.ast;
 
 import java.util.List;
 
-import org.truffleruby.core.rope.Rope;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
@@ -45,10 +45,10 @@ public class InstAsgnParseNode extends AssignableParseNode implements INameNode 
 
     /** @param name the name of the instance variable
      * @param valueNode the value of the variable **/
-    public InstAsgnParseNode(SourceIndexLength position, Rope name, ParseNode valueNode) {
+    public InstAsgnParseNode(SourceIndexLength position, TruffleString name, ParseNode valueNode) {
         super(position, valueNode);
 
-        this.name = name.getJavaString();
+        this.name = name.toJavaStringUncached();
     }
 
     @Override

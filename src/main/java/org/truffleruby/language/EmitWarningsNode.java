@@ -11,9 +11,7 @@ package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.RaiseException;
@@ -68,9 +66,9 @@ public class EmitWarningsNode extends RubyContextSourceNode {
     private static void printWarning(RubyContext context, String message) {
         if (context.getCoreLibrary().isLoaded()) {
             final Object warning = context.getCoreLibrary().warningModule;
-            final Rope messageRope = StringOperations.encodeRope(message, UTF8Encoding.INSTANCE);
-            final RubyString messageString = StringOperations
-                    .createUTF8String(context, context.getLanguageSlow(), messageRope);
+            final RubyString messageString = StringOperations.createUTF8String(context, context.getLanguageSlow(),
+                    message);
+
             DispatchNode.getUncached().call(warning, "warn", messageString);
         } else {
             try {

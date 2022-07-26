@@ -19,6 +19,7 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -28,15 +29,11 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.numeric.FloatNodesFactory.ModNodeFactory;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.thread.RubyThread;
-import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -883,7 +880,7 @@ public abstract class FloatNodes {
     @ImportStatic(Double.class)
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         /* Ruby has complex custom formatting logic for floats. Our logic meets the specs but we suspect it's possibly
          * still not entirely correct. JRuby seems to be correct, but their logic is tied up in their printf
@@ -891,52 +888,52 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "value == POSITIVE_INFINITY")
         protected RubyString toSPositiveInfinity(double value,
-                @Cached("specialValueRope(POSITIVE_INFINITY)") Rope cachedRope) {
-            return makeStringNode.executeMake(cachedRope, Encodings.US_ASCII, NotProvided.INSTANCE);
+                @Cached("specialValueString(POSITIVE_INFINITY)") TruffleString cachedString) {
+            return createString(cachedString, Encodings.US_ASCII);
         }
 
         @Specialization(guards = "value == NEGATIVE_INFINITY")
         protected RubyString toSNegativeInfinity(double value,
-                @Cached("specialValueRope(NEGATIVE_INFINITY)") Rope cachedRope) {
-            return makeStringNode.executeMake(cachedRope, Encodings.US_ASCII, NotProvided.INSTANCE);
+                @Cached("specialValueString(NEGATIVE_INFINITY)") TruffleString cachedString) {
+            return createString(cachedString, Encodings.US_ASCII);
         }
 
         @Specialization(guards = "isNaN(value)")
         protected RubyString toSNaN(double value,
-                @Cached("specialValueRope(value)") Rope cachedRope) {
-            return makeStringNode.executeMake(cachedRope, Encodings.US_ASCII, NotProvided.INSTANCE);
+                @Cached("specialValueString(value)") TruffleString cachedString) {
+            return createString(cachedString, Encodings.US_ASCII);
         }
 
         @Specialization(guards = "hasNoExp(value)")
         protected RubyString toSNoExp(double value) {
-            return makeStringNode.executeMake(makeRopeNoExp(value, getLanguage().getCurrentThread()),
-                    Encodings.US_ASCII, CodeRange.CR_7BIT);
+            return createString(fromJavaStringNode, makeStringNoExp(value, getLanguage().getCurrentThread()),
+                    Encodings.US_ASCII); // CR_7BIT
         }
 
         @Specialization(guards = "hasLargeExp(value)")
         protected RubyString toSLargeExp(double value) {
-            return makeStringNode.executeMake(makeRopeLargeExp(value, getLanguage().getCurrentThread()),
-                    Encodings.US_ASCII, CodeRange.CR_7BIT);
+            return createString(fromJavaStringNode, makeStringLargeExp(value, getLanguage().getCurrentThread()),
+                    Encodings.US_ASCII); // CR_7BIT
         }
 
         @Specialization(guards = "hasSmallExp(value)")
         protected RubyString toSSmallExp(double value) {
-            return makeStringNode.executeMake(makeRopeSmallExp(value, getLanguage().getCurrentThread()),
-                    Encodings.US_ASCII, CodeRange.CR_7BIT);
+            return createString(fromJavaStringNode, makeStringSmallExp(value, getLanguage().getCurrentThread()),
+                    Encodings.US_ASCII); // CR_7BIT
         }
 
         @TruffleBoundary
-        private String makeRopeNoExp(double value, RubyThread thread) {
+        private String makeStringNoExp(double value, RubyThread thread) {
             return getNoExpFormat(thread).format(value);
         }
 
         @TruffleBoundary
-        private String makeRopeSmallExp(double value, RubyThread thread) {
+        private String makeStringSmallExp(double value, RubyThread thread) {
             return getSmallExpFormat(thread).format(value);
         }
 
         @TruffleBoundary
-        private String makeRopeLargeExp(double value, RubyThread thread) {
+        private String makeStringLargeExp(double value, RubyThread thread) {
             return getLargeExpFormat(thread).format(value);
         }
 
@@ -955,8 +952,8 @@ public abstract class FloatNodes {
             return (abs < 0.0001) && (abs != 0.0);
         }
 
-        protected static Rope specialValueRope(double value) {
-            return RopeOperations.encodeAscii(Double.toString(value), Encodings.US_ASCII.jcoding);
+        protected static TruffleString specialValueString(double value) {
+            return TStringUtils.fromJavaString(Double.toString(value), Encodings.US_ASCII);
         }
 
         private DecimalFormat getNoExpFormat(RubyThread thread) {
@@ -991,7 +988,7 @@ public abstract class FloatNodes {
     @CoreMethod(names = "dtoa", visibility = Visibility.PRIVATE)
     public abstract static class DToANode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @TruffleBoundary
         @Specialization
@@ -1031,7 +1028,7 @@ public abstract class FloatNodes {
             final int sign = value < 0 ? 1 : 0;
 
             return createArray(new Object[]{
-                    makeStringNode.executeMake(string, Encodings.UTF_8, CodeRange.CR_7BIT),
+                    createString(fromJavaStringNode, string, Encodings.UTF_8), // CR_7BIT
                     decimal,
                     sign,
                     string.length()

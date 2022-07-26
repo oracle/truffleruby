@@ -66,7 +66,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
-import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -76,9 +76,6 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.extra.ffi.Pointer;
@@ -133,21 +130,25 @@ public abstract class IONodes {
     @Primitive(name = "file_fnmatch", lowerFixnum = 2)
     public abstract static class FileFNMatchPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary
-        @Specialization(guards = { "stringsPattern.isRubyString(pattern)", "stringsPath.isRubyString(path)" })
+        @Specialization(guards = { "stringsPattern.isRubyString(pattern)", "stringsPath.isRubyString(path)" },
+                limit = "1")
         protected boolean fnmatch(Object pattern, Object path, int flags,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsPattern,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsPath) {
-            final Rope patternRope = stringsPattern.getRope(pattern);
-            final Rope pathRope = stringsPath.getRope(path);
+                @Cached RubyStringLibrary stringsPattern,
+                @Cached RubyStringLibrary stringsPath,
+                @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayPatternNode,
+                @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayPathNode) {
+            var patternByteArray = getInternalByteArrayPatternNode.execute(stringsPattern.getTString(pattern),
+                    stringsPattern.getTEncoding(pattern));
+            var pathByteArray = getInternalByteArrayPathNode.execute(stringsPath.getTString(path),
+                    stringsPath.getTEncoding(path));
 
             return fnmatch(
-                    patternRope.getBytes(),
-                    0,
-                    patternRope.byteLength(),
-                    pathRope.getBytes(),
-                    0,
-                    pathRope.byteLength(),
+                    patternByteArray.getArray(),
+                    patternByteArray.getOffset(),
+                    patternByteArray.getEnd(),
+                    pathByteArray.getArray(),
+                    pathByteArray.getOffset(),
+                    pathByteArray.getEnd(),
                     flags) != FNM_NOMATCH;
         }
 
@@ -192,7 +193,8 @@ public abstract class IONodes {
                 switch (c) {
                     case '?':
                         if (s >= send || (pathname && isdirsep(string[s])) ||
-                                (period && string[s] == '.' && (s == 0 || (pathname && isdirsep(string[s - 1]))))) {
+                                (period && string[s] == '.' &&
+                                        (s == sstart || (pathname && isdirsep(string[s - 1]))))) {
                             return FNM_NOMATCH;
                         }
                         s++;
@@ -201,7 +203,8 @@ public abstract class IONodes {
                         while (pat < pend && (c = (char) (bytes[pat++] & 0xFF)) == '*') {
                         }
                         if (s < send &&
-                                (period && string[s] == '.' && (s == 0 || (pathname && isdirsep(string[s - 1]))))) {
+                                (period && string[s] == '.' &&
+                                        (s == sstart || (pathname && isdirsep(string[s - 1]))))) {
                             return FNM_NOMATCH;
                         }
                         if (pat > pend || (pat == pend && c == '*')) {
@@ -233,7 +236,8 @@ public abstract class IONodes {
                         return FNM_NOMATCH;
                     case '[':
                         if (s >= send || (pathname && isdirsep(string[s]) ||
-                                (period && string[s] == '.' && (s == 0 || (pathname && isdirsep(string[s - 1])))))) {
+                                (period && string[s] == '.' &&
+                                        (s == sstart || (pathname && isdirsep(string[s - 1])))))) {
                             return FNM_NOMATCH;
                         }
                         pat = range(bytes, pat, pend, (char) (string[s] & 0xFF), flags);
@@ -275,6 +279,7 @@ public abstract class IONodes {
             return s >= send ? 0 : FNM_NOMATCH;
         }
 
+        @TruffleBoundary
         public static int fnmatch(
                 byte[] bytes, int pstart, int pend,
                 byte[] string, int sstart, int send, int flags) {
@@ -436,7 +441,7 @@ public abstract class IONodes {
         @TruffleBoundary
         @Specialization
         protected Object read(int length,
-                @Cached MakeStringNode makeStringNode) {
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             final InputStream stream = getContext().getEnv().in();
             final byte[] buffer = new byte[length];
             final int bytesRead = getContext().getThreadManager().runUntilResult(this, () -> {
@@ -458,7 +463,7 @@ public abstract class IONodes {
                 bytes = Arrays.copyOf(buffer, bytesRead);
             }
 
-            return makeStringNode.executeMake(bytes, Encodings.BINARY, CodeRange.CR_UNKNOWN);
+            return createString(fromByteArrayNode, bytes, Encodings.BINARY);
         }
 
     }
@@ -467,9 +472,9 @@ public abstract class IONodes {
     public abstract static class IOWritePolyglotNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(string)")
+        @Specialization(guards = "strings.isRubyString(string)", limit = "1")
         protected int write(int fd, Object string,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
+                @Cached RubyStringLibrary strings) {
             final OutputStream stream;
 
             switch (fd) {
@@ -484,19 +489,18 @@ public abstract class IONodes {
                     throw CompilerDirectives.shouldNotReachHere();
             }
 
-            final Rope rope = strings.getRope(string);
-            final byte[] bytes = rope.getBytes();
+            var byteArray = strings.getTString(string).getInternalByteArrayUncached(strings.getTEncoding(string));
 
             getContext().getThreadManager().runUntilResult(this, () -> {
                 try {
-                    stream.write(bytes);
+                    stream.write(byteArray.getArray(), byteArray.getOffset(), byteArray.getLength());
                 } catch (IOException e) {
                     throw new RaiseException(getContext(), coreExceptions().ioError(e, this));
                 }
                 return BlockingAction.SUCCESS;
             });
 
-            return rope.byteLength();
+            return byteArray.getLength();
         }
 
     }

@@ -10,10 +10,6 @@
 package org.truffleruby.core.format;
 
 import com.oracle.truffle.api.nodes.Node;
-import org.jcodings.Encoding;
-import org.jcodings.specific.ASCIIEncoding;
-import org.jcodings.specific.USASCIIEncoding;
-import org.jcodings.specific.UTF8Encoding;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyContext;
@@ -46,16 +42,16 @@ public enum FormatEncoding {
         }
     }
 
-    public static FormatEncoding find(Encoding encoding, Node currentNode) {
-        if (encoding == ASCIIEncoding.INSTANCE) {
+    public static FormatEncoding find(RubyEncoding encoding, Node currentNode) {
+        if (encoding == Encodings.BINARY) {
             return ASCII_8BIT;
         }
 
-        if (encoding == USASCIIEncoding.INSTANCE) {
+        if (encoding == Encodings.US_ASCII) {
             return US_ASCII;
         }
 
-        if (encoding == UTF8Encoding.INSTANCE) {
+        if (encoding == Encodings.UTF_8) {
             return UTF_8;
         }
 

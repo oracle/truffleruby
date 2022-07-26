@@ -11,13 +11,12 @@
  */
 package org.truffleruby.core.encoding;
 
-import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.strings.InternalByteArray;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
 import org.jcodings.Ptr;
 import org.jcodings.transcode.EConv;
@@ -36,20 +35,12 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
-import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeBuilder;
-import org.truffleruby.core.rope.RopeConstants;
-import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.TStringBuilder;
 import org.truffleruby.core.string.EncodingUtils;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyNode;
@@ -116,7 +107,8 @@ public abstract class EncodingConverterNodes {
                 }
 
                 final byte[] segmentSource = transcoder.getSource();
-                ret[retIndex++] = getSymbol(StringUtils.toUpperCase(RopeOperations.decodeAscii(segmentSource)));
+                ret[retIndex++] = getSymbol(
+                        StringUtils.toUpperCase(new String(segmentSource, StandardCharsets.US_ASCII)));
             }
 
             final int retSize = retIndex + 1;
@@ -127,7 +119,7 @@ public abstract class EncodingConverterNodes {
             }
 
             final byte[] destinationName = destinationEncoding.getName();
-            ret[retIndex] = getSymbol(StringUtils.toUpperCase(RopeOperations.decodeAscii(destinationName)));
+            ret[retIndex] = getSymbol(StringUtils.toUpperCase(new String(destinationName, StandardCharsets.US_ASCII)));
 
             return createArray(ret);
         }
@@ -187,73 +179,25 @@ public abstract class EncodingConverterNodes {
     @Primitive(name = "encoding_converter_primitive_convert", lowerFixnum = { 3, 4, 5 })
     public abstract static class PrimitiveConvertNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
-
         @TruffleBoundary
-        @Specialization(guards = "stringsSource.isRubyString(source)")
-        protected Object encodingConverterPrimitiveConvert(
-                RubyEncodingConverter encodingConverter,
-                Object source,
-                RubyString target,
-                int offset,
-                int size,
-                RubyHash options,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsSource) {
-            throw new UnsupportedOperationException("not implemented");
-        }
-
         @Specialization
-        protected Object primitiveConvertNilSource(
-                RubyEncodingConverter encodingConverter,
-                Nil source,
-                RubyString target,
-                int offset,
-                int size,
-                int options,
-                @Cached DispatchNode destinationEncodingNode) {
-            return primitiveConvertHelper(
-                    encodingConverter,
-                    source,
-                    RopeConstants.EMPTY_UTF8_ROPE,
-                    target,
-                    offset,
-                    size,
-                    options,
-                    destinationEncodingNode);
-        }
-
-        @Specialization(guards = "stringsSource.isRubyString(source)")
         protected Object encodingConverterPrimitiveConvert(
                 RubyEncodingConverter encodingConverter,
-                Object source,
+                RubyString source,
                 RubyString target,
                 int offset,
                 int size,
                 int options,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsSource,
-                @Cached DispatchNode destinationEncodingNode) {
-
+                @Cached RubyStringLibrary libString,
+                @Cached DispatchNode destinationEncodingNode,
+                @Cached TruffleString.SubstringByteIndexNode substringNode,
+                @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode) {
             // Taken from org.jruby.RubyConverter#primitive_convert.
 
-            return primitiveConvertHelper(
-                    encodingConverter,
-                    source,
-                    stringsSource.getRope(source),
-                    target,
-                    offset,
-                    size,
-                    options,
-                    destinationEncodingNode);
-        }
+            var tencoding = libString.getTEncoding(source);
+            var tstring = source.tstring;
 
-        @TruffleBoundary
-        private Object primitiveConvertHelper(RubyEncodingConverter encodingConverter, Object source, Rope sourceRope,
-                RubyString target, int offset, int size, int options, DispatchNode destinationEncodingNode) {
-            // Taken from org.jruby.RubyConverter#primitive_convert.
-
-            Rope targetRope = target.rope;
-            final boolean nonNullSource = source != nil;
-            final RopeBuilder outBytes = RopeOperations.toRopeBuilderCopy(targetRope);
+            final TStringBuilder outBytes = TStringBuilder.create(target);
 
             final Ptr inPtr = new Ptr();
             final Ptr outPtr = new Ptr();
@@ -264,17 +208,11 @@ public abstract class EncodingConverterNodes {
             final boolean growOutputBuffer = (size == -1);
 
             if (size == -1) {
-                size = 16; // in MRI, this is RSTRING_EMBED_LEN_MAX
-
-                if (nonNullSource) {
-                    if (size < sourceRope.byteLength()) {
-                        size = sourceRope.byteLength();
-                    }
-                }
+                int minSize = 16; // in MRI, this is RSTRING_EMBED_LEN_MAX
+                size = Math.max(minSize, source.byteLengthUncached());
             }
 
             while (true) {
-
                 if (changeOffset) {
                     offset = outBytes.getLength();
                 }
@@ -285,7 +223,7 @@ public abstract class EncodingConverterNodes {
                             coreExceptions().argumentError("output offset too big", this));
                 }
 
-                long outputByteEnd = offset + size;
+                long outputByteEnd = (long) offset + size;
 
                 if (outputByteEnd > Integer.MAX_VALUE) {
                     // overflow check
@@ -296,25 +234,21 @@ public abstract class EncodingConverterNodes {
 
                 outBytes.unsafeEnsureSpace((int) outputByteEnd);
 
-                inPtr.p = 0;
+                var sourceBytes = getInternalByteArrayNode.execute(tstring, tencoding);
+
+                inPtr.p = sourceBytes.getOffset();
                 outPtr.p = offset;
-                int os = outPtr.p + size;
-                EConvResult res = convert(
-                        ec,
-                        sourceRope.getBytes(),
-                        inPtr,
-                        sourceRope.byteLength() + inPtr.p,
-                        outBytes.getUnsafeBytes(),
-                        outPtr,
-                        os,
+                EConvResult res = ec.convert(
+                        sourceBytes.getArray(), inPtr, sourceBytes.getEnd(),
+                        outBytes.getUnsafeBytes(), outPtr, outPtr.p + size,
                         options);
 
                 outBytes.setLength(outPtr.p);
 
-                if (nonNullSource) {
-                    sourceRope = substringNode.executeSubstring(sourceRope, inPtr.p, sourceRope.byteLength() - inPtr.p);
-                    ((RubyString) source).setRope(sourceRope);
-                }
+                int inputOffset = inPtr.p - sourceBytes.getOffset();
+                tstring = substringNode.execute(source.tstring, inputOffset, source.byteLengthUncached() - inputOffset,
+                        tencoding, true);
+                source.setTString(tstring);
 
                 if (growOutputBuffer && res == EConvResult.DestinationBufferFull) {
                     if (Integer.MAX_VALUE / 2 < size) {
@@ -327,29 +261,22 @@ public abstract class EncodingConverterNodes {
                 }
 
                 if (ec.destinationEncoding != null) {
-                    outBytes.setEncoding(ec.destinationEncoding);
+                    outBytes.setEncoding(Encodings.getBuiltInEncoding(ec.destinationEncoding));
                 }
 
-                target.setRope(
-                        RopeOperations.ropeFromRopeBuilder(outBytes),
-                        (RubyEncoding) destinationEncodingNode.call(encodingConverter, "destination_encoding"));
+                var destinationEncoding = (RubyEncoding) destinationEncodingNode.call(encodingConverter,
+                        "destination_encoding");
+                target.setTString(outBytes.toTString(), destinationEncoding);
 
                 return getSymbol(res.symbolicName());
             }
         }
-
-        @TruffleBoundary
-        private EConvResult convert(EConv ec, byte[] in, Ptr inPtr, int inStop, byte[] out, Ptr outPtr, int outStop,
-                int flags) {
-            return ec.convert(in, inPtr, inStop, out, outPtr, outStop, flags);
-        }
-
     }
 
     @CoreMethod(names = "putback", optional = 1, lowerFixnum = 1)
     public abstract static class EncodingConverterPutbackNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromByteArrayNode fromByteArrayNode = TruffleString.FromByteArrayNode.create();
 
         @Specialization
         protected RubyString encodingConverterPutback(RubyEncodingConverter encodingConverter, int maxBytes,
@@ -383,7 +310,7 @@ public abstract class EncodingConverterNodes {
 
             final Object sourceEncoding = (RubyEncoding) sourceEncodingNode.call(encodingConverter, "source_encoding");
             final RubyEncoding rubyEncoding = sourceEncoding == nil ? Encodings.BINARY : (RubyEncoding) sourceEncoding;
-            return makeStringNode.executeMake(bytes, rubyEncoding, CodeRange.CR_UNKNOWN);
+            return createString(fromByteArrayNode, bytes, rubyEncoding);
         }
     }
 
@@ -393,7 +320,7 @@ public abstract class EncodingConverterNodes {
         @TruffleBoundary
         @Specialization
         protected Object encodingConverterLastError(RubyEncodingConverter encodingConverter,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             final EConv ec = encodingConverter.econv;
             final EConv.LastError lastError = ec.lastError;
 
@@ -408,18 +335,20 @@ public abstract class EncodingConverterNodes {
             final Object[] store = new Object[size];
 
             store[0] = eConvResultToSymbol(lastError.getResult());
-            store[1] = makeStringNode.executeMake(lastError.getSource(), Encodings.BINARY, CR_UNKNOWN);
-            store[2] = makeStringNode.executeMake(lastError.getDestination(), Encodings.BINARY, CR_UNKNOWN);
-            store[3] = makeStringNode.fromBuilderUnsafe(RopeBuilder.createRopeBuilder(
+            store[1] = createString(fromByteArrayNode, lastError.getSource(), Encodings.BINARY);
+            store[2] = createString(fromByteArrayNode, lastError.getDestination(), Encodings.BINARY);
+            var errorTString = TStringBuilder.create(
                     lastError.getErrorBytes(),
                     lastError.getErrorBytesP(),
-                    lastError.getErrorBytesP() + lastError.getErrorBytesLength()), Encodings.BINARY, CR_UNKNOWN);
+                    lastError.getErrorBytesLength()).toTStringUnsafe(fromByteArrayNode);
+            store[3] = createString(errorTString, Encodings.BINARY);
 
             if (readAgain) {
-                store[4] = makeStringNode.fromBuilderUnsafe(RopeBuilder.createRopeBuilder(
+                var readAgainTString = TStringBuilder.create(
                         lastError.getErrorBytes(),
-                        lastError.getErrorBytesLength() + lastError.getErrorBytesP(),
-                        lastError.getReadAgainLength()), Encodings.BINARY, CR_UNKNOWN);
+                        lastError.getErrorBytesP() + lastError.getErrorBytesLength(),
+                        lastError.getReadAgainLength()).toTStringUnsafe(fromByteArrayNode);
+                store[4] = createString(readAgainTString, Encodings.BINARY);
             }
 
             return createArray(store);
@@ -454,35 +383,32 @@ public abstract class EncodingConverterNodes {
         @TruffleBoundary
         @Specialization
         protected RubyArray encodingConverterLastError(RubyEncodingConverter encodingConverter,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             final EConv ec = encodingConverter.econv;
+            final EConv.LastError lastError = ec.lastError;
 
-            final Object[] ret = { getSymbol(ec.lastError.getResult().symbolicName()), nil, nil, nil, nil };
+            final Object[] ret = { getSymbol(lastError.getResult().symbolicName()), nil, nil, nil, nil };
 
-            if (ec.lastError.getSource() != null) {
-                ret[1] = makeStringNode.executeMake(ec.lastError.getSource(), Encodings.BINARY, CR_UNKNOWN);
+            if (lastError.getSource() != null) {
+                ret[1] = createString(fromByteArrayNode, lastError.getSource(), Encodings.BINARY);
             }
 
-            if (ec.lastError.getDestination() != null) {
-                ret[2] = makeStringNode.executeMake(ec.lastError.getDestination(), Encodings.BINARY, CR_UNKNOWN);
+            if (lastError.getDestination() != null) {
+                ret[2] = createString(fromByteArrayNode, lastError.getDestination(), Encodings.BINARY);
             }
 
-            if (ec.lastError.getErrorBytes() != null) {
-                ret[3] = makeStringNode
-                        .fromBuilderUnsafe(
-                                RopeBuilder.createRopeBuilder(
-                                        ec.lastError.getErrorBytes(),
-                                        ec.lastError.getErrorBytesP(),
-                                        ec.lastError.getErrorBytesLength()),
-                                Encodings.BINARY,
-                                CR_UNKNOWN);
-                ret[4] = makeStringNode.fromBuilderUnsafe(
-                        RopeBuilder.createRopeBuilder(
-                                ec.lastError.getErrorBytes(),
-                                ec.lastError.getErrorBytesP() + ec.lastError.getErrorBytesLength(),
-                                ec.lastError.getReadAgainLength()),
-                        Encodings.BINARY,
-                        CR_UNKNOWN);
+            if (lastError.getErrorBytes() != null) {
+                var errorTString = TStringBuilder.create(
+                        lastError.getErrorBytes(),
+                        lastError.getErrorBytesP(),
+                        lastError.getErrorBytesLength()).toTStringUnsafe(fromByteArrayNode);
+                ret[3] = createString(errorTString, Encodings.BINARY);
+
+                var readAgainTString = TStringBuilder.create(
+                        lastError.getErrorBytes(),
+                        lastError.getErrorBytesP() + lastError.getErrorBytesLength(),
+                        lastError.getReadAgainLength()).toTStringUnsafe(fromByteArrayNode);
+                ret[4] = createString(readAgainTString, Encodings.BINARY);
             }
 
             return createArray(ret);
@@ -493,7 +419,7 @@ public abstract class EncodingConverterNodes {
     @CoreMethod(names = "replacement")
     public abstract static class EncodingConverterReplacementNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromByteArrayNode fromByteArrayNode = TruffleString.FromByteArrayNode.create();
 
         @TruffleBoundary
         @Specialization
@@ -511,7 +437,7 @@ public abstract class EncodingConverterNodes {
             final String encodingName = new String(ec.replacementEncoding, StandardCharsets.US_ASCII);
             final RubyEncoding encoding = getContext().getEncodingManager().getRubyEncoding(encodingName);
 
-            return makeStringNode.executeMake(bytes, encoding, CodeRange.CR_UNKNOWN);
+            return createString(fromByteArrayNode, bytes, encoding);
         }
 
     }
@@ -526,16 +452,17 @@ public abstract class EncodingConverterNodes {
             return ToStrNodeGen.create(replacement);
         }
 
-        @Specialization(guards = "libReplacement.isRubyString(replacement)")
+        @Specialization(guards = "libReplacement.isRubyString(replacement)", limit = "1")
         protected Object setReplacement(RubyEncodingConverter encodingConverter, Object replacement,
                 @Cached BranchProfile errorProfile,
-                @Cached RopeNodes.BytesNode bytesNode,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libReplacement) {
-            final EConv ec = encodingConverter.econv;
-            final Rope rope = libReplacement.getRope(replacement);
-            final Encoding encoding = rope.getEncoding();
+                @Cached TruffleString.GetInternalByteArrayNode bytesNode,
+                @Cached RubyStringLibrary libReplacement) {
+            var tstring = libReplacement.getTString(replacement);
+            var encoding = libReplacement.getEncoding(replacement);
 
-            final int ret = setReplacement(ec, bytesNode.execute(rope), rope.byteLength(), encoding.getName());
+            final InternalByteArray byteArray = bytesNode.execute(tstring, encoding.tencoding);
+            int ret = setReplacement(encodingConverter.econv, byteArray.getArray(), byteArray.getOffset(),
+                    byteArray.getLength(), encoding.jcoding.getName());
 
             if (ret == -1) {
                 errorProfile.enter();
@@ -548,8 +475,8 @@ public abstract class EncodingConverterNodes {
         }
 
         @TruffleBoundary
-        private int setReplacement(EConv ec, byte[] string, int len, byte[] encodingName) {
-            return ec.setReplacement(string, 0, len, encodingName);
+        private int setReplacement(EConv ec, byte[] bytes, int offset, int len, byte[] encodingName) {
+            return ec.setReplacement(bytes, offset, len, encodingName);
         }
 
     }

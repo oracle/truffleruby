@@ -11,12 +11,11 @@ package org.truffleruby.core.format.read.bytes;
 
 import java.util.Arrays;
 
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.read.SourceNode;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -59,33 +58,34 @@ public abstract class ReadBinaryStringNode extends FormatNode {
 
     @Specialization
     protected RubyString read(VirtualFrame frame, byte[] source,
-            @Cached StringNodes.MakeStringNode makeStringNode) {
+            @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
         final int start = getSourcePosition(frame);
+        final int end = getSourceEnd(frame);
 
         int length;
 
         if (readToEnd) {
             length = 0;
 
-            while (start + length < getSourceLength(frame) &&
-                    (!readToNull || (start + length < getSourceLength(frame) && source[start + length] != 0))) {
+            while (start + length < end &&
+                    (!readToNull || (start + length < end && source[start + length] != 0))) {
                 length++;
             }
 
-            if (start + length < getSourceLength(frame) && source[start + length] == 0) {
+            if (start + length < end && source[start + length] == 0) {
                 length++;
             }
         } else if (readToNull) {
             length = 0;
 
-            while (start + length < getSourceLength(frame) && length < count && source[start + length] != 0) {
+            while (start + length < end && length < count && source[start + length] != 0) {
                 length++;
             }
         } else {
             length = count;
 
-            if (start + length >= getSourceLength(frame)) {
-                length = getSourceLength(frame) - start;
+            if (start + length >= end) {
+                length = end - start;
             }
         }
 
@@ -106,10 +106,10 @@ public abstract class ReadBinaryStringNode extends FormatNode {
 
         setSourcePosition(frame, start + length);
 
-        return makeStringNode.executeMake(
+        return createString(
+                fromByteArrayNode,
                 Arrays.copyOfRange(source, start, start + usedLength),
-                Encodings.BINARY,
-                CodeRange.CR_UNKNOWN);
+                Encodings.BINARY);
     }
 
     private int indexOfFirstNull(byte[] bytes, int start, int length) {

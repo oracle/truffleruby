@@ -7,11 +7,13 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.core.rope;
+package org.truffleruby.core.string;
 
 import java.util.Arrays;
 
 import org.jcodings.Encoding;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.TStringUtils;
 
 public class BytesKey {
 
@@ -42,7 +44,7 @@ public class BytesKey {
 
     @Override
     public String toString() {
-        return RopeOperations.decode(encoding, bytes);
+        return TStringUtils.fromByteArray(bytes, Encodings.getBuiltInEncoding(encoding)).toString();
     }
 
 }

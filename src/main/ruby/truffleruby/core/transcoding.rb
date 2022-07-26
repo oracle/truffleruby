@@ -182,7 +182,7 @@ class Encoding
     end
 
     def primitive_convert(source, target, offset=nil, size=nil, options=0)
-      source = StringValue(source) if source
+      source = source ? StringValue(source) : +''
       target = StringValue(target)
 
       if Primitive.nil? offset
@@ -221,8 +221,7 @@ class Encoding
         source.prepend putback
       end
 
-      Primitive.encoding_converter_primitive_convert(
-          self, source, target, offset, size, options)
+      Primitive.encoding_converter_primitive_convert(self, source, target, offset, size, options)
     end
 
     def finish

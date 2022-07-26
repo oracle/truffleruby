@@ -11,13 +11,16 @@ package org.truffleruby.core.format.printf;
 
 import java.util.List;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.format.FormatEncoding;
 import org.truffleruby.core.format.FormatRootNode;
-import org.truffleruby.core.rope.Rope;
 
 import com.oracle.truffle.api.RootCallTarget;
+import org.truffleruby.core.string.StringSupport;
 
 public class PrintfCompiler {
 
@@ -29,26 +32,21 @@ public class PrintfCompiler {
         this.currentNode = currentNode;
     }
 
-    public RootCallTarget compile(Rope format, Object[] arguments, boolean isDebug) {
-        final PrintfSimpleParser parser = new PrintfSimpleParser(bytesToChars(format.getBytes()), arguments, isDebug);
+    @TruffleBoundary
+    public RootCallTarget compile(AbstractTruffleString tstring, RubyEncoding encoding, Object[] arguments,
+            boolean isDebug) {
+        var byteArray = tstring.getInternalByteArrayUncached(encoding.tencoding);
+
+        final PrintfSimpleParser parser = new PrintfSimpleParser(StringSupport.bytesToChars(byteArray), arguments,
+                isDebug);
         final List<SprintfConfig> configs = parser.parse();
         final PrintfSimpleTreeBuilder builder = new PrintfSimpleTreeBuilder(language, configs);
 
         return new FormatRootNode(
                 language,
                 currentNode.getEncapsulatingSourceSection(),
-                FormatEncoding.find(format.getEncoding(), currentNode),
+                FormatEncoding.find(encoding, currentNode),
                 builder.getNode()).getCallTarget();
-    }
-
-    private static char[] bytesToChars(byte[] bytes) {
-        final char[] chars = new char[bytes.length];
-
-        for (int n = 0; n < bytes.length; n++) {
-            chars[n] = (char) bytes[n];
-        }
-
-        return chars;
     }
 
 }

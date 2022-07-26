@@ -18,7 +18,6 @@ import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.RubyString;
@@ -60,8 +59,8 @@ public class GlobalVariablesObject implements TruffleObject {
         } else {
             final RubyLanguage language = RubyLanguage.get(node);
             final RubyContext context = RubyContext.get(node);
-            final RubyString string = StringOperations
-                    .createUTF8String(context, language, StringOperations.encodeRope(member, UTF8Encoding.INSTANCE));
+            final RubyString string = StringOperations.createUTF8String(context, language, member);
+
             return evalNode.call(context.getCoreLibrary().topLevelBinding, "eval", string);
         }
     }
@@ -78,9 +77,9 @@ public class GlobalVariablesObject implements TruffleObject {
             final RubyLanguage language = RubyLanguage.get(node);
             final RubyContext context = RubyContext.get(node);
             final String code = "-> value { " + member + " = value }";
-            final RubyString string = StringOperations
-                    .createUTF8String(context, language, StringOperations.encodeRope(code, UTF8Encoding.INSTANCE));
+            final RubyString string = StringOperations.createUTF8String(context, language, code);
             final Object lambda = evalNode.call(context.getCoreLibrary().topLevelBinding, "eval", string);
+
             callNode.call(lambda, "call", value);
         }
     }

@@ -53,6 +53,8 @@ import org.truffleruby.language.control.DeferredRaiseException;
 
 import com.oracle.truffle.api.nodes.Node;
 
+import static org.truffleruby.language.RubyBaseNode.nil;
+
 public class SimplePackTreeBuilder implements SimplePackListener {
 
     private final Node currentNode;
@@ -181,7 +183,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
                         true,
                         "to_s",
                         true,
-                        Nil.INSTANCE,
+                        nil,
                         new SourceNode())));
     }
 

@@ -10,8 +10,8 @@ null = File.open('/dev/null', 'w')
 
 kilobyte = 'x' * 1024
 
-if defined?(Truffle::Ropes.flatten_rope)
-  kilobyte = Truffle::Ropes.flatten_rope(kilobyte)
+if defined?(Truffle::Debug.flatten_string)
+  kilobyte = Truffle::Debug.flatten_string(kilobyte)
 end
 
 benchmark 'core-write-kilobyte' do
@@ -20,8 +20,8 @@ end
 
 gigabyte = 'x' * 1024 * 1024 * 1024
 
-if defined?(Truffle::Ropes.flatten_rope)
-  gigabyte = Truffle::Ropes.flatten_rope(gigabyte)
+if defined?(Truffle::Debug.flatten_string)
+  gigabyte = Truffle::Debug.flatten_string(gigabyte)
 end
 
 benchmark 'core-write-gigabyte' do

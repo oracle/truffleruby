@@ -46,6 +46,7 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreModule;
@@ -64,14 +65,13 @@ import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.SafepointAction;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
@@ -268,12 +268,13 @@ public abstract class VMPrimitiveNodes {
     public abstract static class VMWatchSignalNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = { "libSignalString.isRubyString(signalString)", "libAction.isRubyString(action)" })
+        @Specialization(guards = { "libSignalString.isRubyString(signalString)", "libAction.isRubyString(action)" },
+                limit = "1")
         protected boolean watchSignalString(Object signalString, boolean isRubyDefaultHandler, Object action,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSignalString,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libAction) {
-            final String actionString = libAction.getJavaString(action);
-            final String signalName = libSignalString.getJavaString(signalString);
+                @Cached RubyStringLibrary libSignalString,
+                @Cached RubyStringLibrary libAction) {
+            final String actionString = RubyGuards.getJavaString(action);
+            final String signalName = RubyGuards.getJavaString(signalString);
 
             switch (actionString) {
                 case "DEFAULT":
@@ -288,9 +289,9 @@ public abstract class VMPrimitiveNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "libSignalString.isRubyString(signalString)")
+        @Specialization(guards = "libSignalString.isRubyString(signalString)", limit = "1")
         protected boolean watchSignalProc(Object signalString, boolean isRubyDefaultHandler, RubyProc action,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSignalString) {
+                @Cached RubyStringLibrary libSignalString) {
             final RubyContext context = getContext();
 
             if (getLanguage().getCurrentThread() != context.getThreadManager().getRootThread()) {
@@ -298,7 +299,7 @@ public abstract class VMPrimitiveNodes {
                 SharedObjects.writeBarrier(getLanguage(), action);
             }
 
-            final String signalName = libSignalString.getJavaString(signalString);
+            final String signalName = RubyGuards.getJavaString(signalString);
 
             return registerHandler(signalName, signal -> {
                 final RubyThread rootThread = context.getThreadManager().getRootThread();
@@ -383,9 +384,8 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object get(Object key,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary library) {
-            final String keyString = library.getJavaString(key);
+        protected Object get(Object key) {
+            final String keyString = RubyGuards.getJavaString(key);
             final Object value = getContext().getNativeConfiguration().get(keyString);
 
             if (value == null) {
@@ -403,14 +403,12 @@ public abstract class VMPrimitiveNodes {
         @TruffleBoundary
         @Specialization
         protected Object getSection(Object section, RubyProc block,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libSection,
-                @Cached MakeStringNode makeStringNode,
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode,
                 @Cached CallBlockNode yieldNode) {
             for (Entry<String, Object> entry : getContext()
                     .getNativeConfiguration()
-                    .getSection(libSection.getJavaString(section))) {
-                final RubyString key = makeStringNode
-                        .executeMake(entry.getKey(), Encodings.UTF_8, CodeRange.CR_7BIT);
+                    .getSection(RubyGuards.getJavaString(section))) {
+                final RubyString key = createString(fromJavaStringNode, entry.getKey(), Encodings.UTF_8); // CR_7BIT
                 yieldNode.yield(block, key, entry.getValue());
             }
 
@@ -439,10 +437,10 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization(guards = "count >= 0")
         protected RubyString readRandomBytes(int count,
-                @Cached MakeStringNode makeStringNode) {
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             final byte[] bytes = getContext().getRandomSeedBytes(count);
 
-            return makeStringNode.executeMake(bytes, Encodings.BINARY, CodeRange.CR_UNKNOWN);
+            return createString(fromByteArrayNode, bytes, Encodings.BINARY);
         }
 
         @Specialization(guards = "count < 0")
@@ -450,9 +448,7 @@ public abstract class VMPrimitiveNodes {
             throw new RaiseException(
                     getContext(),
                     getContext().getCoreExceptions().argumentError(
-                            coreStrings().NEGATIVE_STRING_SIZE.getRope(),
-                            Encodings.BINARY,
-                            this));
+                            coreStrings().NEGATIVE_STRING_SIZE.createInstance(getContext()), this, null));
         }
 
     }
@@ -565,10 +561,11 @@ public abstract class VMPrimitiveNodes {
     @Primitive(name = "should_not_reach_here")
     public abstract static class ShouldNotReachHereNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "libString.isRubyString(message)")
+        @Specialization(guards = "libString.isRubyString(message)", limit = "1")
         protected Object shouldNotReachHere(Object message,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
-            throw CompilerDirectives.shouldNotReachHere(libString.getJavaString(message));
+                @Cached RubyStringLibrary libString) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            throw CompilerDirectives.shouldNotReachHere(RubyGuards.getJavaString(message));
         }
 
     }

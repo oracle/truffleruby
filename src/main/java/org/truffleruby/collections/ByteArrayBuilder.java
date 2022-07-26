@@ -9,14 +9,19 @@
  */
 package org.truffleruby.collections;
 
-import org.truffleruby.core.rope.RopeConstants;
+import com.oracle.truffle.api.strings.InternalByteArray;
+import com.oracle.truffle.api.strings.TruffleString;
+import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.TStringUtils;
+import org.truffleruby.core.string.TStringWithEncoding;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 public class ByteArrayBuilder {
 
-    private static final byte[] EMPTY_BYTES = RopeConstants.EMPTY_BYTES;
+    private static final byte[] EMPTY_BYTES = ArrayUtils.EMPTY_BYTES;
 
     private byte[] bytes = EMPTY_BYTES;
     private int length;
@@ -26,6 +31,12 @@ public class ByteArrayBuilder {
 
     public ByteArrayBuilder(int size) {
         bytes = new byte[size];
+    }
+
+    public static ByteArrayBuilder create(InternalByteArray bytes) {
+        final ByteArrayBuilder builder = new ByteArrayBuilder(bytes.getLength());
+        builder.append(bytes.getArray(), bytes.getOffset(), bytes.getLength());
+        return builder;
     }
 
     public static ByteArrayBuilder createUnsafeBuilder(byte[] wrap) {
@@ -70,6 +81,26 @@ public class ByteArrayBuilder {
         length += appendLength;
     }
 
+    public void append(InternalByteArray bytes) {
+        append(bytes.getArray(), bytes.getOffset(), bytes.getLength());
+    }
+
+    public void append(InternalByteArray bytes, int appendStart, int appendLength) {
+        append(bytes.getArray(), bytes.getOffset() + appendStart, appendLength);
+    }
+
+    public void append(TStringWithEncoding other) {
+        append(other.getInternalByteArray());
+    }
+
+    public void append(TStringWithEncoding other, int appendStart, int appendLength) {
+        append(other.getInternalByteArray(), appendStart, appendLength);
+    }
+
+    public void append(TruffleString other, RubyEncoding enc) {
+        append(other.getInternalByteArrayUncached(enc.tencoding));
+    }
+
     public void unsafeReplace(byte[] bytes, int size) {
         this.bytes = bytes;
         this.length = size;
@@ -101,6 +132,14 @@ public class ByteArrayBuilder {
     @Override
     public String toString() {
         return new String(bytes, 0, length, StandardCharsets.ISO_8859_1);
+    }
+
+    public TruffleString toTString(RubyEncoding encoding) {
+        return TStringUtils.fromByteArray(getBytes(), encoding);
+    }
+
+    public TStringWithEncoding toTStringWithEnc(RubyEncoding encoding) {
+        return new TStringWithEncoding(TStringUtils.fromByteArray(getBytes(), encoding), encoding);
     }
 
     // TODO CS 14-Feb-17 review all uses of this method

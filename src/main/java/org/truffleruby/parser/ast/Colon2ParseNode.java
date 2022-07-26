@@ -33,7 +33,7 @@ package org.truffleruby.parser.ast;
 
 import java.util.List;
 
-import org.truffleruby.core.rope.Rope;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
@@ -42,7 +42,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 public abstract class Colon2ParseNode extends Colon3ParseNode implements INameNode {
     protected final ParseNode leftNode;
 
-    public Colon2ParseNode(SourceIndexLength position, ParseNode leftNode, Rope name) {
+    public Colon2ParseNode(SourceIndexLength position, ParseNode leftNode, TruffleString name) {
         super(position, name);
         this.leftNode = leftNode;
     }

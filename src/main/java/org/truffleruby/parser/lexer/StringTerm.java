@@ -46,11 +46,12 @@ import static org.truffleruby.parser.lexer.RubyLexer.isHexChar;
 import static org.truffleruby.parser.lexer.RubyLexer.isOctChar;
 
 import org.jcodings.Encoding;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.regexp.RegexpOptions;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeBuilder;
-import org.truffleruby.core.rope.RopeConstants;
+import org.truffleruby.core.string.TStringBuilder;
+import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.string.KCode;
+import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.parser.ast.RegexpParseNode;
 import org.truffleruby.parser.parser.RubyParser;
 
@@ -84,9 +85,9 @@ public class StringTerm extends StrTerm {
         return flags;
     }
 
-    protected RopeBuilder createRopeBuilder(RubyLexer lexer) {
-        RopeBuilder builder = new RopeBuilder();
-        builder.setEncoding(lexer.getEncoding());
+    protected TStringBuilder createRopeBuilder(RubyLexer lexer) {
+        TStringBuilder builder = new TStringBuilder();
+        builder.setEncoding(lexer.encoding);
         return builder;
     }
 
@@ -102,9 +103,9 @@ public class StringTerm extends StrTerm {
 
         if ((flags & STR_FUNC_REGEXP) != 0) {
             RegexpOptions options = parseRegexpFlags(lexer);
-            Rope regexpRope = RopeConstants.EMPTY_US_ASCII_ROPE;
             lexer.setState(EXPR_END | EXPR_ENDARG);
-            lexer.setValue(new RegexpParseNode(lexer.getPosition(), regexpRope, options));
+            lexer.setValue(new RegexpParseNode(lexer.getPosition(),
+                    new TStringWithEncoding(TStringConstants.EMPTY_US_ASCII, Encodings.US_ASCII), options));
             return RubyParser.tREGEXP_END;
         }
 
@@ -157,7 +158,7 @@ public class StringTerm extends StrTerm {
             return ' ';
         }
 
-        RopeBuilder buffer = createRopeBuilder(lexer);
+        TStringBuilder buffer = createRopeBuilder(lexer);
         lexer.newtok(true);
         if ((flags & STR_FUNC_EXPAND) != 0 && c == '#') {
             int token = lexer.peekVariableName(RubyParser.tSTRING_DVAR, RubyParser.tSTRING_DBEG);
@@ -237,7 +238,7 @@ public class StringTerm extends StrTerm {
     }
 
     // mri: parser_tokadd_string
-    public int parseStringIntoBuffer(RubyLexer lexer, RopeBuilder buffer, Encoding enc[]) {
+    public int parseStringIntoBuffer(RubyLexer lexer, TStringBuilder buffer, Encoding enc[]) {
         boolean qwords = (flags & STR_FUNC_QWORDS) != 0;
         boolean expand = (flags & STR_FUNC_EXPAND) != 0;
         boolean escape = (flags & STR_FUNC_ESCAPE) != 0;
@@ -286,7 +287,7 @@ public class StringTerm extends StrTerm {
                                 // note the newline and the backslash have been consumed and haven't been added to the buffer!
                                 c = '\\';
                                 if (enc != null) {
-                                    buffer.setEncoding(lexer.getEncoding());
+                                    buffer.setEncoding(lexer.encoding);
                                 }
                                 return c;
                             }
@@ -430,7 +431,7 @@ public class StringTerm extends StrTerm {
 
     // Was a goto in original ruby lexer
     @SuppressWarnings("fallthrough")
-    private void escaped(RubyLexer lexer, RopeBuilder buffer) {
+    private void escaped(RubyLexer lexer, TStringBuilder buffer) {
         int c;
 
         switch (c = lexer.nextc()) {
@@ -445,7 +446,7 @@ public class StringTerm extends StrTerm {
     }
 
     @SuppressWarnings("fallthrough")
-    private void parseEscapeIntoBuffer(RubyLexer lexer, RopeBuilder buffer) {
+    private void parseEscapeIntoBuffer(RubyLexer lexer, TStringBuilder buffer) {
         int c;
 
         switch (c = lexer.nextc()) {

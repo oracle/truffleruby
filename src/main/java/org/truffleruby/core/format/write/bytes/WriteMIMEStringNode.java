@@ -41,6 +41,8 @@
  */
 package org.truffleruby.core.format.write.bytes;
 
+import com.oracle.truffle.api.strings.InternalByteArray;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.format.FormatNode;
 
@@ -50,10 +52,9 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.Nil;
+import org.truffleruby.language.library.RubyStringLibrary;
 
 @NodeChild("value")
 public abstract class WriteMIMEStringNode extends FormatNode {
@@ -69,28 +70,28 @@ public abstract class WriteMIMEStringNode extends FormatNode {
         return null;
     }
 
-    @Specialization
-    protected Object write(VirtualFrame frame, byte[] bytes) {
-        writeBytes(frame, encode(bytes));
+    @Specialization(guards = "libString.isRubyString(string)", limit = "1")
+    protected Object write(VirtualFrame frame, Object string,
+            @Cached RubyStringLibrary libString,
+            @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
+        var tstring = libString.getTString(string);
+        var encoding = libString.getTEncoding(string);
+
+        writeBytes(frame, encode(byteArrayNode.execute(tstring, encoding)));
+
         return null;
     }
 
-    @Specialization
-    protected Object write(VirtualFrame frame, Rope rope,
-            @Cached RopeNodes.BytesNode bytesNode) {
-        return write(frame, bytesNode.execute(rope));
-    }
-
     @TruffleBoundary
-    private byte[] encode(byte[] bytes) {
+    private byte[] encode(InternalByteArray byteArray) {
         // TODO CS 30-Mar-15 should write our own optimizable version of MIME
 
         final ByteArrayBuilder output = new ByteArrayBuilder();
-        qpencode(output, bytes, length);
+        qpencode(output, byteArray, length);
         return output.getBytes();
     }
 
-    private static final byte[] hex_table = RopeOperations.encodeAsciiBytes("0123456789ABCDEF");
+    private static final byte[] hex_table = StringOperations.encodeAsciiBytes("0123456789ABCDEF");
 
     /** encodes a String with the Quoted printable, MIME encoding (see RFC2045). appends the result of the encoding in a
      * StringBuffer
@@ -99,15 +100,15 @@ public abstract class WriteMIMEStringNode extends FormatNode {
      * @param i2Encode The String to encode
      * @param iLength The max number of characters to encode
      * @return the io2Append buffer **/
-    public static ByteArrayBuilder qpencode(ByteArrayBuilder io2Append, byte[] i2Encode, int iLength) {
+    public static ByteArrayBuilder qpencode(ByteArrayBuilder io2Append, InternalByteArray i2Encode, int iLength) {
         io2Append.unsafeEnsureSpace(1024);
         int lCurLineLength = 0;
         int lPrevChar = -1;
-        byte[] l2Encode = i2Encode;
+
         try {
-            int end = i2Encode.length;
+            int end = i2Encode.getLength();
             for (int i = 0; i < end; i++) {
-                int lCurChar = l2Encode[i] & 0xff;
+                int lCurChar = i2Encode.get(i) & 0xff;
                 if (lCurChar > 126 || (lCurChar < 32 && lCurChar != '\n' && lCurChar != '\t') || lCurChar == '=') {
                     io2Append.append('=');
                     io2Append.append(hex_table[lCurChar >>> 4]);

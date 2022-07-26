@@ -656,7 +656,7 @@ module Utilities
     if gem_test_pack?
       gem_home = "#{gem_test_pack}/#{name}-gems"
       env = { 'GEM_HOME' => gem_home, 'GEM_PATH' => "#{gem_home}:" }
-      sh env, RbConfig.ruby, "#{gem_home}/bin/#{name}", *args
+      sh env, RbConfig.ruby, "#{gem_home}/bin/#{name}", "_#{version}_", *args
     else
       env = ruby_running_jt_env
       if Gem::Specification.find_all_by_name(name, version).empty?

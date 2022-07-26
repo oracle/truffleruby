@@ -35,10 +35,9 @@ import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_EXPAND;
 import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_INDENT;
 import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_TERM;
 
+import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeBuilder;
-import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.TStringBuilder;
 import org.truffleruby.parser.parser.RubyParser;
 
 /** A lexing unit for scanning a heredoc element. Example:
@@ -55,7 +54,7 @@ import org.truffleruby.parser.parser.RubyParser;
  */
 public final class HeredocTerm extends StrTerm {
     /** End marker delimiting heredoc boundary. */
-    private final Rope nd_lit;
+    private final TruffleString nd_lit;
 
     /** Indicates whether string interpolation (expansion) should be performed, and the identation of the end marker. */
     private final int flags;
@@ -67,9 +66,9 @@ public final class HeredocTerm extends StrTerm {
     final int line;
 
     /** Portion of the line where the end marker is declarer, from right after the marker until the end of the line. */
-    final Rope lastLine;
+    final TruffleString lastLine;
 
-    public HeredocTerm(Rope marker, int func, int nth, int line, Rope lastLine) {
+    public HeredocTerm(TruffleString marker, int func, int nth, int line, TruffleString lastLine) {
         this.nd_lit = marker;
         this.flags = func;
         this.nth = nth;
@@ -82,8 +81,8 @@ public final class HeredocTerm extends StrTerm {
         return flags;
     }
 
-    protected int error(RubyLexer lexer, Rope eos) {
-        lexer.compile_error("can't find string \"" + RopeOperations.decodeRope(eos) + "\" anywhere before EOF");
+    protected int error(RubyLexer lexer, TruffleString eos) {
+        lexer.compile_error("can't find string \"" + eos.toJavaStringUncached() + "\" anywhere before EOF");
         return -1;
     }
 
@@ -96,7 +95,7 @@ public final class HeredocTerm extends StrTerm {
 
     @Override
     public int parseString(RubyLexer lexer) {
-        RopeBuilder str = null;
+        TStringBuilder str = null;
         boolean indent = (flags & STR_FUNC_INDENT) != 0;
         int c = lexer.nextc();
 
@@ -105,7 +104,7 @@ public final class HeredocTerm extends StrTerm {
         }
 
         // Found end marker for this heredoc, at the start of a line
-        if (lexer.was_bol() && lexer.whole_match_p(this.nd_lit, indent)) {
+        if (lexer.was_bol() && lexer.whole_match_p(this.nd_lit, lexer.tencoding, indent)) {
             lexer.heredoc_restore(this); // will also skip over the end marker
             lexer.setStrTerm(null);
             lexer.setState(EXPR_END);
@@ -116,7 +115,7 @@ public final class HeredocTerm extends StrTerm {
             // heredocs without string interpolation
 
             do { // iterate on lines, while end marker not found
-                final Rope lbuf = lexer.lexb;
+                final TruffleString lbuf = lexer.lexb;
                 int pend = lexer.lex_pend;
 
                 // Remove trailing newline, it will be appended later in normalized form (single \n).
@@ -143,12 +142,14 @@ public final class HeredocTerm extends StrTerm {
                     lexer.setHeredocLineIndent(0);
                 }
 
+                var bytes = lbuf.getInternalByteArrayUncached(lexer.getTEncoding());
                 if (str != null) {
-                    str.append(lbuf.getBytes(), 0, pend);
+                    str.append(bytes.getArray(), bytes.getOffset(), pend);
                 } else {
                     // lazy initialization of string builder
-                    final RopeBuilder builder = RopeBuilder.createRopeBuilder(lbuf.getBytes(), 0, pend);
-                    builder.setEncoding(lbuf.getEncoding());
+                    final TStringBuilder builder = TStringBuilder.create(bytes.getArray(), bytes.getOffset(),
+                            pend);
+                    builder.setEncoding(lexer.encoding);
                     str = builder;
                 }
 
@@ -166,12 +167,12 @@ public final class HeredocTerm extends StrTerm {
                 if (lexer.nextc() == -1) {
                     return error(lexer, nd_lit);
                 }
-            } while (!lexer.whole_match_p(nd_lit, indent));
+            } while (!lexer.whole_match_p(nd_lit, lexer.tencoding, indent));
         } else {
             // heredoc with string interpolation
 
-            RopeBuilder tok = new RopeBuilder();
-            tok.setEncoding(lexer.getEncoding());
+            TStringBuilder tok = new TStringBuilder();
+            tok.setEncoding(lexer.encoding);
 
             if (c == '#') {
                 // interpolated variable or block begin
@@ -226,7 +227,7 @@ public final class HeredocTerm extends StrTerm {
                     return error(lexer, nd_lit);
                 }
                 // NOTE: The end marker is not processed here, but in the next call to HeredocTerm#parseString
-            } while (!lexer.whole_match_p(nd_lit, indent));
+            } while (!lexer.whole_match_p(nd_lit, lexer.tencoding, indent));
             str = tok;
         }
 

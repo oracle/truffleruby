@@ -15,12 +15,11 @@ import java.util.Locale;
 
 import com.oracle.truffle.api.nodes.Node;
 import org.graalvm.collections.Pair;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.TStringUtils;
+import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.shared.TruffleRuby;
 
@@ -59,7 +58,7 @@ public class FileLoader {
     }
 
 
-    public Pair<Source, Rope> loadFile(String path) throws IOException {
+    public Pair<Source, TStringWithEncoding> loadFile(String path) throws IOException {
         if (context.getOptions().LOG_LOAD) {
             RubyLanguage.LOGGER.info("loading " + path);
         }
@@ -72,9 +71,10 @@ public class FileLoader {
          * and pass them down to the lexer and to the Source. */
 
         final byte[] sourceBytes = file.readAllBytes();
-        final Rope sourceRope = RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        final Source source = buildSource(file, path, sourceRope, isInternal(path), false);
-        return Pair.create(source, sourceRope);
+        var tstringWithEnc = new TStringWithEncoding(TStringUtils.fromByteArray(sourceBytes, Encodings.UTF_8),
+                Encodings.UTF_8);
+        final Source source = buildSource(file, path, tstringWithEnc, isInternal(path), false);
+        return Pair.create(source, tstringWithEnc);
     }
 
     public static TruffleFile getSafeTruffleFile(RubyLanguage language, RubyContext context, String path) {
@@ -120,7 +120,8 @@ public class FileLoader {
         return relativePathFromHome.startsWith("lib");
     }
 
-    Source buildSource(TruffleFile file, String path, Rope sourceRope, boolean internal, boolean mainSource) {
+    Source buildSource(TruffleFile file, String path, TStringWithEncoding sourceRope, boolean internal,
+            boolean mainSource) {
         /* I'm not sure why we need to explicitly set a MIME type here - we say it's Ruby and this is the only and
          * default MIME type that Ruby supports.
          *
@@ -146,7 +147,7 @@ public class FileLoader {
                 .newBuilder(TruffleRuby.LANGUAGE_ID, file)
                 .canonicalizePath(false)
                 .mimeType(mimeType)
-                .content(RopeOperations.decodeOrEscapeBinaryRope(sourceRope))
+                .content(sourceRope.tstring.toString())
                 .internal(internal)
                 .cached(!coverageEnabled)
                 .build();

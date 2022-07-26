@@ -24,8 +24,8 @@ import java.util.concurrent.ConcurrentMap;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
-import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.transcode.EConvFlags;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -38,16 +38,15 @@ import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.debug.BindingLocalVariablesObject;
 import org.truffleruby.debug.GlobalVariablesObject;
 import org.truffleruby.debug.TopScopeObject;
@@ -722,8 +721,7 @@ public class CoreLibrary {
     }
 
     private ImmutableRubyString frozenUSASCIIString(String string) {
-        return language.getFrozenStringLiteral(
-                StringOperations.encodeRope(string, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
+        return language.getFrozenStringLiteral(TStringUtils.usAsciiString(string), Encodings.US_ASCII);
     }
 
     private RubyClass defineClass(String name) {
@@ -761,7 +759,7 @@ public class CoreLibrary {
                     state = State.LOADED;
                 }
 
-                final Pair<Source, Rope> sourceRopePair = loadCoreFileSource(language.coreLoadPath + file);
+                var sourceRopePair = loadCoreFileSource(language.coreLoadPath + file);
                 final Source source = sourceRopePair.getLeft();
                 final RootCallTarget callTarget = context.getCodeLoader().parseTopLevelWithCache(sourceRopePair, node);
 
@@ -786,7 +784,7 @@ public class CoreLibrary {
         }
     }
 
-    public Pair<Source, Rope> loadCoreFileSource(String path) throws IOException {
+    public Pair<Source, TStringWithEncoding> loadCoreFileSource(String path) throws IOException {
         if (path.startsWith(RubyLanguage.RESOURCE_SCHEME)) {
             if (TruffleOptions.AOT || ParserCache.INSTANCE != null) {
                 final RootParseNode rootParseNode = ParserCache.INSTANCE.get(path);
@@ -815,10 +813,11 @@ public class CoreLibrary {
 
         // Initialize $0 so it is set to a String as RubyGems expect, also when not run from the RubyLauncher
         // NOTE(norswap, Nov. 2nd 2020): Okay for language access to be slow, currently only used during initialization.
-        RubyString dollarZeroValue = StringOperations.createString(
-                context,
-                language,
-                StringOperations.encodeRope("-", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT),
+        RubyString dollarZeroValue = new RubyString(
+                stringClass,
+                language.stringShape,
+                false,
+                TruffleString.fromCodePointUncached('-', TruffleString.Encoding.US_ASCII),
                 Encodings.US_ASCII);
         int index = language.getGlobalVariableIndex("$0");
         context.getGlobalVariableStorage(index).setValueInternal(dollarZeroValue);

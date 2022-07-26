@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.Cached;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.string.ImmutableRubyString;
@@ -18,6 +19,7 @@ import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
+import org.truffleruby.language.library.RubyStringLibrary;
 
 /** Take a Ruby object that has an encoding and extracts the Java-level encoding object. */
 public abstract class ToRubyEncodingNode extends RubyBaseNode {
@@ -29,13 +31,15 @@ public abstract class ToRubyEncodingNode extends RubyBaseNode {
     public abstract RubyEncoding executeToEncoding(Object value);
 
     @Specialization
-    protected RubyEncoding stringToEncoding(RubyString value) {
-        return value.encoding;
+    protected RubyEncoding stringToEncoding(RubyString value,
+            @Cached RubyStringLibrary libString) {
+        return libString.getEncoding(value);
     }
 
     @Specialization
-    protected RubyEncoding immutableStringToEncoding(ImmutableRubyString value) {
-        return value.getEncoding();
+    protected RubyEncoding immutableStringToEncoding(ImmutableRubyString value,
+            @Cached RubyStringLibrary libString) {
+        return libString.getEncoding(value);
     }
 
     @Specialization

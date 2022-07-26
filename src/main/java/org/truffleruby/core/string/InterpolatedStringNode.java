@@ -9,12 +9,11 @@
  */
 package org.truffleruby.core.string;
 
+import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
 import org.truffleruby.core.cast.ToSNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -28,14 +27,14 @@ public final class InterpolatedStringNode extends RubyContextSourceNode {
 
     @Child private StringNodes.StringAppendPrimitiveNode appendNode;
 
-    private final Rope emptyRope;
     private final RubyEncoding encoding;
+    private final TruffleString emptyTString;
 
     public InterpolatedStringNode(ToSNode[] children, Encoding encoding) {
         assert children.length > 0;
         this.children = children;
-        this.emptyRope = RopeOperations.emptyRope(encoding);
-        this.encoding = Encodings.getBuiltInEncoding(encoding.getIndex());
+        this.encoding = Encodings.getBuiltInEncoding(encoding);
+        this.emptyTString = this.encoding.tencoding.getEmpty();
     }
 
     @ExplodeLoop
@@ -43,7 +42,7 @@ public final class InterpolatedStringNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
 
         // Start with an empty string to ensure the result has class String and the proper encoding.
-        RubyString builder = StringOperations.createString(this, emptyRope, encoding);
+        RubyString builder = createString(emptyTString, encoding);
 
         // TODO (nirvdrum 11-Jan-16) Rewrite to avoid massively unbalanced trees.
         for (ToSNode child : children) {

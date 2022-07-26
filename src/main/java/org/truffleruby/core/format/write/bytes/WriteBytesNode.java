@@ -9,14 +9,14 @@
  */
 package org.truffleruby.core.format.write.bytes;
 
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.format.FormatNode;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeNodes;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.library.RubyStringLibrary;
 
 @NodeChild("value")
 public abstract class WriteBytesNode extends FormatNode {
@@ -27,10 +27,13 @@ public abstract class WriteBytesNode extends FormatNode {
         return null;
     }
 
-    @Specialization
-    protected Object writeRope(VirtualFrame frame, Rope rope,
-            @Cached RopeNodes.BytesNode bytesNode) {
-        writeBytes(frame, bytesNode.execute(rope));
+    @Specialization(guards = "libString.isRubyString(string)", limit = "1")
+    protected Object writeString(VirtualFrame frame, Object string,
+            @Cached RubyStringLibrary libString,
+            @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode) {
+        var tstring = libString.getTString(string);
+        var byteArray = getInternalByteArrayNode.execute(tstring, libString.getTEncoding(string));
+        writeBytes(frame, byteArray.getArray(), byteArray.getOffset(), byteArray.getLength());
         return null;
     }
 

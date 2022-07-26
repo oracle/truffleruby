@@ -13,8 +13,8 @@ import java.io.IOException;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
@@ -30,9 +30,7 @@ import org.truffleruby.core.kernel.TruffleKernelNodesFactory.GetSpecialVariableS
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.FrameOrVariablesReadingNode;
 import org.truffleruby.language.LexicalScope;
@@ -40,6 +38,7 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.ReadOwnFrameAndVariablesNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.ReadCallerVariablesIfAvailableNode;
 import org.truffleruby.language.arguments.ReadCallerVariablesNode;
@@ -95,12 +94,12 @@ public abstract class TruffleKernelNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(file)")
+        @Specialization(guards = "strings.isRubyString(file)", limit = "1")
         protected boolean load(Object file, boolean wrap,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
+                @Cached RubyStringLibrary strings,
                 @Cached IndirectCallNode callNode) {
-            final String feature = strings.getJavaString(file);
-            final Pair<Source, Rope> sourceRopePair;
+            final String feature = RubyGuards.getJavaString(file);
+            final Pair<Source, TStringWithEncoding> sourceRopePair;
             try {
                 final FileLoader fileLoader = new FileLoader(getContext(), getLanguage());
                 sourceRopePair = fileLoader.loadFile(feature);
@@ -323,20 +322,20 @@ public abstract class TruffleKernelNodes {
     @ImportStatic(Layouts.class)
     public abstract static class GetOriginalRequireNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @TruffleBoundary
         @Specialization
         protected Object getOriginalRequire(Object string,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
+                @Cached RubyStringLibrary strings) {
             final String originalRequire = getContext()
                     .getCoreLibrary()
                     .getOriginalRequires()
-                    .get(strings.getJavaString(string));
+                    .get(RubyGuards.getJavaString(string));
             if (originalRequire == null) {
                 return Nil.INSTANCE;
             } else {
-                return makeStringNode.executeMake(originalRequire, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+                return createString(fromJavaStringNode, originalRequire, Encodings.UTF_8);
             }
         }
     }

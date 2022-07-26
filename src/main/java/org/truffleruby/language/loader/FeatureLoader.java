@@ -23,7 +23,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import org.jcodings.Encoding;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
@@ -42,9 +41,9 @@ import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyConstant;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.platform.TruffleNFIPlatform;
@@ -303,7 +302,7 @@ public class FeatureLoader {
                     context.getCoreLibrary().truffleFeatureLoaderModule,
                     "get_expanded_load_path");
             for (Object pathObject : ArrayOperations.toIterable(expandedLoadPath)) {
-                final String loadPath = RubyStringLibrary.getUncached().getJavaString(pathObject);
+                final String loadPath = RubyGuards.getJavaString(pathObject);
 
                 if (context.getOptions().LOG_FEATURE_LOCATION) {
                     RubyLanguage.LOGGER.info(String.format("from load path %s...", loadPath));
@@ -324,7 +323,7 @@ public class FeatureLoader {
                         "get_expanded_load_path");
                 for (Object pathObject : ArrayOperations.toIterable(expandedLoadPath)) {
                     // $LOAD_PATH entries are canonicalized since Ruby 2.4.4
-                    final String loadPath = RubyStringLibrary.getUncached().getJavaString(pathObject);
+                    final String loadPath = RubyGuards.getJavaString(pathObject);
 
                     if (context.getOptions().LOG_FEATURE_LOCATION) {
                         RubyLanguage.LOGGER.info(String.format("from load path %s...", loadPath));
@@ -435,11 +434,7 @@ public class FeatureLoader {
 
             Metrics.printTime("before-load-cext-support");
             try {
-                final RubyString cextRb = StringOperations
-                        .createUTF8String(
-                                context,
-                                language,
-                                StringOperations.encodeRope("truffle/cext", UTF8Encoding.INSTANCE));
+                final RubyString cextRb = StringOperations.createUTF8String(context, language, "truffle/cext");
                 DispatchNode.getUncached().call(context.getCoreLibrary().mainObject, "gem_original_require", cextRb);
 
                 final RubyModule truffleModule = context.getCoreLibrary().truffleModule;
@@ -526,10 +521,8 @@ public class FeatureLoader {
                 ArrayUtils.EMPTY_ARRAY,
                 abiFunctionInteropLibrary,
                 TranslateInteropExceptionNode.getUncached());
-        return StringOperations.createUTF8String(
-                context,
-                language,
-                StringOperations.encodeRope(abiVersion, UTF8Encoding.INSTANCE));
+
+        return StringOperations.createUTF8String(context, language, abiVersion);
     }
 
     Object findFunctionInLibrary(Object library, String functionName, String path) {

@@ -11,9 +11,9 @@ package org.truffleruby.core.inlined;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.encoding.EncodingNodes;
+import org.truffleruby.core.string.StringHelperNodes;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 import com.oracle.truffle.api.dsl.Specialization;
@@ -61,17 +61,23 @@ public abstract class InlinedEqualNode extends BinaryInlinedOperationNode {
 
     @Specialization(
             guards = {
-                    "stringsSelf.isRubyString(self)",
-                    "stringsB.isRubyString(b)",
-                    "lookupNode.lookupProtected(frame, self, METHOD) == coreMethods().STRING_EQUAL"
+                    "libA.isRubyString(a)",
+                    "libB.isRubyString(b)",
+                    "lookupNode.lookupProtected(frame, a, METHOD) == coreMethods().STRING_EQUAL"
             },
-            assumptions = "assumptions")
-    protected boolean stringEqual(VirtualFrame frame, Object self, Object b,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsSelf,
-            @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsB,
+            assumptions = "assumptions", limit = "1")
+    protected boolean stringEqual(VirtualFrame frame, Object a, Object b,
+            @Cached RubyStringLibrary libA,
+            @Cached RubyStringLibrary libB,
             @Cached LookupMethodOnSelfNode lookupNode,
-            @Cached StringNodes.StringEqualNode stringEqualNode) {
-        return stringEqualNode.executeStringEqual(stringsSelf.getRope(self), stringsB.getRope(b));
+            @Cached EncodingNodes.NegotiateCompatibleStringEncodingNode negotiateCompatibleStringEncodingNode,
+            @Cached StringHelperNodes.StringEqualInternalNode stringEqualInternalNode) {
+        var tstringA = libA.getTString(a);
+        var encA = libA.getEncoding(a);
+        var tstringB = libB.getTString(b);
+        var encB = libB.getEncoding(b);
+        var compatibleEncoding = negotiateCompatibleStringEncodingNode.execute(tstringA, encA, tstringB, encB);
+        return stringEqualInternalNode.executeInternal(tstringA, tstringB, compatibleEncoding);
     }
 
     @Specialization

@@ -139,7 +139,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
     @ExportMessage
     public Object toDisplayString(boolean allowSideEffects,
             @Exclusive @Cached DispatchNode dispatchNode,
-            @CachedLibrary(limit = "getLibStringCacheLimit()") RubyStringLibrary libString,
+            @Cached RubyStringLibrary libString,
             @Cached KernelNodes.ToSNode kernelToSNode) {
         if (allowSideEffects) {
             Object inspect = dispatchNode.call(this, "inspect");
@@ -152,10 +152,6 @@ public abstract class RubyDynamicObject extends DynamicObject {
             return kernelToSNode.executeToS(this);
         }
 
-    }
-
-    protected static int getLibStringCacheLimit() {
-        return RubyBaseNode.LIBSTRING_CACHE;
     }
 
     // region Identity

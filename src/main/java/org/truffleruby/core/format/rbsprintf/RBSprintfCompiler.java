@@ -11,17 +11,21 @@ package org.truffleruby.core.format.rbsprintf;
 
 import java.util.List;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 
+import com.oracle.truffle.api.strings.AbstractTruffleString;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.format.FormatEncoding;
 import org.truffleruby.core.format.FormatRootNode;
 import org.truffleruby.core.format.rbsprintf.RBSprintfConfig.FormatArgumentType;
-import org.truffleruby.core.rope.Rope;
 
 import com.oracle.truffle.api.RootCallTarget;
+import org.truffleruby.core.string.StringSupport;
 
 public class RBSprintfCompiler {
 
@@ -33,22 +37,29 @@ public class RBSprintfCompiler {
         this.currentNode = currentNode;
     }
 
-    public RootCallTarget compile(Rope format, Object stringReader) {
-        final RBSprintfSimpleParser parser = new RBSprintfSimpleParser(bytesToChars(format.getBytes()), false);
+    @TruffleBoundary
+    public RootCallTarget compile(AbstractTruffleString formatTString, RubyEncoding formatEncoding,
+            Object stringReader) {
+        var byteArray = formatTString.getInternalByteArrayUncached(formatEncoding.tencoding);
+
+        final RBSprintfSimpleParser parser = new RBSprintfSimpleParser(StringSupport.bytesToChars(byteArray), false);
         final List<RBSprintfConfig> configs = parser.parse();
         final RBSprintfSimpleTreeBuilder builder = new RBSprintfSimpleTreeBuilder(configs, stringReader);
 
         return new FormatRootNode(
                 language,
                 currentNode.getEncapsulatingSourceSection(),
-                FormatEncoding.find(format.getEncoding(), currentNode),
+                FormatEncoding.find(formatEncoding, currentNode),
                 builder.getNode()).getCallTarget();
     }
 
     private static int SIGN = 0x10;
 
-    public RubyArray typeList(Rope format, RubyContext context, RubyLanguage language) {
-        final RBSprintfSimpleParser parser = new RBSprintfSimpleParser(bytesToChars(format.getBytes()), false);
+    public RubyArray typeList(AbstractTruffleString formatTString, RubyEncoding formatEncoding,
+            TruffleString.GetInternalByteArrayNode byteArrayNode, RubyContext context, RubyLanguage language) {
+        var byteArray = byteArrayNode.execute(formatTString, formatEncoding.tencoding);
+
+        final RBSprintfSimpleParser parser = new RBSprintfSimpleParser(StringSupport.bytesToChars(byteArray), false);
         final List<RBSprintfConfig> configs = parser.parse();
         final int[] types = new int[3 * configs.size()]; // Ensure there is enough space for the argument types that might be in the format string.
 
@@ -99,16 +110,5 @@ public class RBSprintfCompiler {
 
         return new RubyArray(context.getCoreLibrary().arrayClass, language.arrayShape, types, highWaterMark + 1);
     }
-
-    private static char[] bytesToChars(byte[] bytes) {
-        final char[] chars = new char[bytes.length];
-
-        for (int n = 0; n < bytes.length; n++) {
-            chars[n] = (char) bytes[n];
-        }
-
-        return chars;
-    }
-
 
 }

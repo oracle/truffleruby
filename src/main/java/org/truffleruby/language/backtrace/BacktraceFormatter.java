@@ -16,7 +16,6 @@ import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
@@ -27,10 +26,10 @@ import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.TranslateExceptionNode;
 import org.truffleruby.parser.RubySource;
 
@@ -138,7 +137,7 @@ public class BacktraceFormatter {
                     "get_formatted_backtrace",
                     exceptionObject);
             final String formatted = fullMessage != null
-                    ? RubyStringLibrary.getUncached().getJavaString(fullMessage)
+                    ? RubyGuards.getJavaString(fullMessage)
                     : "<no message>";
             if (formatted.endsWith("\n")) {
                 printer.print(formatted);
@@ -200,16 +199,14 @@ public class BacktraceFormatter {
         return formatBacktraceAsRubyStringArray(exception, backtrace, Integer.MAX_VALUE);
     }
 
+    @TruffleBoundary
     public RubyArray formatBacktraceAsRubyStringArray(RubyException exception, Backtrace backtrace, int length) {
         final String[] lines = formatBacktraceAsStringArray(exception, backtrace, length);
 
         final Object[] array = new Object[lines.length];
 
         for (int n = 0; n < lines.length; n++) {
-            array[n] = StringOperations.createUTF8String(
-                    context,
-                    language,
-                    StringOperations.encodeRope(lines[n], UTF8Encoding.INSTANCE));
+            array[n] = StringOperations.createUTF8String(context, language, lines[n]);
         }
 
         return ArrayHelpers.createArray(context, language, array);

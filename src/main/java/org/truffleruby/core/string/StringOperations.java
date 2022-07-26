@@ -28,54 +28,39 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 
-import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.encoding.Encodings;
-import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.LeafRope;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.encoding.TStringUtils;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import org.truffleruby.language.objects.AllocationTracing;
 
 public abstract class StringOperations {
 
-    public static RubyString createUTF8String(RubyContext context, RubyLanguage language, Rope rope) {
+    public static RubyString createUTF8String(RubyContext context, RubyLanguage language, String string) {
         final RubyString instance = new RubyString(
                 context.getCoreLibrary().stringClass,
                 language.stringShape,
                 false,
-                rope,
+                TStringUtils.utf8TString(string),
                 Encodings.UTF_8);
+
         return instance;
     }
 
-    public static RubyString createString(Node node, Rope rope, RubyEncoding encoding) {
-        final RubyString instance = new RubyString(
-                RubyContext.get(node).getCoreLibrary().stringClass,
-                RubyLanguage.get(node).stringShape,
-                false,
-                rope,
-                encoding);
-        AllocationTracing.trace(instance, node);
-        return instance;
-    }
-
-    /** Only use when there is no Node to report the allocation */
-    public static RubyString createString(RubyContext context, RubyLanguage language, Rope rope,
-            RubyEncoding encoding) {
+    public static RubyString createUTF8String(RubyContext context, RubyLanguage language,
+            AbstractTruffleString string) {
         final RubyString instance = new RubyString(
                 context.getCoreLibrary().stringClass,
                 language.stringShape,
                 false,
-                rope,
-                encoding);
+                string,
+                Encodings.UTF_8);
+
         return instance;
     }
 
@@ -107,20 +92,6 @@ public abstract class StringOperations {
         return bytes;
     }
 
-    public static LeafRope encodeRope(String value, Encoding encoding, CodeRange codeRange) {
-        if (codeRange == CodeRange.CR_7BIT) {
-            return RopeOperations.encodeAscii(value, encoding);
-        }
-
-        final byte[] bytes = encodeBytes(value, encoding);
-
-        return RopeOperations.create(bytes, encoding, codeRange);
-    }
-
-    public static LeafRope encodeRope(String value, Encoding encoding) {
-        return encodeRope(value, encoding, CodeRange.CR_UNKNOWN);
-    }
-
     public static boolean isAsciiOnly(String string) {
         for (int i = 0; i < string.length(); i++) {
             int c = string.charAt(i);
@@ -130,4 +101,18 @@ public abstract class StringOperations {
         }
         return true;
     }
+
+    /** Prefer this to {@code getBytes(StandardCharsets.US_ASCII)} */
+    public static byte[] encodeAsciiBytes(String value) {
+        assert isAsciiOnly(value) : "String contained non ascii characters \"" + value + "\"";
+
+        final byte[] bytes = new byte[value.length()];
+
+        for (int i = 0; i < bytes.length; i++) {
+            bytes[i] = (byte) value.charAt(i);
+        }
+
+        return bytes;
+    }
+
 }

@@ -15,6 +15,7 @@ import java.math.RoundingMode;
 
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -34,11 +35,7 @@ import org.truffleruby.core.numeric.IntegerNodesFactory.MulNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodesFactory.PowNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodesFactory.RightShiftNodeFactory;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.LazyIntRope;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.NoImplicitCastsToLong;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
@@ -1497,58 +1494,52 @@ public abstract class IntegerNodes {
     @CoreMethod(names = { "to_s", "inspect" }, optional = 1, lowerFixnum = 1)
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-
         @Specialization
-        protected RubyString toS(int n, NotProvided base) {
-            final Rope rope = new LazyIntRope(n);
-            return makeStringNode.fromRope(rope, Encodings.US_ASCII);
+        protected RubyString defaultBase10(long n, NotProvided base,
+                @Cached TruffleString.FromLongNode fromLongNode) {
+            var tstring = fromLongNode.execute(n, Encodings.US_ASCII.tencoding, true);
+            return createString(tstring, Encodings.US_ASCII);
         }
 
         @TruffleBoundary
         @Specialization
-        protected RubyString toS(long n, NotProvided base) {
-            if (CoreLibrary.fitsIntoInteger(n)) {
-                return toS((int) n, base);
-            }
-
-            return makeStringNode.executeMake(Long.toString(n), Encodings.US_ASCII, CodeRange.CR_7BIT);
-        }
-
-        @TruffleBoundary
-        @Specialization
-        protected RubyString toS(RubyBignum value, NotProvided base) {
-            return makeStringNode.executeMake(
+        protected RubyString toS(RubyBignum value, NotProvided base,
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
+            return createString(
+                    fromJavaStringNode,
                     BigIntegerOps.toString(value.value),
-                    Encodings.US_ASCII,
-                    CodeRange.CR_7BIT);
+                    Encodings.US_ASCII); // CR_7BIT
+        }
+
+        @Specialization(guards = "base == 10")
+        protected RubyString base10(long n, int base,
+                @Cached TruffleString.FromLongNode fromLongNode) {
+            return defaultBase10(n, NotProvided.INSTANCE, fromLongNode);
         }
 
         @TruffleBoundary
-        @Specialization
-        protected RubyString toS(long n, int base) {
-            if (base == 10) {
-                return toS(n, NotProvided.INSTANCE);
-            }
-
+        @Specialization(guards = "base != 10")
+        protected RubyString toS(long n, int base,
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             if (base < 2 || base > 36) {
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorInvalidRadix(base, this));
             }
 
-            return makeStringNode.executeMake(Long.toString(n, base), Encodings.US_ASCII, CodeRange.CR_7BIT);
+            return createString(fromJavaStringNode, Long.toString(n, base), Encodings.US_ASCII); // CR_7BIT
         }
 
         @TruffleBoundary
         @Specialization
-        protected RubyString toS(RubyBignum value, int base) {
+        protected RubyString toS(RubyBignum value, int base,
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             if (base < 2 || base > 36) {
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorInvalidRadix(base, this));
             }
 
-            return makeStringNode.executeMake(
+            return createString(
+                    fromJavaStringNode,
                     BigIntegerOps.toString(value.value, base),
-                    Encodings.US_ASCII,
-                    CodeRange.CR_7BIT);
+                    Encodings.US_ASCII); // CR_7BIT
         }
 
     }
@@ -1653,20 +1644,15 @@ public abstract class IntegerNodes {
             return value;
         }
 
-        @Specialization(guards = "canLower(value)")
+        @Specialization(guards = "fitsInInteger(value)")
         protected int lower(long value) {
             return (int) value;
         }
 
-        @Specialization(guards = "!canLower(value)")
+        @Specialization(guards = "!fitsInInteger(value)")
         protected long lowerFails(long value) {
             return value;
         }
-
-        protected static boolean canLower(long value) {
-            return CoreLibrary.fitsIntoInteger(value);
-        }
-
     }
 
     @Primitive(name = "integer_ulong_from_bignum")

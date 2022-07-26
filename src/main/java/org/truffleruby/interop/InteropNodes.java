@@ -20,10 +20,8 @@ import java.util.Map;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.ExceptionType;
 import com.oracle.truffle.api.interop.NodeLibrary;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.TruffleString;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -36,13 +34,9 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.encoding.Encodings;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringCachingGuards;
-import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringHelperNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -119,14 +113,11 @@ public abstract class InteropNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray allMethodsOfInteropLibrary() {
+        protected RubyArray allMethodsOfInteropLibrary(
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             Object[] store = new Object[METHODS.length];
             for (int i = 0; i < METHODS.length; i++) {
-                store[i] = StringOperations
-                        .createString(
-                                this,
-                                StringOperations.encodeRope(METHODS[i], UTF8Encoding.INSTANCE),
-                                Encodings.UTF_8);
+                store[i] = createString(fromJavaStringNode, METHODS[i], Encodings.UTF_8);
             }
             return createArray(store);
         }
@@ -196,10 +187,10 @@ public abstract class InteropNodes {
     public abstract static class MimeTypeSupportedNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(mimeType)")
+        @Specialization(guards = "strings.isRubyString(mimeType)", limit = "1")
         protected boolean isMimeTypeSupported(RubyString mimeType,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            return getContext().getEnv().isMimeTypeSupported(strings.getJavaString(mimeType));
+                @Cached RubyStringLibrary strings) {
+            return getContext().getEnv().isMimeTypeSupported(RubyGuards.getJavaString(mimeType));
         }
 
     }
@@ -208,14 +199,14 @@ public abstract class InteropNodes {
     public abstract static class ImportFileNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(fileName)")
+        @Specialization(guards = "strings.isRubyString(fileName)", limit = "1")
         protected Object importFile(Object fileName,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
+                @Cached RubyStringLibrary strings) {
             try {
                 //intern() to improve footprint
                 final TruffleFile file = getContext()
                         .getEnv()
-                        .getPublicTruffleFile(strings.getJavaString(fileName).intern());
+                        .getPublicTruffleFile(RubyGuards.getJavaString(fileName).intern());
                 final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, file).build();
                 getContext().getEnv().parsePublic(source).call();
             } catch (IOException e) {
@@ -228,7 +219,6 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "eval", onSingleton = true, required = 2)
-    @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     @ReportPolymorphism
     public abstract static class EvalNode extends CoreMethodArrayArgumentsNode {
 
@@ -236,35 +226,37 @@ public abstract class InteropNodes {
                 guards = {
                         "stringsMimeType.isRubyString(mimeType)",
                         "stringsSource.isRubyString(source)",
-                        "mimeTypeEqualNode.execute(stringsMimeType.getRope(mimeType), cachedMimeType)",
-                        "sourceEqualNode.execute(stringsSource.getRope(source), cachedSource)" },
+                        "mimeTypeEqualNode.execute(stringsMimeType, mimeType, cachedMimeType, cachedMimeTypeEnc)",
+                        "sourceEqualNode.execute(stringsSource, source, cachedSource, cachedSourceEnc)" },
                 limit = "getEvalCacheLimit()")
         protected Object evalCached(Object mimeType, Object source,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsMimeType,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsSource,
-                @Cached("stringsMimeType.getRope(mimeType)") Rope cachedMimeType,
-                @Cached("stringsSource.getRope(source)") Rope cachedSource,
-                @Cached("create(parse(stringsMimeType.getRope(mimeType), stringsSource.getRope(source)))") DirectCallNode callNode,
-                @Cached RopeNodes.EqualNode mimeTypeEqualNode,
-                @Cached RopeNodes.EqualNode sourceEqualNode) {
+                @Cached RubyStringLibrary stringsMimeType,
+                @Cached RubyStringLibrary stringsSource,
+                @Cached("asTruffleStringUncached(mimeType)") TruffleString cachedMimeType,
+                @Cached("stringsMimeType.getEncoding(mimeType)") RubyEncoding cachedMimeTypeEnc,
+                @Cached("asTruffleStringUncached(source)") TruffleString cachedSource,
+                @Cached("stringsSource.getEncoding(source)") RubyEncoding cachedSourceEnc,
+                @Cached("create(parse(getJavaString(mimeType), getJavaString(source)))") DirectCallNode callNode,
+                @Cached StringHelperNodes.EqualNode mimeTypeEqualNode,
+                @Cached StringHelperNodes.EqualNode sourceEqualNode) {
             return callNode.call(EMPTY_ARGUMENTS);
         }
 
         @Specialization(
                 guards = { "stringsMimeType.isRubyString(mimeType)", "stringsSource.isRubyString(source)" },
-                replaces = "evalCached")
+                replaces = "evalCached", limit = "1")
         protected Object evalUncached(Object mimeType, RubyString source,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsMimeType,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringsSource,
+                @Cached RubyStringLibrary stringsMimeType,
+                @Cached RubyStringLibrary stringsSource,
+                @Cached ToJavaStringNode toJavaStringMimeNode,
+                @Cached ToJavaStringNode toJavaStringSourceNode,
                 @Cached IndirectCallNode callNode) {
-            return callNode
-                    .call(parse(stringsMimeType.getRope(mimeType), stringsSource.getRope(source)), EMPTY_ARGUMENTS);
+            return callNode.call(parse(toJavaStringMimeNode.executeToJavaString(mimeType),
+                    toJavaStringSourceNode.executeToJavaString(source)), EMPTY_ARGUMENTS);
         }
 
         @TruffleBoundary
-        protected CallTarget parse(Rope ropeMimeType, Rope ropeCode) {
-            final String mimeTypeString = RopeOperations.decodeRope(ropeMimeType);
-            final String codeString = RopeOperations.decodeRope(ropeCode);
+        protected CallTarget parse(String mimeTypeString, String codeString) {
             String language = Source.findLanguage(mimeTypeString);
             if (language == null) {
                 // Give the original string to get the nice exception from Truffle
@@ -287,17 +279,16 @@ public abstract class InteropNodes {
     @Primitive(name = "interop_eval_nfi")
     public abstract static class InteropEvalNFINode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "library.isRubyString(code)")
+        @Specialization(guards = "library.isRubyString(code)", limit = "1")
         protected Object evalNFI(Object code,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary library,
+                @Cached RubyStringLibrary library,
                 @Cached IndirectCallNode callNode) {
-            return callNode.call(parse(library.getRope(code)), EMPTY_ARGUMENTS);
+            return callNode.call(parse(code), EMPTY_ARGUMENTS);
         }
 
         @TruffleBoundary
-        protected CallTarget parse(Rope code) {
-            final String codeString = RopeOperations.decodeRope(code);
-            final Source source = Source.newBuilder("nfi", codeString, "(eval)").build();
+        protected CallTarget parse(Object code) {
+            final Source source = Source.newBuilder("nfi", RubyGuards.getJavaString(code), "(eval)").build();
 
             try {
                 return getContext().getEnv().parseInternal(source);
@@ -808,10 +799,7 @@ public abstract class InteropNodes {
         protected RubyString foreignStringToRubyString(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Cached TruffleString.SwitchEncodingNode switchEncodingNode,
-                @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode,
-                @Cached ConditionProfile offsetZeroProfile,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached TruffleString.SwitchEncodingNode switchEncodingNode) {
             final TruffleString truffleString;
             try {
                 truffleString = receivers.asTruffleString(receiver);
@@ -820,15 +808,7 @@ public abstract class InteropNodes {
             }
 
             var asUTF8 = switchEncodingNode.execute(truffleString, TruffleString.Encoding.UTF_8);
-            var bytes = getInternalByteArrayNode.execute(asUTF8, TruffleString.Encoding.UTF_8);
-            final byte[] utf8Bytes;
-            if (offsetZeroProfile.profile(bytes.getOffset() == 0 && bytes.getLength() == bytes.getArray().length)) {
-                utf8Bytes = bytes.getArray();
-            } else {
-                utf8Bytes = ArrayUtils.extractRange(bytes.getArray(), bytes.getOffset(), bytes.getEnd());
-            }
-
-            var rubyString = makeStringNode.executeMake(utf8Bytes, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+            var rubyString = createString(asUTF8, Encodings.UTF_8);
             rubyString.freeze();
             return rubyString;
         }
@@ -846,12 +826,12 @@ public abstract class InteropNodes {
     @CoreMethod(names = "to_string", onSingleton = true, required = 1)
     public abstract static class ToStringNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @TruffleBoundary
         @Specialization
         protected RubyString toString(Object value) {
-            return makeStringNode.executeMake(String.valueOf(value), Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+            return createString(fromJavaStringNode, String.valueOf(value), Encodings.UTF_8);
         }
 
     }
@@ -1594,10 +1574,7 @@ public abstract class InteropNodes {
             final String[] languagesArray = languages.keySet().toArray(StringUtils.EMPTY_STRING_ARRAY);
             final Object[] rubyStringArray = new Object[languagesArray.length];
             for (int i = 0; i < languagesArray.length; i++) {
-                rubyStringArray[i] = StringOperations.createUTF8String(
-                        getContext(),
-                        getLanguage(),
-                        StringOperations.encodeRope(languagesArray[i], UTF8Encoding.INSTANCE));
+                rubyStringArray[i] = StringOperations.createUTF8String(getContext(), getLanguage(), languagesArray[i]);
             }
             return createArray(rubyStringArray);
         }
@@ -1745,18 +1722,13 @@ public abstract class InteropNodes {
         // TODO CS 17-Mar-18 we should cache this in the future
 
         @Specialization
-        protected Object javaTypeSymbol(RubySymbol name) {
-            return javaType(name.getString());
-        }
-
-        @Specialization(guards = "strings.isRubyString(name)")
-        protected Object javaTypeString(Object name,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
-            return javaType(strings.getJavaString(name));
+        protected Object javaType(Object name,
+                @Cached ToJavaStringNode toJavaStringNode) {
+            return lookupJavaType(toJavaStringNode.executeToJavaString(name));
         }
 
         @TruffleBoundary
-        private Object javaType(String name) {
+        private Object lookupJavaType(String name) {
             final TruffleLanguage.Env env = getContext().getEnv();
 
             if (!env.isHostLookupAllowed()) {
@@ -1774,13 +1746,13 @@ public abstract class InteropNodes {
     public abstract static class JavaAddToClasspathNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(path)")
+        @Specialization(guards = "strings.isRubyString(path)", limit = "1")
         protected boolean javaAddToClasspath(Object path,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
+                @Cached RubyStringLibrary strings) {
             TruffleLanguage.Env env = getContext().getEnv();
             try {
                 TruffleFile file = FileLoader.getSafeTruffleFile(getLanguage(), getContext(),
-                        strings.getJavaString(path));
+                        RubyGuards.getJavaString(path));
                 env.addToHostClassPath(file);
                 return true;
             } catch (SecurityException e) {

@@ -14,17 +14,19 @@ import java.lang.reflect.Field;
 
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.library.ExportMessage;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.SuppressFBWarnings;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 import sun.misc.Unsafe;
 
-@SuppressFBWarnings("Nm")
-public final class Pointer implements AutoCloseable {
+@ExportLibrary(InteropLibrary.class)
+public final class Pointer implements AutoCloseable, TruffleObject {
 
     public static final Pointer NULL = new Pointer(0);
     public static final long SIZE = Long.BYTES;
@@ -102,6 +104,7 @@ public final class Pointer implements AutoCloseable {
         enableAutoreleaseUnsynchronized(language);
     }
 
+    @ExportMessage.Ignore
     public boolean isNull() {
         return address == 0;
     }
@@ -121,6 +124,16 @@ public final class Pointer implements AutoCloseable {
 
     public boolean isBounded() {
         return size != UNBOUNDED;
+    }
+
+    @ExportMessage
+    protected boolean isPointer() {
+        return true;
+    }
+
+    @ExportMessage
+    protected long asPointer() {
+        return address;
     }
 
     public void writeByte(long offset, byte b) {
@@ -163,29 +176,30 @@ public final class Pointer implements AutoCloseable {
     }
 
     @TruffleBoundary
-    public void writeBytes(long offset, long size, byte value) {
-        assert address + offset != 0 || size == 0;
-        UNSAFE.setMemory(address + offset, size, value);
+    public void writeBytes(long destByteOffset, long size, byte value) {
+        assert address + destByteOffset != 0 || size == 0;
+        UNSAFE.setMemory(address + destByteOffset, size, value);
     }
 
     @TruffleBoundary
-    public void writeBytes(long offset, Pointer buffer, int bufferPos, long length) {
-        assert address + offset != 0 || length == 0;
-        assert buffer != null;
-        assert bufferPos >= 0;
-        assert length >= 0;
+    public void writeBytes(long destByteOffset, Pointer source, int sourceByteOffset, long bytesToCopy) {
+        assert address + destByteOffset != 0 || bytesToCopy == 0;
+        assert source != null;
+        assert sourceByteOffset >= 0;
+        assert bytesToCopy >= 0;
 
-        UNSAFE.copyMemory(buffer.getAddress() + bufferPos, address + offset, length);
+        UNSAFE.copyMemory(source.getAddress() + sourceByteOffset, address + destByteOffset, bytesToCopy);
     }
 
     @TruffleBoundary
-    public void writeBytes(long offset, byte[] buffer, int bufferPos, int length) {
-        assert address + offset != 0 || length == 0;
-        assert buffer != null;
-        assert bufferPos >= 0;
-        assert length >= 0;
+    public void writeBytes(long destByteOffset, byte[] source, int sourceByteOffset, int bytesToCopy) {
+        assert address + destByteOffset != 0 || bytesToCopy == 0;
+        assert source != null;
+        assert sourceByteOffset >= 0;
+        assert bytesToCopy >= 0;
 
-        UNSAFE.copyMemory(buffer, Unsafe.ARRAY_BYTE_BASE_OFFSET + bufferPos, null, address + offset, length);
+        UNSAFE.copyMemory(source, Unsafe.ARRAY_BYTE_BASE_OFFSET + sourceByteOffset, null, address + destByteOffset,
+                bytesToCopy);
     }
 
     public byte readByte(long offset) {
@@ -207,24 +221,6 @@ public final class Pointer implements AutoCloseable {
         assert length >= 0;
 
         UNSAFE.copyMemory(null, address + offset, buffer, Unsafe.ARRAY_BYTE_BASE_OFFSET + bufferPos, length);
-    }
-
-    @TruffleBoundary
-    public boolean readBytesCheck8Bit(byte[] buffer, int length) {
-        assert address != 0 || length == 0;
-        assert buffer != null;
-        assert length >= 0;
-
-        long base = address;
-        boolean highBitUsed = false;
-        for (int i = 0; i < length; i++) {
-            byte aByte = UNSAFE.getByte(null, base + i);
-            if (aByte < 0) {
-                highBitUsed = true;
-            }
-            buffer[i] = aByte;
-        }
-        return highBitUsed;
     }
 
     public short readShort(long offset) {

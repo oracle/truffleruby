@@ -9,15 +9,12 @@
  */
 package org.truffleruby.core.format;
 
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.extra.ffi.Pointer;
 
 public class BytesResult {
 
     private final byte[] output;
     private final int outputLength;
-    private final int stringLength;
-    private final CodeRange stringCodeRange;
     private final FormatEncoding encoding;
 
     private final Pointer[] associated;
@@ -25,14 +22,10 @@ public class BytesResult {
     public BytesResult(
             byte[] output,
             int outputLength,
-            int stringLength,
-            CodeRange stringCodeRange,
             FormatEncoding encoding,
             Pointer[] associated) {
         this.output = output;
         this.outputLength = outputLength;
-        this.stringLength = stringLength;
-        this.stringCodeRange = stringCodeRange;
         this.encoding = encoding;
         this.associated = associated;
     }
@@ -43,14 +36,6 @@ public class BytesResult {
 
     public int getOutputLength() {
         return outputLength;
-    }
-
-    public int getStringLength() {
-        return stringLength;
-    }
-
-    public CodeRange getStringCodeRange() {
-        return stringCodeRange;
     }
 
     public FormatEncoding getEncoding() {

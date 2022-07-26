@@ -9,23 +9,20 @@
  */
 package org.truffleruby.core.string;
 
-import org.jcodings.specific.ASCIIEncoding;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.Encodings;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import org.truffleruby.core.rope.RopeOperations;
 
 public class CoreString {
 
     private final RubyLanguage language;
     private final String literal;
 
-    @CompilationFinal private volatile Rope rope;
+    @CompilationFinal private volatile TruffleString tstring;
 
     public CoreString(RubyLanguage language, String literal) {
         assert language != null;
@@ -34,23 +31,25 @@ public class CoreString {
         this.literal = literal;
     }
 
-    public Rope getRope() {
-        if (rope == null) {
+    public TruffleString getTruffleString() {
+        if (tstring == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
 
-            rope = language.ropeCache.getRope(
-                    RopeOperations.encodeAsciiBytes(literal),
-                    // Binary because error message Strings have a ASCII-8BIT encoding on MRI.
-                    // When used for creating a Symbol, the encoding is adapted as needed.
-                    ASCIIEncoding.INSTANCE,
-                    CodeRange.CR_7BIT);
+            // Binary because error message Strings have a ASCII-8BIT encoding on MRI.
+            // When used for creating a Symbol, the encoding is adapted as needed.
+            tstring = language.tstringCache.getTString(StringOperations.encodeAsciiBytes(literal), Encodings.BINARY);
         }
 
-        return rope;
+        return tstring;
     }
 
     public RubyString createInstance(RubyContext context) {
-        return StringOperations.createString(context, language, getRope(), Encodings.BINARY);
+        return new RubyString(
+                context.getCoreLibrary().stringClass,
+                language.stringShape,
+                false,
+                getTruffleString(),
+                Encodings.BINARY);
     }
 
     private static boolean is7Bit(String literal) {
