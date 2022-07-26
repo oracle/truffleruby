@@ -1746,13 +1746,13 @@ public abstract class InteropNodes {
     public abstract static class JavaAddToClasspathNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(path)")
+        @Specialization(guards = "strings.isRubyString(path)", limit = "1")
         protected boolean javaAddToClasspath(Object path,
-                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
+                @Cached RubyStringLibrary strings) {
             TruffleLanguage.Env env = getContext().getEnv();
             try {
                 TruffleFile file = FileLoader.getSafeTruffleFile(getLanguage(), getContext(),
-                        strings.getJavaString(path));
+                        RubyGuards.getJavaString(path));
                 env.addToHostClassPath(file);
                 return true;
             } catch (SecurityException e) {
