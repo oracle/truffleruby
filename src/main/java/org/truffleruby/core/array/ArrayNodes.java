@@ -1247,7 +1247,7 @@ public abstract class ArrayNodes {
                 profileAndReportLoopCount(loopProfile, n);
                 Object store = arrayBuilder.finish(state, n);
                 if (sharedProfile.profile(isSharedNode.executeIsShared(array))) {
-                    store = stores.makeShared(store);
+                    store = stores.makeShared(store, n);
                 }
                 setStoreAndSize(array, store, n);
             }
@@ -1907,7 +1907,7 @@ public abstract class ArrayNodes {
             final int size = other.size;
             Object store = cowNode.execute(other, 0, size);
             if (sharedProfile.profile(isSharedNode.executeIsShared(array))) {
-                store = stores.makeShared(store);
+                store = stores.makeShared(store, size);
             }
             setStoreAndSize(array, store, size);
             return array;

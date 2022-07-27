@@ -142,7 +142,7 @@ public class SharedArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    public Object makeShared() {
+    public Object makeShared(int size) {
         return this;
     }
 
