@@ -1383,6 +1383,13 @@ command_args    : /* none */ {
 block_arg       : tAMPER arg_value {
                     $$ = new BlockPassParseNode(support.getPosition($2), $2);
                 }
+		| tAMPER {
+		    if (!support.local_id(ParserSupport.FORWARD_ARGS_BLOCK_VAR)) {
+		        support.yyerror("no anonymous block parameter");
+		    }
+
+		    $$ = new BlockPassParseNode(lexer.tokline, new LocalVarParseNode(support.getPosition(null), 0, ParserSupport.FORWARD_ARGS_BLOCK_VAR));
+		}
 
 opt_block_arg   : ',' block_arg {
                     $$ = $2;
@@ -2686,6 +2693,9 @@ f_block_arg     : blkarg_mark tIDENTIFIER {
                     }
                     
                     $$ = new BlockArgParseNode(support.arg_var(support.shadowing_lvar($2)));
+                }
+                | blkarg_mark {
+                    $$ = new BlockArgParseNode(support.arg_var(support.shadowing_lvar(ParserSupport.FORWARD_ARGS_BLOCK_VAR_TSTRING)));
                 }
 
 opt_f_block_arg : ',' f_block_arg {
