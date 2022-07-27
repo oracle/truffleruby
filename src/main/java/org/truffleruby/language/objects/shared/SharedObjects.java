@@ -143,7 +143,7 @@ public class SharedObjects {
     private static boolean validateArray(RubyArray value) {
         Object storage = value.getStore();
         assert storage instanceof SharedArrayStorage;
-        return ((SharedArrayStorage) storage).allElementsShared();
+        return ((SharedArrayStorage) storage).allElementsShared(value.size);
     }
 
     public static void propagate(RubyLanguage language, RubyDynamicObject source, Object value) {
