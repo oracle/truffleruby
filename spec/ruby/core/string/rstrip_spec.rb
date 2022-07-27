@@ -78,9 +78,4 @@ describe "String#rstrip!" do
     s.valid_encoding?.should be_false
     -> { s.rstrip! }.should raise_error(ArgumentError)
   end
-
-  it "removes broken codepoints" do
-    " abc \x80 ".rstrip!.should == " abc"
-    " abc \x80".rstrip!.should == " abc"
-  end
 end
