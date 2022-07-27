@@ -122,7 +122,7 @@ public abstract class ArrayStoreLibrary extends Library {
     }
 
     /** Return a store that can be shared across threads. */
-    public Object makeShared(Object store) {
+    public Object makeShared(Object store, int size) {
         return new SharedArrayStorage(store);
     }
 

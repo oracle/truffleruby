@@ -49,18 +49,18 @@ public class SharedArrayStorage implements ObjectGraphNode {
      * stack of adjacent objects have been shared, which may not be true at the point the storage is converted to shared
      * storage. */
     @TruffleBoundary
-    public boolean allElementsShared() {
+    public boolean allElementsShared(int size) {
         if (storage == null || storage instanceof ZeroLengthArrayStore) {
             return true;
         }
         ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory()
                 .getUncached(storage);
-        var elements = stores.getIterable(storage, 0, stores.capacity(storage));
+        var elements = stores.getIterable(storage, 0, size);
         for (var e : elements) {
             if (e == null || !(e instanceof RubyDynamicObject) || SharedObjects.isShared(e)) {
                 continue;
             } else {
-                System.err.printf("Unshared element %s.\n", e);
+                assert false : String.format("Unshared element %s.\n", e);
                 return false;
             }
         }
@@ -142,7 +142,7 @@ public class SharedArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    public Object makeShared() {
+    public Object makeShared(int size) {
         return this;
     }
 

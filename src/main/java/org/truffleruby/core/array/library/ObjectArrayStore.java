@@ -82,9 +82,9 @@ public class ObjectArrayStore {
     }
 
     @ExportMessage
-    protected static Object makeShared(Object[] store,
+    protected static Object makeShared(Object[] store, int size,
             @CachedLibrary("store") ArrayStoreLibrary stores) {
-        stores.shareElements(store, 0, stores.capacity(store));
+        stores.shareElements(store, 0, size);
         return new SharedArrayStorage(store);
     }
 

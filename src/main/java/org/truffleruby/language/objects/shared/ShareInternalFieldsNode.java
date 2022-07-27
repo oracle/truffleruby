@@ -47,7 +47,7 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
     protected void shareArray(RubyArray array,
             @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores) {
-        array.setStore(stores.makeShared(store));
+        array.setStore(stores.makeShared(store, array.size));
     }
 
     @Specialization
