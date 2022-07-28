@@ -103,6 +103,7 @@ class MSpecScript
 
   # Use spec/ruby/core/nil/nil_spec.rb as a dummy file to avoid being empty
   set :next, %w[
+    spec/ruby/language/block_spec.rb
     spec/ruby/language/hash_spec.rb
     spec/ruby/core/nil/nil_spec.rb
     spec/ruby/core/gc/measure_total_time_spec.rb
