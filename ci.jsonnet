@@ -382,8 +382,8 @@ local part_definitions = {
     test_cexts: {
       is_after+:: ["$.use.common"],
       # Only what is not already tested in other gates (e.g., C API and C ext specs are part of test_specs)
-      run+: jt(["test", "mri", "--all-sulong"]) +
-            jt(["test", "cexts"]) +
+      run+: jt(["test", "cexts"]) +
+            jt(["test", "mri", "--all-sulong"]) +
             jt(["test", "bundle"]),
     },
 
