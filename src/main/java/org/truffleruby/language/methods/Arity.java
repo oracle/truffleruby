@@ -30,7 +30,6 @@ public final class Arity {
     private final int optional;
     private final boolean hasRest;
     private final int postRequired;
-    private final boolean allKeywordsOptional;
     private final boolean hasKeywordsRest;
     private final String[] keywordArguments;
     private final int requiredKeywordArgumentsCount;
@@ -60,7 +59,6 @@ public final class Arity {
         // So we can specify them with only one `int` field (`requiredKeywordArgumentsCount`).
         this.keywordArguments = keywordArguments;
         this.requiredKeywordArgumentsCount = requiredKeywordArgumentsCount;
-        this.allKeywordsOptional = requiredKeywordArgumentsCount == 0;
         this.hasKeywordsRest = hasKeywordsRest;
         this.arityNumber = computeArityNumber(false);
         this.procArityNumber = computeArityNumber(true);
@@ -121,22 +119,22 @@ public final class Arity {
         return keywordArguments.length != 0;
     }
 
-    public boolean hasRequiredKeywords() {
-        return !allKeywordsOptional;
-    }
-
     public boolean hasKeywordsRest() {
         return hasKeywordsRest;
+    }
+
+    public boolean allKeywordsOptional() {
+        return requiredKeywordArgumentsCount == 0;
     }
 
     private int computeArityNumber(boolean isProc) {
         int count = getRequired();
 
-        if (acceptsKeywords() && !allKeywordsOptional) {
+        if (acceptsKeywords() && !allKeywordsOptional()) {
             count++;
         }
 
-        if (hasRest || (!isProc && (optional > 0 || (acceptsKeywords() && allKeywordsOptional)))) {
+        if (hasRest || (!isProc && (optional > 0 || (acceptsKeywords() && allKeywordsOptional())))) {
             count = -count - 1;
         }
 
