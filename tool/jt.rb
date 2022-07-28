@@ -1340,7 +1340,8 @@ module Commands
 
   private def test_cexts(*args)
     all_tests = %w[
-      tools minimum method module globals backtraces xopenssl postinstallhook
+      tools postinstallhook
+      minimum method module globals backtraces xopenssl werror
       oily_png psd_native
       puma sqlite3 unf_ext json RubyInline msgpack
     ]
