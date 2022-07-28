@@ -2735,6 +2735,11 @@ assoc           : arg_value tASSOC arg_value {
                     ParseNode label = support.asSymbol(support.getPosition($2), $1);
                     $$ = support.createKeyValue(label, $2);
                 }
+                | tLABEL {
+                    ParseNode val = support.declareIdentifier($1);
+                    ParseNode label = support.asSymbol(support.getPosition(null), $1);
+                    $$ = support.createKeyValue(label, val);
+                }
                 | tSTRING_BEG string_contents tLABEL_END arg_value {
                     if ($2 instanceof StrParseNode) {
                         DStrParseNode dnode = new DStrParseNode(support.getPosition($2), lexer.getEncoding());
