@@ -1338,16 +1338,17 @@ module Commands
     out.sub('-', '--vm.')
   end
 
+  ALL_CEXTS_TESTS = %w[
+    tools postinstallhook
+    minimum method module globals backtraces xopenssl werror stripped
+    oily_png psd_native
+    puma sqlite3 unf_ext json RubyInline msgpack
+  ]
+
   private def test_cexts(*args)
-    all_tests = %w[
-      tools postinstallhook
-      minimum method module globals backtraces xopenssl werror
-      oily_png psd_native
-      puma sqlite3 unf_ext json RubyInline msgpack
-    ]
     no_openssl = args.delete('--no-openssl')
     no_gems = args.delete('--no-gems')
-    tests = args.empty? ? all_tests : args
+    tests = args.empty? ? ALL_CEXTS_TESTS : args
     tests -= %w[xopenssl] if no_openssl
     tests.delete 'gems' if no_gems
 
@@ -1358,13 +1359,15 @@ module Commands
 
   private def run_single_cexts_test(test_name)
     in_truffleruby_repo_root!
+    raise "#{test_name} not in ALL_CEXTS_TESTS" unless ALL_CEXTS_TESTS.include?(test_name)
+
     time_test("jt test cexts #{test_name}") do
       case test_name
       when 'tools'
         # Test tools
         run_ruby 'test/truffle/cexts/test_preprocess.rb'
 
-      when 'minimum', 'method', 'module', 'globals', 'backtraces', 'xopenssl', 'werror'
+      when 'minimum', 'method', 'module', 'globals', 'backtraces', 'xopenssl', 'werror', 'stripped'
         # Test that we can compile and run some very basic C extensions
         begin
           output_file = 'cext-output.txt'

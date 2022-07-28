@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+
+require 'stripped/stripped'
+puts Stripped.stripped
