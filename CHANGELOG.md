@@ -17,6 +17,7 @@ Compatibility:
 * Warn when a global variable is not initialized (#2595, @andrykonchin).
 * Fix escaping of `/` by `Regexp#source` (#2569, @andrykonchin).
 * Range literals of integers are now created at parse time like in CRuby (#2622, @aardvark179).
+* Fix exception message when there are missing or extra keyword arguments - it contains all the missing/extra keywords now (#1522, @andrykonchin).
 
 Performance:
 
