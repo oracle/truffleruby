@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.arguments;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.collections.PEBiFunction;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -23,6 +24,8 @@ import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.methods.Arity;
 
 /** Read a single keyword argument or execute its default value expression if missing */
 @ImportStatic(HashGuards.class)
@@ -52,7 +55,7 @@ public abstract class ReadKeywordArgumentNode extends RubyContextSourceNode impl
 
     @Specialization(guards = "hash == null")
     protected Object nullHash(VirtualFrame frame, RubyHash hash) {
-        return defaultValue.execute(frame);
+        return getDefaultValue().execute(frame);
     }
 
     @Specialization(guards = "hash != null", limit = "hashStrategyLimit()")
@@ -72,6 +75,20 @@ public abstract class ReadKeywordArgumentNode extends RubyContextSourceNode impl
         // This only works if the library is always cached and does not reach the limit.
         // Since this node is never uncached, and the limit is >= number of strategies, it should hold.
         final VirtualFrame virtualFrame = (VirtualFrame) frame;
-        return defaultValue.execute(virtualFrame);
+        return getDefaultValue().execute(virtualFrame);
+    }
+
+    RubyNode getDefaultValue() {
+        if (defaultValue == null) {
+            // This isn't a true default value - it's a marker to say there isn't one.
+            // This actually makes sense; the semantic action of executing this node is to report an error,
+            // and we do the same thing.
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            RubyRootNode rootNode = (RubyRootNode) getRootNode();
+            Arity arity = rootNode.getSharedMethodInfo().getArity();
+            defaultValue = insert(new MissingKeywordArgumentNode(getLanguage(), arity));
+        }
+
+        return defaultValue;
     }
 }

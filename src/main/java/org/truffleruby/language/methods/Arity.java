@@ -30,16 +30,16 @@ public final class Arity {
     private final int optional;
     private final boolean hasRest;
     private final int postRequired;
-    private final boolean allKeywordsOptional;
     private final boolean hasKeywordsRest;
     private final String[] keywordArguments;
+    private final int requiredKeywordArgumentsCount;
     /** During parsing we cannot know if this Arity object belongs to proc or to lambda. So we calculate the arity
      * number for both cases and provide a ProcType-dependent interface. */
     private final int arityNumber;
     private final int procArityNumber;
 
     public Arity(int preRequired, int optional, boolean hasRest) {
-        this(preRequired, optional, hasRest, 0, NO_KEYWORDS, true, false);
+        this(preRequired, optional, hasRest, 0, NO_KEYWORDS, 0, false);
     }
 
 
@@ -49,14 +49,16 @@ public final class Arity {
             boolean hasRest,
             int postRequired,
             String[] keywordArguments,
-            boolean allKeywordsOptional,
+            int requiredKeywordArgumentsCount,
             boolean hasKeywordsRest) {
         this.preRequired = preRequired;
         this.optional = optional;
         this.hasRest = hasRest;
         this.postRequired = postRequired;
+        // Required keywords are located at the beginning of the `keywordArguments` array.
+        // So we can specify them with only one `int` field (`requiredKeywordArgumentsCount`).
         this.keywordArguments = keywordArguments;
-        this.allKeywordsOptional = allKeywordsOptional;
+        this.requiredKeywordArgumentsCount = requiredKeywordArgumentsCount;
         this.hasKeywordsRest = hasKeywordsRest;
         this.arityNumber = computeArityNumber(false);
         this.procArityNumber = computeArityNumber(true);
@@ -71,7 +73,7 @@ public final class Arity {
                 hasRest,
                 postRequired,
                 keywordArguments,
-                allKeywordsOptional,
+                requiredKeywordArgumentsCount,
                 hasKeywordsRest);
     }
 
@@ -82,7 +84,7 @@ public final class Arity {
                 hasRest,
                 postRequired,
                 keywordArguments,
-                allKeywordsOptional,
+                requiredKeywordArgumentsCount,
                 hasKeywordsRest);
     }
 
@@ -121,14 +123,18 @@ public final class Arity {
         return hasKeywordsRest;
     }
 
+    public boolean allKeywordsOptional() {
+        return requiredKeywordArgumentsCount == 0;
+    }
+
     private int computeArityNumber(boolean isProc) {
         int count = getRequired();
 
-        if (acceptsKeywords() && !allKeywordsOptional) {
+        if (acceptsKeywords() && !allKeywordsOptional()) {
             count++;
         }
 
-        if (hasRest || (!isProc && (optional > 0 || (acceptsKeywords() && allKeywordsOptional)))) {
+        if (hasRest || (!isProc && (optional > 0 || (acceptsKeywords() && allKeywordsOptional())))) {
             count = -count - 1;
         }
 
@@ -145,6 +151,16 @@ public final class Arity {
 
     public String[] getKeywordArguments() {
         return keywordArguments;
+    }
+
+    public String[] getRequiredKeywordArguments() {
+        final String[] requiredKeywords = new String[requiredKeywordArgumentsCount];
+
+        for (int i = 0; i < requiredKeywords.length; i++) {
+            requiredKeywords[i] = keywordArguments[i];
+        }
+
+        return requiredKeywords;
     }
 
     public ArgumentDescriptor[] toAnonymousArgumentDescriptors() {
