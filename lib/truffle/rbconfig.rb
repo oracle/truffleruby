@@ -68,6 +68,8 @@ module RbConfig
   ranlib = Truffle::Boot.toolchain_executable(:RANLIB)
   strip = Truffle::Boot.toolchain_executable(:STRIP)
 
+  strip = "#{strip} --keep-section=.llvmbc" unless Truffle::Platform.darwin?
+
   # Determine the various flags for native compilation
   optflags = ''
   debugflags = ''
@@ -188,7 +190,7 @@ module RbConfig
     'rubyarchhdrdir'    => rubyhdrdir.dup,
     'rubyhdrdir'        => rubyhdrdir,
     'SOEXT'             => Truffle::Platform::SOEXT.dup,
-    'STRIP'             => "#{strip} --keep-section=.llvmbc",
+    'STRIP'             => strip,
     'sysconfdir'        => "#{prefix}/etc", # doesn't exist, as in MRI
     'target_cpu'        => host_cpu,
     'target_os'         => host_os,
