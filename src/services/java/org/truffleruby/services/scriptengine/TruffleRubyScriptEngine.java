@@ -38,9 +38,9 @@ public class TruffleRubyScriptEngine extends AbstractScriptEngine
 
     private final Context polyglot;
 
-    TruffleRubyScriptEngine(TruffleRubyScriptEngineFactory factory) {
+    TruffleRubyScriptEngine(TruffleRubyScriptEngineFactory factory, boolean allowAllAccess) {
         this.factory = factory;
-        polyglot = Context.newBuilder().allowAllAccess(true).build();
+        this.polyglot = Context.newBuilder("ruby").allowAllAccess(allowAllAccess).build();
     }
 
     @Override

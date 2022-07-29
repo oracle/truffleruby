@@ -34,7 +34,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
@@ -63,13 +63,17 @@ public abstract class GetTimeZoneNode extends RubyBaseNode {
 
     @Specialization(assumptions = "TZ_UNCHANGED.getAssumption()")
     protected TimeZoneAndName getTimeZone(
-            @Cached("getTZ(getLanguage())") Object tzValue,
+            @Cached("getTZ()") Object tzValue,
             @Cached("getTimeZone(tzValue)") TimeZoneAndName zone) {
         return zone;
     }
 
-    protected Object getTZ(RubyLanguage language) {
-        return lookupEnvNode.call(coreLibrary().getENV(), "[]", language.coreStrings.TZ.createInstance(getContext()));
+    protected Object getTZ() {
+        if (getContext().getEnv().isNativeAccessAllowed()) {
+            return lookupEnvNode.call(coreLibrary().getENV(), "[]", FrozenStrings.TZ);
+        } else {
+            return nil;
+        }
     }
 
     @TruffleBoundary
@@ -82,16 +86,12 @@ public abstract class GetTimeZoneNode extends RubyBaseNode {
 
         if (tz == nil) {
             // $TZ is not set, use the system timezone
-            return new TimeZoneAndName(getSystemTimeZone());
+            return new TimeZoneAndName(getContext().getEnv().getTimeZone());
         } else if (libString.isRubyString(tz)) {
             return parse(tzString);
         } else {
             throw CompilerDirectives.shouldNotReachHere();
         }
-    }
-
-    private static ZoneId getSystemTimeZone() {
-        return ZoneId.systemDefault();
     }
 
     private static final Map<String, String> LONG_TZNAME = Helpers.map(

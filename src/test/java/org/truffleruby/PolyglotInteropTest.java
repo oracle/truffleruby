@@ -62,8 +62,7 @@ public class PolyglotInteropTest {
 
     @Test
     public void testCreatingObjects() {
-        // Native access needed for ENV['TZ']
-        try (Context polyglot = Context.newBuilder().allowNativeAccess(true).build()) {
+        try (Context polyglot = Context.create()) {
             assertEquals(
                     2021,
                     polyglot.eval("ruby", "Time").newInstance(2021, 3, 18).getMember("year").execute().asInt());

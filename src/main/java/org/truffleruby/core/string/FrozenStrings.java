@@ -39,6 +39,7 @@ public class FrozenStrings {
     public static final ImmutableRubyString SELF = createFrozenStaticBinaryString("self");
     public static final ImmutableRubyString SUPER = createFrozenStaticBinaryString("super");
     public static final ImmutableRubyString TRUE = createFrozenStaticBinaryString("true");
+    public static final ImmutableRubyString TZ = createFrozenStaticBinaryString("TZ");
 
     private static ImmutableRubyString createFrozenStaticBinaryString(String string) {
         // defined?(...) returns frozen strings with a binary encoding

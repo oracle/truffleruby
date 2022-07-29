@@ -29,7 +29,6 @@ public class CoreStrings {
     public final CoreString STACK_LEVEL_TOO_DEEP;
     public final CoreString TIME_INTERVAL_MUST_BE_POS;
     public final CoreString TOO_FEW_ARGUMENTS;
-    public final CoreString TZ;
     public final CoreString UNKNOWN;
     public final CoreString UTC;
     public final CoreString WRONG_ARGS_ZERO_PLUS_ONE;
@@ -52,7 +51,6 @@ public class CoreStrings {
         STACK_LEVEL_TOO_DEEP = new CoreString(language, "stack level too deep");
         TIME_INTERVAL_MUST_BE_POS = new CoreString(language, "time interval must be positive");
         TOO_FEW_ARGUMENTS = new CoreString(language, "too few arguments");
-        TZ = new CoreString(language, "TZ");
         UNKNOWN = new CoreString(language, "(unknown)");
         UTC = new CoreString(language, "UTC");
         WRONG_ARGS_ZERO_PLUS_ONE = new CoreString(language, "wrong number of arguments (0 for 1+)");
