@@ -2,6 +2,9 @@
 # Most of the CI is defined in ci.jsonnet.
 name: CI
 on: [push, pull_request]
+permissions:
+  contents: read
+
 jobs:
   lint:
     name: lint
