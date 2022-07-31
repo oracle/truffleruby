@@ -209,7 +209,6 @@ import org.truffleruby.parser.ast.HashParseNode;
 import org.truffleruby.parser.ast.HashPatternParseNode;
 import org.truffleruby.parser.ast.IArgumentNode;
 import org.truffleruby.parser.ast.IfParseNode;
-import org.truffleruby.parser.ast.InParseNode;
 import org.truffleruby.parser.ast.InstAsgnParseNode;
 import org.truffleruby.parser.ast.InstVarParseNode;
 import org.truffleruby.parser.ast.IterParseNode;
@@ -839,54 +838,48 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitCaseInNode(CaseInParseNode node) {
-        if (!RubyLanguage.getCurrentContext().getOptions().PATTERN_MATCHING) {
-            final RubyContext context = RubyLanguage.getCurrentContext();
-            throw new RaiseException(
-                    context,
-                    context.getCoreExceptions().syntaxError(
-                            "syntax error, unexpected keyword_in",
-                            currentNode,
-                            node.getPosition().toSourceSection(source)));
-        }
+        // new code:
 
-        final SourceIndexLength sourceSection = node.getPosition();
+
+        // old code
+
 
         RubyNode elseNode = translateNodeOrNil(sourceSection, node.getElseNode());
 
         final RubyNode ret;
 
-        // Evaluate the case expression and store it in a local
-
-        final int tempSlot = environment.declareLocalTemp("case");
-        final ReadLocalNode readTemp = environment.readNode(tempSlot, sourceSection);
-        final RubyNode assignTemp = readTemp.makeWriteNode(node.getCaseNode().accept(this));
-
-        /* Build an if expression from the ins and else. Work backwards because the first if contains all the others in
-         * its else clause. */
-
-        for (int n = node.getCases().size() - 1; n >= 0; n--) {
-            final InParseNode in = (InParseNode) node.getCases().get(n);
-
-            // JRuby AST always gives InParseNode with only one expression.
-            // "in 1,2; body" gets translated to 2 InParseNode. This is a bug from
-            // us we-using the 'when' parser for 'in' temporarily.
-            final ParseNode patternNode = in.getExpressionNodes();
-
-            final RubyNode conditionNode = caseInPatternMatch(patternNode, node.getCaseNode(), readTemp, sourceSection);
-
-            // Create the if node
-            final RubyNode thenNode = translateNodeOrNil(sourceSection, in.getBodyNode());
-            final IfElseNode ifNode = new IfElseNode(conditionNode, thenNode, elseNode);
-
-            // This if becomes the else for the next if
-            elseNode = ifNode;
-        }
-
-        final RubyNode ifNode = elseNode;
-
-        // A top-level block assigns the temp then runs the if
-        ret = sequence(sourceSection, Arrays.asList(assignTemp, ifNode));
-
+        //        // Evaluate the case expression and store it in a local
+        //
+        //        final int tempSlot = environment.declareLocalTemp("case");
+        //        final ReadLocalNode readTemp = environment.readNode(tempSlot, sourceSection);
+        //        final RubyNode assignTemp = readTemp.makeWriteNode(node.getCaseNode().accept(this));
+        //
+        //        /* Build an if expression from the ins and else. Work backwards because the first if contains all the others in
+        //         * its else clause. */
+        //
+        //        for (int n = node.getCases().size() - 1; n >= 0; n--) {
+        //            final InParseNode in = (InParseNode) node.getCases().get(n);
+        //
+        //            // JRuby AST always gives InParseNode with only one expression.
+        //            // "in 1,2; body" gets translated to 2 InParseNode. This is a bug from
+        //            // us we-using the 'when' parser for 'in' temporarily.
+        //            final ParseNode patternNode = in.getExpressionNodes();
+        //
+        //            final RubyNode conditionNode = caseInPatternMatch(patternNode, node.getCaseNode(), readTemp, sourceSection);
+        //
+        //            // Create the if node
+        //            final RubyNode thenNode = translateNodeOrNil(sourceSection, in.getBodyNode());
+        //            final IfElseNode ifNode = new IfElseNode(conditionNode, thenNode, elseNode);
+        //
+        //            // This if becomes the else for the next if
+        //            elseNode = ifNode;
+        //        }
+        //
+        //        final RubyNode ifNode = elseNode;
+        //
+        //        // A top-level block assigns the temp then runs the if
+        //        ret = sequence(sourceSection, Arrays.asList(assignTemp, ifNode));
+        //
         return addNewlineIfNeeded(node, ret);
     }
 
