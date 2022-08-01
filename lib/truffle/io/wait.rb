@@ -14,18 +14,18 @@ class IO
 
   def ready?
     ensure_open_and_readable
-    Truffle::IOOperations.poll(self, Truffle::IOOperations::POLLIN, 0) > 0
+    Truffle::IOOperations.poll(self, Truffle::IOOperations::POLLIN, 0)
   end
 
   def wait(timeout = nil)
     ensure_open_and_readable
-    Truffle::IOOperations.poll(self, Truffle::IOOperations::POLLIN, timeout) > 0 ? self : nil
+    Truffle::IOOperations.poll(self, Truffle::IOOperations::POLLIN, timeout) ? self : nil
   end
 
   alias_method :wait_readable, :wait
 
   def wait_writable(timeout = nil)
     ensure_open_and_writable
-    Truffle::IOOperations.poll(self, Truffle::IOOperations::POLLOUT, timeout) > 0 ? self : nil
+    Truffle::IOOperations.poll(self, Truffle::IOOperations::POLLOUT, timeout) ? self : nil
   end
 end

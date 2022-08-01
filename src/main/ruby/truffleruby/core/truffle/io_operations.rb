@@ -199,6 +199,9 @@ module Truffle
 
     end
 
+    # This method will return a true if poll returned without error
+    # with an event within the timeout, false if the timeout expired,
+    # or raises an exception for an errno.
     def self.poll(io, events, timeout)
       if (events & POLLIN) != 0
         return 1 unless io.__send__(:buffer_empty?)
@@ -212,8 +215,9 @@ module Truffle
         raise ArgumentError, 'timeout must be positive' if timeout < 0
 
         # Microseconds, rounded down
-        timeout = remaining_timeout = Integer(timeout * 1_000)
+        timeout = remaining_timeout = (timeout * 1_000).to_i
         start = Process.clock_gettime(Process::CLOCK_MONOTONIC, :millisecond)
+        deadline = start + timeout
       else
         remaining_timeout = -1
       end
@@ -231,11 +235,10 @@ module Truffle
                 if timeout
                   # Update timeout
                   now = Process.clock_gettime(Process::CLOCK_MONOTONIC, :millisecond)
-                  waited = now - start
-                  if waited >= timeout
-                    nil # timeout
+                  if now >= deadline
+                    false # timeout
                   else
-                    remaining_timeout = timeout - waited
+                    remaining_timeout = deadline - now
                     :retry
                   end
                 else
@@ -245,7 +248,7 @@ module Truffle
                 Errno.handle_errno(errno)
               end
             else
-              primitive_result
+              primitive_result > 0
             end
         end while result == :retry
       ensure
