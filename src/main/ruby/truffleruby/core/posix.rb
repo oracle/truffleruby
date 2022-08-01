@@ -215,6 +215,7 @@ module Truffle::POSIX
   attach_function :opendir, [:string], :pointer
   attach_function :pipe, [:pointer], :int
   attach_function :poll, [:pointer, :long, :int], :int, LIBC, true
+  attach_function :truffleposix_poll, [:pointer, :long, :int], :int, LIBTRUFFLEPOSIX, true
   attach_function :read, [:int, :pointer, :size_t], :ssize_t, LIBC, true
   attach_function :readlink, [:string, :pointer, :size_t], :ssize_t
   attach_function :realpath, [:string, :pointer], :pointer

@@ -222,38 +222,31 @@ module Truffle
         remaining_timeout = -1
       end
 
-      pollfd = Primitive.io_thread_buffer_allocate(POLLFD_SIZE)
       begin
-        pollfd.put_int(POLLFD_FD_OFFSET, Primitive.io_fd(io))
-        pollfd.put_uint16(POLLFD_EVENTS_OFFSET, events)
-        begin
-          primitive_result = Truffle::POSIX.poll(pollfd, 1, remaining_timeout)
-          result =
-            if primitive_result < 0
-              errno = Errno.errno
-              if errno == Errno::EINTR::Errno
-                if timeout
-                  # Update timeout
-                  now = Process.clock_gettime(Process::CLOCK_MONOTONIC, :millisecond)
-                  if now >= deadline
-                    false # timeout
-                  else
-                    remaining_timeout = deadline - now
-                    :retry
-                  end
+        primitive_result = Truffle::POSIX.truffleposix_poll(Primitive.io_fd(io), events, remaining_timeout)
+        result =
+          if primitive_result < 0
+            errno = Errno.errno
+            if errno == Errno::EINTR::Errno
+              if timeout
+                # Update timeout
+                now = Process.clock_gettime(Process::CLOCK_MONOTONIC, :millisecond)
+                if now >= deadline
+                  false # timeout
                 else
+                  remaining_timeout = deadline - now
                   :retry
                 end
               else
-                Errno.handle_errno(errno)
+                :retry
               end
             else
-              primitive_result > 0
+              Errno.handle_errno(errno)
             end
-        end while result == :retry
-      ensure
-        Primitive.io_thread_buffer_free(pollfd)
-      end
+          else
+            primitive_result > 0
+          end
+      end while result == :retry
 
       result
     end
