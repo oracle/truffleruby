@@ -202,8 +202,8 @@ module Truffle
     # This method will return a true if poll returned without error
     # with an event within the timeout, false if the timeout expired,
     # or raises an exception for an errno.
-    def self.poll(io, events, timeout)
-      if (events & POLLIN) != 0
+    def self.poll(io, event_mask, timeout)
+      if (event_mask & POLLIN) != 0
         return 1 unless io.__send__(:buffer_empty?)
       end
 
@@ -223,7 +223,7 @@ module Truffle
       end
 
       begin
-        primitive_result = Truffle::POSIX.truffleposix_poll(Primitive.io_fd(io), events, remaining_timeout)
+        primitive_result = Truffle::POSIX.truffleposix_poll(Primitive.io_fd(io), event_mask, remaining_timeout)
         result =
           if primitive_result < 0
             errno = Errno.errno
