@@ -158,6 +158,8 @@ public class ParserSupport {
             .usAsciiString(FORWARD_ARGS_KWREST_VAR);
     /** The local variable to store the block from ... in */
     public static final String FORWARD_ARGS_BLOCK_VAR = Layouts.TEMP_PREFIX + "forward_block";
+    public static final TruffleString FORWARD_ARGS_BLOCK_VAR_TSTRING = TStringUtils
+            .usAsciiString(FORWARD_ARGS_BLOCK_VAR);
 
     // Parser states:
     protected StaticScope currentScope;
@@ -1534,6 +1536,11 @@ public class ParserSupport {
 
     public void warning(SourceIndexLength position, String message) {
         warnings.warning(file, position.toSourceSection(lexer.getSource()).getStartLine(), message);
+    }
+
+    public boolean local_id(String value) {
+        // FIXME: local_id_ref is more complicated and we just blanket look for a scope var of the same name.
+        return currentScope.isDefined(value) >= 0;
     }
 
     // ENEBO: Totally weird naming (in MRI is not allocated and is a local var name) [1.9]

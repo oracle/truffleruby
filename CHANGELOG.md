@@ -5,6 +5,7 @@ New features:
 * Foreign strings now have all methods of Ruby `String`. They are treated as `#frozen?` UTF-8 Ruby Strings.
 * Add `Java.add_to_classpath` method to add jar paths at runtime (#2693, @bjfish).
 * Add support for Ruby 3.1's Hash shorthand/punning syntax (@nirvdrum).
+* Add support for Ruby 3.1's anonymous block forwarding syntax (@nirvdrum).
 
 Bug fixes:
 
