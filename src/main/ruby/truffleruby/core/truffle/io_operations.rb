@@ -12,11 +12,8 @@ module Truffle
   module IOOperations
 
     POLLIN = Truffle::Config['platform.poll.POLLIN']
+    POLLPRI = Truffle::Config['platform.poll.POLLPRI']
     POLLOUT = Truffle::Config['platform.poll.POLLOUT']
-
-    POLLFD_SIZE = Truffle::Config['platform.pollfd.sizeof']
-    POLLFD_FD_OFFSET = Truffle::Config['platform.pollfd.fd.offset']
-    POLLFD_EVENTS_OFFSET = Truffle::Config['platform.pollfd.events.offset']
 
     def self.print(io, args, last_line_storage)
       if args.empty?

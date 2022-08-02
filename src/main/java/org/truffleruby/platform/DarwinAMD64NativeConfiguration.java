@@ -196,16 +196,6 @@ public class DarwinAMD64NativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.msghdr.msg_flags.offset", 44);
         configuration.config("platform.msghdr.msg_flags.size", 4);
         configuration.config("platform.msghdr.msg_flags.type", string(context, "int"));
-        configuration.config("platform.pollfd.sizeof", 8);
-        configuration.config("platform.pollfd.fd.offset", 0);
-        configuration.config("platform.pollfd.fd.size", 4);
-        configuration.config("platform.pollfd.fd.type", string(context, "int"));
-        configuration.config("platform.pollfd.events.offset", 4);
-        configuration.config("platform.pollfd.events.size", 2);
-        configuration.config("platform.pollfd.events.type", string(context, "short"));
-        configuration.config("platform.pollfd.revents.offset", 6);
-        configuration.config("platform.pollfd.revents.size", 2);
-        configuration.config("platform.pollfd.revents.type", string(context, "short"));
         configuration.config("platform.servent.sizeof", 32);
         configuration.config("platform.servent.s_name.offset", 0);
         configuration.config("platform.servent.s_name.size", 8);
@@ -413,6 +403,7 @@ public class DarwinAMD64NativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.fcntl.F_ALLOCATECONTIG", 2);
         configuration.config("platform.fcntl.F_ALLOCATEALL", 4);
         configuration.config("platform.poll.POLLIN", 1);
+        configuration.config("platform.poll.POLLPRI", 2);
         configuration.config("platform.poll.POLLOUT", 4);
         configuration.config("platform.socket.AF_APPLETALK", 16);
         configuration.config("platform.socket.PF_APPLETALK", 16);

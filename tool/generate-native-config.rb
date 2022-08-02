@@ -563,13 +563,6 @@ struct 'msghdr' do |s|
   s.field :msg_flags
 end
 
-struct 'pollfd' do |s|
-  s.include 'poll.h'
-  s.field 'fd'
-  s.field 'events'
-  s.field 'revents'
-end
-
 struct 'servent' do |s|
   s.include 'netdb.h'
   s.field :s_name
@@ -646,7 +639,7 @@ end
 constants 'poll' do |cg|
   cg.include 'poll.h'
   cg.consts %w[
-    POLLIN POLLOUT
+    POLLIN POLLPRI POLLOUT
   ]
 end
 
