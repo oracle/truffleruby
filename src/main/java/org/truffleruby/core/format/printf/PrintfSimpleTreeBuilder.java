@@ -15,6 +15,7 @@ import java.util.List;
 import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.LiteralFormatNode;
@@ -46,14 +47,16 @@ public class PrintfSimpleTreeBuilder {
     private final RubyLanguage language;
     private final List<FormatNode> sequence = new ArrayList<>();
     private final List<SprintfConfig> configs;
+    private final RubyEncoding encoding;
 
     public static final int DEFAULT = Integer.MIN_VALUE;
 
     private static final ImmutableRubyString EMPTY_STRING = FrozenStrings.EMPTY_US_ASCII;
 
-    public PrintfSimpleTreeBuilder(RubyLanguage language, List<SprintfConfig> configs) {
+    public PrintfSimpleTreeBuilder(RubyLanguage language, List<SprintfConfig> configs, RubyEncoding encoding) {
         this.language = language;
         this.configs = configs;
+        this.encoding = encoding;
     }
 
     private void buildTree() {
@@ -210,11 +213,18 @@ public class PrintfSimpleTreeBuilder {
                     case OTHER:
                         switch (config.getFormat()) {
                             case 'c':
-                                node = WriteBytesNodeGen.create(
-                                        FormatCharacterNodeGen.create(
-                                                config.isMinus(),
-                                                widthNode,
-                                                valueNode));
+                                final FormatNode characterConversionNode = FormatCharacterNodeGen.create(
+                                        encoding,
+                                        valueNode);
+
+                                if (config.getWidth() != null || config.isWidthStar()) {
+                                    final FormatNode characterPrecisionNode = new LiteralFormatNode(DEFAULT);
+                                    node = WritePaddedBytesNodeGen
+                                            .create(config.isMinus(), widthNode, characterPrecisionNode,
+                                                    characterConversionNode);
+                                } else {
+                                    node = WriteBytesNodeGen.create(characterConversionNode);
+                                }
                                 break;
                             case 's':
                             case 'p':

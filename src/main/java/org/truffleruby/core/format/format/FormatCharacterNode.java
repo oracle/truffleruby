@@ -9,17 +9,19 @@
  */
 package org.truffleruby.core.format.format;
 
+import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.api.strings.TruffleString.CodePointLengthNode;
+import com.oracle.truffle.api.strings.TruffleString.FromCodePointNode;
+import com.oracle.truffle.api.strings.TruffleString.ForceEncodingNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToIntNodeGen;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.format.FormatNode;
-import org.truffleruby.core.format.LiteralFormatNode;
 import org.truffleruby.core.format.convert.ToStringNode;
 import org.truffleruby.core.format.convert.ToStringNodeGen;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
-import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
-import org.truffleruby.core.format.write.bytes.WriteByteNodeGen;
-import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 
@@ -30,97 +32,110 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.language.library.RubyStringLibrary;
 
-@NodeChild("width")
 @NodeChild("value")
 public abstract class FormatCharacterNode extends FormatNode {
 
-    private final boolean hasMinusFlag;
+    private final RubyEncoding encoding;
 
     @Child private ToIntNode toIntegerNode;
     @Child private ToStringNode toStringNode;
+    @Child private FromCodePointNode fromCodePointNode;
+    @Child private CodePointLengthNode codePointLengthNode;
+    @Child private ForceEncodingNode forceEncodingNode;
 
-    public FormatCharacterNode(boolean hasMinusFlag) {
-        this.hasMinusFlag = hasMinusFlag;
+    public FormatCharacterNode(RubyEncoding encoding) {
+        this.encoding = encoding;
     }
 
-    @Specialization(guards = { "width == cachedWidth" }, limit = "getLimit()")
-    protected byte[] formatCached(int width, Object value,
-            @Cached("width") int cachedWidth,
-            @Cached("makeFormatString(width)") String cachedFormatString,
-            @Cached RubyStringLibrary libString) {
-        final String charString = getCharString(value, libString);
-        return StringUtils.formatASCIIBytes(cachedFormatString, charString);
-    }
-
-    @Specialization(replaces = "formatCached")
-    protected byte[] format(int width, Object value,
-            @Cached RubyStringLibrary libString) {
-        final String charString = getCharString(value, libString);
-        return StringUtils.formatASCIIBytes(makeFormatString(width), charString);
+    @Specialization
+    protected RubyString format(Object value,
+            @Cached RubyStringLibrary strings) {
+        final TruffleString character = getCharacter(value, strings);
+        return createString(character, encoding);
     }
 
     @TruffleBoundary
-    protected String getCharString(Object value, RubyStringLibrary libString) {
+    protected TruffleString getCharacter(Object value, RubyStringLibrary strings) {
+        final TruffleString character;
+
+        Object stringArgument;
+        try {
+            stringArgument = toStringNode().executeToString(value);
+        } catch (NoImplicitConversionException e) {
+            stringArgument = null;
+        }
+
+        if (stringArgument == null || RubyGuards.isNil(stringArgument)) {
+            final int codepointArgument = toIntegerNode().execute(value);
+            character = fromCodePointNode().execute(codepointArgument, encoding.tencoding);
+
+            if (character == null) {
+                throw new RaiseException(
+                        getContext(),
+                        getContext().getCoreExceptions().charRangeError(codepointArgument, this));
+            }
+        } else if (strings.isRubyString(stringArgument)) {
+            /* This implementation follows the CRuby approach. CRuby ignores encoding of argument and interprets binary
+             * representation of a character as if it's in the format sequence's encoding. */
+            final AbstractTruffleString originalCharacter = strings.getTString(stringArgument);
+            character = forceEncodingNode().execute(originalCharacter, strings.getTEncoding(stringArgument),
+                    encoding.tencoding);
+
+            final int size = codePointLengthNode().execute(character, encoding.tencoding);
+            if (size != 1) {
+                throw new RaiseException(
+                        getContext(),
+                        getContext().getCoreExceptions().argumentErrorCharacterRequired(this));
+            }
+        } else {
+            throw CompilerDirectives.shouldNotReachHere();
+        }
+        return character;
+    }
+
+    private ToStringNode toStringNode() {
         if (toStringNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toStringNode = insert(ToStringNodeGen.create(
-                    false,
-                    "to_str",
-                    false,
-                    null,
-                    WriteByteNodeGen.create(new LiteralFormatNode(value))));
-        }
-        Object toStrResult;
-        try {
-            toStrResult = toStringNode.executeToString(value);
-        } catch (NoImplicitConversionException e) {
-            toStrResult = null;
+            toStringNode = insert(ToStringNodeGen.create(false, "to_str", false, null, null));
         }
 
-        final String charString;
-        if (toStrResult == null || RubyGuards.isNil(toStrResult)) {
-            if (toIntegerNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                toIntegerNode = insert(ToIntNodeGen.create(null));
-            }
-            final int charValue = toIntegerNode.execute(value);
-            // TODO BJF check char length is > 0
-            charString = Character.toString((char) charValue);
-        } else if (libString.isRubyString(toStrResult)) {
-            final String resultString = RubyGuards.getJavaString(toStrResult);
-            final int size = resultString.length();
-            if (size > 1) {
-                throw new RaiseException(
-                        getContext(),
-                        getContext().getCoreExceptions().argumentErrorCharacterRequired(this));
-            }
-            charString = resultString;
-        } else {
-            var tstring = (TruffleString) toStrResult;
-            charString = tstring.toJavaStringUncached();
-            if (charString.length() > 1) {
-                throw new RaiseException(
-                        getContext(),
-                        getContext().getCoreExceptions().argumentErrorCharacterRequired(this));
-            }
-        }
-        return charString;
+        return toStringNode;
     }
 
-    @TruffleBoundary
-    protected String makeFormatString(int width) {
-        final boolean leftJustified = hasMinusFlag || width < 0;
-        if (width == PrintfSimpleTreeBuilder.DEFAULT) {
-            width = 1;
+    private ToIntNode toIntegerNode() {
+        if (toIntegerNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            toIntegerNode = insert(ToIntNodeGen.create(null));
         }
-        if (width < 0) {
-            width = -width;
-        }
-        return "%" + (leftJustified ? "-" : "") + width + "." + width + "s";
+
+        return toIntegerNode;
     }
 
-    protected int getLimit() {
-        return getLanguage().options.PACK_CACHE;
+    private FromCodePointNode fromCodePointNode() {
+        if (fromCodePointNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            fromCodePointNode = insert(FromCodePointNode.create());
+        }
+
+        return fromCodePointNode;
+    }
+
+    private CodePointLengthNode codePointLengthNode() {
+        if (codePointLengthNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            codePointLengthNode = insert(CodePointLengthNode.create());
+        }
+
+        return codePointLengthNode;
+    }
+
+    private ForceEncodingNode forceEncodingNode() {
+        if (forceEncodingNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            forceEncodingNode = insert(ForceEncodingNode.create());
+        }
+
+        return forceEncodingNode;
     }
 
 }

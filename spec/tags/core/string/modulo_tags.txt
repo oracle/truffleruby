@@ -1,21 +1,7 @@
-fails:String#% output's encoding is the same as the format string if passed value is encoding-compatible
 fails:String#% output's encoding negotiates a compatible encoding if necessary
 fails:String#% output's encoding raises if a compatible encoding can't be found
-fails:String#% raises an error if single % appears at the end
-fails:String#% returns a String in the same encoding as the format String if compatible
 fails:String#% returns a String in the argument's encoding if format encoding is more restrictive
 fails:String#% raises Encoding::CompatibilityError if both encodings are ASCII compatible and there ano not ASCII characters
-fails:String#% other formats c raises ArgumentError if argument is an empty string
-fails:String#% other formats c supports Unicode characters
 fails:String#% other formats s does not try to convert with to_str
-fails:String#% other formats % alone raises an ArgumentError
 fails:String#% flags # applies to format o does nothing for negative argument
 fails:String#% flags # applies to formats bBxX does nothing for zero argument
-fails:String#% flags # applies to formats aAeEfgG forces a decimal point to be added, even if no digits follow
-fails:String#% flags # applies to gG does not remove trailing zeros
-fails:String#% flags - left-justifies the result of conversion if width is specified
-fails:String#% flags 0 (zero) applies to numeric formats bBdiouxXaAeEfgG and width is specified uses radix-1 when displays negative argument as a two's complement
-fails:String#% flags * left-justifies the result if width is negative
-fails:String#% flags * left-justifies the result if specified with $ argument is negative
-fails:String#% precision string formats determines the maximum number of characters to be copied from the string
-fails:String#% reference by name %{name} style supports flags, width and precision
