@@ -16,6 +16,7 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
+import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.kernel.KernelNodes;
@@ -50,7 +51,18 @@ public final class RubyEncoding extends ImmutableRubyObjectNotCopyable
     public RubyEncoding(Encoding jcoding, ImmutableRubyString name, int index) {
         assert name.getEncodingUncached() == Encodings.US_ASCII;
         this.jcoding = Objects.requireNonNull(jcoding);
-        this.tencoding = Objects.requireNonNull(TStringUtils.jcodingToTEncoding(jcoding));
+
+        TruffleString.Encoding tencoding;
+        try {
+            tencoding = TStringUtils.jcodingToTEncoding(jcoding);
+        } catch (IllegalArgumentException e) {
+            if (jcoding.isDummy()) {
+                tencoding = TStringUtils.jcodingToTEncoding(ASCIIEncoding.INSTANCE);
+            } else {
+                throw e;
+            }
+        }
+        this.tencoding = Objects.requireNonNull(tencoding);
         this.name = Objects.requireNonNull(name);
         this.index = index;
 
