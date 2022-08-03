@@ -13,6 +13,10 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.parser.ast.ArrayPatternParseNode;
+import org.truffleruby.parser.ast.FindPatternParseNode;
+import org.truffleruby.parser.ast.HashPatternParseNode;
+import org.truffleruby.parser.ast.ListParseNode;
 import org.truffleruby.parser.ast.ParseNode;
 
 public class PatternMatchingTranslator extends Translator {
@@ -23,14 +27,33 @@ public class PatternMatchingTranslator extends Translator {
             ParserContext parserContext,
             Node currentNode) {
         super(language, source, parserContext, currentNode);
-        //        this.parent = parent;
-        //        this.environment = environment;
-        //        this.rubyWarnings = rubyWarnings;
     }
 
     @Override
     protected RubyNode defaultVisit(ParseNode node) {
         throw new UnsupportedOperationException(node.toString() + " " + node.getPosition());
+    }
+
+    public RubyNode visitPatternNode(ParseNode node) {
+        if (node instanceof ArrayPatternParseNode) {
+            return visitArrayPatternNode((ArrayPatternParseNode) node);
+        } else if (node instanceof FindPatternParseNode) {
+
+        } else if (node instanceof HashPatternParseNode) {
+
+        } else {
+            throw new UnsupportedOperationException(node.toString() + " " + node.getPosition());
+        }
+    }
+
+    public RubyNode translateArrayPatternNode(ArrayPatternParseNode node) {
+        // For now, we are assuming that only preArgs exist.
+        final int size = node.minimumArgsNum();
+        ListParseNode pre = node.getPreArgs();
+        ParseNode[] ch = pre.children();
+        for (int i = 0; i < pre.size(); i++) {
+            ch[i];
+        }
     }
 
 
