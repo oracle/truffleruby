@@ -117,6 +117,7 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -137,16 +138,16 @@ import com.oracle.truffle.api.source.SourceSection;
 public class CExtNodes {
 
     /* These tag values are derived from MRI source and from the Tk gem and are used to represent different control flow
-     * states under which code may exit an `rb_protect` plock. The fatal tag is defined but I could not find a point
+     * states under which code may exit an `rb_protect` block. The fatal tag is defined but I could not find a point
      * where it is assigned, and am not sure it maps to anything we would use in TruffleRuby. */
-    public static int RUBY_TAG_RETURN = 0x1;
-    public static int RUBY_TAG_BREAK = 0x2;
-    public static int RUBY_TAG_NEXT = 0x3;
-    public static int RUBY_TAG_RETRY = 0x4;
-    public static int RUBY_TAG_REDO = 0x5;
-    public static int RUBY_TAG_RAISE = 0x6;
-    public static int RUBY_TAG_THROW = 0x7;
-    public static int RUBY_TAG_FATAL = 0x8;
+    public static final int RUBY_TAG_RETURN = 0x1;
+    public static final int RUBY_TAG_BREAK = 0x2;
+    public static final int RUBY_TAG_NEXT = 0x3;
+    public static final int RUBY_TAG_RETRY = 0x4;
+    public static final int RUBY_TAG_REDO = 0x5;
+    public static final int RUBY_TAG_RAISE = 0x6;
+    public static final int RUBY_TAG_THROW = 0x7;
+    public static final int RUBY_TAG_FATAL = 0x8;
 
     public static Pointer newNativeStringPointer(int capacity, RubyLanguage language) {
         // We need up to 4 \0 bytes for UTF-32. Always use 4 for speed rather than checking the encoding min length.
@@ -1418,32 +1419,57 @@ public class CExtNodes {
 
         @Specialization
         protected int executeThrow(CapturedException captured,
-                @Cached ConditionProfile localReturnProfile,
-                @Cached ConditionProfile dynamicReturnProfile,
-                @Cached ConditionProfile breakProfile,
-                @Cached ConditionProfile nextProfile,
-                @Cached ConditionProfile retryProfile,
-                @Cached ConditionProfile redoProfile,
-                @Cached ConditionProfile raiseProfile,
-                @Cached ConditionProfile throwProfile) {
-            final Throwable e = captured.getException();
-            if (dynamicReturnProfile.profile(e instanceof DynamicReturnException)) {
-                return RUBY_TAG_RETURN;
-            } else if (localReturnProfile.profile(e instanceof LocalReturnException)) {
-                return RUBY_TAG_RETURN;
-            } else if (breakProfile.profile(e instanceof BreakException)) {
-                return RUBY_TAG_BREAK;
-            } else if (nextProfile.profile(e instanceof NextException)) {
-                return RUBY_TAG_NEXT;
-            } else if (retryProfile.profile(e instanceof RetryException)) {
-                return RUBY_TAG_RETRY;
-            } else if (redoProfile.profile(e instanceof RedoException)) {
-                return RUBY_TAG_REDO;
-            } else if (raiseProfile.profile(e instanceof RaiseException)) {
-                return RUBY_TAG_RAISE;
-            } else if (throwProfile.profile(e instanceof ThrowException)) {
-                return RUBY_TAG_THROW;
-            }
+                @Cached ExtractRubyTagHelperNode helperNode) {
+            return helperNode.execute(captured.getException());
+        }
+    }
+
+    public abstract static class ExtractRubyTagHelperNode extends RubyBaseNode {
+
+        public abstract int execute(Throwable e);
+
+        @Specialization
+        protected int dynamicReturnTag(DynamicReturnException e) {
+            return RUBY_TAG_RETURN;
+        }
+
+        @Specialization
+        protected int localReturnTag(LocalReturnException e) {
+            return RUBY_TAG_RETURN;
+        }
+
+        @Specialization
+        protected int breakTag(BreakException e) {
+            return RUBY_TAG_BREAK;
+        }
+
+        @Specialization
+        protected int nextTag(NextException e) {
+            return RUBY_TAG_NEXT;
+        }
+
+        @Specialization
+        protected int retryTag(RetryException e) {
+            return RUBY_TAG_RETRY;
+        }
+
+        @Specialization
+        protected int redoTag(RedoException e) {
+            return RUBY_TAG_REDO;
+        }
+
+        @Specialization
+        protected int raiseTag(RaiseException e) {
+            return RUBY_TAG_RAISE;
+        }
+
+        @Specialization
+        protected int throwTag(ThrowException e) {
+            return RUBY_TAG_THROW;
+        }
+
+        @Fallback
+        protected int noTag(Throwable e) {
             return 0;
         }
     }
@@ -1460,7 +1486,6 @@ public class CExtNodes {
             if (runtimeExceptionProfile.profile(e instanceof RuntimeException)) {
                 throw (RuntimeException) e;
             } else if (errorProfile.profile(e instanceof Error)) {
-
                 throw (Error) e;
             } else {
                 throw CompilerDirectives.shouldNotReachHere("Checked Java Throwable rethrown", e);
