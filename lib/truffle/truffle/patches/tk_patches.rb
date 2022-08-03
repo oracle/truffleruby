@@ -11,6 +11,7 @@ class TkPatches
 
   PATCHES = {
     gem: 'tk',
+    non_standard_dir_structure: true,
     patches: {
       ['tk/tkutil', 'tkutil.c'] => [
         {

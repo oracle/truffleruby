@@ -31,6 +31,7 @@ module Truffle
           end
           processed_patch[:patches] = patch
           processed_patch[:gem] = gem
+          processed_patch[:non_standard_dir_structure] = gem_patches[:non_standard_dir_structure]
           raise "Duplicate patch file #{key}." if patch_hash.include?(key)
           patch_hash[key] = processed_patch
         end
@@ -46,7 +47,11 @@ module Truffle
         file_list = Hash.new { |h,k| h[k] = [] }
         PATCHED_FILES.each_pair do |file, patch|
           dir = if patch[:ext_dir]
-                  File.join('ext', patch[:ext_dir])
+                  if patch[:non_standard_dir_structure]
+                    File.join('ext', patch[:ext_dir])
+                  else
+                    File.join(patch[:gem], 'ext', patch[:ext_dir])
+                  end
                 else
                   "/#{patch[:gem]}"
                 end
@@ -87,7 +92,11 @@ EOF
       def self.patch(file, contents, directory)
         if patched_file = PATCHED_FILES[File.basename(file)]
           matched = if patched_file[:ext_dir]
-                      directory.end_with?('ext', patched_file[:ext_dir])
+                      if patched_file[:non_standard_dir_structure]
+                        directory.end_with?('ext', patched_file[:ext_dir])
+                      else
+                        directory.end_with?(File.join(patched_file[:gem], 'ext', patched_file[:ext_dir]))
+                      end
                     else
                       regexp = /^#{Regexp.escape(patched_file[:gem])}\b/
                       directory.split('/').last(3).any? { |part| part =~ regexp } || file.split('/').last(2).any? { |part| part =~ regexp }
