@@ -301,6 +301,12 @@ describe :kernel_sprintf, shared: true do
         }.should raise_error(ArgumentError, /%c requires a character/)
       end
 
+      it "raises TypeError if argument is not String or Integer and cannot be converted to them" do
+        -> {
+          @method.call("%c", [])
+        }.should raise_error(TypeError, /no implicit conversion of Array into Integer/)
+      end
+
       it "raises TypeError if argument is nil" do
         -> {
           @method.call("%c", nil)
@@ -314,6 +320,37 @@ describe :kernel_sprintf, shared: true do
         end
 
         @method.call("%c", obj).should == "a"
+      end
+
+      it "tries to convert argument to Integer with to_int" do
+        obj = BasicObject.new
+        def obj.to_int
+          90
+        end
+
+        @method.call("%c", obj).should == "Z"
+      end
+
+      it "raises TypeError if converting to String with to_str returns non-String" do
+        obj = BasicObject.new
+        def obj.to_str
+          :foo
+        end
+
+        -> {
+          @method.call("%c", obj)
+        }.should raise_error(TypeError, /can't convert BasicObject to String/)
+      end
+
+      it "raises TypeError if converting to Integer with to_int returns non-Integer" do
+        obj = BasicObject.new
+        def obj.to_str
+          :foo
+        end
+
+        -> {
+          @method.call("%c", obj)
+        }.should raise_error(TypeError, /can't convert BasicObject to String/)
       end
     end
 

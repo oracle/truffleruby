@@ -18,8 +18,8 @@ import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToIntNodeGen;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.format.FormatNode;
-import org.truffleruby.core.format.convert.ToStringNode;
-import org.truffleruby.core.format.convert.ToStringNodeGen;
+import org.truffleruby.core.format.convert.ToStrNode;
+import org.truffleruby.core.format.convert.ToStrNodeGen;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.RubyGuards;
@@ -38,7 +38,7 @@ public abstract class FormatCharacterNode extends FormatNode {
     private final RubyEncoding encoding;
 
     @Child private ToIntNode toIntegerNode;
-    @Child private ToStringNode toStringNode;
+    @Child private ToStrNode toStrNode;
     @Child private FromCodePointNode fromCodePointNode;
     @Child private CodePointLengthNode codePointLengthNode;
     @Child private ForceEncodingNode forceEncodingNode;
@@ -60,7 +60,7 @@ public abstract class FormatCharacterNode extends FormatNode {
 
         Object stringArgument;
         try {
-            stringArgument = toStringNode().executeToString(value);
+            stringArgument = toStrNode().execute(value);
         } catch (NoImplicitConversionException e) {
             stringArgument = null;
         }
@@ -93,13 +93,13 @@ public abstract class FormatCharacterNode extends FormatNode {
         return character;
     }
 
-    private ToStringNode toStringNode() {
-        if (toStringNode == null) {
+    private ToStrNode toStrNode() {
+        if (toStrNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toStringNode = insert(ToStringNodeGen.create(false, "to_str", false, null, null));
+            toStrNode = insert(ToStrNodeGen.create(null));
         }
 
-        return toStringNode;
+        return toStrNode;
     }
 
     private ToIntNode toIntegerNode() {
