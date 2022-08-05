@@ -9,24 +9,25 @@
  */
 package org.truffleruby.parser;
 
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.source.Source;
-import org.truffleruby.RubyLanguage;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.parser.ast.ArrayPatternParseNode;
-import org.truffleruby.parser.ast.FindPatternParseNode;
-import org.truffleruby.parser.ast.HashPatternParseNode;
-import org.truffleruby.parser.ast.ListParseNode;
-import org.truffleruby.parser.ast.ParseNode;
 
 public class PatternMatchingTranslator extends Translator {
+
+    ParseNode data;
+    ListParseNode cases;
+    TranslatorEnvironment environment;
 
     public PatternMatchingTranslator(
             RubyLanguage language,
             Source source,
             ParserContext parserContext,
-            Node currentNode) {
+            Node currentNode,
+            ParseNode data,
+            ListParseNode cases,
+            TranslatorEnvironment environment) {
         super(language, source, parserContext, currentNode);
+        this.data = data; // data to match on
+        this.cases = cases; // cases to check.
+        this.environment = environment;
     }
 
     @Override
@@ -34,25 +35,129 @@ public class PatternMatchingTranslator extends Translator {
         throw new UnsupportedOperationException(node.toString() + " " + node.getPosition());
     }
 
-    public RubyNode visitPatternNode(ParseNode node) {
-        if (node instanceof ArrayPatternParseNode) {
-            return visitArrayPatternNode((ArrayPatternParseNode) node);
-        } else if (node instanceof FindPatternParseNode) {
+    public RubyNode translatePatternNode(ParseNode patternNode, ParseNode expressionNode, RubyNode expressionValue,
+            SourceIndexLength sourceSection) {
+        final RubyCallNodeParameters deconstructCallParameters;
+        final RubyCallNodeParameters matcherCallParameters;
+        final RubyNode receiver;
+        final RubyNode deconstructed;
 
-        } else if (node instanceof HashPatternParseNode) {
+        switch (patternNode.getNodeType()) {
+            case ARRAYNODE:
+                // Pattern-match element-wise recursively if possible.
+                final int size = ((ArrayParseNode) patternNode).size();
+                if (expressionNode.getNodeType() == NodeType.ARRAYNODE &&
+                        ((ArrayParseNode) expressionNode).size() == size) {
+                    final ParseNode[] patternElements = ((ArrayParseNode) patternNode).children();
+                    final ParseNode[] expressionElements = ((ArrayParseNode) expressionNode).children();
 
-        } else {
-            throw new UnsupportedOperationException(node.toString() + " " + node.getPosition());
+                    final RubyNode[] matches = new RubyNode[size];
+
+                    // For each element of the case expression, evaluate and assign it, then run the pattern-matching
+                    // on the element
+                    for (int n = 0; n < size; n++) {
+                        final int tempSlot = environment.declareLocalTemp("caseElem" + n);
+                        final ReadLocalNode readTemp = environment.readNode(tempSlot, sourceSection);
+                        final RubyNode assignTemp = readTemp.makeWriteNode(expressionElements[n].accept(this));
+                        matches[n] = sequence(sourceSection, Arrays.asList(
+                                assignTemp,
+                                translatePatternNode(
+                                        patternElements[n],
+                                        expressionElements[n],
+                                        readTemp,
+                                        sourceSection)));
+                    }
+
+                    // Incorporate the element-wise pattern-matching into the AST, with the longer right leg since
+                    // AndNode is visited left to right
+                    RubyNode match = matches[size - 1];
+                    for (int n = size - 2; n >= 0; n--) {
+                        match = new AndNode(matches[n], match);
+                    }
+                    return match;
+                }
+
+                deconstructCallParameters = new RubyCallNodeParameters(
+                        expressionValue,
+                        "deconstruct",
+                        null,
+                        EmptyArgumentsDescriptor.INSTANCE,
+                        RubyNode.EMPTY_ARRAY,
+                        false,
+                        true);
+                deconstructed = language.coreMethodAssumptions
+                        .createCallNode(deconstructCallParameters, environment);
+
+                receiver = new TruffleInternalModuleLiteralNode();
+                receiver.unsafeSetSourceSection(sourceSection);
+
+                matcherCallParameters = new RubyCallNodeParameters(
+                        receiver,
+                        "array_pattern_matches?",
+                        null,
+                        EmptyArgumentsDescriptor.INSTANCE,
+                        new RubyNode[]{ patternNode.accept(this), NodeUtil.cloneNode(deconstructed) },
+                        false,
+                        true);
+                return language.coreMethodAssumptions
+                        .createCallNode(matcherCallParameters, environment);
+            case HASHNODE:
+                deconstructCallParameters = new RubyCallNodeParameters(
+                        expressionValue,
+                        "deconstruct_keys",
+                        null,
+                        EmptyArgumentsDescriptor.INSTANCE,
+                        new RubyNode[]{ new NilLiteralNode(true) },
+                        false,
+                        true);
+                deconstructed = language.coreMethodAssumptions
+                        .createCallNode(deconstructCallParameters, environment);
+
+                receiver = new TruffleInternalModuleLiteralNode();
+                receiver.unsafeSetSourceSection(sourceSection);
+
+                matcherCallParameters = new RubyCallNodeParameters(
+                        receiver,
+                        "hash_pattern_matches?",
+                        null,
+                        EmptyArgumentsDescriptor.INSTANCE,
+                        new RubyNode[]{ patternNode.accept(this), NodeUtil.cloneNode(deconstructed) },
+                        false,
+                        true);
+                return language.coreMethodAssumptions
+                        .createCallNode(matcherCallParameters, environment);
+            case FINDPATTERNNODE:
+
+            case LOCALVARNODE:
+                // Assigns the value of an existing variable pattern as the value of the expression.
+                // May need to add a case with same/similar logic for new variables.
+                final RubyNode assignmentNode = new LocalAsgnParseNode(
+                        patternNode.getPosition(),
+                        ((LocalVarParseNode) patternNode).getName(),
+                        ((LocalVarParseNode) patternNode).getDepth(),
+                        expressionNode).accept(this);
+                return new OrNode(assignmentNode, new BooleanLiteralNode(true)); // TODO refactor to remove "|| true"
+            default:
+                matcherCallParameters = new RubyCallNodeParameters(
+                        patternNode.accept(this),
+                        "===",
+                        null,
+                        EmptyArgumentsDescriptor.INSTANCE,
+                        new RubyNode[]{ NodeUtil.cloneNode(expressionValue) },
+                        false,
+                        true);
+                return language.coreMethodAssumptions
+                        .createCallNode(matcherCallParameters, environment);
         }
     }
 
-    public RubyNode translateArrayPatternNode(ArrayPatternParseNode node) {
-        // For now, we are assuming that only preArgs exist.
+    public RubyNode translateArrayPatternNode(ArrayPatternParseNode node, ArrayParseNode data) {
+        // For now, we are assuming that only preArgs exist, and the pattern only consists of simple constant values.
         final int size = node.minimumArgsNum();
         ListParseNode pre = node.getPreArgs();
         ParseNode[] ch = pre.children();
         for (int i = 0; i < pre.size(); i++) {
-            ch[i];
+            if (ch[i] === data )
         }
     }
 

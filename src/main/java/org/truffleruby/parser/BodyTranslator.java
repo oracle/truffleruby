@@ -228,7 +228,6 @@ import org.truffleruby.parser.ast.NextParseNode;
 import org.truffleruby.parser.ast.NilImplicitParseNode;
 import org.truffleruby.parser.ast.NilParseNode;
 import org.truffleruby.parser.ast.NilRestArgParseNode;
-import org.truffleruby.parser.ast.NodeType;
 import org.truffleruby.parser.ast.NthRefParseNode;
 import org.truffleruby.parser.ast.OpAsgnAndParseNode;
 import org.truffleruby.parser.ast.OpAsgnConstDeclParseNode;
@@ -843,7 +842,8 @@ public class BodyTranslator extends Translator {
 
         RubyNode elseNode = translateNodeOrNil(sourceSection, node.getElseNode());
 
-        PatternMatchingTranslator tr = new PatternMatchingTranslator(language, source, parserContext, currentNode);
+        PatternMatchingTranslator tr = new PatternMatchingTranslator(language, source, parserContext,
+                currentNode, node.getCaseNode(), node.getCases(), environment);
 
         final RubyNode ret;
 
@@ -864,8 +864,8 @@ public class BodyTranslator extends Translator {
             // us we-using the 'when' parser for 'in' temporarily.
             final ParseNode patternNode = in.getExpressionNodes();
 
-            final RubyNode conditionNode = caseInPatternMatch(patternNode, node.getCaseNode(), readTemp, sourceSection);
-
+            final RubyNode conditionNode = tr.translatePatternNode(patternNode, node.getCaseNode(), readTemp,
+                    sourceSection);
             // Create the if node
             final RubyNode thenNode = translateNodeOrNil(sourceSection, in.getBodyNode());
             final IfElseNode ifNode = new IfElseNode(conditionNode, thenNode, elseNode);
@@ -996,6 +996,7 @@ public class BodyTranslator extends Translator {
                         .createCallNode(matcherCallParameters);
         }
     }
+
 
     private RubyNode openModule(SourceIndexLength sourceSection, RubyNode defineOrGetNode, String moduleName,
             ParseNode bodyNode, OpenModule type, boolean dynamicConstantLookup) {
