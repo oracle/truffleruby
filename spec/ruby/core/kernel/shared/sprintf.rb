@@ -409,11 +409,11 @@ describe :kernel_sprintf, shared: true do
         @method.call("%4.6s", "abcdefg").should == "abcdef"
       end
 
-      it "formats nli with width" do
+      it "formats nil with width" do
         @method.call("%6s", nil).should == "      "
       end
 
-      it "formats nli with precision" do
+      it "formats nil with precision" do
         @method.call("%.6s", nil).should == ""
       end
 
