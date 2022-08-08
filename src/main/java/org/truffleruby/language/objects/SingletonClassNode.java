@@ -13,6 +13,7 @@ import com.oracle.truffle.api.dsl.GenerateUncached;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.klass.WithSingletonClass;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
@@ -135,7 +136,8 @@ public abstract class SingletonClassNode extends RubySourceNode {
             }
 
             SharedObjects.propagate(context.getLanguageSlow(), object, singletonClass);
-            object.setMetaClass(singletonClass);
+
+            object.setClassLike(new WithSingletonClass(object.getClassLike()));
 
             return singletonClass;
         }
