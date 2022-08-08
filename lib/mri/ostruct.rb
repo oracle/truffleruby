@@ -270,7 +270,7 @@ class OpenStruct
       unless mixin
         mixin = Module.new do
           define_method name, -> { @table[name] }
-          define_method"#{name}=".to_sym, -> (x) {@table[name] = x}
+          define_method :"#{name}=", -> (x) { @table[name] = x }
         end
         ATTRIBUTE_ACCESSOR_MIXINS[name] = mixin
       end
