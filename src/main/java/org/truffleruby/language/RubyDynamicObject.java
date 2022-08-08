@@ -20,6 +20,8 @@ import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.LongCastNode;
 import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.kernel.KernelNodes;
+import org.truffleruby.core.klass.ClassLike;
+import org.truffleruby.core.klass.ConcreteClass;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.range.RubyObjectRange;
 import org.truffleruby.core.string.RubyString;
@@ -65,30 +67,30 @@ public abstract class RubyDynamicObject extends DynamicObject {
 
     private static final int FROZEN = 1;
 
-    private RubyClass metaClass;
+    private ClassLike metaClass;
 
     public RubyDynamicObject(RubyClass metaClass, Shape shape) {
         super(shape);
         assert metaClass != null;
-        this.metaClass = metaClass;
+        this.metaClass = new ConcreteClass(metaClass);
     }
 
     protected RubyDynamicObject(Shape classShape, String constructorOnlyForClassClass) {
         super(classShape);
-        this.metaClass = (RubyClass) this;
+        this.metaClass = new ConcreteClass((RubyClass) this);
     }
 
     public final RubyClass getMetaClass() {
-        return metaClass;
+        return metaClass.reify();
     }
 
     public void setMetaClass(RubyClass metaClass) {
         SharedObjects.assertPropagateSharing(this, metaClass);
-        this.metaClass = metaClass;
+        this.metaClass = new ConcreteClass(metaClass);
     }
 
     public final RubyClass getLogicalClass() {
-        return metaClass.nonSingletonClass;
+        return getMetaClass().nonSingletonClass;
     }
 
     @Override
