@@ -323,7 +323,8 @@ class OpenStruct
   def delete_field(name)
     sym = name.to_sym
     begin
-      singleton_class.remove_method(sym, "#{sym}=")
+      singleton_class.undef_method(sym) #.remove_method(sym, "#{sym}=")
+      singleton_class.undef_method("#{sym}=")
     rescue NameError
     end
     @table.delete(sym) do
