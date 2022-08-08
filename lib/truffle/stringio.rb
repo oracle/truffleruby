@@ -87,11 +87,7 @@ Truffle::CExt.rb_define_module_under(IO, 'generic_writable').module_eval do
   def printf(*args)
     check_writable
 
-    if args.size > 1
-      write(args.shift % args)
-    else
-      write(args.first)
-    end
+    write(sprintf(*args))
 
     nil
   end
