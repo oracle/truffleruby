@@ -108,7 +108,7 @@
 #
 class OpenStruct
   VERSION = "0.3.1"
-  MIXINS = {}
+  ATTRIBUTE_ACCESSOR_MIXINS = {}
 
   #
   # Creates a new OpenStruct object.  By default, the resulting OpenStruct
@@ -279,30 +279,16 @@ class OpenStruct
   def []=(name, value)
     name = name.to_sym
     unless is_method_protected!(name)
-      mixin = MIXINS[name]
+      mixin = ATTRIBUTE_ACCESSOR_MIXINS[name]
       unless mixin
         mixin = Module.new do
           define_method name, -> { name }
           define_method "#{name}=".to_sym, -> (x) { @table[name] = x }
         end
-        MIXINS[name] = mixin
+        ATTRIBUTE_ACCESSOR_MIXINS[name] = mixin
       end
       extend mixin
     end
-    # unless is_method_protected!(name)
-    #   accessors = ACCESSORS[name]
-    #   unless accessors
-    #     accessors = {
-    #       name => -> { name },
-    #       "#{name}=".to_sym => -> (x) { @table[name] = x }
-    #     }
-    #     ACCESSORS[name] = accessors
-    #   end
-    #   accessors.each do |key, value|
-    #     define_singleton_method key, value
-    #   end
-    # end
-
     @table[name] = value
   end
   alias_method :set_ostruct_member_value!, :[]=
