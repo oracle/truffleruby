@@ -205,19 +205,6 @@ class OpenStruct
   #
   alias_method :marshal_load, :update_to_values! # :nodoc:
 
-  #
-  # Used internally to defined properties on the
-  # OpenStruct. It does this by using the metaprogramming function
-  # define_singleton_method for both the getter method and the setter method.
-  #
-  def new_ostruct_member!(name) # :nodoc:
-    unless @table.key?(name) || is_method_protected!(name)
-      define_singleton_method!(name) { @table[name] }
-      define_singleton_method!("#{name}=") {|x| @table[name] = x}
-    end
-  end
-  private :new_ostruct_member!
-
   private def is_method_protected!(name) # :nodoc:
     if !respond_to?(name, true)
       false
@@ -278,12 +265,12 @@ class OpenStruct
   #
   def []=(name, value)
     name = name.to_sym
-    unless is_method_protected!(name)
+    unless @table.key?(name) || is_method_protected!(name)
       mixin = ATTRIBUTE_ACCESSOR_MIXINS[name]
       unless mixin
         mixin = Module.new do
-          define_method name, -> { name }
-          define_method "#{name}=".to_sym, -> (x) { @table[name] = x }
+          define_method name, -> { @table[name] }
+          define_method"#{name}=".to_sym, -> (x) {@table[name] = x}
         end
         ATTRIBUTE_ACCESSOR_MIXINS[name] = mixin
       end
