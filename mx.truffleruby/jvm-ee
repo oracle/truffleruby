@@ -1,2 +1,3 @@
+GRAALVM_SKIP_ARCHIVE=true
 DYNAMIC_IMPORTS=/tools,/graal-enterprise
 COMPONENTS=TruffleRuby,suite:tools,GraalVM enterprise compiler
