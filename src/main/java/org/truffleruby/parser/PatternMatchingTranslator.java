@@ -9,6 +9,30 @@
  */
 package org.truffleruby.parser;
 
+import java.util.Arrays;
+
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.control.AndNode;
+import org.truffleruby.language.control.OrNode;
+import org.truffleruby.language.dispatch.RubyCallNodeParameters;
+import org.truffleruby.language.literal.BooleanLiteralNode;
+import org.truffleruby.language.literal.NilLiteralNode;
+import org.truffleruby.language.literal.TruffleInternalModuleLiteralNode;
+import org.truffleruby.language.locals.ReadLocalNode;
+import org.truffleruby.parser.ast.ArrayParseNode;
+import org.truffleruby.parser.ast.ArrayPatternParseNode;
+import org.truffleruby.parser.ast.ListParseNode;
+import org.truffleruby.parser.ast.LocalAsgnParseNode;
+import org.truffleruby.parser.ast.LocalVarParseNode;
+import org.truffleruby.parser.ast.NodeType;
+import org.truffleruby.parser.ast.ParseNode;
+
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.NodeUtil;
+import com.oracle.truffle.api.source.Source;
 
 public class PatternMatchingTranslator extends Translator {
 
@@ -43,12 +67,12 @@ public class PatternMatchingTranslator extends Translator {
         final RubyNode deconstructed;
 
         switch (patternNode.getNodeType()) {
-            case ARRAYNODE:
+            case ARRAYPATTERNNODE:
                 // Pattern-match element-wise recursively if possible.
-                final int size = ((ArrayParseNode) patternNode).size();
+                final int size = ((ArrayPatternParseNode) patternNode).preArgsNum();
                 if (expressionNode.getNodeType() == NodeType.ARRAYNODE &&
                         ((ArrayParseNode) expressionNode).size() == size) {
-                    final ParseNode[] patternElements = ((ArrayParseNode) patternNode).children();
+                    final ParseNode[] patternElements = ((ArrayPatternParseNode) patternNode).getPreArgs().children();
                     final ParseNode[] expressionElements = ((ArrayParseNode) expressionNode).children();
 
                     final RubyNode[] matches = new RubyNode[size];
@@ -151,15 +175,15 @@ public class PatternMatchingTranslator extends Translator {
         }
     }
 
-    public RubyNode translateArrayPatternNode(ArrayPatternParseNode node, ArrayParseNode data) {
-        // For now, we are assuming that only preArgs exist, and the pattern only consists of simple constant values.
-        final int size = node.minimumArgsNum();
-        ListParseNode pre = node.getPreArgs();
-        ParseNode[] ch = pre.children();
-        for (int i = 0; i < pre.size(); i++) {
-            if (ch[i] === data )
-        }
-    }
+    //    public RubyNode translateArrayPatternNode(ArrayPatternParseNode node, ArrayParseNode data) {
+    //        // For now, we are assuming that only preArgs exist, and the pattern only consists of simple constant values.
+    //        final int size = node.minimumArgsNum();
+    //        ListParseNode pre = node.getPreArgs();
+    //        ParseNode[] ch = pre.children();
+    //        for (int i = 0; i < pre.size(); i++) {
+    //            if (ch[i] === data ) {}
+    //        }
+    //    }
 
 
 }
