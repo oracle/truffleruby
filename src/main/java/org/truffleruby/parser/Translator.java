@@ -164,4 +164,8 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
         return node;
     }
 
+    protected static RubyNode[] createArray(int size) {
+        return size == 0 ? RubyNode.EMPTY_ARRAY : new RubyNode[size];
+    }
+
 }
