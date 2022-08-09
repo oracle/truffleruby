@@ -484,6 +484,34 @@ module Truffle::CExt
     Kernel.global_variables
   end
 
+  def rb_ivar_foreach(object, func, arg)
+    keys_and_vals = []
+    if Module === object
+      keys_and_vals << :__classpath__
+      keys_and_vals << object.name
+
+      object.class_variables.each do |key|
+        keys_and_vals << key
+        keys_and_vals << object.class_variable_get(key)
+      end
+    end
+    object.instance_variables.each do |key|
+      keys_and_vals << key
+      keys_and_vals << object.instance_variable_get(key)
+    end
+
+    keys_and_vals.each_slice(2) do |key, val|
+      st_result = Truffle::Interop.execute_without_conversion(
+        func, Primitive.cext_sym2id(key), Primitive.cext_wrap(val), arg)
+
+      case st_result
+      when ST_CONTINUE
+      when ST_STOP then break
+      else raise ArgumentError, "Unknown 'func' return value: #{st_result}"
+      end
+    end
+  end
+
   def rb_obj_instance_variables(object)
     object.instance_variables
   end

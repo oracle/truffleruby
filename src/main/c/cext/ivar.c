@@ -50,7 +50,7 @@ VALUE rb_ivar_lookup(VALUE object, const char *name, VALUE default_value) {
 
 // Needed to gem install oj
 void rb_ivar_foreach(VALUE obj, int (*func)(ANYARGS), st_data_t arg) {
-  rb_tr_error("rb_ivar_foreach not implemented");
+  polyglot_invoke(RUBY_CEXT, "rb_ivar_foreach", rb_tr_unwrap(obj), func, (void*)arg);
 }
 
 VALUE rb_attr_get(VALUE object, ID name) {
