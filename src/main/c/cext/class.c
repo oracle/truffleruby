@@ -71,7 +71,7 @@ VALUE rb_class_name(VALUE ruby_class) {
   VALUE name = RUBY_INVOKE(ruby_class, "name");
 
   if (NIL_P(name)) {
-    return rb_class_name(rb_obj_class(ruby_class));
+    return RUBY_INVOKE(ruby_class, "inspect");
   } else {
     return name;
   }
