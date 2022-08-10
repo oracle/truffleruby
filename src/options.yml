@@ -229,7 +229,6 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     ALWAYS_SPLIT_HONOR: [always-split-honor, boolean, CLONE_DEFAULT, 'Honor Truffle::Graal.always_split annotations']
     NEVER_SPLIT_HONOR: [never-split-honor, boolean, true, 'Honor Truffle::Graal.never_split annotations']
     INLINE_NEEDS_CALLER_FRAME: [inline-needs-caller-frame, boolean, INLINE_DEFAULT, Inline methods that need their caller frame]
-    YIELD_ALWAYS_CLONE: [yield-always-clone, boolean, CLONE_DEFAULT, Always clone yields]
     YIELD_ALWAYS_INLINE: [yield-always-inline, boolean, INLINE_DEFAULT, Always inline yields]
     METHODMISSING_ALWAYS_CLONE: [method-missing-always-clone, boolean, CLONE_DEFAULT, 'Always clone #method_missing']
     METHODMISSING_ALWAYS_INLINE: [method-missing-always-inline, boolean, INLINE_DEFAULT, 'Always inline #method_missing']
