@@ -186,8 +186,6 @@ public class Options {
     public final boolean NEVER_SPLIT_HONOR;
     /** --inline-needs-caller-frame=INLINE_DEFAULT */
     public final boolean INLINE_NEEDS_CALLER_FRAME;
-    /** --yield-always-clone=CLONE_DEFAULT */
-    public final boolean YIELD_ALWAYS_CLONE;
     /** --yield-always-inline=INLINE_DEFAULT */
     public final boolean YIELD_ALWAYS_INLINE;
     /** --method-missing-always-clone=CLONE_DEFAULT */
@@ -291,7 +289,6 @@ public class Options {
         ALWAYS_SPLIT_HONOR = options.hasBeenSet(OptionsCatalog.ALWAYS_SPLIT_HONOR_KEY) ? options.get(OptionsCatalog.ALWAYS_SPLIT_HONOR_KEY) : CLONE_DEFAULT;
         NEVER_SPLIT_HONOR = options.get(OptionsCatalog.NEVER_SPLIT_HONOR_KEY);
         INLINE_NEEDS_CALLER_FRAME = options.hasBeenSet(OptionsCatalog.INLINE_NEEDS_CALLER_FRAME_KEY) ? options.get(OptionsCatalog.INLINE_NEEDS_CALLER_FRAME_KEY) : INLINE_DEFAULT;
-        YIELD_ALWAYS_CLONE = options.hasBeenSet(OptionsCatalog.YIELD_ALWAYS_CLONE_KEY) ? options.get(OptionsCatalog.YIELD_ALWAYS_CLONE_KEY) : CLONE_DEFAULT;
         YIELD_ALWAYS_INLINE = options.hasBeenSet(OptionsCatalog.YIELD_ALWAYS_INLINE_KEY) ? options.get(OptionsCatalog.YIELD_ALWAYS_INLINE_KEY) : INLINE_DEFAULT;
         METHODMISSING_ALWAYS_CLONE = options.hasBeenSet(OptionsCatalog.METHODMISSING_ALWAYS_CLONE_KEY) ? options.get(OptionsCatalog.METHODMISSING_ALWAYS_CLONE_KEY) : CLONE_DEFAULT;
         METHODMISSING_ALWAYS_INLINE = options.hasBeenSet(OptionsCatalog.METHODMISSING_ALWAYS_INLINE_KEY) ? options.get(OptionsCatalog.METHODMISSING_ALWAYS_INLINE_KEY) : INLINE_DEFAULT;
@@ -468,8 +465,6 @@ public class Options {
                 return NEVER_SPLIT_HONOR;
             case "ruby.inline-needs-caller-frame":
                 return INLINE_NEEDS_CALLER_FRAME;
-            case "ruby.yield-always-clone":
-                return YIELD_ALWAYS_CLONE;
             case "ruby.yield-always-inline":
                 return YIELD_ALWAYS_INLINE;
             case "ruby.method-missing-always-clone":
