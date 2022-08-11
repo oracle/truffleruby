@@ -22,6 +22,7 @@ Compatibility:
 * Range literals of integers are now created at parse time like in CRuby (#2622, @aardvark179).
 * Fix `IO.pipe` - allow overriding `IO.new` that is used to create new pipes (#2692, @andykonchin).
 * Fix exception message when there are missing or extra keyword arguments - it contains all the missing/extra keywords now (#1522, @andrykonchin).
+* Always terminate native strings with enough `\0` bytes (#2704, @eregon).
 
 Performance:
 
