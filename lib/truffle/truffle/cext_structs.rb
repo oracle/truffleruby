@@ -426,15 +426,26 @@ end
 
 # encoding.h: `struct rb_encoding`
 class Truffle::CExt::RbEncoding
-  ENCODING_CACHE = {} # Encoding => RbEncoding
+  ENCODING_CACHE = Array.new(Encoding.list.size, nil) # Encoding index => RbEncoding
   NATIVE_CACHE = {} # RbEncoding address => RbEncoding
   ENCODING_CACHE_MUTEX = Mutex.new
 
   private_class_method :new
 
   def self.get(encoding)
-    ENCODING_CACHE_MUTEX.synchronize do
-      ENCODING_CACHE.fetch(encoding) { |key| ENCODING_CACHE[key] = new(encoding) }
+    index = Primitive.encoding_get_encoding_index(encoding)
+    rb_encoding = ENCODING_CACHE[index]
+    if rb_encoding
+      rb_encoding
+    else
+      ENCODING_CACHE_MUTEX.synchronize do
+        rb_encoding = ENCODING_CACHE[index]
+        if rb_encoding
+          rb_encoding
+        else
+          ENCODING_CACHE[index] = new(encoding)
+        end
+      end
     end
   end
 
