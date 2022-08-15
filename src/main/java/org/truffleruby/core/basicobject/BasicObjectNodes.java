@@ -13,6 +13,7 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
@@ -23,6 +24,8 @@ import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InstanceExecNode
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNodeFactory;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
+import org.truffleruby.core.cast.ToIntNode;
+import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.ExceptionOperations.ExceptionFormatter;
 import org.truffleruby.core.exception.RubyException;
@@ -44,7 +47,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.Visibility;
-import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -316,92 +318,64 @@ public abstract class BasicObjectNodes {
         }
     }
 
-    @CoreMethod(names = "instance_eval", needsBlock = true, optional = 3, lowerFixnum = 3)
-    public abstract static class InstanceEvalNode extends CoreMethodArrayArgumentsNode {
+    @GenerateUncached
+    @CoreMethod(names = "instance_eval", needsBlock = true, optional = 3, alwaysInlined = true)
+    public abstract static class InstanceEvalNode extends AlwaysInlinedMethodNode {
 
-        @Specialization(guards = { "strings.isRubyString(string)", "stringsFileName.isRubyString(fileName)" },
-                limit = "1")
-        protected Object instanceEval(
-                VirtualFrame frame, Object receiver, Object string, Object fileName, int line, Nil block,
+        @Specialization(guards = "isBlockProvided(rubyArgs)")
+        protected Object evalWithBlock(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
+                @Cached(allowUncached = true) InstanceExecNode instanceExecNode,
+                @Cached BranchProfile errorProfile) {
+            final int count = RubyArguments.getPositionalArgumentsCount(rubyArgs, false);
+
+            if (count > 0) {
+                errorProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().argumentError(count, 0, this));
+            }
+
+            final Object block = RubyArguments.getBlock(rubyArgs);
+            return instanceExecNode.executeInstanceExec(callerFrame.materialize(), self, new Object[]{ self },
+                    (RubyProc) block);
+        }
+
+        @Specialization(guards = "!isBlockProvided(rubyArgs)")
+        protected Object evalWithString(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
+                @Cached BranchProfile errorProfile,
                 @Cached RubyStringLibrary strings,
-                @Cached RubyStringLibrary stringsFileName,
                 @Cached ToJavaStringNode toJavaStringNode,
-                @Cached ReadCallerFrameNode callerFrameNode,
+                @Cached ToStrNode toStrNode,
+                @Cached ToIntNode toIntNode,
                 @Cached IndirectCallNode callNode) {
-            final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
+            final Object sourceCode;
+            String fileName = coreStrings().EVAL_FILENAME_STRING.toString();
+            int line = 1;
+            int count = RubyArguments.getPositionalArgumentsCount(rubyArgs, false);
 
+            if (count == 0) {
+                errorProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().argumentError(0, 1, 2, this));
+            }
+
+            sourceCode = toStrNode.execute(RubyArguments.getArgument(rubyArgs, 0));
+
+            if (count >= 2) {
+                fileName = toJavaStringNode
+                        .executeToJavaString(toStrNode.execute(RubyArguments.getArgument(rubyArgs, 1)));
+            }
+
+            if (count >= 3) {
+                line = toIntNode.execute(RubyArguments.getArgument(rubyArgs, 2));
+            }
+
+            needCallerFrame(callerFrame, target);
             return instanceEvalHelper(
-                    callerFrame,
-                    receiver,
-                    strings.getTString(string),
-                    strings.getEncoding(string),
-                    toJavaStringNode.executeToJavaString(fileName),
+                    callerFrame.materialize(),
+                    self,
+                    strings.getTString(sourceCode),
+                    strings.getEncoding(sourceCode),
+                    fileName,
                     line,
                     callNode);
-        }
-
-        @Specialization(guards = { "strings.isRubyString(string)", "stringsFileName.isRubyString(fileName)" },
-                limit = "1")
-        protected Object instanceEval(
-                VirtualFrame frame, Object receiver, Object string, Object fileName, NotProvided line, Nil block,
-                @Cached RubyStringLibrary strings,
-                @Cached RubyStringLibrary stringsFileName,
-                @Cached ToJavaStringNode toJavaStringNode,
-                @Cached ReadCallerFrameNode callerFrameNode,
-                @Cached IndirectCallNode callNode) {
-            final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
-
-            return instanceEvalHelper(
-                    callerFrame,
-                    receiver,
-                    strings.getTString(string),
-                    strings.getEncoding(string),
-                    toJavaStringNode.executeToJavaString(fileName),
-                    1,
-                    callNode);
-        }
-
-        @Specialization(guards = "strings.isRubyString(string)", limit = "1")
-        protected Object instanceEval(
-                VirtualFrame frame, Object receiver, Object string, NotProvided fileName, NotProvided line, Nil block,
-                @Cached RubyStringLibrary strings,
-                @Cached ReadCallerFrameNode callerFrameNode,
-                @Cached IndirectCallNode callNode) {
-            final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
-
-            return instanceEvalHelper(
-                    callerFrame,
-                    receiver,
-                    strings.getTString(string),
-                    strings.getEncoding(string),
-                    coreStrings().EVAL_FILENAME_STRING.toString(),
-                    1,
-                    callNode);
-        }
-
-        @Specialization
-        protected Object instanceEval(
-                VirtualFrame frame,
-                Object receiver,
-                NotProvided string,
-                NotProvided fileName,
-                NotProvided line,
-                RubyProc block,
-                @Cached InstanceExecNode instanceExecNode) {
-            return instanceExecNode.executeInstanceExec(frame, receiver, new Object[]{ receiver }, block);
-        }
-
-        @Specialization
-        protected Object noArgsNoBlock(
-                Object receiver, NotProvided string, NotProvided fileName, NotProvided line, Nil block) {
-            throw new RaiseException(getContext(), coreExceptions().argumentError(0, 1, 2, this));
-        }
-
-        @Specialization(guards = "wasProvided(string)")
-        protected Object argsAndBlock(
-                Object receiver, Object string, Object maybeFileName, Object maybeLine, RubyProc block) {
-            final int passed = RubyGuards.wasProvided(maybeLine) ? 3 : RubyGuards.wasProvided(maybeFileName) ? 2 : 1;
-            throw new RaiseException(getContext(), coreExceptions().argumentError(passed, 0, this));
         }
 
         @TruffleBoundary

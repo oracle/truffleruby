@@ -1,1 +1,2 @@
 fails:BasicObject#instance_eval gets constants in the receiver if a string given
+fails:BasicObject#instance_eval raises an ArgumentError when more than 3 arguments are given
