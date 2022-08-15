@@ -68,16 +68,18 @@ public class PatternMatchingTranslator extends BaseTranslator {
     public RubyNode visitArrayPatternNode(ArrayPatternParseNode arrayPatternParseNode) {
         final RubyCallNodeParameters deconstructCallParameters;
         final RubyCallNodeParameters matcherCallParameters;
+        final RubyCallNodeParameters matcherCallParametersPost;
         final RubyNode receiver;
         final RubyNode deconstructed;
         final SourceIndexLength sourceSection = arrayPatternParseNode.getPosition();
 
-        // handle only preArgs for now
-        if (arrayPatternParseNode.hasRestArg() || arrayPatternParseNode.postArgsNum() != 0) {
+        // handle only preArgs and postArgs for now
+        if (arrayPatternParseNode.hasRestArg()) {
             throw CompilerDirectives.shouldNotReachHere();
         }
 
-        var arrayParseNode = arrayPatternParseNode.getPreArgs();
+        ListParseNode arrayParseNode = arrayPatternParseNode.getPreArgs();
+        ListParseNode arrayParseNodePost = arrayPatternParseNode.getPostArgs();
 
         deconstructCallParameters = new RubyCallNodeParameters(
                 currentValueToMatch,
@@ -94,7 +96,16 @@ public class PatternMatchingTranslator extends BaseTranslator {
         receiver.unsafeSetSourceSection(sourceSection);
 
         var patternArray = arrayParseNode.accept(this);
+        var patternArrayPost = arrayParseNodePost.accept(this);
         matcherCallParameters = new RubyCallNodeParameters(
+                receiver,
+                "array_pattern_matches?",
+                null,
+                EmptyArgumentsDescriptor.INSTANCE,
+                new RubyNode[]{ patternArray, NodeUtil.cloneNode(deconstructed) },
+                false,
+                true);
+        matcherCallParametersPost = new RubyCallNodeParameters(
                 receiver,
                 "array_pattern_matches?",
                 null,
@@ -111,6 +122,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
             SourceIndexLength sourceSection) {
         final RubyCallNodeParameters deconstructCallParameters;
         final RubyCallNodeParameters matcherCallParameters;
+        final RubyCallNodeParameters matcherCallParametersPost;
         final RubyNode receiver;
         final RubyNode deconstructed;
 
@@ -143,6 +155,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
                         new RubyNode[]{ patternNode.accept(this), NodeUtil.cloneNode(deconstructed) },
                         false,
                         true);
+
                 return language.coreMethodAssumptions
                         .createCallNode(matcherCallParameters, environment);
             case FINDPATTERNNODE:

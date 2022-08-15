@@ -48,7 +48,7 @@ public class ArrayPatternParseNode extends ParseNode {
             ListParseNode preArgs,
             ParseNode restArg,
             ListParseNode postArgs) {
-        super(position); // check jruby for what this calls.
+        super(position);
 
         this.preArgs = preArgs;
         this.restArg = restArg;
