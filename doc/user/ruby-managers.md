@@ -89,14 +89,15 @@ asdf install ruby truffleruby+graalvm-VERSION OR truffleruby+graalvm-dev
 
 ### `ruby-install` and `chruby`
 
-First, you need at least `ruby-install` 0.7.1 to get TruffleRuby support.
+First, ensure you have the latest `ruby-install` release.
 Check your version with:
 
 ```bash
 ruby-install --version
 ```
 
-If it is older than `0.7.1`, you need to update to the latest `ruby-install`.
+And compare to the [latest tag](https://github.com/postmodern/ruby-install/tags).
+If it is older, you should update to the latest `ruby-install` (e.g. 0.8.4 is necessary for aarch64 support).
 Follow the [installation instructions](https://github.com/postmodern/ruby-install#install), since the steps for upgrading `ruby-install` are the same as the steps for installing it.
 
 Then install the latest TruffleRuby standalone release with:
