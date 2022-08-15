@@ -170,11 +170,6 @@ public final class Pointer implements AutoCloseable, TruffleObject {
         writeLong(offset, address);
     }
 
-    public void writeZeroTerminatedBytes(long offset, byte[] bytes, int start, int length) {
-        writeBytes(offset, bytes, start, length);
-        writeByte(offset + length, (byte) 0);
-    }
-
     @TruffleBoundary
     public void writeBytes(long destByteOffset, long size, byte value) {
         assert address + destByteOffset != 0 || size == 0;
@@ -189,17 +184,6 @@ public final class Pointer implements AutoCloseable, TruffleObject {
         assert bytesToCopy >= 0;
 
         UNSAFE.copyMemory(source.getAddress() + sourceByteOffset, address + destByteOffset, bytesToCopy);
-    }
-
-    @TruffleBoundary
-    public void writeBytes(long destByteOffset, byte[] source, int sourceByteOffset, int bytesToCopy) {
-        assert address + destByteOffset != 0 || bytesToCopy == 0;
-        assert source != null;
-        assert sourceByteOffset >= 0;
-        assert bytesToCopy >= 0;
-
-        UNSAFE.copyMemory(source, Unsafe.ARRAY_BYTE_BASE_OFFSET + sourceByteOffset, null, address + destByteOffset,
-                bytesToCopy);
     }
 
     public byte readByte(long offset) {

@@ -131,7 +131,10 @@ import com.oracle.truffle.api.source.SourceSection;
 public class CExtNodes {
 
     public static Pointer newNativeStringPointer(int capacity, RubyLanguage language) {
-        return Pointer.mallocAutoRelease(capacity + 1, language);
+        // We need up to 4 \0 bytes for UTF-32. Always use 4 for speed rather than checking the encoding min length.
+        Pointer pointer = Pointer.mallocAutoRelease(capacity + 4, language);
+        pointer.writeInt(capacity, 0);
+        return pointer;
     }
 
     private static long getNativeStringCapacity(Pointer pointer) {
@@ -732,13 +735,24 @@ public class CExtNodes {
         protected RubyString strSetLen(RubyString string, int newByteLength,
                 @Cached RubyStringLibrary libString,
                 @Cached StringToNativeNode stringToNativeNode,
-                @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode) {
+                @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode,
+                @Cached ConditionProfile minLengthOneProfile) {
             var pointer = stringToNativeNode.executeToNative(string);
 
-            pointer.writeByte(newByteLength, (byte) 0); // Like MRI
+            var encoding = libString.getEncoding(string);
+            int minLength = encoding.jcoding.minLength();
+            // Like MRI
+            if (minLengthOneProfile.profile(minLength == 1)) {
+                pointer.writeByte(newByteLength, (byte) 0);
+            } else if (minLength == 2) {
+                pointer.writeShort(newByteLength, (short) 0);
+            } else if (minLength == 4) {
+                pointer.writeInt(newByteLength, 0);
+            } else {
+                throw CompilerDirectives.shouldNotReachHere();
+            }
 
-            var newNativeTString = fromNativePointerNode.execute(pointer, 0, newByteLength,
-                    libString.getTEncoding(string), false);
+            var newNativeTString = fromNativePointerNode.execute(pointer, 0, newByteLength, encoding.tencoding, false);
             string.setTString(newNativeTString);
 
             return string;
@@ -802,7 +816,6 @@ public class CExtNodes {
                 RubyLanguage language) {
             final Pointer newPointer = newNativeStringPointer(newCapacity, language);
             newPointer.writeBytes(0, pointer, 0, Math.min(pointer.getSize(), newCapacity));
-            newPointer.writeByte(newCapacity, (byte) 0); // Like MRI
 
             return fromNativePointerNode.execute(newPointer, 0, newByteLength, tencoding, false);
         }
@@ -1225,7 +1238,6 @@ public class CExtNodes {
                 int capacity, TruffleString.CopyToNativeMemoryNode copyToNativeMemoryNode, RubyLanguage language) {
             final Pointer pointer = newNativeStringPointer(capacity, language);
             copyToNativeMemoryNode.execute(tstring, 0, pointer, 0, capacity, tencoding);
-            pointer.writeByte(capacity, (byte) 0); // Like MRI
             return pointer;
         }
 
