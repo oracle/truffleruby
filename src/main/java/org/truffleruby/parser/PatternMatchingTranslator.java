@@ -16,6 +16,7 @@ import org.truffleruby.core.array.ArrayLiteralNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.control.AndNode;
 import org.truffleruby.language.control.OrNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.literal.BooleanLiteralNode;
@@ -113,8 +114,11 @@ public class PatternMatchingTranslator extends BaseTranslator {
                 new RubyNode[]{ patternArray, NodeUtil.cloneNode(deconstructed) },
                 false,
                 true);
-        return language.coreMethodAssumptions
-                .createCallNode(matcherCallParameters, environment);
+        var pre_and_post = new AndNode(language.coreMethodAssumptions
+                .createCallNode(matcherCallParameters, environment),
+                language.coreMethodAssumptions
+                        .createCallNode(matcherCallParametersPost, environment));
+        return pre_and_post;
     }
 
     public RubyNode translatePatternNode(ParseNode patternNode,
