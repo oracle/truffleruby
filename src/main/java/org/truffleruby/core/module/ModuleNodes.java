@@ -46,6 +46,7 @@ import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
+import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToPathNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
@@ -662,89 +663,78 @@ public abstract class ModuleNodes {
         }
     }
 
-    @CoreMethod(names = { "class_eval", "module_eval" }, optional = 3, lowerFixnum = 3, needsBlock = true)
-    public abstract static class ClassEvalNode extends CoreMethodArrayArgumentsNode {
+    @GenerateUncached
+    @CoreMethod(names = { "class_eval", "module_eval" }, optional = 3, needsBlock = true, alwaysInlined = true)
+    public abstract static class ClassEvalNode extends AlwaysInlinedMethodNode {
 
-        @Child private ReadCallerFrameNode readCallerFrameNode = ReadCallerFrameNode.create();
+        @Specialization(guards = "isBlockProvided(rubyArgs)")
+        protected Object evalWithBlock(Frame callerFrame, RubyModule self, Object[] rubyArgs, RootCallTarget target,
+                @Cached BranchProfile errorProfile,
+                @Cached(allowUncached = true) ClassExecNode classExecNode) {
+            final int count = RubyArguments.getPositionalArgumentsCount(rubyArgs, false);
 
-        @Specialization(guards = "libCode.isRubyString(code)", limit = "1")
-        protected Object classEval(
-                VirtualFrame frame, RubyModule module, Object code, NotProvided file, NotProvided line, Nil block,
-                @Cached IndirectCallNode callNode,
-                @Cached RubyStringLibrary libCode) {
-            return classEvalSource(frame, module, code, "(eval)", callNode);
+            if (count > 0) {
+                errorProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().argumentError(count, 0, this));
+            }
+
+            final Object block = RubyArguments.getBlock(rubyArgs);
+            return classExecNode.classExec(EmptyArgumentsDescriptor.INSTANCE, self, new Object[]{ self },
+                    (RubyProc) block);
         }
 
-        @Specialization(guards = { "libCode.isRubyString(code)", "libFile.isRubyString(file)" }, limit = "1")
-        protected Object classEval(
-                VirtualFrame frame, RubyModule module, Object code, Object file, NotProvided line, Nil block,
-                @Cached IndirectCallNode callNode,
-                @Cached RubyStringLibrary libCode,
-                @Cached RubyStringLibrary libFile,
-                @Cached ToJavaStringNode toJavaStringNode) {
-            return classEvalSource(frame, module, code, toJavaStringNode.executeToJavaString(file), callNode);
-        }
-
-        @Specialization(guards = { "libCode.isRubyString(code)", "wasProvided(file)" }, limit = "1")
-        protected Object classEval(VirtualFrame frame, RubyModule module, Object code, Object file, int line, Nil block,
-                @Cached IndirectCallNode callNode,
-                @Cached RubyStringLibrary libCode,
-                @Cached RubyStringLibrary libFile,
-                @Cached ToJavaStringNode toJavaStringNode) {
-            final CodeLoader.DeferredCall deferredCall = classEvalSource(
-                    frame,
-                    module,
-                    code,
-                    toJavaStringNode.executeToJavaString(file),
-                    line);
-            return deferredCall.call(callNode);
-        }
-
-        @Specialization(guards = "wasProvided(code)")
-        protected Object classEval(
-                VirtualFrame frame, RubyModule module, Object code, NotProvided file, NotProvided line, Nil block,
-                @Cached IndirectCallNode callNode,
-                @Cached ToStrNode toStrNode) {
-            return classEvalSource(frame, module, toStrNode.execute(code), "(eval)", callNode);
-        }
-
-        @Specialization(guards = { "libCode.isRubyString(code)", "wasProvided(file)" }, limit = "1")
-        protected Object classEval(
-                VirtualFrame frame, RubyModule module, Object code, Object file, NotProvided line, Nil block,
-                @Cached RubyStringLibrary stringLibrary,
+        @Specialization(guards = "!isBlockProvided(rubyArgs)")
+        protected Object evalWithString(Frame callerFrame, RubyModule self, Object[] rubyArgs, RootCallTarget target,
+                @Cached BranchProfile errorProfile,
                 @Cached ToJavaStringNode toJavaStringNode,
-                @Cached IndirectCallNode callNode,
-                @Cached RubyStringLibrary libCode,
-                @Cached ToStrNode toStrNode) {
-            final String javaString = toJavaStringNode.executeToJavaString(toStrNode.execute(file));
-            return classEvalSource(frame, module, code, javaString, callNode);
-        }
-
-        private Object classEvalSource(VirtualFrame frame, RubyModule module, Object code, String file,
+                @Cached ToStrNode toStrNode,
+                @Cached ToIntNode toIntNode,
                 @Cached IndirectCallNode callNode) {
-            final CodeLoader.DeferredCall deferredCall = classEvalSource(frame, module, code, file, 1);
-            return deferredCall.call(callNode);
-        }
+            final Object sourceCode;
+            String fileName = coreStrings().EVAL_FILENAME_STRING.toString();
+            int line = 1;
 
-        private CodeLoader.DeferredCall classEvalSource(VirtualFrame frame, RubyModule module,
-                Object rubySource, String file, int line) {
+            int count = RubyArguments.getPositionalArgumentsCount(rubyArgs, false);
 
-            final MaterializedFrame callerFrame = readCallerFrameNode.execute(frame);
+            if (count == 0) {
+                errorProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().argumentError(0, 1, 2, this));
+            }
 
-            return classEvalSourceInternal(module, rubySource, file, line, callerFrame);
+            sourceCode = toStrNode.execute(RubyArguments.getArgument(rubyArgs, 0));
+
+            if (count >= 2) {
+                fileName = toJavaStringNode
+                        .executeToJavaString(toStrNode.execute(RubyArguments.getArgument(rubyArgs, 1)));
+            }
+
+            if (count >= 3) {
+                line = toIntNode.execute(RubyArguments.getArgument(rubyArgs, 2));
+            }
+
+            needCallerFrame(callerFrame, target);
+            return classEvalSource(
+                    callerFrame.materialize(),
+                    self,
+                    sourceCode,
+                    fileName,
+                    line,
+                    callNode);
         }
 
         @TruffleBoundary
-        private CodeLoader.DeferredCall classEvalSourceInternal(RubyModule module, Object rubySource,
-                String file, int line, MaterializedFrame callerFrame) {
+        private Object classEvalSource(MaterializedFrame callerFrame, RubyModule module, Object sourceCode, String file,
+                int line,
+                IndirectCallNode callNode) {
             final RubySource source = EvalLoader.createEvalSource(
                     getContext(),
-                    RubyStringLibrary.getUncached().getTString(rubySource),
-                    RubyStringLibrary.getUncached().getEncoding(rubySource),
+                    RubyStringLibrary.getUncached().getTString(sourceCode),
+                    RubyStringLibrary.getUncached().getEncoding(sourceCode),
                     "class/module_eval",
                     file,
                     line,
                     this);
+
             final LexicalScope lexicalScope = new LexicalScope(
                     RubyArguments.getMethod(callerFrame).getLexicalScope(),
                     module);
@@ -756,7 +746,7 @@ public abstract class ModuleNodes {
                     lexicalScope,
                     this);
 
-            return getContext().getCodeLoader().prepareExecute(
+            final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
                     callTarget,
                     ParserContext.MODULE,
                     new DeclarationContext(
@@ -766,23 +756,8 @@ public abstract class ModuleNodes {
                     callerFrame,
                     module,
                     lexicalScope);
-        }
 
-        @Specialization
-        protected Object classEval(
-                RubyModule self, NotProvided code, NotProvided file, NotProvided line, RubyProc block,
-                @Cached ClassExecNode classExecNode) {
-            return classExecNode.classExec(EmptyArgumentsDescriptor.INSTANCE, self, new Object[]{ self }, block);
-        }
-
-        @Specialization
-        protected Object classEval(RubyModule self, NotProvided code, NotProvided file, NotProvided line, Nil block) {
-            throw new RaiseException(getContext(), coreExceptions().argumentError(0, 1, 2, this));
-        }
-
-        @Specialization(guards = "wasProvided(code)")
-        protected Object classEval(RubyModule self, Object code, NotProvided file, NotProvided line, RubyProc block) {
-            throw new RaiseException(getContext(), coreExceptions().argumentError(1, 0, this));
+            return deferredCall.call(callNode);
         }
 
     }
