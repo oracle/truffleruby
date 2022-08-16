@@ -90,6 +90,12 @@ describe "Polyglot::ForeignException" do
     end
   end
 
+  it 'cannot be marshaled' do
+    -> {
+      Marshal.dump(@foreign)
+    }.should raise_error(TypeError)
+  end
+
   describe "when reaching the top-level" do
     it "is printed like a Ruby exception" do
       out = ruby_exe('raise Truffle::Debug.foreign_exception "main"', args: "2>&1", exit_status: 1, escape: false)

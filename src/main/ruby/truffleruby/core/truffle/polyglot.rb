@@ -312,6 +312,14 @@ module Polyglot
     def backtrace
       backtrace_locations&.map(&:to_s)
     end
+
+    def marshal_dump
+      raise TypeError, "TruffleRuby foreign exceptions cannot be dumped: #{message}"
+    end
+
+    def marshal_load(...)
+      raise TypeError, 'TruffleRuby foreign exceptions cannot be restored'
+    end
   end
 
   module ExecutableTrait

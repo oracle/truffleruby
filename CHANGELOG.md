@@ -13,6 +13,7 @@ Bug fixes:
 * Update `Process` methods to use `module_function` (@bjfish).
 * Fix `File::Stat`'s `#executable?` and `#executable_real?` predicates that unconditionally returned `true` for a superuser (#2690, @andrykonchin).
 * The `strip` option `--keep-section=.llvmbc` is not supported on macOS (#2697, @eregon).
+* Disallow the marshaling of polyglot exceptions since we can't properly reconstruct them (@nirvdrum).
 
 Compatibility:
 
