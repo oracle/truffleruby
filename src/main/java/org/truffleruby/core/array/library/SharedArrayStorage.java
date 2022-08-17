@@ -36,7 +36,7 @@ import com.oracle.truffle.api.profiles.LoopConditionProfile;
 @ExportLibrary(ArrayStoreLibrary.class)
 @GenerateUncached
 @ImportStatic(ArrayGuards.class)
-public class SharedArrayStorage implements ObjectGraphNode {
+public final class SharedArrayStorage implements ObjectGraphNode {
 
     public final Object storage;
 
@@ -242,13 +242,13 @@ public class SharedArrayStorage implements ObjectGraphNode {
     @ExportMessage
     protected ArrayAllocator generalizeForValue(Object newValue,
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
-        return new SharedArrayAllocator(stores.generalizeForValue(storage, newValue));
+        return stores.generalizeForValue(storage, newValue);
     }
 
     @ExportMessage
     protected ArrayAllocator generalizeForStore(Object newStore,
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
-        return new SharedArrayAllocator(stores.generalizeForStore(newStore, storage));
+        return stores.generalizeForStore(newStore, storage);
     }
 
     @ExportMessage
@@ -284,13 +284,13 @@ public class SharedArrayStorage implements ObjectGraphNode {
     @ExportMessage
     protected ArrayAllocator allocator(
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
-        return new SharedArrayAllocator(stores.allocator(storage));
+        return new SharedArrayAllocator(stores.unsharedAllocator(storage));
     }
 
     @ExportMessage
     protected ArrayAllocator unsharedAllocator(
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
-        return stores.allocator(storage);
+        return stores.unsharedAllocator(storage);
     }
 
     public boolean hasObjectArrayStorage() {

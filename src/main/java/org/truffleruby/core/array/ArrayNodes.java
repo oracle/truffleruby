@@ -1930,7 +1930,7 @@ public abstract class ArrayNodes {
             rotation = rotationProfile.profile(rotation);
             assert 0 < rotation && rotation < size;
 
-            final Object rotated = stores.allocator(store).allocate(size);
+            final Object rotated = stores.unsharedAllocator(store).allocate(size);
             rotateArrayCopy(rotation, size, stores, store, rotated);
             return createArray(rotated, size);
         }
@@ -2230,7 +2230,7 @@ public abstract class ArrayNodes {
                 @CachedLibrary(limit = "1") ArrayStoreLibrary mutableStores,
                 @Cached IntValueProfile arraySizeProfile) {
             final int size = arraySizeProfile.profile(array.size);
-            Object newStore = stores.allocator(store).allocate(size);
+            Object newStore = stores.unsharedAllocator(store).allocate(size);
             stores.copyContents(store, 0, newStore, 0, size);
             mutableStores.sort(newStore, size);
             return createArray(newStore, size);

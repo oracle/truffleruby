@@ -31,11 +31,22 @@ import com.oracle.truffle.api.library.ExportMessage;
 @ExportLibrary(ArrayStoreLibrary.class)
 @GenerateUncached
 @ImportStatic(ArrayGuards.class)
-public class DelegatedArrayStorage implements ObjectGraphNode {
+public final class DelegatedArrayStorage implements ObjectGraphNode {
 
     public final Object storage;
     public final int offset;
     public final int length;
+
+    public DelegatedArrayStorage(Object storage, int offset, int length) {
+        assert offset >= 0;
+        assert length >= 0;
+        assert !(storage instanceof DelegatedArrayStorage);
+        assert !(storage instanceof NativeArrayStorage);
+        assert !(storage instanceof SharedArrayStorage);
+        this.storage = storage;
+        this.offset = offset;
+        this.length = length;
+    }
 
     @ExportMessage
     protected static boolean accepts(DelegatedArrayStorage store,
@@ -126,7 +137,7 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     @ExportMessage
     protected Object toJavaArrayCopy(int length,
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
-        Object newStore = stores.allocator(storage).allocate(length);
+        Object newStore = stores.unsharedAllocator(storage).allocate(length);
         stores.copyContents(storage, offset, newStore, 0, length);
         return newStore;
     }
@@ -182,18 +193,7 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     @ExportMessage
     protected ArrayAllocator allocator(
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
-        return stores.allocator(storage);
-    }
-
-    public DelegatedArrayStorage(Object storage, int offset, int length) {
-        assert offset >= 0;
-        assert length >= 0;
-        assert !(storage instanceof DelegatedArrayStorage);
-        assert !(storage instanceof NativeArrayStorage);
-        assert !(storage instanceof SharedArrayStorage);
-        this.storage = storage;
-        this.offset = offset;
-        this.length = length;
+        return stores.unsharedAllocator(storage);
     }
 
     public boolean hasObjectArrayStorage() {
@@ -212,10 +212,6 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
                 }
             }
         }
-    }
-
-    public boolean isEquivalentTo(DelegatedArrayStorage other) {
-        return storage == other.storage && offset == other.offset && length == other.length;
     }
 
 }
