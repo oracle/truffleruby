@@ -220,7 +220,8 @@ public abstract class ArrayStoreLibrary extends Library {
         return allocateForNewStore(store, newStore, length);
     }
 
-    /** Return an allocator for a mutable version of {@code store}. */
+    /** Return an allocator for a mutable version of {@code store}. Only use this if the new store is reassigned to the
+     * same RubyArray. Otherwise, {@link #unsharedAllocator(Object)} should be used. */
     public abstract ArrayAllocator allocator(Object store);
 
     /** Return an allocator for a mutable, unshared version of {@code store}. */

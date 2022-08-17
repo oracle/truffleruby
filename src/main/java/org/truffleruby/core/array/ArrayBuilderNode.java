@@ -202,7 +202,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
                 final int capacity = ArrayUtils.capacityForOneMore(getLanguage(), length);
                 state.store = arrays.expand(state.store, capacity);
                 state.capacity = capacity;
-                replaceNodes(arrays.allocator(state.store), capacity);
+                replaceNodes(arrays.unsharedAllocator(state.store), capacity);
             }
             arrays.write(state.store, index, value);
             state.nextIndex++;
@@ -264,7 +264,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
             int length = arrays.capacity(state.store);
             if (neededSize > length) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                replaceNodes(arrays.allocator(state.store), neededSize);
+                replaceNodes(arrays.unsharedAllocator(state.store), neededSize);
                 final int capacity = ArrayUtils.capacity(getLanguage(), length, neededSize);
                 state.store = arrays.expand(state.store, capacity);
                 state.capacity = capacity;
