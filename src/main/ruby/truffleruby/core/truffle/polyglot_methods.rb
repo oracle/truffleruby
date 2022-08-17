@@ -128,6 +128,10 @@ module Polyglot
       to_s.clear(...)
     end
 
+    def clone(...)
+      to_s.clone(...)
+    end
+
     def codepoints(...)
       to_s.codepoints(...)
     end
@@ -178,6 +182,10 @@ module Polyglot
 
     def dump(...)
       to_s.dump(...)
+    end
+
+    def dup(...)
+      to_s.dup(...)
     end
 
     def each_byte(...)

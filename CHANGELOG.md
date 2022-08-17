@@ -24,6 +24,7 @@ Compatibility:
 * Fix `IO.pipe` - allow overriding `IO.new` that is used to create new pipes (#2692, @andykonchin).
 * Fix exception message when there are missing or extra keyword arguments - it contains all the missing/extra keywords now (#1522, @andrykonchin).
 * Always terminate native strings with enough `\0` bytes (#2704, @eregon).
+* Support `#dup` and `#clone` on foreign strings (@eregon).
 
 Performance:
 

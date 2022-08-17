@@ -17,11 +17,13 @@ module Polyglot
   module StringTrait
 RUBY
 
-string_methods = String.public_instance_methods(false).sort
+string_methods = String.public_instance_methods(false)
 # Already implemented
 string_methods -= %i[to_s to_str freeze frozen?]
+# Kernel methods which we want to handle by converting to a Ruby String first
+string_methods += %i[clone dup]
 
-string_methods.each do |name|
+string_methods.sort.each do |name|
   code << <<-RUBY
     def #{name}(...)
       to_s.#{name}(...)
