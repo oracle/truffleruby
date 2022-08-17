@@ -1945,4 +1945,15 @@ module Truffle::CExt
   def rb_global_variable(obj)
     GLOBALLY_PRESERVED_VALUES << obj
   end
+
+  GC_REGISTERED_ADDRESSES = {}
+  def rb_gc_register_address(address, obj)
+    Truffle::Interop.to_native(address) unless Truffle::Interop.pointer?(address)
+    GC_REGISTERED_ADDRESSES[address] = obj
+  end
+
+  def rb_gc_unregister_address(address)
+    Truffle::Interop.to_native(address) unless Truffle::Interop.pointer?(address)
+    GC_REGISTERED_ADDRESSES.delete(address)
+  end
 end

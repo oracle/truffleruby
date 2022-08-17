@@ -13,10 +13,14 @@
 // GC, rb_gc_*
 
 void rb_gc_register_address(VALUE *address) {
+  /* TODO: This should guard the address of the pointer, not the
+     object pointed to, but we haven't yet found a good way to implement
+     that, or a real world use case where it is required. */
+  polyglot_invoke(RUBY_CEXT, "rb_gc_register_address", address, rb_tr_unwrap(*address));
 }
 
 void rb_gc_unregister_address(VALUE *address) {
-  // VALUE is only ever in managed memory. So, it is already garbage collected.
+  polyglot_invoke(RUBY_CEXT, "rb_gc_unregister_address", address);
 }
 
 void rb_gc_mark(VALUE ptr) {
