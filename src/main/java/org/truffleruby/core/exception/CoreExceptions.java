@@ -42,7 +42,6 @@ import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
@@ -165,18 +164,8 @@ public class CoreExceptions {
                 null);
     }
 
-    public RubyException argumentErrorTooLargeString(Node currentNode) {
-        return argumentError(
-                "result of string concatenation exceeds the system maximum string length (2^31-1 bytes)",
-                currentNode);
-    }
-
     public RubyException argumentErrorCharacterRequired(Node currentNode) {
         return argumentError("%c requires a character", currentNode);
-    }
-
-    public RubyException argumentErrorCantOmitPrecision(Node currentNode) {
-        return argumentError("can't omit precision for a Float.", currentNode);
     }
 
     @TruffleBoundary
@@ -567,10 +556,6 @@ public class CoreExceptions {
         return typeError("can't define singleton", currentNode);
     }
 
-    public RubyException typeErrorCantBeCastedToBigDecimal(Node currentNode) {
-        return typeError("could not be casted to BigDecimal", currentNode);
-    }
-
     @TruffleBoundary
     public RubyException typeErrorCantConvertTo(Object from, String toClass, String methodUsed, Object result,
             Node currentNode) {
@@ -706,11 +691,6 @@ public class CoreExceptions {
         return typeError("unsupported type " + formattedValues, currentNode);
     }
 
-    @TruffleBoundary
-    public RubyException typeErrorUninitializedRegexp(Node currentNode) {
-        return typeError("uninitialized Regexp", currentNode);
-    }
-
     // NameError
 
     @TruffleBoundary
@@ -828,24 +808,6 @@ public class CoreExceptions {
     @TruffleBoundary
     public RubyNameError nameErrorImportNotFound(String name, Node currentNode) {
         return nameError(StringUtils.format("import '%s' not found", name), null, name, currentNode);
-    }
-
-    @TruffleBoundary
-    public RubyNameError nameErrorUnknownIdentifier(Object receiver, Object name, UnknownIdentifierException exception,
-            Node currentNode) {
-        return nameError(exception.getMessage(), receiver, name.toString(), currentNode);
-    }
-
-    @TruffleBoundary
-    public RubyNameError nameErrorUnknownIdentifier(Object receiver, Object name, InvalidArrayIndexException exception,
-            Node currentNode) {
-        return nameError(exception.getMessage(), receiver, name.toString(), currentNode);
-    }
-
-    @TruffleBoundary
-    public RubyNameError nameErrorUnsuportedMessage(Object receiver, Object name, UnsupportedMessageException exception,
-            Node currentNode) {
-        return nameError(exception.getMessage(), receiver, name.toString(), currentNode);
     }
 
     @TruffleBoundary
@@ -1065,22 +1027,6 @@ public class CoreExceptions {
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
-    public RubyException floatDomainErrorResultsToNaN(Node currentNode) {
-        return floatDomainError("Computation results to 'NaN'(Not a Number)", currentNode);
-    }
-
-    public RubyException floatDomainErrorResultsToInfinity(Node currentNode) {
-        return floatDomainError("Computation results to 'Infinity'", currentNode);
-    }
-
-    public RubyException floatDomainErrorResultsToNegInfinity(Node currentNode) {
-        return floatDomainError("Computation results to '-Infinity'", currentNode);
-    }
-
-    public RubyException floatDomainErrorSqrtNegative(Node currentNode) {
-        return floatDomainError("(VpSqrt) SQRT(negative value)", currentNode);
-    }
-
     // IOError
 
     @TruffleBoundary
@@ -1269,21 +1215,6 @@ public class CoreExceptions {
         RubyString errorMessage = StringOperations.createUTF8String(context, language, message);
 
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
-    }
-
-    // SystemCallError
-
-    @TruffleBoundary
-    public RubySystemCallError systemCallError(String message, int errno, Backtrace backtrace) {
-        RubyClass exceptionClass = context.getCoreLibrary().systemCallErrorClass;
-        Object errorMessage;
-        if (message == null) {
-            errorMessage = Nil.INSTANCE;
-        } else {
-            errorMessage = StringOperations.createUTF8String(context, language, message);
-        }
-        return ExceptionOperations
-                .createSystemCallError(context, exceptionClass, errorMessage, errno, backtrace);
     }
 
     // FFI::NullPointerError
