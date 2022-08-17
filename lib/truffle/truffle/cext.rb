@@ -1755,7 +1755,7 @@ module Truffle::CExt
   def rb_get_special_vars
     vars = Primitive.cext_special_variables_from_stack
     unless vars
-      vars = Truffle::ThreadOperations.ruby_caller_special_variables([Truffle::CExt, Truffle::Interop.singleton_class])
+      vars = Truffle::ThreadOperations.ruby_caller_special_variables([Truffle::CExt, Truffle::CExt.singleton_class, Truffle::Interop.singleton_class])
     end
     vars
   end
