@@ -683,6 +683,14 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
+    public RubyException typeErrorExpectedProcOrMethodOrUnboundMethod(Object object, Node currentNode) {
+        String badClassName = LogicalClassNode.getUncached().execute(object).fields.getName();
+        return typeError(
+                StringUtils.format("wrong argument type %s (expected Proc/Method/UnboundMethod)", badClassName),
+                currentNode);
+    }
+
+    @TruffleBoundary
     public RubyException typeError(String message, Node currentNode, Throwable javaThrowable) {
         RubyClass exceptionClass = context.getCoreLibrary().typeErrorClass;
         RubyString errorMessage = StringOperations

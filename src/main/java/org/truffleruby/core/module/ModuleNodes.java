@@ -76,7 +76,6 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyConstant;
@@ -1225,52 +1224,90 @@ public abstract class ModuleNodes {
 
     }
 
+    @GenerateUncached
     @CoreMethod(
             names = "define_method",
             needsBlock = true,
             required = 1,
             optional = 1,
-            split = Split.NEVER,
-            argumentNames = { "name", "proc_or_method", "block" })
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "proc", type = RubyNode.class)
-    @NodeChild(value = "block", type = RubyNode.class)
-    public abstract static class DefineMethodNode extends CoreMethodNode {
+            argumentNames = { "name", "proc_or_method", "block" },
+            alwaysInlined = true)
+    @ImportStatic(RubyArguments.class)
+    public abstract static class DefineMethodNode extends AlwaysInlinedMethodNode {
 
-        @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
+        //Checkstyle: stop
+        @Specialization(guards = { "isMethodParameterProvided(rubyArgs)", "isRubyMethod(getArgument(rubyArgs, 1))" })
+        //Checkstyle: resume
+        protected RubySymbol defineMethodWithMethod(
+                Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+                @Cached NameToJavaStringNode nameToJavaStringNode,
+                @Cached(allowUncached = true) CanBindMethodToModuleNode canBindMethodToModuleNode) {
+            final String name = nameToJavaStringNode.execute(RubyArguments.getArgument(rubyArgs, 0));
+            final Object method = RubyArguments.getArgument(rubyArgs, 1);
 
-        @CreateCast("name")
-        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
-            return NameToJavaStringNode.create(name);
+            return addMethod(module, name, (RubyMethod) method, canBindMethodToModuleNode);
+        }
+
+        //Checkstyle: stop
+        @Specialization(guards = { "isMethodParameterProvided(rubyArgs)", "isRubyProc(getArgument(rubyArgs, 1))" })
+        //Checkstyle: resume
+        protected RubySymbol defineMethodWithProc(
+                Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+                @Cached NameToJavaStringNode nameToJavaStringNode) {
+            final String name = nameToJavaStringNode.execute(RubyArguments.getArgument(rubyArgs, 0));
+            final Object method = RubyArguments.getArgument(rubyArgs, 1);
+
+            needCallerFrame(callerFrame, target);
+            return addProc(module, name, (RubyProc) method, callerFrame.materialize());
+        }
+
+        //Checkstyle: stop
+        @Specialization(
+                guards = { "isMethodParameterProvided(rubyArgs)", "isRubyUnboundMethod(getArgument(rubyArgs, 1))" })
+        //Checkstyle: resume
+        protected RubySymbol defineMethodWithUnboundMethod(
+                Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+                @Cached NameToJavaStringNode nameToJavaStringNode) {
+            final String name = nameToJavaStringNode.execute(RubyArguments.getArgument(rubyArgs, 0));
+            final Object method = RubyArguments.getArgument(rubyArgs, 1);
+
+            needCallerFrame(callerFrame, target);
+            return addUnboundMethod(module, name, (RubyUnboundMethod) method, callerFrame.materialize());
+        }
+
+        @Specialization(guards = {
+                "isMethodParameterProvided(rubyArgs)",
+                "!isExpectedMethodParameterType(getArgument(rubyArgs, 1))" })
+        protected RubySymbol defineMethodWithUnexpectedMethodParameterType(
+                Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target) {
+            final Object method = RubyArguments.getArgument(rubyArgs, 1);
+            throw new RaiseException(getContext(),
+                    coreExceptions().typeErrorExpectedProcOrMethodOrUnboundMethod(method, this));
+        }
+
+        @Specialization(guards = { "!isMethodParameterProvided(rubyArgs)", "isBlockProvided(rubyArgs)" })
+        protected RubySymbol defineMethodWithBlock(
+                Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+                @Cached NameToJavaStringNode nameToJavaStringNode) {
+            final String name = nameToJavaStringNode.execute(RubyArguments.getArgument(rubyArgs, 0));
+            final Object block = RubyArguments.getBlock(rubyArgs);
+            needCallerFrame(callerFrame, target);
+            return addProc(module, name, (RubyProc) block, callerFrame.materialize());
+        }
+
+        @Specialization(guards = { "!isMethodParameterProvided(rubyArgs)", "!isBlockProvided(rubyArgs)" })
+        protected RubySymbol defineMethodWithoutMethodAndBlock(
+                Frame callerFrame, RubyModule nodule, Object[] rubyArgs, RootCallTarget target) {
+            throw new RaiseException(getContext(), coreExceptions().argumentErrorProcWithoutBlock(this));
         }
 
         @TruffleBoundary
-        @Specialization
-        protected RubySymbol defineMethod(RubyModule module, String name, NotProvided proc, Nil block) {
-            throw new RaiseException(getContext(), coreExceptions().argumentError("needs either proc or block", this));
-        }
-
-        @Specialization
-        protected RubySymbol defineMethodBlock(
-                VirtualFrame frame, RubyModule module, String name, NotProvided proc, RubyProc block) {
-            return defineMethodProc(frame, module, name, block, nil);
-        }
-
-        @Specialization
-        protected RubySymbol defineMethodProc(
-                VirtualFrame frame, RubyModule module, String name, RubyProc proc, Nil block) {
-            return defineMethod(module, name, proc, readCallerFrame.execute(frame));
-        }
-
-        @TruffleBoundary
-        @Specialization
-        protected RubySymbol defineMethodMethod(RubyModule module, String name, RubyMethod methodObject, Nil block,
+        private RubySymbol addMethod(RubyModule module, String name, RubyMethod method,
                 @Cached CanBindMethodToModuleNode canBindMethodToModuleNode) {
-            final InternalMethod method = methodObject.method;
+            final InternalMethod internalMethod = method.method;
 
-            if (!canBindMethodToModuleNode.executeCanBindMethodToModule(method, module)) {
-                final RubyModule declaringModule = method.getDeclaringModule();
+            if (!canBindMethodToModuleNode.executeCanBindMethodToModule(internalMethod, module)) {
+                final RubyModule declaringModule = internalMethod.getDeclaringModule();
                 if (RubyGuards.isSingletonClass(declaringModule)) {
                     throw new RaiseException(getContext(), coreExceptions().typeError(
                             "can't bind singleton method to a different class",
@@ -1282,20 +1319,13 @@ public abstract class ModuleNodes {
                 }
             }
 
-            module.fields.addMethod(getContext(), this, method.withName(name));
+            module.fields.addMethod(getContext(), this, internalMethod.withName(name));
             return getSymbol(name);
         }
 
-        @Specialization
-        protected RubySymbol defineMethod(
-                VirtualFrame frame, RubyModule module, String name, RubyUnboundMethod method, Nil block) {
-            final MaterializedFrame callerFrame = readCallerFrame.execute(frame);
-            return defineMethodInternal(module, name, method, callerFrame);
-        }
-
         @TruffleBoundary
-        private RubySymbol defineMethodInternal(RubyModule module, String name, RubyUnboundMethod method,
-                final MaterializedFrame callerFrame) {
+        private RubySymbol addUnboundMethod(RubyModule module, String name, RubyUnboundMethod method,
+                MaterializedFrame callerFrame) {
             final InternalMethod internalMethod = method.method;
             if (!ModuleOperations.canBindMethodTo(internalMethod, module)) {
                 final RubyModule declaringModule = internalMethod.getDeclaringModule();
@@ -1313,12 +1343,11 @@ public abstract class ModuleNodes {
                 }
             }
 
-            return addMethod(module, name, internalMethod, callerFrame);
+            return addInternalMethod(module, name, internalMethod, callerFrame);
         }
 
         @TruffleBoundary
-        private RubySymbol defineMethod(RubyModule module, String name, RubyProc proc,
-                MaterializedFrame callerFrame) {
+        private RubySymbol addProc(RubyModule module, String name, RubyProc proc, MaterializedFrame callerFrame) {
             final RootCallTarget callTargetForLambda = proc.callTargets.getCallTargetForLambda();
             final RubyLambdaRootNode rootNode = RubyLambdaRootNode.of(callTargetForLambda);
             final SharedMethodInfo info = proc.getSharedMethodInfo().forDefineMethod(module, name, proc);
@@ -1329,7 +1358,7 @@ public abstract class ModuleNodes {
             final RubyLambdaRootNode newRootNode = rootNode.copyRootNode(info, newBody);
             final RootCallTarget newCallTarget = newRootNode.getCallTarget();
 
-            final InternalMethod method = InternalMethod.fromProc(
+            final InternalMethod internalMethod = InternalMethod.fromProc(
                     getContext(),
                     info,
                     proc.declarationContext,
@@ -1338,7 +1367,7 @@ public abstract class ModuleNodes {
                     Visibility.PUBLIC,
                     proc,
                     newCallTarget);
-            return addMethod(module, name, method, callerFrame);
+            return addInternalMethod(module, name, internalMethod, callerFrame);
         }
 
         private static class CallMethodWithLambdaBody extends RubyContextSourceNode {
@@ -1371,7 +1400,7 @@ public abstract class ModuleNodes {
         }
 
         @TruffleBoundary
-        private RubySymbol addMethod(RubyModule module, String name, InternalMethod method,
+        private RubySymbol addInternalMethod(RubyModule module, String name, InternalMethod method,
                 MaterializedFrame callerFrame) {
             method = method.withName(name);
 
@@ -1379,6 +1408,16 @@ public abstract class ModuleNodes {
                     .findVisibilityCheckSelfAndDefaultDefinee(module, callerFrame);
             module.addMethodConsiderNameVisibility(getContext(), method, visibility, this);
             return getSymbol(method.getName());
+        }
+
+        protected boolean isMethodParameterProvided(Object[] rubyArgs) {
+            final int count = RubyArguments.getPositionalArgumentsCount(rubyArgs, false);
+            return count >= 2;
+        }
+
+        protected boolean isExpectedMethodParameterType(Object method) {
+            return RubyGuards.isRubyMethod(method) || RubyGuards.isRubyUnboundMethod(method) ||
+                    RubyGuards.isRubyProc(method);
         }
 
     }
