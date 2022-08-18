@@ -134,9 +134,12 @@ class Regexp
     if Primitive.object_kind_of?(pattern, Regexp)
       opts = pattern.options
       pattern = pattern.source
-    elsif Primitive.object_kind_of?(pattern, Integer) or Primitive.object_kind_of?(pattern, Float)
-      raise TypeError, "can't convert #{pattern.class} into String"
-    elsif Primitive.object_kind_of?(opts, Integer)
+    elsif Primitive.object_kind_of?(pattern, String)
+    else
+      pattern = Truffle::Type.rb_convert_type pattern, String, :to_str
+    end
+
+    if Primitive.object_kind_of?(opts, Integer)
       opts = opts & (OPTION_MASK | KCODE_MASK) if opts > 0
     elsif opts
       opts = IGNORECASE
