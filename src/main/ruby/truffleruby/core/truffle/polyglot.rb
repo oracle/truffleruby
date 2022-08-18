@@ -314,11 +314,11 @@ module Polyglot
     end
 
     def marshal_dump
-      raise TypeError, "TruffleRuby foreign exceptions cannot be dumped: #{message}"
+      raise TypeError, "Foreign exception cannot be dumped: #{inspect}"
     end
 
     def marshal_load(...)
-      raise TypeError, 'TruffleRuby foreign exceptions cannot be restored'
+      raise TypeError, 'Foreign exception cannot be restored'
     end
   end
 
