@@ -130,8 +130,9 @@ class Regexp
   end
   Truffle::Graal.always_split(method(:union))
 
-  def self.new(pattern, opts=nil, lang=nil)
+  def self.new(pattern, opts=undefined, lang=nil)
     if Primitive.object_kind_of?(pattern, Regexp)
+      warn 'flags ignored' unless Primitive.undefined?(opts)
       opts = pattern.options
       pattern = pattern.source
     elsif Primitive.object_kind_of?(pattern, String)
@@ -141,7 +142,7 @@ class Regexp
 
     if Primitive.object_kind_of?(opts, Integer)
       opts = opts & (OPTION_MASK | KCODE_MASK) if opts > 0
-    elsif opts
+    elsif !Primitive.undefined?(opts) && opts
       opts = IGNORECASE
     else
       opts = 0

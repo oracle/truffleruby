@@ -1,5 +1,4 @@
 fails:Regexp.new given a String ignores the third argument if it is 'e' or 'euc' (case-insensitive)
 fails:Regexp.new given a String ignores the third argument if it is 's' or 'sjis' (case-insensitive)
 fails:Regexp.new given a String ignores the third argument if it is 'u' or 'utf8' (case-insensitive)
-fails:Regexp.new given a Regexp does not honour options given as additional arguments
 fails(immutable regexp):Regexp.new works by default for subclasses with overridden #initialize
