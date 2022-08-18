@@ -89,7 +89,6 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.WarningNode.UncachedWarningNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
-import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.constants.ConstantEntry;
@@ -1948,22 +1947,18 @@ public abstract class ModuleNodes {
         }
     }
 
-    @CoreMethod(names = "instance_method", required = 1)
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    public abstract static class InstanceMethodNode extends CoreMethodNode {
-        @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
-
-        @CreateCast("name")
-        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
-            return NameToJavaStringNode.create(name);
-        }
+    @GenerateUncached
+    @CoreMethod(names = "instance_method", required = 1, alwaysInlined = true)
+    public abstract static class InstanceMethodNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected RubyUnboundMethod instanceMethod(VirtualFrame frame, RubyModule module, String name,
+        protected RubyUnboundMethod instanceMethod(
+                Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+                @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached BranchProfile errorProfile) {
-            final Frame callerFrame = readCallerFrame.execute(frame);
+            needCallerFrame(callerFrame, target);
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(callerFrame);
+            final String name = nameToJavaStringNode.execute(RubyArguments.getArgument(rubyArgs, 0));
 
             // TODO(CS, 11-Jan-15) cache this lookup
             final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name, declarationContext);
