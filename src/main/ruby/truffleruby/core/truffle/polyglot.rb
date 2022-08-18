@@ -317,7 +317,7 @@ module Polyglot
       raise TypeError, "Foreign exception cannot be dumped: #{inspect}"
     end
 
-    def marshal_load(...)
+    def marshal_load(array)
       raise TypeError, 'Foreign exception cannot be restored'
     end
   end
