@@ -14,6 +14,7 @@ describe "Polyglot::ForeignString" do
     @java_string = Truffle::Interop.as_string("abc")
     @truffle_string = Truffle::Interop.as_truffle_string("abc")
     @foreign_string = Truffle::Debug.foreign_string("abc")
+    @all = [@java_character, @java_string, @truffle_string, @foreign_string]
   end
 
   it "are of the expected Java class" do
@@ -97,6 +98,33 @@ describe "Polyglot::ForeignString" do
     @java_string.should == "abc"
     @truffle_string.should == "abc"
     @foreign_string.should == "abc"
+  end
+
+  it "supports #+@ and then mutation" do
+    @all.each do |foreign_string|
+      copy = +foreign_string
+      copy << "."
+      copy.should == "#{foreign_string}."
+    end
+  end
+
+  it "supports #dup and then mutation" do
+    @all.each do |foreign_string|
+      copy = foreign_string.dup
+      copy << "."
+      copy.should == "#{foreign_string}."
+    end
+  end
+
+  it "supports #clone and then mutation" do
+    @all.each do |foreign_string|
+      foreign_string.clone.should.frozen?
+      foreign_string.clone(freeze: true).should.frozen?
+
+      copy = foreign_string.clone(freeze: false)
+      copy << "."
+      copy.should == "#{foreign_string}."
+    end
   end
 
   it "has all Ruby String methods" do

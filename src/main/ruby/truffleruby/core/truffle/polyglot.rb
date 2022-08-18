@@ -312,6 +312,14 @@ module Polyglot
     def backtrace
       backtrace_locations&.map(&:to_s)
     end
+
+    def marshal_dump
+      raise TypeError, "Foreign exception cannot be dumped: #{inspect}"
+    end
+
+    def marshal_load(array)
+      raise TypeError, 'Foreign exception cannot be restored'
+    end
   end
 
   module ExecutableTrait
@@ -525,11 +533,27 @@ module Polyglot
 
   class ForeignObject < Object
     include ObjectTrait
+
+    class << self
+      undef_method :new
+    end
+
+    def self.__allocate__
+      raise TypeError, "allocator undefined for #{self}"
+    end
   end
 
   class ForeignException < Exception # rubocop:disable Lint/InheritException
     include ObjectTrait
     include ExceptionTrait
+
+    class << self
+      undef_method :new
+    end
+
+    def self.__allocate__
+      raise TypeError, "allocator undefined for #{self}"
+    end
   end
   # endregion
 end

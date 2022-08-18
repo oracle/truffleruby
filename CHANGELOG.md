@@ -13,6 +13,7 @@ Bug fixes:
 * Update `Process` methods to use `module_function` (@bjfish).
 * Fix `File::Stat`'s `#executable?` and `#executable_real?` predicates that unconditionally returned `true` for a superuser (#2690, @andrykonchin).
 * The `strip` option `--keep-section=.llvmbc` is not supported on macOS (#2697, @eregon).
+* Disallow the marshaling of polyglot exceptions since we can't properly reconstruct them (@nirvdrum).
 
 Compatibility:
 
@@ -23,6 +24,7 @@ Compatibility:
 * Fix `IO.pipe` - allow overriding `IO.new` that is used to create new pipes (#2692, @andykonchin).
 * Fix exception message when there are missing or extra keyword arguments - it contains all the missing/extra keywords now (#1522, @andrykonchin).
 * Always terminate native strings with enough `\0` bytes (#2704, @eregon).
+* Support `#dup` and `#clone` on foreign strings (@eregon).
 
 Performance:
 
