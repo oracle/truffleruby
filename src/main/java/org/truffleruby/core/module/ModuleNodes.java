@@ -59,7 +59,6 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
-import org.truffleruby.core.module.ModuleNodesFactory.ClassExecNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.ConstSetNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.ConstSetUncheckedNodeGen;
 import org.truffleruby.core.module.ModuleNodesFactory.GeneratedReaderNodeFactory;
@@ -668,7 +667,7 @@ public abstract class ModuleNodes {
         @Specialization(guards = "isBlockProvided(rubyArgs)")
         protected Object evalWithBlock(Frame callerFrame, RubyModule self, Object[] rubyArgs, RootCallTarget target,
                 @Cached BranchProfile errorProfile,
-                @Cached(allowUncached = true) ClassExecNode classExecNode) {
+                @Cached ClassExecBlockNode classExecNode) {
             final int count = RubyArguments.getPositionalArgumentsCount(rubyArgs, false);
 
             if (count > 0) {
@@ -677,7 +676,7 @@ public abstract class ModuleNodes {
             }
 
             final Object block = RubyArguments.getBlock(rubyArgs);
-            return classExecNode.classExec(EmptyArgumentsDescriptor.INSTANCE, self, new Object[]{ self },
+            return classExecNode.execute(EmptyArgumentsDescriptor.INSTANCE, self, new Object[]{ self },
                     (RubyProc) block);
         }
 
@@ -763,23 +762,26 @@ public abstract class ModuleNodes {
     @CoreMethod(names = { "class_exec", "module_exec" }, rest = true, needsBlock = true)
     public abstract static class ClassExecNode extends CoreMethodArrayArgumentsNode {
 
-        public static ClassExecNode create() {
-            return ClassExecNodeFactory.create(null);
-        }
-
-        @Child private CallBlockNode callBlockNode = CallBlockNode.create();
-
         @Specialization
-        protected Object withBlock(VirtualFrame frame, RubyModule self, Object[] args, RubyProc block) {
-            return classExec(RubyArguments.getDescriptor(frame), self, args, block);
+        protected Object withBlock(VirtualFrame frame, RubyModule self, Object[] args, RubyProc block,
+                @Cached ClassExecBlockNode classExecBlockNode) {
+            return classExecBlockNode.execute(RubyArguments.getDescriptor(frame), self, args, block);
         }
 
         @Specialization
         protected Object noBlock(RubyModule self, Object[] args, Nil block) {
             throw new RaiseException(getContext(), coreExceptions().noBlockGiven(this));
         }
+    }
 
-        public Object classExec(ArgumentsDescriptor descriptor, RubyModule self, Object[] args, RubyProc block) {
+    @GenerateUncached
+    public abstract static class ClassExecBlockNode extends RubyBaseNode {
+
+        public abstract Object execute(ArgumentsDescriptor descriptor, RubyModule self, Object[] args, RubyProc block);
+
+        @Specialization
+        protected Object classExec(ArgumentsDescriptor descriptor, RubyModule self, Object[] args, RubyProc block,
+                @Cached CallBlockNode callBlockNode) {
             final DeclarationContext declarationContext = new DeclarationContext(
                     Visibility.PUBLIC,
                     new FixedDefaultDefinee(self),
@@ -1457,17 +1459,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "initialize", needsBlock = true) // Ideally should not split if no block given
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ClassExecNode classExecNode;
-
         public abstract RubyModule executeInitialize(RubyModule module, Object block);
-
-        void classEval(RubyModule module, RubyProc block) {
-            if (classExecNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                classExecNode = insert(ClassExecNode.create());
-            }
-            classExecNode.classExec(EmptyArgumentsDescriptor.INSTANCE, module, new Object[]{ module }, block);
-        }
 
         @Specialization
         protected RubyModule initialize(RubyModule module, Nil block) {
@@ -1475,8 +1467,9 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        protected RubyModule initialize(RubyModule module, RubyProc block) {
-            classEval(module, block);
+        protected RubyModule initialize(RubyModule module, RubyProc block,
+                @Cached ClassExecBlockNode classExecBlockNode) {
+            classExecBlockNode.execute(EmptyArgumentsDescriptor.INSTANCE, module, new Object[]{ module }, block);
             return module;
         }
 
