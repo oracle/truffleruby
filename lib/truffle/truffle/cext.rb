@@ -1638,14 +1638,17 @@ module Truffle::CExt
   end
 
   def rb_time_nano_new(sec, nsec)
-    Time.at sec, Rational(nsec, 1000)
+    Time.at sec, nsec, :nanosecond
   end
 
   def rb_time_timespec_new(sec, nsec, offset, is_utc, is_local)
-    time = rb_time_nano_new(sec, nsec)
-    return time if is_local
-    return time.getgm if is_utc
-    time.getlocal(offset)
+    if is_local
+      Time.at(sec, nsec, :nanosecond)
+    elsif is_utc
+      Time.at(sec, nsec, :nanosecond, in: 0).getgm
+    else
+      Time.at(sec, nsec, :nanosecond, in: offset)
+    end
   end
 
   def rb_time_num_new(timev, off)
