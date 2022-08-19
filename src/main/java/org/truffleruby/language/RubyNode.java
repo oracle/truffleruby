@@ -317,4 +317,13 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
                 method);
     }
 
+    public abstract RubyNode cloneUninitialized();
+
+    protected static RubyNode[] cloneUninitialized(RubyNode[] nodes) {
+        RubyNode[] copies = new RubyNode[nodes.length];
+        for (int i = 0; i < nodes.length; i++) {
+            copies[i] = nodes[i].cloneUninitialized();
+        }
+        return copies;
+    }
 }

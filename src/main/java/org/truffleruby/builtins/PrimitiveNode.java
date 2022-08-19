@@ -10,10 +10,12 @@
 
 package org.truffleruby.builtins;
 
+import com.oracle.truffle.api.dsl.NodeFactory;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.NotProvided;
 
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
+import org.truffleruby.language.RubyNode;
 
 @GenerateNodeFactory
 public abstract class PrimitiveNode extends RubyContextSourceNode {
@@ -21,7 +23,12 @@ public abstract class PrimitiveNode extends RubyContextSourceNode {
     // The same as "undefined" in Ruby code
     protected static final Object FAILURE = NotProvided.INSTANCE;
 
-    public PrimitiveNode() {
+    @Override
+    public RubyNode cloneUninitialized() {
+        NodeFactory<RubyNode> factory = BuiltinsClasses.FACTORIES.get(getClass().getSuperclass());
+        var copy = (PrimitiveNode) CoreMethodNodeManager.createNodeFromFactory(factory, RubyNode.EMPTY_ARRAY);
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

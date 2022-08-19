@@ -9,9 +9,11 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.nodes.NodeUtil;
+import com.oracle.truffle.api.nodes.RootNode;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.ReRaiseInlinedExceptionNode;
 import org.truffleruby.language.control.ReturnID;
@@ -115,4 +117,19 @@ public class RubyRootNode extends RubyBaseRootNode {
         return NodeUtil.cloneNode(body);
     }
 
+    @Override
+    protected boolean isCloneUninitializedSupported() {
+        return true;
+    }
+
+    @Override
+    protected RootNode cloneUninitialized() {
+        if (getClass() != RubyRootNode.class) {
+            throw CompilerDirectives.shouldNotReachHere(
+                    "TODO need to implement cloneUninitialized() on a subclass of RubyRootNode " + getClass());
+        }
+
+        return new RubyRootNode(getLanguage(), getSourceSection(), getFrameDescriptor(), sharedMethodInfo,
+                body.cloneUninitialized(), split, returnID);
+    }
 }
