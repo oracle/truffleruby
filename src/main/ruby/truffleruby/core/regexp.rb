@@ -130,12 +130,11 @@ class Regexp
   end
   Truffle::Graal.always_split(method(:union))
 
-  def self.new(pattern, opts=undefined, lang=nil)
+  def self.new(pattern, opts=undefined, encoding=nil)
     if Primitive.object_kind_of?(pattern, Regexp)
       warn 'flags ignored' unless Primitive.undefined?(opts)
       opts = pattern.options
       pattern = pattern.source
-    elsif Primitive.object_kind_of?(pattern, String)
     else
       pattern = Truffle::Type.rb_convert_type pattern, String, :to_str
     end
@@ -148,8 +147,15 @@ class Regexp
       opts = 0
     end
 
-    code = lang[0] if lang
-    opts |= NOENCODING if code == ?n or code == ?N
+    if encoding
+      encoding = Truffle::Type.rb_convert_type encoding, String, :to_str
+      code = encoding[0]
+      if code == ?n or code == ?N
+        opts |= NOENCODING
+      else
+        warn "encoding option is ignored - #{encoding}"
+      end
+    end
 
     Primitive.regexp_compile pattern, opts # may be overridden by subclasses
   end
