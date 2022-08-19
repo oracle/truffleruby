@@ -64,6 +64,14 @@ VALUE rb_struct_new(VALUE klass, ...) {
   return RUBY_CEXT_INVOKE("rb_struct_new_no_splat", klass, ary);
 }
 
+VALUE rb_struct_s_members(VALUE klass) {
+  return RUBY_INVOKE(klass, "rb_struct_s_members");
+}
+
+VALUE rb_struct_members(VALUE s) {
+  return RUBY_INVOKE(s, "rb_struct_members");
+}
+
 VALUE rb_struct_size(VALUE s) {
   return RUBY_INVOKE(s, "size");
 }
