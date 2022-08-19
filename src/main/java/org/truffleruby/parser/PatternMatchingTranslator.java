@@ -9,7 +9,6 @@
  */
 package org.truffleruby.parser;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayIndexNodes;
 import org.truffleruby.core.array.ArrayLiteralNode;
@@ -75,12 +74,13 @@ public class PatternMatchingTranslator extends BaseTranslator {
         final SourceIndexLength sourceSection = arrayPatternParseNode.getPosition();
 
         // handle only preArgs and postArgs for now
-        if (arrayPatternParseNode.hasRestArg()) {
-            throw CompilerDirectives.shouldNotReachHere();
-        }
+//        if (arrayPatternParseNode.hasRestArg()) {
+//            throw CompilerDirectives.shouldNotReachHere();
+//        }
 
         ListParseNode arrayParseNode = arrayPatternParseNode.getPreArgs();
         ListParseNode arrayParseNodePost = arrayPatternParseNode.getPostArgs();
+        var arrayParseNodeRest = arrayPatternParseNode.getRestArg();
 
         deconstructCallParameters = new RubyCallNodeParameters(
                 currentValueToMatch,
@@ -97,7 +97,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
         receiver.unsafeSetSourceSection(sourceSection);
 
         var patternArray = arrayParseNode.accept(this);
-        var patternArrayPost = arrayParseNodePost.accept(this);
+
         matcherCallParameters = new RubyCallNodeParameters(
                 receiver,
                 "array_pattern_matches?",
@@ -106,19 +106,25 @@ public class PatternMatchingTranslator extends BaseTranslator {
                 new RubyNode[]{ patternArray, NodeUtil.cloneNode(deconstructed) },
                 false,
                 true);
-        matcherCallParametersPost = new RubyCallNodeParameters(
-                receiver,
-                "array_pattern_matches?",
-                null,
-                EmptyArgumentsDescriptor.INSTANCE,
-                new RubyNode[]{ patternArray, NodeUtil.cloneNode(deconstructed) },
-                false,
-                true);
-        var pre_and_post = new AndNode(language.coreMethodAssumptions
-                .createCallNode(matcherCallParameters, environment),
-                language.coreMethodAssumptions
-                        .createCallNode(matcherCallParametersPost, environment));
-        return pre_and_post;
+
+        var preCallNode = language.coreMethodAssumptions
+                .createCallNode(matcherCallParameters, environment);
+        if(arrayParseNodePost != null) {
+            var patternArrayPost = arrayParseNodePost.accept(this);
+            matcherCallParametersPost = new RubyCallNodeParameters(
+                    receiver,
+                    "array_pattern_matches?",
+                    null,
+                    EmptyArgumentsDescriptor.INSTANCE,
+                    new RubyNode[]{patternArrayPost, NodeUtil.cloneNode(deconstructed)},
+                    false,
+                    true);
+            preCallNode = new AndNode(preCallNode,
+                    language.coreMethodAssumptions
+                            .createCallNode(matcherCallParametersPost, environment));
+        }
+
+        return preCallNode;
     }
 
     public RubyNode translatePatternNode(ParseNode patternNode,
