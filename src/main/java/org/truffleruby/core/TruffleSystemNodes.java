@@ -282,6 +282,7 @@ public abstract class TruffleSystemNodes {
         @TruffleBoundary
         @Specialization
         protected static long allocatedBytes() {
+            // a race here should be unproblematic, and setThreadAllocatedMemoryEnabled idempotent
             if (bean == null) {
                 bean = (ThreadMXBean) ManagementFactory.getThreadMXBean();
                 bean.setThreadAllocatedMemoryEnabled(true);
