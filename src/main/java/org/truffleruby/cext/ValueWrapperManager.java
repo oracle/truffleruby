@@ -227,9 +227,6 @@ public class ValueWrapperManager {
         public HandleBlock(RubyContext context, RubyLanguage language, ValueWrapperManager manager) {
             HandleBlockAllocator allocator = language.handleBlockAllocator;
             long base = allocator.getFreeBlock();
-            if (context != null && context.getOptions().CEXTS_KEEP_HANDLES_ALIVE) {
-                keepAlive(this);
-            }
             this.base = base;
             this.wrappers = new ValueWrapperWeakReference[BLOCK_SIZE];
             this.count = 0;
@@ -241,11 +238,6 @@ public class ValueWrapperManager {
                 manager.blockMap[(int) ((base - ALLOCATION_BASE) >> BLOCK_BITS)] = null;
                 allocator.addFreeBlock(base);
             };
-        }
-
-        @TruffleBoundary
-        private static void keepAlive(HandleBlock block) {
-            keepAlive.add(block);
         }
 
         public long getBase() {
@@ -298,10 +290,15 @@ public class ValueWrapperManager {
     @GenerateUncached
     public abstract static class AllocateHandleNode extends RubyBaseNode {
 
+        private static final Set<ValueWrapper> keepAlive = ConcurrentHashMap.newKeySet();
+
         public abstract long execute(ValueWrapper wrapper);
 
         @Specialization(guards = "!isSharedObject(wrapper)")
         protected long allocateHandleOnKnownThread(ValueWrapper wrapper) {
+            if (getContext().getOptions().CEXTS_KEEP_HANDLES_ALIVE) {
+                keepAlive(wrapper);
+            }
             return allocateHandle(
                     wrapper,
                     getContext(),
@@ -312,12 +309,20 @@ public class ValueWrapperManager {
 
         @Specialization(guards = "isSharedObject(wrapper)")
         protected long allocateSharedHandleOnKnownThread(ValueWrapper wrapper) {
+            if (getContext().getOptions().CEXTS_KEEP_HANDLES_ALIVE) {
+                keepAlive(wrapper);
+            }
             return allocateHandle(
                     wrapper,
                     getContext(),
                     getLanguage(),
                     getBlockHolder(getContext(), getLanguage()),
                     true);
+        }
+
+        @TruffleBoundary
+        protected static void keepAlive(ValueWrapper wrapper) {
+            keepAlive.add(wrapper);
         }
 
         protected long allocateHandle(ValueWrapper wrapper, RubyContext context, RubyLanguage language,
