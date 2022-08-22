@@ -42,11 +42,14 @@ import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.ArgumentsDescriptor;
+import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -324,7 +327,7 @@ public abstract class BasicObjectNodes {
 
         @Specialization(guards = "isBlockProvided(rubyArgs)")
         protected Object evalWithBlock(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
-                @Cached(allowUncached = true) InstanceExecNode instanceExecNode,
+                @Cached InstanceExecBlockNode instanceExecNode,
                 @Cached BranchProfile errorProfile) {
             final int count = RubyArguments.getPositionalArgumentsCount(rubyArgs, false);
 
@@ -334,7 +337,7 @@ public abstract class BasicObjectNodes {
             }
 
             final Object block = RubyArguments.getBlock(rubyArgs);
-            return instanceExecNode.executeInstanceExec(callerFrame.materialize(), self, new Object[]{ self },
+            return instanceExecNode.execute(EmptyArgumentsDescriptor.INSTANCE, self, new Object[]{ self },
                     (RubyProc) block);
         }
 
@@ -436,6 +439,25 @@ public abstract class BasicObjectNodes {
         @Specialization
         protected Object instanceExec(Object receiver, Object[] arguments, Nil block) {
             throw new RaiseException(getContext(), coreExceptions().localJumpError("no block given", this));
+        }
+
+    }
+
+    @GenerateUncached
+    public abstract static class InstanceExecBlockNode extends RubyBaseNode {
+
+        public abstract Object execute(ArgumentsDescriptor descriptor, Object self, Object[] args, RubyProc block);
+
+        @Specialization
+        protected Object instanceExec(ArgumentsDescriptor descriptor, Object self, Object[] arguments, RubyProc block,
+                @Cached CallBlockNode callBlockNode) {
+            final DeclarationContext declarationContext = new DeclarationContext(
+                    Visibility.PUBLIC,
+                    new SingletonClassOfSelfDefaultDefinee(self),
+                    block.declarationContext.getRefinements());
+
+            return callBlockNode.executeCallBlock(
+                    declarationContext, block, self, nil, descriptor, arguments, null);
         }
 
     }
