@@ -75,7 +75,9 @@ describe "C-API Encoding function" do
 
     it "returns the string length based on a fixed-width encoding's character length, even if the encoding is incompatible" do
       @s.rb_enc_strlen(@str, @str.bytesize, Encoding::UTF_16BE).should == 6
+      @s.rb_enc_strlen(@str, @str.bytesize, Encoding::UTF_16LE).should == 6
       @s.rb_enc_strlen(@str, @str.bytesize, Encoding::UTF_32BE).should == 3
+      @s.rb_enc_strlen(@str, @str.bytesize, Encoding::UTF_32LE).should == 3
     end
 
     it "does not consider strings to be NUL-terminated" do
@@ -91,9 +93,13 @@ describe "C-API Encoding function" do
         @s.rb_enc_strlen(@str, 5, Encoding::UTF_8).should == 3
       end
 
-      it "rounds up for fixed-width encodings" do
+      it "combines valid character and invalid character counts in UTF-16" do
         @s.rb_enc_strlen(@str, 5, Encoding::UTF_16BE).should == 3
+      end
+
+      it "rounds up for fixed-width encodings" do
         @s.rb_enc_strlen(@str, 5, Encoding::UTF_32BE).should == 2
+        @s.rb_enc_strlen(@str, 5, Encoding::UTF_32LE).should == 2
         @s.rb_enc_strlen(@str, 5, Encoding::BINARY).should == 5
       end
     end
