@@ -248,9 +248,10 @@ int rb_enc_precise_mbclen(const char *p, const char *e, rb_encoding *enc) {
 
 long rb_enc_strlen(const char *p, const char *e, rb_encoding *enc) {
   long length = e - p;
+  int minlen = rb_enc_mbminlen(enc);
 
-  if (rb_enc_mbminlen(enc) == rb_enc_mbmaxlen(enc)) {
-    return length / rb_enc_mbminlen(enc) + !!(length % rb_enc_mbminlen(enc));
+  if (minlen == rb_enc_mbmaxlen(enc)) {
+    return length / minlen + !!(length % minlen);
   }
 
   return polyglot_as_i64(RUBY_CEXT_INVOKE_NO_WRAP("rb_enc_strlen", rb_tr_temporary_native_string(p, length, enc)));
