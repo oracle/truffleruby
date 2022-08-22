@@ -27,7 +27,6 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
@@ -1099,12 +1098,8 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public RubyException rangeError(RubyIntRange range, Node currentNode) {
-        return rangeError(StringUtils.format(
-                "%d..%s%d out of range",
-                range.begin,
-                range.excludedEnd ? "." : "",
-                range.end), currentNode);
+    public RubyException charRangeError(int codepoint, Node currentNode) {
+        return rangeError(StringUtils.format("%d out of char range", codepoint), currentNode);
     }
 
     @TruffleBoundary

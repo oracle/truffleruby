@@ -26,6 +26,8 @@ Compatibility:
 * Always terminate native strings with enough `\0` bytes (#2704, @eregon).
 * Support `#dup` and `#clone` on foreign strings (@eregon).
 * Fix `Regexp.new` to coerce non-String arguments (#2705, @andrykonchin).
+* Fix `Kernel#sprintf` formatting for `%c` when used non-ASCII encoding (#2369, @andrykonchin).
+* Fix `Kernel#sprintf` argument casting for `%c` (@andrykonchin).
 
 Performance:
 

@@ -44,12 +44,13 @@ public class RBSprintfCompiler {
 
         final RBSprintfSimpleParser parser = new RBSprintfSimpleParser(StringSupport.bytesToChars(byteArray), false);
         final List<RBSprintfConfig> configs = parser.parse();
-        final RBSprintfSimpleTreeBuilder builder = new RBSprintfSimpleTreeBuilder(configs, stringReader);
+        final RBSprintfSimpleTreeBuilder builder = new RBSprintfSimpleTreeBuilder(configs, stringReader,
+                formatEncoding);
 
         return new FormatRootNode(
                 language,
                 currentNode.getEncapsulatingSourceSection(),
-                FormatEncoding.find(formatEncoding, currentNode),
+                new FormatEncoding(formatEncoding),
                 builder.getNode()).getCallTarget();
     }
 

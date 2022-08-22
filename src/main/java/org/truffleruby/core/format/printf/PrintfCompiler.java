@@ -40,12 +40,12 @@ public class PrintfCompiler {
         final PrintfSimpleParser parser = new PrintfSimpleParser(StringSupport.bytesToChars(byteArray), arguments,
                 isDebug);
         final List<SprintfConfig> configs = parser.parse();
-        final PrintfSimpleTreeBuilder builder = new PrintfSimpleTreeBuilder(language, configs);
+        final PrintfSimpleTreeBuilder builder = new PrintfSimpleTreeBuilder(language, configs, encoding);
 
         return new FormatRootNode(
                 language,
                 currentNode.getEncapsulatingSourceSection(),
-                FormatEncoding.find(encoding, currentNode),
+                new FormatEncoding(encoding),
                 builder.getNode()).getCallTarget();
     }
 

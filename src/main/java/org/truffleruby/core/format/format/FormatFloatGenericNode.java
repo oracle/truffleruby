@@ -193,7 +193,6 @@ public abstract class FormatFloatGenericNode extends FormatNode {
                 buf.append(' ', width);
                 appendNumber(digits, buf, 0);
             }
-            width = 0;
         } else {
             appendNumber(digits, buf, 0);
             if (width > 0) {

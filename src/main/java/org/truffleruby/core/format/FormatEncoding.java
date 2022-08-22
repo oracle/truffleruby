@@ -17,16 +17,16 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.language.control.RaiseException;
 
-public enum FormatEncoding {
+public class FormatEncoding {
 
-    DEFAULT(Encodings.BINARY),
-    ASCII_8BIT(Encodings.BINARY),
-    US_ASCII(Encodings.US_ASCII),
-    UTF_8(Encodings.UTF_8);
+    public static final FormatEncoding DEFAULT = new FormatEncoding(Encodings.BINARY);
+    public static final FormatEncoding ASCII_8BIT = new FormatEncoding(Encodings.BINARY);
+    public static final FormatEncoding US_ASCII = new FormatEncoding(Encodings.US_ASCII);
+    public static final FormatEncoding UTF_8 = new FormatEncoding(Encodings.UTF_8);
 
     private final RubyEncoding encoding;
 
-    FormatEncoding(RubyEncoding encoding) {
+    public FormatEncoding(RubyEncoding encoding) {
         this.encoding = encoding;
     }
 
@@ -73,22 +73,18 @@ public enum FormatEncoding {
             return this;
         }
 
-        switch (other) {
-            case ASCII_8BIT:
-            case US_ASCII:
+        if (other == ASCII_8BIT || other == US_ASCII) {
+            return ASCII_8BIT;
+        } else if (other == UTF_8) {
+            if (this == ASCII_8BIT || this == US_ASCII) {
                 return ASCII_8BIT;
-            case UTF_8:
-                switch (this) {
-                    case ASCII_8BIT:
-                    case US_ASCII:
-                        return ASCII_8BIT;
-                    case UTF_8:
-                        return UTF_8;
-                    default:
-                        throw CompilerDirectives.shouldNotReachHere();
-                }
-            default:
+            } else if (this == UTF_8) {
+                return UTF_8;
+            } else {
                 throw CompilerDirectives.shouldNotReachHere();
+            }
+        } else {
+            throw CompilerDirectives.shouldNotReachHere();
         }
     }
 

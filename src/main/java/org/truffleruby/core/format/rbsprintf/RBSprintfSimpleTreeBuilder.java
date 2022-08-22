@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.LiteralFormatNode;
 import org.truffleruby.core.format.SharedTreeBuilder;
@@ -45,14 +46,16 @@ public class RBSprintfSimpleTreeBuilder {
     private final List<FormatNode> sequence = new ArrayList<>();
     private final List<RBSprintfConfig> configs;
     private final Object stringReader;
+    private final RubyEncoding encoding;
 
     public static final int DEFAULT = PrintfSimpleTreeBuilder.DEFAULT;
 
     private static final ImmutableRubyString EMPTY_STRING = FrozenStrings.EMPTY_US_ASCII;
 
-    public RBSprintfSimpleTreeBuilder(List<RBSprintfConfig> configs, Object stringReader) {
+    public RBSprintfSimpleTreeBuilder(List<RBSprintfConfig> configs, Object stringReader, RubyEncoding encoding) {
         this.configs = configs;
         this.stringReader = stringReader;
+        this.encoding = encoding;
     }
 
     private void buildTree() {
@@ -240,13 +243,18 @@ public class RBSprintfSimpleTreeBuilder {
                     case OTHER:
                         switch (config.getFormat()) {
                             case 'c':
-                                node = WriteBytesNodeGen
-                                        .create(
-                                                FormatCharacterNodeGen
-                                                        .create(
-                                                                config.isMinus(),
-                                                                widthNode,
-                                                                valueNode));
+                                final FormatNode characterConversionNode = FormatCharacterNodeGen.create(
+                                        encoding,
+                                        valueNode);
+
+                                if (config.getWidth() != null || config.isWidthStar()) {
+                                    final FormatNode characterPrecisionNode = new LiteralFormatNode(DEFAULT);
+                                    node = WritePaddedBytesNodeGen
+                                            .create(config.isMinus(), widthNode, characterPrecisionNode,
+                                                    characterConversionNode);
+                                } else {
+                                    node = WriteBytesNodeGen.create(characterConversionNode);
+                                }
                                 break;
                             case 's':
                                 final FormatNode conversionNode;
