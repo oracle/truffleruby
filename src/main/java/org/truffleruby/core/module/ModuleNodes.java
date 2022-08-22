@@ -102,7 +102,6 @@ import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.Arity;
-import org.truffleruby.language.methods.CanBindMethodToModuleNode;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.DeclarationContext.FixedDefaultDefinee;
 import org.truffleruby.language.methods.InternalMethod;
@@ -1241,12 +1240,11 @@ public abstract class ModuleNodes {
         //Checkstyle: resume
         protected RubySymbol defineMethodWithMethod(
                 Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
-                @Cached NameToJavaStringNode nameToJavaStringNode,
-                @Cached(allowUncached = true) CanBindMethodToModuleNode canBindMethodToModuleNode) {
+                @Cached NameToJavaStringNode nameToJavaStringNode) {
             final String name = nameToJavaStringNode.execute(RubyArguments.getArgument(rubyArgs, 0));
             final Object method = RubyArguments.getArgument(rubyArgs, 1);
 
-            return addMethod(module, name, (RubyMethod) method, canBindMethodToModuleNode);
+            return addMethod(module, name, (RubyMethod) method);
         }
 
         //Checkstyle: stop
@@ -1292,6 +1290,7 @@ public abstract class ModuleNodes {
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
             final String name = nameToJavaStringNode.execute(RubyArguments.getArgument(rubyArgs, 0));
             final Object block = RubyArguments.getBlock(rubyArgs);
+
             needCallerFrame(callerFrame, target);
             return addProc(module, name, (RubyProc) block, callerFrame.materialize());
         }
@@ -1303,11 +1302,10 @@ public abstract class ModuleNodes {
         }
 
         @TruffleBoundary
-        private RubySymbol addMethod(RubyModule module, String name, RubyMethod method,
-                @Cached CanBindMethodToModuleNode canBindMethodToModuleNode) {
+        private RubySymbol addMethod(RubyModule module, String name, RubyMethod method) {
             final InternalMethod internalMethod = method.method;
 
-            if (!canBindMethodToModuleNode.executeCanBindMethodToModule(internalMethod, module)) {
+            if (!ModuleOperations.canBindMethodTo(internalMethod, module)) {
                 final RubyModule declaringModule = internalMethod.getDeclaringModule();
                 if (RubyGuards.isSingletonClass(declaringModule)) {
                     throw new RaiseException(getContext(), coreExceptions().typeError(
