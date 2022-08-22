@@ -57,14 +57,6 @@ module Truffle::Internal
     end
   end
 
-  def self.array_pattern_matches?(pattern, expression)
-    return false unless pattern.length == expression.length
-
-    pattern.zip(expression).all? do |a, b|
-      a === b
-    end
-  end
-
   def self.hash_pattern_matches?(pattern, expression)
     pattern.all? do |key, value|
       expression.has_key?(key) && value === expression.fetch(key)

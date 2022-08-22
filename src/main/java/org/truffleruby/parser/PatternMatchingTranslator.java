@@ -74,12 +74,12 @@ public class PatternMatchingTranslator extends BaseTranslator {
         final SourceIndexLength sourceSection = arrayPatternParseNode.getPosition();
 
         // handle only preArgs and postArgs for now
-//        if (arrayPatternParseNode.hasRestArg()) {
-//            throw CompilerDirectives.shouldNotReachHere();
-//        }
+        //        if (arrayPatternParseNode.hasRestArg()) {
+        //            throw CompilerDirectives.shouldNotReachHere();
+        //        }
 
-        ListParseNode arrayParseNode = arrayPatternParseNode.getPreArgs();
-        ListParseNode arrayParseNodePost = arrayPatternParseNode.getPostArgs();
+        ListParseNode preNodes = arrayPatternParseNode.getPreArgs();
+        ListParseNode postNodes = arrayPatternParseNode.getPostArgs();
         var arrayParseNodeRest = arrayPatternParseNode.getRestArg();
 
         deconstructCallParameters = new RubyCallNodeParameters(
@@ -93,38 +93,66 @@ public class PatternMatchingTranslator extends BaseTranslator {
         deconstructed = language.coreMethodAssumptions
                 .createCallNode(deconstructCallParameters, environment);
 
-        receiver = new TruffleInternalModuleLiteralNode();
-        receiver.unsafeSetSourceSection(sourceSection);
+        RubyNode condition = null;
+        for (int i = 0; i < preNodes.size(); i++) {
+            ParseNode loopPreNode = preNodes.get(i);
+            RubyNode translatedPatternElement;
+            RubyNode prev = currentValueToMatch;
+            var exprElement = ArrayIndexNodes.ReadConstantIndexNode.create(currentValueToMatch, i);
+            currentValueToMatch = exprElement;
+            try {
+                translatedPatternElement = loopPreNode.accept(this);
+            } finally {
+                currentValueToMatch = prev;
+            }
 
-        var patternArray = arrayParseNode.accept(this);
-
-        matcherCallParameters = new RubyCallNodeParameters(
-                receiver,
-                "array_pattern_matches?",
-                null,
-                EmptyArgumentsDescriptor.INSTANCE,
-                new RubyNode[]{ patternArray, NodeUtil.cloneNode(deconstructed) },
-                false,
-                true);
-
-        var preCallNode = language.coreMethodAssumptions
-                .createCallNode(matcherCallParameters, environment);
-        if(arrayParseNodePost != null) {
-            var patternArrayPost = arrayParseNodePost.accept(this);
-            matcherCallParametersPost = new RubyCallNodeParameters(
-                    receiver,
-                    "array_pattern_matches?",
+            var parameters = new RubyCallNodeParameters(
+                    translatedPatternElement,
+                    "===",
                     null,
                     EmptyArgumentsDescriptor.INSTANCE,
-                    new RubyNode[]{patternArrayPost, NodeUtil.cloneNode(deconstructed)},
+                    new RubyNode[]{ NodeUtil.cloneNode(exprElement) },
                     false,
                     true);
-            preCallNode = new AndNode(preCallNode,
-                    language.coreMethodAssumptions
-                            .createCallNode(matcherCallParametersPost, environment));
+
+            var callNode = language.coreMethodAssumptions.createCallNode(parameters, environment);
+            if (condition == null) {
+                condition = callNode;
+            } else {
+                condition = new AndNode(condition, callNode);
+            }
         }
 
-        return preCallNode;
+        for (int i = 0; i < postNodes.size(); i++) {
+            ParseNode loopPostNode = postNodes.get(i);
+            RubyNode translatedPatternElement;
+            RubyNode prev = currentValueToMatch;
+            var exprElement = ArrayIndexNodes.ReadConstantIndexNode.create(currentValueToMatch, -postNodes.size() + i);
+            currentValueToMatch = exprElement;
+            try {
+                translatedPatternElement = loopPostNode.accept(this);
+            } finally {
+                currentValueToMatch = prev;
+            }
+
+            var parameters = new RubyCallNodeParameters(
+                    translatedPatternElement,
+                    "===",
+                    null,
+                    EmptyArgumentsDescriptor.INSTANCE,
+                    new RubyNode[]{ NodeUtil.cloneNode(exprElement) },
+                    false,
+                    true);
+
+            var callNode = language.coreMethodAssumptions.createCallNode(parameters, environment);
+            if (condition == null) {
+                condition = callNode;
+            } else {
+                condition = new AndNode(condition, callNode);
+            }
+        }
+
+        return condition;
     }
 
     public RubyNode translatePatternNode(ParseNode patternNode,
