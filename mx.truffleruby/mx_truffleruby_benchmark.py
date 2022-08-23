@@ -380,6 +380,7 @@ class AllBenchmarksBenchmarkSuite(RubyBenchmarkSuite):
             }]
 
 classic_benchmarks = [
+    'aobench',
     'binary-trees',
     'deltablue',
     'fannkuch',
