@@ -64,6 +64,9 @@ import static org.truffleruby.language.RubyBaseNode.nil;
 
 public class FeatureLoader {
 
+    private static final int PATH_MAX = 1024; // jnr-posix hard codes this value
+    private static final String[] EXTENSIONS = new String[]{ TruffleRuby.EXTENSION, RubyLanguage.CEXT_EXTENSION };
+
     private final RubyContext context;
     private final RubyLanguage language;
 
@@ -80,9 +83,9 @@ public class FeatureLoader {
 
     private String cwd = null;
     private Object getcwd;
-    private static final int PATH_MAX = 1024; // jnr-posix hard codes this value
 
-    private static final String[] EXTENSIONS = new String[]{ TruffleRuby.EXTENSION, RubyLanguage.CEXT_EXTENSION };
+    private Source mainScriptSource;
+    private String mainScriptAbsolutePath;
 
     public FeatureLoader(RubyContext context, RubyLanguage language) {
         this.context = context;
@@ -93,6 +96,13 @@ public class FeatureLoader {
         if (context.getOptions().NATIVE_PLATFORM) {
             this.getcwd = nfi.getFunction(context, "getcwd", "(pointer," + nfi.size_t() + "):pointer");
         }
+    }
+
+    public void setMainScript(Source source, String absolutePath) {
+        assert mainScriptSource == null;
+        assert mainScriptAbsolutePath == null;
+        mainScriptSource = source;
+        mainScriptAbsolutePath = absolutePath;
     }
 
     public void addAutoload(RubyConstant autoloadConstant) {
@@ -229,7 +239,13 @@ public class FeatureLoader {
         }
     }
 
-    public String canonicalize(String path) {
+    public String canonicalize(String path, Source source) {
+        // Special case for the main script which has a relative Source#getPath():
+        // We need to resolve it correctly, even if the CWD changed since then.
+        if (source != null && source.equals(mainScriptSource)) {
+            return mainScriptAbsolutePath;
+        }
+
         // First, make the path absolute, by expanding relative to the context CWD
         // Otherwise, getCanonicalPath() uses user.dir as CWD which is incorrect.
         final String absolutePath = makeAbsolute(path);

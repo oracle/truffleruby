@@ -29,6 +29,7 @@ Compatibility:
 * Fix `Kernel#sprintf` formatting for `%c` when used non-ASCII encoding (#2369, @andrykonchin).
 * Fix `Kernel#sprintf` argument casting for `%c` (@andrykonchin).
 * Implement the `rb_enc_strlen` function for use by native extensions (@nirvdrum).
+* Fix the absolute path of the main script after chdir (#2709, @eregon).
 
 Performance:
 

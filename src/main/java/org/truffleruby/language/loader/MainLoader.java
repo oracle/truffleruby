@@ -100,6 +100,8 @@ public class MainLoader {
 
         final Source mainSource = fileLoader.buildSource(file, mainPath, sourceTString, false, true);
 
+        context.getFeatureLoader().setMainScript(mainSource, file.getCanonicalFile().getPath());
+
         return new RubySource(mainSource, mainPath, sourceTString);
     }
 
