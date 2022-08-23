@@ -201,6 +201,7 @@ suite = {
             "requires": [
                 "java.logging",
                 "java.management",
+                "jdk.management",
                 "jdk.unsupported", # sun.misc.Signal
             ],
             "dependencies": [
