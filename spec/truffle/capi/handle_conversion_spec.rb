@@ -13,21 +13,22 @@ load_extension('handle_conversion')
 guard -> { Truffle::Boot.get_option('cexts-to-native-count') == true } do
   describe "Native handle conversion" do
     it "converts no handles when comparing a VALUE with a constant" do
-      CAPIHandleConversionTest.new.value_comparison_with_nil(Object.new)
+      CAPIHandleConversionTest.new.value_comparison_with_nil(Object.new).should == false
     end
 
     it "converts no handles when accessing array elements via an RARRAY_PTR" do
       ary = Array.new(1000) { Object.new }
-      CAPIHandleConversionTest.new.value_array_ptr_access([ary])
+      CAPIHandleConversionTest.new.value_array_ptr_access(ary).should == ary[0]
     end
 
     it "converts all elements to native handles when memcpying an RARRAY_PTR" do
       ary = Array.new(1000) { Object.new }
-      CAPIHandleConversionTest.new.value_array_ptr_memcpy(ary)
+      CAPIHandleConversionTest.new.value_array_ptr_memcpy(ary).should == ary[1]
     end
 
     it "converts no handles when storing a VALUE in a static variable" do
-      CAPIHandleConversionTest.new.value_store_in_static(Object.new)
+      obj = Object.new
+      CAPIHandleConversionTest.new.value_store_in_static(obj).should == obj
     end
   end
 end
