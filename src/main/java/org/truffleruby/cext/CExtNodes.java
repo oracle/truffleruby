@@ -1481,6 +1481,21 @@ public class CExtNodes {
         }
     }
 
+    @CoreMethod(names = "rb_enc_strlen", onSingleton = true, required = 1)
+    public abstract static class RbEncStrlen extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "strings.isRubyString(string)", limit = "1")
+        protected int rbEncStrlen(Object string,
+                @Cached RubyStringLibrary strings,
+                @Cached TruffleString.CodePointLengthNode codePointLengthNode) {
+            var tstring = strings.getTString(string);
+            var tencoding = strings.getTEncoding(string);
+
+            return codePointLengthNode.execute(tstring, tencoding);
+        }
+
+    }
+
     @CoreMethod(names = "rb_enc_left_char_head", onSingleton = true, required = 3, lowerFixnum = 3)
     public abstract static class RbEncLeftCharHeadNode extends CoreMethodArrayArgumentsNode {
 

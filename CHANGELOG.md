@@ -28,6 +28,7 @@ Compatibility:
 * Fix `Regexp.new` to coerce non-String arguments (#2705, @andrykonchin).
 * Fix `Kernel#sprintf` formatting for `%c` when used non-ASCII encoding (#2369, @andrykonchin).
 * Fix `Kernel#sprintf` argument casting for `%c` (@andrykonchin).
+* Implement the `rb_enc_strlen` function for use by native extensions (@nirvdrum).
 
 Performance:
 
