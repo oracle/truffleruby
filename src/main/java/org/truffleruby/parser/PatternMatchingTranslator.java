@@ -12,6 +12,7 @@ package org.truffleruby.parser;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayIndexNodes;
 import org.truffleruby.core.array.ArrayLiteralNode;
+import org.truffleruby.core.array.ArraySliceNodeGen;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
@@ -24,15 +25,23 @@ import org.truffleruby.language.literal.TruffleInternalModuleLiteralNode;
 import org.truffleruby.language.locals.WriteLocalNode;
 import org.truffleruby.parser.ast.ArrayParseNode;
 import org.truffleruby.parser.ast.ArrayPatternParseNode;
+import org.truffleruby.parser.ast.ConstParseNode;
+import org.truffleruby.parser.ast.DAsgnParseNode;
+import org.truffleruby.parser.ast.FalseParseNode;
 import org.truffleruby.parser.ast.FixnumParseNode;
 import org.truffleruby.parser.ast.ListParseNode;
 import org.truffleruby.parser.ast.LocalAsgnParseNode;
 import org.truffleruby.parser.ast.LocalVarParseNode;
+import org.truffleruby.parser.ast.NilParseNode;
 import org.truffleruby.parser.ast.ParseNode;
 
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.source.Source;
+import org.truffleruby.parser.ast.StarParseNode;
+import org.truffleruby.parser.ast.TrueParseNode;
+
+import java.util.Arrays;
 
 public class PatternMatchingTranslator extends BaseTranslator {
 
@@ -80,6 +89,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
 
         ListParseNode preNodes = arrayPatternParseNode.getPreArgs();
         ListParseNode postNodes = arrayPatternParseNode.getPostArgs();
+        ParseNode restNode = arrayPatternParseNode.getRestArg();
         var arrayParseNodeRest = arrayPatternParseNode.getRestArg();
 
         deconstructCallParameters = new RubyCallNodeParameters(
@@ -123,34 +133,58 @@ public class PatternMatchingTranslator extends BaseTranslator {
             }
         }
 
-        for (int i = 0; i < postNodes.size(); i++) {
-            ParseNode loopPostNode = postNodes.get(i);
-            RubyNode translatedPatternElement;
-            RubyNode prev = currentValueToMatch;
-            var exprElement = ArrayIndexNodes.ReadConstantIndexNode.create(currentValueToMatch, -postNodes.size() + i);
-            currentValueToMatch = exprElement;
-            try {
-                translatedPatternElement = loopPostNode.accept(this);
-            } finally {
-                currentValueToMatch = prev;
-            }
-
-            var parameters = new RubyCallNodeParameters(
-                    translatedPatternElement,
-                    "===",
-                    null,
-                    EmptyArgumentsDescriptor.INSTANCE,
-                    new RubyNode[]{ NodeUtil.cloneNode(exprElement) },
-                    false,
-                    true);
-
-            var callNode = language.coreMethodAssumptions.createCallNode(parameters, environment);
-            if (condition == null) {
-                condition = callNode;
-            } else {
-                condition = new AndNode(condition, callNode);
+        if (restNode != null) {
+            if (!(restNode instanceof StarParseNode)) {
+                RubyNode prev = currentValueToMatch;
+                RubyNode restAccept;
+                var exprSlice = ArraySliceNodeGen.create(preNodes.size(), -postNodes.size(), currentValueToMatch);
+                currentValueToMatch = exprSlice;
+                try {
+                    restAccept = restNode.accept(this);
+                } finally {
+                    currentValueToMatch = prev;
+                }
+                var seq = sequence(sourceSection, Arrays.asList(restAccept, new BooleanLiteralNode(true)));
+                if (condition == null) {
+                    condition = seq;
+                } else {
+                    condition = new AndNode(condition, seq);
+                }
             }
         }
+
+        if (postNodes != null) {
+            for (int i = 0; i < postNodes.size(); i++) {
+                ParseNode loopPostNode = postNodes.get(i);
+                RubyNode translatedPatternElement;
+                RubyNode prev = currentValueToMatch;
+                var exprElement = ArrayIndexNodes.ReadConstantIndexNode.create(currentValueToMatch,
+                        -postNodes.size() + i);
+                currentValueToMatch = exprElement;
+                try {
+                    translatedPatternElement = loopPostNode.accept(this);
+                } finally {
+                    currentValueToMatch = prev;
+                }
+
+                var parameters = new RubyCallNodeParameters(
+                        translatedPatternElement,
+                        "===",
+                        null,
+                        EmptyArgumentsDescriptor.INSTANCE,
+                        new RubyNode[]{ NodeUtil.cloneNode(exprElement) },
+                        false,
+                        true);
+
+                var callNode = language.coreMethodAssumptions.createCallNode(parameters, environment);
+                if (condition == null) {
+                    condition = callNode;
+                } else {
+                    condition = new AndNode(condition, callNode);
+                }
+            }
+        }
+
 
         return condition;
     }
@@ -250,8 +284,36 @@ public class PatternMatchingTranslator extends BaseTranslator {
     }
 
     @Override
+    public RubyNode visitDAsgnNode(DAsgnParseNode node) {
+        WriteLocalNode writeLocalNode = bodyTranslator.visitDAsgnNode(node);
+        writeLocalNode.setValueNode(currentValueToMatch);
+        return writeLocalNode;
+    }
+
+    @Override
     public RubyNode visitFixnumNode(FixnumParseNode node) {
         return bodyTranslator.visitFixnumNode(node);
+    }
+
+    // Delegated to BodyTranslator explicitly to prevent errors.
+    @Override
+    public RubyNode visitTrueNode(TrueParseNode node) {
+        return bodyTranslator.visitTrueNode(node);
+    }
+
+    @Override
+    public RubyNode visitFalseNode(FalseParseNode node) {
+        return bodyTranslator.visitFalseNode(node);
+    }
+
+    @Override
+    public RubyNode visitNilNode(NilParseNode node) {
+        return bodyTranslator.visitNilNode(node);
+    }
+
+    @Override
+    public RubyNode visitConstNode(ConstParseNode node) {
+        return bodyTranslator.visitConstNode(node);
     }
 
     //    public RubyNode translateArrayPatternNode(ArrayPatternParseNode node, ArrayParseNode data) {
