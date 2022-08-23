@@ -96,7 +96,7 @@ Truffle::CExt.rb_define_module_under(IO, 'generic_writable').module_eval do
     Truffle::IOOperations.puts(self, *args)
   end
 
-  def write_nonblock(str)
+  def write_nonblock(str, exception: true)
     write(str)
   end
 
