@@ -1,4 +1,7 @@
-# coding: US-ASCII
+# coding: BINARY
+
+# From https://github.com/ruby/ruby/blob/master/benchmark/app_aobench.rb
+# with the encoding comment fixed, with validation and adapted for benchmark-interface
 
 # AO render benchmark
 # Original program (C) Syoyo Fujita in Javascript (and other languages)
@@ -10,8 +13,6 @@ IMAGE_WIDTH = 256
 IMAGE_HEIGHT = 256
 NSUBSAMPLES = 2
 NAO_SAMPLES = 8
-
-srand(0)
 
 class Vec
   def initialize(x, y, z)
@@ -174,6 +175,7 @@ end
 
 class Scene
   def initialize
+    srand(0)
     @spheres = Array.new
     @spheres[0] = Sphere.new(Vec.new(-2.0, 0.0, -3.5), 0.5)
     @spheres[1] = Sphere.new(Vec.new(-0.5, 0.0, -3.0), 0.5)
@@ -226,7 +228,7 @@ class Scene
     Vec.new(occlusion, occlusion, occlusion)
   end
 
-  def render(w, h, nsubsamples)
+  def render(w, h, nsubsamples, result)
     cnt = 0
     nsf = nsubsamples.to_f
     h.times do |y|
@@ -269,9 +271,9 @@ class Scene
         r = rad.x / (nsf * nsf)
         g = rad.y / (nsf * nsf)
         b = rad.z / (nsf * nsf)
-        printf("%c", clamp(r))
-        printf("%c", clamp(g))
-        printf("%c", clamp(b))
+        result << sprintf("%c", clamp(r))
+        result << sprintf("%c", clamp(g))
+        result << sprintf("%c", clamp(b))
       end
       nil
     end
@@ -280,18 +282,14 @@ class Scene
   end
 end
 
-alias printf_orig printf
-def printf *args
-  # $fp.printf(*args)
+benchmark do
+  result = "".b
+  result << "P6\n"
+  result << sprintf("%d %d\n", IMAGE_WIDTH, IMAGE_HEIGHT)
+  result << "255\n"
+  Scene.new.render(IMAGE_WIDTH, IMAGE_HEIGHT, NSUBSAMPLES, result)
+  # File.write("ao.ppm", result)
+  result
+end.verify do |result|
+  result.sum == 41835
 end
-
-# File.open("ao.ppm", "w") do |fp|
-# $fp = fp
-printf("P6\n")
-printf("%d %d\n", IMAGE_WIDTH, IMAGE_HEIGHT)
-printf("255\n")
-Scene.new.render(IMAGE_WIDTH, IMAGE_HEIGHT, NSUBSAMPLES)
-# end
-
-undef printf
-alias printf printf_orig
