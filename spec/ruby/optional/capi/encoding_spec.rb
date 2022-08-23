@@ -98,8 +98,8 @@ describe "C-API Encoding function" do
       end
 
       it "rounds up for fixed-width encodings" do
-        @s.rb_enc_strlen(@str, 5, Encoding::UTF_32BE).should == 2
-        @s.rb_enc_strlen(@str, 5, Encoding::UTF_32LE).should == 2
+        @s.rb_enc_strlen(@str, 7, Encoding::UTF_32BE).should == 2
+        @s.rb_enc_strlen(@str, 7, Encoding::UTF_32LE).should == 2
         @s.rb_enc_strlen(@str, 5, Encoding::BINARY).should == 5
       end
     end
