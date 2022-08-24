@@ -1,4 +1,3 @@
-
 class NativeHandleChecker
   EXPECTED_FAILURES = {
     "C-API Debug function rb_debug_inspector_open creates a debug context and calls the given callback" => 2,
@@ -26,9 +25,6 @@ class NativeHandleChecker
     "C-API String function rb_string_value_cstr returns a non-null pointer for a UTF-16 string" => 1,
     "C-API String function rb_string_value_cstr raises an error if a string contains a null" => 1,
     "C-API String function rb_string_value_cstr raises an error if a UTF-16 string contains a null" => 1,
-    "C-API Util function rb_scan_args assigns Hash arguments" => 1,
-    "C-API Util function rb_scan_args assigns required and Hash arguments" => 1,
-    "C-API Util function rb_scan_args assigns required, optional, splat, post-splat, Hash and block arguments" => 1,
     "C-API Util function rb_get_kwargs extracts required arguments in the order requested" => 2,
     "C-API Util function rb_get_kwargs extracts required and optional arguments in the order requested" => 1,
     "C-API Util function rb_get_kwargs raises an error if a required argument is not in the hash" => 1,
@@ -50,7 +46,11 @@ class NativeHandleChecker
   end
 
   def passed(state, example)
-    (Truffle::Debug.cexts_to_native_count - @start_count).should == (EXPECTED_FAILURES[state.description] || 0)
+    expected = EXPECTED_FAILURES[state.description] || 0
+    actual = Truffle::Debug.cexts_to_native_count - @start_count
+    unless actual == expected
+      raise SpecExpectationNotMetError, "Expected #{expected} conversions to native but was #{actual}"
+    end
   end
 end
 

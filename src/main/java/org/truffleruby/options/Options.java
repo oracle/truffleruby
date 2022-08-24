@@ -166,6 +166,8 @@ public class Options {
     public final boolean CEXTS_TO_NATIVE_STATS;
     /** --cexts-to-native-count=CEXTS_TO_NATIVE_STATS */
     public final boolean CEXTS_TO_NATIVE_COUNT;
+    /** --backtraces-to-native=false */
+    public final boolean BACKTRACE_ON_TO_NATIVE;
     /** --basic-ops-log-rewrite=false */
     public final boolean BASICOPS_LOG_REWRITE;
     /** --array-small=3 */
@@ -279,6 +281,7 @@ public class Options {
         PRINT_INTERNED_TSTRING_STATS = options.get(OptionsCatalog.PRINT_INTERNED_TSTRING_STATS_KEY);
         CEXTS_TO_NATIVE_STATS = options.get(OptionsCatalog.CEXTS_TO_NATIVE_STATS_KEY);
         CEXTS_TO_NATIVE_COUNT = options.hasBeenSet(OptionsCatalog.CEXTS_TO_NATIVE_COUNT_KEY) ? options.get(OptionsCatalog.CEXTS_TO_NATIVE_COUNT_KEY) : CEXTS_TO_NATIVE_STATS;
+        BACKTRACE_ON_TO_NATIVE = options.get(OptionsCatalog.BACKTRACE_ON_TO_NATIVE_KEY);
         BASICOPS_LOG_REWRITE = options.get(OptionsCatalog.BASICOPS_LOG_REWRITE_KEY);
         ARRAY_SMALL = options.get(OptionsCatalog.ARRAY_SMALL_KEY);
         CEXTS_MARKING_CACHE = options.get(OptionsCatalog.CEXTS_MARKING_CACHE_KEY);
@@ -445,6 +448,8 @@ public class Options {
                 return CEXTS_TO_NATIVE_STATS;
             case "ruby.cexts-to-native-count":
                 return CEXTS_TO_NATIVE_COUNT;
+            case "ruby.backtraces-to-native":
+                return BACKTRACE_ON_TO_NATIVE;
             case "ruby.basic-ops-log-rewrite":
                 return BASICOPS_LOG_REWRITE;
             case "ruby.array-small":

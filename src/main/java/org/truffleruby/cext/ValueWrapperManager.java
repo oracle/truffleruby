@@ -315,7 +315,7 @@ public class ValueWrapperManager {
                     true);
         }
 
-        protected static long allocateHandle(ValueWrapper wrapper, RubyContext context, RubyLanguage language,
+        protected long allocateHandle(ValueWrapper wrapper, RubyContext context, RubyLanguage language,
                 HandleBlockHolder holder, boolean shared) {
             HandleBlock block;
             if (shared) {
@@ -326,6 +326,10 @@ public class ValueWrapperManager {
 
             if (context.getOptions().CEXTS_TO_NATIVE_COUNT) {
                 context.getValueWrapperManager().recordHandleAllocation();
+            }
+
+            if (context.getOptions().BACKTRACE_ON_TO_NATIVE) {
+                context.getDefaultBacktraceFormatter().printBacktraceOnEnvStderr("ValueWrapper#toNative: ", getNode());
             }
 
             if (block == null || block.isFull()) {
