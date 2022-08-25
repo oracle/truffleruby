@@ -402,6 +402,9 @@ public class DarwinAMD64NativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.fcntl.F_GLOBAL_NOCACHE", 55);
         configuration.config("platform.fcntl.F_ALLOCATECONTIG", 2);
         configuration.config("platform.fcntl.F_ALLOCATEALL", 4);
+        configuration.config("platform.poll.POLLIN", 1);
+        configuration.config("platform.poll.POLLPRI", 2);
+        configuration.config("platform.poll.POLLOUT", 4);
         configuration.config("platform.socket.AF_APPLETALK", 16);
         configuration.config("platform.socket.PF_APPLETALK", 16);
         configuration.config("platform.socket.AF_INET", 2);

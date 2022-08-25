@@ -10,6 +10,11 @@
 
 module Truffle
   module IOOperations
+
+    POLLIN = Truffle::Config['platform.poll.POLLIN']
+    POLLPRI = Truffle::Config['platform.poll.POLLPRI']
+    POLLOUT = Truffle::Config['platform.poll.POLLOUT']
+
     def self.print(io, args, last_line_storage)
       if args.empty?
         raise 'last_line_binding is required' if Primitive.nil? last_line_storage
@@ -189,6 +194,58 @@ module Truffle
         Truffle::FFI::Pool.stack_free(buffer)
       end
 
+    end
+
+    # This method will return a true if poll returned without error
+    # with an event within the timeout, false if the timeout expired,
+    # or raises an exception for an errno.
+    def self.poll(io, event_mask, timeout)
+      if (event_mask & POLLIN) != 0
+        return 1 unless io.__send__(:buffer_empty?)
+      end
+
+      if timeout
+        unless Primitive.object_kind_of? timeout, Numeric
+          raise TypeError, 'Timeout must be numeric'
+        end
+
+        raise ArgumentError, 'timeout must be positive' if timeout < 0
+
+        # Milliseconds, rounded down
+        timeout = remaining_timeout = (timeout * 1_000).to_i
+        start = Process.clock_gettime(Process::CLOCK_MONOTONIC, :millisecond)
+        deadline = start + timeout
+      else
+        remaining_timeout = -1
+      end
+
+      begin
+        primitive_result = Truffle::POSIX.truffleposix_poll(Primitive.io_fd(io), event_mask, remaining_timeout)
+        result =
+          if primitive_result < 0
+            errno = Errno.errno
+            if errno == Errno::EINTR::Errno
+              if timeout
+                # Update timeout
+                now = Process.clock_gettime(Process::CLOCK_MONOTONIC, :millisecond)
+                if now >= deadline
+                  false # timeout
+                else
+                  remaining_timeout = deadline - now
+                  :retry
+                end
+              else
+                :retry
+              end
+            else
+              Errno.handle_errno(errno)
+            end
+          else
+            primitive_result > 0
+          end
+      end while result == :retry
+
+      result
     end
 
     # The constants used to express a mode for the opening of files are

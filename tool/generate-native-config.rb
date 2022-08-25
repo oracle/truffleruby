@@ -636,6 +636,13 @@ constants 'fcntl' do |cg|
   ]
 end
 
+constants 'poll' do |cg|
+  cg.include 'poll.h'
+  cg.consts %w[
+    POLLIN POLLPRI POLLOUT
+  ]
+end
+
 constants 'socket' do |cg|
   cg.include 'sys/types.h'
   cg.include 'sys/socket.h'

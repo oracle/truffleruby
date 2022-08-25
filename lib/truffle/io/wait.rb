@@ -13,16 +13,19 @@ class IO
   end
 
   def ready?
-    not Kernel.select([self], [], [], 0).nil?
+    ensure_open_and_readable
+    Truffle::IOOperations.poll(self, Truffle::IOOperations::POLLIN, 0)
   end
 
   def wait(timeout = nil)
-    Kernel.select([self], [], [], timeout).nil? ? nil : self
+    ensure_open_and_readable
+    Truffle::IOOperations.poll(self, Truffle::IOOperations::POLLIN, timeout) ? self : nil
   end
 
   alias_method :wait_readable, :wait
 
   def wait_writable(timeout = nil)
-    Kernel.select([], [self], [], timeout).nil? ? nil : self
+    ensure_open_and_writable
+    Truffle::IOOperations.poll(self, Truffle::IOOperations::POLLOUT, timeout) ? self : nil
   end
 end
