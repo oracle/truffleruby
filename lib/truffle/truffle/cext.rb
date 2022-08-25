@@ -1960,9 +1960,9 @@ module Truffle::CExt
   end
 
   def rb_eval_cmd_kw(cmd, args, kw_splat)
-    case cmd
-    when String
-      eval(cmd)
+    if (args.size > 0 && kw_splat != 0)
+      kwargs = args.pop
+      cmd.call(*args, **kwargs)
     else
       cmd.call(*args)
     end

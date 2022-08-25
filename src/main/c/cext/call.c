@@ -230,5 +230,9 @@ VALUE rb_exec_recursive(VALUE (*func) (VALUE, VALUE, int), VALUE obj, VALUE arg)
 }
 
 VALUE rb_eval_cmd_kw(VALUE cmd, VALUE args, int kw_splat) {
-  return RUBY_CEXT_INVOKE("rb_eval_cmd_kw", cmd, args, INT2FIX(kw_splat));
+  if (!RB_TYPE_P(cmd, T_STRING)) {
+    return RUBY_CEXT_INVOKE("rb_eval_cmd_kw", cmd, args, INT2NUM(kw_splat));
+  } else {
+    return RUBY_CEXT_INVOKE("rb_eval_string", cmd);
+  }
 }
