@@ -111,13 +111,13 @@ static void mark_ready_from_set(fd_set *set, int nfds, int *fds) {
   }
 }
 
-int truffleposix_poll(int fd, int events, int timeout) {
+int truffleposix_poll(int fd, int events, int timeout_ms) {
   struct pollfd fds;
 
   fds.fd = fd;
   fds.events = events;
 
-  return poll(&fds, 1, timeout);
+  return poll(&fds, 1, timeout_ms);
 }
 
 int truffleposix_select(int nread, int *readfds, int nwrite, int *writefds,

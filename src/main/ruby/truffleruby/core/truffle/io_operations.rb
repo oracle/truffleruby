@@ -211,7 +211,7 @@ module Truffle
 
         raise ArgumentError, 'timeout must be positive' if timeout < 0
 
-        # Microseconds, rounded down
+        # Milliseconds, rounded down
         timeout = remaining_timeout = (timeout * 1_000).to_i
         start = Process.clock_gettime(Process::CLOCK_MONOTONIC, :millisecond)
         deadline = start + timeout
