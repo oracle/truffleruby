@@ -58,4 +58,13 @@ public class ReturnEnumeratorIfNoBlockNode extends RubyContextSourceNode {
         }
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new ReturnEnumeratorIfNoBlockNode(
+                methodName,
+                method.cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }

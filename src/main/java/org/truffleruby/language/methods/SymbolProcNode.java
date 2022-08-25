@@ -10,6 +10,7 @@
 package org.truffleruby.language.methods;
 
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.dispatch.DispatchNode;
 
@@ -45,6 +46,13 @@ public class SymbolProcNode extends RubyContextSourceNode {
         }
 
         return callNode;
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new SymbolProcNode(symbol);
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

@@ -628,6 +628,14 @@ public class BucketsHashStore {
 
             return hash;
         }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = new GenericHashLiteralNode(cloneUninitialized(keyValues));
+            copy.copyFlags(this);
+            return copy;
+        }
+
     }
 
     // endregion

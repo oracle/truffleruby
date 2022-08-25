@@ -11,6 +11,7 @@ package org.truffleruby.language.arguments;
 
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -36,4 +37,12 @@ public class CheckNoKeywordArgumentsNode extends RubyContextSourceNode {
 
         return nil;
     }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new CheckNoKeywordArgumentsNode();
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }

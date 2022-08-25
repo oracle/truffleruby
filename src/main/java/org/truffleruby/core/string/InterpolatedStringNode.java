@@ -19,6 +19,9 @@ import org.truffleruby.language.RubyContextSourceNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+import org.truffleruby.language.RubyNode;
+
+import java.util.Arrays;
 
 /** A list of expressions to build up into a string. */
 public final class InterpolatedStringNode extends RubyContextSourceNode {
@@ -31,9 +34,13 @@ public final class InterpolatedStringNode extends RubyContextSourceNode {
     private final TruffleString emptyTString;
 
     public InterpolatedStringNode(ToSNode[] children, Encoding encoding) {
+        this(children, Encodings.getBuiltInEncoding(encoding));
+    }
+
+    private InterpolatedStringNode(ToSNode[] children, RubyEncoding encoding) {
         assert children.length > 0;
         this.children = children;
-        this.encoding = Encodings.getBuiltInEncoding(encoding);
+        this.encoding = encoding;
         this.emptyTString = this.encoding.tencoding.getEmpty();
     }
 
@@ -60,6 +67,16 @@ public final class InterpolatedStringNode extends RubyContextSourceNode {
             appendNode = insert(StringNodesFactory.StringAppendPrimitiveNodeFactory.create(null));
         }
         return appendNode.executeStringAppend(builder, string);
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var childrenCopy = cloneUninitialized(children);
+        var copy = new InterpolatedStringNode(
+                Arrays.copyOf(childrenCopy, childrenCopy.length, ToSNode[].class),
+                encoding);
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

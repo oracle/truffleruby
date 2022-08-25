@@ -12,6 +12,7 @@ package org.truffleruby.language.arguments;
 import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.RubyNode;
 
 /** {@link SaveMethodBlockNode} should be preferred when writing the result to a frame slot. */
 public class ReadBlockFromCurrentFrameArgumentsNode extends RubyContextSourceNode {
@@ -19,4 +20,12 @@ public class ReadBlockFromCurrentFrameArgumentsNode extends RubyContextSourceNod
     public Object execute(VirtualFrame frame) {
         return RubyArguments.getBlock(frame);
     }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new ReadBlockFromCurrentFrameArgumentsNode();
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }

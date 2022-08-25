@@ -77,4 +77,13 @@ public class ReadZSuperArgumentsNode extends RubyContextSourceNode {
         return unsplatNode.executeToObjectArray(array);
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new ReadZSuperArgumentsNode(
+                restArgIndex,
+                cloneUninitialized(reloadNodes));
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }

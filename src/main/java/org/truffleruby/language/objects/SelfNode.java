@@ -14,6 +14,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.locals.ReadFrameSlotNode;
 import org.truffleruby.language.locals.ReadFrameSlotNodeGen;
 
@@ -45,6 +46,13 @@ public class SelfNode extends RubyContextSourceNode {
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
         return FrozenStrings.SELF;
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new SelfNode();
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

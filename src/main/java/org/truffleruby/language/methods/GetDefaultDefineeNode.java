@@ -11,6 +11,7 @@ package org.truffleruby.language.methods;
 
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -20,4 +21,12 @@ public class GetDefaultDefineeNode extends RubyContextSourceNode {
     public RubyModule execute(VirtualFrame frame) {
         return RubyArguments.getDeclarationContext(frame).getModuleToDefineMethods();
     }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new GetDefaultDefineeNode();
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }

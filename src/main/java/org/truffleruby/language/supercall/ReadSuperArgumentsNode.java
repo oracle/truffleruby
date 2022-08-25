@@ -59,4 +59,13 @@ public class ReadSuperArgumentsNode extends RubyContextSourceNode {
         return unsplatNode.unsplat(argumentsObjects);
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new ReadSuperArgumentsNode(
+                cloneUninitialized(arguments),
+                isSplatted);
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }

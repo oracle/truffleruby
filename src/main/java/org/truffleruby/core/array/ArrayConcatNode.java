@@ -91,4 +91,10 @@ public final class ArrayConcatNode extends RubyContextSourceNode {
         }
     }
 
+    public RubyNode cloneUninitialized() {
+        var copy = new ArrayConcatNode(cloneUninitialized(children));
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }

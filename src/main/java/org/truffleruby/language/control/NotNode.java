@@ -29,4 +29,14 @@ public class NotNode extends RubyContextSourceNode {
         return !child.execute(frame);
     }
 
+    private RubyNode getChildBeforeCasting() {
+        return child.getValueNode();
+    }
+
+    public RubyNode cloneUninitialized() {
+        var copy = new NotNode(getChildBeforeCasting().cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }

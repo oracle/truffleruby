@@ -35,6 +35,7 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyLambdaRootNode;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
@@ -361,6 +362,14 @@ public abstract class MethodNodes {
                 final InternalMethod method = RubyArguments.getMethod(declarationFrame);
                 return CallNode.callBoundMethod(frame, method, receiver, frame.getArguments(), callInternalMethodNode);
             }
+
+            @Override
+            public RubyNode cloneUninitialized() {
+                var copy = new CallWithRubyMethodReceiverNode();
+                copy.copyFlags(this);
+                return copy;
+            }
+
         }
     }
 

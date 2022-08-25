@@ -71,4 +71,13 @@ public class ReadClassVariableNode extends RubyContextSourceNode {
         }
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new ReadClassVariableNode(
+                lexicalScopeNode.cloneUninitialized(),
+                name);
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }

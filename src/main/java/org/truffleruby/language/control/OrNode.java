@@ -41,4 +41,13 @@ public class OrNode extends RubyContextSourceNode {
         }
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new OrNode(
+                left.cloneUninitialized(),
+                right.cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }

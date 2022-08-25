@@ -28,7 +28,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 /** Casts a value into a boolean. */
 @GenerateUncached
-@NodeChild(value = "value", type = RubyNode.class)
+@NodeChild(value = "valueNode", type = RubyNode.class)
 public abstract class BooleanCastNode extends RubyBaseNode {
 
     public static BooleanCastNode create() {
@@ -37,6 +37,8 @@ public abstract class BooleanCastNode extends RubyBaseNode {
 
     /** Execute with child node */
     public abstract boolean execute(VirtualFrame frame);
+
+    public abstract RubyNode getValueNode();
 
     /** Execute with given value */
     public abstract boolean execute(Object value);

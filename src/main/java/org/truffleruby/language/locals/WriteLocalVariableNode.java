@@ -57,4 +57,13 @@ public class WriteLocalVariableNode extends WriteLocalNode {
         return super.toString() + " " + getVariableName() + " = " + valueNode;
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new WriteLocalVariableNode(
+                frameSlot,
+                valueNode.cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }

@@ -83,4 +83,15 @@ public class WriteConstantNode extends RubyContextSourceNode implements Assignab
         this.valueNode = null;
         return this;
     }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new WriteConstantNode(
+                name,
+                moduleNode.cloneUninitialized(),
+                valueNode.cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }

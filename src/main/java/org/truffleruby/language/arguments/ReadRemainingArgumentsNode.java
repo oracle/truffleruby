@@ -13,6 +13,7 @@ import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.language.RubyNode;
 
 /** Assumes no keyword parameters */
 public class ReadRemainingArgumentsNode extends RubyContextSourceNode {
@@ -33,6 +34,13 @@ public class ReadRemainingArgumentsNode extends RubyContextSourceNode {
         } else {
             return EMPTY_ARGUMENTS;
         }
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new ReadRemainingArgumentsNode(start);
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

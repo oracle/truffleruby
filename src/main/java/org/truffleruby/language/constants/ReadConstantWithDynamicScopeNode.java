@@ -17,6 +17,7 @@ import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 
@@ -62,6 +63,13 @@ public class ReadConstantWithDynamicScopeNode extends RubyContextSourceNode {
         } else {
             return nil;
         }
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new ReadConstantWithDynamicScopeNode(name);
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

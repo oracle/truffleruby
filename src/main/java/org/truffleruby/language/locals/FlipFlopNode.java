@@ -67,4 +67,15 @@ public class FlipFlopNode extends RubyContextSourceNode {
         }
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new FlipFlopNode(
+                begin.getValueNode().cloneUninitialized(),
+                end.getValueNode().cloneUninitialized(),
+                stateNode,
+                exclusive);
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }

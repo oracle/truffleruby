@@ -33,4 +33,11 @@ public class SetTopLevelBindingNode extends RubyContextSourceNode {
         BindingNodes.insertAncestorFrame(toplevelBinding, mainScriptFrame);
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new SetTopLevelBindingNode();
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }

@@ -28,4 +28,11 @@ public class InvalidReturnNode extends RubyContextSourceNode {
         throw new RaiseException(getContext(), coreExceptions().unexpectedReturn(this));
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new InvalidReturnNode(value.cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }

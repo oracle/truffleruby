@@ -12,6 +12,7 @@ package org.truffleruby.language.globals;
 import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.RubyNode;
 
 public class AliasGlobalVarNode extends RubyContextSourceNode {
 
@@ -27,6 +28,13 @@ public class AliasGlobalVarNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
         getContext().getCoreLibrary().globalVariables.alias(oldName, newName);
         return nil;
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new AliasGlobalVarNode(oldName, newName);
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

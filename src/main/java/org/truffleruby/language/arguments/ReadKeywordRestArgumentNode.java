@@ -16,6 +16,7 @@ import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.hash.library.HashStoreLibrary.EachEntryCallback;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.methods.Arity;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -33,7 +34,11 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
     private final ConditionProfile noHash = ConditionProfile.create();
 
     public ReadKeywordRestArgumentNode(RubyLanguage language, int minimum, Arity arity) {
-        this.excludedKeywords = CheckKeywordArityNode.keywordsAsSymbols(language, arity);
+        this(CheckKeywordArityNode.keywordsAsSymbols(language, arity));
+    }
+
+    private ReadKeywordRestArgumentNode(RubySymbol[] excludedKeywords) {
+        this.excludedKeywords = excludedKeywords;
         this.readUserKeywordsHashNode = new ReadUserKeywordsHashNode();
     }
 
@@ -71,4 +76,12 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
 
         return false;
     }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new ReadKeywordRestArgumentNode(excludedKeywords);
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }

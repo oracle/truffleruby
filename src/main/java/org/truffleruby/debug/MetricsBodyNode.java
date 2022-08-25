@@ -15,6 +15,7 @@ import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.RubyNode;
 
 class MetricsBodyNode<T> extends RubyContextSourceNode {
 
@@ -26,6 +27,13 @@ class MetricsBodyNode<T> extends RubyContextSourceNode {
     @TruffleBoundary
     private Object call(Supplier<?> supplier) {
         return supplier.get();
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new MetricsBodyNode<T>();
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

@@ -10,6 +10,7 @@
 package org.truffleruby.core.kernel;
 
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -26,6 +27,13 @@ public class KernelGetsNode extends RubyContextSourceNode {
             callGetsNode = insert(DispatchNode.create());
         }
         return callGetsNode.callWithFrame(frame, coreLibrary().kernelModule, "gets");
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new KernelGetsNode();
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

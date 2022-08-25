@@ -25,4 +25,13 @@ public abstract class RubyBaseNodeWithExecute extends RubyBaseNode {
     public abstract Object execute(VirtualFrame frame);
 
     public abstract RubyBaseNodeWithExecute cloneUninitialized();
+
+    protected static RubyBaseNodeWithExecute[] cloneUninitialized(RubyBaseNodeWithExecute[] nodes) {
+        RubyBaseNodeWithExecute[] copies = new RubyBaseNodeWithExecute[nodes.length];
+        for (int i = 0; i < nodes.length; i++) {
+            copies[i] = nodes[i].cloneUninitialized();
+        }
+        return copies;
+    }
+
 }

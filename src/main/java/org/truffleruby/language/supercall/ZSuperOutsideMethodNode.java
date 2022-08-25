@@ -13,6 +13,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.InternalMethod;
@@ -52,6 +53,13 @@ public class ZSuperOutsideMethodNode extends RubyContextSourceNode {
         } else {
             return FrozenStrings.SUPER;
         }
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new ZSuperOutsideMethodNode(insideDefineMethod);
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

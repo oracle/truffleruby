@@ -12,6 +12,7 @@ package org.truffleruby.language.locals;
 import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.RubyNode;
 
 public class InitFlipFlopSlotNode extends RubyContextSourceNode {
 
@@ -30,6 +31,13 @@ public class InitFlipFlopSlotNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
         doExecuteVoid(frame);
         return null;
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new InitFlipFlopSlotNode(frameSlot);
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

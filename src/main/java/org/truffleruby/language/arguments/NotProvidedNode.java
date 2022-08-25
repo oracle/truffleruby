@@ -13,12 +13,20 @@ import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.NotProvided;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.RubyNode;
 
 public class NotProvidedNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
         return NotProvided.INSTANCE;
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new NotProvidedNode();
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

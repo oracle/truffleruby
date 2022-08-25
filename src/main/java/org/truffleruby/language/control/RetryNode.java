@@ -12,12 +12,20 @@ package org.truffleruby.language.control;
 import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.RubyNode;
 
 public class RetryNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
         throw new RetryException();
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new RetryNode();
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

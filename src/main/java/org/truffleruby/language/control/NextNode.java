@@ -27,4 +27,11 @@ public class NextNode extends RubyContextSourceNode {
         throw new NextException(child.execute(frame));
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new NextNode(child.cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }

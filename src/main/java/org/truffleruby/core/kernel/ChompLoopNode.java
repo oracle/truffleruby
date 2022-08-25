@@ -11,6 +11,7 @@ package org.truffleruby.core.kernel;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
@@ -25,6 +26,13 @@ public class ChompLoopNode extends RubyContextSourceNode {
         // $_.chomp!
         final Object lastLine = readGlobalVariableNode.execute(frame);
         return callChompNode.call(lastLine, "chomp!");
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new ChompLoopNode();
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

@@ -15,6 +15,7 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.RubyNode;
 
 public class StringLiteralNode extends RubyContextSourceNode {
 
@@ -29,6 +30,13 @@ public class StringLiteralNode extends RubyContextSourceNode {
     @Override
     public RubyString execute(VirtualFrame frame) {
         return createString(tstring, encoding);
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new StringLiteralNode(tstring, encoding);
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

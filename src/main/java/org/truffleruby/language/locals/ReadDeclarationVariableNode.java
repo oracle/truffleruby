@@ -62,4 +62,11 @@ public class ReadDeclarationVariableNode extends ReadLocalNode {
         return descriptor.getSlotName(frameSlot).toString();
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new ReadDeclarationVariableNode(type, frameDepth, frameSlot);
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }

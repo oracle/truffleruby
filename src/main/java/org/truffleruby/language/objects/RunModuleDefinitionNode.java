@@ -48,4 +48,13 @@ public class RunModuleDefinitionNode extends RubyContextSourceNode {
                 EMPTY_ARGUMENTS));
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new RunModuleDefinitionNode(
+                definitionMethod,
+                definingModule.cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }

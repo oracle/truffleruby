@@ -99,4 +99,17 @@ public class LiteralMethodDefinitionNode extends RubyContextSourceNode {
         }
         return this;
     }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new LiteralMethodDefinitionNode(
+                moduleNode.cloneUninitialized(),
+                name,
+                sharedMethodInfo,
+                isDefSingleton,
+                callTargetSupplier);
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }

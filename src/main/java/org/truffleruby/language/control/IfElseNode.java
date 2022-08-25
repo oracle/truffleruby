@@ -57,4 +57,19 @@ public class IfElseNode extends RubyContextSourceNode {
         final RubyNode newElse = elseBody.simplifyAsTailExpression();
         return new IfElseNode(condition, newThen, newElse).copySourceSection(this);
     }
+
+    private RubyNode getConditionBeforeCasting() {
+        return condition.getValueNode();
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new IfElseNode(
+                getConditionBeforeCasting().cloneUninitialized(),
+                thenBody.cloneUninitialized(),
+                elseBody.cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }

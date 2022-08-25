@@ -10,6 +10,7 @@
 package org.truffleruby.core.kernel;
 
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
@@ -34,6 +35,13 @@ public class KernelPrintLastLineNode extends RubyContextSourceNode {
         }
         final Object lastLine = readGlobalVariableNode.execute(frame);
         return callPrintNode.call(coreLibrary().kernelModule, "print", lastLine);
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new KernelPrintLastLineNode();
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

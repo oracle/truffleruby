@@ -17,6 +17,7 @@ import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.DeferredRaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -26,6 +27,8 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import org.truffleruby.language.library.RubyStringLibrary;
 
+import java.util.Arrays;
+
 public class InterpolatedRegexpNode extends RubyContextSourceNode {
 
     @Children private final ToSNode[] children;
@@ -34,8 +37,12 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
     @Child private AsTruffleStringNode asTruffleStringNode = AsTruffleStringNode.create();
 
     public InterpolatedRegexpNode(ToSNode[] children, RegexpOptions options) {
+        this(children, RegexpBuilderNode.create(options));
+    }
+
+    public InterpolatedRegexpNode(ToSNode[] children, RegexpBuilderNode builderNode) {
         this.children = children;
-        builderNode = RegexpBuilderNode.create(options);
+        this.builderNode = builderNode;
     }
 
     @Override
@@ -53,6 +60,16 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
                     rubyStringLibrary.getEncoding(value));
         }
         return values;
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var childrenCopy = cloneUninitialized(children);
+        var copy = new InterpolatedRegexpNode(
+                Arrays.copyOf(childrenCopy, childrenCopy.length, ToSNode[].class),
+                builderNode);
+        copy.copyFlags(this);
+        return copy;
     }
 
     public abstract static class RegexpBuilderNode extends RubyBaseNode {
@@ -107,5 +124,7 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
                 throw dre.getException(getContext());
             }
         }
+
     }
+
 }

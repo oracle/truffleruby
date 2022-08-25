@@ -38,4 +38,13 @@ public class DefinedWrapperNode extends RubyContextSourceNode {
         return definition.createInstance(context);
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new DefinedWrapperNode(
+                definition,
+                child.cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }

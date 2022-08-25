@@ -56,4 +56,18 @@ public class IfNode extends RubyContextSourceNode {
     public RubyNode simplifyAsTailExpression() {
         return new IfNode(condition, thenBody.simplifyAsTailExpression()).copySourceSection(this);
     }
+
+    private RubyNode getConditionBeforeCasting() {
+        return condition.getValueNode();
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new IfNode(
+                getConditionBeforeCasting().cloneUninitialized(),
+                thenBody.cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }

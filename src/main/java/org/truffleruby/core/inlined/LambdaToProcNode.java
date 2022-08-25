@@ -14,6 +14,7 @@ import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.methods.BlockDefinitionNode;
 import org.truffleruby.parser.MethodTranslator;
 
@@ -38,4 +39,12 @@ public class LambdaToProcNode extends RubyContextSourceNode {
         assert block.type == ProcType.LAMBDA;
         return ProcOperations.createProcFromBlock(getContext(), getLanguage(), block);
     }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new LambdaToProcNode((BlockDefinitionNode) blockNode.cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }

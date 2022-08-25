@@ -113,4 +113,32 @@ public class MultipleAssignmentNode extends RubyContextSourceNode implements Ass
         this.rhsNode = null;
         return this;
     }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new MultipleAssignmentNode(
+                cloneUninitializedAssignable(preNodes),
+                cloneUninitializedAssignable(restNode),
+                cloneUninitializedAssignable(postNodes),
+                (SplatCastNode) splatCastNode.cloneUninitialized(),
+                rhsNode.cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
+    }
+
+    protected AssignableNode[] cloneUninitializedAssignable(AssignableNode[] nodes) {
+        AssignableNode[] copies = new AssignableNode[nodes.length];
+        for (int i = 0; i < nodes.length; i++) {
+            copies[i] = cloneUninitializedAssignable(nodes[i]);
+        }
+        return copies;
+    }
+
+    protected AssignableNode cloneUninitializedAssignable(AssignableNode node) {
+        if (node instanceof RubyNode) {
+            return (AssignableNode) ((RubyNode) node).cloneUninitialized();
+        }
+        return node;
+    }
+
 }

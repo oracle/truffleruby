@@ -1390,6 +1390,15 @@ public abstract class ModuleNodes {
                 return lambdaBody.execute(frame);
             }
 
+            public RubyNode cloneUninitialized() {
+                var copy = new CallMethodWithLambdaBody(
+                        proc,
+                        lambdaCallTarget,
+                        lambdaBody.cloneUninitialized());
+                copy.copyFlags(this);
+                return copy;
+            }
+
         }
 
         @TruffleBoundary

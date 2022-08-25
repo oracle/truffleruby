@@ -13,6 +13,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.RubyNode;
 
 public class ReadPostArgumentNode extends RubyContextSourceNode {
 
@@ -43,6 +44,13 @@ public class ReadPostArgumentNode extends RubyContextSourceNode {
     @Override
     public String toString() {
         return getClass().getSimpleName() + " -" + indexFromCount;
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new ReadPostArgumentNode(indexFromCount, keywordArguments, required);
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

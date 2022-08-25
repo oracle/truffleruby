@@ -31,4 +31,11 @@ public class RescueStandardErrorNode extends RescueNode {
         return RubyNode.defaultIsDefined(this);
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new RescueStandardErrorNode(getRescueBody().cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }

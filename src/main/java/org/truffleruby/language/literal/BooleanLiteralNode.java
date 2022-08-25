@@ -17,6 +17,7 @@ import org.truffleruby.language.RubyContextSourceNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.nodes.NodeInfo;
+import org.truffleruby.language.RubyNode;
 
 @NodeInfo(cost = NodeCost.NONE)
 public class BooleanLiteralNode extends RubyContextSourceNode {
@@ -39,6 +40,13 @@ public class BooleanLiteralNode extends RubyContextSourceNode {
         } else {
             return FrozenStrings.FALSE;
         }
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new BooleanLiteralNode(value);
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

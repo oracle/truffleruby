@@ -37,4 +37,11 @@ public class InsideModuleDefinitionNode extends RubyContextSourceNode {
         return super.hasTag(tag);
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new InsideModuleDefinitionNode(body.cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }

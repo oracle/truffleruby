@@ -27,4 +27,11 @@ public class IsNilNode extends RubyContextSourceNode {
         return child.execute(frame) == nil;
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new IsNilNode(child.cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }
