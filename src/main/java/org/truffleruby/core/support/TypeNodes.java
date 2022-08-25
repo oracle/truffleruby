@@ -385,7 +385,7 @@ public abstract class TypeNodes {
     @GenerateUncached
     @GenerateNodeFactory
     @Primitive(name = "check_frozen")
-    @NodeChild(value = "value", type = RubyNode.class)
+    @NodeChild(value = "valueNode", type = RubyNode.class)
     public abstract static class CheckFrozenNode extends RubySourceNode {
 
         public static CheckFrozenNode create() {
@@ -397,6 +397,8 @@ public abstract class TypeNodes {
         }
 
         public abstract void execute(Object object);
+
+        abstract RubyNode getValueNode();
 
         @Specialization(limit = "getRubyLibraryCacheLimit()")
         protected Object check(Object value,
@@ -410,6 +412,12 @@ public abstract class TypeNodes {
 
             return value;
         }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            return create(getValueNode().cloneUninitialized());
+        }
+
     }
 
     @Primitive(name = "check_mutable_string")

@@ -185,14 +185,20 @@ public abstract class StringNodes {
     @GenerateUncached
     @GenerateNodeFactory
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
-    @NodeChild(value = "rubyClass", type = RubyNode.class)
+    @NodeChild(value = "rubyClassNode", type = RubyNode.class)
     public abstract static class AllocateNode extends RubySourceNode {
 
         public static AllocateNode create() {
             return StringNodesFactory.AllocateNodeFactory.create(null);
         }
 
+        public static AllocateNode create(RubyNode rubyClassNode) {
+            return StringNodesFactory.AllocateNodeFactory.create(rubyClassNode);
+        }
+
         public abstract RubyString execute(RubyClass rubyClass);
+
+        abstract RubyNode getRubyClassNode();
 
         @Specialization
         protected RubyString allocate(RubyClass rubyClass) {
@@ -204,6 +210,11 @@ public abstract class StringNodes {
                     Encodings.BINARY);
             AllocationTracing.trace(string, this);
             return string;
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            return create(getRubyClassNode().cloneUninitialized());
         }
 
     }

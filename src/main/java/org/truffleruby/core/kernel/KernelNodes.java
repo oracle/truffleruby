@@ -655,13 +655,27 @@ public abstract class KernelNodes {
         }
     }
 
-    @NodeChild(value = "self", type = RubyNode.class)
+    @NodeChild(value = "selfNode", type = RubyNode.class)
     @GenerateNodeFactory
     public abstract static class DupASTNode extends RubyContextSourceNode {
+
+        public static DupASTNode create(RubyNode selfNode) {
+            return KernelNodesFactory.DupASTNodeFactory.create(selfNode);
+        }
+
         @Specialization
         protected Object execute(VirtualFrame frame, Object self,
                 @Cached DupNode dupNode) {
             return dupNode.execute(frame, self, ArrayUtils.EMPTY_ARRAY, null);
+        }
+
+        abstract RubyNode getSelfNode();
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(getSelfNode().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
         }
     }
 
@@ -1827,7 +1841,7 @@ public abstract class KernelNodes {
 
     @GenerateUncached
     @GenerateNodeFactory
-    @NodeChild(value = "value", type = RubyNode.class)
+    @NodeChild(value = "valueNode", type = RubyNode.class)
     @Primitive(name = "kernel_to_hex")
     public abstract static class ToHexStringNode extends RubySourceNode {
 
@@ -1835,11 +1849,17 @@ public abstract class KernelNodes {
             return KernelNodesFactory.ToHexStringNodeFactory.create(null);
         }
 
+        public static ToHexStringNode create(RubyNode valueNode) {
+            return KernelNodesFactory.ToHexStringNodeFactory.create(valueNode);
+        }
+
         public static ToHexStringNode getUncached() {
             return KernelNodesFactory.ToHexStringNodeFactory.getUncached();
         }
 
         public abstract String executeToHexString(Object value);
+
+        abstract RubyNode getValueNode();
 
         @Specialization
         protected String toHexString(int value) {
@@ -1857,19 +1877,30 @@ public abstract class KernelNodes {
             return BigIntegerOps.toString(value.value, 16);
         }
 
+        @Override
+        public RubyNode cloneUninitialized() {
+            return create(getValueNode().cloneUninitialized());
+        }
+
     }
 
     @GenerateUncached
     @GenerateNodeFactory
-    @NodeChild(value = "self", type = RubyNode.class)
     @CoreMethod(names = { "to_s", "inspect" }) // Basic #inspect, refined later in core
+    @NodeChild(value = "selfNode", type = RubyNode.class)
     public abstract static class ToSNode extends RubySourceNode {
 
         public static ToSNode create() {
             return KernelNodesFactory.ToSNodeFactory.create(null);
         }
 
+        public static ToSNode create(RubyNode selfNode) {
+            return KernelNodesFactory.ToSNodeFactory.create(selfNode);
+        }
+
         public abstract RubyString executeToS(Object self);
+
+        abstract RubyNode getSelfNode();
 
         @Specialization
         protected RubyString toS(Object self,
@@ -1905,6 +1936,11 @@ public abstract class KernelNodes {
             String hexID = Long.toHexString(id);
 
             return "#<" + className + ":0x" + hexID + ">";
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            return create(getSelfNode().cloneUninitialized());
         }
 
     }

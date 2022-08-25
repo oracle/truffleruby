@@ -425,12 +425,18 @@ public abstract class RangeNodes {
     @GenerateUncached
     @GenerateNodeFactory
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
-    @NodeChild(value = "rubyClass", type = RubyNode.class)
+    @NodeChild(value = "rubyClassNode", type = RubyNode.class)
     public abstract static class AllocateNode extends RubySourceNode {
 
         public static AllocateNode create() {
             return RangeNodesFactory.AllocateNodeFactory.create(null);
         }
+
+        public static AllocateNode create(RubyNode rubyClassNode) {
+            return RangeNodesFactory.AllocateNodeFactory.create(rubyClassNode);
+        }
+
+        abstract RubyNode getRubyClassNode();
 
         public abstract RubyObjectRange execute(RubyClass rubyClass);
 
@@ -441,6 +447,12 @@ public abstract class RangeNodes {
             AllocationTracing.trace(range, this);
             return range;
         }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            return create(getRubyClassNode().cloneUninitialized());
+        }
+
     }
 
     @CoreMethod(names = "initialize_copy", required = 1, raiseIfFrozenSelf = true)

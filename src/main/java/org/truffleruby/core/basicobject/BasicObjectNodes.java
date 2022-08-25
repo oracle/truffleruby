@@ -121,11 +121,15 @@ public abstract class BasicObjectNodes {
     @GenerateUncached
     @GenerateNodeFactory
     @CoreMethod(names = { "equal?", "==" }, required = 1)
-    @NodeChild(value = "arguments", type = RubyNode[].class)
+    @NodeChild(value = "argumentNodes", type = RubyNode[].class)
     public abstract static class ReferenceEqualNode extends RubySourceNode {
 
         public static ReferenceEqualNode create() {
             return ReferenceEqualNodeFactory.create(null);
+        }
+
+        public static ReferenceEqualNode create(RubyNode[] argumentNodes) {
+            return ReferenceEqualNodeFactory.create(argumentNodes);
         }
 
         public static ReferenceEqualNode getUncached() {
@@ -133,6 +137,8 @@ public abstract class BasicObjectNodes {
         }
 
         public abstract boolean executeReferenceEqual(Object a, Object b);
+
+        abstract RubyNode[] getArgumentNodes();
 
         @Specialization
         protected boolean equal(boolean a, boolean b) {
@@ -194,16 +200,25 @@ public abstract class BasicObjectNodes {
                     (RubyGuards.isImplicitLong(a) && RubyGuards.isImplicitLong(b)) ||
                     (RubyGuards.isDouble(a) && RubyGuards.isDouble(b));
         }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            return create(cloneUninitialized(getArgumentNodes()));
+        }
     }
 
     @GenerateUncached
     @GenerateNodeFactory
-    @NodeChild(value = "value", type = RubyNode.class)
     @CoreMethod(names = "__id__")
+    @NodeChild(value = "valueNode", type = RubyNode.class)
     public abstract static class ObjectIDNode extends RubySourceNode {
 
         public static ObjectIDNode create() {
             return BasicObjectNodesFactory.ObjectIDNodeFactory.create(null);
+        }
+
+        public static ObjectIDNode create(RubyNode valueNode) {
+            return BasicObjectNodesFactory.ObjectIDNodeFactory.create(valueNode);
         }
 
         public static ObjectIDNode getUncached() {
@@ -213,6 +228,8 @@ public abstract class BasicObjectNodes {
         public abstract Object execute(Object value);
 
         public abstract long execute(RubyDynamicObject value);
+
+        abstract RubyNode getValueNode();
 
         @Specialization
         protected long objectIDNil(Nil nil) {
@@ -309,6 +326,11 @@ public abstract class BasicObjectNodes {
             } else {
                 return System.identityHashCode(value);
             }
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            return create(getValueNode().cloneUninitialized());
         }
     }
 

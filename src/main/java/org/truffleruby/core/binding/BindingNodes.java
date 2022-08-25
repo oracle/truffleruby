@@ -213,13 +213,21 @@ public abstract class BindingNodes {
     @GenerateUncached
     @GenerateNodeFactory
     @CoreMethod(names = "local_variable_defined?", required = 1)
-    @NodeChild(value = "binding", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "bindingNode", type = RubyNode.class)
+    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
     public abstract static class LocalVariableDefinedNode extends RubySourceNode {
+
+        public static LocalVariableDefinedNode create(RubyNode bindingNode, RubyBaseNodeWithExecute nameNode) {
+            return BindingNodesFactory.LocalVariableDefinedNodeFactory.create(bindingNode, nameNode);
+        }
 
         public abstract boolean execute(RubyBinding binding, String name);
 
-        @CreateCast("name")
+        abstract RubyNode getBindingNode();
+
+        abstract RubyBaseNodeWithExecute getNameNode();
+
+        @CreateCast("nameNode")
         protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
@@ -255,23 +263,42 @@ public abstract class BindingNodes {
             return getLanguage().options.BINDING_LOCAL_VARIABLE_CACHE;
         }
 
+        private RubyBaseNodeWithExecute getNameNodeBeforeCasting() {
+            return ((NameToJavaStringNode) getNameNode()).getValueNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            return create(
+                    getBindingNode().cloneUninitialized(),
+                    getNameNodeBeforeCasting().cloneUninitialized());
+        }
+
     }
 
     @GenerateUncached
     @GenerateNodeFactory
-    @NodeChild(value = "binding", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    @ImportStatic(BindingNodes.class)
     @CoreMethod(names = "local_variable_get", required = 1)
+    @NodeChild(value = "bindingNode", type = RubyNode.class)
+    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
+    @ImportStatic(BindingNodes.class)
     public abstract static class LocalVariableGetNode extends RubySourceNode {
-
-        public abstract Object execute(RubyBinding binding, String name);
 
         public static LocalVariableGetNode create() {
             return BindingNodesFactory.LocalVariableGetNodeFactory.create(null, null);
         }
 
-        @CreateCast("name")
+        public static LocalVariableGetNode create(RubyNode bindingNode, RubyBaseNodeWithExecute nameNode) {
+            return BindingNodesFactory.LocalVariableGetNodeFactory.create(bindingNode, nameNode);
+        }
+
+        public abstract Object execute(RubyBinding binding, String name);
+
+        abstract RubyNode getBindingNode();
+
+        abstract RubyBaseNodeWithExecute getNameNode();
+
+        @CreateCast("nameNode")
         protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
@@ -301,15 +328,26 @@ public abstract class BindingNodes {
             return getLanguage().options.BINDING_LOCAL_VARIABLE_CACHE;
         }
 
+        private RubyBaseNodeWithExecute getNameNodeBeforeCasting() {
+            return ((NameToJavaStringNode) getNameNode()).getValueNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            return create(
+                    getBindingNode().cloneUninitialized(),
+                    getNameNodeBeforeCasting().cloneUninitialized());
+        }
+
     }
 
     @ReportPolymorphism
     @GenerateUncached
     @GenerateNodeFactory
     @CoreMethod(names = "local_variable_set", required = 2)
-    @NodeChild(value = "binding", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "value", type = RubyNode.class)
+    @NodeChild(value = "bindingNode", type = RubyNode.class)
+    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "valueNode", type = RubyNode.class)
     @ImportStatic({ BindingNodes.class, FindDeclarationVariableNodes.class })
     public abstract static class LocalVariableSetNode extends RubySourceNode {
 
@@ -317,9 +355,20 @@ public abstract class BindingNodes {
             return BindingNodesFactory.LocalVariableSetNodeFactory.create(null, null, null);
         }
 
+        public static LocalVariableSetNode create(RubyNode bindingNode, RubyBaseNodeWithExecute nameNode,
+                RubyNode valueNode) {
+            return BindingNodesFactory.LocalVariableSetNodeFactory.create(bindingNode, nameNode, valueNode);
+        }
+
         public abstract Object execute(RubyBinding binding, String name, Object value);
 
-        @CreateCast("name")
+        abstract RubyNode getBindingNode();
+
+        abstract RubyBaseNodeWithExecute getNameNode();
+
+        abstract RubyNode getValueNode();
+
+        @CreateCast("nameNode")
         protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
@@ -396,6 +445,19 @@ public abstract class BindingNodes {
         protected int getCacheLimit() {
             return getLanguage().options.BINDING_LOCAL_VARIABLE_CACHE;
         }
+
+        private RubyBaseNodeWithExecute getNameNodeBeforeCasting() {
+            return ((NameToJavaStringNode) getNameNode()).getValueNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            return create(
+                    getBindingNode().cloneUninitialized(),
+                    getNameNodeBeforeCasting().cloneUninitialized(),
+                    getValueNode().cloneUninitialized());
+        }
+
     }
 
     @Primitive(name = "local_variable_names")
