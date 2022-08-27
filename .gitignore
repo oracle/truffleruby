@@ -100,7 +100,8 @@ doc/user/README.md
 # Ignore .rb files at the root, it's temporary files to debug some issue
 /*.rb
 
-# Ignore Seafoam generated illustrations
+# Ignore graphs and Seafoam generated illustrations
+/*.bgv
 /*.pdf
 /*.svg
 

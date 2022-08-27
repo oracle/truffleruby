@@ -2171,6 +2171,9 @@ module Commands
         graph = graphs.last
         raise "Could not find graph in #{dumps}" unless graph
 
+        FileUtils.cp graph, 'graph.bgv'
+        graph = 'graph.bgv'
+
         list = run_gem_test_pack_gem_or_install('seafoam', SEAFOAM_VERSION, '--json', graph, 'list', capture: :out, no_print_cmd: true)
         decoded = JSON.parse(list)
         graph_names = decoded.map { |entry| entry.fetch('graph_name_components').last }
