@@ -841,6 +841,7 @@ module Commands
                               --simplify             simplify the graph by disabling some optimizations which tend to duplicate parts of the graph
                               --igv                  send the graphs to IGV over the network instead of using seafoam
                               --describe             describe the shape of the graph (linear, branches, loops, calls, deopts)
+                              SEAFOAM_DIR            use the seafoam in the given directory
       jt igv                                         launches IdealGraphVisualizer
       jt next                                        tell you what to work on next (give you a random core library spec)
       jt install [jvmci|eclipse]                     install [the right JVMCI JDK | Eclipse] in the parent directory
@@ -2079,8 +2080,9 @@ module Commands
     describe = false
     json = false
     seafoam_args = []
-    igv = args.delete('--igv')
 
+    # Must be handled before ruby_options() otherwise that would consume it
+    igv = args.delete('--igv')
     args.unshift '--igv-network' if igv
 
     vm_args, remaining_args, _parsed_options = ruby_options({}, args)
@@ -2175,7 +2177,7 @@ module Commands
         FileUtils.cp graph, 'graph.bgv'
         graph = 'graph.bgv'
 
-        list = run_gem_test_pack_gem_or_install('seafoam', SEAFOAM_VERSION, '--json', graph, 'list', capture: :out, no_print_cmd: true)
+        list = seafoam('--json', graph, 'list', capture: :out, no_print_cmd: true)
         decoded = JSON.parse(list)
         graph_names = decoded.map { |entry| entry.fetch('graph_name_components').last }
         before_lowering_regexp = /Before.+Lowering/
@@ -2185,7 +2187,7 @@ module Commands
 
         json_args = json ? %w[--json] : []
         action = describe ? 'describe' : 'render'
-        run_gem_test_pack_gem_or_install('seafoam', SEAFOAM_VERSION, *json_args, "#{graph}:#{n}", action, *seafoam_args)
+        seafoam(*json_args, "#{graph}:#{n}", action, *seafoam_args)
       end
 
       break unless watch
@@ -2196,6 +2198,16 @@ module Commands
       sleep 1 until File.mtime(test_file) > time
     end
   end
+
+  private def seafoam(*args)
+    seafoam_dir = ENV['SEAFOAM_DIR']
+    if seafoam_dir
+      sh(RbConfig.ruby, "-I#{seafoam_dir}/lib", "#{seafoam_dir}/bin/seafoam", *args)
+    else
+      run_gem_test_pack_gem_or_install('seafoam', SEAFOAM_VERSION, *args)
+    end
+  end
+  ruby2_keywords :seafoam if respond_to?(:ruby2_keywords, true)
 
   def igv
     clone_enterprise
