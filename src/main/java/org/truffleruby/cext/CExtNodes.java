@@ -34,6 +34,7 @@ import org.truffleruby.cext.CExtNodesFactory.StringToNativeNodeGen;
 import org.truffleruby.cext.UnwrapNode.UnwrapCArrayNode;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.core.MarkingServiceNodes;
+import org.truffleruby.core.MarkingServiceNodes.RunMarkOnExitNode;;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
@@ -164,9 +165,6 @@ public class CExtNodes {
     @Primitive(name = "call_with_c_mutex_and_frame")
     public abstract static class CallWithCExtLockAndFrameNode extends PrimitiveArrayArgumentsNode {
 
-        @Child protected MarkingServiceNodes.RunMarkOnExitNode runMarksNode = MarkingServiceNodes.RunMarkOnExitNode
-                .create();
-
         @Specialization(limit = "getCacheLimit()")
         protected Object callWithCExtLockAndFrame(
                 VirtualFrame frame, Object receiver, RubyArray argsArray, Object specialVariables, Object block,
@@ -174,7 +172,7 @@ public class CExtNodes {
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
                 @Cached ConditionProfile ownedProfile,
-                @Cached MarkingServiceNodes.RunMarkOnExitNode runMarksNode) {
+                @Cached RunMarkOnExitNode runMarksNode) {
             final ExtensionCallStack extensionStack = getLanguage()
                     .getCurrentThread()
                     .getCurrentFiber().extensionCallStack;
@@ -219,9 +217,6 @@ public class CExtNodes {
     @Primitive(name = "call_with_c_mutex_and_frame_and_unwrap")
     public abstract static class CallWithCExtLockAndFrameAndUnwrapNode extends PrimitiveArrayArgumentsNode {
 
-        @Child protected MarkingServiceNodes.RunMarkOnExitNode runMarksNode = MarkingServiceNodes.RunMarkOnExitNode
-                .create();
-
         @Specialization(limit = "getCacheLimit()")
         protected Object callWithCExtLockAndFrame(
                 VirtualFrame frame, Object receiver, RubyArray argsArray, Object specialVariables, Object block,
@@ -229,7 +224,7 @@ public class CExtNodes {
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
                 @Cached ConditionProfile ownedProfile,
-                @Cached MarkingServiceNodes.RunMarkOnExitNode runMarksNode,
+                @Cached RunMarkOnExitNode runMarksNode,
                 @Cached UnwrapNode unwrapNode) {
             final ExtensionCallStack extensionStack = getLanguage().getCurrentFiber().extensionCallStack;
             final boolean keywordsGiven = RubyArguments.getDescriptor(frame) instanceof KeywordArgumentsDescriptor;

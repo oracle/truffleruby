@@ -36,7 +36,7 @@ public abstract class ArrayToObjectArrayNode extends RubyBaseNode {
     @Specialization(limit = "storageStrategyLimit()")
     protected Object[] toObjectArrayOther(RubyArray array,
             @Bind("array.getStore()") Object store,
-            @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
+            @Cached IntValueProfile sizeProfile,
             @CachedLibrary("store") ArrayStoreLibrary stores) {
         final int size = sizeProfile.profile(array.size);
         return stores.boxedCopyOfRange(store, 0, size);

@@ -1502,7 +1502,6 @@ module Truffle::CExt
     unless Truffle::Interop.null?(mark)
       create_mark_list(obj)
       data = Primitive.data_holder_get_data(data_holder)
-      # This call is done without pushing a new frame as the marking service manages frames itself.
       mark.call(data) unless Truffle::Interop.null?(data)
       set_mark_list_on_object(obj)
     end

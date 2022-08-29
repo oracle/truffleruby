@@ -2572,7 +2572,8 @@ public abstract class StringNodes {
         @Specialization(
                 guards = {
                         "!isBrokenCodeRange(tstring, encoding, codeRangeNode)",
-                        "equalNode.execute(tstring, encoding, cachedTString, cachedEncoding)" },
+                        "equalNode.execute(tstring, encoding, cachedTString, cachedEncoding)",
+                        "preserveSymbol == cachedPreserveSymbol" },
                 limit = "getDefaultCacheLimit()")
         protected RubySymbol toSymCached(Object string, boolean preserveSymbol,
                 @Cached RubyStringLibrary strings,

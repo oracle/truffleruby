@@ -151,11 +151,10 @@ class String
     Primitive.as_boolean(Primitive.find_string(self, StringValue(needle), 0))
   end
 
-  def intern
+  def to_sym
     Primitive.string_to_symbol(self, false)
   end
-
-  alias_method :to_sym, :intern
+  alias_method :intern, :to_sym
 
   def lstrip
     str = Primitive.dup_as_string_instance(self)

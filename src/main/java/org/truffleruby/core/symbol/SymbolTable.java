@@ -111,7 +111,9 @@ public class SymbolTable {
         // do not keep the other TString alive unnecessarily.
         var savedSymbol = symbolMap.addInCacheIfAbsent(new TStringWithEncoding(cachedTString, symbolEncoding),
                 newSymbol);
-        preservedSymbolMap.put(key, savedSymbol);
+        if (preserveSymbol) {
+            preservedSymbolMap.put(key, savedSymbol);
+        }
         return savedSymbol;
     }
 

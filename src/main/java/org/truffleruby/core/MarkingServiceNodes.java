@@ -16,26 +16,23 @@ import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 
 public class MarkingServiceNodes {
 
-    public static class KeepAliveNode extends RubyBaseNode {
+    @GenerateUncached
+    public abstract static class KeepAliveNode extends RubyBaseNode {
 
-        public void execute(ValueWrapper object) {
+        public abstract void execute(ValueWrapper object);
+
+        @Specialization
+        protected void executeAddToList(ValueWrapper object) {
             addToList(getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack, object);
         }
 
         protected void addToList(ExtensionCallStack stack, ValueWrapper object) {
             stack.keepObject(object);
-        }
-
-        public static KeepAliveNode create() {
-            return new KeepAliveNode();
-        }
-
-        public static KeepAliveNode getUncached() {
-            return new KeepAliveNode();
         }
     }
 
