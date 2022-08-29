@@ -118,6 +118,7 @@ public class ValueWrapper implements TruffleObject {
 
         if (ValueWrapperManager.isTaggedObject(handle)) {
             taggedObjectProfile.enter();
+
             keepAliveNode.execute(wrapper);
         }
 

@@ -14,10 +14,14 @@ import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 
+import java.util.ArrayList;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class MarkingServiceNodes {
 
@@ -26,13 +30,38 @@ public class MarkingServiceNodes {
 
         public abstract void execute(ValueWrapper object);
 
-        @Specialization
-        protected void executeAddToList(ValueWrapper object) {
-            addToList(getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack, object);
+        @Specialization(guards = "!stack.hasKeptObjects()")
+        protected void keepFirstObject(ValueWrapper object,
+                @Bind("getStack(object)") ExtensionCallStack stack) {
+            stack.current.preservedObject = object;
         }
 
-        protected void addToList(ExtensionCallStack stack, ValueWrapper object) {
-            stack.keepObject(object);
+        @Specialization(guards = "stack.hasSingleKeptObject()")
+        protected void keepCreatingList(ValueWrapper object,
+                @Bind("getStack(object)") ExtensionCallStack stack,
+                @Cached ConditionProfile sameObjectProfile) {
+            if (sameObjectProfile.profile(object != stack.current.preservedObject)) {
+                createKeptList(object, stack);
+            }
+        }
+
+        @Specialization(guards = { "stack.hasKeptObjects()", "!stack.hasSingleKeptObject()" })
+        @TruffleBoundary
+        protected void keepAddingToList(ValueWrapper object,
+                @Bind("getStack(object)") ExtensionCallStack stack) {
+            stack.current.preservedObjects.add(object);
+        }
+
+        @TruffleBoundary
+        private void createKeptList(ValueWrapper object, ExtensionCallStack stack) {
+            stack.current.preservedObjects = new ArrayList<>();
+            stack.current.preservedObjects.add(stack.current.preservedObject);
+            stack.current.preservedObjects.add(object);
+        }
+
+        // We take a parameter so that the bind isn't considered cacheable.
+        protected ExtensionCallStack getStack(ValueWrapper object) {
+            return getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack;
         }
     }
 

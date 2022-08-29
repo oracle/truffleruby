@@ -82,32 +82,6 @@ public class MarkingService {
             return current.preservedObject != null && current.preservedObjects == null;
         }
 
-        public void keepObject(ValueWrapper value) {
-            if (current.preservedObject == null) {
-                current.preservedObject = value;
-            } else if (current.preservedObject != value) {
-                keepObjectOnList(value);
-            }
-        }
-
-        @TruffleBoundary
-        private void keepObjectOnList(ValueWrapper value) {
-            if (current.preservedObjects == null) {
-                current.preservedObjects = new ArrayList<>();
-                current.preservedObjects.add(current.preservedObject);
-            }
-            current.preservedObjects.add(value);
-        }
-
-        public ArrayList<ValueWrapper> getKeptObjects() {
-            assert current.previous != null;
-
-            if (current.preservedObjects == null) {
-                current.preservedObjects = new ArrayList<>();
-            }
-            return current.preservedObjects;
-        }
-
         public void markOnExitObject(ValueWrapper value) {
             if (current.markOnExitObject == null) {
                 current.markOnExitObject = value;
@@ -127,10 +101,8 @@ public class MarkingService {
 
         public ArrayList<ValueWrapper> getMarkOnExitObjects() {
             assert current.previous != null;
+            assert current.markOnExitObjects != null;
 
-            if (current.markOnExitObjects == null) {
-                current.markOnExitObjects = new ArrayList<>();
-            }
             return current.markOnExitObjects;
         }
 
