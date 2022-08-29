@@ -2069,6 +2069,7 @@ module Commands
   end
 
   def graph(*args)
+    in_truffleruby_repo_root!
     truffleruby_compiler!
 
     test_file = nil
