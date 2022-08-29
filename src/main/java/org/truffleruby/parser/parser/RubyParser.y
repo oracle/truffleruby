@@ -2059,7 +2059,7 @@ p_case_body     : keyword_in {
                     lexer.inKwarg = true;
                     $$ = support.push_pvtbl();
                 } {
-                    $$ = support.push_pktbl();
+                    $$ = support.push_pktbl(); // after in
                 } p_top_expr then {
                     support.pop_pktbl($<Set>3);
                     support.pop_pvtbl($<Set>2);
@@ -2408,7 +2408,7 @@ p_variable      : tIDENTIFIER {
                 }
 
 p_var_ref       : '^' tIDENTIFIER {
-                    ParseNode n = support.gettable($2); // wait for reply about this func.
+                    ParseNode n = support.gettable($2);
                     if (!(n instanceof LocalVarParseNode || n instanceof DVarParseNode)) {
                         support.compile_error("" + $2 + ": no such local variable");
                     }
@@ -2417,7 +2417,6 @@ p_var_ref       : '^' tIDENTIFIER {
                 | '^' nonlocal_var {
                     $$ = support.gettable($2);
                     if ($$ == null) $$ = new BeginParseNode(lexer.tokline, NilImplicitParseNode.NIL);
-
                 }
 
 p_expr_ref      : '^' tLPAREN expr_value ')' {
@@ -3255,7 +3254,7 @@ none_block_pass : /* none */ {
         support.setConfiguration(configuration);
         support.setResult(new RubyParserResult());
         
-        yyparse(lexer, null);
+        yyparse(lexer, new org.truffleruby.parser.parser.YYDebug());
         
         return support.getResult();
     }

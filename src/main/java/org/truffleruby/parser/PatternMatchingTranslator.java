@@ -9,6 +9,7 @@
  */
 package org.truffleruby.parser;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayIndexNodes;
 import org.truffleruby.core.array.ArrayLiteralNode;
@@ -231,7 +232,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
                 return language.coreMethodAssumptions
                         .createCallNode(matcherCallParameters, environment);
             case FINDPATTERNNODE:
-
+                throw CompilerDirectives.shouldNotReachHere();
             case LOCALVARNODE:
                 // Assigns the value of an existing variable pattern as the value of the expression.
                 // May need to add a case with same/similar logic for new variables.
