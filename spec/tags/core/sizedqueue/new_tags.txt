@@ -1,0 +1,1 @@
+fails:SizedQueue.new raises a TypeError when the given argument doesn't respond to #to_int
