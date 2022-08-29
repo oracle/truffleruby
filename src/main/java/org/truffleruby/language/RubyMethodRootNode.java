@@ -13,6 +13,7 @@ import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.nodes.RootNode;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.control.DynamicReturnException;
 import org.truffleruby.language.control.LocalReturnException;
@@ -98,6 +99,19 @@ public class RubyMethodRootNode extends RubyCheckArityRootNode {
             }
             throw translateExceptionNode.executeTranslation(t);
         }
+    }
+
+    @Override
+    protected RootNode cloneUninitialized() {
+        return new RubyMethodRootNode(
+                getLanguage(),
+                getSourceSection(),
+                getFrameDescriptor(),
+                getSharedMethodInfo(),
+                body.cloneUninitialized(),
+                getSplit(),
+                returnID,
+                arityForCheck);
     }
 
 }

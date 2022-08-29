@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.nodes.RootNode;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.control.DynamicReturnException;
 import org.truffleruby.language.control.LocalReturnException;
@@ -82,4 +83,15 @@ public class RubyEvalRootNode extends RubyRootNode {
         }
     }
 
+    @Override
+    protected RootNode cloneUninitialized() {
+        return new RubyEvalRootNode(
+                getLanguage(),
+                getSourceSection(),
+                getFrameDescriptor(),
+                getSharedMethodInfo(),
+                body.cloneUninitialized(),
+                getSplit(),
+                returnID);
+    }
 }

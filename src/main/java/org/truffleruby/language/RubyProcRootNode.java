@@ -11,6 +11,7 @@ package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.nodes.RootNode;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.arguments.CheckKeywordArityNode;
 import org.truffleruby.language.control.NextException;
@@ -48,6 +49,19 @@ public class RubyProcRootNode extends RubyRootNode {
         this.checkKeywordArityNode = arityForCheck.hasKeywords() && !arityForCheck.hasKeywordsRest()
                 ? new CheckKeywordArityNode(arityForCheck)
                 : null;
+    }
+
+    private RubyProcRootNode(
+            RubyLanguage language,
+            SourceSection sourceSection,
+            FrameDescriptor frameDescriptor,
+            SharedMethodInfo sharedMethodInfo,
+            RubyNode body,
+            Split split,
+            ReturnID returnID,
+            CheckKeywordArityNode checkKeywordArityNode) {
+        super(language, sourceSection, frameDescriptor, sharedMethodInfo, body, split, returnID);
+        this.checkKeywordArityNode = checkKeywordArityNode;
     }
 
     @Override
@@ -95,4 +109,20 @@ public class RubyProcRootNode extends RubyRootNode {
         }
     }
 
+    @Override
+    protected RootNode cloneUninitialized() {
+        // CheckKeywordArityNode uses branch profiling, so it should be copied without gathered data
+        var checkKeywordArityNodeCopy = (checkKeywordArityNode == null)
+                ? null
+                : checkKeywordArityNode.cloneUninitialized();
+        return new RubyProcRootNode(
+                getLanguage(),
+                getSourceSection(),
+                getFrameDescriptor(),
+                getSharedMethodInfo(),
+                body.cloneUninitialized(),
+                getSplit(),
+                returnID,
+                checkKeywordArityNodeCopy);
+    }
 }

@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.nodes.RootNode;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.control.NextException;
 import org.truffleruby.language.control.ReturnID;
@@ -50,6 +51,19 @@ public class RubyTopLevelRootNode extends RubyMethodRootNode {
 
             return e.getResult();
         }
+    }
+
+    @Override
+    protected RootNode cloneUninitialized() {
+        return new RubyTopLevelRootNode(
+                getLanguage(),
+                getSourceSection(),
+                getFrameDescriptor(),
+                getSharedMethodInfo(),
+                body.cloneUninitialized(),
+                getSplit(),
+                returnID,
+                arityForCheck);
     }
 
 }
