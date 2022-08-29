@@ -18,7 +18,6 @@ module Truffle::CExt
   DATA_TYPE = Primitive.object_hidden_var_create :data_type
   DATA_HOLDER = Primitive.object_hidden_var_create :data_holder
   DATA_MEMSIZER = Primitive.object_hidden_var_create :data_memsizer
-  DATA_MARKER = Primitive.object_hidden_var_create :data_marker
   RB_TYPE = Primitive.object_hidden_var_create :rb_type
   ALLOCATOR_FUNC = Primitive.object_hidden_var_create :allocator_func
   RB_IO_STRUCT = Primitive.object_hidden_var_create :rb_io_struct
@@ -1462,7 +1461,8 @@ module Truffle::CExt
   end
 
   def define_marker(object, marker)
-    Primitive.object_hidden_var_set object, DATA_MARKER, marker
+    data_holder = Primitive.object_hidden_var_get object, DATA_HOLDER
+    Primitive.data_holder_set_marker(data_holder, marker)
     Primitive.cext_mark_object_on_call_exit(object) unless Truffle::Interop.null?(marker)
   end
 
@@ -1497,10 +1497,10 @@ module Truffle::CExt
   def run_marker(obj)
     Primitive.array_mark_store(obj) if Primitive.array_store_native?(obj)
 
-    mark = Primitive.object_hidden_var_get obj, DATA_MARKER
+    data_holder = Primitive.object_hidden_var_get obj, DATA_HOLDER
+    mark = Primitive.data_holder_get_marker(data_holder)
     unless Truffle::Interop.null?(mark)
       create_mark_list(obj)
-      data_holder = Primitive.object_hidden_var_get obj, DATA_HOLDER
       data = Primitive.data_holder_get_data(data_holder)
       # This call is done without pushing a new frame as the marking service manages frames itself.
       mark.call(data) unless Truffle::Interop.null?(data)

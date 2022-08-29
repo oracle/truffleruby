@@ -2030,7 +2030,7 @@ public class CExtNodes {
 
         @Specialization
         protected DataHolder create(Object address) {
-            return new DataHolder(address);
+            return new DataHolder(address, Pointer.NULL);
         }
     }
 
@@ -2049,6 +2049,25 @@ public class CExtNodes {
         @Specialization
         protected Object setData(DataHolder data, Object address) {
             data.setPointer(address);
+            return nil;
+        }
+    }
+
+    @Primitive(name = "data_holder_get_marker")
+    public abstract static class DataHolderGetMarker extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected Object getMarker(DataHolder data) {
+            return data.getMarker();
+        }
+    }
+
+    @Primitive(name = "data_holder_set_marker")
+    public abstract static class DataHolderSetMarker extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected Object setMarker(DataHolder data, Object marker) {
+            data.setMarker(marker);
             return nil;
         }
     }
