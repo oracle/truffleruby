@@ -216,14 +216,12 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = { "at" }, required = 1, lowerFixnum = 1)
-    @NodeChild(value = "array", type = RubyNode.class)
-    @NodeChild(value = "index", type = RubyNode.class)
-    public abstract static class AtNode extends CoreMethodNode {
+    public abstract static class AtNode extends CoreMethodArrayArgumentsNode {
 
         abstract Object executeAt(RubyArray array, Object index);
 
         public static AtNode create() {
-            return ArrayNodesFactory.AtNodeFactory.create(null, null);
+            return ArrayNodesFactory.AtNodeFactory.create(new RubyNode[]{ null, null });
         }
 
         @Specialization
@@ -585,10 +583,7 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = "concat", optional = 1, rest = true, raiseIfFrozenSelf = true)
     @ImportStatic(ArrayGuards.class)
-    @NodeChild(value = "array", type = RubyNode.class)
-    @NodeChild(value = "first", type = RubyNode.class)
-    @NodeChild(value = "rest", type = RubyNode.class)
-    public abstract static class ConcatNode extends CoreMethodNode {
+    public abstract static class ConcatNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "rest.length == 0")
         protected RubyArray concatZero(RubyArray array, NotProvided first, Object[] rest) {
@@ -2073,11 +2068,9 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "shift", raiseIfFrozenSelf = true, optional = 1, lowerFixnum = 1)
-    @NodeChild(value = "array", type = RubyNode.class)
-    @NodeChild(value = "n", type = RubyNode.class)
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
-    public abstract static class ShiftNode extends CoreMethodNode {
+    public abstract static class ShiftNode extends CoreMethodArrayArgumentsNode {
 
         public abstract Object executeShift(RubyArray array, Object n);
 

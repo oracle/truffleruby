@@ -9,16 +9,10 @@
  */
 package org.truffleruby.builtins;
 
-import org.truffleruby.language.RubyNode;
 
-import com.oracle.truffle.api.dsl.NodeChild;
-
-@NodeChild(value = "operand", type = RubyNode.class)
-public abstract class UnaryCoreMethodNode extends CoreMethodNode {
+public abstract class UnaryCoreMethodNode extends CoreMethodArrayArgumentsNode {
 
     public UnaryCoreMethodNode() {
     }
-
-    public abstract RubyNode getOperand();
 
 }

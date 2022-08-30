@@ -1002,9 +1002,7 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "instance_variable_defined?", required = 1)
-    @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
-    public abstract static class InstanceVariableDefinedNode extends CoreMethodNode {
+    public abstract static class InstanceVariableDefinedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected boolean isInstanceVariableDefined(RubyDynamicObject object, Object name,
