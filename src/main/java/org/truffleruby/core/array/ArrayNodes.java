@@ -2325,7 +2325,7 @@ public abstract class ArrayNodes {
                 @Cached IsSharedNode isSharedNode,
                 @Cached ConditionProfile sharedProfile) {
             final int size = arraySizeProfile.profile(array.size);
-            Pointer pointer = Pointer.mallocAutoRelease(size * Pointer.SIZE, getLanguage());
+            Pointer pointer = Pointer.mallocAutoRelease(getLanguage(), getContext(), size * Pointer.SIZE);
             Object newStore = new NativeArrayStorage(pointer, size);
             stores.copyContents(store, 0, newStore, 0, size);
             array.setStore(newStore);

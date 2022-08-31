@@ -84,8 +84,9 @@ public final class ImmutableRubyString extends ImmutableRubyObjectCopyable imple
         if (nativeString == null) {
             var tencoding = getEncodingUncached().tencoding;
             int byteLength = tstring.byteLength(tencoding);
-            nativeString = CExtNodes.StringToNativeNode.allocateAndCopyToNative(tstring, tencoding, byteLength,
-                    TruffleString.CopyToNativeMemoryNode.getUncached(), language);
+            nativeString = CExtNodes.StringToNativeNode.allocateAndCopyToNative(language,
+                    RubyLanguage.getCurrentContext(), tstring, tencoding, byteLength,
+                    TruffleString.CopyToNativeMemoryNode.getUncached());
         }
         return nativeString;
     }

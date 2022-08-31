@@ -48,7 +48,7 @@ public abstract class ReadStringPointerNode extends FormatNode {
     protected RubyString read(VirtualFrame frame, long address,
             @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary,
             @CachedLibrary(limit = "1") InteropLibrary interop) {
-        final Pointer pointer = new Pointer(address);
+        final Pointer pointer = new Pointer(getContext(), address);
         checkAssociated(
                 (Pointer[]) frame.getObject(FormatFrameDescriptor.SOURCE_ASSOCIATED_SLOT),
                 pointer);

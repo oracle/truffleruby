@@ -41,6 +41,7 @@ import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.PRNGRandomizerNodes;
+import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.Nil;
@@ -375,6 +376,7 @@ public class ThreadManager {
 
     public void start(RubyThread thread, Thread javaThread) {
         thread.thread = javaThread;
+        thread.ioBuffer = context.getEnv().isNativeAccessAllowed() ? Pointer.getNullBuffer(context) : null;
         registerThread(thread);
 
         final RubyFiber rootFiber = thread.getRootFiber();
@@ -397,7 +399,9 @@ public class ThreadManager {
     public void cleanupThreadState(RubyThread thread, Thread javaThread) {
         context.fiberManager.cleanup(thread.getRootFiber(), javaThread);
 
-        thread.ioBuffer.freeAll(thread);
+        if (thread.ioBuffer != null) {
+            thread.ioBuffer.freeAll(thread);
+        }
 
         unregisterThread(thread);
         thread.thread = null;

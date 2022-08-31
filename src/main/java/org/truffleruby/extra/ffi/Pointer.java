@@ -23,39 +23,62 @@ import org.truffleruby.RubyLanguage;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
+import org.truffleruby.core.thread.ThreadLocalBuffer;
+import org.truffleruby.language.control.RaiseException;
 import sun.misc.Unsafe;
 
 @ExportLibrary(InteropLibrary.class)
 public final class Pointer implements AutoCloseable, TruffleObject {
 
-    public static final Pointer NULL = new Pointer(0);
+    private static final Pointer NULL = new Pointer();
+    private static final ThreadLocalBuffer NULL_BUFFER = new ThreadLocalBuffer(NULL, null);
+
     public static final long SIZE = Long.BYTES;
     public static final long UNBOUNDED = Long.MAX_VALUE;
 
     public static final Pointer[] EMPTY_ARRAY = new Pointer[0];
 
-    /** Allocates memory and produces a pointer to it. Does not clear or initialize the memory, so it will contain
-     * arbitrary values. Use {@link #calloc} to get cleared memory. */
-    public static Pointer malloc(long size) {
-        return new Pointer(UNSAFE.allocateMemory(size), size);
+    public static void checkNativeAccess(RubyContext context) {
+        if (!context.getEnv().isNativeAccessAllowed()) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().securityError("native access is not allowed", null));
+        }
+    }
+
+    public static Pointer getNullPointer(RubyContext context) {
+        checkNativeAccess(context);
+        return NULL;
+    }
+
+    public static ThreadLocalBuffer getNullBuffer(RubyContext context) {
+        checkNativeAccess(context);
+        return NULL_BUFFER;
+    }
+
+    public static Pointer malloc(RubyContext context, long size) {
+        checkNativeAccess(context);
+        return new Pointer(context, UNSAFE.allocateMemory(size), size);
     }
 
     /** Includes {@link #enableAutorelease(RubyLanguage)} and avoids locking for it */
-    public static Pointer mallocAutoRelease(long size, RubyLanguage language) {
-        return new Pointer(UNSAFE.allocateMemory(size), size, language);
+    public static Pointer mallocAutoRelease(RubyLanguage language, RubyContext context, long size) {
+        checkNativeAccess(context);
+        return new Pointer(language, context, UNSAFE.allocateMemory(size), size);
     }
 
     /** Allocates memory and produces a pointer to it. Clears the memory before returning it. Use {@link #malloc} if you
      * do not need the memory to be cleared. */
-    public static Pointer calloc(long size) {
-        final Pointer pointer = malloc(size);
+    public static Pointer calloc(RubyContext context, long size) {
+        final Pointer pointer = malloc(context, size);
         pointer.writeBytes(0, size, (byte) 0);
         return pointer;
     }
 
     /** Includes {@link #enableAutorelease(RubyLanguage)} and avoids locking for it */
-    public static Pointer callocAutoRelease(long size, RubyLanguage language) {
-        final Pointer pointer = mallocAutoRelease(size, language);
+    public static Pointer callocAutoRelease(RubyLanguage language, RubyContext context, long size) {
+        final Pointer pointer = mallocAutoRelease(language, context, size);
         pointer.writeBytes(0, size, (byte) 0);
         return pointer;
     }
@@ -89,16 +112,23 @@ public final class Pointer implements AutoCloseable, TruffleObject {
         }
     }
 
-    public Pointer(long address) {
-        this(address, UNBOUNDED);
+    private Pointer() {
+        this.address = 0L;
+        this.size = 0L;
     }
 
-    public Pointer(long address, long size) {
+    public Pointer(RubyContext context, long address) {
+        this(context, address, UNBOUNDED);
+    }
+
+    public Pointer(RubyContext context, long address, long size) {
+        checkNativeAccess(context);
         this.address = address;
         this.size = size;
     }
 
-    private Pointer(long address, long size, RubyLanguage language) {
+    private Pointer(RubyLanguage language, RubyContext context, long address, long size) {
+        checkNativeAccess(context);
         this.address = address;
         this.size = size;
         enableAutoreleaseUnsynchronized(language);
@@ -294,8 +324,8 @@ public final class Pointer implements AutoCloseable, TruffleObject {
         return (int) size;
     }
 
-    public Pointer readPointer(long offset) {
-        return new Pointer(readLong(offset));
+    public Pointer readPointer(RubyContext context, long offset) {
+        return new Pointer(context, readLong(offset));
     }
 
     @TruffleBoundary

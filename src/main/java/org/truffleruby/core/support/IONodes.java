@@ -67,6 +67,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 
 import com.oracle.truffle.api.strings.TruffleString;
+import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -515,13 +516,15 @@ public abstract class IONodes {
             final RubyPointer instance = new RubyPointer(
                     coreLibrary().truffleFFIPointerClass,
                     getLanguage().truffleFFIPointerShape,
-                    getBuffer(thread, size, sizeProfile));
+                    getBuffer(getContext(), thread, size, sizeProfile));
             AllocationTracing.trace(instance, this);
             return instance;
         }
 
-        public static Pointer getBuffer(RubyThread rubyThread, long size, ConditionProfile sizeProfile) {
-            return rubyThread.ioBuffer.allocate(rubyThread, size, sizeProfile);
+        public static Pointer getBuffer(RubyContext context, RubyThread rubyThread, long size,
+                ConditionProfile sizeProfile) {
+            Pointer.checkNativeAccess(context);
+            return rubyThread.ioBuffer.allocate(context, rubyThread, size, sizeProfile);
         }
     }
 
@@ -532,6 +535,7 @@ public abstract class IONodes {
         protected Object getThreadBuffer(RubyPointer pointer,
                 @Cached ConditionProfile freeProfile) {
             RubyThread thread = getLanguage().getCurrentThread();
+            Pointer.checkNativeAccess(getContext());
             thread.ioBuffer.free(thread, pointer.pointer, freeProfile);
             return nil;
         }
