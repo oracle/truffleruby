@@ -10,7 +10,7 @@ JAY=jay
 RUBY=ruby
 PARSER_BASE=RubyParser
 YYTABLE_PREFIX=
-DEBUG=true
+#DEBUG=true
 ###### Do not change below ######
 
 unset GEM_HOME GEM_PATH

@@ -40,8 +40,9 @@
 // line 2 "RubyParser.y"
 package org.truffleruby.parser.parser;
 
+import com.oracle.truffle.api.strings.TruffleString;
 
-import java.util.Set
+import java.util.Set;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 
@@ -165,7 +166,7 @@ public class RubyParser {
         this.lexer = new RubyLexer(support, source, warnings);
         support.setLexer(lexer);
     }
-// line 133 "-"
+// line 134 "-"
   // %token constants
   public static final int keyword_class = 257;
   public static final int keyword_module = 258;
@@ -973,806 +974,6 @@ public class RubyParser {
 "'**'","tSTRING_DEND","tLABEL_END","keyword_in","tLOWEST",
     };
 
-  /** printable rules for debugging.
-    */
-  protected static final String [] yyRule = {
-    "$accept : program",
-    "$$1 :",
-    "program : $$1 top_compstmt",
-    "top_compstmt : top_stmts opt_terms",
-    "top_stmts : none",
-    "top_stmts : top_stmt",
-    "top_stmts : top_stmts terms top_stmt",
-    "top_stmts : error top_stmt",
-    "top_stmt : stmt",
-    "top_stmt : keyword_BEGIN tLCURLY top_compstmt tRCURLY",
-    "bodystmt : compstmt opt_rescue opt_else opt_ensure",
-    "compstmt : stmts opt_terms",
-    "stmts : none",
-    "stmts : stmt_or_begin",
-    "stmts : stmts terms stmt_or_begin",
-    "stmts : error stmt",
-    "stmt_or_begin : stmt",
-    "$$2 :",
-    "stmt_or_begin : keyword_begin $$2 tLCURLY top_compstmt tRCURLY",
-    "$$3 :",
-    "stmt : keyword_alias fitem $$3 fitem",
-    "stmt : keyword_alias tGVAR tGVAR",
-    "stmt : keyword_alias tGVAR tBACK_REF",
-    "stmt : keyword_alias tGVAR tNTH_REF",
-    "stmt : keyword_undef undef_list",
-    "stmt : stmt modifier_if expr_value",
-    "stmt : stmt modifier_unless expr_value",
-    "stmt : stmt modifier_while expr_value",
-    "stmt : stmt modifier_until expr_value",
-    "stmt : stmt modifier_rescue stmt",
-    "stmt : keyword_END tLCURLY compstmt tRCURLY",
-    "stmt : command_asgn",
-    "stmt : mlhs '=' command_call",
-    "stmt : lhs '=' mrhs",
-    "stmt : mlhs '=' mrhs_arg modifier_rescue stmt",
-    "stmt : mlhs '=' mrhs_arg",
-    "stmt : expr",
-    "command_asgn : lhs '=' command_rhs",
-    "command_asgn : var_lhs tOP_ASGN command_rhs",
-    "command_asgn : primary_value '[' opt_call_args rbracket tOP_ASGN command_rhs",
-    "command_asgn : primary_value call_op tIDENTIFIER tOP_ASGN command_rhs",
-    "command_asgn : primary_value call_op tCONSTANT tOP_ASGN command_rhs",
-    "command_asgn : primary_value tCOLON2 tCONSTANT tOP_ASGN command_rhs",
-    "command_asgn : primary_value tCOLON2 tIDENTIFIER tOP_ASGN command_rhs",
-    "command_asgn : backref tOP_ASGN command_rhs",
-    "command_rhs : command_call",
-    "command_rhs : command_call modifier_rescue stmt",
-    "command_rhs : command_asgn",
-    "expr : command_call",
-    "expr : expr keyword_and expr",
-    "expr : expr keyword_or expr",
-    "expr : keyword_not opt_nl expr",
-    "expr : tBANG command_call",
-    "expr : arg",
-    "expr_value : expr",
-    "command_call : command",
-    "command_call : block_command",
-    "block_command : block_call",
-    "block_command : block_call call_op2 operation2 command_args",
-    "cmd_brace_block : tLBRACE_ARG brace_body tRCURLY",
-    "fcall : operation",
-    "command : fcall command_args",
-    "command : fcall command_args cmd_brace_block",
-    "command : primary_value call_op operation2 command_args",
-    "command : primary_value call_op operation2 command_args cmd_brace_block",
-    "command : primary_value tCOLON2 operation2 command_args",
-    "command : primary_value tCOLON2 operation2 command_args cmd_brace_block",
-    "command : keyword_super command_args",
-    "command : keyword_yield command_args",
-    "command : k_return call_args",
-    "command : keyword_break call_args",
-    "command : keyword_next call_args",
-    "mlhs : mlhs_basic",
-    "mlhs : tLPAREN mlhs_inner rparen",
-    "mlhs_inner : mlhs_basic",
-    "mlhs_inner : tLPAREN mlhs_inner rparen",
-    "mlhs_basic : mlhs_head",
-    "mlhs_basic : mlhs_head mlhs_item",
-    "mlhs_basic : mlhs_head tSTAR mlhs_node",
-    "mlhs_basic : mlhs_head tSTAR mlhs_node ',' mlhs_post",
-    "mlhs_basic : mlhs_head tSTAR",
-    "mlhs_basic : mlhs_head tSTAR ',' mlhs_post",
-    "mlhs_basic : tSTAR mlhs_node",
-    "mlhs_basic : tSTAR mlhs_node ',' mlhs_post",
-    "mlhs_basic : tSTAR",
-    "mlhs_basic : tSTAR ',' mlhs_post",
-    "mlhs_item : mlhs_node",
-    "mlhs_item : tLPAREN mlhs_inner rparen",
-    "mlhs_head : mlhs_item ','",
-    "mlhs_head : mlhs_head mlhs_item ','",
-    "mlhs_post : mlhs_item",
-    "mlhs_post : mlhs_post ',' mlhs_item",
-    "mlhs_node : tIDENTIFIER",
-    "mlhs_node : tIVAR",
-    "mlhs_node : tGVAR",
-    "mlhs_node : tCONSTANT",
-    "mlhs_node : tCVAR",
-    "mlhs_node : keyword_nil",
-    "mlhs_node : keyword_self",
-    "mlhs_node : keyword_true",
-    "mlhs_node : keyword_false",
-    "mlhs_node : keyword__FILE__",
-    "mlhs_node : keyword__LINE__",
-    "mlhs_node : keyword__ENCODING__",
-    "mlhs_node : primary_value '[' opt_call_args rbracket",
-    "mlhs_node : primary_value call_op tIDENTIFIER",
-    "mlhs_node : primary_value tCOLON2 tIDENTIFIER",
-    "mlhs_node : primary_value call_op tCONSTANT",
-    "mlhs_node : primary_value tCOLON2 tCONSTANT",
-    "mlhs_node : tCOLON3 tCONSTANT",
-    "mlhs_node : backref",
-    "lhs : tIDENTIFIER",
-    "lhs : tIVAR",
-    "lhs : tGVAR",
-    "lhs : tCONSTANT",
-    "lhs : tCVAR",
-    "lhs : keyword_nil",
-    "lhs : keyword_self",
-    "lhs : keyword_true",
-    "lhs : keyword_false",
-    "lhs : keyword__FILE__",
-    "lhs : keyword__LINE__",
-    "lhs : keyword__ENCODING__",
-    "lhs : primary_value '[' opt_call_args rbracket",
-    "lhs : primary_value call_op tIDENTIFIER",
-    "lhs : primary_value tCOLON2 tIDENTIFIER",
-    "lhs : primary_value call_op tCONSTANT",
-    "lhs : primary_value tCOLON2 tCONSTANT",
-    "lhs : tCOLON3 tCONSTANT",
-    "lhs : backref",
-    "cname : tIDENTIFIER",
-    "cname : tCONSTANT",
-    "cpath : tCOLON3 cname",
-    "cpath : cname",
-    "cpath : primary_value tCOLON2 cname",
-    "fname : tIDENTIFIER",
-    "fname : tCONSTANT",
-    "fname : tFID",
-    "fname : op",
-    "fname : reswords",
-    "fsym : fname",
-    "fsym : symbol",
-    "fitem : fsym",
-    "fitem : dsym",
-    "undef_list : fitem",
-    "$$4 :",
-    "undef_list : undef_list ',' $$4 fitem",
-    "op : tPIPE",
-    "op : tCARET",
-    "op : tAMPER2",
-    "op : tCMP",
-    "op : tEQ",
-    "op : tEQQ",
-    "op : tMATCH",
-    "op : tNMATCH",
-    "op : tGT",
-    "op : tGEQ",
-    "op : tLT",
-    "op : tLEQ",
-    "op : tNEQ",
-    "op : tLSHFT",
-    "op : tRSHFT",
-    "op : tDSTAR",
-    "op : tPLUS",
-    "op : tMINUS",
-    "op : tSTAR2",
-    "op : tSTAR",
-    "op : tDIVIDE",
-    "op : tPERCENT",
-    "op : tPOW",
-    "op : tBANG",
-    "op : tTILDE",
-    "op : tUPLUS",
-    "op : tUMINUS",
-    "op : tAREF",
-    "op : tASET",
-    "op : tBACK_REF2",
-    "reswords : keyword__LINE__",
-    "reswords : keyword__FILE__",
-    "reswords : keyword__ENCODING__",
-    "reswords : keyword_BEGIN",
-    "reswords : keyword_END",
-    "reswords : keyword_alias",
-    "reswords : keyword_and",
-    "reswords : keyword_begin",
-    "reswords : keyword_break",
-    "reswords : keyword_case",
-    "reswords : keyword_class",
-    "reswords : keyword_def",
-    "reswords : keyword_defined",
-    "reswords : keyword_do",
-    "reswords : keyword_else",
-    "reswords : keyword_elsif",
-    "reswords : keyword_end",
-    "reswords : keyword_ensure",
-    "reswords : keyword_false",
-    "reswords : keyword_for",
-    "reswords : keyword_in",
-    "reswords : keyword_module",
-    "reswords : keyword_next",
-    "reswords : keyword_nil",
-    "reswords : keyword_not",
-    "reswords : keyword_or",
-    "reswords : keyword_redo",
-    "reswords : keyword_rescue",
-    "reswords : keyword_retry",
-    "reswords : keyword_return",
-    "reswords : keyword_self",
-    "reswords : keyword_super",
-    "reswords : keyword_then",
-    "reswords : keyword_true",
-    "reswords : keyword_undef",
-    "reswords : keyword_when",
-    "reswords : keyword_yield",
-    "reswords : keyword_if",
-    "reswords : keyword_unless",
-    "reswords : keyword_while",
-    "reswords : keyword_until",
-    "reswords : modifier_rescue",
-    "arg : lhs '=' arg_rhs",
-    "arg : var_lhs tOP_ASGN arg_rhs",
-    "arg : primary_value '[' opt_call_args rbracket tOP_ASGN arg",
-    "arg : primary_value call_op tIDENTIFIER tOP_ASGN arg_rhs",
-    "arg : primary_value call_op tCONSTANT tOP_ASGN arg_rhs",
-    "arg : primary_value tCOLON2 tIDENTIFIER tOP_ASGN arg_rhs",
-    "arg : primary_value tCOLON2 tCONSTANT tOP_ASGN arg_rhs",
-    "arg : tCOLON3 tCONSTANT tOP_ASGN arg_rhs",
-    "arg : backref tOP_ASGN arg_rhs",
-    "arg : arg tDOT2 arg",
-    "arg : arg tDOT2",
-    "arg : tBDOT2 arg",
-    "arg : arg tDOT3 arg",
-    "arg : arg tDOT3",
-    "arg : tBDOT3 arg",
-    "arg : arg tPLUS arg",
-    "arg : arg tMINUS arg",
-    "arg : arg tSTAR2 arg",
-    "arg : arg tDIVIDE arg",
-    "arg : arg tPERCENT arg",
-    "arg : arg tPOW arg",
-    "arg : tUMINUS_NUM simple_numeric tPOW arg",
-    "arg : tUPLUS arg",
-    "arg : tUMINUS arg",
-    "arg : arg tPIPE arg",
-    "arg : arg tCARET arg",
-    "arg : arg tAMPER2 arg",
-    "arg : arg tCMP arg",
-    "arg : rel_expr",
-    "arg : arg tEQ arg",
-    "arg : arg tEQQ arg",
-    "arg : arg tNEQ arg",
-    "arg : arg tMATCH arg",
-    "arg : arg tNMATCH arg",
-    "arg : tBANG arg",
-    "arg : tTILDE arg",
-    "arg : arg tLSHFT arg",
-    "arg : arg tRSHFT arg",
-    "arg : arg tANDOP arg",
-    "arg : arg tOROP arg",
-    "arg : keyword_defined opt_nl arg",
-    "arg : arg '?' arg opt_nl ':' arg",
-    "arg : primary",
-    "relop : tGT",
-    "relop : tLT",
-    "relop : tGEQ",
-    "relop : tLEQ",
-    "rel_expr : arg relop arg",
-    "rel_expr : rel_expr relop arg",
-    "arg_value : arg",
-    "aref_args : none",
-    "aref_args : args trailer",
-    "aref_args : args ',' assocs trailer",
-    "aref_args : assocs trailer",
-    "arg_rhs : arg",
-    "arg_rhs : arg modifier_rescue arg",
-    "paren_args : tLPAREN2 opt_call_args rparen",
-    "paren_args : tLPAREN2 args ',' args_forward rparen",
-    "paren_args : tLPAREN2 args_forward rparen",
-    "opt_paren_args : none",
-    "opt_paren_args : paren_args",
-    "opt_call_args : none",
-    "opt_call_args : call_args",
-    "opt_call_args : args ','",
-    "opt_call_args : args ',' assocs ','",
-    "opt_call_args : assocs ','",
-    "call_args : command",
-    "call_args : args opt_block_arg",
-    "call_args : assocs opt_block_arg",
-    "call_args : args ',' assocs opt_block_arg",
-    "call_args : block_arg",
-    "$$5 :",
-    "command_args : $$5 call_args",
-    "block_arg : tAMPER arg_value",
-    "block_arg : tAMPER",
-    "opt_block_arg : ',' block_arg",
-    "opt_block_arg : none_block_pass",
-    "args : arg_value",
-    "args : tSTAR arg_value",
-    "args : args ',' arg_value",
-    "args : args ',' tSTAR arg_value",
-    "mrhs_arg : mrhs",
-    "mrhs_arg : arg_value",
-    "mrhs : args ',' arg_value",
-    "mrhs : args ',' tSTAR arg_value",
-    "mrhs : tSTAR arg_value",
-    "primary : literal",
-    "primary : strings",
-    "primary : xstring",
-    "primary : regexp",
-    "primary : words",
-    "primary : qwords",
-    "primary : symbols",
-    "primary : qsymbols",
-    "primary : var_ref",
-    "primary : backref",
-    "primary : tFID",
-    "$$6 :",
-    "primary : keyword_begin $$6 bodystmt keyword_end",
-    "$$7 :",
-    "primary : tLPAREN_ARG $$7 rparen",
-    "$$8 :",
-    "$$9 :",
-    "primary : tLPAREN_ARG $$8 stmt $$9 rparen",
-    "primary : tLPAREN compstmt tRPAREN",
-    "primary : primary_value tCOLON2 tCONSTANT",
-    "primary : tCOLON3 tCONSTANT",
-    "primary : tLBRACK aref_args tRBRACK",
-    "primary : tLBRACE assoc_list tRCURLY",
-    "primary : k_return",
-    "primary : keyword_yield tLPAREN2 call_args rparen",
-    "primary : keyword_yield tLPAREN2 rparen",
-    "primary : keyword_yield",
-    "primary : keyword_defined opt_nl tLPAREN2 expr rparen",
-    "primary : keyword_not tLPAREN2 expr rparen",
-    "primary : keyword_not tLPAREN2 rparen",
-    "primary : fcall brace_block",
-    "primary : method_call",
-    "primary : method_call brace_block",
-    "primary : tLAMBDA lambda",
-    "primary : keyword_if expr_value then compstmt if_tail keyword_end",
-    "primary : keyword_unless expr_value then compstmt opt_else keyword_end",
-    "$$10 :",
-    "$$11 :",
-    "primary : keyword_while $$10 expr_value do $$11 compstmt keyword_end",
-    "$$12 :",
-    "$$13 :",
-    "primary : keyword_until $$12 expr_value do $$13 compstmt keyword_end",
-    "primary : keyword_case expr_value opt_terms case_body keyword_end",
-    "primary : keyword_case opt_terms case_body keyword_end",
-    "primary : keyword_case expr_value opt_terms p_case_body keyword_end",
-    "$$14 :",
-    "$$15 :",
-    "primary : keyword_for for_var keyword_in $$14 expr_value do $$15 compstmt keyword_end",
-    "$$16 :",
-    "primary : k_class cpath superclass $$16 bodystmt keyword_end",
-    "$$17 :",
-    "primary : k_class tLSHFT expr $$17 term bodystmt keyword_end",
-    "$$18 :",
-    "primary : k_module cpath $$18 bodystmt keyword_end",
-    "$$19 :",
-    "$$20 :",
-    "primary : keyword_def fname $$19 $$20 f_arglist bodystmt keyword_end",
-    "$$21 :",
-    "$$22 :",
-    "primary : keyword_def singleton dot_or_colon $$21 fname $$22 f_arglist bodystmt keyword_end",
-    "primary : keyword_break",
-    "primary : keyword_next",
-    "primary : keyword_redo",
-    "primary : keyword_retry",
-    "primary_value : primary",
-    "k_class : keyword_class",
-    "k_module : keyword_module",
-    "k_return : keyword_return",
-    "then : term",
-    "then : keyword_then",
-    "then : term keyword_then",
-    "do : term",
-    "do : keyword_do_cond",
-    "if_tail : opt_else",
-    "if_tail : keyword_elsif expr_value then compstmt if_tail",
-    "opt_else : none",
-    "opt_else : keyword_else compstmt",
-    "for_var : lhs",
-    "for_var : mlhs",
-    "f_marg : f_norm_arg",
-    "f_marg : tLPAREN f_margs rparen",
-    "f_marg_list : f_marg",
-    "f_marg_list : f_marg_list ',' f_marg",
-    "f_margs : f_marg_list",
-    "f_margs : f_marg_list ',' tSTAR f_norm_arg",
-    "f_margs : f_marg_list ',' tSTAR f_norm_arg ',' f_marg_list",
-    "f_margs : f_marg_list ',' tSTAR",
-    "f_margs : f_marg_list ',' tSTAR ',' f_marg_list",
-    "f_margs : tSTAR f_norm_arg",
-    "f_margs : tSTAR f_norm_arg ',' f_marg_list",
-    "f_margs : tSTAR",
-    "f_margs : tSTAR ',' f_marg_list",
-    "block_args_tail : f_block_kwarg ',' f_kwrest opt_f_block_arg",
-    "block_args_tail : f_block_kwarg opt_f_block_arg",
-    "block_args_tail : f_kwrest opt_f_block_arg",
-    "block_args_tail : f_no_kwarg opt_f_block_arg",
-    "block_args_tail : f_block_arg",
-    "opt_block_args_tail : ',' block_args_tail",
-    "opt_block_args_tail :",
-    "block_param : f_arg ',' f_block_optarg ',' f_rest_arg opt_block_args_tail",
-    "block_param : f_arg ',' f_block_optarg ',' f_rest_arg ',' f_arg opt_block_args_tail",
-    "block_param : f_arg ',' f_block_optarg opt_block_args_tail",
-    "block_param : f_arg ',' f_block_optarg ',' f_arg opt_block_args_tail",
-    "block_param : f_arg ',' f_rest_arg opt_block_args_tail",
-    "block_param : f_arg ','",
-    "block_param : f_arg ',' f_rest_arg ',' f_arg opt_block_args_tail",
-    "block_param : f_arg opt_block_args_tail",
-    "block_param : f_block_optarg ',' f_rest_arg opt_block_args_tail",
-    "block_param : f_block_optarg ',' f_rest_arg ',' f_arg opt_block_args_tail",
-    "block_param : f_block_optarg opt_block_args_tail",
-    "block_param : f_block_optarg ',' f_arg opt_block_args_tail",
-    "block_param : f_rest_arg opt_block_args_tail",
-    "block_param : f_rest_arg ',' f_arg opt_block_args_tail",
-    "block_param : block_args_tail",
-    "opt_block_param : none",
-    "$$23 :",
-    "opt_block_param : $$23 block_param_def",
-    "block_param_def : tPIPE opt_bv_decl tPIPE",
-    "block_param_def : tOROP",
-    "block_param_def : tPIPE block_param opt_bv_decl tPIPE",
-    "opt_bv_decl : opt_nl",
-    "opt_bv_decl : opt_nl ';' bv_decls opt_nl",
-    "bv_decls : bvar",
-    "bv_decls : bv_decls ',' bvar",
-    "bvar : tIDENTIFIER",
-    "bvar : f_bad_arg",
-    "$$24 :",
-    "$$25 :",
-    "lambda : $$24 f_larglist $$25 lambda_body",
-    "$$26 :",
-    "f_larglist : tLPAREN2 $$26 f_args opt_bv_decl tRPAREN",
-    "$$27 :",
-    "f_larglist : $$27 f_args_any",
-    "f_larglist :",
-    "lambda_body : tLAMBEG compstmt tRCURLY",
-    "lambda_body : keyword_do_lambda bodystmt keyword_end",
-    "do_block : keyword_do_block do_body keyword_end",
-    "block_call : command do_block",
-    "block_call : block_call call_op2 operation2 opt_paren_args",
-    "block_call : block_call call_op2 operation2 opt_paren_args brace_block",
-    "block_call : block_call call_op2 operation2 command_args do_block",
-    "method_call : fcall paren_args",
-    "method_call : primary_value call_op operation2 opt_paren_args",
-    "method_call : primary_value tCOLON2 operation2 paren_args",
-    "method_call : primary_value tCOLON2 operation3",
-    "method_call : primary_value call_op paren_args",
-    "method_call : primary_value tCOLON2 paren_args",
-    "method_call : keyword_super paren_args",
-    "method_call : keyword_super",
-    "method_call : primary_value '[' opt_call_args rbracket",
-    "brace_block : tLCURLY brace_body tRCURLY",
-    "brace_block : keyword_do do_body keyword_end",
-    "$$28 :",
-    "$$29 :",
-    "brace_body : $$28 $$29 opt_block_param compstmt",
-    "$$30 :",
-    "$$31 :",
-    "do_body : $$30 $$31 opt_block_param bodystmt",
-    "case_body : keyword_when args then compstmt cases",
-    "cases : opt_else",
-    "cases : case_body",
-    "$$32 :",
-    "$$33 :",
-    "$$34 :",
-    "p_case_body : keyword_in $$32 $$33 p_top_expr then $$34 compstmt p_cases",
-    "p_cases : opt_else",
-    "p_cases : p_case_body",
-    "p_top_expr : p_top_expr_body",
-    "p_top_expr : p_top_expr_body modifier_if expr_value",
-    "p_top_expr : p_top_expr_body modifier_unless expr_value",
-    "p_top_expr_body : p_expr",
-    "p_top_expr_body : p_expr ','",
-    "p_top_expr_body : p_expr ',' p_args",
-    "p_top_expr_body : p_find",
-    "p_top_expr_body : p_args_tail",
-    "p_top_expr_body : p_kwargs",
-    "p_expr : p_as",
-    "p_as : p_expr tASSOC p_variable",
-    "p_as : p_alt",
-    "p_alt : p_alt '|' p_expr_basic",
-    "p_alt : p_expr_basic",
-    "p_lparen : '('",
-    "p_lbracket : '['",
-    "p_expr_basic : p_value",
-    "p_expr_basic : p_variable",
-    "p_expr_basic : p_const p_lparen p_args rparen",
-    "p_expr_basic : p_const p_lparen p_find rparen",
-    "p_expr_basic : p_const p_lparen p_kwargs rparen",
-    "p_expr_basic : p_const '(' rparen",
-    "p_expr_basic : p_const p_lbracket p_args rbracket",
-    "p_expr_basic : p_const p_lbracket p_find rbracket",
-    "p_expr_basic : p_const p_lbracket p_kwargs rbracket",
-    "p_expr_basic : p_const '[' rbracket",
-    "p_expr_basic : tLBRACK p_args rbracket",
-    "p_expr_basic : tLBRACK p_find rbracket",
-    "p_expr_basic : tLBRACK rbracket",
-    "$$35 :",
-    "p_expr_basic : tLBRACE $$35 p_kwargs rbrace",
-    "p_expr_basic : tLBRACE rbrace",
-    "$$36 :",
-    "p_expr_basic : tLPAREN $$36 p_expr rparen",
-    "p_args : p_expr",
-    "p_args : p_args_head",
-    "p_args : p_args_head p_arg",
-    "p_args : p_args_head tSTAR tIDENTIFIER",
-    "p_args : p_args_head tSTAR tIDENTIFIER ',' p_args_post",
-    "p_args : p_args_head tSTAR",
-    "p_args : p_args_head tSTAR ',' p_args_post",
-    "p_args : p_args_tail",
-    "p_args_head : p_arg ','",
-    "p_args_head : p_args_head p_arg ','",
-    "p_args_tail : p_rest",
-    "p_args_tail : p_rest ',' p_args_post",
-    "p_find : p_rest ',' p_args_post ',' p_rest",
-    "p_rest : tSTAR tIDENTIFIER",
-    "p_rest : tSTAR",
-    "p_args_post : p_arg",
-    "p_args_post : p_args_post ',' p_arg",
-    "p_arg : p_expr",
-    "p_kwargs : p_kwarg ',' p_any_kwrest",
-    "p_kwargs : p_kwarg",
-    "p_kwargs : p_kwarg ','",
-    "p_kwargs : p_any_kwrest",
-    "p_kwarg : p_kw",
-    "p_kwarg : p_kwarg ',' p_kw",
-    "p_kw : p_kw_label p_expr",
-    "p_kw : p_kw_label",
-    "p_kw_label : tLABEL",
-    "p_kw_label : tSTRING_BEG string_contents tLABEL_END",
-    "p_kwrest : kwrest_mark tIDENTIFIER",
-    "p_kwrest : kwrest_mark",
-    "p_kwnorest : kwrest_mark keyword_nil",
-    "p_any_kwrest : p_kwrest",
-    "p_any_kwrest : p_kwnorest",
-    "p_value : p_primitive",
-    "p_value : p_primitive tDOT2 p_primitive",
-    "p_value : p_primitive tDOT3 p_primitive",
-    "p_value : p_primitive tDOT2",
-    "p_value : p_primitive tDOT3",
-    "p_value : p_var_ref",
-    "p_value : p_expr_ref",
-    "p_value : p_const",
-    "p_value : tBDOT2 p_primitive",
-    "p_value : tBDOT3 p_primitive",
-    "p_primitive : literal",
-    "p_primitive : strings",
-    "p_primitive : xstring",
-    "p_primitive : regexp",
-    "p_primitive : words",
-    "p_primitive : qwords",
-    "p_primitive : symbols",
-    "p_primitive : qsymbols",
-    "p_primitive : keyword_nil",
-    "p_primitive : keyword_self",
-    "p_primitive : keyword_true",
-    "p_primitive : keyword_false",
-    "p_primitive : keyword__FILE__",
-    "p_primitive : keyword__LINE__",
-    "p_primitive : keyword__ENCODING__",
-    "p_primitive : lambda",
-    "p_variable : tIDENTIFIER",
-    "p_var_ref : '^' tIDENTIFIER",
-    "p_var_ref : '^' nonlocal_var",
-    "p_expr_ref : '^' tLPAREN expr_value ')'",
-    "p_const : tCOLON3 cname",
-    "p_const : p_const tCOLON2 cname",
-    "p_const : tCONSTANT",
-    "opt_rescue : keyword_rescue exc_list exc_var then compstmt opt_rescue",
-    "opt_rescue :",
-    "exc_list : arg_value",
-    "exc_list : mrhs",
-    "exc_list : none",
-    "exc_var : tASSOC lhs",
-    "exc_var : none",
-    "opt_ensure : keyword_ensure compstmt",
-    "opt_ensure : none",
-    "literal : numeric",
-    "literal : symbol",
-    "literal : dsym",
-    "strings : string",
-    "string : tCHAR",
-    "string : string1",
-    "string : string string1",
-    "string1 : tSTRING_BEG string_contents tSTRING_END",
-    "xstring : tXSTRING_BEG xstring_contents tSTRING_END",
-    "regexp : tREGEXP_BEG regexp_contents tREGEXP_END",
-    "words : tWORDS_BEG ' ' word_list tSTRING_END",
-    "word_list :",
-    "word_list : word_list word ' '",
-    "word : string_content",
-    "word : word string_content",
-    "symbols : tSYMBOLS_BEG ' ' symbol_list tSTRING_END",
-    "symbol_list :",
-    "symbol_list : symbol_list word ' '",
-    "qwords : tQWORDS_BEG ' ' qword_list tSTRING_END",
-    "qsymbols : tQSYMBOLS_BEG ' ' qsym_list tSTRING_END",
-    "qword_list :",
-    "qword_list : qword_list tSTRING_CONTENT ' '",
-    "qsym_list :",
-    "qsym_list : qsym_list tSTRING_CONTENT ' '",
-    "string_contents :",
-    "string_contents : string_contents string_content",
-    "xstring_contents :",
-    "xstring_contents : xstring_contents string_content",
-    "regexp_contents :",
-    "regexp_contents : regexp_contents string_content",
-    "string_content : tSTRING_CONTENT",
-    "$$37 :",
-    "string_content : tSTRING_DVAR $$37 string_dvar",
-    "$$38 :",
-    "$$39 :",
-    "$$40 :",
-    "$$41 :",
-    "$$42 :",
-    "string_content : tSTRING_DBEG $$38 $$39 $$40 $$41 $$42 compstmt tSTRING_DEND",
-    "string_dvar : tGVAR",
-    "string_dvar : tIVAR",
-    "string_dvar : tCVAR",
-    "string_dvar : backref",
-    "symbol : tSYMBEG sym",
-    "sym : fname",
-    "sym : tIVAR",
-    "sym : tGVAR",
-    "sym : tCVAR",
-    "dsym : tSYMBEG xstring_contents tSTRING_END",
-    "numeric : simple_numeric",
-    "numeric : tUMINUS_NUM simple_numeric",
-    "nonlocal_var : tIVAR",
-    "nonlocal_var : tGVAR",
-    "nonlocal_var : tCVAR",
-    "simple_numeric : tINTEGER",
-    "simple_numeric : tFLOAT",
-    "simple_numeric : tRATIONAL",
-    "simple_numeric : tIMAGINARY",
-    "var_ref : tIDENTIFIER",
-    "var_ref : tIVAR",
-    "var_ref : tGVAR",
-    "var_ref : tCONSTANT",
-    "var_ref : tCVAR",
-    "var_ref : keyword_nil",
-    "var_ref : keyword_self",
-    "var_ref : keyword_true",
-    "var_ref : keyword_false",
-    "var_ref : keyword__FILE__",
-    "var_ref : keyword__LINE__",
-    "var_ref : keyword__ENCODING__",
-    "var_lhs : tIDENTIFIER",
-    "var_lhs : tIVAR",
-    "var_lhs : tGVAR",
-    "var_lhs : tCONSTANT",
-    "var_lhs : tCVAR",
-    "var_lhs : keyword_nil",
-    "var_lhs : keyword_self",
-    "var_lhs : keyword_true",
-    "var_lhs : keyword_false",
-    "var_lhs : keyword__FILE__",
-    "var_lhs : keyword__LINE__",
-    "var_lhs : keyword__ENCODING__",
-    "backref : tNTH_REF",
-    "backref : tBACK_REF",
-    "$$43 :",
-    "superclass : tLT $$43 expr_value term",
-    "superclass :",
-    "f_arglist : tLPAREN2 f_args rparen",
-    "$$44 :",
-    "f_arglist : $$44 f_args term",
-    "args_tail : f_kwarg ',' f_kwrest opt_f_block_arg",
-    "args_tail : f_kwarg opt_f_block_arg",
-    "args_tail : f_kwrest opt_f_block_arg",
-    "args_tail : f_no_kwarg opt_f_block_arg",
-    "args_tail : f_block_arg",
-    "opt_args_tail : ',' args_tail",
-    "opt_args_tail :",
-    "f_args : f_args_any",
-    "f_args :",
-    "f_args_any : f_arg ',' f_optarg ',' f_rest_arg opt_args_tail",
-    "f_args_any : f_arg ',' f_optarg ',' f_rest_arg ',' f_arg opt_args_tail",
-    "f_args_any : f_arg ',' f_optarg opt_args_tail",
-    "f_args_any : f_arg ',' f_optarg ',' f_arg opt_args_tail",
-    "f_args_any : f_arg ',' f_rest_arg opt_args_tail",
-    "f_args_any : f_arg ',' f_rest_arg ',' f_arg opt_args_tail",
-    "f_args_any : f_arg opt_args_tail",
-    "f_args_any : f_optarg ',' f_rest_arg opt_args_tail",
-    "f_args_any : f_optarg ',' f_rest_arg ',' f_arg opt_args_tail",
-    "f_args_any : f_optarg opt_args_tail",
-    "f_args_any : f_optarg ',' f_arg opt_args_tail",
-    "f_args_any : f_rest_arg opt_args_tail",
-    "f_args_any : f_rest_arg ',' f_arg opt_args_tail",
-    "f_args_any : args_tail",
-    "f_args_any : f_arg ',' args_forward",
-    "f_args_any : args_forward",
-    "args_forward : tBDOT3",
-    "f_bad_arg : tCONSTANT",
-    "f_bad_arg : tIVAR",
-    "f_bad_arg : tGVAR",
-    "f_bad_arg : tCVAR",
-    "f_norm_arg : f_bad_arg",
-    "f_norm_arg : tIDENTIFIER",
-    "f_arg_asgn : f_norm_arg",
-    "f_arg_item : f_arg_asgn",
-    "f_arg_item : tLPAREN f_margs rparen",
-    "f_arg : f_arg_item",
-    "f_arg : f_arg ',' f_arg_item",
-    "f_label : tLABEL",
-    "f_kw : f_label arg_value",
-    "f_kw : f_label",
-    "f_block_kw : f_label primary_value",
-    "f_block_kw : f_label",
-    "f_block_kwarg : f_block_kw",
-    "f_block_kwarg : f_block_kwarg ',' f_block_kw",
-    "f_kwarg : f_kw",
-    "f_kwarg : f_kwarg ',' f_kw",
-    "kwrest_mark : tPOW",
-    "kwrest_mark : tDSTAR",
-    "f_no_kwarg : kwrest_mark keyword_nil",
-    "f_kwrest : kwrest_mark tIDENTIFIER",
-    "f_kwrest : kwrest_mark",
-    "f_opt : f_arg_asgn '=' arg_value",
-    "f_block_opt : f_arg_asgn '=' primary_value",
-    "f_block_optarg : f_block_opt",
-    "f_block_optarg : f_block_optarg ',' f_block_opt",
-    "f_optarg : f_opt",
-    "f_optarg : f_optarg ',' f_opt",
-    "restarg_mark : tSTAR2",
-    "restarg_mark : tSTAR",
-    "f_rest_arg : restarg_mark tIDENTIFIER",
-    "f_rest_arg : restarg_mark",
-    "blkarg_mark : tAMPER2",
-    "blkarg_mark : tAMPER",
-    "f_block_arg : blkarg_mark tIDENTIFIER",
-    "f_block_arg : blkarg_mark",
-    "opt_f_block_arg : ',' f_block_arg",
-    "opt_f_block_arg :",
-    "singleton : var_ref",
-    "$$45 :",
-    "singleton : tLPAREN2 $$45 expr rparen",
-    "assoc_list : none",
-    "assoc_list : assocs trailer",
-    "assocs : assoc",
-    "assocs : assocs ',' assoc",
-    "assoc : arg_value tASSOC arg_value",
-    "assoc : tLABEL arg_value",
-    "assoc : tLABEL",
-    "assoc : tSTRING_BEG string_contents tLABEL_END arg_value",
-    "assoc : tDSTAR arg_value",
-    "operation : tIDENTIFIER",
-    "operation : tCONSTANT",
-    "operation : tFID",
-    "operation2 : tIDENTIFIER",
-    "operation2 : tCONSTANT",
-    "operation2 : tFID",
-    "operation2 : op",
-    "operation3 : tIDENTIFIER",
-    "operation3 : tFID",
-    "operation3 : op",
-    "dot_or_colon : tDOT",
-    "dot_or_colon : tCOLON2",
-    "call_op : tDOT",
-    "call_op : tANDDOT",
-    "call_op2 : call_op",
-    "call_op2 : tCOLON2",
-    "opt_terms :",
-    "opt_terms : terms",
-    "opt_nl :",
-    "opt_nl : '\\n'",
-    "rparen : opt_nl tRPAREN",
-    "rbracket : opt_nl tRBRACK",
-    "rbrace : opt_nl '}'",
-    "trailer :",
-    "trailer : '\\n'",
-    "trailer : ','",
-    "term : ';'",
-    "term : '\\n'",
-    "terms : term",
-    "terms : terms ';'",
-    "none :",
-    "none_block_pass :",
-    };
-
-  protected org.truffleruby.parser.parser.YYDebug yydebug;
-
-  /** index-checked interface to {@link #yyNames}.
-      @param token single character or <tt>%token</tt> value.
-      @return token name or <tt>[illegal]</tt> or <tt>[unknown]</tt>.
-    */
-  public static String yyName (int token) {
-    if (token < 0 || token > yyNames.length) return "[illegal]";
-    String name;
-    if ((name = yyNames[token]) != null) return name;
-    return "[unknown]";
-  }
-
 
   /** computes list of expected tokens on error by tracing the tables.
       @param state for which to compute the list.
@@ -1809,7 +1010,6 @@ public class RubyParser {
       @return result of the last reduction, if any.
     */
   public Object yyparse (RubyLexer yyLex, Object ayydebug) {
-    this.yydebug = (org.truffleruby.parser.parser.YYDebug) ayydebug;
     return yyparse(yyLex);
   }
 
@@ -1852,7 +1052,6 @@ public class RubyParser {
       }
       yyStates[yyTop] = yyState;
       yyVals[yyTop] = yyVal;
-      if (yydebug != null) yydebug.push(yyState, yyVal);
 
       yyDiscarded: for (;;) {	// discarding a token does not change stack
         int yyN;
@@ -1860,13 +1059,9 @@ public class RubyParser {
           if (yyToken < 0) {
 //            yyToken = yyLex.advance() ? yyLex.token() : 0;
             yyToken = yyLex.nextToken();
-            if (yydebug != null)
-              yydebug.lex(yyState, yyToken, yyName(yyToken), yyLex.value());
           }
           if ((yyN = yySindex[yyState]) != 0 && (yyN += yyToken) >= 0
               && yyN < yyTable.length && yyCheck[yyN] == yyToken) {
-            if (yydebug != null)
-              yydebug.shift(yyState, yyTable[yyN], yyErrorFlag-1);
             yyState = yyTable[yyN];		// shift to yyN
             yyVal = yyLex.value();
             yyToken = -1;
@@ -1881,7 +1076,6 @@ public class RubyParser {
   
             case 0:
               support.yyerror("syntax error", yyExpecting(yyState), yyNames[yyToken]);
-              if (yydebug != null) yydebug.error("syntax error");
               break;
   
             case 1: case 2:
@@ -1890,33 +1084,23 @@ public class RubyParser {
                 if ((yyN = yySindex[yyStates[yyTop]]) != 0
                     && (yyN += yyErrorCode) >= 0 && yyN < yyTable.length
                     && yyCheck[yyN] == yyErrorCode) {
-                  if (yydebug != null)
-                    yydebug.shift(yyStates[yyTop], yyTable[yyN], 3);
                   yyState = yyTable[yyN];
                   yyVal = yyLex.value();
                   continue yyLoop;
                 }
-                if (yydebug != null) yydebug.pop(yyStates[yyTop]);
               } while (-- yyTop >= 0);
-              if (yydebug != null) yydebug.reject();
               support.yyerror("irrecoverable syntax error");
               break;
 
             case 3:
               if (yyToken == 0) {
-                if (yydebug != null) yydebug.reject();
                 support.yyerror("irrecoverable syntax error at end-of-file");
               }
-              if (yydebug != null)
-                yydebug.discard(yyState, yyToken, yyName(yyToken),
-  							yyLex.value());
               yyToken = -1;
               continue yyDiscarded;		// leave stack alone
             }
         }
         int yyV = yyTop + 1-yyLen[yyN];
-        if (yydebug != null)
-          yydebug.reduce(yyState, yyStates[yyV-1], yyN, yyRule[yyN], yyLen[yyN]);
         ParserState state = states[yyN];
         if (state == null) {
             yyVal = yyDefault(yyV > yyTop ? null : yyVals[yyV]);
@@ -1930,16 +1114,12 @@ public class RubyParser {
         yyState = yyStates[yyTop];
         int yyM = yyLhs[yyN];
         if (yyState == 0 && yyM == 0) {
-          if (yydebug != null) yydebug.shift(0, yyFinal);
           yyState = yyFinal;
           if (yyToken < 0) {
             yyToken = yyLex.nextToken();
 //            yyToken = yyLex.advance() ? yyLex.token() : 0;
-            if (yydebug != null)
-               yydebug.lex(yyState, yyToken,yyName(yyToken), yyLex.value());
           }
           if (yyToken == 0) {
-            if (yydebug != null) yydebug.accept(yyVal);
             return yyVal;
           }
           continue yyLoop;
@@ -1949,7 +1129,6 @@ public class RubyParser {
           yyState = yyTable[yyN];
         else
           yyState = yyDgoto[yyM];
-        if (yydebug != null) yydebug.shift(yyStates[yyTop], yyState);
         continue yyLoop;
       }
     }
@@ -4136,7 +3315,7 @@ states[500] = (support, lexer, yyVal, yyVals, yyTop) -> {
 };
 states[501] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.push_pktbl();
-    ((SourceIndexLength)yyVals[0+yyTop]) = lexer.inKwarg;
+    yyVals[0+yyTop] = lexer.inKwarg;
     lexer.inKwarg = false;
     return yyVal;
 };
@@ -4147,7 +3326,7 @@ states[502] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[503] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.new_hash_pattern(null, support.new_hash_pattern_tail(support.getPosition(((SourceIndexLength)yyVals[-1+yyTop])), null, null));
+    yyVal = support.new_hash_pattern(null, support.new_hash_pattern_tail(support.getPosition(yyVals[-1+yyTop]), null, null));
     return yyVal;
 };
 states[504] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -4201,16 +3380,16 @@ states[515] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[516] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.new_array_pattern_tail(support.getPosition(((Rope)yyVals[0+yyTop])), null, true, ((Rope)yyVals[0+yyTop]), null);
+    yyVal = support.new_array_pattern_tail(support.getPosition(((TruffleString)yyVals[0+yyTop])), null, true, ((TruffleString)yyVals[0+yyTop]), null);
     return yyVal;
 };
 states[517] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.new_array_pattern_tail(support.getPosition(((Rope)yyVals[-2+yyTop])), null, true, ((Rope)yyVals[-2+yyTop]), ((ListParseNode)yyVals[0+yyTop]));
+    yyVal = support.new_array_pattern_tail(support.getPosition(((TruffleString)yyVals[-2+yyTop])), null, true, ((TruffleString)yyVals[-2+yyTop]), ((ListParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
 states[518] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.new_find_pattern_tail(support.getPosition(((Rope)yyVals[-4+yyTop])), ((Rope)yyVals[-4+yyTop]), ((ListParseNode)yyVals[-2+yyTop]), ((Rope)yyVals[0+yyTop]));
-    support.warn(support.getPosition(((Rope)yyVals[-4+yyTop])), "Find pattern is experimental, and the behavior may change in future versions of Ruby!");
+    yyVal = support.new_find_pattern_tail(support.getPosition(((TruffleString)yyVals[-4+yyTop])), ((TruffleString)yyVals[-4+yyTop]), ((ListParseNode)yyVals[-2+yyTop]), ((TruffleString)yyVals[0+yyTop]));
+    support.warn(support.getPosition(((TruffleString)yyVals[-4+yyTop])), "Find pattern is experimental, and the behavior may change in future versions of Ruby!");
     return yyVal;
 };
 states[519] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -4230,7 +3409,7 @@ states[523] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[524] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.new_hash_pattern_tail(support.getPosition(((HashParseNode)yyVals[-2+yyTop])), ((HashParseNode)yyVals[-2+yyTop]), ((Rope)yyVals[0+yyTop]));
+    yyVal = support.new_hash_pattern_tail(support.getPosition(((HashParseNode)yyVals[-2+yyTop])), ((HashParseNode)yyVals[-2+yyTop]), ((TruffleString)yyVals[0+yyTop]));
     return yyVal;
 };
 states[525] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -4242,7 +3421,7 @@ states[526] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[527] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.new_hash_pattern_tail(support.getPosition(((Rope)yyVals[0+yyTop])), null, ((Rope)yyVals[0+yyTop]));
+    yyVal = support.new_hash_pattern_tail(support.getPosition(((TruffleString)yyVals[0+yyTop])), null, ((TruffleString)yyVals[0+yyTop]));
     return yyVal;
 };
 states[528] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -4255,22 +3434,22 @@ states[529] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[530] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    support.error_duplicate_pattern_key(((Rope)yyVals[-1+yyTop]));
+    support.error_duplicate_pattern_key(((TruffleString)yyVals[-1+yyTop]));
 
-    ParseNode label = support.asSymbol(support.getPosition(((Rope)yyVals[-1+yyTop])), ((Rope)yyVals[-1+yyTop]));
+    ParseNode label = support.asSymbol(support.getPosition(((TruffleString)yyVals[-1+yyTop])), ((TruffleString)yyVals[-1+yyTop]));
 
     yyVal = new ParseNodeTuple(label, ((ParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
 states[531] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    support.error_duplicate_pattern_key(((Rope)yyVals[0+yyTop]));
-    if (((Rope)yyVals[0+yyTop]) != null && !support.is_local_id(((Rope)yyVals[0+yyTop]))) {
+    support.error_duplicate_pattern_key(((TruffleString)yyVals[0+yyTop]));
+    if (((TruffleString)yyVals[0+yyTop]) != null && !support.is_local_id(((TruffleString)yyVals[0+yyTop]))) {
         support.yyerror("key must be valid as local variables");
     }
-    support.error_duplicate_pattern_variable(((Rope)yyVals[0+yyTop]));
+    support.error_duplicate_pattern_variable(((TruffleString)yyVals[0+yyTop]));
 
-    ParseNode label = support.asSymbol(support.getPosition(((Rope)yyVals[0+yyTop])), ((Rope)yyVals[0+yyTop]));
-    yyVal = new ParseNodeTuple(label, support.assignableLabelOrIdentifier(((Rope)yyVals[0+yyTop]), null));
+    ParseNode label = support.asSymbol(support.getPosition(((TruffleString)yyVals[0+yyTop])), ((TruffleString)yyVals[0+yyTop]));
+    yyVal = new ParseNodeTuple(label, support.assignableLabelOrIdentifier(((TruffleString)yyVals[0+yyTop]), null));
     return yyVal;
 };
 states[533] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -4371,7 +3550,7 @@ states[560] = (support, lexer, yyVal, yyVals, yyTop) -> {
 states[561] = (support, lexer, yyVal, yyVals, yyTop) -> {
     /* TODO: make a helper for this since it is used twice now*/
     Encoding encoding = support.getConfiguration().getContext() == null ? UTF8Encoding.INSTANCE : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding().jcoding;
-    yyVal = new FileParseNode(lexer.tokline, StringOperations.encodeRope(lexer.getFile(), encoding, CR_UNKNOWN));
+    yyVal = new FileParseNode(lexer.getPosition(), TruffleString.fromByteArrayUncached(lexer.getFile().getBytes(), lexer.tencoding , true), lexer.encoding);
     return yyVal;
 };
 states[562] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -4400,7 +3579,7 @@ states[566] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[567] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.gettable(((Rope)yyVals[0+yyTop]));
+    yyVal = support.gettable(((TruffleString)yyVals[0+yyTop]));
     if (yyVal == null) yyVal = new BeginParseNode(lexer.tokline, NilImplicitParseNode.NIL);
     return yyVal;
 };
@@ -5301,7 +4480,7 @@ states[771] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[772] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = RopeConstants.RCURLY;
+    yyVal = TStringConstants.RCURLY;
     return yyVal;
 };
 states[780] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -5313,7 +4492,7 @@ states[781] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 }
-// line 3248 "RubyParser.y"
+// line 3249 "RubyParser.y"
 
     /** The parse method use an lexer stream and parse it to an AST node 
      * structure
@@ -5330,4 +4509,4 @@ states[781] = (support, lexer, yyVal, yyVals, yyTop) -> {
 }
 // CheckStyle: stop generated
 // @formatter:on
-// line 12155 "-"
+// line 12156 "-"

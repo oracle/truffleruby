@@ -36,21 +36,24 @@
 package org.truffleruby.parser.parser;
 
 
-import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
-import static org.truffleruby.core.rope.RopeConstants.FALSE;
-import static org.truffleruby.core.rope.RopeConstants.NIL;
-import static org.truffleruby.core.rope.RopeConstants.SELF;
-import static org.truffleruby.core.rope.RopeConstants.TRUE;
-import static org.truffleruby.core.rope.RopeConstants.__ENCODING__;
-import static org.truffleruby.core.rope.RopeConstants.__FILE__;
-import static org.truffleruby.core.rope.RopeConstants.__LINE__;
+
+import static org.truffleruby.core.string.TStringConstants.FALSE;
+import static org.truffleruby.core.string.TStringConstants.NIL;
+import static org.truffleruby.core.string.TStringConstants.SELF;
+import static org.truffleruby.core.string.TStringConstants.TRUE;
+import static org.truffleruby.core.string.TStringConstants.__ENCODING__;
+import static org.truffleruby.core.string.TStringConstants.__FILE__;
+import static org.truffleruby.core.string.TStringConstants.__LINE__;
 import static org.truffleruby.parser.parser.ParserSupport.IDType.Constant;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.api.strings.TruffleStringBuilder;
 import org.jcodings.Encoding;
 import org.jcodings.specific.EUCJPEncoding;
 import org.jcodings.specific.SJISEncoding;
@@ -66,11 +69,6 @@ import org.truffleruby.core.regexp.ClassicRegexp;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.string.TStringConstants;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeConstants;
-import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.rope.RopeWithEncoding;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.control.DeferredRaiseException;
@@ -216,6 +214,9 @@ public class ParserSupport {
     private ParseNode numParamCurrent = null;
     private ParseNode numParamInner = null;
     private ParseNode numParamOuter = null;
+
+    private Set<TruffleString> keyTable;
+    private Set<TruffleString> variableTable;
 
     public ParserSupport(LexerSource source, RubyDeferredWarnings warnings) {
         this.file = source.getSourcePath();
@@ -992,7 +993,7 @@ public class ParserSupport {
     }
 
     public ArrayPatternParseNode new_array_pattern_tail(SourceIndexLength line, ListParseNode preArgs, boolean hasRest,
-            Rope restArg, ListParseNode postArgs) {
+            TruffleString restArg, ListParseNode postArgs) {
         return new ArrayPatternParseNode(
                 line,
                 preArgs,
@@ -1004,7 +1005,7 @@ public class ParserSupport {
                 postArgs);
     }
 
-    public void error_duplicate_pattern_key(Rope key) {
+    public void error_duplicate_pattern_key(TruffleString key) {
         // This is for bare one-line matches ({a: 1} => a:).
         if (keyTable == null) {
             keyTable = new HashSet<>();
@@ -1016,7 +1017,7 @@ public class ParserSupport {
         keyTable.add(key);
     }
 
-    public void error_duplicate_pattern_variable(Rope variable) {
+    public void error_duplicate_pattern_variable(TruffleString variable) {
         if (is_private_local_id(variable)) {
             return;
         }
@@ -1027,15 +1028,15 @@ public class ParserSupport {
         variableTable.add(variable);
     }
 
-    public boolean is_private_local_id(Rope name) {
-        if (name.byteLength() == 1 && name.get(0) == '_') {
+    public boolean is_private_local_id(TruffleString name) {
+        if (name.byteLength(lexer.tencoding) == 1 && (char)name.readByteUncached(0, lexer.tencoding) == '_') {
             return true;
         }
         if (!is_local_id(name)) {
             return false;
         }
 
-        return name.get(0) == '_';
+        return name.readByteUncached(0, lexer.tencoding) == '_';
     }
 
     public ParseNode new_find_pattern(ParseNode constant, FindPatternParseNode findPattern) {
@@ -1044,8 +1045,8 @@ public class ParserSupport {
         return findPattern;
     }
 
-    public ParseNode new_find_pattern_tail(SourceIndexLength line, Rope preRestArg, ListParseNode postArgs,
-            Rope postRestArg) {
+    public ParseNode new_find_pattern_tail(SourceIndexLength line, TruffleString preRestArg, ListParseNode postArgs,
+            TruffleString postRestArg) {
         /* FIXME: in MRI all the StarNodes are the same node and so perhaps source line for them is unimportant. */
         return new FindPatternParseNode(
                 line,
@@ -1064,10 +1065,10 @@ public class ParserSupport {
         return hashPatternNode;
     }
 
-    public static Rope KWNOREST = RopeConstants.EMPTY_US_ASCII_ROPE;
+    public static TruffleString KWNOREST = TStringConstants.EMPTY_US_ASCII;
 
     public HashPatternParseNode new_hash_pattern_tail(SourceIndexLength line, HashParseNode keywordArgs,
-            Rope keywordRestArg) {
+            TruffleString keywordRestArg) {
         ParseNode restArg;
 
         if (keywordRestArg == KWNOREST) {          // '**nil'
@@ -1568,19 +1569,19 @@ public class ParserSupport {
     }
 
     public ArgsTailHolder new_args_tail(SourceIndexLength position, ListParseNode keywordArg,
-            TruffleString keywordRestArgNameRope, BlockArgParseNode blockArg) {
-        if (keywordRestArgNameRope == null) {
+            TruffleString keywordRestArgName, BlockArgParseNode blockArg) {
+        if (keywordRestArgName == null) {
             return new ArgsTailHolder(position, keywordArg, null, blockArg);
-        } else if (keywordRestArgNameRope == RubyLexer.Keyword.NIL.bytes) { // def m(**nil)
+        } else if (keywordRestArgName == RubyLexer.Keyword.NIL.bytes) { // def m(**nil)
             return new ArgsTailHolder(position, keywordArg,
                     new NoKeywordsArgParseNode(position, Layouts.TEMP_PREFIX + "nil_kwrest"), blockArg);
         }
 
         final String restKwargsName;
-        if (keywordRestArgNameRope.isEmpty()) {
+        if (keywordRestArgName.isEmpty()) {
             restKwargsName = Layouts.TEMP_PREFIX + "kwrest";
         } else {
-            restKwargsName = keywordRestArgNameRope.toJavaStringUncached().intern();
+            restKwargsName = keywordRestArgName.toJavaStringUncached().intern();
         }
 
         int slot = currentScope.exists(restKwargsName);
@@ -2023,6 +2024,31 @@ public class ParserSupport {
         return null;
     }
 
+    public Set<TruffleString> push_pvtbl() {
+        Set<TruffleString> currentTable = variableTable;
+
+        variableTable = new HashSet<>();
+
+        return currentTable;
+    }
+
+    public void pop_pvtbl(Set<TruffleString> table) {
+        variableTable = table;
+    }
+
+    public Set<TruffleString> push_pktbl() {
+        Set<TruffleString> currentTable = keyTable;
+
+        keyTable = new HashSet<>();
+
+        return currentTable;
+    }
+
+    public void pop_pktbl(Set<TruffleString> table) {
+        keyTable = table;
+    }
+
+
     public ParseNode new_defined(SourceIndexLength position, ParseNode something) {
         return new DefinedParseNode(position, makeNullNil(something));
     }
@@ -2034,7 +2060,7 @@ public class ParserSupport {
     }
 
 
-    public ParseNode gettable(Rope id) {
+    public ParseNode gettable(TruffleString id) {
         SourceIndexLength loc = lexer.getPosition();
         if (id.equals(SELF)) {
             return new SelfParseNode(loc);
@@ -2049,8 +2075,7 @@ public class ParserSupport {
             return new FalseParseNode(loc);
         }
         if (id.equals(__FILE__)) {
-            return new FileParseNode(loc,
-                    RopeOperations.create(lexer.getFile().getBytes(), lexer.getEncoding(), CodeRange.CR_UNKNOWN));
+            return new FileParseNode(loc, TruffleString.fromByteArrayUncached(lexer.getFile().getBytes(), lexer.tencoding , true), lexer.encoding);
         }
         if (id.equals(__LINE__)) {
             return new FixnumParseNode(loc, lexer.getRubySourceLine());
@@ -2059,7 +2084,7 @@ public class ParserSupport {
             return new EncodingParseNode(loc, lexer.getEncoding());
         }
 
-        Rope name = symbolID(id);
+        TruffleString name = symbolID(id);
 
         switch (id_type(id)) {
             case Local: {
@@ -2070,12 +2095,12 @@ public class ParserSupport {
                     if (isNumParamId(id2) && isNumParamNested()) {
                         return null;
                     }
-                    if (name.getBytes().equals(lexer.getCurrentArg())) {
+                    if (name.equals(lexer.getCurrentArg())) {
                         //                        compile_error(str(getConfiguration().getRuntime(), "circular argument reference - ", name));
                         warn(lexer.getPosition(), "circular argument reference - " + name);
                     }
 
-                    ParseNode newNode = new DVarParseNode(loc, slot, name.getJavaString());
+                    ParseNode newNode = new DVarParseNode(loc, slot, TruffleString.ToJavaStringNode.create().execute(name));
 
                     //                    if (warnOnUnusedVariables && newNode instanceof IScopedNode) {
                     //                        scopedParserState.markUsedVariable(name, ((IScopedNode) newNode).getDepth());
@@ -2085,7 +2110,7 @@ public class ParserSupport {
 
                 StaticScope.Type type = currentScope.getType();
                 if (type == StaticScope.Type.LOCAL && slot != -1) {
-                    if (name.getBytes().equals(lexer.getCurrentArg())) {
+                    if (name.equals(lexer.getCurrentArg())) {
                         //                        compile_error(str(getConfiguration().getRuntime(), "circular argument reference - ", name));
                         warn(lexer.getPosition(), "circular argument reference - " + name);
                     }
@@ -2103,7 +2128,7 @@ public class ParserSupport {
                         return null;
                     }
 
-                    ParseNode newNode = new DVarParseNode(loc, slot, name.getJavaString());
+                    ParseNode newNode = new DVarParseNode(loc, slot, TruffleString.ToJavaStringNode.create().execute(name));
                     if (numParamCurrent == null) {
                         numParamCurrent = newNode;
                     }
@@ -2138,8 +2163,8 @@ public class ParserSupport {
         Class;
     }
 
-    public IDType id_type(Rope identifier) { // required for gettable
-        byte first = identifier.get(0);
+    public IDType id_type(TruffleString identifier) { // required for gettable
+        byte first = (byte) identifier.readByteUncached(0, lexer.tencoding);
 
         if (Character.isUpperCase(first)) {
             return Constant;
@@ -2147,7 +2172,7 @@ public class ParserSupport {
 
         switch (first) {
             case '@':
-                return identifier.get(1) == '@' ? IDType.Class : IDType.Instance;
+                return (char)identifier.readByteUncached(1, lexer.tencoding) == '@' ? IDType.Class : IDType.Instance;
             case '$':
                 return IDType.Global;
         }

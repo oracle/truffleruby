@@ -1,8 +1,9 @@
 %{
 package org.truffleruby.parser.parser;
 
+import com.oracle.truffle.api.strings.TruffleString;
 
-import java.util.Set
+import java.util.Set;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 
@@ -172,7 +173,7 @@ public class RubyParser {
 %token <SourceIndexLength> tLPAREN_ARG    /* ( */
 %token <TruffleString> tLBRACK        /* [ */
 %token <TruffleString> tRBRACK        /* ] */
-%token <SourceIndexLength> tLBRACE        /* { */
+%token <Object> tLBRACE        /* { */
 %token <SourceIndexLength> tLBRACE_ARG    /* { */
 %token <TruffleString> tSTAR          /* * */
 %token <TruffleString> tSTAR2         /* *  Is just '*' in ruby and not a token */
@@ -273,9 +274,9 @@ public class RubyParser {
 %type <HashPatternParseNode> p_kwargs
 %type <HashParseNode> p_kwarg
 %type <ParseNodeTuple> p_kw
-%type <Rope> p_rest p_kwrest p_kwnorest p_any_kwrest p_kw_label
+%type <TruffleString> p_rest p_kwrest p_kwnorest p_any_kwrest p_kw_label
 %type <ParseNode> p_lparen p_lbracket
-%type <Rope> nonlocal_var
+%type <TruffleString> nonlocal_var
 %type <Integer> rbrace
 %token <Object> keyword_in
 
@@ -2390,7 +2391,7 @@ p_primitive     : literal
                 | keyword__FILE__ {
                     // TODO: make a helper for this since it is used twice now
                     Encoding encoding = support.getConfiguration().getContext() == null ? UTF8Encoding.INSTANCE : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding().jcoding;
-                    $$ = new FileParseNode(lexer.tokline, StringOperations.encodeRope(lexer.getFile(), encoding, CR_UNKNOWN));
+                    $$ = new FileParseNode(lexer.getPosition(), TruffleString.fromByteArrayUncached(lexer.getFile().getBytes(), lexer.tencoding , true), lexer.encoding);
                 }
                 | keyword__LINE__ {
                     $$ = new FixnumParseNode(lexer.tokline, lexer.getRubySourceLine());
@@ -3226,7 +3227,7 @@ rbracket        : opt_nl tRBRACK {
                     $$ = $2;
                 }
 rbrace          : opt_nl '}' {
-                    $$ = RopeConstants.RCURLY;
+                    $$ = TStringConstants.RCURLY;
                 }
 trailer         : /* none */ | '\n' | ','
 

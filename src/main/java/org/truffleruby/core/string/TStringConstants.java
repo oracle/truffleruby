@@ -43,6 +43,10 @@ public class TStringConstants {
         }
     }
 
+
+    public static final TruffleString __FILE__ = ascii("__FILE__");
+    public static final TruffleString __LINE__ = ascii("__LINE__");
+    public static final TruffleString __ENCODING__ = ascii("__ENCODING__");
     public static final TruffleString AMPERSAND = ascii("&");
     public static final TruffleString AMPERSAND_AMPERSAND = ascii("&&");
     public static final TruffleString AMPERSAND_DOT = ascii("&.");
@@ -93,6 +97,7 @@ public class TStringConstants {
     public static final TruffleString RBRACKET = ascii("]");
     public static final TruffleString RCURLY = ascii("}");
     public static final TruffleString RPAREN = ascii(")");
+    public static final TruffleString SELF = ascii("self");
     public static final TruffleString SEMICOLON = ascii(";");
     public static final TruffleString SLASH = ascii("/");
     public static final TruffleString STAR = ascii("*");
